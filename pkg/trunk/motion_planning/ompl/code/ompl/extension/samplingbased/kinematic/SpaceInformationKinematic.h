@@ -155,33 +155,19 @@ namespace ompl
 	{
 	    memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
 	}
-	
-	virtual double distance(StateKinematic_t s1, StateKinematic_t s2)
-	{
-	    double dist = 0.0;
-	    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	    {
-		double diff = s1->values[i] - s2->values[i];
-		dist += diff * diff;
-	    }
-	    return dist;
-	}
-	    
-	virtual void sample(StateKinematic_t state)
-	{
-	    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-		state->values[i] = random_utils::uniform(&m_rngState, m_stateComponent[i].minValue, m_stateComponent[i].maxValue);	    
-	}
-	
-	virtual void sampleNear(StateKinematic_t state, StateKinematic_t near, double rho)
-	{
-	}
-	
+		
 	unsigned int getStateDimension(void) const
 	{
 	    return m_stateDimension;
 	}
-	
+
+	virtual double distance(StateKinematic_t s1, StateKinematic_t s2);
+
+	virtual void sample(StateKinematic_t state);
+	virtual void sampleNear(StateKinematic_t state, StateKinematic_t near, double rho);	
+
+    protected:
+
 	struct StateComponent
 	{
 	    enum
@@ -190,9 +176,7 @@ namespace ompl
 	    double minValue;
 	    double maxValue;
 	};
-	
-    protected:
-	
+		
 	unsigned int                m_stateDimension;
 	std::vector<StateComponent> m_stateComponent;
 	random_utils::rngState      m_rngState;
