@@ -16,7 +16,6 @@ namespace ompl
 	{
 	    m_nn.setDataParameter(reinterpret_cast<void*>(dynamic_cast<SpaceInformationKinematic_t>(m_si)));
 	    random_utils::init(&m_rngState);
-	    m_solution = NULL;
 	    m_goalBias = 0.05;	    
 	    m_rho = 0.1;	    
 	}
@@ -30,7 +29,6 @@ namespace ompl
 	
 	virtual void clear(void)
 	{
-	    m_solution = NULL;
 	    freeMemory();
 	    m_nn.clear();
 	}
@@ -55,7 +53,6 @@ namespace ompl
 	    }
 	};
 	
-	SpaceInformationKinematic::MotionKinematic_t                                     m_solution;
 	NearestNeighbors<SpaceInformationKinematic::MotionKinematic_t, distanceFunction> m_nn;
 	double                                                                           m_goalBias;
 	double                                                                           m_rho;	

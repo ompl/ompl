@@ -32,6 +32,8 @@ bool ompl::RRT::solve(double solveTime)
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue;
     
+    SpaceInformationKinematic::MotionKinematic_t solution = NULL;
+    
     SpaceInformationKinematic::MotionKinematic_t rmotion = new SpaceInformationKinematic::MotionKinematic(dim);
     SpaceInformationKinematic::StateKinematic_t  rstate  = rmotion->state;
 
@@ -63,11 +65,29 @@ bool ompl::RRT::solve(double solveTime)
 	
 	if (goal_r->distanceGoal(motion->state) < goal_r->threshold)
 	{
-	    m_solution = motion;
+	    solution = motion;
 	    break;	    
 	}
-    }
-
+    }    
+    
     delete xstate;
     delete rmotion;
+
+    if (solution != NULL)
+    {
+	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+	
+	std::vector<SpaceInformationKinematic::StateKinematic_t> states;
+	while (solution != NULL)
+	{
+	    states.push_back(solution->state);
+	    solution = solution->parent;
+	}
+	for (int i = states.size() - 1 ; i >= 0 ; ++i)
+	    path->states.push_back(states[i]);	
+
+	goal_r->setSolutionPath(path);	
+    }
+    
+    return goal_r->isAchieved();
 }
