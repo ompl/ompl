@@ -90,27 +90,23 @@ namespace ompl
 	    SpaceInformation_t m_si;
 	};
 	
-	void addGoal(Goal_t goal)
+	void setGoal(Goal_t goal)
 	{
-	    m_goals.push_back(goal);
+	    if (m_goal)
+		delete m_goal;
+	    m_goal = goal;
 	}
 	
-	void clearGoals(bool free = true)
+	void clearGoal(bool free = true)
 	{
-	    if (free)
-		for (unsigned int i = 0 ; i < m_goals.size() ; ++i)
-		    delete m_goals[i];
-	    m_goals.clear();
+	    if (free && m_goal)
+		delete m_goal;
+	    m_goal = NULL;
 	}
 
-	unsigned int getGoalCount(void) const
+	Goal_t getGoal(void) const
 	{
-	    return m_goals.size();
-	}
-	
-	Goal_t getGoal(unsigned int index) const
-	{
-	    return m_goals[index];
+	    return m_goal;
 	}
 	
 	
@@ -128,12 +124,12 @@ namespace ompl
 	    }
 	};
 	
-	void addInitialState(State_t state)
+	void addStartState(State_t state)
 	{
 	    m_startStates.push_back(state);
 	}
 	
-	void clearInitialStates(bool free = true)
+	void clearStartStates(bool free = true)
 	{
 	    if (free)
 		for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
@@ -153,7 +149,7 @@ namespace ompl
 	
     protected:
 	
-	std::vector<Goal_t>  m_goals;
+	Goal_t               m_goal;
 	std::vector<State_t> m_startStates;
 	
     };

@@ -8,7 +8,8 @@
   <url></url>
 
   <depend package="random_utils"/>
-  
+  <depend package="time_utils"/>
+
   <export>
     <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl"/>
   </export>

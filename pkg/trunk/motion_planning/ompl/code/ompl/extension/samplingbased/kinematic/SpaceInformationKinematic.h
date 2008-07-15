@@ -46,6 +46,8 @@ namespace ompl
 	    double *values;
 	};
 
+	ForwardClassDeclaration(GoalRegionKinematic);
+
 	class GoalRegionKinematic : public Goal
 	{
 	public:
@@ -63,6 +65,8 @@ namespace ompl
 	    	    
 	    double threshold;
 	};
+
+	ForwardClassDeclaration(GoalStateKinematic);
 
 	class GoalStateKinematic : public GoalRegionKinematic
 	{
@@ -87,6 +91,8 @@ namespace ompl
 	    StateKinematic_t state;
 	};
 	
+	ForwardClassDeclaration(PathKinematic);
+
 	class PathKinematic : public Path
 	{
 	public:
@@ -143,7 +149,16 @@ namespace ompl
 	    bool              valid;
 	    
 	};
-	
+
+	struct StateComponent
+	{
+	    enum
+		{ NORMAL, FIXED	}
+		type;	    
+	    double minValue;
+	    double maxValue;
+	};
+
 	void printState(StateKinematic_const_t state, FILE* out = stdout)
 	{
 	    for (int i = 0 ; i < m_stateDimension ; ++i)
@@ -161,23 +176,19 @@ namespace ompl
 	    return m_stateDimension;
 	}
 
-	virtual double distance(StateKinematic_t s1, StateKinematic_t s2);
+	const StateComponent& getStateComponent(unsigned int index) const
+	{
+	    return m_stateComponent[index];
+	}
+	
+	virtual double distance(const StateKinematic_t s1, const StateKinematic_t s2);
 
 	virtual void sample(StateKinematic_t state);
-	virtual void sampleNear(StateKinematic_t state, StateKinematic_t near, double rho);	
+	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);	
 
-	virtual bool isValid(StateKinematic_t state) = 0;
+	virtual bool isValid(const StateKinematic_t state) = 0;
 	
     protected:
-
-	struct StateComponent
-	{
-	    enum
-		{ NORMAL, FIXED	}
-		type;	    
-	    double minValue;
-	    double maxValue;
-	};
 		
 	unsigned int                m_stateDimension;
 	std::vector<StateComponent> m_stateComponent;
