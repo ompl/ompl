@@ -1,0 +1,16 @@
+<package>
+  <description brief="Open Motion Planning Library (OMPL)">
+    A library of motion planning algorithms
+
+  </description>
+  <author>Ioan Sucan/isucan@willowgarage.com</author>
+  <license>BSD</license>
+  <url></url>
+
+  <depend package="random_utils"/>
+  
+  <export>
+    <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl"/>
+  </export>
+  
+</package>
