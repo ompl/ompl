@@ -166,6 +166,8 @@ namespace ompl
 	virtual void sample(StateKinematic_t state);
 	virtual void sampleNear(StateKinematic_t state, StateKinematic_t near, double rho);	
 
+	virtual bool isValid(StateKinematic_t state) = 0;
+	
     protected:
 
 	struct StateComponent
