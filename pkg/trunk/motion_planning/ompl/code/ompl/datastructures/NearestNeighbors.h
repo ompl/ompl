@@ -24,45 +24,14 @@ namespace ompl
 	    m_parameter = parameter;
 	}
 	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);	    
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
-	    {
-		double distance = _DistanceFunction()(m_data[i], data, m_parameter);
-		if (pos < 0 || dmin > distance)
-		{
-		    pos = i;
-		    dmin = distance;
-		}		
-	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
-	
-	unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
+	virtual void clear(void) = 0;
+	virtual void add(_T &data) = 0;
+	virtual _T nearest(_T &data) const = 0;
+	virtual unsigned int size(void) const = 0;		
+	virtual void list(std::vector<_T> &data) const = 0;
+		
     protected:
 	
-	std::vector<_T>  m_data;
 	void            *m_parameter;
 	
     };

@@ -1,6 +1,6 @@
-#include "ompl/extension/samplingbased/kinematic/extension/rrt/RRT.h"
+#include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
 
-bool ompl::RRT::solve(double solveTime)
+bool ompl::LazyRRT::solve(double solveTime)
 {
     SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
     SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
@@ -14,7 +14,10 @@ bool ompl::RRT::solve(double solveTime)
 	Motion_t motion = new Motion(dim);
 	si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
 	if (si->isValid(motion->state))
+	{
+	    motion->valid = true;
 	    m_nn.add(motion);
+	}	
 	else
 	{
 	    fprintf(stderr, "Initial state is in collision!\n");
@@ -37,6 +40,8 @@ bool ompl::RRT::solve(double solveTime)
     SpaceInformationKinematic::StateKinematic_t rstate   = rmotion->state;
     SpaceInformationKinematic::StateKinematic_t xstate   = new SpaceInformationKinematic::StateKinematic(dim);
     
+ RETRY:
+
     while (time_utils::elapsed(dt) < solveTime)
     {
 	/* sample random state (with goal biasing) */
@@ -59,18 +64,15 @@ bool ompl::RRT::solve(double solveTime)
 	Motion_t motion = new Motion(dim);
 	si->copyState(motion->state, xstate);
 	motion->parent = nmotion;
-
-	if (si->checkMotion(nmotion->state, motion->state))
+	nmotion->children.push_back(motion);
+	m_nn.add(motion);
+	
+	if (goal_r->distanceGoal(motion->state) < goal_r->threshold)
 	{
-	    m_nn.add(motion);
-	    
-	    if (goal_r->distanceGoal(motion->state) < goal_r->threshold)
-	    {
-		solution = motion;
-		break;	    
-	    }
+	    solution = motion;
+	    break;	    
 	}
-    }
+    }    
     
     if (solution != NULL)
     {
@@ -81,6 +83,17 @@ bool ompl::RRT::solve(double solveTime)
 	    mpath.push_back(solution);
 	    solution = solution->parent;
 	}
+
+	/* check the path */
+	for (int i = mpath.size() - 1 ; i >= 0 ; ++i)
+	    if (!mpath[i]->valid)
+		if (si->checkMotion(mpath[i]->parent->state, mpath[i]->state))
+		    mpath[i]->valid = true;
+		else
+		{
+		    removeMotion(mpath[i]);
+		    goto RETRY;
+		}
 
 	/*set the solution path */
 	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
@@ -94,3 +107,9 @@ bool ompl::RRT::solve(double solveTime)
 
     return goal_r->isAchieved();
 }
+
+void ompl::LazyRRT::removeMotion(Motion_t motion)
+{
+    
+}
+

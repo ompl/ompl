@@ -1,5 +1,5 @@
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_LAZY_RRT_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_LAZY_RRT_
 
 #include "ompl/base/MotionPlanner.h"
 #include "ompl/datastructures/NearestNeighborsLinear.h"
@@ -8,13 +8,13 @@
 namespace ompl
 {
 
-    ForwardClassDeclaration(RRT);
-    
-    class RRT : public MotionPlanner
+    ForwardClassDeclaration(LazyRRT);
+
+    class LazyRRT : public MotionPlanner
     {
     public:
 
-        RRT(SpaceInformation_t si) : MotionPlanner(si)
+        LazyRRT(SpaceInformation_t si) : MotionPlanner(si)
 	{
 	    m_nn.setDataParameter(reinterpret_cast<void*>(dynamic_cast<SpaceInformationKinematic_t>(m_si)));
 	    random_utils::init(&m_rngState);
@@ -22,7 +22,7 @@ namespace ompl
 	    m_rho = 0.1;	    
 	}
 
-	virtual ~RRT(void)
+	virtual ~LazyRRT(void)
 	{
 	    freeMemory();
 	}
@@ -36,8 +36,7 @@ namespace ompl
 	}
 	
     protected:
-
-       	ForwardClassDeclaration(Motion);
+       ForwardClassDeclaration(Motion);
 	
 	class Motion
 	{
@@ -47,12 +46,14 @@ namespace ompl
 	    {
 		parent = NULL;
 		state  = NULL;
+		valid  = false;
 	    }
 	    
 	    Motion(unsigned int dimension)
 	    {
 		state  = new SpaceInformationKinematic::StateKinematic(dimension);
 		parent = NULL;
+		valid  = false;
 	    }
 	    
 	    virtual ~Motion(void)
@@ -63,7 +64,8 @@ namespace ompl
 	    
 	    SpaceInformationKinematic::StateKinematic_t state;
 	    Motion_t                                    parent;
-	    
+	    std::vector<Motion_t>                       children;
+	    bool                                        valid;
 	};
 
 	void freeMemory(void)
@@ -73,6 +75,8 @@ namespace ompl
 	    for (unsigned int i = 0 ; i < motions.size() ; ++i)
 		delete motions[i];
 	}
+
+	void removeMotion(Motion_t motion);	
 	
 	struct distanceFunction
 	{
@@ -83,9 +87,9 @@ namespace ompl
 	};
 	
 	NearestNeighborsLinear<Motion_t, distanceFunction> m_nn;
-	double                                       m_goalBias;
-	double                                       m_rho;	
-	random_utils::rngState                       m_rngState;	
+	double                                             m_goalBias;
+	double                                             m_rho;	
+	random_utils::rngState                             m_rngState;	
     };
 
 }

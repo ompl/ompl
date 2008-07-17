@@ -12,9 +12,13 @@ namespace ompl
     {
     public:
 	
-	SpaceInformationKinematic(void) : SpaceInformation()
+	SpaceInformationKinematic() : SpaceInformation()
 	{
 	    random_utils::init(&m_rngState);
+	    m_isValidStateFn = NULL;	    
+	    m_smoother.rangeRatio    = 0.2;
+	    m_smoother.maxSteps      = 10;
+	    m_smoother.maxEmptySteps = 3;
 	}
 	
 	virtual ~SpaceInformationKinematic(void)
@@ -117,56 +121,25 @@ namespace ompl
 	    }
 	};
 	
-	
-	ForwardClassDeclaration(MotionKinematic);
-	
-	class MotionKinematic 
-	{
-	public:
-	    
-	    MotionKinematic(void)
-	    {
-		parent = NULL;
-		state  = NULL;
-		valid  = false;
-	    }
-	    
-	    MotionKinematic(unsigned int dimension)
-	    {
-		state  = new StateKinematic(dimension);
-		parent = NULL;
-		valid  = false;
-	    }
-	    
-	    virtual ~MotionKinematic(void)
-	    {
-		if (state)
-		    delete state;
-	    }
-	    
-	    StateKinematic_t  state;
-	    MotionKinematic_t parent;
-	    bool              valid;
-	    
-	};
-
 	struct StateComponent
 	{
 	    enum
 		{ NORMAL, FIXED	}
-		type;	    
+		type;
 	    double minValue;
 	    double maxValue;
+	    double resolution;
 	};
 
-	void printState(StateKinematic_const_t state, FILE* out = stdout)
+	typedef bool (*IsStateValidFn)(const StateKinematic_t);
+       
+	void setStateValidFn(IsStateValidFn fun)
 	{
-	    for (int i = 0 ; i < m_stateDimension ; ++i)
-		fprintf(out, "%0.6f ", state->values[i]);
-	    fprintf(out, "\n");
+	    m_isValidStateFn = fun;
 	}
 	
-	void copyState(StateKinematic_t destination, StateKinematic_const_t source)
+	virtual void printState(const StateKinematic_t state, FILE* out = stdout);		
+	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source)
 	{
 	    memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
 	}
@@ -185,13 +158,27 @@ namespace ompl
 
 	virtual void sample(StateKinematic_t state);
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);	
-
-	virtual bool isValid(const StateKinematic_t state) = 0;
+	virtual void smoothVertices(PathKinematic_t path);	
+	virtual bool checkMotion(const StateKinematic_t s1, const StateKinematic_t s2);
+	virtual bool isValid(const StateKinematic_t state)
+	{
+	    return m_isValidStateFn(state);
+	}
 	
     protected:
 		
 	unsigned int                m_stateDimension;
 	std::vector<StateComponent> m_stateComponent;
+	IsStateValidFn              m_isValidStateFn;
+	
+	struct
+	{
+	    double       rangeRatio;
+	    unsigned int maxSteps;
+	    unsigned int maxEmptySteps;
+	    
+	} m_smoother;
+
 	random_utils::rngState      m_rngState;
 	
     };
