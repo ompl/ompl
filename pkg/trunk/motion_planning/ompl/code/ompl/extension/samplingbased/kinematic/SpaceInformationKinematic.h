@@ -15,7 +15,10 @@ namespace ompl
 	SpaceInformationKinematic() : SpaceInformation()
 	{
 	    random_utils::init(&m_rngState);
-	    m_isValidStateFn = NULL;	    
+
+	    m_isValidStateFn     = NULL;
+	    m_isValidStateFnData = NULL;
+	    
 	    m_smoother.rangeRatio    = 0.2;
 	    m_smoother.maxSteps      = 10;
 	    m_smoother.maxEmptySteps = 3;
@@ -131,11 +134,12 @@ namespace ompl
 	    double resolution;
 	};
 
-	typedef bool (*IsStateValidFn)(const StateKinematic_t);
+	typedef bool (*IsStateValidFn)(const StateKinematic_t, void*);
        
-	void setStateValidFn(IsStateValidFn fun)
+	void setStateValidFn(IsStateValidFn fun, void *data)
 	{
-	    m_isValidStateFn = fun;
+	    m_isValidStateFn     = fun;
+	    m_isValidStateFnData = data;
 	}
 	
 	virtual void printState(const StateKinematic_t state, FILE* out = stdout);		
@@ -162,7 +166,7 @@ namespace ompl
 	virtual bool checkMotion(const StateKinematic_t s1, const StateKinematic_t s2);
 	virtual bool isValid(const StateKinematic_t state)
 	{
-	    return m_isValidStateFn(state);
+	    return m_isValidStateFn(state, m_isValidStateFnData);
 	}
 	
     protected:
@@ -170,6 +174,7 @@ namespace ompl
 	unsigned int                m_stateDimension;
 	std::vector<StateComponent> m_stateComponent;
 	IsStateValidFn              m_isValidStateFn;
+	void                       *m_isValidStateFnData;
 	
 	struct
 	{
