@@ -1,7 +1,7 @@
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
 
-#include "ompl/base/MotionPlanner.h"
+#include "ompl/base/Planner.h"
 #include "ompl/datastructures/NearestNeighborsLinear.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 
@@ -10,11 +10,11 @@ namespace ompl
 
     ForwardClassDeclaration(RRT);
     
-    class RRT : public MotionPlanner
+    class RRT : public Planner
     {
     public:
 
-        RRT(SpaceInformation_t si) : MotionPlanner(si)
+        RRT(SpaceInformation_t si) : Planner(si)
 	{
 	    m_nn.setDataParameter(reinterpret_cast<void*>(dynamic_cast<SpaceInformationKinematic_t>(m_si)));
 	    random_utils::init(&m_rngState);

@@ -7,19 +7,19 @@
 namespace ompl
 {
 
-    ForwardClassDeclaration(MotionPlanner);
+    ForwardClassDeclaration(Planner);
     
-    class MotionPlanner
+    class Planner
     {
 	
     public:
 	
-	MotionPlanner(SpaceInformation_t si)
+	Planner(SpaceInformation_t si)
 	{
 	    m_si = si;
 	}
 	
-	virtual ~MotionPlanner(void)
+	virtual ~Planner(void)
 	{
 	}
 	

@@ -3,6 +3,9 @@
 
 #include "ompl/base/SpaceInformation.h"
 
+#include <random_utils/random_utils.h>
+#include <ros/time.h>
+
 namespace ompl
 {
 
