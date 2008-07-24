@@ -14,6 +14,7 @@ namespace ompl
     public:
 	SpaceInformation(void)
 	{
+	    m_goal = NULL;	    
 	}
 	
 	virtual ~SpaceInformation(void)
