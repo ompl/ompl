@@ -7,6 +7,9 @@ bool ompl::RRT::solve(double solveTime)
     SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                        dim = si->getStateDimension();
     
+    printf("Received motion planning request for %f seconds.\n", solveTime);
+    si->printSettings();
+    
     ros::Time endTime = ros::Time::now() +  ros::Duration(solveTime);
     
     for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
@@ -63,7 +66,6 @@ bool ompl::RRT::solve(double solveTime)
 	if (si->checkMotion(nmotion->state, motion->state))
 	{
 	    m_nn.add(motion);
-	    
 	    if (goal_r->distanceGoal(motion->state) < goal_r->threshold)
 	    {
 		solution = motion;
@@ -82,10 +84,14 @@ bool ompl::RRT::solve(double solveTime)
 	    solution = solution->parent;
 	}
 
-	/*set the solution path */
+	/* set the solution path */
 	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
-   	for (int i = mpath.size() - 1 ; i >= 0 ; ++i)
-	    path->states.push_back(mpath[i]->state);
+   	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+	{   
+	    SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+	    si->copyState(st, mpath[i]->state);
+	    path->states.push_back(st);
+	}
 	goal_r->setSolutionPath(path);	
     }
 

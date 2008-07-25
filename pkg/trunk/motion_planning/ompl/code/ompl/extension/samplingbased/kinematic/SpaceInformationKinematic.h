@@ -145,7 +145,7 @@ namespace ompl
 	    m_isValidStateFnData = data;
 	}
 	
-	virtual void printState(const StateKinematic_t state, FILE* out = stdout);		
+	virtual void printState(const StateKinematic_t state, FILE* out = stdout) const;
 	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source)
 	{
 	    memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
@@ -171,6 +171,8 @@ namespace ompl
 	{
 	    return m_isValidStateFn(state, m_isValidStateFnData);
 	}
+	
+	virtual void printSettings(FILE *out = stdout) const;
 	
     protected:
 		

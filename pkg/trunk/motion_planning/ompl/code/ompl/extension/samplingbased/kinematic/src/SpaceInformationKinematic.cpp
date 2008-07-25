@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <queue>
 
-void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, FILE* out)
+void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, FILE* out) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	fprintf(out, "%0.6f ", state->values[i]);
@@ -125,4 +125,18 @@ void ompl::SpaceInformationKinematic::smoothVertices(PathKinematic_t path)
 	    nochange = 0;
 	}
     }
+}
+
+void ompl::SpaceInformationKinematic::printSettings(FILE *out) const
+{
+    fprintf(out, "Kinematic state space settings:\n");
+    fprintf(out, "  - dimension = %u\n", m_stateDimension);
+    fprintf(out, "  - start states:\n");
+    for (unsigned int i = 0 ; i < getStartStateCount() ; ++i)
+	 printState(dynamic_cast<const StateKinematic_t>(getStartState(i)), out);
+    fprintf(out, "  - goal = %p\n", m_goal);
+    fprintf(out, "  - bounding box:\n");
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	fprintf(out, "[%f, %f](%f) ", m_stateComponent[i].minValue, m_stateComponent[i].maxValue, m_stateComponent[i].resolution);
+    fprintf(out, "\n");
 }
