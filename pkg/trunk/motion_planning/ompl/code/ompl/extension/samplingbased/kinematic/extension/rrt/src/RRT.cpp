@@ -97,9 +97,6 @@ bool ompl::RRT::solve(double solveTime)
 
     delete xstate;
     delete rmotion;
-    
-    double tsolve = solveTime - (endTime - ros::Time::now()).to_double();
-    printf("Solved in %f seconds\n", tsolve);
 	
     return goal_r->isAchieved();
 }
