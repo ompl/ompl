@@ -8,7 +8,6 @@
   <url></url>
 
   <depend package="random_utils"/>
-  <depend package="roscpp"/> <!-- we need this only for time functions; -->
 
   <export>
     <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl"/>

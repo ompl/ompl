@@ -7,7 +7,7 @@ bool ompl::LazyRRT::solve(double solveTime)
     SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                        dim = si->getStateDimension();
 
-    ros::Time endTime = ros::Time::now() +  ros::Duration(solveTime);
+    time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
 
     for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
     {
@@ -42,7 +42,7 @@ bool ompl::LazyRRT::solve(double solveTime)
     
  RETRY:
 
-    while (ros::Time::now() < endTime)
+    while (time_utils::Time::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
 	if (goal_s && random_utils::uniform(&m_rngState, 0.0, 1.0) < m_goalBias)

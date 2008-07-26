@@ -10,7 +10,7 @@ bool ompl::RRT::solve(double solveTime)
     printf("Received motion planning request for %f seconds.\n", solveTime);
     si->printSettings();
     
-    ros::Time endTime = ros::Time::now() +  ros::Duration(solveTime);
+    time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
     
     for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
     {
@@ -40,7 +40,7 @@ bool ompl::RRT::solve(double solveTime)
     SpaceInformationKinematic::StateKinematic_t rstate   = rmotion->state;
     SpaceInformationKinematic::StateKinematic_t xstate   = new SpaceInformationKinematic::StateKinematic(dim);
     
-    while (ros::Time::now() < endTime)
+    while (time_utils::Time::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
 	if (goal_s && random_utils::uniform(&m_rngState, 0.0, 1.0) < m_goalBias)
