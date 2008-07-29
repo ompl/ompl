@@ -138,6 +138,4 @@ void ompl::LazyRRT::removeMotion(Motion_t motion)
 	motion->children[i]->parent = NULL;
 	removeMotion(motion->children[i]);
     }
-    
-    delete motion;
 }

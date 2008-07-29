@@ -21,19 +21,21 @@ namespace ompl
 	virtual void clear(void)
 	{
 	    m_data.clear();
+	    m_active.clear();
 	}
 
 	virtual void add(_T &data)
 	{
 	    m_data.push_back(data);
+	    m_active.push_back(true);
 	}
 
 	virtual bool remove(_T &data)
 	{
-	    for (typename std::vector<_T>::iterator i = m_data.begin() ; i != m_data.end() ; i++)
-		if (*i == data)
+	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
+		if (m_data[i] == data)
 		{
-		    m_data.erase(i);
+		    m_active[i] = false;
 		    return true;
 		}
 	    return false;
@@ -45,12 +47,15 @@ namespace ompl
 	    double dmin = 0.0;
 	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
 	    {
-		double distance = _DistanceFunction()(m_data[i], data, NearestNeighbors<_T, _DistanceFunction>::m_parameter);
-		if (pos < 0 || dmin > distance)
+		if (m_active[i])
 		{
-		    pos = i;
-		    dmin = distance;
-		}		
+		    double distance = _DistanceFunction()(m_data[i], data, NearestNeighbors<_T, _DistanceFunction>::m_parameter);
+		    if (pos < 0 || dmin > distance)
+		    {
+			pos = i;
+			dmin = distance;
+		    }
+		}
 	    }
 	    return pos >= 0 ? m_data[pos] : data;
 	}
@@ -67,7 +72,8 @@ namespace ompl
 	
     protected:
 	
-	std::vector<_T>  m_data;
+	std::vector<_T>   m_data;
+	std::vector<bool> m_active;
 	
     };
     
