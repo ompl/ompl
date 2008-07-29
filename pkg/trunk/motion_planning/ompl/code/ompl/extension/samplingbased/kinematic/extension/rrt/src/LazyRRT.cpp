@@ -89,7 +89,7 @@ bool ompl::LazyRRT::solve(double solveTime)
 	}
 
 	/* check the path */
-	for (int i = mpath.size() - 1 ; i >= 0 ; ++i)
+	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	    if (!mpath[i]->valid)
 		if (si->checkMotion(mpath[i]->parent->state, mpath[i]->state))
 		    mpath[i]->valid = true;
@@ -120,4 +120,24 @@ bool ompl::LazyRRT::solve(double solveTime)
 void ompl::LazyRRT::removeMotion(Motion_t motion)
 {
     assert(m_nn.remove(motion));
+    
+    /* remove self from parent list */
+    if (motion->parent)
+    {
+	for (unsigned int i = 0 ; i < motion->parent->children.size() ; ++i)
+	    if (motion->parent->children[i] == motion)
+	    {
+		motion->parent->children.erase(motion->parent->children.begin() + i);
+		break;
+	    }
+    }
+    
+    /* remove children */
+    for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
+    {
+	motion->children[i]->parent = NULL;
+	removeMotion(motion->children[i]);
+    }
+    
+    delete motion;
 }
