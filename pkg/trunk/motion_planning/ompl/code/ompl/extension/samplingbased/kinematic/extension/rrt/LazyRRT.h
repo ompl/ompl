@@ -2,7 +2,7 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_LAZY_RRT_
 
 #include "ompl/base/Planner.h"
-#include "ompl/datastructures/NearestNeighborsLinear.h"
+#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 
 namespace ompl
@@ -86,7 +86,8 @@ namespace ompl
 	    }
 	};
 	
-	NearestNeighborsLinear<Motion_t, distanceFunction> m_nn;
+	NearestNeighborsSqrtApprox<Motion_t, distanceFunction> m_nn;
+
 	double                                             m_goalBias;
 	double                                             m_rho;	
 	random_utils::rngState                             m_rngState;	
