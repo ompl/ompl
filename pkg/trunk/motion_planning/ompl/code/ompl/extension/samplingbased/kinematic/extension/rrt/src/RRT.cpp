@@ -7,24 +7,24 @@ bool ompl::RRT::solve(double solveTime)
     SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                        dim = si->getStateDimension();
     
-    printf("Received motion planning request for %f seconds.\n", solveTime);
-    si->printSettings();
-    
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
-    
-    for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
-    {
-	Motion_t motion = new Motion(dim);
-	si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
-	if (si->isValid(motion->state))
-	    m_nn.add(motion);
-	else
-	{
-	    fprintf(stderr, "Initial state is in collision!\n");
-	    delete motion;
-	}	
-    }
 
+    if (m_nn.size() == 0)
+    {
+	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	{
+	    Motion_t motion = new Motion(dim);
+	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
+	    if (si->isValid(motion->state))
+		m_nn.add(motion);
+	    else
+	    {
+		fprintf(stderr, "Initial state is in collision!\n");
+		delete motion;
+	    }	
+	}
+    }
+    
     if (m_nn.size() == 0)
     {
 	fprintf(stderr, "There are no valid initial states!\n");
@@ -47,7 +47,7 @@ bool ompl::RRT::solve(double solveTime)
 	    si->copyState(rstate, goal_s->state);
 	else
 	    si->sample(rstate);
-
+	
 	/* find closest state in the tree */
 	Motion_t nmotion = m_nn.nearest(rmotion);
 	

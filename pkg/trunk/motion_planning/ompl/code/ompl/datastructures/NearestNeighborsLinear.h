@@ -25,7 +25,18 @@ namespace ompl
 
 	virtual void add(_T &data)
 	{
-	    m_data.push_back(data);	    
+	    m_data.push_back(data);
+	}
+
+	virtual bool remove(_T &data)
+	{
+	    for (typename std::vector<_T>::iterator i = m_data.begin() ; i != m_data.end() ; i++)
+		if (*i == data)
+		{
+		    m_data.erase(i);
+		    return true;
+		}
+	    return false;
 	}
 	
 	virtual _T nearest(_T &data) const

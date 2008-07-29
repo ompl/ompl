@@ -1,4 +1,5 @@
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
+#include <cassert>
 
 bool ompl::LazyRRT::solve(double solveTime)
 {
@@ -8,23 +9,26 @@ bool ompl::LazyRRT::solve(double solveTime)
     unsigned int                                        dim = si->getStateDimension();
 
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
-
-    for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+    
+    if (m_nn.size() == 0)
     {
-	Motion_t motion = new Motion(dim);
-	si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
-	if (si->isValid(motion->state))
+	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
 	{
-	    motion->valid = true;
-	    m_nn.add(motion);
-	}	
-	else
-	{
-	    fprintf(stderr, "Initial state is in collision!\n");
-	    delete motion;
-	}	
+	    Motion_t motion = new Motion(dim);
+	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
+	    if (si->isValid(motion->state))
+	    {
+		motion->valid = true;
+		m_nn.add(motion);
+	    }	
+	    else
+	    {
+		fprintf(stderr, "Initial state is in collision!\n");
+		delete motion;
+	    }	
+	}
     }
-
+    
     if (m_nn.size() == 0)
     {
 	fprintf(stderr, "There are no valid initial states!\n");
@@ -97,8 +101,13 @@ bool ompl::LazyRRT::solve(double solveTime)
 
 	/*set the solution path */
 	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
-   	for (int i = mpath.size() - 1 ; i >= 0 ; ++i)
-	    path->states.push_back(mpath[i]->state);
+   	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+	{
+	    SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+	    si->copyState(st, mpath[i]->state);
+	    path->states.push_back(st);
+	}
+	
 	goal_r->setSolutionPath(path);	
     }
 
@@ -110,6 +119,5 @@ bool ompl::LazyRRT::solve(double solveTime)
 
 void ompl::LazyRRT::removeMotion(Motion_t motion)
 {
-    
+    assert(m_nn.remove(motion));
 }
-
