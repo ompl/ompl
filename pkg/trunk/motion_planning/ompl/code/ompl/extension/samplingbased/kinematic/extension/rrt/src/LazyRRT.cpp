@@ -42,6 +42,12 @@ bool ompl::LazyRRT::solve(double solveTime)
     SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                        dim = si->getStateDimension();
 
+    if (!goal_s && !goal_r)
+    {
+	fprintf(stderr, "Unknown type of goal\n");
+	return false;
+    }
+    
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
     
     if (m_nn.size() == 0)

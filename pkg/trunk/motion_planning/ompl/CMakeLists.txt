@@ -6,4 +6,5 @@ rospack_add_library(ompl code/ompl/base/src/time.cpp
 			 code/ompl/extension/samplingbased/kinematic/src/SpaceInformationKinematic.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/rrt/src/RRT.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/rrt/src/LazyRRT.cpp
+			 code/ompl/extension/samplingbased/kinematic/extension/sbl/src/SBL.cpp
 			 )
