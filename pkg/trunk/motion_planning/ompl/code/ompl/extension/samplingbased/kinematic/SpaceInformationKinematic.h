@@ -161,9 +161,14 @@ namespace ompl
 	
 	struct StateComponent
 	{
+	    StateComponent(void)
+	    {
+		type = UNKNOWN;
+	    }
+	    
 	    enum
-		{ NORMAL, FIXED	}
-		type;
+		{ UNKNOWN, NORMAL, QUATERNION, FIXED }
+		   type;
 	    double minValue;
 	    double maxValue;
 	    double resolution;
