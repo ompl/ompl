@@ -167,7 +167,7 @@ namespace ompl
 	    }
 	    
 	    enum
-		{ UNKNOWN, NORMAL, QUATERNION, FIXED }
+		{ UNKNOWN, NORMAL, ANGLE, QUATERNION, FIXED }
 		   type;
 	    double minValue;
 	    double maxValue;
