@@ -69,6 +69,26 @@ namespace ompl
 	    m_nn.clear();
 	}
 	
+	void setGoalBias(double goalBias)
+	{
+	    m_goalBias = goalBias;
+	}
+	
+	double getGoalBias(void) const
+	{
+	    return m_goalBias;
+	}
+	
+	void setRange(double rho)
+	{
+	    m_rho = rho;
+	}
+	
+	double getRange(void) const
+	{
+	    return m_rho;
+	}
+	
     protected:
        ForwardClassDeclaration(Motion);
 	
