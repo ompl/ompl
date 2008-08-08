@@ -73,12 +73,14 @@ bool ompl::RRT::solve(double solveTime)
 
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
-	range[i] = m_rho * si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue;
+	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
-    Motion_t                                    solution = NULL;
-    Motion_t                                    rmotion  = new Motion(dim);
-    SpaceInformationKinematic::StateKinematic_t rstate   = rmotion->state;
-    SpaceInformationKinematic::StateKinematic_t xstate   = new SpaceInformationKinematic::StateKinematic(dim);
+    Motion_t                                    solution  = NULL;
+    Motion_t                                    approxsol = NULL;
+    double                                      approxdif = INFINITY;
+    Motion_t                                    rmotion   = new Motion(dim);
+    SpaceInformationKinematic::StateKinematic_t rstate    = rmotion->state;
+    SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
     
     while (time_utils::Time::now() < endTime)
     {
@@ -106,12 +108,26 @@ bool ompl::RRT::solve(double solveTime)
 	if (si->checkMotion(nmotion->state, motion->state))
 	{
 	    m_nn.add(motion);
-	    if (goal_r->distanceGoal(motion->state) < goal_r->threshold)
+	    double dist = goal_r->distanceGoal(motion->state);
+	    if (dist < goal_r->threshold)
 	    {
+		approxdif = dist;
 		solution = motion;
-		break;	    
+		break;
+	    }
+	    if (dist < approxdif)
+	    {
+		approxdif = dist;
+		approxsol = motion;
 	    }
 	}
+    }
+    
+    bool approximate = false;
+    if (solution == NULL)
+    {
+	solution = approxsol;
+	approximate = true;
     }
     
     if (solution != NULL)
@@ -132,11 +148,14 @@ bool ompl::RRT::solve(double solveTime)
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
-	goal_r->setSolutionPath(path);	
+	goal_r->setDifference(approxdif);
+	goal_r->setSolutionPath(path, approximate);
     }
 
     delete xstate;
     delete rmotion;
 	
+    printf("Created %u states\n", m_nn.size());
+    
     return goal_r->isAchieved();
 }

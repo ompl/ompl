@@ -77,9 +77,10 @@ bool ompl::LazyRRT::solve(double solveTime)
 
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
-	range[i] = m_rho * si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue;
+	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
     Motion_t                                    solution = NULL;
+    double                                      distsol  = -1.0;
     Motion_t                                    rmotion  = new Motion(dim);
     SpaceInformationKinematic::StateKinematic_t rstate   = rmotion->state;
     SpaceInformationKinematic::StateKinematic_t xstate   = new SpaceInformationKinematic::StateKinematic(dim);
@@ -111,8 +112,10 @@ bool ompl::LazyRRT::solve(double solveTime)
 	nmotion->children.push_back(motion);
 	m_nn.add(motion);
 	
-	if (goal_r->distanceGoal(motion->state) < goal_r->threshold)
+	double dist = goal_r->distanceGoal(motion->state);
+	if (dist < goal_r->threshold)
 	{
+	    distsol = dist;
 	    solution = motion;
 	    break;	    
 	}
@@ -147,12 +150,15 @@ bool ompl::LazyRRT::solve(double solveTime)
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
-	
+
+	goal_r->setDifference(distsol);
 	goal_r->setSolutionPath(path);	
     }
 
     delete xstate;
     delete rmotion;
+
+    printf("Created %u states\n", m_nn.size());
 
     return goal_r->isAchieved();
 }

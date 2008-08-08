@@ -96,6 +96,8 @@ namespace ompl
 	    {
 		m_si   = si;
 		m_path = NULL;
+		m_difference = -1.0;
+		m_approximate = false;
 	    }
 	    
 	    virtual ~Goal(void)
@@ -114,15 +116,41 @@ namespace ompl
 		return m_path;
 	    }
 	    
-	    void setSolutionPath(Path_t path)
+	    void setSolutionPath(Path_t path, bool approximate = false)
 	    {
 		m_path = path;
+		m_approximate = approximate;
+	    }
+	    
+	    double getDifference(void) const
+	    {
+		return m_difference;
+	    }
+	    
+	    void setDifference(double difference)
+	    {
+		m_difference = difference;
+	    }
+	    
+	    bool isApproximate(void) const
+	    {
+		return m_approximate;
 	    }
 	    
 	protected:
 	    
+	    /** solution path, if found */
 	    Path_t             m_path;
+	    
+	    /** the space information for this goal */
 	    SpaceInformation_t m_si;
+	    
+	    /** the achieved difference between the found solution and the desired goal */
+	    double             m_difference;
+
+	    /** true if goal was not achieved, but an approximate solution was found */
+	    bool               m_approximate;
+	    
 	};
 	
 	void setGoal(Goal_t goal)
