@@ -41,40 +41,139 @@
 namespace ompl
 {
 
+    /** Forward class declaration */
     ForwardClassDeclaration(SpaceInformation);
     
     class SpaceInformation
     {
     public:
+	
+	/** Constructor */
 	SpaceInformation(void)
 	{
-	    m_goal = NULL;	    
+	    m_goal = NULL;
+	    m_setup = false;
+	    m_stateDistanceEvaluator = NULL;
+	    m_stateValidityChecker = NULL;
 	}
 	
+	/** Destructor */
 	virtual ~SpaceInformation(void)
 	{
 	}
 	
+	/************************************************************/
+	/* States                                                   */
+	/************************************************************/
 
+	/** Forward class declaration */
+	ForwardClassDeclaration(State);
+	
+	/** Abstract definition of a state */
+	class State
+	{
+	public:
+	    virtual ~State(void)
+	    {
+	    }
+	};
+
+	/** Forward class declaration */
+	ForwardClassDeclaration(StateValidityChecker);	
+	
+	/** Abstract definition for a class checking the validity of states */
+	class StateValidityChecker
+	{
+	public:
+	    /** Return true if the state is valid */
+	    virtual bool operator()(const State_t state) = 0;
+	};
+	
+	/** Forward class declaration */
+	ForwardClassDeclaration(StateDistanceEvaluator);
+	
+	/** Abstract definition for a class evaluating distance between states */
+	class StateDistanceEvaluator
+	{
+	public:
+	    /** Return true if the state is valid */
+	    virtual double operator()(const State_t state1, const State_t state2) = 0;
+	};
+	
+	/** Add a start state */
+	void addStartState(State_t state)
+	{
+	    m_startStates.push_back(state);
+	}
+	
+	/** Clear all start states (memory is freed) */
+	void clearStartStates(void)
+	{
+	    for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
+		delete m_startStates[i];
+	    m_startStates.clear();
+	}
+	
+	/** Clear all start states but do not free memory */
+	void forgetStartStates(void)
+	{
+	    m_startStates.clear();
+	}
+	
+	/** Returns the number of start states */
+	unsigned int getStartStateCount(void) const
+	{
+	    return m_startStates.size();
+	}
+	
+	/** Returns a specific start state */
+	State_t getStartState(unsigned int index) const
+	{
+	    return m_startStates[index];
+	}
+	
+	/** Set the instance of the distance evaluator to use. This is
+	    only needed by some planning algorithms. No memory freeing is performed. */
+	void setDistanceEvaluator(StateDistanceEvaluator *sde)
+	{
+	    m_stateDistanceEvaluator = sde;
+	}
+
+	/** Set the instance of the validity checker to use. No memory freeing is performed. */
+	void setStateValidityChecker(StateValidityChecker *svc)
+	{
+	    m_stateValidityChecker = svc;
+	}
+	
 	/************************************************************/
 	/* Paths                                                    */
 	/************************************************************/
 
+	/** Forward declaration */
 	ForwardClassDeclaration(Path);
 	
+	/** Abstract definition of a path */
 	class Path
 	{
 	public:
 	    
+	    /** Constructor. A path must always know the space information it is part of */
 	    Path(SpaceInformation_t si)
 	    {
 		m_si = si;
 	    }
-	    
+
+	    /** Destructor */
 	    virtual ~Path(void)
 	    {
 	    }
 
+	    /** Returns the space information this path is part of */
+	    SpaceInformation_t getSpaceInformation(void) const
+	    {
+		return m_si;
+	    }
+	    
 	protected:
 	    
 	    SpaceInformation_t m_si;
@@ -86,12 +185,15 @@ namespace ompl
 	/* Goals                                                    */
 	/************************************************************/
 	
+	/** Forward declaration */
 	ForwardClassDeclaration(Goal);
 	
+	/** Abstract definition of goals. Will contain solutions, if found */
 	class Goal
 	{
 	public:
-
+	    
+	    /** Constructor. The goal must always know the space information it is part of */
 	    Goal(SpaceInformation_t si)
 	    {
 		m_si   = si;
@@ -100,38 +202,66 @@ namespace ompl
 		m_approximate = false;
 	    }
 	    
+	    /** Destructor. Clears the solution as well */
 	    virtual ~Goal(void)
 	    {
 		if (m_path)
 		    delete m_path;
 	    }
+
+	    /** Returns the space information this goal is part of */
+	    SpaceInformation_t getSpaceInformation(void) const
+	    {
+		return m_si;
+	    }
 	    
+	    /** Returns true if a solution path has been found */
 	    bool isAchieved(void) const
 	    {
 		return m_path != NULL;
 	    }
 
+	    /** Return the found solution path */
 	    Path_t getSolutionPath(void) const
 	    {
 		return m_path;
 	    }
 	    
+	    /** Forget the solution path. Memory is not freed. This is
+		useful when the user wants to keep the solution path
+		but wants to clear the goal. The user takes
+		responsibilty to free the memory for the solution
+		path. */
+	    void forgetSolutionPath(void)
+	    {
+		m_path = NULL;
+	    }	    
+
+	    /** Update the solution path. If a previous solution path exists, it is deleted. */
 	    void setSolutionPath(Path_t path, bool approximate = false)
 	    {
+		if (m_path)
+		    delete m_path;
 		m_path = path;
 		m_approximate = approximate;
 	    }
 	    
+	    /** If a difference between the desired solution and the
+	     solution found is computed by the planner, this functions
+	     returns it */
 	    double getDifference(void) const
 	    {
 		return m_difference;
 	    }
 	    
+	    /** Set the difference between the found solution path and
+		the desired solution path */
 	    void setDifference(double difference)
 	    {
 		m_difference = difference;
 	    }
 	    
+	    /** Return true if the found solution is approximate */
 	    bool isApproximate(void) const
 	    {
 		return m_approximate;
@@ -153,6 +283,8 @@ namespace ompl
 	    
 	};
 	
+
+	/** Set the goal. The memory for a previous goal is freed. */
 	void setGoal(Goal_t goal)
 	{
 	    if (m_goal)
@@ -160,6 +292,7 @@ namespace ompl
 	    m_goal = goal;
 	}
 	
+	/** Clear the goal. Memory is freed. */
 	void clearGoal(bool free = true)
 	{
 	    if (free && m_goal)
@@ -167,53 +300,35 @@ namespace ompl
 	    m_goal = NULL;
 	}
 
+	/** Return the current goal */
 	Goal_t getGoal(void) const
 	{
 	    return m_goal;
 	}
 	
+	/** Clear the goal, but do not free its memory */
+	void forgetGoal(void)
+	{
+	    m_goal = NULL;
+	}
 	
 	/************************************************************/
-	/* States                                                   */
+	/* Utility functions                                        */
 	/************************************************************/
-
-	ForwardClassDeclaration(State);
 	
-	class State
+	/** Perform additional setup tasks (run once, before use) */
+	virtual void setup(void)
 	{
-	public:
-	    virtual ~State(void)
-	    {
-	    }
-	};
-	
-	void addStartState(State_t state)
-	{
-	    m_startStates.push_back(state);
-	}
-	
-	void clearStartStates(bool free = true)
-	{
-	    if (free)
-		for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
-		    delete m_startStates[i];
-	    m_startStates.clear();
-	}
-	
-	unsigned int getStartStateCount(void) const
-	{
-	    return m_startStates.size();
-	}
-
-	State_t getStartState(unsigned int index) const
-	{
-	    return m_startStates[index];
+	    m_setup = true;
 	}
 	
     protected:
-	
-	Goal_t               m_goal;
-	std::vector<State_t> m_startStates;
+
+	bool                    m_setup;
+	std::vector<State_t>    m_startStates;
+	Goal_t                  m_goal;
+	StateValidityChecker   *m_stateValidityChecker;
+	StateDistanceEvaluator *m_stateDistanceEvaluator;
 	
     };
     

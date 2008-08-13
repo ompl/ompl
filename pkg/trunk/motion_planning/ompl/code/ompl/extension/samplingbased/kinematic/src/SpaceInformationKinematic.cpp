@@ -37,25 +37,28 @@
 #include <algorithm>
 #include <queue>
 
+double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator::operator()(const State_t s1, const State_t s2)
+{
+    const StateKinematic_t sk1 = static_cast<const StateKinematic_t>(s1);
+    const StateKinematic_t sk2 = static_cast<const StateKinematic_t>(s2);
+    const unsigned int     dim = m_si->getStateDimension();
+    
+    double dist = 0.0;
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {	 
+	double diff = m_si->getStateComponent(i).type == StateComponent::ANGLE ? 
+	    math_utils::shortest_angular_distance(sk1->values[i], sk2->values[i]) : sk1->values[i] - sk2->values[i];
+	dist += diff * diff;
+    }
+    return dist;
+}
+
 void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, FILE* out) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	fprintf(out, "%0.6f ", state->values[i]);
     fprintf(out, "\n");
 }
-
-double ompl::SpaceInformationKinematic::distance(const StateKinematic_t s1, const StateKinematic_t s2)
-{
-    double dist = 0.0;
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-    {	 
-	double diff = m_stateComponent[i].type == StateComponent::ANGLE ? 
-	    math_utils::shortest_angular_distance(s1->values[i], s2->values[i]) : s1->values[i] - s2->values[i];
-	dist += diff * diff;
-    }
-    return dist;
-}
-
 void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)

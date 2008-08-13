@@ -40,31 +40,38 @@
 
 namespace ompl
 {
-
+    
+    /** Forward class declaration */
     ForwardClassDeclaration(SpaceInformationKinematic);
 
+    /** Space information useful for kinematic planning */
     class SpaceInformationKinematic : public SpaceInformation
     {
     public:
 	
-	SpaceInformationKinematic() : SpaceInformation()
+	/** Constructor; setup() needs to be called as well, before use */
+        SpaceInformationKinematic(void) : SpaceInformation(),
+	                                  m_defaultDistanceEvaluator(this)
 	{
 	    random_utils::init(&m_rngState);
-
-	    m_isValidStateFn     = NULL;
-	    m_isValidStateFnData = NULL;
+	    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
 	    
 	    m_smoother.rangeRatio    = 0.2;
 	    m_smoother.maxSteps      = 10;
 	    m_smoother.maxEmptySteps = 3;
 	}
 	
+	/** Destructor */
 	virtual ~SpaceInformationKinematic(void)
 	{
 	}
 	
-	ForwardClassDeclaration(StateKinematic);
 	
+	ForwardClassDeclaration(StateKinematic);
+	ForwardClassDeclaration(GoalRegionKinematic);
+	ForwardClassDeclaration(GoalStateKinematic);
+	ForwardClassDeclaration(PathKinematic);
+
 	class StateKinematic : public State
 	{
 	public:
@@ -88,8 +95,6 @@ namespace ompl
 	    double *values;
 	};
 
-	ForwardClassDeclaration(GoalRegionKinematic);
-
 	class GoalRegionKinematic : public Goal
 	{
 	public:
@@ -108,7 +113,6 @@ namespace ompl
 	    double threshold;
 	};
 
-	ForwardClassDeclaration(GoalStateKinematic);
 
 	class GoalStateKinematic : public GoalRegionKinematic
 	{
@@ -133,7 +137,6 @@ namespace ompl
 	    StateKinematic_t state;
 	};
 	
-	ForwardClassDeclaration(PathKinematic);
 
 	class PathKinematic : public Path
 	{
@@ -159,6 +162,21 @@ namespace ompl
 	    }
 	};
 	
+	class StateKinematicL2SquareDistanceEvaluator : public StateDistanceEvaluator
+	{
+	public:
+	    StateKinematicL2SquareDistanceEvaluator(SpaceInformationKinematic_t si) : StateDistanceEvaluator()
+	    {
+		m_si = si;
+	    }
+	    
+	    virtual double operator()(const State_t state1, const State_t state2);
+	    
+	protected:
+	    
+	    SpaceInformationKinematic_t m_si;	    
+	};
+	
 	struct StateComponent
 	{
 	    StateComponent(void)
@@ -173,15 +191,7 @@ namespace ompl
 	    double maxValue;
 	    double resolution;
 	};
-
-	typedef bool (*IsStateValidFn)(const StateKinematic_t, void*);
-       
-	void setStateValidFn(IsStateValidFn fun, void *data)
-	{
-	    m_isValidStateFn     = fun;
-	    m_isValidStateFnData = data;
-	}
-	
+       	
 	virtual void printState(const StateKinematic_t state, FILE* out = stdout) const;
 	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source)
 	{
@@ -198,25 +208,34 @@ namespace ompl
 	    return m_stateComponent[index];
 	}
 	
-	virtual double distance(const StateKinematic_t s1, const StateKinematic_t s2);
-
+	double distance(const StateKinematic_t s1, const StateKinematic_t s2)
+	{
+	    return (*m_stateDistanceEvaluator)(static_cast<const State_t>(s1), static_cast<const State_t>(s2));
+	}
+	
 	virtual void sample(StateKinematic_t state);
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);	
 	virtual void smoothVertices(PathKinematic_t path);	
 	virtual bool checkMotion(const StateKinematic_t s1, const StateKinematic_t s2);
-	virtual bool isValid(const StateKinematic_t state)
+
+	bool isValid(const StateKinematic_t state)
 	{
-	    return m_isValidStateFn(state, m_isValidStateFnData);
+	    return (*m_stateValidityChecker)(static_cast<const State_t>(state));
 	}
 	
 	virtual void printSettings(FILE *out = stdout) const;
 	
+	virtual void setup(void)
+	{
+	    assert(m_stateValidityChecker);
+	    SpaceInformation::setup();
+	}
+	
     protected:
 		
-	unsigned int                m_stateDimension;
-	std::vector<StateComponent> m_stateComponent;
-	IsStateValidFn              m_isValidStateFn;
-	void                       *m_isValidStateFnData;
+	unsigned int                            m_stateDimension;
+	std::vector<StateComponent>             m_stateComponent;
+	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
 	
 	struct
 	{
