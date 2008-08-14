@@ -32,89 +32,47 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
-
-#include "ompl/base/Planner.h"
-#include "ompl/datastructures/Grid.h"
+#include "ompl/extension/samplingbased/kinematic/KinematicPathSmoother.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 
-namespace ompl
+void ompl::KinematicPathSmoother::smoothVertices(SpaceInformation::Path_t opath)
 {
-
-    ForwardClassDeclaration(SBL);
+    SpaceInformationKinematic::PathKinematic_t path = dynamic_cast<SpaceInformationKinematic::PathKinematic_t>(opath);
+    SpaceInformationKinematic_t                si   = dynamic_cast<SpaceInformationKinematic_t>(m_si);
     
-    class SBL : public Planner
+    if (!si || !path || path->states.size() < 3)
+	return;    
+    
+    unsigned int nochange = 0;
+    
+    for (unsigned int i = 0 ; i < m_maxSteps && nochange < m_maxEmptySteps ; ++i, ++nochange)
     {
-    public:
-
-        SBL(SpaceInformation_t si) : Planner(si)
+	int count = path->states.size();
+	int maxN  = count - 1;
+	int range = 1 + (int)((double)count * m_rangeRatio);
+	
+	int p1 = random_utils::uniformInt(&m_rngState, 0, maxN);
+	int p2 = random_utils::uniformInt(&m_rngState, std::max(p1 - range, 0), std::min(maxN, p1 + range));
+	if (abs(p1 - p2) < 2)
 	{
-	    random_utils::random_init(&m_rngState);
-	    m_rho = 0.1;	    
+	    if (p1 < maxN - 1)
+		p2 = p1 + 2;
+	    else
+		if (p1 > 1)
+		    p2 = p1 - 2;
+		else
+		    continue;
 	}
 
-	virtual ~SBL(void)
+	if (p1 > p2)
+	    std::swap(p1, p2);
+	
+	if (si->checkMotion(path->states[p1], path->states[p2]))
 	{
-	    freeMemory();
+	    for (int i = p1 + 1 ; i < p2 ; ++i)
+		delete path->states[i];
+	    path->states.erase(path->states.begin() + p1 + 1, path->states.begin() + p2);
+	    nochange = 0;
 	}
-	
-	virtual bool solve(double solveTime);
-	
-	virtual void clear(void)
-	{
-	    freeMemory();
-	}
-	
-    protected:
-
-       	ForwardClassDeclaration(Motion);
-	
-	class Motion
-	{
-	public:
-	    
-	    Motion(void)
-	    {
-		parent = NULL;
-		state  = NULL;
-		valid  = false;
-	    }
-	    
-	    Motion(unsigned int dimension)
-	    {
-		state  = new SpaceInformationKinematic::StateKinematic(dimension);
-		parent = NULL;
-		valid  = false;
-	    }
-	    
-	    virtual ~Motion(void)
-	    {
-		if (state)
-		    delete state;
-	    }
-	    
-	    SpaceInformationKinematic::StateKinematic_t state;
-	    Motion_t                                    parent;
-	    bool                                        valid;
-	    std::vector<Motion_t>                       children;
-	};
-
-	void freeMemory(void)
-	{
-	}
-	
-	Motion_t selectMotion(Grid<Motion_t> &grid);	
-	void removeMotion(Grid<Motion_t> &grid, Motion_t motion);
-	void addMotion(Grid<Motion_t> &grid, Motion_t motion);
-
-	Grid<Motion_t>         m_gStart;
-	Grid<Motion_t>         m_gGoal;
-	
-	double                 m_rho;	
-	random_utils::rngState m_rngState;	
-    };
-
+    }
 }
-
-#endif

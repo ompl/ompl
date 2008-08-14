@@ -51,7 +51,7 @@ namespace ompl
         LazyRRT(SpaceInformation_t si) : Planner(si)
 	{
 	    m_nn.setDataParameter(reinterpret_cast<void*>(dynamic_cast<SpaceInformationKinematic_t>(m_si)));
-	    random_utils::init(&m_rngState);
+	    random_utils::random_init(&m_rngState);
 	    m_goalBias = 0.05;	    
 	    m_rho = 0.1;	    
 	}

@@ -53,6 +53,21 @@ double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator:
     return dist;
 }
 
+ompl::SpaceInformationKinematic::SpaceInformationKinematic(void) : SpaceInformation(),
+								   m_defaultDistanceEvaluator(this)
+{
+    random_utils::random_init(&m_rngState);
+    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
+    smoother = new KinematicPathSmoother(this);
+}
+
+/** Destructor */
+ompl::SpaceInformationKinematic::~SpaceInformationKinematic(void)
+{
+    if (smoother)
+	delete smoother;
+}
+
 void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, FILE* out) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
@@ -138,46 +153,7 @@ bool ompl::SpaceInformationKinematic::checkMotion(const StateKinematic_t s1, con
             
     return true;
 }
-    
-void ompl::SpaceInformationKinematic::smoothVertices(PathKinematic_t path)
-{
-    if (path->states.size() < 3)
-	return;
-
-    unsigned int nochange = 0;
-    
-    for (unsigned int i = 0 ; i < m_smoother.maxSteps && nochange < m_smoother.maxEmptySteps ; ++i, ++nochange)
-    {
-	int count = path->states.size();
-	int maxN  = count - 1;
-	int range = 1 + (int)((double)count * m_smoother.rangeRatio);
-	
-	int p1 = random_utils::uniformInt(&m_rngState, 0, maxN);
-	int p2 = random_utils::uniformInt(&m_rngState, std::max(p1 - range, 0), std::min(maxN, p1 + range));
-	if (abs(p1 - p2) < 2)
-	{
-	    if (p1 < maxN - 1)
-		p2 = p1 + 2;
-	    else
-		if (p1 > 1)
-		    p2 = p1 - 2;
-		else
-		    continue;
-	}
-
-	if (p1 > p2)
-	    std::swap(p1, p2);
-	
-	if (checkMotion(path->states[p1], path->states[p2]))
-	{
-	    for (int i = p1 + 1 ; i < p2 ; ++i)
-		delete path->states[i];
-	    path->states.erase(path->states.begin() + p1 + 1, path->states.begin() + p2);
-	    nochange = 0;
-	}
-    }
-}
-
+  
 void ompl::SpaceInformationKinematic::printSettings(FILE *out) const
 {
     fprintf(out, "Kinematic state space settings:\n");

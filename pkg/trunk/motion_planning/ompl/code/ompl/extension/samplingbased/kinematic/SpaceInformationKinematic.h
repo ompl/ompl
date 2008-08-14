@@ -36,36 +36,28 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
 
 #include "ompl/base/SpaceInformation.h"
-#include <random_utils/random_utils.h>
+#include "ompl/extension/samplingbased/kinematic/KinematicPathSmoother.h"
+#include "ompl/base/util/random.h"
 
 namespace ompl
 {
     
     /** Forward class declaration */
     ForwardClassDeclaration(SpaceInformationKinematic);
-
+    
+    /** Forward class declaration */
+    ForwardClassDeclaration(KinematicPathSmoother);
+    
     /** Space information useful for kinematic planning */
     class SpaceInformationKinematic : public SpaceInformation
     {
     public:
 	
 	/** Constructor; setup() needs to be called as well, before use */
-        SpaceInformationKinematic(void) : SpaceInformation(),
-	                                  m_defaultDistanceEvaluator(this)
-	{
-	    random_utils::init(&m_rngState);
-	    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
-	    
-	    m_smoother.rangeRatio    = 0.2;
-	    m_smoother.maxSteps      = 10;
-	    m_smoother.maxEmptySteps = 3;
-	}
+        SpaceInformationKinematic(void);
 	
 	/** Destructor */
-	virtual ~SpaceInformationKinematic(void)
-	{
-	}
-	
+	virtual ~SpaceInformationKinematic(void);
 	
 	ForwardClassDeclaration(StateKinematic);
 	ForwardClassDeclaration(GoalRegionKinematic);
@@ -192,6 +184,9 @@ namespace ompl
 	    double resolution;
 	};
        	
+	/** Instance of a kinematic path smoother */
+	KinematicPathSmoother_t smoother;
+	
 	virtual void printState(const StateKinematic_t state, FILE* out = stdout) const;
 	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source)
 	{
@@ -215,7 +210,6 @@ namespace ompl
 	
 	virtual void sample(StateKinematic_t state);
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);	
-	virtual void smoothVertices(PathKinematic_t path);	
 	virtual bool checkMotion(const StateKinematic_t s1, const StateKinematic_t s2);
 
 	bool isValid(const StateKinematic_t state)
@@ -237,15 +231,7 @@ namespace ompl
 	std::vector<StateComponent>             m_stateComponent;
 	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
 	
-	struct
-	{
-	    double       rangeRatio;
-	    unsigned int maxSteps;
-	    unsigned int maxEmptySteps;
-	    
-	} m_smoother;
-
-	random_utils::rngState      m_rngState;
+	random_utils::rngState                  m_rngState;
 	
     };
     

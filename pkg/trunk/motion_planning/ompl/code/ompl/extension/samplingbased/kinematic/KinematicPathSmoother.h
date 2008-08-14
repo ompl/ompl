@@ -32,89 +32,75 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_KINEMATIC_PATH_SMOOTHER_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_KINEMATIC_PATH_SMOOTHER_
 
-#include "ompl/base/Planner.h"
-#include "ompl/datastructures/Grid.h"
-#include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/util/random.h"
 
 namespace ompl
 {
 
-    ForwardClassDeclaration(SBL);
-    
-    class SBL : public Planner
+    /** Forward class declaration */
+    ForwardClassDeclaration(KinematicPathSmoother);
+
+    class KinematicPathSmoother
     {
     public:
-
-        SBL(SpaceInformation_t si) : Planner(si)
+	KinematicPathSmoother(SpaceInformation_t si)
 	{
+	    m_si = si;
+	    m_rangeRatio = 0.2;
+	    m_maxSteps = 10;
+	    m_maxEmptySteps = 3;
 	    random_utils::random_init(&m_rngState);
-	    m_rho = 0.1;	    
 	}
 
-	virtual ~SBL(void)
+	virtual ~KinematicPathSmoother(void)
 	{
-	    freeMemory();
+	}
+
+	double getRangeRatio(void) const
+	{
+	    return m_rangeRatio;
+	}
+
+	void setRangeRatio(double rangeRatio)
+	{
+	    m_rangeRatio = rangeRatio;
 	}
 	
-	virtual bool solve(double solveTime);
-	
-	virtual void clear(void)
+	unsigned int getMaxSteps(void) const
 	{
-	    freeMemory();
+	    return m_maxSteps;
+	}
+
+	void setMaxSteps(unsigned int maxSteps)
+	{
+	    m_maxSteps = maxSteps;
 	}
 	
+	unsigned int getMaxEmptySteps(void) const
+	{
+	    return m_maxEmptySteps;
+	}
+
+	void setMaxEmptySteps(unsigned int maxEmptySteps)
+	{
+	    m_maxEmptySteps = maxEmptySteps;
+	}
+	
+	virtual void smoothVertices(SpaceInformation::Path_t path);
+
     protected:
-
-       	ForwardClassDeclaration(Motion);
 	
-	class Motion
-	{
-	public:
-	    
-	    Motion(void)
-	    {
-		parent = NULL;
-		state  = NULL;
-		valid  = false;
-	    }
-	    
-	    Motion(unsigned int dimension)
-	    {
-		state  = new SpaceInformationKinematic::StateKinematic(dimension);
-		parent = NULL;
-		valid  = false;
-	    }
-	    
-	    virtual ~Motion(void)
-	    {
-		if (state)
-		    delete state;
-	    }
-	    
-	    SpaceInformationKinematic::StateKinematic_t state;
-	    Motion_t                                    parent;
-	    bool                                        valid;
-	    std::vector<Motion_t>                       children;
-	};
-
-	void freeMemory(void)
-	{
-	}
-	
-	Motion_t selectMotion(Grid<Motion_t> &grid);	
-	void removeMotion(Grid<Motion_t> &grid, Motion_t motion);
-	void addMotion(Grid<Motion_t> &grid, Motion_t motion);
-
-	Grid<Motion_t>         m_gStart;
-	Grid<Motion_t>         m_gGoal;
-	
-	double                 m_rho;	
-	random_utils::rngState m_rngState;	
+	SpaceInformation_t      m_si;
+	random_utils::rngState  m_rngState;
+	double                  m_rangeRatio;
+	unsigned int            m_maxSteps;
+	unsigned int            m_maxEmptySteps;
     };
-
+    
 }
 
 #endif
