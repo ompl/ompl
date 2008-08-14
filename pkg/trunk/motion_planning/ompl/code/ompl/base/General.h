@@ -42,8 +42,9 @@
 #include <cassert>
 #include <climits>
 #include <cmath>
-#include <ompl/base/types.h>
-#include <ompl/base/time.h>
+
+#include "ompl/base/util/types.h"
+#include "ompl/base/util/time.h"
 
 #define ForwardClassDeclaration(A) class A; typedef A * A##_t;
 #define ForwardStructDeclaration(A) struct A; typedef A * A##_t;
