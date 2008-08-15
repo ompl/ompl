@@ -85,6 +85,11 @@ namespace ompl
 	class StateValidityChecker
 	{
 	public:
+	  /** Destructor */
+	  virtual ~StateValidityChecker(void){
+
+	  }
+
 	    /** Return true if the state is valid */
 	    virtual bool operator()(const State_t state) = 0;
 	};
@@ -96,6 +101,10 @@ namespace ompl
 	class StateDistanceEvaluator
 	{
 	public:
+	  /** Destructor */
+	  virtual ~StateDistanceEvaluator(void){
+
+	  }
 	    /** Return true if the state is valid */
 	    virtual double operator()(const State_t state1, const State_t state2) = 0;
 	};
