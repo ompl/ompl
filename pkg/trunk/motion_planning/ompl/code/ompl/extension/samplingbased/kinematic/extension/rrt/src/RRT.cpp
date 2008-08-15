@@ -43,7 +43,7 @@ bool ompl::RRT::solve(double solveTime)
     
     if (!goal_s && !goal_r)
     {
-	fprintf(stderr, "Unknown type of goal\n");
+	fprintf(stderr, "Unknown type of goal (or goal undefined)\n");
 	return false;
     }
     

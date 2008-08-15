@@ -153,7 +153,48 @@ bool ompl::SpaceInformationKinematic::checkMotion(const StateKinematic_t s1, con
             
     return true;
 }
-  
+
+void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path)
+{
+    std::vector<StateKinematic_t> newStates;
+    const int n1 = path->states.size() - 1;
+    
+    for (int i = 0 ; i < n1 ; ++i)
+    {
+	StateKinematic_t s1 = path->states[i];
+	StateKinematic_t s2 = path->states[i + 1];
+	
+	newStates.push_back(s1);
+	
+	/* find out how many divisions we need */
+	int nd = 1;
+	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	{
+	    int d = 1 + (int)(fabs(s1->values[i] - s2->values[i]) / m_stateComponent[i].resolution);
+	    if (nd < d)
+		nd = d;
+	}
+	
+	/* find out the step size as a vector */
+	double step[m_stateDimension];    
+	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	    step[i] = (s2->values[i] - s1->values[i]) / (double)nd;
+	
+	/* find the states in between */
+	for (int j = 1 ; j < nd ; ++j)
+	{
+	    StateKinematic_t state = new StateKinematic(m_stateDimension);
+	    for (unsigned int k = 0 ; k < m_stateDimension ; ++k)
+		state->values[k] = s1->values[k] + (double)j * step[k];
+	    newStates.push_back(state);
+	}
+	
+	newStates.push_back(s2);
+    }
+    
+    path->states.swap(newStates);    
+}
+
 void ompl::SpaceInformationKinematic::printSettings(FILE *out) const
 {
     fprintf(out, "Kinematic state space settings:\n");

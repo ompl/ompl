@@ -81,7 +81,7 @@ namespace ompl
 	/** Forward class declaration */
 	ForwardClassDeclaration(StateValidityChecker);	
 	
-	/** Abstract definition for a class checking the validity of states */
+	/** Abstract definition for a class checking the validity of states. The () operator must be defined. */
 	class StateValidityChecker
 	{
 	public:
@@ -92,7 +92,7 @@ namespace ompl
 	/** Forward class declaration */
 	ForwardClassDeclaration(StateDistanceEvaluator);
 	
-	/** Abstract definition for a class evaluating distance between states */
+	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
 	class StateDistanceEvaluator
 	{
 	public:
@@ -134,7 +134,7 @@ namespace ompl
 	
 	/** Set the instance of the distance evaluator to use. This is
 	    only needed by some planning algorithms. No memory freeing is performed. */
-	void setDistanceEvaluator(StateDistanceEvaluator *sde)
+	void setStateDistanceEvaluator(StateDistanceEvaluator *sde)
 	{
 	    m_stateDistanceEvaluator = sde;
 	}

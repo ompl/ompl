@@ -89,6 +89,13 @@ namespace ompl
 		for (unsigned int j = 0 ; j < m_checks ; ++j)
 		{
 		    unsigned int i = (j * m_checks + offset) % n;
+		    unsigned int c = 0;
+		    while (!m_active[i] && c < n)
+		    {
+			i = (i + 1) % n;
+			c++;
+		    }	    
+		    
 		    if (m_active[i])
 		    {
 			double distance = _DistanceFunction()(m_data[i], data, NearestNeighbors<_T, _DistanceFunction>::m_parameter);

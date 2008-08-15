@@ -42,7 +42,7 @@ bool ompl::SBL::solve(double solveTime)
     
     if (!goal)
     {
-	fprintf(stderr, "Unknown type of goal\n");
+	fprintf(stderr, "Unknown type of goal (or goal undefined)\n");
 	return false;
     }
     

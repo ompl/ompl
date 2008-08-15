@@ -38,7 +38,8 @@
 #include "ompl/base/Planner.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
-
+#include <map>
+   
 namespace ompl
 {
 
@@ -89,8 +90,9 @@ namespace ompl
 	    return m_rho;
 	}
 	
+	
     protected:
-       ForwardClassDeclaration(Motion);
+	ForwardClassDeclaration(Motion);
 	
 	class Motion
 	{
@@ -145,6 +147,7 @@ namespace ompl
 	double                                             m_goalBias;
 	double                                             m_rho;	
 	random_utils::rngState                             m_rngState;	
+	
     };
 
 }

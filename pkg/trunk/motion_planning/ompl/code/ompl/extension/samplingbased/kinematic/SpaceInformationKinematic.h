@@ -209,8 +209,10 @@ namespace ompl
 	}
 	
 	virtual void sample(StateKinematic_t state);
-	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);	
+	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);
+
 	virtual bool checkMotion(const StateKinematic_t s1, const StateKinematic_t s2);
+	virtual void interpolatePath(PathKinematic_t path);
 
 	bool isValid(const StateKinematic_t state)
 	{
@@ -221,7 +223,10 @@ namespace ompl
 	
 	virtual void setup(void)
 	{
+	    assert(m_stateDimension > 0);
+	    assert(m_stateComponent.size() == m_stateDimension);
 	    assert(m_stateValidityChecker);
+	    assert(m_stateDistanceEvaluator);
 	    SpaceInformation::setup();
 	}
 	

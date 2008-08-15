@@ -44,11 +44,13 @@ bool ompl::LazyRRT::solve(double solveTime)
 
     if (!goal_s && !goal_r)
     {
-	fprintf(stderr, "Unknown type of goal\n");
+	fprintf(stderr, "Unknown type of goal (or goal undefined)\n");
 	return false;
     }
     
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+
+    Motion_t __hack = NULL;
     
     if (m_nn.size() == 0)
     {
@@ -57,7 +59,9 @@ bool ompl::LazyRRT::solve(double solveTime)
 	    Motion_t motion = new Motion(dim);
 	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
 	    if (si->isValid(motion->state))
-	    {
+	    { 
+		__hack = motion;
+		
 		motion->valid = true;
 		m_nn.add(motion);
 	    }	
@@ -97,6 +101,7 @@ bool ompl::LazyRRT::solve(double solveTime)
 
 	/* find closest state in the tree */
 	Motion_t nmotion = m_nn.nearest(rmotion);
+	assert(nmotion != rmotion);
 	
 	/* find state to add */
 	for (unsigned int i = 0 ; i < dim ; ++i)
@@ -117,10 +122,11 @@ bool ompl::LazyRRT::solve(double solveTime)
 	{
 	    distsol = dist;
 	    solution = motion;
-	    break;	    
+	    break;
 	}
     }    
-    
+
+
     if (solution != NULL)
     {
 	/* construct the solution path */
@@ -134,6 +140,7 @@ bool ompl::LazyRRT::solve(double solveTime)
 	/* check the path */
 	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	    if (!mpath[i]->valid)
+	    {
 		if (si->checkMotion(mpath[i]->parent->state, mpath[i]->state))
 		    mpath[i]->valid = true;
 		else
@@ -141,7 +148,8 @@ bool ompl::LazyRRT::solve(double solveTime)
 		    removeMotion(mpath[i]);
 		    goto RETRY;
 		}
-
+	    }
+	
 	/*set the solution path */
 	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
    	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
@@ -168,6 +176,7 @@ void ompl::LazyRRT::removeMotion(Motion_t motion)
     assert(m_nn.remove(motion));
     
     /* remove self from parent list */
+    
     if (motion->parent)
     {
 	for (unsigned int i = 0 ; i < motion->parent->children.size() ; ++i)
@@ -176,8 +185,8 @@ void ompl::LazyRRT::removeMotion(Motion_t motion)
 		motion->parent->children.erase(motion->parent->children.begin() + i);
 		break;
 	    }
-    }
-    
+    }    
+
     /* remove children */
     for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
     {
