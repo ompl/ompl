@@ -57,14 +57,14 @@ namespace ompl
 	Duration() : sec(0), nsec(0) { }
 	    Duration(int32_t _sec, int32_t _nsec);
 	    Duration(double d);
-	    Duration(long long t);
+	    Duration(int64_t t);
 	    Duration operator+(const Duration &rhs);
 	    Duration operator-(const Duration &rhs);
 	    bool operator==(const Duration &rhs) const;
 	    bool operator>(const Duration &rhs) const;
 	    bool operator<(const Duration &rhs) const;
 	    double to_double() { return (double)sec + 1e-9*(double)nsec; }
-	    int64_t to_ll() {return (int64_t)sec*1000000000ll + (int64_t)nsec;  }
+	    int64_t to_int() {return (int64_t)sec * 1000000000 + (int64_t)nsec;  }
 	    /** sleeps for the time duration specified by this object */
 	    bool sleep();
 	};
@@ -88,7 +88,7 @@ namespace ompl
 #endif
 	Time() : sec(0), nsec(0) { }
 	Time(uint32_t _sec, uint32_t _nsec) : sec(_sec), nsec(_nsec) { }
-	Time(unsigned long long t) : sec(t / 1000000000), nsec(t % 1000000000) { }
+	Time(uint64_t t) : sec(t / 1000000000), nsec(t % 1000000000) { }
 	    Duration operator-(const Time &rhs);
 	    Time operator+(const Duration &rhs);
 	    bool operator==(const Time &rhs) const;
@@ -97,7 +97,7 @@ namespace ompl
 	    static Time now();
 	    double to_double() { return (double)sec + 1e-9*(double)nsec; }
 	    void from_double(double t) { sec = (uint32_t)floor(t); nsec = (uint32_t)round((t-sec) * 1e9);}
-	    uint64_t to_ull() {return (uint64_t)sec*1000000000ull + (uint64_t)nsec;  }
+	    uint64_t to_uint() {return (uint64_t)sec*1000000000 + (uint64_t)nsec;  }
 	    friend std::ostream &operator <<(std::ostream &os, const Time &rhs);
 	    inline bool is_zero() { return sec == 0 && nsec == 0; }
 	};	

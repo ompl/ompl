@@ -10,7 +10,7 @@
   <depend package="math_utils"/>
 
   <export>
-    <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl"/>
+    <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl -lpthread -lrt"/>
   </export>
   
 </package>

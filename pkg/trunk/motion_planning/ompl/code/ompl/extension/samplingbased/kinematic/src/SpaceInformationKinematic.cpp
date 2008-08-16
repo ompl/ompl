@@ -34,6 +34,7 @@
 
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <math_utils/angles.h>
+#include <valarray>
 #include <algorithm>
 #include <queue>
 
@@ -118,7 +119,7 @@ bool ompl::SpaceInformationKinematic::checkMotion(const StateKinematic_t s1, con
     }
 
     /* find out the step size as a vector */
-    double step[m_stateDimension];    
+    std::valarray<double> step(m_stateDimension);
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
     	step[i] = (s2->values[i] - s1->values[i]) / (double)nd;
     
@@ -176,7 +177,7 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path)
 	}
 	
 	/* find out the step size as a vector */
-	double step[m_stateDimension];    
+	std::valarray<double> step(m_stateDimension);
 	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	    step[i] = (s2->values[i] - s1->values[i]) / (double)nd;
 	
@@ -202,7 +203,7 @@ void ompl::SpaceInformationKinematic::printSettings(FILE *out) const
     fprintf(out, "  - start states:\n");
     for (unsigned int i = 0 ; i < getStartStateCount() ; ++i)
 	 printState(dynamic_cast<const StateKinematic_t>(getStartState(i)), out);
-    fprintf(out, "  - goal = %p\n", m_goal);
+    fprintf(out, "  - goal = %p\n", reinterpret_cast<void*>(m_goal)); 
     fprintf(out, "  - bounding box:\n");
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	fprintf(out, "[%f, %f](%f) ", m_stateComponent[i].minValue, m_stateComponent[i].maxValue, m_stateComponent[i].resolution);

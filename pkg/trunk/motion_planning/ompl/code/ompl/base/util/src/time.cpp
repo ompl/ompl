@@ -41,7 +41,7 @@ Duration::Duration(double d)
   nsec = (int32_t)((d - (double)sec)*1000000000);
 }
 
-Duration::Duration(long long t)
+Duration::Duration(int64_t t)
 {
   sec  = (int32_t)(t / 1000000000);
   nsec = (int32_t)(t % 1000000000);
@@ -65,8 +65,8 @@ Duration Time::operator-(const Time &rhs)
 
 Time Time::operator+(const Duration &rhs)
 {
-  long long sec_sum  = (long long)sec  + (long long)rhs.sec;
-  long long nsec_sum = (long long)nsec + (long long)rhs.nsec;
+  int64_t sec_sum  = (int64_t)sec  + (int64_t)rhs.sec;
+  int64_t nsec_sum = (int64_t)nsec + (int64_t)rhs.nsec;
   while (nsec_sum < 0)
   {
     nsec_sum += 1000000000;
