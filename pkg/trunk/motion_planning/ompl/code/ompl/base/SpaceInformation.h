@@ -85,11 +85,11 @@ namespace ompl
 	class StateValidityChecker
 	{
 	public:
-	  /** Destructor */
-	  virtual ~StateValidityChecker(void){
-
-	  }
-
+	    /** Destructor */
+	    virtual ~StateValidityChecker(void)
+	    {
+	    }
+	    
 	    /** Return true if the state is valid */
 	    virtual bool operator()(const State_t state) = 0;
 	};
@@ -101,10 +101,10 @@ namespace ompl
 	class StateDistanceEvaluator
 	{
 	public:
-	  /** Destructor */
-	  virtual ~StateDistanceEvaluator(void){
-
-	  }
+	    /** Destructor */
+	    virtual ~StateDistanceEvaluator(void)
+	    {
+	    }
 	    /** Return true if the state is valid */
 	    virtual double operator()(const State_t state1, const State_t state2) = 0;
 	};
@@ -302,9 +302,9 @@ namespace ompl
 	}
 	
 	/** Clear the goal. Memory is freed. */
-	void clearGoal(bool free = true)
+	void clearGoal(void)
 	{
-	    if (free && m_goal)
+	    if (m_goal)
 		delete m_goal;
 	    m_goal = NULL;
 	}

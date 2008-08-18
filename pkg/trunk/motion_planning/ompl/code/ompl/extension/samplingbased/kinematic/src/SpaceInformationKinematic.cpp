@@ -189,11 +189,10 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path)
 		state->values[k] = s1->values[k] + (double)j * step[k];
 	    newStates.push_back(state);
 	}
-	
-	newStates.push_back(s2);
     }
+    newStates.push_back(path->states[n1]);
     
-    path->states.swap(newStates);    
+    path->states.swap(newStates);
 }
 
 void ompl::SpaceInformationKinematic::printSettings(FILE *out) const
