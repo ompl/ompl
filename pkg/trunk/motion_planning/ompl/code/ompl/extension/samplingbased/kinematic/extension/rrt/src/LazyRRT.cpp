@@ -50,8 +50,6 @@ bool ompl::LazyRRT::solve(double solveTime)
     
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
 
-    Motion_t __hack = NULL;
-    
     if (m_nn.size() == 0)
     {
 	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
@@ -60,8 +58,6 @@ bool ompl::LazyRRT::solve(double solveTime)
 	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
 	    if (si->isValid(motion->state))
 	    { 
-		__hack = motion;
-		
 		motion->valid = true;
 		m_nn.add(motion);
 	    }	
@@ -141,7 +137,7 @@ bool ompl::LazyRRT::solve(double solveTime)
 	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	    if (!mpath[i]->valid)
 	    {
-		if (si->checkMotion(mpath[i]->parent->state, mpath[i]->state))
+		if (si->checkMotionSubdivision(mpath[i]->parent->state, mpath[i]->state))
 		    mpath[i]->valid = true;
 		else
 		{

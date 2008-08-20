@@ -103,7 +103,7 @@ void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const S
 				      std::min(m_stateComponent[i].maxValue, near->values[i] + rho));
 }
 
-bool ompl::SpaceInformationKinematic::checkMotion(const StateKinematic_t s1, const StateKinematic_t s2)
+bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2)
 {
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
@@ -125,7 +125,7 @@ bool ompl::SpaceInformationKinematic::checkMotion(const StateKinematic_t s1, con
     
     /* initialize the queue of test positions */
     std::queue< std::pair<int, int> > pos;
-    if (nd > 2)
+    if (nd >= 2)
 	pos.push(std::make_pair(1, nd - 1));
     
     /* temporary storage for the checked state */
@@ -152,6 +152,40 @@ bool ompl::SpaceInformationKinematic::checkMotion(const StateKinematic_t s1, con
 	    pos.push(std::make_pair(mid + 1, x.second));
     }
             
+    return true;
+}
+
+bool ompl::SpaceInformationKinematic::checkMotionLinearly(const StateKinematic_t s1, const StateKinematic_t s2)
+{   
+    /* assume motion starts in a valid configuration so s1 is valid */
+    if (!isValid(s2))
+	return false;
+    
+    /* find out how many divisions we need */
+    int nd = 1;
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+    {
+	int d = 1 + (int)(fabs(s1->values[i] - s2->values[i]) / m_stateComponent[i].resolution);
+	if (nd < d)
+	    nd = d;
+    }
+
+    /* find out the step size as a vector */
+    std::valarray<double> step(m_stateDimension);
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+    	step[i] = (s2->values[i] - s1->values[i]) / (double)nd;
+    
+    /* temporary storage for the checked state */
+    StateKinematic test(m_stateDimension);
+    
+    for (int j = 1 ; j < nd ; ++j)
+    {
+	for (unsigned int k = 0 ; k < m_stateDimension ; ++k)
+	    test.values[k] = s1->values[k] + (double)j * step[k];
+	if (!isValid(&test))
+	    return false;
+    }
+
     return true;
 }
 

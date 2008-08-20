@@ -211,7 +211,8 @@ namespace ompl
 	virtual void sample(StateKinematic_t state);
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);
 
-	virtual bool checkMotion(const StateKinematic_t s1, const StateKinematic_t s2);
+	virtual bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2);
+	virtual bool checkMotionLinearly(const StateKinematic_t s1, const StateKinematic_t s2);
 	virtual void interpolatePath(PathKinematic_t path);
 
 	bool isValid(const StateKinematic_t state)

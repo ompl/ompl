@@ -67,7 +67,7 @@ void ompl::KinematicPathSmoother::smoothVertices(SpaceInformation::Path_t opath)
 	if (p1 > p2)
 	    std::swap(p1, p2);
 	
-	if (si->checkMotion(path->states[p1], path->states[p2]))
+	if (si->checkMotionSubdivision(path->states[p1], path->states[p2]))
 	{
 	    for (int i = p1 + 1 ; i < p2 ; ++i)
 		delete path->states[i];

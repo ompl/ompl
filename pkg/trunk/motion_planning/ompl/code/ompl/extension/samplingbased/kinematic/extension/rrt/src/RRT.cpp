@@ -105,7 +105,7 @@ bool ompl::RRT::solve(double solveTime)
 	si->copyState(motion->state, xstate);
 	motion->parent = nmotion;
 
-	if (si->checkMotion(nmotion->state, motion->state))
+	if (si->checkMotionSubdivision(nmotion->state, motion->state))
 	{
 	    m_nn.add(motion);
 	    double dist = goal_r->distanceGoal(motion->state);
