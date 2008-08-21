@@ -24,12 +24,15 @@ namespace ompl
 	void random_init(rngState *state);
 	
 	/** Uniform random number generator */	
-	double uniform(double lower_bound, double upper_bound);
-	double uniform(rngState *state, double lower_bound, double upper_bound);
-	
+	double uniform(double lower_bound = 0.0, double upper_bound = 1.0);
+	double uniform(rngState *state, double lower_bound = 0.0, double upper_bound = 1.0);
+
 	int    uniformInt(int lower_bound, int upper_bound);
 	int    uniformInt(rngState *state, int lower_bound, int upper_bound);
 	
+	bool   uniformBool(void);
+	bool   uniformBool(rngState *state);  
+  
 	/** Gaussian random number generator */	
 	double gaussian(double mean, double stddev);
 	double gaussian(rngState *state, double mean, double stddev);
