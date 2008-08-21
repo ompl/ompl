@@ -138,6 +138,8 @@ bool ompl::RRT::solve(double solveTime)
 		approxsol = motion;
 	    }
 	}
+	else
+	    delete motion;	
 	profiling_utils::Profiler::End("Check new motion");
     }
     
