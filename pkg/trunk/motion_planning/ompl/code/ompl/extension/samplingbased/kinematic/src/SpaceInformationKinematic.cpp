@@ -56,12 +56,18 @@ double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator:
     return dist;
 }
 
-void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, FILE* out) const
+void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, std::ostream &out) const
 {
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	fprintf(out, "%0.6f ", state->values[i]);
-    fprintf(out, "\n");
+    if (state)
+    {
+	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	    out << state->values[i] << " ";
+	out << std::endl;
+    }
+    else
+	out << "NULL" << std::endl;
 }
+
 void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
@@ -216,16 +222,19 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path)
     path->states.swap(newStates);
 }
 
-void ompl::SpaceInformationKinematic::printSettings(FILE *out) const
+void ompl::SpaceInformationKinematic::printSettings(std::ostream &out) const
 {
-    fprintf(out, "Kinematic state space settings:\n");
-    fprintf(out, "  - dimension = %u\n", m_stateDimension);
-    fprintf(out, "  - start states:\n");
+    out << "Kinematic state space settings:" << std::endl;
+    out << "  - dimension = " << m_stateDimension << std::endl;
+    out << "  - start states:" << std::endl;
     for (unsigned int i = 0 ; i < getStartStateCount() ; ++i)
-	 printState(dynamic_cast<const StateKinematic_t>(getStartState(i)), out);
-    fprintf(out, "  - goal = %p\n", reinterpret_cast<void*>(m_goal)); 
-    fprintf(out, "  - bounding box:\n");
+	printState(dynamic_cast<const StateKinematic_t>(getStartState(i)), out);
+    if (m_goal)
+	m_goal->print(out);
+    else
+	out << "  - goal = NULL" << std::endl;
+    out << "  - bounding box:" << std::endl;
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	fprintf(out, "[%f, %f](%f) ", m_stateComponent[i].minValue, m_stateComponent[i].maxValue, m_stateComponent[i].resolution);
-    fprintf(out, "\n");
+	out << "[" << m_stateComponent[i].minValue << ", " <<  m_stateComponent[i].maxValue << "](" << m_stateComponent[i].resolution << ") ";
+    out << std::endl;
 }

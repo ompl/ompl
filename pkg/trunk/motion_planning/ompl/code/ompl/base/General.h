@@ -45,6 +45,8 @@
 #include <climits>
 #include <cmath>
 
+#include <iostream>
+
 #include "ompl/base/util/types.h"
 #include "ompl/base/util/time.h"
 

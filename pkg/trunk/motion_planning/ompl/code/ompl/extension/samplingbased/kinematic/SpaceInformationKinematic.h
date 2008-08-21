@@ -106,7 +106,12 @@ namespace ompl
 	    }
 	    	  
 	    virtual double distanceGoal(StateKinematic_t s) = 0;
-	    	    
+	    
+	    virtual void print(std::ostream &out = std::cout) const
+	    {
+		out << "Goal region, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << std::endl;
+	    }
+	    
 	    double threshold;
 	};
 
@@ -129,6 +134,12 @@ namespace ompl
 	    virtual double distanceGoal(StateKinematic_t s)
 	    {
 		return static_cast<SpaceInformationKinematic_t>(m_si)->distance(s, state);
+	    }
+	    
+	    virtual void print(std::ostream &out = std::cout) const
+	    {
+		out << "Goal state, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << ", state = ";
+		static_cast<SpaceInformationKinematic_t>(m_si)->printState(state, out);
 	    }
 	    
 	    StateKinematic_t state;
@@ -189,7 +200,7 @@ namespace ompl
 	    double resolution;
 	};
        	
-	virtual void printState(const StateKinematic_t state, FILE* out = stdout) const;
+	virtual void printState(const StateKinematic_t state, std::ostream &out = std::cout) const;
 	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source)
 	{
 	    memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
@@ -222,7 +233,7 @@ namespace ompl
 	    return (*m_stateValidityChecker)(static_cast<const State_t>(state));
 	}
 	
-	virtual void printSettings(FILE *out = stdout) const;
+	virtual void printSettings(std::ostream &out = std::cout) const;
 	
 	virtual void setup(void)
 	{

@@ -278,6 +278,12 @@ namespace ompl
 		return m_approximate;
 	    }
 	    
+	    /** Print information about the goal */
+	    virtual void print(std::ostream &out = std::cout) const
+	    {
+		out << "Goal memory address " << reinterpret_cast<const void*>(this) << std::endl;
+	    }
+	    
 	protected:
 	    
 	    /** solution path, if found */
