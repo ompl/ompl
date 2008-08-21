@@ -8,6 +8,7 @@
   <url></url>
 
   <depend package="math_utils"/>
+  <depend package="profiling_utils"/>
 
   <export>
     <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl -lpthread -lrt"/>

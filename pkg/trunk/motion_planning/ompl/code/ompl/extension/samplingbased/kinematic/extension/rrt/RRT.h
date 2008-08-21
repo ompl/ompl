@@ -55,7 +55,7 @@ namespace ompl
 	    m_nn.setDataParameter(reinterpret_cast<void*>(dynamic_cast<SpaceInformationKinematic_t>(m_si)));
 	    random_utils::random_init(&m_rngState);
 	    m_goalBias = 0.05;	    
-	    m_rho = 0.1;	    
+	    m_rho = 0.5;	    
 	}
 
 	virtual ~RRT(void)

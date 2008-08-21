@@ -10,7 +10,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/rrt/src/LazyRRT.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/sbl/src/SBL.cpp
 			 )
-rospack_add_compile_flags(ompl -Wextra -pedantic)
+rospack_add_compile_flags(ompl -Wextra)
 
 rospack_add_executable(test_grid code/examples/samplingbased/kinematic/grid/grid.cpp)
 target_link_libraries(test_grid ompl)

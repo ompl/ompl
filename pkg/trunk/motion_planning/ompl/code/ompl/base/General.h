@@ -50,6 +50,8 @@
 #include "ompl/base/util/types.h"
 #include "ompl/base/util/time.h"
 
+#include <profiling_utils/profiler.h>
+
 #define ForwardClassDeclaration(A) class A; typedef A * A##_t
 #define ForwardStructDeclaration(A) struct A; typedef A * A##_t
 

@@ -77,6 +77,8 @@ bool ompl::LazyRRT::solve(double solveTime)
 	return false;	
     }    
 
+    printf("Starting with %u states\n", m_nn.size());
+
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
