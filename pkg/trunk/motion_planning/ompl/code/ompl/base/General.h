@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/** \Author Ioan Sucan */
+
 #ifndef OMPL_BASE_GENERAL_
 #define OMPL_BASE_GENERAL_
 

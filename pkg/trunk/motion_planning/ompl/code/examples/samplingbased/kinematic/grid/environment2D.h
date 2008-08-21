@@ -32,6 +32,11 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/** \Author Ioan Sucan */
+
+#ifndef ENVIDONMENT_2D_
+#define ENVIDONMENT_2D_
+
 #include <fstream>
 #include <vector>
 #include <string>
@@ -113,3 +118,5 @@ static void printEnvironment(std::ostream &out, Environment2D &env)
 	out << std::endl;	
     }    
 }
+
+#endif

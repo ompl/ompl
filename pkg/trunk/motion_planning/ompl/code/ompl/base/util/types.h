@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/** This file is taken from ROS */
+
 #ifndef OMPL_TYPES_
 #define OMPL_TYPES_
 

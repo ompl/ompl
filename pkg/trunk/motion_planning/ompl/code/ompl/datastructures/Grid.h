@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/** \Author Ioan Sucan */
+
 #ifndef OMPL_DATASTRUCTURES_GRID_
 #define OMPL_DATASTRUCTURES_GRID_
 

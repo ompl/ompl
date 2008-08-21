@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/** \Author Ioan Sucan */
+
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
 #include <cassert>
 

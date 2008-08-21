@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/** \Author Ioan Sucan */
+
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/RRT.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
 #include "environment2D.h"

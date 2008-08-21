@@ -1,6 +1,8 @@
 #ifndef OMPL_RANDOM_
 #define OMPL_RANDOM_
 
+/** \Author Ioan Sucan (adaptation from ROS) */
+
 namespace ompl
 {
     namespace random_utils
@@ -35,6 +37,10 @@ namespace ompl
 	double bounded_gaussian(double mean, double stddev, double max_stddev);
 	double bounded_gaussian(rngState *state, double mean, double stddev, 
 				double max_stddev);
+
+	/** Random quaternion generator */	
+	void quaternion(double value[4]);
+	void quaternion(rngState* state, double value[4]);
     }
 
 }
