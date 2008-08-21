@@ -53,6 +53,7 @@ namespace ompl
 	Planner(SpaceInformation_t si)
 	{
 	    m_si = si;
+	    m_type = 0;
 	}
 	
 	virtual ~Planner(void)
@@ -62,9 +63,15 @@ namespace ompl
 	virtual bool solve(double solveTime) = 0;
 	virtual void clear(void) = 0;
 	
+	int getType(void)
+	{
+	    return m_type;
+	}
+	
     protected:
 	
 	SpaceInformation_t m_si;
+	int                m_type;	
 	
     };    
 

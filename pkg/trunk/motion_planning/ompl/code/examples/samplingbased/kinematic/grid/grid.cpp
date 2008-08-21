@@ -34,6 +34,7 @@
 
 /** \Author Ioan Sucan */
 
+#include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/RRT.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
 #include "environment2D.h"
@@ -115,9 +116,6 @@ public:
 	m_stateComponent[1].maxValue = (double)height - 0.000000001;
 	m_stateComponent[1].resolution = 0.5;
 	m_stateComponent[1].type = StateComponent::NORMAL;
-	
-	smoother->setMaxSteps(50);
-	smoother->setMaxEmptySteps(10);
     }
 };
 
@@ -188,8 +186,12 @@ int main(int argc, char **argv)
 	    startTime = time_utils::Time::now();
 	    
 	    /* make the solution more smooth */
-	    si->smoother->smoothVertices(path);
-
+	    PathSmootherKinematic_t smoother = new PathSmootherKinematic(si);
+	    smoother->setMaxSteps(50);
+	    smoother->setMaxEmptySteps(10);
+	    smoother->smoothVertices(path);
+	    delete smoother;
+	    
 	    elapsed = time_utils::Time::now() - startTime;
 	    printf("Smooth solution in %f seconds!\n", elapsed.to_double());
 
@@ -213,6 +215,11 @@ int main(int argc, char **argv)
 	    printEnvironment(std::cout, env);	    
 	}
 	
+	// free memory for start states
+	si->clearStartStates();
+	
+	// free memory for goal
+	si->clearGoal();
 	
 	delete planner;
 	delete si;

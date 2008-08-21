@@ -34,15 +34,11 @@
 
 /** \Author Ioan Sucan */
 
-#include "ompl/extension/samplingbased/kinematic/KinematicPathSmoother.h"
-#include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
 
-void ompl::KinematicPathSmoother::smoothVertices(SpaceInformation::Path_t opath)
+void ompl::PathSmootherKinematic::smoothVertices(SpaceInformationKinematic::PathKinematic_t path)
 {
-    SpaceInformationKinematic::PathKinematic_t path = dynamic_cast<SpaceInformationKinematic::PathKinematic_t>(opath);
-    SpaceInformationKinematic_t                si   = dynamic_cast<SpaceInformationKinematic_t>(m_si);
-    
-    if (!si || !path || path->states.size() < 3)
+    if (!path || path->states.size() < 3)
 	return;    
     
     unsigned int nochange = 0;
@@ -69,7 +65,7 @@ void ompl::KinematicPathSmoother::smoothVertices(SpaceInformation::Path_t opath)
 	if (p1 > p2)
 	    std::swap(p1, p2);
 	
-	if (si->checkMotionSubdivision(path->states[p1], path->states[p2]))
+	if (m_si->checkMotionSubdivision(path->states[p1], path->states[p2]))
 	{
 	    for (int i = p1 + 1 ; i < p2 ; ++i)
 		delete path->states[i];

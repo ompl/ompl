@@ -34,22 +34,21 @@
 
 /** \Author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_KINEMATIC_PATH_SMOOTHER_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_KINEMATIC_PATH_SMOOTHER_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
 
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/base/util/random.h"
+#include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 
 namespace ompl
 {
 
     /** Forward class declaration */
-    ForwardClassDeclaration(KinematicPathSmoother);
+    ForwardClassDeclaration(PathSmootherKinematic);
 
-    class KinematicPathSmoother
+    class PathSmootherKinematic
     {
     public:
-	KinematicPathSmoother(SpaceInformation_t si)
+	PathSmootherKinematic(SpaceInformationKinematic_t si)
 	{
 	    m_si = si;
 	    m_rangeRatio = 0.2;
@@ -58,7 +57,7 @@ namespace ompl
 	    random_utils::random_init(&m_rngState);
 	}
 
-	virtual ~KinematicPathSmoother(void)
+	virtual ~PathSmootherKinematic(void)
 	{
 	}
 
@@ -92,15 +91,15 @@ namespace ompl
 	    m_maxEmptySteps = maxEmptySteps;
 	}
 	
-	virtual void smoothVertices(SpaceInformation::Path_t path);
+	virtual void smoothVertices(SpaceInformationKinematic::PathKinematic_t path);
 
     protected:
 	
-	SpaceInformation_t      m_si;
-	random_utils::rngState  m_rngState;
-	double                  m_rangeRatio;
-	unsigned int            m_maxSteps;
-	unsigned int            m_maxEmptySteps;
+	SpaceInformationKinematic_t m_si;
+	random_utils::rngState      m_rngState;
+	double                      m_rangeRatio;
+	unsigned int                m_maxSteps;
+	unsigned int                m_maxEmptySteps;
     };
     
 }

@@ -38,7 +38,6 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/extension/samplingbased/kinematic/KinematicPathSmoother.h"
 #include "ompl/base/util/random.h"
 
 namespace ompl
@@ -47,20 +46,24 @@ namespace ompl
     /** Forward class declaration */
     ForwardClassDeclaration(SpaceInformationKinematic);
     
-    /** Forward class declaration */
-    ForwardClassDeclaration(KinematicPathSmoother);
-    
     /** Space information useful for kinematic planning */
     class SpaceInformationKinematic : public SpaceInformation
     {
     public:
 	
 	/** Constructor; setup() needs to be called as well, before use */
-        SpaceInformationKinematic(void);
+        SpaceInformationKinematic(void) : SpaceInformation(),
+	                                  m_defaultDistanceEvaluator(this)
+	{
+	    random_utils::random_init(&m_rngState);
+	    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
+	}
 	
 	/** Destructor */
-	virtual ~SpaceInformationKinematic(void);
-	
+	~SpaceInformationKinematic(void)
+	{
+	}
+
 	ForwardClassDeclaration(StateKinematic);
 	ForwardClassDeclaration(GoalRegionKinematic);
 	ForwardClassDeclaration(GoalStateKinematic);
@@ -186,9 +189,6 @@ namespace ompl
 	    double resolution;
 	};
        	
-	/** Instance of a kinematic path smoother */
-	KinematicPathSmoother_t smoother;
-	
 	virtual void printState(const StateKinematic_t state, FILE* out = stdout) const;
 	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source)
 	{
@@ -214,7 +214,7 @@ namespace ompl
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, double rho);
 
 	virtual bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2);
-	virtual bool checkMotionLinearly(const StateKinematic_t s1, const StateKinematic_t s2);
+	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2);
 	virtual void interpolatePath(PathKinematic_t path);
 
 	bool isValid(const StateKinematic_t state)

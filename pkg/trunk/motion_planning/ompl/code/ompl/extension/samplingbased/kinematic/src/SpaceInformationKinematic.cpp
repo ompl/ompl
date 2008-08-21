@@ -56,21 +56,6 @@ double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator:
     return dist;
 }
 
-ompl::SpaceInformationKinematic::SpaceInformationKinematic(void) : SpaceInformation(),
-								   m_defaultDistanceEvaluator(this)
-{
-    random_utils::random_init(&m_rngState);
-    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
-    smoother = new KinematicPathSmoother(this);
-}
-
-/** Destructor */
-ompl::SpaceInformationKinematic::~SpaceInformationKinematic(void)
-{
-    if (smoother)
-	delete smoother;
-}
-
 void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, FILE* out) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
@@ -157,7 +142,7 @@ bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinemati
     return true;
 }
 
-bool ompl::SpaceInformationKinematic::checkMotionLinearly(const StateKinematic_t s1, const StateKinematic_t s2)
+bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2)
 {   
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
