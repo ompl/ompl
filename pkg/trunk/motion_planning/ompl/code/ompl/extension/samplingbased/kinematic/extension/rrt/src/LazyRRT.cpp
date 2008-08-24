@@ -117,8 +117,8 @@ bool ompl::LazyRRT::solve(double solveTime)
 	nmotion->children.push_back(motion);
 	m_nn.add(motion);
 	
-	double dist = goal_r->distanceGoal(motion->state);
-	if (dist < goal_r->threshold)
+	double dist = 0.0;
+	if (goal_r->isSatisfied(motion->state, &dist))
 	{
 	    distsol = dist;
 	    solution = motion;

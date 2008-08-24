@@ -145,15 +145,27 @@ namespace ompl
 	
 	/** Set the instance of the distance evaluator to use. This is
 	    only needed by some planning algorithms. No memory freeing is performed. */
-	void setStateDistanceEvaluator(StateDistanceEvaluator *sde)
+	void setStateDistanceEvaluator(StateDistanceEvaluator_t sde)
 	{
 	    m_stateDistanceEvaluator = sde;
 	}
 
+	/** Return the instance of the used state distance evaluator */
+	StateDistanceEvaluator_t getStateDistanceEvaluator(void) const
+	{
+	    return m_stateDistanceEvaluator;
+	}	
+	
 	/** Set the instance of the validity checker to use. No memory freeing is performed. */
-	void setStateValidityChecker(StateValidityChecker *svc)
+	void setStateValidityChecker(StateValidityChecker_t svc)
 	{
 	    m_stateValidityChecker = svc;
+	}
+	
+	/** Return the instance of the used state validity checker */
+	StateValidityChecker_t getStateValidityChecker(void) const
+	{
+	    return m_stateValidityChecker;
 	}
 	
 	/************************************************************/
@@ -220,6 +232,12 @@ namespace ompl
 		    delete m_path;
 	    }
 
+	    /** Return true if the state statisfies the goal
+	     *  constraints.  If the state does not satisfy the
+	     *  constraints, set the distance of how far the state
+	     *  is from the goal. */
+	    virtual bool isSatisfied(State_t s, double *distance) = 0;
+	    
 	    /** Returns the space information this goal is part of */
 	    SpaceInformation_t getSpaceInformation(void) const
 	    {

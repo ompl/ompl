@@ -104,7 +104,15 @@ namespace ompl
 	    virtual ~GoalRegionKinematic(void)
 	    {
 	    }
-	    	  
+
+	    virtual bool isSatisfied(State_t s, double *distance)
+	    {
+		double d2g = distanceGoal(static_cast<StateKinematic_t>(s));
+		if (distance)
+		    *distance = d2g;
+		return d2g < threshold;
+	    }
+	    
 	    virtual double distanceGoal(StateKinematic_t s) = 0;
 	    
 	    virtual void print(std::ostream &out = std::cout) const

@@ -124,8 +124,9 @@ bool ompl::RRT::solve(double solveTime)
 	if (si->checkMotionSubdivision(nmotion->state, motion->state))
 	{
 	    m_nn.add(motion);
-	    double dist = goal_r->distanceGoal(motion->state);
-	    if (dist < goal_r->threshold)
+	    double dist = 0.0;
+	    bool solved = goal_r->isSatisfied(motion->state, &dist);
+	    if (solved)
 	    {
 		approxdif = dist;
 		solution = motion;
