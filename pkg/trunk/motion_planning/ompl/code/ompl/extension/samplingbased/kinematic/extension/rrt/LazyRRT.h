@@ -72,21 +72,47 @@ namespace ompl
 	    m_nn.clear();
 	}
 	
+	/** In the process of randomly selecting states in the state
+	    space to attempt to go towards, the algorithm may in fact
+	    choose the actual goal state, if it knows it, with some
+	    probability. This probability is a real number between 0.0
+	    and 1.0; its value should usually be around 0.05 and
+	    should not be too large. It is probably a good idea to use
+	    the default value. */
 	void setGoalBias(double goalBias)
 	{
 	    m_goalBias = goalBias;
 	}
 	
+	/** Get the goal bias the planner is using */
 	double getGoalBias(void) const
 	{
 	    return m_goalBias;
 	}
-	
+		
+	/** Set the range the planner is supposed to use. This
+	    parameter greatly influences the runtime of the
+	    algorithm. It is probably a good idea to find what a good
+	    value is for each model the planner is used for. The basic
+	    idea of RRT is that it samples a random state qr in the
+	    state space, then finds the state qc among the previously
+	    seen states that is closest to qr and expands from qc
+	    towards qr, until a state qm is reached and qm is the new
+	    state to be visited. The range parameter influences how
+	    this qm along the path between qc and qr is chosen. qr may
+	    be too far, and it may not be best to have qm = qr all the
+	    time (range = 1.0 implies qm=qr. range should be less than
+	    1.0). However, in a large space, it is also good to leave
+	    the neighborhood of qc (range = 0.0 implies qm=qc and no
+	    progress is made. rande should be larger than
+	    0.0). Multiple values of this range parameter should be
+	    tried until a suitable one is found. */
 	void setRange(double rho)
 	{
 	    m_rho = rho;
 	}
-	
+
+	/** Get the range the planner is using */
 	double getRange(void) const
 	{
 	    return m_rho;
