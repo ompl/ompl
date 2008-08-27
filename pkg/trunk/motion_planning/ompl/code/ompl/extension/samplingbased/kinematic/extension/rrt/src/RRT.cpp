@@ -105,7 +105,6 @@ bool ompl::RRT::solve(double solveTime)
 
 	profiling_utils::Profiler::End("Nearest neighbors");
 
-	profiling_utils::Profiler::Begin("Compute next motion");
 	/* find state to add */
 	for (unsigned int i = 0 ; i < dim ; ++i)
 	{
@@ -118,9 +117,6 @@ bool ompl::RRT::solve(double solveTime)
 	si->copyState(motion->state, xstate);
 	motion->parent = nmotion;
 
-	profiling_utils::Profiler::End("Compute next motion");
-
-	profiling_utils::Profiler::Begin("Check new motion");
 	if (si->checkMotionSubdivision(nmotion->state, motion->state))
 	{
 	    m_nn.add(motion);
@@ -130,7 +126,6 @@ bool ompl::RRT::solve(double solveTime)
 	    {
 		approxdif = dist;
 		solution = motion;
-		profiling_utils::Profiler::End("Check new motion");
 		break;
 	    }
 	    if (dist < approxdif)
@@ -141,7 +136,6 @@ bool ompl::RRT::solve(double solveTime)
 	}
 	else
 	    delete motion;	
-	profiling_utils::Profiler::End("Check new motion");
     }
     
     bool approximate = false;
