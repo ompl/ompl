@@ -74,3 +74,10 @@ void ompl::PathSmootherKinematic::smoothVertices(SpaceInformationKinematic::Path
 	}
     }
 }
+
+void ompl::PathSmootherKinematic::smoothMax(SpaceInformationKinematic::PathKinematic_t path)
+{
+    smoothVertices(path);
+    m_si->interpolatePath(path, 3.0);
+    smoothVertices(path);
+}

@@ -182,7 +182,7 @@ bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinemati
     return true;
 }
 
-void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path)
+void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, double factor)
 {
     std::vector<StateKinematic_t> newStates;
     const int n1 = path->states.size() - 1;
@@ -198,7 +198,7 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path)
 	int nd = 1;
 	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	{
-	    int d = 1 + (int)(fabs(s1->values[i] - s2->values[i]) / m_stateComponent[i].resolution);
+	    int d = 1 + (int)(fabs(s1->values[i] - s2->values[i]) / (factor * m_stateComponent[i].resolution));
 	    if (nd < d)
 		nd = d;
 	}

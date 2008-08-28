@@ -234,7 +234,7 @@ namespace ompl
 
 	virtual bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2);
 	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2);
-	virtual void interpolatePath(PathKinematic_t path);
+	virtual void interpolatePath(PathKinematic_t path, double factor = 1.0);
 
 	bool isValid(const StateKinematic_t state)
 	{
