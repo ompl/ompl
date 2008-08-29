@@ -39,7 +39,6 @@
 
 #include <vector>
 #include <ext/hash_map>
-#include <pthread.h>
 
 namespace ompl
 {
@@ -61,35 +60,11 @@ namespace ompl
 	    
 	    Cell(void)
 	    {
-		pthread_rwlock_init(&lock, NULL);
 	    }
 	    
 	    virtual ~Cell(void)
 	    {
-		pthread_rwlock_destroy(&lock);
 	    }
-	    
-	    inline
-	    void rd_lock(void)
-	    {
-		pthread_rwlock_rdlock(&lock);
-	    }
-
-	    inline
-	    void wr_lock(void)
-	    {
-		pthread_rwlock_wrlock(&lock);
-	    }
-	    
-	    inline
-	    void unlock(void)
-	    {
-		pthread_rwlock_unlock(&lock);
-	    }
-
-	protected:
-	    
-	    pthread_rwlock_t lock;
 	    
 	};
 	
@@ -128,10 +103,8 @@ namespace ompl
 	
 	Cell_t getCell(const Coord &coord) const
 	{ 
-	    pthread_rwlock_rdlock(&m_hashLock);
-	    hashIterator pos = m_hash.find(const_cast<const Coord_t>(&coord));
+	    iterator pos = m_hash.find(const_cast<const Coord_t>(&coord));
 	    Cell_t c = (pos != m_hash.end()) ? pos->second : NULL;
-	    pthread_rwlock_unlock(&m_hashLock);
 	    return c;
 	}	
 	
@@ -155,13 +128,11 @@ namespace ompl
 	{
 	    list.reserve(list.size() + m_maxNeighbors);
 	    
-	    pthread_rwlock_rdlock(&m_hashLock);
-
 	    for (int i = m_dimension - 1 ; i >= 0 ; --i)
 	    {
 		coord[i]--;
 		
-		hashIterator pos = m_hash.find(&coord);
+		iterator pos = m_hash.find(&coord);
 		Cell_t cell = (pos != m_hash.end()) ? pos->second : NULL;
 
 		if (cell)
@@ -175,7 +146,6 @@ namespace ompl
 		    list.push_back(cell);
 		coord[i]--;
 	    }
-	    pthread_rwlock_unlock(&m_hashLock);
 	}
 	
 	virtual Cell_t create(const Coord& coord, CellArray *nbh = NULL)
@@ -191,19 +161,15 @@ namespace ompl
 	
 	virtual void add(Cell_t cell)
 	{
-	    pthread_rwlock_wrlock(&m_hashLock);
 	    m_hash.insert(std::make_pair(&cell->coord, cell));
-	    pthread_rwlock_unlock(&m_hashLock);
 	}
 	
 	virtual bool remove(Cell_t cell)
 	{
 	    if (cell)
 	    {
-		pthread_rwlock_wrlock(&m_hashLock);
-		m_hash.erase(cell->coord);
+		m_hash.erase(&cell->coord);
 		delete cell;
-		pthread_rwlock_unlock(&m_hashLock);
 		return true;
 	    }
 	    return false;
@@ -211,26 +177,20 @@ namespace ompl
 	
 	void getContent(std::vector<_T> &content) const
 	{
-	    pthread_rwlock_rdlock(&m_hashLock);
-	    for (hashIterator i = m_hash.begin() ; i != m_hash.end() ; i++)
+	    for (iterator i = m_hash.begin() ; i != m_hash.end() ; i++)
 		content.push_back(i->second->data);
-	    pthread_rwlock_unlock(&m_hashLock);
 	}
 	
 	void getCoordinates(std::vector<Coord_t> &coords) const
 	{
-	    pthread_rwlock_rdlock(&m_hashLock);
-	    for (hashIterator i = m_hash.begin() ; i != m_hash.end() ; i++)
+	    for (iterator i = m_hash.begin() ; i != m_hash.end() ; i++)
 		coords.push_back(i->first);
-	    pthread_rwlock_unlock(&m_hashLock);
 	}
 	
 	void getCells(CellArray &cells) const
 	{
-	    pthread_rwlock_rdlock(&m_hashLock);
-	    for (hashIterator i = m_hash.begin() ; i != m_hash.end() ; i++)
+	    for (iterator i = m_hash.begin() ; i != m_hash.end() ; i++)
 		cells.push_back(i->second);
-	    pthread_rwlock_unlock(&m_hashLock);
 	}
 	
 	void printCoord(Coord& coord, FILE* out = stdout) const
@@ -243,10 +203,7 @@ namespace ompl
 	
 	unsigned int size(void) const
 	{
-	    pthread_rwlock_rdlock(&m_hashLock);
-	    const unsigned int sz = m_hash.size();	    
-	    pthread_rwlock_unlock(&m_hashLock);
-	    return sz;
+	    return m_hash.size();	    
 	}
 
     protected:
@@ -256,10 +213,7 @@ namespace ompl
 	{
 	    CellArray content;
 	    getCells(content);
-	    
-	    pthread_rwlock_wrlock(&m_hashLock);
 	    m_hash.clear();
-	    pthread_rwlock_unlock(&m_hashLock);
 	    
 	    for (unsigned int i = 0 ; i < content.size() ; i++)
 		delete content[i];	    
@@ -290,14 +244,27 @@ namespace ompl
 	};
 
 	typedef __gnu_cxx::hash_map<Coord_t, Cell_t, HashFunCoordPtr, EqualCoordPtr> CoordHash;
-	typedef typename CoordHash::const_iterator                                   hashIterator;
 	
+    public:
+	
+	typedef typename CoordHash::const_iterator                                   iterator;
+	
+	iterator begin(void) const
+	{
+	    return m_hash.begin();
+	}
+	
+	iterator end(void) const
+	{
+	    return m_hash.end();
+	}
+	
+    protected:
+
 	unsigned int     m_dimension;
 	unsigned int     m_maxNeighbors;
 
 	CoordHash        m_hash;
-	mutable
-	pthread_rwlock_t m_hashLock;
     };
 }
 

@@ -68,7 +68,7 @@ namespace ompl
 	    virtual unsigned int getDimension(void) const = 0;
 	    
 	    /** Compute the projection as an array of double values */
-	    virtual void operator()(const State_t state, double *projection) = 0;
+	    virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection) = 0;
 	};
 
 	/** Definition for a class computing orthogonal projections */
@@ -86,11 +86,10 @@ namespace ompl
 		return m_components.size();
 	    }
 	    
-	    virtual void operator()(const State_t state, double *projection)
+	    virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection)
 	    {
-		const double *values = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state)->m_values;
 		for (unsigned int i = 0 ; i < m_components.size() ; ++i)
-		    projection[i] = values[m_components[i]];
+		    projection[i] = state->values[m_components[i]];
 	    }
 	    
 	protected:
@@ -144,7 +143,7 @@ namespace ompl
        	ForwardClassDeclaration(Motion);
 	
 	typedef std::vector<Motion_t> MotionSet;	
-
+	
 	class Motion
 	{
 	public:
@@ -174,21 +173,37 @@ namespace ompl
 	    bool                                        valid;
 	    MotionSet                                   children;
 	};
-
+	
+	struct TreeData
+	{
+	    TreeData(void)
+	    {
+		size = 0;
+	    }
+	    
+	    Grid<MotionSet> grid;
+	    unsigned int    size;
+	};
+	
 	void freeMemory(void)
 	{
+	    if (m_projectionEvaluator)
+		delete m_projectionEvaluator;
 	}
 	
-	Motion_t selectMotion(Grid<MotionSet> &grid);	
-	void removeMotion(Grid<MotionSet> &grid, Motion_t motion);
-	void addMotion(Grid<MotionSet> &grid, Motion_t motion);
+	void addMotion(TreeData &tree, Motion_t motion);
+	Motion_t selectMotion(TreeData &tree);	
+	void removeMotion(TreeData &tree, Motion_t motion);
+	void computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord);
+	bool isPathValid(TreeData &tree, Motion_t motion);
+	bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion_t motion, std::vector<Motion_t> &solution);
 
 	ProjectionEvaluator   *m_projectionEvaluator;
 	unsigned int           m_projectionDimension;
 	std::vector<double>    m_cellDimensions;
 		
-	Grid<MotionSet>        m_gStart;
-	Grid<MotionSet>        m_gGoal;
+	TreeData               m_tStart;
+	TreeData               m_tGoal;
 	
 	double                 m_rho;	
 	random_utils::rngState m_rngState;	
