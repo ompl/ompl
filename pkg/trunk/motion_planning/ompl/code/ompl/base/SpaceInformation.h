@@ -359,11 +359,11 @@ namespace ompl
 	
     protected:
 
-	bool                    m_setup;
-	std::vector<State_t>    m_startStates;
-	Goal_t                  m_goal;
-	StateValidityChecker   *m_stateValidityChecker;
-	StateDistanceEvaluator *m_stateDistanceEvaluator;
+	bool                     m_setup;
+	std::vector<State_t>     m_startStates;
+	Goal_t                   m_goal;
+	StateValidityChecker_t   m_stateValidityChecker;
+	StateDistanceEvaluator_t m_stateDistanceEvaluator;
 	
     };
     

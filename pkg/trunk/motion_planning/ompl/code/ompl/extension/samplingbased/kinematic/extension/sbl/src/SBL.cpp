@@ -97,9 +97,9 @@ bool ompl::SBL::solve(double solveTime)
     
     while (time_utils::Time::now() < endTime)
     {
-	Grid<Motion_t> &grid      = startGrid ? m_gStart : m_gGoal;
+	Grid<MotionSet> &grid      = startGrid ? m_gStart : m_gGoal;
 	startGrid = !startGrid;
-	Grid<Motion_t> &otherGrid = startGrid ? m_gStart : m_gGoal;
+	Grid<MotionSet> &otherGrid = startGrid ? m_gStart : m_gGoal;
 	
 	Motion_t existing = selectMotion(grid);
 	si->sampleNear(xstate, existing->state, m_rho);
@@ -112,6 +112,10 @@ bool ompl::SBL::solve(double solveTime)
 
 	addMotion(grid, motion);
 	
+	// find the cell where motion was added in grid.  see if the
+	// same cell exists in otherGrid. if so, find a random state
+	// from that cell in otherGrid and connect the newly found
+	// motion to it, build a solution path, check it.
     }
    
 
@@ -121,16 +125,74 @@ bool ompl::SBL::solve(double solveTime)
     return goal->isAchieved();
 }
 
-ompl::SBL::Motion_t ompl::SBL::selectMotion(Grid<Motion_t> &grid)
+
+void ompl::SBL::computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord)
 {
+    coord.resize(m_projectionDimension);
+    double projection[m_projectionDimension];
+    (*m_projectionEvaluator)(motion->state, projection);
+    
+    for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
+	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
+}
+
+ompl::SBL::Motion_t ompl::SBL::selectMotion(Grid<MotionSet> &grid)
+{
+    // kind of need a list of grid cells... so i don't have to get it from the grid.. maybe... iterators?
+    // remove thread safety ?
     return NULL;
 }
 
-void ompl::SBL::removeMotion(Grid<Motion_t> &grid, Motion_t motion)
+void ompl::SBL::removeMotion(Grid<MotionSet> &grid, Motion_t motion)
 {
+    /* remove from grid */
+    Grid<MotionSet>::Coord coord;
+    computeCoordinates(motion, coord);
+    Grid<MotionSet>::Cell_t cell = grid.getCell(coord);
+    if (cell)
+    {
+	for (unsigned int i = 0 ; i < cell->data.size(); ++i)
+	    if (cell->data[i] == motion)
+	    {
+		cell->data.erase(cell->data.begin() + i);
+		break;
+	    }
+	if (cell->data.empty())
+	    grid.remove(cell);
+    }
+    
+    
+    /* remove self from parent list */
+    
+    if (motion->parent)
+    {
+	for (unsigned int i = 0 ; i < motion->parent->children.size() ; ++i)
+	    if (motion->parent->children[i] == motion)
+	    {
+		motion->parent->children.erase(motion->parent->children.begin() + i);
+		break;
+	    }
+    }    
+
+    /* remove children */
+    for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
+    {
+	motion->children[i]->parent = NULL;
+	removeMotion(grid, motion->children[i]);
+    }
 }
 
-void ompl::SBL::addMotion(Grid<Motion_t> &grid, Motion_t motion)
+void ompl::SBL::addMotion(Grid<MotionSet> &grid, Motion_t motion)
 {
+    Grid<MotionSet>::Coord coord;
+    computeCoordinates(motion, coord);
+    Grid<MotionSet>::Cell_t cell = grid.getCell(coord);
+    if (cell)
+	cell->data.push_back(motion);
+    else
+    {
+	cell = grid.create(coord);
+	cell->data.push_back(motion);
+	grid.add(cell);
+    }
 }
-

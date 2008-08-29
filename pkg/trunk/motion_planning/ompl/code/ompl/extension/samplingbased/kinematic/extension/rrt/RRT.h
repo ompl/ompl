@@ -166,9 +166,9 @@ namespace ompl
 	
 	NearestNeighborsSqrtApprox<Motion_t, distanceFunction> m_nn;
 	
-	double                                       m_goalBias;
-	double                                       m_rho;	
-	random_utils::rngState                       m_rngState;	
+	double                                                 m_goalBias;
+	double                                                 m_rho;	
+	random_utils::rngState                                 m_rngState;	
     };
 
 }

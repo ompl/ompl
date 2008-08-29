@@ -43,26 +43,43 @@
 namespace ompl
 {
 
+    /** Forward class declaration */
     ForwardClassDeclaration(Planner);
     
+    /** Base class for a planner */
     class Planner
     {
 	
     public:
 	
+	/** Constructor */
 	Planner(SpaceInformation_t si)
 	{
-	    m_si = si;
-	    m_type = 0;
+	    m_si    = si;
+	    m_type  = 0;
+	    m_setup = false;
 	}
 	
+	/** Destructor */
 	virtual ~Planner(void)
 	{
 	}
 	
+	/** Function that can solve the motion planning problem */
 	virtual bool solve(double solveTime) = 0;
+
+	/** Clear all internal datastructures */
 	virtual void clear(void) = 0;
 	
+	/** Perform extra configuration steps, if needed */
+	virtual void setup(void)
+	{
+	    m_setup = true;
+	}
+
+	/** Return the type of the motion planner. This is useful if
+	    the planner wants to advertise what type of problems it
+	    can solve */
 	int getType(void)
 	{
 	    return m_type;
@@ -72,6 +89,7 @@ namespace ompl
 	
 	SpaceInformation_t m_si;
 	int                m_type;	
+	bool               m_setup;
 	
     };    
 

@@ -40,7 +40,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
-#include <map>
+#include <vector>
    
 namespace ompl
 {
@@ -172,9 +172,9 @@ namespace ompl
 	
 	NearestNeighborsSqrtApprox<Motion_t, distanceFunction> m_nn;
 
-	double                                             m_goalBias;
-	double                                             m_rho;	
-	random_utils::rngState                             m_rngState;	
+	double                                                 m_goalBias;
+	double                                                 m_rho;	
+	random_utils::rngState                                 m_rngState;	
 	
     };
 

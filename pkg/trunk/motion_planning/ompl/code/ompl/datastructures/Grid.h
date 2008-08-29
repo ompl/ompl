@@ -39,6 +39,7 @@
 
 #include <vector>
 #include <ext/hash_map>
+#include <pthread.h>
 
 namespace ompl
 {
@@ -177,7 +178,7 @@ namespace ompl
 	    pthread_rwlock_unlock(&m_hashLock);
 	}
 	
-	virtual Cell_t add(const Coord& coord, CellArray *nbh = NULL)
+	virtual Cell_t create(const Coord& coord, CellArray *nbh = NULL)
 	{
 	    Cell_t cell = new Cell();
 	    cell->coord = coord;
@@ -188,11 +189,24 @@ namespace ompl
 	    return cell;
 	}
 	
-	virtual void finish(Cell_t cell)
+	virtual void add(Cell_t cell)
 	{
 	    pthread_rwlock_wrlock(&m_hashLock);
 	    m_hash.insert(std::make_pair(&cell->coord, cell));
 	    pthread_rwlock_unlock(&m_hashLock);
+	}
+	
+	virtual bool remove(Cell_t cell)
+	{
+	    if (cell)
+	    {
+		pthread_rwlock_wrlock(&m_hashLock);
+		m_hash.erase(cell->coord);
+		delete cell;
+		pthread_rwlock_unlock(&m_hashLock);
+		return true;
+	    }
+	    return false;
 	}
 	
 	void getContent(std::vector<_T> &content) const

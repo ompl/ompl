@@ -8,7 +8,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/extension/samplingbased/kinematic/src/PathSmootherKinematic.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/rrt/src/RRT.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/rrt/src/LazyRRT.cpp
-			 code/ompl/extension/samplingbased/kinematic/extension/sbl/src/SBL.cpp
+#			 code/ompl/extension/samplingbased/kinematic/extension/sbl/src/SBL.cpp
 			 )
 rospack_add_compile_flags(ompl -Wextra)
 

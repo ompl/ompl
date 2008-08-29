@@ -73,7 +73,7 @@ void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
 	{
-	    fprintf(stderr, "Sampling quaternions has not been implemented yet!\n");	    
+	    random_utils::quaternion(&m_rngState, state->values + i);
 	    i += 3;
 	}
 	else
@@ -85,7 +85,8 @@ void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const S
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
 	{
-	    fprintf(stderr, "Sampling quaternions has not been implemented yet!\n");	    
+	    /* no notion of 'near' is employed for quaternions */
+	    random_utils::quaternion(&m_rngState, state->values + i);
 	    i += 3;
 	}
 	else

@@ -40,6 +40,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/datastructures/Grid.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include <vector>
 
 namespace ompl
 {
@@ -50,10 +51,61 @@ namespace ompl
     {
     public:
 
+	/** Forward class declaration */
+	ForwardClassDeclaration(ProjectionEvaluator);	
+	
+	
+	/** Abstract definition for a class computing projections */
+	class ProjectionEvaluator
+	{
+	public:
+	    /** Destructor */
+	    virtual ~ProjectionEvaluator(void)
+	    {
+	    }
+	    
+	    /** Return the dimension of the projection defined by this evaluator */
+	    virtual unsigned int getDimension(void) const = 0;
+	    
+	    /** Compute the projection as an array of double values */
+	    virtual void operator()(const State_t state, double *projection) = 0;
+	};
+
+	/** Definition for a class computing orthogonal projections */
+        class OrthogonalProjectionEvaluator : public ProjectionEvaluator
+	{
+	public:
+	    
+	    OrthogonalProjectionEvaluator(const std::vector<unsigned int> &components) : ProjectionEvaluator()
+	    {
+		m_components = components;
+	    }
+
+	    virtual unsigned int getDimension(void) const
+	    {
+		return m_components.size();
+	    }
+	    
+	    virtual void operator()(const State_t state, double *projection)
+	    {
+		const double *values = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state)->m_values;
+		for (unsigned int i = 0 ; i < m_components.size() ; ++i)
+		    projection[i] = values[m_components[i]];
+	    }
+	    
+	protected:
+	    
+	    std::vector<unsigned int> m_components;
+	    
+	};	
+	
+	
         SBL(SpaceInformation_t si) : Planner(si)
 	{
 	    random_utils::random_init(&m_rngState);
-	    m_rho = 0.1;	    
+	    m_projectionEvaluator = NULL;
+	    m_projectionDimension = 0;
+	    m_rho = 0.1;
 	}
 
 	virtual ~SBL(void)
@@ -61,6 +113,25 @@ namespace ompl
 	    freeMemory();
 	}
 	
+	void setProjectionEvaluator(ProjectionEvaluator_t projectionEvaluator)
+	{
+	    m_projectionEvaluator = projectionEvaluator;
+	}
+	
+	void setCellDimensions(std::vector<double> &cellDimensions)
+	{
+	    m_cellDimensions = cellDimensions;
+	}
+	
+	virtual void setup(void)
+	{
+	    assert(m_projectionEvaluator);
+	    m_projectionDimension = m_projectionEvaluator->getDimension();
+	    assert(m_projectionDimension > 0);
+	    assert(m_cellDimensions.size() == m_projectionDimension);
+	    Planner::setup();
+	}
+
 	virtual bool solve(double solveTime);
 	
 	virtual void clear(void)
@@ -72,6 +143,8 @@ namespace ompl
 
        	ForwardClassDeclaration(Motion);
 	
+	typedef std::vector<Motion_t> MotionSet;	
+
 	class Motion
 	{
 	public:
@@ -99,19 +172,23 @@ namespace ompl
 	    SpaceInformationKinematic::StateKinematic_t state;
 	    Motion_t                                    parent;
 	    bool                                        valid;
-	    std::vector<Motion_t>                       children;
+	    MotionSet                                   children;
 	};
 
 	void freeMemory(void)
 	{
 	}
 	
-	Motion_t selectMotion(Grid<Motion_t> &grid);	
-	void removeMotion(Grid<Motion_t> &grid, Motion_t motion);
-	void addMotion(Grid<Motion_t> &grid, Motion_t motion);
+	Motion_t selectMotion(Grid<MotionSet> &grid);	
+	void removeMotion(Grid<MotionSet> &grid, Motion_t motion);
+	void addMotion(Grid<MotionSet> &grid, Motion_t motion);
 
-	Grid<Motion_t>         m_gStart;
-	Grid<Motion_t>         m_gGoal;
+	ProjectionEvaluator   *m_projectionEvaluator;
+	unsigned int           m_projectionDimension;
+	std::vector<double>    m_cellDimensions;
+		
+	Grid<MotionSet>        m_gStart;
+	Grid<MotionSet>        m_gGoal;
 	
 	double                 m_rho;	
 	random_utils::rngState m_rngState;	
