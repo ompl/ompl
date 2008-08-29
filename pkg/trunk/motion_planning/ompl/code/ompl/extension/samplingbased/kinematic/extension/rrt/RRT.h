@@ -52,6 +52,7 @@ namespace ompl
 
         RRT(SpaceInformation_t si) : Planner(si)
 	{
+	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
 	    m_nn.setDataParameter(reinterpret_cast<void*>(dynamic_cast<SpaceInformationKinematic_t>(m_si)));
 	    random_utils::random_init(&m_rngState);
 	    m_goalBias = 0.05;	    

@@ -101,6 +101,7 @@ namespace ompl
 	
         SBL(SpaceInformation_t si) : Planner(si)
 	{
+	    m_type = PLAN_TO_GOAL_STATE;
 	    random_utils::random_init(&m_rngState);
 	    m_projectionEvaluator = NULL;
 	    m_projectionDimension = 0;
@@ -110,6 +111,8 @@ namespace ompl
 	virtual ~SBL(void)
 	{
 	    freeMemory();
+	    if (m_projectionEvaluator)
+		delete m_projectionEvaluator;
 	}
 	
 	void setProjectionEvaluator(ProjectionEvaluator_t projectionEvaluator)
@@ -151,6 +154,8 @@ namespace ompl
 	
 	virtual void clear(void)
 	{
+	    freeMemory();
+	    
 	    m_tStart.grid.clear();
 	    m_tStart.size = 0;
 	    
@@ -207,8 +212,17 @@ namespace ompl
 	
 	void freeMemory(void)
 	{
-	    if (m_projectionEvaluator)
-		delete m_projectionEvaluator;
+	    freeGridMotions(m_tStart.grid);
+	    freeGridMotions(m_tGoal.grid);
+	}
+	
+	void freeGridMotions(Grid<MotionSet> &grid)
+	{
+	    for (Grid<MotionSet>::iterator it = grid.begin(); it != grid.end() ; ++it)
+	    {
+		for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
+		    delete it->second->data[i];
+	    }
 	}
 	
 	void addMotion(TreeData &tree, Motion_t motion);

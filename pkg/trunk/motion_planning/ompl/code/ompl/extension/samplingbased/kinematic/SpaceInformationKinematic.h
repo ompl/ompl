@@ -43,6 +43,9 @@
 namespace ompl
 {
     
+    static const int PLAN_TO_GOAL_STATE  = 1;
+    static const int PLAN_TO_GOAL_REGION = 2;
+
     /** Forward class declaration */
     ForwardClassDeclaration(SpaceInformationKinematic);
     
