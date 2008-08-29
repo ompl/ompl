@@ -90,20 +90,26 @@ bool ompl::SBL::solve(double solveTime)
 	fprintf(stderr, "Motion planning trees could not be initialized!\n");
 	return false;
     }
-    
+
+    printf("Starting with %u states\n",  m_tStart.size + m_tGoal.size);
+
     std::vector<Motion_t>                       solution;
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
     bool                                        startTree = true;
     
     while (time_utils::Time::now() < endTime)
     {
+	profiling_utils::Profiler::Begin("Sampling");
+	
 	TreeData &tree      = startTree ? m_tStart : m_tGoal;
 	startTree = !startTree;
 	TreeData &otherTree = startTree ? m_tStart : m_tGoal;
 	
 	Motion_t existing = selectMotion(tree);
 	si->sampleNear(xstate, existing->state, m_rho);
-	
+
+	profiling_utils::Profiler::End("Sampling");
+
 	/* create a motion */
 	Motion_t motion = new Motion(dim);
 	si->copyState(motion->state, xstate);
@@ -130,6 +136,8 @@ bool ompl::SBL::solve(double solveTime)
     
     delete xstate;
     
+    printf("Created %u states\n", m_tStart.size + m_tGoal.size);
+    
     return goal->isAchieved();
 }
 
@@ -141,7 +149,7 @@ bool ompl::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, M
     if (cell && !cell->data.empty())
     {
 	SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
-	Motion_t connectOther          = cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size())];
+	Motion_t connectOther          = cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size() - 1)];
 	Motion_t connect               = new Motion(si->getStateDimension());
 
 	si->copyState(connect->state, connectOther->state);
@@ -171,7 +179,7 @@ bool ompl::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, M
 	    
 	    for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
 		solution.push_back(mpath1[i]);
-	    solution.insert(solution.end(), mpath2.begin(), mpath1.begin());
+	    solution.insert(solution.end(), mpath2.begin(), mpath2.end());
 	    
 	    return true;
 	}
@@ -234,7 +242,7 @@ ompl::SBL::Motion_t ompl::SBL::selectMotion(TreeData &tree)
     }
     if (!cell && tree.grid.size() > 0)
 	cell = tree.grid.begin()->second;
-    return cell && !cell->data.empty() ? cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size())] : NULL;
+    return cell && !cell->data.empty() ? cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size() - 1)] : NULL;
 }
 
 void ompl::SBL::removeMotion(TreeData &tree, Motion_t motion)

@@ -116,10 +116,24 @@ namespace ompl
 	{
 	    m_projectionEvaluator = projectionEvaluator;
 	}
-	
+
 	void setCellDimensions(std::vector<double> &cellDimensions)
 	{
 	    m_cellDimensions = cellDimensions;
+	}
+	
+	/** Set the range the planner is supposed to use. This
+	    parameter greatly influences the runtime of the
+	    algorithm. It is probably a good idea to find what a good
+	    value is for each model the planner is used for. The basic
+	    idea of SBL is that it samples a random state around a
+	    state that was already added to the tree. The distance
+	    withing which this new state is sampled is controled by
+	    the range. This should be a value larger than 0.0 and less
+	    than 1.0 */
+	void setRange(double rho)
+	{
+	    m_rho = rho;
 	}
 	
 	virtual void setup(void)
@@ -134,8 +148,12 @@ namespace ompl
 	virtual bool solve(double solveTime);
 	
 	virtual void clear(void)
-	{
-	    freeMemory();
+	{/*
+	    m_tStart.grid.clear();
+	    m_tStart.size = 0;
+	    
+	    m_tGoal.grid.clear();
+	    m_tGoal.size = 0;	    */
 	}
 	
     protected:
