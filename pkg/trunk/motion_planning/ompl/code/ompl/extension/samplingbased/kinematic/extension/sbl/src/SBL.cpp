@@ -146,6 +146,7 @@ bool ompl::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, M
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord); 
     Grid<MotionSet>::Cell_t cell = otherTree.grid.getCell(coord);
+    
     if (cell && !cell->data.empty())
     {
 	SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);

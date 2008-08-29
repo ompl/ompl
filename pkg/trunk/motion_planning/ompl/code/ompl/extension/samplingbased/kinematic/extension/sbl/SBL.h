@@ -142,18 +142,20 @@ namespace ompl
 	    m_projectionDimension = m_projectionEvaluator->getDimension();
 	    assert(m_projectionDimension > 0);
 	    assert(m_cellDimensions.size() == m_projectionDimension);
+	    m_tStart.grid.setDimension(m_projectionDimension);
+	    m_tGoal.grid.setDimension(m_projectionDimension);
 	    Planner::setup();
 	}
 
 	virtual bool solve(double solveTime);
 	
 	virtual void clear(void)
-	{/*
+	{
 	    m_tStart.grid.clear();
 	    m_tStart.size = 0;
 	    
 	    m_tGoal.grid.clear();
-	    m_tGoal.size = 0;	    */
+	    m_tGoal.size = 0;	    
 	}
 	
     protected:
