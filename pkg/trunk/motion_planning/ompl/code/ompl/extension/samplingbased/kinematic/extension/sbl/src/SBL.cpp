@@ -36,6 +36,15 @@
 
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 
+void ompl::SBL::check(TreeData &tree)
+{
+    for (Grid<MotionSet>::iterator it = tree.grid.begin(); it != tree.grid.end() ; ++it)
+    {
+	for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
+	    assert(it->second->data[i]->valid || it->second->data[i]->parent);
+    }
+}
+
 bool ompl::SBL::solve(double solveTime)
 {
     SpaceInformationKinematic_t                       si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
@@ -97,6 +106,8 @@ bool ompl::SBL::solve(double solveTime)
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
     bool                                        startTree = true;
     
+    check(m_tStart); check(m_tGoal);
+    
     while (time_utils::Time::now() < endTime)
     {
 	profiling_utils::Profiler::Begin("Sampling");
@@ -106,6 +117,7 @@ bool ompl::SBL::solve(double solveTime)
 	TreeData &otherTree = startTree ? m_tStart : m_tGoal;
 	
 	Motion_t existing = selectMotion(tree);
+	assert(existing);
 	si->sampleNear(xstate, existing->state, m_rho);
 
 	profiling_utils::Profiler::End("Sampling");
@@ -117,6 +129,9 @@ bool ompl::SBL::solve(double solveTime)
 	existing->children.push_back(motion);
 
 	addMotion(tree, motion);
+
+	check(m_tStart); check(m_tGoal);
+
 
 	if (checkSolution(!startTree, tree, otherTree, motion, solution))
 	{
@@ -132,6 +147,8 @@ bool ompl::SBL::solve(double solveTime)
 	    goal->setSolutionPath(path);
 	    break;
 	}
+
+	check(m_tStart); check(m_tGoal);
     }
     
     delete xstate;
@@ -147,6 +164,23 @@ bool ompl::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, M
     computeCoordinates(motion, coord); 
     Grid<MotionSet>::Cell_t cell = otherTree.grid.getCell(coord);
     
+
+    
+    int found = 0;
+    for (Grid<MotionSet>::iterator it = tree.grid.begin(); it != tree.grid.end() ; ++it)
+    {
+	for (unsigned int j = 0 ; j < it->second->data.size() ; ++j)
+	{
+	    assert(it->second->data[j]->valid || it->second->data[j]->parent);
+	    if (it->second->data[j] == motion)
+		found = 1;
+	}
+	
+    }
+    assert(found);
+
+
+
     if (cell && !cell->data.empty())
     {
 	SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
@@ -192,7 +226,10 @@ bool ompl::SBL::isPathValid(TreeData &tree, Motion_t motion)
 {
     std::vector<Motion_t>       mpath;
     SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
-	
+
+    printf("call ipv\n");
+    check(m_tStart); check(m_tGoal);
+
     /* construct the solution path */
     while (motion != NULL)
     {
@@ -204,10 +241,28 @@ bool ompl::SBL::isPathValid(TreeData &tree, Motion_t motion)
     for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	if (!mpath[i]->valid)
 	{
+	    check(m_tStart);
+	    check(m_tGoal);
+
+	    int found = 0;
+	    for (Grid<MotionSet>::iterator it = tree.grid.begin(); it != tree.grid.end() ; ++it)
+	    {
+		for (unsigned int j = 0 ; j < it->second->data.size() ; ++j)
+		{
+		    assert(it->second->data[j]->valid || it->second->data[j]->parent);
+		    if (it->second->data[j] == mpath[i])
+			found = 1;
+		}
+		
+	    }
+	    assert(found);
+	    
+
 	    if (si->checkMotionSubdivision(mpath[i]->parent->state, mpath[i]->state))
 		mpath[i]->valid = true;
 	    else
 	    {
+		printf("call remove\n");
 		removeMotion(tree, mpath[i]);
 		return false;
 	    }
@@ -249,6 +304,7 @@ ompl::SBL::Motion_t ompl::SBL::selectMotion(TreeData &tree)
 void ompl::SBL::removeMotion(TreeData &tree, Motion_t motion)
 {
     /* remove from grid */
+        
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord);
     Grid<MotionSet>::Cell_t cell = tree.grid.getCell(coord);
