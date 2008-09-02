@@ -38,7 +38,6 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/util/random.h"
 
 namespace ompl
 {
@@ -58,7 +57,7 @@ namespace ompl
         SpaceInformationKinematic(void) : SpaceInformation(),
 	                                  m_defaultDistanceEvaluator(this)
 	{
-	    random_utils::random_init(&m_rngState);
+	    random_utils::init(&m_rngState);
 	    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
 	}
 	

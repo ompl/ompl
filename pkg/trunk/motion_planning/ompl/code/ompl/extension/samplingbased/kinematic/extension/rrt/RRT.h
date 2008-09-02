@@ -55,7 +55,7 @@ namespace ompl
 	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
 	    m_dEval = new DistanceFunction(dynamic_cast<SpaceInformationKinematic_t>(si));
 	    m_nn.setDistanceFunction(m_dEval);
-	    random_utils::random_init(&m_rngState);
+	    random_utils::init(&m_rngState);
 	    m_goalBias = 0.05;	    
 	    m_rho = 0.1;
 	}

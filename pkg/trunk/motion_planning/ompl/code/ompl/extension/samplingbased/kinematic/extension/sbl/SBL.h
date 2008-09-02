@@ -102,7 +102,7 @@ namespace ompl
         SBL(SpaceInformation_t si) : Planner(si)
 	{
 	    m_type = PLAN_TO_GOAL_STATE;
-	    random_utils::random_init(&m_rngState);
+	    random_utils::init(&m_rngState);
 	    m_projectionEvaluator = NULL;
 	    m_projectionDimension = 0;
 	    m_rho = 0.1;

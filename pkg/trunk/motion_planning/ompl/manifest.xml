@@ -8,6 +8,7 @@
   <url></url>
 
   <depend package="math_utils"/>
+  <depend package="random_utils"/>
   <depend package="profiling_utils"/>
 
   <export>
