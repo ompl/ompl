@@ -111,8 +111,6 @@ namespace ompl
 	virtual ~SBL(void)
 	{
 	    freeMemory();
-	    if (m_projectionEvaluator)
-		delete m_projectionEvaluator;
 	}
 	
 	void setProjectionEvaluator(ProjectionEvaluator_t projectionEvaluator)

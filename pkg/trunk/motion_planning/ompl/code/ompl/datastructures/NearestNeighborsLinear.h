@@ -42,11 +42,11 @@
 namespace ompl
 {
 
-    template<typename _T, typename _DistanceFunction>
-    class NearestNeighborsLinear : public NearestNeighbors<_T, _DistanceFunction>
+    template<typename _T>
+    class NearestNeighborsLinear : public NearestNeighbors<_T>
     {
     public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T, _DistanceFunction>()
+        NearestNeighborsLinear(void) : NearestNeighbors<_T()
 	{
 	}
 	
@@ -85,7 +85,7 @@ namespace ompl
 	    {
 		if (m_active[i])
 		{
-		    double distance = _DistanceFunction()(m_data[i], data, NearestNeighbors<_T, _DistanceFunction>::m_parameter);
+		    double distance = (*NearestNeighbors<_T>::m_distFun)(m_data[i], data);
 		    if (pos < 0 || dmin > distance)
 		    {
 			pos = i;

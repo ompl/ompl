@@ -54,7 +54,8 @@ namespace ompl
         LazyRRT(SpaceInformation_t si) : Planner(si)
 	{
 	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
-	    m_nn.setDataParameter(reinterpret_cast<void*>(dynamic_cast<SpaceInformationKinematic_t>(m_si)));
+	    m_dEval = new DistanceFunction(dynamic_cast<SpaceInformationKinematic_t>(si));
+	    m_nn.setDistanceFunction(m_dEval);
 	    random_utils::random_init(&m_rngState);
 	    m_goalBias = 0.05;	    
 	    m_rho = 0.1;	    
@@ -63,6 +64,8 @@ namespace ompl
 	virtual ~LazyRRT(void)
 	{
 	    freeMemory();
+	    if (m_dEval)
+		delete m_dEval;
 	}
 	
 	virtual bool solve(double solveTime);
@@ -163,19 +166,31 @@ namespace ompl
 
 	void removeMotion(Motion_t motion);	
 	
-	struct distanceFunction
+	class DistanceFunction : public NearestNeighborsSqrtApprox<Motion_t>::DistanceFunction
 	{
-	    double operator()(const Motion_t a, const Motion_t b, void *data)
+	public:
+	    DistanceFunction(SpaceInformationKinematic_t si)
 	    {
-		return reinterpret_cast<SpaceInformationKinematic_t>(data)->distance(a->state, b->state);
+		assert(si);
+		m_si = si;
 	    }
+	    
+	    double operator()(const Motion_t &a, const Motion_t &b)
+	    {
+		return m_si->distance(a->state, b->state);
+	    }
+	protected:
+	    
+	    SpaceInformationKinematic_t m_si;
+	    
 	};
 	
-	NearestNeighborsSqrtApprox<Motion_t, distanceFunction> m_nn;
-
-	double                                                 m_goalBias;
-	double                                                 m_rho;	
-	random_utils::rngState                                 m_rngState;	
+	NearestNeighborsSqrtApprox<Motion_t> m_nn;
+	DistanceFunction                    *m_dEval;
+	
+	double                               m_goalBias;
+	double                               m_rho;	
+	random_utils::rngState               m_rngState;
 	
     };
 

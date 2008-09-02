@@ -42,22 +42,38 @@
 namespace ompl
 {
     
-    template<typename _T, typename _DistanceFunction>
+    template<typename _T>
     class NearestNeighbors
     {
     public:
+	
+	/** Basic definition of a distance function. The user is
+	    responsible for allocating and freeing an instance of a
+	    class that provides the implementation of the () abstract
+	    operator */
+	class DistanceFunction
+	{
+	public:
+	    virtual ~DistanceFunction(void)
+	    {
+	    }
+	    
+	    virtual double operator()(const _T &a, const _T &b) = 0;
+	};
+	
+
 	NearestNeighbors(void)
 	{
-	    m_parameter = NULL;
+	    m_distFun = NULL;
 	}
 	
 	virtual ~NearestNeighbors(void)
 	{
 	}
 
-	void setDataParameter(void *parameter)
+	void setDistanceFunction(DistanceFunction *distFun)
 	{
-	    m_parameter = parameter;
+	    m_distFun = distFun;
 	}
 	
 	virtual void clear(void) = 0;
@@ -69,7 +85,7 @@ namespace ompl
 		
     protected:
 	
-	void            *m_parameter;
+	DistanceFunction *m_distFun;
 	
     };
     
