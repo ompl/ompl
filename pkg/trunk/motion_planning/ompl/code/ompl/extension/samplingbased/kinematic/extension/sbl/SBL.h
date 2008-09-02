@@ -215,9 +215,7 @@ namespace ompl
 	    freeGridMotions(m_tStart.grid);
 	    freeGridMotions(m_tGoal.grid);
 	}
-	
-	void check(TreeData &tree);
-	
+
 	void freeGridMotions(Grid<MotionSet> &grid)
 	{
 	    for (Grid<MotionSet>::iterator it = grid.begin(); it != grid.end() ; ++it)
