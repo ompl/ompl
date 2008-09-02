@@ -34,6 +34,17 @@
 
 /** \Author Ioan Sucan */
 
+/**
+   @subsubsection RRT (Rapidly-exploring Random Trees)
+
+   @par Short description
+   
+   
+   @par External documentation
+   @link http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree
+   @link http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html
+*/
+
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
 
