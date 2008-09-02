@@ -32,14 +32,19 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 /**
-   @subsubsection RRT (Rapidly-exploring Random Trees)
+   @subsubsection RRT Rapidly-exploring Random Trees (RRT)
 
    @par Short description
    
-   
+   The basic idea of RRT is that it samples a random state qr in the
+   state space, then finds the state qc among the previously seen
+   states that is closest to qr and expands from qc towards qr, until
+   a state qm is reached and qm is the new state to be visited.
+
+
    @par External documentation
    @link http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree
    @link http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html

@@ -36,7 +36,7 @@
 #ifndef OMPL_TIME_
 #define OMPL_TIME_
 
-/** This file is taken from ROS, adaptations by Ioan Sucan */
+/* This file is taken from ROS, adaptations by Ioan Sucan */
 
 #include <iostream>
 #include <cmath>

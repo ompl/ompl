@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** This file is taken from ROS, adaptations by Ioan Sucan */
+/* This file is taken from ROS, adaptations by Ioan Sucan */
 
 #include "ompl/base/util/time.h"
 #include <cmath>

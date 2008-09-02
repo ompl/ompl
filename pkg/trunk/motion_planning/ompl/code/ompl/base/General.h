@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 
 /**
@@ -66,25 +66,25 @@
 
    <hr>
 
-   @section Sampling-based motion planners
+   @section sampling_planners Sampling-based motion planners
    
-   This class of motion planner typically needs the ability to sample
+   This class of motion planners typically needs the ability to sample
    the state (configuration) space of the robot(s) planning is done
    for. To allow this, an implementation of StateValidityChecker must
    be provided. This implementation will most likely depend on a
    collision detector.
 
-   @subsection Kinematic motion planners
+   @subsection kinematic_planners Kinematic motion planners
 
    - @ref RRT
    - @ref LazyRRT
    - @ref SBL
    
-   @subsection Kinodynamic motion planners
+   @subsection kinodynamic_planners Kinodynamic motion planners
    
    - None implemented yet
 
-   @section Grid-based motion planners
+   @section grid_planners Grid-based motion planners
 
    - Not included yet
 
