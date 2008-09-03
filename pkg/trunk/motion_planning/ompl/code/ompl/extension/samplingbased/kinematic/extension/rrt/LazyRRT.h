@@ -58,7 +58,7 @@ namespace ompl
 	    m_nn.setDistanceFunction(m_dEval);
 	    random_utils::init(&m_rngState);
 	    m_goalBias = 0.05;	    
-	    m_rho = 0.1;	    
+	    m_rho = 0.5;	    
 	}
 
 	virtual ~LazyRRT(void)

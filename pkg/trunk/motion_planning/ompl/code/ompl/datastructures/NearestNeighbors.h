@@ -75,6 +75,11 @@ namespace ompl
 	{
 	    m_distFun = distFun;
 	}
+
+	DistanceFunction* getDistanceFunction(void) const
+	{
+	    return m_distFun;
+	}
 	
 	virtual void clear(void) = 0;
 	virtual void add(_T &data) = 0;

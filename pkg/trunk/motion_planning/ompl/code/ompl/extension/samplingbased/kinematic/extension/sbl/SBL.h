@@ -105,7 +105,7 @@ namespace ompl
 	    random_utils::init(&m_rngState);
 	    m_projectionEvaluator = NULL;
 	    m_projectionDimension = 0;
-	    m_rho = 0.1;
+	    m_rho = 0.5;
 	}
 
 	virtual ~SBL(void)
@@ -118,9 +118,19 @@ namespace ompl
 	    m_projectionEvaluator = projectionEvaluator;
 	}
 
-	void setCellDimensions(std::vector<double> &cellDimensions)
+	ProjectionEvaluator_t getProjectionEvaluator(void) const
+	{
+	    return m_projectionEvaluator;
+	}
+
+	void setCellDimensions(const std::vector<double> &cellDimensions)
 	{
 	    m_cellDimensions = cellDimensions;
+	}
+
+	void getCellDimensions(std::vector<double> &cellDimensions) const
+	{
+	    cellDimensions = m_cellDimensions;
 	}
 	
 	/** Set the range the planner is supposed to use. This
@@ -135,6 +145,12 @@ namespace ompl
 	void setRange(double rho)
 	{
 	    m_rho = rho;
+	}
+	
+	/** Get the range the planner is using */
+	double getRange(void) const
+	{
+	    return m_rho;
 	}
 	
 	virtual void setup(void)
