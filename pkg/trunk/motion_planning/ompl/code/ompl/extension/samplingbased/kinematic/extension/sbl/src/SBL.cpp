@@ -97,6 +97,10 @@ bool ompl::SBL::solve(double solveTime)
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
     bool                                        startTree = true;
     
+    std::vector<double> range(dim);
+    for (unsigned int i = 0 ; i < dim ; ++i)
+	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
+    
     while (time_utils::Time::now() < endTime)
     {
 	profiling_utils::Profiler::Begin("Sampling");
@@ -107,9 +111,12 @@ bool ompl::SBL::solve(double solveTime)
 	
 	Motion_t existing = selectMotion(tree);
 	assert(existing);
-	si->sampleNear(xstate, existing->state, m_rho);
+	si->sampleNear(xstate, existing->state, range);
 
 	profiling_utils::Profiler::End("Sampling");
+
+
+	profiling_utils::Profiler::Begin("Add motion");
 
 	/* create a motion */
 	Motion_t motion = new Motion(dim);
@@ -119,6 +126,8 @@ bool ompl::SBL::solve(double solveTime)
 
 	addMotion(tree, motion);
 	
+	profiling_utils::Profiler::End("Add motion");
+
 	if (checkSolution(!startTree, tree, otherTree, motion, solution))
 	{
 	    SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
@@ -137,7 +146,8 @@ bool ompl::SBL::solve(double solveTime)
     
     delete xstate;
     
-    printf("Created %u states\n", m_tStart.size + m_tGoal.size);
+    printf("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)\n", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size, 
+	   m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();
 }
