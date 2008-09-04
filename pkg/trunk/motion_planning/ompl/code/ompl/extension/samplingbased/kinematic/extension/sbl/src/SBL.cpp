@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 
@@ -41,7 +41,9 @@ bool ompl::SBL::solve(double solveTime)
     SpaceInformationKinematic_t                       si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
     SpaceInformationKinematic::GoalStateKinematic_t goal = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                     dim = si->getStateDimension();
-    
+
+    stats.clear();
+
     if (!goal)
     {
 	fprintf(stderr, "Unknown type of goal (or goal undefined)\n");
@@ -90,9 +92,9 @@ bool ompl::SBL::solve(double solveTime)
 	fprintf(stderr, "Motion planning trees could not be initialized!\n");
 	return false;
     }
-
-    printf("Starting with %u states\n",  m_tStart.size + m_tGoal.size);
-
+    
+    stats << "Starting with " << (m_tStart.size + m_tGoal.size) << " states" << std::endl;
+    
     std::vector<Motion_t>                       solution;
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
     bool                                        startTree = true;
@@ -146,8 +148,8 @@ bool ompl::SBL::solve(double solveTime)
     
     delete xstate;
     
-    printf("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)\n", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size, 
-	   m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
+    stats << "Created " << (m_tStart.size + m_tGoal.size) << " (" <<  m_tStart.size << " start + " << m_tGoal.size << " goal) states in " 
+	  << (m_tStart.grid.size() + m_tGoal.grid.size()) << " cells (" << m_tStart.grid.size() << " start + " << m_tGoal.grid.size() << " goal)"  << std::endl;
     
     return goal->isAchieved();
 }

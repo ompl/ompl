@@ -77,7 +77,7 @@ bool ompl::LazyRRT::solve(double solveTime)
 	return false;	
     }    
 
-    printf("Starting with %u states\n", m_nn.size());
+    stats << "Starting with " << m_nn.size() << " states" << std::endl;
 
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -166,7 +166,7 @@ bool ompl::LazyRRT::solve(double solveTime)
     delete xstate;
     delete rmotion;
 
-    printf("Created %u states\n", m_nn.size());
+    stats << "Created " << m_nn.size() << " states" << std::endl;
 
     return goal_r->isAchieved();
 }

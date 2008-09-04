@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
@@ -41,6 +41,7 @@
 #include "ompl/datastructures/Grid.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <vector>
+#include <sstream>
 
 namespace ompl
 {
@@ -71,6 +72,9 @@ namespace ompl
 	    virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection) = 0;
 	};
 
+	/** Forward class declaration */
+	ForwardClassDeclaration(OrthogonalProjectionEvaluator);	
+	
 	/** Definition for a class computing orthogonal projections */
         class OrthogonalProjectionEvaluator : public ProjectionEvaluator
 	{
@@ -176,6 +180,8 @@ namespace ompl
 	    m_tGoal.grid.clear();
 	    m_tGoal.size = 0;	    
 	}
+	
+	std::stringstream stats;
 	
     protected:
 

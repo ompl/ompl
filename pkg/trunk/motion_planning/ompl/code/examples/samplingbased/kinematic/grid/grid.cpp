@@ -35,11 +35,16 @@
 /** \Author Ioan Sucan */
 
 #include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/RRT.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
+
 #include "environment2D.h"
 #include <iostream>
+
 using namespace ompl;
+
+static const double SOLUTION_TIME = 1.0;
 
 
 /** Declare a class used in validating states. Such a class definition is needed for any use
@@ -119,6 +124,222 @@ public:
     }
 };
 
+/** A base class for testing planners */
+class TestPlanner
+{
+public:
+    TestPlanner(void)
+    {
+    }
+    
+    virtual ~TestPlanner(void)
+    {
+    }
+    
+    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    {	 
+	bool result = true;
+	
+	/* instantiate state validity checker */
+	myStateValidityChecker *svc = new myStateValidityChecker();
+	svc->setGrid(env.grid);
+	
+	/* instantiate state distance evaluator  */
+	myStateDistanceEvaluator *sde = new myStateDistanceEvaluator();
+	
+	
+	/* instantiate space information */
+	mySpaceInformation *si = new mySpaceInformation(env.width, env.height);
+	si->setStateValidityChecker(svc);
+	si->setStateDistanceEvaluator(sde);
+	si->setup();
+
+	/* instantiate motion planner */
+	Planner_t planner = newPlanner(si);
+	planner->setup();
+	
+	/* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
+	SpaceInformationKinematic::StateKinematic_t state = new SpaceInformationKinematic::StateKinematic(2);
+	state->values[0] = env.start.first;
+	state->values[1] = env.start.second;
+	si->addStartState(state);
+	
+	/* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
+	SpaceInformationKinematic::GoalStateKinematic_t goal = new SpaceInformationKinematic::GoalStateKinematic(si);
+	goal->state = new SpaceInformationKinematic::StateKinematic(2);
+	goal->state->values[0] = env.goal.first;
+	goal->state->values[1] = env.goal.second;
+	goal->threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
+	si->setGoal(goal);
+	
+	/* start counting time */
+	time_utils::Time startTime = time_utils::Time::now();	
+	
+	/* call the planner to solve the problem */
+	if (planner->solve(SOLUTION_TIME))
+	{
+	    time_utils::Duration elapsed = time_utils::Time::now() - startTime;
+	    if (time)
+		*time += elapsed.to_double();
+	    if (show)
+		printf("Found solution in %f seconds!\n", elapsed.to_double());
+	    
+	    SpaceInformationKinematic::PathKinematic_t path = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal->getSolutionPath());
+	    
+	    
+	    /* make the solution more smooth */
+	    PathSmootherKinematic_t smoother = new PathSmootherKinematic(si);
+	    smoother->setMaxSteps(50);
+	    smoother->setMaxEmptySteps(10);
+
+	    startTime = time_utils::Time::now();
+	    smoother->smoothVertices(path);
+	    elapsed = time_utils::Time::now() - startTime;
+	    delete smoother;
+	    if (time)
+		*time += elapsed.to_double();
+	    
+	    if (show)
+		printf("Smooth solution in %f seconds!\n", elapsed.to_double());
+
+	    /* fill in values that were linearly interpolated */
+	    si->interpolatePath(path);
+	    
+	    if (pathLength)
+		*pathLength += path->states.size();
+
+	    if (show)
+	    {
+		printEnvironment(std::cout, env);
+		std::cout << std::endl;	    
+	    }
+	    
+	    Environment2D temp = env;
+	    /* display the solution */	    
+	    for (unsigned int i = 0 ; i < path->states.size() ; ++i)
+	    {
+		int x = (int)(path->states[i]->values[0]);
+		int y = (int)(path->states[i]->values[1]);
+		if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
+		    temp.grid[x][y] = T_PATH;
+		else
+		{
+		    temp.grid[x][y] = T_ERROR;
+		    result = false;
+		}		
+	    }
+	    
+	    if (show)
+		printEnvironment(std::cout, temp);
+	}
+	else
+	    result = false;
+	
+	// free memory for start states
+	si->clearStartStates();
+	
+	// free memory for goal
+	si->clearGoal();
+	
+	delete planner;
+	delete si;
+	delete svc;
+	delete sde;
+	
+	return result;
+    }
+    
+protected:
+    
+    virtual Planner_t newPlanner(SpaceInformation_t si) = 0;
+    
+};
+
+class RRTTest : public TestPlanner 
+{
+protected:
+
+    Planner_t newPlanner(SpaceInformation_t si)
+    {
+	RRT_t rrt = new RRT(si);
+	rrt->setRange(0.95);
+	return rrt;
+    }    
+};
+
+class LazyRRTTest : public TestPlanner 
+{
+protected:
+
+    Planner_t newPlanner(SpaceInformation_t si)
+    {
+	LazyRRT_t rrt = new LazyRRT(si);
+	rrt->setRange(0.95);
+	return rrt;
+    }    
+};
+
+class SBLTest : public TestPlanner 
+{
+public:
+    SBLTest(void)
+    {
+	ope = NULL;
+    }
+
+    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    {
+	bool result = TestPlanner::execute(env, show, time, pathLength);	
+	if (ope)
+	{
+	    delete ope;	
+	    ope = NULL;
+	}
+	return result;
+    }
+    
+protected:
+    
+    Planner_t newPlanner(SpaceInformation_t si)
+    {
+	SBL_t sbl = new SBL(si);
+	sbl->setRange(0.95);
+	
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	sbl->setCellDimensions(cdim);
+	
+	std::vector<unsigned int> projection;
+	projection.push_back(0);
+	projection.push_back(1);
+	ope = new SBL::OrthogonalProjectionEvaluator(projection);
+	sbl->setProjectionEvaluator(ope);
+
+	return sbl;
+    }
+    
+    SBL::OrthogonalProjectionEvaluator_t ope;
+    
+};
+
+void runTest(const char *name, Environment2D &env, TestPlanner *p)
+{
+    double time   = 0.0;
+    double length = 0.0;
+    int    good   = 0;
+    int    N      = 50;
+    
+    for (int i = 0 ; i < N ; ++i)
+	if (p->execute(env, false, &time, &length))
+	    good++;
+    
+    printf("*** %s\n", name);
+    printf("    Success rate: %f%%\n", 100.0 * (double)good / (double)N);
+    printf("    Average runtime: %f\n", time / (double)N);
+    printf("    Average path length: %f\n", length / (double)N);
+}
+
 void usage(const char *progname)
 {
     printf("\nUsage: %s <environment file>\n", progname);    
@@ -140,90 +361,19 @@ int main(int argc, char **argv)
 	    return 1;
 	}
 	
-	/* instantiate state validity checker */
-	myStateValidityChecker *svc = new myStateValidityChecker();
-	svc->setGrid(env.grid);
+	TestPlanner *p = NULL; 
+	
+	p = new SBLTest();
+	runTest("SBL", env, p);
+	delete p;
+	
+	p = new RRTTest();
+	runTest("RRT", env, p);
+	delete p;
 
-	/* instantiate state distance evaluator  */
-	myStateDistanceEvaluator *sde = new myStateDistanceEvaluator();
-
+	p = new LazyRRTTest();
+	runTest("LazyRRT", env, p);
+	delete p;
 	
-	/* instantiate space information */
-	mySpaceInformation *si = new mySpaceInformation(env.width, env.height);
-	si->setStateValidityChecker(svc);
-	si->setStateDistanceEvaluator(sde);
-	si->setup();
-
-	/* instantiate motion planner */
-	LazyRRT_t planner = new LazyRRT(si);
-	planner->setRange(10.0);
-	
-	/* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
-	SpaceInformationKinematic::StateKinematic_t state = new SpaceInformationKinematic::StateKinematic(2);
-	state->values[0] = env.start.first;
-	state->values[1] = env.start.second;
-	si->addStartState(state);
-	
-	/* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-	SpaceInformationKinematic::GoalStateKinematic_t goal = new SpaceInformationKinematic::GoalStateKinematic(si);
-	goal->state = new SpaceInformationKinematic::StateKinematic(2);
-	goal->state->values[0] = env.goal.first;
-	goal->state->values[1] = env.goal.second;
-	goal->threshold = 1e-1; // this is basically 0, but we want to account for numerical instabilities 
-	si->setGoal(goal);
-	
-	/* start counting time */
-	time_utils::Time startTime = time_utils::Time::now();	
-	
-	/* call the planner to solve the problem */
-	if (planner->solve(10.0))
-	{
-	    time_utils::Duration elapsed = time_utils::Time::now() - startTime;
-	    printf("Found solution in %f seconds!\n", elapsed.to_double());
-	    
-	    SpaceInformationKinematic::PathKinematic_t path = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal->getSolutionPath());
-	    
-	    startTime = time_utils::Time::now();
-	    
-	    /* make the solution more smooth */
-	    PathSmootherKinematic_t smoother = new PathSmootherKinematic(si);
-	    smoother->setMaxSteps(50);
-	    smoother->setMaxEmptySteps(10);
-	    smoother->smoothVertices(path);
-	    delete smoother;
-	    
-	    elapsed = time_utils::Time::now() - startTime;
-	    printf("Smooth solution in %f seconds!\n", elapsed.to_double());
-
-	    /* fill in values that were linearly interpolated */
-	    si->interpolatePath(path);
-	    
-	    printEnvironment(std::cout, env);
-	    std::cout << std::endl;	    
-
-	    /* display the solution */	    
-	    for (unsigned int i = 0 ; i < path->states.size() ; ++i)
-	    {
-		int x = (int)(path->states[i]->values[0]);
-		int y = (int)(path->states[i]->values[1]);
-		if (env.grid[x][y] == T_FREE || env.grid[x][y] == T_PATH)
-		    env.grid[x][y] = T_PATH;
-		else
-		    env.grid[x][y] = T_ERROR;
-	    }
-	    
-	    printEnvironment(std::cout, env);	    
-	}
-	
-	// free memory for start states
-	si->clearStartStates();
-	
-	// free memory for goal
-	si->clearGoal();
-	
-	delete planner;
-	delete si;
-	delete svc;
-	delete sde;	
     }    
 }

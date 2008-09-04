@@ -56,6 +56,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include <sstream>
 
 namespace ompl
 {
@@ -136,6 +137,8 @@ namespace ompl
 	{
 	    return m_rho;
 	}
+
+	std::stringstream stats;
 	
     protected:
 

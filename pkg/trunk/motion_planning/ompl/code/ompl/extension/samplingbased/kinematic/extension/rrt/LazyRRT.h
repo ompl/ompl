@@ -41,7 +41,8 @@
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <vector>
-   
+#include <sstream>
+
 namespace ompl
 {
 
@@ -122,7 +123,8 @@ namespace ompl
 	    return m_rho;
 	}
 	
-	
+	std::stringstream stats;
+
     protected:
 	ForwardClassDeclaration(Motion);
 	

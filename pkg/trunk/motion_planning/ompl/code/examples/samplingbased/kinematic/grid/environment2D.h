@@ -59,6 +59,17 @@ struct Environment2D
     int                             width;
     int                             height;
     std::vector< std::vector<int> > grid;
+    
+    Environment2D& operator=(Environment2D &other)
+    {
+	start = other.start;
+	goal = other.goal;
+	width = other.width;
+	height = other.height;
+	grid = other.grid;
+	return *this;
+    }
+	
 };
     
 /** Load a grid representing the environment */
