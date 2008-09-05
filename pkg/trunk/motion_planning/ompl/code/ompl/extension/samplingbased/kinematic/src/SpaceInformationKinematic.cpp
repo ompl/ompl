@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <math_utils/angles.h>

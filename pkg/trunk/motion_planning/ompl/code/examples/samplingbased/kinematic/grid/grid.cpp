@@ -32,7 +32,9 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
+
+#include <gtest/gtest.h>
 
 #include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
@@ -323,57 +325,108 @@ protected:
     
 };
 
-void runTest(const char *name, Environment2D &env, TestPlanner *p)
+class PlanTest : public testing::Test
 {
-    double time   = 0.0;
-    double length = 0.0;
-    int    good   = 0;
-    int    N      = 50;
+public:
     
-    for (int i = 0 ; i < N ; ++i)
-	if (p->execute(env, false, &time, &length))
-	    good++;
+    void runPlanTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
+    {    
+	double time   = 0.0;
+	double length = 0.0;
+	int    good   = 0;
+	int    N      = 100;
+
+	for (int i = 0 ; i < N ; ++i)
+	    if (p->execute(env, false, &time, &length))
+		good++;
+	
+	*success    = 100.0 * (double)good / (double)N;
+	*avgruntime = time / (double)N;
+	*avglength  = length / (double)N;
+
+	if (verbose)
+	{
+	    printf("    Success rate: %f%%\n", *success);
+	    printf("    Average runtime: %f\n", *avgruntime);
+	    printf("    Average path length: %f\n", *avglength);
+	}
+    }
     
-    printf("*** %s\n", name);
-    printf("    Success rate: %f%%\n", 100.0 * (double)good / (double)N);
-    printf("    Average runtime: %f\n", time / (double)N);
-    printf("    Average path length: %f\n", length / (double)N);
-}
-
-void usage(const char *progname)
-{
-    printf("\nUsage: %s <environment file>\n", progname);    
-}
-
-int main(int argc, char **argv)
-{
-    if (argc != 2)
-	usage(argv[0]);
-    else
+protected:
+    
+    PlanTest(void) 
+    {
+	verbose = true;
+    }
+    
+    void SetUp(void)
     {
 	/* load environment */
-	Environment2D env;
-	loadEnvironment(argv[1], env);
+	loadEnvironment("./code/examples/samplingbased/kinematic/grid/env1.txt", env);
 	
 	if (env.width * env.height == 0)
 	{
 	    std::cerr << "The environment has a 0 dimension. Cannot continue" << std::endl;
-	    return 1;
+	    FAIL();	    
 	}
-	
-	TestPlanner *p = NULL; 
-	
-	p = new SBLTest();
-	runTest("SBL", env, p);
-	delete p;
-	
-	p = new RRTTest();
-	runTest("RRT", env, p);
-	delete p;
+    }
+    
+    void TearDown(void)
+    {
+    }
 
-	p = new LazyRRTTest();
-	runTest("LazyRRT", env, p);
-	delete p;
-	
-    }    
+    Environment2D env;
+    bool          verbose;
+};
+
+
+TEST_F(PlanTest, SBL)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new SBLTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avglength < 65.0);
+}
+
+TEST_F(PlanTest, RRT)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new RRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avglength < 65.0);
+}
+
+TEST_F(PlanTest, LazyRRT)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new LazyRRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 80.0);
+    EXPECT_TRUE(avgruntime < 0.1);
+    EXPECT_TRUE(avglength < 65.0);
+}
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

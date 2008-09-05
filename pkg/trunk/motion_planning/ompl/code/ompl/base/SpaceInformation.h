@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 #ifndef OMPL_BASE_SPACE_INFORMATION_
 #define OMPL_BASE_SPACE_INFORMATION_

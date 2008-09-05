@@ -32,13 +32,14 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 #ifndef OMPL_BASE_MOTION_PLANNER_
 #define OMPL_BASE_MOTION_PLANNER_
 
 #include "ompl/base/General.h"
 #include "ompl/base/SpaceInformation.h"
+#include <sstream>
 
 namespace ompl
 {
@@ -84,6 +85,8 @@ namespace ompl
 	{
 	    return m_type;
 	}
+	
+	std::stringstream stats;
 	
     protected:
 	

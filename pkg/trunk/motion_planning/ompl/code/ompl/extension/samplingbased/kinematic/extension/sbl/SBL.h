@@ -41,7 +41,6 @@
 #include "ompl/datastructures/Grid.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <vector>
-#include <sstream>
 
 namespace ompl
 {
@@ -180,8 +179,6 @@ namespace ompl
 	    m_tGoal.grid.clear();
 	    m_tGoal.size = 0;	    
 	}
-	
-	std::stringstream stats;
 	
     protected:
 

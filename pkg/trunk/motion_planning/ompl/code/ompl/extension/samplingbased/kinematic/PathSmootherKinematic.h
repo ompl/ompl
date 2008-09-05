@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
