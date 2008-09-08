@@ -93,21 +93,8 @@
 #ifndef OMPL_BASE_GENERAL_
 #define OMPL_BASE_GENERAL_
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cstdarg>
-#include <cassert>
-#include <climits>
-#include <cmath>
-
-#include <iostream>
-
 #include "ompl/base/util/types.h"
 #include "ompl/base/util/time.h"
-
-#include <random_utils/random_utils.h>
-#include <profiling_utils/profiler.h>
 
 /** Macro for forward class declarations */
 #define ForwardClassDeclaration(A) class A; typedef A * A##_t

@@ -39,6 +39,9 @@
 
 #include "ompl/base/SpaceInformation.h"
 
+#include <random_utils/random_utils.h>
+#include <cassert>
+
 namespace ompl
 {
     
@@ -107,20 +110,9 @@ namespace ompl
 	    {
 	    }
 
-	    virtual bool isSatisfied(State_t s, double *distance)
-	    {
-		double d2g = distanceGoal(static_cast<StateKinematic_t>(s));
-		if (distance)
-		    *distance = d2g;
-		return d2g < threshold;
-	    }
-	    
+	    virtual bool isSatisfied(State_t s, double *distance);
 	    virtual double distanceGoal(StateKinematic_t s) = 0;
-	    
-	    virtual void print(std::ostream &out = std::cout) const
-	    {
-		out << "Goal region, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << std::endl;
-	    }
+	    virtual void print(std::ostream &out = std::cout) const;
 	    
 	    double threshold;
 	};
@@ -141,16 +133,8 @@ namespace ompl
 		    delete state;
 	    }
 	    
-	    virtual double distanceGoal(StateKinematic_t s)
-	    {
-		return static_cast<SpaceInformationKinematic_t>(m_si)->distance(s, state);
-	    }
-	    
-	    virtual void print(std::ostream &out = std::cout) const
-	    {
-		out << "Goal state, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << ", state = ";
-		static_cast<SpaceInformationKinematic_t>(m_si)->printState(state, out);
-	    }
+	    virtual double distanceGoal(StateKinematic_t s);	    
+	    virtual void print(std::ostream &out = std::cout) const;
 	    
 	    StateKinematic_t state;
 	};
@@ -173,11 +157,8 @@ namespace ompl
 	    
 	protected:
 	    
-	    void freeMemory(void)
-	    {
-		for (unsigned int i = 0 ; i < states.size() ; ++i)
-		    delete states[i];
-	    }
+	    void freeMemory(void);
+	    
 	};
 	
 	class StateKinematicL2SquareDistanceEvaluator : public StateDistanceEvaluator
@@ -211,20 +192,10 @@ namespace ompl
 	};
        	
 	virtual void printState(const StateKinematic_t state, std::ostream &out = std::cout) const;
-	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source)
-	{
-	    memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
-	}
-		
-	unsigned int getStateDimension(void) const
-	{
-	    return m_stateDimension;
-	}
-
-	const StateComponent& getStateComponent(unsigned int index) const
-	{
-	    return m_stateComponent[index];
-	}
+	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source);
+	
+	unsigned int getStateDimension(void) const;
+	const StateComponent& getStateComponent(unsigned int index) const;
 	
 	double distance(const StateKinematic_t s1, const StateKinematic_t s2)
 	{
@@ -246,14 +217,7 @@ namespace ompl
 	
 	virtual void printSettings(std::ostream &out = std::cout) const;
 	
-	virtual void setup(void)
-	{
-	    assert(m_stateDimension > 0);
-	    assert(m_stateComponent.size() == m_stateDimension);
-	    assert(m_stateValidityChecker);
-	    assert(m_stateDistanceEvaluator);
-	    SpaceInformation::setup();
-	}
+	virtual void setup(void);
 	
     protected:
 		

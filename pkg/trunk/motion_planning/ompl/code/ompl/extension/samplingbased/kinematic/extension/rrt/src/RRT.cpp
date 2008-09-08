@@ -89,21 +89,14 @@ bool ompl::RRT::solve(double solveTime)
     while (time_utils::Time::now() < endTime)
     {
 
-	profiling_utils::Profiler::Begin("Sampling");
-
 	/* sample random state (with goal biasing) */
 	if (goal_s && random_utils::uniform(&m_rngState, 0.0, 1.0) < m_goalBias)
 	    si->copyState(rstate, goal_s->state);
 	else
 	    si->sample(rstate);
 
-	profiling_utils::Profiler::End("Sampling");
-
-	profiling_utils::Profiler::Begin("Nearest neighbors");
 	/* find closest state in the tree */
 	Motion_t nmotion = m_nn.nearest(rmotion);
-
-	profiling_utils::Profiler::End("Nearest neighbors");
 
 	/* find state to add */
 	for (unsigned int i = 0 ; i < dim ; ++i)

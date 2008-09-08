@@ -105,8 +105,6 @@ bool ompl::SBL::solve(double solveTime)
     
     while (time_utils::Time::now() < endTime)
     {
-	profiling_utils::Profiler::Begin("Sampling");
-	
 	TreeData &tree      = startTree ? m_tStart : m_tGoal;
 	startTree = !startTree;
 	TreeData &otherTree = startTree ? m_tStart : m_tGoal;
@@ -114,11 +112,6 @@ bool ompl::SBL::solve(double solveTime)
 	Motion_t existing = selectMotion(tree);
 	assert(existing);
 	si->sampleNear(xstate, existing->state, range);
-
-	profiling_utils::Profiler::End("Sampling");
-
-
-	profiling_utils::Profiler::Begin("Add motion");
 
 	/* create a motion */
 	Motion_t motion = new Motion(dim);
@@ -128,8 +121,6 @@ bool ompl::SBL::solve(double solveTime)
 
 	addMotion(tree, motion);
 	
-	profiling_utils::Profiler::End("Add motion");
-
 	if (checkSolution(!startTree, tree, otherTree, motion, solution))
 	{
 	    SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);

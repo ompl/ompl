@@ -40,6 +40,41 @@
 #include <algorithm>
 #include <queue>
 
+bool ompl::SpaceInformationKinematic::GoalRegionKinematic::isSatisfied(State_t s, double *distance)
+{
+    double d2g = distanceGoal(static_cast<StateKinematic_t>(s));
+    if (distance)
+	*distance = d2g;
+    return d2g < threshold;
+}
+
+void ompl::SpaceInformationKinematic::GoalRegionKinematic::print(std::ostream &out) const
+{
+    out << "Goal region, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << std::endl;
+}
+
+double ompl::SpaceInformationKinematic::GoalStateKinematic::distanceGoal(StateKinematic_t s)
+{
+    return static_cast<SpaceInformationKinematic_t>(m_si)->distance(s, state);
+}
+
+void ompl::SpaceInformationKinematic::GoalStateKinematic::print(std::ostream &out) const
+{
+    out << "Goal state, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << ", state = ";
+    static_cast<SpaceInformationKinematic_t>(m_si)->printState(state, out);
+}
+
+void ompl::SpaceInformationKinematic::PathKinematic::freeMemory(void)
+{
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+	delete states[i];
+}
+
+void ompl::SpaceInformationKinematic::copyState(StateKinematic_t destination, const StateKinematic_t source)
+{
+    memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
+}
+
 double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator::operator()(const State_t s1, const State_t s2)
 {
     const StateKinematic_t sk1 = static_cast<const StateKinematic_t>(s1);
@@ -54,6 +89,25 @@ double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator:
 	dist += diff * diff;
     }
     return dist;
+}
+
+unsigned int ompl::SpaceInformationKinematic::getStateDimension(void) const
+{
+    return m_stateDimension;
+}
+
+const ompl::SpaceInformationKinematic::StateComponent& ompl::SpaceInformationKinematic::getStateComponent(unsigned int index) const
+{
+    return m_stateComponent[index];
+}
+
+void ompl::SpaceInformationKinematic::setup(void)
+{
+    assert(m_stateDimension > 0);
+    assert(m_stateComponent.size() == m_stateDimension);
+    assert(m_stateValidityChecker);
+    assert(m_stateDistanceEvaluator);
+    SpaceInformation::setup();
 }
 
 void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, std::ostream &out) const
