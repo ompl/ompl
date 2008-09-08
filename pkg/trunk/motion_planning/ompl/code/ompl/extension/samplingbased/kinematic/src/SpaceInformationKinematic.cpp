@@ -292,6 +292,16 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, doub
     path->states.swap(newStates);
 }
 
+double ompl::SpaceInformationKinematic::distance(const StateKinematic_t s1, const StateKinematic_t s2)
+{
+    return (*m_stateDistanceEvaluator)(static_cast<const State_t>(s1), static_cast<const State_t>(s2));
+}
+
+bool ompl::SpaceInformationKinematic::isValid(const StateKinematic_t state)
+{
+    return (*m_stateValidityChecker)(static_cast<const State_t>(state));
+}
+	
 void ompl::SpaceInformationKinematic::printSettings(std::ostream &out) const
 {
     out << "Kinematic state space settings:" << std::endl;

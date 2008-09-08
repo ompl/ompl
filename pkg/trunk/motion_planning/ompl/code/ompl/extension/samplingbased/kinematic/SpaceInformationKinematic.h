@@ -197,10 +197,7 @@ namespace ompl
 	unsigned int getStateDimension(void) const;
 	const StateComponent& getStateComponent(unsigned int index) const;
 	
-	double distance(const StateKinematic_t s1, const StateKinematic_t s2)
-	{
-	    return (*m_stateDistanceEvaluator)(static_cast<const State_t>(s1), static_cast<const State_t>(s2));
-	}
+	double distance(const StateKinematic_t s1, const StateKinematic_t s2);
 	
 	virtual void sample(StateKinematic_t state);
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho);
@@ -210,10 +207,7 @@ namespace ompl
 	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2);
 	virtual void interpolatePath(PathKinematic_t path, double factor = 1.0);
 
-	bool isValid(const StateKinematic_t state)
-	{
-	    return (*m_stateValidityChecker)(static_cast<const State_t>(state));
-	}
+	bool isValid(const StateKinematic_t state);
 	
 	virtual void printSettings(std::ostream &out = std::cout) const;
 	
