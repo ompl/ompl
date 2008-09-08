@@ -112,13 +112,13 @@ bool ompl::RRT::solve(double solveTime)
 	    xstate->values[i] = fabs(diff) < range[i] ? rmotion->state->values[i] : nmotion->state->values[i] + diff * m_rho;
 	}
 	
-	/* create a motion */
-	Motion_t motion = new Motion(dim);
-	si->copyState(motion->state, xstate);
-	motion->parent = nmotion;
-
-	if (si->checkMotionSubdivision(nmotion->state, motion->state))
+	if (si->checkMotionSubdivision(nmotion->state, xstate))
 	{
+	    /* create a motion */
+	    Motion_t motion = new Motion(dim);
+	    si->copyState(motion->state, xstate);
+	    motion->parent = nmotion;
+
 	    m_nn.add(motion);
 	    double dist = 0.0;
 	    bool solved = goal_r->isSatisfied(motion->state, &dist);
@@ -134,8 +134,6 @@ bool ompl::RRT::solve(double solveTime)
 		approxsol = motion;
 	    }
 	}
-	else
-	    delete motion;	
     }
     
     bool approximate = false;

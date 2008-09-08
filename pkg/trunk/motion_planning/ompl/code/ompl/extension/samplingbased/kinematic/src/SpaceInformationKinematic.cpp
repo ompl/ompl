@@ -90,8 +90,7 @@ void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const S
 	    i += 3;
 	}
 	else
-	    state->values[i] = m_stateComponent[i].type == StateComponent::FIXED ?
-		near->values[i] :
+	    state->values[i] =
 		random_utils::uniform(&m_rngState, 
 				      std::max(m_stateComponent[i].minValue, near->values[i] - rho), 
 				      std::min(m_stateComponent[i].maxValue, near->values[i] + rho));
@@ -107,8 +106,7 @@ void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const S
 	    i += 3;
 	}
 	else
-	    state->values[i] = m_stateComponent[i].type == StateComponent::FIXED ?
-		near->values[i] :
+	    state->values[i] = 
 		random_utils::uniform(&m_rngState, 
 				      std::max(m_stateComponent[i].minValue, near->values[i] - rho[i]), 
 				      std::min(m_stateComponent[i].maxValue, near->values[i] + rho[i]));
