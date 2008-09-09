@@ -95,6 +95,7 @@
 
 #include "ompl/base/util/types.h"
 #include "ompl/base/util/time.h"
+#include "ompl/base/util/output.h"
 
 /** Macro for forward class declarations */
 #define ForwardClassDeclaration(A) class A; typedef A * A##_t

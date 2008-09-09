@@ -360,6 +360,8 @@ namespace ompl
     protected:
 
 	bool                     m_setup;
+	ma::Interface            m_ma;
+
 	std::vector<State_t>     m_startStates;
 	Goal_t                   m_goal;
 	StateValidityChecker_t   m_stateValidityChecker;

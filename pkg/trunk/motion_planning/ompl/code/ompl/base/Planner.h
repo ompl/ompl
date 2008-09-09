@@ -39,7 +39,6 @@
 
 #include "ompl/base/General.h"
 #include "ompl/base/SpaceInformation.h"
-#include <sstream>
 
 namespace ompl
 {
@@ -86,14 +85,12 @@ namespace ompl
 	    return m_type;
 	}
 	
-	std::stringstream stats;
-	
     protected:
 	
 	SpaceInformation_t m_si;
 	int                m_type;	
 	bool               m_setup;
-	
+	ma::Interface      m_ma;
     };    
 
 }

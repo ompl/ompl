@@ -42,11 +42,9 @@ bool ompl::SBL::solve(double solveTime)
     SpaceInformationKinematic::GoalStateKinematic_t goal = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                     dim = si->getStateDimension();
 
-    stats.clear();
-
     if (!goal)
     {
-	fprintf(stderr, "Unknown type of goal (or goal undefined)\n");
+	m_ma.error("Unknown type of goal (or goal undefined)");
 	return false;
     }
     
@@ -65,7 +63,7 @@ bool ompl::SBL::solve(double solveTime)
 	    }
 	    else
 	    {
-		fprintf(stderr, "Initial state is in collision!\n");
+		m_ma.error("Initial state is in collision!");
 		delete motion;
 	    }	
 	}
@@ -82,18 +80,18 @@ bool ompl::SBL::solve(double solveTime)
 	}
 	else
 	{
-	    fprintf(stderr, "Goal state is in collision!\n");
+	    m_ma.error("Goal state is in collision!");
 	    delete motion;
 	}
     }
     
     if (m_tStart.size == 0 || m_tGoal.size == 0)
     {
-	fprintf(stderr, "Motion planning trees could not be initialized!\n");
+	m_ma.error("Motion planning trees could not be initialized!");
 	return false;
     }
     
-    stats << "Starting with " << (m_tStart.size + m_tGoal.size) << " states" << std::endl;
+    m_ma.inform("Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
     std::vector<Motion_t>                       solution;
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
@@ -139,8 +137,8 @@ bool ompl::SBL::solve(double solveTime)
     
     delete xstate;
     
-    stats << "Created " << (m_tStart.size + m_tGoal.size) << " (" <<  m_tStart.size << " start + " << m_tGoal.size << " goal) states in " 
-	  << (m_tStart.grid.size() + m_tGoal.grid.size()) << " cells (" << m_tStart.grid.size() << " start + " << m_tGoal.grid.size() << " goal)"  << std::endl;
+    m_ma.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
+		m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();
 }
