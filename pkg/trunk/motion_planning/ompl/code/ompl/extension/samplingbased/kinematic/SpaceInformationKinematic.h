@@ -69,11 +69,19 @@ namespace ompl
 	{
 	}
 
+	/** Forward class declaration */
 	ForwardClassDeclaration(StateKinematic);
+
+	/** Forward class declaration */
 	ForwardClassDeclaration(GoalRegionKinematic);
+
+	/** Forward class declaration */
 	ForwardClassDeclaration(GoalStateKinematic);
+
+	/** Forward class declaration */
 	ForwardClassDeclaration(PathKinematic);
 
+	/** Definition of a kinematic state: an array of doubles */
 	class StateKinematic : public State
 	{
 	public:
@@ -97,6 +105,7 @@ namespace ompl
 	    double *values;
 	};
 
+	/** Definition of a goal region */
 	class GoalRegionKinematic : public Goal
 	{
 	public:
@@ -110,14 +119,23 @@ namespace ompl
 	    {
 	    }
 
-	    virtual bool isSatisfied(State_t s, double *distance);
+	    /** Decide whether a given state is part of the goal
+		region. Returns true if the distance to goal is less
+		than the threshold */
+	    virtual bool isSatisfied(State_t s, double *distance = NULL);
+
+	    /** Compute the distance to the goal (heuristic) */
 	    virtual double distanceGoal(StateKinematic_t s) = 0;
+
+	    /** Print information about the goal data structure to the
+		screen */
 	    virtual void print(std::ostream &out = std::cout) const;
 	    
+	    /** The maximum distance that is allowed to the goal */
 	    double threshold;
 	};
 
-
+	/** Definition of a goal state */
 	class GoalStateKinematic : public GoalRegionKinematic
 	{
 	public:
@@ -132,14 +150,19 @@ namespace ompl
 		if (state)
 		    delete state;
 	    }
-	    
+
+	    /** Compute the distance to the goal (heuristic) */
 	    virtual double distanceGoal(StateKinematic_t s);	    
+
+	    /** Print information about the goal data structure to the
+		screen */
 	    virtual void print(std::ostream &out = std::cout) const;
 	    
+	    /** The goal state */
 	    StateKinematic_t state;
 	};
 	
-
+	/** Definition of a kinematic path */
 	class PathKinematic : public Path
 	{
 	public:
@@ -152,7 +175,8 @@ namespace ompl
 	    {
 		freeMemory();
 	    }
-	    	  
+	    
+	    /** The list of states that make up the path */
 	    std::vector<StateKinematic_t> states;
 	    
 	protected:
@@ -160,7 +184,8 @@ namespace ompl
 	    void freeMemory(void);
 	    
 	};
-	
+
+	/** Definition of a distance evaluator: the square of the L2 norm */
 	class StateKinematicL2SquareDistanceEvaluator : public StateDistanceEvaluator
 	{
 	public:
@@ -191,26 +216,47 @@ namespace ompl
 	    double resolution;
 	};
        	
+	/** Print a state to a stream */
 	virtual void printState(const StateKinematic_t state, std::ostream &out = std::cout) const;
+
+	/** Copy a state to another */
 	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source);
 	
+	/** Return the dimension of the state space */
 	unsigned int getStateDimension(void) const;
+	
+	/** Get information about a component of the state space */
 	const StateComponent& getStateComponent(unsigned int index) const;
 	
+	/** Compute the distance between two states */
 	double distance(const StateKinematic_t s1, const StateKinematic_t s2);
 	
+	/** Sample a state */
 	virtual void sample(StateKinematic_t state);
+
+	/** Sample a state near another, within given bounds */
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho);
+
+	/** Sample a state near another, within given bounds */
 	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho);
 	
+	/** Check if the path between two motions is valid using subdivision */
 	virtual bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2);
+
+	/** Incrementally check if the path between two motions is valid */
 	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2);
+	
+	/** Insert states in a path, at the collision checking resolution */
 	virtual void interpolatePath(PathKinematic_t path, double factor = 1.0);
 
+	/** Check if a given state is valid or not */
 	bool isValid(const StateKinematic_t state);
 	
+	/** Print information about the current instance of the state space */
 	virtual void printSettings(std::ostream &out = std::cout) const;
 	
+	/** Perform additional tasks to finish the initialization of
+	    the space information */
 	virtual void setup(void);
 	
     protected:
