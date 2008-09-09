@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* \author Ioan Sucan */
 
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_LAZY_RRT_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_LAZY_RRT_
@@ -42,11 +42,34 @@
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <vector>
 
+/** Main namespace */
 namespace ompl
 {
-
+    
+    /** Forward class declaration */
     ForwardClassDeclaration(LazyRRT);
-
+    
+    /**
+       @subsubsection LazyRRT Lazy Rapidly-exploring Random Trees (LazyRRT)
+       
+       @par Short description
+       
+       The basic idea of RRT is that it samples a random state @b qr
+       in the state space, then finds the state @b qc among the
+       previously seen states that is closest to @b qr and expands
+       from @b qc towards @b qr, until a state @b qm is reached and @b
+       qm is the new state to be visited. The difference between RRT
+       and LazyRRT is that when moving towards the new state @qm,
+       LazyRRT does not check to make sure the path is valid. Instead,
+       it is optimistic and attempts to find a path as soon as
+       possible. Once a path is found, it is checked for collision. If
+       collisions are found, the invalid path segments are removed and
+       the search process is continued.       
+       
+       @par External documentation
+       @link http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree
+       @link http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html
+    */
     class LazyRRT : public Planner
     {
     public:

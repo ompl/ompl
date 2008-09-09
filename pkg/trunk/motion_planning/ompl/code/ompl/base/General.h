@@ -38,8 +38,6 @@
 /**
    @mainpage
    
-   @htmlinclude ../../../maniefest.html
-   
    
    @b OMPL (Open Motion Planning Library) consists of a set of motion
    planning algorithms and nothing more. There is no environment

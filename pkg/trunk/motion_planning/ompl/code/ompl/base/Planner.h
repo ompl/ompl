@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* \author Ioan Sucan */
 
 #ifndef OMPL_BASE_MOTION_PLANNER_
 #define OMPL_BASE_MOTION_PLANNER_
@@ -40,6 +40,7 @@
 #include "ompl/base/General.h"
 #include "ompl/base/SpaceInformation.h"
 
+/** Main namespace */
 namespace ompl
 {
 

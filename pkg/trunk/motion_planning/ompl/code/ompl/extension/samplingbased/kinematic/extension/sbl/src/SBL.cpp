@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* \author Ioan Sucan */
 
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 
@@ -233,11 +233,10 @@ ompl::SBL::Motion_t ompl::SBL::selectMotion(TreeData &tree)
 {
     double sum  = 0.0;
     Grid<MotionSet>::Cell_t cell = NULL;
-    double prob = random_utils::uniform(&m_rngState);
-
+    double prob = random_utils::uniform(&m_rngState) * (tree.grid.size() - 1);
     for (Grid<MotionSet>::iterator it = tree.grid.begin(); it != tree.grid.end() ; ++it)
     {
-	sum += (double)it->second->data.size() / (double)tree.size;
+	sum += (double)(tree.size - it->second->data.size()) / (double)tree.size;
 	if (prob < sum)
 	{
 	    cell = it->second;

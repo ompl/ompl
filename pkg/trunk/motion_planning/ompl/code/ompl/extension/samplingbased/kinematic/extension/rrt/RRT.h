@@ -32,23 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
-
-/**
-   @subsubsection RRT Rapidly-exploring Random Trees (RRT)
-
-   @par Short description
-   
-   The basic idea of RRT is that it samples a random state qr in the
-   state space, then finds the state qc among the previously seen
-   states that is closest to qr and expands from qc towards qr, until
-   a state qm is reached and qm is the new state to be visited.
-
-
-   @par External documentation
-   @link http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree
-   @link http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html
-*/
+/* \author Ioan Sucan */
 
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_RRT_
@@ -59,9 +43,26 @@
 
 namespace ompl
 {
-
+    
+    /** Forward class declaration */
     ForwardClassDeclaration(RRT);
     
+    /**
+       @subsubsection RRT Rapidly-exploring Random Trees (RRT)
+       
+       @par Short description
+       
+       The basic idea of RRT is that it samples a random state @b qr
+       in the state space, then finds the state @b qc among the
+       previously seen states that is closest to @b qr and expands
+       from @b qc towards @b qr, until a state @b qm is reached and @b
+       qm is the new state to be visited.
+       
+       
+       @par External documentation
+       @link http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree
+       @link http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html
+    */
     class RRT : public Planner
     {
     public:
@@ -112,18 +113,14 @@ namespace ompl
 	/** Set the range the planner is supposed to use. This
 	    parameter greatly influences the runtime of the
 	    algorithm. It is probably a good idea to find what a good
-	    value is for each model the planner is used for. The basic
-	    idea of RRT is that it samples a random state qr in the
-	    state space, then finds the state qc among the previously
-	    seen states that is closest to qr and expands from qc
-	    towards qr, until a state qm is reached and qm is the new
-	    state to be visited. The range parameter influences how
-	    this qm along the path between qc and qr is chosen. qr may
-	    be too far, and it may not be best to have qm = qr all the
-	    time (range = 1.0 implies qm=qr. range should be less than
+	    value is for each model the planner is used for. The range
+	    parameter influences how this @b qm along the path between
+	    @b qc and @b qr is chosen. @b qr may be too far, and it
+	    may not be best to have @b qm = @b qr all the time (range
+	    = 1.0 implies @b qm = @b qr. range should be less than
 	    1.0). However, in a large space, it is also good to leave
-	    the neighborhood of qc (range = 0.0 implies qm=qc and no
-	    progress is made. rande should be larger than
+	    the neighborhood of @b qc (range = 0.0 implies @b qm = @b
+	    qc and no progress is made. rande should be larger than
 	    0.0). Multiple values of this range parameter should be
 	    tried until a suitable one is found. */
 	void setRange(double rho)

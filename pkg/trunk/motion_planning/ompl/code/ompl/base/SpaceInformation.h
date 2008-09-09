@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* \author Ioan Sucan */
 
 #ifndef OMPL_BASE_SPACE_INFORMATION_
 #define OMPL_BASE_SPACE_INFORMATION_
@@ -40,12 +40,15 @@
 #include "ompl/base/General.h"
 #include <vector>
 
+/** Main namespace */
 namespace ompl
 {
 
     /** Forward class declaration */
     ForwardClassDeclaration(SpaceInformation);
     
+    /** The base class for space information. This contains all the
+	information about the space planning is done in */
     class SpaceInformation
     {
     public:

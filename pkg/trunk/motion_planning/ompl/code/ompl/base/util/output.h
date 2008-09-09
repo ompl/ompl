@@ -40,6 +40,7 @@
 #include <string>
 #include <cstdarg>
 
+/** Main namespace */
 namespace ompl
 {
     

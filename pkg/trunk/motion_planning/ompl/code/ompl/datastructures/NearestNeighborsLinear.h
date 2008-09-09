@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/* \author Ioan Sucan */
 
 #ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
 #define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_

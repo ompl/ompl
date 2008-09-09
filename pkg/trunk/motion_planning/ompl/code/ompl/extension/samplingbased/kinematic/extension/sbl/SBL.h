@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* \author Ioan Sucan */
 
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
@@ -42,11 +42,43 @@
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <vector>
 
+/** Main namespace */
 namespace ompl
 {
 
+    /** Forward class declaration */
     ForwardClassDeclaration(SBL);
     
+    /**
+       @subsubsection SBL Single-query Bi-directional Lazy collision checking planner (SBL)
+       
+       @par Short description
+       
+       SBL is a tree-based motion planner that attempts to grow two
+       trees at once: one grows from the starting state and the other
+       from the goal state. Attempts are made to connect these trees
+       at every step of the expansion. If they are connected, a
+       solution path is obtained. However, this solution path is not
+       certain to be valid (the lazy part of the algorithm) so it is
+       checked for validity. If invalid parts are found, they are
+       removed from the tree and exploration of the state space
+       continues until a solution is found. 
+
+       To guide the exploration, and additional grid data structure is
+       maintained. Grid cells contain states that have been previously
+       visited. When deciding which state to use for further
+       expansion, this grid is used and least filled grid cells have
+       most chances of being selected. The grid is usually imposed on
+       a projection of the state space. This projection needs to be
+       set before using the planner.
+       
+       @par External documentation
+
+       G. Sanchez and J.C. Latombe.A Single-Query Bi-Directional
+       Probabilistic Roadmap Planner with Lazy Collision
+       Checking. Int. Symposium on Robotics Research (ISRR'01), Lorne,
+       Victoria, Australia, November 2001.
+    */
     class SBL : public Planner
     {
     public:
@@ -116,6 +148,10 @@ namespace ompl
 	    freeMemory();
 	}
 	
+	/** Set the projection evaluator. This class is able to
+	    compute the projection of a given state. The simplest
+	    option is to use an orthogonal projection; see
+	    OrthogonalProjectionEvaluator */
 	void setProjectionEvaluator(ProjectionEvaluator_t projectionEvaluator)
 	{
 	    m_projectionEvaluator = projectionEvaluator;
@@ -126,6 +162,10 @@ namespace ompl
 	    return m_projectionEvaluator;
 	}
 
+	/** Define the dimension (each component) of a grid cell. The
+	    number of dimensions set here must be the same as the
+	    dimension of the projection computed by the projection
+	    evaluator. */
 	void setCellDimensions(const std::vector<double> &cellDimensions)
 	{
 	    m_cellDimensions = cellDimensions;

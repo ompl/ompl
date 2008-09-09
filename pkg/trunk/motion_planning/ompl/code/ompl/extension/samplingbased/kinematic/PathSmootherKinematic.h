@@ -32,13 +32,14 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* \author Ioan Sucan */
 
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
 
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 
+/** Main namespace */
 namespace ompl
 {
 
