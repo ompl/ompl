@@ -46,6 +46,11 @@ void ompl::msg::useOutputHandler(OutputHandler *oh)
     OUTPUT_HANDLER = oh;
 }
 
+ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
+{
+    return OUTPUT_HANDLER;
+}
+
 ompl::msg::Interface::Interface(void)
 {
 }

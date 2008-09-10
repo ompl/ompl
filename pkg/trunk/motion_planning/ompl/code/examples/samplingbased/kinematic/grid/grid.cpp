@@ -40,6 +40,7 @@
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/RRT.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
+#include "ompl/extension/samplingbased/kinematic/extension/est/EST.h"
 
 #include "environment2D.h"
 #include <iostream>
@@ -173,6 +174,8 @@ public:
 	goal->state->values[1] = env.goal.second;
 	goal->threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
 	si->setGoal(goal);
+	
+	msg::useOutputHandler(NULL);
 	
 	/* start counting time */
 	time_utils::Time startTime = time_utils::Time::now();	
@@ -325,6 +328,50 @@ protected:
     
 };
 
+class ESTTest : public TestPlanner 
+{
+public:
+    ESTTest(void)
+    {
+	ope = NULL;
+    }
+
+    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    {
+	bool result = TestPlanner::execute(env, show, time, pathLength);	
+	if (ope)
+	{
+	    delete ope;	
+	    ope = NULL;
+	}
+	return result;
+    }
+    
+protected:
+    
+    Planner_t newPlanner(SpaceInformation_t si)
+    {
+	EST_t est = new EST(si);
+	est->setRange(0.75);
+	
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	est->setCellDimensions(cdim);
+	
+	std::vector<unsigned int> projection;
+	projection.push_back(0);
+	projection.push_back(1);
+	ope = new OrthogonalProjectionEvaluator(projection);
+	est->setProjectionEvaluator(ope);
+
+	return est;
+    }
+    
+    OrthogonalProjectionEvaluator_t ope;
+    
+};
+
 class PlanTest : public testing::Test
 {
 public:
@@ -402,6 +449,21 @@ TEST_F(PlanTest, RRT)
     double avglength  = 0.0;
     
     TestPlanner *p = new RRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avglength < 65.0);
+}
+
+TEST_F(PlanTest, EST)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new ESTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

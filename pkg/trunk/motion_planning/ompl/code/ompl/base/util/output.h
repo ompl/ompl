@@ -119,9 +119,12 @@ namespace ompl
 	    
 	    /** Print a simple message */
 	    virtual void message(const std::string &text);
+	    
+	    
 	};
 
 	void useOutputHandler(OutputHandler *oh);
+	OutputHandler* getOutputHandler(void);
     }
     
 }
