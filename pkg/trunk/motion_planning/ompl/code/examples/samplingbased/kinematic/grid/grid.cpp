@@ -315,13 +315,13 @@ protected:
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new SBL::OrthogonalProjectionEvaluator(projection);
+	ope = new OrthogonalProjectionEvaluator(projection);
 	sbl->setProjectionEvaluator(ope);
 
 	return sbl;
     }
     
-    SBL::OrthogonalProjectionEvaluator_t ope;
+    OrthogonalProjectionEvaluator_t ope;
     
 };
 

@@ -34,8 +34,8 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_EST_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_EST_
 
 #include "ompl/base/Planner.h"
 #include "ompl/datastructures/Grid.h"
@@ -43,61 +43,89 @@
 #include "ompl/extension/samplingbased/kinematic/ProjectionEvaluator.h"
 #include <vector>
 
-/** Main namespace */
 namespace ompl
 {
-
+    
     /** Forward class declaration */
-    ForwardClassDeclaration(SBL);
+    ForwardClassDeclaration(EST);
     
     /**
-       @subsubsection SBL Single-query Bi-directional Lazy collision checking planner (SBL)
+       @subsubsection EST Expansive Space Trees (EST)
        
        @par Short description
        
-       SBL is a tree-based motion planner that attempts to grow two
-       trees at once: one grows from the starting state and the other
-       from the goal state. Attempts are made to connect these trees
-       at every step of the expansion. If they are connected, a
-       solution path is obtained. However, this solution path is not
-       certain to be valid (the lazy part of the algorithm) so it is
-       checked for validity. If invalid parts are found, they are
-       removed from the tree and exploration of the state space
-       continues until a solution is found. 
 
-       To guide the exploration, and additional grid data structure is
-       maintained. Grid cells contain states that have been previously
-       visited. When deciding which state to use for further
-       expansion, this grid is used and least filled grid cells have
-       most chances of being selected. The grid is usually imposed on
-       a projection of the state space. This projection needs to be
-       set before using the planner.
-       
-       @par External documentation
-
-       G. Sanchez and J.C. Latombe.A Single-Query Bi-Directional
-       Probabilistic Roadmap Planner with Lazy Collision
-       Checking. Int. Symposium on Robotics Research (ISRR'01), Lorne,
-       Victoria, Australia, November 2001.
     */
-    class SBL : public Planner
+    class EST : public Planner
     {
     public:
 
-        SBL(SpaceInformation_t si) : Planner(si)
+        EST(SpaceInformation_t si) : Planner(si)
 	{
-	    m_type = PLAN_TO_GOAL_STATE;
+	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
 	    random_utils::init(&m_rngState);
 	    m_projectionEvaluator = NULL;
 	    m_projectionDimension = 0;
+	    m_goalBias = 0.05;
 	    m_rho = 0.5;
 	}
 
-	virtual ~SBL(void)
+	virtual ~EST(void)
 	{
 	    freeMemory();
 	}
 	
+	virtual bool solve(double solveTime);
+	
+	virtual void clear(void)
+	{
+	    freeMemory();
+	    m_tree.grid.clear();
+	    m_tree.size = 0;
+	}
+
+	/** In the process of randomly selecting states in the state
+	    space to attempt to go towards, the algorithm may in fact
+	    choose the actual goal state, if it knows it, with some
+	    probability. This probability is a real number between 0.0
+	    and 1.0; its value should usually be around 0.05 and
+	    should not be too large. It is probably a good idea to use
+	    the default value. */
+	void setGoalBias(double goalBias)
+	{
+	    m_goalBias = goalBias;
+	}
+
+	/** Get the goal bias the planner is using */
+	double getGoalBias(void) const
+	{
+	    return m_goalBias;
+	}
+	
+	/** Set the range the planner is supposed to use. This
+	    parameter greatly influences the runtime of the
+	    algorithm. It is probably a good idea to find what a good
+	    value is for each model the planner is used for. The range
+	    parameter influences how this @b qm along the path between
+	    @b qc and @b qr is chosen. @b qr may be too far, and it
+	    may not be best to have @b qm = @b qr all the time (range
+	    = 1.0 implies @b qm = @b qr. range should be less than
+	    1.0). However, in a large space, it is also good to leave
+	    the neighborhood of @b qc (range = 0.0 implies @b qm = @b
+	    qc and no progress is made. rande should be larger than
+	    0.0). Multiple values of this range parameter should be
+	    tried until a suitable one is found. */
+	void setRange(double rho)
+	{
+	    m_rho = rho;
+	}
+	
+	/** Get the range the planner is using */
+	double getRange(void) const
+	{
+	    return m_rho;
+	}
+
 	/** Set the projection evaluator. This class is able to
 	    compute the projection of a given state. The simplest
 	    option is to use an orthogonal projection; see
@@ -126,55 +154,19 @@ namespace ompl
 	    cellDimensions = m_cellDimensions;
 	}
 	
-	/** Set the range the planner is supposed to use. This
-	    parameter greatly influences the runtime of the
-	    algorithm. It is probably a good idea to find what a good
-	    value is for each model the planner is used for. The basic
-	    idea of SBL is that it samples a random state around a
-	    state that was already added to the tree. The distance
-	    withing which this new state is sampled is controled by
-	    the range. This should be a value larger than 0.0 and less
-	    than 1.0 */
-	void setRange(double rho)
-	{
-	    m_rho = rho;
-	}
-	
-	/** Get the range the planner is using */
-	double getRange(void) const
-	{
-	    return m_rho;
-	}
-	
 	virtual void setup(void)
 	{
 	    assert(m_projectionEvaluator);
 	    m_projectionDimension = m_projectionEvaluator->getDimension();
 	    assert(m_projectionDimension > 0);
 	    assert(m_cellDimensions.size() == m_projectionDimension);
-	    m_tStart.grid.setDimension(m_projectionDimension);
-	    m_tGoal.grid.setDimension(m_projectionDimension);
+	    m_tree.grid.setDimension(m_projectionDimension);
 	    Planner::setup();
 	}
 
-	virtual bool solve(double solveTime);
-	
-	virtual void clear(void)
-	{
-	    freeMemory();
-	    
-	    m_tStart.grid.clear();
-	    m_tStart.size = 0;
-	    
-	    m_tGoal.grid.clear();
-	    m_tGoal.size = 0;	    
-	}
-	
     protected:
 
        	ForwardClassDeclaration(Motion);
-	
-	typedef std::vector<Motion_t> MotionSet;	
 	
 	class Motion
 	{
@@ -184,14 +176,12 @@ namespace ompl
 	    {
 		parent = NULL;
 		state  = NULL;
-		valid  = false;
 	    }
 	    
 	    Motion(unsigned int dimension)
 	    {
 		state  = new SpaceInformationKinematic::StateKinematic(dimension);
 		parent = NULL;
-		valid  = false;
 	    }
 	    
 	    virtual ~Motion(void)
@@ -202,10 +192,11 @@ namespace ompl
 	    
 	    SpaceInformationKinematic::StateKinematic_t state;
 	    Motion_t                                    parent;
-	    bool                                        valid;
-	    MotionSet                                   children;
+	    
 	};
-	
+
+	typedef std::vector<Motion_t> MotionSet;
+
 	struct TreeData
 	{
 	    TreeData(void)
@@ -219,33 +210,24 @@ namespace ompl
 	
 	void freeMemory(void)
 	{
-	    freeGridMotions(m_tStart.grid);
-	    freeGridMotions(m_tGoal.grid);
-	}
-
-	void freeGridMotions(Grid<MotionSet> &grid)
-	{
-	    for (Grid<MotionSet>::iterator it = grid.begin(); it != grid.end() ; ++it)
+	    for (Grid<MotionSet>::iterator it = m_tree.grid.begin(); it != m_tree.grid.end() ; ++it)
 	    {
 		for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
 		    delete it->second->data[i];
 	    }
 	}
-	
-	void addMotion(TreeData &tree, Motion_t motion);
-	Motion_t selectMotion(TreeData &tree);	
-	void removeMotion(TreeData &tree, Motion_t motion);
-	void computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord);
-	bool isPathValid(TreeData &tree, Motion_t motion);
-	bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion_t motion, std::vector<Motion_t> &solution);
 
+	void addMotion(Motion_t motion);
+	Motion_t selectMotion(void);
+	void computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord);
+	
+	TreeData               m_tree;
+	
 	ProjectionEvaluator   *m_projectionEvaluator;
 	unsigned int           m_projectionDimension;
 	std::vector<double>    m_cellDimensions;
-		
-	TreeData               m_tStart;
-	TreeData               m_tGoal;
-	
+
+	double                 m_goalBias;
 	double                 m_rho;	
 	random_utils::rngState m_rngState;	
     };
