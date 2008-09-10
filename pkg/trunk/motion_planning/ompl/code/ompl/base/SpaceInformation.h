@@ -363,7 +363,7 @@ namespace ompl
     protected:
 
 	bool                     m_setup;
-	ma::Interface            m_ma;
+	msg::Interface           m_msg;
 
 	std::vector<State_t>     m_startStates;
 	Goal_t                   m_goal;

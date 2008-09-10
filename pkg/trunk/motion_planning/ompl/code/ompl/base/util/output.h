@@ -44,20 +44,9 @@
 namespace ompl
 {
     
-    /** Message and act namespace */
-    namespace ma
+    /** Message namespace */
+    namespace msg
     {
-	
-	/** Execution actions */
-	static const int EA_NONE  = 0;
-	static const int EA_DIE   = 1;
-	static const int EA_DIE_I = 2;    
-	
-	/** Message type */
-	static const int MT_NONE        = 3;
-	static const int MT_INFORMATION = 2;
-	static const int MT_WARNING     = 1;
-	static const int MT_ERROR       = 0;
 	
 	/** The piece of code that desires interaction with an action
 	    or an output handler should use an instance of this
@@ -78,12 +67,7 @@ namespace ompl
 	    void warn(const char *msg, ...);
 	    void error(const char *msg, ...);
 	    void message(const char *msg, ...);
-	    
-	    void act(int action);
-	    
-	    void messageAndAct(int action, int mt, const char *msg, ...);
-	    void messageAndAct(int action, int mt, const std::string &text);
-	    
+
 	protected:
 	    
 	    std::string combine(const char *msg, va_list ap);
@@ -137,36 +121,7 @@ namespace ompl
 	    virtual void message(const std::string &text);
 	};
 
-	/** Generic class to handle actions for a piece of code */
-	class ActionHandler
-	{
-	public:
-	    ActionHandler(void)
-	    {
-	    }
-	    
-	    virtual ~ActionHandler(void)
-	    {
-	    }
-	    
-	    virtual void die(bool immediate) = 0;
-	    
-	};
-
-	class ActionHandlerSTD : public ActionHandler
-	{
-	public:
-            ActionHandlerSTD(void) : ActionHandler()
-	    {
-	    }
-	    
-    	    virtual void die(bool immediate);
-	    
-	};
-	
-	
 	void useOutputHandler(OutputHandler *oh);
-	void useActionHandler(ActionHandler *ah);
     }
     
 }

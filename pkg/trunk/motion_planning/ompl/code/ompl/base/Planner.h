@@ -91,7 +91,7 @@ namespace ompl
 	SpaceInformation_t m_si;
 	int                m_type;	
 	bool               m_setup;
-	ma::Interface      m_ma;
+	msg::Interface     m_msg;
     };    
 
 }

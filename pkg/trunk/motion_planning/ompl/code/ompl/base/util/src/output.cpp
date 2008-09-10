@@ -38,37 +38,29 @@
 #include <iostream>
 #include <cstdlib>
 
-static ompl::ma::OutputHandlerSTD defaultOutputHandler;
-static ompl::ma::ActionHandlerSTD defaultActionHandler;
+static ompl::msg::OutputHandlerSTD defaultOutputHandler;
+static ompl::msg::OutputHandler *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&defaultOutputHandler);
 
-static ompl::ma::OutputHandler *OUTPUT_HANDLER = static_cast<ompl::ma::OutputHandler*>(&defaultOutputHandler);
-static ompl::ma::ActionHandler *ACTION_HANDLER = static_cast<ompl::ma::ActionHandler*>(&defaultActionHandler);
-
-void ompl::ma::useOutputHandler(OutputHandler *oh)
+void ompl::msg::useOutputHandler(OutputHandler *oh)
 {
     OUTPUT_HANDLER = oh;
 }
 
-void ompl::ma::useActionHandler(ActionHandler *ah)
-{
-    ACTION_HANDLER = ah;
-}
-
-ompl::ma::Interface::Interface(void)
+ompl::msg::Interface::Interface(void)
 {
 }
 
-ompl::ma::Interface::~Interface(void)
+ompl::msg::Interface::~Interface(void)
 {
 }
 
-void ompl::ma::Interface::message(const std::string &text)
+void ompl::msg::Interface::message(const std::string &text)
 {
     if (OUTPUT_HANDLER)
 	OUTPUT_HANDLER->message(text);
 }
 
-void ompl::ma::Interface::message(const char *msg, ...)
+void ompl::msg::Interface::message(const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
@@ -76,13 +68,13 @@ void ompl::ma::Interface::message(const char *msg, ...)
     va_end(ap);
 }
 
-void ompl::ma::Interface::inform(const std::string &text)
+void ompl::msg::Interface::inform(const std::string &text)
 {
     if (OUTPUT_HANDLER)
 	OUTPUT_HANDLER->inform(text);
 }
 
-void ompl::ma::Interface::inform(const char *msg, ...)
+void ompl::msg::Interface::inform(const char *msg, ...)
 {
     va_list ap; 
     va_start(ap, msg);
@@ -90,13 +82,13 @@ void ompl::ma::Interface::inform(const char *msg, ...)
     va_end(ap);
 }
 
-void ompl::ma::Interface::warn(const std::string &text)
+void ompl::msg::Interface::warn(const std::string &text)
 {
     if (OUTPUT_HANDLER)
 	OUTPUT_HANDLER->warn(text);
 }
 
-void ompl::ma::Interface::warn(const char *msg, ...)
+void ompl::msg::Interface::warn(const char *msg, ...)
 {
     va_list ap; 
     va_start(ap, msg);
@@ -104,64 +96,20 @@ void ompl::ma::Interface::warn(const char *msg, ...)
     va_end(ap);
 }
 
-void ompl::ma::Interface::error(const std::string &text)
+void ompl::msg::Interface::error(const std::string &text)
 {
     if (OUTPUT_HANDLER)
 	OUTPUT_HANDLER->error(text);
 }
 
-void ompl::ma::Interface::error(const char *msg, ...)
+void ompl::msg::Interface::error(const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
     error(combine(msg, ap));
     va_end(ap);
 }
-
-void ompl::ma::Interface::act(int action)
-{
-    if (ACTION_HANDLER)
-    {
-	if (action & EA_DIE)
-	    ACTION_HANDLER->die(action & EA_DIE_I);
-	else
-	    if (action & EA_DIE_I)
-		ACTION_HANDLER->die(true);  
-    }
-}
-
-void ompl::ma::Interface::messageAndAct(int action, int mt, const char *msg, ...)
-{
-    va_list ap; 
-    va_start(ap, msg);
-    messageAndAct(action, mt, combine(msg, ap));
-    va_end(ap);
-}
-
-void ompl::ma::Interface::messageAndAct(int action, int mt, const std::string &text)
-{ 
-    switch (mt)
-    {
-    case MT_WARNING:
-	warn(text);
-	break;
-    case MT_ERROR:
-	error(text);
-	break;
-    case MT_INFORMATION:
-	inform(text);
-	break;
-    case MT_NONE:
-	message(text);
-	break;
-    default:
-	break;
-    }
-    
-    act(action);
-}
-
-std::string ompl::ma::Interface::combine(const char *msg, va_list va)
+std::string ompl::msg::Interface::combine(const char *msg, va_list va)
 {
     va_list ap;
     va_copy(ap, va);
@@ -171,34 +119,26 @@ std::string ompl::ma::Interface::combine(const char *msg, va_list va)
     return buf;
 }
 
-void ompl::ma::OutputHandlerSTD::error(const std::string &text)
+void ompl::msg::OutputHandlerSTD::error(const std::string &text)
 {
     std::cerr << "Error:   " << text << std::endl;
     std::cerr.flush();
 }
 
-void ompl::ma::OutputHandlerSTD::warn(const std::string &text)
+void ompl::msg::OutputHandlerSTD::warn(const std::string &text)
 {
     std::cerr << "Warning: " << text << std::endl;
     std::cerr.flush();
 }
 
-void ompl::ma::OutputHandlerSTD::inform(const std::string &text)
+void ompl::msg::OutputHandlerSTD::inform(const std::string &text)
 { 
     std::cout << "Info:    " << text << std::endl;
     std::cout.flush();
 }
 
-void ompl::ma::OutputHandlerSTD::message(const std::string &text)
+void ompl::msg::OutputHandlerSTD::message(const std::string &text)
 {
     std::cout << text;
     std::cout.flush();
-}
-
-void ompl::ma::ActionHandlerSTD::die(bool immediate)
-{
-    if (immediate)
-	_Exit(1);
-    else
-	exit(1);
 }

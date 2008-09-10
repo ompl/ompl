@@ -41,15 +41,15 @@ bool ompl::SBL::solve(double solveTime)
     SpaceInformationKinematic_t                       si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
     SpaceInformationKinematic::GoalStateKinematic_t goal = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                     dim = si->getStateDimension();
-
+    
     if (!goal)
     {
-	m_ma.error("Unknown type of goal (or goal undefined)");
+	m_msg.error("Unknown type of goal (or goal undefined)");
 	return false;
     }
     
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
-
+    
     if (m_tStart.size == 0)
     {
 	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
@@ -63,7 +63,7 @@ bool ompl::SBL::solve(double solveTime)
 	    }
 	    else
 	    {
-		m_ma.error("Initial state is in collision!");
+		m_msg.error("Initial state is in collision!");
 		delete motion;
 	    }	
 	}
@@ -80,18 +80,18 @@ bool ompl::SBL::solve(double solveTime)
 	}
 	else
 	{
-	    m_ma.error("Goal state is in collision!");
+	    m_msg.error("Goal state is in collision!");
 	    delete motion;
 	}
     }
     
     if (m_tStart.size == 0 || m_tGoal.size == 0)
     {
-	m_ma.error("Motion planning trees could not be initialized!");
+	m_msg.error("Motion planning trees could not be initialized!");
 	return false;
     }
     
-    m_ma.inform("Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
+    m_msg.inform("Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
     std::vector<Motion_t>                       solution;
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
@@ -110,13 +110,13 @@ bool ompl::SBL::solve(double solveTime)
 	Motion_t existing = selectMotion(tree);
 	assert(existing);
 	si->sampleNear(xstate, existing->state, range);
-
+	
 	/* create a motion */
 	Motion_t motion = new Motion(dim);
 	si->copyState(motion->state, xstate);
 	motion->parent = existing;
 	existing->children.push_back(motion);
-
+	
 	addMotion(tree, motion);
 	
 	if (checkSolution(!startTree, tree, otherTree, motion, solution))
@@ -137,8 +137,8 @@ bool ompl::SBL::solve(double solveTime)
     
     delete xstate;
     
-    m_ma.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
-		m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
+    m_msg.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
+		 m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();
 }
@@ -154,12 +154,12 @@ bool ompl::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, M
 	SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
 	Motion_t connectOther          = cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size() - 1)];
 	Motion_t connect               = new Motion(si->getStateDimension());
-
+	
 	si->copyState(connect->state, connectOther->state);
 	connect->parent = motion;
 	motion->children.push_back(connect);
 	addMotion(tree, connect);
-
+	
 	if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
 	{
 	    /* extract the motions and put them in solution vector */
@@ -195,7 +195,7 @@ bool ompl::SBL::isPathValid(TreeData &tree, Motion_t motion)
 {
     std::vector<Motion_t>       mpath;
     SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
-
+    
     /* construct the solution path */
     while (motion != NULL)
     {  
@@ -251,7 +251,7 @@ ompl::SBL::Motion_t ompl::SBL::selectMotion(TreeData &tree)
 void ompl::SBL::removeMotion(TreeData &tree, Motion_t motion)
 {
     /* remove from grid */
-        
+    
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord);
     Grid<MotionSet>::Cell_t cell = tree.grid.getCell(coord);
@@ -279,7 +279,7 @@ void ompl::SBL::removeMotion(TreeData &tree, Motion_t motion)
 		break;
 	    }
     }    
-
+    
     /* remove children */
     for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
     {
