@@ -77,6 +77,7 @@
    - @ref RRT
    - @ref LazyRRT
    - @ref SBL
+   - @ref EST
    
    @subsection kinodynamic_planners Kinodynamic motion planners
    
