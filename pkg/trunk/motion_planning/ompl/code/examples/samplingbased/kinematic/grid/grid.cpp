@@ -438,7 +438,10 @@ TEST_F(PlanTest, SBL)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.01);
+    // Widening the bounds here, because the automated build machine has a
+    // varying load that can affect performance.
+    //EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 65.0);
 }
 
@@ -468,7 +471,10 @@ TEST_F(PlanTest, EST)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.01);
+    // Widening the bounds here, because the automated build machine has a
+    // varying load that can affect performance.
+    //EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 65.0);
 }
 
