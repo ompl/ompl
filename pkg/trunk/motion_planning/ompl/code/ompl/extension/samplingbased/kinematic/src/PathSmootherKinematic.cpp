@@ -35,6 +35,7 @@
 /* \author Ioan Sucan */
 
 #include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
+#include <cstdlib>
 
 void ompl::PathSmootherKinematic::smoothVertices(SpaceInformationKinematic::PathKinematic_t path)
 {

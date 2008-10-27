@@ -36,6 +36,7 @@
 
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <math_utils/angles.h>
+#include <cstring>
 #include <valarray>
 #include <algorithm>
 #include <queue>
