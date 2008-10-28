@@ -40,6 +40,7 @@
 #include <valarray>
 #include <algorithm>
 #include <queue>
+#include <cstring>
 
 bool ompl::SpaceInformationKinematic::GoalRegionKinematic::isSatisfied(State_t s, double *distance)
 {
