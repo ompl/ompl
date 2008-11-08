@@ -38,7 +38,25 @@
 #define OMPL_DATASTRUCTURES_GRID_
 
 #include <vector>
-#include <ext/hash_map>
+
+#ifdef __GNUC__
+#  include <features.h>
+
+#  if __GNUC_PREREQ(4,0)
+#    include <tr1/unordered_map>
+#    define OMPL_NS_HASH std::tr1
+#    define OMPL_NAME_HASH unordered_map
+#  elif __GNUC_PREREQ(3,2)
+#    include <ext/hash_map>
+#    define OMPL_NS_HASH __gnu_cxx
+#    define OMPL_NAME_HASH hash_map
+#  else
+#    error Need to include <hash_map> or equivalent
+#  endif
+
+#else
+#  error Need to include <hash_map> or equivalent
+#endif
 
 namespace ompl
 {
@@ -243,7 +261,7 @@ namespace ompl
 	    }
 	};
 
-	typedef __gnu_cxx::hash_map<Coord_t, Cell_t, HashFunCoordPtr, EqualCoordPtr> CoordHash;
+	typedef OMPL_NS_HASH::OMPL_NAME_HASH<Coord_t, Cell_t, HashFunCoordPtr, EqualCoordPtr> CoordHash;
 	
     public:
 	
