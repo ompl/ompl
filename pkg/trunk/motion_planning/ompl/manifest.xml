@@ -8,7 +8,7 @@
   <review status="unreviewed" notes=""/>
   <url></url>
 
-  <depend package="math_utils"/>
+  <depend package="angles"/>
   <depend package="random_utils"/>
 
   <export>

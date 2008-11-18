@@ -35,7 +35,7 @@
 /* \author Ioan Sucan */
 
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
-#include <math_utils/angles.h>
+#include <angles/angles.h>
 #include <cstring>
 #include <valarray>
 #include <algorithm>
@@ -87,7 +87,7 @@ double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator:
     for (unsigned int i = 0 ; i < dim ; ++i)
     {	 
 	double diff = m_si->getStateComponent(i).type == StateComponent::ANGLE ? 
-	    math_utils::shortest_angular_distance(sk1->values[i], sk2->values[i]) : sk1->values[i] - sk2->values[i];
+	    angles::shortest_angular_distance(sk1->values[i], sk2->values[i]) : sk1->values[i] - sk2->values[i];
 	dist += diff * diff;
     }
     return dist;
