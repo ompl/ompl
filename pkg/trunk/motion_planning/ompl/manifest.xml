@@ -13,6 +13,7 @@
 
   <export>
     <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl -lpthread -lrt"/>
+    <cpp os="osx" cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl -lpthread"/>
   </export>
   
 </package>
