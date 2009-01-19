@@ -210,7 +210,7 @@ namespace ompl
 	    }
 	    
 	    enum
-		{ UNKNOWN, NORMAL, ANGLE, QUATERNION }
+		{ UNKNOWN, NORMAL, WRAPPING_ANGLE, QUATERNION }
 		   type;
 	    double minValue;
 	    double maxValue;

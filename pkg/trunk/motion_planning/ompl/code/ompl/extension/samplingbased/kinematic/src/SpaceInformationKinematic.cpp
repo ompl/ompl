@@ -86,7 +86,7 @@ double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator:
     double dist = 0.0;
     for (unsigned int i = 0 ; i < dim ; ++i)
     {	 
-	double diff = m_si->getStateComponent(i).type == StateComponent::ANGLE ? 
+	double diff = m_si->getStateComponent(i).type == StateComponent::WRAPPING_ANGLE ? 
 	    angles::shortest_angular_distance(sk1->values[i], sk2->values[i]) : sk1->values[i] - sk2->values[i];
 	dist += diff * diff;
     }
