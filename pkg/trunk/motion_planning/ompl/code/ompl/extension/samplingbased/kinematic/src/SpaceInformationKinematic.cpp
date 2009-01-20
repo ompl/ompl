@@ -107,7 +107,6 @@ void ompl::SpaceInformationKinematic::setup(void)
 {
     assert(m_stateDimension > 0);
     assert(m_stateComponent.size() == m_stateDimension);
-    assert(m_stateValidityChecker);
     assert(m_stateDistanceEvaluator);
     SpaceInformation::setup();
 }
@@ -297,11 +296,6 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, doub
 double ompl::SpaceInformationKinematic::distance(const StateKinematic_t s1, const StateKinematic_t s2)
 {
     return (*m_stateDistanceEvaluator)(static_cast<const State_t>(s1), static_cast<const State_t>(s2));
-}
-
-bool ompl::SpaceInformationKinematic::isValid(const StateKinematic_t state)
-{
-    return (*m_stateValidityChecker)(static_cast<const State_t>(state));
 }
 	
 void ompl::SpaceInformationKinematic::printSettings(std::ostream &out) const

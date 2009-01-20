@@ -39,6 +39,7 @@
 
 #include "ompl/base/General.h"
 #include <vector>
+#include <cassert>
 
 /** Main namespace */
 namespace ompl
@@ -357,7 +358,14 @@ namespace ompl
 	/** Perform additional setup tasks (run once, before use) */
 	virtual void setup(void)
 	{
+	    assert(m_stateValidityChecker);
 	    m_setup = true;
+	}
+	
+	/** Check if a given state is valid or not */
+	bool isValid(const State_t state)
+	{
+	    return (*m_stateValidityChecker)(state);
 	}
 	
     protected:

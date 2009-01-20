@@ -249,9 +249,6 @@ namespace ompl
 	
 	/** Insert states in a path, at the collision checking resolution */
 	virtual void interpolatePath(PathKinematic_t path, double factor = 1.0);
-
-	/** Check if a given state is valid or not */
-	bool isValid(const StateKinematic_t state);
 	
 	/** Print information about the current instance of the state space */
 	virtual void printSettings(std::ostream &out = std::cout) const;

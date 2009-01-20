@@ -86,6 +86,13 @@ namespace ompl
 	    return m_type;
 	}
 	
+	/** A problem is trivial if the given starting state already
+	    in the goal region, so we need no motion planning. startID
+	    will be set to the index of the starting state that
+	    satisfies the goal. The distance to the goal can
+	    optionally be returned as well. */
+	virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL);
+	
     protected:
 	
 	SpaceInformation_t m_si;
