@@ -4,6 +4,7 @@ rospack(ompl)
 include_directories(${PROJECT_SOURCE_DIR}/code)
 rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/base/util/src/output.cpp
+			 code/ompl/base/util/src/random_utils.cpp
 			 code/ompl/base/src/Planner.cpp
 			 code/ompl/extension/samplingbased/kinematic/src/SpaceInformationKinematic.cpp
 			 code/ompl/extension/samplingbased/kinematic/src/PathSmootherKinematic.cpp

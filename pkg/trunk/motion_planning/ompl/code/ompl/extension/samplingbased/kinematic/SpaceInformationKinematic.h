@@ -38,8 +38,8 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
 
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/util/random_utils.h"
 
-#include <random_utils/random_utils.h>
 #include <cassert>
 
 /** Main namespace */

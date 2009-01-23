@@ -9,8 +9,6 @@
   <url></url>
 
   <depend package="angles"/>
-  <depend package="random_utils"/>
-  <depend package="rosconsole"/>
 
   <export>
     <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl -lpthread -lrt"/>
