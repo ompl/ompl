@@ -17,4 +17,4 @@ rospack_add_compile_flags(ompl -Wextra)
 
 # Tests
 rospack_add_gtest(test_grid code/examples/samplingbased/kinematic/grid/grid.cpp)
-target_link_libraries(test_grid ompl)
+target_link_libraries(test_grid ompl pthread rt)
