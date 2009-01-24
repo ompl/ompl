@@ -132,7 +132,7 @@ void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
 	    i += 3;
 	}
 	else
-	state->values[i] = random_utils::uniform(&m_rngState, m_stateComponent[i].minValue, m_stateComponent[i].maxValue);	    
+	    state->values[i] = random_utils::uniform(&m_rngState, m_stateComponent[i].minValue, m_stateComponent[i].maxValue);	    
 }
 
 void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho)

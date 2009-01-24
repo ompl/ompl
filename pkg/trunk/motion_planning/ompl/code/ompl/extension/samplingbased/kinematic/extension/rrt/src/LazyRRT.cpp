@@ -125,42 +125,62 @@ bool ompl::LazyRRT::solve(double solveTime)
 	    break;
 	}
     }    
-
-
+    
     if (solution != NULL)
     {
-	/* construct the solution path */
-	std::vector<Motion_t> mpath;
-	while (solution != NULL)
+	if (m_IKOnly)
 	{
-	    mpath.push_back(solution);
-	    solution = solution->parent;
-	}
-
-	/* check the path */
-	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-	    if (!mpath[i]->valid)
+	    bool result = si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(solution->state));
+	    if (result)
 	    {
-		if (si->checkMotionSubdivision(mpath[i]->parent->state, mpath[i]->state))
-		    mpath[i]->valid = true;
-		else
-		{
-		    removeMotion(mpath[i]);
-		    goto RETRY;
-		}
+		SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+		SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+		si->copyState(st, solution->state);
+		path->states.push_back(st);
+		goal_r->setDifference(distsol);
+		goal_r->setSolutionPath(path);
 	    }
-	
-	/*set the solution path */
-	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
-   	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-	{
-	    SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
-	    si->copyState(st, mpath[i]->state);
-	    path->states.push_back(st);
+	    else
+	    {
+		removeMotion(solution);
+		goto RETRY;
+	    }
 	}
-
-	goal_r->setDifference(distsol);
-	goal_r->setSolutionPath(path);	
+	else
+	{	    
+	    /* construct the solution path */
+	    std::vector<Motion_t> mpath;
+	    while (solution != NULL)
+	    {
+		mpath.push_back(solution);
+		solution = solution->parent;
+	    }
+	    
+	    /* check the path */
+	    for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+		if (!mpath[i]->valid)
+		{
+		    if (si->checkMotionSubdivision(mpath[i]->parent->state, mpath[i]->state))
+			mpath[i]->valid = true;
+		    else
+		    {
+			removeMotion(mpath[i]);
+			goto RETRY;
+		    }
+		}
+	    
+	    /*set the solution path */
+	    SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+	    for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+	    {
+		SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+		si->copyState(st, mpath[i]->state);
+		path->states.push_back(st);
+	    }
+	    
+	    goal_r->setDifference(distsol);
+	    goal_r->setSolutionPath(path);	
+	}
     }
 
     delete xstate;

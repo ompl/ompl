@@ -248,7 +248,7 @@ namespace ompl
 		return m_si;
 	    }
 	    
-	    /** Returns true if a solution path has been found */
+	    /** Returns true if a solution path has been found (could be approximate) */
 	    bool isAchieved(void) const
 	    {
 		return m_path != NULL;
@@ -294,7 +294,8 @@ namespace ompl
 		m_difference = difference;
 	    }
 	    
-	    /** Return true if the found solution is approximate */
+	    /** Return true if the found solution is approximate (does not actually reach the desired goal,
+		but hopefully is closer to it) */
 	    bool isApproximate(void) const
 	    {
 		return m_approximate;
