@@ -51,6 +51,22 @@ bool ompl::LRSBL::solve(double solveTime)
 	m_msg.error("LRSBL: Unknown type of goal (or goal undefined)");
 	return false;
     }
+
+    bool foundStart = false;
+    for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+    {
+	SpaceInformationKinematic::StateKinematic_t st = dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i));
+	if (!st || !si->isValid(st))
+	    m_msg.error("LRSBL: Initial state is in collision!");
+	else
+	    foundStart = true;
+    }    
+    
+    if (!foundStart)
+    {
+	m_msg.error("LRSBL: Motion planning trees could not be initialized!");
+	return false;
+    }
     
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
     
