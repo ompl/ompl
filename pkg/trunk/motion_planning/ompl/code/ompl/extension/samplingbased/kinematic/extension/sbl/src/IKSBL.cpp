@@ -34,9 +34,9 @@
 
 /* \author Ioan Sucan */
 
-#include "ompl/extension/samplingbased/kinematic/extension/sbl/LRSBL.h"
+#include "ompl/extension/samplingbased/kinematic/extension/sbl/IKSBL.h"
 
-bool ompl::LRSBL::solve(double solveTime)
+bool ompl::IKSBL::solve(double solveTime)
 {
     SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si);
     SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
@@ -48,7 +48,7 @@ bool ompl::LRSBL::solve(double solveTime)
     
     if (!goal_r)
     {
-	m_msg.error("LRSBL: Unknown type of goal (or goal undefined)");
+	m_msg.error("IKSBL: Unknown type of goal (or goal undefined)");
 	return false;
     }
 
@@ -57,14 +57,14 @@ bool ompl::LRSBL::solve(double solveTime)
     {
 	SpaceInformationKinematic::StateKinematic_t st = dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i));
 	if (!st || !si->isValid(st))
-	    m_msg.error("LRSBL: Initial state is in collision!");
+	    m_msg.error("IKSBL: Initial state is in collision!");
 	else
 	    foundStart = true;
     }    
     
     if (!foundStart)
     {
-	m_msg.error("LRSBL: Motion planning trees could not be initialized!");
+	m_msg.error("IKSBL: Motion planning trees could not be initialized!");
 	return false;
     }
     
@@ -77,7 +77,7 @@ bool ompl::LRSBL::solve(double solveTime)
     
     bool solved = false;
     unsigned int step = 0;
-    m_lazyRRT.clear();
+    m_gaik.clear();
     
     while (!solved)
     {
@@ -85,7 +85,7 @@ bool ompl::LRSBL::solve(double solveTime)
 	double time_left = (endTime - time_utils::Time::now()).to_double();
 	if (time_left <= 0.0)
 	    break;
-	if (m_lazyRRT.solve(time_left))
+	if (m_gaik.solve(time_left))
 	{
 	    SpaceInformationKinematic::PathKinematic_t foundPath = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal_r->getSolutionPath());
 	    assert(foundPath && foundPath->states.size() == 1);
@@ -98,7 +98,7 @@ bool ompl::LRSBL::solve(double solveTime)
 	    /* run SBL on the new goal */
 	    clear();
 	    time_left = (endTime - time_utils::Time::now()).to_double();
-	    m_msg.inform("LRSBL: Using LazyRRT goal state for SBL (step %u, %g seconds remaining)", step, time_left);
+	    m_msg.inform("IKSBL: Using GAIK goal state for SBL (step %u, %g seconds remaining)", step, time_left);
 	    solved = SBL::solve(time_left);
 	    
 	    /* restore user-set goal */

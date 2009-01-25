@@ -44,8 +44,6 @@ bool ompl::LazyRRT::solve(double solveTime)
     SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
     unsigned int                                        dim = si->getStateDimension();
     
-    m_rho = 1.0;
-    
     if (!goal_s && !goal_r)
     {
 	m_msg.error("LazyRRT: Unknown type of goal (or goal undefined)");
@@ -90,7 +88,6 @@ bool ompl::LazyRRT::solve(double solveTime)
     Motion_t                                    rmotion  = new Motion(dim);
     SpaceInformationKinematic::StateKinematic_t rstate   = rmotion->state;
     SpaceInformationKinematic::StateKinematic_t xstate   = new SpaceInformationKinematic::StateKinematic(dim);
-    SpaceInformationKinematic::StateKinematic_t xstate2  = new SpaceInformationKinematic::StateKinematic(dim);
 
  RETRY:
 
@@ -131,63 +128,42 @@ bool ompl::LazyRRT::solve(double solveTime)
     
     if (solution != NULL)
     {
-	if (m_IKOnly)
+	/* construct the solution path */
+	std::vector<Motion_t> mpath;
+	while (solution != NULL)
 	{
-	    bool result = si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(solution->state));
-	    if (result)
-	    {
-		SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
-		SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
-		si->copyState(st, solution->state);
-		path->states.push_back(st);
-		goal_r->setDifference(distsol);
-		goal_r->setSolutionPath(path);
-	    }
-	    else
-	    {
-		removeMotion(solution);
-		goto RETRY;
-	    }
+	    mpath.push_back(solution);
+	    solution = solution->parent;
 	}
-	else
-	{	    
-	    /* construct the solution path */
-	    std::vector<Motion_t> mpath;
-	    while (solution != NULL)
+	
+	/* check the path */
+	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+	    if (!mpath[i]->valid)
 	    {
-		mpath.push_back(solution);
-		solution = solution->parent;
-	    }
-	    
-	    /* check the path */
-	    for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-		if (!mpath[i]->valid)
+		if (si->checkMotionSubdivision(mpath[i]->parent->state, mpath[i]->state))
+		    mpath[i]->valid = true;
+		else
 		{
-		    if (si->checkMotionSubdivision(mpath[i]->parent->state, mpath[i]->state))
-			mpath[i]->valid = true;
-		    else
-		    {
-			removeMotion(mpath[i]);
-			goto RETRY;
-		    }
+		    removeMotion(mpath[i]);
+		    goto RETRY;
 		}
-	    
-	    /*set the solution path */
-	    SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
-	    for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-	    {
-		SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
-		si->copyState(st, mpath[i]->state);
-		path->states.push_back(st);
 	    }
-	    
-	    goal_r->setDifference(distsol);
-	    goal_r->setSolutionPath(path);	
+	
+	/*set the solution path */
+	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+	{
+	    SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+	    si->copyState(st, mpath[i]->state);
+	    path->states.push_back(st);
 	}
+	
+	goal_r->setDifference(distsol);
+	goal_r->setSolutionPath(path);	
+	
     }
-
+    
     delete xstate;
-    delete xstate2;
     delete rmotion;
 
     m_msg.inform("LazyRRT: Created %u states", m_nn.size());

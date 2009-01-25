@@ -34,77 +34,105 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_LRSBL_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_LRSBL_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_GAIK_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_GAIK_
 
-#include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
-#include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
+#include "ompl/base/Planner.h"
+#include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 
-/** Main namespace */
 namespace ompl
 {
-
+    
     /** Forward class declaration */
-    ForwardClassDeclaration(LRSBL);
+    ForwardClassDeclaration(GAIK);
     
     /**
-       @subsubsection LRSBL Lazy RRT Single-query Bi-directional Lazy collision checking planner (LRSBL)
+       @subsubsection Inverse Kinematics with Genetic Algorithms
        
-       @par Short description     
+       @par Short description
 
-       LRSBL is actually SBL that uses LazyRRT internally to compute
-       possible goal states (only if the goal is not specified as a
-       state). This avoids the need for inverse kinematics. In
-       essence, LazyRRT does inverse kinematics.
-
+       GAIK does inverse kinematics, but makes sure the produced
+       goal states are in fact valid.       
+       
        @par External documentation
-
     */
-    class LRSBL : public SBL
+    class GAIK : public Planner
     {
     public:
 
-        LRSBL(SpaceInformation_t si) : SBL(si),
- 	                               m_lazyRRT(si, true)
+        GAIK(SpaceInformation_t si) : Planner(si)
 	{
-	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
+	    m_type = PLAN_TO_GOAL_REGION;
+	    random_utils::init(&m_rngState);
+	    m_poolSize = 100;
+	    m_poolExpansion = 100;
+	    m_rho = 0.5;
 	}
-
-	virtual ~LRSBL(void)
+	
+	virtual ~GAIK(void)
 	{
 	}
 	
-	virtual void setup(void)
-	{
-	    m_lazyRRT.setRange(m_rho);
-	    m_lazyRRT.setup();
-	    SBL::setup();
-	}
-
-	/** Same as for LazyRRT. */
-	void setGoalBias(double goalBias)
-	{
-	    m_lazyRRT.setGoalBias(goalBias);
-	}
-	
-	/** Same as for LazyRRT */
-	double getGoalBias(void) const
-	{
-	    return m_lazyRRT.getGoalBias();
-	}
-
 	virtual bool solve(double solveTime);
-
+	
 	virtual void clear(void)
 	{
-	    m_lazyRRT.clear();
-	    SBL::clear();	    
 	}
 	
+	/** The number of individuals in the population */
+	void setPoolSize(unsigned int size)
+	{
+	    m_poolSize = size;
+	}
+
+	unsigned int getPoolSize(void) const
+	{
+	    return m_poolSize;
+	}
+
+	/** The number of individuals to add to the population in each generation */
+	void setPoolExpansionSize(unsigned int size)
+	{
+	    m_poolExpansion = size;
+	}
+
+	unsigned int getPoolExtensionSize(void) const
+	{
+	    return m_poolExpansion;
+	}
+	
+	void setRange(double rho)
+	{
+	    m_rho = rho;
+	}
+	
+	/** Get the range the planner is using */
+	double getRange(void) const
+	{
+	    return m_rho;
+	}
+
     protected:
 	
-	LazyRRT m_lazyRRT;
+	struct Individual
+	{
+	    SpaceInformationKinematic::StateKinematic_t state;
+	    double                                      distance;
+	};
 	
+	struct IndividualSort
+	{
+	    bool operator()(const Individual& a, const Individual& b)
+	    {
+		return a.distance < b.distance;
+	    }	    
+	};
+	
+	unsigned int           m_poolSize;
+	unsigned int           m_poolExpansion;
+	
+	double                 m_rho;	
+	random_utils::rngState m_rngState;	
     };
 
 }
