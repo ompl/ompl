@@ -45,7 +45,7 @@ bool ompl::RRT::solve(double solveTime)
     
     if (!goal_s && !goal_r)
     {
-	m_msg.error("Unknown type of goal (or goal undefined)");
+	m_msg.error("RRT: Unknown type of goal (or goal undefined)");
 	return false;
     }
     
@@ -61,7 +61,7 @@ bool ompl::RRT::solve(double solveTime)
 		m_nn.add(motion);
 	    else
 	    {
-		m_msg.error("Initial state is in collision!");
+		m_msg.error("RRT: Initial state is in collision!");
 		delete motion;
 	    }	
 	}
@@ -69,11 +69,11 @@ bool ompl::RRT::solve(double solveTime)
     
     if (m_nn.size() == 0)
     {
-	m_msg.error("There are no valid initial states!");
+	m_msg.error("RRT: There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("Starting with %u states", m_nn.size());
+    m_msg.inform("RRT: Starting with %u states", m_nn.size());
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -161,7 +161,7 @@ bool ompl::RRT::solve(double solveTime)
     delete xstate;
     delete rmotion;
 	
-    m_msg.inform("Created %u states", m_nn.size());
+    m_msg.inform("RRT: Created %u states", m_nn.size());
     
     return goal_r->isAchieved();
 }

@@ -48,7 +48,7 @@ bool ompl::LRSBL::solve(double solveTime)
     
     if (!goal_r)
     {
-	m_msg.error("Unknown type of goal (or goal undefined)");
+	m_msg.error("LRSBL: Unknown type of goal (or goal undefined)");
 	return false;
     }
     
@@ -57,36 +57,46 @@ bool ompl::LRSBL::solve(double solveTime)
     /* memory for temporary goal */
     SpaceInformationKinematic::GoalStateKinematic_t stateGoal = new SpaceInformationKinematic::GoalStateKinematic(si);
     stateGoal->state = new SpaceInformationKinematic::StateKinematic(dim);
+    stateGoal->threshold = goal_r->threshold;
     
     bool solved = false;
+    unsigned int step = 0;
+    m_lazyRRT.clear();
     
     while (!solved)
     {
-	m_lazyRRT.clear();
-	if (m_lazyRRT.solve((endTime - time_utils::Time::now()).to_double()))
+	step++;
+	double time_left = (endTime - time_utils::Time::now()).to_double();
+	if (time_left <= 0.0)
+	    break;
+	if (m_lazyRRT.solve(time_left))
 	{
 	    SpaceInformationKinematic::PathKinematic_t foundPath = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal_r->getSolutionPath());
-	    if (foundPath && foundPath->states.size() == 1)
+	    assert(foundPath && foundPath->states.size() == 1);
+	    
+	    /* change goal to a state one */
+	    si->forgetGoal();
+	    si->setGoal(stateGoal);
+	    si->copyState(stateGoal->state, foundPath->states[0]);
+	    
+	    /* run SBL on the new goal */
+	    clear();
+	    time_left = (endTime - time_utils::Time::now()).to_double();
+	    m_msg.inform("LRSBL: Using LazyRRT goal state for SBL (step %u, %g seconds remaining)", step, time_left);
+	    solved = SBL::solve(time_left);
+	    
+	    /* restore user-set goal */
+	    si->forgetGoal();
+	    si->setGoal(goal_r);
+	    
+	    /* copy solution to actual goal instance */
+	    if (solved)
 	    {
-		/* change goal to a state one */
-		si->forgetGoal();
-		si->setGoal(stateGoal);
-		si->copyState(stateGoal->state, foundPath->states[0]);
-		
-		/* run SBL on the new goal */
-		solved = SBL::solve((endTime - time_utils::Time::now()).to_double());
-		
-		/* restore user-set goal */
-		si->forgetGoal();
-		si->setGoal(goal_r);
-		
-		/* copy solution to actual goal instance */
-		if (solved)
-		{
-		    goal_r->setSolutionPath(stateGoal->getSolutionPath());
-		    stateGoal->forgetSolutionPath();
-		}
+		goal_r->setSolutionPath(stateGoal->getSolutionPath());
+		stateGoal->forgetSolutionPath();
 	    }
+	    else
+		goal_r->setSolutionPath(NULL);
 	}
     }
     

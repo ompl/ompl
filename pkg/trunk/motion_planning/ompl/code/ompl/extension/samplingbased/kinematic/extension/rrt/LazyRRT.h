@@ -80,7 +80,7 @@ namespace ompl
 	    m_dEval = new DistanceFunction(dynamic_cast<SpaceInformationKinematic_t>(si));
 	    m_nn.setDistanceFunction(m_dEval);
 	    random_utils::init(&m_rngState);
-	    m_goalBias = 0.05;	    
+	    m_goalBias = 0.05;
 	    m_rho = 0.5;
 	}
 
@@ -208,7 +208,7 @@ namespace ompl
 	};
 	
 	bool                                 m_IKOnly;	
-
+	
 	NearestNeighborsSqrtApprox<Motion_t> m_nn;
 	DistanceFunction                    *m_dEval;
 	

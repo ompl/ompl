@@ -45,7 +45,7 @@ bool ompl::EST::solve(double solveTime)
     
     if (!goal_s && !goal_r)
     {
-	m_msg.error("Unknown type of goal (or goal undefined)");
+	m_msg.error("EST: Unknown type of goal (or goal undefined)");
 	return false;
     }
     
@@ -61,7 +61,7 @@ bool ompl::EST::solve(double solveTime)
 		addMotion(motion);
 	    else
 	    {
-		m_msg.error("Initial state is in collision!");
+		m_msg.error("EST: Initial state is in collision!");
 		delete motion;
 	    }	
 	}
@@ -69,11 +69,11 @@ bool ompl::EST::solve(double solveTime)
     
     if (m_tree.grid.size() == 0)
     {
-	m_msg.error("There are no valid initial states!");
+	m_msg.error("EST: There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("Starting with %u states", m_tree.size);
+    m_msg.inform("EST: Starting with %u states", m_tree.size);
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -151,7 +151,7 @@ bool ompl::EST::solve(double solveTime)
 
     delete xstate;
     
-    m_msg.inform("Created %u states in %u cells", m_tree.size, m_tree.grid.size());
+    m_msg.inform("EST: Created %u states in %u cells", m_tree.size, m_tree.grid.size());
     
     return goal_r->isAchieved();
 }
