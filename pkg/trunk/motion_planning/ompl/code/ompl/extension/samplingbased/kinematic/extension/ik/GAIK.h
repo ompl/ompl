@@ -64,9 +64,9 @@ namespace ompl
 	{
 	    m_type = PLAN_TO_GOAL_REGION;
 	    random_utils::init(&m_rngState);
-	    m_poolSize = 100;
-	    m_poolExpansion = 100;
-	    m_rho = 0.5;
+	    m_rho = 0.05;
+	    m_poolSize = 60;
+	    m_poolExpansion = 80;
 	}
 	
 	virtual ~GAIK(void)

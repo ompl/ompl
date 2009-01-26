@@ -72,6 +72,10 @@ bool ompl::GAIK::solve(double solveTime)
     }
     
     unsigned int generations = 1;
+
+    std::vector<double> range(dim);    
+    for (unsigned int i = 0 ; i < dim ; ++i)
+	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
     while (!solved && time_utils::Time::now() < endTime)
     {
@@ -79,7 +83,7 @@ bool ompl::GAIK::solve(double solveTime)
 	std::sort(pool.begin(), pool.end(), gs);
 	for (unsigned int i = m_poolSize ; i < maxPoolSize ; ++i)
 	{
-	    si->sampleNear(pool[i].state, pool[i%m_poolSize].state, m_rho);
+	    si->sampleNear(pool[i].state, pool[i%m_poolSize].state, range);
 	    if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
 		if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[i].state)))

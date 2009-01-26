@@ -75,9 +75,18 @@ namespace ompl
 	{
 	}
 	
+	void setIKRange(double rho)
+	{
+	    m_gaik.setRange(rho);
+	}
+
+	double getIKRange(void) const
+	{
+	    return m_gaik.getRange();
+	}
+	
 	virtual void setup(void)
 	{
-	    m_gaik.setRange(m_rho);
 	    m_gaik.setup();
 	    SBL::setup();
 	}
