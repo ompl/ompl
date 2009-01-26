@@ -248,6 +248,9 @@ namespace ompl
 	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2);
 	
 	/** Insert states in a path, at the collision checking resolution */
+	virtual bool checkPath(PathKinematic_t path);
+	
+	/** Insert states in a path, at the collision checking resolution */
 	virtual void interpolatePath(PathKinematic_t path, double factor = 1.0);
 	
 	/** Print information about the current instance of the state space */

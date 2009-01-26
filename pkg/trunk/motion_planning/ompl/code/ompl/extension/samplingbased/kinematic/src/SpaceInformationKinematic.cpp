@@ -253,6 +253,24 @@ bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinemati
     return true;
 }
 
+bool ompl::SpaceInformationKinematic::checkPath(PathKinematic_t path)
+{
+    bool result = path != NULL;
+    if (result && path->states.size() > 0)
+    {
+	if (isValid(path->states[0]))
+	{
+	    int last = path->states.size() - 1;
+	    for (int j = 0 ; result && j < last ; ++j)
+		if (!checkMotionSubdivision(path->states[j], path->states[j + 1]))
+		    result = false;
+	}
+	else
+	    result = false;
+    }
+    return result;
+}
+
 void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, double factor)
 {
     std::vector<StateKinematic_t> newStates;
