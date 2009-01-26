@@ -81,4 +81,48 @@ void ompl::PathSmootherKinematic::smoothMax(SpaceInformationKinematic::PathKinem
     smoothVertices(path);
     m_si->interpolatePath(path, 3.0);
     smoothVertices(path);
+    removeRedundantCommands(path);    
+}
+
+void ompl::PathSmootherKinematic::removeRedundantCommands(SpaceInformationKinematic::PathKinematic_t path)
+{
+    if (!path || path->states.size() < 3)
+	return;
+
+    unsigned int dim = m_si->getStateDimension();
+    int         last = path->states.size() - 1;
+    double   *backup = new double[path->states.size()];
+    
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	double command = path->states[0]->values[i];
+	if (command != path->states[last]->values[i])
+	    continue;
+	
+	bool diff = false;
+	for (int j = 1 ; j < last ; ++j)
+	{
+	    backup[j] = path->states[j]->values[i];
+	    if (path->states[j]->values[i] != command)
+	    {
+		path->states[j]->values[i] = command;
+		diff = true;
+	    }
+	}
+	
+	if (diff)
+	{
+	    bool change_back = false;	
+	    for (int j = 0 ; change_back && j < last ; ++j)
+		if (!m_si->checkMotionSubdivision(path->states[j], path->states[j + 1]))
+		    change_back = true;
+	    if (change_back)
+	    {
+		for (int j = 1 ; j < last ; ++j)
+		    path->states[j]->values[i] = backup[j];
+	    }
+	}
+    }
+    
+    delete[] backup;
 }
