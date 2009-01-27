@@ -57,6 +57,12 @@ bool ompl::GAIK::solve(double solveTime)
     bool                    solved = false;
     int                     solution = -1;
     
+    if (m_poolSize < 1)
+    {
+	m_msg.error("GAIK: Pool size too small");
+	return false;	
+    }
+    
     for (unsigned int i = 0 ; i < maxPoolSize ; ++i)
     {
 	pool[i].state = new SpaceInformationKinematic::StateKinematic(dim);
@@ -81,6 +87,16 @@ bool ompl::GAIK::solve(double solveTime)
     {
 	generations++;
 	std::sort(pool.begin(), pool.end(), gs);
+	if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[0].state)))
+	{
+	    if (tryToSolve(pool[0].state, &(pool[0].distance)))
+		if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[0].state)))
+		{
+		    solved = true;
+		    solution = 0;
+		    break;
+		}
+	}
 	for (unsigned int i = m_poolSize ; i < maxPoolSize ; ++i)
 	{
 	    si->sampleNear(pool[i].state, pool[i%m_poolSize].state, range);
@@ -130,4 +146,73 @@ bool ompl::GAIK::solve(double solveTime)
 	delete pool[i].state;
     
     return goal_r->isAchieved();
+}
+
+bool ompl::GAIK::tryToSolve(SpaceInformationKinematic::StateKinematic_t state, double *distance)
+{
+    SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
+    SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
+    unsigned int                                        dim = si->getStateDimension();
+    
+    bool result     = false;
+    double bestDist = *distance;
+    
+    double factorP = 1.02;
+    double factorM = 1.0/factorP;
+    
+    for (unsigned int i = 0 ; !result && i < dim ; ++i)
+    {
+	
+	bool better = true;
+	while (better)
+	{
+	    better = false;
+	    double backup = state->values[i];
+	    state->values[i] *= factorP;
+	    if (goal_r->isSatisfied(state, distance))
+	    {
+		result = true;
+		break;
+	    }
+	    else
+	    {
+		if (*distance < bestDist)
+		{
+		    better = true;
+		    bestDist = *distance;
+		}		
+		else
+		    state->values[i] = backup;
+	    }	    
+	}
+
+	if (!result)
+	{
+	    better = true;
+	    while (better)
+	    {
+		better = false;
+		double backup = state->values[i];
+		state->values[i] *= factorM;
+		if (goal_r->isSatisfied(state, distance))
+		{
+		    result = true;
+		    break;
+		}
+		else
+		{
+		    if (*distance < bestDist)
+		    {
+			better = true;
+			bestDist = *distance;
+		    }
+		    else
+			state->values[i] = backup;
+		}	    
+	    }
+	}
+    }
+    
+    *distance = bestDist;
+    return result;
 }

@@ -89,7 +89,7 @@ namespace ompl
 	{
 	    return m_poolSize;
 	}
-
+	
 	/** The number of individuals to add to the population in each generation */
 	void setPoolExpansionSize(unsigned int size)
 	{
@@ -113,6 +113,8 @@ namespace ompl
 	}
 
     protected:
+	
+	bool tryToSolve(SpaceInformationKinematic::StateKinematic_t state, double *distance);
 	
 	struct Individual
 	{
