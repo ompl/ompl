@@ -107,6 +107,24 @@ bool ompl::GAIK::solve(double solveTime)
 	goal_r->setDifference(pool[solution].distance);
 	goal_r->setSolutionPath(path);
     }
+    else
+    {	
+	/* find an approximate solution */
+	std::sort(pool.begin(), pool.end(), gs);
+	for (unsigned int i = 0 ; i < 5 ; ++i)
+	{	
+	    if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[i].state)))
+	    {
+		SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+		SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+		si->copyState(st, pool[i].state);
+		path->states.push_back(st);
+		goal_r->setDifference(pool[i].distance);
+		goal_r->setSolutionPath(path, true);
+		break;
+	    }
+	}
+    }
     
     for (unsigned int i = 0 ; i < maxPoolSize ; ++i)
 	delete pool[i].state;

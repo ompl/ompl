@@ -85,7 +85,7 @@ bool ompl::IKSBL::solve(double solveTime)
 	double time_left = (endTime - time_utils::Time::now()).to_double();
 	if (time_left <= 0.0)
 	    break;
-	if (m_gaik.solve(time_left))
+	if (m_gaik.solve(time_left * 0.6))
 	{
 	    SpaceInformationKinematic::PathKinematic_t foundPath = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal_r->getSolutionPath());
 	    assert(foundPath && foundPath->states.size() == 1);
@@ -108,7 +108,7 @@ bool ompl::IKSBL::solve(double solveTime)
 	    /* copy solution to actual goal instance */
 	    if (solved)
 	    {
-		goal_r->setSolutionPath(stateGoal->getSolutionPath());
+		goal_r->setSolutionPath(stateGoal->getSolutionPath(), goal_r->isApproximate());
 		stateGoal->forgetSolutionPath();
 	    }
 	    else
