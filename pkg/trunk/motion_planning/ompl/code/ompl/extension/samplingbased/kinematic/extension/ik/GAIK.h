@@ -115,6 +115,7 @@ namespace ompl
     protected:
 	
 	bool tryToSolve(SpaceInformationKinematic::StateKinematic_t state, double *distance);
+	bool tryToSolveFact(double factorP, SpaceInformationKinematic::StateKinematic_t state, double *distance);
 	
 	struct Individual
 	{

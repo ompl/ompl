@@ -87,15 +87,17 @@ bool ompl::GAIK::solve(double solveTime)
     {
 	generations++;
 	std::sort(pool.begin(), pool.end(), gs);
-	if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[0].state)))
+	for (unsigned int i = 0 ; i < 5 ; ++i)
 	{
-	    if (tryToSolve(pool[0].state, &(pool[0].distance)))
-		if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[0].state)))
+	    if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[i].state)))
+	    {
+		if (tryToSolve(pool[i].state, &(pool[i].distance)))
 		{
 		    solved = true;
-		    solution = 0;
+		    solution = i;
 		    break;
 		}
+	    }
 	}
 	for (unsigned int i = m_poolSize ; i < maxPoolSize ; ++i)
 	{
@@ -150,69 +152,97 @@ bool ompl::GAIK::solve(double solveTime)
 
 bool ompl::GAIK::tryToSolve(SpaceInformationKinematic::StateKinematic_t state, double *distance)
 {
+    double dist = *distance;
+    
+    if (tryToSolveFact(1.01, state, distance))
+	return true;
+    
+    if (dist > *distance)
+    {
+	dist = *distance;
+	if (tryToSolveFact(1.003, state, distance))
+	    return true;
+    }
+    else
+	return false;
+    
+    if (dist > *distance)
+    {
+	dist = *distance;
+	if (tryToSolveFact(1.001, state, distance))
+	    return true;
+    }
+    
+    return false;
+}
+
+bool ompl::GAIK::tryToSolveFact(double factorP, SpaceInformationKinematic::StateKinematic_t state, double *distance)
+{
     SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
     SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
     unsigned int                                        dim = si->getStateDimension();
     
-    bool result     = false;
-    double bestDist = *distance;
-    
-    double factorP = 1.02;
     double factorM = 1.0/factorP;
     
-    for (unsigned int i = 0 ; !result && i < dim ; ++i)
+    bool wasSatisfied = goal_r->isSatisfied(state, distance);
+    double bestDist   = *distance;
+    
+    bool change = true;
+    
+    while (change)
     {
+	change = false;
 	
-	bool better = true;
-	while (better)
+	for (unsigned int i = 0 ; i < dim ; ++i)
 	{
-	    better = false;
-	    double backup = state->values[i];
-	    state->values[i] *= factorP;
-	    if (goal_r->isSatisfied(state, distance))
+	    bool better = true;
+	    while (better)
 	    {
-		result = true;
-		break;
-	    }
-	    else
-	    {
-		if (*distance < bestDist)
-		{
-		    better = true;
-		    bestDist = *distance;
-		}		
-		else
+		better = false;
+		double backup = state->values[i];
+		state->values[i] *= factorP;
+		bool isS = goal_r->isSatisfied(state, distance);
+		if (wasSatisfied && !isS)
 		    state->values[i] = backup;
-	    }	    
-	}
-
-	if (!result)
-	{
+		else
+		{
+		    wasSatisfied = isS;
+		    if (*distance < bestDist)
+		    {
+			better = true;
+			change = true;
+			bestDist = *distance;
+		    } 
+		    else
+			state->values[i] = backup;
+		}
+	    }
+	    
 	    better = true;
 	    while (better)
 	    {
 		better = false;
 		double backup = state->values[i];
 		state->values[i] *= factorM;
-		if (goal_r->isSatisfied(state, distance))
-		{
-		    result = true;
-		    break;
-		}
+		bool isS = goal_r->isSatisfied(state, distance);
+		if (wasSatisfied && !isS)
+		    state->values[i] = backup;
 		else
 		{
+		    wasSatisfied = isS;
 		    if (*distance < bestDist)
 		    {
 			better = true;
+			change = true;
 			bestDist = *distance;
-		    }
+		    } 
 		    else
 			state->values[i] = backup;
-		}	    
+		}
 	    }
 	}
     }
     
     *distance = bestDist;
-    return result;
+    return wasSatisfied && si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(state));
 }
