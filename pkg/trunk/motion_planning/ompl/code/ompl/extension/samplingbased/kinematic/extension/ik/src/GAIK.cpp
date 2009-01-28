@@ -87,18 +87,7 @@ bool ompl::GAIK::solve(double solveTime)
     {
 	generations++;
 	std::sort(pool.begin(), pool.end(), gs);
-	for (unsigned int i = 0 ; i < 5 ; ++i)
-	{
-	    if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[i].state)))
-	    {
-		if (tryToSolve(pool[i].state, &(pool[i].distance)))
-		{
-		    solved = true;
-		    solution = i;
-		    break;
-		}
-	    }
-	}
+	
 	for (unsigned int i = m_poolSize ; i < maxPoolSize ; ++i)
 	{
 	    si->sampleNear(pool[i].state, pool[i%m_poolSize].state, range);
@@ -124,6 +113,13 @@ bool ompl::GAIK::solve(double solveTime)
 	path->states.push_back(st);
 	goal_r->setDifference(pool[solution].distance);
 	goal_r->setSolutionPath(path);
+
+	
+	double dist = goal_r->getDifference();
+	tryToSolve(path->states[0], &dist);
+	goal_r->setDifference(dist);
+    
+
     }
     else
     {	
@@ -139,6 +135,14 @@ bool ompl::GAIK::solve(double solveTime)
 		path->states.push_back(st);
 		goal_r->setDifference(pool[i].distance);
 		goal_r->setSolutionPath(path, true);
+
+
+
+		double dist = goal_r->getDifference();
+		tryToSolve(path->states[0], &dist);
+		goal_r->setDifference(dist);
+    
+
 		break;
 	    }
 	}
@@ -152,28 +156,11 @@ bool ompl::GAIK::solve(double solveTime)
 
 bool ompl::GAIK::tryToSolve(SpaceInformationKinematic::StateKinematic_t state, double *distance)
 {
-    double dist = *distance;
-    
-    if (tryToSolveFact(1.01, state, distance))
-	return true;
-    
-    if (dist > *distance)
-    {
-	dist = *distance;
-	if (tryToSolveFact(1.003, state, distance))
-	    return true;
-    }
-    else
-	return false;
-    
-    if (dist > *distance)
-    {
-	dist = *distance;
-	if (tryToSolveFact(1.001, state, distance))
-	    return true;
-    }
-    
-    return false;
+    tryToSolveFact(1.1, state, distance);
+    tryToSolveFact(1.01, state, distance);
+    tryToSolveFact(1.001, state, distance);
+    tryToSolveFact(1.0001, state, distance);
+    return true;
 }
 
 bool ompl::GAIK::tryToSolveFact(double factorP, SpaceInformationKinematic::StateKinematic_t state, double *distance)
