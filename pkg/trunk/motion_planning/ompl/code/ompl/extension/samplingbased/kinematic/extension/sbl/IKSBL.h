@@ -52,7 +52,7 @@ namespace ompl
        
        @par Short description     
 
-       IKSBL is actually SBL that uses GAIK internally to compute
+       IKSBL is actually @ref SBL that uses @ref GAIK internally to compute
        possible goal states (only if the goal is not specified as a
        state). This avoids the need for inverse kinematics before
        SBL. GAIK does inverse kinematics, but makes sure the produced

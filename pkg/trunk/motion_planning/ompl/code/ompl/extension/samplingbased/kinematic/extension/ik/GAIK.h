@@ -47,7 +47,7 @@ namespace ompl
     ForwardClassDeclaration(GAIK);
     
     /**
-       @subsubsection Inverse Kinematics with Genetic Algorithms
+       @subsubsection GAIK Inverse Kinematics with Genetic Algorithms
        
        @par Short description
 
