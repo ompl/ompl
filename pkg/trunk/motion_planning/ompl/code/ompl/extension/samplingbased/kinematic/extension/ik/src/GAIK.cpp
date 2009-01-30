@@ -37,6 +37,11 @@
 #include "ompl/extension/samplingbased/kinematic/extension/ik/GAIK.h"
 #include <algorithm>
 
+bool ompl::GAIK::valid(SpaceInformationKinematic::StateKinematic_t state)
+{
+    return m_checkValidity ? m_si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(state)) : true;
+}
+
 bool ompl::GAIK::solve(double solveTime)
 {
     SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
@@ -69,7 +74,7 @@ bool ompl::GAIK::solve(double solveTime)
 	si->sample(pool[i].state);
 	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
-	    if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[i].state)))
+	    if (valid(pool[i].state))
 	    {
 		solved = true;
 		solution = i;
@@ -93,7 +98,7 @@ bool ompl::GAIK::solve(double solveTime)
 	    si->sampleNear(pool[i].state, pool[i%m_poolSize].state, range);
 	    if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
-		if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[i].state)))
+		if (valid(pool[i].state))
 		{
 		    solved = true;
 		    solution = i;
@@ -107,6 +112,7 @@ bool ompl::GAIK::solve(double solveTime)
 
     if (solved)
     {
+	// set the solution 
 	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
 	SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
 	si->copyState(st, pool[solution].state);
@@ -114,12 +120,17 @@ bool ompl::GAIK::solve(double solveTime)
 	goal_r->setDifference(pool[solution].distance);
 	goal_r->setSolutionPath(path);
 
-	
+	// try to improve the solution
 	double dist = goal_r->getDifference();
-	tryToSolve(path->states[0], &dist);
+	tryToImprove(st, &dist);
 	goal_r->setDifference(dist);
-    
 
+	// if improving the state made it invalid, revert
+	if (!valid(st))
+	{
+	    si->copyState(st, pool[solution].state);
+	    goal_r->setDifference(pool[solution].distance);
+	}
     }
     else
     {	
@@ -127,22 +138,34 @@ bool ompl::GAIK::solve(double solveTime)
 	std::sort(pool.begin(), pool.end(), gs);
 	for (unsigned int i = 0 ; i < 5 ; ++i)
 	{	
-	    if (si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(pool[i].state)))
+	    // get a valid state that is closer to the goal
+	    if (valid(pool[i].state))
 	    {
+		// set the solution
 		SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
 		SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
 		si->copyState(st, pool[i].state);
 		path->states.push_back(st);
-		goal_r->setDifference(pool[i].distance);
-		goal_r->setSolutionPath(path, true);
 
-
-
-		double dist = goal_r->getDifference();
-		tryToSolve(path->states[0], &dist);
-		goal_r->setDifference(dist);
-    
-
+		// try to improve the state
+		double dist = pool[i].distance;
+		tryToImprove(st, &dist);
+		
+		// if the improved state is still valid, we have a solution
+		if (valid(st))
+		{
+		    // the solution may no longer be just approximate, so we check
+		    bool approx = goal_r->isSatisfied(st, &dist);
+		    goal_r->setSolutionPath(path, approx);
+		    goal_r->setDifference(dist);
+		}
+		else
+		{
+		    // if the improvement made the state no longer valid, revert to previous one
+		    si->copyState(st, pool[i].state);
+		    goal_r->setSolutionPath(path, true);
+		    goal_r->setDifference(pool[i].distance);
+		}
 		break;
 	    }
 	}
@@ -154,40 +177,52 @@ bool ompl::GAIK::solve(double solveTime)
     return goal_r->isAchieved();
 }
 
-bool ompl::GAIK::tryToSolve(SpaceInformationKinematic::StateKinematic_t state, double *distance)
+bool ompl::GAIK::tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double *distance)
 {
-    tryToSolveFact(1.1, state, distance);
-    tryToSolveFact(1.01, state, distance);
-    tryToSolveFact(1.001, state, distance);
-    tryToSolveFact(1.0001, state, distance);
+    m_msg.inform("GAIK: Distance to goal before improvement: %g", *distance);    
+    time_utils::Time start = time_utils::Time::now();
+    tryToImproveAux(0.1, state, distance);
+    tryToImproveAux(0.05, state, distance);
+    tryToImproveAux(0.01, state, distance);
+    tryToImproveAux(0.005, state, distance);
+    tryToImproveAux(0.001, state, distance);
+    tryToImproveAux(0.0005, state, distance);
+    tryToImproveAux(0.0001, state, distance);
+    tryToImproveAux(0.00005, state, distance);
+    tryToImproveAux(0.000025, state, distance);
+    tryToImproveAux(0.00001, state, distance);
+    tryToImproveAux(0.000005, state, distance);
+    m_msg.inform("GAIK: Improvement took  %g seconds", (time_utils::Time::now() - start).to_double());    
+    m_msg.inform("GAIK: Distance to goal after improvement: %g", *distance);    
     return true;
 }
 
-bool ompl::GAIK::tryToSolveFact(double factorP, SpaceInformationKinematic::StateKinematic_t state, double *distance)
+bool ompl::GAIK::tryToImproveAux(double add, SpaceInformationKinematic::StateKinematic_t state, double *distance)
 {
     SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
     SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
     unsigned int                                        dim = si->getStateDimension();
     
-    double factorM = 1.0/factorP;
-    
     bool wasSatisfied = goal_r->isSatisfied(state, distance);
     double bestDist   = *distance;
     
     bool change = true;
+    unsigned int steps = 0;
     
-    while (change)
+    while (change && steps < m_maxImproveSteps)
     {
 	change = false;
+	steps++;
 	
 	for (unsigned int i = 0 ; i < dim ; ++i)
 	{
 	    bool better = true;
+	    bool increased = false;
 	    while (better)
 	    {
 		better = false;
 		double backup = state->values[i];
-		state->values[i] *= factorP;
+		state->values[i] += add;
 		bool isS = goal_r->isSatisfied(state, distance);
 		if (wasSatisfied && !isS)
 		    state->values[i] = backup;
@@ -198,38 +233,42 @@ bool ompl::GAIK::tryToSolveFact(double factorP, SpaceInformationKinematic::State
 		    {
 			better = true;
 			change = true;
+			increased = true;
 			bestDist = *distance;
 		    } 
 		    else
 			state->values[i] = backup;
 		}
 	    }
-	    
-	    better = true;
-	    while (better)
+
+	    if (!increased)
 	    {
-		better = false;
-		double backup = state->values[i];
-		state->values[i] *= factorM;
-		bool isS = goal_r->isSatisfied(state, distance);
-		if (wasSatisfied && !isS)
-		    state->values[i] = backup;
-		else
+		better = true;
+		while (better)
 		{
-		    wasSatisfied = isS;
-		    if (*distance < bestDist)
-		    {
-			better = true;
-			change = true;
-			bestDist = *distance;
-		    } 
-		    else
+		    better = false;
+		    double backup = state->values[i];
+		    state->values[i] -= add;
+		    bool isS = goal_r->isSatisfied(state, distance);
+		    if (wasSatisfied && !isS)
 			state->values[i] = backup;
+		    else
+		    {
+			wasSatisfied = isS;
+			if (*distance < bestDist)
+			{
+			    better = true;
+			    change = true;
+			    bestDist = *distance;
+			} 
+			else
+			    state->values[i] = backup;
+		    }
 		}
 	    }
 	}
     }
     
     *distance = bestDist;
-    return wasSatisfied && si->isValid(static_cast<SpaceInformationKinematic::StateKinematic_t>(state));
+    return wasSatisfied && valid(state);
 }

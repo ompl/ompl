@@ -64,9 +64,11 @@ namespace ompl
 	{
 	    m_type = PLAN_TO_GOAL_REGION;
 	    random_utils::init(&m_rngState);
-	    m_rho = 0.05;
-	    m_poolSize = 60;
-	    m_poolExpansion = 80;
+	    m_rho = 0.04;
+	    m_poolSize = 80;
+	    m_poolExpansion = 100;
+	    m_maxImproveSteps = 3;
+	    m_checkValidity = true;
 	}
 	
 	virtual ~GAIK(void)
@@ -77,6 +79,26 @@ namespace ompl
 	
 	virtual void clear(void)
 	{
+	}
+	
+	void setMaxImproveSteps(unsigned int maxSteps)
+	{
+	    m_maxImproveSteps = maxSteps;
+	}
+
+	unsigned int getMaxImproveSteps(void) const
+	{
+	    return m_maxImproveSteps;
+	}
+	
+	void setValidityCheck(bool valid)
+	{
+	    m_checkValidity = valid;
+	}
+	
+	bool getValidityCheck(void) const
+	{
+	    return m_checkValidity;
 	}
 	
 	/** The number of individuals in the population */
@@ -114,8 +136,9 @@ namespace ompl
 
     protected:
 	
-	bool tryToSolve(SpaceInformationKinematic::StateKinematic_t state, double *distance);
-	bool tryToSolveFact(double factorP, SpaceInformationKinematic::StateKinematic_t state, double *distance);
+	bool tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double *distance);
+	bool tryToImproveAux(double add, SpaceInformationKinematic::StateKinematic_t state, double *distance);
+	bool valid(SpaceInformationKinematic::StateKinematic_t state);
 	
 	struct Individual
 	{
@@ -133,7 +156,9 @@ namespace ompl
 	
 	unsigned int           m_poolSize;
 	unsigned int           m_poolExpansion;
-	
+	unsigned int           m_maxImproveSteps;	
+	bool                   m_checkValidity;	
+
 	double                 m_rho;	
 	random_utils::rngState m_rngState;	
     };
