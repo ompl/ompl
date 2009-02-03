@@ -37,7 +37,6 @@
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <angles/angles.h>
 #include <cstring>
-#include <valarray>
 #include <algorithm>
 #include <queue>
 #include <cstring>
@@ -89,6 +88,7 @@ double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator:
 	double diff = m_si->getStateComponent(i).type == StateComponent::WRAPPING_ANGLE ? 
 	    angles::shortest_angular_distance(sk1->values[i], sk2->values[i]) : sk1->values[i] - sk2->values[i];
 	dist += diff * diff;
+	// will need to consider quaternions; bullet angle diff?
     }
     return dist;
 }
@@ -172,20 +172,9 @@ bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinemati
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
 	return false;
-
-    /* find out how many divisions we need */
-    int nd = 1;
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-    {
-	int d = 1 + (int)(fabs(s1->values[i] - s2->values[i]) / m_stateComponent[i].resolution);
-	if (nd < d)
-	    nd = d;
-    }
-
-    /* find out the step size as a vector */
-    std::valarray<double> step(m_stateDimension);
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-    	step[i] = (s2->values[i] - s1->values[i]) / (double)nd;
+    
+    std::valarray<double> step;
+    int nd = findDifferenceStep(s1, s2, 1.0, step);
     
     /* initialize the queue of test positions */
     std::queue< std::pair<int, int> > pos;
@@ -224,20 +213,9 @@ bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinemati
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
 	return false;
-    
-    /* find out how many divisions we need */
-    int nd = 1;
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-    {
-	int d = 1 + (int)(fabs(s1->values[i] - s2->values[i]) / m_stateComponent[i].resolution);
-	if (nd < d)
-	    nd = d;
-    }
 
-    /* find out the step size as a vector */
-    std::valarray<double> step(m_stateDimension);
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-    	step[i] = (s2->values[i] - s1->values[i]) / (double)nd;
+    std::valarray<double> step;
+    int nd = findDifferenceStep(s1, s2, 1.0, step);
     
     /* temporary storage for the checked state */
     StateKinematic test(m_stateDimension);
@@ -283,20 +261,9 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, doub
 	
 	newStates.push_back(s1);
 	
-	/* find out how many divisions we need */
-	int nd = 1;
-	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	{
-	    int d = 1 + (int)(fabs(s1->values[i] - s2->values[i]) / (factor * m_stateComponent[i].resolution));
-	    if (nd < d)
-		nd = d;
-	}
-	
-	/* find out the step size as a vector */
-	std::valarray<double> step(m_stateDimension);
-	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	    step[i] = (s2->values[i] - s1->values[i]) / (double)nd;
-	
+	std::valarray<double> step;
+	int nd = findDifferenceStep(s1, s2, factor, step);
+		
 	/* find the states in between */
 	for (int j = 1 ; j < nd ; ++j)
 	{
@@ -309,6 +276,33 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, doub
     newStates.push_back(path->states[n1]);
     
     path->states.swap(newStates);
+}
+
+int ompl::SpaceInformationKinematic::findDifferenceStep(const StateKinematic_t s1, const StateKinematic_t s2, double factor,
+							std::valarray<double> &step)
+{
+    /* find diffs */
+    std::valarray<double> diff(m_stateDimension);
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	diff[i] = m_stateComponent[i].type == StateComponent::WRAPPING_ANGLE ? 
+	    angles::shortest_angular_distance(s1->values[i], s2->values[i]) : s2->values[i] - s1->values[i];
+
+    // will need to handle quaternions; use bullet LinearMath? use slerp?
+
+    /* find out how many divisions we need */
+    int nd = 1;
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+    {
+	int d = 1 + (int)(fabs(diff[i]) / (factor * m_stateComponent[i].resolution));
+	if (nd < d)
+	    nd = d;
+    }
+    
+    /* find out the step size as a vector */
+    step.resize(m_stateDimension); 
+    step = diff / (double)nd;
+    
+    return nd;
 }
 
 double ompl::SpaceInformationKinematic::distance(const StateKinematic_t s1, const StateKinematic_t s2)

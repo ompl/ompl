@@ -40,6 +40,8 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/util/random_utils.h"
 
+#include <vector>
+#include <valarray>
 #include <cassert>
 
 /** Main namespace */
@@ -247,7 +249,7 @@ namespace ompl
 	/** Incrementally check if the path between two motions is valid */
 	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2);
 	
-	/** Insert states in a path, at the collision checking resolution */
+	/** Check if the path is valid */
 	virtual bool checkPath(PathKinematic_t path);
 	
 	/** Insert states in a path, at the collision checking resolution */
@@ -261,7 +263,11 @@ namespace ompl
 	virtual void setup(void);
 	
     protected:
-		
+
+	/** For functions that need to interpolate between two states, find the appropriate step size */
+	int findDifferenceStep(const StateKinematic_t s1, const StateKinematic_t s2, double factor,
+			       std::valarray<double> &step);
+	
 	unsigned int                            m_stateDimension;
 	std::vector<StateComponent>             m_stateComponent;
 	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
