@@ -92,7 +92,6 @@
 #ifndef OMPL_BASE_GENERAL_
 #define OMPL_BASE_GENERAL_
 
-#include "ompl/base/util/types.h"
 #include "ompl/base/util/time.h"
 #include "ompl/base/util/output.h"
 

@@ -40,7 +40,6 @@
 
 #include <iostream>
 #include <cmath>
-#include "ompl/base/util/types.h"
 
 #ifdef _WIN32
 #include <windows.h>
