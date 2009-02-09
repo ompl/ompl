@@ -72,7 +72,6 @@ namespace ompl
         EST(SpaceInformation_t si) : Planner(si)
 	{
 	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
-	    random_utils::init(&m_rngState);
 	    m_projectionEvaluator = NULL;
 	    m_projectionDimension = 0;
 	    m_goalBias = 0.05;
@@ -238,7 +237,7 @@ namespace ompl
 
 	double                 m_goalBias;
 	double                 m_rho;	
-	random_utils::rngState m_rngState;	
+	random_utils::RNGSet   m_rng;	
     };
 
 }

@@ -87,7 +87,6 @@ namespace ompl
         SBL(SpaceInformation_t si) : Planner(si)
 	{
 	    m_type = PLAN_TO_GOAL_STATE;
-	    random_utils::init(&m_rngState);
 	    m_projectionEvaluator = NULL;
 	    m_projectionDimension = 0;
 	    m_rho = 0.5;
@@ -247,7 +246,7 @@ namespace ompl
 	TreeData               m_tGoal;
 	
 	double                 m_rho;	
-	random_utils::rngState m_rngState;	
+	random_utils::RNGSet   m_rng;	
     };
 
 }

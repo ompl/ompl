@@ -63,7 +63,6 @@ namespace ompl
         GAIK(SpaceInformation_t si) : Planner(si)
 	{
 	    m_type = PLAN_TO_GOAL_REGION;
-	    random_utils::init(&m_rngState);
 	    m_rho = 0.04;
 	    m_poolSize = 80;
 	    m_poolExpansion = 100;
@@ -160,7 +159,6 @@ namespace ompl
 	bool                   m_checkValidity;	
 
 	double                 m_rho;	
-	random_utils::rngState m_rngState;	
     };
 
 }

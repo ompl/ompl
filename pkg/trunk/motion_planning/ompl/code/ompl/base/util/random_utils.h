@@ -32,15 +32,19 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan, Morgan Quigley */
+/** \author Ioan Sucan */
 
-#ifndef OMPL_RANDOM_UTILS_
-#define OMPL_RANDOM_UTILS_
+#ifndef OMPL_BASE_UTIL_RANDOM_UTILS_
+#define OMPL_BASE_UTIL_RANDOM_UTILS_
+
+#include <vector>
+#include <boost/thread/mutex.hpp>
 
 namespace ompl
 {
     namespace random_utils
     {
+
 	/** Random number generator state */
 	struct rngState
 	{
@@ -52,23 +56,101 @@ namespace ompl
 	    } gaussian;
 	};
 	
-	/** Initialize random number generator */
-	void init(rngState *state);
+	/** Random number generation based on a state */
+	class RNG
+	{
+	    friend void setMaxThreads(unsigned int threads);
+	    
+	public:
+	    
+	    RNG(void);
+	    
+	    /** Uniform random number generator */	
+	    double uniform(double lower_bound = 0.0, double upper_bound = 1.0);
+	    int    uniformInt(int lower_bound, int upper_bound);
+	    bool   uniformBool(void);  
+	    
+	    /** Gaussian random number generator */	
+	    double gaussian(double mean, double stddev);
+	    double bounded_gaussian(double mean, double stddev, double max_stddev);
+	    
+	    /** Random quaternion generator. The returned value has the order (x,y,z,w) */	
+	    void quaternion(double value[4]);
+
+	private:
+	    
+	    rngState m_state;
+	};
 	
-	/** Uniform random number generator */	
-	double uniform(rngState *state, double lower_bound = 0.0, double upper_bound = 1.0);
-	int    uniformInt(rngState *state, int lower_bound, int upper_bound);
-	bool   uniformBool(rngState *state);  
+	/** This class is thread-safe as long as the maximum number of threads is set */
+	class RNGSet
+	{
+	public:
+	    
+	    RNGSet(void);
+	    
+	    /** Uniform random number generator */	
+	    double uniform(double lower_bound = 0.0, double upper_bound = 1.0) const
+	    {
+		return nextState().uniform(lower_bound, upper_bound);
+	    }
+	    
+	    int    uniformInt(int lower_bound, int upper_bound) const
+	    {
+		return nextState().uniform(lower_bound, upper_bound);
+	    }
+	    
+	    bool   uniformBool(void) const
+	    {
+		return nextState().uniformBool();		
+	    }
+	    
+	    
+	    /** Gaussian random number generator */	
+	    double gaussian(double mean, double stddev) const
+	    {
+		return nextState().gaussian(mean, stddev);
+	    }
+	    
+	    double bounded_gaussian(double mean, double stddev, double max_stddev) const
+	    {
+		return nextState().bounded_gaussian(mean, stddev, max_stddev);
+	    }	    
+	    
+	    /** Random quaternion generator. The returned value has the order (x,y,z,w) */	
+	    void quaternion(double value[4]) const
+	    {
+		return nextState().quaternion(value);
+	    }
+	    	    
+	private:
+	    
+	    RNG& nextState(void) const
+	    {
+		m_lock.lock();
+		unsigned int index = m_threadIndex;
+		m_threadIndex = (m_threadIndex + 1) % m_states->size();
+		m_lock.unlock();
+		return m_states->at(index);
+	    }
+	    
+	    mutable std::vector<RNG> *m_states;
+	    mutable boost::mutex      m_lock;
+	    mutable unsigned int      m_threadIndex;
+	};
 	
-	/** Gaussian random number generator */	
-	double gaussian(rngState *state, double mean, double stddev);
-	double bounded_gaussian(rngState *state, double mean, double stddev, double max_stddev);
-	
-	/** Random quaternion generator. The returned value has the order (x,y,z,w) */	
-	void quaternion(rngState* state, double value[4]);
+	/** Get the maximum number of threads for which the RNGSet is thread-safe */
+	unsigned int getMaxThreads(void);
+
+	/** Set the maximum number of threads for which the RNGSet
+	    should be thread-safe.  This function is NOT THREAD
+	    SAFE. This function should not be called at the same time
+	    with other functions from RNGSet. However, after a call to
+	    this functions, all RNGSet instances are still in a valid
+	    state. */
+	void setMaxThreads(unsigned int threads);
 	
     }
 }
 
 #endif
-

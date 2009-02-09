@@ -152,7 +152,7 @@ bool ompl::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, M
     if (cell && !cell->data.empty())
     {
 	SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
-	Motion_t connectOther          = cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size() - 1)];
+	Motion_t connectOther          = cell->data[m_rng.uniformInt(0, cell->data.size() - 1)];
 	Motion_t connect               = new Motion(si->getStateDimension());
 	
 	si->copyState(connect->state, connectOther->state);
@@ -233,7 +233,7 @@ ompl::SBL::Motion_t ompl::SBL::selectMotion(TreeData &tree)
 {
     double sum  = 0.0;
     Grid<MotionSet>::Cell_t cell = NULL;
-    double prob = random_utils::uniform(&m_rngState) * (tree.grid.size() - 1);
+    double prob = m_rng.uniform() * (tree.grid.size() - 1);
     for (Grid<MotionSet>::iterator it = tree.grid.begin(); it != tree.grid.end() ; ++it)
     {
 	sum += (double)(tree.size - it->second->data.size()) / (double)tree.size;
@@ -245,7 +245,7 @@ ompl::SBL::Motion_t ompl::SBL::selectMotion(TreeData &tree)
     }
     if (!cell && tree.grid.size() > 0)
 	cell = tree.grid.begin()->second;
-    return cell && !cell->data.empty() ? cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size() - 1)] : NULL;
+    return cell && !cell->data.empty() ? cell->data[m_rng.uniformInt(0, cell->data.size() - 1)] : NULL;
 }
 
 void ompl::SBL::removeMotion(TreeData &tree, Motion_t motion)

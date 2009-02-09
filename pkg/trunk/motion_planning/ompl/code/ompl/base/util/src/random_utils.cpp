@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan, Morgan Quigley  */
+/** \author Ioan Sucan  */
 
 #include <cstdio>
 #include <cstdlib>
@@ -41,7 +41,9 @@
 #include <climits>
 #include "ompl/base/util/random_utils.h"
 
-void ompl::random_utils::init(rngState *state)
+static std::vector<ompl::random_utils::RNG> RNGSET_STATES(1);
+
+ompl::random_utils::RNG::RNG(void)
 {
     FILE        *fp = fopen("/dev/urandom", "r");    
     unsigned int s;
@@ -53,35 +55,35 @@ void ompl::random_utils::init(rngState *state)
     }
     else
 	s = (unsigned int) time(NULL);
-    state->seed = s;
-    state->gaussian.valid = false;
+    m_state.seed = s;
+    m_state.gaussian.valid = false;
 }
 
-double ompl::random_utils::uniform(rngState *state, double lower_bound, 
-				   double upper_bound)
+double ompl::random_utils::RNG::uniform(double lower_bound, 
+					double upper_bound)
 {
     return (upper_bound - lower_bound) 
-	* (double)rand_r(&state->seed) / ((double)(RAND_MAX) + 1.0)
+	* (double)rand_r(&m_state.seed) / ((double)(RAND_MAX) + 1.0)
 	+ lower_bound;     
 }
 
-int ompl::random_utils::uniformInt(rngState *state, int lower_bound, int upper_bound)
+int ompl::random_utils::RNG::uniformInt(int lower_bound, int upper_bound)
 {
-    return (int)random_utils::uniform(state, (double)lower_bound, 
-				      (double)(upper_bound + 1));
+    return (int)uniform((double)lower_bound, 
+			(double)(upper_bound + 1));
 }
 
-bool ompl::random_utils::uniformBool(rngState *state)
+bool ompl::random_utils::RNG::uniformBool(void)
 {
-    return uniform(state, 0.0, 1.0) <= 0.5;
+    return uniform(0.0, 1.0) <= 0.5;
 }
 
-double ompl::random_utils::gaussian(rngState *state, double mean, double stddev)
+double ompl::random_utils::RNG::gaussian(double mean, double stddev)
 {
-    if (state->gaussian.valid)
+    if (m_state.gaussian.valid)
     {
-	double r = state->gaussian.last * stddev + mean;
-	state->gaussian.valid = false;
+	double r = m_state.gaussian.last * stddev + mean;
+	m_state.gaussian.valid = false;
 	return r;
     }
     else
@@ -89,39 +91,57 @@ double ompl::random_utils::gaussian(rngState *state, double mean, double stddev)
 	double x1, x2, w;
 	do
 	{
-	    x1 = uniform(state, -1.0, 1.0);
-	    x2 = uniform(state, -1.0, 1.0);
+	    x1 = uniform(-1.0, 1.0);
+	    x2 = uniform(-1.0, 1.0);
 	    w = x1 * x1 + x2 * x2;
 	} while (w >= 1.0 || w == 0.0);
 	w = sqrt(-2.0 * log(w) / w);
-	state->gaussian.valid = true;
-	state->gaussian.last  = x2 * w;
+	m_state.gaussian.valid = true;
+	m_state.gaussian.last  = x2 * w;
 	return x1 * stddev * w + mean;
     }
 }
 
-double ompl::random_utils::bounded_gaussian(rngState *state, double mean, 
-					    double stddev, double max_stddev)
+double ompl::random_utils::RNG::bounded_gaussian(double mean, double stddev, double max_stddev)
 {
     double sample, max_s = max_stddev * stddev;
     do
     {
-	sample = gaussian(state, mean, stddev);
+	sample = gaussian(mean, stddev);
     } while (fabs(sample - mean) > max_s);
     return sample;
 }
 
 // From: "Uniform Random Rotations", Ken Shoemake, Graphics Gems III,
 //       pg. 124-132
-void ompl::random_utils::quaternion(rngState* state, double value[4])
+void ompl::random_utils::RNG::quaternion(double value[4])
 {
-    double x0 = uniform(state);    
+    double x0 = uniform();    
     double r1 = sqrt(1.0 - x0), r2 = sqrt(x0);
-    double t1 = 2.0 * M_PI * uniform(state), t2 = 2.0 * M_PI * uniform(state);
+    double t1 = 2.0 * M_PI * uniform(), t2 = 2.0 * M_PI * uniform();
     double c1 = cos(t1), s1 = sin(t1);
     double c2 = cos(t2), s2 = sin(t2);
     value[0] = s1 * r1;
     value[1] = c1 * r1;
     value[2] = s2 * r2;
     value[3] = c2 * r2;
+}
+
+ompl::random_utils::RNGSet::RNGSet(void)
+{
+    m_states = &RNGSET_STATES;
+    m_threadIndex = 0;
+}
+
+unsigned int ompl::random_utils::getMaxThreads(void)
+{
+    return RNGSET_STATES.size();
+}
+
+void ompl::random_utils::setMaxThreads(unsigned int threads)
+{
+    RNGSET_STATES.resize(threads);
+    // make sure we do not have the same seed for the threads 
+    for (unsigned int i  = 1 ; i < RNGSET_STATES.size() ; ++i)
+	RNGSET_STATES[i].m_state.seed = RNGSET_STATES[0].uniformInt(0, INT_MAX);
 }

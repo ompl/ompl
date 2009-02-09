@@ -55,7 +55,6 @@ namespace ompl
 	    m_rangeRatio = 0.2;
 	    m_maxSteps = 10;
 	    m_maxEmptySteps = 3;
-	    random_utils::init(&m_rngState);
 	}
 
 	virtual ~PathSmootherKinematic(void)
@@ -108,7 +107,7 @@ namespace ompl
     protected:
 	
 	SpaceInformationKinematic_t m_si;
-	mutable random_utils::rngState      m_rngState;
+	random_utils::RNGSet        m_rng;
 	double                      m_rangeRatio;
 	unsigned int                m_maxSteps;
 	unsigned int                m_maxEmptySteps;

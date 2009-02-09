@@ -91,7 +91,7 @@ bool ompl::EST::solve(double solveTime)
 	assert(existing);
 	
 	/* sample random state (with goal biasing) */
-	if (goal_s && random_utils::uniform(&m_rngState, 0.0, 1.0) < m_goalBias)
+	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
 	    si->copyState(xstate, goal_s->state);
 	else
 	    si->sampleNear(xstate, existing->state, range);
@@ -160,7 +160,7 @@ ompl::EST::Motion_t ompl::EST::selectMotion(void)
 {
     double sum  = 0.0;
     Grid<MotionSet>::Cell_t cell = NULL;
-    double prob = random_utils::uniform(&m_rngState) * (m_tree.grid.size() - 1);
+    double prob = m_rng.uniform() * (m_tree.grid.size() - 1);
     for (Grid<MotionSet>::iterator it = m_tree.grid.begin(); it != m_tree.grid.end() ; ++it)
     {
 	sum += (double)(m_tree.size - it->second->data.size()) / (double)m_tree.size;
@@ -172,7 +172,7 @@ ompl::EST::Motion_t ompl::EST::selectMotion(void)
     }
     if (!cell && m_tree.grid.size() > 0)
 	cell = m_tree.grid.begin()->second;
-    return cell && !cell->data.empty() ? cell->data[random_utils::uniformInt(&m_rngState, 0, cell->data.size() - 1)] : NULL;
+    return cell && !cell->data.empty() ? cell->data[m_rng.uniformInt(0, cell->data.size() - 1)] : NULL;
 }
 
 void ompl::EST::computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord)

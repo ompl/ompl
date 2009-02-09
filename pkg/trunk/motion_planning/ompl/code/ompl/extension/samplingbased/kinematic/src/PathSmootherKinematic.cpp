@@ -50,8 +50,8 @@ void ompl::PathSmootherKinematic::smoothVertices(SpaceInformationKinematic::Path
 	int maxN  = count - 1;
 	int range = 1 + (int)((double)count * m_rangeRatio);
 	
-	int p1 = random_utils::uniformInt(&m_rngState, 0, maxN);
-	int p2 = random_utils::uniformInt(&m_rngState, std::max(p1 - range, 0), std::min(maxN, p1 + range));
+	int p1 = m_rng.uniformInt(0, maxN);
+	int p2 = m_rng.uniformInt(std::max(p1 - range, 0), std::min(maxN, p1 + range));
 	if (abs(p1 - p2) < 2)
 	{
 	    if (p1 < maxN - 1)

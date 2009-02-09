@@ -63,7 +63,6 @@ namespace ompl
         SpaceInformationKinematic(void) : SpaceInformation(),
 	                                  m_defaultDistanceEvaluator(this)
 	{
-	    random_utils::init(&m_rngState);
 	    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
 	}
 	
@@ -272,7 +271,7 @@ namespace ompl
 	std::vector<StateComponent>             m_stateComponent;
 	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
 	
-	mutable random_utils::rngState          m_rngState;
+	mutable random_utils::RNGSet            m_rng;
 	
     };
     

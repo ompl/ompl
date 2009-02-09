@@ -94,7 +94,7 @@ bool ompl::LazyRRT::solve(double solveTime)
     while (time_utils::Time::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
-	if (goal_s && random_utils::uniform(&m_rngState, 0.0, 1.0) < m_goalBias)
+	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
 	    si->copyState(rstate, goal_s->state);
 	else
 	    si->sample(rstate);
