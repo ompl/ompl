@@ -41,7 +41,7 @@
 #include <queue>
 #include <cstring>
 
-bool ompl::SpaceInformationKinematic::GoalRegionKinematic::isSatisfied(State_t s, double *distance)
+bool ompl::SpaceInformationKinematic::GoalRegionKinematic::isSatisfied(State_t s, double *distance) const
 {
     double d2g = distanceGoal(static_cast<StateKinematic_t>(s));
     if (distance)
@@ -54,7 +54,7 @@ void ompl::SpaceInformationKinematic::GoalRegionKinematic::print(std::ostream &o
     out << "Goal region, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << std::endl;
 }
 
-double ompl::SpaceInformationKinematic::GoalStateKinematic::distanceGoal(StateKinematic_t s)
+double ompl::SpaceInformationKinematic::GoalStateKinematic::distanceGoal(StateKinematic_t s) const
 {
     return static_cast<SpaceInformationKinematic_t>(m_si)->distance(s, state);
 }
@@ -71,12 +71,12 @@ void ompl::SpaceInformationKinematic::PathKinematic::freeMemory(void)
 	delete states[i];
 }
 
-void ompl::SpaceInformationKinematic::copyState(StateKinematic_t destination, const StateKinematic_t source)
+void ompl::SpaceInformationKinematic::copyState(StateKinematic_t destination, const StateKinematic_t source) const
 {
     memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
 }
 
-double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator::operator()(const State_t s1, const State_t s2)
+double ompl::SpaceInformationKinematic::StateKinematicL2SquareDistanceEvaluator::operator()(const State_t s1, const State_t s2) const
 {
     const StateKinematic_t sk1 = static_cast<const StateKinematic_t>(s1);
     const StateKinematic_t sk2 = static_cast<const StateKinematic_t>(s2);
@@ -123,7 +123,7 @@ void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, s
 	out << "NULL" << std::endl;
 }
 
-void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
+void ompl::SpaceInformationKinematic::sample(StateKinematic_t state) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
@@ -135,7 +135,7 @@ void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
 	    state->values[i] = random_utils::uniform(&m_rngState, m_stateComponent[i].minValue, m_stateComponent[i].maxValue);	    
 }
 
-void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho)
+void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
@@ -151,7 +151,7 @@ void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const S
 				      std::min(m_stateComponent[i].maxValue, near->values[i] + rho));
 }
 
-void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho)
+void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
@@ -167,7 +167,7 @@ void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const S
 				      std::min(m_stateComponent[i].maxValue, near->values[i] + rho[i]));
 }
 
-bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2)
+bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
@@ -208,7 +208,7 @@ bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinemati
     return true;
 }
 
-bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2)
+bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2) const
 {   
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
@@ -231,7 +231,7 @@ bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinemati
     return true;
 }
 
-bool ompl::SpaceInformationKinematic::checkPath(PathKinematic_t path)
+bool ompl::SpaceInformationKinematic::checkPath(PathKinematic_t path) const
 {
     bool result = path != NULL;
     if (result && path->states.size() > 0)
@@ -249,7 +249,7 @@ bool ompl::SpaceInformationKinematic::checkPath(PathKinematic_t path)
     return result;
 }
 
-void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, double factor)
+void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, double factor) const
 {
     std::vector<StateKinematic_t> newStates;
     const int n1 = path->states.size() - 1;
@@ -279,7 +279,7 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, doub
 }
 
 int ompl::SpaceInformationKinematic::findDifferenceStep(const StateKinematic_t s1, const StateKinematic_t s2, double factor,
-							std::valarray<double> &step)
+							std::valarray<double> &step) const
 {
     /* find diffs */
     std::valarray<double> diff(m_stateDimension);
@@ -305,7 +305,7 @@ int ompl::SpaceInformationKinematic::findDifferenceStep(const StateKinematic_t s
     return nd;
 }
 
-double ompl::SpaceInformationKinematic::distance(const StateKinematic_t s1, const StateKinematic_t s2)
+double ompl::SpaceInformationKinematic::distance(const StateKinematic_t s1, const StateKinematic_t s2) const
 {
     return (*m_stateDistanceEvaluator)(static_cast<const State_t>(s1), static_cast<const State_t>(s2));
 }

@@ -192,7 +192,7 @@ bool ompl::GAIK::tryToImprove(SpaceInformationKinematic::StateKinematic_t state,
     tryToImproveAux(0.000025, state, distance);
     tryToImproveAux(0.00001, state, distance);
     tryToImproveAux(0.000005, state, distance);
-    m_msg.inform("GAIK: Improvement took  %g seconds", (time_utils::Time::now() - start).to_double());    
+    m_msg.inform("GAIK: Improvement took  %g seconds", (time_utils::Time::now() - start).toSeconds());    
     m_msg.inform("GAIK: Distance to goal after improvement: %g", *distance);    
     return true;
 }

@@ -35,15 +35,26 @@
 /* \author Ioan Sucan */
 
 #include "ompl/base/util/output.h"
+#include <boost/thread/mutex.hpp>
 #include <iostream>
 #include <cstdlib>
 
-static ompl::msg::OutputHandlerSTD defaultOutputHandler;
-static ompl::msg::OutputHandler *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&defaultOutputHandler);
+static ompl::msg::OutputHandlerSTD _defaultOutputHandler;
+static ompl::msg::OutputHandler   *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&_defaultOutputHandler);
+static boost::mutex                _lock; // it is likely the outputhandler does some I/O, so we serialize it
+
+void ompl::msg::noOutputHandler(void)
+{
+    _lock.lock();
+    OUTPUT_HANDLER = NULL;
+    _lock.unlock();
+}
 
 void ompl::msg::useOutputHandler(OutputHandler *oh)
 {
+    _lock.lock();
     OUTPUT_HANDLER = oh;
+    _lock.unlock();
 }
 
 ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
@@ -59,13 +70,17 @@ ompl::msg::Interface::~Interface(void)
 {
 }
 
-void ompl::msg::Interface::message(const std::string &text)
+void ompl::msg::Interface::message(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
+    {
+	_lock.lock();
 	OUTPUT_HANDLER->message(text);
+	_lock.unlock();
+    }
 }
 
-void ompl::msg::Interface::message(const char *msg, ...)
+void ompl::msg::Interface::message(const char *msg, ...) const
 {
     va_list ap;
     va_start(ap, msg);
@@ -73,13 +88,17 @@ void ompl::msg::Interface::message(const char *msg, ...)
     va_end(ap);
 }
 
-void ompl::msg::Interface::inform(const std::string &text)
+void ompl::msg::Interface::inform(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
+    {
+	_lock.lock();
 	OUTPUT_HANDLER->inform(text);
+	_lock.unlock();
+    }
 }
 
-void ompl::msg::Interface::inform(const char *msg, ...)
+void ompl::msg::Interface::inform(const char *msg, ...) const
 {
     va_list ap; 
     va_start(ap, msg);
@@ -87,13 +106,17 @@ void ompl::msg::Interface::inform(const char *msg, ...)
     va_end(ap);
 }
 
-void ompl::msg::Interface::warn(const std::string &text)
+void ompl::msg::Interface::warn(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
+    {
+	_lock.lock();
 	OUTPUT_HANDLER->warn(text);
+	_lock.unlock();
+    }
 }
 
-void ompl::msg::Interface::warn(const char *msg, ...)
+void ompl::msg::Interface::warn(const char *msg, ...) const
 {
     va_list ap; 
     va_start(ap, msg);
@@ -101,20 +124,24 @@ void ompl::msg::Interface::warn(const char *msg, ...)
     va_end(ap);
 }
 
-void ompl::msg::Interface::error(const std::string &text)
+void ompl::msg::Interface::error(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
+    {
+	_lock.lock();
 	OUTPUT_HANDLER->error(text);
+	_lock.unlock();
+    }
 }
 
-void ompl::msg::Interface::error(const char *msg, ...)
+void ompl::msg::Interface::error(const char *msg, ...) const
 {
     va_list ap;
     va_start(ap, msg);
     error(combine(msg, ap));
     va_end(ap);
 }
-std::string ompl::msg::Interface::combine(const char *msg, va_list va)
+std::string ompl::msg::Interface::combine(const char *msg, va_list va) const
 {
     va_list ap;
     va_copy(ap, va);

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rospack(ompl)
+rospack_add_boost_directories()
 include_directories(${PROJECT_SOURCE_DIR}/code)
 rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/base/util/src/output.cpp
@@ -19,4 +20,6 @@ rospack_add_compile_flags(ompl -Wextra)
 
 # Tests
 rospack_add_gtest(test_grid code/examples/samplingbased/kinematic/grid/grid.cpp)
-target_link_libraries(test_grid ompl pthread rt)
+target_link_libraries(test_grid ompl)
+rospack_link_boost(test_grid thread)
+

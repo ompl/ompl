@@ -39,6 +39,7 @@
 
 #include "ompl/base/General.h"
 #include <vector>
+#include <iostream>
 #include <cassert>
 
 /** Main namespace */
@@ -97,7 +98,7 @@ namespace ompl
 	    }
 	    
 	    /** Return true if the state is valid */
-	    virtual bool operator()(const State_t state) = 0;
+	    virtual bool operator()(const State_t state) const = 0;
 	};
 	
 	/** Forward class declaration */
@@ -112,7 +113,7 @@ namespace ompl
 	    {
 	    }
 	    /** Return true if the state is valid */
-	    virtual double operator()(const State_t state1, const State_t state2) = 0;
+	    virtual double operator()(const State_t state1, const State_t state2) const = 0;
 	};
 	
 	/** Add a start state */
@@ -240,7 +241,7 @@ namespace ompl
 	     *  constraints.  If the state does not satisfy the
 	     *  constraints, set the distance of how far the state
 	     *  is from the goal. */
-	    virtual bool isSatisfied(State_t s, double *distance) = 0;
+	    virtual bool isSatisfied(State_t s, double *distance) const = 0;
 	    
 	    /** Returns the space information this goal is part of */
 	    SpaceInformation_t getSpaceInformation(void) const
@@ -364,7 +365,7 @@ namespace ompl
 	}
 	
 	/** Check if a given state is valid or not */
-	bool isValid(const State_t state)
+	bool isValid(const State_t state) const
 	{
 	    return (*m_stateValidityChecker)(state);
 	}

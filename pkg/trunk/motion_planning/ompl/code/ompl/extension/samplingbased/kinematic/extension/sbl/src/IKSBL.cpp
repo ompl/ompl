@@ -82,7 +82,7 @@ bool ompl::IKSBL::solve(double solveTime)
     while (!solved)
     {
 	step++;
-	double time_left = (endTime - time_utils::Time::now()).to_double();
+	double time_left = (endTime - time_utils::Time::now()).toSeconds();
 	if (time_left <= 0.0)
 	    break;
 	if (m_gaik.solve(time_left * 0.6))
@@ -97,7 +97,7 @@ bool ompl::IKSBL::solve(double solveTime)
 	    
 	    /* run SBL on the new goal */
 	    clear();
-	    time_left = (endTime - time_utils::Time::now()).to_double();
+	    time_left = (endTime - time_utils::Time::now()).toSeconds();
 	    m_msg.inform("IKSBL: Using GAIK goal state for SBL (step %u, %g seconds remaining)", step, time_left);
 	    solved = SBL::solve(time_left);
 	    

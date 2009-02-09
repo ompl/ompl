@@ -34,67 +34,39 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_
+/** I actually found this macro magic online (forgot where, a forum, I think) */
 
-#include <vector>
+#ifndef OMPL_DATASTRUCTURES_HASH_
+#define OMPL_DATASTRUCTURES_HASH_
 
-namespace ompl
-{
-    
-    template<typename _T>
-    class NearestNeighbors
-    {
-    public:
-	
-	/** Basic definition of a distance function. The user is
-	    responsible for allocating and freeing an instance of a
-	    class that provides the implementation of the () abstract
-	    operator */
-	class DistanceFunction
-	{
-	public:
-	    virtual ~DistanceFunction(void)
-	    {
-	    }
-	    
-	    virtual double operator()(const _T &a, const _T &b) const = 0;
-	};
-	
 
-	NearestNeighbors(void)
-	{
-	    m_distFun = NULL;
-	}
-	
-	virtual ~NearestNeighbors(void)
-	{
-	}
+#ifdef __GNUC__
+// OS X doesn't have features.h.  Instead we'll just paste in the
+// definition of __GNUC_PREREQ() taken from a Linux version of features.h.
+//#  include <features.h>
+#ifndef __GNUC_PREREQ
+#if defined __GNUC__ && defined __GNUC_MINOR__
+# define __GNUC_PREREQ(maj, min) \
+                ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+# define __GNUC_PREREQ(maj, min) 0
+#endif
+#endif
 
-	void setDistanceFunction(DistanceFunction *distFun)
-	{
-	    m_distFun = distFun;
-	}
+#  if __GNUC_PREREQ(4,1)
+#    include <tr1/unordered_map>
+#    define OMPL_NS_HASH std::tr1
+#    define OMPL_NAME_HASH unordered_map
+#  elif __GNUC_PREREQ(3,2)
+#    include <ext/hash_map>
+#    define OMPL_NS_HASH __gnu_cxx
+#    define OMPL_NAME_HASH hash_map
+#  else
+#    error Need to include <hash_map> or equivalent
+#  endif
 
-	DistanceFunction* getDistanceFunction(void) const
-	{
-	    return m_distFun;
-	}
-	
-	virtual void clear(void) = 0;
-	virtual void add(_T &data) = 0;
-	virtual bool remove(_T &data) = 0;
-	virtual _T nearest(_T &data) const = 0;
-	virtual unsigned int size(void) const = 0;		
-	virtual void list(std::vector<_T> &data) const = 0;
-		
-    protected:
-	
-	DistanceFunction *m_distFun;
-	
-    };
-    
-    
-}
+#else
+#  error Need to include <hash_map> or equivalent
+#endif
 
 #endif

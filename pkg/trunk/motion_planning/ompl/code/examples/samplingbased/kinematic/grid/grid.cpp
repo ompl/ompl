@@ -56,7 +56,7 @@ class myStateValidityChecker : public SpaceInformation::StateValidityChecker
 {
 public:
 
-    virtual bool operator()(const SpaceInformation::State_t state)
+    virtual bool operator()(const SpaceInformation::State_t state) const
     {
 	const SpaceInformationKinematic::StateKinematic_t kstate = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state);
 	
@@ -82,7 +82,7 @@ class myStateDistanceEvaluator : public SpaceInformation::StateDistanceEvaluator
 {
 public:
 
-    virtual double operator()(const SpaceInformation::State_t state1, const SpaceInformation::State_t state2)
+    virtual double operator()(const SpaceInformation::State_t state1, const SpaceInformation::State_t state2) const
     {
 	const SpaceInformationKinematic::StateKinematic_t kstate1 = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state1);
 	const SpaceInformationKinematic::StateKinematic_t kstate2 = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state2);
@@ -185,9 +185,9 @@ public:
 	{
 	    time_utils::Duration elapsed = time_utils::Time::now() - startTime;
 	    if (time)
-		*time += elapsed.to_double();
+		*time += elapsed.toSeconds();
 	    if (show)
-		printf("Found solution in %f seconds!\n", elapsed.to_double());
+		printf("Found solution in %f seconds!\n", elapsed.toSeconds());
 	    
 	    SpaceInformationKinematic::PathKinematic_t path = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal->getSolutionPath());
 	    
@@ -202,10 +202,10 @@ public:
 	    elapsed = time_utils::Time::now() - startTime;
 	    delete smoother;
 	    if (time)
-		*time += elapsed.to_double();
+		*time += elapsed.toSeconds();
 	    
 	    if (show)
-		printf("Smooth solution in %f seconds!\n", elapsed.to_double());
+		printf("Smooth solution in %f seconds!\n", elapsed.toSeconds());
 
 	    /* fill in values that were linearly interpolated */
 	    si->interpolatePath(path);

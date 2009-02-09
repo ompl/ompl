@@ -197,7 +197,7 @@ namespace ompl
 		m_si = si;
 	    }
 	    
-	    double operator()(const Motion_t &a, const Motion_t &b)
+	    double operator()(const Motion_t &a, const Motion_t &b) const
 	    {
 		return m_si->distance(a->state, b->state);
 	    }

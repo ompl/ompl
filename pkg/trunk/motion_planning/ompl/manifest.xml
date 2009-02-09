@@ -11,8 +11,7 @@
   <depend package="angles"/>
 
   <export>
-    <cpp cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl -lpthread -lrt"/>
-    <cpp os="osx" cflags="-I${prefix}/code" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl -lpthread"/>
+    <cpp cflags="-I${prefix}/code `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl `rosboost-cfg --lflags thread`"/>
   </export>
   
 </package>

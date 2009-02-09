@@ -33,13 +33,13 @@
 *********************************************************************/
 
 /* Taken from ROS implementation */
-#ifndef OMPL_TIME_
-#define OMPL_TIME_
+#ifndef OMPL_BASE_UTIL_TIME_
+#define OMPL_BASE_UTIL_TIME_
 
 /* This file is taken from ROS, adaptations by Ioan Sucan */
 
-#include <iostream>
 #include <cmath>
+#include <stdint.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -59,15 +59,15 @@ namespace ompl
 	    Duration(int32_t _sec, int32_t _nsec);
 	    Duration(double d);
 	    Duration(int64_t t);
-	    Duration operator+(const Duration &rhs);
-	    Duration operator-(const Duration &rhs);
+	    Duration operator+(const Duration &rhs) const;
+	    Duration operator-(const Duration &rhs) const;
 	    bool operator==(const Duration &rhs) const;
 	    bool operator>(const Duration &rhs) const;
 	    bool operator<(const Duration &rhs) const;
-	    double to_double() { return (double)sec + 1e-9*(double)nsec; }
-	    int64_t to_int() {return (int64_t)sec * 1000000000 + (int64_t)nsec;  }
+	    double toSeconds() const { return (double)sec + 1e-9*(double)nsec; }
+	    int64_t toNSeconds() const { return (int64_t)sec * 1000000000 + (int64_t)nsec;  }
 	    /** sleeps for the time duration specified by this object */
-	    bool sleep();
+	    bool sleep(void) const;
 	};
 	
 	class Time
@@ -88,24 +88,19 @@ namespace ompl
 	    static Time start_time;
 #endif
 	Time() : sec(0), nsec(0) { }
-	Time(uint32_t _sec, uint32_t _nsec) : sec(_sec), nsec(_nsec) { }
-	Time(uint64_t t) : sec(t / 1000000000), nsec(t % 1000000000) { }
-	    Duration operator-(const Time &rhs);
-	    Time operator+(const Duration &rhs);
+	    Time(uint32_t _sec, uint32_t _nsec) : sec(_sec), nsec(_nsec) { }
+	    Time(uint64_t t) : sec(t / 1000000000), nsec(t % 1000000000) { }
+	    Duration operator-(const Time &rhs) const;
+	    Time operator+(const Duration &rhs) const;
 	    bool operator==(const Time &rhs) const;
 	    bool operator>(const Time &rhs) const;
 	    bool operator<(const Time &rhs) const;
 	    static Time now();
-	    double to_double() { return (double)sec + 1e-9*(double)nsec; }
-	    void from_double(double t) { sec = (uint32_t)floor(t); nsec = (uint32_t)round((t-sec) * 1e9);}
-	    uint64_t to_uint() {return (uint64_t)sec*1000000000 + (uint64_t)nsec;  }
-	    friend std::ostream &operator <<(std::ostream &os, const Time &rhs);
-	    inline bool is_zero() { return sec == 0 && nsec == 0; }
+	    double toSeconds() const { return (double)sec + 1e-9*(double)nsec; }
+	    uint64_t toNSeconds() const { return (uint64_t)sec*1000000000 + (uint64_t)nsec;  }
+	    bool isZero() const { return sec == 0 && nsec == 0; }
 	};	
     }
-
-    std::ostream &operator <<(std::ostream &os, const time_utils::Time &rhs);
-    
 }
 
 #endif

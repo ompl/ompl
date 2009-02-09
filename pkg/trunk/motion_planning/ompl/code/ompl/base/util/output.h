@@ -58,19 +58,19 @@ namespace ompl
 	    Interface(void);	
 	    virtual ~Interface(void);
 	    
-	    void inform(const std::string &text);
-	    void warn(const std::string &text);
-	    void error(const std::string &text);
-	    void message(const std::string &text);
+	    void inform(const std::string &text) const;
+	    void warn(const std::string &text) const;
+	    void error(const std::string &text) const;
+	    void message(const std::string &text) const;
 
-	    void inform(const char *msg, ...);
-	    void warn(const char *msg, ...);
-	    void error(const char *msg, ...);
-	    void message(const char *msg, ...);
+	    void inform(const char *msg, ...) const;
+	    void warn(const char *msg, ...) const;
+	    void error(const char *msg, ...) const;
+	    void message(const char *msg, ...) const;
 
 	protected:
 	    
-	    std::string combine(const char *msg, va_list ap);
+	    std::string combine(const char *msg, va_list ap) const;
 	    
 	};
 	
@@ -123,6 +123,7 @@ namespace ompl
 	    
 	};
 
+	void noOutputHandler(void);
 	void useOutputHandler(OutputHandler *oh);
 	OutputHandler* getOutputHandler(void);
     }

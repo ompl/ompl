@@ -93,22 +93,22 @@ namespace ompl
 	}
 
 	/** Given a path, attempt to remove vertices from it while keeping the path valid */
-	virtual void smoothVertices(SpaceInformationKinematic::PathKinematic_t path);
+	virtual void smoothVertices(SpaceInformationKinematic::PathKinematic_t path) const;
 
 	/** Given a path, attempt to reduce redundant commands */
-	virtual void removeRedundantCommands(SpaceInformationKinematic::PathKinematic_t path);
+	virtual void removeRedundantCommands(SpaceInformationKinematic::PathKinematic_t path) const;
 	
 	/** Given a path, attempt to remove vertices from it while
 	 * keeping the path valid.  Then, interpolate the path, to add
 	 * more vertices and try to remove them again. This should
 	 * produce smoother solutions. removeRedundantCommands is also
 	 * called.  */
-	virtual void smoothMax(SpaceInformationKinematic::PathKinematic_t path);
+	virtual void smoothMax(SpaceInformationKinematic::PathKinematic_t path) const;
 
     protected:
 	
 	SpaceInformationKinematic_t m_si;
-	random_utils::rngState      m_rngState;
+	mutable random_utils::rngState      m_rngState;
 	double                      m_rangeRatio;
 	unsigned int                m_maxSteps;
 	unsigned int                m_maxEmptySteps;

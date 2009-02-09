@@ -36,7 +36,7 @@
 
 #include "ompl/base/Planner.h"
 
-bool ompl::Planner::isTrivial(unsigned int *startID, double *distance)
+bool ompl::Planner::isTrivial(unsigned int *startID, double *distance) const
 {
     SpaceInformation::Goal_t goal = m_si->getGoal();
     

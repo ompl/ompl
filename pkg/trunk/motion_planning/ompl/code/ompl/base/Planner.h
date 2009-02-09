@@ -81,7 +81,7 @@ namespace ompl
 	/** Return the type of the motion planner. This is useful if
 	    the planner wants to advertise what type of problems it
 	    can solve */
-	int getType(void)
+	int getType(void) const
 	{
 	    return m_type;
 	}
@@ -91,7 +91,7 @@ namespace ompl
 	    will be set to the index of the starting state that
 	    satisfies the goal. The distance to the goal can
 	    optionally be returned as well. */
-	virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL);
+	virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL) const;
 	
     protected:
 	

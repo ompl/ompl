@@ -58,7 +58,7 @@ namespace ompl
 	virtual unsigned int getDimension(void) const = 0;
 	
 	/** Compute the projection as an array of double values */
-	virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection) = 0;
+	virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection) const = 0;
     };
     
     /** Forward class declaration */
@@ -79,7 +79,7 @@ namespace ompl
 	    return m_components.size();
 	}
 	
-	virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection)
+	virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection) const
 	{
 	    for (unsigned int i = 0 ; i < m_components.size() ; ++i)
 		projection[i] = state->values[m_components[i]];

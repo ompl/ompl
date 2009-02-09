@@ -62,6 +62,13 @@
    space information and fills in a path for the given goal, if it
    finds one.
 
+   <hr> 
+
+   The code in this library is meant to be thread safe. All static,
+   non-member or const member functions are thread safe. Calling
+   member functions that are not const in multiple threads
+   simultaneously is unsafe and locks should be used.
+   
    <hr>
 
    @section sampling_planners Sampling-based motion planners

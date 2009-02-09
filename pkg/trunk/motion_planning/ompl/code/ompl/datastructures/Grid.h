@@ -38,35 +38,7 @@
 #define OMPL_DATASTRUCTURES_GRID_
 
 #include <vector>
-
-#ifdef __GNUC__
-// OS X doesn't have features.h.  Instead we'll just paste in the
-// definition of __GNUC_PREREQ() taken from a Linux version of features.h.
-//#  include <features.h>
-#ifndef __GNUC_PREREQ
-#if defined __GNUC__ && defined __GNUC_MINOR__
-# define __GNUC_PREREQ(maj, min) \
-                ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#else
-# define __GNUC_PREREQ(maj, min) 0
-#endif
-#endif
-
-#  if __GNUC_PREREQ(4,1)
-#    include <tr1/unordered_map>
-#    define OMPL_NS_HASH std::tr1
-#    define OMPL_NAME_HASH unordered_map
-#  elif __GNUC_PREREQ(3,2)
-#    include <ext/hash_map>
-#    define OMPL_NS_HASH __gnu_cxx
-#    define OMPL_NAME_HASH hash_map
-#  else
-#    error Need to include <hash_map> or equivalent
-#  endif
-
-#else
-#  error Need to include <hash_map> or equivalent
-#endif
+#include "ompl/datastructures/Hash.h"
 
 namespace ompl
 {
