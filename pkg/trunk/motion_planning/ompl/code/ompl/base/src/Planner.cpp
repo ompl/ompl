@@ -45,7 +45,7 @@ unsigned int ompl::Planner::getThreadCount(void) const
 void ompl::Planner::setThreadCount(unsigned int nthreads)
 {
     m_threadCount = nthreads > 0 ? nthreads : 1;
-    random_utils::setMaxThreads(m_threadCount);
+    random_utils::setMaxThreads(m_threadCount + 1);
 }
 
 bool ompl::Planner::isTrivial(unsigned int *startID, double *distance) const
