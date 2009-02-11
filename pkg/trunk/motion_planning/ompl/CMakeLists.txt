@@ -19,7 +19,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 rospack_add_compile_flags(ompl -Wextra)
 
 # Tests
-rospack_add_gtest(test_grid code/examples/samplingbased/kinematic/grid/grid.cpp)
+rospack_add_gtest(test_grid code/tests/samplingbased/kinematic/grid/grid.cpp)
 target_link_libraries(test_grid ompl)
 rospack_link_boost(test_grid thread)
 

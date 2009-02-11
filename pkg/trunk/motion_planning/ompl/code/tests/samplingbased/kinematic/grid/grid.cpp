@@ -409,7 +409,7 @@ protected:
     void SetUp(void)
     {
 	/* load environment */
-	loadEnvironment("./code/examples/samplingbased/kinematic/grid/env1.txt", env);
+	loadEnvironment("./code/tests/samplingbased/kinematic/grid/env1.txt", env);
 	
 	if (env.width * env.height == 0)
 	{
