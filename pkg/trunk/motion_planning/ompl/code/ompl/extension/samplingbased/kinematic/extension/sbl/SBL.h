@@ -43,6 +43,7 @@
 #include "ompl/extension/samplingbased/kinematic/ProjectionEvaluator.h"
 #include <vector>
 
+
 /** Main namespace */
 namespace ompl
 {

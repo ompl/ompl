@@ -147,7 +147,7 @@ bool ompl::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, M
 {
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord); 
-    Grid<MotionSet>::Cell_t cell = otherTree.grid.getCell(coord);
+    Grid<MotionSet>::Cell* cell = otherTree.grid.getCell(coord);
     
     if (cell && !cell->data.empty())
     {
@@ -232,7 +232,7 @@ void ompl::SBL::computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord
 ompl::SBL::Motion_t ompl::SBL::selectMotion(TreeData &tree)
 {
     double sum  = 0.0;
-    Grid<MotionSet>::Cell_t cell = NULL;
+    Grid<MotionSet>::Cell* cell = NULL;
     double prob = m_rng.uniform() * (tree.grid.size() - 1);
     for (Grid<MotionSet>::iterator it = tree.grid.begin(); it != tree.grid.end() ; ++it)
     {
@@ -254,7 +254,7 @@ void ompl::SBL::removeMotion(TreeData &tree, Motion_t motion)
     
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord);
-    Grid<MotionSet>::Cell_t cell = tree.grid.getCell(coord);
+    Grid<MotionSet>::Cell* cell = tree.grid.getCell(coord);
     if (cell)
     {
 	for (unsigned int i = 0 ; i < cell->data.size(); ++i)
@@ -294,7 +294,7 @@ void ompl::SBL::addMotion(TreeData &tree, Motion_t motion)
 {
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord);
-    Grid<MotionSet>::Cell_t cell = tree.grid.getCell(coord);
+    Grid<MotionSet>::Cell* cell = tree.grid.getCell(coord);
     if (cell)
 	cell->data.push_back(motion);
     else

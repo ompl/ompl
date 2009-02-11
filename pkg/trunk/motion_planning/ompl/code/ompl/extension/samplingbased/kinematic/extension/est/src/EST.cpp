@@ -159,7 +159,7 @@ bool ompl::EST::solve(double solveTime)
 ompl::EST::Motion_t ompl::EST::selectMotion(void)
 {
     double sum  = 0.0;
-    Grid<MotionSet>::Cell_t cell = NULL;
+    Grid<MotionSet>::Cell* cell = NULL;
     double prob = m_rng.uniform() * (m_tree.grid.size() - 1);
     for (Grid<MotionSet>::iterator it = m_tree.grid.begin(); it != m_tree.grid.end() ; ++it)
     {
@@ -189,7 +189,7 @@ void ompl::EST::addMotion(Motion_t motion)
 {
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord);
-    Grid<MotionSet>::Cell_t cell = m_tree.grid.getCell(coord);
+    Grid<MotionSet>::Cell* cell = m_tree.grid.getCell(coord);
     if (cell)
 	cell->data.push_back(motion);
     else

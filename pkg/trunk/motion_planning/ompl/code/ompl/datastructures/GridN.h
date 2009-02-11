@@ -34,51 +34,23 @@
 
 /* \author Ioan Sucan */
 
-/** I actually found this macro magic online (forgot where, a forum, I think) */
+#ifndef OMPL_DATASTRUCTURES_GRID_N_
+#define OMPL_DATASTRUCTURES_GRID_N_
 
-#ifndef OMPL_DATASTRUCTURES_HASH_
-#define OMPL_DATASTRUCTURES_HASH_
+/** When including the header like this, the number of neighbors is maintained as well */
 
+#ifndef OMPL_GRID_COUNT_NEIGHBORS
+#  define OMPL_GRID_COUNT_NEIGHBORS
+#endif 
 
-#ifdef __GNUC__
-// OS X doesn't have features.h.  Instead we'll just paste in the
-// definition of __GNUC_PREREQ() taken from a Linux version of features.h.
-//#  include <features.h>
-#  ifndef __GNUC_PREREQ
-#    if defined __GNUC__ && defined __GNUC_MINOR__
-#      define __GNUC_PREREQ(maj, min) \
-                ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#    else
-#      define __GNUC_PREREQ(maj, min) 0
-#    endif
-#  endif
-
-
-#  if __GNUC_PREREQ(4,1)
-#    include <tr1/unordered_map>
-#    define OMPL_NS_HASH std::tr1
-#    define OMPL_NAME_HASH unordered_map
-#  elif __GNUC_PREREQ(3,2)
-#    include <ext/hash_map>
-#    define OMPL_NS_HASH __gnu_cxx
-#    define OMPL_NAME_HASH hash_map
-#  else
-#    error Need to include <hash_map> or equivalent
-#  endif
-
-#else
-#  ifdef __PGI
-#    include <hash_map>
-#    define OMPL_NS_HASH _STLP_STD
-#    define OMPL_NAME_HASH hash_map
-#  elif defined _MSVC
-#    include <hash_map>
-#    define OMPL_NS_HASH stdext
-#    define OMPL_NAME_HASH hash_map
-#  else
-#    error Need to include <hash_map> or equivalent
-#  endif
-
+#ifdef OMPL_GRID_INCLUDE
+#  error "This variable should not be defined"
 #endif
+
+#define OMPL_GRID_INCLUDE
+
+#include "ompl/datastructures/GridAux.h"
+
+#undef OMPL_GRID_INCLUDE
 
 #endif
