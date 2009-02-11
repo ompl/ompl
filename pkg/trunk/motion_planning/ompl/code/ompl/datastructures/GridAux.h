@@ -41,6 +41,7 @@
 
 #include <vector>
 #include <iostream>
+#include <cassert>
 #include "ompl/datastructures/Hash.h"
 
 namespace ompl
