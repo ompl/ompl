@@ -38,7 +38,6 @@
 
 #include "ompl/datastructures/Grid.h"
 #include "ompl/datastructures/GridN.h"
-#include <iostream>
 
 using namespace ompl;
 

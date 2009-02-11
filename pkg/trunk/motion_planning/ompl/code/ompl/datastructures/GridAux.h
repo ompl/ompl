@@ -187,7 +187,7 @@ namespace ompl
 
 		if (cell)
 		    list.push_back(cell);
-		coord[i]+=2;
+		coord[i] += 2;
 
 		pos = m_hash.find(&coord);
 		cell = (pos != m_hash.end()) ? pos->second : NULL;
@@ -198,7 +198,7 @@ namespace ompl
 	    }
 	}
 	
-	virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
+	virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL) const
 	{
 	    Cell *cell = new Cell();
 	    cell->coord = coord;
@@ -260,7 +260,7 @@ namespace ompl
 	    return false;
 	}
 	
-	virtual void destroyCell(Cell *cell)
+	virtual void destroyCell(Cell *cell) const
 	{
 	    delete cell;
 	}
@@ -324,7 +324,7 @@ namespace ompl
 
 	struct EqualCoordPtr
 	{
-	    bool operator()(const Coord* const& c1, const Coord* const& c2) const
+	    bool operator()(const Coord* const c1, const Coord* const c2) const
 	    {
 		return *c1 == *c2;
 	    }
@@ -332,7 +332,7 @@ namespace ompl
 	
 	struct HashFunCoordPtr
 	{
-	    std::size_t operator()(const Coord* const& s) const
+	    std::size_t operator()(const Coord* const s) const
 	    { 
 		unsigned long h = 0;
 		for (int i = s->size() - 1; i >= 0; --i)
