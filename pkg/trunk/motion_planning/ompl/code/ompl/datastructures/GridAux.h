@@ -92,7 +92,7 @@ namespace ompl
 #else
 	    Grid
 #endif
-	    (unsigned int dimension = 0)
+	    (unsigned int dimension)
 	{
 #ifdef OMPL_GRID_COUNT_NEIGHBORS
 	    m_hasBounds = false;
@@ -168,6 +168,12 @@ namespace ompl
 	    neighbors(test, list);
 	}
 	
+	void    neighbors(const Coord& coord, CellArray& list) const
+	{
+	    Coord test = coord;
+	    neighbors(test, list);
+	}
+	
 	void    neighbors(Coord& coord, CellArray& list) const
 	{
 	    list.reserve(list.size() + m_maxNeighbors);
@@ -192,7 +198,7 @@ namespace ompl
 	    }
 	}
 	
-	virtual Cell* create(const Coord& coord, CellArray *nbh = NULL)
+	virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
 	{
 	    Cell *cell = new Cell();
 	    cell->coord = coord;
@@ -205,12 +211,12 @@ namespace ompl
 	    {
 		Cell* c = *cl;
 		c->neighbors++;
-		if (c->neighbors >= m_interiorCellNeighborsLimit)
+		if (c->border && c->neighbors >= m_interiorCellNeighborsLimit)
 		    c->border = false;
 	    }
 	    
 	    cell->neighbors = numberOfBoundaryDimensions(cell->coord) + list->size();
-	    if (cell->neighbors >= m_interiorCellNeighborsLimit)
+	    if (cell->border && cell->neighbors >= m_interiorCellNeighborsLimit)
 		cell->border = false;
 	    
 	    if (!nbh)
@@ -232,11 +238,31 @@ namespace ompl
 	{
 	    if (cell)
 	    {
-		m_hash.erase(&cell->coord);
-		delete cell;
-		return true;
+#ifdef OMPL_GRID_COUNT_NEIGHBORS
+		CellArray *list = new CellArray();
+		neighbors(cell->coord, *list);
+		for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; cl++)
+		{
+		    Cell* c = *cl;
+		    c->neighbors--;
+		    if (!c->border && c->neighbors < m_interiorCellNeighborsLimit)
+			c->border = true;
+		}	  
+		delete list;
+#endif
+		iterator pos = m_hash.find(&cell->coord);
+		if (pos != m_hash.end())
+		{
+		    m_hash.erase(pos);
+		    return true;
+		}
 	    }
 	    return false;
+	}
+	
+	virtual void destroyCell(Cell *cell)
+	{
+	    delete cell;
 	}
 	
 	void getContent(std::vector<_T> &content) const
@@ -306,7 +332,7 @@ namespace ompl
 	
 	struct HashFunCoordPtr
 	{
-	    std::size_t operator()(Coord* s) const
+	    std::size_t operator()(const Coord* const& s) const
 	    { 
 		unsigned long h = 0;
 		for (int i = s->size() - 1; i >= 0; --i)
@@ -314,7 +340,7 @@ namespace ompl
 		    int high = h & 0xf8000000;
 		    h = h << 5;
 		    h = h ^ (high >> 27);
-		    h = h ^ (*s)[i];
+		    h = h ^ s->at(i);
 		}		
 		return (std::size_t) h;
 	    }

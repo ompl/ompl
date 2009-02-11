@@ -265,7 +265,10 @@ void ompl::SBL::removeMotion(TreeData &tree, Motion_t motion)
 		break;
 	    }
 	if (cell->data.empty())
+	{
 	    tree.grid.remove(cell);
+	    tree.grid.destroyCell(cell);
+	}
     }
     
     /* remove self from parent list */
@@ -299,7 +302,7 @@ void ompl::SBL::addMotion(TreeData &tree, Motion_t motion)
 	cell->data.push_back(motion);
     else
     {
-	cell = tree.grid.create(coord);
+	cell = tree.grid.createCell(coord);
 	cell->data.push_back(motion);
 	tree.grid.add(cell);
     }

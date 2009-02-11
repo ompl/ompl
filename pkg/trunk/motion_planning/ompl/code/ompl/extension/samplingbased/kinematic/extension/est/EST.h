@@ -207,7 +207,7 @@ namespace ompl
 
 	struct TreeData
 	{
-	    TreeData(void)
+	    TreeData(void) : grid(0)
 	    {
 		size = 0;
 	    }

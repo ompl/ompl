@@ -194,7 +194,7 @@ void ompl::EST::addMotion(Motion_t motion)
 	cell->data.push_back(motion);
     else
     {
-	cell = m_tree.grid.create(coord);
+	cell = m_tree.grid.createCell(coord);
 	cell->data.push_back(motion);
 	m_tree.grid.add(cell);
     }
