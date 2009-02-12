@@ -72,11 +72,13 @@ namespace ompl
 	    
 	    /** Gaussian random number generator */	
 	    double gaussian(double mean, double stddev);
-	    double bounded_gaussian(double mean, double stddev, double max_stddev);
+	    double boundedGaussian(double mean, double stddev, double max_stddev);
+	    double halfNormal(double r_min, double r_max, double focus = 3.0);
+	    int halfNormalInt(int r_min, int r_max, double focus = 3.0);
 	    
 	    /** Random quaternion generator. The returned value has the order (x,y,z,w) */	
 	    void quaternion(double value[4]);
-
+	    
 	private:
 	    
 	    rngState m_state;
@@ -112,10 +114,20 @@ namespace ompl
 		return nextState().gaussian(mean, stddev);
 	    }
 	    
-	    double bounded_gaussian(double mean, double stddev, double max_stddev) const
+	    double boundedGaussian(double mean, double stddev, double max_stddev) const
 	    {
-		return nextState().bounded_gaussian(mean, stddev, max_stddev);
+		return nextState().boundedGaussian(mean, stddev, max_stddev);
 	    }	    
+	    
+	    double halfNormal(double r_min, double r_max, double focus = 3.0) const
+	    {		
+		return nextState().halfNormal(r_min, r_max, focus);
+	    }
+
+	    int halfNormalInt(int r_min, int r_max, double focus = 3.0) const
+	    {		
+		return nextState().halfNormalInt(r_min, r_max, focus);
+	    }
 	    
 	    /** Random quaternion generator. The returned value has the order (x,y,z,w) */	
 	    void quaternion(double value[4]) const

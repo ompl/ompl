@@ -15,6 +15,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/est/src/EST.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/sbl/src/SBL.cpp
 			 code/ompl/extension/samplingbased/kinematic/extension/sbl/src/IKSBL.cpp
+			 code/ompl/extension/samplingbased/kinematic/extension/kpiece/src/LBKPIECE1.cpp
 			 )
 rospack_add_compile_flags(ompl -Wextra)
 
@@ -35,3 +36,7 @@ rospack_link_boost(test_grid thread)
 rospack_add_gtest(test_heap code/tests/datastructures/heap/heap.cpp)
 target_link_libraries(test_heap ompl)
 rospack_link_boost(test_heap thread)
+
+rospack_add_gtest(test_gridx code/tests/datastructures/grid/gridx.cpp)
+target_link_libraries(test_gridx ompl)
+rospack_link_boost(test_gridx thread)

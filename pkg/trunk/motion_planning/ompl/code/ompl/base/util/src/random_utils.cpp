@@ -102,7 +102,7 @@ double ompl::random_utils::RNG::gaussian(double mean, double stddev)
     }
 }
 
-double ompl::random_utils::RNG::bounded_gaussian(double mean, double stddev, double max_stddev)
+double ompl::random_utils::RNG::boundedGaussian(double mean, double stddev, double max_stddev)
 {
     double sample, max_s = max_stddev * stddev;
     do
@@ -110,6 +110,26 @@ double ompl::random_utils::RNG::bounded_gaussian(double mean, double stddev, dou
 	sample = gaussian(mean, stddev);
     } while (fabs(sample - mean) > max_s);
     return sample;
+}
+
+double ompl::random_utils::RNG::halfNormal(double r_min,
+					   double r_max,
+					   double focus)
+{
+    const double mean = r_max - r_min;
+    double       v    = gaussian(mean, mean/focus);
+    
+    if (v > mean) v = 2.0 * mean - v;
+    double r = v >= 0.0 ? v + r_min : r_min;
+    return r > r_max ? r_max : r;
+}
+
+
+int ompl::random_utils::RNG::halfNormalInt(int r_min,
+					   int r_max,
+					   double focus)
+{
+    return (int)halfNormal(r_min, r_max + (1.0 - 1e-9), focus);
 }
 
 // From: "Uniform Random Rotations", Ken Shoemake, Graphics Gems III,

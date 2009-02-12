@@ -198,7 +198,7 @@ namespace ompl
 	    }
 	}
 	
-	virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL) const
+	virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
 	{
 	    Cell *cell = new Cell();
 	    cell->coord = coord;
@@ -207,7 +207,7 @@ namespace ompl
 	    CellArray *list = nbh ? nbh : new CellArray();
 	    neighbors(cell->coord, *list);
 	    
-	    for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; cl++)
+	    for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
 	    {
 		Cell* c = *cl;
 		c->neighbors++;
@@ -228,12 +228,7 @@ namespace ompl
 	    
 	    return cell;
 	}
-	
-	virtual void add(Cell *cell)
-	{
-	    m_hash.insert(std::make_pair(&cell->coord, cell));
-	}
-	
+
 	virtual bool remove(Cell *cell)
 	{
 	    if (cell)
@@ -241,7 +236,7 @@ namespace ompl
 #ifdef OMPL_GRID_COUNT_NEIGHBORS
 		CellArray *list = new CellArray();
 		neighbors(cell->coord, *list);
-		for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; cl++)
+		for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
 		{
 		    Cell* c = *cl;
 		    c->neighbors--;
@@ -258,6 +253,11 @@ namespace ompl
 		}
 	    }
 	    return false;
+	}
+	
+	virtual void add(Cell *cell)
+	{
+	    m_hash.insert(std::make_pair(&cell->coord, cell));
 	}
 	
 	virtual void destroyCell(Cell *cell) const
@@ -289,6 +289,11 @@ namespace ompl
 	    for (unsigned int i = 0 ; i < m_dimension ; ++i)
 		out << coord[i] << " ";
 	    out << "]" << std::endl;
+	}
+
+	bool empty(void) const
+	{
+	    return m_hash.empty();
 	}
 	
 	unsigned int size(void) const

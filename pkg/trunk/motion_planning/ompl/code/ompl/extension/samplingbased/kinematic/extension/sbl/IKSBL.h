@@ -34,8 +34,8 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_IKSBL_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_IKSBL_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_IKSBL_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_IKSBL_
 
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/samplingbased/kinematic/extension/ik/GAIK.h"

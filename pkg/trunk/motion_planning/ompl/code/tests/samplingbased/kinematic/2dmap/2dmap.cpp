@@ -37,6 +37,7 @@
 #include <gtest/gtest.h>
 
 #include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/extension/kpiece/LBKPIECE1.h"
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/RRT.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
@@ -372,6 +373,50 @@ protected:
     
 };
 
+class LBKPIECE1Test : public TestPlanner 
+{
+public:
+    LBKPIECE1Test(void)
+    {
+	ope = NULL;
+    }
+
+    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    {
+	bool result = TestPlanner::execute(env, show, time, pathLength);	
+	if (ope)
+	{
+	    delete ope;	
+	    ope = NULL;
+	}
+	return result;
+    }
+    
+protected:
+    
+    Planner_t newPlanner(SpaceInformation_t si)
+    {
+	LBKPIECE1_t kpiece = new LBKPIECE1(si);
+	kpiece->setRange(0.95);
+	
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	kpiece->setCellDimensions(cdim);
+	
+	std::vector<unsigned int> projection;
+	projection.push_back(0);
+	projection.push_back(1);
+	ope = new OrthogonalProjectionEvaluator(projection);
+	kpiece->setProjectionEvaluator(ope);
+
+	return kpiece;
+    }
+    
+    OrthogonalProjectionEvaluator_t ope;
+    
+};
+
 class PlanTest : public testing::Test
 {
 public:
@@ -434,6 +479,24 @@ TEST_F(PlanTest, SBL)
     double avglength  = 0.0;
     
     TestPlanner *p = new SBLTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    // Widening the bounds here, because the automated build machine has a
+    // varying load that can affect performance.
+    //EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avgruntime < 0.1);
+    EXPECT_TRUE(avglength < 65.0);
+}
+
+TEST_F(PlanTest, LBKPIECE1)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new LBKPIECE1Test();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

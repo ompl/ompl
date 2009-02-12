@@ -163,6 +163,11 @@ namespace ompl
 	    percolateDown(pos);
 	}
 	
+	bool empty(void) const
+	{
+	    return m_vector.empty();
+	}
+	
 	unsigned int size(void) const
 	{
 	    return m_vector.size();

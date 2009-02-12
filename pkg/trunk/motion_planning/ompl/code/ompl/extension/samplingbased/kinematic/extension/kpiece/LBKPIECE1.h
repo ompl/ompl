@@ -34,11 +34,11 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_SBL_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_SBL_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_KPIECE_LBKPIECE1_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_KPIECE_LBKPIECE1_
 
 #include "ompl/base/Planner.h"
-#include "ompl/datastructures/Grid.h"
+#include "ompl/datastructures/GridX.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include "ompl/extension/samplingbased/kinematic/ProjectionEvaluator.h"
 #include <vector>
@@ -49,51 +49,43 @@ namespace ompl
 {
 
     /** Forward class declaration */
-    ForwardClassDeclaration(SBL);
+    ForwardClassDeclaration(LBKPIECE1);
     
     /**
-       @subsubsection SBL Single-query Bi-directional Lazy collision checking planner (SBL)
+       @subsubsection LBKPIECE1 Lazy Bi-directional KPIECE (Kinematic
+       Planning by Interior-Exterior Cell Exploration) with one level
+       of discretization
        
        @par Short description
        
-       SBL is a tree-based motion planner that attempts to grow two
-       trees at once: one grows from the starting state and the other
-       from the goal state. Attempts are made to connect these trees
-       at every step of the expansion. If they are connected, a
-       solution path is obtained. However, this solution path is not
-       certain to be valid (the lazy part of the algorithm) so it is
-       checked for validity. If invalid parts are found, they are
-       removed from the tree and exploration of the state space
-       continues until a solution is found. 
-
-       To guide the exploration, and additional grid data structure is
-       maintained. Grid cells contain states that have been previously
-       visited. When deciding which state to use for further
-       expansion, this grid is used and least filled grid cells have
-       most chances of being selected. The grid is usually imposed on
-       a projection of the state space. This projection needs to be
-       set before using the planner.
+       KPIECE is a tree-based planner that uses a discretization
+       (multiple levels, in general) to guide the exploration of the
+       continous space. 
        
        @par External documentation
 
-       G. Sanchez and J.C. Latombe.A Single-Query Bi-Directional
-       Probabilistic Roadmap Planner with Lazy Collision
-       Checking. Int. Symposium on Robotics Research (ISRR'01), Lorne,
-       Victoria, Australia, November 2001.
+       Ioan A. Sucan, Lydia E. Kavraki, Kinodynamic Planning by
+       Interior-Exterior Cell Exploration, International Workshop on
+       the Algorithmic Foundations of Robotics, 2008.
+       http://ioan.sucan.info
+
     */
-    class SBL : public Planner
+    class LBKPIECE1 : public Planner
     {
     public:
 
-        SBL(SpaceInformation_t si) : Planner(si)
+        LBKPIECE1(SpaceInformation_t si) : Planner(si)
 	{
 	    m_type = PLAN_TO_GOAL_STATE;
 	    m_projectionEvaluator = NULL;
 	    m_projectionDimension = 0;
+	    m_selectBorderPercentage = 0.9;
 	    m_rho = 0.5;
+	    m_tStart.grid.onCellUpdate(computeImportance, NULL);
+	    m_tGoal.grid.onCellUpdate(computeImportance, NULL);
 	}
 
-	virtual ~SBL(void)
+	virtual ~LBKPIECE1(void)
 	{
 	    freeMemory();
 	}
@@ -130,7 +122,7 @@ namespace ompl
 	    parameter greatly influences the runtime of the
 	    algorithm. It is probably a good idea to find what a good
 	    value is for each model the planner is used for. The basic
-	    idea of SBL is that it samples a random state around a
+	    idea of KPIECE is that it samples a random state around a
 	    state that was already added to the tree. The distance
 	    withing which this new state is sampled is controled by
 	    the range. This should be a value larger than 0.0 and less
@@ -144,6 +136,21 @@ namespace ompl
 	double getRange(void) const
 	{
 	    return m_rho;
+	}
+	
+	/** Set the percentage of time for focusing on the
+	    border. This is the minimum percentage used to select
+	    cells that are exterior (minimum because if 95% of cells
+	    are on the border, they will be selected with 95%
+	    chance, even if this percentage is set to 90%)*/
+	void setBorderPercentage(double bp)
+	{
+	    m_selectBorderPercentage = bp;
+	}
+	
+	double getBorderPercentage(void) const
+	{
+	    return m_selectBorderPercentage;
 	}
 	
 	virtual void setup(void)
@@ -172,10 +179,6 @@ namespace ompl
 	
     protected:
 
-       	ForwardClassDeclaration(Motion);
-	
-	typedef std::vector<Motion_t> MotionSet;	
-	
 	class Motion
 	{
 	public:
@@ -201,10 +204,45 @@ namespace ompl
 	    }
 	    
 	    SpaceInformationKinematic::StateKinematic_t state;
-	    Motion_t                                    parent;
+	    Motion*                                     parent;
 	    bool                                        valid;
-	    MotionSet                                   children;
+	    std::vector<Motion*>                        children;
 	};
+	
+	struct CellData
+	{
+	    CellData(void)
+	    {
+		coverage = 0.0;
+		selections = 1;
+		score = 1.0;
+		iteration = 0;
+		importance = 0.0;
+	    };
+	    
+	    ~CellData(void)
+	    {
+		for (unsigned int i = 0 ; i < motions.size() ; ++i)
+		    delete motions[i];
+	    }
+
+	    std::vector<Motion*> motions;
+	    double               coverage;
+	    unsigned int         selections;
+	    double               score;
+	    unsigned int         iteration;
+	    double               importance;
+	};
+	
+	struct OrderCellsByImportance
+	{
+	    bool operator()(const CellData * const a, const CellData * const b) const
+	    {
+		return a->importance > b->importance;
+	    }
+	};
+	
+	typedef GridX<CellData*, OrderCellsByImportance> Grid;
 	
 	struct TreeData
 	{
@@ -213,9 +251,15 @@ namespace ompl
 		size = 0;
 	    }
 	    
-	    Grid<MotionSet> grid;
-	    unsigned int    size;
+	    Grid         grid;
+	    unsigned int size;
 	};
+
+	static void computeImportance(Grid::Cell *cell, void*)
+	{
+	    CellData &cd = *(cell->data);
+	    cd.importance =  cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
+	}
 	
 	void freeMemory(void)
 	{
@@ -223,21 +267,18 @@ namespace ompl
 	    freeGridMotions(m_tGoal.grid);
 	}
 
-	void freeGridMotions(Grid<MotionSet> &grid)
+	void freeGridMotions(Grid &grid)
 	{
-	    for (Grid<MotionSet>::iterator it = grid.begin(); it != grid.end() ; ++it)
-	    {
-		for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
-		    delete it->second->data[i];
-	    }
+	    for (Grid::iterator it = grid.begin(); it != grid.end() ; ++it)
+		delete it->second->data;
 	}
 	
-	void addMotion(TreeData &tree, Motion_t motion);
-	Motion_t selectMotion(TreeData &tree);	
-	void removeMotion(TreeData &tree, Motion_t motion);
-	void computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord);
-	bool isPathValid(TreeData &tree, Motion_t motion);
-	bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion_t motion, std::vector<Motion_t> &solution);
+	void addMotion(TreeData &tree, Motion* motion, unsigned int iteration);
+	Motion* selectMotion(TreeData &tree);	
+	void removeMotion(TreeData &tree, Motion* motion);
+	void computeCoordinates(const Motion* motion, Grid::Coord &coord);
+	bool isPathValid(TreeData &tree, Motion* motion);
+	bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, unsigned int iteration, std::vector<Motion*> &solution);
 
 	ProjectionEvaluator   *m_projectionEvaluator;
 	unsigned int           m_projectionDimension;
@@ -246,6 +287,7 @@ namespace ompl
 	TreeData               m_tStart;
 	TreeData               m_tGoal;
 	
+	double                 m_selectBorderPercentage;	
 	double                 m_rho;	
 	random_utils::RNGSet   m_rng;	
     };
