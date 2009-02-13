@@ -34,15 +34,13 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_IKSBL_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_SBL_IKSBL_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_KPIECE_IKLBKPIECE1_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_KPIECE_IKLBKPIECE1_
 
 #include "ompl/extension/samplingbased/kinematic/extension/ik/IKPlanner.h"
-#include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
+#include "ompl/extension/samplingbased/kinematic/extension/kpiece/LBKPIECE1.h"
 
 namespace ompl
 {
-    typedef IKPlanner<SBL> IKSBL;
+    typedef IKPlanner<LBKPIECE1> IKLBKPIECE1;
 }
-
-#endif
