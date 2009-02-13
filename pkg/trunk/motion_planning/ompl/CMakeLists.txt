@@ -3,6 +3,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rospack(ompl)
 rospack_add_boost_directories()
 include_directories(${PROJECT_SOURCE_DIR}/code)
+set(CMAKE_BUILD_TYPE Release)
 rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/base/util/src/output.cpp
 			 code/ompl/base/util/src/random_utils.cpp
