@@ -50,7 +50,8 @@ ompl::random_utils::RNG::RNG(void)
     
     if(fp != NULL)
     {
-	fread(&s, sizeof(unsigned int), 1, fp);
+	if (!fread(&s, sizeof(unsigned int), 1, fp))
+	    s = (unsigned int) time(NULL);
 	fclose(fp);
     }
     else

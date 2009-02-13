@@ -173,7 +173,7 @@ bool ompl::LazyRRT::solve(double solveTime)
 
 void ompl::LazyRRT::removeMotion(Motion_t motion)
 {
-    assert(m_nn.remove(motion));
+    m_nn.remove(motion);
     
     /* remove self from parent list */
     

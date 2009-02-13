@@ -46,7 +46,7 @@ namespace ompl
     class NearestNeighborsLinear : public NearestNeighbors<_T>
     {
     public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T()
+        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
 	{
 	}
 	
