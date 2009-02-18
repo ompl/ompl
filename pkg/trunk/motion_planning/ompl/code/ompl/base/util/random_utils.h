@@ -59,7 +59,7 @@ namespace ompl
 	/** Random number generation based on a state */
 	class RNG
 	{
-	    friend void setMaxThreads(unsigned int threads);
+	    friend class RNGSet;
 	    
 	public:
 	    
@@ -89,8 +89,10 @@ namespace ompl
 	{
 	public:
 	    
-	    RNGSet(void);
-	    
+	    RNGSet(void)
+	    {
+	    }
+	    	    
 	    /** Uniform random number generator */	
 	    double uniform(double lower_bound = 0.0, double upper_bound = 1.0) const
 	    {
@@ -106,7 +108,6 @@ namespace ompl
 	    {
 		return nextState().uniformBool();		
 	    }
-	    
 	    
 	    /** Gaussian random number generator */	
 	    double gaussian(double mean, double stddev) const
@@ -134,34 +135,29 @@ namespace ompl
 	    {
 		return nextState().quaternion(value);
 	    }
-	    	    
+	    
+	    /** Get the maximum number of threads for which the RNGSet is thread-safe */
+	    static unsigned int getMaxThreads(void);
+	    
+	    /** Set the maximum number of threads for which the RNGSet
+		should be thread-safe.  */
+	    static void setMaxThreads(unsigned int threads);
+	    
 	private:
 	    
 	    RNG& nextState(void) const
 	    {
-		m_lock.lock();
-		unsigned int index = m_threadIndex;
-		m_threadIndex = (m_threadIndex + 1) % m_states->size();
-		m_lock.unlock();
-		return m_states->at(index);
+		LOCK.lock();
+		unsigned int index = THREADINDEX;
+		THREADINDEX = (THREADINDEX + 1) % STATES.size();
+		LOCK.unlock();
+		return STATES.at(index);
 	    }
 	    
-	    mutable std::vector<RNG> *m_states;
-	    mutable boost::mutex      m_lock;
-	    mutable unsigned int      m_threadIndex;
+	    static std::vector<RNG> STATES;
+	    static boost::mutex     LOCK;
+	    static unsigned int     THREADINDEX;
 	};
-	
-	/** Get the maximum number of threads for which the RNGSet is thread-safe */
-	unsigned int getMaxThreads(void);
-
-	/** Set the maximum number of threads for which the RNGSet
-	    should be thread-safe.  This function is NOT THREAD
-	    SAFE. This function should not be called at the same time
-	    with other functions from RNGSet. However, after a call to
-	    this functions, all RNGSet instances are still in a valid
-	    state. */
-	void setMaxThreads(unsigned int threads);
-	
     }
 }
 

@@ -41,7 +41,9 @@
 #include <climits>
 #include "ompl/base/util/random_utils.h"
 
-static std::vector<ompl::random_utils::RNG> RNGSET_STATES(1);
+static std::vector<ompl::random_utils::RNG> STATES(1);
+static unsigned int                         THREADINDEX = 0;
+static boost::mutex                         LOCK;
 
 ompl::random_utils::RNG::RNG(void)
 {
@@ -148,21 +150,17 @@ void ompl::random_utils::RNG::quaternion(double value[4])
     value[3] = c2 * r2;
 }
 
-ompl::random_utils::RNGSet::RNGSet(void)
+unsigned int ompl::random_utils::RNGSet::getMaxThreads(void)
 {
-    m_states = &RNGSET_STATES;
-    m_threadIndex = 0;
+    return STATES.size();
 }
 
-unsigned int ompl::random_utils::getMaxThreads(void)
+void ompl::random_utils::RNGSet::setMaxThreads(unsigned int threads)
 {
-    return RNGSET_STATES.size();
-}
-
-void ompl::random_utils::setMaxThreads(unsigned int threads)
-{
-    RNGSET_STATES.resize(threads);
+    LOCK.lock();
+    STATES.resize(threads);
     // make sure we do not have the same seed for the threads 
-    for (unsigned int i  = 1 ; i < RNGSET_STATES.size() ; ++i)
-	RNGSET_STATES[i].m_state.seed = RNGSET_STATES[0].uniformInt(0, INT_MAX);
+    for (unsigned int i  = 1 ; i < STATES.size() ; ++i)
+	STATES[i].m_state.seed = STATES[0].uniformInt(0, INT_MAX);
+    LOCK.unlock();
 }
