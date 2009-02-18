@@ -41,9 +41,9 @@
 #include <climits>
 #include "ompl/base/util/random_utils.h"
 
-static std::vector<ompl::random_utils::RNG> STATES(1);
-static unsigned int                         THREADINDEX = 0;
-static boost::mutex                         LOCK;
+std::vector<ompl::random_utils::RNG> ompl::random_utils::RNGSet::STATES(1);
+unsigned int                         ompl::random_utils::RNGSet::THREADINDEX = 0;
+boost::mutex                         ompl::random_utils::RNGSet::LOCK;
 
 ompl::random_utils::RNG::RNG(void)
 {
