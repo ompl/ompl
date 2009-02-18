@@ -109,7 +109,7 @@ bool ompl::EST::solve(double solveTime)
 	    if (solved)
 	    {
 		approxdif = dist;
-		solution = motion;
+		solution = motion;    
 		break;
 	    }
 	    if (dist < approxdif)
@@ -122,7 +122,7 @@ bool ompl::EST::solve(double solveTime)
     
     bool approximate = false;
     if (solution == NULL)
-    {
+    {	
 	solution = approxsol;
 	approximate = true;
     }
@@ -147,6 +147,9 @@ bool ompl::EST::solve(double solveTime)
 	}
 	goal_r->setDifference(approxdif);
 	goal_r->setSolutionPath(path, approximate);
+
+	if (approximate)
+	    m_msg.warn("EST: Found approximate solution");
     }
 
     delete xstate;
@@ -179,7 +182,7 @@ void ompl::EST::computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord
 {
     coord.resize(m_projectionDimension);
     double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(motion->state, projection);
+    (*m_projectionEvaluator)(static_cast<SpaceInformation::State*>(motion->state), projection);
     
     for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
 	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);

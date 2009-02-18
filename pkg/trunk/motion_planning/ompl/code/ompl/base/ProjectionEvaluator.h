@@ -34,10 +34,10 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PROJECTION_EVALUATOR_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PROJECTION_EVALUATOR_
+#ifndef OMPL_BASE_PROJECTION_EVALUATOR_
+#define OMPL_BASE_PROJECTION_EVALUATOR_
 
-#include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/base/SpaceInformation.h"
 
 namespace ompl
 {
@@ -54,42 +54,31 @@ namespace ompl
 	{
 	}
 	
+	/** Define the dimension (each component) of a grid cell. The
+	    number of dimensions set here must be the same as the
+	    dimension of the projection computed by the projection
+	    evaluator. */
+	void setCellDimensions(const std::vector<double> &cellDimensions)
+	{
+	    m_cellDimensions = cellDimensions;
+	}
+
+	void getCellDimensions(std::vector<double> &cellDimensions) const
+	{
+	    cellDimensions = m_cellDimensions;
+	}
+
 	/** Return the dimension of the projection defined by this evaluator */
 	virtual unsigned int getDimension(void) const = 0;
 	
 	/** Compute the projection as an array of double values */
-	virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection) const = 0;
-    };
-    
-    /** Forward class declaration */
-    ForwardClassDeclaration(OrthogonalProjectionEvaluator);	
-    
-    /** Definition for a class computing orthogonal projections */
-    class OrthogonalProjectionEvaluator : public ProjectionEvaluator
-    {
-    public:
-	
-        OrthogonalProjectionEvaluator(const std::vector<unsigned int> &components) : ProjectionEvaluator()
-	{
-	    m_components = components;
-	}
-	
-	virtual unsigned int getDimension(void) const
-	{
-	    return m_components.size();
-	}
-	
-	virtual void operator()(const SpaceInformationKinematic::StateKinematic_t state, double *projection) const
-	{
-	    for (unsigned int i = 0 ; i < m_components.size() ; ++i)
-		projection[i] = state->values[m_components[i]];
-	}
-	
+	virtual void operator()(const SpaceInformation::State *state, double *projection) const = 0;
+
     protected:
 	
-	std::vector<unsigned int> m_components;
+	std::vector<double> m_cellDimensions;
 	
-    };	
+    };
     
 }
 

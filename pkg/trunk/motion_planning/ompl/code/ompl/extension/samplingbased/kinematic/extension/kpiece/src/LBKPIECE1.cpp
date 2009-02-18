@@ -226,7 +226,7 @@ void ompl::LBKPIECE1::computeCoordinates(const Motion* motion, Grid::Coord &coor
 {
     coord.resize(m_projectionDimension);
     double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(motion->state, projection);
+    (*m_projectionEvaluator)(static_cast<SpaceInformation::State*>(motion->state), projection);
     
     for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
 	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);

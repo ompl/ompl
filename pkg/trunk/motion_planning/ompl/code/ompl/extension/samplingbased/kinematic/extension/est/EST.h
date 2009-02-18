@@ -38,9 +38,9 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_EST_
 
 #include "ompl/base/Planner.h"
+#include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/Grid.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
-#include "ompl/extension/samplingbased/kinematic/ProjectionEvaluator.h"
 #include <vector>
 
 namespace ompl
@@ -148,25 +148,12 @@ namespace ompl
 	    return m_projectionEvaluator;
 	}
 
-	/** Define the dimension (each component) of a grid cell. The
-	    number of dimensions set here must be the same as the
-	    dimension of the projection computed by the projection
-	    evaluator. */
-	void setCellDimensions(const std::vector<double> &cellDimensions)
-	{
-	    m_cellDimensions = cellDimensions;
-	}
-
-	void getCellDimensions(std::vector<double> &cellDimensions) const
-	{
-	    cellDimensions = m_cellDimensions;
-	}
-	
 	virtual void setup(void)
 	{
 	    assert(m_projectionEvaluator);
 	    m_projectionDimension = m_projectionEvaluator->getDimension();
 	    assert(m_projectionDimension > 0);
+	    m_projectionEvaluator->getCellDimensions(m_cellDimensions);
 	    assert(m_cellDimensions.size() == m_projectionDimension);
 	    m_tree.grid.setDimension(m_projectionDimension);
 	    Planner::setup();

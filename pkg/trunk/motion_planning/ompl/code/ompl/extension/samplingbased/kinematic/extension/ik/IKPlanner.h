@@ -159,6 +159,8 @@ namespace ompl
 		    /* copy solution to actual goal instance */
 		    if (solved)
 		    {
+			if (goal_r->isApproximate())
+			    _P::m_msg.warn("IKPlanner: Found approximate solution");
 			goal_r->setSolutionPath(stateGoal->getSolutionPath(), goal_r->isApproximate());
 			stateGoal->forgetSolutionPath();
 		    }

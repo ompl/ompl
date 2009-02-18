@@ -156,6 +156,9 @@ bool ompl::RRT::solve(double solveTime)
 	}
 	goal_r->setDifference(approxdif);
 	goal_r->setSolutionPath(path, approximate);
+
+	if (approximate)
+	    m_msg.warn("RRT: Found approximate solution");
     }
 
     delete xstate;

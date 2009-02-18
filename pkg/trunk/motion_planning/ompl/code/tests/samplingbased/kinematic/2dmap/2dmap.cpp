@@ -37,6 +37,7 @@
 #include <gtest/gtest.h>
 
 #include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/ProjectionEvaluatorKinematic.h"
 #include "ompl/extension/samplingbased/kinematic/extension/kpiece/LBKPIECE1.h"
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/RRT.h"
@@ -311,15 +312,16 @@ protected:
 	SBL_t sbl = new SBL(si);
 	sbl->setRange(0.95);
 	
-	std::vector<double> cdim;
-	cdim.push_back(1);
-	cdim.push_back(1);
-	sbl->setCellDimensions(cdim);
-	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
 	ope = new OrthogonalProjectionEvaluator(projection);
+	
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	ope->setCellDimensions(cdim);
+	
 	sbl->setProjectionEvaluator(ope);
 
 	return sbl;
@@ -355,15 +357,16 @@ protected:
 	EST_t est = new EST(si);
 	est->setRange(0.75);
 	
-	std::vector<double> cdim;
-	cdim.push_back(1);
-	cdim.push_back(1);
-	est->setCellDimensions(cdim);
-	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
 	ope = new OrthogonalProjectionEvaluator(projection);
+		
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	ope->setCellDimensions(cdim);
+
 	est->setProjectionEvaluator(ope);
 
 	return est;
@@ -399,15 +402,16 @@ protected:
 	LBKPIECE1_t kpiece = new LBKPIECE1(si);
 	kpiece->setRange(0.95);
 	
-	std::vector<double> cdim;
-	cdim.push_back(1);
-	cdim.push_back(1);
-	kpiece->setCellDimensions(cdim);
-	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
 	ope = new OrthogonalProjectionEvaluator(projection);
+
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	ope->setCellDimensions(cdim);	
+
 	kpiece->setProjectionEvaluator(ope);
 
 	return kpiece;
