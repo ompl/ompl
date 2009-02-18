@@ -224,7 +224,7 @@ bool ompl::GAIK::tryToImproveAux(double add, SpaceInformationKinematic::StateKin
 		double backup = state->values[i];
 		state->values[i] += add;
 		bool isS = goal_r->isSatisfied(state, distance);
-		if (wasSatisfied && !isS)
+		if ((wasSatisfied && !isS) || !si->satisfiesBounds(state))
 		    state->values[i] = backup;
 		else
 		{
@@ -250,7 +250,7 @@ bool ompl::GAIK::tryToImproveAux(double add, SpaceInformationKinematic::StateKin
 		    double backup = state->values[i];
 		    state->values[i] -= add;
 		    bool isS = goal_r->isSatisfied(state, distance);
-		    if (wasSatisfied && !isS)
+		    if ((wasSatisfied && !isS) || !si->satisfiesBounds(state))
 			state->values[i] = backup;
 		    else
 		    {

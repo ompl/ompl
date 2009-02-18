@@ -254,6 +254,9 @@ namespace ompl
 	/** Insert states in a path, at the collision checking resolution */
 	virtual void interpolatePath(PathKinematic_t path, double factor = 1.0) const;
 	
+	/** Check if a state is inside the bounding box */
+	virtual bool satisfiesBounds(const StateKinematic_t s) const;
+	
 	/** Print information about the current instance of the state space */
 	virtual void printSettings(std::ostream &out = std::cout) const;
 	

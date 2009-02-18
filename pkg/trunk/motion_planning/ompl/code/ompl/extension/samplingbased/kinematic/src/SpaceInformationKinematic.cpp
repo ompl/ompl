@@ -276,6 +276,15 @@ void ompl::SpaceInformationKinematic::interpolatePath(PathKinematic_t path, doub
     path->states.swap(newStates);
 }
 
+bool ompl::SpaceInformationKinematic::satisfiesBounds(const StateKinematic_t s) const
+{
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	if (s->values[i] > m_stateComponent[i].maxValue ||
+	    s->values[i] < m_stateComponent[i].minValue)
+	    return false;
+    return true;
+}
+
 int ompl::SpaceInformationKinematic::findDifferenceStep(const StateKinematic_t s1, const StateKinematic_t s2, double factor,
 							std::valarray<double> &step) const
 {
