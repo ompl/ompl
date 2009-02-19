@@ -83,7 +83,8 @@ bool ompl::KPIECE1::solve(double solveTime)
     Motion                                     *approxsol = NULL;
     double                                      approxdif = INFINITY;
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
-    
+
+    double improveValue = 0.01;
     unsigned int iteration = 1;
 
     while (time_utils::Time::now() < endTime)
@@ -97,8 +98,25 @@ bool ompl::KPIECE1::solve(double solveTime)
 	assert(existing);
 	
 	/* sample random state (with goal biasing) */
-	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
-	    si->copyState(xstate, goal_s->state);
+	if (m_rng.uniform(0.0, 1.0) < m_goalBias)
+	{
+	    if (goal_s)
+		si->copyState(xstate, goal_s->state);
+	    else
+	    {
+		if (approxsol)
+		{
+		    si->copyState(xstate, approxsol->state);
+		    if (!m_hcik.tryToImprove(xstate, improveValue))
+		    {
+			si->sampleNear(xstate, existing->state, range);
+			improveValue /= 2.0;
+		    }
+		}
+		else
+		    si->sampleNear(xstate, existing->state, range);
+	    }
+	}
 	else
 	    si->sampleNear(xstate, existing->state, range);
 	
@@ -184,7 +202,7 @@ bool ompl::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
     if (scell && !scell->data->motions.empty())
     {
 	scell->data->selections++;
-	smotion = scell->data->motions[m_rng.uniformInt(0, scell->data->motions.size() - 1)];
+	smotion = scell->data->motions[m_rng.halfNormalInt(0, scell->data->motions.size() - 1)];
 	return true;
     }
     else
@@ -221,7 +239,7 @@ unsigned int ompl::KPIECE1::addMotion(Motion *motion, unsigned int iteration, do
 	cell->data->coverage = 1.0;
 	cell->data->iteration = iteration;
 	cell->data->selections = 1;
-	cell->data->score = 1.0/ (1e-6 + dist);
+	cell->data->score = 1.0 / (1e-3 + dist);
 	m_tree.grid.add(cell);
 	created = 1;
     }

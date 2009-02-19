@@ -41,6 +41,7 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/GridX.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/extension/ik/HCIK.h"
 #include <vector>
 
 namespace ompl
@@ -73,7 +74,8 @@ namespace ompl
     {
     public:
 
-        KPIECE1(SpaceInformation_t si) : Planner(si)
+        KPIECE1(SpaceInformation_t si) : Planner(si),
+	                                 m_hcik(dynamic_cast<SpaceInformationKinematic_t>(si))
 	{
 	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
 	    m_projectionEvaluator = NULL;
@@ -85,6 +87,7 @@ namespace ompl
 	    m_minValidPathPercentage = 0.2;
 	    m_rho = 0.5;
 	    m_tree.grid.onCellUpdate(computeImportance, NULL);
+	    m_hcik.setMaxImproveSteps(50);
 	}
 
 	virtual ~KPIECE1(void)
@@ -264,6 +267,7 @@ namespace ompl
 	bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 	void computeCoordinates(const Motion* motion, Grid::Coord &coord);
 	
+	HCIK                   m_hcik;
 	TreeData               m_tree;
 	
 	ProjectionEvaluator   *m_projectionEvaluator;

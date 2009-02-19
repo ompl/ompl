@@ -34,11 +34,11 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_GAIK_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_GAIK_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_IK_GAIK_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_IK_GAIK_
 
-#include "ompl/base/Planner.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/extension/ik/HCIK.h"
 
 namespace ompl
 {
@@ -56,17 +56,17 @@ namespace ompl
        
        @par External documentation
     */
-    class GAIK : public Planner
+    class GAIK
     {
     public:
 
-        GAIK(SpaceInformation_t si) : Planner(si)
-	{
-	    m_type = PLAN_TO_GOAL_REGION;
+        GAIK(SpaceInformationKinematic_t si) : m_hcik(si)
+	{					
+	    m_si = si;
 	    m_rho = 0.04;
 	    m_poolSize = 80;
 	    m_poolExpansion = 100;
-	    m_maxImproveSteps = 3;
+	    m_hcik.setMaxImproveSteps(3);
 	    m_checkValidity = true;
 	}
 	
@@ -74,20 +74,16 @@ namespace ompl
 	{
 	}
 	
-	virtual bool solve(double solveTime);
-	
-	virtual void clear(void)
-	{
-	}
+	virtual bool solve(double solveTime, SpaceInformationKinematic::StateKinematic_t result);
 	
 	void setMaxImproveSteps(unsigned int maxSteps)
 	{
-	    m_maxImproveSteps = maxSteps;
+	    m_hcik.setMaxImproveSteps(maxSteps);
 	}
 
 	unsigned int getMaxImproveSteps(void) const
 	{
-	    return m_maxImproveSteps;
+	    return m_hcik.getMaxImproveSteps();
 	}
 	
 	void setValidityCheck(bool valid)
@@ -135,8 +131,7 @@ namespace ompl
 
     protected:
 	
-	bool tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double *distance);
-	bool tryToImproveAux(double add, SpaceInformationKinematic::StateKinematic_t state, double *distance);
+	bool tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double distance);
 	bool valid(SpaceInformationKinematic::StateKinematic_t state);
 	
 	struct Individual
@@ -153,12 +148,16 @@ namespace ompl
 	    }	    
 	};
 	
-	unsigned int           m_poolSize;
-	unsigned int           m_poolExpansion;
-	unsigned int           m_maxImproveSteps;	
-	bool                   m_checkValidity;	
+	HCIK                        m_hcik;
+	SpaceInformationKinematic_t m_si;	
+	unsigned int                m_poolSize;
+	unsigned int                m_poolExpansion;
+	unsigned int                m_maxImproveSteps;	
+	bool                        m_checkValidity;	
 
-	double                 m_rho;	
+	double                      m_rho;	
+
+	msg::Interface              m_msg;
     };
 
 }

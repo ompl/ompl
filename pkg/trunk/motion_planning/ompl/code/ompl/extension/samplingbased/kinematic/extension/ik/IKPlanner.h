@@ -62,7 +62,7 @@ namespace ompl
     public:
 
         IKPlanner(SpaceInformation_t si) : _P(si),
-					   m_gaik(si)
+	                                   m_gaik(dynamic_cast<SpaceInformationKinematic_t>(si))
 	{
 	    _P::m_type = _P::m_type | PLAN_TO_GOAL_REGION;
 	}
@@ -79,12 +79,6 @@ namespace ompl
 	double getIKRange(void) const
 	{
 	    return m_gaik.getRange();
-	}
-	
-	virtual void setup(void)
-	{
-	    m_gaik.setup();
-	    _P::setup();
 	}
 
 	virtual bool solve(double solveTime)
@@ -128,7 +122,6 @@ namespace ompl
 	    
 	    bool solved = false;
 	    unsigned int step = 0;
-	    m_gaik.clear();
 	    
 	    while (!solved)
 	    {
@@ -136,18 +129,14 @@ namespace ompl
 		double time_left = (endTime - time_utils::Time::now()).toSeconds();
 		if (time_left <= 0.0)
 		    break;
-		if (m_gaik.solve(time_left * 0.6))
+		if (m_gaik.solve(time_left * 0.5, stateGoal->state))
 		{
-		    SpaceInformationKinematic::PathKinematic_t foundPath = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal_r->getSolutionPath());
-		    assert(foundPath && foundPath->states.size() == 1);
-		    
 		    /* change goal to a state one */
 		    si->forgetGoal();
 		    si->setGoal(stateGoal);
-		    si->copyState(stateGoal->state, foundPath->states[0]);
 		    
 		    /* run _P on the new goal */
-		    clear();
+		    _P::clear();
 		    time_left = (endTime - time_utils::Time::now()).toSeconds();
 		    _P::m_msg.inform("IKPlanner: Using GAIK goal state for the planner (step %u, %g seconds remaining)", step, time_left);
 		    solved = _P::solve(time_left);
@@ -159,9 +148,12 @@ namespace ompl
 		    /* copy solution to actual goal instance */
 		    if (solved)
 		    {
-			if (goal_r->isApproximate())
+			double dist = -1.0;
+			bool approx = !goal_r->isSatisfied(stateGoal->state, &dist);
+			if (approx)
 			    _P::m_msg.warn("IKPlanner: Found approximate solution");
-			goal_r->setSolutionPath(stateGoal->getSolutionPath(), goal_r->isApproximate());
+			goal_r->setSolutionPath(stateGoal->getSolutionPath(), approx);
+			goal_r->setDifference(dist);
 			stateGoal->forgetSolutionPath();
 		    }
 		    else
@@ -172,14 +164,7 @@ namespace ompl
 	    delete stateGoal;
 	    return solved;
 	}
-	
-	
-	virtual void clear(void)
-	{
-	    m_gaik.clear();
-	    _P::clear();	    
-	}
-	
+       	
     protected:
 	
 	GAIK m_gaik;

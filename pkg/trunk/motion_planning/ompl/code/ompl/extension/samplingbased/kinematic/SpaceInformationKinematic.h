@@ -67,7 +67,7 @@ namespace ompl
 	}
 	
 	/** Destructor */
-	~SpaceInformationKinematic(void)
+	virtual ~SpaceInformationKinematic(void)
 	{
 	}
 
