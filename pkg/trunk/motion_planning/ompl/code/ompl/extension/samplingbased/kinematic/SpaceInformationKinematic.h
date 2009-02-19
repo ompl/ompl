@@ -246,7 +246,8 @@ namespace ompl
 	virtual bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2) const;
 
 	/** Incrementally check if the path between two motions is valid */
-	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2) const;
+	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2,
+					    StateKinematic *lastValidState = NULL, double *lastValidTime = NULL) const;
 	
 	/** Check if the path is valid */
 	virtual bool checkPath(PathKinematic_t path) const;

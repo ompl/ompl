@@ -206,7 +206,8 @@ bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinemati
     return true;
 }
 
-bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2) const
+bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2,
+							     StateKinematic *lastValidState, double *lastValidTime) const
 {   
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
@@ -220,10 +221,21 @@ bool ompl::SpaceInformationKinematic::checkMotionIncremental(const StateKinemati
     
     for (int j = 1 ; j < nd ; ++j)
     {
+	double factor = (double)j;
 	for (unsigned int k = 0 ; k < m_stateDimension ; ++k)
-	    test.values[k] = s1->values[k] + (double)j * step[k];
+	    test.values[k] = s1->values[k] + factor * step[k];
 	if (!isValid(&test))
+	{
+	    if (lastValidState)
+	    {
+		factor -= 1.0;
+		for (unsigned int k = 0 ; k < m_stateDimension ; ++k)
+		    lastValidState->values[k] = s1->values[k] + factor * step[k];
+	    }
+	    if (lastValidTime)
+		*lastValidTime = (double)(j - 1) / (double)nd;
 	    return false;
+	}
     }
 
     return true;
