@@ -44,3 +44,5 @@ namespace ompl
 {
     typedef IKPlanner<KPIECE1> IKKPIECE1;
 }
+
+#endif
