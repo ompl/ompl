@@ -102,6 +102,7 @@ namespace ompl
 	    freeMemory();
 	    m_tree.grid.clear();
 	    m_tree.size = 0;
+	    m_tree.iteration = 1;
 	}
 
 	/** In the process of randomly selecting states in the state
@@ -240,10 +241,12 @@ namespace ompl
 	    TreeData(void) : grid(0)
 	    {
 		size = 0;
+		iteration = 1;
 	    }
 	    
 	    Grid         grid;
 	    unsigned int size;
+	    unsigned int iteration;
 	};
 
 	static void computeImportance(Grid::Cell *cell, void*)
@@ -263,7 +266,7 @@ namespace ompl
 		delete it->second->data;
 	}
 	
-	unsigned int addMotion(Motion* motion, unsigned int iteration, double dist);
+	unsigned int addMotion(Motion* motion, double dist);
 	bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 	void computeCoordinates(const Motion* motion, Grid::Coord &coord);
 	

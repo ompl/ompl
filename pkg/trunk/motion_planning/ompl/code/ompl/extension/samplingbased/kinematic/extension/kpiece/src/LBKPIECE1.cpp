@@ -59,7 +59,7 @@ bool ompl::LBKPIECE1::solve(double solveTime)
 	    if (si->isValid(motion->state))
 	    {
 		motion->valid = true;
-		addMotion(m_tStart, motion, 1);
+		addMotion(m_tStart, motion);
 	    }
 	    else
 	    {
@@ -76,7 +76,7 @@ bool ompl::LBKPIECE1::solve(double solveTime)
 	if (si->isValid(motion->state))
 	{
 	    motion->valid = true;
-	    addMotion(m_tGoal, motion, 1);
+	    addMotion(m_tGoal, motion);
 	}
 	else
 	{
@@ -100,14 +100,13 @@ bool ompl::LBKPIECE1::solve(double solveTime)
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
-    unsigned int iteration = 1;
     
     while (time_utils::Time::now() < endTime)
     {
 	TreeData &tree      = startTree ? m_tStart : m_tGoal;
 	startTree = !startTree;
 	TreeData &otherTree = startTree ? m_tStart : m_tGoal;
-	iteration++;
+	tree.iteration++;
 	
 	Motion* existing = selectMotion(tree);
 	assert(existing);
@@ -119,9 +118,9 @@ bool ompl::LBKPIECE1::solve(double solveTime)
 	motion->parent = existing;
 	existing->children.push_back(motion);
 	
-	addMotion(tree, motion, iteration);
+	addMotion(tree, motion);
 	
-	if (checkSolution(!startTree, tree, otherTree, motion, iteration, solution))
+	if (checkSolution(!startTree, tree, otherTree, motion, solution))
 	{
 	    SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
 	    for (unsigned int i = 0 ; i < solution.size() ; ++i)
@@ -146,8 +145,7 @@ bool ompl::LBKPIECE1::solve(double solveTime)
     return goal->isAchieved();
 }
 
-bool ompl::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion,
-				    unsigned int iteration, std::vector<Motion*> &solution)
+bool ompl::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution)
 {
     Grid::Coord coord;
     computeCoordinates(motion, coord); 
@@ -162,7 +160,7 @@ bool ompl::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherT
 	si->copyState(connect->state, connectOther->state);
 	connect->parent = motion;
 	motion->children.push_back(connect);
-	addMotion(tree, connect, iteration);
+	addMotion(tree, connect);
 	
 	if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
 	{
@@ -292,7 +290,7 @@ void ompl::LBKPIECE1::removeMotion(TreeData &tree, Motion* motion)
     delete motion;
 }
 
-void ompl::LBKPIECE1::addMotion(TreeData &tree, Motion* motion, unsigned int iteration)
+void ompl::LBKPIECE1::addMotion(TreeData &tree, Motion* motion)
 {
     Grid::Coord coord;
     computeCoordinates(motion, coord);
@@ -309,7 +307,7 @@ void ompl::LBKPIECE1::addMotion(TreeData &tree, Motion* motion, unsigned int ite
 	cell->data = new CellData();
 	cell->data->motions.push_back(motion);
 	cell->data->coverage = 1.0;
-	cell->data->iteration = iteration;
+	cell->data->iteration = tree.iteration;
 	cell->data->selections = 1;
 	tree.grid.add(cell);
     }

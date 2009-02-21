@@ -58,7 +58,7 @@ bool ompl::KPIECE1::solve(double solveTime)
 	    Motion *motion = new Motion(dim);
 	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
 	    if (si->isValid(motion->state))
-		addMotion(motion, 1, 1.0);
+		addMotion(motion, 1.0);
 	    else
 	    {
 		m_msg.error("KPIECE1: Initial state is in collision!");
@@ -85,11 +85,10 @@ bool ompl::KPIECE1::solve(double solveTime)
     SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
 
     double improveValue = 0.01;
-    unsigned int iteration = 1;
 
     while (time_utils::Time::now() < endTime)
     {
-	iteration++;
+	m_tree.iteration++;
 	
 	/* Decide on a state to expand from */
 	Motion     *existing = NULL;
@@ -134,7 +133,7 @@ bool ompl::KPIECE1::solve(double solveTime)
 
 	    double dist = 0.0;
 	    bool solved = goal_r->isSatisfied(motion->state, &dist);
-	    addMotion(motion, iteration, dist);
+	    addMotion(motion, dist);
 	    
 	    if (solved)
 	    {
@@ -219,7 +218,7 @@ void ompl::KPIECE1::computeCoordinates(const Motion *motion, Grid::Coord &coord)
 	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
 }
 
-unsigned int ompl::KPIECE1::addMotion(Motion *motion, unsigned int iteration, double dist)
+unsigned int ompl::KPIECE1::addMotion(Motion *motion, double dist)
 {
     Grid::Coord coord;
     computeCoordinates(motion, coord);
@@ -237,7 +236,7 @@ unsigned int ompl::KPIECE1::addMotion(Motion *motion, unsigned int iteration, do
 	cell->data = new CellData();
 	cell->data->motions.push_back(motion);
 	cell->data->coverage = 1.0;
-	cell->data->iteration = iteration;
+	cell->data->iteration = m_tree.iteration;
 	cell->data->selections = 1;
 	cell->data->score = 1.0 / (1e-3 + dist);
 	m_tree.grid.add(cell);

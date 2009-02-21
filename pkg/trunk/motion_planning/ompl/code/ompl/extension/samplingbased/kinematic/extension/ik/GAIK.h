@@ -74,7 +74,8 @@ namespace ompl
 	{
 	}
 	
-	virtual bool solve(double solveTime, SpaceInformationKinematic::StateKinematic_t result);
+	virtual bool solve(double solveTime, SpaceInformationKinematic::StateKinematic_t result,
+			   const SpaceInformationKinematic::StateKinematic_t hint = NULL);
 	
 	void setMaxImproveSteps(unsigned int maxSteps)
 	{

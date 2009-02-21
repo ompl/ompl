@@ -42,7 +42,7 @@ bool ompl::GAIK::valid(SpaceInformationKinematic::StateKinematic_t state)
     return m_checkValidity ? m_si->isValid(static_cast<SpaceInformation::State_t>(state)) : true;
 }
 
-bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinematic_t result)
+bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinematic_t result, SpaceInformationKinematic::StateKinematic_t hint)
 {
     SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(m_si->getGoal());
     unsigned int                                        dim = m_si->getStateDimension();
@@ -67,7 +67,21 @@ bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinemat
 	return false;	
     }
     
-    for (unsigned int i = 0 ; i < maxPoolSize ; ++i)
+    if (hint)
+    {
+	pool[0].state = new SpaceInformationKinematic::StateKinematic(dim);
+	m_si->copyState(pool[0].state, hint);
+	if (goal_r->isSatisfied(pool[0].state, &(pool[0].distance)))
+	{
+	    if (valid(pool[0].state))
+	    {
+		solved = true;
+		solution = 0;
+	    }
+	}
+    }
+    
+    for (unsigned int i = (hint ? 1 : 0) ; i < maxPoolSize ; ++i)
     {
 	pool[i].state = new SpaceInformationKinematic::StateKinematic(dim);
 	m_si->sample(pool[i].state);

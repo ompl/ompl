@@ -159,9 +159,11 @@ namespace ompl
 	    
 	    m_tStart.grid.clear();
 	    m_tStart.size = 0;
+	    m_tStart.iteration = 1;
 	    
 	    m_tGoal.grid.clear();
 	    m_tGoal.size = 0;	    
+	    m_tGoal.iteration = 1;
 	}
 	
     protected:
@@ -236,10 +238,12 @@ namespace ompl
 	    TreeData(void) : grid(0)
 	    {
 		size = 0;
+		iteration = 1;
 	    }
 	    
 	    Grid         grid;
 	    unsigned int size;
+	    unsigned int iteration;
 	};
 
 	static void computeImportance(Grid::Cell *cell, void*)
@@ -260,12 +264,12 @@ namespace ompl
 		delete it->second->data;
 	}
 	
-	void addMotion(TreeData &tree, Motion* motion, unsigned int iteration);
+	void addMotion(TreeData &tree, Motion* motion);
 	Motion* selectMotion(TreeData &tree);	
 	void removeMotion(TreeData &tree, Motion* motion);
 	void computeCoordinates(const Motion* motion, Grid::Coord &coord);
 	bool isPathValid(TreeData &tree, Motion* motion);
-	bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, unsigned int iteration, std::vector<Motion*> &solution);
+	bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution);
 
 	ProjectionEvaluator   *m_projectionEvaluator;
 	unsigned int           m_projectionDimension;
