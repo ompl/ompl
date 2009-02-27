@@ -51,12 +51,18 @@ namespace ompl
     
     class GridX : public GridN<_T>
     {
+    public:
+
+        typedef typename GridN<_T>::Cell      Cell;
+        typedef typename GridN<_T>::CellArray CellArray;
+        typedef typename GridN<_T>::Coord     Coord;
+    
     protected:
-	
-        struct CellX : public GridN<_T>::Cell
+    
+        struct CellX : public Cell
 	{
 	    
-	    CellX(void) : GridN<_T>::Cell()
+	    CellX(void) : Cell()
 	    {
 	    }
 	    
@@ -69,7 +75,7 @@ namespace ompl
 
     public:
 	
-	typedef void (*EventCellUpdate)(typename GridN<_T>::Cell*, void*);
+	typedef void (*EventCellUpdate)(Cell*, void*);
 
         explicit
 	GridX(unsigned int dimension) : GridN<_T>(dimension)
@@ -88,15 +94,15 @@ namespace ompl
 	    m_eventCellUpdateData = arg;
 	}
 
-	typename GridN<_T>::Cell* topInternal(void) const
+	Cell* topInternal(void) const
 	{
-	    typename GridN<_T>::Cell* top = static_cast<typename GridN<_T>::Cell*>(m_internal.top()->data);
+	    Cell* top = static_cast<Cell*>(m_internal.top()->data);
 	    return top ? top : topExternal();
 	}
 	
-	typename GridN<_T>::Cell* topExternal(void) const
+	Cell* topExternal(void) const
 	{
-	    typename GridN<_T>::Cell* top = static_cast<typename GridN<_T>::Cell*>(m_external.top()->data);
+	    Cell* top = static_cast<Cell*>(m_external.top()->data);
 	    return top ? top : topInternal();
 	}
 	
@@ -120,7 +126,7 @@ namespace ompl
 	    return 1.0 - fracExternal();
 	}
 	
-	void update(typename GridN<_T>::Cell* cell)
+	void update(Cell* cell)
 	{
 	    m_eventCellUpdate(cell, m_eventCellUpdateData);
 	    if (cell->border)
@@ -133,7 +139,7 @@ namespace ompl
     
 	void updateAll(void)
 	{
-	    std::vector< typename GridN<_T>::Cell* > cells;
+	    std::vector< Cell* > cells;
 	    getCells(cells);
 	    for (int i = cells.size() - 1 ; i >= 0 ; --i)
 		m_eventCellUpdate(cells[i], m_eventCellUpdateData);
@@ -141,16 +147,15 @@ namespace ompl
 	    m_internal.rebuild();
 	}
 	
-	virtual typename GridN<_T>::Cell* createCell(const typename GridN<_T>::Coord& coord,
-						     typename GridN<_T>::CellArray *nbh = NULL)
+        virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
 	{
 	    CellX* cell = new CellX();
 	    cell->coord = coord;
 
-	    typename GridN<_T>::CellArray *list = nbh ? nbh : new typename GridN<_T>::CellArray;
+	    CellArray *list = nbh ? nbh : new CellArray();
 	    neighbors(cell->coord, *list);
 
-	    for (typename GridN<_T>::CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+	    for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
 	    {
 		CellX* c = static_cast<CellX*>(*cl);
 		bool wasBorder = c->border;
@@ -181,11 +186,11 @@ namespace ompl
 	    if (!nbh)
 		delete list;
 
-	    return static_cast<typename GridN<_T>::Cell*>(cell);
+	    return static_cast<Cell*>(cell);
 	}
 	
 
-	virtual void add(typename GridN<_T>::Cell* cell)
+	virtual void add(Cell* cell)
 	{
 	    CellX* ccell = static_cast<CellX*>(cell);
 	    m_eventCellUpdate(ccell, m_eventCellUpdateData);
@@ -198,14 +203,14 @@ namespace ompl
 		m_internal.insert(ccell);
 	}
 
-	virtual bool remove(typename GridN<_T>::Cell* cell)
+	virtual bool remove(Cell* cell)
 	{
 	    if (cell)
 	    {
-		typename GridN<_T>::CellArray *list = new typename GridN<_T>::CellArray();
+		CellArray *list = new CellArray();
 		neighbors(cell->coord, *list);
 
-		for (typename GridN<_T>::CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+		for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
 		{
 		    CellX* c = static_cast<CellX*>(*cl);
 		    bool wasBorder = c->border;
@@ -257,7 +262,7 @@ namespace ompl
 	EventCellUpdate          m_eventCellUpdate;
 	void                    *m_eventCellUpdateData;
 
-        static void noCellUpdate(typename GridN<_T>::Cell*, void *)
+        static void noCellUpdate(Cell*, void*)
 	{
 	}
     
