@@ -280,7 +280,7 @@ namespace ompl
 	
 	double                 m_selectBorderPercentage;
 	double                 m_rho;	
-	mutable random_utils::RNG   m_rng;	
+	random_utils::RNG      m_rng;	
     };
 
 }

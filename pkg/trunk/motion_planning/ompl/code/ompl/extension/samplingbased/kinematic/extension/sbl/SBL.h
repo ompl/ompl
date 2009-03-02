@@ -234,7 +234,7 @@ namespace ompl
 	TreeData               m_tGoal;
 	
 	double                 m_rho;	
-	mutable random_utils::RNG   m_rng;	
+	random_utils::RNG      m_rng;	
     };
 
 }

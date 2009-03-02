@@ -234,13 +234,13 @@ namespace ompl
 	double distance(const StateKinematic_t s1, const StateKinematic_t s2) const;
 	
 	/** Sample a state */
-	virtual void sample(StateKinematic_t state) const;
+	virtual void sample(StateKinematic_t state);
 
 	/** Sample a state near another, within given bounds */
-	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho) const;
+	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho);
 
 	/** Sample a state near another, within given bounds */
-	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho) const;
+	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho);
 	
 	/** Check if the path between two motions is valid using subdivision */
 	virtual bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2) const;
@@ -275,7 +275,7 @@ namespace ompl
 	std::vector<StateComponent>             m_stateComponent;
 	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
 	
-	mutable random_utils::RNG               m_rng;
+	random_utils::RNG                       m_rng;
 	
     };
     

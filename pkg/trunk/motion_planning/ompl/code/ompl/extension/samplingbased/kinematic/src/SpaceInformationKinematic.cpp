@@ -123,7 +123,7 @@ void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, s
 	out << "NULL" << std::endl;
 }
 
-void ompl::SpaceInformationKinematic::sample(StateKinematic_t state) const
+void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
@@ -135,7 +135,7 @@ void ompl::SpaceInformationKinematic::sample(StateKinematic_t state) const
 	    state->values[i] = m_rng.uniform(m_stateComponent[i].minValue, m_stateComponent[i].maxValue);	    
 }
 
-void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho) const
+void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho)
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
@@ -150,7 +150,7 @@ void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const S
 			      std::min(m_stateComponent[i].maxValue, near->values[i] + rho));
 }
 
-void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho) const
+void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho)
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (m_stateComponent[i].type == StateComponent::QUATERNION)
