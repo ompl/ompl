@@ -42,3 +42,8 @@ rospack_link_boost(test_heap thread)
 rospack_add_gtest(test_gridx code/tests/datastructures/grid/gridx.cpp)
 target_link_libraries(test_gridx ompl)
 rospack_link_boost(test_gridx thread)
+
+# Test random numbers
+rospack_add_gtest(test_random code/tests/random/random.cpp)
+target_link_libraries(test_random ompl)
+rospack_link_boost(test_random thread)
