@@ -59,7 +59,6 @@ namespace ompl
 	    m_si    = si;
 	    m_type  = 0;
 	    m_setup = false;
-	    setThreadCount(1);
 	}
 	
 	/** Destructor */
@@ -70,12 +69,6 @@ namespace ompl
 	/** Function that can solve the motion planning problem */
 	virtual bool solve(double solveTime) = 0;
 
-	/** Set the maximum number of threads the planner should use */
-	virtual void setThreadCount(unsigned int nthreads);
-	
-	/** Get the maximum number of threads the planner can use */
-	unsigned int getThreadCount(void) const;
-	
 	/** Clear all internal datastructures */
 	virtual void clear(void) = 0;
 	

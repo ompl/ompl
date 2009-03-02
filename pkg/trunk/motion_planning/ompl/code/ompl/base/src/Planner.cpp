@@ -35,18 +35,6 @@
 /* \author Ioan Sucan */
 
 #include "ompl/base/Planner.h"
-#include "ompl/base/util/random_utils.h"
-
-unsigned int ompl::Planner::getThreadCount(void) const
-{
-    return m_threadCount;
-}
-
-void ompl::Planner::setThreadCount(unsigned int nthreads)
-{
-    m_threadCount = nthreads > 0 ? nthreads : 1;
-    random_utils::RNGSet::setMaxThreads(m_threadCount + 1);
-}
 
 bool ompl::Planner::isTrivial(unsigned int *startID, double *distance) const
 {

@@ -211,7 +211,7 @@ namespace ompl
 	
 	double                               m_goalBias;
 	double                               m_rho;	
-	random_utils::RNGSet                 m_rng;
+	mutable random_utils::RNG            m_rng;
 	
     };
 

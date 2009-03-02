@@ -41,9 +41,11 @@
 #include <climits>
 #include "ompl/base/util/random_utils.h"
 
-std::vector<ompl::random_utils::RNG> ompl::random_utils::RNGSet::STATES(1);
-unsigned int                         ompl::random_utils::RNGSet::THREADINDEX = 0;
-boost::mutex                         ompl::random_utils::RNGSet::LOCK;
+ompl::random_utils::RNG::RNG(unsigned int seed)
+{
+    m_state.seed = seed;
+    m_state.gaussian.valid = false;
+}
 
 ompl::random_utils::RNG::RNG(void)
 {
@@ -148,19 +150,4 @@ void ompl::random_utils::RNG::quaternion(double value[4])
     value[1] = c1 * r1;
     value[2] = s2 * r2;
     value[3] = c2 * r2;
-}
-
-unsigned int ompl::random_utils::RNGSet::getMaxThreads(void)
-{
-    return STATES.size();
-}
-
-void ompl::random_utils::RNGSet::setMaxThreads(unsigned int threads)
-{
-    LOCK.lock();
-    STATES.resize(threads);
-    // make sure we do not have the same seed for the threads 
-    for (unsigned int i  = 1 ; i < STATES.size() ; ++i)
-	STATES[i].m_state.seed = STATES[0].uniformInt(0, INT_MAX);
-    LOCK.unlock();
 }

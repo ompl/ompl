@@ -275,7 +275,7 @@ namespace ompl
 	std::vector<StateComponent>             m_stateComponent;
 	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
 	
-	mutable random_utils::RNGSet            m_rng;
+	mutable random_utils::RNG               m_rng;
 	
     };
     

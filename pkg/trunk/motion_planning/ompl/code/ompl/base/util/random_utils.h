@@ -59,11 +59,11 @@ namespace ompl
 	/** Random number generation based on a state */
 	class RNG
 	{
-	    friend class RNGSet;
-	    
+
 	public:
 	    
-	    RNG(void);
+	    RNG(void);	    
+	    RNG(unsigned int seed);
 	    
 	    /** Uniform random number generator */	
 	    double uniform(double lower_bound = 0.0, double upper_bound = 1.0);
@@ -74,7 +74,7 @@ namespace ompl
 	    double gaussian(double mean, double stddev);
 	    double boundedGaussian(double mean, double stddev, double max_stddev);
 	    double halfNormal(double r_min, double r_max, double focus = 3.0);
-	    int halfNormalInt(int r_min, int r_max, double focus = 3.0);
+	    int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
 	    
 	    /** Random quaternion generator. The returned value has the order (x,y,z,w) */	
 	    void quaternion(double value[4]);
@@ -84,80 +84,6 @@ namespace ompl
 	    rngState m_state;
 	};
 	
-	/** This class is thread-safe as long as the maximum number of threads is set */
-	class RNGSet
-	{
-	public:
-	    
-	    RNGSet(void)
-	    {
-	    }
-	    	    
-	    /** Uniform random number generator */	
-	    double uniform(double lower_bound = 0.0, double upper_bound = 1.0) const
-	    {
-		return nextState().uniform(lower_bound, upper_bound);
-	    }
-	    
-	    int    uniformInt(int lower_bound, int upper_bound) const
-	    {
-		return nextState().uniform(lower_bound, upper_bound);
-	    }
-	    
-	    bool   uniformBool(void) const
-	    {
-		return nextState().uniformBool();		
-	    }
-	    
-	    /** Gaussian random number generator */	
-	    double gaussian(double mean, double stddev) const
-	    {
-		return nextState().gaussian(mean, stddev);
-	    }
-	    
-	    double boundedGaussian(double mean, double stddev, double max_stddev) const
-	    {
-		return nextState().boundedGaussian(mean, stddev, max_stddev);
-	    }	    
-	    
-	    double halfNormal(double r_min, double r_max, double focus = 3.0) const
-	    {		
-		return nextState().halfNormal(r_min, r_max, focus);
-	    }
-
-	    int halfNormalInt(int r_min, int r_max, double focus = 3.0) const
-	    {		
-		return nextState().halfNormalInt(r_min, r_max, focus);
-	    }
-	    
-	    /** Random quaternion generator. The returned value has the order (x,y,z,w) */	
-	    void quaternion(double value[4]) const
-	    {
-		return nextState().quaternion(value);
-	    }
-	    
-	    /** Get the maximum number of threads for which the RNGSet is thread-safe */
-	    static unsigned int getMaxThreads(void);
-	    
-	    /** Set the maximum number of threads for which the RNGSet
-		should be thread-safe.  */
-	    static void setMaxThreads(unsigned int threads);
-	    
-	private:
-	    
-	    RNG& nextState(void) const
-	    {
-		LOCK.lock();
-		unsigned int index = THREADINDEX;
-		THREADINDEX = (THREADINDEX + 1) % STATES.size();
-		LOCK.unlock();
-		return STATES.at(index);
-	    }
-	    
-	    static std::vector<RNG> STATES;
-	    static boost::mutex     LOCK;
-	    static unsigned int     THREADINDEX;
-	};
     }
 }
 
