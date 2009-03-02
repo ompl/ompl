@@ -38,6 +38,7 @@
 #define OMPL_BASE_SPACE_INFORMATION_
 
 #include "ompl/base/General.h"
+#include "ompl/base/util/output.h"
 #include <vector>
 #include <iostream>
 #include <cassert>

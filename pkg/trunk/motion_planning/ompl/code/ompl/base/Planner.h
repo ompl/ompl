@@ -39,6 +39,7 @@
 
 #include "ompl/base/General.h"
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/util/time.h"
 
 /** Main namespace */
 namespace ompl

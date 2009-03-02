@@ -85,6 +85,7 @@
    - @ref LazyRRT
    - @ref SBL
    - @ref EST
+   - @ref KPIECE
    
    @subsection kinodynamic_planners Kinodynamic motion planners
    
@@ -98,9 +99,6 @@
 
 #ifndef OMPL_BASE_GENERAL_
 #define OMPL_BASE_GENERAL_
-
-#include "ompl/base/util/time.h"
-#include "ompl/base/util/output.h"
 
 /** Macro for forward class declarations */
 #define ForwardClassDeclaration(A) class A; typedef A * A##_t

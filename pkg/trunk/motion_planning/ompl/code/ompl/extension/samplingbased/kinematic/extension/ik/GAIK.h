@@ -39,6 +39,7 @@
 
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include "ompl/extension/samplingbased/kinematic/extension/ik/HCIK.h"
+#include "ompl/base/util/time.h"
 
 namespace ompl
 {
