@@ -41,6 +41,7 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/GridX.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/AllocatorStateKinematic.h"
 #include "ompl/extension/samplingbased/kinematic/extension/ik/HCIK.h"
 #include <vector>
 

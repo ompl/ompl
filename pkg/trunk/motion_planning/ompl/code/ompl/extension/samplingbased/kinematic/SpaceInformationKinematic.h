@@ -88,22 +88,29 @@ namespace ompl
 	{
 	public:
 	    
-	    StateKinematic(void) : State()
+	    enum 
+	    {
+		NO_FLAGS       = 0,
+		SELF_ALLOCATED = 1
+	    };
+	    
+	    StateKinematic(void) : State(), flags(NO_FLAGS)
 	    {
 		values = NULL;
 	    }
 	    
-	    StateKinematic(const unsigned int dimension) : State()
+	    StateKinematic(const unsigned int dimension) : State(), flags(SELF_ALLOCATED)
 	    {
 		values = new double[dimension];
 	    }
 	    
 	    virtual ~StateKinematic(void)
 	    {
-		if (values)
+		if ((flags & SELF_ALLOCATED) && values)
 		    delete[] values;
 	    }
-	    
+
+	    int     flags;
 	    double *values;
 	};
 
