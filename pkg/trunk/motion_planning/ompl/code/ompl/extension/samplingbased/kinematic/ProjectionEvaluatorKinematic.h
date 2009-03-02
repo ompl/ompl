@@ -40,6 +40,9 @@
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include "ompl/base/ProjectionEvaluator.h"
 
+#include <valarray>
+#include <vector>
+
 namespace ompl
 {
     
@@ -71,6 +74,41 @@ namespace ompl
     protected:
 	
 	std::vector<unsigned int> m_components;
+	
+    };	
+
+        /** Definition for a class computing orthogonal projections */
+    class LinearProjectionEvaluator : public ProjectionEvaluator
+    {
+    public:
+	
+        LinearProjectionEvaluator(const std::vector< std::valarray<double> > &projection) : ProjectionEvaluator()
+	{
+	    m_projection = projection;
+	}
+	
+	virtual unsigned int getDimension(void) const
+	{
+	    return m_projection.size();
+	}
+	
+	virtual void operator()(const SpaceInformation::State *state, double *projection) const
+	{
+	    const SpaceInformationKinematic::StateKinematic *kstate = static_cast<const SpaceInformationKinematic::StateKinematic*>(state);
+	    for (unsigned int i = 0 ; i < m_projection.size() ; ++i)
+	    {
+		const std::valarray<double> &vec = m_projection[i];
+		const unsigned int dim = vec.size();
+		double *pos = projection + i;
+		*pos = 0.0;
+		for (unsigned int j = 0 ; j < dim ; ++j)
+		    *pos += kstate->values[j] * vec[j];
+	    }
+	}
+	
+    protected:
+	
+	std::vector< std::valarray<double> > m_projection;
 	
     };	
     
