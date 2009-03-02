@@ -198,9 +198,8 @@ namespace ompl
 	class StateKinematicL2SquareDistanceEvaluator : public StateDistanceEvaluator
 	{
 	public:
-	    StateKinematicL2SquareDistanceEvaluator(SpaceInformationKinematic_t si) : StateDistanceEvaluator()
+	    StateKinematicL2SquareDistanceEvaluator(SpaceInformationKinematic_t si) : StateDistanceEvaluator(), m_si(si)
 	    {
-		m_si = si;
 	    }
 	    
 	    virtual double operator()(const State_t state1, const State_t state2) const;
@@ -208,6 +207,30 @@ namespace ompl
 	protected:
 	    
 	    SpaceInformationKinematic_t m_si;	    
+	};
+	
+	/** A class that can perform sampling. Usually an instance of this class is needed
+ 	 * for sampling states */
+	class SamplingCore
+	{	    
+	public:
+	    SamplingCore(SpaceInformationKinematic_t si) : m_si(si) 
+	    {
+	    }	    
+
+	    /** Sample a state */
+	    void sample(StateKinematic_t state);
+
+	    /** Sample a state near another, within given bounds */
+	    void sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho);
+
+	    /** Sample a state near another, within given bounds */
+	    void sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho);
+
+	private:
+
+	    SpaceInformationKinematic_t m_si;	    
+	    random_utils::RNG           m_rng;
 	};
 	
 	struct StateComponent
@@ -226,10 +249,10 @@ namespace ompl
 	};
        	
 	/** Print a state to a stream */
-	virtual void printState(const StateKinematic_t state, std::ostream &out = std::cout) const;
+	void printState(const StateKinematic_t state, std::ostream &out = std::cout) const;
 
 	/** Copy a state to another */
-	virtual void copyState(StateKinematic_t destination, const StateKinematic_t source) const;
+	void copyState(StateKinematic_t destination, const StateKinematic_t source) const;
 	
 	/** Return the dimension of the state space */
 	unsigned int getStateDimension(void) const;
@@ -239,34 +262,25 @@ namespace ompl
 	
 	/** Compute the distance between two states */
 	double distance(const StateKinematic_t s1, const StateKinematic_t s2) const;
-	
-	/** Sample a state */
-	virtual void sample(StateKinematic_t state);
-
-	/** Sample a state near another, within given bounds */
-	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho);
-
-	/** Sample a state near another, within given bounds */
-	virtual void sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho);
-	
+		
 	/** Check if the path between two motions is valid using subdivision */
-	virtual bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2) const;
+	bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2) const;
 
 	/** Incrementally check if the path between two motions is valid */
-	virtual bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2,
-					    StateKinematic *lastValidState = NULL, double *lastValidTime = NULL) const;
+	bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2,
+				    StateKinematic *lastValidState = NULL, double *lastValidTime = NULL) const;
 	
 	/** Check if the path is valid */
-	virtual bool checkPath(PathKinematic_t path) const;
+	bool checkPath(PathKinematic_t path) const;
 	
 	/** Insert states in a path, at the collision checking resolution */
-	virtual void interpolatePath(PathKinematic_t path, double factor = 1.0) const;
+	void interpolatePath(PathKinematic_t path, double factor = 1.0) const;
 	
 	/** Check if a state is inside the bounding box */
-	virtual bool satisfiesBounds(const StateKinematic_t s) const;
+	bool satisfiesBounds(const StateKinematic_t s) const;
 	
 	/** Print information about the current instance of the state space */
-	virtual void printSettings(std::ostream &out = std::cout) const;
+	void printSettings(std::ostream &out = std::cout) const;
 	
 	/** Perform additional tasks to finish the initialization of
 	    the space information */
@@ -280,9 +294,10 @@ namespace ompl
 	
 	unsigned int                            m_stateDimension;
 	std::vector<StateComponent>             m_stateComponent;
-	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
+
+    private:
 	
-	random_utils::RNG                       m_rng;
+	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
 	
     };
     

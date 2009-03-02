@@ -93,7 +93,7 @@ bool ompl::RRT::solve(double solveTime)
 	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
 	    si->copyState(rstate, goal_s->state);
 	else
-	    si->sample(rstate);
+	    m_sCore.sample(rstate);
 
 	/* find closest state in the tree */
 	Motion_t nmotion = m_nn.nearest(rmotion);

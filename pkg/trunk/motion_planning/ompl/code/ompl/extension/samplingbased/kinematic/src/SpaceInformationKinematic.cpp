@@ -123,48 +123,6 @@ void ompl::SpaceInformationKinematic::printState(const StateKinematic_t state, s
 	out << "NULL" << std::endl;
 }
 
-void ompl::SpaceInformationKinematic::sample(StateKinematic_t state)
-{
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	if (m_stateComponent[i].type == StateComponent::QUATERNION)
-	{
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] = m_rng.uniform(m_stateComponent[i].minValue, m_stateComponent[i].maxValue);	    
-}
-
-void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho)
-{
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	if (m_stateComponent[i].type == StateComponent::QUATERNION)
-	{
-	    /* no notion of 'near' is employed for quaternions */
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] =
-		m_rng.uniform(std::max(m_stateComponent[i].minValue, near->values[i] - rho), 
-			      std::min(m_stateComponent[i].maxValue, near->values[i] + rho));
-}
-
-void ompl::SpaceInformationKinematic::sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho)
-{
-    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	if (m_stateComponent[i].type == StateComponent::QUATERNION)
-	{
-	    /* no notion of 'near' is employed for quaternions */
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] = 
-		m_rng.uniform(std::max(m_stateComponent[i].minValue, near->values[i] - rho[i]), 
-			      std::min(m_stateComponent[i].maxValue, near->values[i] + rho[i]));
-}
-
 bool ompl::SpaceInformationKinematic::checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
@@ -344,4 +302,59 @@ void ompl::SpaceInformationKinematic::printSettings(std::ostream &out) const
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	out << "[" << m_stateComponent[i].minValue << ", " <<  m_stateComponent[i].maxValue << "](" << m_stateComponent[i].resolution << ") ";
     out << std::endl;
+}
+
+
+void ompl::SpaceInformationKinematic::SamplingCore::sample(StateKinematic_t state)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	const StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == StateComponent::QUATERNION)
+	{
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] = m_rng.uniform(comp.minValue, comp.maxValue);	    
+    }
+}
+
+void ompl::SpaceInformationKinematic::SamplingCore::sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	const StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == StateComponent::QUATERNION)
+	{
+	    /* no notion of 'near' is employed for quaternions */
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] =
+		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho), 
+			      std::min(comp.maxValue, near->values[i] + rho));
+    }
+}
+
+void ompl::SpaceInformationKinematic::SamplingCore::sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {	
+	const StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == StateComponent::QUATERNION)
+	{
+	    /* no notion of 'near' is employed for quaternions */
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] = 
+		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho[i]), 
+			      std::min(comp.maxValue, near->values[i] + rho[i]));
+    }
 }

@@ -94,7 +94,7 @@ bool ompl::EST::solve(double solveTime)
 	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
 	    si->copyState(xstate, goal_s->state);
 	else
-	    si->sampleNear(xstate, existing->state, range);
+	    m_sCore.sampleNear(xstate, existing->state, range);
 	
 	if (si->checkMotionSubdivision(existing->state, xstate))
 	{

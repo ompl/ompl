@@ -108,16 +108,16 @@ bool ompl::KPIECE1::solve(double solveTime)
 		    si->copyState(xstate, approxsol->state);
 		    if (!m_hcik.tryToImprove(xstate, improveValue))
 		    {
-			si->sampleNear(xstate, existing->state, range);
+			m_sCore.sampleNear(xstate, existing->state, range);
 			improveValue /= 2.0;
 		    }
 		}
 		else
-		    si->sampleNear(xstate, existing->state, range);
+		    m_sCore.sampleNear(xstate, existing->state, range);
 	    }
 	}
 	else
-	    si->sampleNear(xstate, existing->state, range);
+	    m_sCore.sampleNear(xstate, existing->state, range);
 	
 	double failTime = 0.0;
 	bool keep = si->checkMotionIncremental(existing->state, xstate, xstate, &failTime);

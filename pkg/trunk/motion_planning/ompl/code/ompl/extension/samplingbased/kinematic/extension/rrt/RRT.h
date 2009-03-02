@@ -67,7 +67,8 @@ namespace ompl
     {
     public:
 
-        RRT(SpaceInformation_t si) : Planner(si)
+        RRT(SpaceInformation_t si) : Planner(si),
+	                             m_sCore(dynamic_cast<SpaceInformationKinematic*>(si))
 	{
 	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
 	    m_dEval = new DistanceFunction(dynamic_cast<SpaceInformationKinematic_t>(si));
@@ -153,7 +154,7 @@ namespace ompl
 		parent = NULL;
 	    }
 	    
-	    virtual ~Motion(void)
+	    ~Motion(void)
 	    {
 		if (state)
 		    delete state;
@@ -190,13 +191,15 @@ namespace ompl
 	    SpaceInformationKinematic_t m_si;
 	    
 	};
+
+	SpaceInformationKinematic::SamplingCore m_sCore;
 	
-	NearestNeighborsSqrtApprox<Motion_t> m_nn;
-	DistanceFunction                    *m_dEval;
+	NearestNeighborsSqrtApprox<Motion_t>    m_nn;
+	DistanceFunction                       *m_dEval;
 	
-	double                               m_goalBias;
-	double                               m_rho;	
-	random_utils::RNG                    m_rng;	
+	double                                  m_goalBias;
+	double                                  m_rho;	
+	random_utils::RNG                       m_rng;	
     };
 
 }

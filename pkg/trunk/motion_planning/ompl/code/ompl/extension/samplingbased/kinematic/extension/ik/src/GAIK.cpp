@@ -84,7 +84,7 @@ bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinemat
     for (unsigned int i = (hint ? 1 : 0) ; i < maxPoolSize ; ++i)
     {
 	pool[i].state = new SpaceInformationKinematic::StateKinematic(dim);
-	m_si->sample(pool[i].state);
+	m_sCore.sample(pool[i].state);
 	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
 	    if (valid(pool[i].state))
@@ -108,7 +108,7 @@ bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinemat
 	
 	for (unsigned int i = m_poolSize ; i < maxPoolSize ; ++i)
 	{
-	    m_si->sampleNear(pool[i].state, pool[i%m_poolSize].state, range);
+	    m_sCore.sampleNear(pool[i].state, pool[i%m_poolSize].state, range);
 	    if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
 		if (valid(pool[i].state))

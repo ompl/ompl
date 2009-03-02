@@ -61,7 +61,8 @@ namespace ompl
     {
     public:
 
-        GAIK(SpaceInformationKinematic_t si) : m_hcik(si)
+        GAIK(SpaceInformationKinematic_t si) : m_hcik(si),
+	                                       m_sCore(si)
 	{					
 	    m_si = si;
 	    m_rho = 0.04;
@@ -150,16 +151,17 @@ namespace ompl
 	    }	    
 	};
 	
-	HCIK                        m_hcik;
-	SpaceInformationKinematic_t m_si;	
-	unsigned int                m_poolSize;
-	unsigned int                m_poolExpansion;
-	unsigned int                m_maxImproveSteps;	
-	bool                        m_checkValidity;	
+	HCIK                                    m_hcik;
+	SpaceInformationKinematic::SamplingCore m_sCore;
+	SpaceInformationKinematic_t             m_si;	
+	unsigned int                            m_poolSize;
+	unsigned int                            m_poolExpansion;
+	unsigned int                            m_maxImproveSteps;	
+	bool                                    m_checkValidity;	
 
-	double                      m_rho;	
+	double                                  m_rho;	
 
-	msg::Interface              m_msg;
+	msg::Interface                          m_msg;
     };
 
 }

@@ -109,7 +109,7 @@ bool ompl::SBL::solve(double solveTime)
 	
 	Motion_t existing = selectMotion(tree);
 	assert(existing);
-	si->sampleNear(xstate, existing->state, range);
+	m_sCore.sampleNear(xstate, existing->state, range);
 	
 	/* create a motion */
 	Motion_t motion = new Motion(dim);

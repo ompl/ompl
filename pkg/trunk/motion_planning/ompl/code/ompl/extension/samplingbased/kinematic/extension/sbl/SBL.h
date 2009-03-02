@@ -85,7 +85,8 @@ namespace ompl
     {
     public:
 
-        SBL(SpaceInformation_t si) : Planner(si)
+        SBL(SpaceInformation_t si) : Planner(si),
+	                             m_sCore(dynamic_cast<SpaceInformationKinematic*>(si))
 	{
 	    m_type = PLAN_TO_GOAL_STATE;
 	    m_projectionEvaluator = NULL;
@@ -181,7 +182,7 @@ namespace ompl
 		valid  = false;
 	    }
 	    
-	    virtual ~Motion(void)
+	    ~Motion(void)
 	    {
 		if (state)
 		    delete state;
@@ -226,15 +227,17 @@ namespace ompl
 	bool isPathValid(TreeData &tree, Motion_t motion);
 	bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion_t motion, std::vector<Motion_t> &solution);
 
-	ProjectionEvaluator   *m_projectionEvaluator;
-	unsigned int           m_projectionDimension;
-	std::vector<double>    m_cellDimensions;
+	SpaceInformationKinematic::SamplingCore m_sCore;
+
+	ProjectionEvaluator                    *m_projectionEvaluator;
+	unsigned int                            m_projectionDimension;
+	std::vector<double>                     m_cellDimensions;
 		
-	TreeData               m_tStart;
-	TreeData               m_tGoal;
+	TreeData                                m_tStart;
+	TreeData                                m_tGoal;
 	
-	double                 m_rho;	
-	random_utils::RNG      m_rng;	
+	double                                  m_rho;	
+	random_utils::RNG                       m_rng;	
     };
 
 }

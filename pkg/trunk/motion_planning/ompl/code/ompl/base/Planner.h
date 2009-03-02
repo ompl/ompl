@@ -98,7 +98,6 @@ namespace ompl
 	
 	SpaceInformation_t m_si;
 	int                m_type;	
-	unsigned int       m_threadCount;
 	bool               m_setup;
 	msg::Interface     m_msg;
     };    

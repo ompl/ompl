@@ -76,6 +76,7 @@ namespace ompl
     public:
 
         KPIECE1(SpaceInformation_t si) : Planner(si),
+	                                 m_sCore(dynamic_cast<SpaceInformationKinematic*>(si)),
 	                                 m_hcik(dynamic_cast<SpaceInformationKinematic_t>(si))
 	{
 	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
@@ -191,7 +192,7 @@ namespace ompl
 		parent = NULL;
 	    }
 	    
-	    virtual ~Motion(void)
+	    ~Motion(void)
 	    {
 		if (state)
 		    delete state;
@@ -271,20 +272,22 @@ namespace ompl
 	bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 	void computeCoordinates(const Motion* motion, Grid::Coord &coord);
 	
-	HCIK                   m_hcik;
-	TreeData               m_tree;
+	SpaceInformationKinematic::SamplingCore m_sCore;
 	
-	ProjectionEvaluator   *m_projectionEvaluator;
-	unsigned int           m_projectionDimension;
-	std::vector<double>    m_cellDimensions;
+	HCIK                                    m_hcik;
+	TreeData                                m_tree;
+	
+	ProjectionEvaluator                    *m_projectionEvaluator;
+	unsigned int                            m_projectionDimension;
+	std::vector<double>                     m_cellDimensions;
 
-	double                 m_minValidPathPercentage;
-	double                 m_goodScoreFactor;
-	double                 m_badScoreFactor;
-	double                 m_selectBorderPercentage;
-	double                 m_goalBias;
-	double                 m_rho;	
-	random_utils::RNG      m_rng;	
+	double                                  m_minValidPathPercentage;
+	double                                  m_goodScoreFactor;
+	double                                  m_badScoreFactor;
+	double                                  m_selectBorderPercentage;
+	double                                  m_goalBias;
+	double                                  m_rho;	
+	random_utils::RNG                       m_rng;	
     };
 
 }
