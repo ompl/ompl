@@ -288,16 +288,21 @@ namespace ompl
 	{
 	    bool operator()(const CellX* const a, const CellX* const b) const
 	    {
-		return LessThanInternal()(a->data, b->data);
+		return m_lt(a->data, b->data);
 	    }	    
+
+	private:
+	    LessThanInternal m_lt;
 	};
 	
 	struct LessThanExternalCell
 	{
 	    bool operator()(const CellX* const a, const CellX* const b) const
 	    {
-		return LessThanExternal()(a->data, b->data);
+		return m_lt(a->data, b->data);
 	    }
+	private:
+	    LessThanExternal m_lt;
 	};
 	
 	typedef BinaryHeap< CellX*, LessThanInternalCell > internalBHeap;

@@ -199,7 +199,9 @@ namespace ompl
 	    m_vector = backup;
 	}
 	
-    protected:
+    private:
+
+        LessThan                 m_lt;
 	
 	std::vector<Element*>    m_vector;
 
@@ -246,8 +248,8 @@ namespace ompl
 	    
 	    while (child < n)
 	    {
-		if (LessThan()(m_vector[child - 1]->data, m_vector[child]->data)) child--;
-		if (LessThan()(m_vector[child]->data,  tmp->data))
+		if (m_lt(m_vector[child - 1]->data, m_vector[child]->data)) child--;
+		if (m_lt(m_vector[child]->data,  tmp->data))
 		{
 		    m_vector[parent] = m_vector[child];
 		    m_vector[parent]->position = parent;
@@ -260,7 +262,7 @@ namespace ompl
 	    if (child == n)
 	    {
 		child--;
-		if (LessThan()(m_vector[child]->data, tmp->data))
+		if (m_lt(m_vector[child]->data, tmp->data))
 		{
 		    m_vector[parent] = m_vector[child];
 		    m_vector[parent]->position = parent;
@@ -280,7 +282,7 @@ namespace ompl
 	    unsigned int       child  = pos;
 	    unsigned int       parent = (pos - 1) >> 1;
 	    
-	    while (child > 0 && LessThan()(tmp->data, m_vector[parent]->data))
+	    while (child > 0 && m_lt(tmp->data, m_vector[parent]->data))
 	    {
 		m_vector[child] = m_vector[parent];
 		m_vector[child]->position = child;
