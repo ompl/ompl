@@ -75,6 +75,21 @@ namespace ompl
 	    double *values;
 	};
 	
+	struct ControlComponent
+	{
+	    ControlComponent(void)
+	    {
+		type = UNKNOWN;
+		minValue = maxValue = 0.0;
+	    }
+	    
+	    enum
+		{ UNKNOWN, NORMAL }
+		type;
+	    double minValue;
+	    double maxValue;
+	};
+	
     }
 }
 

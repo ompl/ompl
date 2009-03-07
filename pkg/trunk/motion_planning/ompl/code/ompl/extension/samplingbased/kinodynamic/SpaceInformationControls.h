@@ -34,14 +34,12 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINODYNAMIC_SPACE_INFORMATION_CONTROLS_
+#define OMPL_EXTENSION_SAMPLINGBASED_KINODYNAMIC_SPACE_INFORMATION_CONTROLS_
 
 #include "ompl/extension/samplingbased/SpaceInformation.h"
-#include "ompl/extension/samplingbased/StateDistanceEvaluator.h"
-#include "ompl/extension/samplingbased/kinematic/PathKinematic.h"
+#include "ompl/extension/samplingbased/kinodynamic/Control.h"
 #include <vector>
-#include <valarray>
 
 /** Main namespace */
 namespace ompl
@@ -51,28 +49,29 @@ namespace ompl
     {
 	
 	/** Space information useful for kinematic planning */
-	class SpaceInformationKinematic : public SpaceInformation
+	class SpaceInformationControls : public SpaceInformation
 	{
 	public:
 	    
 	    /** Constructor; setup() needs to be called as well, before use */
-	    SpaceInformationKinematic(void) : SpaceInformation(),
-					      m_defaultDistanceEvaluator(dynamic_cast<SpaceInformation*>(this))
+	    SpaceInformationControls(void) : SpaceInformation()
 	    {
-		m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
+		m_controlDimension = 0;
+		m_resolution = 0.05;
 	    }
 	    
 	    /** Destructor */
-	    virtual ~SpaceInformationKinematic(void)
+	    virtual ~SpaceInformationControls(void)
 	    {
 	    }
+
 	    
 	    /** A class that can perform sampling. Usually an instance of this class is needed
 	     * for sampling states */
 	    class SamplingCore
 	    {	    
 	    public:
-		SamplingCore(SpaceInformationKinematic *si) : m_si(si) 
+		SamplingCore(SpaceInformationControls *si) : m_si(si) 
 		{
 		}	    
 		
@@ -80,51 +79,59 @@ namespace ompl
 		{
 		}
 		
-		/** Sample a state */
-		virtual void sample(State *state);
+		/** Sample a control */
+		virtual void sample(Control *ctrl);
 		
-		/** Sample a state near another, within given bounds */
-		virtual void sampleNear(State *state, const State *near, const double rho);
+		/** Sample a control near another, within given bounds */
+		virtual void sampleNear(Control *ctrl, const Control *near, const double rho);
 		
-		/** Sample a state near another, within given bounds */
-		virtual void sampleNear(State *state, const State *near, const std::vector<double> &rho);
+		/** Sample a control near another, within given bounds */
+		virtual void sampleNear(Control *ctrl, const Control *near, const std::vector<double> &rho);
 		
 	    protected:
 		
-		SpaceInformationKinematic *m_si;	    
-		random_utils::RNG          m_rng;
+		SpaceInformationControls *m_si;	    
+		random_utils::RNG         m_rng;
 	    };
 	    
-	    /** Check if the path between two motions is valid using subdivision */
-	    bool checkMotionSubdivision(const State *s1, const State *s2) const;
+	    unsigned int getControlDimension(void) const
+	    {
+		return m_controlDimension;
+	    }
+	    
+	    const ControlComponent& getControlComponent(unsigned int index) const
+	    {
+		return m_controlComponent[index];
+	    }
+	    
+	    /** Propagate the system forward in time, given a starting state, a control and a duration */
+	    void propagateForward(const State *begin, const Control *ctrl, double duration, State *end) const = 0;
 
-	    /** Incrementally check if the path between two motions is valid */
-	    bool checkMotionIncremental(const State *s1, const State *s2,
-					State *lastValidState = NULL, double *lastValidTime = NULL) const;
-	    
 	    /** Get the states that make up a motion. Returns the number of states that were added */
-	    unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, bool alloc) const;
+	    unsigned int getMotionStates(const State *begin, const Control *ctrl, double duration, std::vector<State*> &states, bool alloc) const;
+	    // still need to think some more :) 
+
+	    // if we use an ODE, integration does not do collision checking
+	    void propagateForward(const State *begin, const Control *ctrl, double duration, State *end) const = 0;
+	    void propagateForward(const State *begin, const Control *ctrl, double duration, std::vector<State*> &states) const = 0;
 	    
-	    /** Check if the path is valid */
-	    bool checkPath(const PathKinematic *path) const;
-	
-	    /** Insert states in a path, at the collision checking resolution */
-	    void interpolatePath(PathKinematic *path, double factor = 1.0) const;
-	
+	    bool checkStatesIncremental(const std::vector<State*> &states, unsigned int *lastValidStateIndex = NULL) const;
+	    bool checkStatesSubdivision(const std::vector<State*> &states) const;
+	    
+
+	    // if we use a physics engine
+	    void propagateForward(const State *begin, const Control *ctrl, double duration, std::vector<State*> &states) const = 0;
+
+
 	    /** Perform additional tasks to finish the initialization of
 		the space information */
 	    virtual void setup(void);
 	    
 	protected:
 	    
-	    /** For functions that need to interpolate between two states, find the appropriate step size */
-	    int findDifferenceStep(const State *s1, const State *s2, double factor,
-				   std::valarray<double> &step) const;
-	    
-	private:
-	    
-	    L2SquareStateDistanceEvaluator m_defaultDistanceEvaluator;
-	    
+	    unsigned int                  m_controlDimension;
+	    std::vector<ControlComponent> m_controlComponent;
+	    double                        m_resolution;
 	};
     }
     

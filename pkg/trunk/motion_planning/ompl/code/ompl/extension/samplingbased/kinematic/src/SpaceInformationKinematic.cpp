@@ -169,6 +169,46 @@ void ompl::sb::SpaceInformationKinematic::interpolatePath(PathKinematic *path, d
     path->states.swap(newStates);
 }
 
+unsigned int ompl::sb::SpaceInformationKinematic::getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, bool alloc) const
+{
+    std::valarray<double> step;
+    int nd = findDifferenceStep(s1, s2, 1.0, step);
+    if (alloc)
+    {
+	states.resize(nd + 1);
+	states[0] = new State(m_stateDimension);
+    }
+    
+    unsigned int added = 0;
+    
+    if (states.size() > 0)
+    {
+	copyState(states[0], s1);
+	added++;
+    }
+        
+    /* find the states in between */
+    for (int j = 1 ; j < nd && added < states.size() ; ++j)
+    {
+	added++;
+	if (alloc)
+	    states[j] = new State(m_stateDimension);
+	State *state = states[j];
+	for (unsigned int k = 0 ; k < m_stateDimension ; ++k)
+	    state->values[k] = s1->values[k] + (double)j * step[k];
+    }
+
+    if (added < states.size())
+    {
+	if (alloc)
+	    states[added] = new State(m_stateDimension);
+	copyState(states[added], s2);
+	added++;
+    }
+    
+    return added;
+}
+
 int ompl::sb::SpaceInformationKinematic::findDifferenceStep(const State *s1, const State *s2, double factor,
 							    std::valarray<double> &step) const
 {
