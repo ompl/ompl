@@ -36,12 +36,12 @@
 
 #include "ompl/extension/samplingbased/kinematic/extension/kpiece/KPIECE1.h"
 
-bool ompl::KPIECE1::solve(double solveTime)
+bool ompl::sb::KPIECE1::solve(double solveTime)
 {
-    SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
-    SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
-    SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
-    unsigned int                                        dim = si->getStateDimension();
+    SpaceInformationKinematic *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    GoalRegion            *goal_r = dynamic_cast<GoalRegion*>(si->getGoal());
+    GoalState             *goal_s = dynamic_cast<GoalState*>(si->getGoal());
+    unsigned int              dim = si->getStateDimension();
     
     if (!goal_s && !goal_r)
     {
@@ -56,7 +56,7 @@ bool ompl::KPIECE1::solve(double solveTime)
 	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
+	    si->copyState(motion->state, dynamic_cast<State*>(si->getStartState(i)));
 	    if (si->isValid(motion->state))
 		addMotion(motion, 1.0);
 	    else
@@ -79,10 +79,10 @@ bool ompl::KPIECE1::solve(double solveTime)
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
-    Motion                                     *solution  = NULL;
-    Motion                                     *approxsol = NULL;
-    double                                      approxdif = INFINITY;
-    SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
+    Motion *solution  = NULL;
+    Motion *approxsol = NULL;
+    double  approxdif = INFINITY;
+    State  *xstate    = new State(dim);
 
     double improveValue = 0.01;
 
@@ -100,7 +100,7 @@ bool ompl::KPIECE1::solve(double solveTime)
 	if (m_rng.uniform(0.0, 1.0) < m_goalBias)
 	{
 	    if (goal_s)
-		si->copyState(xstate, goal_s->state);
+		si->copyState(xstate, static_cast<State*>(goal_s->state));
 	    else
 	    {
 		if (approxsol)
@@ -172,10 +172,10 @@ bool ompl::KPIECE1::solve(double solveTime)
 	}
 
 	/* set the solution path */
-	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+	PathKinematic *path = new PathKinematic(static_cast<SpaceInformation*>(m_si));
    	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	{   
-	    SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+	    State *st = new State(dim);
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
@@ -194,7 +194,7 @@ bool ompl::KPIECE1::solve(double solveTime)
     return goal_r->isAchieved();
 }
 
-bool ompl::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
+bool ompl::sb::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 {
     scell = m_rng.uniform() < std::max(m_selectBorderPercentage, m_tree.grid.fracExternal()) ?
 	m_tree.grid.topExternal() : m_tree.grid.topInternal();
@@ -208,17 +208,17 @@ bool ompl::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 	return false;
 }
 
-void ompl::KPIECE1::computeCoordinates(const Motion *motion, Grid::Coord &coord)
+void ompl::sb::KPIECE1::computeCoordinates(const Motion *motion, Grid::Coord &coord)
 {
     coord.resize(m_projectionDimension);
     double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(static_cast<SpaceInformation::State*>(motion->state), projection);
+    (*m_projectionEvaluator)(static_cast<base::State*>(motion->state), projection);
     
     for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
 	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
 }
 
-unsigned int ompl::KPIECE1::addMotion(Motion *motion, double dist)
+unsigned int ompl::sb::KPIECE1::addMotion(Motion *motion, double dist)
 {
     Grid::Coord coord;
     computeCoordinates(motion, coord);

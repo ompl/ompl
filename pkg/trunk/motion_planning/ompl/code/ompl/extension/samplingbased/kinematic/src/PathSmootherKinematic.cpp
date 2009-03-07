@@ -37,7 +37,7 @@
 #include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
 #include <cstdlib>
 
-void ompl::PathSmootherKinematic::smoothVertices(SpaceInformationKinematic::PathKinematic_t path)
+void ompl::sb::PathSmootherKinematic::smoothVertices(PathKinematic *path)
 {
     if (!path || path->states.size() < 3)
 	return;    
@@ -76,7 +76,7 @@ void ompl::PathSmootherKinematic::smoothVertices(SpaceInformationKinematic::Path
     }
 }
 
-void ompl::PathSmootherKinematic::smoothMax(SpaceInformationKinematic::PathKinematic_t path)
+void ompl::sb::PathSmootherKinematic::smoothMax(PathKinematic *path)
 {
     smoothVertices(path);
     m_si->interpolatePath(path, 3.0);
@@ -84,7 +84,7 @@ void ompl::PathSmootherKinematic::smoothMax(SpaceInformationKinematic::PathKinem
     removeRedundantCommands(path);    
 }
 
-void ompl::PathSmootherKinematic::removeRedundantCommands(SpaceInformationKinematic::PathKinematic_t path) const
+void ompl::sb::PathSmootherKinematic::removeRedundantCommands(PathKinematic *path) const
 {
     if (!path || path->states.size() < 3)
 	return;

@@ -34,86 +34,26 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#include "ompl/extension/samplingbased/StateDistanceEvaluator.h"
+#include <angles/angles.h>
+#include <cassert>
 
-#include "ompl/datastructures/NearestNeighbors.h"
-
-namespace ompl
+double ompl::sb::L2SquareStateDistanceEvaluator::operator()(const base::State *s1, const base::State *s2) const
 {
+    assert(dynamic_cast<const State*>(s1));
+    assert(dynamic_cast<const State*>(s2));
 
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
-    {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
-	{
-	}
-	
-	virtual ~NearestNeighborsLinear(void)
-	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
-	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
-	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
-	
-	virtual unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
+    const State *sk1 = static_cast<const State*>(s1);
+    const State *sk2 = static_cast<const State*>(s2);
+    const unsigned int dim = m_si->getStateDimension();
     
-    
+    double dist = 0.0;
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {	 
+	double diff = m_si->getStateComponent(i).type == StateComponent::WRAPPING_ANGLE ? 
+	    angles::shortest_angular_distance(sk1->values[i], sk2->values[i]) : sk1->values[i] - sk2->values[i];
+	dist += diff * diff;
+	// will need to consider quaternions; bullet angle diff?
+    }
+    return dist;
 }
-
-#endif

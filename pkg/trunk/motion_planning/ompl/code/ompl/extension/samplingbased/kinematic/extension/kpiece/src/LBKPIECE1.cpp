@@ -36,11 +36,11 @@
 
 #include "ompl/extension/samplingbased/kinematic/extension/kpiece/LBKPIECE1.h"
 
-bool ompl::LBKPIECE1::solve(double solveTime)
+bool ompl::sb::LBKPIECE1::solve(double solveTime)
 {
-    SpaceInformationKinematic_t                       si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
-    SpaceInformationKinematic::GoalStateKinematic_t goal = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
-    unsigned int                                     dim = si->getStateDimension();
+    SpaceInformationKinematic *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    GoalState               *goal = dynamic_cast<GoalState*>(si->getGoal());
+    unsigned int              dim = si->getStateDimension();
     
     if (!goal)
     {
@@ -55,7 +55,7 @@ bool ompl::LBKPIECE1::solve(double solveTime)
 	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
 	{
 	    Motion* motion = new Motion(dim);
-	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
+	    si->copyState(motion->state, dynamic_cast<State*>(si->getStartState(i)));
 	    if (si->isValid(motion->state))
 	    {
 		motion->valid = true;
@@ -72,7 +72,7 @@ bool ompl::LBKPIECE1::solve(double solveTime)
     if (m_tGoal.size == 0)
     {	   
 	Motion* motion = new Motion(dim);
-	si->copyState(motion->state, goal->state);
+	si->copyState(motion->state, static_cast<State*>(goal->state));
 	if (si->isValid(motion->state))
 	{
 	    motion->valid = true;
@@ -93,9 +93,9 @@ bool ompl::LBKPIECE1::solve(double solveTime)
     
     m_msg.inform("LBKPIECE1: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
-    std::vector<Motion*>                        solution;
-    SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
-    bool                                        startTree = true;
+    std::vector<Motion*> solution;
+    State *xstate    = new State(dim);
+    bool   startTree = true;
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -122,10 +122,10 @@ bool ompl::LBKPIECE1::solve(double solveTime)
 	
 	if (checkSolution(!startTree, tree, otherTree, motion, solution))
 	{
-	    SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+	    PathKinematic *path = new PathKinematic(static_cast<SpaceInformation*>(m_si));
 	    for (unsigned int i = 0 ; i < solution.size() ; ++i)
 	    {
-		SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+		State *st = new State(dim);
 		si->copyState(st, solution[i]->state);
 		path->states.push_back(st);
 	    }
@@ -145,7 +145,7 @@ bool ompl::LBKPIECE1::solve(double solveTime)
     return goal->isAchieved();
 }
 
-bool ompl::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution)
+bool ompl::sb::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution)
 {
     Grid::Coord coord;
     computeCoordinates(motion, coord); 
@@ -153,9 +153,9 @@ bool ompl::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherT
     
     if (cell && !cell->data->motions.empty())
     {
-	SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
-	Motion* connectOther           = cell->data->motions[m_rng.uniformInt(0, cell->data->motions.size() - 1)];
-	Motion* connect                = new Motion(si->getStateDimension());
+	SpaceInformationKinematic *si = static_cast<SpaceInformationKinematic*>(m_si);
+	Motion* connectOther          = cell->data->motions[m_rng.uniformInt(0, cell->data->motions.size() - 1)];
+	Motion* connect               = new Motion(si->getStateDimension());
 	
 	si->copyState(connect->state, connectOther->state);
 	connect->parent = motion;
@@ -193,10 +193,10 @@ bool ompl::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherT
     return false;
 }
 
-bool ompl::LBKPIECE1::isPathValid(TreeData &tree, Motion* motion)
+bool ompl::sb::LBKPIECE1::isPathValid(TreeData &tree, Motion* motion)
 {
-    std::vector<Motion*>        mpath;
-    SpaceInformationKinematic_t si = static_cast<SpaceInformationKinematic_t>(m_si);
+    std::vector<Motion*>       mpath;
+    SpaceInformationKinematic *si = static_cast<SpaceInformationKinematic*>(m_si);
     
     /* construct the solution path */
     while (motion != NULL)
@@ -220,17 +220,17 @@ bool ompl::LBKPIECE1::isPathValid(TreeData &tree, Motion* motion)
     return true;
 }
 
-void ompl::LBKPIECE1::computeCoordinates(const Motion* motion, Grid::Coord &coord)
+void ompl::sb::LBKPIECE1::computeCoordinates(const Motion* motion, Grid::Coord &coord)
 {
     coord.resize(m_projectionDimension);
     double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(static_cast<SpaceInformation::State*>(motion->state), projection);
+    (*m_projectionEvaluator)(static_cast<base::State*>(motion->state), projection);
     
     for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
 	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
 }
 
-ompl::LBKPIECE1::Motion* ompl::LBKPIECE1::selectMotion(TreeData &tree)
+ompl::sb::LBKPIECE1::Motion* ompl::sb::LBKPIECE1::selectMotion(TreeData &tree)
 {
     Grid::Cell* cell = m_rng.uniform() < std::max(m_selectBorderPercentage, tree.grid.fracExternal()) ?
 	tree.grid.topExternal() : tree.grid.topInternal();
@@ -244,7 +244,7 @@ ompl::LBKPIECE1::Motion* ompl::LBKPIECE1::selectMotion(TreeData &tree)
 	return NULL;
 }
 
-void ompl::LBKPIECE1::removeMotion(TreeData &tree, Motion* motion)
+void ompl::sb::LBKPIECE1::removeMotion(TreeData &tree, Motion* motion)
 {
     /* remove from grid */
     
@@ -290,7 +290,7 @@ void ompl::LBKPIECE1::removeMotion(TreeData &tree, Motion* motion)
     delete motion;
 }
 
-void ompl::LBKPIECE1::addMotion(TreeData &tree, Motion* motion)
+void ompl::sb::LBKPIECE1::addMotion(TreeData &tree, Motion* motion)
 {
     Grid::Coord coord;
     computeCoordinates(motion, coord);

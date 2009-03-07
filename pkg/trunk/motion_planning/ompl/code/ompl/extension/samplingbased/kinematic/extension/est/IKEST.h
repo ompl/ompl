@@ -42,5 +42,8 @@
 
 namespace ompl
 {
-    typedef IKPlanner<EST> IKEST;
+    namespace sb
+    {
+	typedef IKPlanner<EST> IKEST;
+    }
 }

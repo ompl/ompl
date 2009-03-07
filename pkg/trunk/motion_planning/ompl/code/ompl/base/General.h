@@ -100,10 +100,7 @@
 #ifndef OMPL_BASE_GENERAL_
 #define OMPL_BASE_GENERAL_
 
-/** Macro for forward class declarations */
-#define ForwardClassDeclaration(A) class A; typedef A * A##_t
 
-/** Macro for forward struct declarations */
-#define ForwardStructDeclaration(A) struct A; typedef A * A##_t
+// definitions that should be available in every file of OMPL
 
 #endif

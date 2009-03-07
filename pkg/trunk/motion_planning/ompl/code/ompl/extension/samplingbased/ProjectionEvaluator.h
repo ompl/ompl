@@ -34,39 +34,68 @@
 
 /* \author Ioan Sucan */
 
-#include "ompl/base/Planner.h"
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_PROJECTION_EVALUATOR_
+#define OMPL_EXTENSION_SAMPLINGBASED_PROJECTION_EVALUATOR_
 
-bool ompl::Planner::isTrivial(unsigned int *startID, double *distance) const
+#include "ompl/extension/samplingbased/SpaceInformation.h"
+#include "ompl/base/ProjectionEvaluator.h"
+
+#include <valarray>
+#include <vector>
+
+namespace ompl
 {
-    SpaceInformation::Goal_t goal = m_si->getGoal();
-    
-    if (!goal)
+
+    namespace sb
     {
-	m_msg.error("Goal undefined");
-	return false;
-    }
-    
-    for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
-    {
-	SpaceInformation::State_t start = m_si->getStartState(i);
-	if (m_si->isValid(start))
+	
+	/** Definition for a class computing orthogonal projections */
+	class OrthogonalProjectionEvaluator : public base::ProjectionEvaluator
 	{
-	    double dist;
-	    if (goal->isSatisfied(start, &dist))
+	public:
+	    
+	    OrthogonalProjectionEvaluator(const std::vector<unsigned int> &components) : base::ProjectionEvaluator()
 	    {
-		if (startID)
-		    *startID = i;
-		if (distance)
-		    *distance = dist;
-		return true;
-	    }	    
-	}
-	else
+		m_components = components;
+	    }
+	    
+	    virtual unsigned int getDimension(void) const
+	    {
+		return m_components.size();
+	    }
+	    
+	    virtual void operator()(const base::State *state, double *projection) const;
+	    
+	protected:
+	    
+	    std::vector<unsigned int> m_components;
+	    
+	};	
+	
+        /** Definition for a class computing orthogonal projections */
+	class LinearProjectionEvaluator : public base::ProjectionEvaluator
 	{
-	    m_msg.error("Initial state is in collision!");
-	}
+	public:
+	    
+	    LinearProjectionEvaluator(const std::vector< std::valarray<double> > &projection) : base::ProjectionEvaluator()
+	    {
+		m_projection = projection;
+	    }
+	    
+	    virtual unsigned int getDimension(void) const
+	    {
+		return m_projection.size();
+	    }
+	    
+	    virtual void operator()(const base::State *state, double *projection) const;
+	    
+	protected:
+	    
+	    std::vector< std::valarray<double> > m_projection;
+	    
+	};	
+	
     }
-    
-    return false;    
 }
 
+#endif

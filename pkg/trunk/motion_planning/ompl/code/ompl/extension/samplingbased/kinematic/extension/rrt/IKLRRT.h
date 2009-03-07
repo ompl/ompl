@@ -42,5 +42,8 @@
 
 namespace ompl
 {
-    typedef IKPlanner<LazyRRT> IKLRRT;
+    namespace sb
+    {
+	typedef IKPlanner<LazyRRT> IKLRRT;
+    }
 }

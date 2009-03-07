@@ -34,86 +34,46 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_STATE_ALLOCATOR_
+#define OMPL_EXTENSION_SAMPLINGBASED_STATE_ALLOCATOR_
 
-#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/extension/samplingbased/SpaceInformation.h"
+#include <boost/pool/object_pool.hpp>
+#include <boost/pool/pool.hpp>
 
 namespace ompl
 {
 
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
-    {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
+    namespace sb
+    {	
+    
+	/** Definition for a class computing orthogonal projections */
+	class StateAllocator
 	{
-	}
-	
-	virtual ~NearestNeighborsLinear(void)
-	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
+	public:
+	    
+	    StateAllocator(unsigned int dimension) : m_doubles(sizeof(double) * dimension)
 	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
 	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
-	
-	virtual unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
-    
-    
+	    
+	    ~StateAllocator(void)
+	    {
+	    }
+	    
+	    State* allocState(void)
+	    {
+		State *state = m_states.construct();
+		state->values = reinterpret_cast<double*>(m_doubles.malloc());
+		return state;
+	    }
+	    
+	protected:
+	    
+	    boost::pool<>                                       m_doubles;
+	    boost::object_pool<SpaceInformationSB::StateValues> m_states;
+	    
+	};	
+    }
 }
 
 #endif

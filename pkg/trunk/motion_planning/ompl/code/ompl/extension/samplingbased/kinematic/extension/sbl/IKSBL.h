@@ -42,7 +42,10 @@
 
 namespace ompl
 {
-    typedef IKPlanner<SBL> IKSBL;
+    namespace sb
+    {
+	typedef IKPlanner<SBL> IKSBL;
+    }
 }
 
 #endif

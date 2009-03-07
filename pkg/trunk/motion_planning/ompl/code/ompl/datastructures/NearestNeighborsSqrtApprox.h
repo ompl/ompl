@@ -100,7 +100,7 @@ namespace ompl
 		    
 		    if (m_active[i])
 		    {
-			double distance = (*NearestNeighbors<_T>::m_distFun)(m_data[i], data);
+			double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
 			if (pos < 0 || dmin > distance)
 			{
 			    pos = i;

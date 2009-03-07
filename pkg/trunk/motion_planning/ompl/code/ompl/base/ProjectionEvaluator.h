@@ -37,49 +37,54 @@
 #ifndef OMPL_BASE_PROJECTION_EVALUATOR_
 #define OMPL_BASE_PROJECTION_EVALUATOR_
 
-#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/General.h"
+#include "ompl/base/State.h"
+#include <vector>
 
 namespace ompl
 {
     
-    /** Forward class declaration */
-    ForwardClassDeclaration(ProjectionEvaluator);	
-    
-    /** Abstract definition for a class computing projections */
-    class ProjectionEvaluator
+    namespace base
     {
-    public:
-	/** Destructor */
-	virtual ~ProjectionEvaluator(void)
+	
+	/** Abstract definition for a class computing projections */
+	class ProjectionEvaluator
 	{
-	}
+	public:
+	    /** Destructor */
+	    virtual ~ProjectionEvaluator(void)
+	    {
+	    }
+	    
+	    /** Define the dimension (each component) of a grid cell. The
+		number of dimensions set here must be the same as the
+		dimension of the projection computed by the projection
+		evaluator. */
+	    void setCellDimensions(const std::vector<double> &cellDimensions)
+	    {
+		m_cellDimensions = cellDimensions;
+	    }
+	    
+	    void getCellDimensions(std::vector<double> &cellDimensions) const
+	    {
+		cellDimensions = m_cellDimensions;
+	    }
+	    
+	    /** Return the dimension of the projection defined by this evaluator */
+	    virtual unsigned int getDimension(void) const = 0;
+	    
+	    /** Compute the projection as an array of double values */
+	    virtual void operator()(const State *state, double *projection) const = 0;
+	    
+	protected:
+	    
+	    std::vector<double> m_cellDimensions;
+	    
+	};
 	
-	/** Define the dimension (each component) of a grid cell. The
-	    number of dimensions set here must be the same as the
-	    dimension of the projection computed by the projection
-	    evaluator. */
-	void setCellDimensions(const std::vector<double> &cellDimensions)
-	{
-	    m_cellDimensions = cellDimensions;
-	}
+    }
 
-	void getCellDimensions(std::vector<double> &cellDimensions) const
-	{
-	    cellDimensions = m_cellDimensions;
-	}
-
-	/** Return the dimension of the projection defined by this evaluator */
-	virtual unsigned int getDimension(void) const = 0;
-	
-	/** Compute the projection as an array of double values */
-	virtual void operator()(const SpaceInformation::State *state, double *projection) const = 0;
-
-    protected:
-	
-	std::vector<double> m_cellDimensions;
-	
-    };
-    
 }
 
 #endif
+

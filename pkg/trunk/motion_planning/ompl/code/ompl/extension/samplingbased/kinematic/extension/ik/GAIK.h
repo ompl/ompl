@@ -44,126 +44,126 @@
 namespace ompl
 {
     
-    /** Forward class declaration */
-    ForwardClassDeclaration(GAIK);
-    
-    /**
-       @subsubsection GAIK Inverse Kinematics with Genetic Algorithms
-       
-       @par Short description
-
-       GAIK does inverse kinematics, but makes sure the produced
-       goal states are in fact valid.       
-       
-       @par External documentation
-    */
-    class GAIK
+    namespace sb
     {
-    public:
-
-        GAIK(SpaceInformationKinematic_t si) : m_hcik(si),
-	                                       m_sCore(si)
-	{					
-	    m_si = si;
-	    m_rho = 0.04;
-	    m_poolSize = 80;
-	    m_poolExpansion = 100;
-	    m_hcik.setMaxImproveSteps(3);
-	    m_checkValidity = true;
-	}
 	
-	virtual ~GAIK(void)
+	/**
+	   @subsubsection GAIK Inverse Kinematics with Genetic Algorithms
+	   
+	   @par Short description
+	   
+	   GAIK does inverse kinematics, but makes sure the produced
+	   goal states are in fact valid.       
+	   
+	   @par External documentation
+	*/
+	class GAIK
 	{
-	}
-	
-	virtual bool solve(double solveTime, SpaceInformationKinematic::StateKinematic_t result,
-			   const SpaceInformationKinematic::StateKinematic_t hint = NULL);
-	
-	void setMaxImproveSteps(unsigned int maxSteps)
-	{
-	    m_hcik.setMaxImproveSteps(maxSteps);
-	}
-
-	unsigned int getMaxImproveSteps(void) const
-	{
-	    return m_hcik.getMaxImproveSteps();
-	}
-	
-	void setValidityCheck(bool valid)
-	{
-	    m_checkValidity = valid;
-	}
-	
-	bool getValidityCheck(void) const
-	{
-	    return m_checkValidity;
-	}
-	
-	/** The number of individuals in the population */
-	void setPoolSize(unsigned int size)
-	{
-	    m_poolSize = size;
-	}
-
-	unsigned int getPoolSize(void) const
-	{
-	    return m_poolSize;
-	}
-	
-	/** The number of individuals to add to the population in each generation */
-	void setPoolExpansionSize(unsigned int size)
-	{
-	    m_poolExpansion = size;
-	}
-
-	unsigned int getPoolExtensionSize(void) const
-	{
-	    return m_poolExpansion;
-	}
-	
-	void setRange(double rho)
-	{
-	    m_rho = rho;
-	}
-	
-	/** Get the range the planner is using */
-	double getRange(void) const
-	{
-	    return m_rho;
-	}
-
-    protected:
-	
-	bool tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double distance);
-	bool valid(SpaceInformationKinematic::StateKinematic_t state);
-	
-	struct Individual
-	{
-	    SpaceInformationKinematic::StateKinematic_t state;
-	    double                                      distance;
-	};
-	
-	struct IndividualSort
-	{
-	    bool operator()(const Individual& a, const Individual& b)
+	public:
+	    
+	    GAIK(SpaceInformationKinematic *si) : m_hcik(dynamic_cast<SpaceInformation*>(si)),
+						  m_sCore(si)
+	    {					
+		m_si = si;
+		m_rho = 0.04;
+		m_poolSize = 80;
+		m_poolExpansion = 100;
+		m_hcik.setMaxImproveSteps(3);
+		m_checkValidity = true;
+	    }
+	    
+	    virtual ~GAIK(void)
 	    {
-		return a.distance < b.distance;
-	    }	    
+	    }
+	    
+	    virtual bool solve(double solveTime, State *result, const State* hint = NULL);
+	    
+	    void setMaxImproveSteps(unsigned int maxSteps)
+	    {
+		m_hcik.setMaxImproveSteps(maxSteps);
+	    }
+	    
+	    unsigned int getMaxImproveSteps(void) const
+	    {
+		return m_hcik.getMaxImproveSteps();
+	    }
+	    
+	    void setValidityCheck(bool valid)
+	    {
+		m_checkValidity = valid;
+	    }
+	    
+	    bool getValidityCheck(void) const
+	    {
+		return m_checkValidity;
+	    }
+	    
+	    /** The number of individuals in the population */
+	    void setPoolSize(unsigned int size)
+	    {
+		m_poolSize = size;
+	    }
+	    
+	    unsigned int getPoolSize(void) const
+	    {
+		return m_poolSize;
+	    }
+	    
+	    /** The number of individuals to add to the population in each generation */
+	    void setPoolExpansionSize(unsigned int size)
+	    {
+		m_poolExpansion = size;
+	    }
+	    
+	    unsigned int getPoolExtensionSize(void) const
+	    {
+		return m_poolExpansion;
+	    }
+	    
+	    void setRange(double rho)
+	    {
+		m_rho = rho;
+	    }
+	    
+	    /** Get the range the planner is using */
+	    double getRange(void) const
+	    {
+		return m_rho;
+	    }
+	    
+	protected:
+	    
+	    bool tryToImprove(State *state, double distance);
+	    bool valid(const State *state) const;
+	    
+	    struct Individual
+	    {
+		State *state;
+		double distance;
+	    };
+	    
+	    struct IndividualSort
+	    {
+		bool operator()(const Individual& a, const Individual& b)
+		{
+		    return a.distance < b.distance;
+		}	    
+	    };
+	    
+	    HCIK                                    m_hcik;
+	    SpaceInformationKinematic::SamplingCore m_sCore;
+	    SpaceInformationKinematic              *m_si;	
+	    unsigned int                            m_poolSize;
+	    unsigned int                            m_poolExpansion;
+	    unsigned int                            m_maxImproveSteps;	
+	    bool                                    m_checkValidity;	
+	    
+	    double                                  m_rho;	
+	    
+	    msg::Interface                          m_msg;
 	};
 	
-	HCIK                                    m_hcik;
-	SpaceInformationKinematic::SamplingCore m_sCore;
-	SpaceInformationKinematic_t             m_si;	
-	unsigned int                            m_poolSize;
-	unsigned int                            m_poolExpansion;
-	unsigned int                            m_maxImproveSteps;	
-	bool                                    m_checkValidity;	
-
-	double                                  m_rho;	
-
-	msg::Interface                          m_msg;
-    };
-
+    }
 }
 
 #endif

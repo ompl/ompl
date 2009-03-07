@@ -37,198 +37,198 @@
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_EST_EST_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_EST_EST_
 
-#include "ompl/base/Planner.h"
-#include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/Grid.h"
+#include "ompl/extension/samplingbased/Planner.h"
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/base/ProjectionEvaluator.h"
 #include <vector>
 
 namespace ompl
 {
     
-    /** Forward class declaration */
-    ForwardClassDeclaration(EST);
-    
-    /**
-       @subsubsection EST Expansive Space Trees (EST)
-       
-       @par Short description
-       
-       EST attempts to detect the less explored area of the space
-       through the use of a grid imposed on a projection of the state
-       space. Using this information, EST continues tree expansion
-       primarily from less explored areas.
-       
-       @par External documentation
-       Path planning in expansive configuration spaces
-       Hsu, D.; Latombe, J.-C.; Motwani, R.
-       IEEE International Conference on Robotics and Automation, 1997.
-       Volume 3, Issue , 20-25 Apr 1997 Page(s):2719 - 2726 vol.3
-    */
-    class EST : public Planner
+    namespace sb
     {
-    public:
-
-        EST(SpaceInformation_t si) : Planner(si),
-	                             m_sCore(dynamic_cast<SpaceInformationKinematic*>(si))
-	{
-	    m_type = PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION;
-	    m_projectionEvaluator = NULL;
-	    m_projectionDimension = 0;
-	    m_goalBias = 0.05;
-	    m_rho = 0.5;
-	}
-
-	virtual ~EST(void)
-	{
-	    freeMemory();
-	}
 	
-	virtual bool solve(double solveTime);
-	
-	virtual void clear(void)
-	{
-	    freeMemory();
-	    m_tree.grid.clear();
-	    m_tree.size = 0;
-	}
-
-	/** In the process of randomly selecting states in the state
-	    space to attempt to go towards, the algorithm may in fact
-	    choose the actual goal state, if it knows it, with some
-	    probability. This probability is a real number between 0.0
-	    and 1.0; its value should usually be around 0.05 and
-	    should not be too large. It is probably a good idea to use
-	    the default value. */
-	void setGoalBias(double goalBias)
-	{
-	    m_goalBias = goalBias;
-	}
-
-	/** Get the goal bias the planner is using */
-	double getGoalBias(void) const
-	{
-	    return m_goalBias;
-	}
-	
-	/** Set the range the planner is supposed to use. This
-	    parameter greatly influences the runtime of the
-	    algorithm. It is probably a good idea to find what a good
-	    value is for each model the planner is used for. The range
-	    parameter influences how this @b qm along the path between
-	    @b qc and @b qr is chosen. @b qr may be too far, and it
-	    may not be best to have @b qm = @b qr all the time (range
-	    = 1.0 implies @b qm = @b qr. range should be less than
-	    1.0). However, in a large space, it is also good to leave
-	    the neighborhood of @b qc (range = 0.0 implies @b qm = @b
-	    qc and no progress is made. rande should be larger than
-	    0.0). Multiple values of this range parameter should be
-	    tried until a suitable one is found. */
-	void setRange(double rho)
-	{
-	    m_rho = rho;
-	}
-	
-	/** Get the range the planner is using */
-	double getRange(void) const
-	{
-	    return m_rho;
-	}
-
-	/** Set the projection evaluator. This class is able to
-	    compute the projection of a given state. The simplest
-	    option is to use an orthogonal projection; see
-	    OrthogonalProjectionEvaluator */
-	void setProjectionEvaluator(ProjectionEvaluator_t projectionEvaluator)
-	{
-	    m_projectionEvaluator = projectionEvaluator;
-	}
-
-	ProjectionEvaluator_t getProjectionEvaluator(void) const
-	{
-	    return m_projectionEvaluator;
-	}
-
-	virtual void setup(void)
-	{
-	    assert(m_projectionEvaluator);
-	    m_projectionDimension = m_projectionEvaluator->getDimension();
-	    assert(m_projectionDimension > 0);
-	    m_projectionEvaluator->getCellDimensions(m_cellDimensions);
-	    assert(m_cellDimensions.size() == m_projectionDimension);
-	    m_tree.grid.setDimension(m_projectionDimension);
-	    Planner::setup();
-	}
-
-    protected:
-
-       	ForwardClassDeclaration(Motion);
-	
-	class Motion
+	/**
+	   @subsubsection EST Expansive Space Trees (EST)
+	   
+	   @par Short description
+	   
+	   EST attempts to detect the less explored area of the space
+	   through the use of a grid imposed on a projection of the state
+	   space. Using this information, EST continues tree expansion
+	   primarily from less explored areas.
+	   
+	   @par External documentation
+	   Path planning in expansive configuration spaces
+	   Hsu, D.; Latombe, J.-C.; Motwani, R.
+	   IEEE International Conference on Robotics and Automation, 1997.
+	   Volume 3, Issue , 20-25 Apr 1997 Page(s):2719 - 2726 vol.3
+	*/
+	class EST : public Planner
 	{
 	public:
 	    
-	    Motion(void)
+	    EST(SpaceInformationKinematic *si) : Planner(si),
+	     			                 m_sCore(si)
 	    {
-		parent = NULL;
-		state  = NULL;
+		m_type = (PlannerType)(PLAN_TO_GOAL_STATE | PLAN_TO_GOAL_REGION);
+		m_projectionEvaluator = NULL;
+		m_projectionDimension = 0;
+		m_goalBias = 0.05;
+		m_rho = 0.5;
 	    }
 	    
-	    Motion(unsigned int dimension)
+	    virtual ~EST(void)
 	    {
-		state  = new SpaceInformationKinematic::StateKinematic(dimension);
-		parent = NULL;
+		freeMemory();
 	    }
 	    
-	    ~Motion(void)
+	    virtual bool solve(double solveTime);
+	    
+	    virtual void clear(void)
 	    {
-		if (state)
-		    delete state;
+		freeMemory();
+		m_tree.grid.clear();
+		m_tree.size = 0;
 	    }
 	    
-	    SpaceInformationKinematic::StateKinematic_t state;
-	    Motion_t                                    parent;
-	    
-	};
-
-	typedef std::vector<Motion_t> MotionSet;
-
-	struct TreeData
-	{
-	    TreeData(void) : grid(0)
+	    /** In the process of randomly selecting states in the state
+		space to attempt to go towards, the algorithm may in fact
+		choose the actual goal state, if it knows it, with some
+		probability. This probability is a real number between 0.0
+		and 1.0; its value should usually be around 0.05 and
+		should not be too large. It is probably a good idea to use
+		the default value. */
+	    void setGoalBias(double goalBias)
 	    {
-		size = 0;
+		m_goalBias = goalBias;
 	    }
 	    
-	    Grid<MotionSet> grid;
-	    unsigned int    size;
+	    /** Get the goal bias the planner is using */
+	    double getGoalBias(void) const
+	    {
+		return m_goalBias;
+	    }
+	    
+	    /** Set the range the planner is supposed to use. This
+		parameter greatly influences the runtime of the
+		algorithm. It is probably a good idea to find what a good
+		value is for each model the planner is used for. The range
+		parameter influences how this @b qm along the path between
+		@b qc and @b qr is chosen. @b qr may be too far, and it
+		may not be best to have @b qm = @b qr all the time (range
+		= 1.0 implies @b qm = @b qr. range should be less than
+		1.0). However, in a large space, it is also good to leave
+		the neighborhood of @b qc (range = 0.0 implies @b qm = @b
+		qc and no progress is made. rande should be larger than
+		0.0). Multiple values of this range parameter should be
+		tried until a suitable one is found. */
+	    void setRange(double rho)
+	    {
+		m_rho = rho;
+	    }
+	    
+	    /** Get the range the planner is using */
+	    double getRange(void) const
+	    {
+		return m_rho;
+	    }
+	    
+	    /** Set the projection evaluator. This class is able to
+		compute the projection of a given state. The simplest
+		option is to use an orthogonal projection; see
+		OrthogonalProjectionEvaluator */
+	    void setProjectionEvaluator(base::ProjectionEvaluator *projectionEvaluator)
+	    {
+		m_projectionEvaluator = projectionEvaluator;
+	    }
+	    
+	    base::ProjectionEvaluator* getProjectionEvaluator(void) const
+	    {
+		return m_projectionEvaluator;
+	    }
+	    
+	    virtual void setup(void)
+	    {
+		assert(m_projectionEvaluator);
+		m_projectionDimension = m_projectionEvaluator->getDimension();
+		assert(m_projectionDimension > 0);
+		m_projectionEvaluator->getCellDimensions(m_cellDimensions);
+		assert(m_cellDimensions.size() == m_projectionDimension);
+		m_tree.grid.setDimension(m_projectionDimension);
+		Planner::setup();
+	    }
+	    
+	protected:
+	    
+	    class Motion
+	    {
+	    public:
+		
+		Motion(void)
+		{
+		    parent = NULL;
+		    state  = NULL;
+		}
+		
+		Motion(unsigned int dimension)
+		{
+		    state  = new State(dimension);
+		    parent = NULL;
+		}
+		
+		~Motion(void)
+		{
+		    if (state)
+			delete state;
+		}
+		
+		State  *state;
+		Motion *parent;
+		
+	    };
+	    
+	    typedef std::vector<Motion*> MotionSet;
+	    
+	    struct TreeData
+	    {
+		TreeData(void) : grid(0)
+		{
+		    size = 0;
+		}
+		
+		Grid<MotionSet> grid;
+		unsigned int    size;
+	    };
+	    
+	    void freeMemory(void)
+	    {
+		for (Grid<MotionSet>::iterator it = m_tree.grid.begin(); it != m_tree.grid.end() ; ++it)
+		{
+		    for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
+			delete it->second->data[i];
+		}
+	    }
+	    
+	    void addMotion(Motion *motion);
+	    Motion* selectMotion(void);
+	    void computeCoordinates(const Motion *motion, Grid<MotionSet>::Coord &coord);
+	    
+	    SpaceInformationKinematic::SamplingCore m_sCore;
+	    TreeData                                m_tree;
+	    
+	    base::ProjectionEvaluator              *m_projectionEvaluator;
+	    unsigned int                            m_projectionDimension;
+	    std::vector<double>                     m_cellDimensions;
+	    
+	    double                                  m_goalBias;
+	    double                                  m_rho;	
+	    random_utils::RNG                       m_rng;	
 	};
 	
-	void freeMemory(void)
-	{
-	    for (Grid<MotionSet>::iterator it = m_tree.grid.begin(); it != m_tree.grid.end() ; ++it)
-	    {
-		for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
-		    delete it->second->data[i];
-	    }
-	}
-
-	void addMotion(Motion_t motion);
-	Motion_t selectMotion(void);
-	void computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord);
-
-	SpaceInformationKinematic::SamplingCore m_sCore;
-	TreeData                                m_tree;
-	
-	ProjectionEvaluator                    *m_projectionEvaluator;
-	unsigned int                            m_projectionDimension;
-	std::vector<double>                     m_cellDimensions;
-
-	double                                  m_goalBias;
-	double                                  m_rho;	
-	random_utils::RNG                       m_rng;	
-    };
-
+    }
 }
 
 #endif
+    

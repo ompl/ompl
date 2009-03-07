@@ -34,85 +34,63 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_PLANNER_
+#define OMPL_EXTENSION_SAMPLINGBASED_PLANNER_
 
-#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/Planner.h"
+#include "ompl/extension/samplingbased/SpaceInformation.h"
+#include <cassert>
 
 namespace ompl
 {
 
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
+    namespace sb
     {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
-	{
-	}
 	
-	virtual ~NearestNeighborsLinear(void)
-	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
+	enum PlannerType
 	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
+		PLAN_UNKNOWN        = 0,
+		PLAN_TO_GOAL_STATE  = 1,
+		PLAN_TO_GOAL_REGION = 2
+	    };
+	
+	class Planner : public base::Planner
+	{
+
+	public:
+
+	    Planner(base::SpaceInformation *si) : base::Planner(si)
+	    {
+		m_type = PLAN_UNKNOWN;
+		assert(dynamic_cast<SpaceInformation*>(si));
 	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
+	    
+	    virtual ~Planner(void)
+	    {
+	    }
+	    
+	    /** A problem is trivial if the given starting state already
+		in the goal region, so we need no motion planning. startID
+		will be set to the index of the starting state that
+		satisfies the goal. The distance to the goal can
+		optionally be returned as well. */
+	    virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL) const;
+	    
+	    /** Return the type of the motion planner. This is useful if
+		the planner wants to advertise what type of problems it
+		can solve */
+	    PlannerType getType(void) const
+	    {
+		return m_type;
+	    }
+	    
+	protected:
+	    
+	    PlannerType m_type;	
+
+	};
 	
-	virtual unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
-    
+    }
     
 }
 

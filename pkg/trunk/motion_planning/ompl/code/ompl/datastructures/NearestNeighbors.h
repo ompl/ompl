@@ -38,6 +38,7 @@
 #define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_
 
 #include <vector>
+#include <boost/bind.hpp>
 
 namespace ompl
 {
@@ -47,36 +48,22 @@ namespace ompl
     {
     public:
 	
-	/** Basic definition of a distance function. The user is
-	    responsible for allocating and freeing an instance of a
-	    class that provides the implementation of the () abstract
-	    operator */
-	class DistanceFunction
-	{
-	public:
-	    virtual ~DistanceFunction(void)
-	    {
-	    }
-	    
-	    virtual double operator()(const _T &a, const _T &b) const = 0;
-	};
+	typedef	boost::function<double(const _T &a, const _T &b)> DistanceFunction;
 	
-
 	NearestNeighbors(void)
 	{
-	    m_distFun = NULL;
 	}
 	
 	virtual ~NearestNeighbors(void)
 	{
 	}
 
-	void setDistanceFunction(DistanceFunction *distFun)
+	void setDistanceFunction(const DistanceFunction &distFun)
 	{
 	    m_distFun = distFun;
 	}
 
-	DistanceFunction* getDistanceFunction(void) const
+	DistanceFunction& getDistanceFunction(void) const
 	{
 	    return m_distFun;
 	}
@@ -90,7 +77,7 @@ namespace ompl
 		
     protected:
 	
-	DistanceFunction *m_distFun;
+	DistanceFunction m_distFun;
 	
     };
     

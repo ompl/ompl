@@ -34,8 +34,8 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_GRID_X_
-#define OMPL_DATASTRUCTURES_GRID_X_
+#ifndef OMPL_DATASTRUCTURES_GRID_B_
+#define OMPL_DATASTRUCTURES_GRID_B_
 
 #include "ompl/datastructures/GridN.h"
 #include "ompl/datastructures/BinaryHeap.h"
@@ -49,7 +49,7 @@ namespace ompl
 	       class LessThanExternal = std::less<_T>,
 	       class LessThanInternal = LessThanExternal >
     
-    class GridX : public GridN<_T>
+    class GridB : public GridN<_T>
     {
     public:
 
@@ -78,12 +78,12 @@ namespace ompl
 	typedef void (*EventCellUpdate)(Cell*, void*);
 
         explicit
-	GridX(unsigned int dimension) : GridN<_T>(dimension)
+	GridB(unsigned int dimension) : GridN<_T>(dimension)
 	{
 	    setupHeaps();
 	}
 	
-        virtual ~GridX(void)
+        virtual ~GridB(void)
 	{
 	    clearHeaps();
 	}

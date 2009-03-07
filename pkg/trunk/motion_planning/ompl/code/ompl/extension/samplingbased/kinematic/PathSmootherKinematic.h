@@ -43,76 +43,76 @@
 namespace ompl
 {
 
-    /** Forward class declaration */
-    ForwardClassDeclaration(PathSmootherKinematic);
-
-    class PathSmootherKinematic
+    namespace sb
     {
-    public:
-	PathSmootherKinematic(SpaceInformationKinematic_t si)
-	{
-	    m_si = si;
-	    m_rangeRatio = 0.2;
-	    m_maxSteps = 10;
-	    m_maxEmptySteps = 3;
-	}
-
-	virtual ~PathSmootherKinematic(void)
-	{
-	}
-
-	double getRangeRatio(void) const
-	{
-	    return m_rangeRatio;
-	}
-
-	void setRangeRatio(double rangeRatio)
-	{
-	    m_rangeRatio = rangeRatio;
-	}
 	
-	unsigned int getMaxSteps(void) const
+	class PathSmootherKinematic
 	{
-	    return m_maxSteps;
-	}
-
-	void setMaxSteps(unsigned int maxSteps)
-	{
-	    m_maxSteps = maxSteps;
-	}
-	
-	unsigned int getMaxEmptySteps(void) const
-	{
-	    return m_maxEmptySteps;
-	}
-
-	void setMaxEmptySteps(unsigned int maxEmptySteps)
-	{
-	    m_maxEmptySteps = maxEmptySteps;
-	}
-
-	/** Given a path, attempt to remove vertices from it while keeping the path valid */
-	virtual void smoothVertices(SpaceInformationKinematic::PathKinematic_t path);
-
-	/** Given a path, attempt to reduce redundant commands */
-	virtual void removeRedundantCommands(SpaceInformationKinematic::PathKinematic_t path) const;
-	
-	/** Given a path, attempt to remove vertices from it while
-	 * keeping the path valid.  Then, interpolate the path, to add
-	 * more vertices and try to remove them again. This should
-	 * produce smoother solutions. removeRedundantCommands is also
-	 * called.  */
-	virtual void smoothMax(SpaceInformationKinematic::PathKinematic_t path);
-
-    protected:
-	
-	SpaceInformationKinematic_t m_si;
-	random_utils::RNG           m_rng;
-	double                      m_rangeRatio;
-	unsigned int                m_maxSteps;
-	unsigned int                m_maxEmptySteps;
-    };
-    
+	public:
+	    PathSmootherKinematic(SpaceInformationKinematic *si)
+	    {
+		m_si = si;
+		m_rangeRatio = 0.2;
+		m_maxSteps = 10;
+		m_maxEmptySteps = 3;
+	    }
+	    
+	    virtual ~PathSmootherKinematic(void)
+	    {
+	    }
+	    
+	    double getRangeRatio(void) const
+	    {
+		return m_rangeRatio;
+	    }
+	    
+	    void setRangeRatio(double rangeRatio)
+	    {
+		m_rangeRatio = rangeRatio;
+	    }
+	    
+	    unsigned int getMaxSteps(void) const
+	    {
+		return m_maxSteps;
+	    }
+	    
+	    void setMaxSteps(unsigned int maxSteps)
+	    {
+		m_maxSteps = maxSteps;
+	    }
+	    
+	    unsigned int getMaxEmptySteps(void) const
+	    {
+		return m_maxEmptySteps;
+	    }
+	    
+	    void setMaxEmptySteps(unsigned int maxEmptySteps)
+	    {
+		m_maxEmptySteps = maxEmptySteps;
+	    }
+	    
+	    /** Given a path, attempt to remove vertices from it while keeping the path valid */
+	    virtual void smoothVertices(PathKinematic *path);
+	    
+	    /** Given a path, attempt to reduce redundant commands */
+	    virtual void removeRedundantCommands(PathKinematic *path) const;
+	    
+	    /** Given a path, attempt to remove vertices from it while
+	     * keeping the path valid.  Then, interpolate the path, to add
+	     * more vertices and try to remove them again. This should
+	     * produce smoother solutions. removeRedundantCommands is also
+	     * called.  */
+	    virtual void smoothMax(PathKinematic *path);
+	    
+	protected:
+	    
+	    SpaceInformationKinematic *m_si;
+	    random_utils::RNG          m_rng;
+	    double                     m_rangeRatio;
+	    unsigned int               m_maxSteps;
+	    unsigned int               m_maxEmptySteps;
+	};    
+    }
 }
 
 #endif

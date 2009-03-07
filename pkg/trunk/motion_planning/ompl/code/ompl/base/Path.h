@@ -34,86 +34,45 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#ifndef OMPL_BASE_PATH_
+#define OMPL_BASE_PATH_
 
-#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/General.h"
 
 namespace ompl
 {
-
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
+    namespace base
     {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
-	{
-	}
+	class SpaceInformation;
 	
-	virtual ~NearestNeighborsLinear(void)
+	/** Abstract definition of a path */
+	class Path
 	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
+	public:
+	    
+	    /** Constructor. A path must always know the space information it is part of */
+	    Path(SpaceInformation *si)
 	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
+		m_si = si;
 	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
+	    
+	    /** Destructor */
+	    virtual ~Path(void)
+	    {
+	    }
+	    
+	    /** Returns the space information this path is part of */
+	    SpaceInformation* getSpaceInformation(void) const
+	    {
+		return m_si;
+	    }
+	    
+	protected:
+	    
+	    SpaceInformation *m_si;
+	};
 	
-	virtual unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
-    
-    
+    }
 }
 
 #endif

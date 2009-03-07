@@ -37,7 +37,8 @@
 #include <gtest/gtest.h>
 
 #include "ompl/extension/samplingbased/kinematic/PathSmootherKinematic.h"
-#include "ompl/extension/samplingbased/kinematic/ProjectionEvaluatorKinematic.h"
+#include "ompl/extension/samplingbased/ProjectionEvaluator.h"
+
 #include "ompl/extension/samplingbased/kinematic/extension/kpiece/LBKPIECE1.h"
 #include "ompl/extension/samplingbased/kinematic/extension/kpiece/KPIECE1.h"
 #include "ompl/extension/samplingbased/kinematic/extension/sbl/SBL.h"
@@ -55,13 +56,13 @@ static const double SOLUTION_TIME = 1.0;
 
 /** Declare a class used in validating states. Such a class definition is needed for any use
  * of a kinematic planner */
-class myStateValidityChecker : public SpaceInformation::StateValidityChecker
+class myStateValidityChecker : public base::StateValidityChecker
 {
 public:
 
-    virtual bool operator()(const SpaceInformation::State_t state) const
+    virtual bool operator()(const base::State *state) const
     {
-	const SpaceInformationKinematic::StateKinematic_t kstate = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state);
+	const sb::State *kstate = static_cast<const sb::State*>(state);
 	
 	/* planning is done in a continuous space, but our collision space representation is discrete */
 	int x = (int)(kstate->values[0]);
@@ -81,14 +82,14 @@ protected:
 };
 
 /** Declare a class used in evaluating distance between states (Manhattan distance) */
-class myStateDistanceEvaluator : public SpaceInformation::StateDistanceEvaluator
+class myStateDistanceEvaluator : public base::StateDistanceEvaluator
 {
 public:
 
-    virtual double operator()(const SpaceInformation::State_t state1, const SpaceInformation::State_t state2) const
+    virtual double operator()(const base::State *state1, const base::State *state2) const
     {
-	const SpaceInformationKinematic::StateKinematic_t kstate1 = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state1);
-	const SpaceInformationKinematic::StateKinematic_t kstate2 = static_cast<const SpaceInformationKinematic::StateKinematic_t>(state2);
+	const sb::State *kstate1 = static_cast<const sb::State*>(state1);
+	const sb::State *kstate2 = static_cast<const sb::State*>(state2);
 	
 	/* planning is done in a continuous space, but our collision space representation is discrete */
 	int x1 = (int)(kstate1->values[0]);
@@ -104,10 +105,10 @@ public:
 
     
 /** Space information */
-class mySpaceInformation : public SpaceInformationKinematic
+class mySpaceInformation : public sb::SpaceInformationKinematic
 {
 public:
-    mySpaceInformation(int width, int height) : SpaceInformationKinematic()
+    mySpaceInformation(int width, int height) : sb::SpaceInformationKinematic()
     {
 	// we have 2 dimensions : x, y
 	m_stateDimension = 2;
@@ -121,12 +122,12 @@ public:
 	m_stateComponent[0].minValue = 0.0;
 	m_stateComponent[0].maxValue = (double)width - 0.000000001;
 	m_stateComponent[0].resolution = 0.5;
-	m_stateComponent[0].type = StateComponent::NORMAL;
+	m_stateComponent[0].type = sb::StateComponent::NORMAL;
 	
 	m_stateComponent[1].minValue = 0.0;
 	m_stateComponent[1].maxValue = (double)height - 0.000000001;
 	m_stateComponent[1].resolution = 0.5;
-	m_stateComponent[1].type = StateComponent::NORMAL;
+	m_stateComponent[1].type = sb::StateComponent::NORMAL;
     }
 };
 
@@ -161,20 +162,20 @@ public:
 	si->setup();
 
 	/* instantiate motion planner */
-	Planner_t planner = newPlanner(si);
+	sb::Planner *planner = newPlanner(si);
 	planner->setup();
 	
 	/* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
-	SpaceInformationKinematic::StateKinematic_t state = new SpaceInformationKinematic::StateKinematic(2);
+	sb::State *state = new sb::State(2);
 	state->values[0] = env.start.first;
 	state->values[1] = env.start.second;
 	si->addStartState(state);
 	
 	/* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-	SpaceInformationKinematic::GoalStateKinematic_t goal = new SpaceInformationKinematic::GoalStateKinematic(si);
-	goal->state = new SpaceInformationKinematic::StateKinematic(2);
-	goal->state->values[0] = env.goal.first;
-	goal->state->values[1] = env.goal.second;
+	sb::GoalState *goal = new sb::GoalState(si);
+	goal->state = new sb::State(2);
+	static_cast<sb::State*>(goal->state)->values[0] = env.goal.first;
+	static_cast<sb::State*>(goal->state)->values[1] = env.goal.second;
 	goal->threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
 	si->setGoal(goal);
 	
@@ -192,11 +193,11 @@ public:
 	    if (show)
 		printf("Found solution in %f seconds!\n", elapsed.toSeconds());
 	    
-	    SpaceInformationKinematic::PathKinematic_t path = static_cast<SpaceInformationKinematic::PathKinematic_t>(goal->getSolutionPath());
+	    sb::PathKinematic *path = static_cast<sb::PathKinematic*>(goal->getSolutionPath());
 	    
 	    
 	    /* make the solution more smooth */
-	    PathSmootherKinematic_t smoother = new PathSmootherKinematic(si);
+	    sb::PathSmootherKinematic *smoother = new sb::PathSmootherKinematic(si);
 	    smoother->setMaxSteps(50);
 	    smoother->setMaxEmptySteps(10);
 
@@ -259,7 +260,7 @@ public:
     
 protected:
     
-    virtual Planner_t newPlanner(SpaceInformation_t si) = 0;
+    virtual sb::Planner* newPlanner(sb::SpaceInformationKinematic *si) = 0;
     
 };
 
@@ -267,9 +268,9 @@ class RRTTest : public TestPlanner
 {
 protected:
 
-    Planner_t newPlanner(SpaceInformation_t si)
+    sb::Planner* newPlanner(sb::SpaceInformationKinematic *si)
     {
-	RRT_t rrt = new RRT(si);
+	sb::RRT *rrt = new sb::RRT(si);
 	rrt->setRange(0.95);
 	return rrt;
     }    
@@ -279,9 +280,9 @@ class LazyRRTTest : public TestPlanner
 {
 protected:
 
-    Planner_t newPlanner(SpaceInformation_t si)
+    sb::Planner* newPlanner(sb::SpaceInformationKinematic *si)
     {
-	LazyRRT_t rrt = new LazyRRT(si);
+	sb::LazyRRT *rrt = new sb::LazyRRT(si);
 	rrt->setRange(0.95);
 	return rrt;
     }    
@@ -308,15 +309,15 @@ public:
     
 protected:
     
-    Planner_t newPlanner(SpaceInformation_t si)
+    sb::Planner* newPlanner(sb::SpaceInformationKinematic *si)
     {
-	SBL_t sbl = new SBL(si);
+	sb::SBL *sbl = new sb::SBL(si);
 	sbl->setRange(0.95);
 	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new OrthogonalProjectionEvaluator(projection);
+	ope = new sb::OrthogonalProjectionEvaluator(projection);
 	
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -328,7 +329,7 @@ protected:
 	return sbl;
     }
     
-    OrthogonalProjectionEvaluator_t ope;
+    sb::OrthogonalProjectionEvaluator *ope;
     
 };
 
@@ -353,15 +354,15 @@ public:
     
 protected:
     
-    Planner_t newPlanner(SpaceInformation_t si)
+    sb::Planner* newPlanner(sb::SpaceInformationKinematic *si)
     {
-	EST_t est = new EST(si);
+	sb::EST *est = new sb::EST(si);
 	est->setRange(0.75);
 	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new OrthogonalProjectionEvaluator(projection);
+	ope = new sb::OrthogonalProjectionEvaluator(projection);
 		
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -373,7 +374,7 @@ protected:
 	return est;
     }
     
-    OrthogonalProjectionEvaluator_t ope;
+    sb::OrthogonalProjectionEvaluator *ope;
     
 };
 
@@ -398,15 +399,15 @@ public:
     
 protected:
     
-    Planner_t newPlanner(SpaceInformation_t si)
+    sb::Planner* newPlanner(sb::SpaceInformationKinematic *si)
     {
-	KPIECE1_t kpiece = new KPIECE1(si);
+	sb::KPIECE1 *kpiece = new sb::KPIECE1(si);
 	kpiece->setRange(0.95);
 	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new OrthogonalProjectionEvaluator(projection);
+	ope = new sb::OrthogonalProjectionEvaluator(projection);
 
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -418,7 +419,7 @@ protected:
 	return kpiece;
     }
     
-    OrthogonalProjectionEvaluator_t ope;
+    sb::OrthogonalProjectionEvaluator *ope;
     
 };
 
@@ -443,15 +444,15 @@ public:
     
 protected:
     
-    Planner_t newPlanner(SpaceInformation_t si)
+    sb::Planner* newPlanner(sb::SpaceInformationKinematic *si)
     {
-	LBKPIECE1_t kpiece = new LBKPIECE1(si);
+	sb::LBKPIECE1 *kpiece = new sb::LBKPIECE1(si);
 	kpiece->setRange(0.95);
 	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new OrthogonalProjectionEvaluator(projection);
+	ope = new sb::OrthogonalProjectionEvaluator(projection);
 
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -463,7 +464,7 @@ protected:
 	return kpiece;
     }
     
-    OrthogonalProjectionEvaluator_t ope;
+    sb::OrthogonalProjectionEvaluator *ope;
     
 };
 
@@ -522,6 +523,21 @@ protected:
 };
 
 
+TEST_F(PlanTest, RRT)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new RRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avglength < 70.0);
+}
+
 TEST_F(PlanTest, SBL)
 {
     double success    = 0.0;
@@ -573,21 +589,6 @@ TEST_F(PlanTest, LBKPIECE1)
     // varying load that can affect performance.
     //EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 70.0);
-}
-
-TEST_F(PlanTest, RRT)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-    
-    TestPlanner *p = new RRTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avglength < 70.0);
 }
 

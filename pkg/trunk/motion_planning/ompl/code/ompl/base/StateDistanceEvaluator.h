@@ -34,86 +34,33 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
 
-#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/General.h"
+#include "ompl/base/State.h"
 
 namespace ompl
 {
-
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
+    
+    namespace base
     {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
-	{
-	}
 	
-	virtual ~NearestNeighborsLinear(void)
-	{
-	}
 	
-	virtual void clear(void)
+	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
+	class StateDistanceEvaluator
 	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
+	public:
+	    /** Destructor */
+	    virtual ~StateDistanceEvaluator(void)
 	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
 	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
+	    /** Return true if the state is valid */
+	    virtual double operator()(const State *state1, const State *state2) const = 0;
+	};
 	
-	virtual unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
-    
-    
+    }
+
 }
 
 #endif

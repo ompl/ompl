@@ -34,46 +34,28 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_ALLOCATOR_STATE_KINEMATIC__
-#define OMPL_EXTENSION_SAMPLINGBASED_ALLOCATOR_STATE_KINEMATIC_
+#include "ompl/extension/samplingbased/ProjectionEvaluator.h"
+#include <cassert>
 
-#include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
-#include <boost/pool/object_pool.hpp>
-#include <boost/pool/pool.hpp>
-
-namespace ompl
+void ompl::sb::OrthogonalProjectionEvaluator::operator()(const base::State *state, double *projection) const
 {
-    
-    /** Forward class declaration */
-    ForwardClassDeclaration(AllocatorStateKinematic);	
-    
-    /** Definition for a class computing orthogonal projections */
-    class AllocatorStateKinematic
-    {
-    public:
-	
-        AllocatorStateKinematic(unsigned int dimension) : m_doubles(sizeof(double) * dimension)
-	{
-	}
-	
-	~AllocatorStateKinematic(void)
-	{
-	}
-	
-	SpaceInformationKinematic::StateKinematic_t allocState(void)
-	{
-	    SpaceInformationKinematic::StateKinematic_t state = m_states.construct();
-	    state->values = reinterpret_cast<double*>(m_doubles.malloc());
-	    return state;
-	}
-	
-    protected:
-	
-	boost::pool<>                                                 m_doubles;
-	boost::object_pool<SpaceInformationKinematic::StateKinematic> m_states;
-	
-    };	
-    
+    assert(dynamic_cast<const State*>(state));
+    const State *kstate = static_cast<const State*>(state);
+    for (unsigned int i = 0 ; i < m_components.size() ; ++i)
+	projection[i] = kstate->values[m_components[i]];
 }
 
-#endif
+void ompl::sb::LinearProjectionEvaluator::operator()(const base::State *state, double *projection) const
+{
+    assert(dynamic_cast<const State*>(state));
+    const State *kstate = static_cast<const State*>(state);
+    for (unsigned int i = 0 ; i < m_projection.size() ; ++i)
+    {
+	const std::valarray<double> &vec = m_projection[i];
+	const unsigned int dim = vec.size();
+	double *pos = projection + i;
+	*pos = 0.0;
+	for (unsigned int j = 0 ; j < dim ; ++j)
+	    *pos += kstate->values[j] * vec[j];
+    }
+}

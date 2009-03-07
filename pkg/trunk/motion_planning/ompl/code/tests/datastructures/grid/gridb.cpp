@@ -35,21 +35,21 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "ompl/datastructures/GridX.h"
+#include "ompl/datastructures/GridB.h"
 
 using namespace ompl;
 
-TEST(GridX, Simple)
+TEST(GridB, Simple)
 {
-    GridX<int> g(2); 
+    GridB<int> g(2); 
     
     EXPECT_EQ((unsigned int)2, g.getDimension());
     
-    GridX<int>::Coord coord(2);
+    GridB<int>::Coord coord(2);
     coord[0] = 1;
     coord[1] = 0;
     EXPECT_FALSE(g.has(coord));
-    GridX<int>::Cell *cell1 = g.createCell(coord);
+    GridB<int>::Cell *cell1 = g.createCell(coord);
     EXPECT_FALSE(cell1 == NULL);
     EXPECT_TRUE(cell1->neighbors == 0);
     cell1->data = 1;
@@ -60,7 +60,7 @@ TEST(GridX, Simple)
 
     coord[1] = 1;
     EXPECT_FALSE(g.has(coord));
-    GridX<int>::Cell *cell2 = g.createCell(coord);
+    GridB<int>::Cell *cell2 = g.createCell(coord);
     EXPECT_TRUE(cell1->neighbors == 1);
     EXPECT_TRUE(cell2->neighbors == 1);
     EXPECT_FALSE(cell2 == NULL);    
@@ -69,7 +69,7 @@ TEST(GridX, Simple)
     EXPECT_TRUE(g.has(coord));
     EXPECT_NEAR(g.fracExternal(), 1.0, 1e-12);
 
-    GridX<int>::CellArray ca;
+    GridB<int>::CellArray ca;
     g.neighbors(cell2, ca);
     EXPECT_EQ((unsigned int)1, ca.size());
     EXPECT_EQ(ca[0], cell1);
@@ -81,7 +81,7 @@ TEST(GridX, Simple)
     EXPECT_EQ((unsigned int)1, ca.size());
     EXPECT_EQ(ca[0], cell2);
     
-    GridX<int>::Cell *cell3 = g.createCell(coord);
+    GridB<int>::Cell *cell3 = g.createCell(coord);
     EXPECT_FALSE(cell3 == NULL);
     EXPECT_TRUE(cell1->neighbors == 1);
     EXPECT_TRUE(cell2->neighbors == 2);
@@ -93,12 +93,12 @@ TEST(GridX, Simple)
     
     EXPECT_EQ((unsigned int)3, g.size());    
     int sum = 0;
-    for (GridX<int>::iterator it = g.begin() ; it != g.end() ; ++it)
+    for (GridB<int>::iterator it = g.begin() ; it != g.end() ; ++it)
 	sum += it->second->data;
     EXPECT_EQ(6, sum);
 
     coord[0] = 2;
-    GridX<int>::Cell *cell4 = g.createCell(coord);
+    GridB<int>::Cell *cell4 = g.createCell(coord);
     EXPECT_FALSE(cell4 == NULL);
     cell4->data = 4;
     g.add(cell4);
@@ -108,7 +108,7 @@ TEST(GridX, Simple)
     
     coord[0] = 1;
     coord[1] = 2;
-    GridX<int>::Cell *cell5 = g.createCell(coord);
+    GridB<int>::Cell *cell5 = g.createCell(coord);
     EXPECT_FALSE(cell5 == NULL);
     cell5->data = 5;
     g.add(cell5);
@@ -132,7 +132,7 @@ TEST(GridX, Simple)
 
     EXPECT_EQ((unsigned int)4, g.size());    
     sum = 0;
-    for (GridX<int>::iterator it = g.begin() ; it != g.end() ; ++it)
+    for (GridB<int>::iterator it = g.begin() ; it != g.end() ; ++it)
 	sum += it->second->data;
     EXPECT_EQ(14, sum);
 }

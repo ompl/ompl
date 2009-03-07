@@ -34,86 +34,10 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#include "ompl/extension/samplingbased/kinematic/PathKinematic.h"
 
-#include "ompl/datastructures/NearestNeighbors.h"
-
-namespace ompl
+void ompl::sb::PathKinematic::freeMemory(void)
 {
-
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
-    {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
-	{
-	}
-	
-	virtual ~NearestNeighborsLinear(void)
-	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
-	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
-	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
-	
-	virtual unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
-    
-    
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+	delete states[i];
 }
-
-#endif

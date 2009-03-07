@@ -42,5 +42,8 @@
 
 namespace ompl
 {
-    typedef IKPlanner<LBKPIECE1> IKLBKPIECE1;
+    namespace sb
+    {
+	typedef IKPlanner<LBKPIECE1> IKLBKPIECE1;
+    }
 }

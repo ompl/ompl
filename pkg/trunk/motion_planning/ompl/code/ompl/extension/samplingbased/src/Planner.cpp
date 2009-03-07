@@ -34,86 +34,38 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#include "ompl/extension/samplingbased/Planner.h"
 
-#include "ompl/datastructures/NearestNeighbors.h"
-
-namespace ompl
+bool ompl::sb::Planner::isTrivial(unsigned int *startID, double *distance) const
 {
-
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
+    base::Goal *goal = m_si->getGoal();
+    
+    if (!goal)
     {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
+	m_msg.error("Goal undefined");
+	return false;
+    }
+    
+    for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+    {
+	State *start = dynamic_cast<State*>(m_si->getStartState(i));
+	if (start && static_cast<SpaceInformation*>(m_si)->isValid(start))
 	{
-	}
-	
-	virtual ~NearestNeighborsLinear(void)
-	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
+	    double dist;
+	    if (goal->isSatisfied(start, &dist))
 	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
-	    }
-	    return pos >= 0 ? m_data[pos] : data;
+		if (startID)
+		    *startID = i;
+		if (distance)
+		    *distance = dist;
+		return true;
+	    }	    
 	}
-	
-	virtual unsigned int size(void) const
+	else
 	{
-	    return m_data.size();
+	    m_msg.error("Initial state is in collision!");
 	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
+    }
     
-    
+    return false;    
 }
-
-#endif

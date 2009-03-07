@@ -37,12 +37,12 @@
 #include "ompl/extension/samplingbased/kinematic/extension/rrt/LazyRRT.h"
 #include <cassert>
 
-bool ompl::LazyRRT::solve(double solveTime)
+bool ompl::sb::LazyRRT::solve(double solveTime)
 {
-    SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
-    SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
-    SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
-    unsigned int                                        dim = si->getStateDimension();
+    SpaceInformationKinematic *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    GoalRegion                *goal_r = dynamic_cast<GoalRegion*>(si->getGoal());
+    GoalState                 *goal_s = dynamic_cast<GoalState*>(si->getGoal());
+    unsigned int                  dim = si->getStateDimension();
     
     if (!goal_s && !goal_r)
     {
@@ -56,8 +56,8 @@ bool ompl::LazyRRT::solve(double solveTime)
     {
 	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
 	{
-	    Motion_t motion = new Motion(dim);
-	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
+	    Motion *motion = new Motion(dim);
+	    si->copyState(motion->state, dynamic_cast<State*>(si->getStartState(i)));
 	    if (si->isValid(motion->state))
 	    { 
 		motion->valid = true;
@@ -83,11 +83,11 @@ bool ompl::LazyRRT::solve(double solveTime)
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
-    Motion_t                                    solution = NULL;
-    double                                      distsol  = -1.0;
-    Motion_t                                    rmotion  = new Motion(dim);
-    SpaceInformationKinematic::StateKinematic_t rstate   = rmotion->state;
-    SpaceInformationKinematic::StateKinematic_t xstate   = new SpaceInformationKinematic::StateKinematic(dim);
+    Motion *solution = NULL;
+    double  distsol  = -1.0;
+    Motion *rmotion  = new Motion(dim);
+    State  *rstate   = rmotion->state;
+    State  *xstate   = new State(dim);
 
  RETRY:
 
@@ -95,12 +95,12 @@ bool ompl::LazyRRT::solve(double solveTime)
     {
 	/* sample random state (with goal biasing) */
 	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
-	    si->copyState(rstate, goal_s->state);
+	    si->copyState(rstate, static_cast<State*>(goal_s->state));
 	else
 	    m_sCore.sample(rstate);
 
 	/* find closest state in the tree */
-	Motion_t nmotion = m_nn.nearest(rmotion);
+	Motion *nmotion = m_nn.nearest(rmotion);
 	assert(nmotion != rmotion);
 	
 	/* find state to add */
@@ -111,7 +111,7 @@ bool ompl::LazyRRT::solve(double solveTime)
 	}
 	
 	/* create a motion */
-	Motion_t motion = new Motion(dim);
+	Motion *motion = new Motion(dim);
 	si->copyState(motion->state, xstate);
 	motion->parent = nmotion;
 	nmotion->children.push_back(motion);
@@ -129,7 +129,7 @@ bool ompl::LazyRRT::solve(double solveTime)
     if (solution != NULL)
     {
 	/* construct the solution path */
-	std::vector<Motion_t> mpath;
+	std::vector<Motion*> mpath;
 	while (solution != NULL)
 	{
 	    mpath.push_back(solution);
@@ -150,10 +150,10 @@ bool ompl::LazyRRT::solve(double solveTime)
 	    }
 	
 	/*set the solution path */
-	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+	PathKinematic *path = new PathKinematic(static_cast<SpaceInformation*>(m_si));
 	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	{
-	    SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+	    State *st = new State(dim);
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
@@ -171,7 +171,7 @@ bool ompl::LazyRRT::solve(double solveTime)
     return goal_r->isAchieved();
 }
 
-void ompl::LazyRRT::removeMotion(Motion_t motion)
+void ompl::sb::LazyRRT::removeMotion(Motion *motion)
 {
     m_nn.remove(motion);
     

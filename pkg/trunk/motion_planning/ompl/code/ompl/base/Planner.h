@@ -45,63 +45,46 @@
 namespace ompl
 {
 
-    /** Forward class declaration */
-    ForwardClassDeclaration(Planner);
-    
-    /** Base class for a planner */
-    class Planner
+    namespace base
     {
 	
-    public:
-	
-	/** Constructor */
-	Planner(SpaceInformation_t si)
+	/** Base class for a planner */
+	class Planner
 	{
-	    m_si    = si;
-	    m_type  = 0;
-	    m_setup = false;
-	}
-	
-	/** Destructor */
-	virtual ~Planner(void)
-	{
-	}
-	
-	/** Function that can solve the motion planning problem */
-	virtual bool solve(double solveTime) = 0;
-
-	/** Clear all internal datastructures */
-	virtual void clear(void) = 0;
-	
-	/** Perform extra configuration steps, if needed */
-	virtual void setup(void)
-	{
-	    m_setup = true;
-	}
-
-	/** Return the type of the motion planner. This is useful if
-	    the planner wants to advertise what type of problems it
-	    can solve */
-	int getType(void) const
-	{
-	    return m_type;
-	}
-	
-	/** A problem is trivial if the given starting state already
-	    in the goal region, so we need no motion planning. startID
-	    will be set to the index of the starting state that
-	    satisfies the goal. The distance to the goal can
-	    optionally be returned as well. */
-	virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL) const;
-	
-    protected:
-	
-	SpaceInformation_t m_si;
-	int                m_type;	
-	bool               m_setup;
-	msg::Interface     m_msg;
-    };    
-
+	    
+	public:
+	    
+	    /** Constructor */
+	    Planner(SpaceInformation *si)
+	    {
+		m_si    = si;
+		m_setup = false;
+	    }
+	    
+	    /** Destructor */
+	    virtual ~Planner(void)
+	    {
+	    }
+	    
+	    /** Function that can solve the motion planning problem */
+	    virtual bool solve(double solveTime) = 0;
+	    
+	    /** Clear all internal datastructures */
+	    virtual void clear(void) = 0;
+	    
+	    /** Perform extra configuration steps, if needed */
+	    virtual void setup(void)
+	    {
+		m_setup = true;
+	    }
+	    
+	protected:
+	    
+	    SpaceInformation *m_si;
+	    bool              m_setup;
+	    msg::Interface    m_msg;
+	};    
+    }
 }
 
 

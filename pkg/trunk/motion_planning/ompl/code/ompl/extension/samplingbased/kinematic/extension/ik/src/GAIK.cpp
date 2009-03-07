@@ -37,15 +37,15 @@
 #include "ompl/extension/samplingbased/kinematic/extension/ik/GAIK.h"
 #include <algorithm>
 
-bool ompl::GAIK::valid(SpaceInformationKinematic::StateKinematic_t state)
+bool ompl::sb::GAIK::valid(const State *state) const
 {
-    return m_checkValidity ? m_si->isValid(static_cast<SpaceInformation::State_t>(state)) : true;
+    return m_checkValidity ? m_si->isValid(state) : true;
 }
 
-bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinematic_t result, SpaceInformationKinematic::StateKinematic_t hint)
+bool ompl::sb::GAIK::solve(double solveTime, State *result, const State *hint)
 {
-    SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(m_si->getGoal());
-    unsigned int                                        dim = m_si->getStateDimension();
+    GoalRegion *goal_r = dynamic_cast<GoalRegion*>(m_si->getGoal());
+    unsigned int   dim = m_si->getStateDimension();
     
     if (!goal_r)
     {
@@ -69,7 +69,7 @@ bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinemat
     
     if (hint)
     {
-	pool[0].state = new SpaceInformationKinematic::StateKinematic(dim);
+	pool[0].state = new State(dim);
 	m_si->copyState(pool[0].state, hint);
 	if (goal_r->isSatisfied(pool[0].state, &(pool[0].distance)))
 	{
@@ -83,7 +83,7 @@ bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinemat
     
     for (unsigned int i = (hint ? 1 : 0) ; i < maxPoolSize ; ++i)
     {
-	pool[i].state = new SpaceInformationKinematic::StateKinematic(dim);
+	pool[i].state = new State(dim);
 	m_sCore.sample(pool[i].state);
 	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
@@ -165,7 +165,7 @@ bool ompl::GAIK::solve(double solveTime, SpaceInformationKinematic::StateKinemat
     return solved;
 }
 
-bool ompl::GAIK::tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double distance)
+bool ompl::sb::GAIK::tryToImprove(State *state, double distance)
 {
     m_msg.inform("GAIK: Distance to goal before improvement: %g", distance);    
     time_utils::Time start = time_utils::Time::now();

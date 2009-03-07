@@ -42,5 +42,8 @@
 
 namespace ompl
 {
-    typedef IKPlanner<RRT> IKRRT;
+    namespace sb
+    {
+	typedef IKPlanner<RRT> IKRRT;
+    }    
 }

@@ -34,86 +34,45 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#include "ompl/extension/samplingbased/Goal.h"
+#include "ompl/extension/samplingbased/SpaceInformation.h"
+#include <cassert>
 
-#include "ompl/datastructures/NearestNeighbors.h"
-
-namespace ompl
+ompl::sb::GoalRegion::GoalRegion(SpaceInformation *si) : Goal(dynamic_cast<base::SpaceInformation*>(si))
 {
-
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
-    {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
-	{
-	}
-	
-	virtual ~NearestNeighborsLinear(void)
-	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
-		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
-	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
-	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
-	
-	virtual unsigned int size(void) const
-	{
-	    return m_data.size();
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
-    
-    
+    threshold = 0.0;
 }
 
-#endif
+bool ompl::sb::GoalRegion::isSatisfied(const base::State *s, double *distance) const
+{
+    double d2g = distanceGoal(s);
+    if (distance)
+	*distance = d2g;
+    return d2g < threshold;
+}
+
+void ompl::sb::GoalRegion::print(std::ostream &out) const
+{
+    out << "Goal region, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << std::endl;
+}
+
+ompl::sb::GoalState::GoalState(SpaceInformation *si) : GoalRegion(si)
+{
+    state = NULL;
+}
+	    
+double ompl::sb::GoalState::distanceGoal(const base::State *s) const
+{
+    assert(dynamic_cast<const State*>(s));
+    assert(dynamic_cast<const State*>(state));
+    assert(dynamic_cast<SpaceInformation*>(m_si));
+    return static_cast<SpaceInformation*>(m_si)->distance(static_cast<const State*>(s), static_cast<const State*>(state));
+}
+
+void ompl::sb::GoalState::print(std::ostream &out) const
+{
+    assert(dynamic_cast<const State*>(state));
+    assert(dynamic_cast<SpaceInformation*>(m_si));
+    out << "Goal state, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << ", state = ";
+    static_cast<SpaceInformation*>(m_si)->printState(static_cast<const State*>(state), out);
+}

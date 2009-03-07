@@ -37,56 +37,58 @@
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_IK_HCIK_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_EXTENSION_IK_HCIK_
 
-#include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
+#include "ompl/extension/samplingbased/SpaceInformation.h"
 
 namespace ompl
 {
-    
-    /** Forward class declaration */
-    ForwardClassDeclaration(HCIK);
-    
-    /**
-       @subsubsection HCIK Inverse Kinematics with Hill Climbing
-       
-       @par Short description
 
-       HCIK does inverse kinematics with hill climbing, starting from a given state.       
-       
-       @par External documentation
-    */
-    class HCIK
+    namespace sb
     {
-    public:
-
-        HCIK(SpaceInformationKinematic_t si)
+	    
+	/**
+	   @subsubsection HCIK Inverse Kinematics with Hill Climbing
+	   
+	   @par Short description
+	   
+	   HCIK does inverse kinematics with hill climbing, starting from a given state.       
+	   
+	   @par External documentation
+	*/
+	class HCIK
 	{
-	    m_si = si;
-	    m_maxImproveSteps = 2;
-	}
+	public:
+	    
+	    HCIK(SpaceInformation *si)
+	    {
+		m_si = si;
+		m_maxImproveSteps = 2;
+	    }
+	    
+	    virtual ~HCIK(void)
+	    {
+	    }
+	    
+	    bool tryToImprove(State *state, double add, double *distance = NULL) const;
+	    
+	    void setMaxImproveSteps(unsigned int steps)
+	    {
+		m_maxImproveSteps = steps;
+	    }
+	    
+	    unsigned int getMaxImproveSteps(void) const
+	    {
+		return m_maxImproveSteps;
+	    }
+	    
+	protected:	
+	    
+	    SpaceInformation *m_si;
+	    unsigned int      m_maxImproveSteps;
+	    
+	};
 	
-	virtual ~HCIK(void)
-	{
-	}
-	
-	bool tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double add, double *distance = NULL) const;
-	
-	void setMaxImproveSteps(unsigned int steps)
-	{
-	    m_maxImproveSteps = steps;
-	}
-	
-	unsigned int getMaxImproveSteps(void) const
-	{
-	    return m_maxImproveSteps;
-	}
-	
-    protected:	
-
-	SpaceInformationKinematic_t m_si;
-	unsigned int                m_maxImproveSteps;
-	
-    };
+    }
 
 }
-
+    
 #endif

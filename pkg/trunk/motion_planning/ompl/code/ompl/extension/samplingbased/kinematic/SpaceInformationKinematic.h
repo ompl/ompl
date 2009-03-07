@@ -37,269 +37,92 @@
 #ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
 #define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_SPACE_INFORMATION_KINEMATIC_
 
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/base/util/random_utils.h"
-
-#include <vector>
+#include "ompl/extension/samplingbased/SpaceInformation.h"
+#include "ompl/extension/samplingbased/StateDistanceEvaluator.h"
+#include "ompl/extension/samplingbased/kinematic/PathKinematic.h"
 #include <valarray>
-#include <cassert>
 
 /** Main namespace */
 namespace ompl
 {
-    
-    static const int PLAN_TO_GOAL_STATE  = 1;
-    static const int PLAN_TO_GOAL_REGION = 2;
 
-    /** Forward class declaration */
-    ForwardClassDeclaration(SpaceInformationKinematic);
-    
-    /** Space information useful for kinematic planning */
-    class SpaceInformationKinematic : public SpaceInformation
+    namespace sb
     {
-    public:
 	
-	/** Constructor; setup() needs to be called as well, before use */
-        SpaceInformationKinematic(void) : SpaceInformation(),
-	                                  m_defaultDistanceEvaluator(this)
-	{
-	    m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
-	}
-	
-	/** Destructor */
-	virtual ~SpaceInformationKinematic(void)
-	{
-	}
-
-	/** Forward class declaration */
-	ForwardClassDeclaration(StateKinematic);
-
-	/** Forward class declaration */
-	ForwardClassDeclaration(GoalRegionKinematic);
-
-	/** Forward class declaration */
-	ForwardClassDeclaration(GoalStateKinematic);
-
-	/** Forward class declaration */
-	ForwardClassDeclaration(PathKinematic);
-
-	/** Definition of a kinematic state: an array of doubles */
-	class StateKinematic : public State
+	/** Space information useful for kinematic planning */
+	class SpaceInformationKinematic : public SpaceInformation
 	{
 	public:
 	    
-	    enum 
+	    /** Constructor; setup() needs to be called as well, before use */
+	    SpaceInformationKinematic(void) : SpaceInformation(),
+					      m_defaultDistanceEvaluator(dynamic_cast<SpaceInformation*>(this))
 	    {
-		NO_FLAGS       = 0,
-		SELF_ALLOCATED = 1
+		m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;	    
+	    }
+	    
+	    /** Destructor */
+	    virtual ~SpaceInformationKinematic(void)
+	    {
+	    }
+	    
+	    /** A class that can perform sampling. Usually an instance of this class is needed
+	     * for sampling states */
+	    class SamplingCore
+	    {	    
+	    public:
+		SamplingCore(SpaceInformationKinematic *si) : m_si(si) 
+		{
+		}	    
+		
+		virtual ~SamplingCore(void)
+		{
+		}
+		
+		/** Sample a state */
+		virtual void sample(State *state);
+		
+		/** Sample a state near another, within given bounds */
+		virtual void sampleNear(State *state, const State *near, const double rho);
+		
+		/** Sample a state near another, within given bounds */
+		virtual void sampleNear(State *state, const State *near, const std::vector<double> &rho);
+		
+	    protected:
+		
+		SpaceInformationKinematic *m_si;	    
+		random_utils::RNG          m_rng;
 	    };
 	    
-	    StateKinematic(void) : State(), flags(NO_FLAGS)
-	    {
-		values = NULL;
-	    }
-	    
-	    StateKinematic(const unsigned int dimension) : State(), flags(SELF_ALLOCATED)
-	    {
-		values = new double[dimension];
-	    }
-	    
-	    virtual ~StateKinematic(void)
-	    {
-		if ((flags & SELF_ALLOCATED) && values)
-		    delete[] values;
-	    }
+	    /** Check if the path between two motions is valid using subdivision */
+	    bool checkMotionSubdivision(const State *s1, const State *s2) const;
 
-	    int     flags;
-	    double *values;
-	};
-
-	/** Definition of a goal region */
-	class GoalRegionKinematic : public Goal
-	{
-	public:
+	    /** Incrementally check if the path between two motions is valid */
+	    bool checkMotionIncremental(const State *s1, const State *s2,
+					State *lastValidState = NULL, double *lastValidTime = NULL) const;
 	    
-	    GoalRegionKinematic(SpaceInformation_t si) : Goal(si)
-	    {
-		threshold = 0.0;
-	    }
-	    
-	    virtual ~GoalRegionKinematic(void)
-	    {
-	    }
-
-	    /** Decide whether a given state is part of the goal
-		region. Returns true if the distance to goal is less
-		than the threshold */
-	    virtual bool isSatisfied(State_t s, double *distance = NULL) const;
-
-	    /** Compute the distance to the goal (heuristic) */
-	    virtual double distanceGoal(StateKinematic_t s) const = 0;
-
-	    /** Print information about the goal data structure to the
-		screen */
-	    virtual void print(std::ostream &out = std::cout) const;
-	    
-	    /** The maximum distance that is allowed to the goal */
-	    double threshold;
-	};
-
-	/** Definition of a goal state */
-	class GoalStateKinematic : public GoalRegionKinematic
-	{
-	public:
-	    
-	    GoalStateKinematic(SpaceInformation_t si) : GoalRegionKinematic(si)
-	    {
-		state = NULL;
-	    }
-	    
-	    virtual ~GoalStateKinematic(void)
-	    {
-		if (state)
-		    delete state;
-	    }
-
-	    /** Compute the distance to the goal (heuristic) */
-	    virtual double distanceGoal(StateKinematic_t s) const;	    
-
-	    /** Print information about the goal data structure to the
-		screen */
-	    virtual void print(std::ostream &out = std::cout) const;
-	    
-	    /** The goal state */
-	    StateKinematic_t state;
-	};
+	    /** Check if the path is valid */
+	    bool checkPath(const PathKinematic *path) const;
 	
-	/** Definition of a kinematic path */
-	class PathKinematic : public Path
-	{
-	public:
-	    
-	    PathKinematic(SpaceInformation_t si) : Path(si)
-	    {
-	    }
-	    
-	    virtual ~PathKinematic(void)
-	    {
-		freeMemory();
-	    }
-	    
-	    /** The list of states that make up the path */
-	    std::vector<StateKinematic_t> states;
+	    /** Insert states in a path, at the collision checking resolution */
+	    void interpolatePath(PathKinematic *path, double factor = 1.0) const;
+	
+	    /** Perform additional tasks to finish the initialization of
+		the space information */
+	    virtual void setup(void);
 	    
 	protected:
 	    
-	    void freeMemory(void);
+	    /** For functions that need to interpolate between two states, find the appropriate step size */
+	    int findDifferenceStep(const State *s1, const State *s2, double factor,
+				   std::valarray<double> &step) const;
 	    
-	};
-
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class StateKinematicL2SquareDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    StateKinematicL2SquareDistanceEvaluator(SpaceInformationKinematic_t si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State_t state1, const State_t state2) const;
-	    
-	protected:
-	    
-	    SpaceInformationKinematic_t m_si;	    
-	};
-	
-	/** A class that can perform sampling. Usually an instance of this class is needed
- 	 * for sampling states */
-	class SamplingCore
-	{	    
-	public:
-	    SamplingCore(SpaceInformationKinematic_t si) : m_si(si) 
-	    {
-	    }	    
-
-	    /** Sample a state */
-	    void sample(StateKinematic_t state);
-
-	    /** Sample a state near another, within given bounds */
-	    void sampleNear(StateKinematic_t state, const StateKinematic_t near, const double rho);
-
-	    /** Sample a state near another, within given bounds */
-	    void sampleNear(StateKinematic_t state, const StateKinematic_t near, const std::vector<double> &rho);
-
 	private:
-
-	    SpaceInformationKinematic_t m_si;	    
-	    random_utils::RNG           m_rng;
-	};
-	
-	struct StateComponent
-	{
-	    StateComponent(void)
-	    {
-		type = UNKNOWN;
-	    }
 	    
-	    enum
-		{ UNKNOWN, NORMAL, WRAPPING_ANGLE, QUATERNION }
-		   type;
-	    double minValue;
-	    double maxValue;
-	    double resolution;
+	    L2SquareStateDistanceEvaluator m_defaultDistanceEvaluator;
+	    
 	};
-       	
-	/** Print a state to a stream */
-	void printState(const StateKinematic_t state, std::ostream &out = std::cout) const;
-
-	/** Copy a state to another */
-	void copyState(StateKinematic_t destination, const StateKinematic_t source) const;
-	
-	/** Return the dimension of the state space */
-	unsigned int getStateDimension(void) const;
-	
-	/** Get information about a component of the state space */
-	const StateComponent& getStateComponent(unsigned int index) const;
-	
-	/** Compute the distance between two states */
-	double distance(const StateKinematic_t s1, const StateKinematic_t s2) const;
-		
-	/** Check if the path between two motions is valid using subdivision */
-	bool checkMotionSubdivision(const StateKinematic_t s1, const StateKinematic_t s2) const;
-
-	/** Incrementally check if the path between two motions is valid */
-	bool checkMotionIncremental(const StateKinematic_t s1, const StateKinematic_t s2,
-				    StateKinematic *lastValidState = NULL, double *lastValidTime = NULL) const;
-	
-	/** Check if the path is valid */
-	bool checkPath(PathKinematic_t path) const;
-	
-	/** Insert states in a path, at the collision checking resolution */
-	void interpolatePath(PathKinematic_t path, double factor = 1.0) const;
-	
-	/** Check if a state is inside the bounding box */
-	bool satisfiesBounds(const StateKinematic_t s) const;
-	
-	/** Print information about the current instance of the state space */
-	void printSettings(std::ostream &out = std::cout) const;
-	
-	/** Perform additional tasks to finish the initialization of
-	    the space information */
-	virtual void setup(void);
-	
-    protected:
-
-	/** For functions that need to interpolate between two states, find the appropriate step size */
-	int findDifferenceStep(const StateKinematic_t s1, const StateKinematic_t s2, double factor,
-			       std::valarray<double> &step) const;
-	
-	unsigned int                            m_stateDimension;
-	std::vector<StateComponent>             m_stateComponent;
-
-    private:
-	
-	StateKinematicL2SquareDistanceEvaluator m_defaultDistanceEvaluator;
-	
-    };
+    }
     
 }
 

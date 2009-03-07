@@ -34,86 +34,65 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_LINEAR_
+#ifndef OMPL_EXTENSION_SAMPLINGBASED_STATE_
+#define OMPL_EXTENSION_SAMPLINGBASED_STATE_
 
-#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/State.h"
+#include <cstdlib>
 
 namespace ompl
 {
-
-    template<typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
+    namespace sb
     {
-    public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
-	{
-	}
 	
-	virtual ~NearestNeighborsLinear(void)
+	/** Definition of a kinematic state: an array of doubles */
+	class State : public base::State
 	{
-	}
-	
-	virtual void clear(void)
-	{
-	    m_data.clear();
-	    m_active.clear();
-	}
-
-	virtual void add(_T &data)
-	{
-	    m_data.push_back(data);
-	    m_active.push_back(true);
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = m_data.size() - 1 ; i >= 0 ; --i)
-		if (m_data[i] == data)
+	public:
+	    
+	    enum 
 		{
-		    m_active[i] = false;
-		    return true;
-		}
-	    return false;
-	}
-	
-	virtual _T nearest(_T &data) const
-	{
-	    int pos = -1;
-	    double dmin = 0.0;
-	    for (unsigned int i = 0 ; i < m_data.size() ; ++i)
+		    NO_FLAGS       = 0,
+		    SELF_ALLOCATED = 1
+		};
+	    
+	    State(void) : base::State(), flags(NO_FLAGS)
 	    {
-		if (m_active[i])
-		{
-		    double distance = NearestNeighbors<_T>::m_distFun(m_data[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
-		}
+		values = NULL;
 	    }
-	    return pos >= 0 ? m_data[pos] : data;
-	}
+	    
+	    State(const unsigned int dimension) : base::State(), flags(SELF_ALLOCATED)
+	    {
+		values = new double[dimension];
+	    }
+	    
+	    virtual ~State(void)
+	    {
+		if ((flags & SELF_ALLOCATED) && values)
+		    delete[] values;
+	    }
+	    
+	    int     flags;
+	    double *values;
+	};
 	
-	virtual unsigned int size(void) const
+	struct StateComponent
 	{
-	    return m_data.size();
-	}
+	    StateComponent(void)
+	    {
+		type = UNKNOWN;
+		minValue = maxValue = resolution = 0.0;
+	    }
+	    
+	    enum
+		{ UNKNOWN, NORMAL, WRAPPING_ANGLE, QUATERNION }
+		type;
+	    double minValue;
+	    double maxValue;
+	    double resolution;
+	};
 	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data = m_data;
-	}
-	
-    protected:
-	
-	std::vector<_T>   m_data;
-	std::vector<bool> m_active;
-	
-    };
-    
-    
+    }
 }
 
 #endif

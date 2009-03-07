@@ -36,12 +36,12 @@
 
 #include "ompl/extension/samplingbased/kinematic/extension/est/EST.h"
 
-bool ompl::EST::solve(double solveTime)
+bool ompl::sb::EST::solve(double solveTime)
 {
-    SpaceInformationKinematic_t                          si = dynamic_cast<SpaceInformationKinematic_t>(m_si); 
-    SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(si->getGoal());
-    SpaceInformationKinematic::GoalStateKinematic_t  goal_s = dynamic_cast<SpaceInformationKinematic::GoalStateKinematic_t>(si->getGoal());
-    unsigned int                                        dim = si->getStateDimension();
+    SpaceInformationKinematic *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    GoalRegion            *goal_r = dynamic_cast<GoalRegion*>(si->getGoal());
+    GoalState             *goal_s = dynamic_cast<GoalState*>(si->getGoal());
+    unsigned int              dim = si->getStateDimension();
     
     if (!goal_s && !goal_r)
     {
@@ -55,8 +55,8 @@ bool ompl::EST::solve(double solveTime)
     {
 	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
 	{
-	    Motion_t motion = new Motion(dim);
-	    si->copyState(motion->state, dynamic_cast<SpaceInformationKinematic::StateKinematic_t>(si->getStartState(i)));
+	    Motion *motion = new Motion(dim);
+	    si->copyState(motion->state, dynamic_cast<State*>(si->getStartState(i)));
 	    if (si->isValid(motion->state))
 		addMotion(motion);
 	    else
@@ -79,27 +79,27 @@ bool ompl::EST::solve(double solveTime)
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
-    Motion_t                                    solution  = NULL;
-    Motion_t                                    approxsol = NULL;
-    double                                      approxdif = INFINITY;
-    SpaceInformationKinematic::StateKinematic_t xstate    = new SpaceInformationKinematic::StateKinematic(dim);
+    Motion *solution  = NULL;
+    Motion *approxsol = NULL;
+    double  approxdif = INFINITY;
+    State  *xstate    = new State(dim);
     
     while (time_utils::Time::now() < endTime)
     {
 	/* Decide on a state to expand from */
-	Motion_t existing = selectMotion();
+	Motion *existing = selectMotion();
 	assert(existing);
 	
 	/* sample random state (with goal biasing) */
 	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
-	    si->copyState(xstate, goal_s->state);
+	    si->copyState(xstate, static_cast<State*>(goal_s->state));
 	else
 	    m_sCore.sampleNear(xstate, existing->state, range);
 	
 	if (si->checkMotionSubdivision(existing->state, xstate))
 	{
 	    /* create a motion */
-	    Motion_t motion = new Motion(dim);
+	    Motion *motion = new Motion(dim);
 	    si->copyState(motion->state, xstate);
 	    motion->parent = existing;
 
@@ -130,7 +130,7 @@ bool ompl::EST::solve(double solveTime)
     if (solution != NULL)
     {
 	/* construct the solution path */
-	std::vector<Motion_t> mpath;
+	std::vector<Motion*> mpath;
 	while (solution != NULL)
 	{
 	    mpath.push_back(solution);
@@ -138,10 +138,10 @@ bool ompl::EST::solve(double solveTime)
 	}
 
 	/* set the solution path */
-	SpaceInformationKinematic::PathKinematic_t path = new SpaceInformationKinematic::PathKinematic(m_si);
+	PathKinematic *path = new PathKinematic(static_cast<SpaceInformation*>(m_si));
    	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	{   
-	    SpaceInformationKinematic::StateKinematic_t st = new SpaceInformationKinematic::StateKinematic(dim);
+	    State *st = new State(dim);
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
@@ -159,7 +159,7 @@ bool ompl::EST::solve(double solveTime)
     return goal_r->isAchieved();
 }
 
-ompl::EST::Motion_t ompl::EST::selectMotion(void)
+ompl::sb::EST::Motion* ompl::sb::EST::selectMotion(void)
 {
     double sum  = 0.0;
     Grid<MotionSet>::Cell* cell = NULL;
@@ -178,17 +178,17 @@ ompl::EST::Motion_t ompl::EST::selectMotion(void)
     return cell && !cell->data.empty() ? cell->data[m_rng.uniformInt(0, cell->data.size() - 1)] : NULL;
 }
 
-void ompl::EST::computeCoordinates(const Motion_t motion, Grid<MotionSet>::Coord &coord)
+void ompl::sb::EST::computeCoordinates(const Motion* motion, Grid<MotionSet>::Coord &coord)
 {
     coord.resize(m_projectionDimension);
     double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(static_cast<SpaceInformation::State*>(motion->state), projection);
+    (*m_projectionEvaluator)(static_cast<base::State*>(motion->state), projection);
     
     for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
 	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
 }
 
-void ompl::EST::addMotion(Motion_t motion)
+void ompl::sb::EST::addMotion(Motion *motion)
 {
     Grid<MotionSet>::Coord coord;
     computeCoordinates(motion, coord);

@@ -37,10 +37,10 @@
 #include "ompl/extension/samplingbased/kinematic/extension/ik/HCIK.h"
 #include <algorithm>
 
-bool ompl::HCIK::tryToImprove(SpaceInformationKinematic::StateKinematic_t state, double add, double *distance) const
+bool ompl::sb::HCIK::tryToImprove(State *state, double add, double *distance) const
 {
-    SpaceInformationKinematic::GoalRegionKinematic_t goal_r = dynamic_cast<SpaceInformationKinematic::GoalRegionKinematic_t>(m_si->getGoal());
-    unsigned int                                        dim = m_si->getStateDimension();
+    GoalRegion *goal_r = dynamic_cast<GoalRegion*>(m_si->getGoal());
+    unsigned int   dim = m_si->getStateDimension();
     
     if (!goal_r)
 	return false;
