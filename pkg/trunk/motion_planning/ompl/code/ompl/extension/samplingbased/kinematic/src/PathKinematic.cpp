@@ -36,6 +36,18 @@
 
 #include "ompl/extension/samplingbased/kinematic/PathKinematic.h"
 
+ompl::sb::PathKinematic::PathKinematic(PathKinematic &path) : base::Path(path.getSpaceInformation())
+{
+    states.resize(path.states.size());
+    SpaceInformation *si = static_cast<SpaceInformation*>(m_si);
+    unsigned int dim = si->getStateDimension();
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    {
+	states[i] = new State(dim);
+	si->copyState(states[i], path.states[i]);
+    }
+}
+
 void ompl::sb::PathKinematic::freeMemory(void)
 {
     for (unsigned int i = 0 ; i < states.size() ; ++i)

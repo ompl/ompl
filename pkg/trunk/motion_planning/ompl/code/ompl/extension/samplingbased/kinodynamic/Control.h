@@ -38,14 +38,15 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINODYNAMIC_CONTROL_
 
 #include <cstdlib>
+#include "ompl/base/Control.h"
 
 namespace ompl
 {
     namespace sb
     {
 	
-	/** Definition of a kinematic state: an array of doubles */
-	class Control
+	/** Definition of a control: an array of doubles */
+	class Control : public base::Control
 	{
 	public:
 	    
@@ -55,12 +56,12 @@ namespace ompl
 		    SELF_ALLOCATED = 1
 		};
 	    
-	    Control(void) : flags(NO_FLAGS)
+	    Control(void) : base::Control(), flags(NO_FLAGS)
 	    {
 		values = NULL;
 	    }
 	    
-	    Control(const unsigned int dimension) : flags(SELF_ALLOCATED)
+	    Control(const unsigned int dimension) : base::Control(), flags(SELF_ALLOCATED)
 	    {
 		values = new double[dimension];
 	    }

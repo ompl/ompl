@@ -34,42 +34,26 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_KINEMATIC_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_KINEMATIC_
+#ifndef OMPL_BASE_CONTROL_
+#define OMPL_BASE_CONTROL_
 
-#include "ompl/extension/samplingbased/SpaceInformation.h"
-#include <vector>
+#include "ompl/base/General.h"
 
 namespace ompl
 {
-    namespace sb
+    namespace base
     {
 	
-	/** Definition of a kinematic path */
-	class PathKinematic : public base::Path
+	/** Abstract definition of a control */
+	class Control
 	{
 	public:
-	    
-	    PathKinematic(SpaceInformation *si) : base::Path(dynamic_cast<base::SpaceInformation*>(si))
+	    virtual ~Control(void)
 	    {
 	    }
-	    PathKinematic(PathKinematic &path);
-	    
-	    virtual ~PathKinematic(void)
-	    {
-		freeMemory();
-	    }
-	    
-	    /** The list of states that make up the path */
-	    std::vector<State*> states;
-	    
-	protected:
-	    
-	    void freeMemory(void);
-	    
 	};
-	
     }
+    
 }
 
 #endif

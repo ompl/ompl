@@ -59,6 +59,18 @@ namespace ompl
 	    virtual bool operator()(const State *state) const = 0;
 	};
 	
+	/** A state validity checker that considers all states valid. */
+	class AllValidStateValidityChecker : public StateValidityChecker
+	{
+	public:
+	    
+	    /** Return true for all states */
+	    virtual bool operator()(const State *) const 
+	    {
+		return true;
+	    }
+	};
+	
     }
 }
 

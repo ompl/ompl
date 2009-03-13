@@ -38,6 +38,7 @@
 #define OMPL_EXTENSION_SAMPLINGBASED_KINODYNAMIC_SPACE_INFORMATION_CONTROLS_
 
 #include "ompl/extension/samplingbased/SpaceInformation.h"
+#include "ompl/extension/samplingbased/StateDistanceEvaluator.h"
 #include "ompl/extension/samplingbased/kinodynamic/Control.h"
 #include <vector>
 
@@ -54,8 +55,10 @@ namespace ompl
 	public:
 	    
 	    /** Constructor; setup() needs to be called as well, before use */
-	    SpaceInformationControls(void) : SpaceInformation()
+	    SpaceInformationControls(void) : SpaceInformation(),
+					     m_defaultDistanceEvaluator(dynamic_cast<SpaceInformation*>(this))
 	    {
+		m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;
 		m_controlDimension = 0;
 		m_resolution = 0.05;
 	    }
@@ -78,6 +81,9 @@ namespace ompl
 		virtual ~SamplingCore(void)
 		{
 		}
+		
+		/** Sample a number of steps */
+		virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
 		
 		/** Sample a control */
 		virtual void sample(Control *ctrl);
@@ -103,28 +109,17 @@ namespace ompl
 	    {
 		return m_controlComponent[index];
 	    }
+
+	    /** Copy a control to another */
+	    virtual void copyControl(Control *destination, const Control *source) const;
 	    
-	    /** Propagate the system forward in time, given a starting state, a control and a duration */
-	    void propagateForward(const State *begin, const Control *ctrl, double duration, State *end) const = 0;
-
-	    /** Get the states that make up a motion. Returns the number of states that were added */
-	    unsigned int getMotionStates(const State *begin, const Control *ctrl, double duration, std::vector<State*> &states, bool alloc) const;
-	    // still need to think some more :) 
-
-	    // if we use an ODE, integration does not do collision checking
-	    void propagateForward(const State *begin, const Control *ctrl, double duration, State *end) const = 0;
-	    void propagateForward(const State *begin, const Control *ctrl, double duration, std::vector<State*> &states) const = 0;
+	    /** Check if a control is inside the bounding box */
+	    bool satisfiesBounds(const Control *control) const;
 	    
-	    bool checkStatesIncremental(const std::vector<State*> &states, unsigned int *lastValidStateIndex = NULL) const;
-	    bool checkStatesSubdivision(const std::vector<State*> &states) const;
+	    /** Print a state to a stream */
+	    void printControl(const Control *control, std::ostream &out = std::cout) const;
 	    
-
-	    // if we use a physics engine
-	    void propagateForward(const State *begin, const Control *ctrl, double duration, std::vector<State*> &states) const = 0;
-
-
-	    /** Perform additional tasks to finish the initialization of
-		the space information */
+	    /** Perform additional tasks to finish the initialization of the space information */
 	    virtual void setup(void);
 	    
 	protected:
@@ -132,6 +127,11 @@ namespace ompl
 	    unsigned int                  m_controlDimension;
 	    std::vector<ControlComponent> m_controlComponent;
 	    double                        m_resolution;
+	    
+	private:
+	    
+	    L2SquareStateDistanceEvaluator m_defaultDistanceEvaluator;
+
 	};
     }
     

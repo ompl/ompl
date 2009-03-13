@@ -34,42 +34,58 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_KINEMATIC_
-#define OMPL_EXTENSION_SAMPLINGBASED_KINEMATIC_PATH_KINEMATIC_
+#include "ompl/extension/samplingbased/kinodynamic/SpaceInformationControlsPhysics.h"
+#include <algorithm>
+#include <cassert>
 
-#include "ompl/extension/samplingbased/SpaceInformation.h"
-#include <vector>
-
-namespace ompl
+void ompl::sb::SpaceInformationControlsPhysics::setup(void)
 {
-    namespace sb
-    {
-	
-	/** Definition of a kinematic path */
-	class PathKinematic : public base::Path
-	{
-	public:
-	    
-	    PathKinematic(SpaceInformation *si) : base::Path(dynamic_cast<base::SpaceInformation*>(si))
-	    {
-	    }
-	    PathKinematic(PathKinematic &path);
-	    
-	    virtual ~PathKinematic(void)
-	    {
-		freeMemory();
-	    }
-	    
-	    /** The list of states that make up the path */
-	    std::vector<State*> states;
-	    
-	protected:
-	    
-	    void freeMemory(void);
-	    
-	};
-	
-    }
+    assert(m_stateValidityChecker);
+    assert(m_stateForwardPropagator);
+    SpaceInformationControls::setup();
 }
 
-#endif
+unsigned int ompl::sb::SpaceInformationControlsPhysics::propagateForward(const State *begin, const Control *ctrl, unsigned int steps, std::vector<State*> states, bool alloc) const
+{
+    if (alloc)
+    {
+	states.resize(steps + 1);
+	states[0] = new State(m_stateDimension);
+    }
+    else
+    {
+	if (states.empty())
+	    return 0;
+	steps = std::min(steps, (unsigned int)states.size() - 1);
+    }
+    
+    unsigned int st = 1;
+    copyState(states.front(), begin);
+    
+    base::StateForwardPropagatorWithContacts::Options opt(true, false);
+    base::StateForwardPropagatorWithContacts::Result  res;
+
+    while (st <= steps)
+    {
+	if (alloc)
+	    states[st] = new State(m_stateDimension);
+	
+	res.end = states[st];
+	(*m_stateForwardPropagator)(static_cast<const base::State*>(begin), static_cast<const base::Control*>(ctrl), 1, m_resolution, 
+				    opt, res);
+	bool stop = res.collision_step >= 0;
+	if (!stop)
+	    stop = !isValid(static_cast<const State*>(res.end));
+	
+	if (stop)
+	{
+	    // current state was in collision
+	    if (alloc)
+		delete states[st];
+	    break;
+	}
+	st++;
+    }
+    
+    return st;
+}
