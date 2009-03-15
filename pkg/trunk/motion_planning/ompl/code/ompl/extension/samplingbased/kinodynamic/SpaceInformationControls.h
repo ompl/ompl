@@ -112,6 +112,9 @@ namespace ompl
 
 	    /** Copy a control to another */
 	    virtual void copyControl(Control *destination, const Control *source) const;
+
+	    /** Make the control a null one */
+	    virtual void nullControl(Control *ctrl) const;
 	    
 	    /** Check if a control is inside the bounding box */
 	    bool satisfiesBounds(const Control *control) const;

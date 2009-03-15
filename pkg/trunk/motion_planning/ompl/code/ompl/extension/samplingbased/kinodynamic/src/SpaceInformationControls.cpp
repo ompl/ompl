@@ -64,6 +64,12 @@ void ompl::sb::SpaceInformationControls::printControl(const Control *control, st
 	out << "NULL" << std::endl;
 }
 
+void ompl::sb::SpaceInformationControls::nullControl(Control *ctrl) const
+{
+    for (unsigned int i = 0 ; i < m_controlDimension ; ++i)
+	ctrl->values[i] = 0.0;
+}
+
 bool ompl::sb::SpaceInformationControls::satisfiesBounds(const Control *control) const
 {
     for (unsigned int i = 0 ; i < m_controlDimension ; ++i)
