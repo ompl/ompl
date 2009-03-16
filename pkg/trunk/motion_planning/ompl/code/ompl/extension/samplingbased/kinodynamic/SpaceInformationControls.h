@@ -59,6 +59,7 @@ namespace ompl
 					     m_defaultDistanceEvaluator(dynamic_cast<SpaceInformation*>(this))
 	    {
 		m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;
+		m_minControlDuration = m_maxControlDuration = 0;
 		m_controlDimension = 0;
 		m_resolution = 0.05;
 	    }
@@ -76,14 +77,16 @@ namespace ompl
 	    public:
 		SamplingCore(SpaceInformationControls *si) : m_si(si) 
 		{
-		}	    
+		    m_minControlDuration = m_si->getMinControlDuration();
+		    m_maxControlDuration = m_si->getMaxControlDuration();
+		}
 		
 		virtual ~SamplingCore(void)
 		{
 		}
 		
 		/** Sample a number of steps */
-		virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
+		virtual unsigned int sampleStepCount(void);
 		
 		/** Sample a control */
 		virtual void sample(Control *ctrl);
@@ -98,11 +101,23 @@ namespace ompl
 		
 		SpaceInformationControls *m_si;	    
 		random_utils::RNG         m_rng;
+		unsigned int              m_minControlDuration;
+		unsigned int              m_maxControlDuration;
 	    };
 	    
 	    unsigned int getControlDimension(void) const
 	    {
 		return m_controlDimension;
+	    }
+	    
+	    unsigned int getMinControlDuration(void) const
+	    {
+		return m_minControlDuration;
+	    }
+	    
+	    unsigned int getMaxControlDuration(void) const
+	    {
+		return m_maxControlDuration;
 	    }
 	    
 	    const ControlComponent& getControlComponent(unsigned int index) const
@@ -131,6 +146,9 @@ namespace ompl
 	    std::vector<ControlComponent> m_controlComponent;
 	    double                        m_resolution;
 	    
+	    unsigned int                  m_minControlDuration;
+	    unsigned int                  m_maxControlDuration;
+	
 	private:
 	    
 	    L2SquareStateDistanceEvaluator m_defaultDistanceEvaluator;

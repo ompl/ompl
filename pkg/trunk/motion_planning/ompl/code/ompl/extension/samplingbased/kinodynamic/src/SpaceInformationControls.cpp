@@ -44,6 +44,8 @@ void ompl::sb::SpaceInformationControls::setup(void)
     assert(m_controlDimension > 0);
     assert(m_controlComponent.size() == m_controlDimension);
     assert(m_stateDistanceEvaluator);
+    assert(m_minControlDuration < m_maxControlDuration);
+    assert(m_minControlDuration > 0);
     SpaceInformation::setup();
 }
 
@@ -79,9 +81,9 @@ bool ompl::sb::SpaceInformationControls::satisfiesBounds(const Control *control)
     return true;
 }
 
-unsigned int ompl::sb::SpaceInformationControls::SamplingCore::sampleStepCount(unsigned int minSteps, unsigned int maxSteps)
+unsigned int ompl::sb::SpaceInformationControls::SamplingCore::sampleStepCount(void)
 {
-    return m_rng.uniformInt(minSteps, maxSteps);
+    return m_rng.uniformInt(m_minControlDuration, m_maxControlDuration);
 }
 
 void ompl::sb::SpaceInformationControls::SamplingCore::sample(Control *ctrl)
