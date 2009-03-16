@@ -40,6 +40,7 @@
 #include "ompl/base/General.h"
 #include "ompl/base/State.h"
 #include "ompl/base/Control.h"
+#include <cstdlib>
 
 namespace ompl
 {

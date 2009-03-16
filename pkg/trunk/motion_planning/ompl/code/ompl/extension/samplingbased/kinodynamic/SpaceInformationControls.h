@@ -39,7 +39,7 @@
 
 #include "ompl/extension/samplingbased/SpaceInformation.h"
 #include "ompl/extension/samplingbased/StateDistanceEvaluator.h"
-#include "ompl/extension/samplingbased/kinodynamic/Control.h"
+#include "ompl/extension/samplingbased/Control.h"
 #include <vector>
 
 /** Main namespace */
