@@ -73,7 +73,7 @@ unsigned int ompl::sb::SpaceInformationControlsPhysics::propagateForward(const S
 	res.end = states[st];
 	(*m_stateForwardPropagator)(static_cast<const base::State*>(begin), static_cast<const base::Control*>(ctrl), 1, m_resolution, 
 				    opt, res);
-	bool stop = res.collision_step >= 0;
+	bool stop = res.first_contact_step >= 0;
 	if (!stop)
 	    stop = !isValid(static_cast<const State*>(res.end));
 	

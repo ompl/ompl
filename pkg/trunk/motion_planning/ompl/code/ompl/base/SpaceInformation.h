@@ -137,9 +137,17 @@ namespace ompl
 	    /** Perform additional setup tasks (run once, before use) */
 	    virtual void setup(void)
 	    {
+		if (m_setup)
+		    m_msg.error("Space information setup called multiple times");
 		m_setup = true;
 	    }
-
+	    
+	    /** Return true if setup was called */
+	    bool isSetup(void) const
+	    {
+		return m_setup;
+	    }
+	    
 	protected:
 	    
 	    bool                    m_setup;

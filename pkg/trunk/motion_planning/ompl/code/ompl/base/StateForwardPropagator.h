@@ -73,30 +73,30 @@ namespace ompl
 	    
 	    struct Options
 	    {
-	        Options(void) : stop_at_collision(true), test_collision_only(false)
+	        Options(void) : stop_at_contact(true), test_contact_only(false)
 		{		    
 		}
 		
-	        Options(bool sac, bool tco) : stop_at_collision(sac), test_collision_only(tco)
+	        Options(bool sac, bool tco) : stop_at_contact(sac), test_contact_only(tco)
 		{
 		}
 		
-		bool stop_at_collision;
-		bool test_collision_only;
+		bool stop_at_contact;
+		bool test_contact_only;
 	    };
 	    
 	    struct Result
 	    {
-	        Result(void) : collision_step(-1), end(NULL)
+	        Result(void) : first_contact_step(-1), end(NULL)
 		{
 		}
 		
-	        Result(State *e) : collision_step(-1), end(e)
+	        Result(State *e) : first_contact_step(-1), end(e)
 		{
 		}
 		
-		int    collision_step; // if a collision found, this is the step at which that collision was found. if no collision, -1; 
-		State *end;            // last valid state
+		int    first_contact_step; // if a collision found, this is the step at which that collision was found. if no collision, -1; 
+		State *end;                // last reached state
 	    };
 	    
 	    

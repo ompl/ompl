@@ -75,6 +75,10 @@ namespace ompl
 	    /** Perform extra configuration steps, if needed */
 	    virtual void setup(void)
 	    {
+		if (!m_si->isSetup())
+		    m_msg.error("Space information setup should have been called before planner setup was called");
+		if (m_setup)
+		    m_msg.error("Planner setup called multiple times");		
 		m_setup = true;
 	    }
 	    
