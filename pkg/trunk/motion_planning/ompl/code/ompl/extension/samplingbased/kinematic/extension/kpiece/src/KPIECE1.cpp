@@ -208,20 +208,10 @@ bool ompl::sb::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 	return false;
 }
 
-void ompl::sb::KPIECE1::computeCoordinates(const Motion *motion, Grid::Coord &coord)
-{
-    coord.resize(m_projectionDimension);
-    double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(static_cast<base::State*>(motion->state), projection);
-    
-    for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
-	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
-}
-
 unsigned int ompl::sb::KPIECE1::addMotion(Motion *motion, double dist)
 {
     Grid::Coord coord;
-    computeCoordinates(motion, coord);
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid::Cell* cell = m_tree.grid.getCell(coord);
     unsigned int created = 0;
     if (cell)

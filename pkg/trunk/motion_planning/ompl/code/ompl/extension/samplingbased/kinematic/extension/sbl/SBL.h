@@ -222,7 +222,6 @@ namespace ompl
 	    void addMotion(TreeData &tree, Motion *motion);
 	    Motion* selectMotion(TreeData &tree);	
 	    void removeMotion(TreeData &tree, Motion *motion);
-	    void computeCoordinates(const Motion *motion, Grid<MotionSet>::Coord &coord);
 	    bool isPathValid(TreeData &tree, Motion *motion);
 	    bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
 	    

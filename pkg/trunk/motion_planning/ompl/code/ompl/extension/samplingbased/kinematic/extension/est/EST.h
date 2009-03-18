@@ -213,7 +213,6 @@ namespace ompl
 	    
 	    void addMotion(Motion *motion);
 	    Motion* selectMotion(void);
-	    void computeCoordinates(const Motion *motion, Grid<MotionSet>::Coord &coord);
 	    
 	    SpaceInformationKinematic::SamplingCore m_sCore;
 	    TreeData                                m_tree;

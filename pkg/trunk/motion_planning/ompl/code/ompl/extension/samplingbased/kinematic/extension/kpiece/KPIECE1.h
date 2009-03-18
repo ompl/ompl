@@ -270,7 +270,6 @@ namespace ompl
 	    
 	    unsigned int addMotion(Motion* motion, double dist);
 	    bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
-	    void computeCoordinates(const Motion* motion, Grid::Coord &coord);
 	    
 	    SpaceInformationKinematic::SamplingCore m_sCore;
 	    

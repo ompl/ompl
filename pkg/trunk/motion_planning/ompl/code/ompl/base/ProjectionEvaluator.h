@@ -40,13 +40,14 @@
 #include "ompl/base/General.h"
 #include "ompl/base/State.h"
 #include <vector>
+#include <cmath>
 
 namespace ompl
 {
     
     namespace base
     {
-	
+
 	/** Abstract definition for a class computing projections */
 	class ProjectionEvaluator
 	{
@@ -55,6 +56,12 @@ namespace ompl
 	    virtual ~ProjectionEvaluator(void)
 	    {
 	    }
+	    
+	    /** Return the dimension of the projection defined by this evaluator */
+	    virtual unsigned int getDimension(void) const = 0;
+	    
+	    /** Compute the projection as an array of double values */
+	    virtual void operator()(const State *state, double *projection) const = 0;
 	    
 	    /** Define the dimension (each component) of a grid cell. The
 		number of dimensions set here must be the same as the
@@ -70,20 +77,28 @@ namespace ompl
 		cellDimensions = m_cellDimensions;
 	    }
 	    
-	    /** Return the dimension of the projection defined by this evaluator */
-	    virtual unsigned int getDimension(void) const = 0;
+	    /** Compute integer coordinates for a projection */
+	    void computeCoordinates(const double *projection, std::vector<int> &coord) const
+	    {
+		unsigned int dim = getDimension();
+		coord.resize(dim);
+		for (unsigned int i = 0 ; i < dim ; ++i)
+		    coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
+	    }
 	    
-	    /** Compute the projection as an array of double values */
-	    virtual void operator()(const State *state, double *projection) const = 0;
+	    void computeCoordinates(const State *state, std::vector<int> &coord) const
+	    {
+		double projection[getDimension()];
+		(*this)(state, projection);
+		computeCoordinates(projection, coord);
+	    }
 	    
 	protected:
 	    
 	    std::vector<double> m_cellDimensions;
 	    
 	};
-	
     }
-
 }
 
 #endif

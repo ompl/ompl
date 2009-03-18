@@ -178,20 +178,10 @@ ompl::sb::EST::Motion* ompl::sb::EST::selectMotion(void)
     return cell && !cell->data.empty() ? cell->data[m_rng.uniformInt(0, cell->data.size() - 1)] : NULL;
 }
 
-void ompl::sb::EST::computeCoordinates(const Motion* motion, Grid<MotionSet>::Coord &coord)
-{
-    coord.resize(m_projectionDimension);
-    double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(static_cast<base::State*>(motion->state), projection);
-    
-    for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
-	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
-}
-
 void ompl::sb::EST::addMotion(Motion *motion)
 {
     Grid<MotionSet>::Coord coord;
-    computeCoordinates(motion, coord);
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid<MotionSet>::Cell* cell = m_tree.grid.getCell(coord);
     if (cell)
 	cell->data.push_back(motion);

@@ -146,7 +146,7 @@ bool ompl::sb::SBL::solve(double solveTime)
 bool ompl::sb::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)
 {
     Grid<MotionSet>::Coord coord;
-    computeCoordinates(motion, coord); 
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid<MotionSet>::Cell* cell = otherTree.grid.getCell(coord);
     
     if (cell && !cell->data.empty())
@@ -218,17 +218,6 @@ bool ompl::sb::SBL::isPathValid(TreeData &tree, Motion *motion)
     return true;
 }
 
-
-void ompl::sb::SBL::computeCoordinates(const Motion *motion, Grid<MotionSet>::Coord &coord)
-{
-    coord.resize(m_projectionDimension);
-    double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(static_cast<base::State*>(motion->state), projection);
-    
-    for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
-	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
-}
-
 ompl::sb::SBL::Motion* ompl::sb::SBL::selectMotion(TreeData &tree)
 {
     double sum  = 0.0;
@@ -253,7 +242,7 @@ void ompl::sb::SBL::removeMotion(TreeData &tree, Motion *motion)
     /* remove from grid */
     
     Grid<MotionSet>::Coord coord;
-    computeCoordinates(motion, coord);
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid<MotionSet>::Cell* cell = tree.grid.getCell(coord);
     if (cell)
     {
@@ -296,7 +285,7 @@ void ompl::sb::SBL::removeMotion(TreeData &tree, Motion *motion)
 void ompl::sb::SBL::addMotion(TreeData &tree, Motion *motion)
 {
     Grid<MotionSet>::Coord coord;
-    computeCoordinates(motion, coord);
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid<MotionSet>::Cell* cell = tree.grid.getCell(coord);
     if (cell)
 	cell->data.push_back(motion);

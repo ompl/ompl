@@ -148,7 +148,7 @@ bool ompl::sb::LBKPIECE1::solve(double solveTime)
 bool ompl::sb::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution)
 {
     Grid::Coord coord;
-    computeCoordinates(motion, coord); 
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid::Cell* cell = otherTree.grid.getCell(coord);
     
     if (cell && !cell->data->motions.empty())
@@ -220,16 +220,6 @@ bool ompl::sb::LBKPIECE1::isPathValid(TreeData &tree, Motion* motion)
     return true;
 }
 
-void ompl::sb::LBKPIECE1::computeCoordinates(const Motion* motion, Grid::Coord &coord)
-{
-    coord.resize(m_projectionDimension);
-    double projection[m_projectionDimension];
-    (*m_projectionEvaluator)(static_cast<base::State*>(motion->state), projection);
-    
-    for (unsigned int i = 0 ; i < m_projectionDimension; ++i)
-	coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
-}
-
 ompl::sb::LBKPIECE1::Motion* ompl::sb::LBKPIECE1::selectMotion(TreeData &tree)
 {
     Grid::Cell* cell = m_rng.uniform() < std::max(m_selectBorderPercentage, tree.grid.fracExternal()) ?
@@ -249,7 +239,7 @@ void ompl::sb::LBKPIECE1::removeMotion(TreeData &tree, Motion* motion)
     /* remove from grid */
     
     Grid::Coord coord;
-    computeCoordinates(motion, coord);
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid::Cell* cell = tree.grid.getCell(coord);
     if (cell)
     {
@@ -293,7 +283,7 @@ void ompl::sb::LBKPIECE1::removeMotion(TreeData &tree, Motion* motion)
 void ompl::sb::LBKPIECE1::addMotion(TreeData &tree, Motion* motion)
 {
     Grid::Coord coord;
-    computeCoordinates(motion, coord);
+    m_projectionEvaluator->computeCoordinates(static_cast<base::State*>(motion->state), coord);
     Grid::Cell* cell = tree.grid.getCell(coord);
     if (cell)
     {
