@@ -55,3 +55,8 @@ rospack_link_boost(test_gridb thread)
 rospack_add_gtest(test_random code/tests/random/random.cpp)
 target_link_libraries(test_random ompl)
 rospack_link_boost(test_random thread)
+
+# Test compilation
+rospack_add_gtest(test_compile code/tests/compile/compile.cpp)
+target_link_libraries(test_compile ompl)
+rospack_link_boost(test_compile thread)

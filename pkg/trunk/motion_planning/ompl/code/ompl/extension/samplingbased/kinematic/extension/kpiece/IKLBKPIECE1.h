@@ -47,3 +47,4 @@ namespace ompl
 	typedef IKPlanner<LBKPIECE1> IKLBKPIECE1;
     }
 }
+#endif

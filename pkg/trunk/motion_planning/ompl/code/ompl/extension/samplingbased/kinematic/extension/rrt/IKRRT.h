@@ -47,3 +47,5 @@ namespace ompl
 	typedef IKPlanner<RRT> IKRRT;
     }    
 }
+
+#endif

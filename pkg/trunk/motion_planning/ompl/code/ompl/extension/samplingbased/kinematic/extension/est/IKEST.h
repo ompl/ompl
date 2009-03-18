@@ -47,3 +47,4 @@ namespace ompl
 	typedef IKPlanner<EST> IKEST;
     }
 }
+#endif

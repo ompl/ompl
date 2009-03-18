@@ -61,7 +61,7 @@ bool ompl::sb::RRT::solve(double solveTime)
 		m_nn.add(motion);
 	    else
 	    {
-		m_msg.error("RRT: Initial state is in collision!");
+		m_msg.error("RRT: Initial state is invalid!");
 		delete motion;
 	    }	
 	}

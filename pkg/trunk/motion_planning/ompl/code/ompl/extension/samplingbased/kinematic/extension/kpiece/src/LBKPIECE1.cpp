@@ -63,7 +63,7 @@ bool ompl::sb::LBKPIECE1::solve(double solveTime)
 	    }
 	    else
 	    {
-		m_msg.error("LBKPIECE1: Initial state is in collision!");
+		m_msg.error("LBKPIECE1: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -80,7 +80,7 @@ bool ompl::sb::LBKPIECE1::solve(double solveTime)
 	}
 	else
 	{
-	    m_msg.error("LBKPIECE1: Goal state is in collision!");
+	    m_msg.error("LBKPIECE1: Goal state is invalid!");
 	    delete motion;
 	}
     }

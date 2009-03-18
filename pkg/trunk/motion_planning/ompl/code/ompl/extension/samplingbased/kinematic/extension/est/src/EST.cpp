@@ -61,7 +61,7 @@ bool ompl::sb::EST::solve(double solveTime)
 		addMotion(motion);
 	    else
 	    {
-		m_msg.error("EST: Initial state is in collision!");
+		m_msg.error("EST: Initial state is invalid!");
 		delete motion;
 	    }	
 	}

@@ -65,7 +65,7 @@ bool ompl::sb::LazyRRT::solve(double solveTime)
 	    }	
 	    else
 	    {
-		m_msg.error("LazyRRT: Initial state is in collision!");
+		m_msg.error("LazyRRT: Initial state is invalid!");
 		delete motion;
 	    }	
 	}

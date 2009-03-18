@@ -47,3 +47,4 @@ namespace ompl
 	typedef IKPlanner<LazyRRT> IKLRRT;
     }
 }
+#endif

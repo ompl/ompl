@@ -69,8 +69,8 @@ namespace ompl
 	    
 	protected:
 	    
-	    boost::pool<>                                       m_doubles;
-	    boost::object_pool<SpaceInformationSB::StateValues> m_states;
+	    boost::pool<>             m_doubles;
+	    boost::object_pool<State> m_states;
 	    
 	};	
     }

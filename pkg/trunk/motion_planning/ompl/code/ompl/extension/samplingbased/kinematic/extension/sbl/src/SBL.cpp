@@ -63,7 +63,7 @@ bool ompl::sb::SBL::solve(double solveTime)
 	    }
 	    else
 	    {
-		m_msg.error("SBL: Initial state is in collision!");
+		m_msg.error("SBL: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -80,7 +80,7 @@ bool ompl::sb::SBL::solve(double solveTime)
 	}
 	else
 	{
-	    m_msg.error("SBL: Goal state is in collision!");
+	    m_msg.error("SBL: Goal state is invalid!");
 	    delete motion;
 	}
     }

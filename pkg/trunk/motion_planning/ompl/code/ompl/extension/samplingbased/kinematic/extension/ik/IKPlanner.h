@@ -105,7 +105,7 @@ namespace ompl
 		{
 		    State *st = dynamic_cast<State*>(si->getStartState(i));
 		    if (!st || !si->isValid(st))
-			_P::m_msg.error("IKPlanner: Initial state is in collision!");
+			_P::m_msg.error("IKPlanner: Initial state is invalid!");
 		    else
 			foundStart = true;
 		}    

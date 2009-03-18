@@ -61,7 +61,7 @@ bool ompl::sb::KPIECE1::solve(double solveTime)
 		addMotion(motion, 1.0);
 	    else
 	    {
-		m_msg.error("KPIECE1: Initial state is in collision!");
+		m_msg.error("KPIECE1: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
