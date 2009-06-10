@@ -40,6 +40,7 @@ bool ompl::sb::KPIECE1::solve(double solveTime)
 {
     SpaceInformationKinematic *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
     GoalRegion            *goal_r = dynamic_cast<GoalRegion*>(si->getGoal());
+    GoalRegionKinematic   *goal_k = dynamic_cast<GoalRegionKinematic*>(si->getGoal());
     GoalState             *goal_s = dynamic_cast<GoalState*>(si->getGoal());
     unsigned int              dim = si->getStateDimension();
     
@@ -102,19 +103,22 @@ bool ompl::sb::KPIECE1::solve(double solveTime)
 	    if (goal_s)
 		si->copyState(xstate, static_cast<State*>(goal_s->state));
 	    else
-	    {
-		if (approxsol)
-		{
-		    si->copyState(xstate, approxsol->state);
-		    if (!m_hcik.tryToImprove(xstate, improveValue))
-		    {
-			m_sCore.sampleNear(xstate, existing->state, range);
-			improveValue /= 2.0;
-		    }
-		}
+		if (goal_k)
+		    goal_k->sampleNearGoal(xstate);
 		else
-		    m_sCore.sampleNear(xstate, existing->state, range);
-	    }
+		{
+		    if (approxsol)
+		    {
+			si->copyState(xstate, approxsol->state);
+			if (!m_hcik.tryToImprove(xstate, improveValue))
+			{
+			    m_sCore.sampleNear(xstate, existing->state, range);
+			    improveValue /= 2.0;
+			}
+		    }
+		    else
+			m_sCore.sampleNear(xstate, existing->state, range);
+		}
 	}
 	else
 	    m_sCore.sampleNear(xstate, existing->state, range);

@@ -41,6 +41,7 @@ bool ompl::sb::LazyRRT::solve(double solveTime)
 {
     SpaceInformationKinematic *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
     GoalRegion                *goal_r = dynamic_cast<GoalRegion*>(si->getGoal());
+    GoalRegionKinematic       *goal_k = dynamic_cast<GoalRegionKinematic*>(si->getGoal());
     GoalState                 *goal_s = dynamic_cast<GoalState*>(si->getGoal());
     unsigned int                  dim = si->getStateDimension();
     
@@ -49,7 +50,9 @@ bool ompl::sb::LazyRRT::solve(double solveTime)
 	m_msg.error("LazyRRT: Unknown type of goal (or goal undefined)");
 	return false;
     }
-    
+
+    bool biasSample = goal_k || goal_s;
+
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
     
     if (m_nn.size() == 0)
@@ -94,8 +97,13 @@ bool ompl::sb::LazyRRT::solve(double solveTime)
     while (time_utils::Time::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
-	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
-	    si->copyState(rstate, static_cast<State*>(goal_s->state));
+	if (biasSample && m_rng.uniform(0.0, 1.0) < m_goalBias)
+	{
+	    if (goal_s)
+		si->copyState(rstate, static_cast<State*>(goal_s->state));
+	    else
+		goal_k->sampleNearGoal(rstate);
+	}
 	else
 	    m_sCore.sample(rstate);
 

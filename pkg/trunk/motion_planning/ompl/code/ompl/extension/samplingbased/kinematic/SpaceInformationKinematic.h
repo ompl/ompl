@@ -40,6 +40,7 @@
 #include "ompl/extension/samplingbased/SpaceInformation.h"
 #include "ompl/extension/samplingbased/StateDistanceEvaluator.h"
 #include "ompl/extension/samplingbased/kinematic/PathKinematic.h"
+#include "ompl/extension/samplingbased/kinematic/Goal.h"
 #include <vector>
 #include <valarray>
 

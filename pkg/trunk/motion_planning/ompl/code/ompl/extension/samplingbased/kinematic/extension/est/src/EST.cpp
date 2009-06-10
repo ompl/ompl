@@ -40,6 +40,7 @@ bool ompl::sb::EST::solve(double solveTime)
 {
     SpaceInformationKinematic *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
     GoalRegion            *goal_r = dynamic_cast<GoalRegion*>(si->getGoal());
+    GoalRegionKinematic   *goal_k = dynamic_cast<GoalRegionKinematic*>(si->getGoal());
     GoalState             *goal_s = dynamic_cast<GoalState*>(si->getGoal());
     unsigned int              dim = si->getStateDimension();
     
@@ -48,7 +49,9 @@ bool ompl::sb::EST::solve(double solveTime)
 	m_msg.error("EST: Unknown type of goal (or goal undefined)");
 	return false;
     }
-    
+
+    bool biasSample = goal_k || goal_s;
+
     time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
 
     if (m_tree.grid.size() == 0)
@@ -91,8 +94,13 @@ bool ompl::sb::EST::solve(double solveTime)
 	assert(existing);
 	
 	/* sample random state (with goal biasing) */
-	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
-	    si->copyState(xstate, static_cast<State*>(goal_s->state));
+	if (biasSample && m_rng.uniform(0.0, 1.0) < m_goalBias)
+	{
+	    if (goal_s)
+		si->copyState(xstate, static_cast<State*>(goal_s->state));
+	    else
+		goal_k->sampleNearGoal(xstate);
+	}
 	else
 	    m_sCore.sampleNear(xstate, existing->state, range);
 	
