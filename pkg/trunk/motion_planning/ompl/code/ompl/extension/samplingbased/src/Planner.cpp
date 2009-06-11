@@ -49,7 +49,7 @@ bool ompl::sb::Planner::isTrivial(unsigned int *startID, double *distance) const
     for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
     {
 	State *start = dynamic_cast<State*>(m_si->getStartState(i));
-	if (start && static_cast<SpaceInformation*>(m_si)->isValid(start))
+	if (start && static_cast<SpaceInformation*>(m_si)->isValid(start) && static_cast<SpaceInformation*>(m_si)->satisfiesBounds(start))
 	{
 	    double dist;
 	    if (goal->isSatisfied(start, &dist))
