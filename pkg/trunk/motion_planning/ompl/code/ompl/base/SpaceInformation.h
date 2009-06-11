@@ -49,6 +49,10 @@
 namespace ompl
 {
     
+    /** The epsilon for checking whether a state is within bounds or equal to another state */
+    
+    const double STATE_EPSILON = 1e-12;
+    
     namespace base
     {
 	

@@ -65,8 +65,8 @@ void ompl::sb::SpaceInformation::printState(const State *state, std::ostream &ou
 bool ompl::sb::SpaceInformation::satisfiesBounds(const State *s) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	if (s->values[i] > m_stateComponent[i].maxValue ||
-	    s->values[i] < m_stateComponent[i].minValue)
+	if (s->values[i] - STATE_EPSILON > m_stateComponent[i].maxValue ||
+	    s->values[i] + STATE_EPSILON < m_stateComponent[i].minValue)
 	    return false;
     return true;
 }

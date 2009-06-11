@@ -37,6 +37,7 @@
 #include "ompl/extension/samplingbased/kinematic/SpaceInformationKinematic.h"
 #include <angles/angles.h>
 #include <algorithm>
+#include <sstream>
 #include <queue>
 
 void ompl::sb::SpaceInformationKinematic::setup(void)
@@ -132,9 +133,22 @@ void ompl::sb::SpaceInformationKinematic::fixInvalidInputStates(const std::vecto
 	State *st = dynamic_cast<State*>(m_startStates[i]);
 	if (st)
 	{
-	    if (!satisfiesBounds(st) || !isValid(st))
+	    bool b = satisfiesBounds(st);
+	    bool v = false;
+	    if (b)
 	    {
-		m_msg.inform("Attempting to fix initial state which is invalid");
+		v = isValid(st);
+		if (!v)
+		    m_msg.message("Initial state is not valid");
+	    }
+	    else
+		m_msg.message("Initial state is not within space bounds");
+	    
+	    if (!b || !v)
+	    {
+		std::stringstream ss;
+		printState(st, ss);
+		m_msg.message("Attempting to fix initial state %s", ss.str().c_str());
 		State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoStart, attempts))
 		    copyState(st, &temp);
@@ -151,9 +165,23 @@ void ompl::sb::SpaceInformationKinematic::fixInvalidInputStates(const std::vecto
 	State *st = dynamic_cast<State*>(goal->state);
 	if (st)
 	{
-	    if (!satisfiesBounds(st) || !isValid(st))
+	    bool b = satisfiesBounds(st);
+	    bool v = false;
+	    if (b)
 	    {
-		m_msg.inform("Attempting to fix goal state which is invalid");
+		v = isValid(st);
+		if (!v)
+		    m_msg.message("Goal state is not valid");
+	    }
+	    else
+		m_msg.message("Goal state is not within space bounds");
+	    
+	    if (!b || !v)
+	    {
+
+		std::stringstream ss;
+		printState(st, ss);
+		m_msg.message("Attempting to fix goal state %s", ss.str().c_str());
 		State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoGoal, attempts))
 		    copyState(st, &temp);
