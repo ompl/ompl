@@ -73,7 +73,7 @@ namespace ompl
 	    class SamplingCore
 	    {	    
 	    public:
-		SamplingCore(SpaceInformationKinematic *si) : m_si(si) 
+		SamplingCore(const SpaceInformationKinematic *si) : m_si(si) 
 		{
 		}	    
 		
@@ -92,9 +92,20 @@ namespace ompl
 		
 	    protected:
 		
-		SpaceInformationKinematic *m_si;	    
-		random_utils::RNG          m_rng;
+		const SpaceInformationKinematic *m_si;	    
+		random_utils::RNG                m_rng;
 	    };
+	    
+	    
+	    /** Find a valid state near a given one. If the given state is valid, it will be returned itself.
+	     *  The two passed state pointers must point to different states. Returns true on success.  */
+	    bool searchValidNearby(State *state, const State *near, const std::vector<double> &rho, unsigned int attempts) const;
+
+	    /** Many times the start or goal state will barely touch an obstacle. In this case, we may want to automaticaly
+	      * find a neaby state that is valid so motion planning can be performed. This function enables this behaviour.
+	      * The allowed distance (per state component) for both start and goal states is specified. The number of attempts
+	      * is also specified */
+	    void fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts);
 	    
 	    /** Check if the path between two motions is valid using subdivision */
 	    bool checkMotionSubdivision(const State *s1, const State *s2) const;

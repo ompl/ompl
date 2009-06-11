@@ -60,7 +60,7 @@ bool ompl::sb::RRT::solve(double solveTime)
 	{
 	    Motion *motion = new Motion(dim);
 	    si->copyState(motion->state, dynamic_cast<State*>(si->getStartState(i)));
-	    if (si->isValid(motion->state) && si->satisfiesBounds(motion->state))
+	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 		m_nn.add(motion);
 	    else
 	    {

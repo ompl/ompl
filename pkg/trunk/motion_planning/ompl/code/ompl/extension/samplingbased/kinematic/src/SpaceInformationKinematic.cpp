@@ -122,6 +122,83 @@ bool ompl::sb::SpaceInformationKinematic::checkMotionIncremental(const State *s1
     return true;
 }
 
+void ompl::sb::SpaceInformationKinematic::fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts)
+{
+    assert(m_rhoStartFix.size() == m_rhoGoalFix.size() && m_rhoStartFix.size() == m_stateDimension);
+
+    // fix start states
+    for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
+    {
+	State *st = dynamic_cast<State*>(m_startStates[i]);
+	if (st)
+	{
+	    if (!satisfiesBounds(st) || !isValid(st))
+	    {
+		m_msg.inform("Attempting to fix initial state which is invalid");
+		State temp(m_stateDimension);
+		if (searchValidNearby(&temp, st, rhoStart, attempts))
+		    copyState(st, &temp);
+		else
+		    m_msg.warn("Unable to fix start state %u", i);
+	    }
+	}
+    }
+
+    // fix goal state
+    GoalState *goal = dynamic_cast<GoalState*>(m_goal);
+    if (goal)
+    {
+	State *st = dynamic_cast<State*>(goal->state);
+	if (st)
+	{
+	    if (!satisfiesBounds(st) || !isValid(st))
+	    {
+		m_msg.inform("Attempting to fix goal state which is invalid");
+		State temp(m_stateDimension);
+		if (searchValidNearby(&temp, st, rhoGoal, attempts))
+		    copyState(st, &temp);
+		else
+		    m_msg.warn("Unable to fix goal state");
+	    }
+	}
+    }
+}
+
+bool ompl::sb::SpaceInformationKinematic::searchValidNearby(State *state, const State *near, const std::vector<double> &rho, unsigned int attempts) const
+{
+    assert(near != state);
+    
+    copyState(state, near);
+
+    // fix bounds, if needed
+    if (!satisfiesBounds(state))
+	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	{
+	    if (state->values[i] > m_stateComponent[i].maxValue)
+		state->values[i] = m_stateComponent[i].maxValue;
+	    else
+		if (state->values[i] < m_stateComponent[i].minValue)
+		    state->values[i] = m_stateComponent[i].minValue;
+	}
+    
+    bool result = isValid(state);
+    
+    if (!result)
+    {
+	// try to find a valid state nearby
+	SamplingCore sc(this);
+	State        temp(m_stateDimension);
+	copyState(&temp, state);	
+	for (unsigned int i = 0 ; i < attempts && !result ; ++i)
+	{
+	    sc.sampleNear(state, &temp, rho);
+	    result = isValid(state);
+	}
+    }
+    
+    return result;
+}
+
 bool ompl::sb::SpaceInformationKinematic::checkPath(const PathKinematic *path) const
 {
     bool result = path != NULL;

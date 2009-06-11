@@ -56,7 +56,7 @@ bool ompl::sb::LBKPIECE1::solve(double solveTime)
 	{
 	    Motion* motion = new Motion(dim);
 	    si->copyState(motion->state, dynamic_cast<State*>(si->getStartState(i)));
-	    if (si->isValid(motion->state) && si->satisfiesBounds(motion->state))
+	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	    {
 		motion->valid = true;
 		addMotion(m_tStart, motion);
@@ -73,7 +73,7 @@ bool ompl::sb::LBKPIECE1::solve(double solveTime)
     {	   
 	Motion* motion = new Motion(dim);
 	si->copyState(motion->state, static_cast<State*>(goal->state));
-	if (si->isValid(motion->state) && si->satisfiesBounds(motion->state))
+	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	{
 	    motion->valid = true;
 	    addMotion(m_tGoal, motion);
