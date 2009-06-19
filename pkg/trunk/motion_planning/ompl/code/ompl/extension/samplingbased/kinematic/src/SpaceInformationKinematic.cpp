@@ -148,6 +148,10 @@ void ompl::sb::SpaceInformationKinematic::fixInvalidInputStates(const std::vecto
 	    {
 		std::stringstream ss;
 		printState(st, ss);
+		ss << " within margins [ ";
+		for (unsigned int j = 0 ; j < rhoStart.size() ; ++j)
+		    ss << rhoStart[j] << " ";
+		ss << "]";		
 		m_msg.message("Attempting to fix initial state %s", ss.str().c_str());
 		State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoStart, attempts))
@@ -181,6 +185,10 @@ void ompl::sb::SpaceInformationKinematic::fixInvalidInputStates(const std::vecto
 
 		std::stringstream ss;
 		printState(st, ss);
+		ss << " within margins [ ";
+		for (unsigned int i = 0 ; i < rhoGoal.size() ; ++i)
+		    ss << rhoGoal[i] << " ";
+		ss << "]";
 		m_msg.message("Attempting to fix goal state %s", ss.str().c_str());
 		State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoGoal, attempts))
