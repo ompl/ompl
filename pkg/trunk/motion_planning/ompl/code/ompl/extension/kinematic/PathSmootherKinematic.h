@@ -34,48 +34,85 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#ifndef OMPL_EXTENSION_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
+#define OMPL_EXTENSION_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
+#include "ompl/extension/kinematic/SpaceInformationKinematic.h"
 
+/** Main namespace */
 namespace ompl
 {
-    
-    namespace base
+
+    namespace kinematic
     {
 	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
+	class PathSmootherKinematic
 	{
 	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
+	    PathSmootherKinematic(SpaceInformationKinematic *si)
 	    {
+		m_si = si;
+		m_rangeRatio = 0.2;
+		m_maxSteps = 10;
+		m_maxEmptySteps = 3;
 	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
+	    
+	    virtual ~PathSmootherKinematic(void)
 	    {
 	    }
 	    
-	    virtual double operator()(const State *state1, const State *state2) const;
+	    double getRangeRatio(void) const
+	    {
+		return m_rangeRatio;
+	    }
+	    
+	    void setRangeRatio(double rangeRatio)
+	    {
+		m_rangeRatio = rangeRatio;
+	    }
+	    
+	    unsigned int getMaxSteps(void) const
+	    {
+		return m_maxSteps;
+	    }
+	    
+	    void setMaxSteps(unsigned int maxSteps)
+	    {
+		m_maxSteps = maxSteps;
+	    }
+	    
+	    unsigned int getMaxEmptySteps(void) const
+	    {
+		return m_maxEmptySteps;
+	    }
+	    
+	    void setMaxEmptySteps(unsigned int maxEmptySteps)
+	    {
+		m_maxEmptySteps = maxEmptySteps;
+	    }
+	    
+	    /** Given a path, attempt to remove vertices from it while keeping the path valid */
+	    virtual void smoothVertices(PathKinematic *path);
+	    
+	    /** Given a path, attempt to reduce redundant commands */
+	    virtual void removeRedundantCommands(PathKinematic *path) const;
+	    
+	    /** Given a path, attempt to remove vertices from it while
+	     * keeping the path valid.  Then, interpolate the path, to add
+	     * more vertices and try to remove them again. This should
+	     * produce smoother solutions. removeRedundantCommands is also
+	     * called.  */
+	    virtual void smoothMax(PathKinematic *path);
 	    
 	protected:
 	    
-	    SpaceInformation *m_si;	    
-	};
+	    SpaceInformationKinematic *m_si;
+	    random_utils::RNG          m_rng;
+	    double                     m_rangeRatio;
+	    unsigned int               m_maxSteps;
+	    unsigned int               m_maxEmptySteps;
+	};    
     }
-    
 }
 
 #endif

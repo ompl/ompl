@@ -34,48 +34,86 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#include "ompl/extension/kinematic/extension/ik/HCIK.h"
+#include <algorithm>
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
-
-namespace ompl
+bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double *distance) const
 {
+    base::GoalRegion *goal_r = dynamic_cast<base::GoalRegion*>(m_si->getGoal());
+    unsigned int   dim = m_si->getStateDimension();
     
-    namespace base
+    if (!goal_r)
+	return false;
+    
+    double tempDistance;
+    double initialDistance;
+    bool wasSatisfied = goal_r->isSatisfied(state, &initialDistance);
+    double bestDist   = initialDistance;
+    
+    bool change = true;
+    unsigned int steps = 0;
+    
+    while (change && steps < m_maxImproveSteps)
     {
+	change = false;
+	steps++;
 	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
+	for (unsigned int i = 0 ; i < dim ; ++i)
 	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
+	    bool better = true;
+	    bool increased = false;
+	    while (better)
 	    {
+		better = false;
+		double backup = state->values[i];
+		state->values[i] += add;
+		bool isS = goal_r->isSatisfied(state, &tempDistance);
+		if ((wasSatisfied && !isS) || !m_si->satisfiesBounds(state))
+		    state->values[i] = backup;
+		else
+		{
+		    wasSatisfied = isS;
+		    if (tempDistance < bestDist)
+		    {
+			better = true;
+			change = true;
+			increased = true;
+			bestDist = tempDistance;
+		    } 
+		    else
+			state->values[i] = backup;
+		}
 	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
+
+	    if (!increased)
 	    {
+		better = true;
+		while (better)
+		{
+		    better = false;
+		    double backup = state->values[i];
+		    state->values[i] -= add;
+		    bool isS = goal_r->isSatisfied(state, &tempDistance);
+		    if ((wasSatisfied && !isS) || !m_si->satisfiesBounds(state))
+			state->values[i] = backup;
+		    else
+		    {
+			wasSatisfied = isS;
+			if (tempDistance < bestDist)
+			{
+			    better = true;
+			    change = true;
+			    bestDist = tempDistance;
+			} 
+			else
+			    state->values[i] = backup;
+		    }
+		}
 	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
+	}
     }
     
+    if (distance)
+	*distance = bestDist;
+    return bestDist < initialDistance;
 }
-
-#endif

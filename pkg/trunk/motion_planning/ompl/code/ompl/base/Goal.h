@@ -158,6 +158,56 @@ namespace ompl
 	    
 	};
 	
+	/** Definition of a goal region */
+	class GoalRegion : public base::Goal
+	{
+	public:
+	    
+	    GoalRegion(SpaceInformation *si);
+	    
+	    virtual ~GoalRegion(void)
+	    {
+	    }
+	    
+	    /** Decide whether a given state is part of the goal
+		region. Returns true if the distance to goal is less
+		than the threshold */
+	    virtual bool isSatisfied(const base::State *s, double *distance = NULL) const;
+	    
+	    /** Compute the distance to the goal (heuristic) */
+	    virtual double distanceGoal(const base::State *s) const = 0;
+	    
+	    /** Print information about the goal data structure to the
+		screen */
+	    virtual void print(std::ostream &out = std::cout) const;
+	    
+	    /** The maximum distance that is allowed to the goal */
+	    double threshold;
+	};
+	
+	/** Definition of a goal state */
+	class GoalState : public GoalRegion
+	{
+	public:
+	    
+	    GoalState(SpaceInformation *si);
+	    
+	    virtual ~GoalState(void)
+	    {
+		if (state)
+		    delete state;
+	    }
+	    
+	    /** Compute the distance to the goal (heuristic) */
+	    virtual double distanceGoal(const base::State *s) const;	    
+	    
+	    /** Print information about the goal data structure to the
+		screen */
+	    virtual void print(std::ostream &out = std::cout) const;
+	    
+	    /** The goal state */
+	    base::State *state;
+	};
 	
     }
 }

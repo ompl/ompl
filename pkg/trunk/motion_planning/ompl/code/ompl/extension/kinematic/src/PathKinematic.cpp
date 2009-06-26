@@ -34,48 +34,21 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#include "ompl/extension/kinematic/PathKinematic.h"
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
-
-namespace ompl
+ompl::kinematic::PathKinematic::PathKinematic(PathKinematic &path) : base::Path(path.getSpaceInformation())
 {
-    
-    namespace base
+    states.resize(path.states.size());
+    unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
-	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
+	states[i] = new base::State(dim);
+	m_si->copyState(states[i], path.states[i]);
     }
-    
 }
 
-#endif
+void ompl::kinematic::PathKinematic::freeMemory(void)
+{
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+	delete states[i];
+}

@@ -34,48 +34,34 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#ifndef OMPL_EXTENSION_KINEMATIC_GOAL_KINEMATIC_
+#define OMPL_EXTENSION_KINEMATIC_GOAL_KINEMATIC_
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
+#include "ompl/base/Goal.h"
 
 namespace ompl
 {
     
-    namespace base
+    namespace kinematic
     {
 	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
+	/** Definition of a goal region that know something about the goal and can sample arount it */
+	class GoalRegionKinematic : public base::GoalRegion
 	{
 	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
+	    
+	    GoalRegionKinematic(base::SpaceInformation *si) : GoalRegion(si)
 	    {
 	    }
 	    
-	    virtual double operator()(const State *state1, const State *state2) const;
+	    virtual ~GoalRegionKinematic(void)
+	    {
+	    }
 	    
-	protected:
+	    virtual void sampleNearGoal(base::State *s) = 0;
 	    
-	    SpaceInformation *m_si;	    
 	};
     }
-    
 }
 
 #endif

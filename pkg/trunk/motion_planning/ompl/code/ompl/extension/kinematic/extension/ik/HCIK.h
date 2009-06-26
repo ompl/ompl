@@ -34,48 +34,61 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#ifndef OMPL_EXTENSION_KINEMATIC_EXTENSION_IK_HCIK_
+#define OMPL_EXTENSION_KINEMATIC_EXTENSION_IK_HCIK_
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
+#include "ompl/base/SpaceInformation.h"
 
 namespace ompl
 {
-    
-    namespace base
-    {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
-	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
-    }
-    
-}
 
+    namespace kinematic
+    {
+	    
+	/**
+	   @subsubsection HCIK Inverse Kinematics with Hill Climbing
+	   
+	   @par Short description
+	   
+	   HCIK does inverse kinematics with hill climbing, starting from a given state.       
+	   
+	   @par External documentation
+	*/
+	class HCIK
+	{
+	public:
+	    
+	    HCIK(base::SpaceInformation *si)
+	    {
+		m_si = si;
+		m_maxImproveSteps = 2;
+	    }
+	    
+	    virtual ~HCIK(void)
+	    {
+	    }
+	    
+	    bool tryToImprove(base::State *state, double add, double *distance = NULL) const;
+	    
+	    void setMaxImproveSteps(unsigned int steps)
+	    {
+		m_maxImproveSteps = steps;
+	    }
+	    
+	    unsigned int getMaxImproveSteps(void) const
+	    {
+		return m_maxImproveSteps;
+	    }
+	    
+	protected:	
+	    
+	    base::SpaceInformation *m_si;
+	    unsigned int            m_maxImproveSteps;
+	    
+	};
+	
+    }
+
+}
+    
 #endif

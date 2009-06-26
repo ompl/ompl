@@ -34,76 +34,70 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_MOTION_PLANNER_
-#define OMPL_BASE_MOTION_PLANNER_
+#ifndef OMPL_EXTENSION_DYNAMIC_SPACE_INFORMATION_CONTROLS_INTEGRATOR_
+#define OMPL_EXTENSION_DYNAMIC_SPACE_INFORMATION_CONTROLS_INTEGRATOR_
 
-#include "ompl/base/General.h"
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/base/util/time.h"
+#include "ompl/extension/dynamic/SpaceInformationControls.h"
+#include "ompl/base/StateForwardPropagator.h"
 
 /** Main namespace */
 namespace ompl
 {
 
-    namespace base
+    namespace dynamic
     {
 	
-	enum PlannerType
-	    {
-		PLAN_UNKNOWN        = 0,
-		PLAN_TO_GOAL_STATE  = 1,
-		PLAN_TO_GOAL_REGION = 2
-	    };
-	
-	/** Base class for a planner */
-	class Planner
+	/** Space information useful for kinematic planning */
+	class SpaceInformationControlsIntegrator : public SpaceInformationControls
 	{
-	    
 	public:
 	    
-	    /** Constructor */
-	    Planner(SpaceInformation *si)
+	    /** Constructor; setup() needs to be called as well, before use */
+	    SpaceInformationControlsIntegrator(void) : SpaceInformationControls()
 	    {
-		m_si    = si;
-		m_setup = false;
-		m_type = PLAN_UNKNOWN;
+		m_stateForwardPropagator = NULL;
 	    }
 	    
 	    /** Destructor */
-	    virtual ~Planner(void)
+	    virtual ~SpaceInformationControlsIntegrator(void)
 	    {
 	    }
 	    
-	    /** Function that can solve the motion planning problem */
-	    virtual bool solve(double solveTime) = 0;
+	    /** Set the instance of the validity checker to use. No memory freeing is performed. */
+	    void setStateForwardPropagator(base::StateForwardPropagator *sfp)
+	    {
+		m_stateForwardPropagator = sfp;
+	    }
 	    
-	    /** Clear all internal datastructures */
-	    virtual void clear(void) = 0;
+	    /** Return the instance of the used state validity checker */
+	    base::StateForwardPropagator* getStateForwardPropagator(void) const
+	    {
+		return m_stateForwardPropagator;
+	    }
 	    
-	    /** A problem is trivial if the given starting state already
-		in the goal region, so we need no motion planning. startID
-		will be set to the index of the starting state that
-		satisfies the goal. The distance to the goal can
-		optionally be returned as well. */
-	    virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL) const;
+	    /** Get the states that make up a motion. Returns the number of states that were added */
+	    unsigned int getMotionStates(const base::State *begin, const base::Control *ctrl, unsigned int steps, std::vector<base::State*> &states, bool alloc) const;
+
+	    /** Propagate the system forward in time, given a starting state, a control and a duration. The result is a state. */
+	    void propagateForward(const base::State *begin, const base::Control *ctrl, unsigned int steps, base::State *end) const
+	    {
+		(*m_stateForwardPropagator)(begin, ctrl, steps, m_resolution, end);
+	    }
 	    
-	    /** Return the type of the motion planner. This is useful if
-		the planner wants to advertise what type of problems it
-		can solve */
-	    PlannerType getType(void) const;
+	    bool checkStatesIncremental(const std::vector<base::State*> &states, unsigned int *firstInvalidStateIndex = NULL) const;
+	    bool checkStatesSubdivision(const std::vector<base::State*> &states) const;
 	    
-	    /** Perform extra configuration steps, if needed */
+	    /** Perform additional tasks to finish the initialization of
+		the space information */
 	    virtual void setup(void);
 	    
 	protected:
 	    
-	    SpaceInformation *m_si;
-	    PlannerType       m_type;	
-	    bool              m_setup;
-	    msg::Interface    m_msg;
-	};    
+	    base::StateForwardPropagator *m_stateForwardPropagator;
+	    
+	};
     }
+    
 }
-
 
 #endif

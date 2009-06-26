@@ -34,48 +34,24 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#include "ompl/base/ProjectionEvaluator.h"
+#include <cassert>
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
-
-namespace ompl
+void ompl::base::OrthogonalProjectionEvaluator::operator()(const State *state, double *projection) const
 {
-    
-    namespace base
-    {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
-	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
-    }
-    
+    for (unsigned int i = 0 ; i < m_components.size() ; ++i)
+	projection[i] = state->values[m_components[i]];
 }
 
-#endif
+void ompl::base::LinearProjectionEvaluator::operator()(const State *state, double *projection) const
+{
+    for (unsigned int i = 0 ; i < m_projection.size() ; ++i)
+    {
+	const std::valarray<double> &vec = m_projection[i];
+	const unsigned int dim = vec.size();
+	double *pos = projection + i;
+	*pos = 0.0;
+	for (unsigned int j = 0 ; j < dim ; ++j)
+	    *pos += state->values[j] * vec[j];
+    }
+}

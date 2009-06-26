@@ -34,48 +34,39 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#include "ompl/base/Goal.h"
+#include "ompl/base/SpaceInformation.h"
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
-
-namespace ompl
+ompl::base::GoalRegion::GoalRegion(SpaceInformation *si) : Goal(si)
 {
-    
-    namespace base
-    {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
-	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
-    }
-    
+    threshold = 0.0;
 }
 
-#endif
+bool ompl::base::GoalRegion::isSatisfied(const State *s, double *distance) const
+{
+    double d2g = distanceGoal(s);
+    if (distance)
+	*distance = d2g;
+    return d2g < threshold;
+}
+
+void ompl::base::GoalRegion::print(std::ostream &out) const
+{
+    out << "Goal region, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << std::endl;
+}
+
+ompl::base::GoalState::GoalState(SpaceInformation *si) : GoalRegion(si)
+{
+    state = NULL;
+}
+	    
+double ompl::base::GoalState::distanceGoal(const State *s) const
+{
+    return m_si->distance(s, state);
+}
+
+void ompl::base::GoalState::print(std::ostream &out) const
+{
+    out << "Goal state, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << ", state = ";
+    m_si->printState(state, out);
+}

@@ -39,6 +39,7 @@
 
 #include "ompl/base/General.h"
 #include "ompl/base/State.h"
+#include <valarray>
 #include <vector>
 #include <cmath>
 
@@ -72,6 +73,7 @@ namespace ompl
 		m_cellDimensions = cellDimensions;
 	    }
 	    
+	    /** Get the dimension (each component) of a grid cell  */
 	    void getCellDimensions(std::vector<double> &cellDimensions) const
 	    {
 		cellDimensions = m_cellDimensions;
@@ -86,6 +88,7 @@ namespace ompl
 		    coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
 	    }
 	    
+	    /** Compute integer coordinates for a state */
 	    void computeCoordinates(const State *state, std::vector<int> &coord) const
 	    {
 		double projection[getDimension()];
@@ -98,6 +101,53 @@ namespace ompl
 	    std::vector<double> m_cellDimensions;
 	    
 	};
+	
+	/** Definition for a class computing orthogonal projections */
+	class OrthogonalProjectionEvaluator : public ProjectionEvaluator
+	{
+	public:
+	    
+	    OrthogonalProjectionEvaluator(const std::vector<unsigned int> &components) : ProjectionEvaluator()
+	    {
+		m_components = components;
+	    }
+	    
+	    virtual unsigned int getDimension(void) const
+	    {
+		return m_components.size();
+	    }
+	    
+	    virtual void operator()(const base::State *state, double *projection) const;
+	    
+	protected:
+	    
+	    std::vector<unsigned int> m_components;
+	    
+	};	
+	
+        /** Definition for a class computing orthogonal projections */
+	class LinearProjectionEvaluator : public ProjectionEvaluator
+	{
+	public:
+	    
+	    LinearProjectionEvaluator(const std::vector< std::valarray<double> > &projection) : ProjectionEvaluator()
+	    {
+		m_projection = projection;
+	    }
+	    
+	    virtual unsigned int getDimension(void) const
+	    {
+		return m_projection.size();
+	    }
+	    
+	    virtual void operator()(const base::State *state, double *projection) const;
+	    
+	protected:
+	    
+	    std::vector< std::valarray<double> > m_projection;
+	    
+	};	
+	
     }
 }
 

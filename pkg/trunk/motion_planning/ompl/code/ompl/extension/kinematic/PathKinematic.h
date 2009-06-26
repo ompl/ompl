@@ -34,48 +34,44 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#ifndef OMPL_EXTENSION_KINEMATIC_PATH_KINEMATIC_
+#define OMPL_EXTENSION_KINEMATIC_PATH_KINEMATIC_
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
+#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/Path.h"
+#include <vector>
 
 namespace ompl
 {
-    
-    namespace base
+    namespace kinematic
     {
 	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
+	/** Definition of a kinematic path */
+	class PathKinematic : public base::Path
 	{
 	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
+	    
+	    PathKinematic(base::SpaceInformation *si) : base::Path(si)
 	    {
 	    }
 	    
-	    virtual double operator()(const State *state1, const State *state2) const;
+	    PathKinematic(PathKinematic &path);
+	    
+	    virtual ~PathKinematic(void)
+	    {
+		freeMemory();
+	    }
+	    
+	    /** The list of states that make up the path */
+	    std::vector<base::State*> states;
 	    
 	protected:
 	    
-	    SpaceInformation *m_si;	    
+	    void freeMemory(void);
+	    
 	};
+	
     }
-    
 }
 
 #endif

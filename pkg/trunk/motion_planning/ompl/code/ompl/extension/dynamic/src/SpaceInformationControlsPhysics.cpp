@@ -34,48 +34,57 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#include "ompl/extension/dynamic/SpaceInformationControlsPhysics.h"
+#include <algorithm>
+#include <cassert>
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
-
-namespace ompl
+void ompl::dynamic::SpaceInformationControlsPhysics::setup(void)
 {
-    
-    namespace base
-    {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
-	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
-    }
-    
+    assert(m_stateValidityChecker);
+    assert(m_stateForwardPropagator);
+    SpaceInformationControls::setup();
 }
 
-#endif
+unsigned int ompl::dynamic::SpaceInformationControlsPhysics::propagateForward(const base::State *begin, const base::Control *ctrl, unsigned int steps, std::vector<base::State*> states, bool alloc) const
+{
+    if (alloc)
+    {
+	states.resize(steps + 1);
+	states[0] = new base::State(m_stateDimension);
+    }
+    else
+    {
+	if (states.empty())
+	    return 0;
+	steps = std::min(steps, (unsigned int)states.size() - 1);
+    }
+    
+    unsigned int st = 1;
+    copyState(states.front(), begin);
+    
+    base::StateForwardPropagatorWithContacts::Options opt(true, false);
+    base::StateForwardPropagatorWithContacts::Result  res;
+
+    while (st <= steps)
+    {
+	if (alloc)
+	    states[st] = new base::State(m_stateDimension);
+	
+	res.end = states[st];
+	(*m_stateForwardPropagator)(begin, ctrl, 1, m_resolution, opt, res);
+	bool stop = res.first_contact_step >= 0;
+	if (!stop)
+	    stop = !isValid(res.end);
+	
+	if (stop)
+	{
+	    // current state was in collision
+	    if (alloc)
+		delete states[st];
+	    break;
+	}
+	st++;
+    }
+    
+    return st;
+}

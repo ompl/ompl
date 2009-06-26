@@ -38,20 +38,62 @@
 #define OMPL_BASE_STATE_
 
 #include "ompl/base/General.h"
+#include <cstdlib>
 
 namespace ompl
 {
     namespace base
     {
-	
-	/** Abstract definition of a state */
+
+	/** Definition of a state: an array of doubles */
 	class State
 	{
 	public:
-	    virtual ~State(void)
+	    
+	    enum 
+		{
+		    NO_FLAGS       = 0,
+		    SELF_ALLOCATED = 1
+		};
+	    
+	    State(void) : flags(NO_FLAGS)
 	    {
+		values = NULL;
 	    }
+	    
+	    /** Constructor that automatically allocates memory (memory will be automatically freed at destruction) */
+	    State(const unsigned int dimension) : flags(SELF_ALLOCATED)
+	    {
+		values = new double[dimension];
+	    }
+	    
+	    ~State(void)
+	    {
+		if ((flags & SELF_ALLOCATED) && values)
+		    delete[] values;
+	    }
+	    
+	    int     flags;
+	    double *values;
 	};
+	
+	/** Semantic information and bounds about each state component */
+	struct StateComponent
+	{
+	    StateComponent(void)
+	    {
+		type = UNKNOWN;
+		minValue = maxValue = resolution = 0.0;
+	    }
+	    
+	    enum
+		{ UNKNOWN, NORMAL, WRAPPING_ANGLE, QUATERNION }
+		type;
+	    double minValue;
+	    double maxValue;
+	    double resolution;
+	};
+	
     }
     
 }

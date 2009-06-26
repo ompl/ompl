@@ -41,9 +41,14 @@
 #include "ompl/base/State.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/Path.h"
+#include "ompl/base/StateDistanceEvaluator.h"
+#include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/util/output.h"
+#include "ompl/base/util/random_utils.h"
+
 #include <cstdlib>
 #include <vector>
+#include <iostream>
 
 /** Main namespace */
 namespace ompl
@@ -57,7 +62,8 @@ namespace ompl
     {
 	
 	/** The base class for space information. This contains all the
-	    information about the space planning is done in */
+	    information about the space planning is done in.
+	    setup() needs to be called as well, before use */
 	class SpaceInformation
 	{
 	public:
@@ -67,6 +73,9 @@ namespace ompl
 	    {
 		m_goal = NULL;
 		m_setup = false;
+		m_stateDistanceEvaluator = NULL;
+		m_stateValidityChecker = NULL;
+		m_stateDimension = 0;
 	    }
 	    
 	    /** Destructor */
@@ -133,33 +142,90 @@ namespace ompl
 	    {
 		m_goal = NULL;
 	    }
+
+	    /** Set the instance of the distance evaluator to use. This is
+		only needed by some planning algorithms. No memory freeing is performed. */
+	    void setStateDistanceEvaluator(StateDistanceEvaluator *sde)
+	    {
+		m_stateDistanceEvaluator = sde;
+	    }
+	    
+	    /** Return the instance of the used state distance evaluator */
+	    StateDistanceEvaluator* getStateDistanceEvaluator(void) const
+	    {
+		return m_stateDistanceEvaluator;
+	    }	
+	    
+	    /** Set the instance of the validity checker to use. No memory freeing is performed. */
+	    void setStateValidityChecker(StateValidityChecker *svc)
+	    {
+		m_stateValidityChecker = svc;
+	    }
+	    
+	    /** Return the instance of the used state validity checker */
+	    StateValidityChecker* getStateValidityChecker(void) const
+	    {
+		return m_stateValidityChecker;
+	    }
+	    
+	    /** Return the dimension of the state space */
+	    unsigned int getStateDimension(void) const
+	    {
+		return m_stateDimension;
+	    }
+	    
+	    /** Get information about a component of the state space */
+	    const StateComponent& getStateComponent(unsigned int index) const
+	    {
+		return m_stateComponent[index];
+	    }
+	    
+	    /** Check if a given state is valid or not */
+	    bool isValid(const State *state) const
+	    {
+		return (*m_stateValidityChecker)(state);
+	    }
+	    
+	    /** Copy a state to another */
+	    virtual void copyState(State *destination, const State *source) const;
+	    
+	    /** Check if a state is inside the bounding box */
+	    bool satisfiesBounds(const State *s) const;
+	    
+	    /** Compute the distance between two states */
+	    double distance(const State *s1, const State *s2) const
+	    {
+		return (*m_stateDistanceEvaluator)(s1, s2);
+	    }
 	    
 	    /************************************************************/
 	    /* Utility functions                                        */
 	    /************************************************************/
 	    
+	    /** Print a state to a stream */
+	    void printState(const State *state, std::ostream &out = std::cout) const;
+
+	    /** Print information about the current instance of the state space */
+	    virtual void printSettings(std::ostream &out = std::cout) const;
+	    
 	    /** Perform additional setup tasks (run once, before use) */
-	    virtual void setup(void)
-	    {
-		if (m_setup)
-		    m_msg.error("Space information setup called multiple times");
-		m_setup = true;
-	    }
+	    virtual void setup(void);
 	    
 	    /** Return true if setup was called */
-	    bool isSetup(void) const
-	    {
-		return m_setup;
-	    }
+	    bool isSetup(void) const;
 	    
 	protected:
+	    	    
+	    std::vector<State*>          m_startStates;
+	    Goal                        *m_goal;
+
+	    unsigned int                 m_stateDimension;
+	    std::vector<StateComponent>  m_stateComponent;
+	    StateValidityChecker        *m_stateValidityChecker;
+	    StateDistanceEvaluator      *m_stateDistanceEvaluator;
 	    
-	    bool                    m_setup;
-	    msg::Interface          m_msg;
-	    
-	    std::vector<State*>     m_startStates;
-	    Goal                   *m_goal;
-	    
+	    bool                         m_setup;
+	    msg::Interface               m_msg;
 	};
 	
 	

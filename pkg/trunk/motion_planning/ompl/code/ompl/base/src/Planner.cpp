@@ -34,48 +34,52 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#include "ompl/base/Planner.h"
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
-
-namespace ompl
+ompl::base::PlannerType ompl::base::Planner::getType(void) const
 {
-    
-    namespace base
-    {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
-	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
-    }
-    
+    return m_type;
 }
 
-#endif
+void ompl::base::Planner::setup(void)
+{
+    if (!m_si->isSetup())
+	m_msg.error("Space information setup should have been called before planner setup was called");
+    if (m_setup)
+	m_msg.error("Planner setup called multiple times");		
+    m_setup = true;
+}
+
+bool ompl::base::Planner::isTrivial(unsigned int *startID, double *distance) const
+{
+    Goal *goal = m_si->getGoal();
+    
+    if (!goal)
+    {
+	m_msg.error("Goal undefined");
+	return false;
+    }
+    
+    for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+    {
+	State *start = m_si->getStartState(i);
+	if (start && m_si->isValid(start) && m_si->satisfiesBounds(start))
+	{
+	    double dist;
+	    if (goal->isSatisfied(start, &dist))
+	    {
+		if (startID)
+		    *startID = i;
+		if (distance)
+		    *distance = dist;
+		return true;
+	    }	    
+	}
+	else
+	{
+	    m_msg.error("Initial state is in collision!");
+	}
+    }
+    
+    return false;    
+}

@@ -34,48 +34,21 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#include "ompl/base/StateDistanceEvaluator.h"
+#include "ompl/base/SpaceInformation.h"
+#include <angles/angles.h>
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
-
-namespace ompl
+double ompl::base::L2SquareStateDistanceEvaluator::operator()(const State *s1, const State *s2) const
 {
+    const unsigned int dim = m_si->getStateDimension();
     
-    namespace base
-    {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
-	{
-	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;	    
-	};
+    double dist = 0.0;
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {	 
+	double diff = m_si->getStateComponent(i).type == StateComponent::WRAPPING_ANGLE ? 
+	    angles::shortest_angular_distance(s1->values[i], s2->values[i]) : s1->values[i] - s2->values[i];
+	dist += diff * diff;
+	// will need to consider quaternions; bullet angle diff?
     }
-    
+    return dist;
 }
-
-#endif

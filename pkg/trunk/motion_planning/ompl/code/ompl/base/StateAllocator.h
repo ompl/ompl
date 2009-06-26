@@ -34,48 +34,46 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_DISTANCE_EVALUATOR_
-#define OMPL_BASE_STATE_DISTANCE_EVALUATOR_
+#ifndef OMPL_BASE_STATE_ALLOCATOR_
+#define OMPL_BASE_STATE_ALLOCATOR_
 
-#include "ompl/base/General.h"
-#include "ompl/base/State.h"
+#include "ompl/base/SpaceInformation.h"
+#include <boost/pool/object_pool.hpp>
+#include <boost/pool/pool.hpp>
 
 namespace ompl
 {
-    
+
     namespace base
-    {
-	
-	class SpaceInformation;
-	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
-	class StateDistanceEvaluator
+    {	
+    
+	/** Definition for a class computing orthogonal projections */
+	class StateAllocator
 	{
 	public:
-	    /** Destructor */
-	    virtual ~StateDistanceEvaluator(void)
-	    {
-	    }
-	    /** Return true if the state is valid */
-	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
+	    
+	    StateAllocator(unsigned int dimension) : m_doubles(sizeof(double) * dimension)
 	    {
 	    }
 	    
-	    virtual double operator()(const State *state1, const State *state2) const;
+	    ~StateAllocator(void)
+	    {
+	    }
+	    
+	    State* allocState(void)
+	    {
+		State *state = m_states.construct();
+		state->values = reinterpret_cast<double*>(m_doubles.malloc());
+		return state;
+	    }
 	    
 	protected:
 	    
-	    SpaceInformation *m_si;	    
-	};
+	    boost::pool<>             m_doubles;
+	    boost::object_pool<State> m_states;
+	    
+	};	
     }
-    
 }
 
 #endif

@@ -34,76 +34,63 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_MOTION_PLANNER_
-#define OMPL_BASE_MOTION_PLANNER_
-
-#include "ompl/base/General.h"
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/util/time.h"
+#include <cstring>
+#include <cassert>
 
-/** Main namespace */
-namespace ompl
+void ompl::base::SpaceInformation::copyState(State *destination, const State *source) const
 {
-
-    namespace base
-    {
-	
-	enum PlannerType
-	    {
-		PLAN_UNKNOWN        = 0,
-		PLAN_TO_GOAL_STATE  = 1,
-		PLAN_TO_GOAL_REGION = 2
-	    };
-	
-	/** Base class for a planner */
-	class Planner
-	{
-	    
-	public:
-	    
-	    /** Constructor */
-	    Planner(SpaceInformation *si)
-	    {
-		m_si    = si;
-		m_setup = false;
-		m_type = PLAN_UNKNOWN;
-	    }
-	    
-	    /** Destructor */
-	    virtual ~Planner(void)
-	    {
-	    }
-	    
-	    /** Function that can solve the motion planning problem */
-	    virtual bool solve(double solveTime) = 0;
-	    
-	    /** Clear all internal datastructures */
-	    virtual void clear(void) = 0;
-	    
-	    /** A problem is trivial if the given starting state already
-		in the goal region, so we need no motion planning. startID
-		will be set to the index of the starting state that
-		satisfies the goal. The distance to the goal can
-		optionally be returned as well. */
-	    virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL) const;
-	    
-	    /** Return the type of the motion planner. This is useful if
-		the planner wants to advertise what type of problems it
-		can solve */
-	    PlannerType getType(void) const;
-	    
-	    /** Perform extra configuration steps, if needed */
-	    virtual void setup(void);
-	    
-	protected:
-	    
-	    SpaceInformation *m_si;
-	    PlannerType       m_type;	
-	    bool              m_setup;
-	    msg::Interface    m_msg;
-	};    
-    }
+    memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
 }
 
+void ompl::base::SpaceInformation::setup(void)
+{
+    if (m_setup)
+	m_msg.error("Space information setup called multiple times");
+    assert(m_stateDimension > 0);
+    assert(m_stateComponent.size() == m_stateDimension);
+    m_setup = true;
+}
 
-#endif
+bool ompl::base::SpaceInformation::isSetup(void) const
+{
+    return m_setup;
+}
+
+void ompl::base::SpaceInformation::printState(const State *state, std::ostream &out) const
+{
+    if (state)
+    {
+	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	    out << state->values[i] << " ";
+	out << std::endl;
+    }
+    else
+	out << "NULL" << std::endl;
+}
+
+bool ompl::base::SpaceInformation::satisfiesBounds(const State *s) const
+{
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	if (s->values[i] - STATE_EPSILON > m_stateComponent[i].maxValue ||
+	    s->values[i] + STATE_EPSILON < m_stateComponent[i].minValue)
+	    return false;
+    return true;
+}
+
+void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
+{
+    out << "Kinematic state space settings:" << std::endl;
+    out << "  - dimension = " << m_stateDimension << std::endl;
+    out << "  - start states:" << std::endl;
+    for (unsigned int i = 0 ; i < getStartStateCount() ; ++i)
+	printState(dynamic_cast<const State*>(getStartState(i)), out);
+    if (m_goal)
+	m_goal->print(out);
+    else
+	out << "  - goal = NULL" << std::endl;
+    out << "  - bounding box:" << std::endl;
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	out << "[" << m_stateComponent[i].minValue << ", " <<  m_stateComponent[i].maxValue << "](" << m_stateComponent[i].resolution << ") ";
+    out << std::endl;
+}

@@ -38,19 +38,57 @@
 #define OMPL_BASE_CONTROL_
 
 #include "ompl/base/General.h"
+#include <cstdlib>
 
 namespace ompl
 {
     namespace base
     {
-	
-	/** Abstract definition of a control */
+
+	/** Definition of a control: an array of doubles */
 	class Control
 	{
 	public:
-	    virtual ~Control(void)
+	    
+	    enum 
+		{
+		    NO_FLAGS       = 0,
+		    SELF_ALLOCATED = 1
+		};
+	    
+	    Control(void) : flags(NO_FLAGS)
 	    {
+		values = NULL;
 	    }
+	    
+	    Control(const unsigned int dimension) : flags(SELF_ALLOCATED)
+	    {
+		values = new double[dimension];
+	    }
+	    
+	    ~Control(void)
+	    {
+		if ((flags & SELF_ALLOCATED) && values)
+		    delete[] values;
+	    }
+	    
+	    int     flags;
+	    double *values;
+	};
+	
+	struct ControlComponent
+	{
+	    ControlComponent(void)
+	    {
+		type = UNKNOWN;
+		minValue = maxValue = 0.0;
+	    }
+	    
+	    enum
+		{ UNKNOWN, NORMAL }
+		type;
+	    double minValue;
+	    double maxValue;
 	};
     }
     
