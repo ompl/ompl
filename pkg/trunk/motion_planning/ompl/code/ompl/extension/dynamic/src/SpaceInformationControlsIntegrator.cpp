@@ -72,9 +72,10 @@ unsigned int ompl::dynamic::SpaceInformationControlsIntegrator::getMotionStates(
     return st;
 }
 
-bool ompl::dynamic::SpaceInformationControlsIntegrator::checkStatesIncremental(const std::vector<base::State*> &states, unsigned int *firstInvalidStateIndex) const
+bool ompl::dynamic::SpaceInformationControlsIntegrator::checkStatesIncremental(const std::vector<base::State*> &states, unsigned int count, unsigned int *firstInvalidStateIndex) const
 {
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    assert(states.size() >= count);
+    for (unsigned int i = 0 ; i < count ; ++i)
 	if (!isValid(states[i]))
 	{
 	    if (firstInvalidStateIndex)
@@ -84,23 +85,24 @@ bool ompl::dynamic::SpaceInformationControlsIntegrator::checkStatesIncremental(c
     return true;
 }
 
-bool ompl::dynamic::SpaceInformationControlsIntegrator::checkStatesSubdivision(const std::vector<base::State*> &states) const
+bool ompl::dynamic::SpaceInformationControlsIntegrator::checkStatesSubdivision(const std::vector<base::State*> &states, unsigned int count) const
 { 
-    if (states.size() > 0)
+    assert(states.size() >= count);
+    if (count > 0)
     {
-	if (states.size() > 1)
+	if (count > 1)
 	{
 	    if (!isValid(states.front()))
 		return false;
-	    if (!isValid(states.back()))
+	    if (!isValid(states[count - 1]))
 		return false;
 	    
 	    // we have 2 or more states, and the first and last states are valid
 	    
-	    if (states.size() > 2)
+	    if (count > 2)
 	    {
 		std::queue< std::pair<int, int> > pos;
-		pos.push(std::make_pair(0, states.size() - 1));
+		pos.push(std::make_pair(0, count - 1));
 	    
 		while (!pos.empty())
 		{

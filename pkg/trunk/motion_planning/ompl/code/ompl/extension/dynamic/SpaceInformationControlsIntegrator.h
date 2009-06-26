@@ -84,8 +84,8 @@ namespace ompl
 		(*m_stateForwardPropagator)(begin, ctrl, steps, m_resolution, end);
 	    }
 	    
-	    bool checkStatesIncremental(const std::vector<base::State*> &states, unsigned int *firstInvalidStateIndex = NULL) const;
-	    bool checkStatesSubdivision(const std::vector<base::State*> &states) const;
+	    bool checkStatesIncremental(const std::vector<base::State*> &states, unsigned int count, unsigned int *firstInvalidStateIndex = NULL) const;
+	    bool checkStatesSubdivision(const std::vector<base::State*> &states, unsigned int count) const;
 	    
 	    /** Perform additional tasks to finish the initialization of
 		the space information */

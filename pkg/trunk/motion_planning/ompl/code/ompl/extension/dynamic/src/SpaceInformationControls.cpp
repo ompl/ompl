@@ -72,15 +72,6 @@ void ompl::dynamic::SpaceInformationControls::nullControl(base::Control *ctrl) c
 	ctrl->values[i] = 0.0;
 }
 
-bool ompl::dynamic::SpaceInformationControls::satisfiesBounds(const base::Control *control) const
-{
-    for (unsigned int i = 0 ; i < m_controlDimension ; ++i)
-	if (control->values[i] > m_controlComponent[i].maxValue ||
-	    control->values[i] < m_controlComponent[i].minValue)
-	    return false;
-    return true;
-}
-
 unsigned int ompl::dynamic::SpaceInformationControls::SamplingCore::sampleStepCount(void)
 {
     return m_rng.uniformInt(m_minControlDuration, m_maxControlDuration);
@@ -115,5 +106,59 @@ void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::Con
 	const base::ControlComponent &comp = m_si->getControlComponent(i);
 	ctrl->values[i] = m_rng.uniform(std::max(comp.minValue, near->values[i] - rho[i]), 
 					std::min(comp.maxValue, near->values[i] + rho[i]));
+    }
+}
+
+void ompl::dynamic::SpaceInformationControls::SamplingCore::sample(base::State *state)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	const base::StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == base::StateComponent::QUATERNION)
+	{
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] = m_rng.uniform(comp.minValue, comp.maxValue);	    
+    }
+}
+
+void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::State *state, const base::State *near, const double rho)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	const base::StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == base::StateComponent::QUATERNION)
+	{
+	    /* no notion of 'near' is employed for quaternions */
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] =
+		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho), 
+			      std::min(comp.maxValue, near->values[i] + rho));
+    }
+}
+
+void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {	
+	const base::StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == base::StateComponent::QUATERNION)
+	{
+	    /* no notion of 'near' is employed for quaternions */
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] = 
+		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho[i]), 
+			      std::min(comp.maxValue, near->values[i] + rho[i]));
     }
 }

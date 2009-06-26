@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/StateDistanceEvaluator.h"
 #include "ompl/base/Control.h"
+#include "ompl/extension/dynamic/PathDynamic.h"
 #include <vector>
 
 /** Main namespace */
@@ -71,7 +72,7 @@ namespace ompl
 
 	    
 	    /** A class that can perform sampling. Usually an instance of this class is needed
-	     * for sampling states */
+	     * for sampling states or controls */
 	    class SamplingCore
 	    {	    
 	    public:
@@ -96,6 +97,15 @@ namespace ompl
 		
 		/** Sample a control near another, within given bounds */
 		virtual void sampleNear(base::Control *ctrl, const base::Control *near, const std::vector<double> &rho);
+		
+		/** Sample a state */
+		virtual void sample(base::State *state);
+		
+		/** Sample a state near another, within given bounds */
+		virtual void sampleNear(base::State *state, const base::State *near, const double rho);
+		
+		/** Sample a state near another, within given bounds */
+		virtual void sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho);
 		
 	    protected:
 		
@@ -130,9 +140,6 @@ namespace ompl
 
 	    /** Make the control a null one */
 	    virtual void nullControl(base::Control *ctrl) const;
-	    
-	    /** Check if a control is inside the bounding box */
-	    bool satisfiesBounds(const base::Control *control) const;
 	    
 	    /** Print a state to a stream */
 	    void printControl(const base::Control *control, std::ostream &out = std::cout) const;
