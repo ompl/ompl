@@ -61,7 +61,7 @@ namespace ompl
 	    
 	    /** Propagate the system forward in time, given a starting state, a control and a duration. The result is a state
 		and some (potentially) some flags (such as collision found, if collision checking was performed) */
-	    virtual void operator()(const State *begin, const Control *ctrl, unsigned int steps, double resolution, State *end) const = 0;
+	    virtual void operator()(const State *begin, const Control *ctrl, double resolution, State *end) const = 0;
 	};
 	
 	

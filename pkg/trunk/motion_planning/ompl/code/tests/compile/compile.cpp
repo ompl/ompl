@@ -91,6 +91,8 @@
 #include "ompl/extension/dynamic/SpaceInformationControlsIntegrator.h"
 #include "ompl/extension/dynamic/SpaceInformationControlsPhysics.h"
 
+#include "ompl/extension/dynamic/extension/rrt/RRT.h"
+
 /* Just make sure everything compiles */
 TEST(Compile, All)
 {    

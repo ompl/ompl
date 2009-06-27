@@ -115,6 +115,11 @@ namespace ompl
 		unsigned int              m_maxControlDuration;
 	    };
 	    
+	    double getResolution(void) const
+	    {
+		return m_resolution;
+	    }
+	    
 	    unsigned int getControlDimension(void) const
 	    {
 		return m_controlDimension;

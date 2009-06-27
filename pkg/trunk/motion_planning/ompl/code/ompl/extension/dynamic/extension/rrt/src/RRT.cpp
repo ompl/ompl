@@ -107,16 +107,17 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	/* sample a random control */
 	m_sCore.sample(rctrl);
 	unsigned int cd = m_sCore.sampleStepCount();
-	
-	int added = si->getMotionStates(nmotion->state, rctrl, cd, states, false);
-	assert(added == cd + 1);
 
-	if (si->checkStatesSubdivision(states, added))
+	unsigned int added = si->getMotionStates(nmotion->state, rctrl, cd, states, false);
+	assert(added == cd + 1);
+	
+	if (si->checkStatesIncremental(states, added))
 	{
 	    /* create a motion */
 	    Motion *motion = new Motion(sdim, cdim);
 	    si->copyState(motion->state, states[cd]);
 	    si->copyControl(motion->control, rctrl);
+	    motion->steps = cd;
 	    motion->parent = nmotion;
 
 	    m_nn.add(motion);
@@ -165,6 +166,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 		base::Control *ctrl = new base::Control(cdim);
 		si->copyControl(ctrl, mpath[i]->control);
 		path->controls.push_back(ctrl);
+		path->controlDurations.push_back(mpath[i]->steps * si->getResolution());
 	    }
 	}
 	goal_r->setDifference(approxdif);

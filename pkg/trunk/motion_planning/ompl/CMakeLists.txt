@@ -34,11 +34,15 @@ rospack_add_compile_flags(ompl -Wextra)
 ### Tests
 
 
-# Test the motion planners on a 2D map
-rospack_add_gtest(test_2dmap code/tests/kinematic/2dmap/2dmap.cpp)
-target_link_libraries(test_2dmap ompl)
-rospack_link_boost(test_2dmap thread)
+# Test kinematic motion planners on a 2D map
+rospack_add_gtest(test_2dmap_kinematic code/tests/kinematic/2dmap/2dmap.cpp)
+target_link_libraries(test_2dmap_kinematic ompl)
+rospack_link_boost(test_2dmap_kinematic thread)
 
+# Test dynamic motion planners on a 2D map
+rospack_add_gtest(test_2dmap_dynamic code/tests/dynamic/2dmap/2dmap.cpp)
+target_link_libraries(test_2dmap_dynamic ompl)
+rospack_link_boost(test_2dmap_dynamic thread)
 
 # Test datastructures implementation
 rospack_add_gtest(test_grid code/tests/datastructures/grid/grid.cpp)

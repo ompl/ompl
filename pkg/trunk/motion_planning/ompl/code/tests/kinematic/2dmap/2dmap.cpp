@@ -500,7 +500,7 @@ protected:
     void SetUp(void)
     {
 	/* load environment */
-	loadEnvironment("./code/tests/kinematic/2dmap/env1.txt", env);
+	loadEnvironment("./code/tests/resources/env1.txt", env);
 	
 	if (env.width * env.height == 0)
 	{
@@ -518,7 +518,7 @@ protected:
 };
 
 
-TEST_F(PlanTest, RRT)
+TEST_F(PlanTest, kinematicRRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -533,7 +533,7 @@ TEST_F(PlanTest, RRT)
     EXPECT_TRUE(avglength < 70.0);
 }
 
-TEST_F(PlanTest, SBL)
+TEST_F(PlanTest, kinematicSBL)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -551,7 +551,7 @@ TEST_F(PlanTest, SBL)
     EXPECT_TRUE(avglength < 65.0);
 }
 
-TEST_F(PlanTest, KPIECE1)
+TEST_F(PlanTest, kinematicKPIECE1)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -569,7 +569,7 @@ TEST_F(PlanTest, KPIECE1)
     EXPECT_TRUE(avglength < 70.0);
 }
 
-TEST_F(PlanTest, LBKPIECE1)
+TEST_F(PlanTest, kinematicLBKPIECE1)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -587,7 +587,7 @@ TEST_F(PlanTest, LBKPIECE1)
     EXPECT_TRUE(avglength < 70.0);
 }
 
-TEST_F(PlanTest, EST)
+TEST_F(PlanTest, kinematicEST)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -605,7 +605,7 @@ TEST_F(PlanTest, EST)
     EXPECT_TRUE(avglength < 65.0);
 }
 
-TEST_F(PlanTest, LazyRRT)
+TEST_F(PlanTest, kinematicLazyRRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;

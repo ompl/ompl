@@ -66,7 +66,7 @@ unsigned int ompl::dynamic::SpaceInformationControlsIntegrator::getMotionStates(
     
     while (st <= steps)
     {
-	(*m_stateForwardPropagator)(states[st - 1], ctrl, 1, m_resolution, states[st]);
+	(*m_stateForwardPropagator)(states[st - 1], ctrl, m_resolution, states[st]);
 	st++;
     }
     return st;

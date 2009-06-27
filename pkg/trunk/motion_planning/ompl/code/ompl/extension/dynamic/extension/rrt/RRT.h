@@ -142,12 +142,14 @@ namespace ompl
 		    parent  = NULL;
 		    state   = NULL;
 		    control = NULL;
+		    steps   = 0;
 		}
 		
 		Motion(unsigned int sdim, unsigned int cdim)
 		{
 		    state   = new base::State(sdim);
 		    control = new base::Control(cdim);
+		    steps   = 0;
 		    parent  = NULL;
 		}
 		
@@ -161,6 +163,7 @@ namespace ompl
 		
 		base::State   *state;
 		base::Control *control;
+		unsigned int   steps;
 		Motion        *parent;
 		
 	    };

@@ -125,7 +125,7 @@ bool ompl::kinematic::SpaceInformationKinematic::checkMotionIncremental(const ba
 
 void ompl::kinematic::SpaceInformationKinematic::fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts)
 {
-    assert(m_rhoStartFix.size() == m_rhoGoalFix.size() && m_rhoStartFix.size() == m_stateDimension);
+    assert(rhoStart.size() == rhoGoal.size() && rhoStart.size() == m_stateDimension);
     
     // fix start states
     for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)

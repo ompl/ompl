@@ -79,9 +79,9 @@ namespace ompl
 	    unsigned int getMotionStates(const base::State *begin, const base::Control *ctrl, unsigned int steps, std::vector<base::State*> &states, bool alloc) const;
 
 	    /** Propagate the system forward in time, given a starting state, a control and a duration. The result is a state. */
-	    void propagateForward(const base::State *begin, const base::Control *ctrl, unsigned int steps, base::State *end) const
+	    void propagateForward(const base::State *begin, const base::Control *ctrl, base::State *end) const
 	    {
-		(*m_stateForwardPropagator)(begin, ctrl, steps, m_resolution, end);
+		(*m_stateForwardPropagator)(begin, ctrl, m_resolution, end);
 	    }
 	    
 	    bool checkStatesIncremental(const std::vector<base::State*> &states, unsigned int count, unsigned int *firstInvalidStateIndex = NULL) const;

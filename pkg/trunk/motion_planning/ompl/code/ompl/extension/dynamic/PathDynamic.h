@@ -66,8 +66,11 @@ namespace ompl
 	    /** The list of states that make up the path */
 	    std::vector<base::State*>   states;
 
-	    /** The control applied at each state. This array contains one element less than the list of states*/
+	    /** The control applied at each state. This array contains one element less than the list of states */
 	    std::vector<base::Control*> controls;
+
+	    /** The duration of the control applied at each state. This array contains one element less than the list of states */
+	    std::vector<double>         controlDurations;
 	    
 	protected:
 	    
