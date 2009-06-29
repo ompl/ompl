@@ -56,6 +56,15 @@ ompl::dynamic::PathDynamic::PathDynamic(const PathDynamic &path) : base::Path(pa
 	controls[i] = new base::Control(cdim);
 	si->copyControl(controls[i], path.controls[i]);
     }
+    controlDurations = path.controlDurations;
+}
+
+double ompl::dynamic::PathDynamic::length(void) const
+{
+    double sum = 0.0;
+    for (unsigned int i = 0 ; i < controlDurations.size() ; ++i)
+	sum += controlDurations[i];
+    return sum;
 }
 
 void ompl::dynamic::PathDynamic::freeMemory(void)

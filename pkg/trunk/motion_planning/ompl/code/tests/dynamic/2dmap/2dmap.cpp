@@ -255,7 +255,7 @@ public:
 		*time += elapsed.toSeconds();
 	    
 	    if (pathLength)
-		*pathLength += path->states.size();
+		*pathLength += path->length();
 
 	    if (show)
 	    {
@@ -384,7 +384,7 @@ TEST_F(PlanTest, dynamicRRT)
 
     EXPECT_TRUE(success >= 99.0);
     EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 20.0);
+    EXPECT_TRUE(avglength < 1.7);
 }
 
 int main(int argc, char **argv)

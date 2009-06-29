@@ -63,13 +63,16 @@ namespace ompl
 		freeMemory();
 	    }
 	    
-	    /** The list of states that make up the path */
+	    /** \brief The path length (sum of control durations) */
+	    double length(void) const;
+	    
+	    /** \brief The list of states that make up the path */
 	    std::vector<base::State*>   states;
 
-	    /** The control applied at each state. This array contains one element less than the list of states */
+	    /** \brief The control applied at each state. This array contains one element less than the list of states */
 	    std::vector<base::Control*> controls;
 
-	    /** The duration of the control applied at each state. This array contains one element less than the list of states */
+	    /** \brief The duration of the control applied at each state. This array contains one element less than the list of states */
 	    std::vector<double>         controlDurations;
 	    
 	protected:
