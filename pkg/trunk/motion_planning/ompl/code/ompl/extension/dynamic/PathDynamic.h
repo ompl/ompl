@@ -56,7 +56,7 @@ namespace ompl
 	    {
 	    }
 	    
-	    PathDynamic(PathDynamic &path);
+	    PathDynamic(const PathDynamic &path);
 	    
 	    virtual ~PathDynamic(void)
 	    {

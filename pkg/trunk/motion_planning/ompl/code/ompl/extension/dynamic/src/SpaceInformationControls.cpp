@@ -49,6 +49,16 @@ void ompl::dynamic::SpaceInformationControls::setup(void)
     SpaceInformation::setup();
 }
 
+void ompl::dynamic::SpaceInformationControls::setKinematicPath(const kinematic::PathKinematic *hint)
+{
+    if (m_hint)
+	delete m_hint;
+    if (hint == NULL)
+	m_hint = NULL;
+    else
+	m_hint = new kinematic::PathKinematic(*hint);
+}
+
 void ompl::dynamic::SpaceInformationControls::copyControl(base::Control *destination, const base::Control *source) const
 {
     memcpy(destination->values, source->values, sizeof(double) * m_controlDimension);

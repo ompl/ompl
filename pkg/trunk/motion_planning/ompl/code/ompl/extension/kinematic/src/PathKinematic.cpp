@@ -36,7 +36,7 @@
 
 #include "ompl/extension/kinematic/PathKinematic.h"
 
-ompl::kinematic::PathKinematic::PathKinematic(PathKinematic &path) : base::Path(path.getSpaceInformation())
+ompl::kinematic::PathKinematic::PathKinematic(const PathKinematic &path) : base::Path(path.getSpaceInformation())
 {
     states.resize(path.states.size());
     unsigned int dim = m_si->getStateDimension();

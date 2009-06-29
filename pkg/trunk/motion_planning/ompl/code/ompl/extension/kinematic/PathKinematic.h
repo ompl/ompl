@@ -55,7 +55,7 @@ namespace ompl
 	    {
 	    }
 	    
-	    PathKinematic(PathKinematic &path);
+	    PathKinematic(const PathKinematic &path);
 	    
 	    virtual ~PathKinematic(void)
 	    {

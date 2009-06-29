@@ -72,7 +72,8 @@ namespace ompl
 	    {
 		m_type = (base::PlannerType)(base::PLAN_TO_GOAL_STATE | base::PLAN_TO_GOAL_REGION);
 		m_nn.setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
-		m_goalBias = 0.05;	    
+		m_goalBias = 0.05;
+		m_hintBias = 0.75;
 		m_rho = 0.5;
 	    }
 	    
@@ -81,8 +82,12 @@ namespace ompl
 		freeMemory();
 	    }
 	    
+	    /** \brief Continue solving for some amount of time. Return true if solution was found. */
 	    virtual bool solve(double solveTime);
 	    
+	    /** \brief Clear datastructures. Call this function if the
+		input data to the planner has changed and you do not
+		want to continue planning */
 	    virtual void clear(void)
 	    {
 		freeMemory();
@@ -101,11 +106,25 @@ namespace ompl
 		m_goalBias = goalBias;
 	    }
 	    
-	    /** Get the goal bias the planner is using */
+	    /** \brief Get the goal bias the planner is using */
 	    double getGoalBias(void) const
 	    {
 		return m_goalBias;
 	    }
+
+	    /** \brief If a kinematic path is given as hint, this
+		function sets the percentage of how often this path is
+		used as hint */
+	    void setHintBias(double hintBias)
+	    {
+		m_hintBias = hintBias;
+	    }
+	    
+	    /** \brief Get the hint bias */
+	    double getHintBias(void) const
+	    {
+		return m_hintBias;
+	    }	    
 	    
 	    /** Set the range the planner is supposed to use. This
 		parameter greatly influences the runtime of the
@@ -125,7 +144,7 @@ namespace ompl
 		m_rho = rho;
 	    }
 	    
-	    /** Get the range the planner is using */
+	    /** \brief Get the range the planner is using */
 	    double getRange(void) const
 	    {
 		return m_rho;
@@ -186,6 +205,7 @@ namespace ompl
 	    NearestNeighborsSqrtApprox<Motion*>     m_nn;
 	    
 	    double                                  m_goalBias;
+	    double                                  m_hintBias;
 	    double                                  m_rho;	
 	    random_utils::RNG                       m_rng;	
 	};

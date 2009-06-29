@@ -38,7 +38,7 @@
 #include "ompl/extension/dynamic/SpaceInformationControls.h"
 #include <cassert>
 
-ompl::dynamic::PathDynamic::PathDynamic(PathDynamic &path) : base::Path(path.getSpaceInformation())
+ompl::dynamic::PathDynamic::PathDynamic(const PathDynamic &path) : base::Path(path.getSpaceInformation())
 {
     states.resize(path.states.size());
     controls.resize(path.controls.size());

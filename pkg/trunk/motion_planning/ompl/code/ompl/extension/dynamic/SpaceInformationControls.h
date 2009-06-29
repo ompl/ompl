@@ -41,21 +41,22 @@
 #include "ompl/base/StateDistanceEvaluator.h"
 #include "ompl/base/Control.h"
 #include "ompl/extension/dynamic/PathDynamic.h"
+#include "ompl/extension/kinematic/PathKinematic.h"
 #include <vector>
 
-/** Main namespace */
+/** \brief Main namespace */
 namespace ompl
 {
 
     namespace dynamic
     {
 	
-	/** Space information useful for kinematic planning */
+	/** \brief Space information useful for kinematic planning */
 	class SpaceInformationControls : public base::SpaceInformation
 	{
 	public:
 	    
-	    /** Constructor; setup() needs to be called as well, before use */
+	    /** \brief Constructor; setup() needs to be called as well, before use */
 	    SpaceInformationControls(void) : base::SpaceInformation(),
 					     m_defaultDistanceEvaluator(dynamic_cast<base::SpaceInformation*>(this))
 	    {
@@ -63,15 +64,18 @@ namespace ompl
 		m_minControlDuration = m_maxControlDuration = 0;
 		m_controlDimension = 0;
 		m_resolution = 0.05;
+		m_hint = NULL;
 	    }
 	    
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~SpaceInformationControls(void)
-	    {
+	    {   
+		if (m_hint)
+		    delete m_hint;
 	    }
 
 	    
-	    /** A class that can perform sampling. Usually an instance of this class is needed
+	    /** \brief A class that can perform sampling. Usually an instance of this class is needed
 	     * for sampling states or controls */
 	    class SamplingCore
 	    {	    
@@ -86,25 +90,25 @@ namespace ompl
 		{
 		}
 		
-		/** Sample a number of steps */
+		/** \brief Sample a number of steps */
 		virtual unsigned int sampleStepCount(void);
 		
-		/** Sample a control */
+		/** \brief Sample a control */
 		virtual void sample(base::Control *ctrl);
 		
-		/** Sample a control near another, within given bounds */
+		/** \brief Sample a control near another, within given bounds */
 		virtual void sampleNear(base::Control *ctrl, const base::Control *near, const double rho);
 		
-		/** Sample a control near another, within given bounds */
+		/** \brief Sample a control near another, within given bounds */
 		virtual void sampleNear(base::Control *ctrl, const base::Control *near, const std::vector<double> &rho);
 		
-		/** Sample a state */
+		/** \brief Sample a state */
 		virtual void sample(base::State *state);
 		
-		/** Sample a state near another, within given bounds */
+		/** \brief Sample a state near another, within given bounds */
 		virtual void sampleNear(base::State *state, const base::State *near, const double rho);
 		
-		/** Sample a state near another, within given bounds */
+		/** \brief Sample a state near another, within given bounds */
 		virtual void sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho);
 		
 	    protected:
@@ -115,42 +119,56 @@ namespace ompl
 		unsigned int              m_maxControlDuration;
 	    };
 	    
+	    /** \brief Get the resolution (in time) for a control step. The control is applied for time = resolution * control_duration */
 	    double getResolution(void) const
 	    {
 		return m_resolution;
 	    }
 	    
+	    /** \brief Get the control dimension (number of components) */
 	    unsigned int getControlDimension(void) const
 	    {
 		return m_controlDimension;
 	    }
 	    
+	    /** \brief Get the minimum duration for which a control can be applied */
 	    unsigned int getMinControlDuration(void) const
 	    {
 		return m_minControlDuration;
 	    }
 	    
+	    /** \brief Get the maximum duration for which a control can be applied */
 	    unsigned int getMaxControlDuration(void) const
 	    {
 		return m_maxControlDuration;
 	    }
-	    
+
+	    /** \brief Get the semantic description & bounds for a control component */
 	    const base::ControlComponent& getControlComponent(unsigned int index) const
 	    {
 		return m_controlComponent[index];
 	    }
 
-	    /** Copy a control to another */
+	    /** \brief Copy a control to another */
 	    virtual void copyControl(base::Control *destination, const base::Control *source) const;
 
-	    /** Make the control a null one */
+	    /** \brief Make the control a null one */
 	    virtual void nullControl(base::Control *ctrl) const;
 	    
-	    /** Print a state to a stream */
+	    /** \brief Print a state to a stream */
 	    void printControl(const base::Control *control, std::ostream &out = std::cout) const;
 	    
-	    /** Perform additional tasks to finish the initialization of the space information */
+	    /** \brief Perform additional tasks to finish the initialization of the space information */
 	    virtual void setup(void);
+	    
+	    /** \brief If a hint is available (a kinematic solution path), provide it here */
+	    void setKinematicPath(const kinematic::PathKinematic *hint);
+	    
+	    /** \brief Get the kinematic solution path provided as hint */
+	    const kinematic::PathKinematic* getKinematicPath(void) const
+	    {
+		return m_hint;
+	    }
 	    
 	protected:
 	    
@@ -161,6 +179,8 @@ namespace ompl
 	    unsigned int                         m_minControlDuration;
 	    unsigned int                         m_maxControlDuration;
 	
+	    kinematic::PathKinematic            *m_hint;
+	    
 	private:
 	    
 	    base::L2SquareStateDistanceEvaluator m_defaultDistanceEvaluator;

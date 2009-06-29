@@ -78,6 +78,10 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 
     m_msg.inform("RRT: Starting with %u states", m_nn.size());
     
+    std::vector<base::State*> hintStates;
+    if (si->getKinematicPath())
+	hintStates = si->getKinematicPath()->states;
+    
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
     double  approxdif = INFINITY;
@@ -92,15 +96,26 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     while (time_utils::Time::now() < endTime)
     {
-
-	/* sample random state (with goal biasing) */
-	if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
+	
+	if (hintStates.empty())
 	{
-	    si->copyState(rstate, goal_s->state);
+	    /* sample random state (with goal biasing) */
+	    if (goal_s && m_rng.uniform(0.0, 1.0) < m_goalBias)
+	    {
+		si->copyState(rstate, goal_s->state);
+	    }
+	    else
+		m_sCore.sample(rstate);
 	}
 	else
-	    m_sCore.sample(rstate);
-
+	{
+	    // pick a random state along the kinematic path, focusing on the end
+	    if (m_rng.uniform(0.0, 1.0) < m_hintBias)
+		si->copyState(rstate, hintStates[m_rng.halfNormalInt(0, hintStates.size() - 1)]);
+	    else
+		m_sCore.sample(rstate);
+	}
+	
 	/* find closest state in the tree */
 	Motion *nmotion = m_nn.nearest(rmotion);
 
