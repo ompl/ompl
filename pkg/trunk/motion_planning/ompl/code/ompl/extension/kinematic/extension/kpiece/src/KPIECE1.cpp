@@ -239,3 +239,15 @@ unsigned int ompl::kinematic::KPIECE1::addMotion(Motion *motion, double dist)
     m_tree.size++;
     return created;
 }
+
+void ompl::kinematic::KPIECE1::getStates(std::vector<const base::State*> &states) const
+{
+    states.resize(0);
+    states.reserve(m_tree.size);
+    
+    std::vector<CellData*> cdata;
+    m_tree.grid.getContent(cdata);
+    for (unsigned int i = 0 ; i < cdata.size() ; ++i)
+	for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
+	    states.push_back(cdata[i]->motions[j]->state); 
+}

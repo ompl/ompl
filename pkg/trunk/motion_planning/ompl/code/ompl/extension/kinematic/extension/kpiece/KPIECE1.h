@@ -143,13 +143,13 @@ namespace ompl
 		m_rho = rho;
 	    }
 	    
-	    /** Get the range the planner is using */
+	    /** \brief Get the range the planner is using */
 	    double getRange(void) const
 	    {
 		return m_rho;
 	    }
 	    
-	    /** Set the projection evaluator. This class is able to
+	    /** \brief Set the projection evaluator. This class is able to
 		compute the projection of a given state. The simplest
 		option is to use an orthogonal projection; see
 		OrthogonalProjectionEvaluator */
@@ -173,7 +173,9 @@ namespace ompl
 		m_tree.grid.setDimension(m_projectionDimension);
 		Planner::setup();
 	    }
-	    
+
+	    virtual void getStates(std::vector<const base::State*> &states) const;
+
 	protected:
 	    
 	    class Motion

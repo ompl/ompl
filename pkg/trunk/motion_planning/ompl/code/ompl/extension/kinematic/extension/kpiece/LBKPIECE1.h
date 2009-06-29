@@ -166,7 +166,9 @@ namespace ompl
 		m_tGoal.size = 0;	    
 		m_tGoal.iteration = 1;
 	    }
-	    
+
+	    virtual void getStates(std::vector<const base::State*> &states) const;
+
 	protected:
 	    
 	    class Motion

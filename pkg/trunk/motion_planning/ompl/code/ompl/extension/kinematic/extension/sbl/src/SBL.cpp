@@ -297,3 +297,21 @@ void ompl::kinematic::SBL::addMotion(TreeData &tree, Motion *motion)
     }
     tree.size++;
 }
+
+void ompl::kinematic::SBL::getStates(std::vector<const base::State*> &states) const
+{
+    states.resize(0);
+    states.reserve(m_tStart.size + m_tGoal.size);
+    
+    std::vector<MotionSet> motions;
+    m_tStart.grid.getContent(motions);
+    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+	for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+	    states.push_back(motions[i][j]->state);    
+
+    motions.clear();
+    m_tGoal.grid.getContent(motions);
+    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+	for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+	    states.push_back(motions[i][j]->state);    
+}

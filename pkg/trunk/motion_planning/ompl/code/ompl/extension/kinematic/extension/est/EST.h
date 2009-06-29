@@ -160,6 +160,8 @@ namespace ompl
 		Planner::setup();
 	    }
 	    
+	    virtual void getStates(std::vector<const base::State*> &states) const;
+	    
 	protected:
 	    
 	    class Motion

@@ -303,3 +303,21 @@ void ompl::kinematic::LBKPIECE1::addMotion(TreeData &tree, Motion* motion)
     }
     tree.size++;
 }
+
+void ompl::kinematic::LBKPIECE1::getStates(std::vector<const base::State*> &states) const
+{
+    states.resize(0);
+    states.reserve(m_tStart.size + m_tGoal.size);
+    
+    std::vector<CellData*> cdata;
+    m_tStart.grid.getContent(cdata);
+    for (unsigned int i = 0 ; i < cdata.size() ; ++i)
+	for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
+	    states.push_back(cdata[i]->motions[j]->state); 
+    
+    cdata.clear();
+    m_tGoal.grid.getContent(cdata);
+    for (unsigned int i = 0 ; i < cdata.size() ; ++i)
+	for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
+	    states.push_back(cdata[i]->motions[j]->state); 
+}

@@ -149,6 +149,8 @@ namespace ompl
 	    {
 		return m_rho;
 	    }
+
+	    virtual void getStates(std::vector<const base::State*> &states) const;
 	    
 	protected:
 	    

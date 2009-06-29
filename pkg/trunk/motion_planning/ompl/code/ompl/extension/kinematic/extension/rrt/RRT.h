@@ -80,7 +80,9 @@ namespace ompl
 	    {
 		freeMemory();
 	    }
-	    
+
+	    virtual void getStates(std::vector<const base::State*> &states) const;
+
 	    virtual bool solve(double solveTime);
 	    
 	    virtual void clear(void)

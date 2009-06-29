@@ -201,3 +201,14 @@ void ompl::kinematic::EST::addMotion(Motion *motion)
     }
     m_tree.size++;
 }
+
+void ompl::kinematic::EST::getStates(std::vector<const base::State*> &states) const
+{
+    std::vector<MotionSet> motions;
+    m_tree.grid.getContent(motions);
+    states.resize(0);
+    states.reserve(m_tree.size);
+    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+	for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+	    states.push_back(motions[i][j]->state);    
+}

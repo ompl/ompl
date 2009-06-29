@@ -83,6 +83,11 @@ namespace ompl
 	    {
 		return m_gaik.getRange();
 	    }
+
+	    virtual void getStates(std::vector<const base::State*> &states) const
+	    {
+		_P::getStates(states);
+	    }
 	    
 	    virtual bool solve(double solveTime)
 	    {

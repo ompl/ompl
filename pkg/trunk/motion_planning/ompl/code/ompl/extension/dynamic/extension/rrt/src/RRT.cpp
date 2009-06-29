@@ -200,3 +200,12 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     return goal_r->isAchieved();
 }
+
+void ompl::dynamic::RRT::getStates(std::vector<const base::State*> &states) const
+{
+    std::vector<Motion*> motions;
+    m_nn.list(motions);
+    states.resize(motions.size());
+    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+	states[i] = motions[i]->state;
+}

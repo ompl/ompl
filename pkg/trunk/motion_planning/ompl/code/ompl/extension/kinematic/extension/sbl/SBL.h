@@ -157,6 +157,8 @@ namespace ompl
 		m_tGoal.grid.clear();
 		m_tGoal.size = 0;	    
 	    }
+
+	    virtual void getStates(std::vector<const base::State*> &states) const;
 	    
 	protected:
 	    

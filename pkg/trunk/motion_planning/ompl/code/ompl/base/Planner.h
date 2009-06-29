@@ -55,13 +55,13 @@ namespace ompl
 		PLAN_TO_GOAL_REGION = 2
 	    };
 	
-	/** Base class for a planner */
+	/** \brief Base class for a planner */
 	class Planner
 	{
 	    
 	public:
 	    
-	    /** Constructor */
+	    /** \brief Constructor */
 	    Planner(SpaceInformation *si)
 	    {
 		m_si    = si;
@@ -69,30 +69,33 @@ namespace ompl
 		m_type = PLAN_UNKNOWN;
 	    }
 	    
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~Planner(void)
 	    {
 	    }
 	    
-	    /** Function that can solve the motion planning problem */
+	    /** \brief Function that can solve the motion planning problem */
 	    virtual bool solve(double solveTime) = 0;
 	    
-	    /** Clear all internal datastructures */
+	    /** \brief Clear all internal datastructures */
 	    virtual void clear(void) = 0;
 	    
-	    /** A problem is trivial if the given starting state already
+	    /** \brief Get states in current exploration datastructure */
+	    virtual void getStates(std::vector<const base::State*> &states) const = 0;
+	    
+	    /** \brief A problem is trivial if the given starting state already
 		in the goal region, so we need no motion planning. startID
 		will be set to the index of the starting state that
 		satisfies the goal. The distance to the goal can
 		optionally be returned as well. */
 	    virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL) const;
 	    
-	    /** Return the type of the motion planner. This is useful if
+	    /** \brief Return the type of the motion planner. This is useful if
 		the planner wants to advertise what type of problems it
 		can solve */
 	    PlannerType getType(void) const;
 	    
-	    /** Perform extra configuration steps, if needed */
+	    /** \brief Perform extra configuration steps, if needed */
 	    virtual void setup(void);
 	    
 	protected:
