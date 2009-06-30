@@ -236,7 +236,7 @@ namespace ompl
 		
 		delete list;
 
-		typename GridN<_T>::iterator pos = GridN<_T>::m_hash.find(&cell->coord);
+		typename GridN<_T>::CoordHash::iterator pos = GridN<_T>::m_hash.find(&cell->coord);
 		if (pos != GridN<_T>::m_hash.end())
 		{
 		    GridN<_T>::m_hash.erase(pos);

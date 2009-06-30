@@ -30,6 +30,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/extension/dynamic/extension/rrt/src/RRT.cpp
 			 )
 rospack_add_compile_flags(ompl -Wextra)
+rospack_link_boost(ompl thread)
 
 ### Tests
 

@@ -245,7 +245,7 @@ namespace ompl
 		}	  
 		delete list;
 #endif
-		iterator pos = m_hash.find(&cell->coord);
+		typename CoordHash::iterator pos = m_hash.find(&cell->coord);
 		if (pos != m_hash.end())
 		{
 		    m_hash.erase(pos);
@@ -356,7 +356,7 @@ namespace ompl
     public:
 	
 	typedef typename CoordHash::const_iterator iterator;
-	
+
 	iterator begin(void) const
 	{
 	    return m_hash.begin();
