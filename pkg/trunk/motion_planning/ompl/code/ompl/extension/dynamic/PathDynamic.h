@@ -64,7 +64,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief The path length (sum of control durations) */
-	    double length(void) const;
+	    virtual double length(void) const;
 	    
 	    /** \brief The list of states that make up the path */
 	    std::vector<base::State*>   states;

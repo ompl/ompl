@@ -52,3 +52,8 @@ void ompl::kinematic::PathKinematic::freeMemory(void)
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	delete states[i];
 }
+
+double ompl::kinematic::PathKinematic::length(void) const
+{
+    return states.size();
+}

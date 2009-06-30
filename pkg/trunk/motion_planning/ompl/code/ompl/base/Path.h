@@ -45,27 +45,30 @@ namespace ompl
     {
 	class SpaceInformation;
 	
-	/** Abstract definition of a path */
+	/** \brief Abstract definition of a path */
 	class Path
 	{
 	public:
 	    
-	    /** Constructor. A path must always know the space information it is part of */
+	    /** \brief Constructor. A path must always know the space information it is part of */
 	    Path(SpaceInformation *si)
 	    {
 		m_si = si;
 	    }
 	    
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~Path(void)
 	    {
 	    }
 	    
-	    /** Returns the space information this path is part of */
+	    /** \brief Returns the space information this path is part of */
 	    SpaceInformation* getSpaceInformation(void) const
 	    {
 		return m_si;
 	    }
+	    
+	    /** \brief Return the length of a path */
+	    virtual double length(void) const = 0;
 	    
 	protected:
 	    
