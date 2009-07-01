@@ -48,19 +48,19 @@ namespace ompl
 	
 	class SpaceInformation;
 	
-	/** Abstract definition for a class evaluating distance between states. The () operator must be defined. */
+	/** \brief Abstract definition for a class evaluating distance between states. The () operator must be defined. The implementation of this class must be thread safe. */
 	class StateDistanceEvaluator
 	{
 	public:
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~StateDistanceEvaluator(void)
 	    {
 	    }
-	    /** Return true if the state is valid */
+	    /** \brief Return true if the state is valid */
 	    virtual double operator()(const State *state1, const State *state2) const = 0;
 	};
 	
-	/** Definition of a distance evaluator: the square of the L2 norm */
+	/** \brief Definition of a distance evaluator: the square of the L2 norm */
 	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
 	{
 	public:

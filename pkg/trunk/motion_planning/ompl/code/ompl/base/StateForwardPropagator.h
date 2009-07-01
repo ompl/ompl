@@ -48,24 +48,24 @@ namespace ompl
     namespace base
     {
 	
-	/** Abstract definition for a class perfoming forward integration. The () operator must be defined.
-	 *  This definition assumes no collision checking is performed when propagating forward */
+	/** \brief Abstract definition for a class perfoming forward integration. The () operator must be defined.
+	 *  This definition assumes no collision checking is performed when propagating forward. The implementation of this class must be thread safe. */
 	class StateForwardPropagator
 	{
 	public:
 
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~StateForwardPropagator(void)
 	    {
 	    }
 	    
-	    /** Propagate the system forward in time, given a starting state, a control and a duration. The result is a state
+	    /** \brief Propagate the system forward in time, given a starting state, a control and a duration. The result is a state
 		and some (potentially) some flags (such as collision found, if collision checking was performed) */
 	    virtual void operator()(const State *begin, const Control *ctrl, double resolution, State *end) const = 0;
 	};
 	
 	
-	/** Abstract definition for a class perfoming forward integration. The () operator must be defined. 
+	/** \brief Abstract definition for a class perfoming forward integration. The () operator must be defined. 
 	 *  This definition assumes collision checking (contacts are modelled) is also performed when propagating forward */
 	class StateForwardPropagatorWithContacts
 	{
@@ -100,13 +100,13 @@ namespace ompl
 	    };
 	    
 	    
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~StateForwardPropagatorWithContacts(void)
 	    {
 	    }
 	    
-	    /** Propagate the system forward in time, given a starting state, a control and a duration. The result is a state
-		and some (potentially) some flags (such as collision found, if collision checking was performed) */
+	    /** \brief Propagate the system forward in time, given a starting state, a control and a duration. The result is a state
+		and some (potentially) some flags (such as collision found, if collision checking was performed). The implementation of this class must be thread safe. */
 	    virtual void operator()(const State *begin, const Control *ctrl, unsigned int steps, double resolution,
 				    Options &options, Result &result) const = 0;
 	};

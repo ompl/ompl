@@ -49,22 +49,22 @@ namespace ompl
     namespace base
     {
 
-	/** Abstract definition for a class computing projections */
+	/** \brief Abstract definition for a class computing projections. The implementation of this class must be thread safe. */
 	class ProjectionEvaluator
 	{
 	public:
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~ProjectionEvaluator(void)
 	    {
 	    }
 	    
-	    /** Return the dimension of the projection defined by this evaluator */
+	    /** \brief Return the dimension of the projection defined by this evaluator */
 	    virtual unsigned int getDimension(void) const = 0;
 	    
-	    /** Compute the projection as an array of double values */
+	    /** \brief Compute the projection as an array of double values */
 	    virtual void operator()(const State *state, double *projection) const = 0;
 	    
-	    /** Define the dimension (each component) of a grid cell. The
+	    /** \brief Define the dimension (each component) of a grid cell. The
 		number of dimensions set here must be the same as the
 		dimension of the projection computed by the projection
 		evaluator. */
@@ -73,13 +73,13 @@ namespace ompl
 		m_cellDimensions = cellDimensions;
 	    }
 	    
-	    /** Get the dimension (each component) of a grid cell  */
+	    /** \brief Get the dimension (each component) of a grid cell  */
 	    void getCellDimensions(std::vector<double> &cellDimensions) const
 	    {
 		cellDimensions = m_cellDimensions;
 	    }
 	    
-	    /** Compute integer coordinates for a projection */
+	    /** \brief Compute integer coordinates for a projection */
 	    void computeCoordinates(const double *projection, std::vector<int> &coord) const
 	    {
 		unsigned int dim = getDimension();
@@ -88,7 +88,7 @@ namespace ompl
 		    coord[i] = (int)trunc(projection[i]/m_cellDimensions[i]);
 	    }
 	    
-	    /** Compute integer coordinates for a state */
+	    /** \brief Compute integer coordinates for a state */
 	    void computeCoordinates(const State *state, std::vector<int> &coord) const
 	    {
 		double projection[getDimension()];
@@ -102,7 +102,7 @@ namespace ompl
 	    
 	};
 	
-	/** Definition for a class computing orthogonal projections */
+	/** \brief Definition for a class computing orthogonal projections */
 	class OrthogonalProjectionEvaluator : public ProjectionEvaluator
 	{
 	public:
@@ -125,7 +125,7 @@ namespace ompl
 	    
 	};	
 	
-        /** Definition for a class computing orthogonal projections */
+        /** \brief Definition for a class computing orthogonal projections */
 	class LinearProjectionEvaluator : public ProjectionEvaluator
 	{
 	public:

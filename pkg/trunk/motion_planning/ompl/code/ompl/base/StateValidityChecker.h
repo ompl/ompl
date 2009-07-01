@@ -46,25 +46,25 @@ namespace ompl
     namespace base
     {
 	
-	/** Abstract definition for a class checking the validity of states. The () operator must be defined. */
+	/** \brief Abstract definition for a class checking the validity of states. The () operator must be defined. The implementation of this class must be thread safe. */
 	class StateValidityChecker
 	{
 	public:
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~StateValidityChecker(void)
 	    {
 	    }
 	    
-	    /** Return true if the state is valid */
+	    /** \brief Return true if the state is valid */
 	    virtual bool operator()(const State *state) const = 0;
 	};
 	
-	/** A state validity checker that considers all states valid. */
+	/** \brief A state validity checker that considers all states valid. */
 	class AllValidStateValidityChecker : public StateValidityChecker
 	{
 	public:
 	    
-	    /** Return true for all states */
+	    /** \brief Return true for all states */
 	    virtual bool operator()(const State *) const 
 	    {
 		return true;
