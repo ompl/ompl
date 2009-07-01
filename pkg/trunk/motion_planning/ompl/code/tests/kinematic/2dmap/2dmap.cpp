@@ -117,12 +117,12 @@ public:
 	m_stateComponent[0].minValue = 0.0;
 	m_stateComponent[0].maxValue = (double)width - 0.000000001;
 	m_stateComponent[0].resolution = 0.5;
-	m_stateComponent[0].type = base::StateComponent::NORMAL;
+	m_stateComponent[0].type = base::StateComponent::LINEAR;
 	
 	m_stateComponent[1].minValue = 0.0;
 	m_stateComponent[1].maxValue = (double)height - 0.000000001;
 	m_stateComponent[1].resolution = 0.5;
-	m_stateComponent[1].type = base::StateComponent::NORMAL;
+	m_stateComponent[1].type = base::StateComponent::LINEAR;
     }
 };
 

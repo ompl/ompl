@@ -87,7 +87,7 @@ namespace ompl
 	    }
 	    
 	    enum
-		{ UNKNOWN, NORMAL, WRAPPING_ANGLE, QUATERNION }
+		{ UNKNOWN, LINEAR, WRAPPING_ANGLE, QUATERNION, DERIVATIVE }
 		type;
 	    double minValue;
 	    double maxValue;

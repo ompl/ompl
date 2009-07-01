@@ -85,7 +85,7 @@ namespace ompl
 	    }
 	    
 	    enum
-		{ UNKNOWN, NORMAL }
+		{ UNKNOWN, LINEAR }
 		type;
 	    double minValue;
 	    double maxValue;

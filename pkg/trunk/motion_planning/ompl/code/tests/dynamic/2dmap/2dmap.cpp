@@ -143,19 +143,19 @@ public:
 
 	m_stateComponent[0].minValue = 0.0;
 	m_stateComponent[0].maxValue = (double)width - 0.000000001;
-	m_stateComponent[0].type = base::StateComponent::NORMAL;
+	m_stateComponent[0].type = base::StateComponent::LINEAR;
 	
 	m_stateComponent[1].minValue = 0.0;
 	m_stateComponent[1].maxValue = (double)height - 0.000000001;
-	m_stateComponent[1].type = base::StateComponent::NORMAL;
+	m_stateComponent[1].type = base::StateComponent::LINEAR;
 
 	m_stateComponent[2].minValue = -MAX_VELOCITY;
 	m_stateComponent[2].maxValue = MAX_VELOCITY;
-	m_stateComponent[2].type = base::StateComponent::NORMAL;
+	m_stateComponent[2].type = base::StateComponent::DERIVATIVE;
 
 	m_stateComponent[3].minValue = -MAX_VELOCITY;
 	m_stateComponent[3].maxValue = MAX_VELOCITY;
-	m_stateComponent[3].type = base::StateComponent::NORMAL;
+	m_stateComponent[3].type = base::StateComponent::DERIVATIVE;
 
 	m_minControlDuration = 1;
 	m_maxControlDuration = 5;
@@ -163,11 +163,11 @@ public:
 	m_controlDimension = 2;
 	m_controlComponent.resize(2);
 
-	m_controlComponent[0].type = base::ControlComponent::NORMAL;
+	m_controlComponent[0].type = base::ControlComponent::LINEAR;
 	m_controlComponent[0].minValue = -MAX_VELOCITY;
 	m_controlComponent[0].maxValue = MAX_VELOCITY;
 
-	m_controlComponent[1].type = base::ControlComponent::NORMAL;
+	m_controlComponent[1].type = base::ControlComponent::LINEAR;
 	m_controlComponent[1].minValue = -MAX_VELOCITY;
 	m_controlComponent[1].maxValue = MAX_VELOCITY;
 	
