@@ -216,16 +216,17 @@ namespace ompl
 	    void addMotion(Motion *motion);
 	    Motion* selectMotion(void);
 	    
-	    SpaceInformationKinematic::SamplingCore m_sCore;
-	    TreeData                                m_tree;
+	    base::SpaceInformation::StateSamplingCore  m_sCore;
 	    
-	    base::ProjectionEvaluator              *m_projectionEvaluator;
-	    unsigned int                            m_projectionDimension;
-	    std::vector<double>                     m_cellDimensions;
+	    TreeData                                   m_tree;
 	    
-	    double                                  m_goalBias;
-	    double                                  m_rho;	
-	    random_utils::RNG                       m_rng;	
+	    base::ProjectionEvaluator                 *m_projectionEvaluator;
+	    unsigned int                               m_projectionDimension;
+	    std::vector<double>                        m_cellDimensions;
+	    
+	    double                                     m_goalBias;
+	    double                                     m_rho;	
+	    random_utils::RNG                          m_rng;	
 	};
 	
     }

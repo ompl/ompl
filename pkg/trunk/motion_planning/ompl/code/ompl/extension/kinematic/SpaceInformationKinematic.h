@@ -44,92 +44,53 @@
 #include <vector>
 #include <valarray>
 
-/** Main namespace */
+/** \brief Main namespace */
 namespace ompl
 {
 
     namespace kinematic
     {
 	
-	/** Space information useful for kinematic planning */
+	/** \brief Space information useful for kinematic planning */
 	class SpaceInformationKinematic : public base::SpaceInformation
 	{
 	public:
 	    
-	    /** Constructor; setup() needs to be called as well, before use */
+	    /** \brief Constructor; setup() needs to be called as well, before use */
 	    SpaceInformationKinematic(void) : base::SpaceInformation(),
 					      m_defaultDistanceEvaluator(dynamic_cast<base::SpaceInformation*>(this))
 	    {
 		m_stateDistanceEvaluator = &m_defaultDistanceEvaluator;
 	    }
 	    
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~SpaceInformationKinematic(void)
 	    {
 	    }
 	    
-	    /** A class that can perform sampling. Usually an instance of this class is needed
-	     * for sampling states */
-	    class SamplingCore
-	    {	    
-	    public:
-		SamplingCore(const SpaceInformationKinematic *si) : m_si(si) 
-		{
-		}	    
-		
-		virtual ~SamplingCore(void)
-		{
-		}
-		
-		/** Sample a state */
-		virtual void sample(base::State *state);
-		
-		/** Sample a state near another, within given bounds */
-		virtual void sampleNear(base::State *state, const base::State *near, const double rho);
-		
-		/** Sample a state near another, within given bounds */
-		virtual void sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho);
-		
-	    protected:
-		
-		const SpaceInformationKinematic *m_si;	    
-		random_utils::RNG                m_rng;
-	    };
-	    
-	    
-	    /** Find a valid state near a given one. If the given state is valid, it will be returned itself.
-	     *  The two passed state pointers must point to different states. Returns true on success.  */
-	    bool searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const;
-
-	    /** Many times the start or goal state will barely touch an obstacle. In this case, we may want to automaticaly
-	      * find a neaby state that is valid so motion planning can be performed. This function enables this behaviour.
-	      * The allowed distance (per state component) for both start and goal states is specified. The number of attempts
-	      * is also specified */
-	    void fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts);
-	    
-	    /** Check if the path between two motions is valid using subdivision */
+	    /** \brief Check if the path between two motions is valid using subdivision */
 	    bool checkMotionSubdivision(const base::State *s1, const base::State *s2) const;
 
-	    /** Incrementally check if the path between two motions is valid */
+	    /** \brief Incrementally check if the path between two motions is valid */
 	    bool checkMotionIncremental(const base::State *s1, const base::State *s2,
 					base::State *lastValidState = NULL, double *lastValidTime = NULL) const;
 	    
-	    /** Get the states that make up a motion. Returns the number of states that were added */
+	    /** \brief Get the states that make up a motion. Returns the number of states that were added */
 	    unsigned int getMotionStates(const base::State *s1, const base::State *s2, std::vector<base::State*> &states, bool alloc) const;
 	    
-	    /** Check if the path is valid */
+	    /** \brief Check if the path is valid */
 	    bool checkPath(const PathKinematic *path) const;
 	
-	    /** Insert states in a path, at the collision checking resolution */
+	    /** \brief Insert states in a path, at the collision checking resolution */
 	    void interpolatePath(PathKinematic *path, double factor = 1.0) const;
 	
-	    /** Perform additional tasks to finish the initialization of
+	    /** \brief Perform additional tasks to finish the initialization of
 		the space information */
 	    virtual void setup(void);
 	    
 	protected:
 	    
-	    /** For functions that need to interpolate between two states, find the appropriate step size */
+	    /** \brief For functions that need to interpolate between two states, find the appropriate step size */
 	    int findDifferenceStep(const base::State *s1, const base::State *s2, double factor,
 				   std::valarray<double> &step) const;
 	    

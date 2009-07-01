@@ -150,17 +150,17 @@ namespace ompl
 		}	    
 	    };
 	    
-	    HCIK                                    m_hcik;
-	    SpaceInformationKinematic::SamplingCore m_sCore;
-	    SpaceInformationKinematic              *m_si;	
-	    unsigned int                            m_poolSize;
-	    unsigned int                            m_poolExpansion;
-	    unsigned int                            m_maxImproveSteps;	
-	    bool                                    m_checkValidity;	
+	    HCIK                                         m_hcik;
+	    SpaceInformationKinematic::StateSamplingCore m_sCore;
+	    SpaceInformationKinematic                   *m_si;	
+	    unsigned int                                 m_poolSize;
+	    unsigned int                                 m_poolExpansion;
+	    unsigned int                                 m_maxImproveSteps;	
+	    bool                                         m_checkValidity;	
 	    
-	    double                                  m_rho;	
+	    double                                       m_rho;	
 	    
-	    msg::Interface                          m_msg;
+	    msg::Interface                               m_msg;
 	};
 	
     }

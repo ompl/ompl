@@ -227,17 +227,17 @@ namespace ompl
 	    bool isPathValid(TreeData &tree, Motion *motion);
 	    bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
 	    
-	    SpaceInformationKinematic::SamplingCore m_sCore;
+	    base::SpaceInformation::StateSamplingCore  m_sCore;
 	    
-	    base::ProjectionEvaluator              *m_projectionEvaluator;
-	    unsigned int                            m_projectionDimension;
-	    std::vector<double>                     m_cellDimensions;
+	    base::ProjectionEvaluator                 *m_projectionEvaluator;
+	    unsigned int                               m_projectionDimension;
+	    std::vector<double>                        m_cellDimensions;
 	    
-	    TreeData                                m_tStart;
-	    TreeData                                m_tGoal;
+	    TreeData                                   m_tStart;
+	    TreeData                                   m_tGoal;
 	    
-	    double                                  m_rho;	
-	    random_utils::RNG                       m_rng;	
+	    double                                     m_rho;	
+	    random_utils::RNG                          m_rng;	
 	};
 	
     }

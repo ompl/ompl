@@ -68,7 +68,8 @@ namespace ompl
 	public:
 	    
 	    RRT(SpaceInformationControlsIntegrator *si) : base::Planner(si),
-							  m_sCore(si)
+							  m_sCore(si),
+							  m_cCore(si)
 	    {
 		m_type = (base::PlannerType)(base::PLAN_TO_GOAL_STATE | base::PLAN_TO_GOAL_REGION);
 		m_nn.setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
@@ -202,14 +203,15 @@ namespace ompl
 		return m_si->distance(a->state, b->state);
 	    }
 	    
-	    SpaceInformationControls::SamplingCore  m_sCore;
+	    base::SpaceInformation::StateSamplingCore     m_sCore;
+	    SpaceInformationControls::ControlSamplingCore m_cCore;
+
+	    NearestNeighborsSqrtApprox<Motion*>           m_nn;
 	    
-	    NearestNeighborsSqrtApprox<Motion*>     m_nn;
-	    
-	    double                                  m_goalBias;
-	    double                                  m_hintBias;
-	    double                                  m_rho;	
-	    random_utils::RNG                       m_rng;	
+	    double                                        m_goalBias;
+	    double                                        m_hintBias;
+	    double                                        m_rho;	
+	    random_utils::RNG                             m_rng;	
 	};
 	
     }

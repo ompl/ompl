@@ -120,8 +120,8 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	Motion *nmotion = m_nn.nearest(rmotion);
 
 	/* sample a random control */
-	m_sCore.sample(rctrl);
-	unsigned int cd = m_sCore.sampleStepCount();
+	m_cCore.sample(rctrl);
+	unsigned int cd = m_cCore.sampleStepCount();
 
 	unsigned int added = si->getMotionStates(nmotion->state, rctrl, cd, states, false);
 	assert(added == cd + 1);

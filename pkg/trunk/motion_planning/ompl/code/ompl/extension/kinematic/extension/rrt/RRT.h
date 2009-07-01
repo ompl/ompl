@@ -175,13 +175,13 @@ namespace ompl
 		return m_si->distance(a->state, b->state);
 	    }
 	    
-	    SpaceInformationKinematic::SamplingCore m_sCore;
+	    base::SpaceInformation::StateSamplingCore m_sCore;
 	    
-	    NearestNeighborsSqrtApprox<Motion*>     m_nn;
+	    NearestNeighborsSqrtApprox<Motion*>       m_nn;
 	    
-	    double                                  m_goalBias;
-	    double                                  m_rho;	
-	    random_utils::RNG                       m_rng;	
+	    double                                    m_goalBias;
+	    double                                    m_rho;	
+	    random_utils::RNG                         m_rng;	
 	};
 	
     }

@@ -82,12 +82,12 @@ void ompl::dynamic::SpaceInformationControls::nullControl(base::Control *ctrl) c
 	ctrl->values[i] = 0.0;
 }
 
-unsigned int ompl::dynamic::SpaceInformationControls::SamplingCore::sampleStepCount(void)
+unsigned int ompl::dynamic::SpaceInformationControls::ControlSamplingCore::sampleStepCount(void)
 {
     return m_rng.uniformInt(m_minControlDuration, m_maxControlDuration);
 }
 
-void ompl::dynamic::SpaceInformationControls::SamplingCore::sample(base::Control *ctrl)
+void ompl::dynamic::SpaceInformationControls::ControlSamplingCore::sample(base::Control *ctrl)
 {
     const unsigned int dim = m_si->getControlDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -97,7 +97,7 @@ void ompl::dynamic::SpaceInformationControls::SamplingCore::sample(base::Control
     }
 }
 
-void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::Control *ctrl, const base::Control *near, const double rho)
+void ompl::dynamic::SpaceInformationControls::ControlSamplingCore::sampleNear(base::Control *ctrl, const base::Control *near, const double rho)
 {
     const unsigned int dim = m_si->getControlDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -108,7 +108,7 @@ void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::Con
     }
 }
 
-void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::Control *ctrl, const base::Control *near, const std::vector<double> &rho)
+void ompl::dynamic::SpaceInformationControls::ControlSamplingCore::sampleNear(base::Control *ctrl, const base::Control *near, const std::vector<double> &rho)
 {
     const unsigned int dim = m_si->getControlDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -116,59 +116,5 @@ void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::Con
 	const base::ControlComponent &comp = m_si->getControlComponent(i);
 	ctrl->values[i] = m_rng.uniform(std::max(comp.minValue, near->values[i] - rho[i]), 
 					std::min(comp.maxValue, near->values[i] + rho[i]));
-    }
-}
-
-void ompl::dynamic::SpaceInformationControls::SamplingCore::sample(base::State *state)
-{
-    const unsigned int dim = m_si->getStateDimension();
-    for (unsigned int i = 0 ; i < dim ; ++i)
-    {
-	const base::StateComponent &comp = m_si->getStateComponent(i);	
-	if (comp.type == base::StateComponent::QUATERNION)
-	{
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] = m_rng.uniform(comp.minValue, comp.maxValue);	    
-    }
-}
-
-void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::State *state, const base::State *near, const double rho)
-{
-    const unsigned int dim = m_si->getStateDimension();
-    for (unsigned int i = 0 ; i < dim ; ++i)
-    {
-	const base::StateComponent &comp = m_si->getStateComponent(i);	
-	if (comp.type == base::StateComponent::QUATERNION)
-	{
-	    /* no notion of 'near' is employed for quaternions */
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] =
-		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho), 
-			      std::min(comp.maxValue, near->values[i] + rho));
-    }
-}
-
-void ompl::dynamic::SpaceInformationControls::SamplingCore::sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho)
-{
-    const unsigned int dim = m_si->getStateDimension();
-    for (unsigned int i = 0 ; i < dim ; ++i)
-    {	
-	const base::StateComponent &comp = m_si->getStateComponent(i);	
-	if (comp.type == base::StateComponent::QUATERNION)
-	{
-	    /* no notion of 'near' is employed for quaternions */
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] = 
-		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho[i]), 
-			      std::min(comp.maxValue, near->values[i] + rho[i]));
     }
 }

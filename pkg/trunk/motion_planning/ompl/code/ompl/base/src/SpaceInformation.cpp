@@ -35,8 +35,64 @@
 /* \author Ioan Sucan */
 
 #include "ompl/base/SpaceInformation.h"
+#include <angles/angles.h>
+#include <sstream>
 #include <cstring>
 #include <cassert>
+
+void ompl::base::SpaceInformation::StateSamplingCore::sample(base::State *state)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	const base::StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == base::StateComponent::QUATERNION)
+	{
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] = m_rng.uniform(comp.minValue, comp.maxValue);	    
+    }
+}
+
+void ompl::base::SpaceInformation::StateSamplingCore::sampleNear(base::State *state, const base::State *near, const double rho)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	const base::StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == base::StateComponent::QUATERNION)
+	{
+	    /* no notion of 'near' is employed for quaternions */
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] =
+		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho), 
+			      std::min(comp.maxValue, near->values[i] + rho));
+    }
+}
+
+void ompl::base::SpaceInformation::StateSamplingCore::sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho)
+{
+    const unsigned int dim = m_si->getStateDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {	
+	const base::StateComponent &comp = m_si->getStateComponent(i);	
+	if (comp.type == base::StateComponent::QUATERNION)
+	{
+	    /* no notion of 'near' is employed for quaternions */
+	    m_rng.quaternion(state->values + i);
+	    i += 3;
+	}
+	else
+	    state->values[i] = 
+		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho[i]), 
+			      std::min(comp.maxValue, near->values[i] + rho[i]));
+    }
+}
 
 void ompl::base::SpaceInformation::copyState(State *destination, const State *source) const
 {
@@ -76,6 +132,118 @@ bool ompl::base::SpaceInformation::satisfiesBounds(const State *s) const
 	    s->values[i] + STATE_EPSILON < m_stateComponent[i].minValue)
 	    return false;
     return true;
+}
+
+void ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts)
+{
+    assert(rhoStart.size() == rhoGoal.size() && rhoStart.size() == m_stateDimension);
+    
+    // fix start states
+    for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
+    {
+	base::State *st = m_startStates[i];
+	if (st)
+	{
+	    bool b = satisfiesBounds(st);
+	    bool v = false;
+	    if (b)
+	    {
+		v = isValid(st);
+		if (!v)
+		    m_msg.message("Initial state is not valid");
+	    }
+	    else
+		m_msg.message("Initial state is not within space bounds");
+	    
+	    if (!b || !v)
+	    {
+		std::stringstream ss;
+		printState(st, ss);
+		ss << " within margins [ ";
+		for (unsigned int j = 0 ; j < rhoStart.size() ; ++j)
+		    ss << rhoStart[j] << " ";
+		ss << "]";		
+		m_msg.message("Attempting to fix initial state %s", ss.str().c_str());
+		base::State temp(m_stateDimension);
+		if (searchValidNearby(&temp, st, rhoStart, attempts))
+		    copyState(st, &temp);
+		else
+		    m_msg.warn("Unable to fix start state %u", i);
+	    }
+	}
+    }
+    
+    // fix goal state
+    base::GoalState *goal = dynamic_cast<base::GoalState*>(m_goal);
+    if (goal)
+    {
+	base::State *st = goal->state;
+	if (st)
+	{
+	    bool b = satisfiesBounds(st);
+	    bool v = false;
+	    if (b)
+	    {
+		v = isValid(st);
+		if (!v)
+		    m_msg.message("Goal state is not valid");
+	    }
+	    else
+		m_msg.message("Goal state is not within space bounds");
+	    
+	    if (!b || !v)
+	    {
+		
+		std::stringstream ss;
+		printState(st, ss);
+		ss << " within margins [ ";
+		for (unsigned int i = 0 ; i < rhoGoal.size() ; ++i)
+		    ss << rhoGoal[i] << " ";
+		ss << "]";
+		m_msg.message("Attempting to fix goal state %s", ss.str().c_str());
+		base::State temp(m_stateDimension);
+		if (searchValidNearby(&temp, st, rhoGoal, attempts))
+		    copyState(st, &temp);
+		else
+		    m_msg.warn("Unable to fix goal state");
+	    }
+	}
+    }
+}
+
+bool ompl::base::SpaceInformation::searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const
+{
+    assert(near != state);
+    
+    copyState(state, near);
+    
+    // fix bounds, if needed
+    if (!satisfiesBounds(state))
+	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+	{
+	    if (state->values[i] > m_stateComponent[i].maxValue)
+		state->values[i] = m_stateComponent[i].maxValue;
+	    else
+		if (state->values[i] < m_stateComponent[i].minValue)
+		    state->values[i] = m_stateComponent[i].minValue;
+	}
+    
+    bool result = isValid(state);
+    
+    if (!result)
+    {
+	// try to find a valid state nearby
+	StateSamplingCore sc(this);
+	base::State       temp(m_stateDimension);
+	copyState(&temp, state);	
+	for (unsigned int i = 0 ; i < attempts && !result ; ++i)
+	{
+	    sc.sampleNear(state, &temp, rho);
+	    result = isValid(state);
+	}
+    }
+    
+    return result;
 }
 
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const

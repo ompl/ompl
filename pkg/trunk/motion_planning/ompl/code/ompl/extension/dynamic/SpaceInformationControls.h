@@ -77,16 +77,16 @@ namespace ompl
 	    
 	    /** \brief A class that can perform sampling. Usually an instance of this class is needed
 	     * for sampling states or controls */
-	    class SamplingCore
+	    class ControlSamplingCore
 	    {	    
 	    public:
-		SamplingCore(SpaceInformationControls *si) : m_si(si) 
+		ControlSamplingCore(SpaceInformationControls *si) : m_si(si) 
 		{
 		    m_minControlDuration = m_si->getMinControlDuration();
 		    m_maxControlDuration = m_si->getMaxControlDuration();
 		}
 		
-		virtual ~SamplingCore(void)
+		virtual ~ControlSamplingCore(void)
 		{
 		}
 		
@@ -101,15 +101,6 @@ namespace ompl
 		
 		/** \brief Sample a control near another, within given bounds */
 		virtual void sampleNear(base::Control *ctrl, const base::Control *near, const std::vector<double> &rho);
-		
-		/** \brief Sample a state */
-		virtual void sample(base::State *state);
-		
-		/** \brief Sample a state near another, within given bounds */
-		virtual void sampleNear(base::State *state, const base::State *near, const double rho);
-		
-		/** \brief Sample a state near another, within given bounds */
-		virtual void sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho);
 		
 	    protected:
 		

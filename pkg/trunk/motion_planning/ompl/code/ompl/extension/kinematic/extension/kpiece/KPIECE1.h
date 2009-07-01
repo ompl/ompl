@@ -273,22 +273,22 @@ namespace ompl
 	    unsigned int addMotion(Motion* motion, double dist);
 	    bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 	    
-	    SpaceInformationKinematic::SamplingCore m_sCore;
+	    base::SpaceInformation::StateSamplingCore  m_sCore;
 	    
-	    HCIK                                    m_hcik;
-	    TreeData                                m_tree;
+	    HCIK                                       m_hcik;
+	    TreeData                                   m_tree;
 	    
-	    base::ProjectionEvaluator              *m_projectionEvaluator;
-	    unsigned int                            m_projectionDimension;
-	    std::vector<double>                     m_cellDimensions;
+	    base::ProjectionEvaluator                 *m_projectionEvaluator;
+	    unsigned int                               m_projectionDimension;
+	    std::vector<double>                        m_cellDimensions;
 	    
-	    double                                  m_minValidPathPercentage;
-	    double                                  m_goodScoreFactor;
-	    double                                  m_badScoreFactor;
-	    double                                  m_selectBorderPercentage;
-	    double                                  m_goalBias;
-	    double                                  m_rho;	
-	    random_utils::RNG                       m_rng;	
+	    double                                     m_minValidPathPercentage;
+	    double                                     m_goodScoreFactor;
+	    double                                     m_badScoreFactor;
+	    double                                     m_selectBorderPercentage;
+	    double                                     m_goalBias;
+	    double                                     m_rho;	
+	    random_utils::RNG                          m_rng;	
 	};
 	
     }

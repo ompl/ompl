@@ -50,25 +50,25 @@
 #include <vector>
 #include <iostream>
 
-/** Main namespace */
+/** \brief Main namespace */
 namespace ompl
 {
     
-    /** The epsilon for checking whether a state is within bounds or equal to another state */
+    /** \brief The epsilon for checking whether a state is within bounds or equal to another state */
     
     const double STATE_EPSILON = 1e-12;
     
     namespace base
     {
 	
-	/** The base class for space information. This contains all the
+	/** \brief The base class for space information. This contains all the
 	    information about the space planning is done in.
 	    setup() needs to be called as well, before use */
 	class SpaceInformation
 	{
 	public:
 	    
-	    /** Constructor */
+	    /** \brief Constructor */
 	    SpaceInformation(void)
 	    {
 		m_goal = NULL;
@@ -78,18 +78,18 @@ namespace ompl
 		m_stateDimension = 0;
 	    }
 	    
-	    /** Destructor */
+	    /** \brief Destructor */
 	    virtual ~SpaceInformation(void)
 	    {
 	    }
 
-	    /** Add a start state */
+	    /** \brief Add a start state */
 	    void addStartState(State *state)
 	    {
 		m_startStates.push_back(state);
 	    }
 	    
-	    /** Clear all start states (memory is freed) */
+	    /** \brief Clear all start states (memory is freed) */
 	    void clearStartStates(void)
 	    {
 		for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
@@ -97,25 +97,25 @@ namespace ompl
 		m_startStates.clear();
 	    }
 	    
-	    /** Clear all start states but do not free memory */
+	    /** \brief Clear all start states but do not free memory */
 	    void forgetStartStates(void)
 	    {
 		m_startStates.clear();
 	    }
 	    
-	    /** Returns the number of start states */
+	    /** \brief Returns the number of start states */
 	    unsigned int getStartStateCount(void) const
 	    {
 		return m_startStates.size();
 	    }
 	    
-	    /** Returns a specific start state */
+	    /** \brief Returns a specific start state */
 	    State* getStartState(unsigned int index) const
 	    {
 		return m_startStates[index];
 	    }
 
-	    /** Set the goal. The memory for a previous goal is freed. */
+	    /** \brief Set the goal. The memory for a previous goal is freed. */
 	    void setGoal(Goal *goal)
 	    {
 		if (m_goal)
@@ -123,7 +123,7 @@ namespace ompl
 		m_goal = goal;
 	    }
 	    
-	    /** Clear the goal. Memory is freed. */
+	    /** \brief Clear the goal. Memory is freed. */
 	    void clearGoal(void)
 	    {
 		if (m_goal)
@@ -131,87 +131,126 @@ namespace ompl
 		m_goal = NULL;
 	    }
 	    
-	    /** Return the current goal */
+	    /** \brief Return the current goal */
 	    Goal* getGoal(void) const
 	    {
 		return m_goal;
 	    }
 	    
-	    /** Clear the goal, but do not free its memory */
+	    /** \brief Clear the goal, but do not free its memory */
 	    void forgetGoal(void)
 	    {
 		m_goal = NULL;
 	    }
 
-	    /** Set the instance of the distance evaluator to use. This is
+	    /** \brief Set the instance of the distance evaluator to use. This is
 		only needed by some planning algorithms. No memory freeing is performed. */
 	    void setStateDistanceEvaluator(StateDistanceEvaluator *sde)
 	    {
 		m_stateDistanceEvaluator = sde;
 	    }
 	    
-	    /** Return the instance of the used state distance evaluator */
+	    /** \brief Return the instance of the used state distance evaluator */
 	    StateDistanceEvaluator* getStateDistanceEvaluator(void) const
 	    {
 		return m_stateDistanceEvaluator;
 	    }	
 	    
-	    /** Set the instance of the validity checker to use. No memory freeing is performed. */
+	    /** \brief Set the instance of the validity checker to use. No memory freeing is performed. */
 	    void setStateValidityChecker(StateValidityChecker *svc)
 	    {
 		m_stateValidityChecker = svc;
 	    }
 	    
-	    /** Return the instance of the used state validity checker */
+	    /** \brief Return the instance of the used state validity checker */
 	    StateValidityChecker* getStateValidityChecker(void) const
 	    {
 		return m_stateValidityChecker;
 	    }
 	    
-	    /** Return the dimension of the state space */
+	    /** \brief Return the dimension of the state space */
 	    unsigned int getStateDimension(void) const
 	    {
 		return m_stateDimension;
 	    }
 	    
-	    /** Get information about a component of the state space */
+	    /** \brief Get information about a component of the state space */
 	    const StateComponent& getStateComponent(unsigned int index) const
 	    {
 		return m_stateComponent[index];
 	    }
 	    
-	    /** Check if a given state is valid or not */
+	    /** \brief Check if a given state is valid or not */
 	    bool isValid(const State *state) const
 	    {
 		return (*m_stateValidityChecker)(state);
 	    }
 	    
-	    /** Copy a state to another */
+	    /** \brief Copy a state to another */
 	    virtual void copyState(State *destination, const State *source) const;
 	    
-	    /** Check if a state is inside the bounding box */
+	    /** \brief Check if a state is inside the bounding box */
 	    bool satisfiesBounds(const State *s) const;
 	    
-	    /** Compute the distance between two states */
+	    /** \brief Compute the distance between two states */
 	    double distance(const State *s1, const State *s2) const
 	    {
 		return (*m_stateDistanceEvaluator)(s1, s2);
 	    }
 	    
+	    /** \brief A class that can perform sampling. Usually an instance of this class is needed
+	     * for sampling states */
+	    class StateSamplingCore
+	    {	    
+	    public:
+		StateSamplingCore(const SpaceInformation *si) : m_si(si) 
+		{
+		}	    
+		
+		virtual ~StateSamplingCore(void)
+		{
+		}
+		
+		/** \brief Sample a state */
+		virtual void sample(base::State *state);
+		
+		/** \brief Sample a state near another, within given bounds */
+		virtual void sampleNear(base::State *state, const base::State *near, const double rho);
+		
+		/** \brief Sample a state near another, within given bounds */
+		virtual void sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho);
+		
+	    protected:
+		
+		const SpaceInformation *m_si;
+		random_utils::RNG       m_rng;
+	    };
+	    
+	    
+	    /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
+	     *  The two passed state pointers must point to different states. Returns true on success.  */
+	    bool searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const;
+
+	    /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automaticaly
+	      * find a neaby state that is valid so motion planning can be performed. This function enables this behaviour.
+	      * The allowed distance (per state component) for both start and goal states is specified. The number of attempts
+	      * is also specified */
+	    void fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts);
+	    
 	    /************************************************************/
 	    /* Utility functions                                        */
 	    /************************************************************/
 	    
-	    /** Print a state to a stream */
+	    /** \brief Print a state to a stream */
 	    void printState(const State *state, std::ostream &out = std::cout) const;
 
-	    /** Print information about the current instance of the state space */
+	    /** \brief Print information about the current instance of the state space */
 	    virtual void printSettings(std::ostream &out = std::cout) const;
 	    
-	    /** Perform additional setup tasks (run once, before use) */
+	    /** \brief Perform additional setup tasks (run once, before use) */
 	    virtual void setup(void);
 	    
-	    /** Return true if setup was called */
+	    /** \brief Return true if setup was called */
 	    bool isSetup(void) const;
 	    
 	protected:
