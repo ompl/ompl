@@ -37,6 +37,7 @@
 #include <gtest/gtest.h>
 
 #include "ompl/extension/dynamic/extension/rrt/RRT.h"
+#include "ompl/extension/dynamic/extension/kpiece/KPIECE1.h"
 
 #include "environment2D.h"
 #include <iostream>
@@ -317,6 +318,51 @@ protected:
     }    
 };
 
+class KPIECETest : public TestPlanner 
+{
+public:
+
+    KPIECETest(void)
+    {
+	ope = NULL;
+    }
+
+    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    {
+	bool result = TestPlanner::execute(env, show, time, pathLength);	
+	if (ope)
+	{
+	    delete ope;	
+	    ope = NULL;
+	}
+	return result;
+    }
+    
+protected:
+
+    base::Planner* newPlanner(dynamic::SpaceInformationControlsIntegrator *si)
+    {
+	dynamic::KPIECE1 *kpiece = new dynamic::KPIECE1(si);
+	kpiece->setRange(0.95);
+	
+	std::vector<unsigned int> projection;
+	projection.push_back(0);
+	projection.push_back(1);
+	ope = new base::OrthogonalProjectionEvaluator(projection);
+
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	ope->setCellDimensions(cdim);	
+
+	kpiece->setProjectionEvaluator(ope);
+
+	return kpiece;
+    } 
+
+    base::OrthogonalProjectionEvaluator *ope;   
+};
+
 class PlanTest : public testing::Test
 {
 public:
@@ -384,7 +430,22 @@ TEST_F(PlanTest, dynamicRRT)
 
     EXPECT_TRUE(success >= 99.0);
     EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 1.7);
+    EXPECT_TRUE(avglength < 5.0);
+}
+
+TEST_F(PlanTest, dynamicKPIECE)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new KPIECETest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.05);
+    EXPECT_TRUE(avglength < 5.0);
 }
 
 int main(int argc, char **argv)

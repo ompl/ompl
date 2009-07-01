@@ -34,12 +34,14 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_DYNAMIC_EXTENSION_RRT_RRT_
-#define OMPL_EXTENSION_DYNAMIC_EXTENSION_RRT_RRT_
+#ifndef OMPL_EXTENSION_DYNAMIC_EXTENSION_KPIECE_KPIECE1_
+#define OMPL_EXTENSION_DYNAMIC_EXTENSION_KPIECE_KPIECE1_
 
 #include "ompl/base/Planner.h"
+#include "ompl/base/ProjectionEvaluator.h"
+#include "ompl/datastructures/GridB.h"
 #include "ompl/extension/dynamic/SpaceInformationControlsIntegrator.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include <vector>
 
 namespace ompl
 {
@@ -47,52 +49,60 @@ namespace ompl
     namespace dynamic
     {
 	
+	
 	/**
-	   @subsubsection RRT Rapidly-exploring Random Trees (RRT)
+	   @subsubsection KPIECE1 KPIECE (Kinodynamic Planning by
+	   Interior-Exterior Cell Exploration) with one level of
+	   discretization
 	   
 	   @par Short description
 	   
-	   The basic idea of RRT is that it samples a random state @b qr
-	   in the state space, then finds the state @b qc among the
-	   previously seen states that is closest to @b qr and expands
-	   from @b qc towards @b qr, until a state @b qm is reached and @b
-	   qm is the new state to be visited.
-	   
+	   KPIECE is a tree-based planner that uses a discretization
+	   (multiple levels, in general) to guide the exploration of the
+	   continous space. 
 	   
 	   @par External documentation
-	   @link http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree
-	   @link http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html
+	   
+	   Ioan A. Sucan, Lydia E. Kavraki, Kinodynamic Planning by
+	   Interior-Exterior Cell Exploration, International Workshop on
+	   the Algorithmic Foundations of Robotics, 2008.
+	   http://ioan.sucan.info
+	   
 	*/
-	class RRT : public base::Planner
+	
+	class KPIECE1 : public base::Planner
 	{
 	public:
 	    
-	    RRT(SpaceInformationControlsIntegrator *si) : base::Planner(si),
-							  m_sCore(si),
-							  m_cCore(si)
+	    KPIECE1(SpaceInformationControlsIntegrator *si) : base::Planner(si),
+							      m_sCore(si),
+							      m_cCore(si)
 	    {
 		m_type = (base::PlannerType)(base::PLAN_TO_GOAL_STATE | base::PLAN_TO_GOAL_REGION);
-		m_nn.setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
+		m_projectionEvaluator = NULL;
+		m_projectionDimension = 0;
 		m_goalBias = 0.05;
-		m_hintBias = 0.75;
+		m_selectBorderPercentage = 0.9;
+		m_badScoreFactor = 0.5;
+		m_goodScoreFactor = 0.9;
+		m_minValidPathStates = 3;
 		m_rho = 0.5;
+		m_tree.grid.onCellUpdate(computeImportance, NULL);
 	    }
 	    
-	    virtual ~RRT(void)
+	    virtual ~KPIECE1(void)
 	    {
 		freeMemory();
 	    }
 	    
-	    /** \brief Continue solving for some amount of time. Return true if solution was found. */
 	    virtual bool solve(double solveTime);
 	    
-	    /** \brief Clear datastructures. Call this function if the
-		input data to the planner has changed and you do not
-		want to continue planning */
 	    virtual void clear(void)
 	    {
 		freeMemory();
-		m_nn.clear();
+		m_tree.grid.clear();
+		m_tree.size = 0;
+		m_tree.iteration = 1;
 	    }
 	    
 	    /** In the process of randomly selecting states in the state
@@ -107,25 +117,11 @@ namespace ompl
 		m_goalBias = goalBias;
 	    }
 	    
-	    /** \brief Get the goal bias the planner is using */
+	    /** Get the goal bias the planner is using */
 	    double getGoalBias(void) const
 	    {
 		return m_goalBias;
 	    }
-
-	    /** \brief If a kinematic path is given as hint, this
-		function sets the percentage of how often this path is
-		used as hint */
-	    void setHintBias(double hintBias)
-	    {
-		m_hintBias = hintBias;
-	    }
-	    
-	    /** \brief Get the hint bias */
-	    double getHintBias(void) const
-	    {
-		return m_hintBias;
-	    }	    
 	    
 	    /** Set the range the planner is supposed to use. This
 		parameter greatly influences the runtime of the
@@ -150,9 +146,34 @@ namespace ompl
 	    {
 		return m_rho;
 	    }
+	    
+	    /** \brief Set the projection evaluator. This class is able to
+		compute the projection of a given state. The simplest
+		option is to use an orthogonal projection; see
+		OrthogonalProjectionEvaluator */
+	    void setProjectionEvaluator(base::ProjectionEvaluator *projectionEvaluator)
+	    {
+		m_projectionEvaluator = projectionEvaluator;
+	    }
+	    
+	    base::ProjectionEvaluator* getProjectionEvaluator(void) const
+	    {
+		return m_projectionEvaluator;
+	    }
+	    
+	    virtual void setup(void)
+	    {
+		assert(m_projectionEvaluator);
+		m_projectionDimension = m_projectionEvaluator->getDimension();
+		assert(m_projectionDimension > 0);
+		m_projectionEvaluator->getCellDimensions(m_cellDimensions);
+		assert(m_cellDimensions.size() == m_projectionDimension);
+		m_tree.grid.setDimension(m_projectionDimension);
+		Planner::setup();
+	    }
 
 	    virtual void getStates(std::vector<const base::State*> &states) const;
-	    
+
 	protected:
 	    
 	    class Motion
@@ -190,26 +211,88 @@ namespace ompl
 		
 	    };
 	    
-	    void freeMemory(void)
+	    struct CellData
 	    {
+		CellData(void)
+		{
+		    coverage = 0.0;
+		    selections = 1;
+		    score = 1.0;
+		    iteration = 0;
+		    importance = 0.0;
+		};
+		
+		~CellData(void)
+		{
+		    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+			delete motions[i];
+		}
+		
 		std::vector<Motion*> motions;
-		m_nn.list(motions);
-		for (unsigned int i = 0 ; i < motions.size() ; ++i)
-		    delete motions[i];
+		double               coverage;
+		unsigned int         selections;
+		double               score;
+		unsigned int         iteration;
+		double               importance;
+	    };
+	    
+	    struct OrderCellsByImportance
+	    {
+		bool operator()(const CellData * const a, const CellData * const b) const
+		{
+		    return a->importance > b->importance;
+		}
+	    };
+	    
+	    typedef GridB<CellData*, OrderCellsByImportance> Grid;
+	    
+	    struct TreeData
+	    {
+		TreeData(void) : grid(0)
+		{
+		    size = 0;
+		    iteration = 1;
+		}
+		
+		Grid         grid;
+		unsigned int size;
+		unsigned int iteration;
+	    };
+	    
+	    static void computeImportance(Grid::Cell *cell, void*)
+	    {
+		CellData &cd = *(cell->data);
+		cd.importance =  cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
 	    }
 	    
-	    double distanceFunction(const Motion* a, const Motion* b) const
+	    void freeMemory(void)
 	    {
-		return m_si->distance(a->state, b->state);
+		freeGridMotions(m_tree.grid);
 	    }
+	    
+	    void freeGridMotions(Grid &grid)
+	    {
+		for (Grid::iterator it = grid.begin(); it != grid.end() ; ++it)
+		    delete it->second->data;
+	    }
+	    
+	    unsigned int addMotion(Motion* motion, double dist);
+	    bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 	    
 	    base::SpaceInformation::StateSamplingCore     m_sCore;
 	    SpaceInformationControls::ControlSamplingCore m_cCore;
 
-	    NearestNeighborsSqrtApprox<Motion*>           m_nn;
+	    TreeData                                      m_tree;
 	    
+	    base::ProjectionEvaluator                    *m_projectionEvaluator;
+	    unsigned int                                  m_projectionDimension;
+	    std::vector<double>                           m_cellDimensions;
+	    
+	    unsigned int                                  m_minValidPathStates;
+	    double                                        m_goodScoreFactor;
+	    double                                        m_badScoreFactor;
+	    double                                        m_selectBorderPercentage;
 	    double                                        m_goalBias;
-	    double                                        m_hintBias;
 	    double                                        m_rho;	
 	    random_utils::RNG                             m_rng;	
 	};

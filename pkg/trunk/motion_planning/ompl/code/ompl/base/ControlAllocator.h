@@ -34,10 +34,10 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_BASE_STATE_ALLOCATOR_
-#define OMPL_BASE_STATE_ALLOCATOR_
+#ifndef OMPL_BASE_CONTROL_ALLOCATOR_
+#define OMPL_BASE_CONTROL_ALLOCATOR_
 
-#include "ompl/base/State.h"
+#include "ompl/base/Control.h"
 #include <boost/pool/object_pool.hpp>
 #include <boost/pool/pool.hpp>
 
@@ -47,30 +47,30 @@ namespace ompl
     namespace base
     {	
     
-	/** \brief Definition for a class allocating states */
-	class StateAllocator
+	/** \brief Definition for a class allocating controls */
+	class ControlAllocator
 	{
 	public:
 	    
-	    StateAllocator(unsigned int dimension) : m_doubles(sizeof(double) * dimension)
+	    ControlAllocator(unsigned int dimension) : m_doubles(sizeof(double) * dimension)
 	    {
 	    }
 	    
-	    ~StateAllocator(void)
+	    ~ControlAllocator(void)
 	    {
 	    }
 	    
-	    State* allocState(void)
+	    Control* allocControl(void)
 	    {
-		State *state = m_states.construct();
-		state->values = reinterpret_cast<double*>(m_doubles.malloc());
-		return state;
+		Control *ctrl = m_controls.construct();
+		ctrl->values  = reinterpret_cast<double*>(m_doubles.malloc());
+		return ctrl;
 	    }
 	    
 	protected:
 	    
-	    boost::pool<>             m_doubles;
-	    boost::object_pool<State> m_states;
+	    boost::pool<>               m_doubles;
+	    boost::object_pool<Control> m_controls;
 	    
 	};	
     }

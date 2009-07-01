@@ -28,6 +28,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/extension/dynamic/src/SpaceInformationControlsPhysics.cpp
 			 code/ompl/extension/dynamic/src/PathDynamic.cpp
 			 code/ompl/extension/dynamic/extension/rrt/src/RRT.cpp
+			 code/ompl/extension/dynamic/extension/kpiece/src/KPIECE1.cpp
 			 )
 rospack_add_compile_flags(ompl -Wextra)
 rospack_link_boost(ompl thread)
