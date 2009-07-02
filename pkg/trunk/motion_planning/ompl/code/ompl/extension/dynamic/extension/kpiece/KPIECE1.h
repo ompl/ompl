@@ -82,11 +82,10 @@ namespace ompl
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_goalBias = 0.05;
-		m_selectBorderPercentage = 0.9;
-		m_badScoreFactor = 0.5;
+		m_selectBorderPercentage = 0.7;
+		m_badScoreFactor = 0.3;
 		m_goodScoreFactor = 0.9;
 		m_minValidPathStates = 3;
-		m_rho = 0.5;
 		m_tree.grid.onCellUpdate(computeImportance, NULL);
 	    }
 	    
@@ -121,30 +120,6 @@ namespace ompl
 	    double getGoalBias(void) const
 	    {
 		return m_goalBias;
-	    }
-	    
-	    /** Set the range the planner is supposed to use. This
-		parameter greatly influences the runtime of the
-		algorithm. It is probably a good idea to find what a good
-		value is for each model the planner is used for. The range
-		parameter influences how this @b qm along the path between
-		@b qc and @b qr is chosen. @b qr may be too far, and it
-		may not be best to have @b qm = @b qr all the time (range
-		= 1.0 implies @b qm = @b qr. range should be less than
-		1.0). However, in a large space, it is also good to leave
-		the neighborhood of @b qc (range = 0.0 implies @b qm = @b
-		qc and no progress is made. rande should be larger than
-		0.0). Multiple values of this range parameter should be
-		tried until a suitable one is found. */
-	    void setRange(double rho)
-	    {
-		m_rho = rho;
-	    }
-	    
-	    /** \brief Get the range the planner is using */
-	    double getRange(void) const
-	    {
-		return m_rho;
 	    }
 	    
 	    /** \brief Set the projection evaluator. This class is able to
@@ -293,7 +268,6 @@ namespace ompl
 	    double                                        m_badScoreFactor;
 	    double                                        m_selectBorderPercentage;
 	    double                                        m_goalBias;
-	    double                                        m_rho;	
 	    random_utils::RNG                             m_rng;	
 	};
 	

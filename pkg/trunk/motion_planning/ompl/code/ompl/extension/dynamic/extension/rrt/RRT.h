@@ -75,7 +75,6 @@ namespace ompl
 		m_nn.setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 		m_goalBias = 0.05;
 		m_hintBias = 0.75;
-		m_rho = 0.5;
 	    }
 	    
 	    virtual ~RRT(void)
@@ -127,30 +126,6 @@ namespace ompl
 		return m_hintBias;
 	    }	    
 	    
-	    /** Set the range the planner is supposed to use. This
-		parameter greatly influences the runtime of the
-		algorithm. It is probably a good idea to find what a good
-		value is for each model the planner is used for. The range
-		parameter influences how this @b qm along the path between
-		@b qc and @b qr is chosen. @b qr may be too far, and it
-		may not be best to have @b qm = @b qr all the time (range
-		= 1.0 implies @b qm = @b qr. range should be less than
-		1.0). However, in a large space, it is also good to leave
-		the neighborhood of @b qc (range = 0.0 implies @b qm = @b
-		qc and no progress is made. rande should be larger than
-		0.0). Multiple values of this range parameter should be
-		tried until a suitable one is found. */
-	    void setRange(double rho)
-	    {
-		m_rho = rho;
-	    }
-	    
-	    /** \brief Get the range the planner is using */
-	    double getRange(void) const
-	    {
-		return m_rho;
-	    }
-
 	    virtual void getStates(std::vector<const base::State*> &states) const;
 	    
 	protected:
@@ -210,7 +185,6 @@ namespace ompl
 	    
 	    double                                        m_goalBias;
 	    double                                        m_hintBias;
-	    double                                        m_rho;	
 	    random_utils::RNG                             m_rng;	
 	};
 	

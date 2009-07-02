@@ -82,9 +82,20 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
     double  approxdif = INFINITY;
 
     base::Control *rctrl = new base::Control(cdim);
+    std::vector<Grid::Coord> coords(si->getMaxControlDuration() + 1);
     std::vector<base::State*> states(si->getMaxControlDuration() + 1);
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	states[i] = new base::State(sdim);
+    
+    // coordinates of the goal state and the best state seen so far
+    Grid::Coord best_coord, better_coord;
+    bool haveBestCoord = false;
+    bool haveBetterCoord = false;
+    if (goal_s)
+    {
+	m_projectionEvaluator->computeCoordinates(goal_s->state, best_coord);
+	haveBestCoord = true;
+    }
     
     while (time_utils::Time::now() < endTime)
     {
@@ -93,7 +104,20 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 	/* Decide on a state to expand from */
 	Motion     *existing = NULL;
 	Grid::Cell *ecell = NULL;
-	selectMotion(existing, ecell);
+
+	if (m_rng.uniform(0.0, 1.0) < m_goalBias)
+	{
+	    if (haveBestCoord)
+		ecell = m_tree.grid.getCell(best_coord);
+	    if (!ecell && haveBetterCoord)
+		ecell = m_tree.grid.getCell(better_coord);
+	    if (ecell)
+		existing = ecell->data->motions[m_rng.halfNormalInt(0, ecell->data->motions.size() - 1)];
+	    else
+		selectMotion(existing, ecell);
+	}
+	else
+	    selectMotion(existing, ecell);
 	assert(existing);
 
 
@@ -113,16 +137,63 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 		cd = 0;
 	}
 
-	/* if we have */
+	/* if we have enough steps */
 	if (cd >= m_minValidPathStates)
 	{
-	    /* create a motion */
+
+	    // split the motion into smaller ones, so we do not cross cell boundaries
+	    for (unsigned int i = 0 ; i <= cd ; ++i)
+		m_projectionEvaluator->computeCoordinates(states[i], coords[i]);
+	    
+	    unsigned int start = 0;
+	    unsigned int curr  = 1;
+	    while (curr < cd)
+	    {
+		// we have reached into a new cell
+		if (coords[start] != coords[curr])
+		{		    
+		    /* create a motion */
+		    Motion *motion = new Motion(sdim, cdim);
+		    si->copyState(motion->state, states[curr - 1]);
+		    si->copyControl(motion->control, rctrl);
+		    motion->steps = curr - start;
+		    motion->parent = existing;
+		    
+		    double dist = 0.0;
+		    bool solved = goal_r->isSatisfied(motion->state, &dist);
+		    addMotion(motion, dist);
+		    
+		    if (solved)
+		    {
+			approxdif = dist;
+			solution = motion;    
+			break;
+		    }
+		    if (dist < approxdif)
+		    {
+			approxdif = dist;
+			approxsol = motion;
+			better_coord = coords[start];
+			haveBetterCoord = true;
+		    }
+		    
+		    // new parent will be the newly created motion
+		    existing = motion;
+		    start = curr;
+		}
+		curr++;		
+	    }
+	    
+	    if (solution)
+		break;
+
+	    /* create the last segment of the motion */
 	    Motion *motion = new Motion(sdim, cdim);
 	    si->copyState(motion->state, states[cd]);
 	    si->copyControl(motion->control, rctrl);
-	    motion->steps = cd;
+	    motion->steps = cd - start;
 	    motion->parent = existing;
-
+	    
 	    double dist = 0.0;
 	    bool solved = goal_r->isSatisfied(motion->state, &dist);
 	    addMotion(motion, dist);
@@ -138,6 +209,8 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 		approxdif = dist;
 		approxsol = motion;
 	    }
+	    
+	    // update cell score 
 	    ecell->data->score *= m_goodScoreFactor;
 	}
 	else
@@ -219,7 +292,7 @@ unsigned int ompl::dynamic::KPIECE1::addMotion(Motion *motion, double dist)
     if (cell)
     {
 	cell->data->motions.push_back(motion);
-	cell->data->coverage += 1.0;
+	cell->data->coverage += motion->steps;
 	m_tree.grid.update(cell);
     }
     else
@@ -227,7 +300,7 @@ unsigned int ompl::dynamic::KPIECE1::addMotion(Motion *motion, double dist)
 	cell = m_tree.grid.createCell(coord);
 	cell->data = new CellData();
 	cell->data->motions.push_back(motion);
-	cell->data->coverage = 1.0;
+	cell->data->coverage = motion->steps;
 	cell->data->iteration = m_tree.iteration;
 	cell->data->selections = 1;
 	cell->data->score = 1.0 / (1e-3 + dist);

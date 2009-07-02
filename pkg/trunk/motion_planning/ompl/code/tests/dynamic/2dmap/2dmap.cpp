@@ -313,7 +313,6 @@ protected:
     base::Planner* newPlanner(dynamic::SpaceInformationControlsIntegrator *si)
     {
 	dynamic::RRT *rrt = new dynamic::RRT(si);
-	rrt->setRange(0.95);
 	return rrt;
     }    
 };
@@ -343,7 +342,6 @@ protected:
     base::Planner* newPlanner(dynamic::SpaceInformationControlsIntegrator *si)
     {
 	dynamic::KPIECE1 *kpiece = new dynamic::KPIECE1(si);
-	kpiece->setRange(0.95);
 	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
