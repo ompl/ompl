@@ -50,7 +50,7 @@ namespace ompl
     {
 	
 	/**
-	   @subsubsection LazyRRT Lazy Rapidly-exploring Random Trees (LazyRRT)
+	   @subsubsection kLazyRRT Lazy Rapidly-exploring Random Trees (LazyRRT)
 	   
 	   @par Short description
 	   

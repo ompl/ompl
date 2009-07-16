@@ -48,7 +48,7 @@ namespace ompl
     {
 	
 	/**
-	   @subsubsection RRT Rapidly-exploring Random Trees (RRT)
+	   @subsubsection kRRT Rapidly-exploring Random Trees (RRT)
 	   
 	   @par Short description
 	   

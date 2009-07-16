@@ -50,7 +50,7 @@ namespace ompl
     {
 	
 	/**
-	   @subsubsection EST Expansive Space Trees (EST)
+	   @subsubsection kEST Expansive Space Trees (EST)
 	   
 	   @par Short description
 	   

@@ -52,7 +52,7 @@ namespace ompl
     {
 	
 	/**
-	   @subsubsection SBL Single-query Bi-directional Lazy collision checking planner (SBL)
+	   @subsubsection kSBL Single-query Bi-directional Lazy collision checking planner (SBL)
 	   
 	   @par Short description
 	   

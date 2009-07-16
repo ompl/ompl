@@ -52,7 +52,7 @@ namespace ompl
     {
 	
 	/**
-	   @subsubsection LBKPIECE1 Lazy Bi-directional KPIECE (Kinematic
+	   @subsubsection kLBKPIECE1 Lazy Bi-directional KPIECE (Kinematic
 	   Planning by Interior-Exterior Cell Exploration) with one level
 	   of discretization
 	   
@@ -67,7 +67,7 @@ namespace ompl
 	   Ioan A. Sucan, Lydia E. Kavraki, Kinodynamic Planning by
 	   Interior-Exterior Cell Exploration, International Workshop on
 	   the Algorithmic Foundations of Robotics, 2008.
-	   http://ioan.sucan.info
+	   @link http://ioan.sucan.ro/files/pubs/wafr2008.pdf
 	   
 	*/
 	class LBKPIECE1 : public base::Planner

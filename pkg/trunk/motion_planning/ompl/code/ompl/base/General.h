@@ -34,69 +34,6 @@
 
 /** \author Ioan Sucan */
 
-
-/**
-   @mainpage
-   
-   
-   @b OMPL (Open Motion Planning Library) consists of a set of motion
-   planning algorithms and nothing more. There is no environment
-   specification, there is no collision detection or
-   visualisation. There are only motion planners. The purpose of this
-   library is to be extensible and freely available. It currently only
-   contains a set of kinematic sampling-based motion planners, but
-   this will be extended in the near future.
-
-   The overall structure can be observed by looking at the @b base/
-   directory. There are two main components: 
-   - the space information
-   - the planner
-
-   The base space information class contains only basic definitions of
-   states, paths and goals. Implementations of this space information
-   class may contain additional functionality. 
-
-   A planner can be instantiated given an instance of the space
-   information. The space information contains the starting states and
-   goal definition. The planner reads the neccessary data from the
-   space information and fills in a path for the given goal, if it
-   finds one.
-
-   <hr> 
-
-   The code in this library is meant to be thread safe. All static,
-   non-member or const member functions are thread safe. Calling
-   member functions that are not const in multiple threads
-   simultaneously is unsafe and locks should be used.
-   
-   <hr>
-
-   @section sampling_planners Sampling-based motion planners
-   
-   This class of motion planners typically needs the ability to sample
-   the state (configuration) space of the robot(s) planning is done
-   for. To allow this, an implementation of StateValidityChecker must
-   be provided. This implementation will most likely depend on a
-   collision detector.
-
-   @subsection kinematic_planners Kinematic motion planners
-
-   - @ref RRT
-   - @ref LazyRRT
-   - @ref SBL
-   - @ref EST
-   - @ref KPIECE
-   
-   @subsection kinodynamic_planners Kinodynamic motion planners
-   
-   - None implemented yet
-
-   @section grid_planners Grid-based motion planners
-
-   - Not included yet
-
- */
-
 #ifndef OMPL_BASE_GENERAL_
 #define OMPL_BASE_GENERAL_
 
