@@ -234,8 +234,8 @@ namespace ompl
 	    /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automaticaly
 	      * find a neaby state that is valid so motion planning can be performed. This function enables this behaviour.
 	      * The allowed distance (per state component) for both start and goal states is specified. The number of attempts
-	      * is also specified */
-	    void fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts);
+	      * is also specified. Returns true if all states are valid after completion. */
+	    bool fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts);
 	    
 	    /************************************************************/
 	    /* Utility functions                                        */

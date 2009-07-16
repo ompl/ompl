@@ -134,9 +134,11 @@ bool ompl::base::SpaceInformation::satisfiesBounds(const State *s) const
     return true;
 }
 
-void ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts)
+bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts)
 {
     assert(rhoStart.size() == rhoGoal.size() && rhoStart.size() == m_stateDimension);
+    
+    bool result = true;
     
     // fix start states
     for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
@@ -168,7 +170,10 @@ void ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 		if (searchValidNearby(&temp, st, rhoStart, attempts))
 		    copyState(st, &temp);
 		else
+		{
 		    m_msg.warn("Unable to fix start state %u", i);
+		    result = false;
+		}
 	    }
 	}
     }
@@ -205,10 +210,15 @@ void ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 		if (searchValidNearby(&temp, st, rhoGoal, attempts))
 		    copyState(st, &temp);
 		else
+		{
 		    m_msg.warn("Unable to fix goal state");
+		    result = false;
+		}
 	    }
 	}
     }
+    
+    return result;    
 }
 
 bool ompl::base::SpaceInformation::searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const
