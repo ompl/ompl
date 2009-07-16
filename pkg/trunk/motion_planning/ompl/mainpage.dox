@@ -54,6 +54,11 @@
    - @ref kKPIECE1
    - @ref kLBKPIECE1	
 
+Other tools:
+
+   - @ref HCIK
+   - @ref GAIK
+
    @subsection kinodynamic_planners Planning under differential constraints
    
    - @ref dRRT
