@@ -52,9 +52,8 @@ namespace ompl
     {
 	
 	/**
-	   @subsubsection kLBKPIECE1 Lazy Bi-directional KPIECE (Kinematic
-	   Planning by Interior-Exterior Cell Exploration) with one level
-	   of discretization
+	   @subsubsection kLBKPIECE1 Lazy Bi-directional KPIECE (Kinematic Planning by Interior-Exterior Cell Exploration)
+	   with one level of discretization
 	   
 	   @par Short description
 	   

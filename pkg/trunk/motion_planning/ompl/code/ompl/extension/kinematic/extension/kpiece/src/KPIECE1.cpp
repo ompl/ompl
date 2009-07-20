@@ -90,7 +90,9 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
     while (time_utils::Time::now() < endTime)
     {
 	m_tree.iteration++;
-	
+	if (m_tree.iteration %10 == 0)
+	  m_msg.inform("KPIECE1: iteration %u", m_tree.iteration);
+
 	/* Decide on a state to expand from */
 	Motion     *existing = NULL;
 	Grid::Cell *ecell = NULL;
@@ -157,7 +159,7 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 	
 	m_tree.grid.update(ecell);
     }
-    
+    m_msg.inform("KPIECE1: done time");    
     bool approximate = false;
     if (solution == NULL)
     {	
@@ -167,6 +169,9 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
     
     if (solution != NULL)
     {
+
+      m_msg.inform("KPIECE1: build path");    
+
 	/* construct the solution path */
 	std::vector<Motion*> mpath;
 	while (solution != NULL)

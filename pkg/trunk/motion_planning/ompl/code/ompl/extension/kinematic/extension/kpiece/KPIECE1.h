@@ -52,9 +52,8 @@ namespace ompl
 	
 	
 	/**
-	   @subsubsection kKPIECE1 KPIECE (Kinematic Planning by
-	   Interior-Exterior Cell Exploration) with one level of
-	   discretization
+	   @subsubsection kKPIECE1 KPIECE (Kinematic Planning by Interior-Exterior Cell Exploration)
+	   with one level of discretization
 	   
 	   @par Short description
 	   
