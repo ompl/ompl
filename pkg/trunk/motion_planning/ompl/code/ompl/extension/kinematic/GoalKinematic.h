@@ -58,7 +58,7 @@ namespace ompl
 	    {
 	    }
 	    
-	    virtual void sampleNearGoal(base::State *s) = 0;
+	    virtual void sampleNearGoal(base::State *s) const = 0;
 	    
 	};
     }
