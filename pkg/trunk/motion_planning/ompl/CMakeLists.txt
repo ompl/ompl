@@ -18,6 +18,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/extension/kinematic/extension/ik/src/HCIK.cpp
 			 code/ompl/extension/kinematic/extension/ik/src/GAIK.cpp
 			 code/ompl/extension/kinematic/extension/rrt/src/RRT.cpp
+			 code/ompl/extension/kinematic/extension/rrt/src/pRRT.cpp
 			 code/ompl/extension/kinematic/extension/rrt/src/LazyRRT.cpp
 			 code/ompl/extension/kinematic/extension/est/src/EST.cpp
 			 code/ompl/extension/kinematic/extension/sbl/src/SBL.cpp

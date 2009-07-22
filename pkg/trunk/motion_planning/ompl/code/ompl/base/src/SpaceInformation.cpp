@@ -40,6 +40,29 @@
 #include <cstring>
 #include <cassert>
 
+unsigned int ompl::base::SpaceInformation::StateSamplingCoreArray::getCount(void) const
+{
+    return sCore.size();
+}
+
+void ompl::base::SpaceInformation::StateSamplingCoreArray::setCount(unsigned int count) 
+{
+    if (count < sCore.size())
+    {
+	for (unsigned int i = count ; i < sCore.size() ; ++i)
+	    delete sCore[i];
+	sCore.resize(count);
+    }
+    else
+	if (count > sCore.size())
+	{
+	    unsigned int p = sCore.size();
+	    sCore.resize(count);
+	    for (unsigned int i = p ; i < count ; ++i)
+		sCore[i] = new StateSamplingCore(m_si, m_rng.uniformInt(1, 100000000));
+	}
+}
+
 void ompl::base::SpaceInformation::StateSamplingCore::sample(base::State *state)
 {
     const unsigned int dim = m_si->getStateDimension();

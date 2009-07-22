@@ -207,6 +207,10 @@ namespace ompl
 		{
 		}	    
 		
+		StateSamplingCore(const SpaceInformation *si, unsigned int seed) : m_si(si), m_rng(seed)
+		{
+		}	    
+		
 		virtual ~StateSamplingCore(void)
 		{
 		}
@@ -225,8 +229,37 @@ namespace ompl
 		const SpaceInformation *m_si;
 		random_utils::RNG       m_rng;
 	    };
-	    
-	    
+
+	    /** \brief A class that maintains an array of sampling
+		cores. This makes sure seeds for the different
+		samplers are set accordingly. This is meant for use
+		with parallel motion planners */
+	    class StateSamplingCoreArray
+	    {
+	    public:
+		
+		StateSamplingCoreArray(const SpaceInformation *si) : m_si(si)
+		{
+		}
+		
+		~StateSamplingCoreArray(void)
+		{
+		    for (unsigned int i = 0 ; i < sCore.size() ; ++i)
+			delete sCore[i];
+		}
+		
+		std::vector<StateSamplingCore*> sCore;
+		
+		void setCount(unsigned int count);
+		unsigned int getCount(void) const;
+
+	    private:
+
+		const SpaceInformation *m_si;
+		random_utils::RNG       m_rng;
+		
+	    };  
+			    
 	    /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
 	     *  The two passed state pointers must point to different states. Returns true on success.  */
 	    bool searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const;
