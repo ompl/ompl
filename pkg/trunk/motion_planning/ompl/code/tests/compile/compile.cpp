@@ -76,6 +76,7 @@
 #include "ompl/extension/kinematic/extension/rrt/LazyRRT.h"
 #include "ompl/extension/kinematic/extension/rrt/IKRRT.h"
 #include "ompl/extension/kinematic/extension/rrt/IKLRRT.h"
+#include "ompl/extension/kinematic/extension/rrt/pRRT.h"
 
 #include "ompl/extension/kinematic/extension/est/EST.h"
 #include "ompl/extension/kinematic/extension/est/IKEST.h"
@@ -87,6 +88,7 @@
 
 #include "ompl/extension/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/kinematic/extension/sbl/IKSBL.h"
+#include "ompl/extension/kinematic/extension/sbl/pSBL.h"
 
 #include "ompl/extension/dynamic/SpaceInformationControls.h"
 #include "ompl/extension/dynamic/SpaceInformationControlsIntegrator.h"

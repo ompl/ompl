@@ -43,6 +43,8 @@
 #include "ompl/extension/kinematic/extension/kpiece/KPIECE1.h"
 #include "ompl/extension/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/kinematic/extension/rrt/RRT.h"
+#include "ompl/extension/kinematic/extension/sbl/pSBL.h"
+#include "ompl/extension/kinematic/extension/rrt/pRRT.h"
 #include "ompl/extension/kinematic/extension/rrt/LazyRRT.h"
 #include "ompl/extension/kinematic/extension/est/EST.h"
 
@@ -271,6 +273,19 @@ protected:
     }    
 };
 
+class pRRTTest : public TestPlanner 
+{
+protected:
+
+    base::Planner* newPlanner(kinematic::SpaceInformationKinematic *si)
+    {
+	kinematic::pRRT *rrt = new kinematic::pRRT(si);
+	rrt->setRange(0.95);
+	rrt->setThreadCount(4);
+	return rrt;
+    }    
+};
+
 class LazyRRTTest : public TestPlanner 
 {
 protected:
@@ -308,6 +323,52 @@ protected:
     {
 	kinematic::SBL *sbl = new kinematic::SBL(si);
 	sbl->setRange(0.95);
+	
+	std::vector<unsigned int> projection;
+	projection.push_back(0);
+	projection.push_back(1);
+	ope = new base::OrthogonalProjectionEvaluator(projection);
+	
+	std::vector<double> cdim;
+	cdim.push_back(1);
+	cdim.push_back(1);
+	ope->setCellDimensions(cdim);
+	
+	sbl->setProjectionEvaluator(ope);
+
+	return sbl;
+    }
+    
+    base::OrthogonalProjectionEvaluator *ope;
+    
+};
+
+class pSBLTest : public TestPlanner 
+{
+public:
+    pSBLTest(void)
+    {
+	ope = NULL;
+    }
+
+    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    {
+	bool result = TestPlanner::execute(env, show, time, pathLength);	
+	if (ope)
+	{
+	    delete ope;	
+	    ope = NULL;
+	}
+	return result;
+    }
+    
+protected:
+    
+    base::Planner* newPlanner(kinematic::SpaceInformationKinematic *si)
+    {
+	kinematic::pSBL *sbl = new kinematic::pSBL(si);
+	sbl->setRange(0.95);
+	sbl->setThreadCount(4);
 	
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
@@ -518,7 +579,7 @@ protected:
 };
 
 
-TEST_F(PlanTest, kinematicRRT)
+TEST_F(PlanTest, kinematic_RRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -533,7 +594,22 @@ TEST_F(PlanTest, kinematicRRT)
     EXPECT_TRUE(avglength < 70.0);
 }
 
-TEST_F(PlanTest, kinematicSBL)
+TEST_F(PlanTest, kinematic_pRRT)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new pRRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avglength < 70.0);
+}
+
+TEST_F(PlanTest, kinematic_SBL)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -551,7 +627,25 @@ TEST_F(PlanTest, kinematicSBL)
     EXPECT_TRUE(avglength < 65.0);
 }
 
-TEST_F(PlanTest, kinematicKPIECE1)
+TEST_F(PlanTest, kinematic_pSBL)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new pSBLTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    // Widening the bounds here, because the automated build machine has a
+    // varying load that can affect performance.
+    //EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avgruntime < 0.1);
+    EXPECT_TRUE(avglength < 65.0);
+}
+
+TEST_F(PlanTest, kinematic_KPIECE1)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -569,7 +663,7 @@ TEST_F(PlanTest, kinematicKPIECE1)
     EXPECT_TRUE(avglength < 70.0);
 }
 
-TEST_F(PlanTest, kinematicLBKPIECE1)
+TEST_F(PlanTest, kinematic_LBKPIECE1)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -587,7 +681,7 @@ TEST_F(PlanTest, kinematicLBKPIECE1)
     EXPECT_TRUE(avglength < 70.0);
 }
 
-TEST_F(PlanTest, kinematicEST)
+TEST_F(PlanTest, kinematic_EST)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -605,7 +699,7 @@ TEST_F(PlanTest, kinematicEST)
     EXPECT_TRUE(avglength < 65.0);
 }
 
-TEST_F(PlanTest, kinematicLazyRRT)
+TEST_F(PlanTest, kinematic_LazyRRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;

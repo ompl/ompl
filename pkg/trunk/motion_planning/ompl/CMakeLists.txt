@@ -3,7 +3,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rospack(ompl)
 rospack_add_boost_directories()
 include_directories(${PROJECT_SOURCE_DIR}/code)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/base/util/src/output.cpp
 			 code/ompl/base/util/src/random_utils.cpp
@@ -22,6 +22,7 @@ rospack_add_library(ompl code/ompl/base/util/src/time.cpp
 			 code/ompl/extension/kinematic/extension/rrt/src/LazyRRT.cpp
 			 code/ompl/extension/kinematic/extension/est/src/EST.cpp
 			 code/ompl/extension/kinematic/extension/sbl/src/SBL.cpp
+			 code/ompl/extension/kinematic/extension/sbl/src/pSBL.cpp
 			 code/ompl/extension/kinematic/extension/kpiece/src/KPIECE1.cpp
 			 code/ompl/extension/kinematic/extension/kpiece/src/LBKPIECE1.cpp
 			 code/ompl/extension/dynamic/src/SpaceInformationControls.cpp
