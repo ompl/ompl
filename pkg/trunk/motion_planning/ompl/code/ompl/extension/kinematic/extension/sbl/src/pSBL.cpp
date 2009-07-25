@@ -66,11 +66,8 @@ void ompl::kinematic::pSBL::threadSolve(unsigned int tid, unsigned int seed, tim
 		    retry = false;
 		    std::map<Motion*, bool> seen;
 		    for (unsigned int i = 0 ; i < m_removeList.motions.size() ; ++i)
-		    {
 			if (seen.find(m_removeList.motions[i].motion) == seen.end())
-			    removeMotion(*m_removeList.motions[i].tree, m_removeList.motions[i].motion);
-			seen[m_removeList.motions[i].motion] = true;
-		    }
+			    removeMotion(*m_removeList.motions[i].tree, m_removeList.motions[i].motion, seen);
 		    m_removeList.motions.clear();
 		    m_loopLock.unlock();
 		}
@@ -336,10 +333,11 @@ ompl::kinematic::pSBL::Motion* ompl::kinematic::pSBL::selectMotion(random_utils:
     return result;
 }
 
-void ompl::kinematic::pSBL::removeMotion(TreeData &tree, Motion *motion)
+void ompl::kinematic::pSBL::removeMotion(TreeData &tree, Motion *motion, std::map<Motion*, bool> &seen)
 {
     /* remove from grid */
-    
+    seen[motion] = true;
+
     Grid<MotionSet>::Coord coord;
     m_projectionEvaluator->computeCoordinates(motion->state, coord);
     Grid<MotionSet>::Cell* cell = tree.grid.getCell(coord);
@@ -375,7 +373,7 @@ void ompl::kinematic::pSBL::removeMotion(TreeData &tree, Motion *motion)
     for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
     {
 	motion->children[i]->parent = NULL;
-	removeMotion(tree, motion->children[i]);
+	removeMotion(tree, motion->children[i], seen);
     }
     
     delete motion;

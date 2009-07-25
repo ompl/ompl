@@ -164,7 +164,9 @@ namespace ompl
 		m_tStart.size = 0;
 		
 		m_tGoal.grid.clear();
-		m_tGoal.size = 0;	    
+		m_tGoal.size = 0;
+		
+		m_removeList.motions.clear();	    
 	    }
 
 	    virtual void getStates(std::vector<const base::State*> &states) const;
@@ -253,7 +255,7 @@ namespace ompl
 	    
 	    void addMotion(TreeData &tree, Motion *motion);
 	    Motion* selectMotion(random_utils::RNG &rng, TreeData &tree);	
-	    void removeMotion(TreeData &tree, Motion *motion);
+	    void removeMotion(TreeData &tree, Motion *motion, std::map<Motion*, bool> &seen);
 	    bool isPathValid(TreeData &tree, Motion *motion);
 	    bool checkSolution(random_utils::RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
 	    
