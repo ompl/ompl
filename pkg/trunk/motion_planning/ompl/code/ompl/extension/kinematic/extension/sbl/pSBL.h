@@ -93,6 +93,7 @@ namespace ompl
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_rho = 0.5;
+		setThreadCount(2);
 	    }
 	    
 	    virtual ~pSBL(void)
