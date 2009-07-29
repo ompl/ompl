@@ -62,7 +62,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	return false;	
     }
     
-    unsigned int nh = std::min(maxPoolSize, hint.size());
+    unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
     for (unsigned int i = 0 ; i < nh ; ++i)
     {
 	pool[i].state = new base::State(dim);
