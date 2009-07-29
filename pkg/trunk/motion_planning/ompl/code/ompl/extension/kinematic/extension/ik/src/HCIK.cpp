@@ -48,6 +48,7 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
     double tempDistance;
     double initialDistance;
     bool wasSatisfied = goal_r->isSatisfied(state, &initialDistance);
+    bool wasSatisfiedStart = wasSatisfied;
     double bestDist   = initialDistance;
     
     bool change = true;
@@ -67,24 +68,46 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 		better = false;
 		double backup = state->values[i];
 		state->values[i] += add;
-		bool isS = goal_r->isSatisfied(state, &tempDistance);
-		if ((wasSatisfied && !isS) || !m_si->satisfiesBounds(state))
-		    state->values[i] = backup;
-		else
+
+		// if we are still within bounds, go on
+		if (m_si->satisfiesBounds(state))
 		{
-		    wasSatisfied = isS;
-		    if (tempDistance < bestDist)
-		    {
+		    bool isS = goal_r->isSatisfied(state, &tempDistance);
+
+		    // if this change made the goal satisfied, definitely keep it
+		    if (isS && !wasSatisfied)
+		    {	
+			wasSatisfied = true;
 			better = true;
 			change = true;
 			increased = true;
 			bestDist = tempDistance;
-		    } 
+		    }
 		    else
-			state->values[i] = backup;
+		    {
+			// if we are at least not going to an unsatisfied state
+			if (isS == wasSatisfied)
+			{
+			    // and we are improving
+			    if (tempDistance < bestDist)
+			    {
+				better = true;
+				change = true;
+				increased = true;
+				bestDist = tempDistance;
+			    } 
+			    else
+				state->values[i] = backup;
+			}
+			else
+			    state->values[i] = backup;
+		    }
 		}
+		else
+		    state->values[i] = backup;
 	    }
-
+	    
+	    // if increasing did not help, maybe decreasing will
 	    if (!increased)
 	    {
 		better = true;
@@ -93,21 +116,41 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 		    better = false;
 		    double backup = state->values[i];
 		    state->values[i] -= add;
-		    bool isS = goal_r->isSatisfied(state, &tempDistance);
-		    if ((wasSatisfied && !isS) || !m_si->satisfiesBounds(state))
-			state->values[i] = backup;
-		    else
+		    
+		    // if we are still within bounds, go on
+		    if (m_si->satisfiesBounds(state))
 		    {
-			wasSatisfied = isS;
-			if (tempDistance < bestDist)
-			{
+			bool isS = goal_r->isSatisfied(state, &tempDistance);
+			
+			// if this change made the goal satisfied, definitely keep it
+			if (isS && !wasSatisfied)
+			{	
+			    wasSatisfied = true;
 			    better = true;
 			    change = true;
 			    bestDist = tempDistance;
-			} 
+			}
 			else
-			    state->values[i] = backup;
+			{
+			    // if we are at least not going to an unsatisfied state
+			    if (isS == wasSatisfied)
+			    {
+				// and we are improving
+				if (tempDistance < bestDist)
+				{
+				    better = true;
+				    change = true;
+				    bestDist = tempDistance;
+				} 
+				else
+				    state->values[i] = backup;
+			    }
+			    else
+				state->values[i] = backup;
+			}
 		    }
+		    else
+			state->values[i] = backup;
 		}
 	    }
 	}
@@ -115,5 +158,5 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
     
     if (distance)
 	*distance = bestDist;
-    return bestDist < initialDistance;
+    return (bestDist < initialDistance) || (!wasSatisfiedStart && wasSatisfied);
 }

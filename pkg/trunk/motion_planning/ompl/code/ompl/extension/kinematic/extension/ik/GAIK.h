@@ -75,57 +75,65 @@ namespace ompl
 	    virtual ~GAIK(void)
 	    {
 	    }
+
+	    /** \brief Find a state that fits the request */
+	    virtual bool solve(double solveTime, base::State *result, const std::vector<base::State*> &hint = std::vector<base::State*>());
 	    
-	    virtual bool solve(double solveTime, base::State *result, const base::State* hint = NULL);
-	    
+	    /** \brief Set the number of steps to perform when using hill climbing to improve an individual in the population */
 	    void setMaxImproveSteps(unsigned int maxSteps)
 	    {
 		m_hcik.setMaxImproveSteps(maxSteps);
 	    }
-	    
+
+	    /** \brief Get the number of steps to perform when using hill climbing to improve an individual in the population */
 	    unsigned int getMaxImproveSteps(void) const
 	    {
 		return m_hcik.getMaxImproveSteps();
 	    }
 	    
+	    /** \brief Set the state validity flag; if this is false, states are not checked for validity */
 	    void setValidityCheck(bool valid)
 	    {
 		m_checkValidity = valid;
 	    }
-	    
+
+	    /** \brief Get the state validity flag; if this is false, states are not checked for validity */
 	    bool getValidityCheck(void) const
 	    {
 		return m_checkValidity;
 	    }
 	    
-	    /** The number of individuals in the population */
+	    /** \brief Set the number of individuals in the population */
 	    void setPoolSize(unsigned int size)
 	    {
 		m_poolSize = size;
 	    }
-	    
+
+	    /** \brief Get the number number of individuals in the population */
 	    unsigned int getPoolSize(void) const
 	    {
 		return m_poolSize;
 	    }
 	    
-	    /** The number of individuals to add to the population in each generation */
+	    /** \brief Set the number of individuals to add to the population in each generation */
 	    void setPoolExpansionSize(unsigned int size)
 	    {
 		m_poolExpansion = size;
 	    }
 	    
+	    /** \brief Get the number of individuals to add to the population in each generation */
 	    unsigned int getPoolExtensionSize(void) const
 	    {
 		return m_poolExpansion;
 	    }
 	    
+	    /** \brief Set the range (percentage of each dimension's extent) to be used when sampling around a state */
 	    void setRange(double rho)
 	    {
 		m_rho = rho;
 	    }
 	    
-	    /** Get the range the planner is using */
+	    /** \brief Get the range the planner is using */
 	    double getRange(void) const
 	    {
 		return m_rho;
@@ -134,7 +142,11 @@ namespace ompl
 	protected:
 	    
 	    bool tryToImprove(base::State *state, double distance);
-	    bool valid(const base::State *state) const;
+	    bool valid(const base::State *state) const
+	    {
+		return m_checkValidity ? m_si->isValid(state) : true;
+	    }
+	    
 	    
 	    struct Individual
 	    {
