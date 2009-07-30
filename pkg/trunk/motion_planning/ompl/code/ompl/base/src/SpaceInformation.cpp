@@ -244,6 +244,18 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
     return result;    
 }
 
+void ompl::base::SpaceInformation::enforceBounds(base::State *state) const
+{
+    for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
+    {
+	if (state->values[i] > m_stateComponent[i].maxValue)
+	    state->values[i] = m_stateComponent[i].maxValue;
+	else
+	    if (state->values[i] < m_stateComponent[i].minValue)
+		state->values[i] = m_stateComponent[i].minValue;
+    }
+}
+
 bool ompl::base::SpaceInformation::searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const
 {
     assert(near != state);
@@ -252,14 +264,7 @@ bool ompl::base::SpaceInformation::searchValidNearby(base::State *state, const b
     
     // fix bounds, if needed
     if (!satisfiesBounds(state))
-	for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
-	{
-	    if (state->values[i] > m_stateComponent[i].maxValue)
-		state->values[i] = m_stateComponent[i].maxValue;
-	    else
-		if (state->values[i] < m_stateComponent[i].minValue)
-		    state->values[i] = m_stateComponent[i].minValue;
-	}
+	enforceBounds(state);
     
     bool result = isValid(state);
     

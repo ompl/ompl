@@ -67,6 +67,8 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     {
 	pool[i].state = new base::State(dim);
 	m_si->copyState(pool[i].state, hint[i]);
+	if (!m_si->satisfiesBounds(pool[i].state))
+	    m_si->enforceBounds(pool[i].state);
 	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
 	    if (valid(pool[i].state))

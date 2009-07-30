@@ -259,7 +259,10 @@ namespace ompl
 		random_utils::RNG       m_rng;
 		
 	    };  
-			    
+	    
+	    /** \brief Bring the state within the bounds of the state space */
+	    void enforceBounds(base::State *state) const;
+	    
 	    /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
 	     *  The two passed state pointers must point to different states. Returns true on success.  */
 	    bool searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const;
