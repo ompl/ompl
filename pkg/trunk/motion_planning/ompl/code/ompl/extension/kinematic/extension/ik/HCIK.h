@@ -62,29 +62,50 @@ namespace ompl
 	    {
 		m_si = si;
 		m_maxImproveSteps = 2;
+		m_checkValidity = true;
 	    }
 	    
 	    virtual ~HCIK(void)
 	    {
 	    }
 	    
+	    /** \brief Try to improve a state (reduce distance to goal). The step size to add is also specified */
 	    bool tryToImprove(base::State *state, double add, double *distance = NULL) const;
 	    
+	    /** \brief Set the number of steps to perform */
 	    void setMaxImproveSteps(unsigned int steps)
 	    {
 		m_maxImproveSteps = steps;
 	    }
-	    
+
+	    /** \brief Get the number of steps to perform */
 	    unsigned int getMaxImproveSteps(void) const
 	    {
 		return m_maxImproveSteps;
 	    }
 	    
+	    /** \brief Set the state validity flag; if this is false, states are not checked for validity */
+	    void setValidityCheck(bool valid)
+	    {
+		m_checkValidity = valid;
+	    }
+
+	    /** \brief Get the state validity flag; if this is false, states are not checked for validity */
+	    bool getValidityCheck(void) const
+	    {
+		return m_checkValidity;
+	    }
+	    
 	protected:	
+
+	    bool valid(const base::State *state) const
+	    {
+		return m_checkValidity ? m_si->isValid(state) : true;
+	    }
 	    
 	    base::SpaceInformation *m_si;
 	    unsigned int            m_maxImproveSteps;
-	    
+	    bool                    m_checkValidity;	
 	};
 	
     }

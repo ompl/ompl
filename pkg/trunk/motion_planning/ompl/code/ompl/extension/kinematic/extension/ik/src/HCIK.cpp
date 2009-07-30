@@ -47,8 +47,13 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
     
     double tempDistance;
     double initialDistance;
+
+    bool wasValid = valid(state);
+    bool wasValidStart = wasValid;
+    
     bool wasSatisfied = goal_r->isSatisfied(state, &initialDistance);
     bool wasSatisfiedStart = wasSatisfied;
+    
     double bestDist   = initialDistance;
     
     bool change = true;
@@ -59,7 +64,7 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 	change = false;
 	steps++;
 	
-	for (unsigned int i = 0 ; i < dim ; ++i)
+	for (int i = dim - 1 ; i >= 0 ; --i)
 	{
 	    bool better = true;
 	    bool increased = false;
@@ -72,12 +77,13 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 		// if we are still within bounds, go on
 		if (m_si->satisfiesBounds(state))
 		{
+		    bool isV = valid(state);
 		    bool isS = goal_r->isSatisfied(state, &tempDistance);
 
-		    // if this change made the goal satisfied, definitely keep it
-		    if (isS && !wasSatisfied)
-		    {	
-			wasSatisfied = true;
+		    if (isV && !wasValid)
+		    {
+			wasValid = true;
+			wasSatisfied = isS;
 			better = true;
 			change = true;
 			increased = true;
@@ -85,19 +91,36 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 		    }
 		    else
 		    {
-			// if we are at least not going to an unsatisfied state
-			if (isS == wasSatisfied)
-			{
-			    // and we are improving
-			    if (tempDistance < bestDist)
-			    {
+			if (isV == wasValid)
+			{			    
+			    // if this change made the goal satisfied, definitely keep it
+			    if (isS && !wasSatisfied)
+			    {	
+				wasSatisfied = true;
 				better = true;
 				change = true;
 				increased = true;
 				bestDist = tempDistance;
-			    } 
+			    }
 			    else
-				state->values[i] = backup;
+			    {
+				// if we are at least not going to an unsatisfied state
+				if (isS == wasSatisfied)
+				{
+				    // and we are improving
+				    if (tempDistance < bestDist)
+				    {
+					better = true;
+					change = true;
+					increased = true;
+					bestDist = tempDistance;
+				    } 
+				    else
+					state->values[i] = backup;
+				}
+				else
+				    state->values[i] = backup;
+			    }
 			}
 			else
 			    state->values[i] = backup;
@@ -119,31 +142,48 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 		    
 		    // if we are still within bounds, go on
 		    if (m_si->satisfiesBounds(state))
-		    {
+		    {	
+			bool isV = valid(state);
 			bool isS = goal_r->isSatisfied(state, &tempDistance);
-			
-			// if this change made the goal satisfied, definitely keep it
-			if (isS && !wasSatisfied)
-			{	
-			    wasSatisfied = true;
+
+			if (isV && !wasValid)
+			{
+			    wasValid = true;
+			    wasSatisfied = isS;
 			    better = true;
 			    change = true;
 			    bestDist = tempDistance;
 			}
 			else
 			{
-			    // if we are at least not going to an unsatisfied state
-			    if (isS == wasSatisfied)
+			    if (isV == wasValid)
 			    {
-				// and we are improving
-				if (tempDistance < bestDist)
-				{
+				// if this change made the goal satisfied, definitely keep it
+				if (isS && !wasSatisfied)
+				{	
+				    wasSatisfied = true;
 				    better = true;
 				    change = true;
 				    bestDist = tempDistance;
-				} 
+				}
 				else
-				    state->values[i] = backup;
+				{
+				    // if we are at least not going to an unsatisfied state
+				    if (isS == wasSatisfied)
+				    {
+					// and we are improving
+					if (tempDistance < bestDist)
+					{
+					    better = true;
+					    change = true;
+					    bestDist = tempDistance;
+					} 
+					else
+					    state->values[i] = backup;
+				    }
+				    else
+					state->values[i] = backup;
+				}
 			    }
 			    else
 				state->values[i] = backup;
@@ -156,7 +196,8 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 	}
     }
     
+    
     if (distance)
 	*distance = bestDist;
-    return (bestDist < initialDistance) || (!wasSatisfiedStart && wasSatisfied);
+    return (bestDist < initialDistance) || (!wasSatisfiedStart && wasSatisfied) || (!wasValidStart && wasValid);
 }

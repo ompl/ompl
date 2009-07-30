@@ -69,7 +69,7 @@ namespace ompl
 		m_poolSize = 80;
 		m_poolExpansion = 100;
 		m_hcik.setMaxImproveSteps(3);
-		m_checkValidity = true;
+		setValidityCheck(true);
 	    }
 	    
 	    virtual ~GAIK(void)
@@ -95,6 +95,7 @@ namespace ompl
 	    void setValidityCheck(bool valid)
 	    {
 		m_checkValidity = valid;
+		m_hcik.setValidityCheck(valid);
 	    }
 
 	    /** \brief Get the state validity flag; if this is false, states are not checked for validity */
@@ -167,7 +168,6 @@ namespace ompl
 	    SpaceInformationKinematic                   *m_si;	
 	    unsigned int                                 m_poolSize;
 	    unsigned int                                 m_poolExpansion;
-	    unsigned int                                 m_maxImproveSteps;	
 	    bool                                         m_checkValidity;	
 	    
 	    double                                       m_rho;	
