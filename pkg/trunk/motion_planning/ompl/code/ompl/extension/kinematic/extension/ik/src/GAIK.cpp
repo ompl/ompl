@@ -163,7 +163,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 
 bool ompl::kinematic::GAIK::tryToImprove(base::State *state, double distance)
 {
-    m_msg.inform("GAIK: Distance to goal before improvement: %g", distance);    
+    m_msg.message("GAIK: Distance to goal before improvement: %g", distance);    
     time_utils::Time start = time_utils::Time::now();
     m_hcik.tryToImprove(state, 0.1, &distance);
     m_hcik.tryToImprove(state, 0.05, &distance);
@@ -175,7 +175,7 @@ bool ompl::kinematic::GAIK::tryToImprove(base::State *state, double distance)
     m_hcik.tryToImprove(state, 0.00005, &distance);
     m_hcik.tryToImprove(state, 0.000025, &distance);
     m_hcik.tryToImprove(state, 0.000005, &distance);
-    m_msg.inform("GAIK: Improvement took  %g seconds", (time_utils::Time::now() - start).toSeconds());    
-    m_msg.inform("GAIK: Distance to goal after improvement: %g", distance);    
+    m_msg.message("GAIK: Improvement took  %g seconds", (time_utils::Time::now() - start).toSeconds());    
+    m_msg.message("GAIK: Distance to goal after improvement: %g", distance);    
     return true;
 }

@@ -122,7 +122,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Get the number of individuals to add to the population in each generation */
-	    unsigned int getPoolExtensionSize(void) const
+	    unsigned int getPoolExpansionSize(void) const
 	    {
 		return m_poolExpansion;
 	    }
