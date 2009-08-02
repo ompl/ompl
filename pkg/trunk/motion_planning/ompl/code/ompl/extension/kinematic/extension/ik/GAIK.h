@@ -153,14 +153,18 @@ namespace ompl
 	    {
 		base::State *state;
 		double       distance;
+		bool         valid;
 	    };
 	    
 	    struct IndividualSort
 	    {
 		bool operator()(const Individual& a, const Individual& b)
 		{
-		    return a.distance < b.distance;
-		}	    
+		    if (a.valid && !b.valid)
+			return true;
+		    else
+			return a.distance < b.distance;
+		}
 	    };
 	    
 	    HCIK                                         m_hcik;

@@ -48,6 +48,8 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	return false;
     }
     
+    m_poolExpansion = 500;
+    
     time_utils::Time        endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
     
     unsigned int            maxPoolSize = m_poolSize + m_poolExpansion;
@@ -69,9 +71,10 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	m_si->copyState(pool[i].state, hint[i]);
 	if (!m_si->satisfiesBounds(pool[i].state))
 	    m_si->enforceBounds(pool[i].state);
+	pool[i].valid = valid(pool[i].state);
 	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
-	    if (valid(pool[i].state))
+	    if (pool[i].valid)
 	    {
 		solved = true;
 		solution = i;
@@ -83,9 +86,10 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     {
 	pool[i].state = new base::State(dim);
 	m_sCore.sample(pool[i].state);
+	pool[i].valid = valid(pool[i].state);
 	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
-	    if (valid(pool[i].state))
+	    if (pool[i].valid)
 	    {
 		solved = true;
 		solution = i;
@@ -107,9 +111,10 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	for (unsigned int i = m_poolSize ; i < maxPoolSize ; ++i)
 	{
 	    m_sCore.sampleNear(pool[i].state, pool[i % m_poolSize].state, range);
+	    pool[i].valid = valid(pool[i].state);
 	    if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
-		if (valid(pool[i].state))
+		if (pool[i].valid)
 		{
 		    solved = true;
 		    solution = i;
@@ -140,7 +145,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	for (unsigned int i = 0 ; i < 5 ; ++i)
 	{	
 	    // get a valid state that is closer to the goal
-	    if (valid(pool[i].state))
+	    if (pool[i].valid)
 	    {
 		// set the solution
 		m_si->copyState(result, pool[i].state);
@@ -149,7 +154,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 		tryToImprove(result, pool[i].distance);
 		
 		// if the improvement made the state no longer valid, revert to previous one
-		if (!valid(result))		    
+		if (!valid(result))
 		    m_si->copyState(result, pool[i].state);
 		solved = true;
 		break;
