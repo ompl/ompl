@@ -47,9 +47,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	m_msg.error("GAIK: Unknown type of goal (or goal undefined)");
 	return false;
     }
-    
-    m_poolExpansion = 500;
-    
+        
     time_utils::Time        endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
     
     unsigned int            maxPoolSize = m_poolSize + m_poolExpansion;

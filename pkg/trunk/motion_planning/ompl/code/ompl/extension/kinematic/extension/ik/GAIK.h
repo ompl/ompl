@@ -160,10 +160,9 @@ namespace ompl
 	    {
 		bool operator()(const Individual& a, const Individual& b)
 		{
-		    if (a.valid && !b.valid)
-			return true;
-		    else
+		    if (a.valid == b.valid)
 			return a.distance < b.distance;
+		    return a.valid;
 		}
 	    };
 	    
