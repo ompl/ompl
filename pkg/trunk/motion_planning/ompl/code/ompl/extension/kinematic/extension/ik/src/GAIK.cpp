@@ -62,6 +62,11 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	return false;	
     }
     
+    std::vector<double> range(dim);    
+    for (unsigned int i = 0 ; i < dim ; ++i)
+	range[i] = m_rho * (m_si->getStateComponent(i).maxValue - m_si->getStateComponent(i).minValue);
+    
+    // add hint states
     unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
     for (unsigned int i = 0 ; i < nh ; ++i)
     {
@@ -80,6 +85,28 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	}
     }
     
+    // add states near the hint states
+    unsigned int nh2 = nh * 2;    
+    if (nh2 < maxPoolSize)
+    {
+	for (unsigned int i = nh ; i < nh2 ; ++i)
+	{
+	    pool[i].state = new base::State(dim);
+	    m_sCore.sampleNear(pool[i].state, pool[i % nh].state, range);
+	    pool[i].valid = valid(pool[i].state);
+	    if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
+	    {
+		if (pool[i].valid)
+		{
+		    solved = true;
+		    solution = i;
+		}
+	    }
+	}
+	nh = nh2;
+    }
+    
+    // add random states
     for (unsigned int i = nh ; i < maxPoolSize ; ++i)
     {
 	pool[i].state = new base::State(dim);
@@ -95,18 +122,21 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	}
     }
     
+    // run the genetic algorithm
     unsigned int generations = 1;
-
-    std::vector<double> range(dim);    
-    for (unsigned int i = 0 ; i < dim ; ++i)
-	range[i] = m_rho * (m_si->getStateComponent(i).maxValue - m_si->getStateComponent(i).minValue);
+    unsigned int mutationsSize = maxPoolSize - maxPoolSize % m_poolSize;
+    if (mutationsSize == 0)
+	mutationsSize = maxPoolSize;
+    if (mutationsSize == maxPoolSize)
+	mutationsSize--;
     
     while (!solved && time_utils::Time::now() < endTime)
     {
 	generations++;
 	std::sort(pool.begin(), pool.end(), gs);
 	
-	for (unsigned int i = m_poolSize ; i < maxPoolSize ; ++i)
+	// add mutations
+	for (unsigned int i = m_poolSize ; i < mutationsSize ; ++i)
 	{
 	    m_sCore.sampleNear(pool[i].state, pool[i % m_poolSize].state, range);
 	    pool[i].valid = valid(pool[i].state);
@@ -120,8 +150,27 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 		}
 	    }
 	}
+
+	// add random states
+	if (!solved)
+	    for (unsigned int i = mutationsSize ; i < maxPoolSize ; ++i)
+	    {
+		m_sCore.sample(pool[i].state);
+		pool[i].valid = valid(pool[i].state);
+		if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
+		{
+		    if (pool[i].valid)
+		    {
+			solved = true;
+			solution = i;
+			break;
+		    }
+		}
+	    }
     }
     
+    
+    // fill in solution, if found
     m_msg.inform("GAIK: Ran for %u generations", generations);
 
     if (solved)
