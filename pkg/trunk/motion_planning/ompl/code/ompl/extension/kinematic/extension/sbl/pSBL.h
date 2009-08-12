@@ -239,7 +239,7 @@ namespace ompl
 		boost::mutex                     lock;
 	    };    
 	    
-	    void threadSolve(unsigned int tid, unsigned int seed, time_utils::Time &endTime, SolutionInfo *sol);
+	    void threadSolve(unsigned int tid, unsigned int seed, ros::WallTime &endTime, SolutionInfo *sol);
 	    
 	    void freeMemory(void)
 	    {

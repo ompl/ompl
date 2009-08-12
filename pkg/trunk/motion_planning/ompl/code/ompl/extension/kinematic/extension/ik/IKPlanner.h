@@ -38,6 +38,8 @@
 #define OMPL_EXTENSION_KINEMATIC_EXTENSION_IK_IKPLANNER_
 
 #include "ompl/extension/kinematic/extension/ik/GAIK.h"
+#include <ros/time.h>
+#include <ros/console.h>
 
 /** Main namespace */
 namespace ompl
@@ -101,7 +103,7 @@ namespace ompl
 		
 		if (!goal_r)
 		{
-		    _P::m_msg.error("IKPlanner: Unknown type of goal (or goal undefined)");
+		    ROS_ERROR("IKPlanner: Unknown type of goal (or goal undefined)");
 		    return false;
 		}
 		
@@ -110,18 +112,18 @@ namespace ompl
 		{
 		    base::State *st = si->getStartState(i);
 		    if (!st || !si->isValid(st))
-			_P::m_msg.error("IKPlanner: Initial state is invalid!");
+			ROS_ERROR("IKPlanner: Initial state is invalid!");
 		    else
 			foundStart = true;
 		}    
 		
 		if (!foundStart)
 		{
-		    _P::m_msg.error("IKPlanner: Motion planning trees could not be initialized!");
+		    ROS_ERROR("IKPlanner: Motion planning trees could not be initialized!");
 		    return false;
 		}
 		
-		time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+		ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
 		
 		/* memory for temporary goal */
 		base::GoalState *stateGoal = new base::GoalState(si);
@@ -134,7 +136,7 @@ namespace ompl
 		while (!solved)
 		{
 		    step++;
-		    double time_left = (endTime - time_utils::Time::now()).toSeconds();
+		    double time_left = (endTime - ros::WallTime::now()).toSec();
 		    if (time_left <= 0.0)
 			break;
 		    if (m_gaik.solve(time_left * 0.5, stateGoal->state))
@@ -145,8 +147,8 @@ namespace ompl
 			
 			/* run _P on the new goal */
 			_P::clear();
-			time_left = (endTime - time_utils::Time::now()).toSeconds();
-			_P::m_msg.inform("IKPlanner: Using GAIK goal state for the planner (step %u, %g seconds remaining)", step, time_left);
+			time_left = (endTime - ros::WallTime::now()).toSec();
+			ROS_ERROR("IKPlanner: Using GAIK goal state for the planner (step %u, %g seconds remaining)", step, time_left);
 			solved = _P::solve(time_left);
 			
 			/* restore user-set goal */
@@ -159,7 +161,7 @@ namespace ompl
 			    double dist = -1.0;
 			    bool approx = !goal_r->isSatisfied(stateGoal->state, &dist);
 			    if (approx)
-				_P::m_msg.warn("IKPlanner: Found approximate solution");
+				ROS_WARN("IKPlanner: Found approximate solution");
 			    goal_r->setSolutionPath(stateGoal->getSolutionPath(), approx);
 			    goal_r->setDifference(dist);
 			    stateGoal->forgetSolutionPath();

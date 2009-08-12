@@ -35,6 +35,7 @@
 /* \author Ioan Sucan */
 
 #include "ompl/base/Planner.h"
+#include <ros/console.h>
 
 ompl::base::PlannerType ompl::base::Planner::getType(void) const
 {
@@ -44,9 +45,9 @@ ompl::base::PlannerType ompl::base::Planner::getType(void) const
 void ompl::base::Planner::setup(void)
 {
     if (!m_si->isSetup())
-	m_msg.error("Space information setup should have been called before planner setup was called");
+	ROS_ERROR("Space information setup should have been called before planner setup was called");
     if (m_setup)
-	m_msg.error("Planner setup called multiple times");		
+	ROS_ERROR("Planner setup called multiple times");		
     m_setup = true;
 }
 
@@ -56,7 +57,7 @@ bool ompl::base::Planner::isTrivial(unsigned int *startID, double *distance) con
     
     if (!goal)
     {
-	m_msg.error("Goal undefined");
+	ROS_ERROR("Goal undefined");
 	return false;
     }
     
@@ -77,7 +78,7 @@ bool ompl::base::Planner::isTrivial(unsigned int *startID, double *distance) con
 	}
 	else
 	{
-	    m_msg.error("Initial state is in collision!");
+	    ROS_ERROR("Initial state is in collision!");
 	}
     }
     

@@ -35,6 +35,7 @@
 /* \author Ioan Sucan */
 
 #include "ompl/extension/kinematic/extension/kpiece/LBKPIECE1.h"
+#include <ros/console.h>
 
 bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 {
@@ -44,11 +45,11 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("LBKPIECE1: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("LBKPIECE1: Unknown type of goal (or goal undefined)");
 	return false;
     }
     
-    time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
     
     if (m_tStart.size == 0)
     {
@@ -63,7 +64,7 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 	    }
 	    else
 	    {
-		m_msg.error("LBKPIECE1: Initial state is invalid!");
+		ROS_ERROR("LBKPIECE1: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -80,18 +81,18 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 	}
 	else
 	{
-	    m_msg.error("LBKPIECE1: Goal state is invalid!");
+	    ROS_ERROR("LBKPIECE1: Goal state is invalid!");
 	    delete motion;
 	}
     }
     
     if (m_tStart.size == 0 || m_tGoal.size == 0)
     {
-	m_msg.error("LBKPIECE1: Motion planning trees could not be initialized!");
+	ROS_ERROR("LBKPIECE1: Motion planning trees could not be initialized!");
 	return false;
     }
     
-    m_msg.inform("LBKPIECE1: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
+    ROS_INFO("LBKPIECE1: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
     std::vector<Motion*> solution;
     base::State *xstate = new base::State(dim);
@@ -101,7 +102,7 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
-    while (time_utils::Time::now() < endTime)
+    while (ros::WallTime::now() < endTime)
     {
 	TreeData &tree      = startTree ? m_tStart : m_tGoal;
 	startTree = !startTree;
@@ -138,9 +139,9 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
     
     delete xstate;
     
-    m_msg.inform("LBKPIECE1: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", 
-		 m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
-		 m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
+    ROS_INFO("LBKPIECE1: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", 
+	     m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
+	     m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();
 }

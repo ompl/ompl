@@ -37,8 +37,6 @@
 #include <gtest/gtest.h>
 
 #include "ompl/base/util/random_utils.h"
-#include "ompl/base/util/time.h"
-#include "ompl/base/util/output.h"
 
 #include "ompl/base/General.h"
 #include "ompl/base/State.h"

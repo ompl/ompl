@@ -35,6 +35,7 @@
 /* \author Ioan Sucan */
 
 #include "ompl/extension/kinematic/extension/est/EST.h"
+#include <ros/console.h>
 
 bool ompl::kinematic::EST::solve(double solveTime)
 {
@@ -46,13 +47,13 @@ bool ompl::kinematic::EST::solve(double solveTime)
     
     if (!goal_s && !goal_r)
     {
-	m_msg.error("EST: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("EST: Unknown type of goal (or goal undefined)");
 	return false;
     }
 
     bool biasSample = goal_k || goal_s;
 
-    time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
 
     if (m_tree.grid.size() == 0)
     {
@@ -64,7 +65,7 @@ bool ompl::kinematic::EST::solve(double solveTime)
 		addMotion(motion);
 	    else
 	    {
-		m_msg.error("EST: Initial state is invalid!");
+		ROS_ERROR("EST: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -72,11 +73,11 @@ bool ompl::kinematic::EST::solve(double solveTime)
     
     if (m_tree.grid.size() == 0)
     {
-	m_msg.error("EST: There are no valid initial states!");
+	ROS_ERROR("EST: There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("EST: Starting with %u states", m_tree.size);
+    ROS_INFO("EST: Starting with %u states", m_tree.size);
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -87,7 +88,7 @@ bool ompl::kinematic::EST::solve(double solveTime)
     double  approxdif = INFINITY;
     base::State *xstate = new base::State(dim);
     
-    while (time_utils::Time::now() < endTime)
+    while (ros::WallTime::now() < endTime)
     {
 	/* Decide on a state to expand from */
 	Motion *existing = selectMotion();
@@ -157,12 +158,12 @@ bool ompl::kinematic::EST::solve(double solveTime)
 	goal_r->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    m_msg.warn("EST: Found approximate solution");
+	    ROS_WARN("EST: Found approximate solution");
     }
 
     delete xstate;
     
-    m_msg.inform("EST: Created %u states in %u cells", m_tree.size, m_tree.grid.size());
+    ROS_INFO("EST: Created %u states in %u cells", m_tree.size, m_tree.grid.size());
     
     return goal_r->isAchieved();
 }

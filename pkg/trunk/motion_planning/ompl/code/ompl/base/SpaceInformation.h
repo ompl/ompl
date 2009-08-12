@@ -43,7 +43,6 @@
 #include "ompl/base/Path.h"
 #include "ompl/base/StateDistanceEvaluator.h"
 #include "ompl/base/StateValidityChecker.h"
-#include "ompl/base/util/output.h"
 #include "ompl/base/util/random_utils.h"
 
 #include <cstdlib>
@@ -300,7 +299,6 @@ namespace ompl
 	    StateDistanceEvaluator      *m_stateDistanceEvaluator;
 	    
 	    bool                         m_setup;
-	    msg::Interface               m_msg;
 	};
 	
 	

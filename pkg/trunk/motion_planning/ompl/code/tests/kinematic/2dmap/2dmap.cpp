@@ -35,6 +35,7 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
+#include <ros/time.h>
 
 #include "ompl/extension/kinematic/PathSmootherKinematic.h"
 #include "ompl/base/ProjectionEvaluator.h"
@@ -176,19 +177,17 @@ public:
 	goal->threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
 	si->setGoal(goal);
 	
-	msg::useOutputHandler(NULL);
-	
 	/* start counting time */
-	time_utils::Time startTime = time_utils::Time::now();	
+	ros::WallTime startTime = ros::WallTime::now();	
 	
 	/* call the planner to solve the problem */
 	if (planner->solve(SOLUTION_TIME))
 	{
-	    time_utils::Duration elapsed = time_utils::Time::now() - startTime;
+	    ros::WallDuration elapsed = ros::WallTime::now() - startTime;
 	    if (time)
-		*time += elapsed.toSeconds();
+		*time += elapsed.toSec();
 	    if (show)
-		printf("Found solution in %f seconds!\n", elapsed.toSeconds());
+		printf("Found solution in %f seconds!\n", elapsed.toSec());
 	    
 	    kinematic::PathKinematic *path = static_cast<kinematic::PathKinematic*>(goal->getSolutionPath());
 	    
@@ -198,15 +197,15 @@ public:
 	    smoother->setMaxSteps(50);
 	    smoother->setMaxEmptySteps(10);
 
-	    startTime = time_utils::Time::now();
+	    startTime = ros::WallTime::now();
 	    smoother->smoothVertices(path);
-	    elapsed = time_utils::Time::now() - startTime;
+	    elapsed = ros::WallTime::now() - startTime;
 	    delete smoother;
 	    if (time)
-		*time += elapsed.toSeconds();
+		*time += elapsed.toSec();
 	    
 	    if (show)
-		printf("Smooth solution in %f seconds!\n", elapsed.toSeconds());
+		printf("Smooth solution in %f seconds!\n", elapsed.toSec());
 
 	    /* fill in values that were linearly interpolated */
 	    si->interpolatePath(path);
@@ -605,7 +604,7 @@ TEST_F(PlanTest, kinematic_pRRT)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avgruntime < 0.02);
     EXPECT_TRUE(avglength < 70.0);
 }
 
@@ -641,7 +640,7 @@ TEST_F(PlanTest, kinematic_pSBL)
     // Widening the bounds here, because the automated build machine has a
     // varying load that can affect performance.
     //EXPECT_TRUE(avgruntime < 0.01);
-    EXPECT_TRUE(avgruntime < 0.1);
+    EXPECT_TRUE(avgruntime < 0.2);
     EXPECT_TRUE(avglength < 65.0);
 }
 

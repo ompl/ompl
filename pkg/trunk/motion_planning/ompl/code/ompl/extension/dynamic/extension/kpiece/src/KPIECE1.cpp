@@ -35,6 +35,7 @@
 /* \author Ioan Sucan */
 
 #include "ompl/extension/dynamic/extension/kpiece/KPIECE1.h"
+#include <ros/console.h>
 
 bool ompl::dynamic::KPIECE1::solve(double solveTime)
 {
@@ -46,11 +47,11 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
     
     if (!goal_s && !goal_r)
     {
-	m_msg.error("KPIECE1: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("KPIECE1: Unknown type of goal (or goal undefined)");
 	return false;
     }
     
-    time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
 
     if (m_tree.grid.size() == 0)
     {
@@ -63,7 +64,7 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 		addMotion(motion, 1.0);
 	    else
 	    {
-		m_msg.error("KPIECE1: Initial state is invalid!");
+		ROS_ERROR("KPIECE1: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -71,11 +72,11 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
     
     if (m_tree.grid.size() == 0)
     {
-	m_msg.error("KPIECE1: There are no valid initial states!");
+	ROS_ERROR("KPIECE1: There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("KPIECE1: Starting with %u states", m_tree.size);
+    ROS_INFO("KPIECE1: Starting with %u states", m_tree.size);
     
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -97,7 +98,7 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 	haveBestCoord = true;
     }
     
-    while (time_utils::Time::now() < endTime)
+    while (ros::WallTime::now() < endTime)
     {
 	m_tree.iteration++;
 	
@@ -256,15 +257,15 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 	goal_r->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    m_msg.warn("KPIECE1: Found approximate solution");
+	    ROS_WARN("KPIECE1: Found approximate solution");
     }
 
     delete rctrl;
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	delete states[i];
 
-    m_msg.inform("KPIECE1: Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
-		 m_tree.grid.countInternal(), m_tree.grid.countExternal());
+    ROS_INFO("KPIECE1: Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
+	     m_tree.grid.countInternal(), m_tree.grid.countExternal());
     
     return goal_r->isAchieved();
 }

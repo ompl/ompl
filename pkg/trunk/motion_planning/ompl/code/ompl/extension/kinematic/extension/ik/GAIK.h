@@ -39,7 +39,7 @@
 
 #include "ompl/extension/kinematic/SpaceInformationKinematic.h"
 #include "ompl/extension/kinematic/extension/ik/HCIK.h"
-#include "ompl/base/util/time.h"
+#include <ros/time.h>
 
 namespace ompl
 {
@@ -174,8 +174,6 @@ namespace ompl
 	    bool                                         m_checkValidity;	
 	    
 	    double                                       m_rho;	
-	    
-	    msg::Interface                               m_msg;
 	};
 	
     }

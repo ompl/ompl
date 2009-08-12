@@ -36,6 +36,7 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include <angles/angles.h>
+#include <ros/console.h>
 #include <sstream>
 #include <cstring>
 #include <cassert>
@@ -125,7 +126,7 @@ void ompl::base::SpaceInformation::copyState(State *destination, const State *so
 void ompl::base::SpaceInformation::setup(void)
 {
     if (m_setup)
-	m_msg.error("Space information setup called multiple times");
+	ROS_ERROR("Space information setup called multiple times");
     assert(m_stateDimension > 0);
     assert(m_stateComponent.size() == m_stateDimension);
     m_setup = true;
@@ -175,10 +176,10 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 	    {
 		v = isValid(st);
 		if (!v)
-		    m_msg.message("Initial state is not valid");
+		    ROS_DEBUG("Initial state is not valid");
 	    }
 	    else
-		m_msg.message("Initial state is not within space bounds");
+		ROS_DEBUG("Initial state is not within space bounds");
 	    
 	    if (!b || !v)
 	    {
@@ -188,13 +189,13 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 		for (unsigned int j = 0 ; j < rhoStart.size() ; ++j)
 		    ss << rhoStart[j] << " ";
 		ss << "]";		
-		m_msg.message("Attempting to fix initial state %s", ss.str().c_str());
+		ROS_DEBUG("Attempting to fix initial state %s", ss.str().c_str());
 		base::State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoStart, attempts))
 		    copyState(st, &temp);
 		else
 		{
-		    m_msg.warn("Unable to fix start state %u", i);
+		    ROS_WARN("Unable to fix start state %u", i);
 		    result = false;
 		}
 	    }
@@ -214,10 +215,10 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 	    {
 		v = isValid(st);
 		if (!v)
-		    m_msg.message("Goal state is not valid");
+		    ROS_DEBUG("Goal state is not valid");
 	    }
 	    else
-		m_msg.message("Goal state is not within space bounds");
+		ROS_DEBUG("Goal state is not within space bounds");
 	    
 	    if (!b || !v)
 	    {
@@ -228,13 +229,13 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 		for (unsigned int i = 0 ; i < rhoGoal.size() ; ++i)
 		    ss << rhoGoal[i] << " ";
 		ss << "]";
-		m_msg.message("Attempting to fix goal state %s", ss.str().c_str());
+		ROS_DEBUG("Attempting to fix goal state %s", ss.str().c_str());
 		base::State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoGoal, attempts))
 		    copyState(st, &temp);
 		else
 		{
-		    m_msg.warn("Unable to fix goal state");
+		    ROS_WARN("Unable to fix goal state");
 		    result = false;
 		}
 	    }

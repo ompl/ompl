@@ -35,6 +35,7 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
+#include <ros/time.h>
 
 #include "ompl/extension/dynamic/extension/rrt/RRT.h"
 #include "ompl/extension/dynamic/extension/kpiece/KPIECE1.h"
@@ -234,26 +235,24 @@ public:
 	goal->threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
 	si->setGoal(goal);
 	
-	msg::useOutputHandler(NULL);
-	
 	/* start counting time */
-	time_utils::Time startTime = time_utils::Time::now();	
+	ros::WallTime startTime = ros::WallTime::now();	
 	
 	/* call the planner to solve the problem */
 	if (planner->solve(SOLUTION_TIME))
 	{
-	    time_utils::Duration elapsed = time_utils::Time::now() - startTime;
+	    ros::WallDuration elapsed = ros::WallTime::now() - startTime;
 	    if (time)
-		*time += elapsed.toSeconds();
+		*time += elapsed.toSec();
 	    if (show)
-		printf("Found solution in %f seconds!\n", elapsed.toSeconds());
+		printf("Found solution in %f seconds!\n", elapsed.toSec());
 	    
 	    dynamic::PathDynamic *path = static_cast<dynamic::PathDynamic*>(goal->getSolutionPath());
 	    
-	    elapsed = time_utils::Time::now() - startTime;
+	    elapsed = ros::WallTime::now() - startTime;
 	    
 	    if (time)
-		*time += elapsed.toSeconds();
+		*time += elapsed.toSec();
 	    
 	    if (pathLength)
 		*pathLength += path->length();

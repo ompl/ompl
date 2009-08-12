@@ -36,6 +36,7 @@
 
 #include "ompl/extension/kinematic/extension/rrt/LazyRRT.h"
 #include <cassert>
+#include <ros/console.h>
 
 bool ompl::kinematic::LazyRRT::solve(double solveTime)
 {
@@ -47,13 +48,13 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
     
     if (!goal_s && !goal_r)
     {
-	m_msg.error("LazyRRT: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("LazyRRT: Unknown type of goal (or goal undefined)");
 	return false;
     }
 
     bool biasSample = goal_k || goal_s;
 
-    time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
     
     if (m_nn.size() == 0)
     {
@@ -68,7 +69,7 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
 	    }	
 	    else
 	    {
-		m_msg.error("LazyRRT: Initial state is invalid!");
+		ROS_ERROR("LazyRRT: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -76,11 +77,11 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
     
     if (m_nn.size() == 0)
     {
-	m_msg.error("LazyRRT: There are no valid initial states!");
+	ROS_ERROR("LazyRRT: There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("LazyRRT: Starting with %u states", m_nn.size());
+    ROS_INFO("LazyRRT: Starting with %u states", m_nn.size());
 
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -94,7 +95,7 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
 
  RETRY:
 
-    while (time_utils::Time::now() < endTime)
+    while (ros::WallTime::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
 	if (biasSample && m_rng.uniform(0.0, 1.0) < m_goalBias)
@@ -174,7 +175,7 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
     delete xstate;
     delete rmotion;
     
-    m_msg.inform("LazyRRT: Created %u states", m_nn.size());
+    ROS_INFO("LazyRRT: Created %u states", m_nn.size());
 
     return goal_r->isAchieved();
 }

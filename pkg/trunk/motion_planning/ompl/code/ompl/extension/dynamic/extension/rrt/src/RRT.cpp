@@ -36,6 +36,7 @@
 
 #include "ompl/extension/dynamic/extension/rrt/RRT.h"
 #include <cassert>
+#include <ros/console.h>
 
 bool ompl::dynamic::RRT::solve(double solveTime)
 {
@@ -47,11 +48,11 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     if (!goal_s && !goal_r)
     {
-	m_msg.error("RRT: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("RRT: Unknown type of goal (or goal undefined)");
 	return false;
     }
 
-    time_utils::Time endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
 
     if (m_nn.size() == 0)
     {
@@ -64,7 +65,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 		m_nn.add(motion);
 	    else
 	    {
-		m_msg.error("RRT: Initial state is invalid!");
+		ROS_ERROR("RRT: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -72,11 +73,11 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     if (m_nn.size() == 0)
     {
-	m_msg.error("RRT: There are no valid initial states!");
+	ROS_ERROR("RRT: There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("RRT: Starting with %u states", m_nn.size());
+    ROS_INFO("RRT: Starting with %u states", m_nn.size());
     
     std::vector<base::State*> hintStates;
     if (si->getKinematicPath())
@@ -94,7 +95,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	states[i] = new base::State(sdim);
     
-    while (time_utils::Time::now() < endTime)
+    while (ros::WallTime::now() < endTime)
     {
 	
 	if (hintStates.empty())
@@ -188,7 +189,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	goal_r->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    m_msg.warn("RRT: Found approximate solution");
+	    ROS_WARN("RRT: Found approximate solution");
     }
 
     delete rmotion;
@@ -196,7 +197,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	delete states[i];
 
-    m_msg.inform("RRT: Created %u states", m_nn.size());
+    ROS_INFO("RRT: Created %u states", m_nn.size());
     
     return goal_r->isAchieved();
 }

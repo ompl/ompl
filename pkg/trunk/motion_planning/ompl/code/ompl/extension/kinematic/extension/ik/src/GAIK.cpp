@@ -36,6 +36,7 @@
 
 #include "ompl/extension/kinematic/extension/ik/GAIK.h"
 #include <algorithm>
+#include <ros/console.h>
 
 bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const std::vector<base::State*> &hint)
 {
@@ -44,11 +45,11 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     
     if (!goal_r)
     {
-	m_msg.error("GAIK: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("GAIK: Unknown type of goal (or goal undefined)");
 	return false;
     }
         
-    time_utils::Time        endTime = time_utils::Time::now() + time_utils::Duration(solveTime);
+    ros::WallTime           endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
     
     unsigned int            maxPoolSize = m_poolSize + m_poolExpansion;
     std::vector<Individual> pool(maxPoolSize);
@@ -58,7 +59,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     
     if (m_poolSize < 1)
     {
-	m_msg.error("GAIK: Pool size too small");
+	ROS_ERROR("GAIK: Pool size too small");
 	return false;	
     }
     
@@ -130,7 +131,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     if (mutationsSize == maxPoolSize)
 	mutationsSize--;
     
-    while (!solved && time_utils::Time::now() < endTime)
+    while (!solved && ros::WallTime::now() < endTime)
     {
 	generations++;
 	std::sort(pool.begin(), pool.end(), gs);
@@ -171,7 +172,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     
     
     // fill in solution, if found
-    m_msg.inform("GAIK: Ran for %u generations", generations);
+    ROS_ERROR("GAIK: Ran for %u generations", generations);
 
     if (solved)
     {
@@ -217,8 +218,8 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 
 bool ompl::kinematic::GAIK::tryToImprove(base::State *state, double distance)
 {
-    m_msg.message("GAIK: Distance to goal before improvement: %g", distance);    
-    time_utils::Time start = time_utils::Time::now();
+    ROS_DEBUG("GAIK: Distance to goal before improvement: %g", distance);    
+    ros::WallTime start = ros::WallTime::now();
     m_hcik.tryToImprove(state, 0.1, &distance);
     m_hcik.tryToImprove(state, 0.05, &distance);
     m_hcik.tryToImprove(state, 0.01, &distance);
@@ -229,7 +230,7 @@ bool ompl::kinematic::GAIK::tryToImprove(base::State *state, double distance)
     m_hcik.tryToImprove(state, 0.00005, &distance);
     m_hcik.tryToImprove(state, 0.000025, &distance);
     m_hcik.tryToImprove(state, 0.000005, &distance);
-    m_msg.message("GAIK: Improvement took  %g seconds", (time_utils::Time::now() - start).toSeconds());    
-    m_msg.message("GAIK: Distance to goal after improvement: %g", distance);    
+    ROS_DEBUG("GAIK: Improvement took  %g seconds", (ros::WallTime::now() - start).toSec());    
+    ROS_DEBUG("GAIK: Distance to goal after improvement: %g", distance);
     return true;
 }

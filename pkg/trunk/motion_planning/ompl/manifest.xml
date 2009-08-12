@@ -9,6 +9,8 @@
   <url></url>
 
   <depend package="angles"/>
+  <depend package="roslib"/>
+  <depend package="rosconsole"/>
 
   <export>
     <cpp cflags="-I${prefix}/code `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl `rosboost-cfg --lflags thread`"/>
