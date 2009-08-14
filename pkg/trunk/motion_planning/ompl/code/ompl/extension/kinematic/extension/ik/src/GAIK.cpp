@@ -172,7 +172,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     
     
     // fill in solution, if found
-    ROS_ERROR("GAIK: Ran for %u generations", generations);
+    ROS_INFO("GAIK: Ran for %u generations", generations);
 
     if (solved)
     {
