@@ -1,6 +1,6 @@
 <package>
   <description brief="Open Motion Planning Library (OMPL)">
-    A library of motion planning algorithms
+    A library of sampling-based motion planning algorithms
 
   </description>
   <author>Ioan Sucan/isucan@willowgarage.com</author>
