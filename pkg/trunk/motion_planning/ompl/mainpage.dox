@@ -4,7 +4,7 @@
 
 @section summary Summary 
     
-   @b OMPL (Open Motion Planning Library) consists of a set of
+   @b ompl (Open Motion Planning Library) consists of a set of
    sampling-based motion planning algorithms and nothing more. There
    is no environment specification, there is no collision detection or
    visualisation. There are only motion planners. The purpose of this
