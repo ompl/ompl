@@ -226,7 +226,7 @@ namespace ompl
 	    
 	    double                                     m_goalBias;
 	    double                                     m_rho;	
-	    random_utils::RNG                          m_rng;	
+	    RNG                                        m_rng;	
 	};
 	
     }

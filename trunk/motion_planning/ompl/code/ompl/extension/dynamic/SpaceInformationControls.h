@@ -105,7 +105,7 @@ namespace ompl
 	    protected:
 		
 		SpaceInformationControls *m_si;	    
-		random_utils::RNG         m_rng;
+		RNG                       m_rng;
 		unsigned int              m_minControlDuration;
 		unsigned int              m_maxControlDuration;
 	    };

@@ -255,10 +255,10 @@ namespace ompl
 	    }
 	    
 	    void addMotion(TreeData &tree, Motion *motion);
-	    Motion* selectMotion(random_utils::RNG &rng, TreeData &tree);	
+	    Motion* selectMotion(RNG &rng, TreeData &tree);	
 	    void removeMotion(TreeData &tree, Motion *motion, std::map<Motion*, bool> &seen);
 	    bool isPathValid(TreeData &tree, Motion *motion);
-	    bool checkSolution(random_utils::RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
+	    bool checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
 	    
 
 	    base::SpaceInformation::StateSamplingCoreArray m_sCoreArray;
@@ -277,7 +277,7 @@ namespace ompl
 	    double                                     m_rho;	
 
 	    unsigned int                               m_threadCount;
-	    random_utils::RNG                          m_rng;	
+	    RNG                                        m_rng;	
 	};
 	
     }

@@ -268,7 +268,7 @@ namespace ompl
 	    double                                        m_badScoreFactor;
 	    double                                        m_selectBorderPercentage;
 	    double                                        m_goalBias;
-	    random_utils::RNG                             m_rng;	
+	    RNG                                           m_rng;	
 	};
 	
     }

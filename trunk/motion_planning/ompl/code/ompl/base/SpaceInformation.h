@@ -43,7 +43,7 @@
 #include "ompl/base/Path.h"
 #include "ompl/base/StateDistanceEvaluator.h"
 #include "ompl/base/StateValidityChecker.h"
-#include "ompl/base/util/random_utils.h"
+#include "ompl/base/RandomNumbers.h"
 
 #include <cstdlib>
 #include <vector>
@@ -226,7 +226,7 @@ namespace ompl
 	    protected:
 		
 		const SpaceInformation *m_si;
-		random_utils::RNG       m_rng;
+		RNG                     m_rng;
 	    };
 
 	    /** \brief A class that maintains an array of sampling
@@ -255,7 +255,7 @@ namespace ompl
 	    private:
 
 		const SpaceInformation *m_si;
-		random_utils::RNG       m_rng;
+		RNG                     m_rng;
 		
 	    };  
 	    

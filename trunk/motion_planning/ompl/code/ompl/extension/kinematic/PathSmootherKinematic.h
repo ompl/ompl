@@ -107,7 +107,7 @@ namespace ompl
 	protected:
 	    
 	    SpaceInformationKinematic *m_si;
-	    random_utils::RNG          m_rng;
+	    RNG                        m_rng;
 	    double                     m_rangeRatio;
 	    unsigned int               m_maxSteps;
 	    unsigned int               m_maxEmptySteps;

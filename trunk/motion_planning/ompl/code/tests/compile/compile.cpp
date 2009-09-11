@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ompl/base/util/random_utils.h"
+#include "ompl/base/RandomNumbers.h"
 
 #include "ompl/base/General.h"
 #include "ompl/base/State.h"

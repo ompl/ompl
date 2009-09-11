@@ -36,6 +36,7 @@
 
 #include "ompl/extension/dynamic/SpaceInformationControls.h"
 #include <algorithm>
+#include <cstring>
 #include <cassert>
 
 void ompl::dynamic::SpaceInformationControls::setup(void)

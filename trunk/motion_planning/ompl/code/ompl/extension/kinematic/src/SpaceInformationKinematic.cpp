@@ -38,6 +38,7 @@
 #include <angles/angles.h>
 #include <algorithm>
 #include <queue>
+#include <cassert>
 
 void ompl::kinematic::SpaceInformationKinematic::setup(void)
 {

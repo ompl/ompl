@@ -4,7 +4,7 @@ rospack(ompl)
 rospack_add_boost_directories()
 include_directories(${PROJECT_SOURCE_DIR}/code)
 set(CMAKE_BUILD_TYPE Release)
-rospack_add_library(ompl code/ompl/base/util/src/random_utils.cpp
+rospack_add_library(ompl code/ompl/base/src/RandomNumbers.cpp
 			 code/ompl/base/src/SpaceInformation.cpp
 			 code/ompl/base/src/StateDistanceEvaluator.cpp
 			 code/ompl/base/src/ProjectionEvaluator.cpp

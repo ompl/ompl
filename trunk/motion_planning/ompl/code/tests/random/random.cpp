@@ -35,17 +35,17 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "ompl/base/util/random_utils.h"
+#include "ompl/base/RandomNumbers.h"
 
 using namespace ompl;
 
 /* Just test we get some random values */
 TEST(Random, Simple)
 {
-    random_utils::RNG r1;
-    random_utils::RNG r2(r1.uniformInt(1, 10000));
-    random_utils::RNG r3(r2.uniformInt(1, 10000));
-    random_utils::RNG r4(r3.uniformInt(1, 10000));
+    RNG r1;
+    RNG r2(r1.uniformInt(1, 10000));
+    RNG r3(r2.uniformInt(1, 10000));
+    RNG r4(r3.uniformInt(1, 10000));
     int same = 0;
     int eq   = 0;
     const int N = 10;

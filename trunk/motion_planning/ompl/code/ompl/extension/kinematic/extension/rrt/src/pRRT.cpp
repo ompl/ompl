@@ -40,7 +40,7 @@
 
 void ompl::kinematic::pRRT::threadSolve(unsigned int tid, unsigned int seed, ros::WallTime &endTime, SolutionInfo *sol)
 {
-    random_utils::RNG rng(seed);
+    RNG rng(seed);
 
     SpaceInformationKinematic *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
     base::GoalRegion          *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal()); 

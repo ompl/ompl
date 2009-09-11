@@ -34,57 +34,52 @@
 
 /** \author Ioan Sucan */
 
-#ifndef OMPL_BASE_UTIL_RANDOM_UTILS_
-#define OMPL_BASE_UTIL_RANDOM_UTILS_
+#ifndef OMPL_BASE_RANDOM_NUMBERS_
+#define OMPL_BASE_RANDOM_NUMBERS_
 
 #include <vector>
-#include <boost/thread/mutex.hpp>
 
 namespace ompl
 {
-    namespace random_utils
+    /** \brief Random number generator state */
+    struct rngState
     {
-
-	/** Random number generator state */
-	struct rngState
+	unsigned int seed;
+	struct
 	{
-	    unsigned int seed;
-	    struct
-	    {
-		double last;
-		bool   valid;
-	    } gaussian;
-	};
+	    double last;
+	    bool   valid;
+	} gaussian;
+    };
+    
+    /** \brief Random number generation based on a state */
+    class RNG
+    {
 	
-	/** Random number generation based on a state */
-	class RNG
-	{
-
-	public:
-	    
-	    RNG(void);	    
-	    RNG(unsigned int seed);
-	    
-	    /** Uniform random number generator */	
-	    double uniform(double lower_bound = 0.0, double upper_bound = 1.0);
-	    int    uniformInt(int lower_bound, int upper_bound);
-	    bool   uniformBool(void);  
-	    
-	    /** Gaussian random number generator */	
-	    double gaussian(double mean, double stddev);
-	    double boundedGaussian(double mean, double stddev, double max_stddev);
-	    double halfNormal(double r_min, double r_max, double focus = 3.0);
-	    int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
-	    
-	    /** Random quaternion generator. The returned value has the order (x,y,z,w) */	
-	    void quaternion(double value[4]);
-	    
-	private:
-	    
-	    rngState m_state;
-	};
+    public:
 	
-    }
+	RNG(void);	    
+	RNG(unsigned int seed);
+	
+	/** Uniform random number generator */	
+	double uniform(double lower_bound = 0.0, double upper_bound = 1.0);
+	int    uniformInt(int lower_bound, int upper_bound);
+	bool   uniformBool(void);  
+	
+	/** Gaussian random number generator */	
+	double gaussian(double mean, double stddev);
+	double boundedGaussian(double mean, double stddev, double max_stddev);
+	double halfNormal(double r_min, double r_max, double focus = 3.0);
+	int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
+	
+	/** Random quaternion generator. The returned value has the order (x,y,z,w) */	
+	void quaternion(double value[4]);
+	
+    private:
+	
+	rngState m_state;
+    };
+    
 }
 
 #endif

@@ -39,6 +39,7 @@
 
 #include <vector>
 #include <boost/bind.hpp>
+#include <boost/function.hpp>
 
 namespace ompl
 {

@@ -199,7 +199,7 @@ namespace ompl
 	    boost::mutex                                   m_nnLock;
 	    
 	    unsigned int                                   m_threadCount;
-	    random_utils::RNG                              m_rng;
+	    RNG                                            m_rng;
 	    
 	    double                                         m_goalBias;
 	    double                                         m_rho;

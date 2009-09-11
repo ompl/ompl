@@ -40,7 +40,7 @@
 
 void ompl::kinematic::pSBL::threadSolve(unsigned int tid, unsigned int seed, ros::WallTime &endTime, SolutionInfo *sol)
 {   
-    random_utils::RNG rng(seed);
+    RNG rng(seed);
     
     SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
     base::GoalState           *goal = dynamic_cast<base::GoalState*>(si->getGoal());
@@ -213,7 +213,7 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
     return goal->isAchieved();
 }
 
-bool ompl::kinematic::pSBL::checkSolution(random_utils::RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)
+bool ompl::kinematic::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)
 {
     Grid<MotionSet>::Coord coord;
     m_projectionEvaluator->computeCoordinates(motion->state, coord);
@@ -312,7 +312,7 @@ bool ompl::kinematic::pSBL::isPathValid(TreeData &tree, Motion *motion)
     return result;
 }
 
-ompl::kinematic::pSBL::Motion* ompl::kinematic::pSBL::selectMotion(random_utils::RNG &rng, TreeData &tree)
+ompl::kinematic::pSBL::Motion* ompl::kinematic::pSBL::selectMotion(RNG &rng, TreeData &tree)
 {
     double sum  = 0.0;
     Grid<MotionSet>::Cell* cell = NULL;

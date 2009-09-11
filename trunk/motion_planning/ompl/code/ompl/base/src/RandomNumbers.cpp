@@ -39,15 +39,16 @@
 #include <cmath>
 #include <ctime>
 #include <climits>
-#include "ompl/base/util/random_utils.h"
+#include <boost/thread/mutex.hpp>
+#include "ompl/base/RandomNumbers.h"
 
-ompl::random_utils::RNG::RNG(unsigned int seed)
+ompl::RNG::RNG(unsigned int seed)
 {
     m_state.seed = seed;
     m_state.gaussian.valid = false;
 }
 
-ompl::random_utils::RNG::RNG(void)
+ompl::RNG::RNG(void)
 {
     FILE        *fp = fopen("/dev/urandom", "r");    
     unsigned int s;
@@ -64,26 +65,25 @@ ompl::random_utils::RNG::RNG(void)
     m_state.gaussian.valid = false;
 }
 
-double ompl::random_utils::RNG::uniform(double lower_bound, 
-					double upper_bound)
+double ompl::RNG::uniform(double lower_bound, double upper_bound)
 {
     return (upper_bound - lower_bound) 
 	* (double)rand_r(&m_state.seed) / ((double)(RAND_MAX) + 1.0)
 	+ lower_bound;     
 }
 
-int ompl::random_utils::RNG::uniformInt(int lower_bound, int upper_bound)
+int ompl::RNG::uniformInt(int lower_bound, int upper_bound)
 {
     return (int)uniform((double)lower_bound, 
 			(double)(upper_bound + 1));
 }
 
-bool ompl::random_utils::RNG::uniformBool(void)
+bool ompl::RNG::uniformBool(void)
 {
     return uniform(0.0, 1.0) <= 0.5;
 }
 
-double ompl::random_utils::RNG::gaussian(double mean, double stddev)
+double ompl::RNG::gaussian(double mean, double stddev)
 {
     if (m_state.gaussian.valid)
     {
@@ -107,7 +107,7 @@ double ompl::random_utils::RNG::gaussian(double mean, double stddev)
     }
 }
 
-double ompl::random_utils::RNG::boundedGaussian(double mean, double stddev, double max_stddev)
+double ompl::RNG::boundedGaussian(double mean, double stddev, double max_stddev)
 {
     double sample, max_s = max_stddev * stddev;
     do
@@ -117,9 +117,7 @@ double ompl::random_utils::RNG::boundedGaussian(double mean, double stddev, doub
     return sample;
 }
 
-double ompl::random_utils::RNG::halfNormal(double r_min,
-					   double r_max,
-					   double focus)
+double ompl::RNG::halfNormal(double r_min, double r_max, double focus)
 {
     const double mean = r_max - r_min;
     double       v    = gaussian(mean, mean/focus);
@@ -129,17 +127,14 @@ double ompl::random_utils::RNG::halfNormal(double r_min,
     return r > r_max ? r_max : r;
 }
 
-
-int ompl::random_utils::RNG::halfNormalInt(int r_min,
-					   int r_max,
-					   double focus)
+int ompl::RNG::halfNormalInt(int r_min, int r_max, double focus)
 {
     return (int)halfNormal(r_min, r_max + (1.0 - 1e-9), focus);
 }
 
 // From: "Uniform Random Rotations", Ken Shoemake, Graphics Gems III,
 //       pg. 124-132
-void ompl::random_utils::RNG::quaternion(double value[4])
+void ompl::RNG::quaternion(double value[4])
 {
     double x0 = uniform();    
     double r1 = sqrt(1.0 - x0), r2 = sqrt(x0);
