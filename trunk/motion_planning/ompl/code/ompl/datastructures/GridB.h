@@ -59,6 +59,8 @@ namespace ompl
     
     protected:
     
+	/// the type of cell here needs an extra pointer to allow the updatable heap to work fast
+	/// however, this stays hidden from the user
         struct CellX : public Cell
 	{
 	    
@@ -75,6 +77,7 @@ namespace ompl
 
     public:
 	
+	/// event to be called when a cell's priority is to be updated
 	typedef void (*EventCellUpdate)(Cell*, void*);
 
         explicit
@@ -88,44 +91,53 @@ namespace ompl
 	    clearHeaps();
 	}
 	
+	/// set the function callback and to be called when a cell's
+	/// priority is updated
 	void onCellUpdate(EventCellUpdate event, void *arg)
 	{
 	    m_eventCellUpdate = event;
 	    m_eventCellUpdateData = arg;
 	}
 
+	/// return the cell that is at the top of the heap maintaining internal cells 
 	Cell* topInternal(void) const
 	{
 	    Cell* top = static_cast<Cell*>(m_internal.top()->data);
 	    return top ? top : topExternal();
 	}
 	
+	/// return the cell that is at the top of the heap maintaining external cells 
 	Cell* topExternal(void) const
 	{
 	    Cell* top = static_cast<Cell*>(m_external.top()->data);
 	    return top ? top : topInternal();
 	}
-	
+
+	/// return the number of internal cells
 	unsigned int countInternal(void) const
 	{
 	    return m_internal.size();
 	}
 	
+	/// return the number of external cells
 	unsigned int countExternal(void) const
 	{
 	    return m_external.size();
 	}
-	
+
+	/// return the fraction of external cells
 	double fracExternal(void) const
 	{
 	    return m_external.empty() ? 0.0 : (double)(m_external.size()) / (double)(m_external.size() + m_internal.size());
 	}
-	
+
+	/// return the fraction of internal cells
 	double fracInternal(void) const
 	{
 	    return 1.0 - fracExternal();
 	}
 	
+	/// update the position in the heaps for a particular cell. 
 	void update(Cell* cell)
 	{
 	    m_eventCellUpdate(cell, m_eventCellUpdateData);
@@ -136,7 +148,8 @@ namespace ompl
 		m_internal.update(reinterpret_cast<typename internalBHeap::Element*>
 				  (static_cast<CellX*>(cell)->heapElement));
 	}
-    
+
+    	/// update all cells and reconstruct the heaps 
 	void updateAll(void)
 	{
 	    std::vector< Cell* > cells;
@@ -147,6 +160,7 @@ namespace ompl
 	    m_internal.rebuild();
 	}
 	
+	/// create a cell but do not add it to the grid; update neighboring cells however
         virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
 	{
 	    CellX* cell = new CellX();
@@ -189,7 +203,7 @@ namespace ompl
 	    return static_cast<Cell*>(cell);
 	}
 	
-
+	/// add the cell to the grid
 	virtual void add(Cell* cell)
 	{
 	    CellX* ccell = static_cast<CellX*>(cell);
@@ -203,6 +217,7 @@ namespace ompl
 		m_internal.insert(ccell);
 	}
 
+	/// remove a cell from the grid
 	virtual bool remove(Cell* cell)
 	{
 	    if (cell)
@@ -278,10 +293,6 @@ namespace ompl
 	{
 	    m_internal.clear();
 	    m_external.clear();
-	}
-	
-	void updateFrac(void) const
-	{
 	}
 	
 	struct LessThanInternalCell
