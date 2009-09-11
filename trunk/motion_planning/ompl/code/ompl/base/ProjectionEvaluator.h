@@ -125,7 +125,7 @@ namespace ompl
 	    
 	};	
 	
-        /** \brief Definition for a class computing orthogonal projections */
+        /** \brief Definition for a class computing linear projections */
 	class LinearProjectionEvaluator : public ProjectionEvaluator
 	{
 	public:
