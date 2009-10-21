@@ -77,7 +77,7 @@ namespace ompl
 	    return false;
 	}
 	
-	virtual _T nearest(_T &data) const
+	virtual _T nearest(const _T &data) const
 	{
 	    int pos = -1;
 	    double dmin = 0.0;

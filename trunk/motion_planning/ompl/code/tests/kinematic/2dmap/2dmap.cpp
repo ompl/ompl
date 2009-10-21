@@ -44,6 +44,7 @@
 #include "ompl/extension/kinematic/extension/kpiece/KPIECE1.h"
 #include "ompl/extension/kinematic/extension/sbl/SBL.h"
 #include "ompl/extension/kinematic/extension/rrt/RRT.h"
+#include "ompl/extension/kinematic/extension/rrt/RRTConnect.h"
 #include "ompl/extension/kinematic/extension/sbl/pSBL.h"
 #include "ompl/extension/kinematic/extension/rrt/pRRT.h"
 #include "ompl/extension/kinematic/extension/rrt/LazyRRT.h"
@@ -267,6 +268,18 @@ protected:
     base::Planner* newPlanner(kinematic::SpaceInformationKinematic *si)
     {
 	kinematic::RRT *rrt = new kinematic::RRT(si);
+	rrt->setRange(0.95);
+	return rrt;
+    }    
+};
+
+class RRTConnectTest : public TestPlanner 
+{
+protected:
+
+    base::Planner* newPlanner(kinematic::SpaceInformationKinematic *si)
+    {
+	kinematic::RRTConnect *rrt = new kinematic::RRTConnect(si);
 	rrt->setRange(0.95);
 	return rrt;
     }    
@@ -585,6 +598,21 @@ TEST_F(PlanTest, kinematic_RRT)
     double avglength  = 0.0;
     
     TestPlanner *p = new RRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.01);
+    EXPECT_TRUE(avglength < 70.0);
+}
+
+TEST_F(PlanTest, kinematic_RRTConnect)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+    
+    TestPlanner *p = new RRTConnectTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

@@ -72,6 +72,7 @@
 
 #include "ompl/extension/kinematic/extension/rrt/RRT.h"
 #include "ompl/extension/kinematic/extension/rrt/LazyRRT.h"
+#include "ompl/extension/kinematic/extension/rrt/RRTConnect.h"
 #include "ompl/extension/kinematic/extension/rrt/IKRRT.h"
 #include "ompl/extension/kinematic/extension/rrt/IKLRRT.h"
 #include "ompl/extension/kinematic/extension/rrt/pRRT.h"

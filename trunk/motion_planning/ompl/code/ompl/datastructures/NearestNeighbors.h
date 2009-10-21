@@ -72,7 +72,7 @@ namespace ompl
 	virtual void clear(void) = 0;
 	virtual void add(_T &data) = 0;
 	virtual bool remove(_T &data) = 0;
-	virtual _T nearest(_T &data) const = 0;
+	virtual _T nearest(const _T &data) const = 0;
 	virtual unsigned int size(void) const = 0;		
 	virtual void list(std::vector<_T> &data) const = 0;
 		
