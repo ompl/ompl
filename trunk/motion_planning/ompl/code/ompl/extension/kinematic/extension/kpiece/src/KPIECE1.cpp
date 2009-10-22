@@ -111,7 +111,7 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 		    if (approxsol)
 		    {
 			si->copyState(xstate, approxsol->state);
-			ROS_DEBUG("Start Running HCIK...");			
+			ROS_DEBUG("Start Running HCIK (%f)...", improveValue);			
 			if (!m_hcik.tryToImprove(xstate, improveValue))
 			{
 			    m_sCore.sampleNear(xstate, existing->state, range);
