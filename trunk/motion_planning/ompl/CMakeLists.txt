@@ -3,7 +3,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rosbuild_init()
 rosbuild_add_boost_directories()
 include_directories(${PROJECT_SOURCE_DIR}/code)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 rosbuild_add_library(ompl code/ompl/datastructures/src/RandomNumbers.cpp 
                           code/ompl/datastructures/src/JLMatrix.cpp 
 			  code/ompl/base/src/SpaceInformation.cpp
