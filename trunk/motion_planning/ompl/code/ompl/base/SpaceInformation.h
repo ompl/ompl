@@ -43,7 +43,7 @@
 #include "ompl/base/Path.h"
 #include "ompl/base/StateDistanceEvaluator.h"
 #include "ompl/base/StateValidityChecker.h"
-#include "ompl/base/RandomNumbers.h"
+#include "ompl/datastructures/RandomNumbers.h"
 
 #include <cstdlib>
 #include <vector>

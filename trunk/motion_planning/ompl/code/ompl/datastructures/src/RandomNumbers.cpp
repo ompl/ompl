@@ -40,7 +40,7 @@
 #include <ctime>
 #include <climits>
 #include <boost/thread/mutex.hpp>
-#include "ompl/base/RandomNumbers.h"
+#include "ompl/datastructures/RandomNumbers.h"
 
 ompl::RNG::RNG(unsigned int seed)
 {

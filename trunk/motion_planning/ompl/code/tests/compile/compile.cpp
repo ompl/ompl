@@ -36,7 +36,6 @@
 
 #include <gtest/gtest.h>
 
-#include "ompl/base/RandomNumbers.h"
 
 #include "ompl/base/General.h"
 #include "ompl/base/State.h"
@@ -52,11 +51,14 @@
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/StateDistanceEvaluator.h"
 
+#include "ompl/datastructures/RandomNumbers.h"
 #include "ompl/datastructures/Hash.h"
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/Grid.h"
 #include "ompl/datastructures/GridN.h"
 #include "ompl/datastructures/GridB.h"
+#include "ompl/datastructures/SearchGrid.h"
+#include "ompl/datastructures/JLMatrix.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/NearestNeighborsLinear.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"

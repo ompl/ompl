@@ -35,7 +35,7 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "ompl/base/RandomNumbers.h"
+#include "ompl/datastructures/RandomNumbers.h"
 
 using namespace ompl;
 
