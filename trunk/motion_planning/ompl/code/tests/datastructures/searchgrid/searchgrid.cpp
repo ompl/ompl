@@ -42,6 +42,27 @@ using namespace ompl;
 
 TEST(SearchGrid, Simple)
 {
+    SearchGrid::Coord M(2);
+    M[0] = 10;
+    M[1] = 10;
+    SearchGrid *grid = new SearchGrid2D(M);
+
+    grid->setAllCells(1.0);
+
+
+    SearchGrid::Coord c(2);
+    c[0] = 1;
+    c[1] = 1;
+    
+    EXPECT_EQ(grid->getCell(c), 1.0);
+    c[1]++;
+    grid->setCellWithDecay(c, 2.0, 0.25, 2);
+    c[1]--;
+    EXPECT_NEAR(grid->getCell(c), 0.5, 1e-9);
+    
+    //    grid->print();
+    
+    delete grid;
 }
 
 int main(int argc, char **argv)

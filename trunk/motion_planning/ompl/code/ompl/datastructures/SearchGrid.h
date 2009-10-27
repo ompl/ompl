@@ -37,7 +37,9 @@
 #ifndef OMPL_DATASTRUCTURES_SEARCH_GRID_
 #define OMPL_DATASTRUCTURES_SEARCH_GRID_
 
-#include <cstdio>
+#include <vector>
+#include <iostream>
+#include "ompl/datastructures/Hash.h"
 
 namespace ompl
 {
@@ -49,44 +51,102 @@ namespace ompl
 	/// definition of a coordinate within this grid
 	typedef std::vector<int> Coord;
 
-	SearchGrid(unsigned int dimension, const Coord &maxC)
+	class Mark
 	{
+	public:
+	    Mark(void)
+	    {
+	    }
 	    
+	    ~Mark(void)
+	    {
+	    }
+	    
+	    void setMark(const Coord &cell, int value);
+	    int  getMark(const Coord &cell, int def) const;
+	    bool hasMark(const Coord &cell) const;
+	    void clear(void);
+	    
+	private:
+	    
+	    /// equality operator for coordinate pointers
+	    struct EqualCoord
+	    {
+		bool operator()(const Coord &c1, const Coord &c2) const
+		{
+		    return c1 == c2;
+		}
+	    };
+	    
+	    /// hash function for coordinates
+	    struct HashFunCoord
+	    {
+		std::size_t operator()(const Coord &s) const
+		{ 
+		    unsigned long h = 0;
+		    for (int i = s.size() - 1; i >= 0; --i)
+		    {
+			int high = h & 0xf8000000;
+			h = h << 5;
+			h = h ^ (high >> 27);
+			h = h ^ s[i];
+		    }		
+		    return (std::size_t) h;
+		}
+	    };
+	    
+	    /// define the datatype for the used hash structure
+	    typedef OMPL_NS_HASH::OMPL_NAME_HASH<Coord, int, HashFunCoord, EqualCoord> CoordHash;
+	    
+	    CoordHash m_hash;
+	};
+	
+	SearchGrid(void)
+	{	    
 	}
 	
-	~SearchGrid(void)
+	virtual ~SearchGrid(void)
 	{
 	}
 	
-	void setAllCells(const double val)
-	{
-	}
+	virtual void setAllCells(const double val) = 0;
 	
-	void setCell(const Coord &cell, const double val)
-	{
-	}
+	virtual void setCell(const Coord &cell, const double val) = 0;
 	
 	void setCellWithDecay(const Coord &cell, const double val,
-			      const double decay, const unsigned int steps)
-	{
-	}
+			      const double decay, const unsigned int steps);
 	
-	double getCell(const Coord &cell) const
-	{
-	    return 0;
-	}
+	virtual double getCell(const Coord &cell) const = 0;
+	virtual void getNeighbors(const Coord &cell, std::vector<Coord> &neighbors) = 0;
+	virtual void print(std::ostream &out = std::cout) const = 0;
 	
-	void getNeighbors(const Coord &cell, std::vector<Coord> &neighbors)
-	{
-	    
-	}
+    protected:
 	
-    private:
 
-	double *m_cells;
+	void setCellWithDecayAux(Mark &seen, const Coord &cell, const double val,
+				 const double decay, const unsigned int steps);
 	
     };
+    
+    class SearchGrid2D : public SearchGrid
+    {
+    public:
+	SearchGrid2D(const Coord &maxC);
+	virtual ~SearchGrid2D(void);
+	
+	virtual void setAllCells(const double val);
+	virtual void setCell(const Coord &cell, const double val);
+	virtual double getCell(const Coord &cell) const;
+	virtual void getNeighbors(const Coord &cell, std::vector<Coord> &neighbors);
+	virtual void print(std::ostream &out = std::cout) const;
 
+    private:
+	
+	std::vector<double> m_cells;
+	Coord               m_maxC;
+	
+    };
+    
 }
 
 #endif
