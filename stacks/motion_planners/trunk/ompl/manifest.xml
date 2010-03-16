@@ -6,7 +6,7 @@
   <author>Ioan Sucan/isucan@willowgarage.com</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url></url>
+  <url>http://ros.org/wiki/ompl</url>
 
   <depend package="angles"/>
   <depend package="roslib"/>
