@@ -43,11 +43,14 @@
 #include "ompl/base/Path.h"
 #include "ompl/base/StateDistanceEvaluator.h"
 #include "ompl/base/StateValidityChecker.h"
-#include "ompl/datastructures/RandomNumbers.h"
+#include "ompl/base/StateSampler.h"
 
 #include <cstdlib>
 #include <vector>
 #include <iostream>
+
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
 
 /** \brief Main namespace */
 namespace ompl
@@ -57,11 +60,15 @@ namespace ompl
     
     const double STATE_EPSILON = 1e-12;
     
+    /** \brief This namespace contains sampling based planning
+	routines shared by both planning under geometric constraints
+	(kinematic) and planning under differential constraints
+	(dynamic) */
     namespace base
     {
 	
-	/** \brief The base class for space information. This contains all the
-	    information about the space planning is done in.
+	/** \brief The base class for space information. This contains
+	    all the information about the space planning is done in.
 	    setup() needs to be called as well, before use */
 	class SpaceInformation
 	{
@@ -74,6 +81,7 @@ namespace ompl
 		m_setup = false;
 		m_stateDistanceEvaluator = NULL;
 		m_stateValidityChecker = NULL;
+		m_stateSamplerAllocator = NULL;
 		m_stateDimension = 0;
 	    }
 	    
@@ -142,20 +150,42 @@ namespace ompl
 		m_goal = NULL;
 	    }
 
-	    /** \brief Set the instance of the distance evaluator to use. This is
-		only needed by some planning algorithms. No memory freeing is performed. */
+	    /** \brief Set the pointer to a function that can allocate
+		state samplers.  We do not set a specific instance
+		since parallel planners will use multiple instances in
+		order to benefit from different random seeds. */
+	    void setStateSamplerAllocator(const boost::function<StateSampler*(const SpaceInformation*)> &sampler)
+	    {
+		m_stateSamplerAllocator = sampler;
+	    }
+	    
+	    
+	    /** \brief Allocate a new state sampler. Releasing the memory is not handled. */
+	    StateSampler* allocNewStateSampler(void) const
+	    {
+		return m_stateSamplerAllocator(this);
+	    }
+	    
+	    /** \brief Set the instance of the distance evaluator to
+		use. This is only needed by some planning
+		algorithms. No memory freeing is performed. Parallel
+		implementations of algorithms assume the distance
+		evaluator is thread safe. */
 	    void setStateDistanceEvaluator(StateDistanceEvaluator *sde)
 	    {
 		m_stateDistanceEvaluator = sde;
 	    }
-	    
+
 	    /** \brief Return the instance of the used state distance evaluator */
 	    StateDistanceEvaluator* getStateDistanceEvaluator(void) const
 	    {
 		return m_stateDistanceEvaluator;
 	    }	
 	    
-	    /** \brief Set the instance of the validity checker to use. No memory freeing is performed. */
+	    /** \brief Set the instance of the validity checker to
+		use. No memory freeing is performed. Parallel
+		implementations of planners assume this validity
+		checker is thread safe. */
 	    void setStateValidityChecker(StateValidityChecker *svc)
 	    {
 		m_stateValidityChecker = svc;
@@ -167,10 +197,23 @@ namespace ompl
 		return m_stateValidityChecker;
 	    }
 	    
+	    /** \brief Specify the state to use in the space information */
+	    void setStateSpecification(const std::vector<StateComponent> &stateSpec)
+	    {
+		m_stateComponent = stateSpec;
+		m_stateDimension = stateSpec.size();
+	    }
+	    
 	    /** \brief Return the dimension of the state space */
 	    unsigned int getStateDimension(void) const
 	    {
 		return m_stateDimension;
+	    }
+	    
+	    /** \brief Get information about a all the state space components */
+	    const std::vector<StateComponent>& getStateComponents(void) const
+	    {
+		return m_stateComponent;
 	    }
 	    
 	    /** \brief Get information about a component of the state space */
@@ -196,69 +239,7 @@ namespace ompl
 	    {
 		return (*m_stateDistanceEvaluator)(s1, s2);
 	    }
-	    
-	    /** \brief A class that can perform sampling. Usually an instance of this class is needed
-	     * for sampling states */
-	    class StateSamplingCore
-	    {	    
-	    public:
-		StateSamplingCore(const SpaceInformation *si) : m_si(si) 
-		{
-		}	    
-		
-		StateSamplingCore(const SpaceInformation *si, unsigned int seed) : m_si(si), m_rng(seed)
-		{
-		}	    
-		
-		virtual ~StateSamplingCore(void)
-		{
-		}
-		
-		/** \brief Sample a state */
-		virtual void sample(base::State *state);
-		
-		/** \brief Sample a state near another, within given bounds */
-		virtual void sampleNear(base::State *state, const base::State *near, const double rho);
-		
-		/** \brief Sample a state near another, within given bounds */
-		virtual void sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho);
-		
-	    protected:
-		
-		const SpaceInformation *m_si;
-		RNG                     m_rng;
-	    };
 
-	    /** \brief A class that maintains an array of sampling
-		cores. This makes sure seeds for the different
-		samplers are set accordingly. This is meant for use
-		with parallel motion planners */
-	    class StateSamplingCoreArray
-	    {
-	    public:
-		
-		StateSamplingCoreArray(const SpaceInformation *si) : m_si(si)
-		{
-		}
-		
-		~StateSamplingCoreArray(void)
-		{
-		    for (unsigned int i = 0 ; i < sCore.size() ; ++i)
-			delete sCore[i];
-		}
-		
-		std::vector<StateSamplingCore*> sCore;
-		
-		void setCount(unsigned int count);
-		unsigned int getCount(void) const;
-
-	    private:
-
-		const SpaceInformation *m_si;
-		RNG                     m_rng;
-		
-	    };  
-	    
 	    /** \brief Bring the state within the bounds of the state space */
 	    void enforceBounds(base::State *state) const;
 	    
@@ -267,7 +248,7 @@ namespace ompl
 	    bool searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const;
 
 	    /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automaticaly
-	      * find a neaby state that is valid so motion planning can be performed. This function enables this behaviour.
+	      * find a nearby state that is valid so motion planning can be performed. This function enables this behaviour.
 	      * The allowed distance (per state component) for both start and goal states is specified. The number of attempts
 	      * is also specified. Returns true if all states are valid after completion. */
 	    bool fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts);
@@ -298,9 +279,11 @@ namespace ompl
 	    StateValidityChecker        *m_stateValidityChecker;
 	    StateDistanceEvaluator      *m_stateDistanceEvaluator;
 	    
+	    boost::function<StateSampler*(const SpaceInformation*)>
+	                                 m_stateSamplerAllocator;
+	    
 	    bool                         m_setup;
 	};
-	
 	
     }
     

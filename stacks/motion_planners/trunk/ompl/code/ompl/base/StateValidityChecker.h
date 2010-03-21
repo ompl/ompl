@@ -45,11 +45,21 @@ namespace ompl
     
     namespace base
     {
+
+	class SpaceInformation;
 	
-	/** \brief Abstract definition for a class checking the validity of states. The () operator must be defined. The implementation of this class must be thread safe. */
+	/** \brief Abstract definition for a class checking the
+	    validity of states. The () operator must be defined. The
+	    implementation of this class must be thread safe. */
 	class StateValidityChecker
 	{
 	public:
+
+	    /** \brief Constructor */
+	    StateValidityChecker(const SpaceInformation *si) : m_si(si)
+	    {
+	    }
+	    
 	    /** \brief Destructor */
 	    virtual ~StateValidityChecker(void)
 	    {
@@ -57,18 +67,11 @@ namespace ompl
 	    
 	    /** \brief Return true if the state is valid */
 	    virtual bool operator()(const State *state) const = 0;
-	};
-	
-	/** \brief A state validity checker that considers all states valid. */
-	class AllValidStateValidityChecker : public StateValidityChecker
-	{
-	public:
 	    
-	    /** \brief Return true for all states */
-	    virtual bool operator()(const State *) const 
-	    {
-		return true;
-	    }
+	protected:
+	    
+	    const SpaceInformation *m_si;
+	    
 	};
 	
     }

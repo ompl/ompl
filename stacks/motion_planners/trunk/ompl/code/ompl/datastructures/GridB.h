@@ -63,7 +63,6 @@ namespace ompl
 	/// however, this stays hidden from the user
         struct CellX : public Cell
 	{
-	    
 	    CellX(void) : Cell()
 	    {
 	    }
@@ -72,7 +71,7 @@ namespace ompl
 	    {
 	    }
 
-	    void           *heapElement;
+	    void *heapElement;
 	};
 
     public:
@@ -283,7 +282,7 @@ namespace ompl
     
 	void setupHeaps(void)
 	{
-	    m_eventCellUpdate     = noCellUpdate;
+	    m_eventCellUpdate     = &noCellUpdate;
 	    m_eventCellUpdateData = NULL;
 	    m_internal.onAfterInsert(setHeapElementI, NULL);
 	    m_external.onAfterInsert(setHeapElementE, NULL);

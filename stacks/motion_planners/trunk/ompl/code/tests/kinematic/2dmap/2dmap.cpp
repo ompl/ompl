@@ -37,18 +37,19 @@
 #include <gtest/gtest.h>
 #include <ros/time.h>
 
-#include "ompl/extension/kinematic/PathSmootherKinematic.h"
-#include "ompl/base/ProjectionEvaluator.h"
+#include "ompl/kinematic/PathSmootherKinematic.h"
+#include "ompl/base/OrthogonalProjectionEvaluator.h"
+#include "ompl/base/GoalState.h"
 
-#include "ompl/extension/kinematic/extension/kpiece/LBKPIECE1.h"
-#include "ompl/extension/kinematic/extension/kpiece/KPIECE1.h"
-#include "ompl/extension/kinematic/extension/sbl/SBL.h"
-#include "ompl/extension/kinematic/extension/rrt/RRT.h"
-#include "ompl/extension/kinematic/extension/rrt/RRTConnect.h"
-#include "ompl/extension/kinematic/extension/sbl/pSBL.h"
-#include "ompl/extension/kinematic/extension/rrt/pRRT.h"
-#include "ompl/extension/kinematic/extension/rrt/LazyRRT.h"
-#include "ompl/extension/kinematic/extension/est/EST.h"
+#include "ompl/kinematic/planners/kpiece/LBKPIECE1.h"
+#include "ompl/kinematic/planners/kpiece/KPIECE1.h"
+#include "ompl/kinematic/planners/sbl/SBL.h"
+#include "ompl/kinematic/planners/rrt/RRT.h"
+#include "ompl/kinematic/planners/rrt/RRTConnect.h"
+#include "ompl/kinematic/planners/sbl/pSBL.h"
+#include "ompl/kinematic/planners/rrt/pRRT.h"
+#include "ompl/kinematic/planners/rrt/LazyRRT.h"
+#include "ompl/kinematic/planners/est/EST.h"
 
 #include "environment2D.h"
 #include <iostream>
@@ -64,6 +65,10 @@ class myStateValidityChecker : public base::StateValidityChecker
 {
 public:
 
+    myStateValidityChecker(base::SpaceInformation *si) : base::StateValidityChecker(si)
+    {
+    }
+    
     virtual bool operator()(const base::State *state) const
     {
 	/* planning is done in a continuous space, but our collision space representation is discrete */
@@ -88,6 +93,10 @@ class myStateDistanceEvaluator : public base::StateDistanceEvaluator
 {
 public:
 
+    myStateDistanceEvaluator(base::SpaceInformation *si) : base::StateDistanceEvaluator(si)
+    {
+    }
+    
     virtual double operator()(const base::State *state1, const base::State *state2) const
     {
 	/* planning is done in a continuous space, but our collision space representation is discrete */
@@ -146,16 +155,17 @@ public:
     {	 
 	bool result = true;
 	
+	/* instantiate space information */
+	mySpaceInformation *si = new mySpaceInformation(env.width, env.height);
+	
 	/* instantiate state validity checker */
-	myStateValidityChecker *svc = new myStateValidityChecker();
+	myStateValidityChecker *svc = new myStateValidityChecker(si);
 	svc->setGrid(env.grid);
 	
 	/* instantiate state distance evaluator  */
-	myStateDistanceEvaluator *sde = new myStateDistanceEvaluator();
+	myStateDistanceEvaluator *sde = new myStateDistanceEvaluator(si);
 	
 	
-	/* instantiate space information */
-	mySpaceInformation *si = new mySpaceInformation(env.width, env.height);
 	si->setStateValidityChecker(svc);
 	si->setStateDistanceEvaluator(sde);
 	si->setup();
@@ -339,7 +349,7 @@ protected:
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new base::OrthogonalProjectionEvaluator(projection);
+	ope = new base::OrthogonalProjectionEvaluator(si, projection);
 	
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -385,7 +395,7 @@ protected:
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new base::OrthogonalProjectionEvaluator(projection);
+	ope = new base::OrthogonalProjectionEvaluator(si, projection);
 	
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -430,7 +440,7 @@ protected:
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new base::OrthogonalProjectionEvaluator(projection);
+	ope = new base::OrthogonalProjectionEvaluator(si, projection);
 		
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -475,7 +485,7 @@ protected:
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new base::OrthogonalProjectionEvaluator(projection);
+	ope = new base::OrthogonalProjectionEvaluator(si, projection);
 
 	std::vector<double> cdim;
 	cdim.push_back(1);
@@ -520,7 +530,7 @@ protected:
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new base::OrthogonalProjectionEvaluator(projection);
+	ope = new base::OrthogonalProjectionEvaluator(si, projection);
 
 	std::vector<double> cdim;
 	cdim.push_back(1);

@@ -37,8 +37,10 @@
 #include <gtest/gtest.h>
 #include <ros/time.h>
 
-#include "ompl/extension/dynamic/extension/rrt/RRT.h"
-#include "ompl/extension/dynamic/extension/kpiece/KPIECE1.h"
+#include "ompl/base/GoalState.h"
+#include "ompl/base/OrthogonalProjectionEvaluator.h"
+#include "ompl/dynamic/planners/rrt/RRT.h"
+#include "ompl/dynamic/planners/kpiece/KPIECE1.h"
 
 #include "environment2D.h"
 #include <iostream>
@@ -54,6 +56,10 @@ class myStateValidityChecker : public base::StateValidityChecker
 {
 public:
 
+    myStateValidityChecker(base::SpaceInformation *si) : base::StateValidityChecker(si)
+    {
+    }
+    
     virtual bool operator()(const base::State *state) const
     {
 	/* planning is done in a continuous space, but our collision space representation is discrete */
@@ -83,6 +89,10 @@ class myStateDistanceEvaluator : public base::StateDistanceEvaluator
 {
 public:
 
+    myStateDistanceEvaluator(base::SpaceInformation *si) : base::StateDistanceEvaluator(si)
+    {
+    }
+    
     virtual double operator()(const base::State *state1, const base::State *state2) const
     {
 	/* planning is done in a continuous space, but our collision space representation is discrete */
@@ -97,15 +107,15 @@ public:
     
 };
 
-class myStateForwardPropagator : public base::StateForwardPropagator
+class myStateForwardPropagator : public dynamic::StateForwardPropagator
 {
 public:
     
-    myStateForwardPropagator(base::SpaceInformation *si) : m_si(si)
+    myStateForwardPropagator(dynamic::SpaceInformationControls *si) : dynamic::StateForwardPropagator(si)
     {
     }
     
-    virtual void operator()(const base::State *begin, const base::Control *ctrl, double resolution, base::State *end) const
+    virtual void operator()(const base::State *begin, const dynamic::Control *ctrl, double resolution, base::State *end) const
     {
 	end->values[0] = begin->values[0] + resolution * ctrl->values[0];
 	end->values[1] = begin->values[1] + resolution * ctrl->values[1];
@@ -120,11 +130,6 @@ public:
 	end->values[2] = ctrl->values[0];
 	end->values[3] = ctrl->values[1];
     }
-
-protected:
-
-    base::SpaceInformation *m_si;
-    
 };
 	
     
@@ -165,11 +170,11 @@ public:
 	m_controlDimension = 2;
 	m_controlComponent.resize(2);
 
-	m_controlComponent[0].type = base::ControlComponent::LINEAR;
+	m_controlComponent[0].type = dynamic::ControlComponent::LINEAR;
 	m_controlComponent[0].minValue = -MAX_VELOCITY;
 	m_controlComponent[0].maxValue = MAX_VELOCITY;
 
-	m_controlComponent[1].type = base::ControlComponent::LINEAR;
+	m_controlComponent[1].type = dynamic::ControlComponent::LINEAR;
 	m_controlComponent[1].minValue = -MAX_VELOCITY;
 	m_controlComponent[1].maxValue = MAX_VELOCITY;
 	
@@ -198,12 +203,12 @@ public:
 	
 
 	/* instantiate state validity checker */
-	myStateValidityChecker *svc = new myStateValidityChecker();
+	myStateValidityChecker *svc = new myStateValidityChecker(si);
 	svc->setGrid(env.grid);
 	si->setStateValidityChecker(svc);
 
 	/* instantiate state distance evaluator  */
-	myStateDistanceEvaluator *sde = new myStateDistanceEvaluator();
+	myStateDistanceEvaluator *sde = new myStateDistanceEvaluator(si);
 	si->setStateDistanceEvaluator(sde);
 
 	/* instantiate state distance evaluator  */
@@ -345,7 +350,7 @@ protected:
 	std::vector<unsigned int> projection;
 	projection.push_back(0);
 	projection.push_back(1);
-	ope = new base::OrthogonalProjectionEvaluator(projection);
+	ope = new base::OrthogonalProjectionEvaluator(si, projection);
 
 	std::vector<double> cdim;
 	cdim.push_back(1);

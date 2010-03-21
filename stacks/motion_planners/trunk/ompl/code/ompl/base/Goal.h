@@ -50,62 +50,62 @@ namespace ompl
 	
 	class SpaceInformation;
 	
-	/** Abstract definition of goals. Will contain solutions, if found */
+	/** \brief Abstract definition of goals. Will contain solutions, if found */
 	class Goal
 	{
 	public:
 	    
-	    /** Constructor. The goal must always know the space information it is part of */
-	    Goal(SpaceInformation *si)
+	    /** \brief Constructor. The goal must always know the space information it is part of */
+	    Goal(const SpaceInformation *si) : m_si(si), m_path(NULL), m_difference(-1.0), m_approximate(false)
 	    {
-		m_si   = si;
-		m_path = NULL;
-		m_difference = -1.0;
-		m_approximate = false;
 	    }
 	    
-	    /** Destructor. Clears the solution as well */
+	    /** \brief Destructor. Clears the solution as well */
 	    virtual ~Goal(void)
 	    {
 		if (m_path)
 		    delete m_path;
 	    }
 	    
-	    /** Return true if the state statisfies the goal
+	    /** \brief Return true if the state statisfies the goal
 	     *  constraints.  If the state does not satisfy the
-	     *  constraints, set the distance of how far the state
-	     *  is from the goal. */
+	     *  constraints, set the distance of how far the state is
+	     *  from the goal. */
 	    virtual bool isSatisfied(const State *s, double *distance) const = 0;
 	    
-	    /** Returns the space information this goal is part of */
-	    SpaceInformation* getSpaceInformation(void) const
+	    /** \brief Returns the space information this goal is part of */
+	    const SpaceInformation* getSpaceInformation(void) const
 	    {
 		return m_si;
 	    }
 	    
-	    /** Returns true if a solution path has been found (could be approximate) */
+	    /** \brief Returns true if a solution path has been found (could be approximate) */
 	    bool isAchieved(void) const
 	    {
 		return m_path != NULL;
 	    }
 	    
-	    /** Return the found solution path */
+	    /** \brief Return the found solution path. 
+
+		This will need to be casted into the specialization
+		computed by the planner */
 	    Path* getSolutionPath(void) const
 	    {
 		return m_path;
 	    }
 	    
-	    /** Forget the solution path. Memory is not freed. This is
-		useful when the user wants to keep the solution path
-		but wants to clear the goal. The user takes
-		responsibilty to free the memory for the solution
-		path. */
+	    /** \brief Forget the solution path. Memory is not freed.
+		
+		This is useful when the user wants to keep the
+		solution path but wants to clear the goal. The user
+		takes responsibilty to free the memory for the
+		solution path. */
 	    void forgetSolutionPath(void)
 	    {
 		m_path = NULL;
 	    }	    
 	    
-	    /** Update the solution path. If a previous solution path exists, it is deleted. */
+	    /** \brief Update the solution path. If a previous solution path exists, it is deleted. */
 	    void setSolutionPath(Path *path, bool approximate = false)
 	    {
 		if (m_path)
@@ -114,7 +114,7 @@ namespace ompl
 		m_approximate = approximate;
 	    }
 	    
-	    /** If a difference between the desired solution and the
+	    /** \brief If a difference between the desired solution and the
 		solution found is computed by the planner, this functions
 		returns it */
 	    double getDifference(void) const
@@ -122,21 +122,22 @@ namespace ompl
 		return m_difference;
 	    }
 	    
-	    /** Set the difference between the found solution path and
-		the desired solution path */
+	    /** \brief Set the difference between the found solution
+		path and the desired solution path */
 	    void setDifference(double difference)
 	    {
 		m_difference = difference;
 	    }
 	    
-	    /** Return true if the found solution is approximate (does not actually reach the desired goal,
+	    /** \brief Return true if the found solution is
+		approximate (does not actually reach the desired goal,
 		but hopefully is closer to it) */
 	    bool isApproximate(void) const
 	    {
 		return m_approximate;
 	    }
 	    
-	    /** Print information about the goal */
+	    /** \brief Print information about the goal */
 	    virtual void print(std::ostream &out = std::cout) const
 	    {
 		out << "Goal memory address " << reinterpret_cast<const void*>(this) << std::endl;
@@ -144,71 +145,20 @@ namespace ompl
 	    
 	protected:
 	    
-	    /** solution path, if found */
-	    Path              *m_path;
+	    /** \brief The space information for this goal */
+	    const SpaceInformation *m_si;
+
+	    /** \brief Solution path, if found */
+	    Path                   *m_path;
+	    	    
+	    /** \brief The achieved difference between the found solution and the desired goal */
+	    double                  m_difference;
 	    
-	    /** the space information for this goal */
-	    SpaceInformation  *m_si;
-	    
-	    /** the achieved difference between the found solution and the desired goal */
-	    double             m_difference;
-	    
-	    /** true if goal was not achieved, but an approximate solution was found */
-	    bool               m_approximate;
+	    /** \brief True if goal was not achieved, but an approximate solution was found */
+	    bool                    m_approximate;
 	    
 	};
-	
-	/** Definition of a goal region */
-	class GoalRegion : public base::Goal
-	{
-	public:
-	    
-	    GoalRegion(SpaceInformation *si);
-	    
-	    virtual ~GoalRegion(void)
-	    {
-	    }
-	    
-	    /** Decide whether a given state is part of the goal
-		region. Returns true if the distance to goal is less
-		than the threshold */
-	    virtual bool isSatisfied(const base::State *s, double *distance = NULL) const;
-	    
-	    /** Compute the distance to the goal (heuristic) */
-	    virtual double distanceGoal(const base::State *s) const = 0;
-	    
-	    /** Print information about the goal data structure to the
-		screen */
-	    virtual void print(std::ostream &out = std::cout) const;
-	    
-	    /** The maximum distance that is allowed to the goal */
-	    double threshold;
-	};
-	
-	/** Definition of a goal state */
-	class GoalState : public GoalRegion
-	{
-	public:
-	    
-	    GoalState(SpaceInformation *si);
-	    
-	    virtual ~GoalState(void)
-	    {
-		if (state)
-		    delete state;
-	    }
-	    
-	    /** Compute the distance to the goal (heuristic) */
-	    virtual double distanceGoal(const base::State *s) const;	    
-	    
-	    /** Print information about the goal data structure to the
-		screen */
-	    virtual void print(std::ostream &out = std::cout) const;
-	    
-	    /** The goal state */
-	    base::State *state;
-	};
-	
+		
     }
 }
 

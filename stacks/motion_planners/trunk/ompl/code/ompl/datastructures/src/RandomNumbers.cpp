@@ -34,90 +34,37 @@
 
 /** \author Ioan Sucan  */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include <ctime>
-#include <climits>
-#include <boost/thread/mutex.hpp>
 #include "ompl/datastructures/RandomNumbers.h"
+#include <boost/random/lagged_fibonacci.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/thread/mutex.hpp>
+#include <ros/time.h>
 
-ompl::RNG::RNG(unsigned int seed)
+/// We use a different random number generator for the seeds of the
+/// other random generators. The root seed is from the number of
+/// nano-seconds in the current time.
+
+static unsigned int nextSeed(void)
 {
-    m_state.seed = seed;
-    m_state.gaussian.valid = false;
+    static boost::mutex rngMutex;
+    rngMutex.lock();
+    static boost::lagged_fibonacci607 sGen(ros::WallTime::now().toNSec());
+    static boost::uniform_int<>       sDist(1, 1000000000);
+    static boost::variate_generator<boost::lagged_fibonacci607, boost::uniform_int<> > s(sGen, sDist);
+    unsigned int v = s();
+    rngMutex.unlock();
+    return v;
 }
 
-ompl::RNG::RNG(void)
+ompl::RNG::RNG(void) : generator_(nextSeed()),
+		       uniDist_(0, 1),
+		       normalDist_(0, 1),
+		       uni_(generator_, uniDist_),
+		       normal_(generator_, normalDist_)
 {
-    FILE        *fp = fopen("/dev/urandom", "r");    
-    unsigned int s;
-    
-    if(fp != NULL)
-    {
-	if (!fread(&s, sizeof(unsigned int), 1, fp))
-	    s = (unsigned int) time(NULL);
-	fclose(fp);
-    }
-    else
-	s = (unsigned int) time(NULL);
-    m_state.seed = s;
-    m_state.gaussian.valid = false;
 }
 
-double ompl::RNG::uniform(double lower_bound, double upper_bound)
-{
-    return (upper_bound - lower_bound) 
-	* (double)rand_r(&m_state.seed) / ((double)(RAND_MAX) + 1.0)
-	+ lower_bound;     
-}
-
-int ompl::RNG::uniformInt(int lower_bound, int upper_bound)
-{
-    return (int)uniform((double)lower_bound, 
-			(double)(upper_bound + 1));
-}
-
-bool ompl::RNG::uniformBool(void)
-{
-    return uniform(0.0, 1.0) <= 0.5;
-}
-
-double ompl::RNG::gaussian(double mean, double stddev)
-{
-    if (m_state.gaussian.valid)
-    {
-	double r = m_state.gaussian.last * stddev + mean;
-	m_state.gaussian.valid = false;
-	return r;
-    }
-    else
-    {	
-	double x1, x2, w;
-	do
-	{
-	    x1 = uniform(-1.0, 1.0);
-	    x2 = uniform(-1.0, 1.0);
-	    w = x1 * x1 + x2 * x2;
-	} while (w >= 1.0 || w == 0.0);
-	w = sqrt(-2.0 * log(w) / w);
-	m_state.gaussian.valid = true;
-	m_state.gaussian.last  = x2 * w;
-	return x1 * stddev * w + mean;
-    }
-}
-
-double ompl::RNG::boundedGaussian(double mean, double stddev, double max_stddev)
-{
-    double sample, max_s = max_stddev * stddev;
-    do
-    {
-	sample = gaussian(mean, stddev);
-    } while (fabs(sample - mean) > max_s);
-    return sample;
-}
-
-double ompl::RNG::halfNormal(double r_min, double r_max, double focus)
+double ompl::RNG::halfNormalReal(double r_min, double r_max, double focus)
 {
     const double mean = r_max - r_min;
     double       v    = gaussian(mean, mean/focus);
@@ -129,16 +76,16 @@ double ompl::RNG::halfNormal(double r_min, double r_max, double focus)
 
 int ompl::RNG::halfNormalInt(int r_min, int r_max, double focus)
 {
-    return (int)halfNormal(r_min, r_max + (1.0 - 1e-9), focus);
+    return (int)halfNormalReal(r_min, r_max + (1.0 - 1e-9), focus);
 }
 
 // From: "Uniform Random Rotations", Ken Shoemake, Graphics Gems III,
 //       pg. 124-132
 void ompl::RNG::quaternion(double value[4])
 {
-    double x0 = uniform();    
+    double x0 = uni_();    
     double r1 = sqrt(1.0 - x0), r2 = sqrt(x0);
-    double t1 = 2.0 * M_PI * uniform(), t2 = 2.0 * M_PI * uniform();
+    double t1 = 2.0 * M_PI * uni_(), t2 = 2.0 * M_PI * uni_();
     double c1 = cos(t1), s1 = sin(t1);
     double c2 = cos(t2), s2 = sin(t2);
     value[0] = s1 * r1;

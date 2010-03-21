@@ -42,13 +42,10 @@ using namespace ompl;
 /* Just test we get some random values */
 TEST(Random, Simple)
 {
-    RNG r1;
-    RNG r2(r1.uniformInt(1, 10000));
-    RNG r3(r2.uniformInt(1, 10000));
-    RNG r4(r3.uniformInt(1, 10000));
+    RNG r1, r2, r3, r4;
     int same = 0;
     int eq   = 0;
-    const int N = 10;
+    const int N = 100;
     for (int i = 0 ; i < N ; ++i)
     {
 	int v1 = r1.uniformInt(0, 100);

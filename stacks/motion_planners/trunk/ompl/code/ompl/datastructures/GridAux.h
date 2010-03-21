@@ -44,19 +44,18 @@
 #include <cassert>
 #include "ompl/datastructures/Hash.h"
 
-/** \brief Main namespace */
 namespace ompl
 {
 
-    /// make sure we define this constant only once using some macro magic
+    // make sure we define this constant only once using some macro magic
 #ifndef OMPL_DATASTRUCTURES_GRID_AUX_
     
-    /// the maximum number of neighbors a grid cell can have
+    /// The maximum number of neighbors a grid cell can have
     const unsigned short MAX_GRID_NEIGHBORS = 255;
 
 #endif
 
-    /// the name of the class changes depending on whether we count neighbors or not
+    // the name of the class changes depending on whether we count neighbors or not
     template <typename _T>
     class
 #ifdef OMPL_GRID_COUNT_NEIGHBORS

@@ -37,47 +37,72 @@
 #ifndef OMPL_BASE_RANDOM_NUMBERS_
 #define OMPL_BASE_RANDOM_NUMBERS_
 
-#include <vector>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/variate_generator.hpp>
 
 namespace ompl
 {
-    /** \brief Random number generator state */
-    struct rngState
-    {
-	unsigned int seed;
-	struct
-	{
-	    double last;
-	    bool   valid;
-	} gaussian;
-    };
-    
     /** \brief Random number generation based on a state */
     class RNG
     {
-	
     public:
 	
-	RNG(void);	    
-	RNG(unsigned int seed);
+	/** \brief Constructor. Always sets a different random seed */
+	RNG(void);
 	
-	/** Uniform random number generator */	
-	double uniform(double lower_bound = 0.0, double upper_bound = 1.0);
-	int    uniformInt(int lower_bound, int upper_bound);
-	bool   uniformBool(void);  
+	/** \brief Generate a random real between 0 and 1 */	
+	double uniform01(void)
+	{
+	    return uni_();
+	}
 	
-	/** Gaussian random number generator */	
-	double gaussian(double mean, double stddev);
-	double boundedGaussian(double mean, double stddev, double max_stddev);
-	double halfNormal(double r_min, double r_max, double focus = 3.0);
+	/** \brief Generate a random real within given bounds */
+	double uniformReal(double lower_bound, double upper_bound)
+	{
+	    return (upper_bound - lower_bound) * uni_()	+ lower_bound;
+	}
+	
+	/** \brief Generate a random integer within given bounds */
+	int uniformInt(int lower_bound, int upper_bound)
+	{
+	    return (int)uniformReal((double)lower_bound, (double)(upper_bound + 1));
+	}
+	
+	/** \brief Generate a random boolean */
+	bool uniformBool(void)
+	{
+	    return uni_() <= 0.5;
+	}
+	
+	/** \brief Generate a random real using a normal distribution with mean 0 and variance 1 */	
+	double gaussian01(void)
+	{
+	    return normal_();
+	}
+	
+	/** \brief Generate a random real using a normal distribution with given mean and variance */	
+	double gaussian(double mean, double stddev)
+	{
+	    return normal_() * stddev + mean;
+	}
+	
+	/** \brief Generate a random real using a normal distribution with given mean and variance */	
+	double halfNormalReal(double r_min, double r_max, double focus = 3.0);
 	int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
 	
-	/** Random quaternion generator. The returned value has the order (x,y,z,w) */	
-	void quaternion(double value[4]);
+	/** \brief Random quaternion generator. The returned value has the order (x,y,z,w) */	
+	void   quaternion(double value[4]);
 	
     private:
 	
-	rngState m_state;
+	boost::mt19937                                                          generator_;
+	boost::uniform_real<>                                                   uniDist_;
+	boost::normal_distribution<>                                            normalDist_;
+	boost::variate_generator<boost::mt19937, boost::uniform_real<> >        uni_;
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<> > normal_;
+	
     };
     
 }

@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \Author Ioan Sucan */
+/** \author Ioan Sucan */
 
 #ifndef ENVIDONMENT_2D_
 #define ENVIDONMENT_2D_
@@ -46,7 +46,7 @@ static const int T_OBSTACLE = 1;
 static const int T_PATH     = 2;
 static const int T_ERROR    = 3;
 
-/** Representation of a 2D environment */
+/** \brief Representation of a 2D environment */
 struct Environment2D
 {  
     Environment2D(void)

@@ -5,33 +5,39 @@ rosbuild_add_boost_directories()
 include_directories(${PROJECT_SOURCE_DIR}/code)
 set(CMAKE_BUILD_TYPE Release)
 rosbuild_add_library(ompl code/ompl/datastructures/src/RandomNumbers.cpp 
-                          code/ompl/datastructures/src/JLMatrix.cpp 
-                          code/ompl/datastructures/src/SearchGrid.cpp 
 			  code/ompl/base/src/SpaceInformation.cpp
-			  code/ompl/base/src/StateDistanceEvaluator.cpp
-			  code/ompl/base/src/ProjectionEvaluator.cpp
-			  code/ompl/base/src/Goal.cpp
+			  code/ompl/base/src/L2SquareStateDistanceEvaluator.cpp
+			  code/ompl/base/src/LinearProjectionEvaluator.cpp
+			  code/ompl/base/src/OrthogonalProjectionEvaluator.cpp
+			  code/ompl/base/src/StateSampler.cpp
+			  code/ompl/base/src/StateSamplerArray.cpp
+			  code/ompl/base/src/UniformStateSampler.cpp
+			  code/ompl/base/src/GoalRegion.cpp
+			  code/ompl/base/src/GoalState.cpp
 			  code/ompl/base/src/Planner.cpp
-			  code/ompl/extension/kinematic/src/PathKinematic.cpp
-			  code/ompl/extension/kinematic/src/SpaceInformationKinematic.cpp
-			  code/ompl/extension/kinematic/src/PathSmootherKinematic.cpp
-			  code/ompl/extension/kinematic/extension/ik/src/HCIK.cpp
-			  code/ompl/extension/kinematic/extension/ik/src/GAIK.cpp
-			  code/ompl/extension/kinematic/extension/rrt/src/RRT.cpp
-			  code/ompl/extension/kinematic/extension/rrt/src/pRRT.cpp
-			  code/ompl/extension/kinematic/extension/rrt/src/LazyRRT.cpp
-			  code/ompl/extension/kinematic/extension/rrt/src/RRTConnect.cpp
-			  code/ompl/extension/kinematic/extension/est/src/EST.cpp
-			  code/ompl/extension/kinematic/extension/sbl/src/SBL.cpp
-			  code/ompl/extension/kinematic/extension/sbl/src/pSBL.cpp
-			  code/ompl/extension/kinematic/extension/kpiece/src/KPIECE1.cpp
-			  code/ompl/extension/kinematic/extension/kpiece/src/LBKPIECE1.cpp
-			  code/ompl/extension/dynamic/src/SpaceInformationControls.cpp
-			  code/ompl/extension/dynamic/src/SpaceInformationControlsIntegrator.cpp
-			  code/ompl/extension/dynamic/src/SpaceInformationControlsPhysics.cpp
-			  code/ompl/extension/dynamic/src/PathDynamic.cpp
-			  code/ompl/extension/dynamic/extension/rrt/src/RRT.cpp
-			  code/ompl/extension/dynamic/extension/kpiece/src/KPIECE1.cpp
+			  code/ompl/kinematic/src/PathKinematic.cpp
+			  code/ompl/kinematic/src/SpaceInformationKinematic.cpp
+			  code/ompl/kinematic/src/PathSmootherKinematic.cpp
+			  code/ompl/kinematic/src/LinearStateInterpolatorKinematic.cpp
+			  code/ompl/kinematic/planners/ik/src/HCIK.cpp
+			  code/ompl/kinematic/planners/ik/src/GAIK.cpp
+			  code/ompl/kinematic/planners/rrt/src/RRT.cpp
+			  code/ompl/kinematic/planners/rrt/src/pRRT.cpp
+			  code/ompl/kinematic/planners/rrt/src/LazyRRT.cpp
+			  code/ompl/kinematic/planners/rrt/src/RRTConnect.cpp
+			  code/ompl/kinematic/planners/est/src/EST.cpp
+			  code/ompl/kinematic/planners/sbl/src/SBL.cpp
+			  code/ompl/kinematic/planners/sbl/src/pSBL.cpp
+			  code/ompl/kinematic/planners/kpiece/src/KPIECE1.cpp
+			  code/ompl/kinematic/planners/kpiece/src/LBKPIECE1.cpp
+			  code/ompl/dynamic/src/ControlSampler.cpp
+			  code/ompl/dynamic/src/PathDynamic.cpp
+			  code/ompl/dynamic/src/SpaceInformationControls.cpp
+			  code/ompl/dynamic/src/UniformControlSampler.cpp
+			  code/ompl/dynamic/src/SpaceInformationControlsIntegrator.cpp
+			  code/ompl/dynamic/src/SpaceInformationControlsPhysics.cpp
+			  code/ompl/dynamic/planners/rrt/src/RRT.cpp
+			  code/ompl/dynamic/planners/kpiece/src/KPIECE1.cpp
 			  )
 rosbuild_add_compile_flags(ompl -Wextra)
 rosbuild_link_boost(ompl thread)
@@ -62,14 +68,6 @@ rosbuild_link_boost(test_grid thread)
 rosbuild_add_gtest(test_gridb code/tests/datastructures/grid/gridb.cpp)
 target_link_libraries(test_gridb ompl)
 rosbuild_link_boost(test_gridb thread)
-
-rosbuild_add_gtest(test_searchgrid code/tests/datastructures/searchgrid/searchgrid.cpp)
-target_link_libraries(test_searchgrid ompl)
-rosbuild_link_boost(test_searchgrid thread)
-
-rosbuild_add_gtest(test_jlmatrix code/tests/datastructures/jlmatrix/jlmatrix.cpp)
-target_link_libraries(test_jlmatrix ompl)
-rosbuild_link_boost(test_jlmatrix thread)
 
 rosbuild_add_gtest(test_random code/tests/datastructures/random/random.cpp)
 target_link_libraries(test_random ompl)

@@ -52,28 +52,24 @@ namespace ompl
 	class StateDistanceEvaluator
 	{
 	public:
+	    
+	    /** \brief Constructor */
+	    StateDistanceEvaluator(const SpaceInformation *si) : m_si(si)
+	    {
+	    }
+	    
 	    /** \brief Destructor */
 	    virtual ~StateDistanceEvaluator(void)
 	    {
 	    }
 	    /** \brief Return true if the state is valid */
 	    virtual double operator()(const State *state1, const State *state2) const = 0;
-	};
-	
-	/** \brief Definition of a distance evaluator: the square of the L2 norm */
-	class L2SquareStateDistanceEvaluator : public StateDistanceEvaluator
-	{
-	public:
-	    L2SquareStateDistanceEvaluator(SpaceInformation *si) : StateDistanceEvaluator(), m_si(si)
-	    {
-	    }
-	    
-	    virtual double operator()(const State *state1, const State *state2) const;
 	    
 	protected:
 	    
-	    SpaceInformation *m_si;	    
+	    const SpaceInformation *m_si;	    
 	};
+	
     }
     
 }

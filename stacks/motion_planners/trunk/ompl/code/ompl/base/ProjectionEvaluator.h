@@ -49,10 +49,17 @@ namespace ompl
     namespace base
     {
 
+	class SpaceInformation;
+	
 	/** \brief Abstract definition for a class computing projections. The implementation of this class must be thread safe. */
 	class ProjectionEvaluator
 	{
 	public:
+	    
+	    ProjectionEvaluator(const SpaceInformation *si) : m_si(si)
+	    {
+	    }
+	    
 	    /** \brief Destructor */
 	    virtual ~ProjectionEvaluator(void)
 	    {
@@ -98,55 +105,10 @@ namespace ompl
 	    
 	protected:
 	    
-	    std::vector<double> m_cellDimensions;
+	    const SpaceInformation *m_si;	    
+	    std::vector<double>     m_cellDimensions;
 	    
 	};
-	
-	/** \brief Definition for a class computing orthogonal projections */
-	class OrthogonalProjectionEvaluator : public ProjectionEvaluator
-	{
-	public:
-	    
-	    OrthogonalProjectionEvaluator(const std::vector<unsigned int> &components) : ProjectionEvaluator()
-	    {
-		m_components = components;
-	    }
-	    
-	    virtual unsigned int getDimension(void) const
-	    {
-		return m_components.size();
-	    }
-	    
-	    virtual void operator()(const base::State *state, double *projection) const;
-	    
-	protected:
-	    
-	    std::vector<unsigned int> m_components;
-	    
-	};	
-	
-        /** \brief Definition for a class computing linear projections */
-	class LinearProjectionEvaluator : public ProjectionEvaluator
-	{
-	public:
-	    
-	    LinearProjectionEvaluator(const std::vector< std::valarray<double> > &projection) : ProjectionEvaluator()
-	    {
-		m_projection = projection;
-	    }
-	    
-	    virtual unsigned int getDimension(void) const
-	    {
-		return m_projection.size();
-	    }
-	    
-	    virtual void operator()(const base::State *state, double *projection) const;
-	    
-	protected:
-	    
-	    std::vector< std::valarray<double> > m_projection;
-	    
-	};	
 	
     }
 }

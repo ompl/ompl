@@ -41,7 +41,6 @@
 #include "ompl/base/SpaceInformation.h"
 #include <ros/time.h>
 
-/** Main namespace */
 namespace ompl
 {
 
@@ -50,8 +49,13 @@ namespace ompl
 	
 	enum PlannerType
 	    {
+		/** \brief This value should not be set */
 		PLAN_UNKNOWN        = 0,
+
+		/** \brief This bit is set if planning to goal states (ompl::base::GoalState) is possible */
 		PLAN_TO_GOAL_STATE  = 1,
+
+		/** \brief This bit is set if planning to goal regions (ompl::base::GoalRegion) is possible */
 		PLAN_TO_GOAL_REGION = 2
 	    };
 	

@@ -35,86 +35,22 @@
 /* \author Ioan Sucan */
 
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/GoalState.h"
+#include "ompl/base/UniformStateSampler.h"
 #include <angles/angles.h>
 #include <ros/console.h>
 #include <sstream>
 #include <cstring>
 #include <cassert>
 
-unsigned int ompl::base::SpaceInformation::StateSamplingCoreArray::getCount(void) const
+namespace ompl
 {
-    return sCore.size();
-}
-
-void ompl::base::SpaceInformation::StateSamplingCoreArray::setCount(unsigned int count) 
-{
-    if (count < sCore.size())
+    namespace base
     {
-	for (unsigned int i = count ; i < sCore.size() ; ++i)
-	    delete sCore[i];
-	sCore.resize(count);
-    }
-    else
-	if (count > sCore.size())
+	static StateSampler* allocUniformStateSampler(const SpaceInformation *si)
 	{
-	    unsigned int p = sCore.size();
-	    sCore.resize(count);
-	    for (unsigned int i = p ; i < count ; ++i)
-		sCore[i] = new StateSamplingCore(m_si, m_rng.uniformInt(1, 100000000));
+	    return new UniformStateSampler(si);
 	}
-}
-
-void ompl::base::SpaceInformation::StateSamplingCore::sample(base::State *state)
-{
-    const unsigned int dim = m_si->getStateDimension();
-    for (unsigned int i = 0 ; i < dim ; ++i)
-    {
-	const base::StateComponent &comp = m_si->getStateComponent(i);	
-	if (comp.type == base::StateComponent::QUATERNION)
-	{
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] = m_rng.uniform(comp.minValue, comp.maxValue);	    
-    }
-}
-
-void ompl::base::SpaceInformation::StateSamplingCore::sampleNear(base::State *state, const base::State *near, const double rho)
-{
-    const unsigned int dim = m_si->getStateDimension();
-    for (unsigned int i = 0 ; i < dim ; ++i)
-    {
-	const base::StateComponent &comp = m_si->getStateComponent(i);	
-	if (comp.type == base::StateComponent::QUATERNION)
-	{
-	    /* no notion of 'near' is employed for quaternions */
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] =
-		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho), 
-			      std::min(comp.maxValue, near->values[i] + rho));
-    }
-}
-
-void ompl::base::SpaceInformation::StateSamplingCore::sampleNear(base::State *state, const base::State *near, const std::vector<double> &rho)
-{
-    const unsigned int dim = m_si->getStateDimension();
-    for (unsigned int i = 0 ; i < dim ; ++i)
-    {	
-	const base::StateComponent &comp = m_si->getStateComponent(i);	
-	if (comp.type == base::StateComponent::QUATERNION)
-	{
-	    /* no notion of 'near' is employed for quaternions */
-	    m_rng.quaternion(state->values + i);
-	    i += 3;
-	}
-	else
-	    state->values[i] = 
-		m_rng.uniform(std::max(comp.minValue, near->values[i] - rho[i]), 
-			      std::min(comp.maxValue, near->values[i] + rho[i]));
     }
 }
 
@@ -127,8 +63,16 @@ void ompl::base::SpaceInformation::setup(void)
 {
     if (m_setup)
 	ROS_ERROR("Space information setup called multiple times");
-    assert(m_stateDimension > 0);
-    assert(m_stateComponent.size() == m_stateDimension);
+    
+    if (m_stateDimension <= 0)
+	ROS_FATAL("State space dimension must be > 0");
+    
+    if (m_stateComponent.size() != m_stateDimension)
+	ROS_FATAL("State component specification does not agree with state dimension");
+    
+    if (!m_stateSamplerAllocator)
+	m_stateSamplerAllocator = boost::bind(allocUniformStateSampler, _1);
+    
     m_setup = true;
 }
 
@@ -272,12 +216,12 @@ bool ompl::base::SpaceInformation::searchValidNearby(base::State *state, const b
     if (!result)
     {
 	// try to find a valid state nearby
-	StateSamplingCore sc(this);
-	base::State       temp(m_stateDimension);
+	StateSamplerInstance ss(this);
+	base::State          temp(m_stateDimension);
 	copyState(&temp, state);	
 	for (unsigned int i = 0 ; i < attempts && !result ; ++i)
 	{
-	    sc.sampleNear(state, &temp, rho);
+	    ss->sampleNear(state, &temp, rho);
 	    result = isValid(state);
 	}
     }
