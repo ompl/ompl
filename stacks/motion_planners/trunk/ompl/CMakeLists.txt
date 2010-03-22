@@ -5,6 +5,7 @@ rosbuild_add_boost_directories()
 include_directories(${PROJECT_SOURCE_DIR}/code)
 set(CMAKE_BUILD_TYPE Release)
 rosbuild_add_library(ompl code/ompl/datastructures/src/RandomNumbers.cpp 
+                          code/ompl/datastructures/src/SearchGrid.cpp
 			  code/ompl/base/src/SpaceInformation.cpp
 			  code/ompl/base/src/L2SquareStateDistanceEvaluator.cpp
 			  code/ompl/base/src/LinearProjectionEvaluator.cpp
@@ -72,6 +73,10 @@ rosbuild_link_boost(test_gridb thread)
 rosbuild_add_gtest(test_random code/tests/datastructures/random/random.cpp)
 target_link_libraries(test_random ompl)
 rosbuild_link_boost(test_random thread)
+
+rosbuild_add_gtest(test_searchgrid code/tests/datastructures/searchgrid/searchgrid.cpp)
+target_link_libraries(test_searchgrid ompl)
+rosbuild_link_boost(test_searchgrid thread)
 
 # Test compilation
 rosbuild_add_gtest(test_compile code/tests/compile/compile.cpp)

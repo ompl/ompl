@@ -39,7 +39,7 @@
 
 #include <vector>
 #include <iostream>
-#include "ompl/datastructures/Hash.h"
+#include <map>
 
 namespace ompl
 {
@@ -49,83 +49,54 @@ namespace ompl
     public:
 
 	/// definition of a coordinate within this grid
-	typedef std::vector<int> Coord;
+	typedef std::vector<unsigned int> Coord;
 
-	class Mark
-	{
-	public:
-	    Mark(void)
-	    {
-	    }
-	    
-	    ~Mark(void)
-	    {
-	    }
-	    
-	    void setMark(const Coord &cell, int value);
-	    int  getMark(const Coord &cell, int def) const;
-	    bool hasMark(const Coord &cell) const;
-	    void clear(void);
-	    
-	private:
-	    
-	    /// equality operator for coordinate pointers
-	    struct EqualCoord
-	    {
-		bool operator()(const Coord &c1, const Coord &c2) const
-		{
-		    return c1 == c2;
-		}
-	    };
-	    
-	    /// hash function for coordinates
-	    struct HashFunCoord
-	    {
-		std::size_t operator()(const Coord &s) const
-		{ 
-		    unsigned long h = 0;
-		    for (int i = s.size() - 1; i >= 0; --i)
-		    {
-			int high = h & 0xf8000000;
-			h = h << 5;
-			h = h ^ (high >> 27);
-			h = h ^ s[i];
-		    }		
-		    return (std::size_t) h;
-		}
-	    };
-	    
-	    /// define the datatype for the used hash structure
-	    typedef OMPL_NS_HASH::OMPL_NAME_HASH<Coord, int, HashFunCoord, EqualCoord> CoordHash;
-	    
-	    CoordHash m_hash;
-	};
+        SearchGrid(const Coord &maxC);	
+	virtual ~SearchGrid(void);
 	
-	SearchGrid(void)
-	{	    
+	const Coord& getBounds(void) const
+	{
+	    return m_maxC;
 	}
 	
-	virtual ~SearchGrid(void)
+	unsigned int getStateCount(void) const
 	{
+	    return m_stateCount;	    
 	}
+	
+	void stateToCell(const int state, Coord &cell) const;
+	void cellToState(const Coord &cell, int &state) const;
+	std::string toString(const Coord &c) const;
+	
+	unsigned int manhattanDistance(const Coord &a, const Coord &b) const;
 	
 	virtual void setAllCells(const double val) = 0;
 	
 	virtual void setCell(const Coord &cell, const double val) = 0;
-	
+	virtual void setState(const int state, const double val) = 0;
 	void setCellWithDecay(const Coord &cell, const double val,
+			      const double decay, const unsigned int steps);
+	void setCellWithDecay(const int state, const double val,
 			      const double decay, const unsigned int steps);
 	
 	virtual double getCell(const Coord &cell) const = 0;
-	virtual void getNeighbors(const Coord &cell, std::vector<Coord> &neighbors) = 0;
-	virtual void print(std::ostream &out = std::cout) const = 0;
+	virtual double getState(const int state) const = 0;
+	
+	virtual void getNeighbors(const Coord &cell, std::vector<Coord> &neighbors) const = 0;
+	virtual void getNeighbors(const int state, std::vector<int> &neighbors) const = 0;
+	
+	virtual void print(const std::string &name = "G", std::ostream &out = std::cout) const = 0;
+	
+	bool shortestPath(const Coord &start, const Coord &goal, std::vector<Coord> &path) const;
 	
     protected:
 	
-
-	void setCellWithDecayAux(Mark &seen, const Coord &cell, const double val,
+	void setCellWithDecayAux(std::map<int, int> &seen, const int state, const double val,
 				 const double decay, const unsigned int steps);
 	
+	unsigned int m_stateCount;
+	Coord        m_maxC;
+	Coord        m_maxCAux;
     };
     
     class SearchGrid2D : public SearchGrid
@@ -136,14 +107,16 @@ namespace ompl
 	
 	virtual void setAllCells(const double val);
 	virtual void setCell(const Coord &cell, const double val);
+	virtual void setState(int state, const double val);
 	virtual double getCell(const Coord &cell) const;
-	virtual void getNeighbors(const Coord &cell, std::vector<Coord> &neighbors);
-	virtual void print(std::ostream &out = std::cout) const;
+	virtual double getState(int state) const;
+	virtual void getNeighbors(const Coord &cell, std::vector<Coord> &neighbors) const;
+	virtual void getNeighbors(int state, std::vector<int> &neighbors) const;
+	virtual void print(const std::string &name = "G", std::ostream &out = std::cout) const;
 
     private:
 	
 	std::vector<double> m_cells;
-	Coord               m_maxC;
 	
     };
     

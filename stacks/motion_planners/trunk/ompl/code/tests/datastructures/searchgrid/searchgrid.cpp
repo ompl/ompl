@@ -47,18 +47,28 @@ TEST(SearchGrid, Simple)
     M[1] = 10;
     SearchGrid *grid = new SearchGrid2D(M);
 
-    grid->setAllCells(1.0);
+    grid->setAllCells(0.1);
 
 
     SearchGrid::Coord c(2);
     c[0] = 1;
     c[1] = 1;
     
-    EXPECT_EQ(grid->getCell(c), 1.0);
+    EXPECT_EQ(grid->getCell(c), 0.1);
     c[1]++;
     grid->setCellWithDecay(c, 2.0, 0.25, 2);
     c[1]--;
     EXPECT_NEAR(grid->getCell(c), 0.5, 1e-9);
+    
+    SearchGrid::Coord s(2);
+    SearchGrid::Coord g(2);
+    s[0] = s[1] = 0;
+    g[0] = g[1] = 7;
+    std::vector<SearchGrid::Coord> p;
+    grid->shortestPath(s, g, p);
+    
+    for (unsigned int i = 0 ; i < p.size() ; ++i)
+	grid->setCell(p[i], 9);
     
     //    grid->print();
     
