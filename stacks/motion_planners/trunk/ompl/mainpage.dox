@@ -153,6 +153,8 @@
    #include <ompl/kinematic/planners/rrt/RRT.h>
    #include <ompl/base/GoalState.h>
 
+   #include <ompl/kinematic/PathSmootherKinematic.h>
+
    ...
 
    class myStateValidityChecker : public ompl::base::StateValidityChecker
@@ -217,6 +219,40 @@
    // since we used a kinematic planner
    ompl::kinematic::PathKinematic *solution = static_cast<ompl::kinematic::PathKinematic*>(si->getGoal()->getSolutionPath());
    
+
+   // make the goal region forget about the solution it found; if
+   // we don't, the memory associated to the solution path will be
+   // deleted when the goal instance is deleted
+   gs->forgetSolutionPath();
+
+   // create an instance if a kinematic smoother 
+   ompl::kinematic::PathSmootherKinematic *smoother = new ompl::kinematic::PathSmootherKinematic(si);
+   smoother->smoothMax(solution); // the smoothing is done in place
+   
+   // output solution somehow 
+   ...
+
+   // clear memory for the solution path
+   delete solution;
+
+   // free memory for the smoother
+   delete smoother;
+
+   // frees start states; not done by default
+   si->clearStartStates();
+
+   // frees memory for the goal; not done by default
+   // since forgetSolutionPath() was called, this does not free the solution path
+   si->clearGoal();
+
+   // delete state validity checker; space information does not take ownership of this
+   delete svc;
+
+   // delete state interpolator; space information does not take ownership of this
+   delete sik;
+   
+   // delete space information; all memory is freed now
+   delete si;
 
    @endcode
 
