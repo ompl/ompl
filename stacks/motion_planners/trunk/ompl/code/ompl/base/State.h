@@ -50,6 +50,15 @@ namespace ompl
 	{
 	public:
 	    
+	    /** The flag datatype */
+	    typedef int flagType;
+
+	    /** Number of bit flags available in the state flags variable */
+	    static const int FLAG_BITS_MAX  = sizeof(flagType);
+
+	    /** Number of bit flags already used in the state flags variable */
+	    static const int FLAG_BITS_USED = 1;
+	    
 	    enum 
 		{
 		    NO_FLAGS       = 0,
@@ -73,8 +82,8 @@ namespace ompl
 		    delete[] values;
 	    }
 	    
-	    int     flags;
-	    double *values;
+	    flagType flags;
+	    double  *values;
 	};
 	
 	/** Semantic information and bounds about each state component */
