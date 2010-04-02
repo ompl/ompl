@@ -35,20 +35,19 @@
 /* \author Ioan Sucan */
 
 #include "ompl/kinematic/planners/kpiece/KPIECE1.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/GoalSampleableRegion.h"
 #include <ros/console.h>
 
 bool ompl::kinematic::KPIECE1::solve(double solveTime)
 {
-    SpaceInformationKinematic *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalRegion      *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal());
-    GoalRegionKinematic   *goal_k = dynamic_cast<GoalRegionKinematic*>(si->getGoal());
-    base::GoalState       *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
-    unsigned int              dim = si->getStateDimension();
+    SpaceInformationKinematic      *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    base::Goal                   *goal = si->getGoal();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    unsigned int                   dim = si->getStateDimension();
     
-    if (!goal_s && !goal_r)
+    if (!goal)
     {
-	ROS_ERROR("KPIECE1: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("KPIECE1: Goal undefined");
 	return false;
     }
     
@@ -103,26 +102,23 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 	if (m_rng.uniform01() < m_goalBias)
 	{
 	    if (goal_s)
-		si->copyState(xstate, goal_s->state);
+		goal_s->sampleGoal(xstate);
 	    else
-		if (goal_k)
-		    goal_k->sampleNearGoal(xstate);
-		else
+	    {
+		if (approxsol)
 		{
-		    if (approxsol)
+		    si->copyState(xstate, approxsol->state);
+		    ROS_DEBUG("Start Running HCIK (%f)...", improveValue);			
+		    if (!m_hcik.tryToImprove(xstate, improveValue))
 		    {
-			si->copyState(xstate, approxsol->state);
-			ROS_DEBUG("Start Running HCIK (%f)...", improveValue);			
-			if (!m_hcik.tryToImprove(xstate, improveValue))
-			{
-			    m_sCore->sampleNear(xstate, existing->state, range);
-			    improveValue /= 2.0;
-			}
-			ROS_DEBUG("End Running HCIK");			
-		    }
-		    else
 			m_sCore->sampleNear(xstate, existing->state, range);
+			improveValue /= 2.0;
+		    }
+		    ROS_DEBUG("End Running HCIK");			
 		}
+		else
+		    m_sCore->sampleNear(xstate, existing->state, range);
+	    }
 	}
 	else
 	    m_sCore->sampleNear(xstate, existing->state, range);
@@ -140,7 +136,7 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 	    motion->parent = existing;
 
 	    double dist = 0.0;
-	    bool solved = goal_r->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, &dist);
 	    addMotion(motion, dist);
 	    
 	    if (solved)
@@ -187,8 +183,8 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
-	goal_r->setDifference(approxdif);
-	goal_r->setSolutionPath(path, approximate);
+	goal->setDifference(approxdif);
+	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
 	    ROS_WARN("KPIECE1: Found approximate solution");
@@ -199,7 +195,7 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
     ROS_INFO("KPIECE1: Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
 	     m_tree.grid.countInternal(), m_tree.grid.countExternal());
     
-    return goal_r->isAchieved();
+    return goal->isAchieved();
 }
 
 bool ompl::kinematic::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)

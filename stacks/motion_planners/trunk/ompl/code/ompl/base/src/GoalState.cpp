@@ -47,3 +47,13 @@ void ompl::base::GoalState::print(std::ostream &out) const
     out << "Goal state, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << ", state = ";
     m_si->printState(state, out);
 }
+
+void ompl::base::GoalState::sampleGoal(base::State *s) const
+{
+    m_si->copyState(s, state);
+}
+
+unsigned int ompl::base::GoalState::maxSampleCount(void) const
+{
+    return 1;
+}

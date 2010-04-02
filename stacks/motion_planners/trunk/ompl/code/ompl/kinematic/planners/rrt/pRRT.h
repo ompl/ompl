@@ -78,7 +78,7 @@ namespace ompl
 	    pRRT(SpaceInformationKinematic *si) : base::Planner(si),
 						  m_sCoreArray(si)
 	    {
-		m_type = (base::PlannerType)(base::PLAN_TO_GOAL_STATE | base::PLAN_TO_GOAL_REGION);
+		m_type = base::PLAN_TO_GOAL_ANY;
 		m_nn.setDistanceFunction(boost::bind(&pRRT::distanceFunction, this, _1, _2));
 		setThreadCount(2);
 		m_goalBias = 0.05;	    

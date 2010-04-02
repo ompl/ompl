@@ -34,33 +34,35 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_KINEMATIC_GOAL_KINEMATIC_
-#define OMPL_KINEMATIC_GOAL_KINEMATIC_
+#ifndef OMPL_BASE_GOAL_SAMPLEABLE_REGION_
+#define OMPL_BASE_GOAL_SAMPLEABLE_REGION_
 
 #include "ompl/base/GoalRegion.h"
 
 namespace ompl
 {
     
-    namespace kinematic
+    namespace base
     {
 	
-	/** \brief Abstract definition of a goal region that know something about the goal and can sample arount it */
-	class GoalRegionKinematic : public base::GoalRegion
+	/** \brief Abstract definition of a goal region that can be sampled */
+	class GoalSampleableRegion : public base::GoalRegion
 	{
 	public:
 	    
-	    GoalRegionKinematic(base::SpaceInformation *si) : GoalRegion(si)
+	    GoalSampleableRegion(const base::SpaceInformation *si) : GoalRegion(si)
 	    {
 	    }
 	    
-	    virtual ~GoalRegionKinematic(void)
+	    virtual ~GoalSampleableRegion(void)
 	    {
 	    }
 	    
-	    /** \brief Sample a state near the goal */
-	    virtual void sampleNearGoal(base::State *s) const = 0;
+	    /** \brief Sample a state in the goal region */
+	    virtual void sampleGoal(base::State *s) const = 0;
 	    
+	    /** \brief Return the maximum number of samples that can be asked for before repeating */
+	    virtual unsigned int maxSampleCount(void) const = 0;
 	};
     }
 }

@@ -72,7 +72,7 @@ namespace ompl
 	    RRTConnect(SpaceInformationKinematic *si) : base::Planner(si),
 							m_sCore(si)
 	    {
-		m_type = (base::PlannerType)(base::PLAN_TO_GOAL_STATE);
+		m_type = base::PLAN_TO_GOAL_STATE;
 		m_tStart.setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 		m_tGoal.setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 		m_rho = 0.5;

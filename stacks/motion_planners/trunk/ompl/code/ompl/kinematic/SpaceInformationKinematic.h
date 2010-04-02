@@ -39,7 +39,6 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/kinematic/PathKinematic.h"
-#include "ompl/kinematic/GoalKinematic.h"
 
 #include "ompl/base/L2SquareStateDistanceEvaluator.h"
 #include "ompl/kinematic/LinearStateInterpolatorKinematic.h"

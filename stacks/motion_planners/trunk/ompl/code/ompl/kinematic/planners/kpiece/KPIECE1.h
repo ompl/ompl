@@ -81,7 +81,7 @@ namespace ompl
 					             m_sCore(si),
 				                     m_hcik(si)
 	    {
-		m_type = (base::PlannerType)(base::PLAN_TO_GOAL_STATE | base::PLAN_TO_GOAL_REGION);
+		m_type = base::PLAN_TO_GOAL_ANY;
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_goalBias = 0.05;

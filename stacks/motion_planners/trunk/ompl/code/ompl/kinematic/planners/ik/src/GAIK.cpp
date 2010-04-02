@@ -35,6 +35,7 @@
 /* \author Ioan Sucan */
 
 #include "ompl/kinematic/planners/ik/GAIK.h"
+#include "ompl/base/GoalRegion.h"
 #include <algorithm>
 #include <ros/console.h>
 

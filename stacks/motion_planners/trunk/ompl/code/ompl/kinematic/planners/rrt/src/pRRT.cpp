@@ -35,19 +35,17 @@
 /* \author Ioan Sucan */
 
 #include "ompl/kinematic/planners/rrt/pRRT.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/GoalSampleableRegion.h"
 #include <boost/thread/thread.hpp>
 #include <ros/console.h>
 
 void ompl::kinematic::pRRT::threadSolve(unsigned int tid, ros::WallTime &endTime, SolutionInfo *sol)
 {
-    SpaceInformationKinematic *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalRegion          *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal()); 
-    GoalRegionKinematic       *goal_k = dynamic_cast<GoalRegionKinematic*>(si->getGoal());
-    base::GoalState           *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
-    unsigned int                  dim = si->getStateDimension();
+    SpaceInformationKinematic  *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    base::Goal                 *goal   = si->getGoal();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    unsigned int                   dim = si->getStateDimension();
 
-    bool biasSample = goal_k || goal_s;
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
@@ -59,13 +57,8 @@ void ompl::kinematic::pRRT::threadSolve(unsigned int tid, ros::WallTime &endTime
     while (sol->solution == NULL && ros::WallTime::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
-	if (biasSample && m_sCoreArray[tid]->getRNG().uniform01() < m_goalBias)
-	{
-	    if (goal_s)
-		si->copyState(rstate, goal_s->state);
-	    else
-		goal_k->sampleNearGoal(rstate);
-	}
+	if (goal_s && m_sCoreArray[tid]->getRNG().uniform01() < m_goalBias)
+	    goal_s->sampleGoal(rstate);
 	else
 	    m_sCoreArray[tid]->sample(rstate);
 	
@@ -93,7 +86,7 @@ void ompl::kinematic::pRRT::threadSolve(unsigned int tid, ros::WallTime &endTime
 	    m_nnLock.unlock();
 	    
 	    double dist = 0.0;
-	    bool solved = goal_r->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, &dist);
 	    if (solved)
 	    {
 		sol->lock.lock();
@@ -121,14 +114,13 @@ void ompl::kinematic::pRRT::threadSolve(unsigned int tid, ros::WallTime &endTime
 
 bool ompl::kinematic::pRRT::solve(double solveTime)
 {
-    SpaceInformationKinematic *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalRegion          *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal()); 
-    base::GoalState           *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
-    unsigned int                  dim = si->getStateDimension();
+    SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    base::GoalRegion          *goal = dynamic_cast<base::GoalRegion*>(si->getGoal()); 
+    unsigned int                dim = si->getStateDimension();
     
-    if (!goal_s && !goal_r)
+    if (!goal)
     {
-	ROS_ERROR("pRRT: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("pRRT: Goal undefined");
 	return false;
     }
     
@@ -197,8 +189,8 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
-	goal_r->setDifference(sol.approxdif);
-	goal_r->setSolutionPath(path, approximate);
+	goal->setDifference(sol.approxdif);
+	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
 	    ROS_WARN("pRRT: Found approximate solution");
@@ -206,7 +198,7 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
 
     ROS_INFO("pRRT: Created %u states", m_nn.size());
     
-    return goal_r->isAchieved();
+    return goal->isAchieved();
 }
 
 void ompl::kinematic::pRRT::getStates(std::vector<const base::State*> &states) const

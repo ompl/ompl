@@ -42,6 +42,7 @@
 #include "ompl/base/Path.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/GoalRegion.h"
+#include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/base/GoalState.h"
 #include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
@@ -65,7 +66,6 @@
 #include "ompl/datastructures/NearestNeighborsLinear.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 
-#include "ompl/kinematic/GoalKinematic.h"
 #include "ompl/kinematic/PathKinematic.h"
 #include "ompl/kinematic/PathSmootherKinematic.h"
 #include "ompl/kinematic/SpaceInformationKinematic.h"

@@ -37,7 +37,7 @@
 #ifndef OMPL_BASE_GOAL_STATE_
 #define OMPL_BASE_GOAL_STATE_
 
-#include "ompl/base/GoalRegion.h"
+#include "ompl/base/GoalSampleableRegion.h"
 
 namespace ompl
 {
@@ -46,11 +46,11 @@ namespace ompl
     {
 	
 	/** \brief Definition of a goal state */
-	class GoalState : public GoalRegion
+	class GoalState : public GoalSampleableRegion
 	{
 	public:
 	    
-	    GoalState(const SpaceInformation *si) : GoalRegion(si), state(NULL)
+	    GoalState(const SpaceInformation *si) : GoalSampleableRegion(si), state(NULL)
 	    {
 	    }
 	    
@@ -59,6 +59,12 @@ namespace ompl
 		if (state)
 		    delete state;
 	    }
+	    
+	    /** \brief Sample a state in the goal region */
+	    virtual void sampleGoal(base::State *s) const;
+	    
+	    /** \brief Return the maximum number of samples that can be asked for before repeating */
+	    virtual unsigned int maxSampleCount(void) const;
 	    
 	    /** \brief Compute the distance to the goal (heuristic) */
 	    virtual double distanceGoal(const base::State *s) const;	    

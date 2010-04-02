@@ -35,24 +35,21 @@
 /* \author Ioan Sucan */
 
 #include "ompl/kinematic/planners/rrt/RRT.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/GoalSampleableRegion.h"
 #include <ros/console.h>
 
 bool ompl::kinematic::RRT::solve(double solveTime)
 {
-    SpaceInformationKinematic *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalRegion          *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal()); 
-    GoalRegionKinematic       *goal_k = dynamic_cast<GoalRegionKinematic*>(si->getGoal());
-    base::GoalState           *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
-    unsigned int                  dim = si->getStateDimension();
+    SpaceInformationKinematic  *si     = dynamic_cast<SpaceInformationKinematic*>(m_si);
+    base::Goal                 *goal   = si->getGoal();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    unsigned int                   dim = si->getStateDimension();
     
-    if (!goal_s && !goal_r)
+    if (!goal)
     {
-	ROS_ERROR("RRT: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("RRT: Goal undefined");
 	return false;
     }
-
-    bool biasSample = goal_k || goal_s;
     
     ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
 
@@ -95,13 +92,8 @@ bool ompl::kinematic::RRT::solve(double solveTime)
     {
 
 	/* sample random state (with goal biasing) */
-	if (biasSample && m_rng.uniform01() < m_goalBias)
-	{
-	    if (goal_s)
-		si->copyState(rstate, goal_s->state);
-	    else
-		goal_k->sampleNearGoal(rstate);
-	}
+	if (goal_s && m_rng.uniform01() < m_goalBias)
+	    goal_s->sampleGoal(rstate);
 	else
 	    m_sCore->sample(rstate);
 
@@ -124,7 +116,7 @@ bool ompl::kinematic::RRT::solve(double solveTime)
 
 	    m_nn.add(motion);
 	    double dist = 0.0;
-	    bool solved = goal_r->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, &dist);
 	    if (solved)
 	    {
 		approxdif = dist;
@@ -164,8 +156,8 @@ bool ompl::kinematic::RRT::solve(double solveTime)
 	    si->copyState(st, mpath[i]->state);
 	    path->states.push_back(st);
 	}
-	goal_r->setDifference(approxdif);
-	goal_r->setSolutionPath(path, approximate);
+	goal->setDifference(approxdif);
+	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
 	    ROS_WARN("RRT: Found approximate solution");
@@ -176,7 +168,7 @@ bool ompl::kinematic::RRT::solve(double solveTime)
 	
     ROS_INFO("RRT: Created %u states", m_nn.size());
     
-    return goal_r->isAchieved();
+    return goal->isAchieved();
 }
 
 void ompl::kinematic::RRT::getStates(std::vector<const base::State*> &states) const
