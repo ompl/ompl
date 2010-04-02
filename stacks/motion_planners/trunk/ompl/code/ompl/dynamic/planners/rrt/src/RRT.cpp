@@ -35,21 +35,21 @@
 /* \author Ioan Sucan */
 
 #include "ompl/dynamic/planners/rrt/RRT.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/GoalSampleableRegion.h"
 #include <cassert>
 #include <ros/console.h>
 
 bool ompl::dynamic::RRT::solve(double solveTime)
 {
     SpaceInformationControlsIntegrator *si = dynamic_cast<SpaceInformationControlsIntegrator*>(m_si); 
-    base::GoalRegion               *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal()); 
-    base::GoalState                *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
+    base::Goal                       *goal = si->getGoal(); 
+    base::GoalSampleableRegion     *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
     unsigned int                      sdim = si->getStateDimension();
     unsigned int                      cdim = si->getControlDimension();
     
-    if (!goal_s && !goal_r)
+    if (!goal)
     {
-	ROS_ERROR("RRT: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("RRT: Goal undefined");
 	return false;
     }
 
@@ -103,9 +103,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	{
 	    /* sample random state (with goal biasing) */
 	    if (goal_s && m_rng.uniform01() < m_goalBias)
-	    {
-		si->copyState(rstate, goal_s->state);
-	    }
+		goal_s->sampleGoal(rstate);
 	    else
 		m_sCore->sample(rstate);
 	}
@@ -139,7 +137,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 
 	    m_nn.add(motion);
 	    double dist = 0.0;
-	    bool solved = goal_r->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, &dist);
 	    if (solved)
 	    {
 		approxdif = dist;
@@ -186,8 +184,8 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 		path->controlDurations.push_back(mpath[i]->steps * si->getResolution());
 	    }
 	}
-	goal_r->setDifference(approxdif);
-	goal_r->setSolutionPath(path, approximate);
+	goal->setDifference(approxdif);
+	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
 	    ROS_WARN("RRT: Found approximate solution");
@@ -200,7 +198,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 
     ROS_INFO("RRT: Created %u states", m_nn.size());
     
-    return goal_r->isAchieved();
+    return goal->isAchieved();
 }
 
 void ompl::dynamic::RRT::getStates(std::vector<const base::State*> &states) const

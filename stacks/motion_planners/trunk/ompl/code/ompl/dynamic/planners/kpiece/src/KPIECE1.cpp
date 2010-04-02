@@ -41,14 +41,14 @@
 bool ompl::dynamic::KPIECE1::solve(double solveTime)
 {
     SpaceInformationControlsIntegrator *si = dynamic_cast<SpaceInformationControlsIntegrator*>(m_si); 
-    base::GoalRegion               *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal());
+    base::Goal                       *goal = si->getGoal();
     base::GoalState                *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
     unsigned int                      sdim = si->getStateDimension();
     unsigned int                      cdim = si->getControlDimension();
     
-    if (!goal_s && !goal_r)
+    if (!goal)
     {
-	ROS_ERROR("KPIECE1: Unknown type of goal (or goal undefined)");
+	ROS_ERROR("KPIECE1: Goal undefined");
 	return false;
     }
     
@@ -162,7 +162,7 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 		    motion->parent = existing;
 		    
 		    double dist = 0.0;
-		    bool solved = goal_r->isSatisfied(motion->state, &dist);
+		    bool solved = goal->isSatisfied(motion->state, &dist);
 		    addMotion(motion, dist);
 		    
 		    if (solved)
@@ -197,7 +197,7 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 	    motion->parent = existing;
 	    
 	    double dist = 0.0;
-	    bool solved = goal_r->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, &dist);
 	    addMotion(motion, dist);
 	    
 	    if (solved)
@@ -254,8 +254,8 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 	    }
 	}
 	
-	goal_r->setDifference(approxdif);
-	goal_r->setSolutionPath(path, approximate);
+	goal->setDifference(approxdif);
+	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
 	    ROS_WARN("KPIECE1: Found approximate solution");
@@ -268,7 +268,7 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
     ROS_INFO("KPIECE1: Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
 	     m_tree.grid.countInternal(), m_tree.grid.countExternal());
     
-    return goal_r->isAchieved();
+    return goal->isAchieved();
 }
 
 bool ompl::dynamic::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)

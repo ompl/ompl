@@ -77,7 +77,7 @@ namespace ompl
 							  m_sCore(si),
 							  m_cCore(si)
 	    {
-		m_type = (base::PlannerType)(base::PLAN_TO_GOAL_STATE | base::PLAN_TO_GOAL_REGION);
+		m_type = base::PLAN_TO_GOAL_ANY;
 		m_nn.setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 		m_goalBias = 0.05;
 		m_hintBias = 0.75;
