@@ -72,12 +72,7 @@ namespace ompl
 	public:
 	    
 	    /** \brief Constructor */
-	    Planner(SpaceInformation *si)
-	    {
-		m_si    = si;
-		m_setup = false;
-		m_type = PLAN_UNKNOWN;
-	    }
+	    Planner(SpaceInformation *si);
 	    
 	    /** \brief Destructor */
 	    virtual ~Planner(void)

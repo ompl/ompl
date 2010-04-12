@@ -37,6 +37,17 @@
 #include "ompl/base/Planner.h"
 #include <ros/console.h>
 
+ompl::base::Planner::Planner(SpaceInformation *si)
+{
+    m_si    = si;
+    m_setup = false;
+    m_type = PLAN_UNKNOWN;
+    if (!m_si)
+	ROS_ERROR("Invalid space information instance");
+    if (!m_si->isSetup())
+	ROS_WARN("It is best if space information setup has been called before a planner is instantiated");
+}
+
 ompl::base::PlannerType ompl::base::Planner::getType(void) const
 {
     return m_type;
