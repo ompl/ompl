@@ -131,6 +131,9 @@ namespace ompl
 	    /** \brief Copy a control to another */
 	    virtual void copyControl(Control *destination, const Control *source) const;
 
+	    /** \brief Check if two controls are the same */
+	    virtual bool equalControl(Control *a, const Control *b) const;	    
+
 	    /** \brief Make the control a null one */
 	    virtual void nullControl(Control *ctrl) const;
 	    

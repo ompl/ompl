@@ -230,6 +230,9 @@ namespace ompl
 	    
 	    /** \brief Copy a state to another */
 	    virtual void copyState(State *destination, const State *source) const;
+
+	    /** \brief Check if two states are the same */
+	    virtual bool equalState(State *a, const State *b) const;
 	    
 	    /** \brief Check if a state is inside the bounding box */
 	    bool satisfiesBounds(const State *s) const;

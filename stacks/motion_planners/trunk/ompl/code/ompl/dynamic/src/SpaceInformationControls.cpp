@@ -92,6 +92,14 @@ void ompl::dynamic::SpaceInformationControls::copyControl(Control *destination, 
     memcpy(destination->values, source->values, sizeof(double) * m_controlDimension);
 }
 
+bool ompl::dynamic::SpaceInformationControls::equalControl(Control *a, const Control *b) const
+{
+    for (unsigned int i = 0 ; i < m_controlDimension ; ++i)
+	if (a->values[i] != b->values[i])
+	    return false;
+    return true;
+}
+
 void ompl::dynamic::SpaceInformationControls::printControl(const Control *control, std::ostream &out) const
 {
     if (control)
