@@ -36,11 +36,12 @@
 
 #include <gtest/gtest.h>
 #include "ompl/datastructures/RandomNumbers.h"
+#include <vector>
 
 using namespace ompl;
 
 /* Just test we get some random values */
-TEST(Random, Simple)
+TEST(Random, DifferentSeeds)
 {
     RNG r1, r2, r3, r4;
     int same = 0;
@@ -67,6 +68,24 @@ TEST(Random, Simple)
     }
     EXPECT_FALSE(eq > N / 2);
     EXPECT_TRUE(same < 2 * N);
+}
+
+TEST(Random, ValidRangeInts)
+{
+    RNG r;
+    const int N = 100;
+    const int V = 1000 * N;
+    std::vector<int> c(N, 0);
+    for (int i = 0 ; i < V ; ++i)
+    {
+	int v = r.uniformInt(0, N);
+	EXPECT_TRUE(v >= 0);
+	EXPECT_TRUE(v <= N);
+	c[v]++;
+    }
+    
+    for (unsigned int i = 0 ; i < c.size() ; ++i)
+	EXPECT_TRUE(c[i] > V/N/3);
 }
 
 int main(int argc, char **argv)
