@@ -74,8 +74,8 @@ TEST(Random, ValidRangeInts)
 {
     RNG r;
     const int N = 100;
-    const int V = 1000 * N;
-    std::vector<int> c(N, 0);
+    const int V = 10000 * N;
+    std::vector<int> c(N + 1, 0);
     for (int i = 0 ; i < V ; ++i)
     {
 	int v = r.uniformInt(0, N);
