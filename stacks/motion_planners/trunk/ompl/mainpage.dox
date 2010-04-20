@@ -85,7 +85,7 @@
 
      - a std::vector < ompl::base::StateComponent > must be supplied to
        the space information class by calling @b
-       setStateSpecification. This specification describes a bounding
+       setStateComponents. This specification describes a bounding
        box for the state space. Random samples will only be generated
        within this box.
 
@@ -181,7 +181,7 @@
    
    std::vector<ompl::base::StateComponent> stateSpec;
    // fill stateSpec
-   si->setStateSpecification(stateSpec);
+   si->setStateComponents(stateSpec);
    
    ompl::base::State *start = new ompl::base::State(stateSpec.size()); // the state needs to have the correct dimension
    // fill start state

@@ -198,7 +198,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Specify the state to use in the space information */
-	    void setStateSpecification(const std::vector<StateComponent> &stateSpec)
+	    void setStateComponents(const std::vector<StateComponent> &stateSpec)
 	    {
 		m_stateComponent = stateSpec;
 		m_stateDimension = stateSpec.size();
