@@ -380,15 +380,6 @@ namespace ompl
 		delete content[i];	    
 	}
 
-	/// equality operator for coordinate pointers
-	struct EqualCoordPtr
-	{
-	    bool operator()(const Coord* const c1, const Coord* const c2) const
-	    {
-		return *c1 == *c2;
-	    }
-	};
-	
 	/// hash function for coordinates
 	struct HashFunCoordPtr
 	{
@@ -406,9 +397,46 @@ namespace ompl
 	    }
 	};
 
+#ifdef _MSC_VER
+	
+	/// Visual studio data structure for hash_compare
+	class HashCompareCoord : public OMPL_NS_HASH::hash_compare<Coord*>
+	{
+	public:
+	    std::size_t operator()(const Coord* const s) const
+	    {
+		return m_hf(s);
+	    }
+	    
+	    bool operator()(const Coord* const c1, const Coord* const c2) const
+	    {
+		return *c1 < *c2;
+	    }
+	    
+	protected:
+
+	    HashFunCoordPtr m_hf;
+	};
+	
+	/// define the datatype for the used hash structure
+	typedef OMPL_NS_HASH::OMPL_NAME_HASH<Coord*, Cell*, HashCompareCoord> CoordHash;
+
+#else
+
+	/// equality operator for coordinate pointers
+	struct EqualCoordPtr
+	{
+	    bool operator()(const Coord* const c1, const Coord* const c2) const
+	    {
+		return *c1 == *c2;
+	    }
+	};
+	
 	/// define the datatype for the used hash structure
 	typedef OMPL_NS_HASH::OMPL_NAME_HASH<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
-	
+
+#endif
+
     public:
 	
 	/// we only allow const iterators
