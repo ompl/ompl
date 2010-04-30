@@ -57,6 +57,12 @@ namespace ompl
 	    long us = (long)((sec - s) * 1000000);
 	    return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
 	}
+	
+	inline double seconds(duration d)
+	{
+	    return (double)d.total_microseconds() / 1000000;
+	}
+	
     }
 }
 

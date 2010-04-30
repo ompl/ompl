@@ -37,7 +37,7 @@
 #ifndef OMPL_DATASTRUCTURES_SEARCH_GRID_
 #define OMPL_DATASTRUCTURES_SEARCH_GRID_
 
-#include "ompl/msg/Output.h"
+#include "ompl/util/Console.h"
 #include <vector>
 #include <iostream>
 #include <map>
