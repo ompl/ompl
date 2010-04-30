@@ -35,7 +35,6 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <ros/time.h>
 
 #include "ompl/base/GoalState.h"
 #include "ompl/base/OrthogonalProjectionEvaluator.h"
@@ -241,23 +240,23 @@ public:
 	si->setGoal(goal);
 	
 	/* start counting time */
-	ros::WallTime startTime = ros::WallTime::now();	
+	time::point startTime = time::now();
 	
 	/* call the planner to solve the problem */
 	if (planner->solve(SOLUTION_TIME))
 	{
-	    ros::WallDuration elapsed = ros::WallTime::now() - startTime;
+	    time::duration elapsed = time::now() - startTime;
 	    if (time)
-		*time += elapsed.toSec();
+		*time += time::seconds(elapsed);
 	    if (show)
-		printf("Found solution in %f seconds!\n", elapsed.toSec());
+		printf("Found solution in %f seconds!\n", time::seconds(elapsed));
 	    
 	    dynamic::PathDynamic *path = static_cast<dynamic::PathDynamic*>(goal->getSolutionPath());
 	    
-	    elapsed = ros::WallTime::now() - startTime;
+	    elapsed = time::now() - startTime;
 	    
 	    if (time)
-		*time += elapsed.toSec();
+		*time += time::seconds(elapsed);
 	    
 	    if (pathLength)
 		*pathLength += path->length();

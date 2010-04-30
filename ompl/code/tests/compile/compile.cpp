@@ -56,7 +56,10 @@
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/UniformStateSampler.h"
 
-#include "ompl/datastructures/RandomNumbers.h"
+#include "ompl/util/RandomNumbers.h"
+#include "ompl/util/Console.h"
+#include "ompl/util/Time.h"
+
 #include "ompl/datastructures/Hash.h"
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/Grid.h"

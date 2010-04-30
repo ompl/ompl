@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 2.6)
 project(ompl CXX C)
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_BUILD_TYPE Debug)
+
 
 find_package(Boost COMPONENTS date_time thread REQUIRED)
 
@@ -55,40 +58,38 @@ target_link_libraries(ompl
 
 ### Tests
 
+find_package(GTest)
+option(BUILD_TESTS "Build ompl tests" ${GTEST_FOUND})
 
-# Test kinematic motion planners on a 2D map
-#rosbuild_add_gtest(test_2dmap_kinematic code/tests/kinematic/2dmap/2dmap.cpp)
-#target_link_libraries(test_2dmap_kinematic ompl)
-#rosbuild_link_boost(test_2dmap_kinematic thread)
+if(BUILD_TESTS)
+  enable_testing()
+	
+  include_directories(${GTEST_INCLUDE_DIRS})
+  
+  macro(ADD_OMPL_TEST test_name)
+    add_executable(${ARGV})
+    target_link_libraries(${test_name} 
+                          ompl
+			  ${Boost_THREAD_LIBRARY}
+			  ${Boost_DATE_TIME_LIBRARY} ${GTEST_LIBRARIES})
+    add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
+  endmacro(ADD_OMPL_TEST)
 
-# Test dynamic motion planners on a 2D map
-#rosbuild_add_gtest(test_2dmap_dynamic code/tests/dynamic/2dmap/2dmap.cpp)
-#target_link_libraries(test_2dmap_dynamic ompl)
-#rosbuild_link_boost(test_2dmap_dynamic thread)
 
-# Test datastructures implementation
+  # Test kinematic motion planners on a 2D map
+  ADD_OMPL_TEST(test_2dmap_kinematic code/tests/kinematic/2dmap/2dmap.cpp)
 
-#rosbuild_add_gtest(test_heap code/tests/datastructures/heap/heap.cpp)
-#target_link_libraries(test_heap ompl)
-#rosbuild_link_boost(test_heap thread)
+  # Test dynamic motion planners on a 2D map
+  ADD_OMPL_TEST(test_2dmap_dynamic code/tests/dynamic/2dmap/2dmap.cpp)
 
-#rosbuild_add_gtest(test_grid code/tests/datastructures/grid/grid.cpp)
-#target_link_libraries(test_grid ompl)
-#rosbuild_link_boost(test_grid thread)
+  # Test datastructures implementation
+  ADD_OMPL_TEST(test_heap code/tests/datastructures/heap/heap.cpp)
+  ADD_OMPL_TEST(test_grid code/tests/datastructures/grid/grid.cpp)
+  ADD_OMPL_TEST(test_gridb code/tests/datastructures/grid/gridb.cpp)
+  ADD_OMPL_TEST(test_random code/tests/datastructures/random/random.cpp)
+  ADD_OMPL_TEST(test_searchgrid code/tests/datastructures/searchgrid/searchgrid.cpp)
 
-#rosbuild_add_gtest(test_gridb code/tests/datastructures/grid/gridb.cpp)
-#target_link_libraries(test_gridb ompl)
-#rosbuild_link_boost(test_gridb thread)
+  # Test compilation
+  ADD_OMPL_TEST(test_compile code/tests/compile/compile.cpp)
 
-#rosbuild_add_gtest(test_random code/tests/datastructures/random/random.cpp)
-#target_link_libraries(test_random ompl)
-#rosbuild_link_boost(test_random thread)
-
-#rosbuild_add_gtest(test_searchgrid code/tests/datastructures/searchgrid/searchgrid.cpp)
-#target_link_libraries(test_searchgrid ompl)
-#rosbuild_link_boost(test_searchgrid thread)
-
-# Test compilation
-#rosbuild_add_gtest(test_compile code/tests/compile/compile.cpp)
-#target_link_libraries(test_compile ompl)
-#rosbuild_link_boost(test_compile thread)
+endif(BUILD_TESTS)

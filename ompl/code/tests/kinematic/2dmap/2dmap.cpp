@@ -35,7 +35,6 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <ros/time.h>
 
 #include "ompl/kinematic/PathSmootherKinematic.h"
 #include "ompl/base/OrthogonalProjectionEvaluator.h"
@@ -189,16 +188,16 @@ public:
 	si->setGoal(goal);
 	
 	/* start counting time */
-	ros::WallTime startTime = ros::WallTime::now();	
+	time::point startTime = time::now();	
 	
 	/* call the planner to solve the problem */
 	if (planner->solve(SOLUTION_TIME))
 	{
-	    ros::WallDuration elapsed = ros::WallTime::now() - startTime;
+	    time::duration elapsed = time::now() - startTime;
 	    if (time)
-		*time += elapsed.toSec();
+		*time += time::seconds(elapsed);
 	    if (show)
-		printf("Found solution in %f seconds!\n", elapsed.toSec());
+		printf("Found solution in %f seconds!\n", time::seconds(elapsed));
 	    
 	    kinematic::PathKinematic *path = static_cast<kinematic::PathKinematic*>(goal->getSolutionPath());
 	    
@@ -208,15 +207,15 @@ public:
 	    smoother->setMaxSteps(50);
 	    smoother->setMaxEmptySteps(10);
 
-	    startTime = ros::WallTime::now();
+	    startTime = time::now();
 	    smoother->smoothVertices(path);
-	    elapsed = ros::WallTime::now() - startTime;
+	    elapsed = time::now() - startTime;
 	    delete smoother;
 	    if (time)
-		*time += elapsed.toSec();
+		*time += time::seconds(elapsed);
 	    
 	    if (show)
-		printf("Smooth solution in %f seconds!\n", elapsed.toSec());
+		printf("Smooth solution in %f seconds!\n", time::seconds(elapsed));
 
 	    /* fill in values that were linearly interpolated */
 	    si->interpolatePath(path);
