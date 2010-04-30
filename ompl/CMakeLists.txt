@@ -5,8 +5,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_BUILD_TYPE Debug)
-
+#set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 find_package(Boost COMPONENTS date_time thread REQUIRED)
 
@@ -86,8 +86,10 @@ if(BUILD_TESTS)
   ADD_OMPL_TEST(test_heap code/tests/datastructures/heap/heap.cpp)
   ADD_OMPL_TEST(test_grid code/tests/datastructures/grid/grid.cpp)
   ADD_OMPL_TEST(test_gridb code/tests/datastructures/grid/gridb.cpp)
-  ADD_OMPL_TEST(test_random code/tests/datastructures/random/random.cpp)
   ADD_OMPL_TEST(test_searchgrid code/tests/datastructures/searchgrid/searchgrid.cpp)
+
+  # Test utilities
+  ADD_OMPL_TEST(test_random code/tests/util/random/random.cpp)
 
   # Test compilation
   ADD_OMPL_TEST(test_compile code/tests/compile/compile.cpp)
