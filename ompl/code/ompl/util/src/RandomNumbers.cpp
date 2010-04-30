@@ -34,21 +34,21 @@
 
 /** \author Ioan Sucan  */
 
-#include "ompl/datastructures/RandomNumbers.h"
+#include "ompl/util/RandomNumbers.h"
 #include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/thread/mutex.hpp>
-#include <ros/time.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 /// We use a different random number generator for the seeds of the
 /// other random generators. The root seed is from the number of
 /// nano-seconds in the current time.
-
 static unsigned int nextSeed(void)
 {
     static boost::mutex rngMutex;
     rngMutex.lock();
-    static boost::lagged_fibonacci607 sGen(ros::WallTime::now().toNSec());
+    static boost::lagged_fibonacci607 sGen((boost::posix_time::microsec_clock::universal_time() -
+					    boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds());
     static boost::uniform_int<>       sDist(1, 1000000000);
     static boost::variate_generator<boost::lagged_fibonacci607, boost::uniform_int<> > s(sGen, sDist);
     unsigned int v = s();

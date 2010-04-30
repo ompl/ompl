@@ -34,77 +34,30 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DYNAMIC_CONTROL_SAMPLER_
-#define OMPL_DYNAMIC_CONTROL_SAMPLER_
+#ifndef OMPL_UTIL_TIME_
+#define OMPL_UTIL_TIME_
 
-#include "ompl/util/RandomNumbers.h"
-#include "ompl/dynamic/Control.h"
-#include <vector>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace ompl
 {
-    namespace dynamic
+    namespace time
     {
+	typedef boost::posix_time::ptime         point;
+	typedef boost::posix_time::time_duration duration;
 	
-	class SpaceInformationControls;
-
-	/** \brief Abstract definition of a control sampler */
-	class ControlSampler
-	{	    
-	public:
-	    ControlSampler(const SpaceInformationControls *si);
-	    
-	    virtual ~ControlSampler(void)
-	    {
-	    }
-	    
-	    /** \brief Sample a number of steps */
-	    virtual unsigned int sampleStepCount(void) = 0;
-	    
-	    /** \brief Sample a control */
-	    virtual void sample(Control *ctrl) = 0;
-	    
-	    /** \brief Sample a control near another, within given bounds */
-	    virtual void sampleNear(Control *ctrl, const Control *near, const double rho) = 0;
-	    
-	    /** \brief Sample a control near another, within given bounds */
-	    virtual void sampleNear(Control *ctrl, const Control *near, const std::vector<double> &rho) = 0;
-	    
-	    /** \brief Return a reference to the random number generator used */
-	    RNG& getRNG(void)
-	    {
-		return m_rng;
-	    }
-	    
-	protected:
-	    
-	    const SpaceInformationControls *m_si;
-	    RNG                             m_rng;
-	    unsigned int                    m_minControlDuration;
-	    unsigned int                    m_maxControlDuration;
-	};
-	
-	/** \brief Simple class to make instantiating control samplers easier */
-	class ControlSamplerInstance
+	inline point now(void)
 	{
-	public:
-
-	    ControlSamplerInstance(const SpaceInformationControls *si);
-	    ~ControlSamplerInstance(void);
-	    
-	    /** \brief Allow easy access the functions of the contained sampler */
-	    ControlSampler* operator->(void)
-	    {
-		return m_sampler;
-	    }
-	    
-	private:
-	    
-	    ControlSampler *m_sampler;
-	};
+	    return boost::posix_time::microsec_clock::universal_time();
+	}
 	
-    }    
+	inline duration seconds(double sec)
+	{
+	    long s  = (long)sec;
+	    long us = (long)((sec - s) * 1000000);
+	    return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
+	}
+    }
 }
-
 
 #endif

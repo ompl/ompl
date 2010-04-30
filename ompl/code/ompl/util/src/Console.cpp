@@ -34,10 +34,11 @@
 
 /* \author Ioan Sucan */
 
-#include "ompl/msg/Output.h"
+#include "ompl/util/Console.h"
 #include <boost/thread/mutex.hpp>
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 
 static ompl::msg::OutputHandlerSTD _defaultOutputHandler;
 static ompl::msg::OutputHandler   *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&_defaultOutputHandler);
@@ -70,21 +71,21 @@ ompl::msg::Interface::~Interface(void)
 {
 }
 
-void ompl::msg::Interface::message(const std::string &text) const
+void ompl::msg::Interface::debug(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
 	_lock.lock();
-	OUTPUT_HANDLER->message(text);
+	OUTPUT_HANDLER->debug(text);
 	_lock.unlock();
     }
 }
 
-void ompl::msg::Interface::message(const char *msg, ...) const
+void ompl::msg::Interface::debug(const char *msg, ...) const
 {
     va_list ap;
     va_start(ap, msg);
-    message(combine(msg, ap));
+    debug(combine(msg, ap));
     va_end(ap);
 }
 
@@ -169,8 +170,8 @@ void ompl::msg::OutputHandlerSTD::inform(const std::string &text)
     std::cout.flush();
 }
 
-void ompl::msg::OutputHandlerSTD::message(const std::string &text)
+void ompl::msg::OutputHandlerSTD::debug(const std::string &text)
 {
-    std::cout << text;
+    std::cout << "Debug:   " << text << std::endl;
     std::cout.flush();
 }

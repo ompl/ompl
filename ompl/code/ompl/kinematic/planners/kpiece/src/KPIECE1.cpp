@@ -36,7 +36,6 @@
 
 #include "ompl/kinematic/planners/kpiece/KPIECE1.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include <ros/console.h>
 
 bool ompl::kinematic::KPIECE1::solve(double solveTime)
 {
@@ -47,11 +46,11 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("KPIECE1: Goal undefined");
+	m_msg.error("KPIECE1: Goal undefined");
 	return false;
     }
     
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
 
     if (m_tree.grid.size() == 0)
     {
@@ -63,7 +62,7 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 		addMotion(motion, 1.0);
 	    else
 	    {
-		ROS_ERROR("KPIECE1: Initial state is invalid!");
+		m_msg.error("KPIECE1: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -71,11 +70,11 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
     
     if (m_tree.grid.size() == 0)
     {
-	ROS_ERROR("KPIECE1: There are no valid initial states!");
+	m_msg.error("KPIECE1: There are no valid initial states!");
 	return false;	
     }    
 
-    ROS_INFO("KPIECE1: Starting with %u states", m_tree.size);
+    m_msg.inform("KPIECE1: Starting with %u states", m_tree.size);
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -88,7 +87,7 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 
     double improveValue = 0.01;
 
-    while (ros::WallTime::now() < endTime)
+    while (time::now() < endTime)
     {
 	m_tree.iteration++;
 	
@@ -108,13 +107,13 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 		if (approxsol)
 		{
 		    si->copyState(xstate, approxsol->state);
-		    ROS_DEBUG("Start Running HCIK (%f)...", improveValue);			
+		    m_msg.debug("Start Running HCIK (%f)...", improveValue);			
 		    if (!m_hcik.tryToImprove(xstate, improveValue))
 		    {
 			m_sCore->sampleNear(xstate, existing->state, range);
 			improveValue /= 2.0;
 		    }
-		    ROS_DEBUG("End Running HCIK");			
+		    m_msg.debug("End Running HCIK");			
 		}
 		else
 		    m_sCore->sampleNear(xstate, existing->state, range);
@@ -187,13 +186,13 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    ROS_WARN("KPIECE1: Found approximate solution");
+	    m_msg.warn("KPIECE1: Found approximate solution");
     }
 
     delete xstate;
     
-    ROS_INFO("KPIECE1: Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
-	     m_tree.grid.countInternal(), m_tree.grid.countExternal());
+    m_msg.inform("KPIECE1: Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
+		 m_tree.grid.countInternal(), m_tree.grid.countExternal());
     
     return goal->isAchieved();
 }

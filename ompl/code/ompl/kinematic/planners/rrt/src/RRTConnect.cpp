@@ -36,7 +36,6 @@
 
 #include "ompl/kinematic/planners/rrt/RRTConnect.h"
 #include "ompl/base/GoalState.h"
-#include <ros/console.h>
 
 ompl::kinematic::RRTConnect::GrowState ompl::kinematic::RRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion)
 {
@@ -85,11 +84,11 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("RRTConnect: Unknown type of goal (or goal undefined)");
+	m_msg.error("RRTConnect: Unknown type of goal (or goal undefined)");
 	return false;
     }
 
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
 
     if (m_tStart.size() == 0)
     {
@@ -101,7 +100,7 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 		m_tStart.add(motion);
 	    else
 	    {
-		ROS_ERROR("RRTConnect: Initial state is invalid!");
+		m_msg.error("RRTConnect: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -115,18 +114,18 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 	    m_tGoal.add(motion);
 	else
 	{
-	    ROS_ERROR("RRTConnect: Goal state is invalid!");
+	    m_msg.error("RRTConnect: Goal state is invalid!");
 	    delete motion;
 	}
     }
     
     if (m_tStart.size() == 0 || m_tGoal.size() == 0)
     {
-	ROS_ERROR("RRTConnect: Motion planning trees could not be initialized!");
+	m_msg.error("RRTConnect: Motion planning trees could not be initialized!");
 	return false;
     }
     
-    ROS_INFO("RRTConnect: Starting with %d states", (int)(m_tStart.size() + m_tGoal.size()));
+    m_msg.inform("RRTConnect: Starting with %d states", (int)(m_tStart.size() + m_tGoal.size()));
 
     TreeGrowingInfo tgi;
     tgi.range.resize(dim);
@@ -139,7 +138,7 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
     base::State *rstate = rmotion->state;
     bool   startTree    = true;
 
-    while (ros::WallTime::now() < endTime)
+    while (time::now() < endTime)
     {
 	TreeData &tree      = startTree ? m_tStart : m_tGoal;
 	startTree = !startTree;
@@ -207,7 +206,7 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
     delete tgi.xstate;
     delete rmotion;
 	
-    ROS_INFO("RRTConnect: Created %u states (%u start + %u goal)", m_tStart.size() + m_tGoal.size(), m_tStart.size(), m_tGoal.size());
+    m_msg.inform("RRTConnect: Created %u states (%u start + %u goal)", m_tStart.size() + m_tGoal.size(), m_tStart.size(), m_tGoal.size());
     
     return goal->isAchieved();
 }

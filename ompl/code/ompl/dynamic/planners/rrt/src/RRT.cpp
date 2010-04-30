@@ -37,7 +37,6 @@
 #include "ompl/dynamic/planners/rrt/RRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include <cassert>
-#include <ros/console.h>
 
 bool ompl::dynamic::RRT::solve(double solveTime)
 {
@@ -49,11 +48,11 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("RRT: Goal undefined");
+	m_msg.error("RRT: Goal undefined");
 	return false;
     }
 
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
 
     if (m_nn.size() == 0)
     {
@@ -66,7 +65,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 		m_nn.add(motion);
 	    else
 	    {
-		ROS_ERROR("RRT: Initial state is invalid!");
+		m_msg.error("RRT: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -74,11 +73,11 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     if (m_nn.size() == 0)
     {
-	ROS_ERROR("RRT: There are no valid initial states!");
+	m_msg.error("RRT: There are no valid initial states!");
 	return false;	
     }    
 
-    ROS_INFO("RRT: Starting with %u states", m_nn.size());
+    m_msg.inform("RRT: Starting with %u states", m_nn.size());
     
     std::vector<base::State*> hintStates;
     if (si->getKinematicPath())
@@ -96,7 +95,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	states[i] = new base::State(sdim);
     
-    while (ros::WallTime::now() < endTime)
+    while (time::now() < endTime)
     {
 	
 	if (hintStates.empty())
@@ -188,7 +187,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    ROS_WARN("RRT: Found approximate solution");
+	    m_msg.warn("RRT: Found approximate solution");
     }
 
     delete rmotion;
@@ -196,7 +195,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	delete states[i];
 
-    ROS_INFO("RRT: Created %u states", m_nn.size());
+    m_msg.inform("RRT: Created %u states", m_nn.size());
     
     return goal->isAchieved();
 }

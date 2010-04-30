@@ -37,6 +37,7 @@
 #ifndef OMPL_DATASTRUCTURES_SEARCH_GRID_
 #define OMPL_DATASTRUCTURES_SEARCH_GRID_
 
+#include "ompl/msg/Output.h"
 #include <vector>
 #include <iostream>
 #include <map>
@@ -94,9 +95,11 @@ namespace ompl
 	void setCellWithDecayAux(std::map<int, int> &seen, const int state, const double val,
 				 const double decay, const unsigned int steps);
 	
-	unsigned int m_stateCount;
-	Coord        m_maxC;
-	Coord        m_maxCAux;
+	unsigned int   m_stateCount;
+	Coord          m_maxC;
+	Coord          m_maxCAux;
+
+	msg::Interface m_msg;
     };
     
     class SearchGrid2D : public SearchGrid

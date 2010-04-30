@@ -36,15 +36,14 @@
 
 #include "ompl/dynamic/SpaceInformationControlsPhysics.h"
 #include <algorithm>
-#include <ros/console.h>
 
 void ompl::dynamic::SpaceInformationControlsPhysics::setup(void)
 {
     if (!m_stateValidityChecker)
-	ROS_FATAL("No state validity checker defined");
+	m_msg.error("No state validity checker defined");
     
     if (!m_stateForwardPropagator)
-	ROS_FATAL("No forward propagation routine defined");    
+	m_msg.error("No forward propagation routine defined");    
 	
     SpaceInformationControls::setup();
 }

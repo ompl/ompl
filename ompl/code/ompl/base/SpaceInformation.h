@@ -45,6 +45,8 @@
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/StateSampler.h"
 
+#include "ompl/util/Console.h"
+
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -286,6 +288,8 @@ namespace ompl
 	                                 m_stateSamplerAllocator;
 	    
 	    bool                         m_setup;
+
+	    msg::Interface               m_msg;
 	};
 	
     }

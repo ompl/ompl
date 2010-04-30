@@ -35,21 +35,18 @@
 /* \author Ioan Sucan */
 
 #include "ompl/kinematic/SpaceInformationKinematic.h"
-
-#include <ros/console.h>
-#include <angles/angles.h>
 #include <algorithm>
 
 void ompl::kinematic::SpaceInformationKinematic::setup(void)
 {
     if (!m_stateDistanceEvaluator)
-	ROS_FATAL("No state distance evaluator defined");
+	m_msg.error("No state distance evaluator defined");
     
     if (!m_stateValidityChecker)
-	ROS_FATAL("No state validity checker defined");
+	m_msg.error("No state validity checker defined");
     
     if (!m_stateInterpolator)
-	ROS_FATAL("No state interpolator defined");
+	m_msg.error("No state interpolator defined");
 
     SpaceInformation::setup();
 }

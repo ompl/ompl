@@ -35,7 +35,6 @@
 /* \author Ioan Sucan */
 
 #include "ompl/base/Planner.h"
-#include <ros/console.h>
 
 ompl::base::Planner::Planner(SpaceInformation *si)
 {
@@ -43,9 +42,9 @@ ompl::base::Planner::Planner(SpaceInformation *si)
     m_setup = false;
     m_type = PLAN_UNKNOWN;
     if (!m_si)
-	ROS_ERROR("Invalid space information instance");
+	m_msg.error("Invalid space information instance");
     if (!m_si->isSetup())
-	ROS_WARN("It is best if space information setup has been called before a planner is instantiated");
+	m_msg.warn("It is best if space information setup has been called before a planner is instantiated");
 }
 
 ompl::base::PlannerType ompl::base::Planner::getType(void) const
@@ -56,9 +55,9 @@ ompl::base::PlannerType ompl::base::Planner::getType(void) const
 void ompl::base::Planner::setup(void)
 {
     if (!m_si->isSetup())
-	ROS_ERROR("Space information setup should have been called before planner setup was called");
+	m_msg.error("Space information setup should have been called before planner setup was called");
     if (m_setup)
-	ROS_ERROR("Planner setup called multiple times");		
+	m_msg.error("Planner setup called multiple times");		
     m_setup = true;
 }
 
@@ -68,7 +67,7 @@ bool ompl::base::Planner::isTrivial(unsigned int *startID, double *distance) con
     
     if (!goal)
     {
-	ROS_ERROR("Goal undefined");
+	m_msg.error("Goal undefined");
 	return false;
     }
     
@@ -89,7 +88,7 @@ bool ompl::base::Planner::isTrivial(unsigned int *startID, double *distance) con
 	}
 	else
 	{
-	    ROS_ERROR("Initial state is in collision!");
+	    m_msg.error("Initial state is in collision!");
 	}
     }
     

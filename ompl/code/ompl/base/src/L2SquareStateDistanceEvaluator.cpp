@@ -36,7 +36,6 @@
 
 #include "ompl/base/L2SquareStateDistanceEvaluator.h"
 #include "ompl/base/SpaceInformation.h"
-#include <angles/angles.h>
 
 double ompl::base::L2SquareStateDistanceEvaluator::operator()(const State *s1, const State *s2) const
 {
@@ -45,8 +44,9 @@ double ompl::base::L2SquareStateDistanceEvaluator::operator()(const State *s1, c
     double dist = 0.0;
     for (unsigned int i = 0 ; i < dim ; ++i)
     {	 
-	double diff = m_si->getStateComponent(i).type == StateComponent::WRAPPING_ANGLE ? 
-	    angles::shortest_angular_distance(s1->values[i], s2->values[i]) : s1->values[i] - s2->values[i];
+	//	double diff = m_si->getStateComponent(i).type == StateComponent::WRAPPING_ANGLE ? 
+	//	    angles::shortest_angular_distance(s1->values[i], s2->values[i]) : s1->values[i] - s2->values[i];
+	double diff = s1->values[i] - s2->values[i];
 	dist += diff * diff;
 	// will need to consider quaternions; bullet angle diff?
     }

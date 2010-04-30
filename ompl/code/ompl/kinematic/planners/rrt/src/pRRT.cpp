@@ -37,9 +37,8 @@
 #include "ompl/kinematic/planners/rrt/pRRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include <boost/thread/thread.hpp>
-#include <ros/console.h>
 
-void ompl::kinematic::pRRT::threadSolve(unsigned int tid, ros::WallTime &endTime, SolutionInfo *sol)
+void ompl::kinematic::pRRT::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
 {
     SpaceInformationKinematic  *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
     base::Goal                 *goal   = si->getGoal();
@@ -54,7 +53,7 @@ void ompl::kinematic::pRRT::threadSolve(unsigned int tid, ros::WallTime &endTime
     base::State *rstate = rmotion->state;
     base::State *xstate = new base::State(dim);
 
-    while (sol->solution == NULL && ros::WallTime::now() < endTime)
+    while (sol->solution == NULL && time::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
 	if (goal_s && m_sCoreArray[tid]->getRNG().uniform01() < m_goalBias)
@@ -120,11 +119,11 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("pRRT: Goal undefined");
+	m_msg.error("pRRT: Goal undefined");
 	return false;
     }
     
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
 
     if (m_nn.size() == 0)
     {
@@ -136,7 +135,7 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
 		m_nn.add(motion);
 	    else
 	    {
-		ROS_ERROR("pRRT: Initial state is invalid!");
+		m_msg.error("pRRT: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -144,11 +143,11 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
     
     if (m_nn.size() == 0)
     {
-	ROS_ERROR("pRRT: There are no valid initial states!");
+	m_msg.error("pRRT: There are no valid initial states!");
 	return false;	
     }    
 
-    ROS_INFO("pRRT: Starting with %u states", m_nn.size());
+    m_msg.inform("pRRT: Starting with %u states", m_nn.size());
     
     SolutionInfo sol;
     sol.solution = NULL;
@@ -193,10 +192,10 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    ROS_WARN("pRRT: Found approximate solution");
+	    m_msg.warn("pRRT: Found approximate solution");
     }
 
-    ROS_INFO("pRRT: Created %u states", m_nn.size());
+    m_msg.inform("pRRT: Created %u states", m_nn.size());
     
     return goal->isAchieved();
 }

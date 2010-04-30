@@ -36,7 +36,6 @@
 
 #include "ompl/kinematic/planners/rrt/RRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include <ros/console.h>
 
 bool ompl::kinematic::RRT::solve(double solveTime)
 {
@@ -47,11 +46,11 @@ bool ompl::kinematic::RRT::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("RRT: Goal undefined");
+	m_msg.error("RRT: Goal undefined");
 	return false;
     }
     
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
 
     if (m_nn.size() == 0)
     {
@@ -63,7 +62,7 @@ bool ompl::kinematic::RRT::solve(double solveTime)
 		m_nn.add(motion);
 	    else
 	    {
-		ROS_ERROR("RRT: Initial state is invalid!");
+		m_msg.error("RRT: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -71,11 +70,11 @@ bool ompl::kinematic::RRT::solve(double solveTime)
     
     if (m_nn.size() == 0)
     {
-	ROS_ERROR("RRT: There are no valid initial states!");
+	m_msg.error("RRT: There are no valid initial states!");
 	return false;	
     }    
 
-    ROS_INFO("RRT: Starting with %u states", m_nn.size());
+    m_msg.inform("RRT: Starting with %u states", m_nn.size());
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -88,7 +87,7 @@ bool ompl::kinematic::RRT::solve(double solveTime)
     base::State *rstate = rmotion->state;
     base::State *xstate = new base::State(dim);
     
-    while (ros::WallTime::now() < endTime)
+    while (time::now() < endTime)
     {
 
 	/* sample random state (with goal biasing) */
@@ -160,13 +159,13 @@ bool ompl::kinematic::RRT::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    ROS_WARN("RRT: Found approximate solution");
+	    m_msg.warn("RRT: Found approximate solution");
     }
 
     delete xstate;
     delete rmotion;
 	
-    ROS_INFO("RRT: Created %u states", m_nn.size());
+    m_msg.inform("RRT: Created %u states", m_nn.size());
     
     return goal->isAchieved();
 }

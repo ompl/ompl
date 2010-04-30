@@ -37,7 +37,7 @@
 #ifndef OMPL_BASE_STATE_SAMPLER_
 #define OMPL_BASE_STATE_SAMPLER_
 
-#include "ompl/datastructures/RandomNumbers.h"
+#include "ompl/util/RandomNumbers.h"
 #include "ompl/base/State.h"
 #include <vector>
 

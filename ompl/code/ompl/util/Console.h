@@ -34,8 +34,8 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_OUTPUT_INTERFACE_
-#define OMPL_OUTPUT_INTERFACE_
+#ifndef OMPL_UTIL_CONSOLE_
+#define OMPL_UTIL_CONSOLE_
 
 #include <string>
 #include <cstdarg>
@@ -61,12 +61,12 @@ namespace ompl
 	    void inform(const std::string &text) const;
 	    void warn(const std::string &text) const;
 	    void error(const std::string &text) const;
-	    void message(const std::string &text) const;
+	    void debug(const std::string &text) const;
 
 	    void inform(const char *msg, ...) const;
 	    void warn(const char *msg, ...) const;
 	    void error(const char *msg, ...) const;
-	    void message(const char *msg, ...) const;
+	    void debug(const char *msg, ...) const;
 
 	protected:
 	    
@@ -96,8 +96,8 @@ namespace ompl
 	    /** Print some information: "Information: ...." */
 	    virtual void inform(const std::string &text) = 0;
 	    
-	    /** Print a simple message */
-	    virtual void message(const std::string &text) = 0;
+	    /** Print a debug message */
+	    virtual void debug(const std::string &text) = 0;
 	};
 
 	class OutputHandlerSTD : public OutputHandler
@@ -117,8 +117,8 @@ namespace ompl
 	    /** Print some information: "Information: ...." */
 	    virtual void inform(const std::string &text);
 	    
-	    /** Print a simple message */
-	    virtual void message(const std::string &text);
+	    /** Print a debug message */
+	    virtual void debug(const std::string &text);
 	    
 	    
 	};

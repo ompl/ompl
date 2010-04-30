@@ -36,7 +36,6 @@
 
 #include "ompl/kinematic/planners/est/EST.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include <ros/console.h>
 
 bool ompl::kinematic::EST::solve(double solveTime)
 {
@@ -47,11 +46,11 @@ bool ompl::kinematic::EST::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("EST: Goal undefined");
+	m_msg.error("EST: Goal undefined");
 	return false;
     }
 
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
 
     if (m_tree.grid.size() == 0)
     {
@@ -63,7 +62,7 @@ bool ompl::kinematic::EST::solve(double solveTime)
 		addMotion(motion);
 	    else
 	    {
-		ROS_ERROR("EST: Initial state is invalid!");
+		m_msg.error("EST: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -71,11 +70,11 @@ bool ompl::kinematic::EST::solve(double solveTime)
     
     if (m_tree.grid.size() == 0)
     {
-	ROS_ERROR("EST: There are no valid initial states!");
+	m_msg.error("EST: There are no valid initial states!");
 	return false;	
     }    
 
-    ROS_INFO("EST: Starting with %u states", m_tree.size);
+    m_msg.inform("EST: Starting with %u states", m_tree.size);
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -86,7 +85,7 @@ bool ompl::kinematic::EST::solve(double solveTime)
     double  approxdif = INFINITY;
     base::State *xstate = new base::State(dim);
     
-    while (ros::WallTime::now() < endTime)
+    while (time::now() < endTime)
     {
 	/* Decide on a state to expand from */
 	Motion *existing = selectMotion();
@@ -151,12 +150,12 @@ bool ompl::kinematic::EST::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    ROS_WARN("EST: Found approximate solution");
+	    m_msg.warn("EST: Found approximate solution");
     }
 
     delete xstate;
     
-    ROS_INFO("EST: Created %u states in %u cells", m_tree.size, m_tree.grid.size());
+    m_msg.inform("EST: Created %u states in %u cells", m_tree.size, m_tree.grid.size());
     
     return goal->isAchieved();
 }

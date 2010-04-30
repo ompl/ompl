@@ -34,8 +34,8 @@
 
 /** \author Ioan Sucan */
 
-#ifndef OMPL_BASE_RANDOM_NUMBERS_
-#define OMPL_BASE_RANDOM_NUMBERS_
+#ifndef OMPL_UTIL_RANDOM_NUMBERS_
+#define OMPL_UTIL_RANDOM_NUMBERS_
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>

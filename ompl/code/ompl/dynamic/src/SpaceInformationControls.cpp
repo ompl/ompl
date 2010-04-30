@@ -38,7 +38,6 @@
 #include "ompl/dynamic/UniformControlSampler.h"
 #include <algorithm>
 #include <cstring>
-#include <ros/console.h>
 
 namespace ompl
 {
@@ -54,22 +53,22 @@ namespace ompl
 void ompl::dynamic::SpaceInformationControls::setup(void)
 {
     if (m_resolution <= 0.0)
-	ROS_ERROR("Resolution of must be >0 when planning with controls");
+	m_msg.error("Resolution of must be >0 when planning with controls");
     
     if (m_controlDimension <= 0)
-	ROS_FATAL("The dimension of the control space needs to be larger than 0");
+	m_msg.error("The dimension of the control space needs to be larger than 0");
     
     if (m_controlComponent.size() != m_controlDimension)
-	ROS_FATAL("Control component specification does not agree with control dimension");
+	m_msg.error("Control component specification does not agree with control dimension");
     
     if (!m_stateDistanceEvaluator)
-	ROS_FATAL("No state distance evaluator defined");
+	m_msg.error("No state distance evaluator defined");
     
     if (m_minControlDuration > m_maxControlDuration)
-	ROS_FATAL("The maximum duration of a control is less than the minimum one");
+	m_msg.error("The maximum duration of a control is less than the minimum one");
     
     if (m_minControlDuration <= 0)
-	ROS_ERROR("The minimum duration of a control must be positive");    
+	m_msg.error("The minimum duration of a control must be positive");    
     
     if (!m_controlSamplerAllocator)
 	m_controlSamplerAllocator = boost::bind(allocUniformControlSampler, _1);

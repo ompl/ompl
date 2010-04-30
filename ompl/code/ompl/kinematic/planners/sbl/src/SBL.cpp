@@ -36,7 +36,6 @@
 
 #include "ompl/kinematic/planners/sbl/SBL.h"
 #include "ompl/base/GoalState.h"
-#include <ros/console.h>
 
 bool ompl::kinematic::SBL::solve(double solveTime)
 {
@@ -46,11 +45,11 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("SBL: Unknown type of goal (or goal undefined)");
+	m_msg.error("SBL: Unknown type of goal (or goal undefined)");
 	return false;
     }
     
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
     
     if (m_tStart.size == 0)
     {
@@ -65,7 +64,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
 	    }
 	    else
 	    {
-		ROS_ERROR("SBL: Initial state is invalid!");
+		m_msg.error("SBL: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -82,18 +81,18 @@ bool ompl::kinematic::SBL::solve(double solveTime)
 	}
 	else
 	{
-	    ROS_ERROR("SBL: Goal state is invalid!");
+	    m_msg.error("SBL: Goal state is invalid!");
 	    delete motion;
 	}
     }
     
     if (m_tStart.size == 0 || m_tGoal.size == 0)
     {
-	ROS_ERROR("SBL: Motion planning trees could not be initialized!");
+	m_msg.error("SBL: Motion planning trees could not be initialized!");
 	return false;
     }
     
-    ROS_INFO("SBL: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
+    m_msg.inform("SBL: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
     std::vector<Motion*> solution;
     base::State *xstate = new base::State(dim);
@@ -103,7 +102,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
-    while (ros::WallTime::now() < endTime)
+    while (time::now() < endTime)
     {
 	TreeData &tree      = startTree ? m_tStart : m_tGoal;
 	startTree = !startTree;
@@ -139,8 +138,8 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     
     delete xstate;
     
-    ROS_INFO("SBL: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
-	     m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
+    m_msg.inform("SBL: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
+		 m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();
 }

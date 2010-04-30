@@ -35,7 +35,6 @@
 /* \author Ioan Sucan */
 
 #include "ompl/dynamic/SpaceInformationControlsIntegrator.h"
-#include <ros/console.h>
 #include <cassert>
 #include <algorithm>
 #include <queue>
@@ -43,10 +42,10 @@
 void ompl::dynamic::SpaceInformationControlsIntegrator::setup(void)
 {
     if (!m_stateValidityChecker)
-	ROS_FATAL("No state validity checker defined");
+	m_msg.error("No state validity checker defined");
     
     if (!m_stateForwardPropagator)
-	ROS_FATAL("No forward propagation routine defined");    
+	m_msg.error("No forward propagation routine defined");    
 
     SpaceInformationControls::setup();
 }

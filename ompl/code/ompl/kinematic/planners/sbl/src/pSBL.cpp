@@ -37,9 +37,8 @@
 #include "ompl/kinematic/planners/sbl/pSBL.h"
 #include "ompl/base/GoalState.h"
 #include <boost/thread.hpp>
-#include <ros/console.h>
 
-void ompl::kinematic::pSBL::threadSolve(unsigned int tid, ros::WallTime &endTime, SolutionInfo *sol)
+void ompl::kinematic::pSBL::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
 {   
     SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
     base::GoalState           *goal = dynamic_cast<base::GoalState*>(si->getGoal());
@@ -53,10 +52,10 @@ void ompl::kinematic::pSBL::threadSolve(unsigned int tid, ros::WallTime &endTime
     for (unsigned int i = 0 ; i < dim ; ++i)
 	range[i] = m_rho * (si->getStateComponent(i).maxValue - si->getStateComponent(i).minValue);
     
-    while (!sol->found && ros::WallTime::now() < endTime)
+    while (!sol->found && time::now() < endTime)
     {
 	bool retry = true;
-	while (retry && !sol->found && ros::WallTime::now() < endTime)
+	while (retry && !sol->found && time::now() < endTime)
 	{
 	    m_removeList.lock.lock();
 	    if (!m_removeList.motions.empty())
@@ -77,7 +76,7 @@ void ompl::kinematic::pSBL::threadSolve(unsigned int tid, ros::WallTime &endTime
 	    m_removeList.lock.unlock();
 	}
 	
-	if (sol->found || ros::WallTime::now() > endTime)
+	if (sol->found || time::now() > endTime)
 	    break;
 	
 	m_loopLockCounter.lock();
@@ -144,11 +143,11 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
     
     if (!goal)
     {
-	ROS_ERROR("pSBL: Unknown type of goal (or goal undefined)");
+	m_msg.error("pSBL: Unknown type of goal (or goal undefined)");
 	return false;
     }
     
-    ros::WallTime endTime = ros::WallTime::now() + ros::WallDuration(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
     
     if (m_tStart.size == 0)
     {
@@ -163,7 +162,7 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
 	    }
 	    else
 	    {
-		ROS_ERROR("pSBL: Initial state is invalid!");
+		m_msg.error("pSBL: Initial state is invalid!");
 		delete motion;
 	    }	
 	}
@@ -180,18 +179,18 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
 	}
 	else
 	{
-	    ROS_ERROR("pSBL: Goal state is invalid!");
+	    m_msg.error("pSBL: Goal state is invalid!");
 	    delete motion;
 	}
     }
     
     if (m_tStart.size == 0 || m_tGoal.size == 0)
     {
-	ROS_ERROR("pSBL: Motion planning trees could not be initialized!");
+	m_msg.error("pSBL: Motion planning trees could not be initialized!");
 	return false;
     }
     
-    ROS_INFO("pSBL: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
+    m_msg.inform("pSBL: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
     SolutionInfo sol;
     sol.found = false;
@@ -206,7 +205,7 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
 	delete th[i];
     }
         
-    ROS_INFO("pSBL: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
+    m_msg.inform("pSBL: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
 	     m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();

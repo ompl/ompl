@@ -37,8 +37,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/GoalState.h"
 #include "ompl/base/UniformStateSampler.h"
-#include <angles/angles.h>
-#include <ros/console.h>
+
 #include <sstream>
 #include <cstring>
 #include <cassert>
@@ -70,13 +69,13 @@ bool ompl::base::SpaceInformation::equalState(State *a, const State *b) const
 void ompl::base::SpaceInformation::setup(void)
 {
     if (m_setup)
-	ROS_ERROR("Space information setup called multiple times");
+	m_msg.error("Space information setup called multiple times");
     
     if (m_stateDimension <= 0)
-	ROS_FATAL("State space dimension must be > 0");
+	m_msg.error("State space dimension must be > 0");
     
     if (m_stateComponent.size() != m_stateDimension)
-	ROS_FATAL("State component specification does not agree with state dimension");
+	m_msg.error("State component specification does not agree with state dimension");
     
     if (!m_stateSamplerAllocator)
 	m_stateSamplerAllocator = boost::bind(allocUniformStateSampler, _1);
@@ -128,10 +127,10 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 	    {
 		v = isValid(st);
 		if (!v)
-		    ROS_DEBUG("Initial state is not valid");
+		    m_msg.debug("Initial state is not valid");
 	    }
 	    else
-		ROS_DEBUG("Initial state is not within space bounds");
+		m_msg.debug("Initial state is not within space bounds");
 	    
 	    if (!b || !v)
 	    {
@@ -141,13 +140,13 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 		for (unsigned int j = 0 ; j < rhoStart.size() ; ++j)
 		    ss << rhoStart[j] << " ";
 		ss << "]";		
-		ROS_DEBUG("Attempting to fix initial state %s", ss.str().c_str());
+		m_msg.debug("Attempting to fix initial state %s", ss.str().c_str());
 		base::State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoStart, attempts))
 		    copyState(st, &temp);
 		else
 		{
-		    ROS_WARN("Unable to fix start state %u", i);
+		    m_msg.warn("Unable to fix start state %u", i);
 		    result = false;
 		}
 	    }
@@ -167,10 +166,10 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 	    {
 		v = isValid(st);
 		if (!v)
-		    ROS_DEBUG("Goal state is not valid");
+		    m_msg.debug("Goal state is not valid");
 	    }
 	    else
-		ROS_DEBUG("Goal state is not within space bounds");
+		m_msg.debug("Goal state is not within space bounds");
 	    
 	    if (!b || !v)
 	    {
@@ -181,13 +180,13 @@ bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<doubl
 		for (unsigned int i = 0 ; i < rhoGoal.size() ; ++i)
 		    ss << rhoGoal[i] << " ";
 		ss << "]";
-		ROS_DEBUG("Attempting to fix goal state %s", ss.str().c_str());
+		m_msg.debug("Attempting to fix goal state %s", ss.str().c_str());
 		base::State temp(m_stateDimension);
 		if (searchValidNearby(&temp, st, rhoGoal, attempts))
 		    copyState(st, &temp);
 		else
 		{
-		    ROS_WARN("Unable to fix goal state");
+		    m_msg.warn("Unable to fix goal state");
 		    result = false;
 		}
 	    }

@@ -39,7 +39,8 @@
 
 #include "ompl/base/General.h"
 #include "ompl/base/SpaceInformation.h"
-#include <ros/time.h>
+#include "ompl/util/Console.h"
+#include "ompl/util/Time.h"
 
 namespace ompl
 {
@@ -108,6 +109,7 @@ namespace ompl
 	    SpaceInformation *m_si;
 	    PlannerType       m_type;	
 	    bool              m_setup;
+	    msg::Interface    m_msg;
 	};    
     }
 }

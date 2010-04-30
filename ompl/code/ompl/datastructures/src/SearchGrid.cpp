@@ -35,7 +35,6 @@
 /** \author Ioan Sucan  */
 
 #include "ompl/datastructures/SearchGrid.h"
-#include <ros/console.h>
 #include <cassert>
 #include <cstdlib>
 #include <cmath>
@@ -49,7 +48,7 @@ ompl::SearchGrid::SearchGrid(const Coord &maxC) : m_maxC(maxC)
     for (int i = m_maxC.size() - 1 ; i >= 0 ; --i)
     {
 	if (m_maxC[i] <= 0)
-	    ROS_ERROR("Number of cells in each dimension of search grid must be positive");
+	    m_msg.error("Number of cells in each dimension of search grid must be positive");
 	m_maxCAux[i] = m_stateCount;
 	m_stateCount *= m_maxC[i];
     }
