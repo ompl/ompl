@@ -10,45 +10,46 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(Boost COMPONENTS date_time thread REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/code)
+set(OMPL_CODE ${PROJECT_SOURCE_DIR}/code)
+include_directories(${OMPL_CODE})
 add_definitions(-W -Wall -Wextra)
 
-add_library(ompl SHARED code/ompl/util/src/RandomNumbers.cpp 
-			code/ompl/util/src/Console.cpp
-                        code/ompl/datastructures/src/SearchGrid.cpp
-			code/ompl/base/src/SpaceInformation.cpp
-			code/ompl/base/src/L2SquareStateDistanceEvaluator.cpp
-			code/ompl/base/src/LinearProjectionEvaluator.cpp
-			code/ompl/base/src/OrthogonalProjectionEvaluator.cpp
-			code/ompl/base/src/StateSampler.cpp
-			code/ompl/base/src/StateSamplerArray.cpp
-			code/ompl/base/src/UniformStateSampler.cpp
-			code/ompl/base/src/GoalRegion.cpp
-			code/ompl/base/src/GoalState.cpp
-			code/ompl/base/src/Planner.cpp
-			code/ompl/kinematic/src/PathKinematic.cpp
-			code/ompl/kinematic/src/SpaceInformationKinematic.cpp
-			code/ompl/kinematic/src/PathSmootherKinematic.cpp
-			code/ompl/kinematic/src/LinearStateInterpolatorKinematic.cpp
-			code/ompl/kinematic/planners/ik/src/HCIK.cpp
-			code/ompl/kinematic/planners/ik/src/GAIK.cpp
-			code/ompl/kinematic/planners/rrt/src/RRT.cpp
-			code/ompl/kinematic/planners/rrt/src/pRRT.cpp
-			code/ompl/kinematic/planners/rrt/src/LazyRRT.cpp
-			code/ompl/kinematic/planners/rrt/src/RRTConnect.cpp
-			code/ompl/kinematic/planners/est/src/EST.cpp
-			code/ompl/kinematic/planners/sbl/src/SBL.cpp
-			code/ompl/kinematic/planners/sbl/src/pSBL.cpp
-			code/ompl/kinematic/planners/kpiece/src/KPIECE1.cpp
-			code/ompl/kinematic/planners/kpiece/src/LBKPIECE1.cpp
-			code/ompl/dynamic/src/ControlSampler.cpp
-			code/ompl/dynamic/src/PathDynamic.cpp
-			code/ompl/dynamic/src/SpaceInformationControls.cpp
-			code/ompl/dynamic/src/UniformControlSampler.cpp
-			code/ompl/dynamic/src/SpaceInformationControlsIntegrator.cpp
-			code/ompl/dynamic/src/SpaceInformationControlsPhysics.cpp
-			code/ompl/dynamic/planners/rrt/src/RRT.cpp
-			code/ompl/dynamic/planners/kpiece/src/KPIECE1.cpp
+add_library(ompl SHARED ${OMPL_CODE}/ompl/util/src/RandomNumbers.cpp 
+			${OMPL_CODE}/ompl/util/src/Console.cpp
+                        ${OMPL_CODE}/ompl/datastructures/src/SearchGrid.cpp
+			${OMPL_CODE}/ompl/base/src/SpaceInformation.cpp
+			${OMPL_CODE}/ompl/base/src/L2SquareStateDistanceEvaluator.cpp
+			${OMPL_CODE}/ompl/base/src/LinearProjectionEvaluator.cpp
+			${OMPL_CODE}/ompl/base/src/OrthogonalProjectionEvaluator.cpp
+			${OMPL_CODE}/ompl/base/src/StateSampler.cpp
+			${OMPL_CODE}/ompl/base/src/StateSamplerArray.cpp
+			${OMPL_CODE}/ompl/base/src/UniformStateSampler.cpp
+			${OMPL_CODE}/ompl/base/src/GoalRegion.cpp
+			${OMPL_CODE}/ompl/base/src/GoalState.cpp
+			${OMPL_CODE}/ompl/base/src/Planner.cpp
+			${OMPL_CODE}/ompl/kinematic/src/PathKinematic.cpp
+			${OMPL_CODE}/ompl/kinematic/src/SpaceInformationKinematic.cpp
+			${OMPL_CODE}/ompl/kinematic/src/PathSmootherKinematic.cpp
+			${OMPL_CODE}/ompl/kinematic/src/LinearStateInterpolatorKinematic.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/ik/src/HCIK.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/ik/src/GAIK.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/rrt/src/RRT.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/rrt/src/pRRT.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/rrt/src/LazyRRT.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/rrt/src/RRTConnect.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/est/src/EST.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/sbl/src/SBL.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/sbl/src/pSBL.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/kpiece/src/KPIECE1.cpp
+			${OMPL_CODE}/ompl/kinematic/planners/kpiece/src/LBKPIECE1.cpp
+			${OMPL_CODE}/ompl/dynamic/src/ControlSampler.cpp
+			${OMPL_CODE}/ompl/dynamic/src/PathDynamic.cpp
+			${OMPL_CODE}/ompl/dynamic/src/SpaceInformationControls.cpp
+			${OMPL_CODE}/ompl/dynamic/src/UniformControlSampler.cpp
+			${OMPL_CODE}/ompl/dynamic/src/SpaceInformationControlsIntegrator.cpp
+			${OMPL_CODE}/ompl/dynamic/src/SpaceInformationControlsPhysics.cpp
+			${OMPL_CODE}/ompl/dynamic/planners/rrt/src/RRT.cpp
+			${OMPL_CODE}/ompl/dynamic/planners/kpiece/src/KPIECE1.cpp
 			)
 
 target_link_libraries(ompl
@@ -77,21 +78,21 @@ if(BUILD_TESTS)
 
 
   # Test kinematic motion planners on a 2D map
-  ADD_OMPL_TEST(test_2dmap_kinematic code/tests/kinematic/2dmap/2dmap.cpp)
+  ADD_OMPL_TEST(test_2dmap_kinematic ${OMPL_CODE}/tests/kinematic/2dmap/2dmap.cpp)
 
   # Test dynamic motion planners on a 2D map
-  ADD_OMPL_TEST(test_2dmap_dynamic code/tests/dynamic/2dmap/2dmap.cpp)
+  ADD_OMPL_TEST(test_2dmap_dynamic ${OMPL_CODE}/tests/dynamic/2dmap/2dmap.cpp)
 
   # Test datastructures implementation
-  ADD_OMPL_TEST(test_heap code/tests/datastructures/heap/heap.cpp)
-  ADD_OMPL_TEST(test_grid code/tests/datastructures/grid/grid.cpp)
-  ADD_OMPL_TEST(test_gridb code/tests/datastructures/grid/gridb.cpp)
-  ADD_OMPL_TEST(test_searchgrid code/tests/datastructures/searchgrid/searchgrid.cpp)
+  ADD_OMPL_TEST(test_heap ${OMPL_CODE}/tests/datastructures/heap/heap.cpp)
+  ADD_OMPL_TEST(test_grid ${OMPL_CODE}/tests/datastructures/grid/grid.cpp)
+  ADD_OMPL_TEST(test_gridb ${OMPL_CODE}/tests/datastructures/grid/gridb.cpp)
+  ADD_OMPL_TEST(test_searchgrid ${OMPL_CODE}/tests/datastructures/searchgrid/searchgrid.cpp)
 
   # Test utilities
-  ADD_OMPL_TEST(test_random code/tests/util/random/random.cpp)
+  ADD_OMPL_TEST(test_random ${OMPL_CODE}/tests/util/random/random.cpp)
 
   # Test compilation
-  ADD_OMPL_TEST(test_compile code/tests/compile/compile.cpp)
+  ADD_OMPL_TEST(test_compile ${OMPL_CODE}/tests/compile/compile.cpp)
 
 endif(BUILD_TESTS)
