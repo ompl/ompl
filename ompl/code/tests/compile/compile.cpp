@@ -44,6 +44,7 @@
 #include "ompl/base/GoalRegion.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/base/GoalState.h"
+#include "ompl/base/GoalStates.h"
 #include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
@@ -61,7 +62,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 
-#include "ompl/datastructures/Hash.h"
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/Grid.h"
 #include "ompl/datastructures/GridN.h"

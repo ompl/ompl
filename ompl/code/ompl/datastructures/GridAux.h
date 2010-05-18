@@ -42,7 +42,7 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
-#include "ompl/datastructures/Hash.h"
+#include <boost/unordered_map.hpp>
 
 namespace ompl
 {
@@ -396,31 +396,6 @@ namespace ompl
 	    }
 	};
 
-#ifdef _MSC_VER
-	
-	/// Visual studio data structure for hash_compare
-	class HashCompareCoord : public OMPL_NS_HASH::hash_compare<Coord*>
-	{
-	public:
-	    std::size_t operator()(const Coord* const s) const
-	    {
-		return m_hf(s);
-	    }
-	    
-	    bool operator()(const Coord* const c1, const Coord* const c2) const
-	    {
-		return *c1 < *c2;
-	    }
-	    
-	protected:
-
-	    HashFunCoordPtr m_hf;
-	};
-	
-	/// define the datatype for the used hash structure
-	typedef OMPL_NS_HASH::OMPL_NAME_HASH<Coord*, Cell*, HashCompareCoord> CoordHash;
-
-#else
 
 	/// equality operator for coordinate pointers
 	struct EqualCoordPtr
@@ -432,9 +407,7 @@ namespace ompl
 	};
 	
 	/// define the datatype for the used hash structure
-	typedef OMPL_NS_HASH::OMPL_NAME_HASH<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
-
-#endif
+	typedef boost::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
 
     public:
 	
