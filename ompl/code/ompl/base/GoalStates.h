@@ -34,55 +34,57 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DATASTRUCTURES_JL_MATRIX_
-#define OMPL_DATASTRUCTURES_JL_MATRIX_
+#ifndef OMPL_BASE_GOAL_STATES_
+#define OMPL_BASE_GOAL_STATES_
 
-#include <Eigen/SVD>
-#include "ompl/datastructures/RandomNumbers.h"
-#include <cassert>
+#include "ompl/base/GoalSampleableRegion.h"
+#include <vector>
 
 namespace ompl
 {
-
-    /** \brief Create a random matrix that can be used for the Johnson Lindenstrauss Lemma */
-    class JLMatrix
+    
+    namespace base
     {
-    public:
+	
+	/** \brief Definition of a goal state */
+	class GoalStates : public GoalSampleableRegion
+	{
+	public:
+	    
+	    GoalStates(const SpaceInformation *si) : GoalSampleableRegion(si), samplePosition(0)
+	    {
+	    }
+	    
+	    virtual ~GoalStates(void)
+	    {
+		for (unsigned int i = 0 ; i < states.size() ; ++i)
+		    delete states[i];
+	    }
+	    
+	    /** \brief Sample a state in the goal region */
+	    virtual void sampleGoal(base::State *st) const;
+	    
+	    /** \brief Return the maximum number of samples that can be asked for before repeating */
+	    virtual unsigned int maxSampleCount(void) const;
+	    
+	    /** \brief Compute the distance to the goal (heuristic) */
+	    virtual double distanceGoal(const base::State *st) const;	    
+	    
+	    /** \brief Print information about the goal data structure
+		to a stream */
+	    virtual void print(std::ostream &out = std::cout) const;
+	    
+	    /** \brief The goal state */
+	    std::vector<base::State*> states;
+	    
+	private:
+	    
+	    /** \brief The index of the next sample to be returned  */
+	    mutable unsigned int samplePosition;
+	    
+	};
 
-	JLMatrix(unsigned int k, unsigned int n)
-	{
-	    m_n = n;
-	    m_k = k;
-	    assert(m_k < m_n);
-	    compute();
-	}
-	
-	~JLMatrix(void)
-	{
-	}
-	
-	void compute(void);
-	
-	const Eigen::MatrixXd& getMatrix(void) const
-	{
-	    return m_R;
-	}
-	
-	const Eigen::MatrixXd& getPseudoInverse(void) const
-	{
-	    return m_piR;
-	}
-	
-    private:
-	
-	RNG                          m_rng;
-	
-	Eigen::MatrixXd              m_R;
-	Eigen::MatrixXd              m_piR;
-	
-	unsigned int                 m_n;
-	unsigned int                 m_k;
-    };
+    }
 }
 
 #endif

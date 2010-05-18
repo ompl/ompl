@@ -36,6 +36,7 @@
 
 #include "ompl/dynamic/planners/kpiece/KPIECE1.h"
 #include "ompl/base/GoalState.h"
+#include <limits>
 
 bool ompl::dynamic::KPIECE1::solve(double solveTime)
 {
@@ -83,7 +84,7 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
     
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
-    double  approxdif = INFINITY;
+    double  approxdif = std::numeric_limits<double>::infinity();
 
     Control *rctrl = new Control(cdim);
     std::vector<Grid::Coord> coords(si->getMaxControlDuration() + 1);

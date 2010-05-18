@@ -18,7 +18,6 @@ include_directories(${OMPL_CODE})
 
 set(OMPL_SOURCE_CODE ${OMPL_CODE}/ompl/util/src/RandomNumbers.cpp 
                      ${OMPL_CODE}/ompl/util/src/Console.cpp
-                     ${OMPL_CODE}/ompl/datastructures/src/SearchGrid.cpp
 		     ${OMPL_CODE}/ompl/base/src/SpaceInformation.cpp
 		     ${OMPL_CODE}/ompl/base/src/ProblemDefinition.cpp
 		     ${OMPL_CODE}/ompl/base/src/L2SquareStateDistanceEvaluator.cpp
@@ -29,6 +28,7 @@ set(OMPL_SOURCE_CODE ${OMPL_CODE}/ompl/util/src/RandomNumbers.cpp
 		     ${OMPL_CODE}/ompl/base/src/UniformStateSampler.cpp
 		     ${OMPL_CODE}/ompl/base/src/GoalRegion.cpp
 		     ${OMPL_CODE}/ompl/base/src/GoalState.cpp
+		     ${OMPL_CODE}/ompl/base/src/GoalStates.cpp
 		     ${OMPL_CODE}/ompl/base/src/Planner.cpp
 		     ${OMPL_CODE}/ompl/kinematic/src/PathKinematic.cpp
 		     ${OMPL_CODE}/ompl/kinematic/src/SpaceInformationKinematic.cpp
@@ -116,7 +116,6 @@ if(BUILD_TESTS)
   add_ompl_test(test_heap ${OMPL_CODE}/tests/datastructures/heap/heap.cpp)
   add_ompl_test(test_grid ${OMPL_CODE}/tests/datastructures/grid/grid.cpp)
   add_ompl_test(test_gridb ${OMPL_CODE}/tests/datastructures/grid/gridb.cpp)
-  add_ompl_test(test_searchgrid ${OMPL_CODE}/tests/datastructures/searchgrid/searchgrid.cpp)
 
   # Test utilities
   add_ompl_test(test_random ${OMPL_CODE}/tests/util/random/random.cpp)

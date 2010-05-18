@@ -36,6 +36,7 @@
 
 #include "ompl/kinematic/planners/rrt/RRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include <limits>
 
 bool ompl::kinematic::RRT::solve(double solveTime)
 {
@@ -85,7 +86,7 @@ bool ompl::kinematic::RRT::solve(double solveTime)
     
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
-    double  approxdif = INFINITY;
+    double  approxdif = std::numeric_limits<double>::infinity();
     Motion *rmotion   = new Motion(dim);
     base::State *rstate = rmotion->state;
     base::State *xstate = new base::State(dim);

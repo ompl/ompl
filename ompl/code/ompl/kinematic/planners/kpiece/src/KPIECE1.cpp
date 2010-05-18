@@ -36,6 +36,7 @@
 
 #include "ompl/kinematic/planners/kpiece/KPIECE1.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include <limits>
 
 bool ompl::kinematic::KPIECE1::solve(double solveTime)
 {
@@ -86,7 +87,7 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
     
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
-    double  approxdif = INFINITY;
+    double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = new base::State(dim);
 
     double improveValue = 0.01;

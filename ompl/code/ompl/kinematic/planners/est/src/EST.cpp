@@ -36,6 +36,7 @@
 
 #include "ompl/kinematic/planners/est/EST.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include <limits>
 
 bool ompl::kinematic::EST::solve(double solveTime)
 {
@@ -85,7 +86,7 @@ bool ompl::kinematic::EST::solve(double solveTime)
     
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
-    double  approxdif = INFINITY;
+    double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = new base::State(dim);
     
     while (time::now() < endTime)

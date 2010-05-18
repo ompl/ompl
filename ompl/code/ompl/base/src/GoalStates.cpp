@@ -32,51 +32,43 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* \author Ioan Sucan */
 
-#include <gtest/gtest.h>
+#include "ompl/base/GoalStates.h"
+#include "ompl/base/SpaceInformation.h"
+#include <cassert>
+#include <limits>
 
-#include "ompl/datastructures/SearchGrid.h"
-
-using namespace ompl;
-
-TEST(SearchGrid, Simple)
+double ompl::base::GoalStates::distanceGoal(const State *st) const
 {
-    SearchGrid::Coord M(2);
-    M[0] = 10;
-    M[1] = 10;
-    SearchGrid *grid = new SearchGrid2D(M);
-
-    grid->setAllCells(0.1);
-
-
-    SearchGrid::Coord c(2);
-    c[0] = 1;
-    c[1] = 1;
-    
-    EXPECT_EQ(grid->getCell(c), 0.1);
-    c[1]++;
-    grid->setCellWithDecay(c, 2.0, 0.25, 2);
-    c[1]--;
-    EXPECT_NEAR(grid->getCell(c), 0.5, 1e-9);
-    
-    SearchGrid::Coord s(2);
-    SearchGrid::Coord g(2);
-    s[0] = s[1] = 0;
-    g[0] = g[1] = 7;
-    std::vector<SearchGrid::Coord> p;
-    grid->shortestPath(s, g, p);
-    
-    for (unsigned int i = 0 ; i < p.size() ; ++i)
-	grid->setCell(p[i], 9);
-    
-    //    grid->print();
-    
-    delete grid;
+    double dist = std::numeric_limits<double>::infinity();
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    {
+	double d = m_si->distance(st, states[i]);
+	if (d < dist)
+	    dist = d;
+    }
+    return dist;
 }
 
-int main(int argc, char **argv)
+void ompl::base::GoalStates::print(std::ostream &out) const
 {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    out << states.size() << " goal states, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << std::endl;
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    {
+	m_si->printState(states[i], out);
+	out << std::endl;
+    }
+}
+
+void ompl::base::GoalStates::sampleGoal(base::State *st) const
+{
+    assert(states.size() > 0);
+    m_si->copyState(st, states[samplePosition]);
+    samplePosition = (samplePosition + 1) % states.size();
+}
+
+unsigned int ompl::base::GoalStates::maxSampleCount(void) const
+{
+    return states.size();
 }

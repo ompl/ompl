@@ -36,6 +36,7 @@
 
 #include "ompl/dynamic/planners/rrt/RRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include <limits>
 #include <cassert>
 
 bool ompl::dynamic::RRT::solve(double solveTime)
@@ -88,7 +89,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
-    double  approxdif = INFINITY;
+    double  approxdif = std::numeric_limits<double>::infinity();
     
     Motion      *rmotion = new Motion(sdim, cdim);
     base::State  *rstate = rmotion->state;

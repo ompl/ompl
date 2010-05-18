@@ -37,6 +37,7 @@
 #include "ompl/kinematic/planners/rrt/pRRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include <boost/thread/thread.hpp>
+#include <limits>
 
 void ompl::kinematic::pRRT::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
 {
@@ -156,7 +157,7 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
     SolutionInfo sol;
     sol.solution = NULL;
     sol.approxsol = NULL;
-    sol.approxdif = INFINITY;
+    sol.approxdif = std::numeric_limits<double>::infinity();
     
     std::vector<boost::thread*> th(m_threadCount);
     for (unsigned int i = 0 ; i < m_threadCount ; ++i)
