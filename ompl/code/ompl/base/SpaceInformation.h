@@ -39,8 +39,6 @@
 
 #include "ompl/base/General.h"
 #include "ompl/base/State.h"
-#include "ompl/base/Goal.h"
-#include "ompl/base/Path.h"
 #include "ompl/base/StateDistanceEvaluator.h"
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/StateSampler.h"
@@ -79,7 +77,6 @@ namespace ompl
 	    /** \brief Constructor */
 	    SpaceInformation(void)
 	    {
-		m_goal = NULL;
 		m_setup = false;
 		m_stateDistanceEvaluator = NULL;
 		m_stateValidityChecker = NULL;
@@ -91,67 +88,7 @@ namespace ompl
 	    virtual ~SpaceInformation(void)
 	    {
 	    }
-
-	    /** \brief Add a start state */
-	    void addStartState(State *state)
-	    {
-		m_startStates.push_back(state);
-	    }
 	    
-	    /** \brief Clear all start states (memory is freed) */
-	    void clearStartStates(void)
-	    {
-		for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
-		    delete m_startStates[i];
-		m_startStates.clear();
-	    }
-	    
-	    /** \brief Clear all start states but do not free memory */
-	    void forgetStartStates(void)
-	    {
-		m_startStates.clear();
-	    }
-	    
-	    /** \brief Returns the number of start states */
-	    unsigned int getStartStateCount(void) const
-	    {
-		return m_startStates.size();
-	    }
-	    
-	    /** \brief Returns a specific start state */
-	    State* getStartState(unsigned int index) const
-	    {
-		return m_startStates[index];
-	    }
-
-	    /** \brief Set the goal. The memory for a previous goal is freed. */
-	    void setGoal(Goal *goal)
-	    {
-		if (m_goal)
-		    delete m_goal;
-		m_goal = goal;
-	    }
-	    
-	    /** \brief Clear the goal. Memory is freed. */
-	    void clearGoal(void)
-	    {
-		if (m_goal)
-		    delete m_goal;
-		m_goal = NULL;
-	    }
-	    
-	    /** \brief Return the current goal */
-	    Goal* getGoal(void) const
-	    {
-		return m_goal;
-	    }
-	    
-	    /** \brief Clear the goal, but do not free its memory */
-	    void forgetGoal(void)
-	    {
-		m_goal = NULL;
-	    }
-
 	    /** \brief Set the pointer to a function that can allocate
 		state samplers.  We do not set a specific instance
 		since parallel planners will use multiple instances in
@@ -205,6 +142,12 @@ namespace ompl
 		m_stateComponent = stateSpec;
 		m_stateDimension = stateSpec.size();
 	    }
+
+	    /** \brief Specify the state to use in the space information */
+	    void setStateComponent(const StateComponent &stateSpec, unsigned int index)
+	    {
+		m_stateComponent[index] = stateSpec;
+	    }
 	    
 	    /** \brief Return the dimension of the state space */
 	    unsigned int getStateDimension(void) const
@@ -234,7 +177,7 @@ namespace ompl
 	    virtual void copyState(State *destination, const State *source) const;
 
 	    /** \brief Check if two states are the same */
-	    virtual bool equalState(State *a, const State *b) const;
+	    virtual bool equalStates(const State *a, const State *b) const;
 	    
 	    /** \brief Check if a state is inside the bounding box */
 	    bool satisfiesBounds(const State *s) const;
@@ -252,12 +195,6 @@ namespace ompl
 	     *  The two passed state pointers must point to different states. Returns true on success.  */
 	    bool searchValidNearby(base::State *state, const base::State *near, const std::vector<double> &rho, unsigned int attempts) const;
 
-	    /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automaticaly
-	      * find a nearby state that is valid so motion planning can be performed. This function enables this behaviour.
-	      * The allowed distance (per state component) for both start and goal states is specified. The number of attempts
-	      * is also specified. Returns true if all states are valid after completion. */
-	    bool fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts);
-	    
 	    /************************************************************/
 	    /* Utility functions                                        */
 	    /************************************************************/
@@ -276,8 +213,6 @@ namespace ompl
 	    
 	protected:
 	    	    
-	    std::vector<State*>          m_startStates;
-	    Goal                        *m_goal;
 
 	    unsigned int                 m_stateDimension;
 	    std::vector<StateComponent>  m_stateComponent;

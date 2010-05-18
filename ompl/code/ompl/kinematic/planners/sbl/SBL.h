@@ -175,18 +175,12 @@ namespace ompl
 	    {
 	    public:
 		
-		Motion(void)
+		Motion(void) : root(NULL), state(NULL), parent(NULL), valid(false)
 		{
-		    parent = NULL;
-		    state  = NULL;
-		    valid  = false;
 		}
 		
-		Motion(unsigned int dimension)
+		Motion(unsigned int dimension) : root(NULL), state(new base::State(dimension)), parent(NULL), valid(false)
 		{
-		    state  = new base::State(dimension);
-		    parent = NULL;
-		    valid  = false;
 		}
 		
 		~Motion(void)
@@ -195,17 +189,17 @@ namespace ompl
 			delete state;
 		}
 		
-		base::State *state;
-		Motion      *parent;
-		bool         valid;
-		MotionSet    children;
+		const base::State *root;
+		base::State       *state;
+		Motion            *parent;
+		bool               valid;
+		MotionSet          children;
 	    };
 	    
 	    struct TreeData
 	    {
-		TreeData(void) : grid(0)
+		TreeData(void) : grid(0), size(0)
 		{
-		    size = 0;
 		}
 		
 		Grid<MotionSet> grid;

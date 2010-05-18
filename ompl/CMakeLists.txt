@@ -20,6 +20,7 @@ set(OMPL_SOURCE_CODE ${OMPL_CODE}/ompl/util/src/RandomNumbers.cpp
                      ${OMPL_CODE}/ompl/util/src/Console.cpp
                      ${OMPL_CODE}/ompl/datastructures/src/SearchGrid.cpp
 		     ${OMPL_CODE}/ompl/base/src/SpaceInformation.cpp
+		     ${OMPL_CODE}/ompl/base/src/ProblemDefinition.cpp
 		     ${OMPL_CODE}/ompl/base/src/L2SquareStateDistanceEvaluator.cpp
 		     ${OMPL_CODE}/ompl/base/src/LinearProjectionEvaluator.cpp
 		     ${OMPL_CODE}/ompl/base/src/OrthogonalProjectionEvaluator.cpp

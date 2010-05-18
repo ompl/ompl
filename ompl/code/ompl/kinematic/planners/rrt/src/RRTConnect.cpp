@@ -64,6 +64,7 @@ ompl::kinematic::RRTConnect::GrowState ompl::kinematic::RRTConnect::growTree(Tre
 	Motion *motion = new Motion(tgi.dim);
 	static_cast<SpaceInformationKinematic*>(m_si)->copyState(motion->state, tgi.xstate);
 	motion->parent = nmotion;
+	motion->root = nmotion->root;
 	tgi.xmotion = motion;
 	
 	tree.add(motion);
@@ -79,7 +80,7 @@ ompl::kinematic::RRTConnect::GrowState ompl::kinematic::RRTConnect::growTree(Tre
 bool ompl::kinematic::RRTConnect::solve(double solveTime)
 {
     SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalState           *goal = dynamic_cast<base::GoalState*>(si->getGoal());
+    base::GoalState           *goal = dynamic_cast<base::GoalState*>(m_pdef->getGoal());
     unsigned int                dim = si->getStateDimension();
     
     if (!goal)
@@ -92,12 +93,15 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 
     if (m_tStart.size() == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, si->getStartState(i));
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    {
+		motion->root = m_pdef->getStartState(i);
 		m_tStart.add(motion);
+	    }
 	    else
 	    {
 		m_msg.error("RRTConnect: Initial state is invalid!");
@@ -111,7 +115,10 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 	Motion *motion = new Motion(dim);
 	si->copyState(motion->state, goal->state);
 	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	{
+	    motion->root = goal->state;
 	    m_tGoal.add(motion);
+	}
 	else
 	{
 	    m_msg.error("RRTConnect: Goal state is invalid!");
@@ -160,8 +167,9 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 	    while (gsc == ADVANCED)
 		gsc = growTree(otherTree, tgi, rmotion);
 
-	    /* if we connected the trees */
-	    if (gsc == REACHED)
+	    /* if we connected the trees in a valid way (start and goal pair is valid)*/
+	    if (gsc == REACHED && goal->isStartGoalPairValid(startTree ? tgi.xmotion->root : addedMotion->root,
+							     startTree ? addedMotion->root : tgi.xmotion->root))
 	    {
 		/* construct the solution path */
 		Motion *solution = tgi.xmotion;

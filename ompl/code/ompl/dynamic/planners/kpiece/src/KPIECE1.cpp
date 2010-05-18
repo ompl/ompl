@@ -40,8 +40,8 @@
 bool ompl::dynamic::KPIECE1::solve(double solveTime)
 {
     SpaceInformationControlsIntegrator *si = dynamic_cast<SpaceInformationControlsIntegrator*>(m_si); 
-    base::Goal                       *goal = si->getGoal();
-    base::GoalState                *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
+    base::Goal                       *goal = m_pdef->getGoal();
+    base::GoalState                *goal_s = dynamic_cast<base::GoalState*>(goal);
     unsigned int                      sdim = si->getStateDimension();
     unsigned int                      cdim = si->getControlDimension();
     
@@ -55,13 +55,16 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 
     if (m_tree.grid.size() == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(sdim, cdim);
-	    si->copyState(motion->state, si->getStartState(i));
-	    si->nullControl(motion->control);
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    {
+		si->nullControl(motion->control);
+		motion->root = m_pdef->getStartState(i);
 		addMotion(motion, 1.0);
+	    }
 	    else
 	    {
 		m_msg.error("KPIECE1: Initial state is invalid!");
@@ -159,9 +162,10 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 		    si->copyControl(motion->control, rctrl);
 		    motion->steps = curr - start;
 		    motion->parent = existing;
+		    motion->root = existing->root;
 		    
 		    double dist = 0.0;
-		    bool solved = goal->isSatisfied(motion->state, &dist);
+		    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
 		    addMotion(motion, dist);
 		    
 		    if (solved)
@@ -194,9 +198,10 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 	    si->copyControl(motion->control, rctrl);
 	    motion->steps = cd - start;
 	    motion->parent = existing;
+	    motion->root = existing->root;
 	    
 	    double dist = 0.0;
-	    bool solved = goal->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
 	    addMotion(motion, dist);
 	    
 	    if (solved)

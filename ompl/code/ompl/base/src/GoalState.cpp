@@ -37,9 +37,9 @@
 #include "ompl/base/GoalState.h"
 #include "ompl/base/SpaceInformation.h"
 	    
-double ompl::base::GoalState::distanceGoal(const State *s) const
+double ompl::base::GoalState::distanceGoal(const State *st) const
 {
-    return m_si->distance(s, state);
+    return m_si->distance(st, state);
 }
 
 void ompl::base::GoalState::print(std::ostream &out) const
@@ -48,9 +48,9 @@ void ompl::base::GoalState::print(std::ostream &out) const
     m_si->printState(state, out);
 }
 
-void ompl::base::GoalState::sampleGoal(base::State *s) const
+void ompl::base::GoalState::sampleGoal(base::State *st) const
 {
-    m_si->copyState(s, state);
+    m_si->copyState(st, state);
 }
 
 unsigned int ompl::base::GoalState::maxSampleCount(void) const

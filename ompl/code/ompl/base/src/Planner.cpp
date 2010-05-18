@@ -36,11 +36,8 @@
 
 #include "ompl/base/Planner.h"
 
-ompl::base::Planner::Planner(SpaceInformation *si)
+ompl::base::Planner::Planner(SpaceInformation *si) : m_si(si), m_pdef(NULL), m_type(PLAN_UNKNOWN), m_setup(false)
 {
-    m_si    = si;
-    m_setup = false;
-    m_type = PLAN_UNKNOWN;
     if (!m_si)
 	m_msg.error("Invalid space information instance");
     if (!m_si->isSetup())
@@ -52,6 +49,17 @@ ompl::base::PlannerType ompl::base::Planner::getType(void) const
     return m_type;
 }
 
+const ompl::base::ProblemDefinition* ompl::base::Planner::getProblemDefinition(void) const
+{
+    return m_pdef;
+}
+
+void ompl::base::Planner::setProblemDefinition(ProblemDefinition *pdef)
+{
+    clear();
+    m_pdef = pdef;
+}
+
 void ompl::base::Planner::setup(void)
 {
     if (!m_si->isSetup())
@@ -61,36 +69,3 @@ void ompl::base::Planner::setup(void)
     m_setup = true;
 }
 
-bool ompl::base::Planner::isTrivial(unsigned int *startID, double *distance) const
-{
-    Goal *goal = m_si->getGoal();
-    
-    if (!goal)
-    {
-	m_msg.error("Goal undefined");
-	return false;
-    }
-    
-    for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
-    {
-	State *start = m_si->getStartState(i);
-	if (start && m_si->isValid(start) && m_si->satisfiesBounds(start))
-	{
-	    double dist;
-	    if (goal->isSatisfied(start, &dist))
-	    {
-		if (startID)
-		    *startID = i;
-		if (distance)
-		    *distance = dist;
-		return true;
-	    }	    
-	}
-	else
-	{
-	    m_msg.error("Initial state is in collision!");
-	}
-    }
-    
-    return false;    
-}

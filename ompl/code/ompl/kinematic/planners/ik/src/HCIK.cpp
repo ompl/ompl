@@ -38,13 +38,9 @@
 #include "ompl/base/GoalRegion.h"
 #include <algorithm>
 
-bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double *distance) const
+bool ompl::kinematic::HCIK::tryToImprove(const base::GoalRegion *goal, base::State *state, double add, double *distance) const
 {
-    base::GoalRegion *goal_r = dynamic_cast<base::GoalRegion*>(m_si->getGoal());
-    unsigned int   dim = m_si->getStateDimension();
-    
-    if (!goal_r)
-	return false;
+    unsigned int dim = m_si->getStateDimension();
     
     double tempDistance;
     double initialDistance;
@@ -52,7 +48,7 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
     bool wasValid = valid(state);
     bool wasValidStart = wasValid;
     
-    bool wasSatisfied = goal_r->isSatisfied(state, &initialDistance);
+    bool wasSatisfied = goal->isSatisfied(state, NULL, &initialDistance);
     bool wasSatisfiedStart = wasSatisfied;
     
     double bestDist   = initialDistance;
@@ -79,7 +75,7 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 		if (m_si->satisfiesBounds(state))
 		{
 		    bool isV = valid(state);
-		    bool isS = goal_r->isSatisfied(state, &tempDistance);
+		    bool isS = goal->isSatisfied(state, NULL, &tempDistance);
 
 		    if (isV && !wasValid)
 		    {
@@ -145,7 +141,7 @@ bool ompl::kinematic::HCIK::tryToImprove(base::State *state, double add, double 
 		    if (m_si->satisfiesBounds(state))
 		    {	
 			bool isV = valid(state);
-			bool isS = goal_r->isSatisfied(state, &tempDistance);
+			bool isS = goal->isSatisfied(state, NULL, &tempDistance);
 
 			if (isV && !wasValid)
 			{

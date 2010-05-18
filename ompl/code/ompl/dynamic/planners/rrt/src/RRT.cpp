@@ -41,8 +41,8 @@
 bool ompl::dynamic::RRT::solve(double solveTime)
 {
     SpaceInformationControlsIntegrator *si = dynamic_cast<SpaceInformationControlsIntegrator*>(m_si); 
-    base::Goal                       *goal = si->getGoal(); 
-    base::GoalSampleableRegion     *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    base::Goal                       *goal = m_pdef->getGoal(); 
+    base::GoalSampleableRegion     *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     unsigned int                      sdim = si->getStateDimension();
     unsigned int                      cdim = si->getControlDimension();
     
@@ -56,13 +56,16 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 
     if (m_nn.size() == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(sdim, cdim);
-	    si->copyState(motion->state, si->getStartState(i));
-	    si->nullControl(motion->control);
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    {
+		si->nullControl(motion->control);
+		motion->root = m_pdef->getStartState(i);
 		m_nn.add(motion);
+	    }
 	    else
 	    {
 		m_msg.error("RRT: Initial state is invalid!");
@@ -133,10 +136,11 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	    si->copyControl(motion->control, rctrl);
 	    motion->steps = cd;
 	    motion->parent = nmotion;
-
+	    motion->root = nmotion->root;
+	    
 	    m_nn.add(motion);
 	    double dist = 0.0;
-	    bool solved = goal->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
 	    if (solved)
 	    {
 		approxdif = dist;

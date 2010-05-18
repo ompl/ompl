@@ -61,13 +61,13 @@ namespace ompl
 	    }
 	    
 	    /** \brief Sample a state in the goal region */
-	    virtual void sampleGoal(base::State *s) const;
+	    virtual void sampleGoal(base::State *st) const;
 	    
 	    /** \brief Return the maximum number of samples that can be asked for before repeating */
 	    virtual unsigned int maxSampleCount(void) const;
 	    
 	    /** \brief Compute the distance to the goal (heuristic) */
-	    virtual double distanceGoal(const base::State *s) const;	    
+	    virtual double distanceGoal(const base::State *st) const;	    
 	    
 	    /** \brief Print information about the goal data structure
 		to a stream */

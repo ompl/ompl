@@ -93,8 +93,8 @@ namespace ompl
 	    virtual bool solve(double solveTime)
 	    {
 		SpaceInformationKinematic *si     = dynamic_cast<SpaceInformationKinematic*>(_P::m_si);
-		base::GoalRegion          *goal_r = dynamic_cast<base::GoalRegion*>(si->getGoal());
-		base::GoalState           *goal_s = dynamic_cast<base::GoalState*>(si->getGoal());
+		base::GoalRegion          *goal_r = dynamic_cast<base::GoalRegion*>(_P::m_pdef->getGoal());
+		base::GoalState           *goal_s = dynamic_cast<base::GoalState*>(_P::m_pdef->getGoal());
 		unsigned int                  dim = si->getStateDimension();
 		
 		if (goal_s)
@@ -107,9 +107,9 @@ namespace ompl
 		}
 		
 		bool foundStart = false;
-		for (unsigned int i = 0 ; i < _P::m_si->getStartStateCount() ; ++i)
+		for (unsigned int i = 0 ; i < _P::m_pdef->getStartStateCount() ; ++i)
 		{
-		    base::State *st = si->getStartState(i);
+		    base::State *st = _P::m_pdef->getStartState(i);
 		    if (!st || !si->isValid(st))
 			_P::m_msg.error("IKPlanner: Initial state is invalid!");
 		    else
@@ -138,12 +138,8 @@ namespace ompl
 		    time::duration time_left = endTime - time::now();
 		    if (time_left.is_negative())
 			break;
-		    if (m_gaik.solve(time::seconds(time_left) * 0.5, stateGoal->state))
+		    if (m_gaik.solve(time::seconds(time_left) * 0.5, stateGoal, stateGoal->state))
 		    {
-			/* change goal to a state one */
-			si->forgetGoal();
-			si->setGoal(stateGoal);
-			
 			/* run _P on the new goal */
 			_P::clear();
 			time_left = endTime - time::now();
@@ -151,15 +147,11 @@ namespace ompl
 			_P::m_msg.error("IKPlanner: Using GAIK goal state for the planner (step %u, %g seconds remaining)", step, seconds_left);
 			solved = _P::solve(seconds_left);
 			
-			/* restore user-set goal */
-			si->forgetGoal();
-			si->setGoal(goal_r);
-			
 			/* copy solution to actual goal instance */
 			if (solved)
 			{
 			    double dist = -1.0;
-			    bool approx = !goal_r->isSatisfied(stateGoal->state, &dist);
+			    bool approx = !goal_r->isSatisfied(stateGoal->state, NULL, &dist);
 			    if (approx)
 				_P::m_msg.warn("IKPlanner: Found approximate solution");
 			    goal_r->setSolutionPath(stateGoal->getSolutionPath(), approx);

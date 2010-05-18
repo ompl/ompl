@@ -41,8 +41,8 @@
 void ompl::kinematic::pRRT::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
 {
     SpaceInformationKinematic  *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::Goal                 *goal   = si->getGoal();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    base::Goal                 *goal   = m_pdef->getGoal();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     unsigned int                   dim = si->getStateDimension();
 
     std::vector<double> range(dim);
@@ -79,13 +79,14 @@ void ompl::kinematic::pRRT::threadSolve(unsigned int tid, time::point endTime, S
 	    Motion *motion = new Motion(dim);
 	    si->copyState(motion->state, xstate);
 	    motion->parent = nmotion;
-
+	    motion->root = nmotion->root;
+	    
 	    m_nnLock.lock();
 	    m_nn.add(motion);
 	    m_nnLock.unlock();
 	    
 	    double dist = 0.0;
-	    bool solved = goal->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
 	    if (solved)
 	    {
 		sol->lock.lock();
@@ -114,7 +115,7 @@ void ompl::kinematic::pRRT::threadSolve(unsigned int tid, time::point endTime, S
 bool ompl::kinematic::pRRT::solve(double solveTime)
 {
     SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalRegion          *goal = dynamic_cast<base::GoalRegion*>(si->getGoal()); 
+    base::GoalRegion          *goal = dynamic_cast<base::GoalRegion*>(m_pdef->getGoal());
     unsigned int                dim = si->getStateDimension();
     
     if (!goal)
@@ -127,12 +128,15 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
 
     if (m_nn.size() == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, si->getStartState(i));
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    {
+		motion->root = m_pdef->getStartState(i);
 		m_nn.add(motion);
+	    }
 	    else
 	    {
 		m_msg.error("pRRT: Initial state is invalid!");

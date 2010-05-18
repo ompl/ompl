@@ -35,10 +35,8 @@
 /* \author Ioan Sucan */
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/GoalState.h"
 #include "ompl/base/UniformStateSampler.h"
 
-#include <sstream>
 #include <cstring>
 #include <cassert>
 
@@ -58,7 +56,7 @@ void ompl::base::SpaceInformation::copyState(State *destination, const State *so
     memcpy(destination->values, source->values, sizeof(double) * m_stateDimension);
 }
 
-bool ompl::base::SpaceInformation::equalState(State *a, const State *b) const
+bool ompl::base::SpaceInformation::equalStates(const State *a, const State *b) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	if (a->values[i] != b->values[i])
@@ -109,93 +107,6 @@ bool ompl::base::SpaceInformation::satisfiesBounds(const State *s) const
     return true;
 }
 
-bool ompl::base::SpaceInformation::fixInvalidInputStates(const std::vector<double> &rhoStart, const std::vector<double> &rhoGoal, unsigned int attempts)
-{
-    assert(rhoStart.size() == rhoGoal.size() && rhoStart.size() == m_stateDimension);
-    
-    bool result = true;
-    
-    // fix start states
-    for (unsigned int i = 0 ; i < m_startStates.size() ; ++i)
-    {
-	base::State *st = m_startStates[i];
-	if (st)
-	{
-	    bool b = satisfiesBounds(st);
-	    bool v = false;
-	    if (b)
-	    {
-		v = isValid(st);
-		if (!v)
-		    m_msg.debug("Initial state is not valid");
-	    }
-	    else
-		m_msg.debug("Initial state is not within space bounds");
-	    
-	    if (!b || !v)
-	    {
-		std::stringstream ss;
-		printState(st, ss);
-		ss << " within margins [ ";
-		for (unsigned int j = 0 ; j < rhoStart.size() ; ++j)
-		    ss << rhoStart[j] << " ";
-		ss << "]";		
-		m_msg.debug("Attempting to fix initial state %s", ss.str().c_str());
-		base::State temp(m_stateDimension);
-		if (searchValidNearby(&temp, st, rhoStart, attempts))
-		    copyState(st, &temp);
-		else
-		{
-		    m_msg.warn("Unable to fix start state %u", i);
-		    result = false;
-		}
-	    }
-	}
-    }
-    
-    // fix goal state
-    base::GoalState *goal = dynamic_cast<base::GoalState*>(m_goal);
-    if (goal)
-    {
-	base::State *st = goal->state;
-	if (st)
-	{
-	    bool b = satisfiesBounds(st);
-	    bool v = false;
-	    if (b)
-	    {
-		v = isValid(st);
-		if (!v)
-		    m_msg.debug("Goal state is not valid");
-	    }
-	    else
-		m_msg.debug("Goal state is not within space bounds");
-	    
-	    if (!b || !v)
-	    {
-		
-		std::stringstream ss;
-		printState(st, ss);
-		ss << " within margins [ ";
-		for (unsigned int i = 0 ; i < rhoGoal.size() ; ++i)
-		    ss << rhoGoal[i] << " ";
-		ss << "]";
-		m_msg.debug("Attempting to fix goal state %s", ss.str().c_str());
-		base::State temp(m_stateDimension);
-		if (searchValidNearby(&temp, st, rhoGoal, attempts))
-		    copyState(st, &temp);
-		else
-		{
-		    m_msg.warn("Unable to fix goal state");
-		    result = false;
-		}
-	    }
-	}
-    }
-    
-    return result;    
-}
-
 void ompl::base::SpaceInformation::enforceBounds(base::State *state) const
 {
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
@@ -238,15 +149,8 @@ bool ompl::base::SpaceInformation::searchValidNearby(base::State *state, const b
 
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
-    out << "Kinematic state space settings:" << std::endl;
+    out << "State space settings:" << std::endl;
     out << "  - dimension = " << m_stateDimension << std::endl;
-    out << "  - start states:" << std::endl;
-    for (unsigned int i = 0 ; i < getStartStateCount() ; ++i)
-	printState(dynamic_cast<const State*>(getStartState(i)), out);
-    if (m_goal)
-	m_goal->print(out);
-    else
-	out << "  - goal = NULL" << std::endl;
     out << "  - bounding box:" << std::endl;
     for (unsigned int i = 0 ; i < m_stateDimension ; ++i)
 	out << "[" << m_stateComponent[i].minValue << ", " <<  m_stateComponent[i].maxValue << "](" << m_stateComponent[i].resolution << ") ";

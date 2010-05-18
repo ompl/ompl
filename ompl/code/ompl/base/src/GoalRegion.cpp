@@ -37,9 +37,9 @@
 #include "ompl/base/GoalRegion.h"
 #include "ompl/base/SpaceInformation.h"
 
-bool ompl::base::GoalRegion::isSatisfied(const State *s, double *distance) const
+bool ompl::base::GoalRegion::isSatisfied(const State *st, const State * /* root */, double *distance) const
 {
-    double d2g = distanceGoal(s);
+    double d2g = distanceGoal(st);
     if (distance)
 	*distance = d2g;
     return d2g < threshold;

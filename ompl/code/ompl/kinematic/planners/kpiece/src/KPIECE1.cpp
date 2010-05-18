@@ -40,8 +40,9 @@
 bool ompl::kinematic::KPIECE1::solve(double solveTime)
 {
     SpaceInformationKinematic      *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::Goal                   *goal = si->getGoal();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    base::Goal                   *goal = m_pdef->getGoal();
+    base::GoalRegion           *goal_r = dynamic_cast<base::GoalRegion*>(goal);
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     unsigned int                   dim = si->getStateDimension();
     
     if (!goal)
@@ -54,12 +55,15 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 
     if (m_tree.grid.size() == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, si->getStartState(i));
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    {
+		motion->root = m_pdef->getStartState(i);
 		addMotion(motion, 1.0);
+	    }
 	    else
 	    {
 		m_msg.error("KPIECE1: Initial state is invalid!");
@@ -104,11 +108,11 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 		goal_s->sampleGoal(xstate);
 	    else
 	    {
-		if (approxsol)
+		if (approxsol && goal_r)
 		{
 		    si->copyState(xstate, approxsol->state);
 		    m_msg.debug("Start Running HCIK (%f)...", improveValue);			
-		    if (!m_hcik.tryToImprove(xstate, improveValue))
+		    if (!m_hcik.tryToImprove(goal_r, xstate, improveValue))
 		    {
 			m_sCore->sampleNear(xstate, existing->state, range);
 			improveValue /= 2.0;
@@ -133,9 +137,10 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 	    Motion *motion = new Motion(dim);
 	    si->copyState(motion->state, xstate);
 	    motion->parent = existing;
-
+	    motion->root = existing->root;
+	    
 	    double dist = 0.0;
-	    bool solved = goal->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
 	    addMotion(motion, dist);
 	    
 	    if (solved)

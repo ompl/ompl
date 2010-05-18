@@ -46,6 +46,7 @@
 #include "ompl/base/GoalState.h"
 #include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/StateAllocator.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/base/OrthogonalProjectionEvaluator.h"

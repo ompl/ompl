@@ -40,7 +40,7 @@
 bool ompl::kinematic::SBL::solve(double solveTime)
 {
     SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalState           *goal = dynamic_cast<base::GoalState*>(si->getGoal());
+    base::GoalState           *goal = dynamic_cast<base::GoalState*>(m_pdef->getGoal());
     unsigned int               dim  = si->getStateDimension();
     
     if (!goal)
@@ -53,13 +53,14 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     
     if (m_tStart.size == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, si->getStartState(i));
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	    {
 		motion->valid = true;
+		motion->root = m_pdef->getStartState(i);
 		addMotion(m_tStart, motion);
 	    }
 	    else
@@ -77,6 +78,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
 	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	{
 	    motion->valid = true;
+	    motion->root = goal->state;
 	    addMotion(m_tGoal, motion);
 	}
 	else
@@ -116,6 +118,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
 	Motion *motion = new Motion(dim);
 	si->copyState(motion->state, xstate);
 	motion->parent = existing;
+	motion->root = existing->root;
 	existing->children.push_back(motion);
 	
 	addMotion(tree, motion);
@@ -152,41 +155,46 @@ bool ompl::kinematic::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
     
     if (cell && !cell->data.empty())
     {
-	SpaceInformationKinematic *si = static_cast<SpaceInformationKinematic*>(m_si);
-	Motion *connectOther          = cell->data[m_rng.uniformInt(0, cell->data.size() - 1)];
-	Motion *connect               = new Motion(si->getStateDimension());
+	Motion *connectOther = cell->data[m_rng.uniformInt(0, cell->data.size() - 1)];
 	
-	si->copyState(connect->state, connectOther->state);
-	connect->parent = motion;
-	motion->children.push_back(connect);
-	addMotion(tree, connect);
-	
-	if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
+	if (m_pdef->getGoal()->isStartGoalPairValid(start ? motion->root : connectOther->root, start ? connectOther->root : motion->root))
 	{
-	    /* extract the motions and put them in solution vector */
+	    SpaceInformationKinematic *si = static_cast<SpaceInformationKinematic*>(m_si);
+	    Motion *connect               = new Motion(si->getStateDimension());
 	    
-	    std::vector<Motion*> mpath1;
-	    while (motion != NULL)
+	    si->copyState(connect->state, connectOther->state);
+	    connect->parent = motion;
+	    connect->root = motion->root;
+	    motion->children.push_back(connect);
+	    addMotion(tree, connect);
+	    
+	    if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
 	    {
-		mpath1.push_back(motion);
-		motion = motion->parent;
+		/* extract the motions and put them in solution vector */
+		
+		std::vector<Motion*> mpath1;
+		while (motion != NULL)
+		{
+		    mpath1.push_back(motion);
+		    motion = motion->parent;
+		}
+		
+		std::vector<Motion*> mpath2;
+		while (connectOther != NULL)
+		{
+		    mpath2.push_back(connectOther);
+		    connectOther = connectOther->parent;
+		}
+		
+		if (!start)
+		    mpath1.swap(mpath2);
+		
+		for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+		    solution.push_back(mpath1[i]);
+		solution.insert(solution.end(), mpath2.begin(), mpath2.end());
+		
+		return true;
 	    }
-	    
-	    std::vector<Motion*> mpath2;
-	    while (connectOther != NULL)
-	    {
-		mpath2.push_back(connectOther);
-		connectOther = connectOther->parent;
-	    }
-	    
-	    if (!start)
-		mpath1.swap(mpath2);
-	    
-	    for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
-		solution.push_back(mpath1[i]);
-	    solution.insert(solution.end(), mpath2.begin(), mpath2.end());
-	    
-	    return true;
 	}
     }
     return false;

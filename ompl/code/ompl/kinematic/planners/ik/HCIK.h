@@ -38,6 +38,7 @@
 #define OMPL_KINEMATIC_PLANNERS_IK_HCIK_
 
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/GoalRegion.h"
 
 namespace ompl
 {
@@ -72,7 +73,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Try to improve a state (reduce distance to goal). The step size to add is also specified */
-	    bool tryToImprove(base::State *state, double add, double *distance = NULL) const;
+	    bool tryToImprove(const base::GoalRegion *goal, base::State *state, double add, double *distance = NULL) const;
 	    
 	    /** \brief Set the number of steps to perform */
 	    void setMaxImproveSteps(unsigned int steps)

@@ -39,6 +39,7 @@
 
 #include "ompl/base/General.h"
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/ProblemDefinition.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 
@@ -79,6 +80,12 @@ namespace ompl
 	    virtual ~Planner(void)
 	    {
 	    }
+
+	    /** \brief Get the problem definition the planner is trying to solve */
+	    const ProblemDefinition* getProblemDefinition(void) const;
+	    
+	    /** \brief Set the problem definition for the planner. The problem needs to be set before calling solve() */
+	    void setProblemDefinition(ProblemDefinition *pdef);
 	    
 	    /** \brief Function that can solve the motion planning problem */
 	    virtual bool solve(double solveTime) = 0;
@@ -88,13 +95,6 @@ namespace ompl
 	    
 	    /** \brief Get states in current exploration datastructure */
 	    virtual void getStates(std::vector<const base::State*> &states) const = 0;
-	    
-	    /** \brief A problem is trivial if the given starting state already
-		in the goal region, so we need no motion planning. startID
-		will be set to the index of the starting state that
-		satisfies the goal. The distance to the goal can
-		optionally be returned as well. */
-	    virtual bool isTrivial(unsigned int *startID = NULL, double *distance = NULL) const;
 	    
 	    /** \brief Return the type of the motion planner. This is useful if
 		the planner wants to advertise what type of problems it
@@ -106,10 +106,11 @@ namespace ompl
 	    
 	protected:
 	    
-	    SpaceInformation *m_si;
-	    PlannerType       m_type;	
-	    bool              m_setup;
-	    msg::Interface    m_msg;
+	    SpaceInformation  *m_si;
+	    ProblemDefinition *m_pdef;
+	    PlannerType        m_type;	
+	    bool               m_setup;
+	    msg::Interface     m_msg;
 	};    
     }
 }

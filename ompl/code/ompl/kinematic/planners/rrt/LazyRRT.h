@@ -158,18 +158,12 @@ namespace ompl
 	    {
 	    public:
 		
-		Motion(void)
+		Motion(void) : root(NULL), state(NULL), parent(NULL), valid(false)
 		{
-		    parent = NULL;
-		    state  = NULL;
-		    valid  = false;
 		}
 		
-		Motion(unsigned int dimension)
+		Motion(unsigned int dimension) : root(NULL), state(new base::State(dimension)), parent(NULL), valid(false)
 		{
-		    state  = new base::State(dimension);
-		    parent = NULL;
-		    valid  = false;
 		}
 		
 		~Motion(void)
@@ -178,10 +172,11 @@ namespace ompl
 			delete state;
 		}
 		
+		const base::State    *root;
 		base::State          *state;
 		Motion               *parent;
-		std::vector<Motion*>  children;
 		bool                  valid;
+		std::vector<Motion*>  children;
 	    };
 	    
 	    void freeMemory(void)

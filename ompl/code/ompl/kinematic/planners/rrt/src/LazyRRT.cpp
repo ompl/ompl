@@ -41,8 +41,8 @@
 bool ompl::kinematic::LazyRRT::solve(double solveTime)
 {
     SpaceInformationKinematic  *si     = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::Goal                 *goal   = si->getGoal();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    base::Goal                 *goal   = m_pdef->getGoal();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     unsigned int                   dim = si->getStateDimension();
     
     if (!goal)
@@ -55,13 +55,14 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
     
     if (m_nn.size() == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, si->getStartState(i));
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	    { 
 		motion->valid = true;
+		motion->root = m_pdef->getStartState(i);
 		m_nn.add(motion);
 	    }	
 	    else
@@ -116,10 +117,11 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
 	si->copyState(motion->state, xstate);
 	motion->parent = nmotion;
 	nmotion->children.push_back(motion);
+	motion->root = nmotion->root;
 	m_nn.add(motion);
 	
 	double dist = 0.0;
-	if (goal->isSatisfied(motion->state, &dist))
+	if (goal->isSatisfied(motion->state, motion->root, &dist))
 	{
 	    distsol = dist;
 	    solution = motion;

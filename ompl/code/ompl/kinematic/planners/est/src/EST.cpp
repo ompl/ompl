@@ -40,8 +40,8 @@
 bool ompl::kinematic::EST::solve(double solveTime)
 {
     SpaceInformationKinematic      *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::Goal                   *goal = si->getGoal();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(si->getGoal());
+    base::Goal                   *goal = m_pdef->getGoal();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     unsigned int                   dim = si->getStateDimension();
     
     if (!goal)
@@ -54,12 +54,15 @@ bool ompl::kinematic::EST::solve(double solveTime)
 
     if (m_tree.grid.size() == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, si->getStartState(i));
-	    if ( si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    si->copyState(motion->state, m_pdef->getStartState(i));
+	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    {
+		motion->root = m_pdef->getStartState(i);
 		addMotion(motion);
+	    }
 	    else
 	    {
 		m_msg.error("EST: Initial state is invalid!");
@@ -103,10 +106,11 @@ bool ompl::kinematic::EST::solve(double solveTime)
 	    Motion *motion = new Motion(dim);
 	    si->copyState(motion->state, xstate);
 	    motion->parent = existing;
-
+	    motion->root = existing->root;
+	    
 	    addMotion(motion);
 	    double dist = 0.0;
-	    bool solved = goal->isSatisfied(motion->state, &dist);
+	    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
 	    if (solved)
 	    {
 		approxdif = dist;

@@ -41,7 +41,7 @@
 void ompl::kinematic::pSBL::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
 {   
     SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalState           *goal = dynamic_cast<base::GoalState*>(si->getGoal());
+    base::GoalState           *goal = dynamic_cast<base::GoalState*>(m_pdef->getGoal());
     unsigned int               dim  = si->getStateDimension();
     
     std::vector<Motion*> solution;
@@ -97,7 +97,8 @@ void ompl::kinematic::pSBL::threadSolve(unsigned int tid, time::point endTime, S
 	Motion *motion = new Motion(dim);
 	si->copyState(motion->state, xstate);
 	motion->parent = existing;
-
+	motion->root = existing->root;
+	
 	existing->lock.lock();
 	existing->children.push_back(motion);
 	existing->lock.unlock();
@@ -138,7 +139,7 @@ void ompl::kinematic::pSBL::threadSolve(unsigned int tid, time::point endTime, S
 bool ompl::kinematic::pSBL::solve(double solveTime)
 {
     SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalState           *goal = dynamic_cast<base::GoalState*>(si->getGoal());
+    base::GoalState           *goal = dynamic_cast<base::GoalState*>(m_pdef->getGoal());
     unsigned int               dim  = si->getStateDimension();
     
     if (!goal)
@@ -151,13 +152,14 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
     
     if (m_tStart.size == 0)
     {
-	for (unsigned int i = 0 ; i < m_si->getStartStateCount() ; ++i)
+	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
 	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, si->getStartState(i));
+	    si->copyState(motion->state, m_pdef->getStartState(i));
 	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	    {
 		motion->valid = true;
+		motion->root = m_pdef->getStartState(i);
 		addMotion(m_tStart, motion);
 	    }
 	    else
@@ -175,6 +177,7 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
 	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	{
 	    motion->valid = true;
+	    motion->root = goal->state;
 	    addMotion(m_tGoal, motion);
 	}
 	else
@@ -224,44 +227,48 @@ bool ompl::kinematic::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, 
 	Motion *connectOther          = cell->data[rng.uniformInt(0, cell->data.size() - 1)];
 	otherTree.lock.unlock();    
 	
-	SpaceInformationKinematic *si = static_cast<SpaceInformationKinematic*>(m_si);
-	Motion *connect               = new Motion(si->getStateDimension());
-
-	si->copyState(connect->state, connectOther->state);
-	connect->parent = motion;
-
-	motion->lock.lock();
-	motion->children.push_back(connect);
-	motion->lock.unlock();
-
-	addMotion(tree, connect);
-	
-	if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
+	if (m_pdef->getGoal()->isStartGoalPairValid(start ? motion->root : connectOther->root, start ? connectOther->root : motion->root))
 	{
-	    /* extract the motions and put them in solution vector */
+	    SpaceInformationKinematic *si = static_cast<SpaceInformationKinematic*>(m_si);
+	    Motion *connect               = new Motion(si->getStateDimension());
 	    
-	    std::vector<Motion*> mpath1;
-	    while (motion != NULL)
+	    si->copyState(connect->state, connectOther->state);
+	    connect->parent = motion;
+	    connect->root = motion->root;
+	    
+	    motion->lock.lock();
+	    motion->children.push_back(connect);
+	    motion->lock.unlock();
+	    
+	    addMotion(tree, connect);
+	    
+	    if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
 	    {
-		mpath1.push_back(motion);
-		motion = motion->parent;
+		/* extract the motions and put them in solution vector */
+		
+		std::vector<Motion*> mpath1;
+		while (motion != NULL)
+		{
+		    mpath1.push_back(motion);
+		    motion = motion->parent;
+		}
+		
+		std::vector<Motion*> mpath2;
+		while (connectOther != NULL)
+		{
+		    mpath2.push_back(connectOther);
+		    connectOther = connectOther->parent;
+		}
+		
+		if (!start)
+		    mpath1.swap(mpath2);
+		
+		for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+		    solution.push_back(mpath1[i]);
+		solution.insert(solution.end(), mpath2.begin(), mpath2.end());
+		
+		return true;
 	    }
-	    
-	    std::vector<Motion*> mpath2;
-	    while (connectOther != NULL)
-	    {
-		mpath2.push_back(connectOther);
-		connectOther = connectOther->parent;
-	    }
-	    
-	    if (!start)
-		mpath1.swap(mpath2);
-	    
-	    for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
-		solution.push_back(mpath1[i]);
-	    solution.insert(solution.end(), mpath2.begin(), mpath2.end());
-	    
-	    return true;
 	}
     }
     else

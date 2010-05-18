@@ -68,15 +68,26 @@ namespace ompl
 	    }
 	    
 	    /** \brief Return true if the state statisfies the goal
-	     *  constraints.  If the state does not satisfy the
-	     *  constraints, set the distance of how far the state is
-	     *  from the goal. */
-	    virtual bool isSatisfied(const State *s, double *distance) const = 0;
+	     *  constraints (given that the state is reached from the
+	     *  specified root state) and compute the distance between
+	     *  the state given as argument and the goal (even if the
+	     *  goal is not satisfied). This distance can be an
+	     *  approximation.  Note: if this function returns true,
+	     *  isStartGoalPairValid() need not be called. It is
+	     *  possible for the specified root state to be NULL (when
+	     *  using algorithms that do not need a notion of starting
+	     *  state, for instance) */
+	    virtual bool isSatisfied(const State *st, const State *root, double *distance) const = 0;
 	    
-	    /** \brief Returns the space information this goal is part of */
-	    const SpaceInformation* getSpaceInformation(void) const
+	    /** \brief Since there can be multiple starting states
+		(and multiple goal states) it is possible certain
+		pairs are not to be allowed. By default we however
+		assume all such pairs are allowed. Note: if this
+		function returns true, isSatisfied() need not be
+		called. */
+	    virtual bool isStartGoalPairValid(const State * /* start */, const State * /* goal */) const 
 	    {
-		return m_si;
+		return true;
 	    }
 	    
 	    /** \brief Returns true if a solution path has been found (could be approximate) */

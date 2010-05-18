@@ -214,11 +214,13 @@ public:
 	myStateForwardPropagator *sfp = new myStateForwardPropagator(si);
 	si->setStateForwardPropagator(sfp);
 	
+	base::ProblemDefinition *pdef = new base::ProblemDefinition(si);
 	
 	si->setup();
 
 	/* instantiate motion planner */
 	base::Planner *planner = newPlanner(si);
+	planner->setProblemDefinition(pdef);
 	planner->setup();
 	
 	/* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
@@ -227,7 +229,7 @@ public:
 	state->values[1] = env.start.second;
 	state->values[2] = 0.0;
 	state->values[3] = 0.0;
-	si->addStartState(state);
+	pdef->addStartState(state);
 	
 	/* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
 	base::GoalState *goal = new base::GoalState(si);
@@ -237,7 +239,7 @@ public:
 	goal->state->values[2] = 0.0;
 	goal->state->values[3] = 0.0;
 	goal->threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
-	si->setGoal(goal);
+	pdef->setGoal(goal);
 	
 	/* start counting time */
 	time::point startTime = time::now();
@@ -289,16 +291,17 @@ public:
 	    result = false;
 	
 	// free memory for start states
-	si->clearStartStates();
+	pdef->clearStartStates();
 	
 	// free memory for goal
-	si->clearGoal();
+	pdef->clearGoal();
 	
 	delete planner;
-	delete si;
+	delete pdef;
 	delete svc;
 	delete sde;
 	delete sfp;
+	delete si;
 	
 	return result;
     }

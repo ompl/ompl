@@ -189,16 +189,12 @@ namespace ompl
 	    {
 	    public:
 		
-		Motion(void)
+		Motion(void) : root(NULL), state(NULL), parent(NULL)
 		{
-		    parent = NULL;
-		    state  = NULL;
 		}
 		
-		Motion(unsigned int dimension)
+		Motion(unsigned int dimension) : root(NULL), state(new base::State(dimension)), parent(NULL)
 		{
-		    state  = new base::State(dimension);
-		    parent = NULL;
 		}
 		
 		~Motion(void)
@@ -207,21 +203,17 @@ namespace ompl
 			delete state;
 		}
 		
-		base::State *state;
-		Motion      *parent;
+		const base::State *root;
+		base::State       *state;
+		Motion            *parent;
 		
 	    };
 	    
 	    struct CellData
 	    {
-		CellData(void)
+		CellData(void) : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
 		{
-		    coverage = 0.0;
-		    selections = 1;
-		    score = 1.0;
-		    iteration = 0;
-		    importance = 0.0;
-		};
+		}
 		
 		~CellData(void)
 		{
@@ -249,10 +241,8 @@ namespace ompl
 	    
 	    struct TreeData
 	    {
-		TreeData(void) : grid(0)
+		TreeData(void) : grid(0), size(0), iteration(1)
 		{
-		    size = 0;
-		    iteration = 1;
 		}
 		
 		Grid         grid;

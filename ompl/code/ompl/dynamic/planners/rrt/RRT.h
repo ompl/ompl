@@ -140,20 +140,12 @@ namespace ompl
 	    {
 	    public:
 		
-		Motion(void)
+		Motion(void) : root(NULL), state(NULL), control(NULL), steps(0), parent(NULL)
 		{
-		    state   = NULL;
-		    control = NULL;
-		    steps   = 0;
-		    parent  = NULL;
 		}
 		
-		Motion(unsigned int sdim, unsigned int cdim)
+		Motion(unsigned int sdim, unsigned int cdim) : root(NULL), state(new base::State(sdim)), control(new Control(cdim)), steps(0), parent(NULL)
 		{
-		    state   = new base::State(sdim);
-		    control = new Control(cdim);
-		    steps   = 0;
-		    parent  = NULL;
 		}
 		
 		~Motion(void)
@@ -164,10 +156,11 @@ namespace ompl
 			delete control;
 		}
 		
-		base::State   *state;
-		Control       *control;
-		unsigned int   steps;
-		Motion        *parent;
+		const base::State *root;
+		base::State       *state;
+		Control           *control;
+		unsigned int       steps;
+		Motion            *parent;
 		
 	    };
 	    

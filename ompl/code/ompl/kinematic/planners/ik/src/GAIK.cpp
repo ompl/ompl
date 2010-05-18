@@ -41,17 +41,9 @@
 
 #include <algorithm>
 
-bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const std::vector<base::State*> &hint)
+bool ompl::kinematic::GAIK::solve(double solveTime, const base::GoalRegion *goal, base::State *result, const std::vector<base::State*> &hint)
 {
-    base::GoalRegion *goal_r = dynamic_cast<base::GoalRegion*>(m_si->getGoal());
-    unsigned int   dim = m_si->getStateDimension();
-    
-    if (!goal_r)
-    {
-	m_msg.error("GAIK: Unknown type of goal (or goal undefined)");
-	return false;
-    }
-        
+    unsigned int            dim = m_si->getStateDimension();
     time::point             endTime = time::now() + time::seconds(solveTime);
     
     unsigned int            maxPoolSize = m_poolSize + m_poolExpansion;
@@ -79,7 +71,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	if (!m_si->satisfiesBounds(pool[i].state))
 	    m_si->enforceBounds(pool[i].state);
 	pool[i].valid = valid(pool[i].state);
-	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
+	if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
 	{
 	    if (pool[i].valid)
 	    {
@@ -98,7 +90,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	    pool[i].state = new base::State(dim);
 	    m_sCore->sampleNear(pool[i].state, pool[i % nh].state, range);
 	    pool[i].valid = valid(pool[i].state);
-	    if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
+	    if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
 	    {
 		if (pool[i].valid)
 		{
@@ -116,7 +108,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	pool[i].state = new base::State(dim);
 	m_sCore->sample(pool[i].state);
 	pool[i].valid = valid(pool[i].state);
-	if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
+	if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
 	{
 	    if (pool[i].valid)
 	    {
@@ -144,7 +136,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	{
 	    m_sCore->sampleNear(pool[i].state, pool[i % m_poolSize].state, range);
 	    pool[i].valid = valid(pool[i].state);
-	    if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
+	    if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
 	    {
 		if (pool[i].valid)
 		{
@@ -161,7 +153,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	    {
 		m_sCore->sample(pool[i].state);
 		pool[i].valid = valid(pool[i].state);
-		if (goal_r->isSatisfied(pool[i].state, &(pool[i].distance)))
+		if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
 		{
 		    if (pool[i].valid)
 		    {
@@ -183,7 +175,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 	m_si->copyState(result, pool[solution].state);
 
 	// try to improve the solution
-	tryToImprove(result, pool[solution].distance);
+	tryToImprove(goal, result, pool[solution].distance);
 
 	// if improving the state made it invalid, revert
 	if (!valid(result))
@@ -202,7 +194,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
 		m_si->copyState(result, pool[i].state);
 
 		// try to improve the state
-		tryToImprove(result, pool[i].distance);
+		tryToImprove(goal, result, pool[i].distance);
 		
 		// if the improvement made the state no longer valid, revert to previous one
 		if (!valid(result))
@@ -219,20 +211,20 @@ bool ompl::kinematic::GAIK::solve(double solveTime, base::State *result, const s
     return solved;
 }
 
-bool ompl::kinematic::GAIK::tryToImprove(base::State *state, double distance)
+bool ompl::kinematic::GAIK::tryToImprove(const base::GoalRegion *goal, base::State *state, double distance)
 {
     m_msg.debug("GAIK: Distance to goal before improvement: %g", distance);    
     time::point start = time::now();
-    m_hcik.tryToImprove(state, 0.1, &distance);
-    m_hcik.tryToImprove(state, 0.05, &distance);
-    m_hcik.tryToImprove(state, 0.01, &distance);
-    m_hcik.tryToImprove(state, 0.005, &distance);
-    m_hcik.tryToImprove(state, 0.001, &distance);
-    m_hcik.tryToImprove(state, 0.005, &distance);
-    m_hcik.tryToImprove(state, 0.0001, &distance);
-    m_hcik.tryToImprove(state, 0.00005, &distance);
-    m_hcik.tryToImprove(state, 0.000025, &distance);
-    m_hcik.tryToImprove(state, 0.000005, &distance);
+    m_hcik.tryToImprove(goal, state, 0.1, &distance);
+    m_hcik.tryToImprove(goal, state, 0.05, &distance);
+    m_hcik.tryToImprove(goal, state, 0.01, &distance);
+    m_hcik.tryToImprove(goal, state, 0.005, &distance);
+    m_hcik.tryToImprove(goal, state, 0.001, &distance);
+    m_hcik.tryToImprove(goal, state, 0.005, &distance);
+    m_hcik.tryToImprove(goal, state, 0.0001, &distance);
+    m_hcik.tryToImprove(goal, state, 0.00005, &distance);
+    m_hcik.tryToImprove(goal, state, 0.000025, &distance);
+    m_hcik.tryToImprove(goal, state, 0.000005, &distance);
     m_msg.debug("GAIK: Improvement took  %g ms", (time::now() - start).total_milliseconds());
     m_msg.debug("GAIK: Distance to goal after improvement: %g", distance);
     return true;

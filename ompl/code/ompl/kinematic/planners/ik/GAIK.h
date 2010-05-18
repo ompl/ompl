@@ -80,7 +80,7 @@ namespace ompl
 	    }
 
 	    /** \brief Find a state that fits the request */
-	    virtual bool solve(double solveTime, base::State *result, const std::vector<base::State*> &hint = std::vector<base::State*>());
+	    virtual bool solve(double solveTime, const base::GoalRegion *goal, base::State *result, const std::vector<base::State*> &hint = std::vector<base::State*>());
 	    
 	    /** \brief Set the number of steps to perform when using hill climbing to improve an individual in the population */
 	    void setMaxImproveSteps(unsigned int maxSteps)
@@ -145,7 +145,7 @@ namespace ompl
 	    
 	protected:
 	    
-	    bool tryToImprove(base::State *state, double distance);
+	    bool tryToImprove(const base::GoalRegion* goal, base::State *state, double distance);
 	    bool valid(const base::State *state) const
 	    {
 		return m_checkValidity ? m_si->isValid(state) : true;

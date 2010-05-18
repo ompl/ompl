@@ -59,7 +59,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Sample a state in the goal region */
-	    virtual void sampleGoal(base::State *s) const = 0;
+	    virtual void sampleGoal(base::State *st) const = 0;
 	    
 	    /** \brief Return the maximum number of samples that can be asked for before repeating */
 	    virtual unsigned int maxSampleCount(void) const = 0;
