@@ -35,62 +35,48 @@
 /* \author Ioan Sucan */
 
 #include "ompl/kinematic/planners/kpiece/LBKPIECE1.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/GoalSampleableRegion.h"
 
 bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 {
-    SpaceInformationKinematic *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalState         *goal = dynamic_cast<base::GoalState*>(m_pdef->getGoal());
-    unsigned int              dim = si->getStateDimension();
+    SpaceInformationKinematic    *si = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(m_pdef->getGoal());
+    unsigned int                 dim = si->getStateDimension();
     
     if (!goal)
     {
 	m_msg.error("LBKPIECE1: Unknown type of goal (or goal undefined)");
 	return false;
     }
-    
+
     time::point endTime = time::now() + time::seconds(solveTime);
     
     if (m_tStart.size == 0)
     {
 	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
-	    Motion* motion = new Motion(dim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    if (si->satisfiesBounds(m_pdef->getStartState(i)) && si->isValid(m_pdef->getStartState(i)))
 	    {
-		motion->valid = true;
+		Motion* motion = new Motion(dim);
+		si->copyState(motion->state, m_pdef->getStartState(i));
 		motion->root = m_pdef->getStartState(i);
+		motion->valid = true;
 		addMotion(m_tStart, motion);
 	    }
 	    else
-	    {
 		m_msg.error("LBKPIECE1: Initial state is invalid!");
-		delete motion;
-	    }	
 	}
     }
     
-    if (m_tGoal.size == 0)
-    {	   
-	Motion* motion = new Motion(dim);
-	si->copyState(motion->state, goal->state);
-	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	{
-	    motion->valid = true;
-	    motion->root = goal->state;
-	    addMotion(m_tGoal, motion);
-	}
-	else
-	{
-	    m_msg.error("LBKPIECE1: Goal state is invalid!");
-	    delete motion;
-	}
-    }
-    
-    if (m_tStart.size == 0 || m_tGoal.size == 0)
+    if (m_tStart.size == 0)
     {
-	m_msg.error("LBKPIECE1: Motion planning trees could not be initialized!");
+	m_msg.error("LBKPIECE1: Motion planning start tree could not be initialized!");
+	return false;
+    }
+
+    if (goal->maxSampleCount() <= 0)
+    {
+	m_msg.error("LBKPIECE1: Insufficient states in sampleable goal region");
 	return false;
     }
     
@@ -110,6 +96,44 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 	startTree = !startTree;
 	TreeData &otherTree = startTree ? m_tStart : m_tGoal;
 	tree.iteration++;
+	
+	// if there are any goals left to sample
+	if (m_sampledGoalsCount < goal->maxSampleCount())
+	{
+	    // if we have not sampled too many goals already
+	    if (m_tGoal.size == 0 || m_sampledGoalsCount < m_tGoal.size / 2)
+	    {
+		base::State *newGoal = new base::State(dim);
+		bool firstAttempt = true;
+		bool added = false;
+		
+		while ((m_tGoal.size == 0 || firstAttempt) && m_sampledGoalsCount < goal->maxSampleCount() && time::now() < endTime)
+		{
+		    firstAttempt = false;
+		    goal->sampleGoal(newGoal);
+		    m_sampledGoalsCount++;
+		    if (si->satisfiesBounds(newGoal) && si->isValid(newGoal))
+		    {
+			Motion* motion = new Motion();
+			motion->state = newGoal;
+			motion->root = newGoal;
+			motion->valid = true;
+			addMotion(m_tGoal, motion);
+			added = true;
+		    }
+		}
+		
+		if (!added)
+		    delete newGoal;
+		
+		if (m_tGoal.size == 0)
+		{
+		    m_msg.error("LBKPIECE1: Unable to sample any valid states for goal tree");
+		    break;
+		}
+	    }
+	}
+
 	
 	Motion* existing = selectMotion(tree);
 	assert(existing);
@@ -311,6 +335,33 @@ void ompl::kinematic::LBKPIECE1::addMotion(TreeData &tree, Motion* motion)
 	tree.grid.add(cell);
     }
     tree.size++;
+}
+
+void ompl::kinematic::LBKPIECE1::freeMemory(void)
+{
+    freeGridMotions(m_tStart.grid);
+    freeGridMotions(m_tGoal.grid);
+}
+
+void ompl::kinematic::LBKPIECE1::freeGridMotions(Grid &grid)
+{
+    for (Grid::iterator it = grid.begin(); it != grid.end() ; ++it)
+	delete it->second->data;
+}
+
+void ompl::kinematic::LBKPIECE1::clear(void)
+{
+    freeMemory();
+    
+    m_tStart.grid.clear();
+    m_tStart.size = 0;
+    m_tStart.iteration = 1;
+    
+    m_tGoal.grid.clear();
+    m_tGoal.size = 0;	    
+    m_tGoal.iteration = 1;
+    
+    m_sampledGoalsCount = 0;
 }
 
 void ompl::kinematic::LBKPIECE1::getStates(std::vector<const base::State*> &states) const

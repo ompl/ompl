@@ -35,13 +35,13 @@
 /* \author Ioan Sucan */
 
 #include "ompl/kinematic/planners/sbl/SBL.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/GoalSampleableRegion.h"
 
 bool ompl::kinematic::SBL::solve(double solveTime)
 {
-    SpaceInformationKinematic *si   = dynamic_cast<SpaceInformationKinematic*>(m_si); 
-    base::GoalState           *goal = dynamic_cast<base::GoalState*>(m_pdef->getGoal());
-    unsigned int               dim  = si->getStateDimension();
+    SpaceInformationKinematic *si    = dynamic_cast<SpaceInformationKinematic*>(m_si); 
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(m_pdef->getGoal());
+    unsigned int               dim   = si->getStateDimension();
     
     if (!goal)
     {
@@ -55,42 +55,28 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     {
 	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
 	{
-	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	    if (si->satisfiesBounds(m_pdef->getStartState(i)) && si->isValid(m_pdef->getStartState(i)))
 	    {
+		Motion *motion = new Motion(dim);
+		si->copyState(motion->state, m_pdef->getStartState(i));
 		motion->valid = true;
 		motion->root = m_pdef->getStartState(i);
 		addMotion(m_tStart, motion);
 	    }
 	    else
-	    {
 		m_msg.error("SBL: Initial state is invalid!");
-		delete motion;
-	    }	
 	}
     }
     
-    if (m_tGoal.size == 0)
-    {	   
-	Motion *motion = new Motion(dim);
-	si->copyState(motion->state, goal->state);
-	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	{
-	    motion->valid = true;
-	    motion->root = goal->state;
-	    addMotion(m_tGoal, motion);
-	}
-	else
-	{
-	    m_msg.error("SBL: Goal state is invalid!");
-	    delete motion;
-	}
-    }
-    
-    if (m_tStart.size == 0 || m_tGoal.size == 0)
+    if (m_tStart.size == 0)
     {
-	m_msg.error("SBL: Motion planning trees could not be initialized!");
+	m_msg.error("SBL: Motion planning start tree could not be initialized!");
+	return false;
+    }
+
+    if (goal->maxSampleCount() <= 0)
+    {
+	m_msg.error("SBL: Insufficient states in sampleable goal region");
 	return false;
     }
     
@@ -98,7 +84,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     
     std::vector<Motion*> solution;
     base::State *xstate = new base::State(dim);
-    bool   startTree = true;
+    bool      startTree = true;
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -109,6 +95,43 @@ bool ompl::kinematic::SBL::solve(double solveTime)
 	TreeData &tree      = startTree ? m_tStart : m_tGoal;
 	startTree = !startTree;
 	TreeData &otherTree = startTree ? m_tStart : m_tGoal;
+	
+	// if there are any goals left to sample
+	if (m_sampledGoalsCount < goal->maxSampleCount())
+	{
+	    // if we have not sampled too many goals already
+	    if (m_tGoal.size == 0 || m_sampledGoalsCount < m_tGoal.size / 2)
+	    {
+		base::State *newGoal = new base::State(dim);
+		bool firstAttempt = true;
+		bool added = false;
+		
+		while ((m_tGoal.size == 0 || firstAttempt) && m_sampledGoalsCount < goal->maxSampleCount() && time::now() < endTime)
+		{
+		    firstAttempt = false;
+		    goal->sampleGoal(newGoal);
+		    m_sampledGoalsCount++;
+		    if (si->satisfiesBounds(newGoal) && si->isValid(newGoal))
+		    {
+			Motion* motion = new Motion();
+			motion->state = newGoal;
+			motion->root = newGoal;
+			motion->valid = true;
+			addMotion(m_tGoal, motion);
+			added = true;
+		    }
+		}
+		
+		if (!added)
+		    delete newGoal;
+		
+		if (m_tGoal.size == 0)
+		{
+		    m_msg.error("SBL: Unable to sample any valid states for goal tree");
+		    break;
+		}
+	    }
+	}
 	
 	Motion *existing = selectMotion(tree);
 	assert(existing);

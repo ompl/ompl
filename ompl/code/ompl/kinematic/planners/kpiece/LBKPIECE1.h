@@ -79,11 +79,12 @@ namespace ompl
 	    LBKPIECE1(SpaceInformationKinematic *si) : base::Planner(si),
 					               m_sCore(si)
 	    {
-		m_type = base::PLAN_TO_GOAL_STATE;
+		m_type = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_selectBorderPercentage = 0.9;
 		m_rho = 0.5;
+		m_sampledGoalsCount = 0;
 		m_tStart.grid.onCellUpdate(computeImportance, NULL);
 		m_tGoal.grid.onCellUpdate(computeImportance, NULL);
 	    }
@@ -155,19 +156,7 @@ namespace ompl
 	    }
 	    
 	    virtual bool solve(double solveTime);
-	    
-	    virtual void clear(void)
-	    {
-		freeMemory();
-		
-		m_tStart.grid.clear();
-		m_tStart.size = 0;
-		m_tStart.iteration = 1;
-		
-		m_tGoal.grid.clear();
-		m_tGoal.size = 0;	    
-		m_tGoal.iteration = 1;
-	    }
+	    virtual void clear(void);
 
 	    virtual void getStates(std::vector<const base::State*> &states) const;
 
@@ -245,17 +234,8 @@ namespace ompl
 		cd.importance =  cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
 	    }
 	    
-	    void freeMemory(void)
-	    {
-		freeGridMotions(m_tStart.grid);
-		freeGridMotions(m_tGoal.grid);
-	    }
-	    
-	    void freeGridMotions(Grid &grid)
-	    {
-		for (Grid::iterator it = grid.begin(); it != grid.end() ; ++it)
-		    delete it->second->data;
-	    }
+	    void freeMemory(void);
+	    void freeGridMotions(Grid &grid);
 	    
 	    void addMotion(TreeData &tree, Motion* motion);
 	    Motion* selectMotion(TreeData &tree);	
@@ -271,6 +251,7 @@ namespace ompl
 	    
 	    TreeData                                   m_tStart;
 	    TreeData                                   m_tGoal;
+	    unsigned int                               m_sampledGoalsCount;
 	    
 	    double                                     m_selectBorderPercentage;
 	    double                                     m_rho;	

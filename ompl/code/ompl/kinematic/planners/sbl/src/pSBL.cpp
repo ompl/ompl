@@ -46,7 +46,7 @@ void ompl::kinematic::pSBL::threadSolve(unsigned int tid, time::point endTime, S
     
     std::vector<Motion*> solution;
     base::State *xstate = new base::State(dim);
-    bool startTree = m_sCoreArray[tid]->getRNG().uniformBool();
+    bool      startTree = m_sCoreArray[tid]->getRNG().uniformBool();
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
