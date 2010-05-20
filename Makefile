@@ -4,5 +4,6 @@ all:	ompl_archive
 
 ompl_archive:
 	echo Generating $(OMPL_ARCHIVE)
+	rm ompl_r*.tar.gz*
 	tar -zcf $(OMPL_ARCHIVE) --exclude-vcs ompl
 	md5sum $(OMPL_ARCHIVE) > $(OMPL_ARCHIVE).md5sum
