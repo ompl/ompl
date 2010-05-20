@@ -51,22 +51,20 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 
     time::point endTime = time::now() + time::seconds(solveTime);
     
-    if (m_tStart.size == 0)
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	if (si->satisfiesBounds(m_pdef->getStartState(i)) && si->isValid(m_pdef->getStartState(i)))
 	{
-	    if (si->satisfiesBounds(m_pdef->getStartState(i)) && si->isValid(m_pdef->getStartState(i)))
-	    {
-		Motion* motion = new Motion(dim);
-		si->copyState(motion->state, m_pdef->getStartState(i));
-		motion->root = m_pdef->getStartState(i);
-		motion->valid = true;
-		addMotion(m_tStart, motion);
-	    }
-	    else
-		m_msg.error("LBKPIECE1: Initial state is invalid!");
+	    Motion* motion = new Motion(dim);
+	    si->copyState(motion->state, m_pdef->getStartState(i));
+	    motion->root = m_pdef->getStartState(i);
+	    motion->valid = true;
+	    addMotion(m_tStart, motion);
 	}
+	else
+	    m_msg.error("LBKPIECE1: Initial state is invalid!");
     }
+
     
     if (m_tStart.size == 0)
     {
@@ -362,6 +360,7 @@ void ompl::kinematic::LBKPIECE1::clear(void)
     m_tGoal.iteration = 1;
     
     m_sampledGoalsCount = 0;
+    m_addedStartStates = 0;
 }
 
 void ompl::kinematic::LBKPIECE1::getStates(std::vector<const base::State*> &states) const

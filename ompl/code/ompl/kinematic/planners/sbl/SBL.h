@@ -94,6 +94,7 @@ namespace ompl
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_sampledGoalsCount = 0;
+		m_addedStartStates = 0;
 		m_rho = 0.5;
 	    }
 	    
@@ -153,20 +154,8 @@ namespace ompl
 	    }
 	    
 	    virtual bool solve(double solveTime);
+	    virtual void clear(void);
 	    
-	    virtual void clear(void)
-	    {
-		freeMemory();
-		
-		m_tStart.grid.clear();
-		m_tStart.size = 0;
-		
-		m_tGoal.grid.clear();
-		m_tGoal.size = 0;
-		
-		m_sampledGoalsCount = 0;
-	    }
-
 	    virtual void getStates(std::vector<const base::State*> &states) const;
 	    
 	protected:
@@ -238,7 +227,17 @@ namespace ompl
 	    
 	    TreeData                                   m_tStart;
 	    TreeData                                   m_tGoal;
+
+	    /// number of goal states that have been sampled already;
+	    /// helps the planner know when to stop sampling the goal
+	    /// region
 	    unsigned int                               m_sampledGoalsCount;
+
+	    /// number of added start states; if between subsequent
+	    /// calls to solve() start states have been added to the
+	    /// problem definition, this variable helps in determining
+	    /// which ones to add to the start tree
+	    unsigned int                               m_addedStartStates;
 	    
 	    double                                     m_rho;	
 	    RNG                                        m_rng;	

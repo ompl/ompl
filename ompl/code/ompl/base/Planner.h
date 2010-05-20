@@ -84,13 +84,24 @@ namespace ompl
 	    /** \brief Get the problem definition the planner is trying to solve */
 	    const ProblemDefinition* getProblemDefinition(void) const;
 	    
-	    /** \brief Set the problem definition for the planner. The problem needs to be set before calling solve() */
+	    /** \brief Set the problem definition for the planner. The
+		problem needs to be set before calling solve(). This
+		also clears the internal datastructures of the planner. */
 	    void setProblemDefinition(ProblemDefinition *pdef);
 	    
-	    /** \brief Function that can solve the motion planning problem */
+	    /** \brief Function that can solve the motion planning
+		problem. This function can be called multiple times on
+		the same problem, without calling clear() in
+		between. This allows the planner to continue work on
+		an unsolved problem, for example. It is assumed the
+		problem definition is not changed (unpredictable
+		results otherwise). Some planners may choose to
+		account for added starting or goal states between
+		subsequent calls. */
 	    virtual bool solve(double solveTime) = 0;
 	    
-	    /** \brief Clear all internal datastructures */
+	    /** \brief Clear all internal datastructures. Subsequent
+		calls to solve() will ignore all previous work. */
 	    virtual void clear(void) = 0;
 	    
 	    /** \brief Get states in current exploration datastructure */

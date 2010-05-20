@@ -85,6 +85,7 @@ namespace ompl
 		m_selectBorderPercentage = 0.9;
 		m_rho = 0.5;
 		m_sampledGoalsCount = 0;
+		m_addedStartStates = 0;
 		m_tStart.grid.onCellUpdate(computeImportance, NULL);
 		m_tGoal.grid.onCellUpdate(computeImportance, NULL);
 	    }
@@ -251,7 +252,17 @@ namespace ompl
 	    
 	    TreeData                                   m_tStart;
 	    TreeData                                   m_tGoal;
+	    
+	    /// number of goal states that have been sampled already;
+	    /// helps the planner know when to stop sampling the goal
+	    /// region
 	    unsigned int                               m_sampledGoalsCount;
+
+	    /// number of added start states; if between subsequent
+	    /// calls to solve() start states have been added to the
+	    /// problem definition, this variable helps in determining
+	    /// which ones to add to the start tree
+	    unsigned int                               m_addedStartStates;
 	    
 	    double                                     m_selectBorderPercentage;
 	    double                                     m_rho;	

@@ -51,21 +51,18 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     
     time::point endTime = time::now() + time::seconds(solveTime);
     
-    if (m_tStart.size == 0)
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	if (si->satisfiesBounds(m_pdef->getStartState(i)) && si->isValid(m_pdef->getStartState(i)))
 	{
-	    if (si->satisfiesBounds(m_pdef->getStartState(i)) && si->isValid(m_pdef->getStartState(i)))
-	    {
-		Motion *motion = new Motion(dim);
-		si->copyState(motion->state, m_pdef->getStartState(i));
-		motion->valid = true;
-		motion->root = m_pdef->getStartState(i);
-		addMotion(m_tStart, motion);
-	    }
-	    else
-		m_msg.error("SBL: Initial state is invalid!");
+	    Motion *motion = new Motion(dim);
+	    si->copyState(motion->state, m_pdef->getStartState(i));
+	    motion->valid = true;
+	    motion->root = m_pdef->getStartState(i);
+	    addMotion(m_tStart, motion);
 	}
+	else
+	    m_msg.error("SBL: Initial state is invalid!");
     }
     
     if (m_tStart.size == 0)
@@ -328,6 +325,20 @@ void ompl::kinematic::SBL::addMotion(TreeData &tree, Motion *motion)
 	tree.grid.add(cell);
     }
     tree.size++;
+}
+
+void ompl::kinematic::SBL::clear(void)
+{
+    freeMemory();
+    
+    m_tStart.grid.clear();
+    m_tStart.size = 0;
+    
+    m_tGoal.grid.clear();
+    m_tGoal.size = 0;
+    
+    m_sampledGoalsCount = 0;
+    m_addedStartStates = 0;
 }
 
 void ompl::kinematic::SBL::getStates(std::vector<const base::State*> &states) const
