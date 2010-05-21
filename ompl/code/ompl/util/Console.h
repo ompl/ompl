@@ -55,8 +55,10 @@ namespace ompl
 	{
 	public: 
 	    
-	    Interface(void);	
+	    Interface(const std::string &prefix = "");
 	    virtual ~Interface(void);
+	    
+	    void setPrefix(const std::string &prefix);
 	    
 	    void inform(const std::string &text) const;
 	    void warn(const std::string &text) const;
@@ -71,6 +73,7 @@ namespace ompl
 	protected:
 	    
 	    std::string combine(const char *msg, va_list ap) const;
+	    std::string m_prefix;
 	    
 	};
 	

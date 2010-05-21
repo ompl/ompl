@@ -93,9 +93,11 @@ namespace ompl
 		                                  m_sCoreArray(si)
 	    {
 		m_type = base::PLAN_TO_GOAL_STATE;
+		m_msg.setPrefix("pSBL");
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_rho = 0.5;
+		m_addedStartStates = 0;
 		setThreadCount(2);
 	    }
 	    
@@ -175,7 +177,9 @@ namespace ompl
 		m_tGoal.grid.clear();
 		m_tGoal.size = 0;
 		
-		m_removeList.motions.clear();	    
+		m_removeList.motions.clear();
+		
+		m_addedStartStates = 0;
 	    }
 
 	    virtual void getStates(std::vector<const base::State*> &states) const;
@@ -271,6 +275,8 @@ namespace ompl
 	    TreeData                                   m_tStart;
 	    TreeData                                   m_tGoal;
 	    
+	    unsigned int                               m_addedStartStates;
+
 	    MotionsToBeRemoved                         m_removeList;
 	    boost::mutex                               m_loopLock;
 	    boost::mutex                               m_loopLockCounter;

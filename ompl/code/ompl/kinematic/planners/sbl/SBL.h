@@ -91,6 +91,8 @@ namespace ompl
 		                                 m_sCore(si)
 	    {
 		m_type = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
+		m_msg.setPrefix("SBL");
+		
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_sampledGoalsCount = 0;

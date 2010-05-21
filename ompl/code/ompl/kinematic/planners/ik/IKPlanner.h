@@ -38,6 +38,7 @@
 #define OMPL_KINEMATIC_PLANNERS_IK_IKPLANNER_
 
 #include "ompl/kinematic/planners/ik/GAIK.h"
+#include "ompl/base/GoalState.h"
 #include "ompl/util/Time.h"
 
 namespace ompl
@@ -128,7 +129,10 @@ namespace ompl
 		base::GoalState *stateGoal = new base::GoalState(si);
 		stateGoal->state = new base::State(dim);
 		stateGoal->threshold = goal_r->threshold;
-		
+
+		_P::m_pdef->forgetGoal();
+		_P::m_pdef->setGoal(stateGoal);
+
 		bool solved = false;
 		unsigned int step = 0;
 		
@@ -145,8 +149,9 @@ namespace ompl
 			time_left = endTime - time::now();
 			double seconds_left = time::seconds(time_left);
 			_P::m_msg.error("IKPlanner: Using GAIK goal state for the planner (step %u, %g seconds remaining)", step, seconds_left);
-			solved = _P::solve(seconds_left);
-			
+
+			solved = _P::solve(seconds_left);			
+			    
 			/* copy solution to actual goal instance */
 			if (solved)
 			{
@@ -163,6 +168,9 @@ namespace ompl
 		    }
 		}
 		
+		_P::m_pdef->forgetGoal();
+		_P::m_pdef->setGoal(goal_r);
+
 		delete stateGoal;
 		return solved;
 	    }

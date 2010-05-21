@@ -63,7 +63,7 @@ namespace ompl
 	{
 	public:
 	    
-	    GAIK(SpaceInformationKinematic *si) : m_hcik(si)
+	    GAIK(SpaceInformationKinematic *si) : m_hcik(si), m_msg("GAIK")
 	    {
 		m_si = si;
 		m_rho = 0.04;

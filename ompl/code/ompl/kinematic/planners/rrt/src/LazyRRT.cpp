@@ -47,39 +47,36 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("LazyRRT: Goal undefined");
+	m_msg.error("Goal undefined");
 	return false;
     }
 
     time::point endTime = time::now() + time::seconds(solveTime);
     
-    if (m_nn.size() == 0)
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	Motion *motion = new Motion(dim);
+	si->copyState(motion->state, m_pdef->getStartState(i));
+	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	{ 
+	    motion->valid = true;
+	    motion->root = m_pdef->getStartState(i);
+	    m_nn.add(motion);
+	}	
+	else
 	{
-	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	    { 
-		motion->valid = true;
-		motion->root = m_pdef->getStartState(i);
-		m_nn.add(motion);
-	    }	
-	    else
-	    {
-		m_msg.error("LazyRRT: Initial state is invalid!");
-		delete motion;
-	    }	
-	}
+	    m_msg.error("Initial state is invalid!");
+	    delete motion;
+	}	
     }
     
     if (m_nn.size() == 0)
     {
-	m_msg.error("LazyRRT: There are no valid initial states!");
+	m_msg.error("There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("LazyRRT: Starting with %u states", m_nn.size());
+    m_msg.inform("Starting with %u states", m_nn.size());
 
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -152,7 +149,7 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
 		}
 	    }
 	
-	/*set the solution path */
+	/* set the solution path */
 	PathKinematic *path = new PathKinematic(m_si);
 	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	{
@@ -169,7 +166,7 @@ bool ompl::kinematic::LazyRRT::solve(double solveTime)
     delete xstate;
     delete rmotion;
     
-    m_msg.inform("LazyRRT: Created %u states", m_nn.size());
+    m_msg.inform("Created %u states", m_nn.size());
 
     return goal->isAchieved();
 }

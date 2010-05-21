@@ -47,38 +47,35 @@ bool ompl::kinematic::RRT::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("RRT: Goal undefined");
+	m_msg.error("Goal undefined");
 	return false;
     }
     
     time::point endTime = time::now() + time::seconds(solveTime);
 
-    if (m_nn.size() == 0)
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	Motion *motion = new Motion(dim);
+	si->copyState(motion->state, m_pdef->getStartState(i));
+	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	{
-	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	    {
-		motion->root = m_pdef->getStartState(i);
-		m_nn.add(motion);
-	    }
-	    else
-	    {
-		m_msg.error("RRT: Initial state is invalid!");
-		delete motion;
-	    }	
+	    motion->root = m_pdef->getStartState(i);
+	    m_nn.add(motion);
 	}
+	else
+	{
+	    m_msg.error("Initial state is invalid!");
+	    delete motion;
+	}	
     }
     
     if (m_nn.size() == 0)
     {
-	m_msg.error("RRT: There are no valid initial states!");
+	m_msg.error("There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("RRT: Starting with %u states", m_nn.size());
+    m_msg.inform("Starting with %u states", m_nn.size());
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -164,13 +161,13 @@ bool ompl::kinematic::RRT::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    m_msg.warn("RRT: Found approximate solution");
+	    m_msg.warn("Found approximate solution");
     }
 
     delete xstate;
     delete rmotion;
 	
-    m_msg.inform("RRT: Created %u states", m_nn.size());
+    m_msg.inform("Created %u states", m_nn.size());
     
     return goal->isAchieved();
 }

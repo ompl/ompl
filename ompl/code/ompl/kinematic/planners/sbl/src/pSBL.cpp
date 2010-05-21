@@ -144,30 +144,27 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("pSBL: Unknown type of goal (or goal undefined)");
+	m_msg.error("Unknown type of goal (or goal undefined)");
 	return false;
     }
     
     time::point endTime = time::now() + time::seconds(solveTime);
     
-    if (m_tStart.size == 0)
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	Motion *motion = new Motion(dim);
+	si->copyState(motion->state, m_pdef->getStartState(i));
+	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	{
-	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	    {
-		motion->valid = true;
-		motion->root = m_pdef->getStartState(i);
-		addMotion(m_tStart, motion);
-	    }
-	    else
-	    {
-		m_msg.error("pSBL: Initial state is invalid!");
-		delete motion;
-	    }	
+	    motion->valid = true;
+	    motion->root = m_pdef->getStartState(i);
+	    addMotion(m_tStart, motion);
 	}
+	else
+	{
+	    m_msg.error("Initial state is invalid!");
+	    delete motion;
+	}	
     }
     
     if (m_tGoal.size == 0)
@@ -182,18 +179,18 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
 	}
 	else
 	{
-	    m_msg.error("pSBL: Goal state is invalid!");
+	    m_msg.error("Goal state is invalid!");
 	    delete motion;
 	}
     }
     
     if (m_tStart.size == 0 || m_tGoal.size == 0)
     {
-	m_msg.error("pSBL: Motion planning trees could not be initialized!");
+	m_msg.error("Motion planning trees could not be initialized!");
 	return false;
     }
     
-    m_msg.inform("pSBL: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
+    m_msg.inform("Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
     SolutionInfo sol;
     sol.found = false;
@@ -208,7 +205,7 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
 	delete th[i];
     }
         
-    m_msg.inform("pSBL: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
+    m_msg.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
 	     m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();

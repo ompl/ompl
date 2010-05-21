@@ -82,6 +82,8 @@ namespace ompl
 				                     m_hcik(si)
 	    {
 		m_type = base::PLAN_TO_GOAL_ANY;
+		m_msg.setPrefix("KPIECE1");
+		
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_goalBias = 0.05;
@@ -92,6 +94,7 @@ namespace ompl
 		m_rho = 0.5;
 		m_tree.grid.onCellUpdate(computeImportance, NULL);
 		m_hcik.setMaxImproveSteps(50);
+		m_addedStartStates = 0;
 	    }
 	    
 	    virtual ~KPIECE1(void)
@@ -107,6 +110,7 @@ namespace ompl
 		m_tree.grid.clear();
 		m_tree.size = 0;
 		m_tree.iteration = 1;
+		m_addedStartStates = 0;
 	    }
 	    
 	    /** \brief Set the goal bias.
@@ -274,6 +278,7 @@ namespace ompl
 	    
 	    HCIK                                       m_hcik;
 	    TreeData                                   m_tree;
+	    unsigned int                               m_addedStartStates;
 	    
 	    base::ProjectionEvaluator                 *m_projectionEvaluator;
 	    unsigned int                               m_projectionDimension;

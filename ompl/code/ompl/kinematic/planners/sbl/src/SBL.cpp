@@ -45,7 +45,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("SBL: Unknown type of goal (or goal undefined)");
+	m_msg.error("Unknown type of goal (or goal undefined)");
 	return false;
     }
     
@@ -62,22 +62,22 @@ bool ompl::kinematic::SBL::solve(double solveTime)
 	    addMotion(m_tStart, motion);
 	}
 	else
-	    m_msg.error("SBL: Initial state is invalid!");
+	    m_msg.error("Initial state is invalid!");
     }
     
     if (m_tStart.size == 0)
     {
-	m_msg.error("SBL: Motion planning start tree could not be initialized!");
+	m_msg.error("Motion planning start tree could not be initialized!");
 	return false;
     }
 
     if (goal->maxSampleCount() <= 0)
     {
-	m_msg.error("SBL: Insufficient states in sampleable goal region");
+	m_msg.error("Insufficient states in sampleable goal region");
 	return false;
     }
     
-    m_msg.inform("SBL: Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
+    m_msg.inform("Starting with %d states", (int)(m_tStart.size + m_tGoal.size));
     
     std::vector<Motion*> solution;
     base::State *xstate = new base::State(dim);
@@ -124,7 +124,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
 		
 		if (m_tGoal.size == 0)
 		{
-		    m_msg.error("SBL: Unable to sample any valid states for goal tree");
+		    m_msg.error("Unable to sample any valid states for goal tree");
 		    break;
 		}
 	    }
@@ -161,7 +161,7 @@ bool ompl::kinematic::SBL::solve(double solveTime)
     
     delete xstate;
     
-    m_msg.inform("SBL: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
+    m_msg.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", m_tStart.size + m_tGoal.size, m_tStart.size, m_tGoal.size,
 		 m_tStart.grid.size() + m_tGoal.grid.size(), m_tStart.grid.size(), m_tGoal.grid.size());
     
     return goal->isAchieved();

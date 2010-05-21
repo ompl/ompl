@@ -82,6 +82,9 @@ namespace ompl
 	                                             m_sCore(si)
 	    {
 		m_type = base::PLAN_TO_GOAL_ANY;
+		m_msg.setPrefix("LazyRRT");
+		
+		m_addedStartStates = 0;
 		m_nn.setDistanceFunction(boost::bind(&LazyRRT::distanceFunction, this, _1, _2));
 		m_goalBias = 0.05;
 		m_rho = 0.5;
@@ -100,6 +103,7 @@ namespace ompl
 	    {
 		freeMemory();
 		m_nn.clear();
+		m_addedStartStates = 0;
 	    }
 	    
 	    /** \brief Set the goal biasing.
@@ -197,6 +201,7 @@ namespace ompl
 	    base::StateSamplerInstance          m_sCore;
 	    
 	    NearestNeighborsSqrtApprox<Motion*> m_nn;
+	    unsigned int                        m_addedStartStates;
 	    
 	    double                              m_goalBias;
 	    double                              m_rho;	

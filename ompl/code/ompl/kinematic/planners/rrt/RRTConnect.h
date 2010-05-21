@@ -72,7 +72,12 @@ namespace ompl
 	    RRTConnect(SpaceInformationKinematic *si) : base::Planner(si),
 							m_sCore(si)
 	    {
-		m_type = base::PLAN_TO_GOAL_STATE;
+		m_type = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
+		m_msg.setPrefix("RRTConnect");
+		
+		m_addedStartStates = 0;
+		m_sampledGoalsCount = 0;
+		
 		m_tStart.setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 		m_tGoal.setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 		m_rho = 0.5;
@@ -92,6 +97,8 @@ namespace ompl
 		freeMemory();
 		m_tStart.clear();
 		m_tGoal.clear();
+		m_addedStartStates = 0;
+		m_sampledGoalsCount = 0;
 	    }
 	    
 	    /** \brief Set the range the planner is supposed to use.
@@ -186,7 +193,9 @@ namespace ompl
 	    
 	    TreeData                   m_tStart;
 	    TreeData                   m_tGoal;
-	    
+	    unsigned int               m_addedStartStates;
+	    unsigned int               m_sampledGoalsCount;
+
 	    double                     m_rho;
 	    RNG                        m_rng;
 	};

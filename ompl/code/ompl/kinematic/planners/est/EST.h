@@ -75,6 +75,10 @@ namespace ompl
 	     			                 m_sCore(si)
 	    {
 		m_type = base::PLAN_TO_GOAL_ANY;
+		m_msg.setPrefix("EST");
+				
+		m_addedStartStates = 0;
+		
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_goalBias = 0.05;
@@ -93,6 +97,7 @@ namespace ompl
 		freeMemory();
 		m_tree.grid.clear();
 		m_tree.size = 0;
+		m_addedStartStates = 0;
 	    }
 	    
 	    /** In the process of randomly selecting states in the state
@@ -217,6 +222,7 @@ namespace ompl
 	    base::StateSamplerInstance m_sCore;
 	    
 	    TreeData                   m_tree;
+	    unsigned int               m_addedStartStates;
 	    
 	    base::ProjectionEvaluator *m_projectionEvaluator;
 	    unsigned int               m_projectionDimension;

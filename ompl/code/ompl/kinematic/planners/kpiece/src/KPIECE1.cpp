@@ -48,38 +48,35 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("KPIECE1: Goal undefined");
+	m_msg.error("Goal undefined");
 	return false;
     }
     
     time::point endTime = time::now() + time::seconds(solveTime);
 
-    if (m_tree.grid.size() == 0)
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	Motion *motion = new Motion(dim);
+	si->copyState(motion->state, m_pdef->getStartState(i));
+	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	{
-	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	    {
-		motion->root = m_pdef->getStartState(i);
-		addMotion(motion, 1.0);
-	    }
-	    else
-	    {
-		m_msg.error("KPIECE1: Initial state is invalid!");
-		delete motion;
-	    }	
+	    motion->root = m_pdef->getStartState(i);
+	    addMotion(motion, 1.0);
 	}
+	else
+	{
+	    m_msg.error("Initial state is invalid!");
+	    delete motion;
+	}	
     }
     
     if (m_tree.grid.size() == 0)
     {
-	m_msg.error("KPIECE1: There are no valid initial states!");
+	m_msg.error("There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("KPIECE1: Starting with %u states", m_tree.size);
+    m_msg.inform("Starting with %u states", m_tree.size);
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -192,12 +189,12 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    m_msg.warn("KPIECE1: Found approximate solution");
+	    m_msg.warn("Found approximate solution");
     }
 
     delete xstate;
     
-    m_msg.inform("KPIECE1: Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
+    m_msg.inform("Created %u states in %u cells (%u internal + %u external)", m_tree.size, m_tree.grid.size(),
 		 m_tree.grid.countInternal(), m_tree.grid.countExternal());
     
     return goal->isAchieved();

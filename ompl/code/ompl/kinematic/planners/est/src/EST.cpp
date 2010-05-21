@@ -47,38 +47,35 @@ bool ompl::kinematic::EST::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("EST: Goal undefined");
+	m_msg.error("Goal undefined");
 	return false;
     }
 
     time::point endTime = time::now() + time::seconds(solveTime);
 
-    if (m_tree.grid.size() == 0)
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	Motion *motion = new Motion(dim);
+	si->copyState(motion->state, m_pdef->getStartState(i));
+	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
 	{
-	    Motion *motion = new Motion(dim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	    {
-		motion->root = m_pdef->getStartState(i);
-		addMotion(motion);
-	    }
-	    else
-	    {
-		m_msg.error("EST: Initial state is invalid!");
-		delete motion;
-	    }	
+	    motion->root = m_pdef->getStartState(i);
+	    addMotion(motion);
 	}
+	else
+	{
+	    m_msg.error("Initial state is invalid!");
+	    delete motion;
+	}	
     }
     
     if (m_tree.grid.size() == 0)
     {
-	m_msg.error("EST: There are no valid initial states!");
+	m_msg.error("There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("EST: Starting with %u states", m_tree.size);
+    m_msg.inform("Starting with %u states", m_tree.size);
     
     std::vector<double> range(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -155,12 +152,12 @@ bool ompl::kinematic::EST::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    m_msg.warn("EST: Found approximate solution");
+	    m_msg.warn("Found approximate solution");
     }
 
     delete xstate;
     
-    m_msg.inform("EST: Created %u states in %u cells", m_tree.size, m_tree.grid.size());
+    m_msg.inform("Created %u states in %u cells", m_tree.size, m_tree.grid.size());
     
     return goal->isAchieved();
 }
