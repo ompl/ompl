@@ -71,7 +71,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, const base::GoalRegion *goal
 	if (!m_si->satisfiesBounds(pool[i].state))
 	    m_si->enforceBounds(pool[i].state);
 	pool[i].valid = valid(pool[i].state);
-	if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
+	if (goal->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
 	    if (pool[i].valid)
 	    {
@@ -90,7 +90,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, const base::GoalRegion *goal
 	    pool[i].state = new base::State(dim);
 	    m_sCore->sampleNear(pool[i].state, pool[i % nh].state, range);
 	    pool[i].valid = valid(pool[i].state);
-	    if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
+	    if (goal->isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
 		if (pool[i].valid)
 		{
@@ -108,7 +108,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, const base::GoalRegion *goal
 	pool[i].state = new base::State(dim);
 	m_sCore->sample(pool[i].state);
 	pool[i].valid = valid(pool[i].state);
-	if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
+	if (goal->isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
 	    if (pool[i].valid)
 	    {
@@ -136,7 +136,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, const base::GoalRegion *goal
 	{
 	    m_sCore->sampleNear(pool[i].state, pool[i % m_poolSize].state, range);
 	    pool[i].valid = valid(pool[i].state);
-	    if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
+	    if (goal->isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
 		if (pool[i].valid)
 		{
@@ -153,7 +153,7 @@ bool ompl::kinematic::GAIK::solve(double solveTime, const base::GoalRegion *goal
 	    {
 		m_sCore->sample(pool[i].state);
 		pool[i].valid = valid(pool[i].state);
-		if (goal->isSatisfied(pool[i].state, NULL, &(pool[i].distance)))
+		if (goal->isSatisfied(pool[i].state, &(pool[i].distance)))
 		{
 		    if (pool[i].valid)
 		    {

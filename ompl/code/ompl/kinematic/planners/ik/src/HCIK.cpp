@@ -48,7 +48,7 @@ bool ompl::kinematic::HCIK::tryToImprove(const base::GoalRegion *goal, base::Sta
     bool wasValid = valid(state);
     bool wasValidStart = wasValid;
     
-    bool wasSatisfied = goal->isSatisfied(state, NULL, &initialDistance);
+    bool wasSatisfied = goal->isSatisfied(state, &initialDistance);
     bool wasSatisfiedStart = wasSatisfied;
     
     double bestDist   = initialDistance;
@@ -75,7 +75,7 @@ bool ompl::kinematic::HCIK::tryToImprove(const base::GoalRegion *goal, base::Sta
 		if (m_si->satisfiesBounds(state))
 		{
 		    bool isV = valid(state);
-		    bool isS = goal->isSatisfied(state, NULL, &tempDistance);
+		    bool isS = goal->isSatisfied(state, &tempDistance);
 
 		    if (isV && !wasValid)
 		    {
@@ -141,7 +141,7 @@ bool ompl::kinematic::HCIK::tryToImprove(const base::GoalRegion *goal, base::Sta
 		    if (m_si->satisfiesBounds(state))
 		    {	
 			bool isV = valid(state);
-			bool isS = goal->isSatisfied(state, NULL, &tempDistance);
+			bool isS = goal->isSatisfied(state, &tempDistance);
 
 			if (isV && !wasValid)
 			{

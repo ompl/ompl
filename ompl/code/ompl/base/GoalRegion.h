@@ -62,7 +62,7 @@ namespace ompl
 	    /** \brief Decide whether a given state is part of the
 		goal region. Returns true if the distance to goal is
 		less than the threshold */
-	    virtual bool isSatisfied(const base::State *st, const base::State *root, double *distance = NULL) const;
+	    virtual bool isSatisfied(const base::State *st, double *distance = NULL) const;
 	    
 	    /** \brief Compute the distance to the goal (heuristic) */
 	    virtual double distanceGoal(const base::State *st) const = 0;

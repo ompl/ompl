@@ -80,14 +80,13 @@ void ompl::kinematic::pRRT::threadSolve(unsigned int tid, time::point endTime, S
 	    Motion *motion = new Motion(dim);
 	    si->copyState(motion->state, xstate);
 	    motion->parent = nmotion;
-	    motion->root = nmotion->root;
 	    
 	    m_nnLock.lock();
 	    m_nn.add(motion);
 	    m_nnLock.unlock();
 	    
 	    double dist = 0.0;
-	    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
+	    bool solved = goal->isSatisfied(motion->state, &dist);
 	    if (solved)
 	    {
 		sol->lock.lock();
@@ -129,18 +128,15 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
 
     for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	Motion *motion = new Motion(dim);
-	si->copyState(motion->state, m_pdef->getStartState(i));
-	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	const base::State *st = m_pdef->getStartState(i);
+	if (si->satisfiesBounds(st) && si->isValid(st))
 	{
-	    motion->root = m_pdef->getStartState(i);
+	    Motion *motion = new Motion(dim);
+	    si->copyState(motion->state, st);
 	    m_nn.add(motion);
 	}
 	else
-	{
 	    m_msg.error("Initial state is invalid!");
-	    delete motion;
-	}	
     }
     
     if (m_nn.size() == 0)

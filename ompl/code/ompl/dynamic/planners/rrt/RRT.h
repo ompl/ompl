@@ -78,9 +78,12 @@ namespace ompl
 							  m_cCore(si)
 	    {
 		m_type = base::PLAN_TO_GOAL_ANY;
+		m_msg.setPrefix("RRT");
+		
 		m_nn.setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 		m_goalBias = 0.05;
 		m_hintBias = 0.75;
+		m_addedStartStates = 0;
 	    }
 	    
 	    virtual ~RRT(void)
@@ -98,6 +101,7 @@ namespace ompl
 	    {
 		freeMemory();
 		m_nn.clear();
+		m_addedStartStates = 0;
 	    }
 	    
 	    /** In the process of randomly selecting states in the state
@@ -140,11 +144,11 @@ namespace ompl
 	    {
 	    public:
 		
-		Motion(void) : root(NULL), state(NULL), control(NULL), steps(0), parent(NULL)
+		Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
 		{
 		}
 		
-		Motion(unsigned int sdim, unsigned int cdim) : root(NULL), state(new base::State(sdim)), control(new Control(cdim)), steps(0), parent(NULL)
+		Motion(unsigned int sdim, unsigned int cdim) : state(new base::State(sdim)), control(new Control(cdim)), steps(0), parent(NULL)
 		{
 		}
 		
@@ -156,7 +160,6 @@ namespace ompl
 			delete control;
 		}
 		
-		const base::State *root;
 		base::State       *state;
 		Control           *control;
 		unsigned int       steps;
@@ -181,6 +184,7 @@ namespace ompl
 	    ControlSamplerInstance              m_cCore;
  
 	    NearestNeighborsSqrtApprox<Motion*> m_nn;
+	    unsigned int                        m_addedStartStates;
 	    
 	    double                              m_goalBias;
 	    double                              m_hintBias;

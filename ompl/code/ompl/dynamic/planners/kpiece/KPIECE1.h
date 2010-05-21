@@ -80,6 +80,9 @@ namespace ompl
 							      m_cCore(si)
 	    {
 		m_type = base::PLAN_TO_GOAL_ANY;
+		m_msg.setPrefix("KPIECE1");
+		
+		m_addedStartStates = 0;		
 		m_projectionEvaluator = NULL;
 		m_projectionDimension = 0;
 		m_goalBias = 0.05;
@@ -103,6 +106,7 @@ namespace ompl
 		m_tree.grid.clear();
 		m_tree.size = 0;
 		m_tree.iteration = 1;
+		m_addedStartStates = 0;
 	    }
 	    
 	    /** In the process of randomly selecting states in the state
@@ -156,11 +160,11 @@ namespace ompl
 	    {
 	    public:
 		
-		Motion(void) : root(NULL), state(NULL), control(NULL), steps(0), parent(NULL)
+		Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
 		{
 		}
 		
-		Motion(unsigned int sdim, unsigned int cdim) : root(NULL), state(new base::State(sdim)), control(new Control(cdim)), steps(0), parent(NULL)
+		Motion(unsigned int sdim, unsigned int cdim) : state(new base::State(sdim)), control(new Control(cdim)), steps(0), parent(NULL)
 		{
 		}
 		
@@ -172,7 +176,6 @@ namespace ompl
 			delete control;
 		}
 		
-		const base::State *root;
 		base::State       *state;
 		Control           *control;
 		unsigned int       steps;
@@ -245,6 +248,7 @@ namespace ompl
 	    ControlSamplerInstance     m_cCore;
 
 	    TreeData                   m_tree;
+	    unsigned int               m_addedStartStates;
 	    
 	    base::ProjectionEvaluator *m_projectionEvaluator;
 	    unsigned int               m_projectionDimension;

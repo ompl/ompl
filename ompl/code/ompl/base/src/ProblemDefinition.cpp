@@ -153,7 +153,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
 	if (start && m_si->isValid(start) && m_si->satisfiesBounds(start))
 	{
 	    double dist;
-	    if (m_goal->isSatisfied(start, start, &dist))
+	    if (m_goal->isSatisfied(start, &dist))
 	    {
 		if (startIndex)
 		    *startIndex = i;

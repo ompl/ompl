@@ -68,16 +68,12 @@ namespace ompl
 	    }
 	    
 	    /** \brief Return true if the state statisfies the goal
-	     *  constraints (given that the state is reached from the
-	     *  specified root state) and compute the distance between
-	     *  the state given as argument and the goal (even if the
-	     *  goal is not satisfied). This distance can be an
-	     *  approximation.  Note: if this function returns true,
-	     *  isStartGoalPairValid() need not be called. It is
-	     *  possible for the specified root state to be NULL (when
-	     *  using algorithms that do not need a notion of starting
-	     *  state, for instance) */
-	    virtual bool isSatisfied(const State *st, const State *root, double *distance) const = 0;
+	     *  constraints and compute the distance between the state
+	     *  given as argument and the goal (even if the goal is
+	     *  not satisfied). This distance can be an approximation.
+	     *  Note: if this function returns true,
+	     *  isStartGoalPairValid() need not be called. */
+	    virtual bool isSatisfied(const State *st, double *distance) const = 0;
 	    
 	    /** \brief Since there can be multiple starting states
 		(and multiple goal states) it is possible certain

@@ -49,39 +49,34 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     
     if (!goal)
     {
-	m_msg.error("RRT: Goal undefined");
+	m_msg.error("Goal undefined");
 	return false;
     }
 
     time::point endTime = time::now() + time::seconds(solveTime);
-
-    if (m_nn.size() == 0)
+    
+    for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	for (unsigned int i = 0 ; i < m_pdef->getStartStateCount() ; ++i)
+	const base::State *st = m_pdef->getStartState(i);
+	if (si->satisfiesBounds(st) && si->isValid(st))
 	{
 	    Motion *motion = new Motion(sdim, cdim);
-	    si->copyState(motion->state, m_pdef->getStartState(i));
-	    if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
-	    {
-		si->nullControl(motion->control);
-		motion->root = m_pdef->getStartState(i);
-		m_nn.add(motion);
-	    }
-	    else
-	    {
-		m_msg.error("RRT: Initial state is invalid!");
-		delete motion;
-	    }	
+	    si->copyState(motion->state, st);
+	    si->nullControl(motion->control);
+	    m_nn.add(motion);
 	}
+	else
+	    m_msg.error("Initial state is invalid!");
     }
+
     
     if (m_nn.size() == 0)
     {
-	m_msg.error("RRT: There are no valid initial states!");
+	m_msg.error("There are no valid initial states!");
 	return false;	
     }    
 
-    m_msg.inform("RRT: Starting with %u states", m_nn.size());
+    m_msg.inform("Starting with %u states", m_nn.size());
     
     std::vector<base::State*> hintStates;
     if (si->getKinematicPath())
@@ -137,11 +132,10 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	    si->copyControl(motion->control, rctrl);
 	    motion->steps = cd;
 	    motion->parent = nmotion;
-	    motion->root = nmotion->root;
 	    
 	    m_nn.add(motion);
 	    double dist = 0.0;
-	    bool solved = goal->isSatisfied(motion->state, motion->root, &dist);
+	    bool solved = goal->isSatisfied(motion->state, &dist);
 	    if (solved)
 	    {
 		approxdif = dist;
@@ -192,7 +186,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	goal->setSolutionPath(path, approximate);
 
 	if (approximate)
-	    m_msg.warn("RRT: Found approximate solution");
+	    m_msg.warn("Found approximate solution");
     }
 
     delete rmotion;
@@ -200,7 +194,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	delete states[i];
 
-    m_msg.inform("RRT: Created %u states", m_nn.size());
+    m_msg.inform("Created %u states", m_nn.size());
     
     return goal->isAchieved();
 }

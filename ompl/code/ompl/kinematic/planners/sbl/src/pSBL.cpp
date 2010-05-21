@@ -152,19 +152,17 @@ bool ompl::kinematic::pSBL::solve(double solveTime)
     
     for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	Motion *motion = new Motion(dim);
-	si->copyState(motion->state, m_pdef->getStartState(i));
-	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	const base::State *st = m_pdef->getStartState(i);
+	if (si->satisfiesBounds(st) && si->isValid(st))
 	{
+	    Motion *motion = new Motion(dim);
+	    si->copyState(motion->state, st);
 	    motion->valid = true;
-	    motion->root = m_pdef->getStartState(i);
+	    motion->root = st;
 	    addMotion(m_tStart, motion);
 	}
 	else
-	{
 	    m_msg.error("Initial state is invalid!");
-	    delete motion;
-	}	
     }
     
     if (m_tGoal.size == 0)

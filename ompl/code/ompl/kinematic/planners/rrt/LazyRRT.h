@@ -162,11 +162,11 @@ namespace ompl
 	    {
 	    public:
 		
-		Motion(void) : root(NULL), state(NULL), parent(NULL), valid(false)
+		Motion(void) : state(NULL), parent(NULL), valid(false)
 		{
 		}
 		
-		Motion(unsigned int dimension) : root(NULL), state(new base::State(dimension)), parent(NULL), valid(false)
+		Motion(unsigned int dimension) : state(new base::State(dimension)), parent(NULL), valid(false)
 		{
 		}
 		
@@ -175,8 +175,7 @@ namespace ompl
 		    if (state)
 			delete state;
 		}
-		
-		const base::State    *root;
+
 		base::State          *state;
 		Motion               *parent;
 		bool                  valid;

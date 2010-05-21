@@ -156,7 +156,7 @@ namespace ompl
 			if (solved)
 			{
 			    double dist = -1.0;
-			    bool approx = !goal_r->isSatisfied(stateGoal->state, NULL, &dist);
+			    bool approx = !goal_r->isSatisfied(stateGoal->state, &dist);
 			    if (approx)
 				_P::m_msg.warn("IKPlanner: Found approximate solution");
 			    goal_r->setSolutionPath(stateGoal->getSolutionPath(), approx);

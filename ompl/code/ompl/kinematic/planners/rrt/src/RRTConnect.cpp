@@ -93,18 +93,16 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 
     for (unsigned int i = m_addedStartStates ; i < m_pdef->getStartStateCount() ; ++i, ++m_addedStartStates)
     {
-	Motion *motion = new Motion(dim);
-	si->copyState(motion->state, m_pdef->getStartState(i));
-	if (si->satisfiesBounds(motion->state) && si->isValid(motion->state))
+	const base::State *st = m_pdef->getStartState(i);
+	if (si->satisfiesBounds(st) && si->isValid(st))
 	{
-	    motion->root = m_pdef->getStartState(i);
+	    Motion *motion = new Motion(dim);
+	    si->copyState(motion->state, st);
+	    motion->root = st;
 	    m_tStart.add(motion);
 	}
 	else
-	{
 	    m_msg.error("Initial state is invalid!");
-	    delete motion;
-	}	
     }    
     
     if (m_tStart.size() == 0)
