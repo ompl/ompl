@@ -242,23 +242,23 @@ public:
 	pdef->setGoal(goal);
 	
 	/* start counting time */
-	time::point startTime = time::now();
+	ompl::time::point startTime = ompl::time::now();
 	
 	/* call the planner to solve the problem */
 	if (planner->solve(SOLUTION_TIME))
 	{
-	    time::duration elapsed = time::now() - startTime;
+	    ompl::time::duration elapsed = ompl::time::now() - startTime;
 	    if (time)
-		*time += time::seconds(elapsed);
+		*time += ompl::time::seconds(elapsed);
 	    if (show)
-		printf("Found solution in %f seconds!\n", time::seconds(elapsed));
+		printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 	    
 	    dynamic::PathDynamic *path = static_cast<dynamic::PathDynamic*>(goal->getSolutionPath());
 	    
-	    elapsed = time::now() - startTime;
+	    elapsed = ompl::time::now() - startTime;
 	    
 	    if (time)
-		*time += time::seconds(elapsed);
+		*time += ompl::time::seconds(elapsed);
 	    
 	    if (pathLength)
 		*pathLength += path->length();
