@@ -120,6 +120,12 @@ namespace ompl
 		m_path = path;
 		m_approximate = approximate;
 	    }
+
+	    /** \brief Forget the solution path. Memory is freed. */
+	    void clearSolutionPath(void)
+	    {
+		setSolutionPath(NULL);		
+	    }
 	    
 	    /** \brief If a difference between the desired solution and the
 		solution found is computed by the planner, this functions
