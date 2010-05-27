@@ -34,10 +34,10 @@
 
 /* \author Ioan Sucan */
 
-#include "ompl/kinematic/PathSmootherKinematic.h"
+#include "ompl/kinematic/PathSimplifierKinematic.h"
 #include <cstdlib>
 
-void ompl::kinematic::PathSmootherKinematic::smoothVertices(PathKinematic *path)
+void ompl::kinematic::PathSimplifierKinematic::smoothVertices(PathKinematic *path)
 {
     if (!path || path->states.size() < 3)
 	return;    
@@ -76,7 +76,7 @@ void ompl::kinematic::PathSmootherKinematic::smoothVertices(PathKinematic *path)
     }
 }
 
-void ompl::kinematic::PathSmootherKinematic::smoothMax(PathKinematic *path)
+void ompl::kinematic::PathSimplifierKinematic::smoothMax(PathKinematic *path)
 {
     smoothVertices(path);
     m_si->interpolatePath(path, 3.0);
@@ -84,7 +84,7 @@ void ompl::kinematic::PathSmootherKinematic::smoothMax(PathKinematic *path)
     removeRedundantCommands(path);    
 }
 
-void ompl::kinematic::PathSmootherKinematic::removeRedundantCommands(PathKinematic *path) const
+void ompl::kinematic::PathSimplifierKinematic::removeRedundantCommands(PathKinematic *path) const
 {
     if (!path || path->states.size() < 3)
 	return;

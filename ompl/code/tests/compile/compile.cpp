@@ -71,7 +71,7 @@
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 
 #include "ompl/kinematic/PathKinematic.h"
-#include "ompl/kinematic/PathSmootherKinematic.h"
+#include "ompl/kinematic/PathSimplifierKinematic.h"
 #include "ompl/kinematic/SpaceInformationKinematic.h"
 #include "ompl/kinematic/StateInterpolatorKinematic.h"
 #include "ompl/kinematic/LinearStateInterpolatorKinematic.h"

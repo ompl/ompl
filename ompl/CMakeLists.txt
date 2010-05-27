@@ -32,7 +32,7 @@ set(OMPL_SOURCE_CODE ${OMPL_CODE}/ompl/util/src/RandomNumbers.cpp
 		     ${OMPL_CODE}/ompl/base/src/Planner.cpp
 		     ${OMPL_CODE}/ompl/kinematic/src/PathKinematic.cpp
 		     ${OMPL_CODE}/ompl/kinematic/src/SpaceInformationKinematic.cpp
-		     ${OMPL_CODE}/ompl/kinematic/src/PathSmootherKinematic.cpp
+		     ${OMPL_CODE}/ompl/kinematic/src/PathSimplifierKinematic.cpp
 		     ${OMPL_CODE}/ompl/kinematic/src/LinearStateInterpolatorKinematic.cpp
 		     ${OMPL_CODE}/ompl/kinematic/planners/ik/src/HCIK.cpp
 		     ${OMPL_CODE}/ompl/kinematic/planners/ik/src/GAIK.cpp

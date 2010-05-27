@@ -34,8 +34,8 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
-#define OMPL_KINEMATIC_PATH_SMOOTHER_KINEMATIC_
+#ifndef OMPL_KINEMATIC_PATH_SIMPLIFIER_KINEMATIC_
+#define OMPL_KINEMATIC_PATH_SIMPLIFIER_KINEMATIC_
 
 #include "ompl/kinematic/SpaceInformationKinematic.h"
 
@@ -50,10 +50,10 @@ namespace ompl
 
 	 These are in fact routines that shorten the path, and do not
 	 necessarily make it smoother.*/
-	class PathSmootherKinematic
+	class PathSimplifierKinematic
 	{
 	public:
-	    PathSmootherKinematic(SpaceInformationKinematic *si)
+	    PathSimplifierKinematic(SpaceInformationKinematic *si)
 	    {
 		m_si = si;
 		m_rangeRatio = 0.2;
@@ -61,7 +61,7 @@ namespace ompl
 		m_maxEmptySteps = 3;
 	    }
 	    
-	    virtual ~PathSmootherKinematic(void)
+	    virtual ~PathSimplifierKinematic(void)
 	    {
 	    }
 	    

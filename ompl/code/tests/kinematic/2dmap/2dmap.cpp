@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ompl/kinematic/PathSmootherKinematic.h"
+#include "ompl/kinematic/PathSimplifierKinematic.h"
 #include "ompl/base/OrthogonalProjectionEvaluator.h"
 #include "ompl/base/GoalState.h"
 
@@ -206,7 +206,7 @@ public:
 	    
 	    
 	    /* make the solution more smooth */
-	    kinematic::PathSmootherKinematic *smoother = new kinematic::PathSmootherKinematic(si);
+	    kinematic::PathSimplifierKinematic *smoother = new kinematic::PathSimplifierKinematic(si);
 	    smoother->setMaxSteps(50);
 	    smoother->setMaxEmptySteps(10);
 
@@ -218,7 +218,7 @@ public:
 		*time += ompl::time::seconds(elapsed);
 	    
 	    if (show)
-		printf("Smooth solution in %f seconds!\n", ompl::time::seconds(elapsed));
+		printf("Simplified solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
 	    /* fill in values that were linearly interpolated */
 	    si->interpolatePath(path);
