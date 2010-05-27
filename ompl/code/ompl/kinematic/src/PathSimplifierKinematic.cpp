@@ -37,7 +37,7 @@
 #include "ompl/kinematic/PathSimplifierKinematic.h"
 #include <cstdlib>
 
-void ompl::kinematic::PathSimplifierKinematic::smoothVertices(PathKinematic *path)
+void ompl::kinematic::PathSimplifierKinematic::reduceVertices(PathKinematic *path)
 {
     if (!path || path->states.size() < 3)
 	return;    
@@ -76,11 +76,11 @@ void ompl::kinematic::PathSimplifierKinematic::smoothVertices(PathKinematic *pat
     }
 }
 
-void ompl::kinematic::PathSimplifierKinematic::smoothMax(PathKinematic *path)
+void ompl::kinematic::PathSimplifierKinematic::simplifyMax(PathKinematic *path)
 {
-    smoothVertices(path);
+    reduceVertices(path);
     m_si->interpolatePath(path, 3.0);
-    smoothVertices(path);
+    reduceVertices(path);
     removeRedundantCommands(path);    
 }
 

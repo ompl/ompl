@@ -211,7 +211,7 @@ public:
 	    smoother->setMaxEmptySteps(10);
 
 	    startTime = ompl::time::now();
-	    smoother->smoothVertices(path);
+	    smoother->reduceVertices(path);
 	    elapsed = ompl::time::now() - startTime;
 	    delete smoother;
 	    if (time)
