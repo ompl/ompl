@@ -39,6 +39,7 @@
 
 #include "ompl/kinematic/planners/ik/GAIK.h"
 #include "ompl/base/GoalState.h"
+#include "ompl/base/Planner.h"
 #include "ompl/util/Time.h"
 
 namespace ompl

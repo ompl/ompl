@@ -198,7 +198,7 @@ bool ompl::kinematic::pRRT::solve(double solveTime)
     return goal->isAchieved();
 }
 
-void ompl::kinematic::pRRT::getStates(std::vector<const base::State*> &states) const
+void ompl::kinematic::pRRT::getStates(std::vector</*const*/ base::State*> &states) const
 {
     std::vector<Motion*> motions;
     m_nn.list(motions);

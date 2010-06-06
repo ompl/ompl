@@ -54,10 +54,10 @@ namespace ompl
 	    typedef int flagType;
 
 	    /** Number of bit flags available in the state flags variable */
-	    static const int FLAG_BITS_MAX  = sizeof(flagType);
+	    static const int FLAG_BITS_MAX;
 
 	    /** Number of bit flags already used in the state flags variable */
-	    static const int FLAG_BITS_USED = 1;
+	    static const int FLAG_BITS_USED;
 	    
 	    enum 
 		{
@@ -94,6 +94,11 @@ namespace ompl
 		type = UNKNOWN;
 		minValue = maxValue = resolution = 0.0;
 	    }
+
+		/** \todo do fuzzy comparison of double members */
+		bool operator==(const StateComponent& sc) const
+		{ return type==sc.type && minValue==sc.minValue &&
+			maxValue==sc.maxValue && resolution==sc.resolution; }
 	    
 	    enum
 		{ UNKNOWN, LINEAR, WRAPPING_ANGLE, QUATERNION, DERIVATIVE }
@@ -103,8 +108,8 @@ namespace ompl
 	    double resolution;
 	};
 	
-    }
-    
+	}
+	    
 }
 
 #endif

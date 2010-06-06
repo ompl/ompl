@@ -117,7 +117,7 @@ namespace ompl
 		state samplers.  We do not set a specific instance
 		since parallel planners will use multiple instances in
 		order to benefit from different random seeds. */
-	    void setControlSamplerAllocator(const boost::function<ControlSampler*(const SpaceInformationControls*)> &sampler)
+	    void setControlSamplerAllocator(const boost::function1<ControlSampler*, const SpaceInformationControls*> &sampler)
 	    {
 		m_controlSamplerAllocator = sampler;
 	    }	    

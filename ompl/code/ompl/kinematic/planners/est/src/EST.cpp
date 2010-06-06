@@ -93,7 +93,7 @@ bool ompl::kinematic::EST::solve(double solveTime)
 	if (goal_s && m_rng.uniform01() < m_goalBias)
 	    goal_s->sampleGoal(xstate);
 	else
-	    m_sCore->sampleNear(xstate, existing->state, range);
+	    m_sCore().sampleNear(xstate, existing->state, range);
 	
 	if (si->checkMotion(existing->state, xstate))
 	{
@@ -193,7 +193,7 @@ void ompl::kinematic::EST::addMotion(Motion *motion)
     m_tree.size++;
 }
 
-void ompl::kinematic::EST::getStates(std::vector<const base::State*> &states) const
+void ompl::kinematic::EST::getStates(std::vector</*const*/ base::State*> &states) const
 {
     std::vector<MotionSet> motions;
     m_tree.grid.getContent(motions);

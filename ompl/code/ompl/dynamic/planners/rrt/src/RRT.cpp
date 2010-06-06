@@ -103,7 +103,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	    if (goal_s && m_rng.uniform01() < m_goalBias)
 		goal_s->sampleGoal(rstate);
 	    else
-		m_sCore->sample(rstate);
+		m_sCore().sample(rstate);
 	}
 	else
 	{
@@ -111,15 +111,15 @@ bool ompl::dynamic::RRT::solve(double solveTime)
 	    if (m_rng.uniform01() < m_hintBias)
 		si->copyState(rstate, hintStates[m_rng.halfNormalInt(0, hintStates.size() - 1)]);
 	    else
-		m_sCore->sample(rstate);
+		m_sCore().sample(rstate);
 	}
 	
 	/* find closest state in the tree */
 	Motion *nmotion = m_nn.nearest(rmotion);
 
 	/* sample a random control */
-	m_cCore->sample(rctrl);
-	unsigned int cd = m_cCore->sampleStepCount();
+	m_cCore().sample(rctrl);
+	unsigned int cd = m_cCore().sampleStepCount();
 
 	unsigned int added = si->getMotionStates(nmotion->state, rctrl, cd, states, false);
 	assert(added == cd + 1);
@@ -199,7 +199,7 @@ bool ompl::dynamic::RRT::solve(double solveTime)
     return goal->isAchieved();
 }
 
-void ompl::dynamic::RRT::getStates(std::vector<const base::State*> &states) const
+void ompl::dynamic::RRT::getStates(std::vector</*const*/ base::State*> &states) const
 {
     std::vector<Motion*> motions;
     m_nn.list(motions);

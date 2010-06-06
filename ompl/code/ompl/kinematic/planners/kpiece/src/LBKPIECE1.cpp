@@ -136,7 +136,7 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 	
 	Motion* existing = selectMotion(tree);
 	assert(existing);
-	m_sCore->sampleNear(xstate, existing->state, range);
+	m_sCore().sampleNear(xstate, existing->state, range);
 	
 	/* create a motion */
 	Motion* motion = new Motion(dim);
@@ -364,7 +364,7 @@ void ompl::kinematic::LBKPIECE1::clear(void)
     m_addedStartStates = 0;
 }
 
-void ompl::kinematic::LBKPIECE1::getStates(std::vector<const base::State*> &states) const
+void ompl::kinematic::LBKPIECE1::getStates(std::vector</*const*/ base::State*> &states) const
 {
     states.resize(0);
     states.reserve(m_tStart.size + m_tGoal.size);

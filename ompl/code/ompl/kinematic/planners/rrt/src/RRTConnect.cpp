@@ -173,7 +173,7 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 	}
 	
 	/* sample random state */
-	m_sCore->sample(rstate);
+	m_sCore().sample(rstate);
 	
 	GrowState gs = growTree(tree, tgi, rmotion);
 	
@@ -240,7 +240,7 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
     return goal->isAchieved();
 }
 
-void ompl::kinematic::RRTConnect::getStates(std::vector<const base::State*> &states) const
+void ompl::kinematic::RRTConnect::getStates(std::vector</*const*/ base::State*> &states) const
 {
     std::vector<Motion*> motions;
     m_tStart.list(motions);

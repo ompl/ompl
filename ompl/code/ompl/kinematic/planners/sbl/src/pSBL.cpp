@@ -398,7 +398,7 @@ void ompl::kinematic::pSBL::addMotion(TreeData &tree, Motion *motion)
     tree.lock.unlock();
 }
 
-void ompl::kinematic::pSBL::getStates(std::vector<const base::State*> &states) const
+void ompl::kinematic::pSBL::getStates(std::vector</*const*/ base::State*> &states) const
 {
     states.resize(0);
     states.reserve(m_tStart.size + m_tGoal.size);

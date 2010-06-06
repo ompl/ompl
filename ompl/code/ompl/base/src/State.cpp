@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 * 
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2010, Rice University.
 *  All rights reserved.
 * 
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 * 
@@ -32,80 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* \author Ioan Sucan */
+/** \author Mark Moll */
 
-#ifndef OMPL_DYNAMIC_CONTROL_
-#define OMPL_DYNAMIC_CONTROL_
+#include "ompl/base/State.h"
 
-#include "ompl/base/General.h"
-#include <cstdlib>
+/** Number of bit flags available in the state flags variable */
+const int ompl::base::State::FLAG_BITS_MAX  = sizeof(flagType);
 
-namespace ompl
-{
-    namespace dynamic
-    {
-
-	/** Definition of a control: an array of doubles */
-	class Control
-	{
-	public:
-	    
-	    /** The flag datatype */
-	    typedef int flagType;
-	    
-	    /** Number of bit flags available in the state flags variable */
-	    static const int FLAG_BITS_MAX;
-
-	    /** Number of bit flags already used in the state flags variable */
-	    static const int FLAG_BITS_USED;
-	    	    
-	    enum 
-		{
-		    NO_FLAGS       = 0,
-		    SELF_ALLOCATED = 1
-		};
-	    
-	    Control(void) : flags(NO_FLAGS)
-	    {
-		values = NULL;
-	    }
-	    
-	    Control(const unsigned int dimension) : flags(SELF_ALLOCATED)
-	    {
-		values = new double[dimension];
-	    }
-	    
-	    ~Control(void)
-	    {
-		if ((flags & SELF_ALLOCATED) && values)
-		    delete[] values;
-	    }
-	    
-	    flagType flags;
-	    double  *values;
-	};
-	
-	struct ControlComponent
-	{
-	    ControlComponent(void)
-	    {
-		type = UNKNOWN;
-		minValue = maxValue = 0.0;
-	    }
-	    
-		/** \todo do fuzzy comparison of double members */
-		bool operator==(const ControlComponent& cc) const
-		{ return type==cc.type && minValue==cc.minValue &&
-			maxValue==cc.maxValue; }
-		
-	    enum
-		{ UNKNOWN, LINEAR }
-		type;
-	    double minValue;
-	    double maxValue;
-	};
-    }
-    
-}
-
-#endif
+/** Number of bit flags already used in the state flags variable */
+const int ompl::base::State::FLAG_BITS_USED = 1;

@@ -139,7 +139,7 @@ bool ompl::base::SpaceInformation::searchValidNearby(base::State *state, const b
 	copyState(&temp, state);	
 	for (unsigned int i = 0 ; i < attempts && !result ; ++i)
 	{
-	    ss->sampleNear(state, &temp, rho);
+	    ss().sampleNear(state, &temp, rho);
 	    result = isValid(state);
 	}
     }

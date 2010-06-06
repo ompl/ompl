@@ -92,7 +92,7 @@ bool ompl::kinematic::RRT::solve(double solveTime)
 	if (goal_s && m_rng.uniform01() < m_goalBias)
 	    goal_s->sampleGoal(rstate);
 	else
-	    m_sCore->sample(rstate);
+	    m_sCore().sample(rstate);
 
 	/* find closest state in the tree */
 	Motion *nmotion = m_nn.nearest(rmotion);
@@ -168,7 +168,7 @@ bool ompl::kinematic::RRT::solve(double solveTime)
     return goal->isAchieved();
 }
 
-void ompl::kinematic::RRT::getStates(std::vector<const base::State*> &states) const
+void ompl::kinematic::RRT::getStates(std::vector</*const*/ base::State*> &states) const
 {
     std::vector<Motion*> motions;
     m_nn.list(motions);

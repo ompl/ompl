@@ -136,7 +136,7 @@ namespace ompl
 		return m_hintBias;
 	    }	    
 	    
-	    virtual void getStates(std::vector<const base::State*> &states) const;
+	    virtual void getStates(std::vector</*const*/ base::State*> &states) const;
 	    
 	protected:
 	    

@@ -34,6 +34,7 @@
 
 /* \author Ioan Sucan */
 
+#include <numeric>
 #include "ompl/dynamic/PathDynamic.h"
 #include "ompl/dynamic/SpaceInformationControls.h"
 #include <cassert>
@@ -61,10 +62,7 @@ ompl::dynamic::PathDynamic::PathDynamic(const PathDynamic &path) : base::Path(pa
 
 double ompl::dynamic::PathDynamic::length(void) const
 {
-    double sum = 0.0;
-    for (unsigned int i = 0 ; i < controlDurations.size() ; ++i)
-	sum += controlDurations[i];
-    return sum;
+    return std::accumulate(controlDurations.begin(),controlDurations.end(),0.0);
 }
 
 void ompl::dynamic::PathDynamic::freeMemory(void)

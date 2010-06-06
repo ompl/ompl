@@ -182,7 +182,7 @@ namespace ompl
 		m_addedStartStates = 0;
 	    }
 
-	    virtual void getStates(std::vector<const base::State*> &states) const;
+	    virtual void getStates(std::vector</*const*/ base::State*> &states) const;
 	    
 	protected:
 	    

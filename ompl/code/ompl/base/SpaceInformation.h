@@ -93,7 +93,7 @@ namespace ompl
 		state samplers.  We do not set a specific instance
 		since parallel planners will use multiple instances in
 		order to benefit from different random seeds. */
-	    void setStateSamplerAllocator(const boost::function<StateSampler*(const SpaceInformation*)> &sampler)
+	    void setStateSamplerAllocator(const boost::function1<StateSampler*,const SpaceInformation*> &sampler)
 	    {
 		m_stateSamplerAllocator = sampler;
 	    }
@@ -219,7 +219,7 @@ namespace ompl
 	    StateValidityChecker        *m_stateValidityChecker;
 	    StateDistanceEvaluator      *m_stateDistanceEvaluator;
 	    
-	    boost::function<StateSampler*(const SpaceInformation*)>
+	    boost::function1<StateSampler*, const SpaceInformation*>
 	                                 m_stateSamplerAllocator;
 	    
 	    bool                         m_setup;

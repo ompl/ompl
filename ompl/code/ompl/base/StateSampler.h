@@ -93,9 +93,9 @@ namespace ompl
 	    ~StateSamplerInstance(void);
 	    
 	    /** \brief Allow easy access the functions of the contained sampler */
-	    StateSampler* operator->(void)
+	    StateSampler& operator()(void)
 	    {
-		return m_sampler;
+		return *m_sampler;
 	    }
 	    
 	private:

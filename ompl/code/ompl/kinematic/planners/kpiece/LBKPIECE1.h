@@ -161,7 +161,7 @@ namespace ompl
 	    virtual bool solve(double solveTime);
 	    virtual void clear(void);
 
-	    virtual void getStates(std::vector<const base::State*> &states) const;
+	    virtual void getStates(std::vector</*const*/ base::State*> &states) const;
 
 	protected:
 	    

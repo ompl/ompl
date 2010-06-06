@@ -121,8 +121,8 @@ bool ompl::dynamic::KPIECE1::solve(double solveTime)
 
 
 	/* sample a random control */
-	m_cCore->sample(rctrl);
-	unsigned int cd = m_cCore->sampleStepCount();
+	m_cCore().sample(rctrl);
+	unsigned int cd = m_cCore().sampleStepCount();
 
 	unsigned int added = si->getMotionStates(existing->state, rctrl, cd, states, false);
 	assert(added == cd + 1);
@@ -310,7 +310,7 @@ unsigned int ompl::dynamic::KPIECE1::addMotion(Motion *motion, double dist)
     return created;
 }
 
-void ompl::dynamic::KPIECE1::getStates(std::vector<const base::State*> &states) const
+void ompl::dynamic::KPIECE1::getStates(std::vector</*const*/ base::State*> &states) const
 {
     states.resize(0);
     states.reserve(m_tree.size);

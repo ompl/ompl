@@ -93,9 +93,9 @@ namespace ompl
 	    ~ControlSamplerInstance(void);
 	    
 	    /** \brief Allow easy access the functions of the contained sampler */
-	    ControlSampler* operator->(void)
+	    ControlSampler& operator()(void)
 	    {
-		return m_sampler;
+		return *m_sampler;
 	    }
 	    
 	private:

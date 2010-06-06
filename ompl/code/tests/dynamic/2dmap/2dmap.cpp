@@ -43,6 +43,7 @@
 
 #include "environment2D.h"
 #include <iostream>
+#include <libgen.h>
 
 using namespace ompl;
 
@@ -404,7 +405,8 @@ protected:
     void SetUp(void)
     {
 	/* load environment */
-	loadEnvironment("./code/tests/resources/env1.txt", env);
+	std::string fname = std::string(dirname((char*)__FILE__)) + "/../../resources/env1.txt";
+	loadEnvironment(fname.c_str(), env);
 	
 	if (env.width * env.height == 0)
 	{

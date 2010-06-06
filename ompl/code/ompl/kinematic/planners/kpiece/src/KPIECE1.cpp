@@ -109,17 +109,17 @@ bool ompl::kinematic::KPIECE1::solve(double solveTime)
 		    m_msg.debug("Start Running HCIK (%f)...", improveValue);			
 		    if (!m_hcik.tryToImprove(goal_r, xstate, improveValue))
 		    {
-			m_sCore->sampleNear(xstate, existing->state, range);
+			m_sCore().sampleNear(xstate, existing->state, range);
 			improveValue /= 2.0;
 		    }
 		    m_msg.debug("End Running HCIK");			
 		}
 		else
-		    m_sCore->sampleNear(xstate, existing->state, range);
+		    m_sCore().sampleNear(xstate, existing->state, range);
 	    }
 	}
 	else
-	    m_sCore->sampleNear(xstate, existing->state, range);
+	    m_sCore().sampleNear(xstate, existing->state, range);
 	
 	double failTime = 0.0;
 	bool keep = si->checkMotion(existing->state, xstate, xstate, &failTime);
@@ -238,7 +238,7 @@ unsigned int ompl::kinematic::KPIECE1::addMotion(Motion *motion, double dist)
     return created;
 }
 
-void ompl::kinematic::KPIECE1::getStates(std::vector<const base::State*> &states) const
+void ompl::kinematic::KPIECE1::getStates(std::vector</*const*/ base::State*> &states) const
 {
     states.resize(0);
     states.reserve(m_tree.size);

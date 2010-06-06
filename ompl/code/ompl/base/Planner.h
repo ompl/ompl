@@ -106,7 +106,7 @@ namespace ompl
 	    virtual void clear(void) = 0;
 	    
 	    /** \brief Get states in current exploration datastructure */
-	    virtual void getStates(std::vector<const base::State*> &states) const = 0;
+	    virtual void getStates(std::vector</*const*/ base::State*> &states) const = 0;
 	    
 	    /** \brief Return the type of the motion planner. This is useful if
 		the planner wants to advertise what type of problems it
