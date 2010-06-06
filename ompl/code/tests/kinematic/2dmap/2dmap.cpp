@@ -35,6 +35,7 @@
 /** \author Ioan Sucan */
 
 #include <gtest/gtest.h>
+#include <boost/filesystem.hpp>
 
 #include "ompl/kinematic/PathSimplifierKinematic.h"
 #include "ompl/base/OrthogonalProjectionEvaluator.h"
@@ -50,6 +51,7 @@
 #include "ompl/kinematic/planners/rrt/LazyRRT.h"
 #include "ompl/kinematic/planners/est/EST.h"
 
+#include "../../resources/config.h"
 #include "environment2D.h"
 #include <iostream>
 #include <libgen.h>
@@ -587,8 +589,9 @@ protected:
     void SetUp(void)
     {
 	/* load environment */
-	std::string fname = std::string(dirname((char*)__FILE__)) + "/../../resources/env1.txt";
-	loadEnvironment(fname.c_str(), env);
+	boost::filesystem::path path(TEST_RESOURCES_DIR);
+	path = path / "env1.txt";
+	loadEnvironment(path.string().c_str(), env);
 	
 	if (env.width * env.height == 0)
 	{

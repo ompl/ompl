@@ -97,8 +97,10 @@ namespace ompl
 
 		/** \todo do fuzzy comparison of double members */
 		bool operator==(const StateComponent& sc) const
-		{ return type==sc.type && minValue==sc.minValue &&
-			maxValue==sc.maxValue && resolution==sc.resolution; }
+		{
+			return type == sc.type && minValue == sc.minValue &&
+				maxValue == sc.maxValue && resolution == sc.resolution;
+		}
 	    
 	    enum
 		{ UNKNOWN, LINEAR, WRAPPING_ANGLE, QUATERNION, DERIVATIVE }

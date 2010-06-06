@@ -14,7 +14,7 @@ else(ROS)
 		${CMAKE_PREFIX_PATH})
 	
 	include(FindPackageHandleStandardArgs)
-	find_package(Boost COMPONENTS date_time thread REQUIRED)
+	find_package(Boost COMPONENTS date_time thread filesystem system REQUIRED)
 	include_directories("${Boost_INCLUDE_DIR}")
 	add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers)
 
