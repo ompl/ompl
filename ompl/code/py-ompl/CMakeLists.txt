@@ -3,12 +3,15 @@ find_package(Boost COMPONENTS python)
 set(PYTHON_VERSION "2.6" CACHE STRING "Which Python version to use.")
 find_package(Python ${PYTHON_VERSION})
 find_python_module(pyplusplus)
+find_python_module(pygccxml)
+find_program(GCCXML gccxml)
 
-if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PYPLUSPLUS_FOUND AND NOT BUILD_PY_OMPL)
+if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PYPLUSPLUS_FOUND 
+	AND PYGCCXML_FOUND AND GCCXML AND NOT BUILD_PY_OMPL)
 	message(STATUS "Building OMPL Python module")
 	set(BUILD_PY_OMPL ON CACHE BOOL 
 		"Whether the OMPL Python module should be built")
-endif(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PYPLUSPLUS_FOUND AND NOT BUILD_PY_OMPL)
+endif()
 
 if(BUILD_PY_OMPL)
 	set(OMPL_MODULES base dynamic kinematic util)

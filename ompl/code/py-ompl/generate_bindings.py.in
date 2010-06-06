@@ -19,6 +19,7 @@ class code_generator_t(object):
 		module_builder.set_logger_level( logging.INFO )
 		self.mb = module_builder.module_builder_t(
 			files = headers,
+			gccxml_path = "@GCCXML@"
 			include_paths=[ abspath(dirname(abspath(__file__))+'/..'),	
 			"@Boost_INCLUDE_DIR@"],
 			cflags="@PYOMPL_EXTRA_CFLAGS@")
