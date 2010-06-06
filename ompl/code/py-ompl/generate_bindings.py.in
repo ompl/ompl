@@ -1,0 +1,114 @@
+#!/usr/bin/env python2.6
+
+from sys import exit
+import os
+import logging
+from os.path import abspath, dirname
+from pygccxml import declarations
+from pyplusplus import module_builder, messages
+from pyplusplus.module_builder import call_policies
+
+messages.disable( messages.W1040 )
+
+def returns_reference(decl):
+	name = decl.return_type.decl_string
+	return name[-1]=='*' or name[-1]=='&'
+
+class code_generator_t(object):
+	def __init__(self, name, headers):
+		module_builder.set_logger_level( logging.INFO )
+		self.mb = module_builder.module_builder_t(
+			files = headers,
+			include_paths=[ abspath(dirname(abspath(__file__))+'/..'),	
+			"@Boost_INCLUDE_DIR@"],
+			cflags="@PYOMPL_EXTRA_CFLAGS@")
+		self.std_ns = self.mb.namespace('std')	
+		self.ompl_ns = self.mb.namespace('ompl')
+		self.call_policies()
+		self.filter_declarations()
+		self.mb.build_code_creator( module_name=name )
+		self.mb.split_module( abspath('./bindings/'+name), 
+			use_files_sum_repository=True )
+	
+	def call_policies(self):
+		self.ompl_ns.free_functions(returns_reference).call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+		self.ompl_ns.member_functions(returns_reference).call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+		self.ompl_ns.operators(returns_reference).call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+	
+	def filter_declarations(self):
+		self.mb.calldefs( 
+			declarations.access_type_matcher_t('protected' )).exclude()
+		self.ompl_ns.member_functions(lambda decl: decl.has_ellipsis).exclude()	
+
+class ompl_base_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self, '_base', [ @OMPL_BASE_LIST@ ])
+	
+	def filter_declarations(self):
+		code_generator_t.filter_declarations(self)
+		self.std_ns.class_('vector< int >').rename('vectorInt')
+		self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
+		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
+		self.std_ns.class_('vector< ompl::base::State* >').rename('vectorStatePtr')
+		# self.std_ns.class_('vector< const ompl::base::State* >').rename('vectorStateConstPtr')
+		self.std_ns.class_('vector< ompl::base::StateComponent >').rename('vectorStateComponent')
+		self.std_ns.class_('vector< ompl::base::StateSampler* >').rename('vectorStateSamplerPtr')
+		self.ompl_ns.class_('State').variable('values').expose_address = True
+		self.ompl_ns.class_('StateComponent').variable('type').exclude()
+		self.ompl_ns.class_('GoalState').variable('state').expose_address = True
+		self.ompl_ns.member_functions('print').exclude()
+		self.ompl_ns.class_('SpaceInformation').member_function('printSettings').exclude()
+		self.ompl_ns.class_('SpaceInformation').member_function('printState').exclude()
+		# \todo work out solution for valarray<double> so that LinearProjectionEvaluator can be exposed
+		self.ompl_ns.class_('LinearProjectionEvaluator').exclude()
+		
+class ompl_dynamic_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self,'_dynamic',
+			[ "@OMPL_BASE_PLANNER_H@", @OMPL_DYNAMIC_LIST@ ])
+	
+	def filter_declarations(self):
+		code_generator_t.filter_declarations(self)
+		self.std_ns.class_('vector< int >').rename('vectorInt')
+		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		self.std_ns.class_('vector< ompl::base::State* >').rename('vectorStatePtr')
+		self.std_ns.class_('vector< ompl::dynamic::ControlComponent >').rename('vectorControlComponent')
+		self.std_ns.class_('vector< ompl::dynamic::Control* >').rename('vectorControlPtr')
+		self.ompl_ns.class_('ControlComponent').variable('type').exclude()
+		self.ompl_ns.class_('SpaceInformationControls').member_function('printControl').exclude()
+		self.ompl_ns.class_('Control').variable('values').expose_address = True
+		self.ompl_ns.classes('OrderCellsByImportance').exclude()
+		self.ompl_ns.namespace('base').exclude()
+
+class ompl_kinematic_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self,'_kinematic',
+			[ "@OMPL_BASE_PLANNER_H@", @OMPL_KINEMATIC_LIST@ ])
+
+	def filter_declarations(self):
+		code_generator_t.filter_declarations(self)
+		self.std_ns.class_('vector< int >').rename('vectorInt')
+		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		self.std_ns.class_('vector< ompl::base::State* >').rename('vectorStatePtr')
+		self.ompl_ns.namespace('base').exclude()
+		self.ompl_ns.class_('IndividualSort').exclude()
+		self.ompl_ns.classes('OrderCellsByImportance').exclude()
+		self.ompl_ns.class_('GAIK').member_function('solve').use_overload_macro = True
+
+class ompl_util_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self,'_util', [ @OMPL_UTIL_LIST@ ])
+	def call_policies(self):
+		self.ompl_ns.free_functions(returns_reference).call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+
+
+if __name__ == '__main__':
+	m = ompl_base_generator_t()
+	m = ompl_dynamic_generator_t()
+	m = ompl_kinematic_generator_t()
+	m = ompl_util_generator_t()

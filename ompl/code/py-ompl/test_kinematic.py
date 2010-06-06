@@ -1,0 +1,2 @@
+def suite():
+	return None
