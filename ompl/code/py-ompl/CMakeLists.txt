@@ -14,6 +14,25 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PYPLUSPLUS_FOUND
 endif()
 
 if(BUILD_PY_OMPL)
+	macro(glob_headers _var _dir)
+		file(GLOB_RECURSE ${_var} "${CMAKE_SOURCE_DIR}/code/ompl/${_dir}/*.h")
+	endmacro(glob_headers)
+
+	glob_headers(OMPL_BASE_HEADERS base)
+	glob_headers(OMPL_DYNAMIC_HEADERS dynamic)
+	glob_headers(OMPL_KINEMATIC_HEADERS kinematic)
+	glob_headers(OMPL_UTIL_HEADERS util)
+	message(${OMPL_UTIL_HEADERS})
+
+	#glob_headers(OMPL_DATASTRUCTURES_HEADERS datastructures)
+	# need to remove this header for Py++
+	#list(REMOVE_ITEM OMPL_DATASTRUCTURES_HEADERS
+	#	"${CMAKE_CURRENT_SOURCE_DIR}/datastructures/GridAux.h")
+
+	# \todo hack alert: need to figure why base/planner.h is needed for 
+	# dynamic and kinematic python modules
+	file(GLOB OMPL_BASE_PLANNER_H "${CMAKE_SOURCE_DIR}/code/ompl/base/Planner.h")
+
 	set(OMPL_MODULES base dynamic kinematic util)
 	include_directories(${PYTHON_INCLUDE_DIRS} .)
 	
@@ -46,7 +65,7 @@ if(BUILD_PY_OMPL)
 		NO_DEFAULT_PATH)
 	if(NOT BINDINGS_MAIN)
 		execute_process(COMMAND ${PYTHON_EXEC} "./generate_bindings.py"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 	endif(NOT BINDINGS_MAIN)
 	
 	# re-generate bindings
@@ -70,6 +89,6 @@ if(BUILD_PY_OMPL)
 	endforeach(module)
 
 	# python unit tests
-	add_test(test_py_ompl COMMAND "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/test.py")
+	add_test(test_py_ompl "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/test.py")
 endif(BUILD_PY_OMPL)
 
