@@ -1,6 +1,6 @@
 #!/usr/bin/env @PYTHON_EXEC@
 
-from sys import exit
+from sys import exit, setrecursionlimit
 import os
 import logging
 from os.path import abspath, dirname
@@ -19,8 +19,9 @@ class code_generator_t(object):
 		module_builder.set_logger_level( logging.INFO )
 		self.mb = module_builder.module_builder_t(
 			files = headers,
+			cache = 'pygccxml_'+name+'_cache',
 			gccxml_path = "@GCCXML@",
-			include_paths=[ abspath(dirname(abspath(__file__))+'/..'),	
+			include_paths=[ abspath(dirname(abspath(__file__))+'/..'),
 			"@Boost_INCLUDE_DIR@"],
 			cflags="@PYOMPL_EXTRA_CFLAGS@")
 		self.std_ns = self.mb.namespace('std')	
@@ -107,8 +108,8 @@ class ompl_util_generator_t(code_generator_t):
 		self.ompl_ns.free_functions(returns_reference).call_policies = \
 			call_policies.return_value_policy(call_policies.reference_existing_object)
 
-
 if __name__ == '__main__':
+	setrecursionlimit(50000)
 	m = ompl_base_generator_t()
 	m = ompl_dynamic_generator_t()
 	m = ompl_kinematic_generator_t()

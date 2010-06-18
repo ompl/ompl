@@ -1,13 +1,12 @@
 find_package(Boost COMPONENTS python)
 # The python version needs to match the one used to build Boost.Python
-set(PYTHON_VERSION "2.6" CACHE STRING "Which Python version to use.")
-find_package(Python ${PYTHON_VERSION})
+find_package(Python 2.6)
 find_python_module(pyplusplus)
 find_python_module(pygccxml)
-find_program(GCCXML gccxml)
+find_package(GCCXML)
 
-if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PYPLUSPLUS_FOUND 
-	AND PYGCCXML_FOUND AND GCCXML AND NOT BUILD_PY_OMPL)
+if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
+	AND PY_PYGCCXML AND GCCXML AND NOT BUILD_PY_OMPL)
 	message(STATUS "Building OMPL Python module")
 	set(BUILD_PY_OMPL ON CACHE BOOL 
 		"Whether the OMPL Python module should be built")
@@ -22,7 +21,6 @@ if(BUILD_PY_OMPL)
 	glob_headers(OMPL_DYNAMIC_HEADERS dynamic)
 	glob_headers(OMPL_KINEMATIC_HEADERS kinematic)
 	glob_headers(OMPL_UTIL_HEADERS util)
-	message(${OMPL_UTIL_HEADERS})
 
 	#glob_headers(OMPL_DATASTRUCTURES_HEADERS datastructures)
 	# need to remove this header for Py++
