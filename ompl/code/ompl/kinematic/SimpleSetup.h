@@ -168,6 +168,15 @@ namespace ompl
 	    
 	    virtual void configure(void);
 	    
+	    virtual void clear(void)
+	    {
+		if (m_configured)
+		{
+		    m_planner->clear();
+		    m_goal->setSolutionPath(NULL);
+		}
+	    }
+	    
 	protected:
 	    
 	    SpaceInformationKinematic    *m_si;
