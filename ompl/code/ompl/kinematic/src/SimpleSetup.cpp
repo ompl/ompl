@@ -86,6 +86,7 @@ void ompl::kinematic::SimpleSetup::configure(void)
     m_configured = true;
     
     m_si = allocSpaceInformation();
+    configureSpaceInformation(m_si);
     
     m_pdef = allocProblemDefinition(m_si);
     m_goal = allocGoal(m_si);

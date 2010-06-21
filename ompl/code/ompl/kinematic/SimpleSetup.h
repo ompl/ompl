@@ -76,7 +76,7 @@ namespace ompl
 	    virtual base::StateDistanceEvaluator* allocStateDistanceEvaluator(base::SpaceInformation *si);
 	    virtual base::StateSamplerAllocator stateSamplerAllocator(void);
 
-	    
+	    virtual void configureSpaceInformation(SpaceInformationKinematic *si) = 0;
 	    virtual base::StateValidityChecker* allocStateValidityChecker(base::SpaceInformation *si) = 0;
 	    virtual base::Goal* allocGoal(base::SpaceInformation *si) = 0;
 	    virtual base::Planner* allocPlanner(base::SpaceInformation *si) = 0;
