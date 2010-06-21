@@ -53,8 +53,8 @@ namespace ompl
 	class SimpleSetup
 	{
 	public:
-	    SimpleSetup(void) : m_si(NULL), m_sik(NULL), m_psk(NULL), m_pdef(NULL), m_planner(NULL),
-				m_svc(NULL), m_sde(NULL), m_goal(NULL), m_configured(false)
+	    SimpleSetup(void) : m_si(NULL), m_sik(NULL), m_pdef(NULL), m_planner(NULL),
+				m_svc(NULL), m_sde(NULL), m_goal(NULL), m_psk(NULL), m_configured(false)
 	    {
 	    }
 	    
@@ -70,32 +70,137 @@ namespace ompl
 		delete m_svc;
 	    }
 	    
+	    
+	    SpaceInformationKinematic* getSpaceInformation(void)
+	    {
+		return m_si;
+	    }
+	    
+	    StateInterpolatorKinematic* getStateInterpolator(void)
+	    {
+		return m_sik;
+	    }
+	    
+	    base::ProblemDefinition* getProblemDefinition(void)
+	    {
+		return m_pdef;
+	    }
+	    
+	    base::StateDistanceEvaluator* getStateDistanceEvaluator(void)
+	    {
+		return m_sde;
+	    }
+	    
+	    base::StateValidityChecker* getStateValidityChecker(void)
+	    {
+		return m_svc;
+	    }
+
+	    base::Goal* getGoal(void)
+	    {
+		return m_goal;
+	    }
+
+	    base::Planner* getPlanner(void)
+	    {
+		return m_planner;
+	    }
+
+	    PathSimplifierKinematic* getPathSimplifier(void)
+	    {
+		return m_psk;
+	    }
+	    
+	    base::StateSamplerAllocator getStateSamplerAllocator(void)
+	    {
+		return m_alloc_ssa;
+	    }	    
+	    
+	    void setAllocator(const base::StateSamplerAllocator &alloc)
+	    {
+		m_alloc_ssa = alloc;
+	    }
+	    
+	    void setAllocator(const boost::function<SpaceInformationKinematic*()> &alloc)
+	    {
+		m_alloc_si = alloc;
+	    }
+
+	    void setAllocator(boost::function<StateInterpolatorKinematic*(const base::SpaceInformation*)> &alloc)
+	    {
+		m_alloc_sik = alloc;
+	    }
+
+	    void setAllocator(boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> &alloc)
+	    {
+		m_alloc_pdef = alloc;
+	    }	    
+	    
+	    void setAllocator(boost::function<base::StateDistanceEvaluator*(const base::SpaceInformation*)> &alloc)
+	    {
+		m_alloc_sde = alloc;
+	    }
+
+	    void setAllocator(boost::function<base::StateValidityChecker*(const base::SpaceInformation*)> &alloc)
+	    {
+		m_alloc_svc = alloc;
+	    }
+
+	    void setAllocator(boost::function<base::Goal*(const base::SpaceInformation*)> &alloc)
+	    {
+		m_alloc_goal = alloc;
+	    }
+
+	    void setAllocator(boost::function<base::Planner*(const base::SpaceInformation*)> &alloc)
+	    {
+		m_alloc_planner = alloc;
+	    }
+	    
 	    virtual SpaceInformationKinematic* allocSpaceInformation(void);
 	    virtual StateInterpolatorKinematic* allocStateInterpolator(base::SpaceInformation *si);
 	    virtual base::ProblemDefinition* allocProblemDefinition(base::SpaceInformation *si);
 	    virtual base::StateDistanceEvaluator* allocStateDistanceEvaluator(base::SpaceInformation *si);
-	    virtual base::StateSamplerAllocator stateSamplerAllocator(void);
-
+	    virtual base::StateValidityChecker* allocStateValidityChecker(base::SpaceInformation *si);
+	    virtual base::Goal* allocGoal(base::SpaceInformation *si);
+	    virtual base::Planner* allocPlanner(base::SpaceInformation *si);
+	    
 	    virtual void configureSpaceInformation(SpaceInformationKinematic *si) = 0;
-	    virtual base::StateValidityChecker* allocStateValidityChecker(base::SpaceInformation *si) = 0;
-	    virtual base::Goal* allocGoal(base::SpaceInformation *si) = 0;
-	    virtual base::Planner* allocPlanner(base::SpaceInformation *si) = 0;
 	    
 	    virtual void configure(void);
 	    
 	protected:
 	    
 	    SpaceInformationKinematic    *m_si;
+	    boost::function<SpaceInformationKinematic*()> 
+	                                  m_alloc_si;
+	    
 	    StateInterpolatorKinematic   *m_sik;
-	    PathSimplifierKinematic      *m_psk;
+	    boost::function<StateInterpolatorKinematic*(const base::SpaceInformation*)>
+	                                  m_alloc_sik;
 	    
 	    base::ProblemDefinition      *m_pdef;
+	    boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> 
+	                                  m_alloc_pdef;
+	    
 	    base::Planner                *m_planner;
+	    boost::function<base::Planner*(const base::SpaceInformation*)> 
+	                                  m_alloc_planner;
+	    
 	    base::StateValidityChecker   *m_svc;
+	    boost::function<base::StateValidityChecker*(const base::SpaceInformation*)> 
+	                                  m_alloc_svc;
+
 	    base::StateDistanceEvaluator *m_sde;
+	    boost::function<base::StateDistanceEvaluator*(const base::SpaceInformation*)> 
+	                                  m_alloc_sde;
 	    
 	    base::Goal                   *m_goal;
-	    base::StateSamplerAllocator   m_ssa;
+	    boost::function<base::Goal*(const base::SpaceInformation*)> 
+	                                  m_alloc_goal;
+	    
+	    PathSimplifierKinematic      *m_psk;
+
+	    base::StateSamplerAllocator   m_alloc_ssa;
 
 	    bool                          m_configured;
 	    msg::Interface                m_msg;

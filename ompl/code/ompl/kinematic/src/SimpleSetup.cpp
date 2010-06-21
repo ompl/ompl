@@ -41,22 +41,61 @@
 
 ompl::kinematic::SpaceInformationKinematic* ompl::kinematic::SimpleSetup::allocSpaceInformation(void)
 {
-    return new SpaceInformationKinematic();
+    if (m_alloc_si)
+	return m_alloc_si();
+    else
+	return new SpaceInformationKinematic();
 }
 
 ompl::kinematic::StateInterpolatorKinematic* ompl::kinematic::SimpleSetup::allocStateInterpolator(base::SpaceInformation *si)
 {
-    return new LinearStateInterpolatorKinematic(si);
+    if (m_alloc_sik)
+	return m_alloc_sik(si);
+    else
+	return new LinearStateInterpolatorKinematic(si);
 }
 
 ompl::base::ProblemDefinition* ompl::kinematic::SimpleSetup::allocProblemDefinition(base::SpaceInformation *si)
 {
-    return new base::ProblemDefinition(si);
+    if (m_alloc_pdef)
+	return m_alloc_pdef(si);
+    else
+	return new base::ProblemDefinition(si);
 }
 
 ompl::base::StateDistanceEvaluator* ompl::kinematic::SimpleSetup::allocStateDistanceEvaluator(base::SpaceInformation *si)
 {
-    return new base::L2SquareStateDistanceEvaluator(si);
+    if (m_alloc_sde)
+	return m_alloc_sde(si);
+    else
+	return new base::L2SquareStateDistanceEvaluator(si);
+}
+
+ompl::base::StateValidityChecker* ompl::kinematic::SimpleSetup::allocStateValidityChecker(base::SpaceInformation *si)
+{
+    if (m_alloc_svc)
+	return m_alloc_svc(si);
+    else
+	m_msg.error("Need to specify state validity checker");
+    return NULL;
+}
+
+ompl::base::Goal* ompl::kinematic::SimpleSetup::allocGoal(base::SpaceInformation *si)
+{   
+    if (m_alloc_goal)
+	return m_alloc_goal(si);
+    else
+	m_msg.error("Need to specify goal");
+    return NULL;
+}
+
+ompl::base::Planner* ompl::kinematic::SimpleSetup::allocPlanner(base::SpaceInformation *si)
+{
+    if (m_alloc_planner)
+	return m_alloc_planner(si);
+    else
+	m_msg.error("Need to specify planner");
+    return NULL;
 }
 
 namespace ompl
@@ -68,11 +107,6 @@ namespace ompl
 	    return new base::UniformStateSampler(si);
 	}
     }
-}
-
-ompl::base::StateSamplerAllocator ompl::kinematic::SimpleSetup::stateSamplerAllocator(void)
-{
-    return boost::bind(allocUniformStateSampler, _1);
 }
 
 void ompl::kinematic::SimpleSetup::configure(void)
@@ -101,8 +135,10 @@ void ompl::kinematic::SimpleSetup::configure(void)
     m_sde = allocStateDistanceEvaluator(m_si);
     m_si->setStateDistanceEvaluator(m_sde);
     
-    m_ssa = stateSamplerAllocator();
-    m_si->setStateSamplerAllocator(m_ssa);
+    if (!m_alloc_ssa)
+	m_alloc_ssa = boost::bind(allocUniformStateSampler, _1);
+    
+    m_si->setStateSamplerAllocator(m_alloc_ssa);
     
     m_si->setup();
     
