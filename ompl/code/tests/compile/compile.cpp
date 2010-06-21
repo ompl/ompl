@@ -99,6 +99,8 @@
 #include "ompl/kinematic/planners/sbl/IKSBL.h"
 #include "ompl/kinematic/planners/sbl/pSBL.h"
 
+#include "ompl/kinematic/SimpleSetup.h"
+
 
 #include "ompl/dynamic/Control.h"
 #include "ompl/dynamic/ControlAllocator.h"

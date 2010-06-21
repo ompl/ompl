@@ -117,7 +117,7 @@ namespace ompl
 		state samplers.  We do not set a specific instance
 		since parallel planners will use multiple instances in
 		order to benefit from different random seeds. */
-	    void setControlSamplerAllocator(const boost::function1<ControlSampler*, const SpaceInformationControls*> &sampler)
+	    void setControlSamplerAllocator(const ControlSamplerAllocator &sampler)
 	    {
 		m_controlSamplerAllocator = sampler;
 	    }	    
@@ -163,8 +163,8 @@ namespace ompl
 	
 	    kinematic::PathKinematic            *m_hint;
 
-	    boost::function<ControlSampler*(const SpaceInformationControls*)>
-	                                         m_controlSamplerAllocator;	    
+	    ControlSamplerAllocator              m_controlSamplerAllocator;
+
 	private:
 	    
 	    base::L2SquareStateDistanceEvaluator m_defaultDistanceEvaluator;

@@ -28,7 +28,7 @@ if(BUILD_TESTS)
 				${Boost_FILESYSTEM_LIBRARY}
 				${Boost_SYSTEM_LIBRARY}
 				${Boost_THREAD_LIBRARY}
-			${Boost_DATE_TIME_LIBRARY} ${GTEST_LIBRARIES})
+				${Boost_DATE_TIME_LIBRARY} ${GTEST_LIBRARIES})
 			add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
 		endmacro(add_ompl_test)
 

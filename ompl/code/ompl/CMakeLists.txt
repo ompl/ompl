@@ -10,4 +10,7 @@ else(ROS)
 		${Boost_THREAD_LIBRARY}
 		${Boost_DATE_TIME_LIBRARY}
 	)
+      
+        install(DIRECTORY ../ompl DESTINATION include/ FILES_MATCHING PATTERN "*.h" REGEX "\\.svn" EXCLUDE REGEX "/src" EXCLUDE)
+	install(TARGETS ompl LIBRARY DESTINATION lib/)
 endif(ROS)

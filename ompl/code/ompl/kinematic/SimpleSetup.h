@@ -34,82 +34,73 @@
 
 /* \author Ioan Sucan */
 
-#ifndef OMPL_DYNAMIC_CONTROL_SAMPLER_
-#define OMPL_DYNAMIC_CONTROL_SAMPLER_
+#ifndef OMPL_KINEMATIC_SIMPLE_SETUP_
+#define OMPL_KINEMATIC_SIMPLE_SETUP_
 
-#include "ompl/util/RandomNumbers.h"
-#include "ompl/dynamic/Control.h"
-
-#include <boost/function.hpp>
-#include <vector>
+#include "ompl/kinematic/SpaceInformationKinematic.h"
+#include "ompl/kinematic/PathSimplifierKinematic.h"
+#include "ompl/base/Planner.h"
+#include "ompl/util/Console.h"
 
 namespace ompl
 {
-    namespace dynamic
+
+    namespace kinematic
     {
 	
-	class SpaceInformationControls;
-
-	/** \brief Abstract definition of a control sampler */
-	class ControlSampler
-	{	    
+	/** \brief Create the set of classes typically needed to solve a
+	    kinematic problem */
+	class SimpleSetup
+	{
 	public:
-	    ControlSampler(const SpaceInformationControls *si);
-	    
-	    virtual ~ControlSampler(void)
+	    SimpleSetup(void) : m_si(NULL), m_sik(NULL), m_psk(NULL), m_pdef(NULL), m_planner(NULL),
+				m_svc(NULL), m_sde(NULL), m_goal(NULL), m_configured(false)
 	    {
 	    }
 	    
-	    /** \brief Sample a number of steps */
-	    virtual unsigned int sampleStepCount(void) = 0;
-	    
-	    /** \brief Sample a control */
-	    virtual void sample(Control *ctrl) = 0;
-	    
-	    /** \brief Sample a control near another, within given bounds */
-	    virtual void sampleNear(Control *ctrl, const Control *near, const double rho) = 0;
-	    
-	    /** \brief Sample a control near another, within given bounds */
-	    virtual void sampleNear(Control *ctrl, const Control *near, const std::vector<double> &rho) = 0;
-	    
-	    /** \brief Return a reference to the random number generator used */
-	    RNG& getRNG(void)
+	    virtual ~SimpleSetup(void)
 	    {
-		return m_rng;
+		delete m_planner;
+		delete m_goal;
+		delete m_pdef;
+		delete m_psk;
+		delete m_si;
+		delete m_sik;
+		delete m_sde;
+		delete m_svc;
 	    }
+	    
+	    virtual SpaceInformationKinematic* allocSpaceInformation(void);
+	    virtual StateInterpolatorKinematic* allocStateInterpolator(base::SpaceInformation *si);
+	    virtual base::ProblemDefinition* allocProblemDefinition(base::SpaceInformation *si);
+	    virtual base::StateDistanceEvaluator* allocStateDistanceEvaluator(base::SpaceInformation *si);
+	    virtual base::StateSamplerAllocator stateSamplerAllocator(void);
+
+	    
+	    virtual base::StateValidityChecker* allocStateValidityChecker(base::SpaceInformation *si) = 0;
+	    virtual base::Goal* allocGoal(base::SpaceInformation *si) = 0;
+	    virtual base::Planner* allocPlanner(base::SpaceInformation *si) = 0;
+	    
+	    virtual void configure(void);
 	    
 	protected:
 	    
-	    const SpaceInformationControls *m_si;
-	    RNG                             m_rng;
-	    unsigned int                    m_minControlDuration;
-	    unsigned int                    m_maxControlDuration;
-	};
+	    SpaceInformationKinematic    *m_si;
+	    StateInterpolatorKinematic   *m_sik;
+	    PathSimplifierKinematic      *m_psk;
+	    
+	    base::ProblemDefinition      *m_pdef;
+	    base::Planner                *m_planner;
+	    base::StateValidityChecker   *m_svc;
+	    base::StateDistanceEvaluator *m_sde;
+	    
+	    base::Goal                   *m_goal;
+	    base::StateSamplerAllocator   m_ssa;
 
-	/** \brief Prototype for a function returning StateSampler instances */
-	typedef boost::function1<ControlSampler*, const SpaceInformationControls*> ControlSamplerAllocator;
-	
-	/** \brief Simple class to make instantiating control samplers easier */
-	class ControlSamplerInstance
-	{
-	public:
-
-	    ControlSamplerInstance(const SpaceInformationControls *si);
-	    ~ControlSamplerInstance(void);
-	    
-	    /** \brief Allow easy access the functions of the contained sampler */
-	    ControlSampler& operator()(void)
-	    {
-		return *m_sampler;
-	    }
-	    
-	private:
-	    
-	    ControlSampler *m_sampler;
+	    bool                          m_configured;
+	    msg::Interface                m_msg;
 	};
-	
-    }    
+    }
+    
 }
-
-
 #endif

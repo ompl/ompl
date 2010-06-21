@@ -39,6 +39,8 @@
 
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/base/State.h"
+
+#include <boost/function.hpp>
 #include <vector>
 
 namespace ompl
@@ -83,7 +85,11 @@ namespace ompl
 	    const SpaceInformation *m_si;
 	    RNG                     m_rng;
 	};
-	
+
+
+	/** \brief Prototype for a function returning StateSampler instances */
+	typedef boost::function1<StateSampler*, const SpaceInformation*> StateSamplerAllocator;
+
 	/** \brief Simple class to make instantiating state samplers easier */
 	class StateSamplerInstance
 	{

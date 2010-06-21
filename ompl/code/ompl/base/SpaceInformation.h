@@ -66,7 +66,7 @@ namespace ompl
 	(dynamic) */
     namespace base
     {
-	
+
 	/** \brief The base class for space information. This contains
 	    all the information about the space planning is done in.
 	    setup() needs to be called as well, before use */
@@ -93,7 +93,7 @@ namespace ompl
 		state samplers.  We do not set a specific instance
 		since parallel planners will use multiple instances in
 		order to benefit from different random seeds. */
-	    void setStateSamplerAllocator(const boost::function1<StateSampler*,const SpaceInformation*> &sampler)
+	    void setStateSamplerAllocator(const StateSamplerAllocator &sampler)
 	    {
 		m_stateSamplerAllocator = sampler;
 	    }
@@ -219,8 +219,7 @@ namespace ompl
 	    StateValidityChecker        *m_stateValidityChecker;
 	    StateDistanceEvaluator      *m_stateDistanceEvaluator;
 	    
-	    boost::function1<StateSampler*, const SpaceInformation*>
-	                                 m_stateSamplerAllocator;
+	    StateSamplerAllocator        m_stateSamplerAllocator;
 	    
 	    bool                         m_setup;
 
