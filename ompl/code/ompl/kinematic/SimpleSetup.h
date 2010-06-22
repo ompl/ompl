@@ -173,6 +173,7 @@ namespace ompl
 		if (m_configured)
 		{
 		    m_planner->clear();
+		    m_pdef->clearStartStates();
 		    m_goal->setSolutionPath(NULL);
 		}
 	    }
