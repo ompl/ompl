@@ -116,42 +116,42 @@ namespace ompl
 		return m_alloc_ssa;
 	    }	    
 	    
-	    void setAllocator(const base::StateSamplerAllocator &alloc)
+	    void setStateSamplerAllocator(const base::StateSamplerAllocator &alloc)
 	    {
 		m_alloc_ssa = alloc;
 	    }
 	    
-	    void setAllocator(const boost::function<SpaceInformationKinematic*()> &alloc)
+	    void setSpaceInformationAllocator(const boost::function<SpaceInformationKinematic*()> &alloc)
 	    {
 		m_alloc_si = alloc;
 	    }
 
-	    void setAllocator(boost::function<StateInterpolatorKinematic*(const base::SpaceInformation*)> &alloc)
+	    void setStateInterpolatorAllocator(boost::function<StateInterpolatorKinematic*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_sik = alloc;
 	    }
 
-	    void setAllocator(boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> &alloc)
+	    void setProblemDefinitionAllocator(boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_pdef = alloc;
 	    }	    
 	    
-	    void setAllocator(boost::function<base::StateDistanceEvaluator*(const base::SpaceInformation*)> &alloc)
+	    void setStateDistanceEvaluatorAllocator(boost::function<base::StateDistanceEvaluator*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_sde = alloc;
 	    }
 
-	    void setAllocator(boost::function<base::StateValidityChecker*(const base::SpaceInformation*)> &alloc)
+	    void setStateValidityCheckerAllocator(boost::function<base::StateValidityChecker*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_svc = alloc;
 	    }
 
-	    void setAllocator(boost::function<base::Goal*(const base::SpaceInformation*)> &alloc)
+	    void setGoalAllocator(boost::function<base::Goal*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_goal = alloc;
 	    }
 
-	    void setAllocator(boost::function<base::Planner*(const base::SpaceInformation*)> &alloc)
+	    void setPlannerAllocator(boost::function<base::Planner*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_planner = alloc;
 	    }
