@@ -126,32 +126,32 @@ namespace ompl
 		m_alloc_si = alloc;
 	    }
 
-	    void setStateInterpolatorAllocator(boost::function<StateInterpolatorKinematic*(const base::SpaceInformation*)> &alloc)
+	    void setStateInterpolatorAllocator(const boost::function<StateInterpolatorKinematic*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_sik = alloc;
 	    }
 
-	    void setProblemDefinitionAllocator(boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> &alloc)
+	    void setProblemDefinitionAllocator(const boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_pdef = alloc;
 	    }	    
 	    
-	    void setStateDistanceEvaluatorAllocator(boost::function<base::StateDistanceEvaluator*(const base::SpaceInformation*)> &alloc)
+	    void setStateDistanceEvaluatorAllocator(const boost::function<base::StateDistanceEvaluator*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_sde = alloc;
 	    }
 
-	    void setStateValidityCheckerAllocator(boost::function<base::StateValidityChecker*(const base::SpaceInformation*)> &alloc)
+	    void setStateValidityCheckerAllocator(const boost::function<base::StateValidityChecker*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_svc = alloc;
 	    }
 
-	    void setGoalAllocator(boost::function<base::Goal*(const base::SpaceInformation*)> &alloc)
+	    void setGoalAllocator(const boost::function<base::Goal*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_goal = alloc;
 	    }
 
-	    void setPlannerAllocator(boost::function<base::Planner*(const base::SpaceInformation*)> &alloc)
+	    void setPlannerAllocator(const boost::function<base::Planner*(const base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_planner = alloc;
 	    }
