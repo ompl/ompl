@@ -47,7 +47,7 @@ ompl::kinematic::SpaceInformationKinematic* ompl::kinematic::SimpleSetup::allocS
 	return new SpaceInformationKinematic();
 }
 
-ompl::kinematic::StateInterpolatorKinematic* ompl::kinematic::SimpleSetup::allocStateInterpolator(base::SpaceInformation *si)
+ompl::kinematic::StateInterpolatorKinematic* ompl::kinematic::SimpleSetup::allocStateInterpolator(const base::SpaceInformation *si)
 {
     if (m_alloc_sik)
 	return m_alloc_sik(si);
@@ -63,7 +63,7 @@ ompl::base::ProblemDefinition* ompl::kinematic::SimpleSetup::allocProblemDefinit
 	return new base::ProblemDefinition(si);
 }
 
-ompl::base::StateDistanceEvaluator* ompl::kinematic::SimpleSetup::allocStateDistanceEvaluator(base::SpaceInformation *si)
+ompl::base::StateDistanceEvaluator* ompl::kinematic::SimpleSetup::allocStateDistanceEvaluator(const base::SpaceInformation *si)
 {
     if (m_alloc_sde)
 	return m_alloc_sde(si);
@@ -71,7 +71,7 @@ ompl::base::StateDistanceEvaluator* ompl::kinematic::SimpleSetup::allocStateDist
 	return new base::L2SquareStateDistanceEvaluator(si);
 }
 
-ompl::base::StateValidityChecker* ompl::kinematic::SimpleSetup::allocStateValidityChecker(base::SpaceInformation *si)
+ompl::base::StateValidityChecker* ompl::kinematic::SimpleSetup::allocStateValidityChecker(const base::SpaceInformation *si)
 {
     if (m_alloc_svc)
 	return m_alloc_svc(si);
@@ -80,7 +80,7 @@ ompl::base::StateValidityChecker* ompl::kinematic::SimpleSetup::allocStateValidi
     return NULL;
 }
 
-ompl::base::Goal* ompl::kinematic::SimpleSetup::allocGoal(base::SpaceInformation *si)
+ompl::base::Goal* ompl::kinematic::SimpleSetup::allocGoal(const base::SpaceInformation *si)
 {   
     if (m_alloc_goal)
 	return m_alloc_goal(si);
@@ -147,4 +147,14 @@ void ompl::kinematic::SimpleSetup::configure(void)
     m_planner = allocPlanner(m_si);
     m_planner->setProblemDefinition(m_pdef);
     m_planner->setup();
+}
+
+void ompl::kinematic::SimpleSetup::clear(void)
+{
+    if (m_configured)
+    {
+	m_planner->clear();
+	m_pdef->clearStartStates();
+	m_goal->setSolutionPath(NULL);
+    }
 }

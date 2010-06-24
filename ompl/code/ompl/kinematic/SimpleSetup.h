@@ -41,6 +41,7 @@
 #include "ompl/kinematic/PathSimplifierKinematic.h"
 #include "ompl/base/Planner.h"
 #include "ompl/util/Console.h"
+#include <boost/function.hpp>
 
 namespace ompl
 {
@@ -53,7 +54,7 @@ namespace ompl
 	class SimpleSetup
 	{
 	public:
-	    SimpleSetup(void) : m_si(NULL), m_sik(NULL), m_pdef(NULL), m_planner(NULL),
+	    SimpleSetup(void) : m_si(NULL), m_pdef(NULL), m_planner(NULL), m_sik(NULL),
 				m_svc(NULL), m_sde(NULL), m_goal(NULL), m_psk(NULL), m_configured(false)
 	    {
 	    }
@@ -131,7 +132,7 @@ namespace ompl
 		m_alloc_sik = alloc;
 	    }
 
-	    void setProblemDefinitionAllocator(const boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> &alloc)
+	    void setProblemDefinitionAllocator(const boost::function<base::ProblemDefinition*(base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_pdef = alloc;
 	    }	    
@@ -151,50 +152,42 @@ namespace ompl
 		m_alloc_goal = alloc;
 	    }
 
-	    void setPlannerAllocator(const boost::function<base::Planner*(const base::SpaceInformation*)> &alloc)
+	    void setPlannerAllocator(const boost::function<base::Planner*(base::SpaceInformation*)> &alloc)
 	    {
 		m_alloc_planner = alloc;
 	    }
 	    
 	    virtual SpaceInformationKinematic* allocSpaceInformation(void);
-	    virtual StateInterpolatorKinematic* allocStateInterpolator(base::SpaceInformation *si);
 	    virtual base::ProblemDefinition* allocProblemDefinition(base::SpaceInformation *si);
-	    virtual base::StateDistanceEvaluator* allocStateDistanceEvaluator(base::SpaceInformation *si);
-	    virtual base::StateValidityChecker* allocStateValidityChecker(base::SpaceInformation *si);
-	    virtual base::Goal* allocGoal(base::SpaceInformation *si);
 	    virtual base::Planner* allocPlanner(base::SpaceInformation *si);
+
+	    virtual StateInterpolatorKinematic* allocStateInterpolator(const base::SpaceInformation *si);
+	    virtual base::StateDistanceEvaluator* allocStateDistanceEvaluator(const base::SpaceInformation *si);
+	    virtual base::StateValidityChecker* allocStateValidityChecker(const base::SpaceInformation *si);
+	    virtual base::Goal* allocGoal(const base::SpaceInformation *si);
 	    
 	    virtual void configureSpaceInformation(SpaceInformationKinematic *si) = 0;
 	    
-	    virtual void configure(void);
-	    
-	    virtual void clear(void)
-	    {
-		if (m_configured)
-		{
-		    m_planner->clear();
-		    m_pdef->clearStartStates();
-		    m_goal->setSolutionPath(NULL);
-		}
-	    }
+	    virtual void configure(void);	    
+	    virtual void clear(void);
 	    
 	protected:
 	    
 	    SpaceInformationKinematic    *m_si;
 	    boost::function<SpaceInformationKinematic*()> 
 	                                  m_alloc_si;
-	    
+	    	    
+	    base::ProblemDefinition      *m_pdef;
+	    boost::function<base::ProblemDefinition*(base::SpaceInformation*)> 
+	                                  m_alloc_pdef;
+
+	    base::Planner                *m_planner;
+	    boost::function<base::Planner*(base::SpaceInformation*)> 
+	                                  m_alloc_planner;
+
 	    StateInterpolatorKinematic   *m_sik;
 	    boost::function<StateInterpolatorKinematic*(const base::SpaceInformation*)>
 	                                  m_alloc_sik;
-	    
-	    base::ProblemDefinition      *m_pdef;
-	    boost::function<base::ProblemDefinition*(const base::SpaceInformation*)> 
-	                                  m_alloc_pdef;
-	    
-	    base::Planner                *m_planner;
-	    boost::function<base::Planner*(const base::SpaceInformation*)> 
-	                                  m_alloc_planner;
 	    
 	    base::StateValidityChecker   *m_svc;
 	    boost::function<base::StateValidityChecker*(const base::SpaceInformation*)> 
@@ -207,7 +200,8 @@ namespace ompl
 	    base::Goal                   *m_goal;
 	    boost::function<base::Goal*(const base::SpaceInformation*)> 
 	                                  m_alloc_goal;
-	    
+
+
 	    PathSimplifierKinematic      *m_psk;
 
 	    base::StateSamplerAllocator   m_alloc_ssa;
