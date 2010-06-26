@@ -152,14 +152,14 @@ namespace ompl
 		m_alloc_goal = alloc;
 	    }
 
-	    void setPlannerAllocator(const boost::function<base::Planner*(base::SpaceInformation*)> &alloc)
+	    void setPlannerAllocator(const boost::function<base::Planner*(kinematic::SpaceInformationKinematic*)> &alloc)
 	    {
 		m_alloc_planner = alloc;
 	    }
 	    
 	    virtual SpaceInformationKinematic* allocSpaceInformation(void);
 	    virtual base::ProblemDefinition* allocProblemDefinition(base::SpaceInformation *si);
-	    virtual base::Planner* allocPlanner(base::SpaceInformation *si);
+	    virtual base::Planner* allocPlanner(kinematic::SpaceInformationKinematic *si);
 
 	    virtual StateInterpolatorKinematic* allocStateInterpolator(const base::SpaceInformation *si);
 	    virtual base::StateDistanceEvaluator* allocStateDistanceEvaluator(const base::SpaceInformation *si);
@@ -182,7 +182,7 @@ namespace ompl
 	                                  m_alloc_pdef;
 
 	    base::Planner                *m_planner;
-	    boost::function<base::Planner*(base::SpaceInformation*)> 
+	    boost::function<base::Planner*(kinematic::SpaceInformationKinematic*)> 
 	                                  m_alloc_planner;
 
 	    StateInterpolatorKinematic   *m_sik;

@@ -89,7 +89,7 @@ ompl::base::Goal* ompl::kinematic::SimpleSetup::allocGoal(const base::SpaceInfor
     return NULL;
 }
 
-ompl::base::Planner* ompl::kinematic::SimpleSetup::allocPlanner(base::SpaceInformation *si)
+ompl::base::Planner* ompl::kinematic::SimpleSetup::allocPlanner(kinematic::SpaceInformationKinematic *si)
 {
     if (m_alloc_planner)
 	return m_alloc_planner(si);

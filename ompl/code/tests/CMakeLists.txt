@@ -36,6 +36,7 @@ if(BUILD_TESTS)
 
 	# Test kinematic motion planners on a 2D map
 	add_ompl_test(test_2dmap_kinematic kinematic/2dmap/2dmap.cpp)
+	add_ompl_test(test_2dmap_kinematic_setup kinematic/2dmap/2dmap_simple.cpp)
 
 	# Test dynamic motion planners on a 2D map
 	add_ompl_test(test_2dmap_dynamic dynamic/2dmap/2dmap.cpp)
