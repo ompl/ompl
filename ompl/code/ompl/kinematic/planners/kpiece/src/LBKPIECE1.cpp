@@ -83,6 +83,7 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
     
     std::vector<Motion*> solution;
     base::State *xstate = new base::State(dim);
+    base::State *gstate = new base::State(dim);
     bool      startTree = true;
     
     std::vector<double> range(dim);
@@ -102,28 +103,22 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 	    // if we have not sampled too many goals already
 	    if (m_tGoal.size == 0 || m_sampledGoalsCount < m_tGoal.size / 2)
 	    {
-		base::State *newGoal = new base::State(dim);
 		bool firstAttempt = true;
-		bool added = false;
 		
 		while ((m_tGoal.size == 0 || firstAttempt) && m_sampledGoalsCount < goal->maxSampleCount() && time::now() < endTime)
 		{
 		    firstAttempt = false;
-		    goal->sampleGoal(newGoal);
+		    goal->sampleGoal(gstate);
 		    m_sampledGoalsCount++;
-		    if (si->satisfiesBounds(newGoal) && si->isValid(newGoal))
+		    if (si->satisfiesBounds(gstate) && si->isValid(gstate))
 		    {
-			Motion* motion = new Motion();
-			motion->state = newGoal;
-			motion->root = newGoal;
+			Motion* motion = new Motion(dim);
+			si->copyState(motion->state, gstate);
+			motion->root = motion->state;
 			motion->valid = true;
 			addMotion(m_tGoal, motion);
-			added = true;
 		    }
 		}
-		
-		if (!added)
-		    delete newGoal;
 		
 		if (m_tGoal.size == 0)
 		{
@@ -163,6 +158,7 @@ bool ompl::kinematic::LBKPIECE1::solve(double solveTime)
 	}
     }
     
+    delete gstate;
     delete xstate;
     
     m_msg.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", 

@@ -46,11 +46,11 @@ namespace ompl
     {
 	
 	/** \brief Abstract definition of a goal region that can be sampled */
-	class GoalSampleableRegion : public base::GoalRegion
+	class GoalSampleableRegion : public GoalRegion
 	{
 	public:
 	    
-	    GoalSampleableRegion(const base::SpaceInformation *si) : GoalRegion(si)
+	    GoalSampleableRegion(const SpaceInformation *si) : GoalRegion(si)
 	    {
 	    }
 	    
@@ -59,11 +59,12 @@ namespace ompl
 	    }
 	    
 	    /** \brief Sample a state in the goal region */
-	    virtual void sampleGoal(base::State *st) const = 0;
+	    virtual void sampleGoal(State *st) const = 0;
 	    
 	    /** \brief Return the maximum number of samples that can be asked for before repeating */
 	    virtual unsigned int maxSampleCount(void) const = 0;
 	};
+	
     }
 }
 

@@ -128,6 +128,7 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
     
     Motion   *rmotion   = new Motion(dim);
     base::State *rstate = rmotion->state;
+    base::State *gstate = new base::State(dim);
     bool   startTree    = true;
 
     while (time::now() < endTime)
@@ -142,27 +143,21 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
 	    // if we have not sampled too many goals already
 	    if (m_tGoal.size() == 0 || m_sampledGoalsCount < m_tGoal.size() / 2)
 	    {
-		base::State *newGoal = new base::State(dim);
 		bool firstAttempt = true;
-		bool added = false;
 		
 		while ((m_tGoal.size() == 0 || firstAttempt) && m_sampledGoalsCount < goal->maxSampleCount() && time::now() < endTime)
 		{
 		    firstAttempt = false;
-		    goal->sampleGoal(newGoal);
+		    goal->sampleGoal(gstate);
 		    m_sampledGoalsCount++;
-		    if (si->satisfiesBounds(newGoal) && si->isValid(newGoal))
+		    if (si->satisfiesBounds(gstate) && si->isValid(gstate))
 		    {
-			Motion* motion = new Motion();
-			motion->state = newGoal;
-			motion->root = newGoal;
+			Motion* motion = new Motion(dim);
+			si->copyState(motion->state, gstate);
+			motion->root = motion->state;
 			m_tGoal.add(motion);
-			added = true;
 		    }
 		}
-		
-		if (!added)
-		    delete newGoal;
 		
 		if (m_tGoal.size() == 0)
 		{
@@ -234,7 +229,8 @@ bool ompl::kinematic::RRTConnect::solve(double solveTime)
     
     delete tgi.xstate;
     delete rmotion;
-	
+    delete gstate;
+    
     m_msg.inform("Created %u states (%u start + %u goal)", m_tStart.size() + m_tGoal.size(), m_tStart.size(), m_tGoal.size());
     
     return goal->isAchieved();

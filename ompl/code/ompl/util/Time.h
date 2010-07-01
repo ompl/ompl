@@ -41,16 +41,24 @@
 
 namespace ompl
 {
+
+    /** \brief Namespace containing time datatypes and time operations */
     namespace time
     {
+
+	/** \brief Representation of a point in time */
 	typedef boost::posix_time::ptime         point;
+
+	/** \brief Representation of a time duration */
 	typedef boost::posix_time::time_duration duration;
 	
+	/** \brief Get the current time point */
 	inline point now(void)
 	{
 	    return boost::posix_time::microsec_clock::universal_time();
 	}
 	
+	/** \brief Return the time duration representing a given number of seconds */
 	inline duration seconds(double sec)
 	{
 	    long s  = (long)sec;
@@ -58,6 +66,7 @@ namespace ompl
 	    return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
 	}
 	
+	/** \brief Return the number of seconds that a time duration represents */
 	inline double seconds(duration d)
 	{
 	    return (double)d.total_microseconds() / 1000000;

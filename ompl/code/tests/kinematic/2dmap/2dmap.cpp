@@ -665,9 +665,6 @@ TEST_F(PlanTest, kinematic_SBL)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    // Widening the bounds here, because the automated build machine has a
-    // varying load that can affect performance.
-    //EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 65.0);
 }
@@ -683,9 +680,6 @@ TEST_F(PlanTest, kinematic_pSBL)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    // Widening the bounds here, because the automated build machine has a
-    // varying load that can affect performance.
-    //EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avgruntime < 0.2);
     EXPECT_TRUE(avglength < 65.0);
 }
@@ -701,9 +695,6 @@ TEST_F(PlanTest, kinematic_KPIECE1)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    // Widening the bounds here, because the automated build machine has a
-    // varying load that can affect performance.
-    //EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 70.0);
 }
@@ -719,9 +710,6 @@ TEST_F(PlanTest, kinematic_LBKPIECE1)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    // Widening the bounds here, because the automated build machine has a
-    // varying load that can affect performance.
-    //EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 70.0);
 }
@@ -737,9 +725,6 @@ TEST_F(PlanTest, kinematic_EST)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    // Widening the bounds here, because the automated build machine has a
-    // varying load that can affect performance.
-    //EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 65.0);
 }
@@ -753,14 +738,8 @@ TEST_F(PlanTest, kinematic_LazyRRT)
     TestPlanner *p = new LazyRRTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
-
-    // Widening the bounds here, because the test very occasionally fails,
-    // despite the fact that the code has not changed since these test were
-    // written.
+    
     EXPECT_TRUE(success >= 70.0);
-    // Widening the bounds here, because the automated build machine has a
-    // varying load that can affect performance.
-    //EXPECT_TRUE(avgruntime < 0.01);
     EXPECT_TRUE(avgruntime < 1.0);
     EXPECT_TRUE(avglength < 65.0);
 }
