@@ -18,6 +18,8 @@
 # module. If the module is required add the keyword "REQUIRED":
 #	find_python_module(numpy REQUIRED)
 
+include(FindPackageHandleStandardArgs)
+
 find_program(PYTHON_EXEC "python${Python_FIND_VERSION}" 
 	PATHS
 	[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.1\\InstallPath]
