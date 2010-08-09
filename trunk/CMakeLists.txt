@@ -7,6 +7,7 @@ set(OMPL_VERSION "${OMPL_MAJOR_VERSION}.${OMPL_MINOR_VERSION}.${OMPL_PATCH_VERSI
 
 if(ROS)
 	rosbuild_add_boost_directories()
+	set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 else(ROS)
 	if(NOT OMPLAPP_VERSION)
 		cmake_minimum_required(VERSION 2.8)
