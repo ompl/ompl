@@ -1,0 +1,13 @@
+geometric/PathGeometric.h
+geometric/PathSimplifier.h
+geometric/SimpleSetup.h
+geometric/planners/prm/PRM.h
+geometric/planners/est/EST.h
+geometric/planners/kpiece/KPIECE1.h
+geometric/planners/kpiece/LBKPIECE1.h
+geometric/planners/rrt/RRT.h
+geometric/planners/rrt/RRTConnect.h
+geometric/planners/rrt/pRRT.h
+geometric/planners/rrt/LazyRRT.h
+geometric/planners/sbl/SBL.h
+geometric/planners/sbl/pSBL.h

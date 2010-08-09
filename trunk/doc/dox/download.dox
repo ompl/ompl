@@ -1,0 +1,23 @@
+/**
+\page download Download
+
+\section download_release Releases
+
+- \b OMPL 0.1, released ??? 2010 (<a href="releaseNotes.html">release notes</a>)<br>
+<a href="https://sourceforge.net/projects/ompl/files/ompl-0.1.tgz">[TGZ]</a> 
+<a href="https://sourceforge.net/projects/ompl/files/ompl-0.1.zip">[ZIP]</a>
+.
+
+Alternatively, you can use the version included in <a
+href="http://www.ros.org/wiki/ompl">ROS</a>.
+
+\section download_subversion Subversion
+
+The latest source is available via Subversion. For anonymous checkout use:
+\code
+$ svn co https://ompl.svn.sourceforge.net/svnroot/ompl/trunk ompl
+\endcode
+To view the source code right now in your browser, click <a href="http://ompl.svn.sourceforge.net/viewvc/ompl">here</a>.
+Alternatively, get a tar.gz snapshot <a href="http://ompl.svn.sourceforge.net/viewvc/ompl/ompl.tar.gz?view=tar">here</a>.
+
+*/

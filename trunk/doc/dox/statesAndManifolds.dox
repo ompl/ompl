@@ -1,0 +1,117 @@
+/**
+\page statesAndManifolds Working with States and Manifolds
+
+Below we will describe how to:
+- \ref implementStateManifold "implement new state manifolds", 
+- \ref stateAlloc "allocate memory for states", and
+- \ref stateOps "work with state objects"
+.
+
+\section implementStateManifold Implementing a state manifold
+
+@par Inheriting from existing manifolds
+In order to implement a new state manifold it is necessary
+to define a class that inherits from an existing manifold
+class. All manifold specific functions (pure virtual in the
+StateManifold class) need to be implemented accordingly. If
+the implementation of the new manifold defines a
+StateManifold::allocState() function, it should also
+provide a StateManifold::freeState() function and define
+(or typedef) @b StateType to the type of the state that is
+allocated/freed. 
+
+@par Inheriting from CompoundStateManifold
+Another option is to inherit from a CompoundStateManifold
+and call CompoundStateManifold::addSubManifold() in the
+constructor of the new class for other existing
+manifolds. This is the easiest way to create new manifolds
+-- only the constructor needs to be provided. For example,
+see SE2StateManifold. Optionally, the
+CompoundStateManifold::lock() function can be called after
+the components have been set in order to prevent the user
+of the manifold from adding further components.
+
+Optionally, if there exist projections to Euclidean spaces
+(ProjectionEvaluator) for the defined manifold, these can
+be registered by the StateManifold::setup() function (by
+calling StateManifold::registerProjection()). Registering a
+projection under the empty string name makes it the default
+projection. Planners that need a projection but do not have
+one defined will attempt using this default projection
+during planning.
+
+\section stateAlloc Allocating memory for states
+
+\li The simple version:\n
+\code
+ompl::base::StateManifoldPtr manifold(new T());
+ompl::base::ScopedState<> state(manifold);
+\endcode
+or
+\code
+ompl::base::SpaceInformationPtr si(manifold);
+ompl::base::ScopedState<T> state(si);
+\endcode
+The ompl::base::ScopedState class will do the necessary
+memory operations to allocate a state from the correct
+manifold. This is the recommended way of allocating states
+for code other than ompl internals. Convenience operators such
+as = and == are provided. If a type T is provided, where T is 
+a manifold type, the maintained state is cast as T::StateType.
+
+\li The expert version:\n
+\code
+ompl::base::SpaceInformationPtr si(manifold);
+ompl::base::State* state = si->allocState();
+...
+si->freeState(state);
+\endcode
+The structure of a state depends on a manifold
+specification. The State type is just an abstract base for
+the states of other manifolds.  For this reason, states
+cannot be allocated directly, but through the use of a
+manifold's allocation mechanism:
+ompl::base::StateManifold::allocState(). States are to be
+freed using ompl::base::StateManifold::freeState(). For
+convenience, ompl::base::SpaceInformation::allocState()
+and ompl::base::SpaceInformation::freeState() are defined
+as well. Using the calls from the SpaceInformation class
+is better since they certainly use the same manifold as
+the one used for planning.  This is the lowest level of
+operating on states and only recomended for expert users.
+
+See \ref stateOps for how to fill the contents of the
+allocated states.
+
+
+\section stateOps Operating with states
+
+In order for states to be useful in setting start (or
+goal) positions, accessing their content is needed. It is
+assumed the reader is familiar with \ref stateAlloc.
+
+\li Simple version:\n
+After a state has been allocated from manifold T, no
+matter what the state type is: State *, State& or
+ScopedState&, an instance of T::Mapper can be defined to
+allow access to the state's members.
+\code
+ompl::base::StateManifoldPtr manifold(new ompl::base::SE2StateManifold());
+ompl::base::ScopedState<SE2StateManifold> state(manifold);
+state->setX(...);
+\endcode
+
+\li Expert version:\n	    
+\code
+ompl::base::StateManifoldPtr manifold(new ompl::base::RealVectorStateManifold());
+ompl::base::State *state = manifold->allocState();
+state->as<ompl::base::RealVectorStateManifold::StateType>()->values[0] = ...;
+manifold->freeState(state);
+\endcode
+For a manifold type of type T, the result of
+ompl::base::StateManifold::allocState() can be casted to
+T::StateType to gain access to the state's members. To
+ease this functionality, the ompl::base::State::as()
+functions have been defined.
+
+*/

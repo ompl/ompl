@@ -1,0 +1,389 @@
+#!/usr/bin/env @PYTHON_EXEC@
+
+######################################################################
+# Software License Agreement (BSD License)
+# 
+#  Copyright (c) 2010, Rice University
+#  All rights reserved.
+# 
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+# 
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#   * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#   * Neither the name of the Rice University nor the names of its
+#     contributors may be used to endorse or promote products derived
+#     from this software without specific prior written permission.
+# 
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+######################################################################
+
+# Author: Mark Moll
+
+from sys import exit, argv, setrecursionlimit
+import os
+import logging
+from os.path import abspath, dirname
+from pygccxml import declarations
+from pyplusplus import module_builder, messages
+from pyplusplus.module_builder import call_policies
+from pyplusplus.decl_wrappers import print_declarations
+
+# disable some warnings that are mostly harmless
+messages.disable( messages.W1014 )
+messages.disable( messages.W1023 )
+messages.disable( messages.W1040 )
+
+# create a dictionary called "replacement" that can be used to replace method
+# declaration with another method. The dictionary is indexed by method name,
+# either with or without full scope. For each method there is a 2-tuple. The
+# first component is a string that tells Boost.Python how to export the
+# replacement method. The second component is a string that contains the C++ 
+# code for the replacement method.
+replacement = {}
+# A C++ call like "foo.print(std::cout)" will be replaced with something more
+# pythonesque using the special __str__ method: "print foo"
+replacement['print'] = ('def("__str__", &__str__)', """
+std::string __str__(%s* obj)
+{
+	std::ostringstream s;
+	obj->print(s);
+	return s.str();
+}
+""")
+# A C++ call like "foo.printSettings(std::cout)" will be replaced with
+# something more pythonesque: "print foo.settings()"
+replacement['printSettings'] = ('def("settings", &__printSettings)', """
+std::string __printSettings(%s* obj)
+{
+	std::ostringstream s;
+	obj->printSettings(s);
+	return s.str();
+}
+""")
+# add array read access to objects that can return a const reference using the
+# [] operator.
+replacement['array_read_access'] = ('def("__getitem__", &__getitem)',"""
+%s __getitem(%s* obj, unsigned int i)
+{
+	return (*obj)[i];
+}
+""")
+# add array write access to objects that can return a non-const reference
+# using the [] operator.
+replacement['array_write_access'] = ('def("__setitem__", &__setitem)',"""
+void __setitem(%s* obj, unsigned int i, const %s& val)
+{
+	(*obj)[i] = val;
+}
+""")
+# add a wrapper for the setStateValidityChecker. This wrapper makes a
+# SpaceInformation reference accessible to the validity checker and also deals
+# correctly with C-style pointers.
+replacement['::ompl::geometric::SimpleSetup::setStateValidityChecker'] = ('def("setStateValidityChecker", &setStateValidityCheckerWrapper)', """
+struct IsValidFunPyWrapper
+{
+    IsValidFunPyWrapper( bp::object callable ) : callable_( callable ) {}
+
+    bool operator()(const ompl::base::SpaceInformation* si, const ompl::base::State* state)
+    {
+        PyGILState_STATE gstate = PyGILState_Ensure();
+        bool ret = bp::extract<bool>(callable_(bp::ptr(si), bp::ptr(state)));
+        PyGILState_Release( gstate );
+        return ret;
+    }
+	
+    bp::object callable_;
+};
+
+void setStateValidityCheckerWrapper(%s* obj, bp::object function)
+{
+    obj->setStateValidityChecker( boost::bind(
+	boost::function<bool (const ompl::base::SpaceInformation*, const ompl::base::State*)>(IsValidFunPyWrapper(function)),
+		obj->getSpaceInformation().get(), _1));
+}
+""")
+# add a wrapper for the setStateValidityChecker. This wrapper makes a
+# SpaceInformation reference accessible to the validity checker and also deals
+# correctly with C-style pointers.
+replacement['::ompl::control::SimpleSetup::setStateValidityChecker'] = ('def("setStateValidityChecker", &setStateValidityCheckerWrapper)', """
+struct IsValidFunPyWrapper
+{
+    IsValidFunPyWrapper( bp::object callable ) : callable_( callable ) {}
+
+    bool operator()(const ompl::control::SpaceInformation* si, const ompl::base::State* state)
+    {
+        PyGILState_STATE gstate = PyGILState_Ensure();
+        bool ret = bp::extract<bool>(callable_(bp::ptr(si), bp::ptr(state)));
+        PyGILState_Release( gstate );
+        return ret;
+    }
+	
+    bp::object callable_;
+};
+
+void setStateValidityCheckerWrapper(%s* obj, bp::object function)
+{
+    obj->setStateValidityChecker( boost::bind(
+	boost::function<bool (const ompl::control::SpaceInformation*, const ompl::base::State*)>(IsValidFunPyWrapper(function)),
+		obj->getSpaceInformation().get(), _1));
+}
+""")
+# add a wrapper for the setPropagationFunction. This wrapper makes a
+# SpaceInformation reference accessible to the validity checker and also deals
+# correctly with C-style pointers.
+replacement['setPropagationFunction'] = ('def("setPropagationFunction", &setPropagationFunctionWrapper)', """
+struct PropagatePyWrapper
+{
+	PropagatePyWrapper( bp::object callable ) : callable_( callable ) {}
+
+    ompl::control::PropagationResult operator()(const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
+    {
+		PyGILState_STATE gstate = PyGILState_Ensure();
+		ompl::control::PropagationResult ret = bp::extract<ompl::control::PropagationResult>(callable_(bp::ptr(start), bp::ptr(control), duration, bp::ptr(result)));
+		PyGILState_Release( gstate );
+		return ret;
+    }
+	
+    bp::object callable_;
+};
+
+void setPropagationFunctionWrapper(%s* obj, bp::object function)
+{
+	obj->setPropagationFunction(ompl::control::StatePropagationFn(PropagatePyWrapper(function)));
+}
+""")
+
+def returns_reference(decl):
+	"""Return True iff the declaration returns a pointer or reference."""
+	c = decl.return_type.decl_string[-1]
+	return c=='&' or c=='*'
+
+class code_generator_t(object):
+	"""The base class code generator."""
+	
+	def __init__(self, name, dep=None):
+		"""Constructor.
+		@name name of the python module
+		@dep name of another module this module depends on"""
+		module_builder.set_logger_level( logging.INFO )
+		self.mb = module_builder.module_builder_t(
+			files = [ '@CMAKE_CURRENT_SOURCE_DIR@/bindings/' + name + '.h' ],
+			cache = 'pygccxml_'+name+'_cache',
+			gccxml_path = "@GCCXML@",
+			include_paths=[ "@OMPL_INCLUDE_DIR@",
+			"@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@"],
+			cflags="@PYOMPL_EXTRA_CFLAGS@",
+			indexing_suite_version = 1 )
+		self.mb.classes().always_expose_using_scope
+		self.std_ns = self.mb.namespace('std')	
+		self.ompl_ns = self.mb.namespace('ompl')
+		self.call_policies()
+		self.filter_declarations()
+		if dep!=None:
+			self.mb.register_module_dependency(
+				'@CMAKE_CURRENT_SOURCE_DIR@/bindings/' + dep)
+		self.mb.build_code_creator( module_name='_'+name )
+		self.mb.split_module(
+			'@CMAKE_CURRENT_SOURCE_DIR@/bindings/' + name, 
+			use_files_sum_repository=True )
+	
+	def call_policies(self):
+		"""Define default call policies: for anything that returns a reference, 
+		return a reference to the existing object. This is potentially dangerous."""
+		self.mb.free_functions(returns_reference).call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+		self.mb.member_functions(returns_reference).call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+		self.mb.operators(returns_reference).call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+	
+	def filter_declarations(self):
+		"""Remove private and protected declarations. Remove some classes and 
+		functions from the std namespace"""
+		self.mb.calldefs( 
+			declarations.access_type_matcher_t('private')).exclude()
+		self.mb.calldefs( 
+			declarations.access_type_matcher_t('protected')).exclude()
+		self.ompl_ns.member_functions(lambda decl: decl.has_ellipsis).exclude()	
+		self.std_ns.class_('ios_base').exclude()
+		self.std_ns.free_functions().exclude()
+		self.std_ns.operators().exclude()
+		
+	def replace_member_function(self, decl):
+		"""Utility function to replace a declaration."""
+		decl.exclude()
+		cls = decl.parent
+		self.mb.logger.info('Replacing member function ' + cls.decl_string+'::'+decl.name)
+		try:
+			(reg, wrapper) = replacement[cls.decl_string+'::'+decl.name]
+		except KeyError:
+			(reg, wrapper) = replacement[decl.name]
+		cls.add_registration_code(reg)
+		cls.add_declaration_code(wrapper % cls.decl_string)
+		#cls.add_wrapper_code(wrapper)
+	
+	def replace_member_functions(self, decls):
+		"""Utility function to replace multiple declarations."""
+		for decl in decls:
+		 	self.replace_member_function(decl)
+			
+	def add_array_access(self, cls):
+		"""Add array indexing to a class."""
+		op = cls.operators("[]")
+		op.exclude()
+		self.mb.logger.info('Adding array access to class ' + cls.decl_string)
+		(reg, wrapper) = replacement['array_read_access']
+		cls.add_registration_code(reg)
+		cls.add_declaration_code(wrapper % (op[0].return_type.decl_string, cls.decl_string))
+		(reg, wrapper) = replacement['array_write_access']
+		cls.add_registration_code(reg)
+		cls.add_declaration_code(wrapper % (cls.decl_string, op[0].return_type.decl_string))
+		
+class ompl_base_generator_t(code_generator_t):
+	"""Class for generating the ompl.base python module."""
+	
+	def __init__(self):
+		code_generator_t.__init__(self, 'base')
+	
+	def filter_declarations(self):
+		code_generator_t.filter_declarations(self)
+		# rename STL vectors of certain types
+		self.std_ns.class_('vector< int >').rename('vectorInt')
+		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		# don't export variables that need a wrapper
+		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
+		# force StateManifold::allocState to be exported.
+		# (not sure why this is necessary)
+		allocStateFn = self.ompl_ns.class_('StateManifold').member_function('allocState')
+		allocStateFn.include()
+		allocStateFn.call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+		# rename the abstract base class State to AbstractState
+		state = self.ompl_ns.class_('State')
+		state.rename('AbstractState')
+		# don't export components which is of type State**
+		self.ompl_ns.class_('CompoundState').variable('components').exclude()
+		# rename a ScopedState<> to State
+		bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateManifold >')
+		bstate.rename('State')
+		bstate.operator('=', arg_types=['::ompl::base::State const &']).exclude()
+		# loop over all predefined state manifolds
+		for stype in ['RealVector', 'SO2', 'SO3', 'SE2', 'SE3']:
+			# create a python type for each of their corresponding state types
+			state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateManifold >' % stype)
+			state.rename(stype+'State')
+			state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
+			# add a constructor that allows, e.g., an SE3State to be constructed from a State
+			state.add_registration_code(
+				'def(bp::init<ompl::base::ScopedState<ompl::base::StateManifold> const &>(( bp::arg("other") )))')
+			# mark the manifold statetype as 'internal' to emphasize that it 
+			# shouldn't typically be used by a regular python user
+			self.ompl_ns.class_(stype + 'StateManifold').class_('StateType').rename(
+				stype + 'StateInternal')
+			# add a constructor that allows, e.g., an State to be constructed from a SE3State
+			bstate.add_registration_code(
+				'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateManifold> const &>(( bp::arg("other") )))' % stype)
+		# don't expose double*
+		self.ompl_ns.class_('RealVectorStateManifold').class_(
+			'StateType').variable('values').exclude()
+		# add array indexing to the RealVectorState
+		self.add_array_access(self.ompl_ns.class_('RealVectorStateManifold').class_('StateType'))
+		# make objects printable that have a print function
+		self.replace_member_functions(self.ompl_ns.member_functions('print'))
+		# make settings printable
+		self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
+		# printState just prints the memory address, which is not so useful in python
+		self.ompl_ns.member_functions('printState').exclude()
+		# force the abstract base class Path to be included, because it is used by other modules
+		self.ompl_ns.class_('Path').include()
+		
+class ompl_control_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self, 'control', 'base')
+	
+	def filter_declarations(self):
+		code_generator_t.filter_declarations(self)
+		# rename STL vectors of certain types
+		self.std_ns.class_('vector< int >').rename('vectorInt')
+		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
+		# don't export variables that need a wrapper
+		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
+		# force ControlManifold::allocState to be exported.
+		# (not sure why this is necessary)
+		allocControlFn = self.ompl_ns.class_('ControlManifold').member_function('allocControl')
+		allocControlFn.include()
+		allocControlFn.call_policies = \
+			call_policies.return_value_policy(call_policies.reference_existing_object)
+		# don't export components which is of type Control**
+		self.ompl_ns.class_('CompoundControl').variable('components').exclude()
+		# don't export some internal data structure
+		self.ompl_ns.class_('OrderCellsByImportance').exclude()
+		# add array indexing to the RealVectorState
+		self.add_array_access(self.ompl_ns.class_('RealVectorControlManifold').class_('ControlType'))
+		# make objects printable that have a print function
+		self.replace_member_functions(self.ompl_ns.member_functions('print'))
+		# make settings printable
+		self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
+		# printControl just prints the memory address, which is not so useful in python
+		self.ompl_ns.member_functions('printControl').exclude()
+		# add wrapper code for setStateValidityChecker
+		self.replace_member_functions(self.ompl_ns.namespace('control').class_(
+			'SimpleSetup').member_functions('setStateValidityChecker', 
+			arg_types=['::ompl::base::StateValidityCheckerFn const &']))
+		# add wrapper code for setPropagationFunction
+		self.replace_member_functions(self.ompl_ns.namespace('control').class_(
+			'ControlManifold').member_functions('setPropagationFunction'))
+		
+class ompl_geometric_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self, 'geometric', 'base')
+
+	def filter_declarations(self):
+		code_generator_t.filter_declarations(self)
+		# rename STL vectors of certain types
+		self.std_ns.class_('vector< int >').rename('vectorInt')
+		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		# don't export variables that need a wrapper
+		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
+		# make objects printable that have a print function
+		self.replace_member_functions(self.ompl_ns.member_functions('print'))
+		# don't export some internal data structure
+		self.ompl_ns.classes('OrderCellsByImportance').exclude()
+		# add wrapper code for setStateValidityChecker
+		self.replace_member_functions(self.ompl_ns.namespace('geometric').class_(
+			'SimpleSetup').member_functions('setStateValidityChecker', 
+			arg_types=['::ompl::base::StateValidityCheckerFn const &']))
+
+class ompl_util_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self, 'util')
+
+if __name__ == '__main__':
+	setrecursionlimit(50000)
+	if len(argv)==1:
+		print "Usage: generatebindings.py <modulename>"
+	else:
+		for module in argv[1:]:
+			try:
+				globals()['ompl_'+module+'_generator_t']()
+			except KeyError:
+				print "Error: can't generate code for module ", module
+	
