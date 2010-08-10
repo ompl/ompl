@@ -159,9 +159,10 @@ namespace ompl
 	    }
 	}
 	
-	/** \brief Add a set of elements to the heap and rebuild it afterwards. */
+        /** \brief Clear the heap, add the set of elements @e list to it and rebuild it. */
 	void buildFrom(const std::vector<_T>& list)
 	{
+	    clear();
 	    const unsigned int m = list.size();
 	    for (unsigned int i = 0 ; i < m ; i++)
 		vector_.push_back(newElement(list[i], i));
