@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 * 
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2008, Rice University
 *  All rights reserved.
 * 
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 * 
@@ -107,6 +107,120 @@ namespace ompl
 	    
 	};
 	
+	/** \brief Helper class to extract valid start & goal
+	    states. Usually used internally by planners.
+
+	    This class is meant to behave correctly if the user
+	    updates the problem definition between subsequent calls to
+	    ompl::base::Planner::solve() \b without calling
+	    ompl::base::Planner::clear() in between. Only allowed
+	    changes to the problem definition are accounted for:
+	    adding of starring states or adding of goal states for
+	    instances inherited from
+	    ompl::base::GoalSampleableRegion. */
+	class PlannerInputStates
+	{
+	public:
+	    
+	    /** \brief Default constructor. No work is performed. */
+	    PlannerInputStates(const PlannerPtr &planner) : planner_(planner.get())
+	    {
+		tempState_ = NULL;
+		update();
+	    }
+
+	    /** \brief Default constructor. No work is performed. */
+	    PlannerInputStates(const Planner *planner) : planner_(planner)
+	    {
+		tempState_ = NULL;
+		update();
+	    }
+
+	    /** \brief Default constructor. No work is performed. A
+		call to use() needs to be made, before making any
+		calls to nextStart() or nextGoal(). */
+	    PlannerInputStates(void) : planner_(NULL)
+	    {
+		tempState_ = NULL;
+		clear();
+	    }
+	    
+	    /** \brief Destructor. Clear allocated memory. */
+	    ~PlannerInputStates(void)
+	    {
+		clear();
+	    }
+	    
+	    /** \brief Clear all stored information. */
+	    void clear(void);
+	    	    
+	    /** \brief Set the space information and problem
+		definition this class operates on, based on the
+		available planner instance. */
+	    bool update(void);
+	    	    	    
+	    /** \brief Set the space information and problem
+		definition this class operates on, based on the
+		available planner instance. If a planner is not set in
+		the constructor argument, a call to this function is
+		needed before any calls to nextStart() or nextGoal()
+		are made. */
+	    bool use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef);
+
+	    /** \brief Set the space information and problem
+		definition this class operates on, based on the
+		available planner instance. If a planner is not set in
+		the constructor argument, a call to this function is
+		needed before any calls to nextStart() or nextGoal()
+		are made. */
+	    bool use(const SpaceInformation *si, const ProblemDefinition *pdef);
+	    
+	    /** \brief Return the next valid start state or NULL if no
+		more valid start states are available. */
+	    const State* nextStart(void);
+	    
+	    /** \brief Return the next valid goal state or NULL if no
+		more valid goal states are available.  Because
+		sampling of goal states may also produce invalid
+		goals, this function takes an optional argument that
+		specifies the time point when it should give up
+		searching for valid goals. Only one attempt is made if
+		no such argument is given. */
+	    const State* nextGoal(time::point maxEndTime = time::now());
+	    
+	    /** \brief Check if there are more potential start states */
+	    bool haveMoreStartStates(void) const;
+
+	    /** \brief Check if there are more potential start states */
+	    bool haveMoreGoalStates(void) const;
+	    
+	    /** \brief Get the number of start states from the problem
+		definition that were already seen, including invalid
+		ones. */
+	    unsigned int getSeenStartStatesCount(void) const
+	    {
+		return addedStartStates_;
+	    }
+
+	    /** \brief Get the number of sampled goal states, including invalid ones */
+	    unsigned int getSampledGoalsCount(void) const
+	    {
+		return sampledGoalsCount_;
+	    }
+	    
+	private:
+
+	    const Planner              *planner_;
+	    
+	    unsigned int                addedStartStates_;
+	    unsigned int                sampledGoalsCount_;
+	    State                      *tempState_;
+	    
+	    const ProblemDefinition    *pdef_;
+	    const SpaceInformation     *si_;
+	};
+	
+
 	/** \brief Base class for a planner */
 	class Planner : private boost::noncopyable
 	{

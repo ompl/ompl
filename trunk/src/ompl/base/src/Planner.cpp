@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 * 
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2008, Rice University.
 *  All rights reserved.
 * 
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 * 
@@ -36,8 +36,9 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
+#include "ompl/base/GoalSampleableRegion.h"
 
-ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) : si_(si), name_(name), type_(PLAN_UNKNOWN), setup_(false), msg_(name)
+ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) : si_(si), pis_(this), name_(name), type_(PLAN_UNKNOWN), setup_(false), msg_(name)
 {
     if (!si_)
 	throw Exception(name_, "Invalid space information instance for planner");
@@ -66,7 +67,7 @@ const ompl::base::ProblemDefinitionPtr& ompl::base::Planner::getProblemDefinitio
 void ompl::base::Planner::setProblemDefinition(const ProblemDefinitionPtr &pdef)
 {
     pdef_ = pdef;
-    pis_.use(si_, pdef_);
+    pis_.update();
 }
 
 void ompl::base::Planner::setup(void)
@@ -107,4 +108,115 @@ void ompl::base::PlannerData::print(std::ostream &out) const
 	    out << edges[i][j] << ' ';
 	out << std::endl;
     }    
+}
+
+void ompl::base::PlannerInputStates::clear(void)
+{
+    if (tempState_)
+    {
+	si_->freeState(tempState_);
+	tempState_ = NULL;
+    }
+    addedStartStates_ = 0;
+    sampledGoalsCount_ = 0;
+    pdef_ = NULL;
+    si_ = NULL;
+}
+
+bool ompl::base::PlannerInputStates::update(void)
+{
+    if (!planner_)
+	throw Exception("No planner set for PlannerInputStates");
+    return use(planner_->getSpaceInformation(), planner_->getProblemDefinition());
+}
+
+bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef)
+{
+    return use(si.get(), pdef.get());
+}
+
+bool ompl::base::PlannerInputStates::use(const SpaceInformation *si, const ProblemDefinition *pdef)
+{
+    if (pdef_ != pdef || si_ != si)
+    {
+	clear();
+	pdef_ = pdef;
+	si_ = si;
+	return true;
+    }
+    return false;
+}
+
+const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
+{
+    if (pdef_ == NULL || si_ == NULL)
+    {
+	std::string error = "Planner did not set space information or problem definition";
+	if (planner_)
+	    throw Exception(planner_->getName(), error);
+	else
+	    throw Exception(error);
+    }
+    
+    if (addedStartStates_ < pdef_->getStartStateCount())
+    {
+	const base::State *st = pdef_->getStartState(addedStartStates_);
+	addedStartStates_++;
+	if (si_->satisfiesBounds(st) && si_->isValid(st))
+	    return st;
+	else
+	    return NULL;
+    }
+    else
+	return NULL;
+}
+
+const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(time::point maxEndTime)
+{
+    if (pdef_ == NULL || si_ == NULL)
+    {
+	std::string error = "Planner did not set space information or problem definition";
+	if (planner_)
+	    throw Exception(planner_->getName(), error);
+	else
+	    throw Exception(error);
+    }
+        
+    const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
+    
+    if (goal)
+	if (sampledGoalsCount_ < goal->maxSampleCount())
+	{
+	    if (tempState_ == NULL)
+		tempState_ = si_->allocState();
+	    
+	    do 
+	    {
+		goal->sampleGoal(tempState_);
+		sampledGoalsCount_++;
+		
+		if (si_->satisfiesBounds(tempState_) && si_->isValid(tempState_))
+		    return tempState_;
+	    }
+	    while (sampledGoalsCount_ < goal->maxSampleCount() && time::now() < maxEndTime);
+	}
+    return NULL;
+}
+
+bool ompl::base::PlannerInputStates::haveMoreStartStates(void) const
+{
+    if (pdef_)
+	return addedStartStates_ < pdef_->getStartStateCount();
+    return false;
+}
+
+bool ompl::base::PlannerInputStates::haveMoreGoalStates(void) const
+{
+    if (pdef_ && pdef_->getGoal())
+    {
+	const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
+	if (goal)
+	    return sampledGoalsCount_ < goal->maxSampleCount();
+    }
+    return false;
 }
