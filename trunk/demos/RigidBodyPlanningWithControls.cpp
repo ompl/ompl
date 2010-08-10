@@ -41,6 +41,7 @@
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/rrt/RRT.h>
 #include <ompl/control/SimpleSetup.h>
+#include <ompl/version.h>
 #include <iostream>
 
 namespace ob = ompl::base;
@@ -197,13 +198,13 @@ void planWithSimpleSetup(void)
     /// set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, ss.getSpaceInformation().get(), _1));
     
-    /// create a random start state
+    /// create a start state
     ob::ScopedState<ob::SE2StateManifold> start(manifold);
-    (*start)[0]->as<ob::RealVectorStateManifold::StateType>()->values[0] = -0.5;
-    (*start)[0]->as<ob::RealVectorStateManifold::StateType>()->values[1] = 0.0;
-    (*start)[1]->as<ob::SO2StateManifold::StateType>()->value = 0.0;
-
-    /// create a random goal state
+    start->setX(-0.5);
+    start->setY(0.0);
+    start->setYaw(0.0);
+    
+    /// create a  goal state; use the hard way to set the elements
     ob::ScopedState<ob::SE2StateManifold> goal(manifold);
     (*goal)[0]->as<ob::RealVectorStateManifold::StateType>()->values[0] = 0.0;
     (*goal)[0]->as<ob::RealVectorStateManifold::StateType>()->values[1] = 0.5;
@@ -229,11 +230,13 @@ void planWithSimpleSetup(void)
 
 int main(int, char **)
 {
+    std::cout << "ompl version: " << OMPL_VERSION << std::endl;
+   
     plan();
     
     std::cout << std::endl << std::endl;
     
-    //    planWithSimpleSetup();
+    planWithSimpleSetup();
     
     return 0;
 }

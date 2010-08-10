@@ -38,6 +38,8 @@
 #include <ompl/base/manifolds/SE3StateManifold.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/SimpleSetup.h>
+
+#include <ompl/version.h>
 #include <iostream>
 
 namespace ob = ompl::base;
@@ -173,6 +175,8 @@ void planWithSimpleSetup(void)
 
 int main(int, char **)
 {
+    std::cout << "ompl version: " << OMPL_VERSION << std::endl;
+    
     plan();
     
     std::cout << std::endl << std::endl;
