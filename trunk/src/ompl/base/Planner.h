@@ -156,7 +156,9 @@ namespace ompl
 	    	    
 	    /** \brief Set the space information and problem
 		definition this class operates on, based on the
-		available planner instance. */
+		available planner instance. Returns true if changes
+		were found (different problem definition) and clear()
+		was called. */
 	    bool update(void);
 	    	    	    
 	    /** \brief Set the space information and problem
@@ -164,7 +166,9 @@ namespace ompl
 		available planner instance. If a planner is not set in
 		the constructor argument, a call to this function is
 		needed before any calls to nextStart() or nextGoal()
-		are made. */
+		are made. Returns true if changes were found
+		(different problem definition) and clear() was
+		called. */
 	    bool use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef);
 
 	    /** \brief Set the space information and problem
@@ -172,7 +176,9 @@ namespace ompl
 		available planner instance. If a planner is not set in
 		the constructor argument, a call to this function is
 		needed before any calls to nextStart() or nextGoal()
-		are made. */
+		are made. Returns true if changes were found
+		(different problem definition) and clear() was
+		called.*/
 	    bool use(const SpaceInformation *si, const ProblemDefinition *pdef);
 	    
 	    /** \brief Return the next valid start state or NULL if no
