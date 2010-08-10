@@ -104,7 +104,7 @@ namespace ompl
 	void clear(void)
 	{
 	    for (typename std::vector<Element*>::iterator i = vector_.begin() ;
-		 i != vector_.end() ; i++)
+		 i != vector_.end() ; ++i)
 		delete *i;
 	    vector_.clear();
 	}
@@ -148,7 +148,7 @@ namespace ompl
 	{
 	    const unsigned int n = vector_.size();
 	    const unsigned int m = list.size();
-	    for (unsigned int i = 0 ; i < m ; i++)
+	    for (unsigned int i = 0 ; i < m ; ++i)
 	    {
 		const unsigned int pos = i + n;
 		Element* element = newElement(list[i], pos);
@@ -164,7 +164,7 @@ namespace ompl
 	{
 	    clear();
 	    const unsigned int m = list.size();
-	    for (unsigned int i = 0 ; i < m ; i++)
+	    for (unsigned int i = 0 ; i < m ; ++i)
 		vector_.push_back(newElement(list[i], i));
 	    build();
 	}
@@ -200,7 +200,7 @@ namespace ompl
 	void getContent(std::vector<_T> &content) const
 	{
 	    for (typename std::vector<Element*>::const_iterator i = vector_.begin();
-		 i != vector_.end() ; i++)
+		 i != vector_.end() ; ++i)
 		content.push_back((*i)->data);
 	}
 	
@@ -210,13 +210,13 @@ namespace ompl
 	    const unsigned int n         = list.size();
 	    std::vector<Element*> backup = vector_;
 	    vector_.clear();
-	    for (unsigned int i = 0 ; i < n ; i++)
+	    for (unsigned int i = 0 ; i < n ; ++i)
 		vector_.push_back(newElement(list[i], i));
 	    build();
 	    list.clear();
 	    list.reserve(n);
 	    
-	    for (unsigned int i = 0 ; i < n ; i++)
+	    for (unsigned int i = 0 ; i < n ; ++i)
 	    {
 		list.push_back(vector_[0]->data);
 		removePos(0);
@@ -273,7 +273,7 @@ namespace ompl
 	    
 	    while (child < n)
 	    {
-		if (lt_(vector_[child - 1]->data, vector_[child]->data)) child--;
+		if (lt_(vector_[child - 1]->data, vector_[child]->data)) --child;
 		if (lt_(vector_[child]->data,  tmp->data))
 		{
 		    vector_[parent] = vector_[child];
@@ -286,7 +286,7 @@ namespace ompl
 	    }
 	    if (child == n)
 	    {
-		child--;
+		--child;
 		if (lt_(vector_[child]->data, tmp->data))
 		{
 		    vector_[parent] = vector_[child];

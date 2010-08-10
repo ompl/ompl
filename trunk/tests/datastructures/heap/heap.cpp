@@ -69,8 +69,21 @@ TEST(Heap, Simple)
     EXPECT_EQ(-2, s[1]);    
     EXPECT_EQ(2, s[2]);    
     EXPECT_EQ(5, s[3]);    
-    EXPECT_EQ(9, s[4]);    
-    
+    EXPECT_EQ(9, s[4]);
+    h.clear();
+    EXPECT_TRUE(h.size() == 0);
+    EXPECT_TRUE(h.empty());
+    h.insert(2);
+    BinaryHeap<int>::Element *eY = h.insert(2);
+    h.insert(2);
+    BinaryHeap<int>::Element *eX = h.insert(1);
+    EXPECT_TRUE(h.top()->data == 1);
+    h.remove(eY);
+    EXPECT_TRUE(h.top()->data == 1);
+    h.remove(eX);
+    EXPECT_TRUE(h.top()->data == 2);
+    h.insert(-1);
+    EXPECT_TRUE(h.top()->data == -1);
 }
 
 int main(int argc, char **argv)
