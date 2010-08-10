@@ -37,18 +37,27 @@
 #ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_SQRT_APPROX_
 #define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_SQRT_APPROX_
 
-#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/datastructures/NearestNeighborsLinear.h"
 #include <algorithm>
 #include <cmath>
 
 namespace ompl
 {
-
+    /** \brief A nearest neighbors datastructure that uses linear
+	search. The linear search is done over sqrt(n) elements
+	only. (Every sqrt(n) elements are skipped).
+	
+	\li Search for nearest neighbor is O(sqrt(n)). 
+	\li Search for k-nearest neighbors is  O(n log(k)).
+	\li Search for neighbors within a range is O(n log(n)).
+	\li Adding an element to the datastructure is O(1).
+	\li Removing an element from the datastructure O(n).
+    */
     template<typename _T>
-    class NearestNeighborsSqrtApprox : public NearestNeighbors<_T>
+    class NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
     {
     public:
-        NearestNeighborsSqrtApprox(void) : NearestNeighbors<_T>(), checks_(0), removed_(0)
+        NearestNeighborsSqrtApprox(void) : NearestNeighborsLinear<_T>(), checks_(0)
 	{
 	}
 	
@@ -58,29 +67,14 @@ namespace ompl
 	
 	virtual void clear(void)
 	{
-	    data_.clear();
-	    active_.clear();
+	    NearestNeighborsLinear<_T>::clear();
 	    checks_ = 0;
-	    removed_ = 0;
 	}
 
 	virtual void add(_T &data)
 	{
-	    data_.push_back(data);
-	    active_.push_back(true);
-	    checks_ = 1 + (int)floor(sqrt((double)data_.size()));
-	}
-
-	virtual bool remove(_T &data)
-	{
-	    for (int i = data_.size() - 1 ; i >= 0 ; --i)
-		if (data_[i] == data)
-		{
-		    active_[i] = false;
-		    removed_++;
-		    return true;
-		}
-	    return false;
+	    NearestNeighborsLinear<_T>::add(data);
+	    checks_ = 1 + (int)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
 	}
 	
 	virtual _T nearest(const _T &data) const
@@ -89,103 +83,33 @@ namespace ompl
 	    if (checks_ > 0)
 	    {
 		double dmin = 0.0;
-		unsigned int n = data_.size();
+		unsigned int n = NearestNeighborsLinear<_T>::data_.size();
 		unsigned int offset = reinterpret_cast<unsigned long>(&data) % checks_;
 		for (unsigned int j = 0 ; j < checks_ ; ++j)
 		{
 		    unsigned int i = (j * checks_ + offset) % n;
-		    unsigned int c = 0;
-		    while (!active_[i] && c < n)
-		    {
-			i = (i + 1) % n;
-			c++;
-		    }	    
 		    
-		    if (active_[i])
+		    double distance = NearestNeighbors<_T>::distFun_(NearestNeighborsLinear<_T>::data_[i], data);
+		    if (pos < 0 || dmin > distance)
 		    {
-			double distance = NearestNeighbors<_T>::distFun_(data_[i], data);
-			if (pos < 0 || dmin > distance)
-			{
-			    pos = i;
-			    dmin = distance;
-			}
+			pos = i;
+			dmin = distance;
 		    }
 		}
 	    }
 	    if (pos >= 0) 
-		return data_[pos];
+		return NearestNeighborsLinear<_T>::data_[pos];
 	    
 	    throw Exception("No elements found");
 	}
 	
-	virtual void nearestK(const _T &data, unsigned int k, std::vector<_T> &nbh) const
-	{
-	    nbh.clear();
-	    for (unsigned int i = 0 ; i < data_.size() ; ++i)
-		if (active_[i])
-		    nbh.push_back(data_[i]);
-	    if (nbh.size() > k)
-	    {
-		std::partial_sort(nbh.begin(), nbh.begin() + k, nbh.end(),
-		    MySort(data, NearestNeighbors<_T>::distFun_));
-		nbh.resize(k);
-	    }
-	    else
-	    {
-		std::sort(nbh.begin(), nbh.end(), MySort(data, NearestNeighbors<_T>::distFun_));
-	    }
-	}
-	
-	virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
-	{
-	    nbh.clear();
-	    for (unsigned int i = 0 ; i < data_.size() ; ++i)
-		if (active_[i] && NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
-		    nbh.push_back(data_[i]);
-	    std::sort(nbh.begin(), nbh.end(), MySort(data, NearestNeighbors<_T>::distFun_));
-	}
-	
-	virtual unsigned int size(void) const
-	{
-	    return data_.size() - removed_;
-	}
-	
-	virtual void list(std::vector<_T> &data) const
-	{
-	    data.clear();
-	    data.reserve(data_.size() - removed_);
-	    for (unsigned int i = 0 ; i < data_.size() ; ++i)
-		if (active_[i])
-		    data.push_back(data_[i]);
-	}
-	
     protected:
 	
-	std::vector<_T>   data_;
-	std::vector<bool> active_;
+	/** \brief The number of checks to be performed when looking for a nearest neighbor */
 	unsigned int      checks_;
-	unsigned int      removed_;
-	
-    private:
-	
-	struct MySort
-	{
-	    MySort(const _T &e, const typename NearestNeighbors<_T>::DistanceFunction &df) : e_(e), df_(df)
-	    {
-	    }
-	    
-	    bool operator()(const _T &a, const _T &b) const
-	    {
-		return df_(a, e_) < df_(b, e_);
-	    }
 
-	    const _T                                              &e_;
-	    const typename NearestNeighbors<_T>::DistanceFunction &df_;
-	};
-	
     };
-    
-    
+        
 }
 
 #endif

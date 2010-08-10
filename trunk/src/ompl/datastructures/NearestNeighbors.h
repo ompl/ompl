@@ -92,7 +92,7 @@ namespace ompl
 	virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const = 0;
 
 	/** \brief Get the number of elements in the datastructure */
-	virtual unsigned int size(void) const = 0;
+	virtual std::size_t size(void) const = 0;
 
 	/** \brief Get all the elements in the datastructure */
 	virtual void list(std::vector<_T> &data) const = 0;

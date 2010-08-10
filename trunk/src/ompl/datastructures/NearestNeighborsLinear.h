@@ -44,11 +44,20 @@
 namespace ompl
 {
 
+    /** \brief A nearest neighbors datastructure that uses linear
+	search.
+	
+	\li Search for nearest neighbor is O(n). 
+	\li Search for k-nearest neighbors is  O(n log(k)).
+	\li Search for neighbors within a range is O(n log(n)).
+	\li Adding an element to the datastructure is O(1).
+	\li Removing an element from the datastructure O(n).
+    */
     template<typename _T>
     class NearestNeighborsLinear : public NearestNeighbors<_T>
     {
     public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>(), removed_(0)
+        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
 	{
 	}
 	
@@ -59,14 +68,11 @@ namespace ompl
 	virtual void clear(void)
 	{
 	    data_.clear();
-	    active_.clear();
-	    removed_ = 0;
 	}
 
 	virtual void add(_T &data)
 	{
 	    data_.push_back(data);
-	    active_.push_back(true);
 	}
 
 	virtual bool remove(_T &data)
@@ -74,8 +80,7 @@ namespace ompl
 	    for (int i = data_.size() - 1 ; i >= 0 ; --i)
 		if (data_[i] == data)
 		{
-		    active_[i] = false;
-		    removed_++;
+		    data_.erase(data_.begin() + i);
 		    return true;
 		}
 	    return false;
@@ -87,14 +92,11 @@ namespace ompl
 	    double dmin = 0.0;
 	    for (unsigned int i = 0 ; i < data_.size() ; ++i)
 	    {
-		if (active_[i])
+		double distance = NearestNeighbors<_T>::distFun_(data_[i], data);
+		if (pos < 0 || dmin > distance)
 		{
-		    double distance = NearestNeighbors<_T>::distFun_(data_[i], data);
-		    if (pos < 0 || dmin > distance)
-		    {
-			pos = i;
-			dmin = distance;
-		    }
+		    pos = i;
+		    dmin = distance;
 		}
 	    }
 	    if (pos >= 0) 
@@ -105,15 +107,11 @@ namespace ompl
 
 	virtual void nearestK(const _T &data, unsigned int k, std::vector<_T> &nbh) const
 	{
-	    nbh.clear();
-	    nbh.reserve(k);
-	    for (unsigned int i = 0 ; i < data_.size() ; ++i)
-		if (active_[i])
-		    nbh.push_back(data_[i]);
+	    nbh = data_;
 	    if (nbh.size() > k)
 	    {
 		std::partial_sort(nbh.begin(), nbh.begin() + k, nbh.end(),
-		    MySort(data, NearestNeighbors<_T>::distFun_));
+				  MySort(data, NearestNeighbors<_T>::distFun_));
 		nbh.resize(k);
 	    }
 	    else
@@ -126,30 +124,25 @@ namespace ompl
 	{
 	    nbh.clear();
 	    for (unsigned int i = 0 ; i < data_.size() ; ++i)
-		if (active_[i] && NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
+		if (NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
 		    nbh.push_back(data_[i]);
 	    std::sort(nbh.begin(), nbh.end(), MySort(data, NearestNeighbors<_T>::distFun_));
 	}
 	
-	virtual unsigned int size(void) const
+	virtual std::size_t size(void) const
 	{
-	    return data_.size() - removed_;
+	    return data_.size();
 	}
 	
 	virtual void list(std::vector<_T> &data) const
 	{
-	    data.clear();
-	    data.reserve(data_.size() - removed_);
-	    for (unsigned int i = 0 ; i < data_.size() ; ++i)
-		if (active_[i])
-		    data.push_back(data_[i]);
+	    data = data_;
 	}
 	
     protected:
-	
+
+	/** \brief The data elements stored in this structure */
 	std::vector<_T>   data_;
-	std::vector<bool> active_;
-	unsigned int      removed_;
 	
     private:
 	
