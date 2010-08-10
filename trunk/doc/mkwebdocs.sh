@@ -13,7 +13,7 @@ mkdir -p ${ASSET_DIR}
 for f in html/*.html; do
 	sed 's/="..\//=".\//g' $f > ${ASSET_DIR}/`basename $f`
 done
-cp -r css js  html/*.{png,map} ${ASSET_DIR}
+cp -r css js  html/*.png html/*.map ${ASSET_DIR}
 chmod -R a+rX ${ASSET_DIR}
 
 # copy everything to web server
