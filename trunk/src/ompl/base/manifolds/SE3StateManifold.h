@@ -51,49 +51,57 @@ namespace ompl
 	{
 	public:
 
-	    /** \brief A state in SE(3) */	    
+	    /** \brief A state in SE(3): position = (x, y, z), quaternion = (x, y, z, w) */
 	    class StateType : public CompoundStateManifold::StateType
 	    {
 	    public:
-		StateType() : CompoundStateManifold::StateType()
+		StateType(void) : CompoundStateManifold::StateType()
 		{
 		}
 
+		/** \brief Get the X component of the state */
 		double getX(void) const
 		{
 		    return as<RealVectorStateManifold::StateType>(0)->values[0];
 		}
 		
+		/** \brief Get the Y component of the state */
 		double getY(void) const
 		{
 		    return as<RealVectorStateManifold::StateType>(0)->values[1];
 		}
 
+		/** \brief Get the Z component of the state */
 		double getZ(void) const
 		{
 		    return as<RealVectorStateManifold::StateType>(0)->values[2];
 		}
-		
+
+		/** \brief Get the rotation component of the state */
 		const SO3StateManifold::StateType& getRotation(void) const
 		{
 		    return *as<SO3StateManifold::StateType>(1);
 		}
 		
-		SO3StateManifold::StateType& getRotation(void)
+		/** \brief Get the rotation component of the state and allow changing it as well */
+		SO3StateManifold::StateType& rotation(void)
 		{
 		    return *as<SO3StateManifold::StateType>(1);
 		}
 
+		/** \brief Set the X component of the state */
 		void setX(double x)
 		{
 		    as<RealVectorStateManifold::StateType>(0)->values[0] = x;
 		}
-		
+
+		/** \brief Set the Y component of the state */
 		void setY(double y)
 		{
 		    as<RealVectorStateManifold::StateType>(0)->values[1] = y;
 		}
-		
+
+		/** \brief Set the Z component of the state */
 		void setZ(double z)
 		{
 		    as<RealVectorStateManifold::StateType>(0)->values[2] = z;

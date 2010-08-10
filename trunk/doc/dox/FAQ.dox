@@ -13,6 +13,18 @@
   all the states and the edges between them. Functionality for
   plotting this data is however not available.
 
+- Q: Can I set the sampler to use for a planner?
+  <br>
+  A: Yes. The sampler instances used by planners are allocated by
+  ompl::base::SpaceInformation::allocStateSampler(), which calls
+  ompl::base::StateManifold::allocStateSampler() under the hood. By
+  default, ompl::base::StateManifold::allocStateSampler() calls
+  ompl::base::StateManifold::allocUniformStateSampler(), unless a
+  sampler allocator was specified. Calling
+  ompl::base::StateManifold::setStateSamplerAllocator() allows the
+  user to specify the sampler allocator, thus changing the sampling
+  strategy used by planners.
+
 <br>
 If your question is still not answered, another good place to check is
 the <a

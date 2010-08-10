@@ -119,12 +119,12 @@ namespace ompl
 	    /** \brief Checks whether two states are equal */
 	    virtual bool equalStates(const State *state1, const State *state2) const = 0;
 
-	    /** \brief Computes the state that lies at time t in [0, 1] on the segment that connects the current state to
-		the destination state. The memory location of state is not required to be different from the memory of either
-		from or to. */
+	    /** \brief Computes the state that lies at time @e t in [0, 1] on the segment that connects @e from state to @e to state.
+		The memory location of @e state is not required to be different from the memory of either
+		@e from or @e to. */
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const = 0;
 	    
-	    /** \brief Set the allocator to use for a state sampler */
+	    /** \brief Set the allocator to use for a state sampler. This replaces the default sampler. */
 	    void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
 	    
 	    /** \brief Allocate an instance of a uniform state sampler for this space */

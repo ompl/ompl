@@ -67,12 +67,11 @@ namespace ompl
 	public:
 
 	    
-	    /** \brief The definition of a state in SO(3) represented as a quaternion
+	    /** \brief The definition of a state in SO(3) represented as a unit quaternion
 		
-		The representation of a quaternion (x,y,z) define the
-		vector component and w is the scalar component. Important:
-		the order of the elements matters in this definition for
-		the SO3StateUniformSampler::sample() function. */
+		\note The order of the elements matters in this
+		definition for the SO3StateUniformSampler::sample()
+		function. */
 	    class StateType : public State
 	    {
 	    public:
@@ -80,7 +79,17 @@ namespace ompl
 		/** \brief Set the quaternion from axis-angle representation */
 		void setAxisAngle(double ax, double ay, double az, double angle);
 		
-		double x, y, z, w;
+		/** \brief X component of quaternion vector */
+		double x;
+
+		/** \brief Y component of quaternion vector */
+		double y;
+
+		/** \brief Z component of quaternion vector */
+		double z;
+
+		/** \brief scalar component of quaternion */
+		double w;
 	    };
 	
 	    SO3StateManifold(void) : StateManifold()

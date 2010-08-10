@@ -39,21 +39,24 @@ add_subdirectory(py-bindings)
 add_subdirectory(tests)
 add_subdirectory(demos)
 
-install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}
-	PATTERN CMakeLists.txt EXCLUDE
-	PATTERN .svn EXCLUDE
-	PATTERN .DS_Store EXCLUDE)
-install(DIRECTORY doc/ DESTINATION ${OMPL_DOC_INSTALL_DIR}
-	PATTERN dox EXCLUDE 
-	PATTERN header.html EXCLUDE 
-	PATTERN footer.html EXCLUDE
-	PATTERN mkwebdocs.sh EXCLUDE
-	PATTERN CMakeLists.txt EXCLUDE
-	PATTERN blueprint EXCLUDE
-	PATTERN .svn EXCLUDE
-	PATTERN .md5 EXCLUDE
-	PATTERN .DS_Store EXCLUDE
-	PATTERN Doxyfile EXCLUDE)
+if(NOT ROS)
+  install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}
+          PATTERN CMakeLists.txt EXCLUDE
+	  PATTERN .svn EXCLUDE
+	  PATTERN .DS_Store EXCLUDE)
+  install(DIRECTORY doc/ DESTINATION ${OMPL_DOC_INSTALL_DIR}
+	  PATTERN dox EXCLUDE 
+	  PATTERN header.html EXCLUDE 
+	  PATTERN footer.html EXCLUDE
+	  PATTERN mkwebdocs.sh EXCLUDE
+	  PATTERN CMakeLists.txt EXCLUDE
+	  PATTERN blueprint EXCLUDE
+	  PATTERN .svn EXCLUDE
+	  PATTERN .md5 EXCLUDE
+	  PATTERN .DS_Store EXCLUDE
+	  PATTERN Doxyfile EXCLUDE)
+endif()
+
 if(NOT ROS AND NOT OMPLAPP_VERSION)
 	include(CPackSettings)
 endif()

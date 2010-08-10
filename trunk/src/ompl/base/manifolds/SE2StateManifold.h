@@ -51,39 +51,49 @@ namespace ompl
 	{
 	public:
 	    
-	    /** \brief A state in SE(2) */
+	    /** \brief A state in SE(2): (x, y, yaw) */
 	    class StateType : public CompoundStateManifold::StateType
 	    {
 	    public:
-		StateType() : CompoundStateManifold::StateType()
+		StateType(void) : CompoundStateManifold::StateType()
 		{
 		}
 		
+		/** \brief Get the X component of the state */
 		double getX(void) const
 		{
 		    return as<RealVectorStateManifold::StateType>(0)->values[0];
 		}
 		
+		/** \brief Get the Y component of the state */
 		double getY(void) const
 		{
 		    return as<RealVectorStateManifold::StateType>(0)->values[1];
 		}
 		
+		/** \brief Get the yaw component of the state. This is
+		    the rotation in plane, with respect to the Z
+		    axis. */
 		double getYaw(void) const
 		{
 		    return as<SO2StateManifold::StateType>(1)->value;
 		}
 		
+		/** \brief Set the X component of the state */
 		void setX(double x)
 		{
 		    as<RealVectorStateManifold::StateType>(0)->values[0] = x;
 		}
 		
+		/** \brief Set the Y component of the state */
 		void setY(double y)
 		{
 		    as<RealVectorStateManifold::StateType>(0)->values[1] = y;
 		}
 		
+		/** \brief Set the yaw component of the state. This is
+		    the rotation in plane, with respect to the Z
+		    axis. */
 		void setYaw(double yaw)
 		{
 		    as<SO2StateManifold::StateType>(1)->value = yaw;
