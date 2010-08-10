@@ -12,7 +12,7 @@ Index:
 
 \section cpp_py_diffs Important differences between C++ and Python:
 - There are no templates in Python, so templated classes and functions need to be fully instantiated to allow them to be exposed to python.
-- There are no C-style pointers in python, and no "new" or "delete" operators. This could be a problem, but can be dealt with mostly by using Boost <a href="http://www.boost.org/doc/libs/release/libs/smart_ptr/shared_ptr.htm">shared_ptr</a>'s. If a C++ function takes pointer input/output parameters, \em usually a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods.
+- There are no C-style pointers in python, and no "new" or "delete" operators. This could be a problem, but can be dealt with mostly by using Boost <a href="http://www.boost.org/doc/libs/release/libs/smart_ptr/shared_ptr.htm">shared_ptr</a>'s. If a C++ function takes pointer input/output parameters, \em usually a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods. In some cases odd side effects may occur if you pass temporary objects (e.g., <tt>function_call(Constructor_call())<\tt>), so it's advisable to create variables with the appropriate scope.
 .
 
 
@@ -21,6 +21,14 @@ Index:
 - The C++ class State has been renamed AbstractState, while the C++ class ScopedState\<\> is called State in Python.
 - The C++ class ScopedState<RealVectorManifold> is called RealVectorState. The ScopedState's for the other pre-defined manifolds have been renamed analogously.
 - The C++ class RealVectorManifold::StateType has been renamed to RealVectorStateInternal (analogously for the other manifold types), to emphasize that an end user should really be using RealVectorState.
+- To get a reference to a C++ State stored inside a ScopedState from Python, use the "()" operator:
+\code
+m = SE3StateManifold() # create an SE(3) state manifold
+s = SE3State(m)        # allocate a state corresponding to a C++ ScopedState<SE3StateManifold>
+sref = s()             # sref corresponds to a C++ State*. In this case sref is 
+		       # a reference SE3StateManifold::StateType
+sref.setX(1.0)         # set the X coordinate
+\endcode
 - The print method (for classes that have one) is mapped to the special python method __str__, so a C++ call like <tt>foo.print(std::cout)</tt> becomes <tt>print foo</tt> in python. Similarly, a C++ call like <tt>foo.printSettings(std::cout)</tt> becomes <tt>print foo.settings()</tt> in python.
 - The signature of the state validity checker is changed. In python the state validity checker has the following form:
 \code

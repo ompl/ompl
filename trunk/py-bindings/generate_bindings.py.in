@@ -93,7 +93,35 @@ void __setitem(%s* obj, unsigned int i, const %s& val)
 	(*obj)[i] = val;
 }
 """)
-# add a wrapper for the setStateValidityChecker. This wrapper makes a
+# add a wrapper for the
+# ompl::base::SpaceInformation::setStateValidityChecker. This wrapper
+# makes a SpaceInformation reference accessible to the validity checker and
+# also deals correctly with C-style pointers.
+replacement['::ompl::base::SpaceInformation::setStateValidityChecker'] = ('def("setStateValidityChecker", &setStateValidityCheckerWrapper)', """
+struct IsValidFunPyWrapper
+{
+    IsValidFunPyWrapper( bp::object callable ) : callable_( callable ) {}
+
+    bool operator()(const ompl::base::SpaceInformation* si, const ompl::base::State* state)
+    {
+        PyGILState_STATE gstate = PyGILState_Ensure();
+        bool ret = bp::extract<bool>(callable_(bp::ptr(si), bp::ptr(state)));
+        PyGILState_Release( gstate );
+        return ret;
+    }
+	
+    bp::object callable_;
+};
+
+void setStateValidityCheckerWrapper(%s* obj, bp::object function)
+{
+    obj->setStateValidityChecker( boost::bind(
+	boost::function<bool (const ompl::base::SpaceInformation*, const ompl::base::State*)>(IsValidFunPyWrapper(function)),
+		obj, _1));
+}
+""")
+# add a wrapper for the
+# ompl::geometric::SimpleSetup::setStateValidityChecker. This wrapper makes a
 # SpaceInformation reference accessible to the validity checker and also deals
 # correctly with C-style pointers.
 replacement['::ompl::geometric::SimpleSetup::setStateValidityChecker'] = ('def("setStateValidityChecker", &setStateValidityCheckerWrapper)', """
@@ -145,9 +173,8 @@ void setStateValidityCheckerWrapper(%s* obj, bp::object function)
 		obj->getSpaceInformation().get(), _1));
 }
 """)
-# add a wrapper for the setPropagationFunction. This wrapper makes a
-# SpaceInformation reference accessible to the validity checker and also deals
-# correctly with C-style pointers.
+# add a wrapper for the setPropagationFunction. This wrapper deals correctly
+# with C-style pointers.
 replacement['setPropagationFunction'] = ('def("setPropagationFunction", &setPropagationFunctionWrapper)', """
 struct PropagatePyWrapper
 {
@@ -169,6 +196,7 @@ void setPropagationFunctionWrapper(%s* obj, bp::object function)
 	obj->setPropagationFunction(ompl::control::StatePropagationFn(PropagatePyWrapper(function)));
 }
 """)
+
 
 def returns_reference(decl):
 	"""Return True iff the declaration returns a pointer or reference."""
@@ -267,6 +295,9 @@ class ompl_base_generator_t(code_generator_t):
 		# rename STL vectors of certain types
 		self.std_ns.class_('vector< int >').rename('vectorInt')
 		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorInt')
+		self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
+		self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
 		# don't export variables that need a wrapper
 		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
 		# force StateManifold::allocState to be exported.
@@ -279,13 +310,15 @@ class ompl_base_generator_t(code_generator_t):
 		state = self.ompl_ns.class_('State')
 		state.rename('AbstractState')
 		# don't export components which is of type State**
-		self.ompl_ns.class_('CompoundState').variable('components').exclude()
+		state = self.ompl_ns.class_('CompoundState')
+		state.variable('components').exclude()
+		state.rename('CompoundStateInternal')
 		# rename a ScopedState<> to State
 		bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateManifold >')
 		bstate.rename('State')
 		bstate.operator('=', arg_types=['::ompl::base::State const &']).exclude()
 		# loop over all predefined state manifolds
-		for stype in ['RealVector', 'SO2', 'SO3', 'SE2', 'SE3']:
+		for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3']:
 			# create a python type for each of their corresponding state types
 			state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateManifold >' % stype)
 			state.rename(stype+'State')
@@ -295,7 +328,7 @@ class ompl_base_generator_t(code_generator_t):
 				'def(bp::init<ompl::base::ScopedState<ompl::base::StateManifold> const &>(( bp::arg("other") )))')
 			# mark the manifold statetype as 'internal' to emphasize that it 
 			# shouldn't typically be used by a regular python user
-			self.ompl_ns.class_(stype + 'StateManifold').class_('StateType').rename(
+			self.ompl_ns.class_(stype + 'StateManifold').decls('StateType').rename(
 				stype + 'StateInternal')
 			# add a constructor that allows, e.g., an State to be constructed from a SE3State
 			bstate.add_registration_code(
@@ -313,6 +346,10 @@ class ompl_base_generator_t(code_generator_t):
 		self.ompl_ns.member_functions('printState').exclude()
 		# force the abstract base class Path to be included, because it is used by other modules
 		self.ompl_ns.class_('Path').include()
+		# add wrapper code for setStateValidityChecker
+		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
+			'SpaceInformation').member_functions('setStateValidityChecker', 
+			arg_types=['::ompl::base::StateValidityCheckerFn const &']))
 		
 class ompl_control_generator_t(code_generator_t):
 	def __init__(self):

@@ -65,6 +65,7 @@ namespace ompl
 	namespace base
 	{
 		DeclareStateType();
+		DeclareStateType(Compound);
 		DeclareStateType(RealVector);
 		DeclareStateType(SO2);
 		DeclareStateType(SO3);

@@ -95,7 +95,7 @@ if(PY_OMPL_COMPILE)
 	endforeach(module)
 	
 	# python unit tests
-	add_test(test_py_ompl "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/test.py")
+	add_test(test_py_ompl "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test.py")
 	
 	install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}/python
 		PATTERN .svn EXCLUDE)
