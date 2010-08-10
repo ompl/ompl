@@ -109,7 +109,7 @@ namespace ompl
 	    
 	    /** \brief Add a sampler as part of the new compound
 		sampler. This sampler is used to sample part of the
-		compound state. When sampling hear a state, the
+		compound state. When sampling near a state, the
 		compound sampler calls in to added samplers. The
 		distance passed to the called samplers is adjusted
 		according to the specified importance. */

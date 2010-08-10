@@ -48,7 +48,7 @@ namespace ompl
 
 	ClassForward(SpaceInformation);
 	
-	/** \brief Class to ease the creation of a set of samplers. This is especially for multi-threaded planners */
+	/** \brief Class to ease the creation of a set of samplers. This is especially useful for multi-threaded planners. */
 	class StateSamplerArray 
 	{
 	public:

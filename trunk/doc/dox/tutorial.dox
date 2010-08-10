@@ -1,0 +1,27 @@
+/** \page tutorial
+
+\section addNewPlanner Implementing a new motion planner
+    
+    In order to implement a new motion planner the following rules
+    need to be followed:
+    - Define the new planner as a class that inherits from ompl::base::Planner
+    - Provide an implementation of ompl::base::Planner::solve(). We
+      suggest leveraging the implementations of the routines available
+      in ompl::base::SpaceInformation, but this is not required.
+      	 - If a solution is found, this function should return true and set
+	   the found solution path in the goal instance contained by
+      	   ompl::base::ProblemDefinition. If no solution is found, the
+	   function should return false.
+	 - The function should terminate within the amount of time specified.
+	 - It is desirable that calling solve() multiple times
+           consecutively continues the solving process rather than
+           restarting it.	  
+    - Provide an implementation of ompl::base::Planner::clear(). The
+      state of the planner should be restored to what it was at
+      creation time.
+    - Provide an implementation of
+      ompl::base::Planner::getPlannerData(). The provided
+      implementation can be empty. This function is provided for
+      debugging purposes: it allows the user of the algorithm to
+      inspect the constructed exploration datastructure.
+*/

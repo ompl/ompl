@@ -55,6 +55,8 @@ namespace ompl
 	class EuclideanProjection
 	{
 	public:
+	    
+	    /** \brief Allocate a projection of dimension n */
 	    EuclideanProjection(unsigned int n) : values(new double[n])
 	    {	
 	    }
