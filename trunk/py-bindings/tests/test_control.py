@@ -34,5 +34,8 @@
 
 # Author: Mark Moll
 
+import unittest
+from ompl.control import *
+
 def suite():
-	return None
+	return unittest.TestSuite()
