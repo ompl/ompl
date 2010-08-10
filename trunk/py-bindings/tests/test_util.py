@@ -34,6 +34,9 @@
 
 # Author: Mark Moll
 
+import sys
+from os.path import abspath, dirname
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
 import unittest
 from ompl.util import *
 
@@ -69,3 +72,6 @@ class TestRNG(unittest.TestCase):
 def suite():
 	suites = (unittest.makeSuite(TestRNG,'test'))
 	return unittest.TestSuite(suites)
+
+if __name__ == '__main__':
+	unittest.TextTestRunner(verbosity=3).run(suite())

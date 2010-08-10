@@ -34,8 +34,14 @@
 
 # Author: Mark Moll
 
+import sys
+from os.path import abspath, dirname
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
 import unittest
 from ompl.control import *
 
 def suite():
 	return unittest.TestSuite()
+
+if __name__ == '__main__':
+	unittest.TextTestRunner(verbosity=3).run(suite())

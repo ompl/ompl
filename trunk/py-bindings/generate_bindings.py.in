@@ -77,6 +77,27 @@ std::string __printSettings(%s* obj)
 	return s.str();
 }
 """)
+# A C++ call like "foo.printState(state, std::cout)" will be replaced with
+# something more pythonesque: "print foo.string(state)"
+replacement['printState'] = ('def("string", &__printState)', """
+std::string __printState(%s* manifold, ompl::base::State* state)
+{
+	std::ostringstream s;
+	manifold->printState(state, s);
+	return s.str();
+}
+""")
+# A C++ call like "foo.printControl(control, std::cout)" will be replaced with
+# something more pythonesque: "print foo.string(control)"
+replacement['printControl'] = ('def("string", &__printControl)', """
+std::string __printControl(%s* manifold, ompl::control::Control* control)
+{
+	std::ostringstream s;
+	manifold->printControl(control, s);
+	return s.str();
+}
+""")
+
 # add array read access to objects that can return a const reference using the
 # [] operator.
 replacement['array_read_access'] = ('def("__getitem__", &__getitem)',"""
@@ -342,8 +363,8 @@ class ompl_base_generator_t(code_generator_t):
 		self.replace_member_functions(self.ompl_ns.member_functions('print'))
 		# make settings printable
 		self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
-		# printState just prints the memory address, which is not so useful in python
-		self.ompl_ns.member_functions('printState').exclude()
+		# make states printable
+		self.replace_member_functions(self.ompl_ns.member_functions('printState'))
 		# force the abstract base class Path to be included, because it is used by other modules
 		self.ompl_ns.class_('Path').include()
 		# add wrapper code for setStateValidityChecker
@@ -379,8 +400,8 @@ class ompl_control_generator_t(code_generator_t):
 		self.replace_member_functions(self.ompl_ns.member_functions('print'))
 		# make settings printable
 		self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
-		# printControl just prints the memory address, which is not so useful in python
-		self.ompl_ns.member_functions('printControl').exclude()
+		# make controls printable
+		self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
 		# add wrapper code for setStateValidityChecker
 		self.replace_member_functions(self.ompl_ns.namespace('control').class_(
 			'SimpleSetup').member_functions('setStateValidityChecker', 

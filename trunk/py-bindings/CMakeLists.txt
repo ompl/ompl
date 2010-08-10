@@ -67,6 +67,9 @@ if(PY_OMPL_GENERATE)
 		add_dependencies(update_${module}_bindings ${module}.h)
 		add_dependencies(update_bindings update_${module}_bindings)
 	endforeach(module)
+	add_dependencies(update_base_bindings update_util_bindings)
+	add_dependencies(update_control_bindings update_base_bindings)
+	add_dependencies(update_geometric_bindings update_base_bindings)
 	
 endif(PY_OMPL_GENERATE)
 
@@ -89,13 +92,13 @@ if(PY_OMPL_COMPILE)
 		        "${CMAKE_CURRENT_SOURCE_DIR}/ompl/${module}/_${module}${CMAKE_SHARED_MODULE_SUFFIX}"
 		        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
     		include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bindings/${module}")
+			# python unit tests
+			add_test(test_py_ompl_${module} "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_${module}.py")
 		else(NUM_SOURCE_FILES GREATER 0)
 			message(STATUS "Code for module ${module} not found; type \"make update_bindings\"")
 		endif(NUM_SOURCE_FILES GREATER 0)
 	endforeach(module)
 	
-	# python unit tests
-	add_test(test_py_ompl "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test.py")
 	
 	install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}/python
 		PATTERN .svn EXCLUDE)

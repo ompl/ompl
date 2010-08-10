@@ -34,6 +34,9 @@
 
 # Author: Mark Moll
 
+import sys
+from os.path import abspath, dirname
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
 import unittest
 from math import pi
 from ompl.base import *
@@ -92,3 +95,6 @@ def suite():
 		unittest.makeSuite(TestSO2), 
 		unittest.makeSuite(TestSO3))
 	return unittest.TestSuite(suites)
+
+if __name__ == '__main__':
+	unittest.TextTestRunner(verbosity=3).run(suite())

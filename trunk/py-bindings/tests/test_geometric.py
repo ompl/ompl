@@ -34,11 +34,15 @@
 
 # Author: Mark Moll
 
+import sys
+from os.path import abspath, dirname
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
 from functools import partial
 from os.path import dirname
 from time import clock
 from math import fabs
 import unittest
+import copy
 import ompl.util as ou
 import ompl.base as ob
 import ompl.geometric as og
@@ -55,7 +59,7 @@ class Environment(object):
 		for i in range(self.width):
 			self.grid.append(
 				[int(i) for i in lines[4+i].split(' ')[0:self.height]])
-		self.char_mapping = ['__', '##', '**', 'XX']
+		self.char_mapping = ['__', '##', 'oo', 'XX']
 				
 	def __str__(self):
 		result = ''
@@ -137,7 +141,7 @@ def testPlanner(env, time, pathLength, show = False):
 		pathLength = pathLength + path.length()
 		if show:
 			print env, '\n'
-			temp = env
+			temp = copy.deepcopy(env)
 			for i in range(len(path.states)):
 				x = int(path.states[i][0][0])
 				y = int(path.states[i][1][0])
@@ -154,7 +158,7 @@ def testPlanner(env, time, pathLength, show = False):
 
 class PlanTest(unittest.TestCase):
 	def setUp(self):
-		self.env = Environment(dirname(__file__)+'/../../tests/resources/env1.txt')
+		self.env = Environment(dirname(abspath(__file__))+'/../../tests/resources/env1.txt')
 		if self.env.width * self.env.height == 0:
 			self.fail('The environment has a 0 dimension. Cannot continue')
 		self.verbose = True
@@ -186,3 +190,6 @@ class PlanTest(unittest.TestCase):
 def suite():
 	suites = ( unittest.makeSuite(PlanTest) )
 	return unittest.TestSuite(suites)
+
+if __name__ == '__main__':
+	unittest.TextTestRunner(verbosity=3).run(suite())
