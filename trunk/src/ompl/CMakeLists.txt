@@ -8,16 +8,7 @@ if(ROS)
 	rosbuild_add_compile_flags(ompl -Wextra)
 	rosbuild_link_boost(ompl thread date_time ${PROF_LIBRARY})
 else(ROS)
-
-        if (PROF_LIBRARY)
-	  if (CMAKE_COMPILER_IS_GNUCXX)
-	    add_definitions(-fPIC)
-	  endif()
-	  add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-	else (PROF_LIBRARY)
-	  add_library(ompl SHARED ${OMPL_SOURCE_CODE})
-	endif (PROF_LIBRARY)
-
+        add_library(ompl SHARED ${OMPL_SOURCE_CODE})
 	target_link_libraries(ompl
 		${Boost_THREAD_LIBRARY}
 		${Boost_DATE_TIME_LIBRARY}
