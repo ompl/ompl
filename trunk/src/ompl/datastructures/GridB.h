@@ -281,7 +281,10 @@ namespace ompl
 	
     protected:
 	
+	/// Pointer to function to be called when a cell needs to be updated
 	EventCellUpdate          eventCellUpdate_;
+
+	/// Data to be passed to function pointer above
 	void                    *eventCellUpdateData_;
 
 	/// Default no-op update routine for a cell
@@ -304,7 +307,8 @@ namespace ompl
 	    internal_.clear();
 	    external_.clear();
 	}
-	
+    
+	/// Define order for internal cells 
 	struct LessThanInternalCell
 	{
 	    bool operator()(const CellX* const a, const CellX* const b) const
@@ -316,6 +320,7 @@ namespace ompl
 	    LessThanInternal lt_;
 	};
 	
+	/// Define order for external cells 
 	struct LessThanExternalCell
 	{
 	    bool operator()(const CellX* const a, const CellX* const b) const
@@ -332,11 +337,13 @@ namespace ompl
 	/// Datatype for a heap of cells containing exterior cells
 	typedef BinaryHeap< CellX*, LessThanExternalCell > externalBHeap;
 	
+	/// Routine used internally for keeping track of binary heap elements for internal cells 
 	static void setHeapElementI(typename internalBHeap::Element* element, void *)
 	{
 	    element->data->heapElement = reinterpret_cast<void*>(element);
 	}
 
+	/// Routine used internally for keeping track of binary heap elements for external cells 
         static void setHeapElementE(typename externalBHeap::Element* element, void *)
 	{
 	    element->data->heapElement = reinterpret_cast<void*>(element);
@@ -345,7 +352,7 @@ namespace ompl
 	/// The heap of interior cells
 	internalBHeap internal_;
 
-	/// The heap of boundary cells
+	/// The heap of external cells
 	externalBHeap external_;
     };
     
