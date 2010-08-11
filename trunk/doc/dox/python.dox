@@ -36,6 +36,7 @@ def isStateValid(spaceInformation, state):
 	return spaceInformation.satiesfiesBounds(state)
 \endcode
 .
+Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code. 
 
 \section py_example A simple example
 

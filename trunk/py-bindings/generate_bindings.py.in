@@ -67,6 +67,15 @@ std::string __str__(%s* obj)
 	return s.str();
 }
 """)
+# special case for abstract base class Path with pure virtual print method:
+replacement['::ompl::base::Path::print'] = ('def("__str__", bp::pure_virtual(&__str__))', """
+std::string __str__(%s* obj)
+{
+	std::ostringstream s;
+	obj->print(s);
+	return s.str();
+}
+""")
 # A C++ call like "foo.printSettings(std::cout)" will be replaced with
 # something more pythonesque: "print foo.settings()"
 replacement['printSettings'] = ('def("settings", &__printSettings)', """
@@ -94,6 +103,16 @@ std::string __printControl(%s* manifold, ompl::control::Control* control)
 {
 	std::ostringstream s;
 	manifold->printControl(control, s);
+	return s.str();
+}
+""")
+# A C++ call like "foo.printProjections(std::cout)" will be replaced with
+# something more pythonesque: "print foo.projections()"
+replacement['printProjections'] = ('def("projections", &__printProjections)', """
+std::string __printProjections(%s* obj)
+{
+	std::ostringstream s;
+	obj->printProjections(s);
 	return s.str();
 }
 """)
@@ -262,13 +281,20 @@ class code_generator_t(object):
 	def call_policies(self):
 		"""Define default call policies: for anything that returns a reference, 
 		return a reference to the existing object. This is potentially dangerous."""
-		self.mb.free_functions(returns_reference).call_policies = \
-			call_policies.return_value_policy(call_policies.reference_existing_object)
-		self.mb.member_functions(returns_reference).call_policies = \
-			call_policies.return_value_policy(call_policies.reference_existing_object)
-		self.mb.operators(returns_reference).call_policies = \
-			call_policies.return_value_policy(call_policies.reference_existing_object)
-	
+		decllist = [ self.mb.member_functions(returns_reference),
+			self.mb.free_functions(returns_reference),
+			self.mb.operators(returns_reference) ]
+		for decls in decllist:
+			for decl in decls: 
+				if decl.return_type.decl_string[-7:]=='const &':
+					decl.call_policies = \
+						call_policies.return_value_policy(
+							call_policies.copy_const_reference)
+				else:
+					decl.call_policies = \
+						call_policies.return_value_policy(
+							call_policies.reference_existing_object)
+			
 	def filter_declarations(self):
 		"""Remove private and protected declarations. Remove some classes and 
 		functions from the std namespace"""
@@ -285,6 +311,7 @@ class code_generator_t(object):
 		"""Utility function to replace a declaration."""
 		decl.exclude()
 		cls = decl.parent
+		
 		self.mb.logger.info('Replacing member function ' + cls.decl_string+'::'+decl.name)
 		try:
 			(reg, wrapper) = replacement[cls.decl_string+'::'+decl.name]
@@ -318,11 +345,17 @@ class ompl_base_generator_t(code_generator_t):
 		code_generator_t.__init__(self, 'base')
 	
 	def filter_declarations(self):
+		# force ProblemDefinition to be included, because it is used by other modules
+		self.ompl_ns.class_('ProblemDefinition').include()		
+		# force the abstract base class Path to be included, because it is used by other modules
+		self.ompl_ns.class_('Path').include()
 		code_generator_t.filter_declarations(self)
 		# rename STL vectors of certain types
 		self.std_ns.class_('vector< int >').rename('vectorInt')
 		self.std_ns.class_('vector< double >').rename('vectorDouble')
-		self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorInt')
+		self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
+		self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
+		self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
 		self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
 		self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
 		# don't export variables that need a wrapper
@@ -367,12 +400,15 @@ class ompl_base_generator_t(code_generator_t):
 		self.add_array_access(self.ompl_ns.class_('RealVectorStateManifold').class_('StateType'))
 		# make objects printable that have a print function
 		self.replace_member_functions(self.ompl_ns.member_functions('print'))
+		# handle special case (abstract base class with pure  virtual method)
+		self.ompl_ns.class_('Path').add_wrapper_code(
+			'virtual void print(std::ostream&) const {}')
 		# make settings printable
 		self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
 		# make states printable
 		self.replace_member_functions(self.ompl_ns.member_functions('printState'))
-		# force the abstract base class Path to be included, because it is used by other modules
-		self.ompl_ns.class_('Path').include()
+		# make projections printable
+		self.replace_member_functions(self.ompl_ns.member_functions('printProjections'))
 		# add wrapper code for setStateValidityChecker
 		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
 			'SpaceInformation').member_functions('setStateValidityChecker', 
