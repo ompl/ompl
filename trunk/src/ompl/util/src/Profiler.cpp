@@ -42,55 +42,85 @@
 #include <vector>
 #include <algorithm>
 
-static ompl::Profiler defaultProfiler(true);
-static boost::mutex   defaultLock;
+class StaticProfilerInstance
+{
+public:
+    
+    StaticProfilerInstance(void)
+    {
+	defaultLock = new boost::mutex();
+	defaultProfiler = new ompl::Profiler(true);
+	defaultProfiler->start();
+    }
+    
+    ~StaticProfilerInstance(void)
+    {
+	delete defaultProfiler;
+	delete defaultLock;
+    }
+    
+    void lock(void)
+    {
+	defaultLock->lock();
+    }
+    
+    void unlock(void)
+    {
+	defaultLock->unlock();
+    }
+    
+    boost::mutex   *defaultLock;
+    ompl::Profiler *defaultProfiler;
+};
+
+static StaticProfilerInstance spi;
 
 ompl::Profiler* ompl::Profiler::Instance(void)
 {
-    return &defaultProfiler;
+    return spi.defaultProfiler;
 }
 
 void ompl::Profiler::start(void)
-{  
-    defaultLock.lock();
+{
+    spi.lock();
     if (!running_)
     {
 	tinfo_.set();
 	running_ = true;
     }	    
-    defaultLock.unlock();
+    spi.unlock();
 }
 
 void ompl::Profiler::stop(void)
 {
-    defaultLock.lock();    
+    spi.lock();    
     if (running_)
     {
 	tinfo_.update();
 	running_ = false;
     }
-    defaultLock.unlock();
+    spi.unlock();
 }
 
 void ompl::Profiler::event(const std::string &name, const unsigned int times)
 {
-    defaultLock.lock();
+    spi.lock();
     data_[boost::this_thread::get_id()].events[name] += times;
-    defaultLock.unlock();
+    spi.unlock();
 }
 
 void ompl::Profiler::begin(const std::string &name)
 {
-    defaultLock.lock();
+    spi.lock();
     data_[boost::this_thread::get_id()].time[name].set();
-    defaultLock.unlock();
+    spi.unlock();
 }
 
 void ompl::Profiler::end(const std::string &name)
 {
-    defaultLock.lock();
+    spi.lock();
     data_[boost::this_thread::get_id()].time[name].update();
-    defaultLock.unlock();
+    spi.unlock();
 }
 
 void ompl::Profiler::status(std::ostream &out, bool merge)
@@ -180,8 +210,13 @@ void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data) c
     
     std::sort(time.begin(), time.end(), SortTmByValue());
     
+    double unaccounted = total;
     for (unsigned int i = 0 ; i < time.size() ; ++i)
+    {
 	out << time[i].name << ": " << time[i].value << " (" << (100.0 * time[i].value/total) << " %)" << std::endl;
+	unaccounted -= time[i].value;
+    }
+    out << "Unaccounted time : " << unaccounted << " (" << (100.0 * unaccounted / total) << " %)" << std::endl;
     
     out << std::endl;    
 }

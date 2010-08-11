@@ -38,7 +38,6 @@
 #ifndef OMPL_UTIL_PROFILER_
 #define OMPL_UTIL_PROFILER_
 
-
 #ifndef ENABLE_PROFILING
 
 /** The ENABLE_PROFILING macro can be set externally. If it is not,
@@ -64,8 +63,11 @@
 namespace ompl
 {
 
-    /** \brief This is a simple thread-safe tool for counting time spent in
-	various chunks of code. */
+    /** \brief This is a simple thread-safe tool for counting time
+	spent in various chunks of code. This is different from
+	external profiling tools in that it allows the user to count
+	time spent in various bits of code (sub-function granularity)
+	or count how many times certain pieces of code are executed.*/
 
     class Profiler
     {
@@ -223,35 +225,35 @@ namespace ompl
 	{
 	}
 
-	static void Event(const std::string& name, const unsigned int times = 1)
+	static void Event(const std::string&, const unsigned int = 1)
 	{
 	}
 	
-	void event(const std::string &name, const unsigned int times = 1)
+	void event(const std::string &, const unsigned int = 1)
 	{
 	}
 	
-	static void Begin(const std::string &name)
+	static void Begin(const std::string &)
 	{
 	}
 	
-	static void End(const std::string &name)
+	static void End(const std::string &)
 	{
 	}
 
-	void begin(const std::string &name)
+	void begin(const std::string &)
 	{
 	}
 
-	void end(const std::string &name)
+	void end(const std::string &)
 	{
 	}
 	
-	static void Status(std::ostream &out = std::cout, bool merge = true)
+	static void Status(std::ostream & = std::cout, bool = true)
 	{
 	}
 	
-	void status(std::ostream &out = std::cout, bool merge = true)
+	void status(std::ostream & = std::cout, bool = true)
 	{
 	}
     };
