@@ -42,7 +42,6 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
-#include "ompl/util/Time.h"
 #include "ompl/base/ScopedState.h"
 
 #include <vector>
