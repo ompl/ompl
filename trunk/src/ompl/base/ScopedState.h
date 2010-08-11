@@ -39,6 +39,7 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include <boost/concept_check.hpp>
+#include <iostream>
 
 namespace ompl
 {
@@ -239,7 +240,13 @@ namespace ompl
 		    sampler_ = manifold_->allocStateSampler();
 		sampler_->sample(state_);
 	    }
-	    
+
+	    /** \brief Print this state to a stream */
+	    void print(std::ostream &out = std::cout) const
+	    {
+		manifold_->printState(state_, out);
+	    }
+
 	    /** \brief De-references to the contained state */
 	    StateType& operator*(void) const
 	    {
