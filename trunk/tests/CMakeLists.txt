@@ -14,7 +14,7 @@ if(BUILD_TESTS)
 
 		macro(add_ompl_test test_name)
 			rosbuild_add_gtest(${ARGV})
-			target_link_libraries(${test_name} ompl)
+			target_link_libraries(${test_name} ompl ${PROF_LIBRARY})
 			rosbuild_link_boost(${test_name} filesystem system thread date_time)
 		endmacro(add_ompl_test)
 
@@ -28,7 +28,7 @@ if(BUILD_TESTS)
 				${Boost_FILESYSTEM_LIBRARY}
 				${Boost_SYSTEM_LIBRARY}
 				${Boost_THREAD_LIBRARY}
-				${Boost_DATE_TIME_LIBRARY} ${GTEST_LIBRARIES})
+				${Boost_DATE_TIME_LIBRARY} ${GTEST_LIBRARIES} ${PROF_LIBRARY})
 			add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
 		endmacro(add_ompl_test)
 

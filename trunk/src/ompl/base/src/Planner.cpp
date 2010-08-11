@@ -132,7 +132,13 @@ bool ompl::base::PlannerInputStates::update(void)
 
 bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef)
 {
-    return use(si.get(), pdef.get());
+    if (si && pdef)
+	return use(si.get(), pdef.get());
+    else
+    {
+	clear();
+	return true;
+    }
 }
 
 bool ompl::base::PlannerInputStates::use(const SpaceInformation *si, const ProblemDefinition *pdef)
