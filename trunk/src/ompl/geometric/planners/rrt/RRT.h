@@ -60,11 +60,12 @@ namespace ompl
 	   
 	   @par External documentation
 
-	   @htmlonly
 	   <a href="http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree">http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree</a>
 	   <br>
 	   <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html</a>
-	   @endhtmlonly 
+
+	   @par Example exploration
+	   <img src="../exploration/RRT.png"/>
 	   
 	*/
 

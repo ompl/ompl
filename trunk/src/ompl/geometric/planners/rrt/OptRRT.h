@@ -51,17 +51,29 @@ namespace ompl
 	   
 	   @par Short description
 	   
-	   
+	   RRT version that rewires the exploration tree as it is
+	   being grown. This allows finding optimal solutions, given
+	   enough time. The notion of optimality is with respect to
+	   the distance function defined on the manifold we are
+	   operating on. See ompl::base::Goal::setMaximumPathLength()
+	   for how to set the maximally allowed path length to reach
+	   the goal. If a solution path that is shorter than
+	   ompl::base::Goal::getMaximumPathLength() is found, the
+	   algorithm terminates before the elapsed time.  The
+	   algorithm is fairly sensitive to setMaxBallRadius() and
+	   setBallRadiusConstant(), so make sure to experiment with
+	   different values.
+
 	   @par External documentation
 
 	   S. Karaman and E. Frazzoli, Incremental Sampling-based
 	   Algorithms for Optimal Motion Planning, Robotics: Science
 	   and Systems (RSS) Conference, 2010.
 
-	   @htmlonly
 	   <a href="http://arxiv.org/abs/1005.0416">http://arxiv.org/abs/1005.0416</a>
-	   @endhtmlonly
 	   
+	   @par Example exploration
+	   <img src="../exploration/OptRRT.png"/>
 	*/
 
 	/** \brief Rapidly-exploring Random Trees with Optimization */
@@ -126,21 +138,34 @@ namespace ompl
 		return maxDistance_;
 	    }
 
+	    /** \brief When the planner attempts to rewire the tree,
+		it does so by looking at some of the neighbors within
+		a computed radius. The computation of that radius
+		depends on the multiplicative factor set here.*/
 	    void setBallRadiusConstant(double ballRadiusConstant)
 	    {
 		ballRadiusConst_ = ballRadiusConstant;
 	    }
 	    
+	    /** \brief Get the multiplicative factor used in the
+		computation of the radius whithin which tree rewiring
+		is done. */
 	    double getBallRadiusConstant(void) const
 	    {
 		return ballRadiusConst_;
 	    }
 	    
+	    /** \brief When the planner attempts to rewire the tree,
+		it does so by looking at some of the neighbors within
+		a computed radius. That radius is bounded by the value
+		set here.*/
 	    void setMaxBallRadius(double maxBallRadius)
 	    {
 		ballRadiusMax_ = maxBallRadius;
 	    }
 	    
+	    /** \brief Get the maximum radius the planner uses in the
+		tree rewiring step */
 	    double getMaxBallRadius(void) const
 	    {
 		return ballRadiusMax_;

@@ -63,7 +63,7 @@ void ompl::base::SpaceInformation::setup(void)
     if (resolution_ < std::numeric_limits<double>::epsilon())
     {
 	resolution_ = estimateMaxResolution(1000);
-	msg_.warn("The resolution at which states need to be checked for collision is detected to be %f", resolution_);
+	msg_.inform("The resolution at which states need to be checked for collision is detected to be %f", resolution_);
     }
 
     setup_ = true;
@@ -149,6 +149,8 @@ double ompl::base::SpaceInformation::estimateExtent(unsigned int samples)
     maxExtent_ = maxD;
     
     msg_.inform("Estimated extent of space to plan in is %f", maxD);
+    if (maxD < std::numeric_limits<double>::epsilon())
+	throw Exception("Estimated extent of space is too small");
     
     return maxD;
 }

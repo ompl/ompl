@@ -15,6 +15,7 @@
    - @ref gKPIECE1 "Geometric Planning by Interior-Exterior Cell Exploration (KPIECE)"
    - @ref gEST "Expansive Space Trees (EST)"
    - @ref gPRM "Probabilistic RoadMaps (PRM)"
+   - @ref gOptRRT "Rapidly-exploring Random Trees with Optimization (OptRRT)"
    - @ref gRRT "Rapidly-exploring Random Trees (RRT)"
    - @ref gpRRT "Parallel Rapidly-exploring Random Trees (pRRT)"
    - @ref gLazyRRT "Lazy RRT (LazyRRT)"

@@ -103,6 +103,8 @@ void ompl::base::PlannerData::print(std::ostream &out) const
     
     for (unsigned int i = 0 ; i < edges.size() ; ++i)
     {
+	if (edges[i].empty())
+	    continue;
 	out << i << ": ";
 	for (unsigned int j = 0 ; j < edges[i].size() ; ++j)
 	    out << edges[i][j] << ' ';
