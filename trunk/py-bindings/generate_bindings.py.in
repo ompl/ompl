@@ -398,6 +398,8 @@ class ompl_base_generator_t(code_generator_t):
 			'StateType').variable('values').exclude()
 		# add array indexing to the RealVectorState
 		self.add_array_access(self.ompl_ns.class_('RealVectorStateManifold').class_('StateType'))
+		# add array indexing to the EuclideanProjection
+		self.add_array_access(self.ompl_ns.class_('EuclideanProjection'))
 		# make objects printable that have a print function
 		self.replace_member_functions(self.ompl_ns.member_functions('print'))
 		# handle special case (abstract base class with pure  virtual method)

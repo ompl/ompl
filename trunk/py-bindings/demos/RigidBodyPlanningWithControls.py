@@ -46,17 +46,17 @@ def plan():
 	ss = oc.SimpleSetup(cmanifold)
 	ss.setStateValidityChecker(isStateValid)
 	
-	start = ob.SE2State(manifold)
+	start = ob.State(manifold)
 	start().setX(-0.5);
 	start().setY(0.0);
 	start().setYaw(0.0);
 	
-	goal = ob.SE2State(manifold);
+	goal = ob.State(manifold);
 	goal().setX(0.0);
 	goal().setY(0.5);
 	goal().setYaw(0.0);
 	
-	ss.setStartAndGoalStates(ob.State(start), ob.State(goal), 0.05)
+	ss.setStartAndGoalStates(start, goal, 0.05)
 	
 	solved = ss.solve(10.0)
 	

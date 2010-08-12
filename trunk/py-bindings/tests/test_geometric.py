@@ -96,17 +96,17 @@ class mySpaceInformation(ob.SpaceInformation):
 		# since sampling is continuous and we round down, we allow values until 
 		# just under the max limit
 		# the resolution is 1.0 since we check cells only
-		sbounds.low[0] = 0.0;
-		sbounds.high[0] = float(env.width) - 0.000000001;
+		sbounds.low[0] = 0.0
+		sbounds.high[0] = float(env.width) - 0.000000001
 		
-		sbounds.low[1] = 0.0;
-		sbounds.high[1] = float(env.height) - 0.000000001;
+		sbounds.low[1] = 0.0
+		sbounds.high[1] = float(env.height) - 0.000000001
 		
-		self.sMan.setBounds(sbounds);
-		self.setStateValidityCheckingResolution(0.5);
+		self.sMan.setBounds(sbounds)
+		self.setStateValidityCheckingResolution(0.5)
 		isValidFn = partial(isValid, env.grid)
-		self.setStateValidityChecker(isValidFn);
-		self.setup();
+		self.setStateValidityChecker(isValidFn)
+		self.setup()
 		
 class TestPlanner(object):
 	

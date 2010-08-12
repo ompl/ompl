@@ -32,19 +32,19 @@ def plan():
 	ss = og.SimpleSetup(manifold)
 	ss.setStateValidityChecker(isStateValid)
 	
-	start = ob.SE2State(manifold)
+	start = ob.State(manifold)
 	# we can pick a random start state...
 	start.random()
 	# ... or set specific values
 	start().setX(.5)
 	
-	goal = ob.SE2State(manifold)
+	goal = ob.State(manifold)
 	# we can pick a random goal state...
 	goal.random()
 	# ... or set specific values
 	goal().setY(-.5)
 	
-	ss.setStartAndGoalStates(ob.State(start), ob.State(goal))
+	ss.setStartAndGoalStates(start, goal)
 	
 	# this will automatically choose a default planner with 
 	# default parameters

@@ -66,6 +66,16 @@ namespace ompl
 		delete[] values;
 	    }
 	    
+	    double operator[](unsigned int i) const
+	    {
+		return values[i];	
+	    }
+	    
+	    double& operator[](unsigned int i)
+	    {
+		return values[i];	
+	    }
+	    
 	    /** \brief The values of the R<sup>n</sup> vector that makes up the projection */
 	    double *values;
 	};
