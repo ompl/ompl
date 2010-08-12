@@ -40,6 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
 #include <vector>
+#include <iostream>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -66,11 +67,13 @@ namespace ompl
 		delete[] values;
 	    }
 	    
+	    /** \brief Access operator (constant) */
 	    double operator[](unsigned int i) const
 	    {
 		return values[i];	
 	    }
 	    
+	    /** \brief Access operator */
 	    double& operator[](unsigned int i)
 	    {
 		return values[i];	
@@ -141,6 +144,12 @@ namespace ompl
 		project(state, projection);
 		computeCoordinates(projection, coord);
 	    }
+	    
+	    /** \brief Print settings about this projection */
+	    virtual void printSettings(std::ostream &out = std::cout) const;
+
+	    /** \brief Print a euclidean projection */
+	    virtual void printProjection(const EuclideanProjection &projection, std::ostream &out = std::cout) const;
 	    
 	protected:
 	    

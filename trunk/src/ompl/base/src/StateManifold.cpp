@@ -78,7 +78,8 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
 		out << "<default>";
 	    else
 		out << it->first;
-	    out << " of dimension " << it->second->getDimension() << std::endl;
+	    out << std::endl;
+	    it->second->printSettings(out);
 	}
     }
 }

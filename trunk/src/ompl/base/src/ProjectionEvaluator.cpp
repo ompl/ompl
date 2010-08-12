@@ -60,3 +60,32 @@ void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjecti
     for (unsigned int i = 0 ; i < dim ; ++i)
 	coord[i] = (int)floor(projection.values[i]/cellDimensions_[i]);
 }
+
+void ompl::base::ProjectionEvaluator::printSettings(std::ostream &out) const
+{ 
+    out << "Projection of dimension " << getDimension() << std::endl;
+    out << "Cell dimensions: [";
+    for (unsigned int i = 0 ; i < cellDimensions_.size() ; ++i)
+    {
+	out << cellDimensions_[i];
+	if (i + 1 < cellDimensions_.size())
+	    out << ' ';
+    }
+    out << ']' << std::endl;
+}
+
+void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection &projection, std::ostream &out) const
+{
+    unsigned int d = getDimension();
+    if (d > 0)
+    {
+	--d;
+	for (unsigned int i = 0 ; i < d ; ++i)
+	    out << projection.values[i] << ' ';
+	out << projection.values[d] << std::endl;
+    }
+    else
+	out << "NULL" << std::endl;
+}
+
+	    
