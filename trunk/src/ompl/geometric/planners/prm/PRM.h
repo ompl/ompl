@@ -39,6 +39,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include <utility>
 #include <vector>
 #include <map>
 
@@ -77,7 +78,7 @@ namespace ompl
 	    
 	    PRM(const base::SpaceInformationPtr &si) : base::Planner(si, "PRM")
 	    {
-		type_ = base::PLAN_TO_GOAL_STATE;
+		type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
 		
 		maxNearestNeighbors_ = 10;
 		componentCount_ = 0;
@@ -106,6 +107,11 @@ namespace ompl
 	    	    
 	    virtual void getPlannerData(base::PlannerData &data) const;
 
+	    /** \brief If the user desires, the roadmap can be
+		improved for a specified amount of time. The solve()
+		method will also improve the roadmap, as needed.*/
+	    virtual void growRoadmap(double growTime);
+	    
 	    virtual bool solve(double solveTime);
 	    
 	    virtual void clear(void);
@@ -127,11 +133,11 @@ namespace ompl
 	    {
 	    public:
 		
-		Milestone(void) : state(NULL)
+		Milestone(void) : state(NULL), index(0)
 		{
 		}
 		
-		Milestone(const base::SpaceInformationPtr &si) : state(si->allocState())
+		Milestone(const base::SpaceInformationPtr &si) : state(si->allocState()), index(0)
 		{
 		}
 		
@@ -140,18 +146,19 @@ namespace ompl
 		}
 		
 		base::State            *state;
+		unsigned int            index;
 		unsigned long           component;
 	        std::vector<Milestone*> adjacent;
 		std::vector<double>     costs;
 	    };
-	    
+
 	    void freeMemory(void);
+	    virtual void nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh);
 	    Milestone* addMilestone(base::State *state);
 	    void uniteComponents(Milestone *m1, Milestone *m2);
 	    void growRoadmap(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, double growTime, base::State *workState);
-	    Milestone* haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal);
-	    bool findPath(const std::vector<Milestone*> &start, std::map<Milestone*, bool> &seen, std::vector<Milestone*> &path);
-	    void constructSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal);
+	    bool haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, std::pair<Milestone*, Milestone*> *endpoints = NULL);
+	    void constructSolution(const Milestone* start, const Milestone* goal);
 	    
 	    double distanceFunction(const Milestone* a, const Milestone* b) const
 	    {
@@ -160,6 +167,7 @@ namespace ompl
 	    
 	    base::StateSamplerPtr                             sampler_;
 	    boost::shared_ptr< NearestNeighbors<Milestone*> > nn_;
+	    std::vector<Milestone*>                           milestones_;
 	    unsigned int                                      maxNearestNeighbors_;
 	    std::map<unsigned long, unsigned long>            componentSizes_;
 	    unsigned long                                     componentCount_;

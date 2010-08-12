@@ -41,6 +41,12 @@
 #include <queue>
 #include <limits>
 
+/** \brief Maximum number of sampling attempts to find a valid state,
+    without checking whether the allowed time elapsed. This value
+    should not really be changed. */
+static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 10;
+
+
 void ompl::geometric::PRM::setup(void)
 {
     Planner::setup();
@@ -54,20 +60,44 @@ void ompl::geometric::PRM::clear(void)
 {
     freeMemory();
     nn_->clear();
+    milestones_.clear();
     componentCount_ = 0;
     componentSizes_.clear();
 }
 
 void ompl::geometric::PRM::freeMemory(void)
 {
-    std::vector<Milestone*> milestones;
-    nn_->list(milestones);
-    for (unsigned int i = 0 ; i < milestones.size() ; ++i)
+    for (unsigned int i = 0 ; i < milestones_.size() ; ++i)
     {
-	if (milestones[i]->state)
-	    si_->freeState(milestones[i]->state);
-	delete milestones[i];
+	if (milestones_[i]->state)
+	    si_->freeState(milestones_[i]->state);
+	delete milestones_[i];
     }
+}
+
+void ompl::geometric::PRM::growRoadmap(double growTime)
+{
+    time::point endTime = time::now() + time::seconds(growTime);
+    base::State *workState = si_->allocState();
+    while (time::now() < endTime)
+    {
+	// search for a valid state
+	bool found = false;
+	while (!found && time::now() < endTime)
+	{
+	    unsigned int attempts = 0;
+	    do
+	    {
+		sampler_->sample(workState);
+		found = si_->isValid(workState);
+		attempts++;
+	    } while (attempts < FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
+	}	
+	// add it as a milestone
+	if (found)
+	    addMilestone(si_->cloneState(workState));
+    }
+    si_->freeState(workState);
 }
 
 void ompl::geometric::PRM::growRoadmap(const std::vector<Milestone*> &start,
@@ -81,13 +111,13 @@ void ompl::geometric::PRM::growRoadmap(const std::vector<Milestone*> &start,
 	bool found = false;
 	while (!found && time::now() < endTime)
 	{
-	    int attempts = 0;
+	    unsigned int attempts = 0;
 	    do
 	    {
 		sampler_->sample(workState);
 		found = si_->isValid(workState);
 		attempts++;
-	    } while (attempts < 10 && !found);
+	    } while (attempts < FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
 	}	
 	// add it as a milestone
 	if (found)
@@ -99,15 +129,22 @@ void ompl::geometric::PRM::growRoadmap(const std::vector<Milestone*> &start,
     }
 }
 
-ompl::geometric::PRM::Milestone* ompl::geometric::PRM::haveSolution(const std::vector<Milestone*> &start,
-								    const std::vector<Milestone*> &goal)
+bool ompl::geometric::PRM::haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal,
+					std::pair<Milestone*, Milestone*> *endpoints)
 {
     base::Goal *g = pdef_->getGoal().get();
     for (unsigned int i = 0 ; i < goal.size() ; ++i)
 	for (unsigned int j = 0 ; j < start.size() ; ++j)
 	    if (goal[i]->component == start[j]->component && g->isStartGoalPairValid(goal[i]->state, start[j]->state))
-		return goal[i];
-    return NULL;
+	    {
+		if (endpoints)
+		{
+		    endpoints->first = start[j];
+		    endpoints->second = goal[i];
+		}
+		return true;
+	    }
+    return false;
 }
 
 bool ompl::geometric::PRM::solve(double solveTime)
@@ -141,11 +178,12 @@ bool ompl::geometric::PRM::solve(double solveTime)
 	return false;
     }
     
-    unsigned int nrStartStates = nn_->size();
+    unsigned int nrStartStates = milestones_.size();
     msg_.inform("Starting with %u states", nrStartStates);
     
     base::State *xstate = si_->allocState();
-
+    std::pair<Milestone*, Milestone*> solEndpoints;
+    
     while (time::now() < endTime)
     {
 	// find at least one valid goal state
@@ -161,11 +199,10 @@ bool ompl::geometric::PRM::solve(double solveTime)
 	    }
 	}
 	
-	
 	// if there already is a solution, construct it
-	if (haveSolution(startM, goalM))
+	if (haveSolution(startM, goalM, &solEndpoints))
 	{
-	    constructSolution(startM, goalM);
+	    constructSolution(solEndpoints.first, solEndpoints.second);
 	    break;
 	}
 	// othewise, spend some time building a roadmap
@@ -178,18 +215,23 @@ bool ompl::geometric::PRM::solve(double solveTime)
 	    else
 		growRoadmap(startM, goalM, time::seconds(endTime - time::now()), xstate);
 	    // if a solution has been found, construct it
-	    if (haveSolution(startM, goalM))
+	    if (haveSolution(startM, goalM, &solEndpoints))
 	    {
-		constructSolution(startM, goalM);
+		constructSolution(solEndpoints.first, solEndpoints.second);
 		break;
 	    }
 	}
     }
     si_->freeState(xstate);
     
-    msg_.inform("Created %u states", nn_->size() - nrStartStates);
+    msg_.inform("Created %u states", milestones_.size() - nrStartStates);
     
     return goal->isAchieved();
+}
+
+void ompl::geometric::PRM::nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh)
+{
+    nn_->nearestK(milestone, maxNearestNeighbors_, nbh);
 }
 
 ompl::geometric::PRM::Milestone* ompl::geometric::PRM::addMilestone(base::State *state) 
@@ -201,7 +243,8 @@ ompl::geometric::PRM::Milestone* ompl::geometric::PRM::addMilestone(base::State 
     
     // connect to nearest neighbors
     std::vector<Milestone*> nbh;
-    nn_->nearestK(m, maxNearestNeighbors_, nbh);
+    nearestNeighbors(m, nbh);
+    
     for (unsigned int i = 0 ; i < nbh.size() ; ++i)
 	if (si_->checkMotion(m->state, nbh[i]->state))
 	{	    
@@ -216,6 +259,8 @@ ompl::geometric::PRM::Milestone* ompl::geometric::PRM::addMilestone(base::State 
     // increase the number of components
     if (m->component == componentCount_)
 	componentCount_++;
+    m->index = milestones_.size();
+    milestones_.push_back(m);
     nn_->add(m);
     return m;    
 }
@@ -246,51 +291,72 @@ void ompl::geometric::PRM::uniteComponents(Milestone *m1, Milestone *m2)
     }
 }
 
-bool ompl::geometric::PRM::findPath(const std::vector<Milestone*> &start, std::map<Milestone*, bool> &seen, std::vector<Milestone*> &path)
+void ompl::geometric::PRM::constructSolution(const Milestone* start, const Milestone* goal)
 {
-    Milestone *m = path.back();
-    for (unsigned int i = 0 ; i < start.size() ; ++i)
-	if (m == start[i])
-	    return true;
-    seen[m] = true;
-    for (unsigned int i = 0 ; i < m->adjacent.size() ; ++i)
+    const unsigned int N = milestones_.size();
+    std::vector<double> dist(N, std::numeric_limits<double>::infinity());
+    std::vector<int>    prev(N, -1);
+    std::vector<int>    seen(N, 0);
+    
+    dist[goal->index] = 0.0;
+    for (unsigned int i = 0 ; i < N ; ++i)
     {
-	if (seen.find(m->adjacent[i]) == seen.end())
+	double minDist = std::numeric_limits<double>::infinity();
+	int index = -1;
+	for (unsigned int j = 0 ; j < N ; ++j)
+	    if (seen[j] == 0 && dist[j] < minDist)
+	    {
+		minDist = dist[j];
+		index = j;
+	    }
+	if (index < 0)
+	    break;
+	seen[index] = 1;
+	
+	for (unsigned int j = 0 ; j < milestones_[index]->adjacent.size() ; ++j)
 	{
-	    path.push_back(m->adjacent[i]);
-	    if (findPath(start, seen, path))
-		return true;
-	    path.pop_back();
+	    const unsigned int idx = milestones_[index]->adjacent[j]->index;
+	    double altDist = dist[index] + milestones_[index]->costs[j];
+	    if (altDist < dist[idx])
+	    {
+		dist[idx] = altDist;
+		prev[idx] = index;
+	    }
 	}
     }
-    return false;
-}
-
-void ompl::geometric::PRM::constructSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal)
-{
-    Milestone *g = haveSolution(start, goal);
-    if (g == NULL)
-	return;
-    
-    std::map<Milestone*, bool> seen;
-    std::vector<Milestone*> path;
-    path.push_back(g);
-    if (!findPath(start, seen, path))
-	return;
-
-    /* set the solution path */
-    PathGeometric *p = new PathGeometric(si_);
-    for (int i = path.size() - 1 ; i >= 0 ; --i)
-	p->states.push_back(si_->cloneState(path[i]->state));
-    pdef_->getGoal()->setSolutionPath(base::PathPtr(p));
+    if (prev[start->index] >= 0)
+    {
+	PathGeometric *p = new PathGeometric(si_);
+	int pos = start->index;
+	do
+	{
+	    p->states.push_back(si_->cloneState(milestones_[pos]->state));
+	    pos = prev[pos];
+	} while (pos >= 0);
+	pdef_->getGoal()->setSolutionPath(base::PathPtr(p));
+    }
+    else
+	throw Exception(name_, "Internal error in computing shortest path");
 }
 
 void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
 {
     data.si = si_;
-    std::vector<Milestone*> milestones;
-    nn_->list(milestones);
-    data.states.resize(milestones.size());
-    for (unsigned int i = 0 ; i < milestones.size() ; ++i)
-	data.states[i] = milestones[i]->state;
+    
+    data.states.resize(milestones_.size());
+    data.edges.clear();
+    data.edges.resize(data.states.size());
+    
+    std::map<Milestone*, unsigned int> seen;
+    for (unsigned int i = 0 ; i < milestones_.size() ; ++i)
+    {
+	data.states[i] = milestones_[i]->state;
+	seen[milestones_[i]] = milestones_[i]->index;
+	for (unsigned int j = 0 ; j < milestones_[i]->adjacent.size() ; ++j)
+	{
+	    std::map<Milestone*, unsigned int>::const_iterator it = seen.find(milestones_[i]->adjacent[j]);
+	    if (it != seen.end())
+		data.edges[i].push_back(it->second);
+	}
+    }
 }
