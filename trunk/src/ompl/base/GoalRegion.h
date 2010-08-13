@@ -76,10 +76,26 @@ namespace ompl
 		to a stream */
 	    virtual void print(std::ostream &out = std::cout) const;
 	    
+	    /** \brief Set the distance to the goal that is allowed
+		for a state to be considered in the goal region */
+	    void setThreshold(double threshold)
+	    {
+		threshold_ = threshold;
+	    }
+	    
+	    /** \brief Get the distance to the goal that is allowed
+		for a state to be considered in the goal region */
+	    double getThreshold(void) const
+	    {
+		return threshold_;
+	    }
+	    	    
+	protected:
+
 	    /** \brief The maximum distance that is allowed to the
 		goal. By default, this is initialized to the minimum
 		epsilon value a double can represent */
-	    double threshold;
+	    double threshold_;
 	};
     }
 }

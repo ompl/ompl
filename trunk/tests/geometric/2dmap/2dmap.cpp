@@ -179,7 +179,7 @@ public:
 	gstate->values[0] = env.goal.first;
 	gstate->values[1] = env.goal.second;
 	goal->setState(gstate);
-	goal->threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
+	goal->setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities 
 	pdef->setGoal(base::GoalPtr(goal));
 	
 	/* start counting time */

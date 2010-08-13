@@ -154,7 +154,7 @@ TEST(GAIK, Simple)
     gstate->values[0] = env.goal.first;
     gstate->values[1] = env.goal.second;
     goal.setState(gstate);
-    goal.threshold = 1e-3; // this is basically 0, but we want to account for numerical instabilities 
+    goal.setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities 
     
     geometric::GAIK gaik(si);
     gaik.setRange(5.0);

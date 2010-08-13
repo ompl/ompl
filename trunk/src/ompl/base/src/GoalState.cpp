@@ -50,7 +50,7 @@ double ompl::base::GoalState::distanceGoal(const State *st) const
 
 void ompl::base::GoalState::print(std::ostream &out) const
 {
-    out << "Goal state, threshold = " << threshold << ", memory address = " << reinterpret_cast<const void*>(this) << ", state = " << std::endl;
+    out << "Goal state, threshold = " << threshold_ << ", memory address = " << this << ", state = " << std::endl;
     si_->printState(state, out);
 }
 

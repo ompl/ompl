@@ -1,5 +1,5 @@
 /**
-\page statesAndManifolds Working with States and Manifolds
+\page statesAndManifolds Working with States and Implementing Manifolds
 
 Below we will describe how to:
 - \ref implementStateManifold "implement new state manifolds", 

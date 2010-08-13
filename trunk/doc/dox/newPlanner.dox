@@ -1,7 +1,5 @@
-/** \page tutorial
+/** \page newPlanner Implementing a new motion planner
 
-\section addNewPlanner Implementing a new motion planner
-    
     In order to implement a new motion planner the following rules
     need to be followed:
     - Define the new planner as a class that inherits from ompl::base::Planner

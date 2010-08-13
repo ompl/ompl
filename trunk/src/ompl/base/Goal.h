@@ -82,6 +82,8 @@ namespace ompl
 	     *  not satisfied). This distance can be an
 	     *  approximation. It can even be set to a constant, if
 	     *  such a computation is not possible.
+	     *  \param st the state to check for validity
+	     *  \param distance location at which distance to goal will be stored
 	     *  \note The default implementation sets the distance to a constant.
 	     *  \note If this function returns true,
 	     *  isStartGoalPairValid() need not be called. */
@@ -96,7 +98,11 @@ namespace ompl
 	     *  constraints and the path length is less than the
 	     *  desired maximum length.  This call aslo computes the
 	     *  distance between the state given as argument and the
-	     *  goal. */
+	     *  goal. 	     
+	     *  \param st the state to check for validity
+	     *  \param pathLength the length of the path that leads to \e st
+	     *  \param distance location at which distance to goal will be stored
+	     */
 	    bool isSatisfied(const State *st, double pathLength, double *distance) const
 	    {
 		if (pathLength > maximumPathLength_)

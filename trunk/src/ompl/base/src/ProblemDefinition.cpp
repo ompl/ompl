@@ -47,7 +47,7 @@ void ompl::base::ProblemDefinition::setStartAndGoalStates(const State *start, co
     addStartState(start);
     GoalState *gs = new GoalState(si_);
     gs->setState(goal);
-    gs->threshold = threshold;
+    gs->setThreshold(threshold);
     setGoal(base::GoalPtr(gs));
 }
 
