@@ -85,7 +85,7 @@ namespace ompl
 	/** \brief Destructor */
 	~Profiler(void)
 	{
-	    if (printOnDestroy_)
+	    if (printOnDestroy_ && !data_.empty())
 		status();
 	}
 	
