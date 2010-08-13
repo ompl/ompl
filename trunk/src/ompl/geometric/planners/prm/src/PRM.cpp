@@ -285,11 +285,14 @@ void ompl::geometric::PRM::uniteComponents(Milestone *m1, Milestone *m2)
     while (!q.empty())
     {
 	Milestone *m = q.front();
-	m->component = c;
 	q.pop();
-	for (unsigned int i = 0 ; i < m->adjacent.size() ; ++i)
-	    if (m->adjacent[i]->component != c)
-		q.push(m->adjacent[i]);
+	if (m->component != c)
+	{
+	    m->component = c;
+	    for (unsigned int i = 0 ; i < m->adjacent.size() ; ++i)
+		if (m->adjacent[i]->component != c)
+		    q.push(m->adjacent[i]);
+	}
     }
 }
 
