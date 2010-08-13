@@ -65,7 +65,7 @@ If you want a debug version of ompl, change "Release" to "Debug" above.
 - If you plan to use Microsoft Visual Studio, you can download Boost <a href="http://www.boostpro.com/download/">here</a>. If you want to use MinGW or Cygwin, follow the <a href="http://www.boost.org/doc/libs/1_43_0/more/getting_started/unix-variants.html">Unix installation instructions</a>.
 - Optionally, download and install <a href="http://www.python.org/download/">Python</a>.
 - Run CMake (either the GUI or the command line version). From the GUI it is easy to generate project files for Visual Studio or Makefiles.
-- Build the "solution" ALL in Visual Studio, or run \c make (if you use MinGW/Cygwin).
+- Build the "solution" ALL in Visual Studio, or run \c make if you use MinGW/Cygwin.
 .
 
 */

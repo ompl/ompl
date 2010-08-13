@@ -261,7 +261,7 @@ class code_generator_t(object):
 			files = [ '@CMAKE_CURRENT_SOURCE_DIR@/bindings/' + name + '.h' ],
 			cache = 'pygccxml_'+name+'_cache',
 			gccxml_path = "@GCCXML@",
-			include_paths=[ "@OMPL_INCLUDE_DIR@",
+			include_paths=[ "@OMPL_INCLUDE_DIR@", "@OMPL_APP_INCLUDE_DIR@",
 			"@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@"],
 			cflags="@PYOMPL_EXTRA_CFLAGS@",
 			indexing_suite_version = 1 )
@@ -479,6 +479,11 @@ class ompl_geometric_generator_t(code_generator_t):
 class ompl_util_generator_t(code_generator_t):
 	def __init__(self):
 		code_generator_t.__init__(self, 'util')
+
+class ompl_app_generator_t(code_generator_t):
+	def __init__(self):
+		code_generator_t.__init__(self, 'app', 'geometric')
+
 
 if __name__ == '__main__':
 	setrecursionlimit(50000)

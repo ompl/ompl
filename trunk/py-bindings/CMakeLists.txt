@@ -18,7 +18,7 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
 		"Whether the C++ code for the OMPL Python module should be generated")
 endif()
 
-set(OMPL_MODULES base control geometric util)
+set(OMPL_MODULES base control geometric util ${OMPL_APP_MODULE})
 if(PYTHON_INCLUDE_DIRS)
   include_directories(${PYTHON_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/bindings" ".")
 endif(PYTHON_INCLUDE_DIRS)
@@ -46,12 +46,17 @@ if(PY_OMPL_GENERATE)
 		separate_arguments(rel_headers UNIX_COMMAND "${headers_string}")
 		set(headers "")
 		foreach(header ${rel_headers})
-			list(APPEND headers "${OMPL_INCLUDE_DIR}/ompl/${header}")
+			if(EXISTS "${OMPL_INCLUDE_DIR}/ompl/${header}")
+				list(APPEND headers "${OMPL_INCLUDE_DIR}/ompl/${header}")
+			else()
+				list(APPEND headers "${OMPL_APP_INCLUDE_DIR}/${header}")				
+			endif()
 		endforeach(header)
 		# target for all-in-one header for module
 		add_custom_target(${module}.h
 			COMMAND ${CMAKE_COMMAND}
 			-D module=${module} -D "OMPL_INCLUDE_DIR=${OMPL_INCLUDE_DIR}"
+			-D "OMPL_APP_INCLUDE_DIR=${OMPL_APP_INCLUDE_DIR}"
 			-P generate_header.cmake
 			DEPENDS ${headers}
 			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -84,7 +89,7 @@ if(PY_OMPL_COMPILE)
 		if(NUM_SOURCE_FILES GREATER 0)
 			add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
 			target_link_libraries(py_ompl_${module} 
-				ompl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
+				ompl ${OMPL_APP_LIB} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
 			add_dependencies(py_ompl py_ompl_${module})
 			get_target_property(PY${module}_NAME py_ompl_${module} LOCATION)
 			add_custom_command(TARGET py_ompl_${module} POST_BUILD
