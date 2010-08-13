@@ -63,6 +63,8 @@ void ompl::geometric::PRM::clear(void)
     milestones_.clear();
     componentCount_ = 0;
     componentSizes_.clear();
+    lastStart_ = NULL;
+    lastGoal_ = NULL;
 }
 
 void ompl::geometric::PRM::freeMemory(void)
@@ -291,6 +293,14 @@ void ompl::geometric::PRM::uniteComponents(Milestone *m1, Milestone *m2)
     }
 }
 
+void ompl::geometric::PRM::reconstructLastSolution(void)
+{
+    if (lastStart_ && lastGoal_)
+	constructSolution(lastStart_, lastGoal_);
+    else
+	msg_.warn("There is no solution to reconstruct");
+}
+
 void ompl::geometric::PRM::constructSolution(const Milestone* start, const Milestone* goal)
 {
     const unsigned int N = milestones_.size();
@@ -334,6 +344,8 @@ void ompl::geometric::PRM::constructSolution(const Milestone* start, const Miles
 	    pos = prev[pos];
 	} while (pos >= 0);
 	pdef_->getGoal()->setSolutionPath(base::PathPtr(p));
+	lastStart_ = start;
+	lastGoal_ = goal;
     }
     else
 	throw Exception(name_, "Internal error in computing shortest path");

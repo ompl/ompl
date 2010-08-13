@@ -82,6 +82,8 @@ namespace ompl
 		
 		maxNearestNeighbors_ = 10;
 		componentCount_ = 0;
+		lastStart_ = NULL;
+		lastGoal_ = NULL;
 	    }
 	    
 	    virtual ~PRM(void)
@@ -113,7 +115,12 @@ namespace ompl
 	    virtual void growRoadmap(double growTime);
 	    
 	    virtual bool solve(double solveTime);
-	    
+
+	    /** \brief If the user desires to recompute the previously
+		obtained solution, this function allows this
+		functionality */
+	    virtual void reconstructLastSolution(void);
+
 	    virtual void clear(void);
 
 	    /** \brief Set a different nearest neighbors datastructure */
@@ -159,7 +166,7 @@ namespace ompl
 	    void growRoadmap(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, double growTime, base::State *workState);
 	    bool haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, std::pair<Milestone*, Milestone*> *endpoints = NULL);
 	    void constructSolution(const Milestone* start, const Milestone* goal);
-	    
+
 	    double distanceFunction(const Milestone* a, const Milestone* b) const
 	    {
 		return si_->distance(a->state, b->state);
@@ -168,6 +175,8 @@ namespace ompl
 	    base::StateSamplerPtr                             sampler_;
 	    boost::shared_ptr< NearestNeighbors<Milestone*> > nn_;
 	    std::vector<Milestone*>                           milestones_;
+	    const Milestone                                  *lastStart_;
+	    const Milestone                                  *lastGoal_;
 	    unsigned int                                      maxNearestNeighbors_;
 	    std::map<unsigned long, unsigned long>            componentSizes_;
 	    unsigned long                                     componentCount_;
