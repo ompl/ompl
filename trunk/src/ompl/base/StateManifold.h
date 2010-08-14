@@ -147,8 +147,14 @@ namespace ompl
 	    /** \brief Get the projection registered under a specific name */
 	    ProjectionEvaluatorPtr getProjection(const std::string &name) const;
 	    
-	    /** \brief Get the default projection (registered under the empty name) */
-	    ProjectionEvaluatorPtr getProjection(void) const;
+	    /** \brief Get the default projection */
+	    ProjectionEvaluatorPtr getDefaultProjection(void) const;
+
+	    /** \brief Check if a projection with a specified name is available */
+	    bool haveProjection(const std::string &name) const;
+
+	    /** \brief Check if a default projection is available */
+	    bool haveDefaultProjection(void) const;
 
 	    /** \brief Print a state to a stream */
 	    virtual void printState(const State *state, std::ostream &out) const;
@@ -165,7 +171,10 @@ namespace ompl
 	    virtual void setup(void);
 	    
 	protected:
-	    
+
+	    /** \brief The name used for the default projection */
+	    static const std::string DEFAULT_PROJECTION_NAME;
+	    	    
 	    /** \brief Interface used for console output */
 	    msg::Interface        msg_;
 	    
@@ -248,7 +257,7 @@ namespace ompl
 	    virtual void setup(void);
 
 	protected:
-	    
+
 	    /** \brief Lock this manifold. This means no further
 	     manifolds can be added as components.  This function can
 	     be for instance called from the constructor of a manifold

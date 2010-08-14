@@ -1,19 +1,19 @@
 /**
 \page FAQ FAQ
 
-- Q: How do I specify collision checking for a planner?
+- Q: <em>How do I specify collision checking for a planner?</em>
   <br>
   A: See ompl::base::SpaceInformation::setStateValidityChecker() and
   ompl::base::StateValidityChecker.
 
-- Q: Can I visualize the exploration datastructure used by a planner?
+- Q: <em>Can I visualize the exploration datastructure used by a planner?</em>
   <br> 
   A: Yes. You need to call ompl::base::Planner::getPlannerData(). This
   will give you an instance of ompl::base::PlannerData which contains
   all the states and the edges between them. Functionality for
   plotting this data is however not available.
 
-- Q: Can I set the sampler to use for a planner?
+- Q: <em>Can I set the sampler to use for a planner?</em>
   <br>
   A: Yes. The sampler instances used by planners are allocated by
   ompl::base::SpaceInformation::allocStateSampler(), which calls

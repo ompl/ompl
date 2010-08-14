@@ -36,6 +36,8 @@
 #include "ompl/util/Exception.h"
 #include <numeric>
 
+const std::string ompl::base::StateManifold::DEFAULT_PROJECTION_NAME = "";
+
 void ompl::base::StateManifold::setup(void)
 {
 }
@@ -74,7 +76,7 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
 	for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.begin() ; it != projections_.end() ; ++it)
 	{
 	    out << "  - ";
-	    if (it->first.empty())
+	    if (it->first == DEFAULT_PROJECTION_NAME)
 		out << "<default>";
 	    else
 		out << it->first;
@@ -84,9 +86,25 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
     }
 }
 
-ompl::base::ProjectionEvaluatorPtr ompl::base::StateManifold::getProjection(void) const
+bool ompl::base::StateManifold::haveDefaultProjection(void) const
 {
-    return getProjection("");
+    return haveProjection(DEFAULT_PROJECTION_NAME);
+}
+
+bool ompl::base::StateManifold::haveProjection(const std::string &name) const
+{
+    return projections_.find(name) != projections_.end();
+}
+
+ompl::base::ProjectionEvaluatorPtr ompl::base::StateManifold::getDefaultProjection(void) const
+{
+    if (haveDefaultProjection())
+	return getProjection(DEFAULT_PROJECTION_NAME);
+    else
+    {
+	msg_.error("No default projection is set");
+	return ProjectionEvaluatorPtr();
+    }
 }
 
 ompl::base::ProjectionEvaluatorPtr ompl::base::StateManifold::getProjection(const std::string &name) const
@@ -95,7 +113,10 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateManifold::getProjection(cons
     if (it != projections_.end())
 	return it->second;
     else
+    {
+	msg_.error("Projection '" + name + "' is not defined");
 	return ProjectionEvaluatorPtr();
+    }
 }
 
 void ompl::base::StateManifold::registerProjection(const std::string &name, const ProjectionEvaluatorPtr &projection)
