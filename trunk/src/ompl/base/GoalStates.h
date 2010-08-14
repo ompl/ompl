@@ -46,7 +46,7 @@ namespace ompl
     namespace base
     {
 	
-	/** \brief Definition of a goal state */
+	/** \brief Definition of a set of goal states */
 	class GoalStates : public GoalSampleableRegion
 	{
 	public:

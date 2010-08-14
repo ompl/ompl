@@ -181,10 +181,22 @@ namespace ompl
 		\param result the state at the end of the propagation or the last valid state if a collision is found */
 	    unsigned int propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, base::State *result) const;
 	    
-	    /** \brief Same as propagate() except that all intermediate states are returned (and optionally, memory for them is allocated) */
+	    /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps. 
+		\param state the state to start at
+		\param control the control to apply
+		\param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
+		\param result the set of states along the propagated motion
+		\param alloc flag indicating whether memory for the states in \e result should be allocated */
 	    void propagate(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
 
-	    /** \brief Same as propagateWhileValid() except that all intermediate states are returned (and optionally, memory for them is allocated) */
+	    /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
+		Stop if a collision is found and return the number of steps actually performed. If no collision is found, the returned value is 
+		equal to the steps argument. 
+		\param state the state to start at
+		\param control the control to apply
+		\param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
+		\param result the set of states along the propagated motion (only valid states included)
+		\param alloc flag indicating whether memory for the states in \e result should be allocated */
 	    unsigned int propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
 	    
 	    /** \brief Print information about the current instance of the state space */

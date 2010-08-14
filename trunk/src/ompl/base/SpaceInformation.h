@@ -221,19 +221,31 @@ namespace ompl
 	    virtual double estimateMaxResolution(unsigned int samples = 100);
 	    
 	    /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
-	     *  The two passed state pointers must point to different states. Returns true on success.  */
+	     *  The two passed state pointers must point to different states. Returns true on success. 
+	     *  \param state the location at which to store the valid state, if one is found. This location may be modified even if no valid state is found.
+	     *  \param near a state that may be invalid near which we would like to find a valid state
+	     *  \param distance the maximum allowed distance between \e state and \e near
+	     *  \param attempts the algorithm works by sampling states near state \e near. This parameter defines the maximum number of sampling attempts
+	     */
 	    virtual bool searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const;
 	    
 	    /** \brief Incrementally check if the path between two motions is valid. Also compute the last state that was
 		valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at t =
-		0 and s2 being at t = 1. This function assumes s1 is valid. */
+		0 and s2 being at t = 1. This function assumes s1 is valid.
+		\param s1 start state of the motion to be checked (assumed to be valid)
+		\param s2 final state of the motion to be checked 
+		\param lastValidState storage for the last valid state (if not NULL) 
+		\param lastValidTime location to set the time (between 0 and 1) of \e lastValidState, on the motion from \e s1 to \e s2 */
 	    virtual bool checkMotion(const State *s1, const State *s2, State *lastValidState, double *lastValidTime) const;
 	    
-	    /** \brief Check if the path between two motions is valid using subdivision. This function assumes s1 is valid. */
+	    /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using subdivision. This function assumes \e s1 is valid. */
 	    virtual bool checkMotion(const State *s1, const State *s2) const;
 	    
 	    /** \brief Incrementally check if a sequence of states is valid. Given a vector of states, this routine only
-		checks the first count elements and marks the index of the first invalid state */
+		checks the first \e count elements and marks the index of the first invalid state 
+		\param states the array of states to be checked
+		\param count the number of states to be checked in the array (0 to \e count)
+		\param firstInvalidStateIndex location to store the first invalid state index */
 	    virtual bool checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int *firstInvalidStateIndex) const;
 	    
 	    /** \brief Check if a sequence of states is valid using subdivision. */
