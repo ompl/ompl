@@ -112,15 +112,21 @@ namespace ompl
 		return goalBias_;
 	    }
 	    
-	    /** \brief Set the projection evaluator. This class is able to
-		compute the projection of a given state. The simplest
-		option is to use an orthogonal projection; see
-		OrthogonalProjectionEvaluator */
+	    /** \brief Set the projection evaluator. This class is
+		able to compute the projection of a given state. */
 	    void setProjectionEvaluator(const base::ProjectionEvaluatorPtr &projectionEvaluator)
 	    {
 		projectionEvaluator_ = projectionEvaluator;
 	    }
+
+	    /** \brief Set the projection evaluator (select one from
+		the ones registered with the state manifold). */
+	    void setProjectionEvaluator(const std::string &name)
+	    {
+		projectionEvaluator_ = si_->getStateManifold()->getProjection(name);
+	    }
 	    
+	    /** \brief Get the projection evaluator */
 	    const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
 	    {
 		return projectionEvaluator_;

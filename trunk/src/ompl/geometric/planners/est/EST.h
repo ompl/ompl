@@ -87,19 +87,19 @@ namespace ompl
 	    
 	    virtual void clear(void);
 	    
-	    /** In the process of randomly selecting states in the state
-		space to attempt to go towards, the algorithm may in fact
-		choose the actual goal state, if it knows it, with some
-		probability. This probability is a real number between 0.0
-		and 1.0; its value should usually be around 0.05 and
-		should not be too large. It is probably a good idea to use
-		the default value. */
+	    /** \brief In the process of randomly selecting states in
+		the state space to attempt to go towards, the
+		algorithm may in fact choose the actual goal state, if
+		it knows it, with some probability. This probability
+		is a real number between 0.0 and 1.0; its value should
+		usually be around 0.05 and should not be too large. It
+		is probably a good idea to use the default value. */
 	    void setGoalBias(double goalBias)
 	    {
 		goalBias_ = goalBias;
 	    }
 	    
-	    /** Get the goal bias the planner is using */
+	    /** \brief Get the goal bias the planner is using */
 	    double getGoalBias(void) const
 	    {
 		return goalBias_;
@@ -121,15 +121,21 @@ namespace ompl
 		return maxDistance_;
 	    }
 	    	    
-	    /** Set the projection evaluator. This class is able to
-		compute the projection of a given state. The simplest
-		option is to use an orthogonal projection; see
-		OrthogonalProjectionEvaluator */
+	    /** \brief Set the projection evaluator. This class is
+		able to compute the projection of a given state.  */
 	    void setProjectionEvaluator(const base::ProjectionEvaluatorPtr &projectionEvaluator)
 	    {
 		projectionEvaluator_ = projectionEvaluator;
 	    }
 	    
+	    /** \brief Set the projection evaluator (select one from
+		the ones registered with the state manifold). */
+	    void setProjectionEvaluator(const std::string &name)
+	    {
+		projectionEvaluator_ = si_->getStateManifold()->getProjection(name);
+	    }
+	    
+	    /** \brief Get the projection evaluator */
 	    const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
 	    {
 		return projectionEvaluator_;

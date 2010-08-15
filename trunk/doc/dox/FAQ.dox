@@ -25,6 +25,19 @@
   user to specify the sampler allocator, thus changing the sampling
   strategy used by planners.
 
+- Q: <em>How do I use state space projections?</em>
+  <br>
+  A: ompl has built-in support for Euclidean projections only
+  (ompl::base::ProjectionEvaluator). Projections are associated to
+  manifolds by calling
+  ompl::base::StateManifold::registerProjection(). Registering
+  projections is not technically required. The user of this library
+  may choose to pass instances of ompl::base::ProjectionEvaluator
+  where needed instead of names of registered projections. Some
+  manifolds may decide to define one or more projections (including a
+  default one) in their setup function
+  (ompl::base::StateManifold::setup()).
+
 <br>
 If your question is still not answered, another good place to check is
 the <a
