@@ -76,12 +76,13 @@ namespace ompl
 		sampler_ = si_->allocStateSampler();
 	    }
 	    
-	    virtual ~GAIK(void)
+	    ~GAIK(void)
 	    {
 	    }
 
 	    /** \brief Find a state that fits the request */
-	    virtual bool solve(double solveTime, const base::GoalRegion &goal, base::State *result, const std::vector<base::State*> &hint = std::vector<base::State*>());
+	    bool solve(double solveTime, const base::GoalRegion &goal, base::State *result,
+		       const std::vector<base::State*> &hint = std::vector<base::State*>());
 	    
 	    /** \brief Set the number of steps to perform when using hill climbing to improve an individual in the population */
 	    void setMaxImproveSteps(unsigned int maxSteps)
@@ -144,7 +145,7 @@ namespace ompl
 		return maxDistance_;
 	    }
 	    
-	protected:
+	private:
 	    
 	    /** \brief Use hill climbing to attempt to get a state closer to the goal */
 	    bool tryToImprove(const base::GoalRegion &goal, base::State *state, double distance);

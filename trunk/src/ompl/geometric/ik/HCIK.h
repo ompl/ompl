@@ -60,12 +60,13 @@ namespace ompl
 	class HCIK
 	{
 	public:
-	    
+
+	    /** \brief Constructor */
 	    HCIK(const base::SpaceInformationPtr &si) : si_(si), maxImproveSteps_(2), checkValidity_(true)
 	    {
 	    }
 	    
-	    virtual ~HCIK(void)
+	    ~HCIK(void)
 	    {
 	    }
 	    
@@ -98,8 +99,8 @@ namespace ompl
 		return checkValidity_;
 	    }
 	    
-	protected:	
-
+	private:	
+	    
 	    bool valid(const base::State *state) const
 	    {
 		return checkValidity_ ? si_->isValid(state) : true;
