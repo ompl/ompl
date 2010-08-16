@@ -253,8 +253,8 @@ namespace ompl
 	    
 	    /** \brief Get the states that make up a motion. Returns the number of states that were added.
 
-		The states are added at the distance specified by the collision checking resolution times the factor
-		specified. A factor larger than 1 will result in fewer states per motion.
+		The states are added at a resolution \e r = \e svr * \e factor, where \e svr is the state validity checking resolution. 
+		A \e factor larger than 1 will result in fewer states per motion.
 		\param s1 the start state of the considered motion
 		\param s2 the end state of the considered motion
 		\param states the computed set of states along the specified motion

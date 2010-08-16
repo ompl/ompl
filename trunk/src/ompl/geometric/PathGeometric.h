@@ -71,7 +71,7 @@ namespace ompl
 	    /** \brief Assignment operator */
 	    PathGeometric& operator=(const PathGeometric& other);
 	    
-	    /** \brief Compute the length of a geometric path */
+	    /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
 	    virtual double length(void) const;
 
 	    /** \brief Check if the path is valid */
@@ -80,7 +80,10 @@ namespace ompl
 	    /** \brief Print the path to a stream */
 	    virtual void print(std::ostream &out) const;
 
-	    /** \brief Insert states in a path, at the collision checking resolution */
+	    /** \brief Insert states in a path at resolution \e r = \e
+		factor * \e svr, where \e svr is the state validity
+		checking resolution. If \e factor < 1, more states are
+		added along the path. */
 	    void interpolate(double factor = 1.0);
 	    
 	    /** \brief The list of states that make up the path */

@@ -308,6 +308,7 @@ bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2)
 
 unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, double factor, bool endpoints, bool alloc) const
 {
+    assert(factor > std::numeric_limits<double>::epsilon());    
     int nd = (int)ceil(distance(s1, s2) / (resolution_ * factor));
     
     if (nd < 2)
