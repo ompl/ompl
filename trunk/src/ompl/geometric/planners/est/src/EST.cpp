@@ -51,6 +51,7 @@ void ompl::geometric::EST::setup(void)
 
 void ompl::geometric::EST::clear(void)
 {
+    Planner::clear();
     freeMemory();
     tree_.grid.clear();
     tree_.size = 0;

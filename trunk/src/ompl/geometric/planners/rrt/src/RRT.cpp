@@ -39,6 +39,13 @@
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include <limits>
 
+void ompl::geometric::RRT::clear(void)
+{
+    Planner::clear();
+    freeMemory();
+    nn_->clear();
+}
+
 void ompl::geometric::RRT::setup(void)
 {
     Planner::setup(); 

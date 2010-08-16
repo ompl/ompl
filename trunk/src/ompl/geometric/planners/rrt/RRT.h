@@ -91,11 +91,7 @@ namespace ompl
 
 	    virtual bool solve(double solveTime);
 	    
-	    virtual void clear(void)
-	    {
-		freeMemory();
-		nn_->clear();
-	    }
+	    virtual void clear(void);
 	    
 	    /** \brief Set the goal bias
 

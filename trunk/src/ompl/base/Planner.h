@@ -267,7 +267,7 @@ namespace ompl
 	    
 	    /** \brief Clear all internal datastructures. Subsequent
 		calls to solve() will ignore all previous work. */
-	    virtual void clear(void) = 0;
+	    virtual void clear(void);
 	    
 	    /** \brief Get information about the current run of the motion planner  */
 	    virtual void getPlannerData(PlannerData &data) const = 0;

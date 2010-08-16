@@ -52,6 +52,7 @@ void ompl::geometric::pSBL::setup(void)
 
 void ompl::geometric::pSBL::clear(void)
 {
+    Planner::clear();
     freeMemory();
     
     tStart_.grid.clear();

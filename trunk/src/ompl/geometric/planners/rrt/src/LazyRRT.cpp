@@ -52,6 +52,7 @@ void ompl::geometric::LazyRRT::setup(void)
 
 void ompl::geometric::LazyRRT::clear(void)
 {
+    Planner::clear();
     freeMemory();
     nn_->clear();
 }

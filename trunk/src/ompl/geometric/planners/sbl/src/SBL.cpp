@@ -323,6 +323,7 @@ void ompl::geometric::SBL::addMotion(TreeData &tree, Motion *motion)
 
 void ompl::geometric::SBL::clear(void)
 {
+    Planner::clear();
     freeMemory();
     
     tStart_.grid.clear();

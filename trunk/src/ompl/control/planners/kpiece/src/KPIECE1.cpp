@@ -52,6 +52,7 @@ void ompl::control::KPIECE1::setup(void)
 
 void ompl::control::KPIECE1::clear(void)
 {
+    Planner::clear();
     freeMemory();
     tree_.grid.clear();
     tree_.size = 0;

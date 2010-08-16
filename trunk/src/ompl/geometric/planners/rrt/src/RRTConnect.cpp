@@ -74,7 +74,8 @@ void ompl::geometric::RRTConnect::freeMemory(void)
 }
 
 void ompl::geometric::RRTConnect::clear(void)
-{
+{ 
+    Planner::clear();
     freeMemory();
     tStart_->clear();
     tGoal_->clear();

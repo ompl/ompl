@@ -338,6 +338,8 @@ void ompl::geometric::LBKPIECE1::freeMotion(Motion *motion)
 
 void ompl::geometric::LBKPIECE1::clear(void)
 {
+    Planner::clear();
+
     freeMemory();
     
     tStart_.grid.clear();

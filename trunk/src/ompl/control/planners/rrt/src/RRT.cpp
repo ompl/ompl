@@ -51,6 +51,7 @@ void ompl::control::RRT::setup(void)
 
 void ompl::control::RRT::clear(void)
 {
+    Planner::clear();
     freeMemory();
     nn_->clear();
 }

@@ -58,6 +58,7 @@ void ompl::geometric::PRM::setup(void)
 
 void ompl::geometric::PRM::clear(void)
 {
+    Planner::clear();
     freeMemory();
     nn_->clear();
     milestones_.clear();

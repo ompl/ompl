@@ -52,6 +52,7 @@ void ompl::geometric::pRRT::setup(void)
 
 void ompl::geometric::pRRT::clear(void)
 {
+    Planner::clear();
     freeMemory();
     nn_->clear();
 }

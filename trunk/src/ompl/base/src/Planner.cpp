@@ -89,6 +89,11 @@ bool ompl::base::Planner::isSetup(void) const
     return setup_;
 }
 
+void ompl::base::Planner::clear(void)
+{
+    pis_.clear();
+}
+
 void ompl::base::PlannerData::print(std::ostream &out) const
 {
     out << states.size() << std::endl;
