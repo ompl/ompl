@@ -116,6 +116,16 @@ std::string __printProjections(%s* obj)
 	return s.str();
 }
 """)
+# A C++ call like "foo.printProjection(projection, std::cout)" will be replaced with
+# something more pythonesque: "print foo.projection()"
+replacement['printProjection'] = ('def("projection", &__printProjection)', """
+std::string __printProjection(%s* obj, const ompl::base::EuclideanProjection &projection)
+{
+	std::ostringstream s;
+	obj->printProjection(projection, s);
+	return s.str();
+}
+""")
 
 # add array read access to objects that can return a const reference using the
 # [] operator.
@@ -257,12 +267,17 @@ class code_generator_t(object):
 		@name name of the python module
 		@dep name of another module this module depends on"""
 		module_builder.set_logger_level( logging.INFO )
+		candidate_include_paths = [ "@OMPL_INCLUDE_DIR@", "@OMPL_APP_INCLUDE_DIR@",
+			"@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@"]
+		include_paths = []
+		for path in candidate_include_paths:
+			if len(path)>0:
+				include_paths.append(path)
 		self.mb = module_builder.module_builder_t(
 			files = [ '@CMAKE_CURRENT_SOURCE_DIR@/bindings/' + name + '.h' ],
 			cache = 'pygccxml_'+name+'_cache',
 			gccxml_path = "@GCCXML@",
-			include_paths=[ "@OMPL_INCLUDE_DIR@", "@OMPL_APP_INCLUDE_DIR@",
-			"@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@"],
+			include_paths = include_paths,
 			cflags="@PYOMPL_EXTRA_CFLAGS@",
 			indexing_suite_version = 1 )
 		self.mb.classes().always_expose_using_scope
@@ -409,8 +424,10 @@ class ompl_base_generator_t(code_generator_t):
 		self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
 		# make states printable
 		self.replace_member_functions(self.ompl_ns.member_functions('printState'))
-		# make projections printable
+		# make list of available projections printable
 		self.replace_member_functions(self.ompl_ns.member_functions('printProjections'))
+		# make projections projections
+		self.replace_member_functions(self.ompl_ns.member_functions('printProjection'))
 		# add wrapper code for setStateValidityChecker
 		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
 			'SpaceInformation').member_functions('setStateValidityChecker', 
@@ -483,7 +500,7 @@ class ompl_util_generator_t(code_generator_t):
 class ompl_app_generator_t(code_generator_t):
 	def __init__(self):
 		code_generator_t.__init__(self, 'app', 'geometric')
-
+		
 
 if __name__ == '__main__':
 	setrecursionlimit(50000)
