@@ -164,31 +164,33 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
 {
     if (pdef_ == NULL || si_ == NULL)
     {
-	std::string error = "Planner did not set space information or problem definition";
+	std::string error = "Missing space information or problem definition";
 	if (planner_)
 	    throw Exception(planner_->getName(), error);
 	else
 	    throw Exception(error);
     }
     
-    if (addedStartStates_ < pdef_->getStartStateCount())
+    while (addedStartStates_ < pdef_->getStartStateCount())
     {
 	const base::State *st = pdef_->getStartState(addedStartStates_);
 	addedStartStates_++;
 	if (si_->satisfiesBounds(st) && si_->isValid(st))
 	    return st;
 	else
-	    return NULL;
+	{
+	    msg::Interface msg(planner_ ? planner_->getName() : "");
+	    msg.warn("Skipping invalid start state");
+	}
     }
-    else
-	return NULL;
+    return NULL;
 }
 
 const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(time::point maxEndTime)
 {
     if (pdef_ == NULL || si_ == NULL)
     {
-	std::string error = "Planner did not set space information or problem definition";
+	std::string error = "Missing space information or problem definition";
 	if (planner_)
 	    throw Exception(planner_->getName(), error);
 	else
@@ -210,6 +212,11 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(time::point ma
 		
 		if (si_->satisfiesBounds(tempState_) && si_->isValid(tempState_))
 		    return tempState_;
+		else
+		{
+		    msg::Interface msg(planner_ ? planner_->getName() : "");
+		    msg.warn("Skipping invalid goal state");
+		}
 	    }
 	    while (sampledGoalsCount_ < goal->maxSampleCount() && time::now() < maxEndTime);
 	}
