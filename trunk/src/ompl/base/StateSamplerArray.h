@@ -54,7 +54,7 @@ namespace ompl
 	public:
 	    
 	    /** \brief Constructor */
-	    StateSamplerArray(const SpaceInformationConstPtr &si) : si_(si)
+	    StateSamplerArray(const SpaceInformationPtr &si) : si_(si)
 	    {
 	    }
 	    
@@ -81,7 +81,7 @@ namespace ompl
 	private:
 	    
 	    std::vector<StateSamplerPtr> samplers_;
-	    SpaceInformationConstPtr     si_;
+	    SpaceInformationPtr          si_;
 	};
     }
 }

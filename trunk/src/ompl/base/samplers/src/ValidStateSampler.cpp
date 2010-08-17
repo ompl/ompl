@@ -34,16 +34,33 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_UTIL_CLASS_FORWARD_
-#define OMPL_UTIL_CLASS_FORWARD_
+#include "ompl/base/samplers/ValidStateSampler.h"
+#include "ompl/util/Exception.h"
 
-#include <boost/shared_ptr.hpp>
+void ompl::base::ValidStateSampler::sample(State *state)
+{
+    unsigned int attempts = 0;
+    bool valid = false;
+    do
+    {
+	sampler_->sample(state);
+	valid = si_->isValid(state);
+	attempts++;
+    } while (!valid && attempts < attempts_);
+    if (!valid)
+	throw Exception("Unable to sample a valid state");
+}
 
-/** \brief Macro that defines a forward declaration for a class, and
-    shared pointers to the class. For example ClassForward(MyType);
-    will produce type definitions for MyType and MyTypePtr. */
-#define ClassForward(C)					\
-    class C;						\
-    typedef boost::shared_ptr<C> C##Ptr
-
-#endif
+void ompl::base::ValidStateSampler::sampleNear(State *state, const State *near, const double distance)
+{    
+    unsigned int attempts = 0;
+    bool valid = false;
+    do
+    {
+	sampler_->sampleNear(state, near, distance);
+	valid = si_->isValid(state);
+	attempts++;
+    } while (!valid && attempts < attempts_);
+    if (!valid)
+	throw Exception("Unable to sample a valid state");
+}

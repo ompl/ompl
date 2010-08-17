@@ -34,16 +34,68 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_UTIL_CLASS_FORWARD_
-#define OMPL_UTIL_CLASS_FORWARD_
+#ifndef OMPL_BASE_SAMPLERS_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_VALID_STATE_SAMPLER_
 
-#include <boost/shared_ptr.hpp>
+#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/StateSampler.h"
 
-/** \brief Macro that defines a forward declaration for a class, and
-    shared pointers to the class. For example ClassForward(MyType);
-    will produce type definitions for MyType and MyTypePtr. */
-#define ClassForward(C)					\
-    class C;						\
-    typedef boost::shared_ptr<C> C##Ptr
+namespace ompl
+{
+    namespace base
+    {
+	
+
+	/** \brief A state sampler that only samples valid states. */
+	class ValidStateSampler : public StateSampler
+	{	    
+	public:
+	    
+	    ValidStateSampler(const SpaceInformationPtr &si) :
+		StateSampler(si->getStateManifold().get()), si_(si.get()), sampler_(si->allocStateSampler()), attempts_(100)
+	    {
+	    }
+	    
+	    ValidStateSampler(const SpaceInformationPtr &si, const StateSamplerPtr &sampler) :
+		StateSampler(si->getStateManifold().get()), si_(si.get()), sampler_(sampler), attempts_(100)
+	    {
+	    }
+	    
+	    virtual ~ValidStateSampler(void)
+	    {
+	    }
+	    
+	    /** \brief Sample a valid state. Throw an exception of such a state is not found */
+	    virtual void sample(State *state);
+
+	    /** \brief Sample a valid state near a specified state. Throw an exception of such a state is not found */
+	    virtual void sampleNear(State *state, const State *near, const double distance);
+	
+	    void setNrAttempts(unsigned int attempts)
+	    {
+		attempts_ = attempts;
+	    }
+	    
+	    unsigned int getNrAttempts(void) const
+	    {
+		return attempts_;
+	    }
+	    
+	protected:
+	    
+	    /** \brief The space information that contains the state validator for this sampler  */
+	    const SpaceInformation *si_;
+	
+	    /** \brief The sampler to build upon */
+	    StateSamplerPtr         sampler_;
+
+	    /** \brief Number of attempts to find a valid sample */
+	    unsigned int            attempts_;
+	    
+	};
+
+    }
+}
+
 
 #endif

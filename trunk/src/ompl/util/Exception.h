@@ -37,7 +37,6 @@
 #ifndef OMPL_UTIL_EXCEPTION_
 #define OMPL_UTIL_EXCEPTION_
 
-#include "ompl/util/Console.h"
 #include <stdexcept>
 
 namespace ompl
@@ -48,33 +47,22 @@ namespace ompl
     {
     public:
 	
-	/** \brief This is just a wrapper on std::runtime_error with
-	    the addition that the what() message of the exception is
-	    sent to the console as well (in case some logging is
-	    performed). */
+	/** \brief This is just a wrapper on std::runtime_error */
 	explicit
 	Exception(const std::string& what) : std::runtime_error(what)
 	{
-	    msg_.error(what);
 	}
 
-	/** \brief This is just a wrapper on std::runtime_error with
-	    the addition that the what() message of the exception is
-	    sent to the console as well (in case some logging is
-	    performed). A prefix is also specified when sending the
-	    message to the console. */
-	Exception(const std::string &prefix, const std::string& what) : std::runtime_error(what), msg_(prefix)
+	/** \brief This is just a wrapper on std::runtime_error with a
+	    prefix added */
+	Exception(const std::string &prefix, const std::string& what) : std::runtime_error(prefix + ": " + what)
 	{
-	    msg_.error(what);
 	}
 	
 	virtual ~Exception(void) throw()
 	{
 	}
 	
-    private:
-	
-	msg::Interface msg_;
     };
     
 }
