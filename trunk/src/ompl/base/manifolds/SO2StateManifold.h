@@ -81,44 +81,31 @@ namespace ompl
 	    {	
 	    }
 	    
-	    /** \brief Get the dimension of the space */
 	    virtual unsigned int getDimension(void) const;
 	    
-	    /** \brief Bring the state within the bounds of the state space */
 	    virtual void enforceBounds(State *state) const;
 	    	    
-	    /** \brief Check if a state is inside the bounding box */
 	    virtual bool satisfiesBounds(const State *state) const;
 	    
-	    /** \brief Copy a state to another */
 	    virtual void copyState(State *destination, const State *source) const;
 	    
-	    /** \brief Computes distance to between two states */
 	    virtual double distance(const State *state1, const State *state2) const;
 	    
-	    /** \brief Checks whether two states are equal */
 	    virtual bool equalStates(const State *state1, const State *state2) const;
 
-	    /** \brief Computes the state that lies at time t \in [0, 1] on the
-		segment that connects the current state to the
-		destination state */
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-	    /** \brief Allocate an instance of a uniform state sampler for this space */
 	    virtual StateSamplerPtr allocUniformStateSampler(void) const;
 	    
-	    /** \brief Allocate a state that can store a point in the described space */
 	    virtual State* allocState(void) const;
-	    
-	    /** \brief Free the memory of the allocated state */
+
 	    virtual void freeState(State *state) const;
 
-	    /** \brief Print a state to screen */
 	    virtual void printState(const State *state, std::ostream &out) const;
 	    
-	    /** \brief Print the settings for this manifold to a stream */
 	    virtual void printSettings(std::ostream &out) const;
-	    
+
+	    virtual void setup(void);
 	};
     }
 }

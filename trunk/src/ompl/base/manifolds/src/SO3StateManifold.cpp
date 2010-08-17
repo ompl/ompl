@@ -39,6 +39,8 @@
 #include <limits>
 #include <cmath>
 
+#include <boost/math/constants/constants.hpp>
+
 void ompl::base::SO3StateManifold::StateType::setAxisAngle(double ax, double ay, double az, double angle)
 {
     double norm = sqrt(ax * ax + ay * ay + az * az);
@@ -167,6 +169,37 @@ ompl::base::State* ompl::base::SO3StateManifold::allocState(void) const
 void ompl::base::SO3StateManifold::freeState(State *state) const
 {
     delete static_cast<StateType*>(state);
+}
+
+void ompl::base::SO3StateManifold::setup(void)
+{
+    class SO3DefaultProjection : public ProjectionEvaluator
+    {
+    public:
+	
+	SO3DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
+	{
+	    cellDimensions_.resize(3);
+	    cellDimensions_[0] = boost::math::constants::pi<double>() / 10.0;
+	    cellDimensions_[1] = boost::math::constants::pi<double>() / 10.0;
+	    cellDimensions_[2] = boost::math::constants::pi<double>() / 10.0;
+	}
+	
+	virtual unsigned int getDimension(void) const
+	{
+	    return 3;
+	}
+	
+	virtual void project(const State *state, EuclideanProjection &projection) const
+	{
+	    projection.values[0] = state->as<SO3StateManifold::StateType>()->x;
+	    projection.values[1] = state->as<SO3StateManifold::StateType>()->y;
+	    projection.values[2] = state->as<SO3StateManifold::StateType>()->z;
+	}
+    };
+    
+    StateManifold::setup();
+    registerProjection(DEFAULT_PROJECTION_NAME, ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO3DefaultProjection(this))));
 }
 
 void ompl::base::SO3StateManifold::printState(const State *state, std::ostream &out) const

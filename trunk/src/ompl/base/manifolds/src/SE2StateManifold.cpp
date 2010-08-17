@@ -75,6 +75,6 @@ void ompl::base::SE2StateManifold::setup(void)
     };
     
     CompoundStateManifold::setup();
-    registerProjection("", ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SE2DefaultProjection(this))));
+    registerProjection(DEFAULT_PROJECTION_NAME, ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SE2DefaultProjection(this))));
 }
 

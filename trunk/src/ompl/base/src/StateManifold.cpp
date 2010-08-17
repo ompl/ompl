@@ -121,7 +121,10 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateManifold::getProjection(cons
 
 void ompl::base::StateManifold::registerProjection(const std::string &name, const ProjectionEvaluatorPtr &projection)
 {
-    projections_[name] = projection;
+    if (projection)
+	projections_[name] = projection;
+    else
+	msg_.error("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
 }
 
 void ompl::base::CompoundStateManifold::addSubManifold(const StateManifoldPtr &component, double weight)

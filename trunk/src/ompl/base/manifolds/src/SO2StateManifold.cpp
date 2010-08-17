@@ -135,6 +135,33 @@ void ompl::base::SO2StateManifold::freeState(State *state) const
     delete static_cast<StateType*>(state);
 }
 
+void ompl::base::SO2StateManifold::setup(void)
+{
+    class SO2DefaultProjection : public ProjectionEvaluator
+    {
+    public:
+	
+	SO2DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
+	{
+	    cellDimensions_.resize(1);
+	    cellDimensions_[0] = boost::math::constants::pi<double>() / 10.0;
+	}
+	
+	virtual unsigned int getDimension(void) const
+	{
+	    return 1;
+	}
+	
+	virtual void project(const State *state, EuclideanProjection &projection) const
+	{
+	    projection.values[0] = state->as<SO2StateManifold::StateType>()->value;
+	}
+    };
+    
+    StateManifold::setup();
+    registerProjection(DEFAULT_PROJECTION_NAME, ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO2DefaultProjection(this))));
+}
+
 void ompl::base::SO2StateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "SO2State [";
