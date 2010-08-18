@@ -24,6 +24,21 @@
   ompl::base::StateManifold::setStateSamplerAllocator() allows the
   user to specify the sampler allocator, thus changing the sampling
   strategy used by planners.
+  @code
+  #include "ompl/base/samplers/ValidStateSampler.h"
+  ...
+  ompl::base::StateSamplerPtr allocValidStateSampler(const ompl::base::SpaceInformation *si,
+  			      			     const ompl::base::StateManifold    *manifold)
+  {
+	if (si->getStateManifold().get() != manifold)
+	   throw ompl::Exception("Unable to allocate sampler for this manifold");
+    	return ompl::base::StateSamplerPtr(new ompl::base::ValidStateSampler(si, manifold->allocUniformStateSampler()));
+  }
+  ...
+  ompl::base::StateManifoldPtr manifold(...);
+  ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(manifold));
+  manifold->setStateSamplerAllocator(boost::bind(&allocValidStateSampler, si.get(), _1));
+  @endcode
 
 - Q: <em>How do I use state space projections?</em>
   <br>

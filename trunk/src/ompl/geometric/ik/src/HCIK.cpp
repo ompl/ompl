@@ -49,7 +49,7 @@ bool ompl::geometric::HCIK::tryToImprove(const base::GoalRegion &goal, base::Sta
     
     double bestDist = initialDistance;
     
-    base::StateSamplerPtr ss = si_->allocStateSampler();
+    base::StateSamplerPtr ss = si_->getStateManifold()->allocUniformStateSampler();
     base::State *test = si_->allocState();
     unsigned int noUpdateSteps = 0;
     

@@ -43,8 +43,17 @@
 bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal, base::State *result, const std::vector<base::State*> &hint)
 {
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
-	throw Exception("The maximu distance for sampling around states needs to be positive");
-    
+    {
+	maxDistance_ = si_->estimateExtent() / 5.0;
+	msg_.inform("The maximum distance for sampling around states is assumed to be %f", maxDistance_);
+    }
+
+    if (poolSize_ < 1)
+    {
+	msg_.error("Pool size too small");
+	return false;	
+    }
+        
     time::point             endTime = time::now() + time::seconds(solveTime);
     
     unsigned int            maxPoolSize = poolSize_ + poolExpansion_;
@@ -52,13 +61,8 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     IndividualSort          gs;
     bool                    solved = false;
     int                     solution = -1;
-    
-    if (poolSize_ < 1)
-    {
-	msg_.error("Pool size too small");
-	return false;	
-    }
-    
+    base::StateSamplerPtr   sampler = si_->getStateManifold()->allocUniformStateSampler();
+
     // add hint states
     unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
     for (unsigned int i = 0 ; i < nh ; ++i)
@@ -83,7 +87,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 	for (unsigned int i = nh ; i < nh2 ; ++i)
 	{
 	    pool[i].state = si_->allocState();
-	    sampler_->sampleNear(pool[i].state, pool[i % nh].state, maxDistance_);
+	    sampler->sampleNear(pool[i].state, pool[i % nh].state, maxDistance_);
 	    pool[i].valid = valid(pool[i].state);
 	    if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
@@ -101,7 +105,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     for (unsigned int i = nh ; i < maxPoolSize ; ++i)
     {
 	pool[i].state = si_->allocState();
-	sampler_->sample(pool[i].state);
+	sampler->sample(pool[i].state);
 	pool[i].valid = valid(pool[i].state);
 	if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
@@ -129,7 +133,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 	// add mutations
 	for (unsigned int i = poolSize_ ; i < mutationsSize ; ++i)
 	{
-	    sampler_->sampleNear(pool[i].state, pool[i % poolSize_].state, maxDistance_);
+	    sampler->sampleNear(pool[i].state, pool[i % poolSize_].state, maxDistance_);
 	    pool[i].valid = valid(pool[i].state);
 	    if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
@@ -146,7 +150,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 	if (!solved)
 	    for (unsigned int i = mutationsSize ; i < maxPoolSize ; ++i)
 	    {
-		sampler_->sample(pool[i].state);
+		sampler->sample(pool[i].state);
 		pool[i].valid = valid(pool[i].state);
 		if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 		{

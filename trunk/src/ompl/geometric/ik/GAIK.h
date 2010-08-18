@@ -68,12 +68,11 @@ namespace ompl
 	    GAIK(const base::SpaceInformationPtr &si) : hcik_(si), msg_("GAIK")
 	    {
 		si_ = si;
-		maxDistance_ = si_->getStateValidityCheckingResolution() * 100.0;
 		poolSize_ = 80;
 		poolExpansion_ = 100;
 		hcik_.setMaxImproveSteps(3);
-		setValidityCheck(true);
-		sampler_ = si_->allocStateSampler();
+		setValidityCheck(true);		
+		maxDistance_ = 0.0;
 	    }
 	    
 	    ~GAIK(void)
@@ -175,8 +174,7 @@ namespace ompl
 	    };
 	    
 	    HCIK                                         hcik_;
-	    base::StateSamplerPtr                        sampler_;
-	    base::SpaceInformationPtr                    si_;	
+	    base::SpaceInformationPtr                    si_;
 	    unsigned int                                 poolSize_;
 	    unsigned int                                 poolExpansion_;
 	    bool                                         checkValidity_;	

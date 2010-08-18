@@ -110,7 +110,7 @@ double ompl::base::SpaceInformation::estimateExtent(unsigned int samples)
 	samples = 2;
 
     // sample some states
-    StateSamplerPtr ss = allocStateSampler();
+    StateSamplerPtr ss = stateManifold_->allocUniformStateSampler();
     std::vector<State*> states(samples);
     for (unsigned int i = 0 ; i  < samples ; ++i)
     {
@@ -167,7 +167,7 @@ double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
     maxResolution_ = extent / 50.0;
     
     // sample some states
-    StateSamplerPtr ss = allocStateSampler();
+    StateSamplerPtr ss = stateManifold_->allocUniformStateSampler();
     std::vector<State*> validStates;
     std::vector<State*> invalidStates;
     for (unsigned int i = 0 ; i  < samples ; ++i)
@@ -216,8 +216,8 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     if (!result)
     {
 	// try to find a valid state nearby
-	StateSamplerPtr ss = allocStateSampler();
-	State        *temp = stateManifold_->allocState();
+	StateSamplerPtr ss = stateManifold_->allocUniformStateSampler();
+	State        *temp = allocState();
 	copyState(temp, state);	
 	for (unsigned int i = 0 ; i < attempts && !result ; ++i)
 	{

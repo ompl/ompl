@@ -51,13 +51,8 @@ namespace ompl
 	{	    
 	public:
 	    
-	    ValidStateSampler(const SpaceInformationPtr &si) :
-		StateSampler(si->getStateManifold().get()), si_(si.get()), sampler_(si->allocStateSampler()), attempts_(100)
-	    {
-	    }
-	    
-	    ValidStateSampler(const SpaceInformationPtr &si, const StateSamplerPtr &sampler) :
-		StateSampler(si->getStateManifold().get()), si_(si.get()), sampler_(sampler), attempts_(100)
+	    ValidStateSampler(const SpaceInformation *si, const StateSamplerPtr &sampler) :
+		StateSampler(si->getStateManifold().get()), si_(si), sampler_(sampler), attempts_(100)
 	    {
 	    }
 	    
