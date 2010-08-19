@@ -246,7 +246,7 @@ namespace ompl
 		0 and s2 being at t = 1. This function assumes s1 is valid.
 		\param s1 start state of the motion to be checked (assumed to be valid)
 		\param s2 final state of the motion to be checked 
-		\param lastValidState storage for the last valid state (if not NULL) 
+		\param lastValidState storage for the last valid state (if not NULL); this need not be different from \e s1 or \e s2
 		\param lastValidTime location to set the time (between 0 and 1) of \e lastValidState, on the motion from \e s1 to \e s2 */
 	    virtual bool checkMotion(const State *s1, const State *s2, State *lastValidState, double *lastValidTime) const;
 	    
