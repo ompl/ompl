@@ -75,6 +75,9 @@ if(PY_OMPL_GENERATE)
 	add_dependencies(update_base_bindings update_util_bindings)
 	add_dependencies(update_control_bindings update_base_bindings)
 	add_dependencies(update_geometric_bindings update_base_bindings)
+	if(OMPL_APP_MODULE)
+		add_dependencies(update_${OMPL_APP_MODULE}_bindings update_geometric_bindings)
+	endif()
 	
 endif(PY_OMPL_GENERATE)
 
@@ -100,7 +103,11 @@ if(PY_OMPL_COMPILE)
 			# python unit tests
 			add_test(test_py_ompl_${module} "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_${module}.py")
 		else(NUM_SOURCE_FILES GREATER 0)
-			message(STATUS "Code for module ${module} not found; type \"make update_bindings\"")
+			if(PY_OMPL_GENERATE)
+				message(STATUS "Code for module ${module} not found; type \"make update_bindings\"")
+			else()
+				message(STATUS "Code for module ${module} not found")
+			endif()
 		endif(NUM_SOURCE_FILES GREATER 0)
 	endforeach(module)
 	
