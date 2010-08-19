@@ -46,7 +46,7 @@ void ompl::control::KPIECE1::setup(void)
     checkProjectionEvaluator(this, projectionEvaluator_);
     
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocUniformStateSampler();
     controlSampler_ = siC_->allocControlSampler();
 }
 

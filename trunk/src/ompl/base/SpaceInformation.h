@@ -40,7 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/StateManifold.h"
-#include "ompl/base/StateSampler.h"
+#include "ompl/base/ValidStateSampler.h"
 
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
@@ -91,7 +91,7 @@ namespace ompl
 	    virtual ~SpaceInformation(void)
 	    {
 	    }
-	    	    
+
 	    /** \brief Return the instance of the used manifold */
 	    const StateManifoldPtr& getStateManifold(void) const
 	    {
@@ -198,10 +198,22 @@ namespace ompl
 		stateManifold_->enforceBounds(state);
 	    }
 
-	    /** \brief Allocate a state sampler */
-	    StateSamplerPtr allocStateSampler(void) const
+	    /** \brief Allocate a uniform state sampler for the manifold representing the space */
+	    UniformStateSamplerPtr allocUniformStateSampler(void) const
 	    {
-		return stateManifold_->allocStateSampler();
+		return stateManifold_->allocUniformStateSampler();
+	    }
+	    
+	    /** \brief Allocate an instance of a valid state sampler for this space. If setValidStateSamplerAllocator() was previously called,
+		the specified allocator is used to produce the state sampler.  Otherwise, a ompl::base::UniformValidStateSampler() is
+		allocated. */
+	    ValidStateSamplerPtr allocValidStateSampler(void) const;
+
+
+	    /** \brief Set the allocator to use for a valid state sampler. This replaces the default uniform valid state sampler. */
+	    void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
+	    {
+		vssa_ = vssa;
 	    }
 	    
 	    /** \brief Estimate the maximum (underapproximation)
@@ -281,22 +293,25 @@ namespace ompl
 	    StateValidityCheckerPtr stateValidityChecker_;
 	    
 	    /** \brief The manifold planning is to be performed in */
-	    StateManifoldPtr        stateManifold_;
+	    StateManifoldPtr           stateManifold_;
 
 	    /** \brief The resolution (maximum distance between states) at which state validity checks are performed */
-	    double                  resolution_;
+	    double                     resolution_;
 
 	    /** \brief If estimateExtent() has been called, this value is filled in with the computed maximum extent */
-	    double                  maxExtent_;
+	    double                     maxExtent_;
 
 	    /** \brief If estimateMaxResolution() has been called, this value is filled with the estimated maximum resolution */
-	    double                  maxResolution_;
+	    double                     maxResolution_;
 	    
 	    /** \brief Flag indicating whether setup() has been called on this instance */
-	    bool                    setup_;
+	    bool                       setup_;
+
+            /** \brief The optional valid state sampler allocator */
+	    ValidStateSamplerAllocator vssa_;
 
 	    /** \brief The console interface */
-	    msg::Interface          msg_;
+	    msg::Interface             msg_;
 	};
 	
     }

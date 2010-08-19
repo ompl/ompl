@@ -51,7 +51,7 @@ void ompl::geometric::RRT::setup(void)
     Planner::setup(); 
     checkMotionLength(this, maxDistance_);
 
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocUniformStateSampler();
     if (!nn_)
 	nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));

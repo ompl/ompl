@@ -42,19 +42,6 @@ void ompl::base::StateManifold::setup(void)
 {
 }
 
-void ompl::base::StateManifold::setStateSamplerAllocator(const StateSamplerAllocator &ssa)
-{
-    ssa_ = ssa;
-}
-
-ompl::base::StateSamplerPtr ompl::base::StateManifold::allocStateSampler(void) const
-{
-    if (ssa_)
-	return ssa_(this);
-    else
-	return allocUniformStateSampler();
-}
-
 void ompl::base::StateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "State instance [" << state << ']' << std::endl;
@@ -230,31 +217,15 @@ void ompl::base::CompoundStateManifold::interpolate(const State *from, const Sta
 	components_[i]->interpolate(cfrom->components[i], cto->components[i], t, cstate->components[i]);
 }
 
-ompl::base::StateSamplerPtr ompl::base::CompoundStateManifold::allocUniformStateSampler(void) const
+ompl::base::UniformStateSamplerPtr ompl::base::CompoundStateManifold::allocUniformStateSampler(void) const
 {
     double totalWeight = std::accumulate(weights_.begin(), weights_.end(), 0.0);
     if (totalWeight < std::numeric_limits<double>::epsilon())
 	totalWeight = 1.0;	
-    CompoundStateSampler *ss = new CompoundStateSampler(this);
+    CompoundUniformStateSampler *ss = new CompoundUniformStateSampler(this);
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
 	ss->addSampler(components_[i]->allocUniformStateSampler(), weights_[i] / totalWeight);
-    return StateSamplerPtr(ss);
-}
-
-ompl::base::StateSamplerPtr ompl::base::CompoundStateManifold::allocStateSampler(void) const
-{
-    if (ssa_)
-	return ssa_(this);
-    else
-    {
-	double totalWeight = std::accumulate(weights_.begin(), weights_.end(), 0.0);
-	if (totalWeight < std::numeric_limits<double>::epsilon())
-	    totalWeight = 1.0;
-	CompoundStateSampler *ss = new CompoundStateSampler(this);
-	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	    ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / totalWeight);
-	return StateSamplerPtr(ss);
-    }
+    return UniformStateSamplerPtr(ss);
 }
 
 ompl::base::State* ompl::base::CompoundStateManifold::allocState(void) const

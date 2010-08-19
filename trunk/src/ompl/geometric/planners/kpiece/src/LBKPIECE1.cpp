@@ -46,7 +46,7 @@ void ompl::geometric::LBKPIECE1::setup(void)
     
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocUniformStateSampler();
 }
 
 bool ompl::geometric::LBKPIECE1::solve(double solveTime)

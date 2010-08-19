@@ -45,11 +45,11 @@ namespace ompl
     {
 	
 	/** \brief Uniform sampler for the SO(2) manifold */
-	class SO2StateUniformSampler : public StateSampler
+	class SO2StateUniformSampler : public UniformStateSampler
 	{
 	public:
 	    
-	    SO2StateUniformSampler(const StateManifold *manifold) : StateSampler(manifold)
+	    SO2StateUniformSampler(const StateManifold *manifold) : UniformStateSampler(manifold)
 	    {
 	    }
 	    
@@ -95,7 +95,7 @@ namespace ompl
 
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-	    virtual StateSamplerPtr allocUniformStateSampler(void) const;
+	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const;
 	    
 	    virtual State* allocState(void) const;
 

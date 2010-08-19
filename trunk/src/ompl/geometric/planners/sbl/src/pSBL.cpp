@@ -78,10 +78,11 @@ void ompl::geometric::pSBL::freeGridMotions(Grid<MotionSet> &grid)
 void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
 {   
     base::GoalState *goal = static_cast<base::GoalState*>(pdef_->getGoal().get());
+    RNG              rng;
     
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
-    bool      startTree = samplerArray_[tid]->getRNG().uniformBool();
+    bool      startTree = rng.uniformBool();
     
     while (!sol->found && time::now() < endTime)
     {
@@ -121,8 +122,9 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, S
 	startTree = !startTree;
 	TreeData &otherTree = startTree ? tStart_ : tGoal_;
 	
-	Motion *existing = selectMotion(samplerArray_[tid]->getRNG(), tree);
-	samplerArray_[tid]->sampleNear(xstate, existing->state, maxDistance_);
+	Motion *existing = selectMotion(rng, tree);
+	if (!samplerArray_[tid]->sampleNear(xstate, existing->state, maxDistance_))
+	    continue;
 	
 	/* create a motion */
 	Motion *motion = new Motion(si_);
@@ -136,7 +138,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, S
 	
 	addMotion(tree, motion);
 
-	if (checkSolution(samplerArray_[tid]->getRNG(), !startTree, tree, otherTree, motion, solution))
+	if (checkSolution(rng, !startTree, tree, otherTree, motion, solution))
 	{
 	    sol->lock.lock();
 	    if (!sol->found)

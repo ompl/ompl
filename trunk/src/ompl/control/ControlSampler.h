@@ -75,12 +75,6 @@ namespace ompl
 	    /** \brief Sample a number of steps to execute a control for */
 	    virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
 	    
-	    /** \brief Return a reference to the random number generator used */
-	    RNG& getRNG(void)
-	    {
-		return rng_;
-	    }
-	    
 	protected:
 	    
 	    const ControlManifold *manifold_;

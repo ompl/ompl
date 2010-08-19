@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 * 
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 * 
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 * 
@@ -34,19 +34,27 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/StateSamplerArray.h"
-#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/UniformStateSampler.h"
+#include "ompl/base/StateManifold.h"
 
-void ompl::base::StateSamplerArray::resize(std::size_t count)
+void ompl::base::CompoundUniformStateSampler::addSampler(const UniformStateSamplerPtr &sampler, double weightImportance)
 {
-    if (samplers_.size() > count)
-	samplers_.resize(count);
-    else
-	if (samplers_.size() < count)
-	{
-	    std::size_t c = samplers_.size();
-	    samplers_.resize(count);
-	    for (std::size_t i = c ; i < count ; ++i)
-		samplers_[i] = si_->allocStateSampler();
-	}   
+    samplers_.push_back(sampler);
+    weightImportance_.push_back(weightImportance);
+    samplerCount_ = samplers_.size();
+}
+
+void ompl::base::CompoundUniformStateSampler::sample(State *state)
+{
+    State **comps = static_cast<CompoundState*>(state)->components;
+    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
+	samplers_[i]->sample(comps[i]);
+}
+
+void ompl::base::CompoundUniformStateSampler::sampleNear(State *state, const State *near, const double distance)
+{    
+    State **comps = static_cast<CompoundState*>(state)->components;
+    State **nearComps = static_cast<const CompoundState*>(near)->components;
+    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
+	samplers_[i]->sampleNear(comps[i], nearComps[i], weightImportance_[i] * distance);
 }

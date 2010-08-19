@@ -44,7 +44,7 @@
 /** \brief Maximum number of sampling attempts to find a valid state,
     without checking whether the allowed time elapsed. This value
     should not really be changed. */
-static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 10;
+static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
 
 void ompl::geometric::PRM::setup(void)
@@ -53,7 +53,7 @@ void ompl::geometric::PRM::setup(void)
     if (!nn_)
 	nn_.reset(new NearestNeighborsSqrtApprox<Milestone*>());
     nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocValidStateSampler();
 }
 
 void ompl::geometric::PRM::clear(void)
@@ -91,8 +91,7 @@ void ompl::geometric::PRM::growRoadmap(double growTime)
 	    unsigned int attempts = 0;
 	    do
 	    {
-		sampler_->sample(workState);
-		found = si_->isValid(workState);
+		found = sampler_->sample(workState);
 		attempts++;
 	    } while (attempts < FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
 	}	
@@ -117,8 +116,7 @@ void ompl::geometric::PRM::growRoadmap(const std::vector<Milestone*> &start,
 	    unsigned int attempts = 0;
 	    do
 	    {
-		sampler_->sample(workState);
-		found = si_->isValid(workState);
+		found = sampler_->sample(workState);
 		attempts++;
 	    } while (attempts < FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
 	}	

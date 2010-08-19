@@ -43,7 +43,7 @@ void ompl::geometric::RRTConnect::setup(void)
     Planner::setup();
     checkMotionLength(this, maxDistance_);
    
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocUniformStateSampler();
     
     if (!tStart_)
 	tStart_.reset(new NearestNeighborsSqrtApprox<Motion*>());

@@ -229,20 +229,20 @@ namespace ompl
 	    bool checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
 	    
 	    
-	    base::StateSamplerArray                    samplerArray_;
-	    base::ProjectionEvaluatorPtr               projectionEvaluator_;
+	    base::StateSamplerArray<base::SAMPLER_VALID> samplerArray_;
+	    base::ProjectionEvaluatorPtr                 projectionEvaluator_;
 	    
-	    TreeData                                   tStart_;
-	    TreeData                                   tGoal_;
+	    TreeData                                     tStart_;
+	    TreeData                                     tGoal_;
 
-	    MotionsToBeRemoved                         removeList_;
-	    boost::mutex                               loopLock_;
-	    boost::mutex                               loopLockCounter_;
-	    unsigned int                               loopCounter_;
+	    MotionsToBeRemoved                           removeList_;
+	    boost::mutex                                 loopLock_;
+	    boost::mutex                                 loopLockCounter_;
+	    unsigned int                                 loopCounter_;
 	    
-	    double                                     maxDistance_;	
+	    double                                       maxDistance_;	
 
-	    unsigned int                               threadCount_;
+	    unsigned int                                 threadCount_;
 	};
 	
     }

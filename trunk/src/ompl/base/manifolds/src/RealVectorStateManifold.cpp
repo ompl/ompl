@@ -173,9 +173,9 @@ void ompl::base::RealVectorStateManifold::interpolate(const State *from, const S
 	rstate->values[i] = rfrom->values[i] + (rto->values[i] - rfrom->values[i]) * t;
 }
 
-ompl::base::StateSamplerPtr ompl::base::RealVectorStateManifold::allocUniformStateSampler(void) const 
+ompl::base::UniformStateSamplerPtr ompl::base::RealVectorStateManifold::allocUniformStateSampler(void) const 
 {
-    return StateSamplerPtr(new RealVectorStateUniformSampler(this));
+    return UniformStateSamplerPtr(new RealVectorStateUniformSampler(this));
 }
 
 ompl::base::State* ompl::base::RealVectorStateManifold::allocState(void) const

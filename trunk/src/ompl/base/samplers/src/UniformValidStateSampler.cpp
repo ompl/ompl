@@ -34,27 +34,36 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/StateSampler.h"
-#include "ompl/base/StateManifold.h"
+#include "ompl/base/samplers/UniformValidStateSampler.h"
+#include "ompl/base/SpaceInformation.h"
 
-void ompl::base::CompoundStateSampler::addSampler(const StateSamplerPtr &sampler, double weightImportance)
+ompl::base::UniformValidStateSampler::UniformValidStateSampler(const SpaceInformation *si) :
+    ValidStateSampler(si), sampler_(si->allocUniformStateSampler())
 {
-    samplers_.push_back(sampler);
-    weightImportance_.push_back(weightImportance);
-    samplerCount_ = samplers_.size();
 }
 
-void ompl::base::CompoundStateSampler::sample(State *state)
+bool ompl::base::UniformValidStateSampler::sample(State *state)
 {
-    State **comps = static_cast<CompoundState*>(state)->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sample(comps[i]);
+    unsigned int attempts = 0;
+    bool valid = false;
+    do
+    {
+	sampler_->sample(state);
+	valid = si_->isValid(state);
+	attempts++;
+    } while (!valid && attempts < attempts_);
+    return valid;
 }
 
-void ompl::base::CompoundStateSampler::sampleNear(State *state, const State *near, const double distance)
+bool ompl::base::UniformValidStateSampler::sampleNear(State *state, const State *near, const double distance)
 {    
-    State **comps = static_cast<CompoundState*>(state)->components;
-    State **nearComps = static_cast<const CompoundState*>(near)->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sampleNear(comps[i], nearComps[i], weightImportance_[i] * distance);
+    unsigned int attempts = 0;
+    bool valid = false;
+    do
+    {
+	sampler_->sampleNear(state, near, distance);
+	valid = si_->isValid(state);
+	attempts++;
+    } while (!valid && attempts < attempts_);
+    return valid;
 }

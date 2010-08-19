@@ -72,7 +72,8 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, time::point endTime, S
 {
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-
+    RNG                         rng;
+    
     Motion *rmotion   = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
@@ -80,7 +81,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, time::point endTime, S
     while (sol->solution == NULL && time::now() < endTime)
     {
 	/* sample random state (with goal biasing) */
-	if (goal_s && samplerArray_[tid]->getRNG().uniform01() < goalBias_)
+	if (goal_s && rng.uniform01() < goalBias_)
 	    goal_s->sampleGoal(rstate);
 	else
 	    samplerArray_[tid]->sample(rstate);

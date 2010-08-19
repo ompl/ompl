@@ -172,7 +172,7 @@ namespace ompl
 		return si_->distance(a->state, b->state);
 	    }
 	    
-	    base::StateSamplerPtr                             sampler_;
+	    base::ValidStateSamplerPtr                        sampler_;
 	    boost::shared_ptr< NearestNeighbors<Milestone*> > nn_;
 	    std::vector<Milestone*>                           milestones_;
 	    const Milestone                                  *lastStart_;

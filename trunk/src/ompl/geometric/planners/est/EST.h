@@ -184,7 +184,7 @@ namespace ompl
 	    void addMotion(Motion *motion);
 	    Motion* selectMotion(void);
 	    
-	    base::StateSamplerPtr        sampler_;
+	    base::ValidStateSamplerPtr   sampler_;
 	    
 	    TreeData                     tree_;
 	    

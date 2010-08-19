@@ -88,7 +88,8 @@ namespace ompl
 		double *values;
 	    };
 	
-	    RealVectorControlManifold(const base::StateManifoldPtr &stateManifold, unsigned int dim) : ControlManifold(stateManifold), dimension_(dim), controlBytes_(dim * sizeof(double)), bounds_(dim)
+	    RealVectorControlManifold(const base::StateManifoldPtr &stateManifold, unsigned int dim) : 
+		ControlManifold(stateManifold), dimension_(dim), controlBytes_(dim * sizeof(double)), bounds_(dim)
 	    {
 	    }
 	    

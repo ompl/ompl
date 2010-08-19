@@ -34,33 +34,45 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/samplers/ValidStateSampler.h"
-#include "ompl/util/Exception.h"
+#ifndef OMPL_BASE_SAMPLERS_UNIFORM_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_UNIFORM_VALID_STATE_SAMPLER_
 
-void ompl::base::ValidStateSampler::sample(State *state)
+#include "ompl/base/ValidStateSampler.h"
+#include "ompl/base/UniformStateSampler.h"
+
+namespace ompl
 {
-    unsigned int attempts = 0;
-    bool valid = false;
-    do
+    namespace base
     {
-	sampler_->sample(state);
-	valid = si_->isValid(state);
-	attempts++;
-    } while (!valid && attempts < attempts_);
-    if (!valid)
-	throw Exception("Unable to sample a valid state");
+	
+
+	/** \brief A state sampler that only samples valid states. */
+	class UniformValidStateSampler : public ValidStateSampler
+	{	    
+	public:
+	    
+	    UniformValidStateSampler(const SpaceInformation *si);
+	    
+	    virtual ~UniformValidStateSampler(void)
+	    {
+	    }
+	    
+	    /** \brief Sample a valid state. Throw an exception of such a state is not found */
+	    virtual bool sample(State *state);
+
+	    /** \brief Sample a valid state near a specified state. Throw an exception of such a state is not found */
+	    virtual bool sampleNear(State *state, const State *near, const double distance);
+	
+
+	protected:
+	    
+	    /** \brief The sampler to build upon */
+	    UniformStateSamplerPtr sampler_;
+	    
+	};
+
+    }
 }
 
-void ompl::base::ValidStateSampler::sampleNear(State *state, const State *near, const double distance)
-{    
-    unsigned int attempts = 0;
-    bool valid = false;
-    do
-    {
-	sampler_->sampleNear(state, near, distance);
-	valid = si_->isValid(state);
-	attempts++;
-    } while (!valid && attempts < attempts_);
-    if (!valid)
-	throw Exception("Unable to sample a valid state");
-}
+
+#endif

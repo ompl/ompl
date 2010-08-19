@@ -46,7 +46,7 @@ void ompl::geometric::EST::setup(void)
     checkMotionLength(this, maxDistance_);
 
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocValidStateSampler();
 }
 
 void ompl::geometric::EST::clear(void)
@@ -113,7 +113,8 @@ bool ompl::geometric::EST::solve(double solveTime)
 	if (goal_s && rng_.uniform01() < goalBias_)
 	    goal_s->sampleGoal(xstate);
 	else
-	    sampler_->sampleNear(xstate, existing->state, maxDistance_);
+	    if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
+		continue;
 	
 	if (si_->checkMotion(existing->state, xstate))
 	{

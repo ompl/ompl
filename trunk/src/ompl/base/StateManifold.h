@@ -38,7 +38,7 @@
 #define OMPL_BASE_STATE_MANIFOLD_
 
 #include "ompl/base/State.h"
-#include "ompl/base/StateSampler.h"
+#include "ompl/base/UniformStateSampler.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
@@ -123,18 +123,10 @@ namespace ompl
 		The memory location of @e state is not required to be different from the memory of either
 		@e from or @e to. */
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const = 0;
-	    
-	    /** \brief Set the allocator to use for a state sampler. This replaces the default sampler. */
-	    void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
-	    
+	    	    
 	    /** \brief Allocate an instance of a uniform state sampler for this space */
-	    virtual StateSamplerPtr allocUniformStateSampler(void) const = 0;
+	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const = 0;
 
-	    /** \brief Allocate an instance of a state sampler for this space. If setStateSamplerAllocator() was previously called,
-		the specified allocator is used to produce the state sampler.  Otherwise, allocUniformStateSampler() is
-		called. */
-	    virtual StateSamplerPtr allocStateSampler(void) const;
-	    
 	    /** \brief Allocate a state that can store a point in the described space */
 	    virtual State* allocState(void) const = 0;
 	    
@@ -178,9 +170,6 @@ namespace ompl
 	    /** \brief Interface used for console output */
 	    msg::Interface        msg_;
 	    
-	    /** \brief The optional state sampler allocator */
-	    StateSamplerAllocator ssa_;
-
 	    /** \brief List of available projections */
 	    std::map<std::string, ProjectionEvaluatorPtr> projections_;
 	    
@@ -242,9 +231,7 @@ namespace ompl
 	    
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 	    
-	    virtual StateSamplerPtr allocStateSampler(void) const;
-
-	    virtual StateSamplerPtr allocUniformStateSampler(void) const;
+	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const;
 	    
 	    virtual State* allocState(void) const;
 	    

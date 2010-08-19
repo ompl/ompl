@@ -233,11 +233,11 @@ namespace ompl
 		return !(*this == other);
 	    }
 	    
-	    /** \brief Set this state to a random value */
+	    /** \brief Set this state to a random value (uniform) */
 	    void random(void)
 	    {
 		if (!sampler_)
-		    sampler_ = manifold_->allocStateSampler();
+		    sampler_ = manifold_->allocUniformStateSampler();
 		sampler_->sample(state_);
 	    }
 
@@ -273,9 +273,9 @@ namespace ompl
 
 	private:
 	    
-	    StateManifoldPtr     manifold_;
-	    StateSamplerPtr      sampler_;
-	    StateType           *state_;
+	    StateManifoldPtr       manifold_;
+	    UniformStateSamplerPtr sampler_;
+	    StateType             *state_;
 	};
     }
 }

@@ -46,7 +46,7 @@ void ompl::geometric::KPIECE1::setup(void)
     checkMotionLength(this, maxDistance_);
     
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocUniformStateSampler();
 }
 
 void ompl::geometric::KPIECE1::clear(void)

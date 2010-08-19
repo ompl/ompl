@@ -1,6 +1,7 @@
 util/ClassForward.h
 base/State.h
-base/StateSampler.h
+base/UniformStateSampler.h
+base/ValidStateSampler.h
 base/ProjectionEvaluator.h
 base/StateManifold.h
 base/StateValidityChecker.h
@@ -14,6 +15,7 @@ base/GoalState.h
 base/GoalStates.h
 base/Planner.h
 base/ProblemDefinition.h
+base/samplers/UniformValidStateSampler.h
 base/manifolds/RealVectorBounds.h
 base/manifolds/RealVectorStateManifold.h
 base/manifolds/RealVectorStateProjections.h

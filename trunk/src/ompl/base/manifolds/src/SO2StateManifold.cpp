@@ -120,9 +120,9 @@ void ompl::base::SO2StateManifold::interpolate(const State *from, const State *t
     }
 }
 
-ompl::base::StateSamplerPtr ompl::base::SO2StateManifold::allocUniformStateSampler(void) const 
+ompl::base::UniformStateSamplerPtr ompl::base::SO2StateManifold::allocUniformStateSampler(void) const 
 {
-    return StateSamplerPtr(new SO2StateUniformSampler(this));
+    return UniformStateSamplerPtr(new SO2StateUniformSampler(this));
 }
 
 ompl::base::State* ompl::base::SO2StateManifold::allocState(void) const

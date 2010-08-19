@@ -226,7 +226,7 @@ namespace ompl
 	    bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
 	    
 	    /** \brief The employed state sampler */
-	    base::StateSamplerPtr                      sampler_;
+	    base::ValidStateSamplerPtr                 sampler_;
 	    
 	    /** \brief The employed projection evaluator */
 	    base::ProjectionEvaluatorPtr               projectionEvaluator_;

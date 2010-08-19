@@ -159,13 +159,13 @@ namespace ompl
 
 	    GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion);
 	    
-	    base::StateSamplerPtr      sampler_;
+	    base::UniformStateSamplerPtr sampler_;
 	    
-	    TreeData                   tStart_;
-	    TreeData                   tGoal_;
+	    TreeData                     tStart_;
+	    TreeData                     tGoal_;
 	    
-	    double                     maxDistance_;
-	    RNG                        rng_;
+	    double                       maxDistance_;
+	    RNG                          rng_;
 	};
 	
     }

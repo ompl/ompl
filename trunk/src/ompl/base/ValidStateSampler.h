@@ -34,25 +34,34 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_SAMPLERS_VALID_STATE_SAMPLER_
-#define OMPL_BASE_SAMPLERS_VALID_STATE_SAMPLER_
+#ifndef OMPL_BASE_VALID_STATE_SAMPLER_
+#define OMPL_BASE_VALID_STATE_SAMPLER_
 
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/base/StateSampler.h"
+#include "ompl/base/State.h"
+#include "ompl/util/ClassForward.h"
+#include <boost/function.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace ompl
 {
     namespace base
     {
 	
+	ClassForward(SpaceInformation);
 
-	/** \brief A state sampler that only samples valid states. */
-	class ValidStateSampler : public StateSampler
+	/** \brief Forward declaration of ompl::base::ValidStateSampler */
+	ClassForward(ValidStateSampler);
+
+	/** \class ompl::base::ValidStateSamplerPtr
+	    \brief A boost shared pointer wrapper for ompl::base::ValidStateSampler */
+
+	/** \brief Abstract definition of a state sampler. */
+	class ValidStateSampler : private boost::noncopyable
 	{	    
 	public:
 	    
-	    ValidStateSampler(const SpaceInformation *si, const StateSamplerPtr &sampler) :
-		StateSampler(si->getStateManifold().get()), si_(si), sampler_(sampler), attempts_(100)
+	    /** \brief Constructor */
+	    ValidStateSampler(const SpaceInformation *si) : si_(si), attempts_(10)
 	    {
 	    }
 	    
@@ -60,17 +69,21 @@ namespace ompl
 	    {
 	    }
 	    
-	    /** \brief Sample a valid state. Throw an exception of such a state is not found */
-	    virtual void sample(State *state);
+	    /** \brief Sample a state. Return false in case of failure */
+	    virtual bool sample(State *state) = 0;
+	    
+	    /** \brief Sample a state near another, within specified distance. Return false, in case of failure */
+	    virtual bool sampleNear(State *state, const State *near, const double distance) = 0;
 
-	    /** \brief Sample a valid state near a specified state. Throw an exception of such a state is not found */
-	    virtual void sampleNear(State *state, const State *near, const double distance);
-	
+	    /** \brief Finding a valid sample usually requires
+		performing multiple attempts. This call allows setting
+		the number of such attempts. */
 	    void setNrAttempts(unsigned int attempts)
 	    {
 		attempts_ = attempts;
 	    }
 	    
+	    /** \brief Get the number of attempts to be performed by the sampling routine */
 	    unsigned int getNrAttempts(void) const
 	    {
 		return attempts_;
@@ -78,17 +91,15 @@ namespace ompl
 	    
 	protected:
 	    
-	    /** \brief The space information that contains the state validator for this sampler  */
+	    /** \brief The manifold this sampler samples */
 	    const SpaceInformation *si_;
-	
-	    /** \brief The sampler to build upon */
-	    StateSamplerPtr         sampler_;
 
 	    /** \brief Number of attempts to find a valid sample */
 	    unsigned int            attempts_;
-	    
 	};
 
+	/** \brief Definition of a function that can allocate a state sampler */
+	typedef boost::function1<ValidStateSamplerPtr, const SpaceInformation*> ValidStateSamplerAllocator;
     }
 }
 

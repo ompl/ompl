@@ -47,7 +47,7 @@ void ompl::geometric::SBL::setup(void)
 
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocValidStateSampler();
 }
 
 void ompl::geometric::SBL::freeGridMotions(Grid<MotionSet> &grid)
@@ -130,7 +130,8 @@ bool ompl::geometric::SBL::solve(double solveTime)
 	
 	Motion *existing = selectMotion(tree);
 	assert(existing);
-	sampler_->sampleNear(xstate, existing->state, maxDistance_);
+	if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
+	    continue;
 	
 	/* create a motion */
 	Motion *motion = new Motion(si_);

@@ -42,7 +42,7 @@
 void ompl::control::RRT::setup(void)
 {
     base::Planner::setup();	    
-    sampler_ = si_->allocStateSampler();
+    sampler_ = si_->allocUniformStateSampler();
     controlSampler_ = siC_->allocControlSampler();
     if (!nn_)
 	nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());

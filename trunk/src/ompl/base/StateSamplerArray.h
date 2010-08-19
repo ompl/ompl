@@ -37,24 +37,81 @@
 #ifndef OMPL_BASE_STATE_SAMPLER_ARRAY_
 #define OMPL_BASE_STATE_SAMPLER_ARRAY_
 
-#include "ompl/base/StateSampler.h"
-#include "ompl/util/ClassForward.h"
+#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/UniformStateSampler.h"
+#include "ompl/base/ValidStateSampler.h"
 #include <vector>
    
 namespace ompl
 {
     namespace base
     {
+	
+	/** \brief The type of state samplers we can allocate */
+	enum SamplerType
+	{
+	    /// Allocate a uniform sampler from the manifold contained by the space information (ompl::base::UniformStateSampler)
+	    SAMPLER_UNIFORM, 
+	    
+	    /// Allocate a valid state sampler from the space information (ompl::base::ValidStateSampler)
+	    SAMPLER_VALID
+	};
+	
+	/** \brief Depending on the type of sampler, we have different allocation routines
 
-	ClassForward(SpaceInformation);
+	    This struct will provide that allocation routine,
+	    depending on the template argument of ompl::base::SamplerType.*/
+	template<SamplerType T>
+	struct SamplerSelector
+	{
+	};
+
+	/** \cond IGNORE */
+	template<>
+	struct SamplerSelector<SAMPLER_UNIFORM>
+	{
+	    typedef UniformStateSampler    StateSampler;
+	    typedef UniformStateSamplerPtr StateSamplerPtr;
+	    
+	    StateSamplerPtr allocStateSampler(const SpaceInformation *si)
+	    {
+		return si->allocUniformStateSampler();
+	    }
+	    
+	};
+	
+	template<>
+	struct SamplerSelector<SAMPLER_VALID>
+	{
+	    typedef ValidStateSampler    StateSampler;
+	    typedef ValidStateSamplerPtr StateSamplerPtr;
+	    
+	    StateSamplerPtr allocStateSampler(const SpaceInformation *si)
+	    {
+		return si->allocValidStateSampler();
+	    }
+	};
+	/** \endcond */
 	
 	/** \brief Class to ease the creation of a set of samplers. This is especially useful for multi-threaded planners. */
+	template<SamplerType T>
 	class StateSamplerArray 
 	{
 	public:
 	    
+	    /** \brief Pointer to the type of sampler allocated */
+	    typedef typename SamplerSelector<T>::StateSamplerPtr StateSamplerPtr;
+
+	    /** \brief The type of sampler allocated */
+	    typedef typename SamplerSelector<T>::StateSampler    StateSampler;
+	    
 	    /** \brief Constructor */
-	    StateSamplerArray(const SpaceInformationPtr &si) : si_(si)
+	    StateSamplerArray(const SpaceInformationPtr &si) : si_(si.get())
+	    {
+	    }
+
+	    /** \brief Constructor */
+	    StateSamplerArray(const SpaceInformation *si) : si_(si)
 	    {
 	    }
 	    
@@ -70,7 +127,19 @@ namespace ompl
 	    }
 
 	    /** \brief Create or release some state samplers */
-	    void resize(std::size_t count);
+	    void resize(std::size_t count)
+	    {
+		if (samplers_.size() > count)
+		    samplers_.resize(count);
+		else
+		    if (samplers_.size() < count)
+		    {
+			std::size_t c = samplers_.size();
+			samplers_.resize(count);
+			for (std::size_t i = c ; i < count ; ++i)
+			    samplers_[i] = ss_.allocStateSampler(si_);
+		    }
+	    }
 	    
 	    /** \brief Get the count of samplers currently available */
 	    std::size_t size(void) const
@@ -80,8 +149,10 @@ namespace ompl
 	    
 	private:
 	    
-	    std::vector<StateSamplerPtr> samplers_;
-	    SpaceInformationPtr          si_;
+	    const SpaceInformation       *si_;
+	    SamplerSelector<T>            ss_;
+	    std::vector<StateSamplerPtr>  samplers_;
+	    
 	};
     }
 }
