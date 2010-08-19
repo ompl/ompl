@@ -38,7 +38,7 @@
 #include "ompl/base/SpaceInformation.h"
 
 ompl::base::ObstacleBasedValidStateSampler::ObstacleBasedValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocUniformStateSampler())
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())
 {
 }
 
@@ -49,7 +49,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)
     bool valid = true;
     do
     {
-	sampler_->sample(state);
+	sampler_->sampleUniform(state);
 	valid = si_->isValid(state);
 	attempts++;
     } while (valid && attempts < attempts_);
@@ -62,7 +62,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)
     valid = false;
     do
     {
-	sampler_->sample(temp);
+	sampler_->sampleUniform(temp);
 	valid = si_->isValid(temp);
 	attempts++;
     } while (!valid && attempts < attempts_);
@@ -84,7 +84,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sampleNear(State *state, const 
     bool valid = true;
     do
     {
-	sampler_->sampleNear(state, near, distance);
+	sampler_->sampleUniformNear(state, near, distance);
 	valid = si_->isValid(state);
 	attempts++;
     } while (valid && attempts < attempts_);
@@ -97,7 +97,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sampleNear(State *state, const 
     valid = false;
     do
     {
-	sampler_->sample(temp);
+	sampler_->sampleUniform(temp);
 	valid = si_->isValid(temp);
 	attempts++;
     } while (!valid && attempts < attempts_);

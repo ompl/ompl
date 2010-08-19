@@ -45,16 +45,16 @@ namespace ompl
     {
 	
 	/** \brief Uniform sampler for the SO(2) manifold */
-	class SO2StateUniformSampler : public UniformStateSampler
+	class SO2StateSampler : public ManifoldStateSampler
 	{
 	public:
 	    
-	    SO2StateUniformSampler(const StateManifold *manifold) : UniformStateSampler(manifold)
+	    SO2StateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
 	    {
 	    }
 	    
-	    virtual void sample(State *state);
-	    virtual void sampleNear(State *state, const State *near, const double distance);
+	    virtual void sampleUniform(State *state);
+	    virtual void sampleUniformNear(State *state, const State *near, const double distance);
 	};
 	
 	/** \brief A manifold representing SO(2). The distance
@@ -95,7 +95,7 @@ namespace ompl
 
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const;
+	    virtual ManifoldStateSamplerPtr allocStateSampler(void) const;
 	    
 	    virtual State* allocState(void) const;
 

@@ -42,7 +42,7 @@
 #include <limits>
 #include <cmath>
 
-void ompl::base::RealVectorStateUniformSampler::sample(State *state)
+void ompl::base::RealVectorStateSampler::sampleUniform(State *state)
 {
     const unsigned int dim = manifold_->getDimension();
     const RealVectorBounds &bounds = static_cast<const RealVectorStateManifold*>(manifold_)->getBounds();
@@ -52,7 +52,7 @@ void ompl::base::RealVectorStateUniformSampler::sample(State *state)
 	rstate->values[i] = rng_.uniformReal(bounds.low[i], bounds.high[i]);
 }
 
-void ompl::base::RealVectorStateUniformSampler::sampleNear(State *state, const State *near, const double distance)
+void ompl::base::RealVectorStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
     const unsigned int dim = manifold_->getDimension();
     const RealVectorBounds &bounds = static_cast<const RealVectorStateManifold*>(manifold_)->getBounds();
@@ -173,9 +173,9 @@ void ompl::base::RealVectorStateManifold::interpolate(const State *from, const S
 	rstate->values[i] = rfrom->values[i] + (rto->values[i] - rfrom->values[i]) * t;
 }
 
-ompl::base::UniformStateSamplerPtr ompl::base::RealVectorStateManifold::allocUniformStateSampler(void) const 
+ompl::base::ManifoldStateSamplerPtr ompl::base::RealVectorStateManifold::allocStateSampler(void) const 
 {
-    return UniformStateSamplerPtr(new RealVectorStateUniformSampler(this));
+    return ManifoldStateSamplerPtr(new RealVectorStateSampler(this));
 }
 
 ompl::base::State* ompl::base::RealVectorStateManifold::allocState(void) const

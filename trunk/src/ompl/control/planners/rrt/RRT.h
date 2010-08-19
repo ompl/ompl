@@ -165,7 +165,7 @@ namespace ompl
 		return si_->distance(a->state, b->state);
 	    }
 	    
-	    base::UniformStateSamplerPtr                   sampler_;
+	    base::ManifoldStateSamplerPtr                  sampler_;
 	    ControlSamplerPtr                              controlSampler_;
 	    const SpaceInformation                        *siC_;
 	    

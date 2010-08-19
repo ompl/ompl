@@ -38,7 +38,7 @@
 #include "ompl/base/SpaceInformation.h"
 
 ompl::base::UniformValidStateSampler::UniformValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocUniformStateSampler())
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())
 {
 }
 
@@ -48,7 +48,7 @@ bool ompl::base::UniformValidStateSampler::sample(State *state)
     bool valid = false;
     do
     {
-	sampler_->sample(state);
+	sampler_->sampleUniform(state);
 	valid = si_->isValid(state);
 	attempts++;
     } while (!valid && attempts < attempts_);
@@ -61,7 +61,7 @@ bool ompl::base::UniformValidStateSampler::sampleNear(State *state, const State 
     bool valid = false;
     do
     {
-	sampler_->sampleNear(state, near, distance);
+	sampler_->sampleUniformNear(state, near, distance);
 	valid = si_->isValid(state);
 	attempts++;
     } while (!valid && attempts < attempts_);

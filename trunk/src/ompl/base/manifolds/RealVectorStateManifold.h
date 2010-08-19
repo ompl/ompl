@@ -46,17 +46,17 @@ namespace ompl
     namespace base
     {
 	
-	/** \brief Uniform sampler for the R<sup>n</sup> manifold */
-	class RealVectorStateUniformSampler : public UniformStateSampler
+	/** \brief State sampler for the R<sup>n</sup> manifold */
+	class RealVectorStateSampler : public ManifoldStateSampler
 	{
 	public:
 	    
-	    RealVectorStateUniformSampler(const StateManifold *manifold) : UniformStateSampler(manifold)
+	    RealVectorStateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
 	    {
 	    }
 	    
-	    virtual void sample(State *state);	    
-	    virtual void sampleNear(State *state, const State *near, const double distance);
+	    virtual void sampleUniform(State *state);	    
+	    virtual void sampleUniformNear(State *state, const State *near, const double distance);
 	    
 	};
 	
@@ -134,7 +134,7 @@ namespace ompl
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
 	    /** \brief Allocate an instance of a uniform state sampler for this space */
-	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const;
+	    virtual ManifoldStateSamplerPtr allocStateSampler(void) const;
 	    
 	    /** \brief Allocate a state that can store a point in the described space */
 	    virtual State* allocState(void) const;

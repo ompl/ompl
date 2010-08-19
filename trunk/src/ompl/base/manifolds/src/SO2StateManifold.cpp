@@ -41,12 +41,13 @@
 
 #include <boost/math/constants/constants.hpp>
 
-void ompl::base::SO2StateUniformSampler::sample(State *state)
+void ompl::base::SO2StateSampler::sampleUniform(State *state)
 {
-    state->as<SO2StateManifold::StateType>()->value = rng_.uniformReal(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
+    state->as<SO2StateManifold::StateType>()->value =
+	rng_.uniformReal(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
 }
 
-void ompl::base::SO2StateUniformSampler::sampleNear(State *state, const State *near, const double distance)
+void ompl::base::SO2StateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
     double &v = state->as<SO2StateManifold::StateType>()->value;
     v = rng_.uniformReal(near->as<SO2StateManifold::StateType>()->value - distance,
@@ -120,9 +121,9 @@ void ompl::base::SO2StateManifold::interpolate(const State *from, const State *t
     }
 }
 
-ompl::base::UniformStateSamplerPtr ompl::base::SO2StateManifold::allocUniformStateSampler(void) const 
+ompl::base::ManifoldStateSamplerPtr ompl::base::SO2StateManifold::allocStateSampler(void) const 
 {
-    return UniformStateSamplerPtr(new SO2StateUniformSampler(this));
+    return ManifoldStateSamplerPtr(new SO2StateSampler(this));
 }
 
 ompl::base::State* ompl::base::SO2StateManifold::allocState(void) const

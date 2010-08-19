@@ -217,15 +217,15 @@ void ompl::base::CompoundStateManifold::interpolate(const State *from, const Sta
 	components_[i]->interpolate(cfrom->components[i], cto->components[i], t, cstate->components[i]);
 }
 
-ompl::base::UniformStateSamplerPtr ompl::base::CompoundStateManifold::allocUniformStateSampler(void) const
+ompl::base::ManifoldStateSamplerPtr ompl::base::CompoundStateManifold::allocStateSampler(void) const
 {
     double totalWeight = std::accumulate(weights_.begin(), weights_.end(), 0.0);
     if (totalWeight < std::numeric_limits<double>::epsilon())
 	totalWeight = 1.0;	
-    CompoundUniformStateSampler *ss = new CompoundUniformStateSampler(this);
+    CompoundManifoldStateSampler *ss = new CompoundManifoldStateSampler(this);
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	ss->addSampler(components_[i]->allocUniformStateSampler(), weights_[i] / totalWeight);
-    return UniformStateSamplerPtr(ss);
+	ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / totalWeight);
+    return ManifoldStateSamplerPtr(ss);
 }
 
 ompl::base::State* ompl::base::CompoundStateManifold::allocState(void) const

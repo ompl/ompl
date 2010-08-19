@@ -49,14 +49,14 @@ bool ompl::geometric::HCIK::tryToImprove(const base::GoalRegion &goal, base::Sta
     
     double bestDist = initialDistance;
     
-    base::UniformStateSamplerPtr ss = si_->allocUniformStateSampler();
+    base::ManifoldStateSamplerPtr ss = si_->allocManifoldStateSampler();
     base::State *test = si_->allocState();
     unsigned int noUpdateSteps = 0;
     
     for (unsigned int i = 0 ; noUpdateSteps < 10 && i < maxImproveSteps_ ; ++i)
     {
 	bool update = false;
-	ss->sampleNear(test, state, nearDistance);
+	ss->sampleUniformNear(test, state, nearDistance);
 	bool isValid = valid(test);
 	bool isSatisfied = goal.isSatisfied(test, &tempDistance);
 	if (!wasValid && isValid)

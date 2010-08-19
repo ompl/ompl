@@ -51,15 +51,15 @@ void ompl::base::SO3StateManifold::StateType::setAxisAngle(double ax, double ay,
     w = cos(angle / 2.0);    
 }
 
-void ompl::base::SO3StateUniformSampler::sample(State *state)
+void ompl::base::SO3StateSampler::sampleUniform(State *state)
 {
     rng_.quaternion(&state->as<SO3StateManifold::StateType>()->x);
 }
 
-void ompl::base::SO3StateUniformSampler::sampleNear(State *state, const State * /* near */, const double /* distance */)
+void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State * /* near */, const double /* distance */)
 {
     /** \todo How do we sample near a quaternion ? */
-    sample(state);
+    sampleUniform(state);
 }
 
 unsigned int ompl::base::SO3StateManifold::getDimension(void) const
@@ -156,9 +156,9 @@ void ompl::base::SO3StateManifold::interpolate(const State *from, const State *t
     }
 }
 
-ompl::base::UniformStateSamplerPtr ompl::base::SO3StateManifold::allocUniformStateSampler(void) const 
+ompl::base::ManifoldStateSamplerPtr ompl::base::SO3StateManifold::allocStateSampler(void) const 
 {
-    return UniformStateSamplerPtr(new SO3StateUniformSampler(this));
+    return ManifoldStateSamplerPtr(new SO3StateSampler(this));
 }
 
 ompl::base::State* ompl::base::SO3StateManifold::allocState(void) const

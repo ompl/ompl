@@ -237,8 +237,8 @@ namespace ompl
 	    void random(void)
 	    {
 		if (!sampler_)
-		    sampler_ = manifold_->allocUniformStateSampler();
-		sampler_->sample(state_);
+		    sampler_ = manifold_->allocStateSampler();
+		sampler_->sampleUniform(state_);
 	    }
 
 	    /** \brief Print this state to a stream */
@@ -273,9 +273,9 @@ namespace ompl
 
 	private:
 	    
-	    StateManifoldPtr       manifold_;
-	    UniformStateSamplerPtr sampler_;
-	    StateType             *state_;
+	    StateManifoldPtr         manifold_;
+	    ManifoldStateSamplerPtr  sampler_;
+	    StateType               *state_;
 	};
     }
 }

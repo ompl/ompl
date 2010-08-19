@@ -214,20 +214,19 @@ namespace ompl
 	    bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 	    unsigned int findNextMotion(const Grid::Coord &origin, const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int last);
 	    
-	    base::UniformStateSamplerPtr sampler_;
-	    ControlSamplerPtr            controlSampler_;
+	    ControlSamplerPtr             controlSampler_;
 	    
-	    TreeData                     tree_;
+	    TreeData                      tree_;
 	    
-	    const SpaceInformation      *siC_;
+	    const SpaceInformation       *siC_;
 	    
-	    base::ProjectionEvaluatorPtr projectionEvaluator_;
+	    base::ProjectionEvaluatorPtr  projectionEvaluator_;
 	    
-	    double                       goodScoreFactor_;
-	    double                       badScoreFactor_;
-	    double                       selectBorderPercentage_;
-	    double                       goalBias_;
-	    RNG                          rng_;	
+	    double                        goodScoreFactor_;
+	    double                        badScoreFactor_;
+	    double                        selectBorderPercentage_;
+	    double                        goalBias_;
+	    RNG                           rng_;	
 	};
 	
     }

@@ -42,7 +42,7 @@
 void ompl::control::RRT::setup(void)
 {
     base::Planner::setup();	    
-    sampler_ = si_->allocUniformStateSampler();
+    sampler_ = si_->allocManifoldStateSampler();
     controlSampler_ = siC_->allocControlSampler();
     if (!nn_)
 	nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
@@ -100,7 +100,7 @@ bool ompl::control::RRT::solve(double solveTime)
 	if (goal_s && rng_.uniform01() < goalBias_)
 	    goal_s->sampleGoal(rstate);
 	else
-	    sampler_->sample(rstate);
+	    sampler_->sampleUniform(rstate);
 	
 	/* find closest state in the tree */
 	Motion *nmotion = nn_->nearest(rmotion);

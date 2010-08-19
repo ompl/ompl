@@ -176,7 +176,7 @@ namespace ompl
 		return si_->distance(a->state, b->state);
 	    }
 	    
-	    base::UniformStateSamplerPtr                   sampler_;
+	    base::ManifoldStateSamplerPtr                  sampler_;
 	    boost::shared_ptr< NearestNeighbors<Motion*> > nn_;	    
 	    
 	    double                                         goalBias_;

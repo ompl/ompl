@@ -38,7 +38,7 @@
 #define OMPL_BASE_SAMPLERS_UNIFORM_VALID_STATE_SAMPLER_
 
 #include "ompl/base/ValidStateSampler.h"
-#include "ompl/base/UniformStateSampler.h"
+#include "ompl/base/ManifoldStateSampler.h"
 
 namespace ompl
 {
@@ -67,7 +67,7 @@ namespace ompl
 	protected:
 	    
 	    /** \brief The sampler to build upon */
-	    UniformStateSamplerPtr sampler_;
+	    ManifoldStateSamplerPtr sampler_;
 	    
 	};
 

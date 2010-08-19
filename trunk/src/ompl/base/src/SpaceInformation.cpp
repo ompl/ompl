@@ -111,12 +111,12 @@ double ompl::base::SpaceInformation::estimateExtent(unsigned int samples)
 	samples = 2;
 
     // sample some states
-    UniformStateSamplerPtr ss = allocUniformStateSampler();
+    ManifoldStateSamplerPtr ss = allocManifoldStateSampler();
     std::vector<State*> states(samples);
     for (unsigned int i = 0 ; i  < samples ; ++i)
     {
 	states[i] = allocState();
-	ss->sample(states[i]);
+	ss->sampleUniform(states[i]);
     }
     // find pair with maximum distance
     State *a = states[0];
@@ -168,13 +168,13 @@ double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
     maxResolution_ = extent / 50.0;
     
     // sample some states
-    UniformStateSamplerPtr ss = allocUniformStateSampler();
+    ManifoldStateSamplerPtr ss = allocManifoldStateSampler();
     std::vector<State*> validStates;
     std::vector<State*> invalidStates;
     for (unsigned int i = 0 ; i  < samples ; ++i)
     {
 	State *s = allocState();
-	ss->sample(s);
+	ss->sampleUniform(s);
 	if (isValid(s))
 	    validStates.push_back(s);
 	else
@@ -217,12 +217,12 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     if (!result)
     {
 	// try to find a valid state nearby
-	UniformStateSamplerPtr ss = allocUniformStateSampler();
+	ManifoldStateSamplerPtr ss = allocManifoldStateSampler();
 	State        *temp = allocState();
 	copyState(temp, state);	
 	for (unsigned int i = 0 ; i < attempts && !result ; ++i)
 	{
-	    ss->sampleNear(state, temp, distance);
+	    ss->sampleUniformNear(state, temp, distance);
 	    result = isValid(state);
 	}
 	stateManifold_->freeState(temp);

@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_UNIFORM_STATE_SAMPLER_
-#define OMPL_BASE_UNIFORM_STATE_SAMPLER_
+#ifndef OMPL_BASE_MANIFOLD_STATE_SAMPLER_
+#define OMPL_BASE_MANIFOLD_STATE_SAMPLER_
 
 #include "ompl/base/State.h"
 #include "ompl/util/RandomNumbers.h"
@@ -50,31 +50,31 @@ namespace ompl
 	
 	ClassForward(StateManifold);
 
-	/** \brief Forward declaration of ompl::base::UniformStateSampler */
-	ClassForward(UniformStateSampler);
+	/** \brief Forward declaration of ompl::base::ManifoldStateSampler */
+	ClassForward(ManifoldStateSampler);
 
-	/** \class ompl::base::UniformStateSamplerPtr
-	    \brief A boost shared pointer wrapper for ompl::base::UniformStateSampler */
+	/** \class ompl::base::ManifoldStateSamplerPtr
+	    \brief A boost shared pointer wrapper for ompl::base::ManifoldStateSampler */
 
-	/** \brief Abstract definition of a state sampler. */
-	class UniformStateSampler : private boost::noncopyable
+	/** \brief Abstract definition of a manifold state sampler. */
+	class ManifoldStateSampler : private boost::noncopyable
 	{	    
 	public:
 	    
 	    /** \brief Constructor */
-	    UniformStateSampler(const StateManifold *manifold) : manifold_(manifold)
+	    ManifoldStateSampler(const StateManifold *manifold) : manifold_(manifold)
 	    {
 	    }
 	    
-	    virtual ~UniformStateSampler(void)
+	    virtual ~ManifoldStateSampler(void)
 	    {
 	    }
 	    
 	    /** \brief Sample a state */
-	    virtual void sample(State *state) = 0;
+	    virtual void sampleUniform(State *state) = 0;
 	    
 	    /** \brief Sample a state near another, within specified distance */
-	    virtual void sampleNear(State *state, const State *near, const double distance) = 0;
+	    virtual void sampleUniformNear(State *state, const State *near, const double distance) = 0;
 	    
 	protected:
 	    
@@ -86,17 +86,17 @@ namespace ompl
 	};
 
 	/** \brief Definition of a compound state sampler. This is useful to construct samplers for compound states. */
-	class CompoundUniformStateSampler : public UniformStateSampler
+	class CompoundManifoldStateSampler : public ManifoldStateSampler
 	{	    
 	public:
 
 	    /** \brief Constructor */
-	    CompoundUniformStateSampler(const StateManifold* manifold) : UniformStateSampler(manifold) 
+	    CompoundManifoldStateSampler(const StateManifold* manifold) : ManifoldStateSampler(manifold) 
 	    {
 	    }
 	    
 	    /** \brief Destructor. This frees the added samplers as well. */
-	    virtual ~CompoundUniformStateSampler(void)
+	    virtual ~CompoundManifoldStateSampler(void)
 	    {
 	    }
 	    
@@ -106,24 +106,24 @@ namespace ompl
 		compound sampler calls in to added samplers. The
 		distance passed to the called samplers is adjusted
 		according to the specified importance. */
-	    virtual void addSampler(const UniformStateSamplerPtr &sampler, double weightImportance);
+	    virtual void addSampler(const ManifoldStateSamplerPtr &sampler, double weightImportance);
 	    
 	    /** \brief Sample a state. */
-	    virtual void sample(State *state);
+	    virtual void sampleUniform(State *state);
 	    
 	    /** \brief Sample a state near another, within specified distance. */
-	    virtual void sampleNear(State *state, const State *near, const double distance);
+	    virtual void sampleUniformNear(State *state, const State *near, const double distance);
 	    
 	protected:
 	    
 	    /** \brief The samplers that are composed */
-	    std::vector<UniformStateSamplerPtr> samplers_;
+	    std::vector<ManifoldStateSamplerPtr> samplers_;
 	    
 	    /** \brief The weight of each sampler (used when sampling near a state) */
-	    std::vector<double>                 weightImportance_;
+	    std::vector<double>                  weightImportance_;
 
 	    /** \brief The number of samplers that are composed */
-	    unsigned int                        samplerCount_;
+	    unsigned int                         samplerCount_;
 	    
 	};
 

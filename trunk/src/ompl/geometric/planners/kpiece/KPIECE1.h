@@ -236,7 +236,7 @@ namespace ompl
 	    unsigned int addMotion(Motion* motion, double dist);
 	    bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 	    
-	    base::UniformStateSamplerPtr               sampler_;
+	    base::ManifoldStateSamplerPtr              sampler_;
 	    
 	    HCIK                                       hcik_;
 	    TreeData                                   tree_;

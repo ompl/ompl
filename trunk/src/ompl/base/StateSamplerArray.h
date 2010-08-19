@@ -38,7 +38,7 @@
 #define OMPL_BASE_STATE_SAMPLER_ARRAY_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/UniformStateSampler.h"
+#include "ompl/base/ManifoldStateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
 #include <vector>
    
@@ -50,8 +50,8 @@ namespace ompl
 	/** \brief The type of state samplers we can allocate */
 	enum SamplerType
 	{
-	    /// Allocate a uniform sampler from the manifold contained by the space information (ompl::base::UniformStateSampler)
-	    SAMPLER_UNIFORM, 
+	    /// Allocate a sampler from the manifold contained by the space information (ompl::base::ManifoldStateSampler)
+	    SAMPLER_MANIFOLD, 
 	    
 	    /// Allocate a valid state sampler from the space information (ompl::base::ValidStateSampler)
 	    SAMPLER_VALID
@@ -68,14 +68,14 @@ namespace ompl
 
 	/** \cond IGNORE */
 	template<>
-	struct SamplerSelector<SAMPLER_UNIFORM>
+	struct SamplerSelector<SAMPLER_MANIFOLD>
 	{
-	    typedef UniformStateSampler    StateSampler;
-	    typedef UniformStateSamplerPtr StateSamplerPtr;
+	    typedef ManifoldStateSampler    StateSampler;
+	    typedef ManifoldStateSamplerPtr StateSamplerPtr;
 	    
 	    StateSamplerPtr allocStateSampler(const SpaceInformation *si)
 	    {
-		return si->allocUniformStateSampler();
+		return si->allocManifoldStateSampler();
 	    }
 	    
 	};

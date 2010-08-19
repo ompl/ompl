@@ -38,7 +38,7 @@
 #define OMPL_BASE_STATE_MANIFOLD_
 
 #include "ompl/base/State.h"
-#include "ompl/base/UniformStateSampler.h"
+#include "ompl/base/ManifoldStateSampler.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
@@ -125,7 +125,7 @@ namespace ompl
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const = 0;
 	    	    
 	    /** \brief Allocate an instance of a uniform state sampler for this space */
-	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const = 0;
+	    virtual ManifoldStateSamplerPtr allocStateSampler(void) const = 0;
 
 	    /** \brief Allocate a state that can store a point in the described space */
 	    virtual State* allocState(void) const = 0;
@@ -231,7 +231,7 @@ namespace ompl
 	    
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 	    
-	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const;
+	    virtual ManifoldStateSamplerPtr allocStateSampler(void) const;
 	    
 	    virtual State* allocState(void) const;
 	    

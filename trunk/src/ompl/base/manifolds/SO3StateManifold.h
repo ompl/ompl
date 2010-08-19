@@ -46,16 +46,16 @@ namespace ompl
 	
 
 	/** \brief Uniform sampler for the SO(3) manifold, using quaternion representation */
-	class SO3StateUniformSampler : public UniformStateSampler
+	class SO3StateSampler : public ManifoldStateSampler
 	{
 	public:
 	    
-	    SO3StateUniformSampler(const StateManifold *manifold) : UniformStateSampler(manifold)
+	    SO3StateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
 	    {
 	    }
 	    
-	    virtual void sample(State *state);
-	    virtual void sampleNear(State *state, const State *near, const double distance);
+	    virtual void sampleUniform(State *state);
+	    virtual void sampleUniformNear(State *state, const State *near, const double distance);
 	};
 	
 	/** \brief A manifold representing SO(3). The internal
@@ -117,7 +117,7 @@ namespace ompl
 
 	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-	    virtual UniformStateSamplerPtr allocUniformStateSampler(void) const;
+	    virtual ManifoldStateSamplerPtr allocStateSampler(void) const;
 	    
 	    virtual State* allocState(void) const;
 	    

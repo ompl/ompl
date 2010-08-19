@@ -43,7 +43,7 @@ void ompl::geometric::RRTConnect::setup(void)
     Planner::setup();
     checkMotionLength(this, maxDistance_);
    
-    sampler_ = si_->allocUniformStateSampler();
+    sampler_ = si_->allocManifoldStateSampler();
     
     if (!tStart_)
 	tStart_.reset(new NearestNeighborsSqrtApprox<Motion*>());
@@ -184,7 +184,7 @@ bool ompl::geometric::RRTConnect::solve(double solveTime)
 	}
 
 	/* sample random state */
-	sampler_->sample(rstate);
+	sampler_->sampleUniform(rstate);
 	
 	GrowState gs = growTree(tree, tgi, rmotion);
 	

@@ -46,7 +46,7 @@ void ompl::geometric::KPIECE1::setup(void)
     checkMotionLength(this, maxDistance_);
     
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocUniformStateSampler();
+    sampler_ = si_->allocManifoldStateSampler();
 }
 
 void ompl::geometric::KPIECE1::clear(void)
@@ -143,15 +143,15 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 		    if (hcik_.tryToImprove(*goal_r, xstate, improveValue))
 			improveValue /= 2.0;
 		    else
-			sampler_->sampleNear(xstate, existing->state, maxDistance_);
+			sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 		    msg_.debug("End Running HCIK");			
 		}
 		else
-		    sampler_->sampleNear(xstate, existing->state, maxDistance_);
+		    sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 	    }
 	}
 	else
-	    sampler_->sampleNear(xstate, existing->state, maxDistance_);
+	    sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 	
 	double failTime = 0.0;
 	bool keep = si_->checkMotion(existing->state, xstate, xstate, &failTime);

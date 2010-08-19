@@ -34,27 +34,27 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/UniformStateSampler.h"
+#include "ompl/base/ManifoldStateSampler.h"
 #include "ompl/base/StateManifold.h"
 
-void ompl::base::CompoundUniformStateSampler::addSampler(const UniformStateSamplerPtr &sampler, double weightImportance)
+void ompl::base::CompoundManifoldStateSampler::addSampler(const ManifoldStateSamplerPtr &sampler, double weightImportance)
 {
     samplers_.push_back(sampler);
     weightImportance_.push_back(weightImportance);
     samplerCount_ = samplers_.size();
 }
 
-void ompl::base::CompoundUniformStateSampler::sample(State *state)
+void ompl::base::CompoundManifoldStateSampler::sampleUniform(State *state)
 {
     State **comps = static_cast<CompoundState*>(state)->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sample(comps[i]);
+	samplers_[i]->sampleUniform(comps[i]);
 }
 
-void ompl::base::CompoundUniformStateSampler::sampleNear(State *state, const State *near, const double distance)
+void ompl::base::CompoundManifoldStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {    
     State **comps = static_cast<CompoundState*>(state)->components;
     State **nearComps = static_cast<const CompoundState*>(near)->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sampleNear(comps[i], nearComps[i], weightImportance_[i] * distance);
+	samplers_[i]->sampleUniformNear(comps[i], nearComps[i], weightImportance_[i] * distance);
 }

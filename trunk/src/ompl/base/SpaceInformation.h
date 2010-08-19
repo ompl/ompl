@@ -199,9 +199,9 @@ namespace ompl
 	    }
 
 	    /** \brief Allocate a uniform state sampler for the manifold representing the space */
-	    UniformStateSamplerPtr allocUniformStateSampler(void) const
+	    ManifoldStateSamplerPtr allocManifoldStateSampler(void) const
 	    {
-		return stateManifold_->allocUniformStateSampler();
+		return stateManifold_->allocStateSampler();
 	    }
 	    
 	    /** \brief Allocate an instance of a valid state sampler for this space. If setValidStateSamplerAllocator() was previously called,

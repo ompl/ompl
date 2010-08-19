@@ -46,7 +46,7 @@ void ompl::geometric::LBKPIECE1::setup(void)
     
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocUniformStateSampler();
+    sampler_ = si_->allocManifoldStateSampler();
 }
 
 bool ompl::geometric::LBKPIECE1::solve(double solveTime)
@@ -116,7 +116,7 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
 	
 	Motion* existing = selectMotion(tree);
 	assert(existing);
-	sampler_->sampleNear(xstate, existing->state, maxDistance_);
+	sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 	
 	/* create a motion */
 	Motion* motion = new Motion(si_);

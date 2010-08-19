@@ -229,7 +229,7 @@ namespace ompl
 	    bool isPathValid(TreeData &tree, Motion* motion);
 	    bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution);
 	    
-	    base::UniformStateSamplerPtr               sampler_;
+	    base::ManifoldStateSamplerPtr              sampler_;
 
 	    base::ProjectionEvaluatorPtr               projectionEvaluator_;
 	    

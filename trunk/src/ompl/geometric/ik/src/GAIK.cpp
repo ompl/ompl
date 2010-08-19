@@ -62,7 +62,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     bool                    solved = false;
     int                     solution = -1;
 
-    base::UniformStateSamplerPtr sampler = si_->allocUniformStateSampler();
+    base::ManifoldStateSamplerPtr sampler = si_->allocManifoldStateSampler();
 
     // add hint states
     unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
@@ -88,7 +88,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 	for (unsigned int i = nh ; i < nh2 ; ++i)
 	{
 	    pool[i].state = si_->allocState();
-	    sampler->sampleNear(pool[i].state, pool[i % nh].state, maxDistance_);
+	    sampler->sampleUniformNear(pool[i].state, pool[i % nh].state, maxDistance_);
 	    pool[i].valid = valid(pool[i].state);
 	    if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
@@ -106,7 +106,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     for (unsigned int i = nh ; i < maxPoolSize ; ++i)
     {
 	pool[i].state = si_->allocState();
-	sampler->sample(pool[i].state);
+	sampler->sampleUniform(pool[i].state);
 	pool[i].valid = valid(pool[i].state);
 	if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 	{
@@ -134,7 +134,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 	// add mutations
 	for (unsigned int i = poolSize_ ; i < mutationsSize ; ++i)
 	{
-	    sampler->sampleNear(pool[i].state, pool[i % poolSize_].state, maxDistance_);
+	    sampler->sampleUniformNear(pool[i].state, pool[i % poolSize_].state, maxDistance_);
 	    pool[i].valid = valid(pool[i].state);
 	    if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 	    {
@@ -151,7 +151,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 	if (!solved)
 	    for (unsigned int i = mutationsSize ; i < maxPoolSize ; ++i)
 	    {
-		sampler->sample(pool[i].state);
+		sampler->sampleUniform(pool[i].state);
 		pool[i].valid = valid(pool[i].state);
 		if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
 		{

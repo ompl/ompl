@@ -84,7 +84,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, time::point endTime, S
 	if (goal_s && rng.uniform01() < goalBias_)
 	    goal_s->sampleGoal(rstate);
 	else
-	    samplerArray_[tid]->sample(rstate);
+	    samplerArray_[tid]->sampleUniform(rstate);
 	
 	/* find closest state in the tree */
 	nnLock_.lock();
