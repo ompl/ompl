@@ -1,6 +1,6 @@
 util/ClassForward.h
 base/State.h
-base/UniformStateSampler.h
+base/ManifoldStateSampler.h
 base/ValidStateSampler.h
 base/ProjectionEvaluator.h
 base/StateManifold.h
