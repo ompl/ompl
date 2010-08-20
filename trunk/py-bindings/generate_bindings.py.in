@@ -417,7 +417,7 @@ class ompl_base_generator_t(code_generator_t):
 		self.add_array_access(self.ompl_ns.class_('EuclideanProjection'))
 		# make objects printable that have a print function
 		self.replace_member_functions(self.ompl_ns.member_functions('print'))
-		# handle special case (abstract base class with pure  virtual method)
+		# handle special case (abstract base class with pure virtual method)
 		self.ompl_ns.class_('Path').add_wrapper_code(
 			'virtual void print(std::ostream&) const {}')
 		# make settings printable
@@ -500,7 +500,7 @@ class ompl_util_generator_t(code_generator_t):
 class ompl_app_generator_t(code_generator_t):
 	def __init__(self):
 		code_generator_t.__init__(self, 'app', 'geometric')
-		
+
 
 if __name__ == '__main__':
 	setrecursionlimit(50000)
@@ -512,4 +512,3 @@ if __name__ == '__main__':
 				globals()['ompl_'+module+'_generator_t']()
 			except KeyError:
 				print "Error: can't generate code for module ", module
-	
