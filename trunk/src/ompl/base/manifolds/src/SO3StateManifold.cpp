@@ -62,6 +62,13 @@ void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State * 
     sampleUniform(state);
 }
 
+void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * /* mean */, const double /* stdDev */)
+{
+    /** \todo How do we sample quaternions using a Gaussian distribution ?*/
+    sampleUniform(state);
+}
+
+
 unsigned int ompl::base::SO3StateManifold::getDimension(void) const
 {
     return 3;

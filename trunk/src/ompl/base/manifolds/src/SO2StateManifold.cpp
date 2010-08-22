@@ -60,6 +60,19 @@ void ompl::base::SO2StateSampler::sampleUniformNear(State *state, const State *n
 	    v -= 2.0 * boost::math::constants::pi<double>();    
 }
 
+void ompl::base::SO2StateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+    double &v = state->as<SO2StateManifold::StateType>()->value;
+    v = rng_.gaussian(mean->as<SO2StateManifold::StateType>()->value, stdDev);
+
+    // we don't need something as general as enforceBounds() since we know the input states are within bounds
+    if (v < -boost::math::constants::pi<double>())
+	v += 2.0 * boost::math::constants::pi<double>();
+    else
+	if (v > boost::math::constants::pi<double>())
+	    v -= 2.0 * boost::math::constants::pi<double>();        
+}
+
 unsigned int ompl::base::SO2StateManifold::getDimension(void) const
 {
     return 1;

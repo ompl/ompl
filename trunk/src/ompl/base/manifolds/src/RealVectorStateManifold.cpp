@@ -65,6 +65,25 @@ void ompl::base::RealVectorStateSampler::sampleUniformNear(State *state, const S
 			     std::min(bounds.high[i], rnear->values[i] + distance));
 }
 
+void ompl::base::RealVectorStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+    const unsigned int dim = manifold_->getDimension();
+    const RealVectorBounds &bounds = static_cast<const RealVectorStateManifold*>(manifold_)->getBounds();
+
+    RealVectorStateManifold::StateType *rstate = static_cast<RealVectorStateManifold::StateType*>(state);
+    const RealVectorStateManifold::StateType *rmean = static_cast<const RealVectorStateManifold::StateType*>(mean);
+    for (unsigned int i = 0 ; i < dim ; ++i)
+    {
+	double v = rng_.gaussian(rmean->values[i], stdDev);
+	if (v < bounds.low[i])
+	    v = bounds.low[i];
+	else
+	    if (v > bounds.high[i])
+		v = bounds.high[i];
+	rstate->values[i] = v;
+    }
+}
+
 void ompl::base::RealVectorStateManifold::setup(void)
 {
     StateManifold::setup();

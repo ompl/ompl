@@ -58,3 +58,11 @@ void ompl::base::CompoundManifoldStateSampler::sampleUniformNear(State *state, c
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
 	samplers_[i]->sampleUniformNear(comps[i], nearComps[i], weightImportance_[i] * distance);
 }
+
+void ompl::base::CompoundManifoldStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{    
+    State **comps = static_cast<CompoundState*>(state)->components;
+    State **meanComps = static_cast<const CompoundState*>(mean)->components;
+    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
+	samplers_[i]->sampleGaussian(comps[i], meanComps[i], stdDev);
+}

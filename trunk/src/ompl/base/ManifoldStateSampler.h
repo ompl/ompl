@@ -75,6 +75,9 @@ namespace ompl
 	    
 	    /** \brief Sample a state near another, within specified distance */
 	    virtual void sampleUniformNear(State *state, const State *near, const double distance) = 0;
+
+	    /** \brief Sample a state using a Gaussian distribution with given \e mean and standard deviation (\e stdDev) */
+	    virtual void sampleGaussian(State *state, const State *mean, const double stdDev) = 0;
 	    
 	protected:
 	    
@@ -107,12 +110,12 @@ namespace ompl
 		distance passed to the called samplers is adjusted
 		according to the specified importance. */
 	    virtual void addSampler(const ManifoldStateSamplerPtr &sampler, double weightImportance);
-	    
-	    /** \brief Sample a state. */
+
 	    virtual void sampleUniform(State *state);
-	    
-	    /** \brief Sample a state near another, within specified distance. */
+
 	    virtual void sampleUniformNear(State *state, const State *near, const double distance);
+
+	    virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
 	    
 	protected:
 	    

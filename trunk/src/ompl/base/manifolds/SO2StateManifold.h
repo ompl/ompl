@@ -55,6 +55,7 @@ namespace ompl
 	    
 	    virtual void sampleUniform(State *state);
 	    virtual void sampleUniformNear(State *state, const State *near, const double distance);
+	    virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
 	};
 	
 	/** \brief A manifold representing SO(2). The distance
