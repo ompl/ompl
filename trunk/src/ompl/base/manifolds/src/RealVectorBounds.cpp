@@ -48,6 +48,17 @@ void ompl::base::RealVectorBounds::setHigh(double value)
 {
     std::fill(high.begin(), high.end(), value);
 }
+
+void ompl::base::RealVectorBounds::setLow(unsigned int index, double value)
+{
+    low[index] = value;
+}
+
+void ompl::base::RealVectorBounds::setHigh(unsigned int index, double value)
+{
+    high[index] = value;
+}
+
 double ompl::base::RealVectorBounds::getVolume(void) const
 {
     double v = 1.0;

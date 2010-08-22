@@ -59,6 +59,12 @@ namespace ompl
 
 	    /** \brief Set the upper bound in each dimension to a specific value */
 	    void setHigh(double value);
+
+	    /** \brief Set the lower bound of a dimension to a specific value */
+	    void setLow(unsigned int index, double value);
+
+	    /** \brief Set the upper bound of a dimension to a specific value */
+	    void setHigh(unsigned int index, double value);
 	    
 	    /** \brief Compute the volume of the space enclosed by the bounds */
 	    double getVolume(void) const;
