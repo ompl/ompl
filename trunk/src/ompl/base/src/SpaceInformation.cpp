@@ -231,7 +231,7 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     return result;
 }
 
-bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2, State *lastValidState, double *lastValidTime) const
+bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!isValid(s2))
@@ -248,10 +248,9 @@ bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2,
 	stateManifold_->interpolate(s1, s2, (double)j / (double)nd, test);
 	if (!isValid(test))
 	{
-	    if (lastValidState)
-		stateManifold_->interpolate(s1, s2, (double)(j - 1) / (double)nd, lastValidState);
-	    if (lastValidTime)
-		*lastValidTime = (double)(j - 1) / (double)nd;
+	    if (lastValid.first)
+		stateManifold_->interpolate(s1, s2, (double)(j - 1) / (double)nd, lastValid.first);
+	    lastValid.second = (double)(j - 1) / (double)nd;
 	    result = false;
 	    break;
 	}
@@ -374,14 +373,13 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
 }
 
 
-bool ompl::base::SpaceInformation::checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int *firstInvalidStateIndex) const
+bool ompl::base::SpaceInformation::checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int &firstInvalidStateIndex) const
 {
     assert(states.size() >= count);
     for (unsigned int i = 0 ; i < count ; ++i)
 	if (!isValid(states[i]))
 	{
-	    if (firstInvalidStateIndex)
-		*firstInvalidStateIndex = i;
+	    firstInvalidStateIndex = i;
 	    return false;
 	}
     return true;

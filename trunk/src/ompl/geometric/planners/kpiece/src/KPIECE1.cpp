@@ -153,9 +153,9 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 	else
 	    sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 	
-	double failTime = 0.0;
-	bool keep = si_->checkMotion(existing->state, xstate, xstate, &failTime);
-	if (!keep && failTime > minValidPathPercentage_)
+	std::pair<base::State*, double> fail(xstate, 0.0);
+	bool keep = si_->checkMotion(existing->state, xstate, fail);
+	if (!keep && fail.second > minValidPathPercentage_)
 	    keep = true;
 	
 	if (keep)

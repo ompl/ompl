@@ -246,9 +246,8 @@ namespace ompl
 		0 and s2 being at t = 1. This function assumes s1 is valid.
 		\param s1 start state of the motion to be checked (assumed to be valid)
 		\param s2 final state of the motion to be checked 
-		\param lastValidState storage for the last valid state (if not NULL); this need not be different from \e s1 or \e s2
-		\param lastValidTime location to set the time (between 0 and 1) of \e lastValidState, on the motion from \e s1 to \e s2 */
-	    virtual bool checkMotion(const State *s1, const State *s2, State *lastValidState, double *lastValidTime) const;
+		\param lastValid first: storage for the last valid state; this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */
+	    virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
 	    
 	    /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using subdivision. This function assumes \e s1 is valid. */
 	    virtual bool checkMotion(const State *s1, const State *s2) const;
@@ -257,8 +256,8 @@ namespace ompl
 		checks the first \e count elements and marks the index of the first invalid state 
 		\param states the array of states to be checked
 		\param count the number of states to be checked in the array (0 to \e count)
-		\param firstInvalidStateIndex location to store the first invalid state index */
-	    virtual bool checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int *firstInvalidStateIndex) const;
+		\param firstInvalidStateIndex location to store the first invalid state index. Unmodified if the function returns true */
+	    virtual bool checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int &firstInvalidStateIndex) const;
 	    
 	    /** \brief Check if a sequence of states is valid using subdivision. */
 	    virtual bool checkMotion(const std::vector<State*> &states, unsigned int count) const;

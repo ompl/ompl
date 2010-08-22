@@ -70,7 +70,10 @@ bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)
 
     // keep the last valid state, before collision
     if (valid)
-	si_->checkMotion(temp, state, state, NULL);
+    {
+	std::pair<State*, double> fail(state, 0.0);
+	si_->checkMotion(temp, state, fail);
+    }
     
     si_->freeState(temp);
     
@@ -105,7 +108,10 @@ bool ompl::base::ObstacleBasedValidStateSampler::sampleNear(State *state, const 
 
     // keep the last valid state, before collision
     if (valid)
-	si_->checkMotion(temp, state, state, NULL);
+    {
+	std::pair<State*, double> fail(state, 0.0);
+	si_->checkMotion(temp, state, fail);
+    }
     
     si_->freeState(temp);
     
