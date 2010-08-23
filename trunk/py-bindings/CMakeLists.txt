@@ -49,7 +49,7 @@ if(PY_OMPL_GENERATE)
 			if(EXISTS "${OMPL_INCLUDE_DIR}/ompl/${header}")
 				list(APPEND headers "${OMPL_INCLUDE_DIR}/ompl/${header}")
 			else()
-				list(APPEND headers "${OMPL_APP_INCLUDE_DIR}/${header}")				
+				list(APPEND headers "${OMPL_APP_INCLUDE_DIR}/${header}")
 			endif()
 		endforeach(header)
 		# target for all-in-one header for module
@@ -67,8 +67,11 @@ if(PY_OMPL_GENERATE)
 		add_custom_target(update_${module}_bindings 
 			COMMAND ${PYTHON_EXEC} 
 			"${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-			COMMAND ${CMAKE_COMMAND} .
-	 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+			COMMAND ${CMAKE_COMMAND}
+			-D "PATH=${CMAKE_CURRENT_SOURCE_DIR}/bindings/${module}"
+			-P abs_to_rel_path.cmake
+			COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
+	 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 		add_dependencies(update_${module}_bindings ${module}.h)
 		add_dependencies(update_bindings update_${module}_bindings)
 	endforeach(module)
