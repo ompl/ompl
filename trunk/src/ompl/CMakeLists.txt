@@ -9,12 +9,7 @@ if(ROS)
 	rosbuild_link_boost(ompl thread date_time)
 else(ROS)
 	add_definitions(-fPIC)
-	add_library(ompl SHARED ${OMPL_SOURCE_CODE})
-	add_library(ompl_static STATIC ${OMPL_SOURCE_CODE})
-	set_target_properties(ompl_static PROPERTIES OUTPUT_NAME "ompl")
-	# needed for MS Windows, see:
-	# http://www.cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
-	set_target_properties(ompl_static PROPERTIES PREFIX "lib")
+	add_shared_and_static_library(ompl ${OMPL_SOURCE_CODE})
 	target_link_libraries(ompl
 		${Boost_THREAD_LIBRARY}
 		${Boost_DATE_TIME_LIBRARY}

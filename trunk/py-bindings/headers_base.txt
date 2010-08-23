@@ -23,3 +23,6 @@ base/manifolds/SO2StateManifold.h
 base/manifolds/SO3StateManifold.h
 base/manifolds/SE2StateManifold.h
 base/manifolds/SE3StateManifold.h
+base/samplers/GaussianValidStateSampler.h
+base/samplers/ObstacleBasedValidStateSampler.h
+base/samplers/UniformValidStateSampler.h

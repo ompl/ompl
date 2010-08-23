@@ -92,7 +92,11 @@ if(PY_OMPL_COMPILE)
 		if(NUM_SOURCE_FILES GREATER 0)
 			add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
 			target_link_libraries(py_ompl_${module} 
-				ompl_static ${OMPL_APP_LIB} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
+				ompl_static
+				${OMPL_APP_ARCHIVE}
+				${OMPL_APP_MODULE_LIBRARIES}
+				${Boost_PYTHON_LIBRARY}
+				${PYTHON_LIBRARIES})
 			add_dependencies(py_ompl py_ompl_${module})
 			get_target_property(PY${module}_NAME py_ompl_${module} LOCATION)
 			add_custom_command(TARGET py_ompl_${module} POST_BUILD
@@ -101,7 +105,10 @@ if(PY_OMPL_COMPILE)
 		        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
     		include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bindings/${module}")
 			# python unit tests
-			add_test(test_py_ompl_${module} "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_${module}.py")
+			if(NOT module STREQUAL "${OMPL_APP_MODULE}")
+				add_test(test_py_ompl_${module} "${PYTHON_EXEC}" 
+					"${CMAKE_CURRENT_SOURCE_DIR}/tests/test_${module}.py")
+			endif()
 		else(NUM_SOURCE_FILES GREATER 0)
 			if(PY_OMPL_GENERATE)
 				message(STATUS "Code for module ${module} not found; type \"make update_bindings\"")

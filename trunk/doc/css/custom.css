@@ -47,3 +47,20 @@ ul, ol {margin:0em 0em .5em 0em; padding-left:2em;}
 	-webkit-box-shadow:5px 5px 5px rgba(0, 0, 0, 0.25); 
 	-moz-box-shadow: rgba(0, 0, 0, 0.25) 5px 5px 5px;
 }
+.dlbutton a, .dlbutton a:link, .dlbutton a:visited {
+	color:#fff;
+	font-weight:bold;
+	font-size:16px;
+	background-color:#12a;
+	border:solid thin #12d;
+	border-radius:0.5em;
+	-webkit-border-radius:.5em;
+	-moz-border-radius:.5em; 
+	padding: 3px; 
+	line-height: 3; 
+	margin-right: 4px; 
+	-webkit-box-shadow:3px 3px 3px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:rgba(0, 0, 0, 0.25) 3px 3px 3px;
+}
+.dlbutton a:hover { background-color: #00f; text-decoration: none; }
+ul.dropdown li.first { border-left: solid 1px #d9d9d9; margin-left: 40px; }

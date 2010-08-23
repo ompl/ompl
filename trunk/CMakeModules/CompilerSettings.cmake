@@ -21,3 +21,14 @@ endif(IS_XLC)
 if(CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC)
 	add_definitions(-fPIC)
 endif(CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC)
+
+function(add_shared_and_static_library name)
+	# remove <name> from ARGV
+	list(REMOVE_AT ARGV 0)
+	add_library(${name} SHARED ${ARGV})
+	add_library(${name}_static STATIC ${ARGV})
+	set_target_properties(${name}_static PROPERTIES OUTPUT_NAME "${name}")
+	# needed for MS Windows, see:
+	# http://www.cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
+	set_target_properties(${name}_static PROPERTIES PREFIX "lib")
+endfunction(add_shared_and_static_library)
