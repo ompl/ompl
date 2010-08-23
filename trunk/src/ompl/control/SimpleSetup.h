@@ -154,6 +154,8 @@ namespace ompl
 		either, a default planner is set. */
 	    void setPlanner(const base::PlannerPtr &planner)
 	    {
+		if (planner && planner->getSpaceInformation().get() != si_.get())
+		    throw Exception("Planner instance does not match space information");
 		planner_ = planner;
 	    }
 	    
