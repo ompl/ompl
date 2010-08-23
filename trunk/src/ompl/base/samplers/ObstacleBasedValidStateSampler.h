@@ -57,13 +57,9 @@ namespace ompl
 	    {
 	    }
 	    
-	    /** \brief Sample a valid state. Throw an exception of such a state is not found */
 	    virtual bool sample(State *state);
-
-	    /** \brief Sample a valid state near a specified state. Throw an exception of such a state is not found */
 	    virtual bool sampleNear(State *state, const State *near, const double distance);
 	
-
 	protected:
 	    
 	    /** \brief The sampler to build upon */

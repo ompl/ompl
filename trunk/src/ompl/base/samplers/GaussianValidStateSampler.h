@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_SAMPLERS_UNIFORM_VALID_STATE_SAMPLER_
-#define OMPL_BASE_SAMPLERS_UNIFORM_VALID_STATE_SAMPLER_
+#ifndef OMPL_BASE_SAMPLERS_GAUSSIAN_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_GAUSSIAN_VALID_STATE_SAMPLER_
 
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/ManifoldStateSampler.h"
@@ -45,21 +45,19 @@ namespace ompl
     namespace base
     {
 	
-
-	/** \brief A state sampler that only samples valid states. */
-	class UniformValidStateSampler : public ValidStateSampler
+	class GaussianValidStateSampler : public ValidStateSampler
 	{	    
 	public:
 	    
-	    UniformValidStateSampler(const SpaceInformation *si);
+	    GaussianValidStateSampler(const SpaceInformation *si);
 	    
-	    virtual ~UniformValidStateSampler(void)
+	    virtual ~GaussianValidStateSampler(void)
 	    {
 	    }
 	    
 	    virtual bool sample(State *state);
-	    virtual bool sampleNear(State *state, const State *near, const double distance);	
-
+	    virtual bool sampleNear(State *state, const State *near, const double distance);
+	
 	protected:
 	    
 	    /** \brief The sampler to build upon */

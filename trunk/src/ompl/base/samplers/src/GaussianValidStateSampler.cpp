@@ -34,41 +34,56 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_SAMPLERS_UNIFORM_VALID_STATE_SAMPLER_
-#define OMPL_BASE_SAMPLERS_UNIFORM_VALID_STATE_SAMPLER_
+#include "ompl/base/samplers/GaussianValidStateSampler.h"
+#include "ompl/base/SpaceInformation.h"
 
-#include "ompl/base/ValidStateSampler.h"
-#include "ompl/base/ManifoldStateSampler.h"
-
-namespace ompl
+ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())
 {
-    namespace base
-    {
-	
-
-	/** \brief A state sampler that only samples valid states. */
-	class UniformValidStateSampler : public ValidStateSampler
-	{	    
-	public:
-	    
-	    UniformValidStateSampler(const SpaceInformation *si);
-	    
-	    virtual ~UniformValidStateSampler(void)
-	    {
-	    }
-	    
-	    virtual bool sample(State *state);
-	    virtual bool sampleNear(State *state, const State *near, const double distance);	
-
-	protected:
-	    
-	    /** \brief The sampler to build upon */
-	    ManifoldStateSamplerPtr sampler_;
-	    
-	};
-
-    }
 }
 
+bool ompl::base::GaussianValidStateSampler::sample(State *state)
+{
+    bool result = false;
+    unsigned int attempts = 0;
+    State *temp = si_->allocState();
+    do
+    {
+	sampler_->sampleUniform(state);
+	bool v1 = si_->isValid(state);
+	sampler_->sampleUniform(temp);
+	bool v2 = si_->isValid(temp);
+	if (v1 != v2)
+	{
+	    if (v2)
+		si_->copyState(state, temp);
+	    result = true;
+	}	
+	attempts++;
+    } while (!result && attempts < attempts_);
+    si_->freeState(temp);
+    return result;
+}
 
-#endif
+bool ompl::base::GaussianValidStateSampler::sampleNear(State *state, const State *near, const double distance)
+{    
+    bool result = false;
+    unsigned int attempts = 0;
+    State *temp = si_->allocState();
+    do
+    {
+	sampler_->sampleUniformNear(state, near, distance);
+	bool v1 = si_->isValid(state);
+	sampler_->sampleUniformNear(temp, near, distance);
+	bool v2 = si_->isValid(temp);
+	if (v1 != v2)
+	{
+	    if (v2)
+		si_->copyState(state, temp);
+	    result = true;
+	}	
+	attempts++;
+    } while (!result && attempts < attempts_);
+    si_->freeState(temp);
+    return result;
+}
