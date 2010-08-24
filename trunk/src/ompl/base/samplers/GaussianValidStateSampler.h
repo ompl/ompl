@@ -57,12 +57,26 @@ namespace ompl
 	    
 	    virtual bool sample(State *state);
 	    virtual bool sampleNear(State *state, const State *near, const double distance);
-	
+	    
+	    /** \brief Get the standard deviation used when sampling */
+	    double getStdDev(void) const
+	    {
+		return stddev_;
+	    }
+	    
+	    /** \brief Set the standard deviation to use when sampling */
+	    void setStdDev(double stddev)
+	    {
+		stddev_ = stddev;
+	    }
+	    
 	protected:
 	    
 	    /** \brief The sampler to build upon */
 	    ManifoldStateSamplerPtr sampler_;
 	    
+	    /** \brief The standard deviation to use in the sampling process */
+	    double                  stddev_;
 	};
 
     }

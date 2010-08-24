@@ -38,7 +38,7 @@
 #include "ompl/base/SpaceInformation.h"
 
 ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getStateValidityCheckingResolution() * 10.0)
 {
 }
 
@@ -51,7 +51,7 @@ bool ompl::base::GaussianValidStateSampler::sample(State *state)
     {
 	sampler_->sampleUniform(state);
 	bool v1 = si_->isValid(state);
-	sampler_->sampleUniform(temp);
+	sampler_->sampleGaussian(temp, state, stddev_);
 	bool v2 = si_->isValid(temp);
 	if (v1 != v2)
 	{
@@ -74,7 +74,7 @@ bool ompl::base::GaussianValidStateSampler::sampleNear(State *state, const State
     {
 	sampler_->sampleUniformNear(state, near, distance);
 	bool v1 = si_->isValid(state);
-	sampler_->sampleUniformNear(temp, near, distance);
+	sampler_->sampleGaussian(temp, state, distance);
 	bool v2 = si_->isValid(temp);
 	if (v1 != v2)
 	{
