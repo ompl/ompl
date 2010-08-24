@@ -6,5 +6,5 @@ foreach(fname ${fnames})
 	file(READ ${fname} _text)
 	string(REPLACE "#include \"${CMAKE_CURRENT_SOURCE_DIR}/bindings/" 
 		"#include \"../" _new_text "${_text}")
-	file(WRITE ${fname} ${_new_text})
+	file(WRITE ${fname} "${_new_text}")
 endforeach(fname)
