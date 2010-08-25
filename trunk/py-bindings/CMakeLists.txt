@@ -97,6 +97,8 @@ if(PY_OMPL_COMPILE)
 			target_link_libraries(py_ompl_${module} 
 				${OMPL_MODULE_LIBRARY}
 				${OMPL_APP_MODULE_LIBRARY}
+				${Boost_THREAD_LIBRARY}
+				${Boost_DATE_TIME_LIBRARY}
 				${Boost_PYTHON_LIBRARY}
 				${PYTHON_LIBRARIES})
 			add_dependencies(py_ompl py_ompl_${module})
