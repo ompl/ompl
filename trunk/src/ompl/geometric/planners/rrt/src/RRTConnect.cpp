@@ -56,20 +56,27 @@ void ompl::geometric::RRTConnect::setup(void)
 void ompl::geometric::RRTConnect::freeMemory(void)
 {
     std::vector<Motion*> motions;
-    tStart_->list(motions);
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+
+    if (tStart_)
     {
-	if (motions[i]->state)
-	    si_->freeState(motions[i]->state);
-	delete motions[i];
+	tStart_->list(motions);
+	for (unsigned int i = 0 ; i < motions.size() ; ++i)
+	{
+	    if (motions[i]->state)
+		si_->freeState(motions[i]->state);
+	    delete motions[i];
+	}
     }
-    
-    tGoal_->list(motions);
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+
+    if (tGoal_)
     {
-	if (motions[i]->state)
-	    si_->freeState(motions[i]->state);
-	delete motions[i];
+	tGoal_->list(motions);
+	for (unsigned int i = 0 ; i < motions.size() ; ++i)
+	{
+	    if (motions[i]->state)
+		si_->freeState(motions[i]->state);
+	    delete motions[i];
+	}
     }
 }
 

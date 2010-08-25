@@ -136,6 +136,21 @@ namespace ompl
 		return maxDistance_;
 	    }
 	    
+	    /** \brief Set the percentage of time for focusing on the
+		border. This is the minimum percentage used to select
+		cells that are exterior (minimum because if 95% of cells
+		are on the border, they will be selected with 95%
+		chance, even if this percentage is set to 90%)*/
+	    void setBorderPercentage(double bp)
+	    {
+		selectBorderPercentage_ = bp;
+	    }
+	    
+	    double getBorderPercentage(void) const
+	    {
+		return selectBorderPercentage_;
+	    }
+	    
 	    /** \brief Set the projection evaluator. This class is
 		able to compute the projection of a given state. */
 	    void setProjectionEvaluator(const base::ProjectionEvaluatorPtr &projectionEvaluator)

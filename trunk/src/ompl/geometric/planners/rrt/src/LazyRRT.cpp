@@ -59,13 +59,16 @@ void ompl::geometric::LazyRRT::clear(void)
 
 void ompl::geometric::LazyRRT::freeMemory(void)
 {
-    std::vector<Motion*> motions;
-    nn_->list(motions);
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    if (nn_)
     {
-	if (motions[i]->state)
-	    si_->freeState(motions[i]->state);		    
-	delete motions[i];
+	std::vector<Motion*> motions;
+	nn_->list(motions);
+	for (unsigned int i = 0 ; i < motions.size() ; ++i)
+	{
+	    if (motions[i]->state)
+		si_->freeState(motions[i]->state);
+	    delete motions[i];
+	}
     }
 }
 

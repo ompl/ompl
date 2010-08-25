@@ -1,5 +1,5 @@
 if(CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers)
+	add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 string(REGEX MATCH ".*icpc" IS_ICPC ${CMAKE_CXX_COMPILER})
