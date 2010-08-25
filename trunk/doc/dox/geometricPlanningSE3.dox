@@ -1,8 +1,5 @@
-
 /**
-   @page examples Examples
-
-   @section gplanRigidBody Geometric planning for a rigid body in 3D
+   @page geometricPlanningSE3 Geometric planning for a rigid body in 3D
 
    \li Using ompl::geometric::SimpleSetup :\n\n
    @dontinclude RigidBodyPlanning.cpp
@@ -81,4 +78,5 @@
    @skip solved
    @until }
    \n
+
 */

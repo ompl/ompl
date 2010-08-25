@@ -1,0 +1,24 @@
+/**
+\page tutorials Tutorials
+
+\par Beginner
+
+<ul>
+	<li><a href="geometricPlanningSE3.html">Geometric Planning for a rigid body in 3D</a></li>
+</ul>
+
+
+\par Intermmediate
+
+<ul>
+	<li><a href="statesAndManifolds.html">Working with States and Implementing Manifolds</a></li>
+</ul>
+
+
+\par Advanced
+
+<ul>
+	<li><a href="newPlanner.html">Adding a new planner</a></li>
+</ul>
+
+*/

@@ -3,17 +3,17 @@
 
    <br>
 
-   @b ompl (Open Motion Planning Library) consists of a set of
+   @b OMPL (Open Motion Planning Library) consists of a set of
    sampling-based motion planning algorithms. The content of the
    library is limited to these algorithms, which means there is no
    environment specification, no collision detection or
    visualisation. The library is designed so it can be easily
    integrated into systems that provide the additional needed
-   components. For examples of complete systems using ompl, see <a
+   components. For examples of complete systems using OMPL, see <a
    href="http://ompl.kavrakilab.org">ompl-app</a> and <a
    href="http://www.ros.org/wiki/ompl">ROS</a>.
 
-   ompl is intended to be efficient, easy to use, easily extensible
+   OMPL is intended to be efficient, easy to use, easily extensible
    and freely available.
 
    <br>
@@ -38,7 +38,7 @@
    
    <br>
    
-   <a href="gettingStarted.html"><b>Start using ompl</b></a>.
+   <a href="gettingStarted.html"><b>Start using OMPL</b></a>.
 
    <br>
 
