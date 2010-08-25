@@ -1,0 +1,158 @@
+/**
+   @page genericPlanning Generic instructions for setting up a planner
+
+   \par Instantiating a planner
+
+   \par
+   In order to use a motion planner (ompl::geometric::XXX, from @b
+   ompl/geometric/planners or ompl::control::XXX, from @b
+   ompl/control/planners), an instance of ompl::base::SpaceInformation
+   (ompl::control::SpaceInformation, respectively) must be
+   available. This instance is supplied to the planner's constructor.
+   After creation, a call to the planner's
+   ompl::base::Planner::setup() method must be made and the planner
+   instance is ready for use: the ompl::base::Planner::solve() method
+   can be called repeatedly with different allowed time durations
+   until a solution is found. A call to ompl::base::Planner::clear()
+   will restore a planner to its state before any calls to the
+   ompl::base::Planner::solve() method were made.
+   @code
+   using namespace ompl;
+   base::SpaceInformationPtr si(...);
+   base::PlannerPtr planner(new geometric::SBL(si));
+   @endcode
+
+   \par Instantiating a space information class
+
+   \par
+   Creating an actual instance of a space information class
+   (ompl::base::SpaceInformation) is trivial as the constructor
+   requires only a state manifold to be specified
+   (ompl::base::StateManifold). When planning with controls
+   (ompl::control::SpaceInformation), this constructor requires a
+   control manifold (ompl::control::ControlManifold) as well.  The space information
+   class also needs to be configured before use:\n\n
+     - ompl::base::StateValidityChecker is an abstract class that
+       provides functionality for determining whether a state is valid
+       or not. This class is assumed to be thread safe. The user must
+       provide an implementation of this class and supply it to the
+       space information instance by calling
+       ompl::base::SpaceInformation::setStateValidityChecker().
+       Alternatively, the user can pass a function of the type
+       ompl::base::StateValidityCheckerFn to
+       ompl::base::SpaceInformation::setStateValidityChecker()
+       instead.
+     - a call needs to be made to
+       ompl::base::SpaceInformation::setStateValidityCheckingResolution()
+       in order to specify the maximum distance between states to be
+       checked for validity along a path segment. If this call is not
+       made, ompl::base::SpaceInformation::estimateMaxResolution() is
+       used to determine this resolution. This functionality however
+       is NOT SAFE. It is meant to be used as last resort, as this
+       parameter usually needs to be specified for planning to work.
+   @code
+   // define this class:
+   class myStateValidityCheckerClass : public base::StateValidityChecker
+   {
+   public:
+	myStateValidityCheckerClass(const base::SpaceInformationPtr &si) :
+	  base::StateValidityChecker(si)
+   	{
+	}
+	
+	virtual bool isValid(const base::State *state) const
+	{
+		return ...;
+	}
+   };
+   // or this function:
+   bool myStateValidityCheckerFunction(const base::State *state)
+   {
+	return ...;
+   }	
+
+   base::SpaceInformationPtr si(manifold);
+   // either this call:
+   si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityCheckerClass(si)));
+   // or this call:
+   si->setStateValidityChecker(boost::bind(&myStateValidityCheckerFunction, _1));
+   si->setStateValidityCheckingResolution(0.1);
+   si->setup();
+   @endcode
+
+   \par
+   Once the class is instantiated and all parameters have been set,
+   the ompl::base::SpaceInformation::setup() function needs to be
+   called and the instance is ready for use.
+
+   \par Instantiating a state manifold
+
+   \par
+   Simply create an instance of a class that iherits from
+   ompl::base::StateManifold. To change the definition of the employed
+   sampler or distance function, it is possible to provide a further
+   specialization of such a manifold. See @ref implementStateManifold.
+   @code
+   base::StateManifoldPtr manifold(new base::SE2StateManifold());
+   // set bounds ....
+   @endcode
+
+   \par Instantiating a control manifold
+
+   \par
+   Simply create an instance of a class that inherits from
+   ompl::control::ControlManifold. Usually,
+   ompl::control::RealVectorControlManifold is sufficient.
+   An implementation needs to be specified for the ompl::control:ControlManifold::propagate() 
+   either by inheriting from the manifold class or by making a call to
+   ompl::control::ControlManifold::setPropagationFunction().
+   @code
+   base::StateManifoldPtr manifold(new base::SE2StateManifold());
+   // set bounds for manifold
+   control::ControlManifoldPtr cmanifold(new control::RealVectorControlManifold(manifold));
+   // set bounds for cmanifold
+   @endcode
+
+   \par Instantiating a problem definition
+
+     - instances of ompl::base::State or ompl::base::ScopedState need
+       to be supplied as starting states for the system (at least
+       one), using ompl::base::ProblemDefinition::addStartState().
+
+     - an ompl::base::Goal specification must be set using
+       ompl::base::ProblemDefinition::setGoal(). For simplicity,
+       the following specifications of this class are available:
+       ompl::base::GoalRegion, ompl::base::GoalSampleableRegion,
+       ompl::base::GoalState, ompl::base::GoalStates.
+       
+     - as a simplification, a call can be made to
+       ompl::base::ProblemDefinition::setStartAndGoalStates(). This
+       will clear previous settings, add one start state and create an
+       ompl::base::GoalState representation for the goal.
+   @code
+   base::SpaceInformationPtr si(...);
+   base::ProblemDefinifionPtr pdef(new base::ProblemDefinition(si));
+
+   base::ScopedState start;
+   // fill start state
+
+   base::ScopedState goal;
+   // fill goal state
+
+   pdef->setStartAndGoalStates(start, goal);
+   @endcode
+
+   \par
+   An important part of setting the problem definition is filling the
+   content of start states (and goal states, if using a goal
+   representation that requires states). Please see \ref stateOps.
+
+   \par Using SimpleSetup
+
+   \par
+   The instantiation of all the above classes is facilitated by the
+   ompl::geometric::SimpleSetup class (ompl::control::SimpleSetup,
+   respectively). Please see the documentation of these classes for
+   more information.
+
+*/

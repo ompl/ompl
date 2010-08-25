@@ -5,16 +5,10 @@
 - Read the <a href="examples.html">examples</a> and try to execute them.
 
 
-@section qlinks Quick links
-
-   \li @ref availablePlanners
-   \li @ref examples
-
 @section howto How To's
 
    \li @ref implementStateManifold 
    \li @ref stateAlloc
    \li @ref stateOps
-
 
 */

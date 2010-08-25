@@ -5,6 +5,7 @@
 
 <ul>
 	<li><a href="geometricPlanningSE3.html">Geometric Planning for a rigid body in 3D</a></li>
+	<li><a href="genericPlanning.html">Generic instructions for setting up a planner</a></li>
 </ul>
 
 
