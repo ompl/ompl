@@ -22,13 +22,24 @@ if(CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC)
 	add_definitions(-fPIC)
 endif(CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC)
 
-function(add_shared_and_static_library name)
+function(add_ompl_library name)
 	# remove <name> from ARGV
 	list(REMOVE_AT ARGV 0)
 	add_library(${name} SHARED ${ARGV})
-	add_library(${name}_static STATIC ${ARGV})
-	set_target_properties(${name}_static PROPERTIES OUTPUT_NAME "${name}")
-	# needed for MS Windows, see:
-	# http://www.cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
-	set_target_properties(${name}_static PROPERTIES PREFIX "lib")
-endfunction(add_shared_and_static_library)
+	install(TARGETS ${name} DESTINATION lib/)
+	string(TOUPPER "${name}" _upper_name)
+	set("${_upper_name}_LIBRARY" "${name}" CACHE STRING "Name of OMPL library")
+	if(UNIX AND NOT APPLE)
+		add_library(${name}_static STATIC ${ARGV})
+		set_target_properties(${name}_static PROPERTIES OUTPUT_NAME "${name}")
+		# needed for MS Windows, see:
+		# http://www.cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
+		set_target_properties(${name}_static PROPERTIES PREFIX "lib")
+		install(TARGETS ${name}_static DESTINATION lib/)
+		set(${_upper_name}_MODULE_LIBRARY "${name}_static"
+			CACHE STRING "Name of OMPL library used to link Python modules")
+	else()
+		set(${_upper_name}_MODULE_LIBRARY "${name}"
+			CACHE STRING "Name of OMPL library used to link Python modules")
+	endif()
+endfunction(add_ompl_library)

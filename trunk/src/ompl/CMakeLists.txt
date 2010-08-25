@@ -7,19 +7,12 @@ if(ROS)
 	rosbuild_add_library(ompl ${OMPL_SOURCE_CODE})
 	rosbuild_add_compile_flags(ompl -Wextra)
 	rosbuild_link_boost(ompl thread date_time)
+	install(TARGETS ompl DESTINATION lib/)
 else(ROS)
 	add_definitions(-fPIC)
-	add_shared_and_static_library(ompl ${OMPL_SOURCE_CODE})
+	add_ompl_library(ompl ${OMPL_SOURCE_CODE})
 	target_link_libraries(ompl
 		${Boost_THREAD_LIBRARY}
 		${Boost_DATE_TIME_LIBRARY}
-		${PROF_LIBRARY}
-	)
-	target_link_libraries(ompl_static
-		${Boost_THREAD_LIBRARY}
-		${Boost_DATE_TIME_LIBRARY}
-		${PROF_LIBRARY}
 	)
 endif(ROS)
-
-install(TARGETS ompl ompl_static LIBRARY DESTINATION lib/ ARCHIVE DESTINATION lib/)

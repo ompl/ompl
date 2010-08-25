@@ -95,9 +95,8 @@ if(PY_OMPL_COMPILE)
 		if(NUM_SOURCE_FILES GREATER 0)
 			add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
 			target_link_libraries(py_ompl_${module} 
-				ompl
-				${OMPL_APP_LIB}
-				${OMPL_APP_MODULE_LIBRARIES}
+				${OMPL_MODULE_LIBRARY}
+				${OMPL_APP_MODULE_LIBRARY}
 				${Boost_PYTHON_LIBRARY}
 				${PYTHON_LIBRARIES})
 			add_dependencies(py_ompl py_ompl_${module})
