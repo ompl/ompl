@@ -60,7 +60,8 @@ void ompl::geometric::PRM::clear(void)
 {
     Planner::clear();
     freeMemory();
-    nn_->clear();
+    if (nn_)
+	nn_->clear();
     milestones_.clear();
     componentCount_ = 0;
     componentSizes_.clear();
