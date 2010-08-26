@@ -166,39 +166,95 @@ double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
 
     double extent = estimateExtent(samples);
     maxResolution_ = extent / 50.0;
+
+    msg_.debug("Initial estimate for state validity checking resolution is %f", maxResolution_);
     
-    // sample some states
+    // if there are some invalid states, we can try to improve this
+    // resolution.  once we find an invalid state, we find two valid
+    // states around it then, we check the motion between the two
+    // valid states using the detected resolution and a much finer
+    // resolution. if the results differ, we refine the detected
+    // resolution.
+
+
+    // allocate a state sampler
     ManifoldStateSamplerPtr ss = allocManifoldStateSampler();
-    std::vector<State*> validStates;
-    std::vector<State*> invalidStates;
-    for (unsigned int i = 0 ; i  < samples ; ++i)
+
+    // find an invalid state
+    State *invalid = allocState();
+    bool found = false;
+    for (unsigned int i = 0 ; !found && i < samples ; ++i)
     {
-	State *s = allocState();
-	ss->sampleUniform(s);
-	if (isValid(s))
-	    validStates.push_back(s);
-	else
-	    invalidStates.push_back(s);
+	ss->sampleUniform(invalid);
+	found = !isValid(invalid);
     }
 
-    if (!validStates.empty() && !invalidStates.empty())
+    if (found)
     {
-	double minD = std::numeric_limits<double>::infinity();
-	
-	for (unsigned int i = 0 ; i < validStates.size() ; ++i)
-	    for (unsigned int j = 0 ; j < invalidStates.size() ; ++j)
+	State *s1 = allocState();
+	State *s2 = allocState();
+
+	unsigned int validation = 0;
+	unsigned int attempts = 0;
+
+	while (validation < 3 && attempts < 10) 
+	{
+	    // unless we are using the first found invalid state, find a new invalid state
+	    if (attempts > 0)
 	    {
-		double d = distance(validStates[i], invalidStates[j]);
-		if (d < minD)
-		    minD = d;
+		found = false;
+		for (unsigned int i = 0 ; !found && i < samples ; ++i)
+		{
+		    ss->sampleUniform(invalid);
+		    found = !isValid(invalid);
+		}
+		if (!found)
+		    break;
 	    }
-	maxResolution_ = std::min(minD / 3.0, maxResolution_);
+	    attempts++;	    
+
+	    // find two valid states around the invalid one
+	    bool v1 = searchValidNearby(s1, invalid, maxResolution_ * 10.0, samples);
+	    bool v2 = v1 ? searchValidNearby(s2, invalid, maxResolution_ * 10.0, samples) : false;
+	    
+	    if (v1 && v2)
+	    {    
+		// attempt to validate this collision checking resolution
+		double backup = resolution_;
+		resolution_ = maxResolution_;
+		if (checkMotion(s1, s2))
+		{
+		    resolution_ /= 10.0;
+		    // resolution is too small
+		    if (!checkMotion(s1, s2))
+		    {
+			double fact = 1.0;
+			unsigned int steps = 0;
+			do 
+			{
+			    resolution_ *= (1.0 + fact);
+			    fact /= 2.0;
+			    steps++;
+			}
+			while (!checkMotion(s1, s2) && steps < 10);
+			maxResolution_ = resolution_ / (1.1 + fact * 2.0);
+			msg_.debug("Refining state validity checking resolution estimate to %f", maxResolution_);
+		    }
+		    else
+			validation++;
+		}
+		else
+		    validation++;
+		resolution_ = backup;
+	    }
+	}
+	freeState(s1);
+	freeState(s2);
     }
     
-    for (unsigned int i = 0 ; i < validStates.size() ; ++i)
-	freeState(validStates[i]);
-    for (unsigned int i = 0 ; i < invalidStates.size() ; ++i)
-	freeState(invalidStates[i]);
+    freeState(invalid);
+
+    msg_.debug("Estimated state validity checking resolution is %f", maxResolution_);
 
     return maxResolution_;
 }
