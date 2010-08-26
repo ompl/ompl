@@ -197,7 +197,7 @@ double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
 	unsigned int validation = 0;
 	unsigned int attempts = 0;
 
-	while (validation < 3 && attempts < 10) 
+	while (validation < 3 && attempts < samples) 
 	{
 	    // unless we are using the first found invalid state, find a new invalid state
 	    if (attempts > 0)
@@ -212,7 +212,7 @@ double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
 		    break;
 	    }
 	    attempts++;	    
-
+	    
 	    // find two valid states around the invalid one
 	    bool v1 = searchValidNearby(s1, invalid, maxResolution_ * 10.0, samples);
 	    bool v2 = v1 ? searchValidNearby(s2, invalid, maxResolution_ * 10.0, samples) : false;
@@ -224,24 +224,13 @@ double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
 		resolution_ = maxResolution_;
 		if (checkMotion(s1, s2))
 		{
-		    resolution_ /= 10.0;
+		    resolution_ /= 2.0;
 		    // resolution is too small
 		    if (!checkMotion(s1, s2))
 		    {
-			double fact = 1.0;
-			unsigned int steps = 0;
-			do 
-			{
-			    resolution_ *= (1.0 + fact);
-			    fact /= 2.0;
-			    steps++;
-			}
-			while (!checkMotion(s1, s2) && steps < 10);
-			maxResolution_ = resolution_ / (1.1 + fact * 2.0);
+			maxResolution_ = resolution_;
 			msg_.debug("Refining state validity checking resolution estimate to %f", maxResolution_);
 		    }
-		    else
-			validation++;
 		}
 		else
 		    validation++;
