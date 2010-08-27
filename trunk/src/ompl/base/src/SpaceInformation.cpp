@@ -156,53 +156,6 @@ double ompl::base::SpaceInformation::estimateExtent(unsigned int samples)
     return maxD;
 }
 
-
-namespace ompl
-{
-    namespace base
-    {
-	
-	// find a motion that has two valid endpoints but contains an invalid state
-	static bool findCollidingMotion(State *s1, State *s2, State *invalid,
-					SpaceInformation *si, ManifoldStateSampler *ss, unsigned int samples, double distance)
-	{
-	    // find an invalid state
-	    bool found = false;
-	    for (unsigned int i = 0 ; !found && i < samples ; ++i)
-	    {
-		ss->sampleUniform(invalid);
-		found = !si->isValid(invalid);
-	    }
-	    if (!found)
-		return false;
-	    
-	    // find two valid states around the invalid one
-	    bool v = si->searchValidNearby(s1, invalid, distance, samples);
-	    if (v)
-		return si->searchValidNearby(s2, invalid, distance, samples);
-	    else
-		return false;
-	}
-	
-	// given a motion defined by two states, find the length of the segment that is in collision 
-	static double getCollisionLength(SpaceInformation *si, double resolution, const State *s1, const State *s2,
-					 State *dummy1, State *dummy2)
-	{
-	    double backup = si->getStateValidityCheckingResolution();
-	    si->setStateValidityCheckingResolution(resolution);
-	    
-	    std::pair<State*, double> lastValid1; lastValid1.first = dummy1;
-	    std::pair<State*, double> lastValid2; lastValid2.first = dummy2;
-	    bool v1 = si->checkMotion(s1, s2, lastValid1);
-	    bool v2 = si->checkMotion(s2, s1, lastValid2);
-	    
-	    si->setStateValidityCheckingResolution(backup);
-	    
-	    return (v1 || v2) ? 0.0 : si->distance(dummy1, dummy2);
-	}	
-    }
-}
-
 double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
 {
     if (maxResolution_ > std::numeric_limits<double>::epsilon())
@@ -212,55 +165,7 @@ double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
 	samples = 2;
 
     double extent = estimateExtent(samples);
-    maxResolution_ = extent / 50.0;
-
-    msg_.debug("Initial estimate for state validity checking resolution is %f", maxResolution_);
-    
-    // if there are some invalid states, we can try to improve this
-    // resolution.  
-
-    // allocate a state sampler
-    ManifoldStateSamplerPtr ss = allocManifoldStateSampler();
-
-    // allocate needed temporary memory
-    State *invalid = allocState();
-    State *s1 = allocState();
-    State *s2 = allocState();
-    State *dummy = allocState();
-
-    // array that will hold lengths of invalid segments
-    std::vector<double> cl;
-    
-    // decide how many such segments to attempt to detect
-    unsigned int steps = samples/100;
-    if (steps < 10)
-	steps = 10;
-    if (steps > samples)
-	steps = samples;
-
-    // while we can find invalid segments, remember the length of their invalid part
-    while (cl.size() < steps && findCollidingMotion(s1, s2, invalid, this, ss.get(), samples, maxResolution_ * 5.0))
-    {
-	double r = std::min(maxResolution_, std::min(distance(s1, invalid), distance(s2, invalid)) / 5.0);
-	double l = getCollisionLength(this, r, s1, s2, invalid, dummy);
-	if (l > std::numeric_limits<double>::epsilon())
-	{
-	    cl.push_back(l);
-	    msg_.debug("Found invalid segment of length %f", l);
-	}
-    }
-    
-    if (!cl.empty())
-    {
-	// see if 1/3 * median(lengths of invalid segments) is a finer resolution than the one initially assumed
-	std::sort(cl.begin(), cl.end());
-	maxResolution_ = std::min(cl[cl.size()/2] / 3.0, maxResolution_);	
-    }
-    
-    freeState(dummy);
-    freeState(s1);
-    freeState(s2);
-    freeState(invalid);
+    maxResolution_ = extent / 100.0;
 
     msg_.debug("Estimated state validity checking resolution is %f", maxResolution_);
 
