@@ -95,8 +95,8 @@ if(PY_OMPL_COMPILE)
 		if(NUM_SOURCE_FILES GREATER 0)
 			add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
 			target_link_libraries(py_ompl_${module} 
-				${OMPL_MODULE_LIBRARY}
-				${OMPL_APP_MODULE_LIBRARY}
+				ompl
+				${OMPL_APP_LIBRARY}
 				${Boost_THREAD_LIBRARY}
 				${Boost_DATE_TIME_LIBRARY}
 				${Boost_PYTHON_LIBRARY}
