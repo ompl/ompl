@@ -280,7 +280,7 @@ class code_generator_t(object):
 			include_paths = include_paths,
 			cflags="@PYOMPL_EXTRA_CFLAGS@",
 			indexing_suite_version = 1 )
-		self.mb.classes().always_expose_using_scope
+		self.mb.classes().always_expose_using_scope = True
 		self.std_ns = self.mb.namespace('std')	
 		self.ompl_ns = self.mb.namespace('ompl')
 		self.call_policies()
@@ -514,7 +514,10 @@ class ompl_app_generator_t(code_generator_t):
 			'def("solve", &::ompl::geometric::SimpleSetup::solve, &%s_wrapper::default_solve, (bp::arg("time")=1.0e+0))' % cls)
 			self.ompl_ns.class_(cls).add_registration_code(
 			'def("clear", &::ompl::geometric::SimpleSetup::clear, &%s_wrapper::default_clear)' % cls)
+			self.ompl_ns.class_(cls).add_registration_code(
+			'def("getStateManifold", &::ompl::geometric::SimpleSetup::getStateManifold, bp::return_value_policy< bp::copy_const_reference >())')
 
+		
 if __name__ == '__main__':
 	setrecursionlimit(50000)
 	if len(argv)==1:

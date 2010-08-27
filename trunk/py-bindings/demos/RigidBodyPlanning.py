@@ -31,6 +31,7 @@ def plan():
 	# create a simple setup object
 	ss = og.SimpleSetup(manifold)
 	ss.setStateValidityChecker(isStateValid)
+	print ss.getStateManifold().getBounds().low[0]
 	
 	start = ob.State(manifold)
 	# we can pick a random start state...
