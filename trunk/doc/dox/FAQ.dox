@@ -1,5 +1,5 @@
 /**
-\page FAQ FAQ
+\page FAQ Frequently Asked Questions
 
 - Q: <em>How do I specify collision checking for a planner?</em>
   <br>
@@ -15,7 +15,6 @@
 
 - Q: <em>Can I set the sampler to use for a planner?</em>
   <br>
-
   A: Yes. The sampler instances used by planners are allocated by
   either ompl::base::SpaceInformation::allocUniformStateSampler()
   (which calls ompl::base::StateManifold::allocUniformStateSampler()
@@ -27,8 +26,6 @@
   ompl::base::SpaceInformation::setValidStateSamplerAllocator() allows
   the user to specify the valid state sampler allocator, thus changing
   the sampling strategy used by planners.
-
-
   @code
   #include "ompl/base/samplers/ObstacleBasedValidStateSampler.h"
   ...

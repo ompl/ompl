@@ -1,7 +1,8 @@
 /**
    @page geometricPlanningSE3 Geometric planning for a rigid body in 3D
 
-   \li Using ompl::geometric::SimpleSetup :\n\n
+   @section geometricSimpleSetup Using the ompl::geometric::SimpleSetup class
+
    @dontinclude RigidBodyPlanning.cpp
    Assuming the following namespace definitions:
    @skip ompl::base
@@ -37,8 +38,8 @@
    @until }
    \n
 
-   \li
-   Without ompl::geometric::SimpleSetup :\n\n
+   @section withoutGeometricSimpleSetup Without ompl::geometric::SimpleSetup
+
    @dontinclude RigidBodyPlanning.cpp
    Assuming the following namespace definitions:
    @skip ompl::base

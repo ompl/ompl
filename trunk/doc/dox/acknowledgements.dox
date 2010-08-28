@@ -1,8 +1,6 @@
 /**
 \page acknowledgements Acknowledgements
 
-
-      The authors would like to thank <a href="http://www.willowgarage.com">Willow Garage</a> and ...
-
+      This project is supported in part NSF CCLI grant #0920721 and a generous donation by <a href="http://www.willowgarage.com">Willow Garage</a>. Much of the code is based on a older version of OMPL written by Ioan Șucan while at WillowGarage. This project has also benefitted from previous efforts by the Kavraki lab to develop a motion planning software package. The Object-Oriented System for Motion Planning (OOPSMP) in particular provided significant inspiration in the design of OMPL. We are indebted to all other Kavraki lab members, past and present, for providing code, inspiration, and feedback.
 
 */

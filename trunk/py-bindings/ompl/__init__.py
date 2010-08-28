@@ -1,16 +1,20 @@
 import ctypes
 from ctypes.util import find_library
 
-for lib in ['ompl', 'ompl_app']:
-	libname = find_library(lib)
-	if libname:
-		ctypes.CDLL(libname, ctypes.RTLD_GLOBAL)
+for __lib in ['ompl', 'ompl_app']:
+	__libname = find_library(__lib)
+	if __libname:
+		ctypes.CDLL(__libname, ctypes.RTLD_GLOBAL)
 	else:
+		from platform import system
 		from os.path import abspath, dirname
-		# find_library can't seem to find the libraries on Linux,
-		# even if the libs are in the current directory or
-		# if LD_LIBRARY_PATH is set to the directory where the libs
-		# reside. The call below still succeeds, though.
+		__sys = system()
+		if __sys=='Windows':
+			__ext='.dll'
+		elif __sys=='Darwin':
+			__ext='.dylib'
+		else: # Linux, other UNIX systems
+			__ext='.so'
 		ctypes.CDLL(
-			dirname(abspath(__file__))+'/lib'+lib+'.so',
+			dirname(abspath(__file__))+'/lib'+__lib+__ext,
 			ctypes.RTLD_GLOBAL)
