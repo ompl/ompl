@@ -157,6 +157,7 @@ namespace ompl
 		if (planner && planner->getSpaceInformation().get() != si_.get())
 		    throw Exception("Planner instance does not match space information");
 		planner_ = planner;
+		configured_ = false;
 	    }
 	    
 	    /** \brief Set the planner allocator to use. This is only
@@ -165,6 +166,8 @@ namespace ompl
 	    void setPlannerAllocator(const base::PlannerAllocator &pa)
 	    {
 		pa_ = pa;
+		planner_.reset();
+		configured_ = false;
 	    }
 	    	    
 	    /** \brief Run the planner for a specified amount of time (default is 1 second) */
