@@ -92,6 +92,7 @@ bool ompl::base::Planner::isSetup(void) const
 void ompl::base::Planner::clear(void)
 {
     pis_.clear();
+    pis_.update();
 }
 
 void ompl::base::PlannerData::print(std::ostream &out) const
