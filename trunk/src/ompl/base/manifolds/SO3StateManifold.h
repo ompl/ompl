@@ -79,7 +79,10 @@ namespace ompl
 		
 		/** \brief Set the quaternion from axis-angle representation */
 		void setAxisAngle(double ax, double ay, double az, double angle);
-		
+
+		/** \brief Set the state to identity -- no rotation */
+		void setIdentity(void);
+
 		/** \brief X component of quaternion vector */
 		double x;
 

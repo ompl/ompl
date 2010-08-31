@@ -70,6 +70,12 @@ namespace ompl
 	    {
 	    public:
 		
+		/** \brief Set the state to identity -- no rotation (value = 0.0) */
+		void setIdentity(void)
+		{
+		    value = 0.0;
+		}
+		
 		/** \brief The value of the angle (between -PI and PI) */
 		double value;
 	    };

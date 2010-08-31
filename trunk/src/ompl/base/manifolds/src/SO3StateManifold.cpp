@@ -45,12 +45,7 @@ void ompl::base::SO3StateManifold::StateType::setAxisAngle(double ax, double ay,
 {
     double norm = sqrt(ax * ax + ay * ay + az * az);
     if (norm < std::numeric_limits<double>::epsilon())
-    {
-	w = 1.0;
-	x = 0.0;
-	y = 0.0;
-	z = 0.0;
-    }
+	setIdentity();
     else
     {
 	double s = sin(angle / 2.0);
@@ -59,6 +54,12 @@ void ompl::base::SO3StateManifold::StateType::setAxisAngle(double ax, double ay,
 	z = s * az / norm;
 	w = cos(angle / 2.0);
     }
+}
+
+void ompl::base::SO3StateManifold::StateType::setIdentity(void)
+{
+    x = y = z = 0.0;
+    w = 1.0;
 }
 
 void ompl::base::SO3StateSampler::sampleUniform(State *state)
