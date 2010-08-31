@@ -1,14 +1,14 @@
 /**
 \page gettingStarted Getting Started
 
-- Follow the instructions to <a href="download.html">download</a> and <a href="installation.html">install</a> ompl.
-- Read the <a href="examples.html">examples</a> and try to execute them.
+- Follow the instructions to \ref download "download" and \ref installation "install" OMPL.
+- Read the \ref tutorials "tutorials".
+- Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 
+\section howto How-To's
 
-@section howto How To's
-
-   \li @ref implementStateManifold 
-   \li @ref stateAlloc
-   \li @ref stateOps
+- \ref implementStateManifold 
+- \ref stateAlloc
+- \ref stateOps
 
 */

@@ -1,3 +1,4 @@
+# recursively find all *.cpp files in the current directory and subdirectories
 file(GLOB_RECURSE OMPL_SOURCE_CODE *.cpp)
 
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" VERSION_DIR)

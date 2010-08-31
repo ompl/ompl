@@ -2,19 +2,16 @@
 \page tutorials Tutorials
 
 \par Beginner
-
 - \ref geometricPlanningSE3 "Geometric Planning for a rigid body in 3D"
 - \ref genericPlanning "Generic instructions for setting up a planner"
 .
 
 \par Intermmediate
-
 - \ref statesAndManifolds "Working with States and Implementing Manifolds"
 .
 
 
 \par Advanced
-
 - \ref newPlanner "Adding a new planner"
 .
 

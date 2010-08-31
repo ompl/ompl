@@ -1,9 +1,6 @@
 /**
 \page installation Installation
 
-\htmlonly
-<span class="dlbutton"><a href="download.html">Download</a></span> the latest release of OMPL.
-<br>\endhtmlonly
 To compile OMPL the following two packages are required: 
 - <a href="http://www.boost.org">Boost</a> (any recent version) and 
 - <a href="http://www.cmake.org">CMake</a> (version 2.8 or higher). 
