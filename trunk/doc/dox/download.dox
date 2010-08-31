@@ -18,7 +18,7 @@ The latest source is available via Subversion. For anonymous checkout use:
 $ svn co https://ompl.svn.sourceforge.net/svnroot/ompl/trunk ompl
 \endcode
 To view the source code right now in your browser, click <a href="http://ompl.svn.sourceforge.net/viewvc/ompl">here</a>.
-Alternatively, get a tar.gz snapshot <a href="http://ompl.svn.sourceforge.net/viewvc/ompl/ompl.tar.gz?view=tar">here</a>.
+Alternatively, get a tar.gz snapshot <a href="http://ompl.svn.sourceforge.net/viewvc/ompl/trunk.tar.gz?view=tar">here</a>.
 <br><br>
 A <a href="href://www.ros.org">ROS</a> package providing the latest version of this library is available at:
 \code
