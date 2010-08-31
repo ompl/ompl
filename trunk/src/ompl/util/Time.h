@@ -67,7 +67,7 @@ namespace ompl
 	}
 	
 	/** \brief Return the number of seconds that a time duration represents */
-	inline double seconds(duration d)
+	inline double seconds(const duration &d)
 	{
 	    return (double)d.total_microseconds() / 1000000.0;
 	}
