@@ -520,6 +520,7 @@ class ompl_app_generator_t(code_generator_t):
 		# protected, so that Py++ can create the appropriate wrappers
 		self.ompl_ns.member_functions('inferEnvironmentBounds').include()
 		self.ompl_ns.member_functions('inferProblemDefinitionBounds').include()
+		self.ompl_ns.member_functions('getRobotCenterAndStartState').include()
 		self.ompl_ns.member_functions('allocStateValidityChecker').include()
 		
 if __name__ == '__main__':
