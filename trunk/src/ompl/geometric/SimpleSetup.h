@@ -176,14 +176,7 @@ namespace ompl
 	    }
 	    	    
 	    /** \brief Run the planner for a specified amount of time (default is 1 second) */
-	    virtual bool solve(double time = 1.0)
-	    {
-		setup();
-		time::point start = time::now();
-		bool result = planner_->solve(time);
-		planTime_ = time::seconds(time::now() - start);
-		return result;
-	    }
+	    virtual bool solve(double time = 1.0);
 	    
 	    /** \brief Get the amount of time (in seconds) spent during the last planning step */
 	    double getLastPlanComputationTime(void) const

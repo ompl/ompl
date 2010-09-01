@@ -75,6 +75,19 @@ void ompl::control::SimpleSetup::clear(void)
 	pdef_->getGoal()->clearSolutionPath();
 }
 
+bool ompl::control::SimpleSetup::solve(double time)
+{
+    setup();
+    time::point start = time::now();
+    bool result = planner_->solve(time);
+    planTime_ = time::seconds(time::now() - start);
+    if (result)
+	msg_.inform("Solution found in %f seconds", planTime_);
+    else
+	msg_.inform("No solution found after %f seconds", planTime_);
+    return result;
+}
+
 ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) const
 {
     if (pdef_ && pdef_->getGoal())

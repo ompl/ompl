@@ -94,6 +94,19 @@ void ompl::geometric::SimpleSetup::clear(void)
 	pdef_->getGoal()->clearSolutionPath();
 }
 
+bool ompl::geometric::SimpleSetup::solve(double time)
+{
+    setup();
+    time::point start = time::now();
+    bool result = planner_->solve(time);
+    planTime_ = time::seconds(time::now() - start);
+    if (result)
+	msg_.inform("Solution found in %f seconds", planTime_);
+    else
+	msg_.inform("No solution found after %f seconds", planTime_);
+    return result;
+}
+
 void ompl::geometric::SimpleSetup::simplifySolution(void)
 {
     if (pdef_ && pdef_->getGoal())
