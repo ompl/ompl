@@ -66,14 +66,9 @@ namespace ompl
 	   n-dimensional projection space.
 	   
 	   @par External documentation
-	   
-	   Ioan A. Sucan, Lydia E. Kavraki, Kinodynamic Planning by
-	   Interior-Exterior Cell Exploration, International Workshop on
-	   the Algorithmic Foundations of Robotics, 2008.
-	   @htmlonly
-	   <a href="http://ioan.sucan.ro/files/pubs/wafr2008.pdf">http://ioan.sucan.ro/files/pubs/wafr2008.pdf</a>
-	   @endhtmlonly
-	   
+	   I.A. Şucan and L.E. Kavraki, Kinodynamic motion planning by interior-exterior cell exploration, 
+	   in <em>Workshop on the Algorithmic Foundations of Robotics</em>, Dec. 2008.<br>
+	   <a href="http://ioan.sucan.ro/files/pubs/wafr2008.pdf">[PDF]</a>
 	*/
 	
 	/** \brief Kinematic Planning by Interior-Exterior Cell Exploration */

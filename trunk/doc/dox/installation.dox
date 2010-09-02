@@ -41,8 +41,8 @@ If you want a debug version of ompl, change "Release" to "Debug" above.
 - It is easiest to install the dependencies through <a href="http://www.macports.org">MacPorts</a>, a package manager for OS X, so install MacPorts first.
 - Install Boost, CMake, and the Python libraries and headers. If you have MacPorts installed, type the following:
 \code
-sudo port install cmake
-sudo port install boost +python26
+sudo port selfupdate
+sudo port install cmake boost +python26
 \endcode
 If you omit the \c +python26 part, Boost.Python will not be installed, and the Python bindings for OMPL cannot be compiled.
 - Create a build directory and run cmake:

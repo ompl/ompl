@@ -59,12 +59,11 @@ namespace ompl
 	   
 	   
 	   @par External documentation
+	   S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol. 20, pp. 378–400, May 2001. DOI: <a href="http://dx.doi.org/10.1177/02783640122067453">10.1177/02783640122067453</a><br>
+	   <a href="http://ijr.sagepub.com/content/20/5/378.full.pdf">[PDF]</a>
+	   <a href="http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree">[Wikipedia]</a>
+	   <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
 
-	   @htmlonly
-	   <a href="http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree">http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree</a>
-	   <br>
-	   <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html</a>
-	   @endhtmlonly 
 	*/
 
 	/** \brief Rapidly-exploring Random Tree */

@@ -74,11 +74,9 @@ namespace ompl
 	   set before using the planner.
 	   
 	   @par External documentation
-	   
-	   G. Sanchez and J.C. Latombe.A Single-Query Bi-Directional
-	   Probabilistic Roadmap Planner with Lazy Collision
-	   Checking. Int. Symposium on Robotics Research (ISRR'01), Lorne,
-	   Victoria, Australia, November 2001.
+	   G. Sánchez and J.-C. Latombe, A single-query bi-directional probabilistic roadmap planner with lazy collision checking, in <em>The Tenth International Symposium on Robotics Research</em>, pp. 403–417, 2001.
+	   DOI: <a href="http://dx.doi.org/10.1007/3-540-36460-9_27">10.1007/3-540-36460-9_27</a><br>
+	   <a href="http://www.springerlink.com/content/9843341054386hh6/fulltext.pdf">[PDF]</a>
 	*/
 
 

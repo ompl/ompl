@@ -8,11 +8,11 @@
    the system.  Infinite accelerations and velocities are assumed.
 
 
-   - @ref gLBKPIECE1 "Lazy Bi-directional KPIECE (LBKPIECE)"	
+   - @ref gKPIECE1 "Kinematic Planning by Interior-Exterior Cell Exploration (KPIECE)"
+   - @ref gLBKPIECE1 "Lazy Bi-directional KPIECE (LBKPIECE)"
    - @ref gSBL "Single-query Bi-directional Lazy collision checking planner (SBL)"
    - @ref gpSBL "Parallel Single-query Bi-directional Lazy collision checking planner (pSBL)"
    - @ref gRRTC "RRT Connect (RRTConnect)"
-   - @ref gKPIECE1 "Kinematic Planning by Interior-Exterior Cell Exploration (KPIECE)"
    - @ref gEST "Expansive Space Trees (EST)"
    - @ref gPRM "Probabilistic RoadMaps (PRM)"
    - @ref gRRT "Rapidly-exploring Random Trees (RRT)"
