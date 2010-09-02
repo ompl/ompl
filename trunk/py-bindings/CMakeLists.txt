@@ -67,6 +67,7 @@ if(PY_OMPL_GENERATE)
 		add_custom_target(update_${module}_bindings 
 			COMMAND ${PYTHON_EXEC} 
 			"${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
+			"1>${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
 			COMMAND ${CMAKE_COMMAND}
 			-D "PATH=${CMAKE_CURRENT_SOURCE_DIR}/bindings/${module}"
 			-P abs_to_rel_path.cmake

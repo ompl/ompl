@@ -275,7 +275,7 @@ class code_generator_t(object):
 				include_paths.append(path)
 		self.mb = module_builder.module_builder_t(
 			files = [ '@CMAKE_CURRENT_SOURCE_DIR@/bindings/' + name + '.h' ],
-			cache = '@CMAKE_BINARY_DIR@/pygccxml_'+name+'_cache',
+			cache = '@CMAKE_BINARY_DIR@/pyplusplus_'+name+'.cache',
 			gccxml_path = "@GCCXML@",
 			include_paths = include_paths,
 			cflags="@PYOMPL_EXTRA_CFLAGS@",
