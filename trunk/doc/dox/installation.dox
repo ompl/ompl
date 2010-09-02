@@ -2,10 +2,10 @@
 \page installation Installation
 
 To compile OMPL the following two packages are required: 
-- <a href="http://www.boost.org">Boost</a> (any recent version) and 
+- <a href="http://www.boost.org">Boost</a> (version 1.42 or higher) and 
 - <a href="http://www.cmake.org">CMake</a> (version 2.8 or higher). 
 .
-For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a> (which, in turn, requires pygccxml and GCC-XML). We use the versions of Py++, pygccxml, and GCC-XML that are taken directly from their respective repositories, but official releases may work as well. To generate the documentation you will need <a href="http://www.doxygen.org">Doxygen</a>.
+For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a> (which, in turn, requires pygccxml and GCC-XML). You need the versions of GCC-XML, pygccxml, and Py++ that are taken directly from their respective repositories. (Directions for GCC-XML can be found <a href="http://www.gccxml.org/HTML/Download.html">here</a>, while for pygccxml/py++ they can be found <a href="http://sourceforge.net/scm/?type=svn&group_id=118209">here</a>.) To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
 Below are installation instructions for <a href="#install_linux">Linux</a>, <a href="#install_osx">OS X</a>, and <a href="#install_windows">Windows</a>.
 <br>
