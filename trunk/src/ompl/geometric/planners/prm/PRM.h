@@ -71,7 +71,7 @@ namespace ompl
 	   
 	*/
 
-	/** \brief Rapidly-exploring Random Trees */
+	/** \brief Probabilistic RoadMap planner */
 	class PRM : public base::Planner
 	{
 	public:

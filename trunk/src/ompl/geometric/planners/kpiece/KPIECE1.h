@@ -58,7 +58,12 @@ namespace ompl
 	   KPIECE is a tree-based planner that uses a discretization
 	   (multiple levels, in general) to guide the exploration of
 	   the continous space. This implementation is a simplified
-	   one, using a single level of discretization.
+	   one, using a single level of discretization: one grid. The
+	   grid is imposed on a projection of the state space. When
+	   exploring the space, preference is given to the boundary of
+	   this grid. The boundary is computed to be the set of grid
+	   cells that have less than 2n non-diagonal neighbors in an
+	   n-dimensional projection space.
 	   
 	   @par External documentation
 	   
@@ -75,7 +80,8 @@ namespace ompl
 	class KPIECE1 : public base::Planner
 	{
 	public:
-	    
+	   
+	    /** \brief Constructor */
 	    KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
 							   hcik_(si)
 	    {
@@ -137,15 +143,18 @@ namespace ompl
 	    }
 	    
 	    /** \brief Set the percentage of time for focusing on the
-		border. This is the minimum percentage used to select
-		cells that are exterior (minimum because if 95% of cells
-		are on the border, they will be selected with 95%
-		chance, even if this percentage is set to 90%)*/
+		border (represented as a fraction). This is the
+		minimum percentage used to select cells that are
+		exterior (minimum because if 95% of cells are on the
+		border, they will be selected with 95% chance, even if
+		this percentage is set to 90%)*/
 	    void setBorderPercentage(double bp)
 	    {
 		selectBorderPercentage_ = bp;
 	    }
 	    
+	    /** \brief Get the percentage of time to focus exploration
+		on boundary */
 	    double getBorderPercentage(void) const
 	    {
 		return selectBorderPercentage_;
@@ -224,6 +233,7 @@ namespace ompl
 		}
 	    };
 	    
+	    /** \brief The datatype for the maintained grid datastructure */
 	    typedef GridB<CellData*, OrderCellsByImportance> Grid;
 	    
 	    struct TreeData

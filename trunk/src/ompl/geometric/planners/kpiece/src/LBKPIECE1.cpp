@@ -127,7 +127,7 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
 	
 	addMotion(tree, motion);
 	
-	if (checkSolution(!startTree, tree, otherTree, motion, solution))
+	if (checkSolution(!startTree, tree, otherTree, motion, solution, xstate))
 	{
 	    PathGeometric *path = new PathGeometric(si_);
 	    for (unsigned int i = 0 ; i < solution.size() ; ++i)
@@ -148,7 +148,7 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
     return goal->isAchieved();
 }
 
-bool ompl::geometric::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution)
+bool ompl::geometric::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution, base::State *temp)
 {
     Grid::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
@@ -168,7 +168,7 @@ bool ompl::geometric::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeD
 	    motion->children.push_back(connect);
 	    addMotion(tree, connect);
 	    
-	    if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
+	    if (isPathValid(tree, connect, temp) && isPathValid(otherTree, connectOther, temp))
 	    {
 		/* extract the motions and put them in solution vector */
 		
@@ -200,7 +200,7 @@ bool ompl::geometric::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeD
     return false;
 }
 
-bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion)
+bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion, base::State *temp)
 {
     std::vector<Motion*> mpath;
     
@@ -211,15 +211,32 @@ bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion)
 	motion = motion->parent;
     }
     
+    std::pair<base::State*, double> lastValid;
+    lastValid.first = temp;
+    
     /* check the path */
     for (int i = mpath.size() - 1 ; i >= 0 ; --i)
 	if (!mpath[i]->valid)
 	{
-	    if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state))
+	    if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state, lastValid))
 		mpath[i]->valid = true;
 	    else
 	    {
+		Motion *parent = mpath[i]->parent;
 		removeMotion(tree, mpath[i]);
+		
+		// add the valid part of the path, if sufficiently long
+		if (lastValid.second > minValidPathPercentage_)
+		{
+		    Motion* reAdd = new Motion(si_);
+		    si_->copyState(reAdd->state, lastValid.first);
+		    reAdd->parent = parent;
+		    reAdd->root = parent->root;
+		    parent->children.push_back(reAdd);
+		    reAdd->valid = true;
+		    addMotion(tree, reAdd);
+		}
+		
 		return false;
 	    }
 	}

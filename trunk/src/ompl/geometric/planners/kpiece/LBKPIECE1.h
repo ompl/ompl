@@ -54,10 +54,21 @@ namespace ompl
 	   
 	   @par Short description
 	   
+
 	   KPIECE is a tree-based planner that uses a discretization
-	   (multiple levels, in general) to guide the exploration of the
-	   continous space. 
+	   (multiple levels, in general) to guide the exploration of
+	   the continous space. This implementation is a simplified
+	   one, using a single level of discretization: one grid. The
+	   grid is imposed on a projection of the state space. When
+	   exploring the space, preference is given to the boundary of
+	   this grid. The boundary is computed to be the set of grid
+	   cells that have less than 2n non-diagonal neighbors in an
+	   n-dimensional projection space.
 	   
+	   This variant of the implementation use two trees of
+	   exploration with lazy collision checking, hence the LB
+	   prefix.
+
 	   @par External documentation
 	   
 	   Ioan A. Sucan, Lydia E. Kavraki, Kinodynamic Planning by
@@ -77,7 +88,8 @@ namespace ompl
 	    LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1")
 	    {
 		type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
-		
+
+		minValidPathPercentage_ = 0.2;
 		selectBorderPercentage_ = 0.9;
 		maxDistance_ = 0.0;
 		
@@ -226,8 +238,8 @@ namespace ompl
 	    void addMotion(TreeData &tree, Motion* motion);
 	    Motion* selectMotion(TreeData &tree);	
 	    void removeMotion(TreeData &tree, Motion* motion);
-	    bool isPathValid(TreeData &tree, Motion* motion);
-	    bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution);
+	    bool isPathValid(TreeData &tree, Motion* motion, base::State *temp);
+	    bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution, base::State *temp);
 	    
 	    base::ManifoldStateSamplerPtr              sampler_;
 
@@ -235,7 +247,8 @@ namespace ompl
 	    
 	    TreeData                                   tStart_;
 	    TreeData                                   tGoal_;
-	    
+
+	    double                                     minValidPathPercentage_;	    
 	    double                                     selectBorderPercentage_;
 	    double                                     maxDistance_;
 	    RNG                                        rng_;	

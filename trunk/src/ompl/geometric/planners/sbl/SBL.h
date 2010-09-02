@@ -63,14 +63,16 @@ namespace ompl
 	   removed from the tree and exploration of the state space
 	   continues until a solution is found. 
 	   
-	   To guide the exploration, and additional grid data structure is
-	   maintained. Grid cells contain states that have been previously
-	   visited. When deciding which state to use for further
-	   expansion, this grid is used and least filled grid cells have
-	   most chances of being selected. The grid is usually imposed on
-	   a projection of the state space. This projection needs to be
-	   set before using the planner.
-	   
+	   To guide the exploration, and additional grid data
+	   structure is maintained. Grid cells contain states that
+	   have been previously visited. When deciding which state to
+	   use for further expansion, this grid is used and least
+	   filled grid cells have most chances of being selected. The
+	   grid is usually imposed on a projection of the state
+	   space. This projection needs to be set before using the
+	   planner.  Connection of states in different trees is
+	   attempted they fall in the same grid cell. 
+
 	   @par External documentation
 	   
 	   G. Sanchez and J.C. Latombe.A Single-Query Bi-Directional
