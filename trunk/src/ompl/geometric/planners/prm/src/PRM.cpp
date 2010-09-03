@@ -151,6 +151,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Milestone*> &start, co
 
 bool ompl::geometric::PRM::solve(double solveTime)
 {
+    pis_.checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     
     if (!goal)

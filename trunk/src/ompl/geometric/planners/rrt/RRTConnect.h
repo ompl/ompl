@@ -66,7 +66,8 @@ namespace ompl
 	class RRTConnect : public base::Planner
 	{
 	public:
-	    
+
+	    /** \brief Constructor */
 	    RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
 	    {
 		type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
@@ -112,6 +113,7 @@ namespace ompl
 
 	protected:
 	    
+	    /** \brief Representation of a motion */
 	    class Motion
 	    {
 	    public:
@@ -136,34 +138,52 @@ namespace ompl
 		
 	    };
 	    
+	    /** \brief A nearest-neighbor datastructure representing a tree of motions */
 	    typedef boost::shared_ptr< NearestNeighbors<Motion*> > TreeData;
 
+	    /** \brief Information attached to growing a tree of motions (used internally) */
 	    struct TreeGrowingInfo
 	    {
 		base::State         *xstate;
 		Motion              *xmotion;
 	    };
 	    
+	    /** \brief The state of the tree after an attempt to extend it */
 	    enum GrowState 
 		{
-		    TRAPPED, ADVANCED, REACHED
+		    /// no progress has been made
+		    TRAPPED, 
+		    /// progress has been made towards the randomly sampled state
+		    ADVANCED, 
+		    /// the randomly sampled state was reached
+		    REACHED
 		};
 	    
+	    /** \brief Free the memory allocated by this planner */
 	    void freeMemory(void);
 	    
+	    /** \brief Compute distance between motions (actually distance between contained states) */
 	    double distanceFunction(const Motion* a, const Motion* b) const
 	    {
 		return si_->distance(a->state, b->state);
 	    }
 
+	    /** \brief Grow a tree towards a random state */
 	    GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion);
 	    
+	    /** \brief State sampler */
 	    base::ManifoldStateSamplerPtr sampler_;
 	    
+	    /** \brief The start tree */
 	    TreeData                      tStart_;
+
+	    /** \brief The goal tree */
 	    TreeData                      tGoal_;
 	    
+	    /** \brief The maximum length of a motion to be added to a tree */
 	    double                        maxDistance_;
+
+	    /** \brief The random number generator */
 	    RNG                           rng_;
 	};
 	

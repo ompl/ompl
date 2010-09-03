@@ -127,6 +127,7 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
 
 bool ompl::geometric::RRTConnect::solve(double solveTime)
 {
+    pis_.checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     
     if (!goal)

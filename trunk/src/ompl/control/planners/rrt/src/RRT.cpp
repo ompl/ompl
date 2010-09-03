@@ -58,6 +58,7 @@ void ompl::control::RRT::clear(void)
 
 bool ompl::control::RRT::solve(double solveTime)
 {
+    pis_.checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get(); 
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 

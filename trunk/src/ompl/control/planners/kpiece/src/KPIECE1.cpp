@@ -106,6 +106,7 @@ unsigned int ompl::control::KPIECE1::findNextMotion(const Grid::Coord &origin, c
 
 bool ompl::control::KPIECE1::solve(double solveTime)
 {
+    pis_.checkValidity();
     base::Goal                       *goal = pdef_->getGoal().get();
     base::GoalSampleableRegion     *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     

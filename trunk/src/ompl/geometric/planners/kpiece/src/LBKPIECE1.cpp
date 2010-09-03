@@ -51,6 +51,7 @@ void ompl::geometric::LBKPIECE1::setup(void)
 
 bool ompl::geometric::LBKPIECE1::solve(double solveTime)
 {
+    pis_.checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     
     if (!goal)

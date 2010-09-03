@@ -70,6 +70,7 @@ namespace ompl
 	{
 	public:
 	    
+	    /** \brief Constructor */
 	    RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
 	    {
 		type_ = base::PLAN_TO_GOAL_ANY;
@@ -162,18 +163,28 @@ namespace ompl
 		
 	    };
 	    
+	    /** \brief Free the memory allocated by this planner */
 	    void freeMemory(void);
 	    
+	    /** \brief Compute distance between motions (actually distance between contained states) */
 	    double distanceFunction(const Motion* a, const Motion* b) const
 	    {
 		return si_->distance(a->state, b->state);
 	    }
-	    
+
+	    /** \brief State sampler */	    
 	    base::ManifoldStateSamplerPtr                  sampler_;
+
+	    /** \brief A nearest-neighbors datastructure containing the tree of motions */
 	    boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
 	    
+	    /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
 	    double                                         goalBias_;
+
+	    /** \brief The maximum length of a motion to be added to a tree */
 	    double                                         maxDistance_;
+
+	    /** \brief The random number generator */
 	    RNG                                            rng_;	
 	};
 	

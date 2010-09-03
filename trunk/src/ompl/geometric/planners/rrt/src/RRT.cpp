@@ -74,6 +74,7 @@ void ompl::geometric::RRT::freeMemory(void)
 
 bool ompl::geometric::RRT::solve(double solveTime)
 {
+    pis_.checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     

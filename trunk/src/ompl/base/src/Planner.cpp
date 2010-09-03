@@ -138,6 +138,30 @@ bool ompl::base::PlannerInputStates::update(void)
     return use(planner_->getSpaceInformation(), planner_->getProblemDefinition());
 }
 
+void ompl::base::PlannerInputStates::checkValidity(void) const
+{
+    std::string error;
+    
+    if (!pdef_)
+	error = "Problem definition not specified";
+    else
+    {
+	if (pdef_->getStartStateCount() <= 0)
+	    error = "No start states specified";
+	else
+	    if (!pdef_->getGoal())
+		error = "No goal specified";
+    }
+    
+    if (!error.empty())
+    {
+	if (planner_)
+	    throw Exception(planner_->getName(), error);
+	else
+	    throw Exception(error);
+    }
+}
+
 bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef)
 {
     if (si && pdef)

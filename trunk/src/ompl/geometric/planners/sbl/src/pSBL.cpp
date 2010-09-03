@@ -77,6 +77,7 @@ void ompl::geometric::pSBL::freeGridMotions(Grid<MotionSet> &grid)
 
 void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
 {   
+    pis_.checkValidity();
     base::GoalState *goal = static_cast<base::GoalState*>(pdef_->getGoal().get());
     RNG              rng;
     

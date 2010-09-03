@@ -180,6 +180,10 @@ namespace ompl
 		(different problem definition) and clear() was
 		called.*/
 	    bool use(const SpaceInformation *si, const ProblemDefinition *pdef);
+
+	    /** \brief Check if the problem definition was set, start
+		state are available and goal was set */
+	    void checkValidity(void) const;
 	    
 	    /** \brief Return the next valid start state or NULL if no
 		more valid start states are available. */
@@ -280,7 +284,10 @@ namespace ompl
 		can solve */
 	    PlannerType getType(void) const;
 	    
-	    /** \brief Perform extra configuration steps, if needed. This call will also issue a call to SpaceInformation::setup() if needed. This must be called before solving */
+	    /** \brief Perform extra configuration steps, if
+		needed. This call will also issue a call to
+		ompl::base::SpaceInformation::setup() if needed. This
+		must be called before solving */
 	    virtual void setup(void);
 	    
 	    /** \brief Check if setup() was called for this planner */

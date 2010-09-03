@@ -65,6 +65,7 @@ void ompl::geometric::SBL::freeGridMotions(Grid<MotionSet> &grid)
 
 bool ompl::geometric::SBL::solve(double solveTime)
 {
+    pis_.checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     
     if (!goal)
