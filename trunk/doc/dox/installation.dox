@@ -14,14 +14,12 @@ Below are installation instructions for <a href="#install_linux">Linux</a>, <a h
 
 \section install_linux Installation on Linux
 
-- Install Boost, CMake, and (optionally) GTest and the Python libraries and headers. For example, with an Ubuntu 10.04 Linux distribution, you can type:
+- Install Boost, CMake, and (optionally) Google Test and the Python libraries and headers. For example, with an Ubuntu 10.04 Linux distribution, you can type:
 \code
 sudo add-apt-repository ppa:gezakovacs/boost
 sudo apt-get install libboost-all-dev
 \endcode
-
-The needed boost libraries are: thread, date_time, math. The optional ones are: system, filesystem.
-CMake can be installed from <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
+If a package for CMake version 2.8 or higher is not available through your package manager, then you can download it <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
 
 
 - Create a build directory and run cmake:
