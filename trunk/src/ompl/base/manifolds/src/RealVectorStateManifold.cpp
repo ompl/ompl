@@ -147,6 +147,11 @@ bool ompl::base::RealVectorStateManifold::satisfiesBounds(const State *state) co
 	if (rstate->values[i] - std::numeric_limits<double>::epsilon() > bounds_.high[i] ||
 	    rstate->values[i] + std::numeric_limits<double>::epsilon() < bounds_.low[i])
 	    return false;
+
+    printState(state, std::cout);    
+    msg_.inform("satisfies bounds");
+    printSettings(std::cout);
+    
     return true;
 }
 

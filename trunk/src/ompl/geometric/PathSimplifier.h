@@ -79,7 +79,7 @@ namespace ompl
 		to directly connnect non-consecutive states along the
 		path. This function returns the maximum distance
 		between states a connection is attempted, as a
-		percentage relative to the path length (between 0 and
+		fraction relative to the path length (between 0 and
 		1). */
 	    double getRangeRatio(void) const
 	    {
@@ -89,7 +89,7 @@ namespace ompl
 	    /** \brief The implementation of reduceVertices() attempts
 		to directly connnect non-consecutive states along the
 		path. This function sets the maximum distance between
-		states a connection is attempted, as a percentage
+		states a connection is attempted, as a fraction
 		relative to the path length (between 0 and 1). */
 	    void setRangeRatio(double rangeRatio)
 	    {

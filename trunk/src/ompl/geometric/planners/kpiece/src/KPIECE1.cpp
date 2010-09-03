@@ -155,7 +155,7 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 	
 	std::pair<base::State*, double> fail(xstate, 0.0);
 	bool keep = si_->checkMotion(existing->state, xstate, fail);
-	if (!keep && fail.second > minValidPathPercentage_)
+	if (!keep && fail.second > minValidPathFraction_)
 	    keep = true;
 	
 	if (keep)
@@ -226,7 +226,7 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 
 bool ompl::geometric::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 {
-    scell = rng_.uniform01() < std::max(selectBorderPercentage_, tree_.grid.fracExternal()) ?
+    scell = rng_.uniform01() < std::max(selectBorderFraction_, tree_.grid.fracExternal()) ?
 	tree_.grid.topExternal() : tree_.grid.topInternal();
     if (scell && !scell->data->motions.empty())
     {

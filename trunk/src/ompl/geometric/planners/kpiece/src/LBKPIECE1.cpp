@@ -226,7 +226,7 @@ bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion, bas
 		removeMotion(tree, mpath[i]);
 		
 		// add the valid part of the path, if sufficiently long
-		if (lastValid.second > minValidPathPercentage_)
+		if (lastValid.second > minValidPathFraction_)
 		{
 		    Motion* reAdd = new Motion(si_);
 		    si_->copyState(reAdd->state, lastValid.first);
@@ -245,7 +245,7 @@ bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion, bas
 
 ompl::geometric::LBKPIECE1::Motion* ompl::geometric::LBKPIECE1::selectMotion(TreeData &tree)
 {
-    Grid::Cell* cell = rng_.uniform01() < std::max(selectBorderPercentage_, tree.grid.fracExternal()) ?
+    Grid::Cell* cell = rng_.uniform01() < std::max(selectBorderFraction_, tree.grid.fracExternal()) ?
 	tree.grid.topExternal() : tree.grid.topInternal();
     if (cell && !cell->data->motions.empty())
     {

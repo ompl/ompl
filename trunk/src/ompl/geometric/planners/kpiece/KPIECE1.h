@@ -83,10 +83,10 @@ namespace ompl
 		type_ = base::PLAN_TO_GOAL_ANY;
 		
 		goalBias_ = 0.05;
-		selectBorderPercentage_ = 0.9;
+		selectBorderFraction_ = 0.9;
 		badScoreFactor_ = 0.5;
 		goodScoreFactor_ = 0.9;
-		minValidPathPercentage_ = 0.2;
+		minValidPathFraction_ = 0.2;
 		maxDistance_ = 0.0;
 		tree_.grid.onCellUpdate(computeImportance, NULL);
 		hcik_.setMaxImproveSteps(50);
@@ -137,22 +137,22 @@ namespace ompl
 		return maxDistance_;
 	    }
 	    
-	    /** \brief Set the percentage of time for focusing on the
-		border (represented as a fraction). This is the
-		minimum percentage used to select cells that are
-		exterior (minimum because if 95% of cells are on the
-		border, they will be selected with 95% chance, even if
-		this percentage is set to 90%)*/
-	    void setBorderPercentage(double bp)
+	    /** \brief Set the fraction of time for focusing on the
+		border (between 0 and 1). This is the minimum fraction
+		used to select cells that are exterior (minimum
+		because if 95% of cells are on the border, they will
+		be selected with 95% chance, even if this fraction is
+		set to 90%)*/
+	    void setBorderFraction(double bp)
 	    {
-		selectBorderPercentage_ = bp;
+		selectBorderFraction_ = bp;
 	    }
 	    
-	    /** \brief Get the percentage of time to focus exploration
+	    /** \brief Get the fraction of time to focus exploration
 		on boundary */
-	    double getBorderPercentage(void) const
+	    double getBorderFraction(void) const
 	    {
-		return selectBorderPercentage_;
+		return selectBorderFraction_;
 	    }
 	    
 	    /** \brief Set the projection evaluator. This class is
@@ -263,10 +263,10 @@ namespace ompl
 	    
 	    base::ProjectionEvaluatorPtr               projectionEvaluator_;
 	    
-	    double                                     minValidPathPercentage_;
+	    double                                     minValidPathFraction_;
 	    double                                     goodScoreFactor_;
 	    double                                     badScoreFactor_;
-	    double                                     selectBorderPercentage_;
+	    double                                     selectBorderFraction_;
 	    double                                     goalBias_;
 	    double                                     maxDistance_;
 	    RNG                                        rng_;	
