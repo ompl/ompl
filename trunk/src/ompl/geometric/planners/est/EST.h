@@ -70,7 +70,8 @@ namespace ompl
 	class EST : public base::Planner
 	{
 	public:
-	    
+
+	    /** \brief Constructor */
 	    EST(const base::SpaceInformationPtr &si) : base::Planner(si, "EST")
 	    {
 		type_ = base::PLAN_TO_GOAL_ANY;
@@ -147,7 +148,8 @@ namespace ompl
 	    virtual void getPlannerData(base::PlannerData &data) const;
 	    
 	protected:
-	    
+
+	    /** \brief The definition of a motion */
 	    class Motion
 	    {
 	    public:
@@ -164,35 +166,55 @@ namespace ompl
 		{
 		}
 
+		/** \brief The state contained by the motion */
 		base::State       *state;
+
+		/** \brief The parent motion in the exploration tree */
 		Motion            *parent;		
 	    };
 	    
+	    /** \brief An array of motions */
 	    typedef std::vector<Motion*> MotionSet;
 	    
+	    /** \brief The data contained by a tree of exploration */
 	    struct TreeData
 	    {
 		TreeData(void) : grid(0), size(0)
 		{
 		}
 		
+		/** \brief A grid where each cell contains an array of motions */
 		Grid<MotionSet> grid;
+
+		/** \brief The total number of motions in the grid */
 		unsigned int    size;
 	    };
 	    
+	    /** \brief Free the memory allocated by this planner */
 	    void freeMemory(void);
 	    
+	    /** \brief Add a motion to the exploration tree */
 	    void addMotion(Motion *motion);
+
+	    /** \brief Select a motion to continue the expansion of the tree from */
 	    Motion* selectMotion(void);
 	    
+	    /** \brief Valid state sampler */
 	    base::ValidStateSamplerPtr   sampler_;
 	    
+	    /** \brief The exploration tree constructed by this algorithm */
 	    TreeData                     tree_;
 	    
+	    /** \brief This algorithm uses a discretization (a grid) to guide the exploration. The exploration is imposed on a projection of the state space. */
 	    base::ProjectionEvaluatorPtr projectionEvaluator_;
-	    
+
+	    /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */	    
 	    double                       goalBias_;
+
+	    /** \brief The maximum length of a motion to be added to a tree */
 	    double                       maxDistance_;	
+
+	    /** \brief The random number generator */
 	    RNG                          rng_;	
 	};
 	
