@@ -5,10 +5,5 @@
 - Read the \ref tutorials "tutorials".
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 
-\section howto How-To's
-
-- \ref implementStateManifold 
-- \ref stateAlloc
-- \ref stateOps
 
 */

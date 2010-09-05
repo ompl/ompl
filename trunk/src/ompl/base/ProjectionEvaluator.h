@@ -101,10 +101,12 @@ namespace ompl
 	{
 	public:
 	    
+	    /** \brief Construct a projection evaluator for a specific manifold */
 	    ProjectionEvaluator(const StateManifold *manifold) : manifold_(manifold)
 	    {
 	    }
 
+	    /** \brief Construct a projection evaluator for a specific manifold */
 	    ProjectionEvaluator(const StateManifoldPtr &manifold) : manifold_(manifold.get())
 	    {
 	    }
