@@ -231,7 +231,7 @@ namespace ompl
 		unsigned int         selections;
 
 		/** \brief A heuristic score computed based on
-		    distance to goal (if available), successed and
+		    distance to goal (if available), successes and
 		    failures at expanding from this cell. */
 		double               score;
 		

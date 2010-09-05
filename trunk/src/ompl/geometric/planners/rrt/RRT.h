@@ -149,7 +149,8 @@ namespace ompl
 		Motion(void) : state(NULL), parent(NULL)
 		{
 		}
-		
+
+		/** \brief Constructor that allocates memory for the state */
 		Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL)
 		{
 		}
@@ -157,8 +158,11 @@ namespace ompl
 		~Motion(void)
 		{
 		}
-		
+
+		/** \brief The state contained by the motion */		
 		base::State       *state;
+
+		/** \brief The parent motion in the exploration tree */
 		Motion            *parent;
 		
 	    };

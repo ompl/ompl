@@ -169,6 +169,7 @@ namespace ompl
 		
 		/** \brief The root of the tree this motion would get to, if we were to follow parent pointers */
 		const base::State *root;
+
 		/** \brief The state this motion leads to */
 		base::State       *state;
 
@@ -219,7 +220,7 @@ namespace ompl
 		once trees are connected, the solution found needs to
 		be checked for validity. This function checks whether
 		the reverse path from a given motion to a root is
-		valid */
+		valid. If this is not the case, invalid motions are removed  */
 	    bool isPathValid(TreeData &tree, Motion *motion);
 
 	    /** \brief Check if a solution can be obtained by connecting two trees using a specified motion */
