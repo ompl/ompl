@@ -148,6 +148,10 @@ Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousph
 */
 void ompl::base::SO3StateManifold::interpolate(const State *from, const State *to, const double t, State *state) const
 {
+    // disabled for release build
+    assert(satisfiesBounds(from));
+    assert(satisfiesBounds(to));
+
     double theta = distance(from, to) / 2.0;
     if (theta > std::numeric_limits<double>::epsilon())
     {
@@ -235,5 +239,5 @@ void ompl::base::SO3StateManifold::printState(const State *state, std::ostream &
 
 void ompl::base::SO3StateManifold::printSettings(std::ostream &out) const
 {
-    out << "SO(3) state manifold (represented using quaternions)" << std::endl;
+    out << "SO(3) state manifold '" << name_ << "' (represented using quaternions)" << std::endl;
 }

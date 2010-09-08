@@ -58,7 +58,7 @@ void ompl::control::ControlManifold::printControl(const Control *control, std::o
 
 void ompl::control::ControlManifold::printSettings(std::ostream &out) const
 {
-    out << "ControlManifold instance: " << this << std::endl;
+    out << "ControlManifold '" << name_ << "' instance: " << this << std::endl;
 }
 
 ompl::control::PropagationResult ompl::control::ControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
@@ -94,6 +94,14 @@ const ompl::control::ControlManifoldPtr& ompl::control::CompoundControlManifold:
 	return components_[index];
     else
 	throw Exception("Submanifold index does not exist");
+}
+
+const ompl::control::ControlManifoldPtr& ompl::control::CompoundControlManifold::getSubManifold(const std::string &name) const
+{
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	if (components_[i]->getName() == name)
+	    return components_[i];
+    throw Exception("Submanifold " + name + " does not exist");
 }
 
 unsigned int ompl::control::CompoundControlManifold::getDimension(void) const
@@ -200,7 +208,7 @@ void ompl::control::CompoundControlManifold::printControl(const Control *control
 
 void ompl::control::CompoundControlManifold::printSettings(std::ostream &out) const
 {
-    out << "Compound control manifold [" << std::endl;
+    out << "Compound control manifold '" << name_ << "' [" << std::endl;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
 	components_[i]->printSettings(out);
     out << "]" << std::endl;

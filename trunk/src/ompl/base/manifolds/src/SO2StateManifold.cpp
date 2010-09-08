@@ -188,5 +188,5 @@ void ompl::base::SO2StateManifold::printState(const State *state, std::ostream &
 
 void ompl::base::SO2StateManifold::printSettings(std::ostream &out) const
 {
-    out << "SO2 state manifold" << std::endl;
+    out << "SO2 state manifold '" << name_ << "'" << std::endl;
 }

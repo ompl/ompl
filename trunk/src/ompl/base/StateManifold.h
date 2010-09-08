@@ -73,9 +73,8 @@ namespace ompl
 	    /** \brief Define the type of state allocated by this manifold */
 	    typedef State StateType;
 	    
-	    StateManifold(void)
-	    {
-	    }
+	    /** \brief Constructor. Assigns a unique name to the manifold */
+	    StateManifold(void);
 	    
 	    virtual ~StateManifold(void)
 	    {
@@ -100,7 +99,19 @@ namespace ompl
 		
 		return static_cast<const T*>(this);
 	    }
-
+	    
+	    /** \brief Get the name of the manifold */
+	    const std::string& getName(void) const
+	    {
+		return name_;
+	    }
+	    
+	    /** \brief Set the name of the manifold */
+	    void setName(const std::string &name)
+	    {
+		name_ = name;
+	    }
+	    
 	    /** \brief Get the dimension of the space */
 	    virtual unsigned int getDimension(void) const = 0;
 
@@ -166,9 +177,12 @@ namespace ompl
 
 	    /** \brief The name used for the default projection */
 	    static const std::string DEFAULT_PROJECTION_NAME;
-	    	    
+	    
+	    /** \brief Manifold name */
+	    std::string                                   name_;
+	    
 	    /** \brief Interface used for console output */
-	    msg::Interface        msg_;
+	    msg::Interface                                msg_;
 	    
 	    /** \brief List of available projections */
 	    std::map<std::string, ProjectionEvaluatorPtr> projections_;
@@ -210,12 +224,21 @@ namespace ompl
 	    
 	    /** \brief Get a specific manifold from the compound manifold */
 	    const StateManifoldPtr& getSubManifold(const unsigned int index) const;
+
+	    /** \brief Get a specific manifold from the compound manifold */
+	    const StateManifoldPtr& getSubManifold(const std::string& name) const;
 	    
 	    /** \brief Get a specific manifold's weight from the compound manifold (used in distance computation) */
 	    double getSubManifoldWeight(const unsigned int index) const;
 
+	    /** \brief Get a specific manifold's weight from the compound manifold (used in distance computation) */
+	    double getSubManifoldWeight(const std::string &name) const;
+
 	    /** \brief Set a specific manifold's weight in the compound manifold (used in distance computation) */
 	    void setSubManifoldWeight(const unsigned int index, double weight);
+
+	    /** \brief Set a specific manifold's weight in the compound manifold (used in distance computation) */
+	    void setSubManifoldWeight(const std::string &name, double weight);
 	    
 	    virtual unsigned int getDimension(void) const;
 

@@ -147,11 +147,6 @@ bool ompl::base::RealVectorStateManifold::satisfiesBounds(const State *state) co
 	if (rstate->values[i] - std::numeric_limits<double>::epsilon() > bounds_.high[i] ||
 	    rstate->values[i] + std::numeric_limits<double>::epsilon() < bounds_.low[i])
 	    return false;
-
-    printState(state, std::cout);    
-    msg_.inform("satisfies bounds");
-    printSettings(std::cout);
-    
     return true;
 }
 
@@ -236,7 +231,7 @@ void ompl::base::RealVectorStateManifold::printState(const State *state, std::os
 
 void ompl::base::RealVectorStateManifold::printSettings(std::ostream &out) const
 {
-    out << "Real vector state manifold of dimension " << dimension_ << " with bounds: " << std::endl;
+    out << "Real vector state manifold '" << name_ << "' of dimension " << dimension_ << " with bounds: " << std::endl;
     out << "  - min: ";
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
 	out << bounds_.low[i] << " ";

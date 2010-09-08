@@ -82,6 +82,7 @@ namespace ompl
 	    /** \brief Construct a control manifold, given the state manifold */
 	    ControlManifold(const base::StateManifoldPtr &stateManifold) : stateManifold_(stateManifold)
 	    {
+		name_ = "control[" + stateManifold_->getName() + "]";
 	    }
 	    
 	    virtual ~ControlManifold(void)
@@ -107,7 +108,19 @@ namespace ompl
 		
 		return static_cast<const T*>(this);
 	    }
+	    	    
+	    /** \brief Get the name of the manifold */
+	    const std::string& getName(void) const
+	    {
+		return name_;
+	    }
 	    
+	    /** \brief Set the name of the manifold */
+	    void setName(const std::string &name)
+	    {
+		name_ = name;
+	    }
+
 	    /** \brief Return the state manifold this control manifold depends on */
 	    const base::StateManifoldPtr& getStateManifold(void) const;
 
@@ -176,6 +189,8 @@ namespace ompl
 	    /** \brief Function that can perform state propagation */
 	    StatePropagationFn     statePropagation_;
 	    
+	    /** \brief The name of this manifold */
+	    std::string            name_;
 	};
 	
 	/** \brief A manifold to allow the composition of control manifolds */
@@ -212,6 +227,9 @@ namespace ompl
 	    
 	    /** \brief Get a specific manifold from the compound manifold */
 	    const ControlManifoldPtr& getSubManifold(const unsigned int index) const;
+
+	    /** \brief Get a specific manifold from the compound manifold */
+	    const ControlManifoldPtr& getSubManifold(const std::string &name) const;
 
 	    virtual unsigned int getDimension(void) const;
 	    

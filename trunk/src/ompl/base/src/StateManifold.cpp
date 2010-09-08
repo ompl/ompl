@@ -34,9 +34,26 @@
 
 #include "ompl/base/StateManifold.h"
 #include "ompl/util/Exception.h"
+#include <boost/thread/mutex.hpp>
+#include <sstream>
 #include <numeric>
 
 const std::string ompl::base::StateManifold::DEFAULT_PROJECTION_NAME = "";
+
+ompl::base::StateManifold::StateManifold(void)
+{
+    // autocompute a unique name
+    static boost::mutex lock;
+    static unsigned int m = 0;
+    
+    lock.lock();
+    m++;
+    lock.unlock();
+
+    std::stringstream ss;
+    ss << "manifold" << m;
+    name_ = ss.str();
+}
 
 void ompl::base::StateManifold::setup(void)
 {
@@ -49,7 +66,7 @@ void ompl::base::StateManifold::printState(const State *state, std::ostream &out
 
 void ompl::base::StateManifold::printSettings(std::ostream &out) const
 {
-    out << "StateManifold instance: " << this << std::endl;
+    out << "StateManifold '" << name_ << "' instance: " << this << std::endl;
     printProjections(out);
 }
 
@@ -138,12 +155,28 @@ const ompl::base::StateManifoldPtr& ompl::base::CompoundStateManifold::getSubMan
 	throw Exception("Submanifold index does not exist");
 }
 
+const ompl::base::StateManifoldPtr& ompl::base::CompoundStateManifold::getSubManifold(const std::string& name) const
+{
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	if (components_[i]->getName() == name)
+	    return components_[i];
+    throw Exception("Submanifold " + name + " does not exist");
+}
+
 double ompl::base::CompoundStateManifold::getSubManifoldWeight(const unsigned int index) const
 {
     if (componentCount_ > index)
 	return weights_[index];
     else
 	throw Exception("Submanifold index does not exist");
+}
+
+double ompl::base::CompoundStateManifold::getSubManifoldWeight(const std::string &name) const
+{ 
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	if (components_[i]->getName() == name)
+	    return weights_[i];
+    throw Exception("Submanifold " + name + " does not exist");
 }
 
 void ompl::base::CompoundStateManifold::setSubManifoldWeight(const unsigned int index, double weight)
@@ -154,6 +187,17 @@ void ompl::base::CompoundStateManifold::setSubManifoldWeight(const unsigned int 
 	weights_[index] = weight;
     else
 	throw Exception("Submanifold index does not exist");
+}
+
+void ompl::base::CompoundStateManifold::setSubManifoldWeight(const std::string &name, double weight)
+{
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	if (components_[i]->getName() == name)
+	{
+	    setSubManifoldWeight(i, weight);
+	    return;
+	}
+    throw Exception("Submanifold " + name + " does not exist");
 }
 
 unsigned int ompl::base::CompoundStateManifold::getDimension(void) const
@@ -267,7 +311,7 @@ void ompl::base::CompoundStateManifold::printState(const State *state, std::ostr
 
 void ompl::base::CompoundStateManifold::printSettings(std::ostream &out) const
 {
-    out << "Compound state manifold [" << std::endl;
+    out << "Compound state manifold '" << name_ << "' [" << std::endl;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
 	components_[i]->printSettings(out);
     out << "]" << std::endl;

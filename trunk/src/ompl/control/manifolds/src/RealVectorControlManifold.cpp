@@ -133,7 +133,7 @@ void ompl::control::RealVectorControlManifold::printControl(const Control *contr
 
 void ompl::control::RealVectorControlManifold::printSettings(std::ostream &out) const
 {
-    out << "Real vector control manifold with bounds: " << std::endl;
+    out << "Real vector control manifold '" << name_ << "' with bounds: " << std::endl;
     out << "  - min: ";
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
 	out << bounds_.low[i] << " ";
