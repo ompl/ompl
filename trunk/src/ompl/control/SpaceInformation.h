@@ -135,9 +135,6 @@ namespace ompl
 	    void setPropagationStepSize(double stepSize)
 	    {
 		stepSize_ = stepSize;
-		// even if we need to do validation checking at a smaller resolution, we cannot go lower than the propagation step
-		if (resolution_ < stepSize_)
-		    resolution_ = stepSize_;
 	    }
 	    
 	    /** \brief Propagation is performed at integer multiples of a specified step size. This function returns the value of this step size. */

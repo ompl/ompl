@@ -56,10 +56,17 @@ void ompl::control::SpaceInformation::setup(void)
     
     if (stepSize_ < std::numeric_limits<double>::epsilon())
     {
-	stepSize_ = resolution_;
+	stepSize_ = resolution_ * getMaximumExtent();
 	msg_.warn("The propagation step size is assumed to be the same as the state validity checking resolution: %f", stepSize_);
     }
-
+    else
+	// even if we need to do validation checking at a smaller resolution, we cannot go lower than the propagation step
+	if (resolution_ * getMaximumExtent() < stepSize_)
+	{
+	    resolution_ = stepSize_ / getMaximumExtent();
+	    msg_.warn("The state validity checking resolution is too small relative to the propagation step size. Increasing resolution to %f", resolution_);
+	}
+    
     controlManifold_->setup();    
     if (controlManifold_->getDimension() <= 0)
 	throw Exception("The dimension of the control manifold we plan in must be > 0");

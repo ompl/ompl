@@ -38,7 +38,7 @@
 #include "ompl/base/SpaceInformation.h"
 
 ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getStateValidityCheckingResolution() * 10.0)
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getMaximumExtent() / 10.0)
 {
 }
 

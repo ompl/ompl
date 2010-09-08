@@ -131,7 +131,7 @@ base::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     base::StateManifoldPtr sManPtr(sMan);
     
     base::SpaceInformationPtr si(new base::SpaceInformation(sManPtr));
-    si->setStateValidityCheckingResolution(0.5);
+    si->setStateValidityCheckingResolution(0.016);
     
     si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityChecker(si.get(), env.grid)));
     

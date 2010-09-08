@@ -230,7 +230,7 @@ public:
 	goal->setState(gstate);
 	goal->setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities 
 	pdef->setGoal(base::GoalPtr(goal));
-
+	
 	/* start counting time */
 	ompl::time::point startTime = ompl::time::now();
 	

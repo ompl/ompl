@@ -130,6 +130,12 @@ namespace ompl
 	    /** \brief Computes distance to between two states. This value will always be between 0 and getMaximumExtent() */
 	    virtual double distance(const State *state1, const State *state2) const = 0;
 	    
+	    /** \brief Computes distance between two states as a
+		fraction of the maximum extent. This value will always
+		be between 0 and 1.
+		\note This is equal to distance(\e state1, \e state2) / getMaximumExtent(), except for compound manifolds. */
+	    virtual double distanceAsFraction(const State *state1, const State *state2) const;
+
 	    /** \brief Checks whether two states are equal */
 	    virtual bool equalStates(const State *state1, const State *state2) const = 0;
 
@@ -183,6 +189,9 @@ namespace ompl
 	    
 	    /** \brief Manifold name */
 	    std::string                                   name_;
+	    
+	    /** \brief The extent of this manifold at the time setup() was called */
+	    double                                        maxExtent_;
 	    
 	    /** \brief Interface used for console output */
 	    msg::Interface                                msg_;
@@ -252,7 +261,13 @@ namespace ompl
 	    virtual bool satisfiesBounds(const State *state) const;
 
 	    virtual void copyState(State *destination, const State *source) const;
-	    
+
+	    /** \brief Computes distance between two states as a
+		fraction of the maximum extent. This value will always
+		be between 0 and 1.
+		\note This is equal to maximum of distance(\e state1, \e state2) / getMaximumExtent(), for each submanifold. Weights are ignored. */
+	    virtual double distanceAsFraction(const State *state1, const State *state2) const;
+
 	    virtual double distance(const State *state1, const State *state2) const;
 	    
 	    virtual bool equalStates(const State *state1, const State *state2) const;

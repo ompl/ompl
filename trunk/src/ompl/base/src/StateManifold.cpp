@@ -37,6 +37,7 @@
 #include <boost/thread/mutex.hpp>
 #include <sstream>
 #include <numeric>
+#include <limits>
 
 const std::string ompl::base::StateManifold::DEFAULT_PROJECTION_NAME = "";
 
@@ -53,10 +54,13 @@ ompl::base::StateManifold::StateManifold(void)
     std::stringstream ss;
     ss << "manifold" << m;
     name_ = ss.str();
+
+    maxExtent_ = std::numeric_limits<double>::infinity();
 }
 
 void ompl::base::StateManifold::setup(void)
 {
+    maxExtent_ = getMaximumExtent();
 }
 
 void ompl::base::StateManifold::printState(const State *state, std::ostream &out) const
@@ -129,6 +133,11 @@ void ompl::base::StateManifold::registerProjection(const std::string &name, cons
 	projections_[name] = projection;
     else
 	msg_.error("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
+}
+
+double ompl::base::StateManifold::distanceAsFraction(const State *state1, const State *state2) const
+{
+    return distance(state1, state2) / maxExtent_;
 }
 
 void ompl::base::CompoundStateManifold::addSubManifold(const StateManifoldPtr &component, double weight)
@@ -247,6 +256,20 @@ double ompl::base::CompoundStateManifold::distance(const State *state1, const St
     double dist = 0.0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
 	dist += weights_[i] * components_[i]->distance(cstate1->components[i], cstate2->components[i]);
+    return dist;
+}
+
+double ompl::base::CompoundStateManifold::distanceAsFraction(const State *state1, const State *state2) const
+{
+    const CompoundState *cstate1 = static_cast<const CompoundState*>(state1);
+    const CompoundState *cstate2 = static_cast<const CompoundState*>(state2);
+    double dist = 0.0;
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+    {
+	double d = components_[i]->distanceAsFraction(cstate1->components[i], cstate2->components[i]);
+	if (d > dist)
+	    dist = d;
+    }
     return dist;
 }
 

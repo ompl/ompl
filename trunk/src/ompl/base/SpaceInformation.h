@@ -117,14 +117,19 @@ namespace ompl
 		return stateValidityChecker_;
 	    }	
 	    
-	    /** \brief Set the resolution (maximum distance between states) at which state validity needs to be
-		verified in order for a motion between two states to be considered valid */
+	    /** \brief Set the resolution at which state validity
+		needs to be verified in order for a motion between two
+		states to be considered valid. This value is specified
+		as a freaction of the maximum distance between two
+		states. By default this is 1% */
 	    void setStateValidityCheckingResolution(double resolution)
 	    {
 		resolution_ = resolution;
 	    }
 	    
-	    /** \brief Get the resolution (maximum distance between states) at which state validity is verified */
+	    /** \brief Get the resolution at which state validity is
+		verified. This value is specified as a fraction of the
+		maximum distance between two states. */
 	    double getStateValidityCheckingResolution(void) const
 	    {
 		return resolution_;
@@ -224,15 +229,6 @@ namespace ompl
 		return stateManifold_->getMaximumExtent();
 	    }
 	    
-	    /** \brief Estimate the maximum (overapproximation)
-		resolution at which states should be checked for
-		validity. This is done through random sampling and
-		returning the shortest distance between the closest
-		pair of valid and invalid states. Computation is
-		performed only the first time a call is made to this
-		function (result is cached). */
-	    virtual double estimateMaxResolution(void);
-	    
 	    /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
 	     *  The two passed state pointers must point to different states. Returns true on success. 
 	     *  \param state the location at which to store the valid state, if one is found. This location may be modified even if no valid state is found.
@@ -298,9 +294,6 @@ namespace ompl
 	    /** \brief The resolution (maximum distance between states) at which state validity checks are performed */
 	    double                     resolution_;
 
-	    /** \brief If estimateMaxResolution() has been called, this value is filled with the estimated maximum resolution */
-	    double                     maxResolution_;
-	    
 	    /** \brief Flag indicating whether setup() has been called on this instance */
 	    bool                       setup_;
 

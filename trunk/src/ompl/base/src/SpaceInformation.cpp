@@ -43,7 +43,7 @@
 #include <cmath>
 #include <cassert>
 
-ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : stateManifold_(manifold), resolution_(0.0), maxResolution_(0.0), setup_(false), msg_("SpaceInformation")
+ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : stateManifold_(manifold), resolution_(0.01), setup_(false), msg_("SpaceInformation")
 {
     if (!stateManifold_)
 	throw Exception("Invalid manifold definition");
@@ -51,9 +51,6 @@ ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold)
 
 void ompl::base::SpaceInformation::setup(void)
 {
-    if (setup_)
-	msg_.warn("Space information setup called multiple times");
-    
     if (!stateValidityChecker_)
 	throw Exception("State validity checker not set!");
         
@@ -61,12 +58,9 @@ void ompl::base::SpaceInformation::setup(void)
     if (stateManifold_->getDimension() <= 0)
 	throw Exception("The dimension of the state manifold we plan in must be > 0");
 
-    if (resolution_ < std::numeric_limits<double>::epsilon())
-    {
-	resolution_ = estimateMaxResolution();
-	msg_.inform("The resolution at which states need to be checked for collision is detected to be %f", resolution_);
-    }
-
+    if (resolution_ < std::numeric_limits<double>::epsilon() || resolution_ > 1.0 - std::numeric_limits<double>::epsilon())
+	throw Exception("The specified resolution at which states need to be checked for validity must be larger than 0 and less than 1");
+    
     setup_ = true;
 }
 
@@ -100,19 +94,6 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
 	throw Exception("Invalid function definition for state validity checking");
     
     setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
-}
-
-double ompl::base::SpaceInformation::estimateMaxResolution(void)
-{
-    if (maxResolution_ > std::numeric_limits<double>::epsilon())
-	return maxResolution_;
-    
-    double extent = getMaximumExtent();
-    maxResolution_ = extent / 100.0;
-    
-    msg_.debug("Estimated state validity checking resolution is %f", maxResolution_);
-
-    return maxResolution_;
 }
 
 bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const
@@ -150,7 +131,7 @@ bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2,
 	return false;
 
     bool result = true;
-    int nd = (int)ceil(distance(s1, s2) / resolution_);
+    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / resolution_);
     
     /* temporary storage for the checked state */
     State *test = allocState();
@@ -179,7 +160,7 @@ bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2)
 	return false;
     
     bool result = true;
-    int nd = (int)ceil(distance(s1, s2) / resolution_);
+    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / resolution_);
     
     /* initialize the queue of test positions */
     std::queue< std::pair<int, int> > pos;
@@ -221,7 +202,7 @@ bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2)
 unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, double factor, bool endpoints, bool alloc) const
 {
     assert(factor > std::numeric_limits<double>::epsilon());    
-    int nd = (int)ceil(distance(s1, s2) / (resolution_ * factor));
+    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / (resolution_ * factor));
     
     if (nd < 2)
     {
@@ -349,7 +330,7 @@ void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "State space settings:" << std::endl;
     out << "  - dimension: " << stateManifold_->getDimension() << std::endl;
-    out << "  - state validity check resolution: " << resolution_ << std::endl;
+    out << "  - state validity check resolution: " << (resolution_ * 100.0) << '%' << std::endl;
     out << "  - state manifold:" << std::endl;
     stateManifold_->printSettings(out);
 }
