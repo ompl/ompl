@@ -153,9 +153,8 @@ Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousph
 */
 void ompl::base::SO3StateManifold::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    // disabled for release build
-    assert(satisfiesBounds(from));
-    assert(satisfiesBounds(to));
+    assert(norm(static_cast<const StateType*>(from)) - 1.0 < 1e-9);
+    assert(norm(static_cast<const StateType*>(to)) - 1.0 < 1e-9);
 
     double theta = distance(from, to) / 2.0;
     if (theta > std::numeric_limits<double>::epsilon())
