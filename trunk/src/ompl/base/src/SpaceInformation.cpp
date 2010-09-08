@@ -43,7 +43,7 @@
 #include <cmath>
 #include <cassert>
 
-ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : stateManifold_(manifold), resolution_(0.0), maxExtent_(0.0), maxResolution_(0.0), setup_(false), msg_("SpaceInformation")
+ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : stateManifold_(manifold), resolution_(0.0), maxResolution_(0.0), setup_(false), msg_("SpaceInformation")
 {
     if (!stateManifold_)
 	throw Exception("Invalid manifold definition");
@@ -63,7 +63,7 @@ void ompl::base::SpaceInformation::setup(void)
 
     if (resolution_ < std::numeric_limits<double>::epsilon())
     {
-	resolution_ = estimateMaxResolution(1000);
+	resolution_ = estimateMaxResolution();
 	msg_.inform("The resolution at which states need to be checked for collision is detected to be %f", resolution_);
     }
 
@@ -102,71 +102,14 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
 }
 
-double ompl::base::SpaceInformation::estimateExtent(unsigned int samples)
-{
-    if (maxExtent_ > std::numeric_limits<double>::epsilon())
-	return maxExtent_;
-    
-    if (samples < 2)
-	samples = 2;
-
-    // sample some states
-    ManifoldStateSamplerPtr ss = allocManifoldStateSampler();
-    std::vector<State*> states(samples);
-    for (unsigned int i = 0 ; i  < samples ; ++i)
-    {
-	states[i] = allocState();
-	ss->sampleUniform(states[i]);
-    }
-    // find pair with maximum distance
-    State *a = states[0];
-    State *b = states[1];
-    double maxD = distance(a, b);
-    
-    for (unsigned int j = 0 ; j < samples ; ++j)
-    {
-	bool found = false;
-	for (unsigned int i = 0 ; i < samples ; ++i)
-	{
-	    if (states[i] == a || states[i] == b)
-		continue;
-	    
-	    double d = distance(a, states[i]);
-	    if (d > maxD)
-	    {
-		b = states[i];
-		maxD = d;
-		found = true;
-	    }
-	}
-	if (!found)
-	    break;
-	std::swap(a, b);
-    }
-        
-    // free memory
-    for (unsigned int i = 0 ; i  < samples ; ++i)
-	freeState(states[i]);
-    maxExtent_ = maxD;
-    
-    msg_.inform("Estimated extent of space to plan in is %f", maxD);
-    if (maxD < std::numeric_limits<double>::epsilon())
-	throw Exception("Estimated extent of space is too small");
-    
-    return maxD;
-}
-
-double ompl::base::SpaceInformation::estimateMaxResolution(unsigned int samples)
+double ompl::base::SpaceInformation::estimateMaxResolution(void)
 {
     if (maxResolution_ > std::numeric_limits<double>::epsilon())
 	return maxResolution_;
     
-    if (samples < 2)
-	samples = 2;
-
-    double extent = estimateExtent(samples);
+    double extent = getMaximumExtent();
     maxResolution_ = extent / 100.0;
-
+    
     msg_.debug("Estimated state validity checking resolution is %f", maxResolution_);
 
     return maxResolution_;

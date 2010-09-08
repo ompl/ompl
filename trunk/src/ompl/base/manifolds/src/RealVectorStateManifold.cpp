@@ -127,6 +127,17 @@ unsigned int ompl::base::RealVectorStateManifold::getDimension(void) const
     return dimension_;
 }
 
+double ompl::base::RealVectorStateManifold::getMaximumExtent(void) const
+{
+    double e = 0.0;
+    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+    {
+	double d = bounds_.high[i] - bounds_.low[i];
+	e += d*d;
+    }
+    return sqrt(e);
+}
+
 void ompl::base::RealVectorStateManifold::enforceBounds(State *state) const
 {
     StateType *rstate = static_cast<StateType*>(state);

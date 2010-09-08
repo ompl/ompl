@@ -42,7 +42,7 @@
 /** \brief If default values are to be used for the maximum
     length of motions, this constant defines what fraction of
     the space extent (computed with
-    ompl::base::SpaceInformation::estimateExtent()) is to be
+    ompl::base::SpaceInformation::getMaximumExtent()) is to be
     used as the maximum length of a motion */
 static const double MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.2;
 	
@@ -50,7 +50,7 @@ void ompl::geometric::checkMotionLength(const base::Planner *planner, double &le
 { 
     if (length < std::numeric_limits<double>::epsilon())
     {
-	length = planner->getSpaceInformation()->estimateExtent() * MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+	length = planner->getSpaceInformation()->getMaximumExtent() * MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
 	msg::Interface msg(planner->getName());
 	msg.inform("Maximum motion extension distance is assumed to be %f", length);
     }

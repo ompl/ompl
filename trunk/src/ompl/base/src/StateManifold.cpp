@@ -208,6 +208,14 @@ unsigned int ompl::base::CompoundStateManifold::getDimension(void) const
     return dim;
 }
 
+double ompl::base::CompoundStateManifold::getMaximumExtent(void) const
+{
+    double e = 0.0;
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	e += weights_[i] * components_[i]->getMaximumExtent();
+    return e;
+}
+
 void ompl::base::CompoundStateManifold::enforceBounds(State *state) const
 {
     CompoundState *cstate = static_cast<CompoundState*>(state);

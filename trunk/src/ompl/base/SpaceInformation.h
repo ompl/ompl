@@ -216,13 +216,14 @@ namespace ompl
 		vssa_ = vssa;
 	    }
 	    
-	    /** \brief Estimate the maximum (underapproximation)
-		extent of the space we are planning in. This is done
-		through random sampling. Computation is performed only
-		the first time a call is made to this function (result
-		is cached). */
-	    virtual double estimateExtent(unsigned int samples = 100);
-
+	    /** \brief Get the maximum extent of the space we are
+		planning in. This is the maximum distance that could
+		be reported between any two given states */
+	    double getMaximumExtent(void) const
+	    {
+		return stateManifold_->getMaximumExtent();
+	    }
+	    
 	    /** \brief Estimate the maximum (overapproximation)
 		resolution at which states should be checked for
 		validity. This is done through random sampling and
@@ -230,7 +231,7 @@ namespace ompl
 		pair of valid and invalid states. Computation is
 		performed only the first time a call is made to this
 		function (result is cached). */
-	    virtual double estimateMaxResolution(unsigned int samples = 100);
+	    virtual double estimateMaxResolution(void);
 	    
 	    /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
 	     *  The two passed state pointers must point to different states. Returns true on success. 
@@ -296,9 +297,6 @@ namespace ompl
 
 	    /** \brief The resolution (maximum distance between states) at which state validity checks are performed */
 	    double                     resolution_;
-
-	    /** \brief If estimateExtent() has been called, this value is filled in with the computed maximum extent */
-	    double                     maxExtent_;
 
 	    /** \brief If estimateMaxResolution() has been called, this value is filled with the estimated maximum resolution */
 	    double                     maxResolution_;

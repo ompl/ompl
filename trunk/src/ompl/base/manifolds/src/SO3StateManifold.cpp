@@ -85,6 +85,11 @@ unsigned int ompl::base::SO3StateManifold::getDimension(void) const
     return 3;
 }
 
+double ompl::base::SO3StateManifold::getMaximumExtent(void) const
+{
+    return boost::math::constants::pi<double>();
+}
+
 double ompl::base::SO3StateManifold::norm(const StateType *state) const
 {
     double nrmSqr = state->x * state->x + state->y * state->y + state->z * state->z + state->w * state->w;

@@ -115,6 +115,9 @@ namespace ompl
 	    /** \brief Get the dimension of the space */
 	    virtual unsigned int getDimension(void) const = 0;
 
+	    /** \brief Get the maximum value a call to distance() can return */
+	    virtual double getMaximumExtent(void) const = 0;
+	    
 	    /** \brief Bring the state within the bounds of the state space */
 	    virtual void enforceBounds(State *state) const = 0;
 	    
@@ -124,7 +127,7 @@ namespace ompl
 	    /** \brief Copy a state to another. The memory of source and destination should not overlap. */
 	    virtual void copyState(State *destination, const State *source) const = 0;
 	    
-	    /** \brief Computes distance to between two states */
+	    /** \brief Computes distance to between two states. This value will always be between 0 and getMaximumExtent() */
 	    virtual double distance(const State *state1, const State *state2) const = 0;
 	    
 	    /** \brief Checks whether two states are equal */
@@ -241,6 +244,8 @@ namespace ompl
 	    void setSubManifoldWeight(const std::string &name, double weight);
 	    
 	    virtual unsigned int getDimension(void) const;
+
+	    virtual double getMaximumExtent(void) const;
 
 	    virtual void enforceBounds(State *state) const;
 	    

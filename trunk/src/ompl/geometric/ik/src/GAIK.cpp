@@ -44,7 +44,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 {
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
     {
-	maxDistance_ = si_->estimateExtent() / 5.0;
+	maxDistance_ = si_->getMaximumExtent() / 5.0;
 	msg_.inform("The maximum distance for sampling around states is assumed to be %f", maxDistance_);
     }
 

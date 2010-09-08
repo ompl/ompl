@@ -78,6 +78,11 @@ unsigned int ompl::base::SO2StateManifold::getDimension(void) const
     return 1;
 }
 
+double ompl::base::SO2StateManifold::getMaximumExtent(void) const
+{
+    return boost::math::constants::pi<double>();
+}
+
 void ompl::base::SO2StateManifold::enforceBounds(State *state) const
 {
     double v = fmod(state->as<StateType>()->value, 2.0 * boost::math::constants::pi<double>());

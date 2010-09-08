@@ -108,7 +108,9 @@ namespace ompl
 	    double norm(const StateType *state) const;
 	    
 	    virtual unsigned int getDimension(void) const;
-	    
+
+	    virtual double getMaximumExtent(void) const;
+
 	    virtual void enforceBounds(State *state) const;
 	    	    
 	    virtual bool satisfiesBounds(const State *state) const;
