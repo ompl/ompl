@@ -330,6 +330,7 @@ void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "State space settings:" << std::endl;
     out << "  - dimension: " << stateManifold_->getDimension() << std::endl;
+    out << "  - extent: " << stateManifold_->getMaximumExtent() << std::endl;
     out << "  - state validity check resolution: " << (resolution_ * 100.0) << '%' << std::endl;
     out << "  - state manifold:" << std::endl;
     stateManifold_->printSettings(out);
