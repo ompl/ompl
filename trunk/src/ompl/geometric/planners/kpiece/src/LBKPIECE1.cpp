@@ -142,9 +142,10 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
     
     si_->freeState(xstate);
     
-    msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", 
-		 tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
-		 tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
+    msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))", 
+		tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
+		tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tStart_.grid.countExternal(),
+		tGoal_.grid.size(), tGoal_.grid.countExternal());
     
     return goal->isAchieved();
 }
