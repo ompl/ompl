@@ -43,7 +43,8 @@
 #include <cmath>
 #include <cassert>
 
-ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : stateManifold_(manifold), resolution_(0.01), setup_(false), msg_("SpaceInformation")
+ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : 
+    sa_(manifold), stateManifold_(manifold), resolution_(0.01), setup_(false), msg_("SpaceInformation")
 {
     if (!stateManifold_)
 	throw Exception("Invalid manifold definition");

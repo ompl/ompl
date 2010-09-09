@@ -40,6 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/StateManifold.h"
+#include "ompl/base/StateAllocator.h"
 #include "ompl/base/ValidStateSampler.h"
 
 #include "ompl/util/ClassForward.h"
@@ -150,13 +151,15 @@ namespace ompl
 	    /** \brief Allocate memory for a state */
 	    State* allocState(void) const
 	    {
-		return stateManifold_->allocState();
+		return sa_.allocState();
+		//		return stateManifold_->allocState();
 	    }
 	    
 	    /** \brief Free the memory of a state */
 	    void freeState(State *state) const
 	    {
-		stateManifold_->freeState(state);
+		sa_.freeState(state);
+		//		stateManifold_->freeState(state);
 	    }
 
 	    /** \brief Print a state to a stream */
@@ -285,8 +288,10 @@ namespace ompl
 	    
 	protected:
 	    
+	    StateAllocator             sa_;
+	    
 	    /** \brief The instance of the state validity checker used for determinig the validity of states in the planning process */
-	    StateValidityCheckerPtr stateValidityChecker_;
+	    StateValidityCheckerPtr    stateValidityChecker_;
 	    
 	    /** \brief The manifold planning is to be performed in */
 	    StateManifoldPtr           stateManifold_;
