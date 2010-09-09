@@ -165,6 +165,12 @@ bool ompl::control::PathControl::check(void) const
 	}
     }
     si_->freeState(dummy);
+
+    if (valid)
+	for (unsigned int j = 0 ; j < states.size() ; ++j)
+	    if (!si_->isValid(states[j]))
+		throw Exception("Internal error. This should not ever happen. Please contact the developers.");
+
     return valid;
 }
 

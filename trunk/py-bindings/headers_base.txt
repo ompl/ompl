@@ -4,6 +4,7 @@ base/ManifoldStateSampler.h
 base/ValidStateSampler.h
 base/ProjectionEvaluator.h
 base/StateManifold.h
+base/StateAllocator.h
 base/StateValidityChecker.h
 base/SpaceInformation.h
 base/ScopedState.h

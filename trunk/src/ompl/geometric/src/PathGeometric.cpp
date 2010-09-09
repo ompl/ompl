@@ -85,6 +85,12 @@ bool ompl::geometric::PathGeometric::check(void) const
 	else
 	    result = false;
     }
+
+    if (result)
+	for (unsigned int j = 0 ; j < states.size() ; ++j)
+	    if (!si_->isValid(states[j]))
+		throw Exception("Internal error. This should not ever happen. Please contact the developers.");
+    
     return result;
 }
 
