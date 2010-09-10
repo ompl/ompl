@@ -48,11 +48,14 @@ namespace ompl
     namespace base
     {
 	
-	/** \brief Definition of an state allocator. */
+	/** \brief Definition of an state allocator. This reuses
+	    memory for states and frees them only when the instance is
+	    destroyed. */
 	class StateAllocator : private boost::noncopyable
 	{
 	public:
 
+	    /** \brief Constructor */
 	    StateAllocator(const StateManifoldPtr &manifold) : manifold_(manifold)
 	    {
 	    }
