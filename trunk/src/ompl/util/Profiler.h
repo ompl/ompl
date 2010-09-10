@@ -38,6 +38,8 @@
 #ifndef OMPL_UTIL_PROFILER_
 #define OMPL_UTIL_PROFILER_
 
+#define ENABLE_PROFILING 1
+
 #ifndef ENABLE_PROFILING
 
 /** The ENABLE_PROFILING macro can be set externally. If it is not,
@@ -101,11 +103,20 @@ namespace ompl
 	    Instance()->stop();
 	}
 
+	/** \brief Clear counted time and events */
+	static void Clear(void)
+	{
+	    Instance()->clear();
+	}
+	
 	/** \brief Start counting time */
 	void start(void);
 
 	/** \brief Stop counting time */	
 	void stop(void);
+	
+	/** \brief Clear counted time and events */
+	void clear(void);
 	
 	/** \brief Count a specific event for a number of times */
 	static void Event(const std::string& name, const unsigned int times = 1)
@@ -216,7 +227,11 @@ namespace ompl
 	static void Stop(void)
 	{
 	}
-
+	
+	static void Clear(void)
+	{
+	}
+	
 	void start(void)
 	{
 	}
@@ -224,7 +239,11 @@ namespace ompl
 	void stop(void)
 	{
 	}
-
+	
+	void clear(void)
+	{
+	}
+	
 	static void Event(const std::string&, const unsigned int = 1)
 	{
 	}

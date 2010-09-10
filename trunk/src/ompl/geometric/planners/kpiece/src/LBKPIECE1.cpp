@@ -88,7 +88,8 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
     bool      startTree = true;
-        
+    bool      moreGoals = true;
+    
     while (time::now() < endTime)
     {
 	TreeData &tree      = startTree ? tStart_ : tGoal_;
@@ -97,7 +98,7 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
 	tree.iteration++;
 	
 	// if we have not sampled too many goals already
-	if (tGoal_.size == 0 ||  pis_.getSampledGoalsCount() < tGoal_.size / 2)
+	if (tGoal_.size == 0 ||  (moreGoals && pis_.getSampledGoalsCount() < tGoal_.size / 2))
 	{
 	    const base::State *st = tGoal_.size == 0 ? pis_.nextGoal(endTime) : pis_.nextGoal();
 	    if (st)
@@ -108,6 +109,8 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
 		motion->valid = true;
 		addMotion(tGoal_, motion);
 	    }
+	    else 
+		moreGoals = false;
 	    if (tGoal_.size == 0)
 	    {
 		msg_.error("Unable to sample any valid states for goal tree");

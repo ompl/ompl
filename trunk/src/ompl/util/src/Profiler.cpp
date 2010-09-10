@@ -102,6 +102,13 @@ void ompl::Profiler::stop(void)
     spi.unlock();
 }
 
+void ompl::Profiler::clear(void)
+{
+    spi.lock();
+    data_.clear();
+    spi.unlock();
+}
+
 void ompl::Profiler::event(const std::string &name, const unsigned int times)
 {
     spi.lock();
