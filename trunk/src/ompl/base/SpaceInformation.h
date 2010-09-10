@@ -152,14 +152,12 @@ namespace ompl
 	    State* allocState(void) const
 	    {
 		return sa_.allocState();
-		//		return stateManifold_->allocState();
 	    }
 	    
 	    /** \brief Free the memory of a state */
 	    void freeState(State *state) const
 	    {
 		sa_.freeState(state);
-		//		stateManifold_->freeState(state);
 	    }
 
 	    /** \brief Print a state to a stream */
