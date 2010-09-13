@@ -96,7 +96,7 @@ ScopedState&, an instance of T::Mapper can be defined to
 allow access to the state's members.
 \code
 ompl::base::StateManifoldPtr manifold(new ompl::base::SE2StateManifold());
-ompl::base::ScopedState<SE2StateManifold> state(manifold);
+ompl::base::ScopedState<ompl::base::SE2StateManifold> state(manifold);
 state->setX(...);
 \endcode
 
