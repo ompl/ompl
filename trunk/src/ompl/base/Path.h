@@ -81,6 +81,7 @@ namespace ompl
 	    
 	protected:
 	    
+	    /** \brief The space information this path is part of */
 	    SpaceInformationPtr si_;
 	};
 

@@ -51,6 +51,7 @@ namespace ompl
 	{	    
 	public:
 	    
+	    /** \brief Constructor */
 	    UniformValidStateSampler(const SpaceInformation *si);
 	    
 	    virtual ~UniformValidStateSampler(void)

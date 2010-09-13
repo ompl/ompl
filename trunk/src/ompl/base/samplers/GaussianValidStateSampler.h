@@ -49,6 +49,7 @@ namespace ompl
 	{	    
 	public:
 	    
+	    /** \brief Constructor */
 	    GaussianValidStateSampler(const SpaceInformation *si);
 	    
 	    virtual ~GaussianValidStateSampler(void)

@@ -91,6 +91,12 @@ namespace ompl
 	    
 	    virtual ~SpaceInformation(void)
 	    {
+	    }	  
+
+	    /** \brief Check if a given state is valid or not */
+	    bool isValid(const State *state) const
+	    {
+		return stateValidityChecker_->isValid(state);
 	    }
 
 	    /** \brief Return the instance of the used manifold */
@@ -98,88 +104,10 @@ namespace ompl
 	    {
 		return stateManifold_;
 	    }	
-	    
-	    /** \brief Set the instance of the validity checker to
-		use. Parallel implementations of planners assume this
-		validity checker is thread safe. */
-	    void setStateValidityChecker(const StateValidityCheckerPtr &svc)
-	    {
-		stateValidityChecker_ = svc;
-	    }
-	    
-	    /** \brief If no state validity checking class is specified
-		(StateValidityChecker), a boost function can be specified
-		instead */
-	    void setStateValidityChecker(const StateValidityCheckerFn &svc);
 
-	    /** \brief Return the instance of the used state validity checker */
-	    const StateValidityCheckerPtr& getStateValidityChecker(void) const
-	    {
-		return stateValidityChecker_;
-	    }	
-	    
-	    /** \brief Set the resolution at which state validity
-		needs to be verified in order for a motion between two
-		states to be considered valid. This value is specified
-		as a freaction of the maximum distance between two
-		states. By default this is 1% */
-	    void setStateValidityCheckingResolution(double resolution)
-	    {
-		resolution_ = resolution;
-	    }
-	    
-	    /** \brief Get the resolution at which state validity is
-		verified. This value is specified as a fraction of the
-		maximum distance between two states. */
-	    double getStateValidityCheckingResolution(void) const
-	    {
-		return resolution_;
-	    }
-	    
-	    /** \brief Return the dimension of the state space */
-	    unsigned int getStateDimension(void) const
-	    {
-		return stateManifold_->getDimension();
-	    }
-	    
-	    /** \brief Check if a given state is valid or not */
-	    bool isValid(const State *state) const
-	    {
-		return stateValidityChecker_->isValid(state);
-	    }
+	    /** @name Topology-specific state operations (as in the state manifold)
+		@{ */
 
-	    /** \brief Allocate memory for a state */
-	    State* allocState(void) const
-	    {
-		return sa_.allocState();
-	    }
-	    
-	    /** \brief Free the memory of a state */
-	    void freeState(State *state) const
-	    {
-		sa_.freeState(state);
-	    }
-
-	    /** \brief Print a state to a stream */
-	    void printState(const State *state, std::ostream &out = std::cout) const
-	    {
-		stateManifold_->printState(state, out);
-	    }
-
-	    /** \brief Copy a state to another */
-	    void copyState(State *destination, const State *source) const
-	    {
-		stateManifold_->copyState(destination, source);
-	    }
-	    
-	    /** \brief Clone a state */
-	    State* cloneState(const State *source) const
-	    {
-		State *copy = stateManifold_->allocState();
-		stateManifold_->copyState(copy, source);
-		return copy;
-	    }
-	    
 	    /** \brief Check if two states are the same */
 	    bool equalStates(const State *state1, const State *state2) const
 	    {
@@ -204,6 +132,96 @@ namespace ompl
 		stateManifold_->enforceBounds(state);
 	    }
 
+	    /** \brief Print a state to a stream */
+	    void printState(const State *state, std::ostream &out = std::cout) const
+	    {
+		stateManifold_->printState(state, out);
+	    }
+
+	    /** @} */
+
+	    /** @name Configuration of state validity checking
+		@{ */
+
+	    /** \brief Set the instance of the validity checker to
+		use. Parallel implementations of planners assume this
+		validity checker is thread safe. */
+	    void setStateValidityChecker(const StateValidityCheckerPtr &svc)
+	    {
+		stateValidityChecker_ = svc;
+	    }
+	    
+	    /** \brief If no state validity checking class is specified
+		(StateValidityChecker), a boost function can be specified
+		instead */
+	    void setStateValidityChecker(const StateValidityCheckerFn &svc);
+
+	    /** \brief Return the instance of the used state validity checker */
+	    const StateValidityCheckerPtr& getStateValidityChecker(void) const
+	    {
+		return stateValidityChecker_;
+	    }	
+	    
+	    /** \brief Set the resolution at which state validity
+		needs to be verified in order for a motion between two
+		states to be considered valid. This value is specified
+		as a fraction of the maximum distance between two
+		states. By default this is 1% */
+	    void setStateValidityCheckingResolution(double resolution)
+	    {
+		resolution_ = resolution;
+	    }
+	    
+	    /** \brief Get the resolution at which state validity is
+		verified. This value is specified as a fraction of the
+		maximum distance between two states. */
+	    double getStateValidityCheckingResolution(void) const
+	    {
+		return resolution_;
+	    }
+	    
+	    /** @}*/
+
+	    /** \brief Return the dimension of the state space */
+	    unsigned int getStateDimension(void) const
+	    {
+		return stateManifold_->getDimension();
+	    }
+	    
+	    /** @name State memory management
+		@{ */
+
+	    /** \brief Allocate memory for a state */
+	    State* allocState(void) const
+	    {
+		return sa_.allocState();
+	    }
+	    
+	    /** \brief Free the memory of a state */
+	    void freeState(State *state) const
+	    {
+		sa_.freeState(state);
+	    }
+
+	    /** \brief Copy a state to another */
+	    void copyState(State *destination, const State *source) const
+	    {
+		stateManifold_->copyState(destination, source);
+	    }
+	    
+	    /** \brief Clone a state */
+	    State* cloneState(const State *source) const
+	    {
+		State *copy = stateManifold_->allocState();
+		stateManifold_->copyState(copy, source);
+		return copy;
+	    }
+	    /**  @} */
+	
+	
+	    /** @name Sampling of valid states 
+		@{ */
+	    
 	    /** \brief Allocate a uniform state sampler for the manifold representing the space */
 	    ManifoldStateSamplerPtr allocManifoldStateSampler(void) const
 	    {
@@ -215,12 +233,17 @@ namespace ompl
 		allocated. */
 	    ValidStateSamplerPtr allocValidStateSampler(void) const;
 
-
+	    
 	    /** \brief Set the allocator to use for a valid state sampler. This replaces the default uniform valid state sampler. */
 	    void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
 	    {
 		vssa_ = vssa;
 	    }
+	    
+	    /** @}*/
+	    
+	    /** @name Primitives typically used by motion planners 
+		@{ */
 	    
 	    /** \brief Get the maximum extent of the space we are
 		planning in. This is the maximum distance that could
@@ -272,6 +295,8 @@ namespace ompl
 		\param alloc flag indicating whether memory is to be allocated automatically */
 	    virtual unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, double factor, bool endpoints, bool alloc) const;
 
+	    /** @}*/
+
 	    /** \brief Print information about the current instance of the state space */
 	    virtual void printSettings(std::ostream &out = std::cout) const;
 	    
@@ -286,6 +311,7 @@ namespace ompl
 	    
 	protected:
 	    
+	    /** \brief The state allocator used by allocState() and freeState() */
 	    StateAllocator             sa_;
 	    
 	    /** \brief The instance of the state validity checker used for determinig the validity of states in the planning process */
@@ -294,7 +320,8 @@ namespace ompl
 	    /** \brief The manifold planning is to be performed in */
 	    StateManifoldPtr           stateManifold_;
 
-	    /** \brief The resolution (maximum distance between states) at which state validity checks are performed */
+	    /** \brief The resolution (maximum distance between	states) at which state validity checks are
+		performed. This is represented as a percentage of the maximum extent of the space. */
 	    double                     resolution_;
 
 	    /** \brief Flag indicating whether setup() has been called on this instance */

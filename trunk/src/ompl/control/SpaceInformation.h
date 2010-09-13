@@ -80,6 +80,9 @@ namespace ompl
 		return controlManifold_;
 	    }
 	    
+	    /** @name Control memory management
+		@{ */
+	    
 	    /** \brief Allocate memory for a control */
 	    Control* allocControl(void) const
 	    {
@@ -91,13 +94,7 @@ namespace ompl
 	    {
 		controlManifold_->freeControl(control);
 	    }
-
-	    /** \brief Print a control to a stream */
-	    void printControl(const Control *control, std::ostream &out = std::cout) const
-	    {
-		controlManifold_->printControl(control, out);
-	    }
-
+	    
 	    /** \brief Copy a control to another */
 	    void copyControl(Control *destination, const Control *source) const
 	    {
@@ -111,6 +108,16 @@ namespace ompl
 		controlManifold_->copyControl(copy, source);
 		return copy;
 	    }
+	    /** @} */
+	
+	    /** @name Topology-specific control operations (as in the control manifold) 
+		@{ */
+	    
+	    /** \brief Print a control to a stream */
+	    void printControl(const Control *control, std::ostream &out = std::cout) const
+	    {
+		controlManifold_->printControl(control, out);
+	    }
 	    
 	    /** \brief Check if two controls are the same */
 	    bool equalControls(const Control *control1, const Control *control2) const
@@ -123,6 +130,11 @@ namespace ompl
 	    {
 		controlManifold_->nullControl(control);
 	    }
+	    
+	    /** @} */
+
+	    /** @name Sampling of controls 
+		@{ */
 	    
 	    /** \brief Allocate a control sampler */
 	    ControlSamplerPtr allocControlSampler(void) const
@@ -161,7 +173,11 @@ namespace ompl
 	    {
 		return maxSteps_;
 	    }
-	    
+	    /** @} */
+
+	    /** @name Primitives for propagating the model of the system 
+		@{ */
+
 	    /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps. 
 		\param state the state to start at
 		\param control the control to apply
@@ -195,7 +211,9 @@ namespace ompl
 		\param result the set of states along the propagated motion (only valid states included)
 		\param alloc flag indicating whether memory for the states in \e result should be allocated */
 	    unsigned int propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
-	    
+
+	    /** @} */
+
 	    /** \brief Print information about the current instance of the state space */
 	    virtual void printSettings(std::ostream &out = std::cout) const;
 	    

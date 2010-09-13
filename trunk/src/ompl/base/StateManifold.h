@@ -112,6 +112,9 @@ namespace ompl
 		name_ = name;
 	    }
 	    
+	    /** @name Functionality specific to the manifold (to be implemented)
+		@{ */
+
 	    /** \brief Get the dimension of the space */
 	    virtual unsigned int getDimension(void) const = 0;
 
@@ -129,7 +132,7 @@ namespace ompl
 	    
 	    /** \brief Computes distance to between two states. This value will always be between 0 and getMaximumExtent() */
 	    virtual double distance(const State *state1, const State *state2) const = 0;
-	    
+
 	    /** \brief Computes distance between two states as a
 		fraction of the maximum extent. This value will always
 		be between 0 and 1.
@@ -153,6 +156,12 @@ namespace ompl
 	    /** \brief Free the memory of the allocated state */
 	    virtual void freeState(State *state) const = 0;
 	    
+	    /** @} */
+	    
+	    
+	    /** @name Management of projections from this manifold to Euclidean spaces 
+		@{ */
+	    
 	    /** \brief Register a projection for this manifold under a specified name */
 	    void registerProjection(const std::string &name, const ProjectionEvaluatorPtr &projection);
 	    
@@ -168,6 +177,8 @@ namespace ompl
 	    /** \brief Check if a default projection is available */
 	    bool haveDefaultProjection(void) const;
 
+	    /** @} */
+	
 	    /** \brief Print a state to a stream */
 	    virtual void printState(const State *state, std::ostream &out) const;
 	    
@@ -227,6 +238,9 @@ namespace ompl
 		return static_cast<T*>(getSubManifold(index).get());
 	    }
 	    
+	    /** @name Management of contained manifolds 
+		@{ */
+	    
 	    /** \brief Adds a new manifold as part of the compound space. For computing distances within the compound
 		space, the weight of the component also needs to be specified. */
 	    virtual void addSubManifold(const StateManifoldPtr &component, double weight);
@@ -252,6 +266,11 @@ namespace ompl
 	    /** \brief Set a specific manifold's weight in the compound manifold (used in distance computation) */
 	    void setSubManifoldWeight(const std::string &name, double weight);
 	    
+	    /** @} */
+	      
+	    /** @name Functionality specific to the compound manifold
+		@{ */
+
 	    virtual unsigned int getDimension(void) const;
 
 	    virtual double getMaximumExtent(void) const;
@@ -279,6 +298,7 @@ namespace ompl
 	    virtual State* allocState(void) const;
 	    
 	    virtual void freeState(State *state) const;	 
+	    /** @} */
 
 	    virtual void printState(const State *state, std::ostream &out) const;
 
