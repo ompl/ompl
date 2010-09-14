@@ -87,6 +87,27 @@ namespace ompl
 	    
 	};
 	
+	/** \brief The simplest state validity checker: all states are valid */
+	class AllValidStateValidityChecker : public StateValidityChecker
+	{
+	public:
+
+	    /** \brief Constructor */
+	    AllValidStateValidityChecker(SpaceInformation* si) : StateValidityChecker(si)
+	    {
+	    }	
+
+	    /** \brief Constructor */
+	    AllValidStateValidityChecker(const SpaceInformationPtr &si) : StateValidityChecker(si)
+	    {
+	    }
+	    
+	    virtual bool isValid(const State * /* state */ ) const
+	    {
+		return true;
+	    }
+	};
+	
     }
 }
 
