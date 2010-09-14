@@ -16,7 +16,7 @@
 - Q: <em>Can I set the sampler to use for a planner?</em>
   <br>
   A: Yes. The sampler instances used by planners are allocated by
-  either ompl::base::SpaceInformation::allocStateSampler()
+  either ompl::base::SpaceInformation::allocManifoldStateSampler()
   (which calls ompl::base::StateManifold::allocStateSampler()
   under the hood) or by
   ompl::base::SpaceInformation::allocValidStateSampler().  By default,
