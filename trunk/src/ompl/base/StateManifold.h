@@ -237,6 +237,16 @@ namespace ompl
 		
 		return static_cast<T*>(getSubManifold(index).get());
 	    }
+
+	    /** \brief Cast a component of this instance to a desired type. */
+	    template<class T>
+	    T* as(const std::string &name) const
+	    {
+		/** \brief Make sure the type we are casting to is indeed a state manifold */
+		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateManifold*>));
+		
+		return static_cast<T*>(getSubManifold(name).get());
+	    }
 	    
 	    /** @name Management of contained manifolds 
 		@{ */
@@ -253,6 +263,9 @@ namespace ompl
 
 	    /** \brief Get a specific manifold from the compound manifold */
 	    const StateManifoldPtr& getSubManifold(const std::string& name) const;
+	    
+	    /** \brief Check if a specific submanifold is contained in this manifold */
+	    bool hasSubManifold(const std::string &name) const;
 	    
 	    /** \brief Get a specific manifold's weight from the compound manifold (used in distance computation) */
 	    double getSubManifoldWeight(const unsigned int index) const;

@@ -164,6 +164,14 @@ const ompl::base::StateManifoldPtr& ompl::base::CompoundStateManifold::getSubMan
 	throw Exception("Submanifold index does not exist");
 }
 
+bool ompl::base::CompoundStateManifold::hasSubManifold(const std::string &name) const
+{
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	if (components_[i]->getName() == name)
+	    return true;
+    return false;
+}
+
 const ompl::base::StateManifoldPtr& ompl::base::CompoundStateManifold::getSubManifold(const std::string& name) const
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
