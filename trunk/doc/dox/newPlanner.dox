@@ -22,4 +22,51 @@
       implementation can be empty. This function is provided for
       debugging purposes: it allows the user of the algorithm to
       inspect the constructed exploration datastructure.
+
+      \code 
+      #include "ompl/base/Planner.h"
+      
+      namespace ompl
+      {
+            class myNewPlanner : public base::Planner
+	    {
+	    public:
+		
+		myNewPlanner(const base::SpaceInformationPtr &si) : base::Planner(si, "the planner's name")
+		{
+		    // the type of goals this planner can handle
+		    type_ = base::PLAN_TO_GOAL_REGION;
+		}
+		
+		virtual ~myNewPlanner(void)
+		{
+		    // free any allocated memory
+		}
+		
+		virtual bool solve(double solveTime)
+		{
+		    // get problem definition from pdef_
+		    // get input states with pis_
+		    // call routines from si_
+
+		    // compute a valid motion plan
+		    // set it with pdef_->getGoal()->setSolutionPath()
+
+		    return pdef_->getGoal()->isAchieved();
+		}
+		
+		virtual void clear(void)
+		{
+		    // clear the data structures
+		}
+		
+		virtual void getPlannerData(PlannerData &data) const
+		{
+		    // fill data with the states and edges that were created
+		    // in the exploration data structure
+		}
+		
+	    };
+      }
+      \endcode
 */
