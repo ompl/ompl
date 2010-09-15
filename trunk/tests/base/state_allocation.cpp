@@ -62,7 +62,7 @@ TEST(Allocation, Simple)
     const unsigned int M = 100;
     std::vector<base::State*> states(N, NULL);
 
-    time::point start = time::now();
+    ompl::time::point start = ompl::time::now();
     for (unsigned int j = 0 ; j < M ; ++j)
     {	
 	for (unsigned int i = 0 ; i < N ; ++i)
@@ -71,11 +71,11 @@ TEST(Allocation, Simple)
 	for (unsigned int i = 0 ; i < N ; ++i)
 	    si.freeState(states[i]);
     }
-    double d = time::seconds(time::now() - start);
+    double d = ompl::time::seconds(ompl::time::now() - start);
     std::cout << (double)N * (double)M / d << " state allocations then frees per second" << std::endl;
     
 
-    start = time::now();
+    start = ompl::time::now();
     for (unsigned int j = 0 ; j < M ; ++j)
     {	
 	for (unsigned int i = 0 ; i < N ; ++i)
@@ -84,11 +84,11 @@ TEST(Allocation, Simple)
 	    si.freeState(s);
 	}
     }    
-    d = time::seconds(time::now() - start);
+    d = ompl::time::seconds(ompl::time::now() - start);
     std::cout << (double)N * (double)M / d << " mixed state allocations & frees per second" << std::endl;
 
 
-    start = time::now();
+    start = ompl::time::now();
     for (unsigned int j = 0 ; j < M ; ++j)
     {	
 	for (unsigned int i = 0 ; i < N ; ++i)
@@ -100,7 +100,7 @@ TEST(Allocation, Simple)
 	for (unsigned int i = 0 ; i < N ; ++i)
 	    si.freeState(states[i]);
     }
-    d = time::seconds(time::now() - start);
+    d = ompl::time::seconds(ompl::time::now() - start);
     std::cout << (double)N * (double)M / d << " allocations per second" << std::endl;    
 }
 

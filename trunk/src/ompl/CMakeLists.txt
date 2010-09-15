@@ -8,7 +8,6 @@ if(ROS)
 	rosbuild_add_library(ompl ${OMPL_SOURCE_CODE})
 	rosbuild_add_compile_flags(ompl -Wextra)
 	rosbuild_link_boost(ompl thread date_time)
-	install(TARGETS ompl DESTINATION lib/)
 else(ROS)
 	add_definitions(-fPIC)
 	add_library(ompl SHARED ${OMPL_SOURCE_CODE})
@@ -18,6 +17,7 @@ else(ROS)
 	)
 endif(ROS)
 
+install(TARGETS ompl DESTINATION lib/)
 get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
 add_custom_command(TARGET ompl POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${OMPL_LIBRARY_LOC}" 
