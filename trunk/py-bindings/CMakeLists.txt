@@ -122,11 +122,6 @@ if(PY_OMPL_COMPILE)
 			endif()
 		endif(NUM_SOURCE_FILES GREATER 0)
 	endforeach(module)
-	
-	if(NOT ROS)
-	  install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}/python
-	          PATTERN .svn EXCLUDE)
-	endif(NOT ROS)
 
 	install(DIRECTORY ompl DESTINATION ${OMPL_PYTHON_INSTALL_DIR}
 		PATTERN .svn EXCLUDE PATTERN "*.pyc" EXCLUDE)
