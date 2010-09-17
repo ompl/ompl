@@ -53,8 +53,11 @@ ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold)
 void ompl::base::SpaceInformation::setup(void)
 {
     if (!stateValidityChecker_)
-	throw Exception("State validity checker not set!");
-        
+    {
+	stateValidityChecker_.reset(new AllValidStateValidityChecker(this));
+	msg_.warn("State validity checker not set! No collision checking is performed");
+    }
+    
     stateManifold_->setup();
     if (stateManifold_->getDimension() <= 0)
 	throw Exception("The dimension of the state manifold we plan in must be > 0");
