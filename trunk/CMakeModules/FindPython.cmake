@@ -20,14 +20,21 @@
 
 include(FindPackageHandleStandardArgs)
 
-find_program(PYTHON_EXEC "python${Python_FIND_VERSION}" 
-	PATHS
-	[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.1\\InstallPath]
-	[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.0\\InstallPath]
-	[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\2.7\\InstallPath]
-	[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\2.6\\InstallPath]
-	[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\2.5\\InstallPath]
-	DOC "Location of python executable to use")
+# allow specifying which Python installation to use
+if (NOT PYTHON_EXEC)
+	set(PYTHON_EXEC $ENV{PYTHON_EXEC})
+endif (NOT PYTHON_EXEC)
+
+if (NOT PYTHON_EXEC)
+	find_program(PYTHON_EXEC "python${Python_FIND_VERSION}" 
+		PATHS
+		[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.1\\InstallPath]
+		[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.0\\InstallPath]
+		[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\2.7\\InstallPath]
+		[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\2.6\\InstallPath]
+		[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\2.5\\InstallPath]
+		DOC "Location of python executable to use")
+endif(NOT PYTHON_EXEC)
 
 # On OS X the python executable might be symlinked to the "real" location
 # of the python executable. The header files and libraries are found relative
