@@ -172,10 +172,10 @@ namespace ompl
 	    ProjectionEvaluatorPtr getDefaultProjection(void) const;
 
 	    /** \brief Check if a projection with a specified name is available */
-	    bool haveProjection(const std::string &name) const;
+	    bool hasProjection(const std::string &name) const;
 
 	    /** \brief Check if a default projection is available */
-	    bool haveDefaultProjection(void) const;
+	    bool hasDefaultProjection(void) const;
 
 	    /** @} */
 	

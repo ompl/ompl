@@ -94,19 +94,19 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
     }
 }
 
-bool ompl::base::StateManifold::haveDefaultProjection(void) const
+bool ompl::base::StateManifold::hasDefaultProjection(void) const
 {
-    return haveProjection(DEFAULT_PROJECTION_NAME);
+    return hasProjection(DEFAULT_PROJECTION_NAME);
 }
 
-bool ompl::base::StateManifold::haveProjection(const std::string &name) const
+bool ompl::base::StateManifold::hasProjection(const std::string &name) const
 {
     return projections_.find(name) != projections_.end();
 }
 
 ompl::base::ProjectionEvaluatorPtr ompl::base::StateManifold::getDefaultProjection(void) const
 {
-    if (haveDefaultProjection())
+    if (hasDefaultProjection())
 	return getProjection(DEFAULT_PROJECTION_NAME);
     else
     {

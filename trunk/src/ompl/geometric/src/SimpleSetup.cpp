@@ -63,7 +63,7 @@ void ompl::geometric::SimpleSetup::setup(void)
 		if (goal && dynamic_cast<const base::GoalSampleableRegion*>(goal.get()))
 		{
 		    // if we have a default projection
-		    if (si_->getStateManifold()->haveDefaultProjection())
+		    if (si_->getStateManifold()->hasDefaultProjection())
 			planner_ = base::PlannerPtr(new LBKPIECE1(si_));
 		    else
 			planner_ = base::PlannerPtr(new RRTConnect(si_));
@@ -72,7 +72,7 @@ void ompl::geometric::SimpleSetup::setup(void)
 		else
 		{
 		    // if we have a default projection
-		    if (si_->getStateManifold()->haveDefaultProjection())
+		    if (si_->getStateManifold()->hasDefaultProjection())
 			planner_ = base::PlannerPtr(new KPIECE1(si_));
 		    else
 			planner_ = base::PlannerPtr(new RRT(si_));

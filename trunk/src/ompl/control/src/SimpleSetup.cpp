@@ -54,7 +54,7 @@ void ompl::control::SimpleSetup::setup(void)
 	    else
 	    {
 		msg_.inform("No planner specified. Using default.");
-		if (si_->getStateManifold()->haveDefaultProjection())
+		if (si_->getStateManifold()->hasDefaultProjection())
 		    planner_ = base::PlannerPtr(new KPIECE1(si_));
 		else
 		    planner_ = base::PlannerPtr(new RRT(si_));
