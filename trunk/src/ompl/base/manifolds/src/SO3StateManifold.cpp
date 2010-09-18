@@ -41,6 +41,8 @@
 
 #include <boost/math/constants/constants.hpp>
 
+static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
+
 void ompl::base::SO3StateManifold::StateType::setAxisAngle(double ax, double ay, double az, double angle)
 {
     double norm = sqrt(ax * ax + ay * ay + az * az);
@@ -100,7 +102,7 @@ void ompl::base::SO3StateManifold::enforceBounds(State *state) const
 {
     StateType *qstate = static_cast<StateType*>(state);
     double nrm = norm(qstate);
-    if (fabs(nrm - 1.0) > std::numeric_limits<double>::epsilon())
+    if (fabs(nrm - 1.0) > MAX_QUATERNION_NORM_ERROR)
     {
 	qstate->x /= nrm;
 	qstate->y /= nrm;
@@ -111,7 +113,7 @@ void ompl::base::SO3StateManifold::enforceBounds(State *state) const
 	    	    
 bool ompl::base::SO3StateManifold::satisfiesBounds(const State *state) const
 {
-    return fabs(norm(static_cast<const StateType*>(state)) - 1.0) < std::numeric_limits<double>::epsilon();
+    return fabs(norm(static_cast<const StateType*>(state)) - 1.0) < MAX_QUATERNION_NORM_ERROR;
 }
 
 void ompl::base::SO3StateManifold::copyState(State *destination, const State *source) const
@@ -153,8 +155,8 @@ Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousph
 */
 void ompl::base::SO3StateManifold::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    assert(norm(static_cast<const StateType*>(from)) - 1.0 < 1e-9);
-    assert(norm(static_cast<const StateType*>(to)) - 1.0 < 1e-9);
+    assert(norm(static_cast<const StateType*>(from)) - 1.0 < MAX_QUATERNION_NORM_ERROR);
+    assert(norm(static_cast<const StateType*>(to)) - 1.0 < MAX_QUATERNION_NORM_ERROR);
 
     double theta = distance(from, to) / 2.0;
     if (theta > std::numeric_limits<double>::epsilon())
