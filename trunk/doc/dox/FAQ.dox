@@ -13,6 +13,10 @@
   all the states and the edges between them. Functionality for
   plotting this data is however not available.
 
+- Q: <em>Can I change the state manifold during planning?</em>
+  <br> 
+  A: No. Such changes will make the code crash.
+
 - Q: <em>Can I set the sampler to use for a planner?</em>
   <br>
   A: Yes. The sampler instances used by planners are allocated by

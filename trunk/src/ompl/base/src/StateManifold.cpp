@@ -151,6 +151,28 @@ void ompl::base::CompoundStateManifold::addSubManifold(const StateManifoldPtr &c
     componentCount_ = components_.size();
 }
 
+void ompl::base::CompoundStateManifold::replaceSubManifold(const unsigned int index, const StateManifoldPtr &component, double weight)
+{
+    if (locked_)
+	throw Exception("This manifold is locked. No further components can be added");
+    if (weight < 0.0)
+	throw Exception("Submanifold weight cannot be negative");    
+    components_[index] = component;
+    weights_[index] = weight;
+}
+
+void ompl::base::CompoundStateManifold::replaceSubManifold(const std::string &name, const StateManifoldPtr &component, double weight)
+{
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	if (components_[i]->getName() == name)
+	{
+	    replaceSubManifold(i, component, weight);
+	    return;
+	}
+    throw Exception("Submanifold " + name + " does not exist");
+}
+
+
 unsigned int ompl::base::CompoundStateManifold::getSubManifoldCount(void) const
 {
     return componentCount_;
