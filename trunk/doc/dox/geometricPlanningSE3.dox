@@ -1,5 +1,29 @@
-/**
+/**	
    @page geometricPlanningSE3 Geometric planning for a rigid body in 3D
+
+   This tutorial shows how to plan for a rigid body in 3D. We show how
+   to do this in two ways: @ref geometricSimpleSetup "with" and @ref
+   withoutGeometricSimpleSetup "without" the
+   ompl::geometric::SimpleSetup class. The main difference is that in
+   the latter case ompl::base::SpaceInformation and
+   ompl::base::ProblemDefinition need to be explicitly
+   instantiated. Furthermore, the planner to be used must be
+   explicitly instantiated as well. The recommended approach is using
+   ompl::geometric::SimpleSetup as this is less bug prone and does not
+   limit the functionality of the code in any way.
+   <br>
+
+   \par 
+   Setting up geometric planning for a rigid body in 3D requires the following steps:
+      - identify the space we are planning in: SE(3)
+      - select a corresponding state manifold from the available ones, or implement one. For SE(3), the ompl::base::SE3StateManifold is appropriate.
+      - since SE(3) contains an R<sup>3</sup> component, we need to define bounds.
+      - define the notion of state validity. 
+      - define start states and a goal representation.
+
+   Once these steps are complete, the specification of the problem is
+   conceptually done. The set of classes that allow the instantiation
+   of this specification is shown below.
 
    @section geometricSimpleSetup Using the ompl::geometric::SimpleSetup class
 

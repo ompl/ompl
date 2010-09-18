@@ -151,9 +151,11 @@ namespace ompl
 		stateValidityChecker_ = svc;
 	    }
 	    
-	    /** \brief If no state validity checking class is specified
-		(StateValidityChecker), a boost function can be specified
-		instead */
+	    /** \brief If no state validity checking class is
+		specified (StateValidityChecker), a boost function can
+		be specified instead. This version however incurrs a
+		small additional overhead when calling the function,
+		since there is one more level of indirection */
 	    void setStateValidityChecker(const StateValidityCheckerFn &svc);
 
 	    /** \brief Return the instance of the used state validity checker */
