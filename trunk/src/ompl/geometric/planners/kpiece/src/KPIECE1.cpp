@@ -162,15 +162,6 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 	
 	if (keep)
 	{
-	    projectionEvaluator_->computeCoordinates(xstate, xcoord);
-	    Grid::Cell* cell = tree_.grid.getCell(xcoord);
-	    if (cell)
-		if (cell->data->coverage > 3.0 * (double)tree_.size / (double)tree_.grid.size())
-		    continue;
-	}
-	
-	if (keep)
-	{
 	    /* create a motion */
 	    Motion *motion = new Motion(si_);
 	    si_->copyState(motion->state, xstate);
