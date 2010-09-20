@@ -117,7 +117,8 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
     Motion *approxsol = NULL;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
-    
+    Grid::Coord  xcoord;    
+
     double improveValue = maxDistance_;
 
     while (time::now() < endTime)
@@ -158,6 +159,15 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 	bool keep = si_->checkMotion(existing->state, xstate, fail);
 	if (!keep && fail.second > minValidPathFraction_)
 	    keep = true;
+	
+	if (keep)
+	{
+	    projectionEvaluator_->computeCoordinates(xstate, xcoord);
+	    Grid::Cell* cell = tree_.grid.getCell(xcoord);
+	    if (cell)
+		if (cell->data->coverage > 3.0 * (double)tree_.size / (double)tree_.grid.size())
+		    continue;
+	}
 	
 	if (keep)
 	{
@@ -272,7 +282,7 @@ unsigned int ompl::geometric::KPIECE1::addMotion(Motion *motion, double dist)
 	cell->data->coverage = 1.0;
 	cell->data->iteration = tree_.iteration;
 	cell->data->selections = 1;
-	cell->data->score = log((double)(tree_.iteration + 1)) / (1e-3 + dist);
+	cell->data->score = (1.0 + log((double)(tree_.iteration))) / (1e-3 + dist);
 	tree_.grid.add(cell);
 	created = 1;
     }

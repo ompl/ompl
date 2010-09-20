@@ -252,6 +252,7 @@ ompl::geometric::LBKPIECE1::Motion* ompl::geometric::LBKPIECE1::selectMotion(Tre
 {
     Grid::Cell* cell = rng_.uniform01() < std::max(selectBorderFraction_, tree.grid.fracExternal()) ?
 	tree.grid.topExternal() : tree.grid.topInternal();
+
     if (cell && !cell->data->motions.empty())
     {
 	cell->data->selections++;
@@ -327,6 +328,7 @@ void ompl::geometric::LBKPIECE1::addMotion(TreeData &tree, Motion *motion)
 	cell->data->coverage = 1.0;
 	cell->data->iteration = tree.iteration;
 	cell->data->selections = 1;
+	cell->data->score = 1.0 + log((double)(tree.iteration));
 	tree.grid.add(cell);
     }
     tree.size++;
