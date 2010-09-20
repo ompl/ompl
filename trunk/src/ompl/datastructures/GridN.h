@@ -218,6 +218,14 @@ namespace ompl
 	    }
 	    return false;
 	}
+
+	/// Get the set of instantiated cells in the grid
+	void getCells(CellArray &cells) const
+	{
+	    for (typename Grid<_T>::CoordHash::const_iterator i = Grid<_T>::hash_.begin() ;
+		 i != Grid<_T>::hash_.end() ; ++i)
+		cells.push_back(static_cast<Cell*>(i->second));
+	}
 	
     protected:
 

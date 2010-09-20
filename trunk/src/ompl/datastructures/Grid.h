@@ -206,21 +206,21 @@ namespace ompl
 	/// Get the data stored in the cells we are aware of
 	void getContent(std::vector<_T> &content) const
 	{
-	    for (iterator i = hash_.begin() ; i != hash_.end() ; i++)
+	    for (iterator i = hash_.begin() ; i != hash_.end() ; ++i)
 		content.push_back(i->second->data);
 	}
 	
 	/// Get the set of coordinates where there are cells
 	void getCoordinates(std::vector<Coord*> &coords) const
 	{
-	    for (iterator i = hash_.begin() ; i != hash_.end() ; i++)
+	    for (iterator i = hash_.begin() ; i != hash_.end() ; ++i)
 		coords.push_back(i->first);
 	}
 	
 	/// Get the set of instantiated cells in the grid
 	void getCells(CellArray &cells) const
 	{
-	    for (iterator i = hash_.begin() ; i != hash_.end() ; i++)
+	    for (iterator i = hash_.begin() ; i != hash_.end() ; ++i)
 		cells.push_back(i->second);
 	}
 	
@@ -254,7 +254,7 @@ namespace ompl
 	    getCells(content);
 	    hash_.clear();
 	    
-	    for (unsigned int i = 0 ; i < content.size() ; i++)
+	    for (unsigned int i = 0 ; i < content.size() ; ++i)
 		delete content[i];	    
 	}
 
