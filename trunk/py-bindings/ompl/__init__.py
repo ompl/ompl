@@ -15,6 +15,13 @@ for __lib in ['ompl', 'ompl_app']:
 			__ext='.dylib'
 		else: # Linux, other UNIX systems
 			__ext='.so'
-		ctypes.CDLL(
-			dirname(abspath(__file__))+'/lib'+__lib+__ext,
-			ctypes.RTLD_GLOBAL)
+		try:
+			ctypes.CDLL(
+				dirname(abspath(__file__))+'/lib'+__lib+__ext,
+				ctypes.RTLD_GLOBAL)
+		except:
+			# libompl_app doesn't necessarily exist
+			if __lib=='ompl_app':
+				pass
+			else:
+				raise
