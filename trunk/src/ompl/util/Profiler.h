@@ -160,25 +160,35 @@ namespace ompl
 	
     private:
 	
+	/** \brief Information about time spent in a section of the code */
 	struct TimeInfo
 	{
+	    /** \brief Total time counted. */
 	    time::duration total;
+
+	    /** \brief The point in time when counting time started */
 	    time::point    start;
 	    
+	    /** \brief Begin counting time */
 	    void set(void)
 	    {
 		start = time::now();
 	    }
 	    
+	    /** \brief Add the counted time to the total time */
 	    void update(void)
 	    {
 		total = total + (time::now() - start);
 	    }
 	};
 	
+	/** \brief Timing information to be maintained for each thread */
 	struct PerThread
 	{
+	    /** \brief The number of events */
 	    std::map<std::string, unsigned long int> events;
+
+	    /** \brief The amount of time spent in various places */
 	    std::map<std::string, TimeInfo>          time;
 	};
 	
