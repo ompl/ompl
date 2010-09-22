@@ -25,6 +25,7 @@ A <a href="href://www.ros.org">ROS</a> package providing the latest version of t
 $ svn co https://rice-ros-pkg.svn.sourceforge.net/svnroot/rice-ros-pkg/ompl ompl
 \endcode
 
-<h2><a href="installation.html">Installation instructions</a></h2>
+\n\par
+Click <a href="installation.html">here</a> for installation instructions.
 
 */
