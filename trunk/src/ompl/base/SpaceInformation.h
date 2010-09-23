@@ -310,7 +310,7 @@ namespace ompl
 	    /** \brief Check if a sequence of states is valid using subdivision. */
 	    bool checkMotion(const std::vector<State*> &states, unsigned int count) const;
 	    
-	    /** \brief Get \e count states that make up a motion between \e s1 and \e s2. Returns the number of states that were added to \e states
+	    /** \brief Get \e count states that make up a motion between \e s1 and \e s2. Returns the number of states that were added to \e states. If \e states.size() >= count or \e alloc is true, the returned value is equal to \e count (or \e count + 2, if \e endpoints is true). Otherwise, fewer states can be returned.
 
 		\param s1 the start state of the considered motion
 		\param s2 the end state of the considered motion

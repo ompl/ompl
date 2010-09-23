@@ -82,7 +82,7 @@ class TestSO3(unittest.TestCase):
 		
 		states = vectorState()
 		count = si.getMotionStates(s1(), s2(), states, 10, True, True)
-		self.assertEqual(count, len(states))
+		self.assertEqual(count, 2 + len(states))
 		
 		for i in range(len(states)):
 			nrm = m.norm(states[i])
