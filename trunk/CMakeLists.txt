@@ -24,6 +24,8 @@ else(ROS)
 	endif(NOT OMPLAPP_VERSION)
 endif(ROS)
 
+set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
+	CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 

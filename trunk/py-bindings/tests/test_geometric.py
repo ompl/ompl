@@ -154,7 +154,7 @@ class TestPlanner(object):
 			if show:
 				print 'Simplified solution in %f seconds!' % elapsed
 			
-			path.interpolate()
+			path.interpolate(100)
 			pathLength = pathLength + path.length()
 			if show:
 				print env, '\n'

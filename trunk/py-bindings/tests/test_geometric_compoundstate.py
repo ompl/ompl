@@ -137,7 +137,7 @@ def testPlanner(env, time, pathLength, show = False):
 			print 'Simplified solution in %f seconds!' % elapsed
 		
 		path = setup.setup.getSolutionPath()
-		path.interpolate()
+		path.interpolate(100)
 		pathLength = pathLength + path.length()
 		if show:
 			print env, '\n'

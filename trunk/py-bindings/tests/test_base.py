@@ -81,7 +81,7 @@ class TestSO3(unittest.TestCase):
 		si.setup()
 		
 		states = vectorState()
-		count = si.getMotionStates(s1(), s2(), states, 0.1, True, True)
+		count = si.getMotionStates(s1(), s2(), states, 10, True, True)
 		self.assertEqual(count, len(states))
 		
 		for i in range(len(states)):
