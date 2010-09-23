@@ -39,6 +39,7 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/control/ControlManifold.h"
+#include "ompl/control/ControlAllocator.h"
 #include "ompl/control/ControlSampler.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
@@ -66,6 +67,7 @@ namespace ompl
 		to plan on. */
 	    SpaceInformation(const base::StateManifoldPtr &stateManifold, const ControlManifoldPtr &controlManifold) : base::SpaceInformation(stateManifold),
 														       controlManifold_(controlManifold),
+														       ca_(controlManifold),
 														       minSteps_(0), maxSteps_(0), stepSize_(0.0)
 	    {
 	    }
@@ -86,13 +88,13 @@ namespace ompl
 	    /** \brief Allocate memory for a control */
 	    Control* allocControl(void) const
 	    {
-		return controlManifold_->allocControl();
+		return ca_.allocControl();
 	    }
 	    
 	    /** \brief Free the memory of a control */
 	    void freeControl(Control *control) const
 	    {
-		controlManifold_->freeControl(control);
+		ca_.freeControl(control);
 	    }
 	    
 	    /** \brief Copy a control to another */
@@ -225,6 +227,9 @@ namespace ompl
 	    /** \brief The manifold describing the space of controls applicable to states in the state manifold */
 	    ControlManifoldPtr controlManifold_;
 	    
+	    /** \brief The control allocator used by allocControl() and freeControl() */
+	    ControlAllocator   ca_;
+
 	    /** \brief The minimum number of steps to apply a control for */
 	    unsigned int       minSteps_;
 	    
