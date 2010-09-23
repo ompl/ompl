@@ -80,6 +80,4 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path)
 void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
-    path.interpolate(path.states.size() * 4);
-    reduceVertices(path);
 }
