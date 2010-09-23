@@ -68,9 +68,10 @@ TEST(SO3, Simple)
     si.setup();
     
     std::vector<base::State*> states;
-    unsigned int count = si.getMotionStates(s1.get(), s2.get(), states, 100, true, true);
+    unsigned int ns = 100;
+    unsigned int count = si.getMotionStates(s1.get(), s2.get(), states, ns, true, true);
     EXPECT_TRUE(states.size() == count);
-    EXPECT_TRUE(100 == count);
+    EXPECT_TRUE(ns + 2 == count);
     
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
