@@ -28,7 +28,7 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
 	set(OMPL_PYTHON_INSTALL_DIR "lib/python${PYTHON_VERSION}/site-packages")
 endif()
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
-	AND PY_PYGCCXML AND GCCXML AND NOT BUILD_PY_OMPL)
+	AND PY_PYGCCXML AND GCCXML)
 	# make sure target is defined only once
 	get_target_property(_target py_ompl EXCLUDE_FROM_ALL)
 	if(NOT _target)

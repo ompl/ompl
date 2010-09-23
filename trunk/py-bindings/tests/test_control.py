@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ######################################################################
 # Software License Agreement (BSD License)
 # 

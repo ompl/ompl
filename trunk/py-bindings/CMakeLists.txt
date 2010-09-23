@@ -17,7 +17,7 @@ if(PY_OMPL_GENERATE)
 	add_dependencies(update_geometric_bindings update_base_bindings)
 endif(PY_OMPL_GENERATE)
 
-if(PY_OMPL_COMPILE)
+if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
 	foreach(module ${OMPL_MODULES})
 		create_module_target(${module} ${CMAKE_CURRENT_SOURCE_DIR})
 		# python unit tests
