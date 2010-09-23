@@ -35,21 +35,14 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/DiscreteMotionValidator.h"
+#include "ompl/util/Exception.h"
 #include <queue>
-#include <cmath>
-#include <limits>
 
 void ompl::base::DiscreteMotionValidator::defaultSettings(void)
 {
-    resolution_ = 0.01;
     stateManifold_ = si_->getStateManifold().get();
-}
-
-void ompl::base::DiscreteMotionValidator::setStateValidityCheckingResolution(double resolution)
-{  
-    if (resolution_ < std::numeric_limits<double>::epsilon() || resolution_ > 1.0 - std::numeric_limits<double>::epsilon())
-	throw Exception("The specified resolution at which states need to be checked for validity must be larger than 0 and less than 1");
-    resolution_ = resolution;
+    if (!stateManifold_)
+	throw Exception("No state manifold for motion validator");    
 }
 	    
 bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
@@ -59,7 +52,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
 	return false;
 
     bool result = true;
-    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / resolution_);
+    int nd = stateManifold_->validSegmentCount(s1, s2);
     
     /* temporary storage for the checked state */
     State *test = si_->allocState();
@@ -88,7 +81,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
 	return false;
     
     bool result = true;
-    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / resolution_);
+    int nd = stateManifold_->validSegmentCount(s1, s2);
     
     /* initialize the queue of test positions */
     std::queue< std::pair<int, int> > pos;

@@ -132,13 +132,23 @@ namespace ompl
 	    
 	    /** \brief Computes distance to between two states. This value will always be between 0 and getMaximumExtent() */
 	    virtual double distance(const State *state1, const State *state2) const = 0;
+	    
+	    /** \brief When performing discrete validation of motions,
+		the length of the longest segment that does not
+		require state validation needs to be speficied. This
+		function returns this length, for this manifold. */
+	    virtual double getLongestValidSegmentFraction(void) const;
 
-	    /** \brief Computes distance between two states as a
-		fraction of the maximum extent. This value will always
-		be between 0 and 1.
-		\note This is equal to distance(\e state1, \e state2) / getMaximumExtent(), except for compound manifolds. */
-	    virtual double distanceAsFraction(const State *state1, const State *state2) const;
-
+	    /** \brief When performing discrete validation of motions,
+		the length of the longest segment that does not
+		require state validation needs to be speficied. This
+		function sets this length as a fraction of the space's
+		extent. */
+	    virtual void setLongestValidSegmentFraction(double segmentFraction);
+	    
+	    /** \brief Count how many segments of the "longest valid length" fit on the motion from \e state1 to \e state2 */
+	    virtual unsigned int validSegmentCount(const State *state1, const State *state2) const;
+	    
 	    /** \brief Checks whether two states are equal */
 	    virtual bool equalStates(const State *state1, const State *state2) const = 0;
 
@@ -206,6 +216,12 @@ namespace ompl
 	    /** \brief The extent of this manifold at the time setup() was called */
 	    double                                        maxExtent_;
 	    
+	    /** \brief The fraction of the longest valid segment */
+	    double                                        longestValidSegmentFraction_;
+	    
+	    /** \brief The longest valid segment at the time setup() was called */
+	    double                                        longestValidSegment_;
+
 	    /** \brief Interface used for console output */
 	    msg::Interface                                msg_;
 	    
@@ -304,13 +320,18 @@ namespace ompl
 
 	    virtual void copyState(State *destination, const State *source) const;
 
-	    /** \brief Computes distance between two states as a
-		fraction of the maximum extent. This value will always
-		be between 0 and 1.
-		\note This is equal to maximum of distance(\e state1, \e state2) / getMaximumExtent(), for each submanifold. Weights are ignored. */
-	    virtual double distanceAsFraction(const State *state1, const State *state2) const;
-
 	    virtual double distance(const State *state1, const State *state2) const;
+
+	    /** \brief When performing discrete validation of motions,
+		the length of the longest segment that does not
+		require state validation needs to be speficied. This
+		function sets this length as a fraction of the space's
+		extent. The call is passed to all contained manifolds */
+	    virtual void setLongestValidSegmentFraction(double segmentFraction);
+	    
+	    /** \brief Count how many segments of the "longest valid length" fit on the motion from \e state1 to \e state2.
+		This is the max() of the counts returned by contained manifolds. */
+	    virtual unsigned int validSegmentCount(const State *state1, const State *state2) const;
 	    
 	    virtual bool equalStates(const State *state1, const State *state2) const;
 	    

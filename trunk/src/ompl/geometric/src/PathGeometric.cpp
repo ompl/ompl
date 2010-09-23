@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/PathGeometric.h"
+#include <cmath>
 
 ompl::geometric::PathGeometric::PathGeometric(const PathGeometric &path) : base::Path(path.si_)
 {
@@ -142,10 +143,10 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int count)
 		
 		// compute intermediate states
 		std::vector<base::State*> block;
-		unsigned ans = si_->getMotionStates(s1, s2, block, ns, false, true);
+		unsigned int ans = si_->getMotionStates(s1, s2, block, ns, false, true);
 
 		// sanity checks
-		assert(ans == ns);
+		assert((int)ans == ns);
 		assert(block.size() == ans);
 		
 		newStates.insert(newStates.end(), block.begin(), block.end());

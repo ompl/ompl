@@ -67,31 +67,10 @@ namespace ompl
 	    {
 	    }	   
  
-	    /** \brief Set the resolution at which state validity
-		needs to be verified in order for a motion between two
-		states to be considered valid. This value is specified
-		as a fraction of the maximum distance between two
-		states. By default this is 1% */
-	    void setStateValidityCheckingResolution(double resolution);
-	    
-	    /** \brief Get the resolution at which state validity is
-		verified. This value is specified as a fraction of the
-		maximum distance between two states. */
-	    double getStateValidityCheckingResolution(void) const
-	    {
-		return resolution_;
-	    }
-	      
 	    virtual bool checkMotion(const State *s1, const State *s2) const;
 	    
 	    virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
-	    	    
-	protected:
 	    
-	    /** \brief The resolution (maximum distance between	states) at which state validity checks are
-		performed. This is represented as a percentage of the maximum extent of the space. */
-	    double resolution_;
-
 	private:
 	    
 	    StateManifold *stateManifold_;

@@ -181,16 +181,24 @@ namespace ompl
 	    
 	    /** \brief Set the resolution at which state validity
 		needs to be verified in order for a motion between two
-		states to be considered valid. This call is only
+		states to be considered valid. This value is specified
+		as a fraction of the space's extent. This call is only
 		applicable if a ompl::base::DiscreteMotionValidator is
-		used. See ompl::base::DiscreteMotionValidator::setStateValidityCheckingResolution() */
-	    void setStateValidityCheckingResolution(double resolution);
+		used. See
+		ompl::base::StateManifold::setLongestValidSegmentFraction() */
+	    void setStateValidityCheckingResolution(double resolution)
+	    {
+		stateManifold_->setLongestValidSegmentFraction(resolution);
+	    }
 	    
 	    /** \brief Get the resolution at which state validity is
 		verified. This call is only applicable if a
 		ompl::base::DiscreteMotionValidator is used. See
-		ompl::base::DiscreteMotionValidator::getStateValidityCheckingResolution() */
-	    double getStateValidityCheckingResolution(void) const;
+		ompl::base::StateManifold::getLongestValidSegmentFraction() */
+	    double getStateValidityCheckingResolution(void) const
+	    {
+		return stateManifold_->getLongestValidSegmentFraction();
+	    }	    
 	    
 	    /** @}*/
 

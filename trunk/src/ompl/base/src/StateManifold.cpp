@@ -38,6 +38,7 @@
 #include <sstream>
 #include <numeric>
 #include <limits>
+#include <cmath>
 
 const std::string ompl::base::StateManifold::DEFAULT_PROJECTION_NAME = "";
 
@@ -54,13 +55,19 @@ ompl::base::StateManifold::StateManifold(void)
     std::stringstream ss;
     ss << "manifold" << m;
     name_ = ss.str();
-
+    
+    longestValidSegment_ = 0.0;
+    longestValidSegmentFraction_ = 0.01; // 1%
     maxExtent_ = std::numeric_limits<double>::infinity();
 }
 
 void ompl::base::StateManifold::setup(void)
 {
     maxExtent_ = getMaximumExtent();
+    longestValidSegment_ = maxExtent_ * longestValidSegmentFraction_;
+    
+    if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
+	throw Exception("The longest valid segment for manifold " + name_ + " must be positive");
 }
 
 void ompl::base::StateManifold::printState(const State *state, std::ostream &out) const
@@ -135,9 +142,21 @@ void ompl::base::StateManifold::registerProjection(const std::string &name, cons
 	msg_.error("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
 }
 
-double ompl::base::StateManifold::distanceAsFraction(const State *state1, const State *state2) const
+void ompl::base::StateManifold::setLongestValidSegmentFraction(double segmentFraction)
 {
-    return distance(state1, state2) / maxExtent_;
+    if (segmentFraction < std::numeric_limits<double>::epsilon() || segmentFraction > 1.0 - std::numeric_limits<double>::epsilon())
+	throw Exception("The fraction of the extent must be larger than 0 and less than 1");
+    longestValidSegmentFraction_ = segmentFraction;
+}
+
+double ompl::base::StateManifold::getLongestValidSegmentFraction(void) const
+{
+    return longestValidSegmentFraction_;
+}
+
+unsigned int ompl::base::StateManifold::validSegmentCount(const State *state1, const State *state2) const
+{
+    return (unsigned int)ceil(distance(state1, state2) / longestValidSegment_);
 }
 
 void ompl::base::CompoundStateManifold::addSubManifold(const StateManifoldPtr &component, double weight)
@@ -289,18 +308,25 @@ double ompl::base::CompoundStateManifold::distance(const State *state1, const St
     return dist;
 }
 
-double ompl::base::CompoundStateManifold::distanceAsFraction(const State *state1, const State *state2) const
+void ompl::base::CompoundStateManifold::setLongestValidSegmentFraction(double segmentFraction)
+{
+    StateManifold::setLongestValidSegmentFraction(segmentFraction);
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	components_[i]->setLongestValidSegmentFraction(segmentFraction);
+}
+
+unsigned int ompl::base::CompoundStateManifold::validSegmentCount(const State *state1, const State *state2) const
 {
     const CompoundState *cstate1 = static_cast<const CompoundState*>(state1);
     const CompoundState *cstate2 = static_cast<const CompoundState*>(state2);
-    double dist = 0.0;
+    unsigned int sc = 0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
     {
-	double d = components_[i]->distanceAsFraction(cstate1->components[i], cstate2->components[i]);
-	if (d > dist)
-	    dist = d;
+	unsigned int sci = components_[i]->validSegmentCount(cstate1->components[i], cstate2->components[i]);
+	if (sci > sc)
+	    sc = sci;
     }
-    return dist;
+    return sc;
 }
 
 bool ompl::base::CompoundStateManifold::equalStates(const State *state1, const State *state2) const

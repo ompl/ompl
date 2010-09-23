@@ -96,8 +96,6 @@ public:
 	
 	setup.getStateManifold()->as<base::CompoundStateManifold>()->addSubManifold(base::StateManifoldPtr(m1), 1.0);
 	setup.getStateManifold()->as<base::CompoundStateManifold>()->addSubManifold(base::StateManifoldPtr(m2), 1.0);
-	// add a dummy manifold to test corner cases
-	setup.getStateManifold()->as<base::CompoundStateManifold>()->addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(0)), 0.0);
 	
 	setup.setStateValidityChecker(boost::bind(&isValid, &env.grid, _1));
 	

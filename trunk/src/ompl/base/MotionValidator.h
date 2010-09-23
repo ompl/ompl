@@ -81,8 +81,8 @@ namespace ompl
 	    virtual bool checkMotion(const State *s1, const State *s2) const = 0;
 	    
 	    /** \brief Check if the path between two states is valid. Also compute the last state that was
-		valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at t =
-		0 and s2 being at t = 1. This function assumes s1 is valid.
+		valid and the time of that state. The time is used to parametrize the motion from \e s1 to \e s2, \e s1 being at t =
+		0 and \e s2 being at t = 1. This function assumes \e s1 is valid.
 		\param s1 start state of the motion to be checked (assumed to be valid)
 		\param s2 final state of the motion to be checked 
 		\param lastValid first: storage for the last valid state; this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */

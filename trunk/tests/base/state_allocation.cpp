@@ -46,17 +46,11 @@
 
 using namespace ompl;
 
-bool isValid(const base::State *)
-{
-    return true;
-}
-
 TEST(Allocation, Simple)
 {
     base::StateManifoldPtr m(new base::SE3StateManifold());
     base::SpaceInformation si(m);
-    si.setStateValidityChecker(boost::bind(&isValid, _1));
-    si.setup();
+    //    si.setup();
     
     const unsigned int N = 50000;
     const unsigned int M = 100;

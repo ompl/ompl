@@ -259,37 +259,12 @@ ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSa
 	return ValidStateSamplerPtr(new UniformValidStateSampler(this));
 }
 
-double ompl::base::SpaceInformation::getStateValidityCheckingResolution(void) const
-{
-    if (motionValidator_)
-    {
-	DiscreteMotionValidator *dmv = dynamic_cast<DiscreteMotionValidator*>(motionValidator_.get());
-	if (dmv)
-	    return dmv->getStateValidityCheckingResolution();
-    }
-    throw Exception("You are not using a DiscreteMotionValidator. State validity checking resolution is not defined");
-}
-
-void ompl::base::SpaceInformation::setStateValidityCheckingResolution(double resolution)
-{
-    DiscreteMotionValidator *dmv = motionValidator_ ? dynamic_cast<DiscreteMotionValidator*>(motionValidator_.get()) : NULL;
-    if (!dmv)
-	msg_.error("You are not using a DiscreteMotionValidator. Setting a state validity checking resolution does not make sense");
-    else
-	dmv->setStateValidityCheckingResolution(resolution);
-}
-
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "State space settings:" << std::endl;
     out << "  - dimension: " << stateManifold_->getDimension() << std::endl;
     out << "  - extent: " << stateManifold_->getMaximumExtent() << std::endl;
-    if (motionValidator_)
-    {
-	DiscreteMotionValidator *dmv = dynamic_cast<DiscreteMotionValidator*>(motionValidator_.get());
-	if (dmv)
-	    out << "  - state validity check resolution: " << (dmv->getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
-    }
+    out << "  - state validity check resolution: " << (getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
     out << "  - state manifold:" << std::endl;
     stateManifold_->printSettings(out);
 }

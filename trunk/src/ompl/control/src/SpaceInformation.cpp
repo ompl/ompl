@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/SpaceInformation.h"
-#include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/util/Exception.h"
 #include <cassert>
 #include <utility>
@@ -55,23 +54,17 @@ void ompl::control::SpaceInformation::setup(void)
     if (minSteps_ < 1)
 	throw Exception("The minimum number of steps must be at least 1");
     
-    // if the motion validator is discrete, we need to play nice with the state validity checking resolution
-    base::DiscreteMotionValidator *dmv = NULL;
-    if (motionValidator_)
-	dmv = dynamic_cast<base::DiscreteMotionValidator*>(motionValidator_.get());
-    
     if (stepSize_ < std::numeric_limits<double>::epsilon())
     {
-	stepSize_ = (dmv ? dmv->getStateValidityCheckingResolution() : 0.01) * getMaximumExtent();
+	stepSize_ = getStateValidityCheckingResolution() * getMaximumExtent();
+	if (stepSize_ < std::numeric_limits<double>::epsilon())
+	    throw Exception("The propagation step size must be larger than 0");
 	msg_.warn("The propagation step size is assumed to be %f", stepSize_);
     }
     else
 	// even if we need to do validation checking at a smaller resolution, we cannot go lower than the propagation step
-	if (dmv && dmv->getStateValidityCheckingResolution() * getMaximumExtent() < stepSize_)
-	{
-	    dmv->setStateValidityCheckingResolution(stepSize_ / getMaximumExtent());
-	    msg_.warn("The state validity checking resolution is too small relative to the propagation step size. Increasing resolution to %f", dmv->getStateValidityCheckingResolution());
-	}
+	if (getStateValidityCheckingResolution() * getMaximumExtent() < stepSize_)
+	    msg_.warn("The state validity checking resolution is too small relative to the propagation step size. Resolution is %f%% (=%f), step size is %f. Ideally, the resolution should be an integer multiple of the step size. It however must be larger than the step size.", getStateValidityCheckingResolution() * 100.0, getStateValidityCheckingResolution() * getMaximumExtent(), stepSize_);
     
     controlManifold_->setup();    
     if (controlManifold_->getDimension() <= 0)
