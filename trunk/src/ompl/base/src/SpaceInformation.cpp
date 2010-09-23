@@ -36,15 +36,13 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
+#include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/util/Exception.h"
 #include <queue>
-#include <algorithm>
-#include <limits>
-#include <cmath>
 #include <cassert>
 
 ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : 
-    sa_(manifold), stateManifold_(manifold), resolution_(0.01), setup_(false), msg_("SpaceInformation")
+    stateManifold_(manifold), sa_(manifold), motionValidator_(new DiscreteMotionValidator(this)), setup_(false), msg_("SpaceInformation")
 {
     if (!stateManifold_)
 	throw Exception("Invalid manifold definition");
@@ -58,12 +56,13 @@ void ompl::base::SpaceInformation::setup(void)
 	msg_.warn("State validity checker not set! No collision checking is performed");
     }
     
+    if (!motionValidator_)
+	motionValidator_.reset(new DiscreteMotionValidator(this));
+    
     stateManifold_->setup();
     if (stateManifold_->getDimension() <= 0)
 	throw Exception("The dimension of the state manifold we plan in must be > 0");
 
-    if (resolution_ < std::numeric_limits<double>::epsilon() || resolution_ > 1.0 - std::numeric_limits<double>::epsilon())
-	throw Exception("The specified resolution at which states need to be checked for validity must be larger than 0 and less than 1");
     
     setup_ = true;
 }
@@ -128,89 +127,16 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     return result;
 }
 
-bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
+unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const
 {
-    /* assume motion starts in a valid configuration so s1 is valid */
-    if (!isValid(s2))
-	return false;
-
-    bool result = true;
-    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / resolution_);
+    // add 1 to the number of states we want to add between s1 & s2. This gives us the number of segments to split the motion into
+    count++;
     
-    /* temporary storage for the checked state */
-    State *test = allocState();
-    
-    for (int j = 1 ; j < nd ; ++j)
-    {
-	stateManifold_->interpolate(s1, s2, (double)j / (double)nd, test);
-	if (!isValid(test))
-	{
-	    if (lastValid.first)
-		stateManifold_->interpolate(s1, s2, (double)(j - 1) / (double)nd, lastValid.first);
-	    lastValid.second = (double)(j - 1) / (double)nd;
-	    result = false;
-	    break;
-	}
-    }
-    freeState(test);
-    
-    return result;
-}
-
-bool ompl::base::SpaceInformation::checkMotion(const State *s1, const State *s2) const
-{
-    /* assume motion starts in a valid configuration so s1 is valid */
-    if (!isValid(s2))
-	return false;
-    
-    bool result = true;
-    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / resolution_);
-    
-    /* initialize the queue of test positions */
-    std::queue< std::pair<int, int> > pos;
-    if (nd >= 2)
-    {
-	pos.push(std::make_pair(1, nd - 1));
-    
-	/* temporary storage for the checked state */
-	State *test = allocState();
-	
-	/* repeatedly subdivide the path segment in the middle (and check the middle) */
-	while (!pos.empty())
-	{
-	    std::pair<int, int> x = pos.front();
-	    
-	    int mid = (x.first + x.second) / 2;
-	    stateManifold_->interpolate(s1, s2, (double)mid / (double)nd, test);
-	    
-	    if (!isValid(test))
-	    {
-		result = false;
-		break;
-	    }
-	    
-	    pos.pop();
-	    
-	    if (x.first < mid)
-		pos.push(std::make_pair(x.first, mid - 1));
-	    if (x.second > mid)
-		pos.push(std::make_pair(mid + 1, x.second));
-	}
-	
-	freeState(test);
-    }
-    
-    return result;
-}
-
-unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, double factor, bool endpoints, bool alloc) const
-{
-    assert(factor > std::numeric_limits<double>::epsilon());    
-    int nd = (int)ceil(stateManifold_->distanceAsFraction(s1, s2) / (resolution_ * factor));
-    
-    if (nd < 2)
+    if (count < 2)
     {
 	unsigned int added = 0;
+
+	// if they want endpoints, then at most endpoints are included
 	if (endpoints)
 	{
 	    if (alloc)
@@ -231,12 +157,15 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
 		added++;
 	    }
 	}
+	else
+	    if (alloc)
+		states.resize(0);
 	return added;
     }
     
     if (alloc)
     {
-	states.resize(nd + (endpoints ? 1 : -1));
+	states.resize(count + (endpoints ? 1 : -1));
 	if (endpoints)
 	    states[0] = allocState();
     }
@@ -250,11 +179,11 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
     }
     
     /* find the states in between */
-    for (int j = 1 ; j < nd && added < states.size() ; ++j)
+    for (unsigned int j = 1 ; j < count && added < states.size() ; ++j)
     {
 	if (alloc)
 	    states[added] = allocState();
-	stateManifold_->interpolate(s1, s2, (double)j / (double)nd, states[added]);
+	stateManifold_->interpolate(s1, s2, (double)j / (double)count, states[added]);
 	added++;
     }
     
@@ -330,12 +259,37 @@ ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSa
 	return ValidStateSamplerPtr(new UniformValidStateSampler(this));
 }
 
+double ompl::base::SpaceInformation::getStateValidityCheckingResolution(void) const
+{
+    if (motionValidator_)
+    {
+	DiscreteMotionValidator *dmv = dynamic_cast<DiscreteMotionValidator*>(motionValidator_.get());
+	if (dmv)
+	    return dmv->getStateValidityCheckingResolution();
+    }
+    throw Exception("You are not using a DiscreteMotionValidator. State validity checking resolution is not defined");
+}
+
+void ompl::base::SpaceInformation::setStateValidityCheckingResolution(double resolution)
+{
+    DiscreteMotionValidator *dmv = motionValidator_ ? dynamic_cast<DiscreteMotionValidator*>(motionValidator_.get()) : NULL;
+    if (!dmv)
+	msg_.error("You are not using a DiscreteMotionValidator. Setting a state validity checking resolution does not make sense");
+    else
+	dmv->setStateValidityCheckingResolution(resolution);
+}
+
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "State space settings:" << std::endl;
     out << "  - dimension: " << stateManifold_->getDimension() << std::endl;
     out << "  - extent: " << stateManifold_->getMaximumExtent() << std::endl;
-    out << "  - state validity check resolution: " << (resolution_ * 100.0) << '%' << std::endl;
+    if (motionValidator_)
+    {
+	DiscreteMotionValidator *dmv = dynamic_cast<DiscreteMotionValidator*>(motionValidator_.get());
+	if (dmv)
+	    out << "  - state validity check resolution: " << (dmv->getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
+    }
     out << "  - state manifold:" << std::endl;
     stateManifold_->printSettings(out);
 }

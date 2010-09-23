@@ -39,6 +39,7 @@
 
 #include "ompl/base/State.h"
 #include "ompl/base/StateValidityChecker.h"
+#include "ompl/base/MotionValidator.h"
 #include "ompl/base/StateManifold.h"
 #include "ompl/base/StateAllocator.h"
 #include "ompl/base/ValidStateSampler.h"
@@ -143,9 +144,9 @@ namespace ompl
 	    /** @name Configuration of state validity checking
 		@{ */
 
-	    /** \brief Set the instance of the validity checker to
-		use. Parallel implementations of planners assume this
-		validity checker is thread safe. */
+	    /** \brief Set the instance of the state validity checker
+		to use. Parallel implementations of planners assume
+		this validity checker is thread safe. */
 	    void setStateValidityChecker(const StateValidityCheckerPtr &svc)
 	    {
 		stateValidityChecker_ = svc;
@@ -164,23 +165,32 @@ namespace ompl
 		return stateValidityChecker_;
 	    }	
 	    
-	    /** \brief Set the resolution at which state validity
-		needs to be verified in order for a motion between two
-		states to be considered valid. This value is specified
-		as a fraction of the maximum distance between two
-		states. By default this is 1% */
-	    void setStateValidityCheckingResolution(double resolution)
+	    /** \brief Set the instance of the motion validity checker
+		to use. Parallel implementations of planners assume
+		this validity checker is thread safe.  */
+	    void setMotionValidator(const MotionValidatorPtr &mv)
 	    {
-		resolution_ = resolution;
+		motionValidator_ = mv;
+	    }	    
+
+	    /** \brief Return the instance of the used state validity checker */
+	    const MotionValidatorPtr& getMotionValidator(void) const
+	    {
+		return motionValidator_;
 	    }
 	    
+	    /** \brief Set the resolution at which state validity
+		needs to be verified in order for a motion between two
+		states to be considered valid. This call is only
+		applicable if a ompl::base::DiscreteMotionValidator is
+		used. See ompl::base::DiscreteMotionValidator::setStateValidityCheckingResolution() */
+	    void setStateValidityCheckingResolution(double resolution);
+	    
 	    /** \brief Get the resolution at which state validity is
-		verified. This value is specified as a fraction of the
-		maximum distance between two states. */
-	    double getStateValidityCheckingResolution(void) const
-	    {
-		return resolution_;
-	    }
+		verified. This call is only applicable if a
+		ompl::base::DiscreteMotionValidator is used. See
+		ompl::base::DiscreteMotionValidator::getStateValidityCheckingResolution() */
+	    double getStateValidityCheckingResolution(void) const;
 	    
 	    /** @}*/
 
@@ -262,7 +272,7 @@ namespace ompl
 	     *  \param distance the maximum allowed distance between \e state and \e near
 	     *  \param attempts the algorithm works by sampling states near state \e near. This parameter defines the maximum number of sampling attempts
 	     */
-	    virtual bool searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const;
+	    bool searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const;
 	    
 	    /** \brief Incrementally check if the path between two motions is valid. Also compute the last state that was
 		valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at t =
@@ -270,32 +280,37 @@ namespace ompl
 		\param s1 start state of the motion to be checked (assumed to be valid)
 		\param s2 final state of the motion to be checked 
 		\param lastValid first: storage for the last valid state; this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */
-	    virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+	    bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
+	    {
+		return motionValidator_->checkMotion(s1, s2, lastValid);
+	    }
+	    
 	    
 	    /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using subdivision. This function assumes \e s1 is valid. */
-	    virtual bool checkMotion(const State *s1, const State *s2) const;
-	    
+	    bool checkMotion(const State *s1, const State *s2) const
+	    {
+		return motionValidator_->checkMotion(s1, s2);
+	    }
+	    	    
 	    /** \brief Incrementally check if a sequence of states is valid. Given a vector of states, this routine only
 		checks the first \e count elements and marks the index of the first invalid state 
 		\param states the array of states to be checked
 		\param count the number of states to be checked in the array (0 to \e count)
 		\param firstInvalidStateIndex location to store the first invalid state index. Unmodified if the function returns true */
-	    virtual bool checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int &firstInvalidStateIndex) const;
+	    bool checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int &firstInvalidStateIndex) const;
 	    
 	    /** \brief Check if a sequence of states is valid using subdivision. */
-	    virtual bool checkMotion(const std::vector<State*> &states, unsigned int count) const;
+	    bool checkMotion(const std::vector<State*> &states, unsigned int count) const;
 	    
-	    /** \brief Get the states that make up a motion. Returns the number of states that were added.
+	    /** \brief Get \e count states that make up a motion between \e s1 and \e s2. Returns the number of states that were added to \e states
 
-		The states are added at a resolution \e r = \e svr * \e factor, where \e svr is the state validity checking resolution. 
-		A \e factor larger than 1 will result in fewer states per motion.
 		\param s1 the start state of the considered motion
 		\param s2 the end state of the considered motion
 		\param states the computed set of states along the specified motion
-		\param factor the factor to use when computing the resolution at which intermmediate states are added
+		\param count the number of intermediate states ti compute
 		\param endpoints flag indicating whether s1 and s2 are to be included in states
 		\param alloc flag indicating whether memory is to be allocated automatically */
-	    virtual unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, double factor, bool endpoints, bool alloc) const;
+	    unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const;
 
 	    /** @}*/
 
@@ -313,19 +328,18 @@ namespace ompl
 	    
 	protected:
 	    
+	    /** \brief The manifold planning is to be performed in */
+	    StateManifoldPtr           stateManifold_;
+
 	    /** \brief The state allocator used by allocState() and freeState() */
 	    StateAllocator             sa_;
 	    
 	    /** \brief The instance of the state validity checker used for determinig the validity of states in the planning process */
 	    StateValidityCheckerPtr    stateValidityChecker_;
 	    
-	    /** \brief The manifold planning is to be performed in */
-	    StateManifoldPtr           stateManifold_;
-
-	    /** \brief The resolution (maximum distance between	states) at which state validity checks are
-		performed. This is represented as a percentage of the maximum extent of the space. */
-	    double                     resolution_;
-
+	    /** \brief The instance of the motion validator to use when determinig the validity of motions in the planning process */
+	    MotionValidatorPtr         motionValidator_;
+	    
 	    /** \brief Flag indicating whether setup() has been called on this instance */
 	    bool                       setup_;
 

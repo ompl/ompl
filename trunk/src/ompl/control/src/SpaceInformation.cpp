@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/SpaceInformation.h"
+#include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/util/Exception.h"
 #include <cassert>
 #include <utility>
@@ -54,17 +55,22 @@ void ompl::control::SpaceInformation::setup(void)
     if (minSteps_ < 1)
 	throw Exception("The minimum number of steps must be at least 1");
     
+    // if the motion validator is discrete, we need to play nice with the state validity checking resolution
+    base::DiscreteMotionValidator *dmv = NULL;
+    if (motionValidator_)
+	dmv = dynamic_cast<base::DiscreteMotionValidator*>(motionValidator_.get());
+    
     if (stepSize_ < std::numeric_limits<double>::epsilon())
     {
-	stepSize_ = resolution_ * getMaximumExtent();
-	msg_.warn("The propagation step size is assumed to be the same as the state validity checking resolution: %f", stepSize_);
+	stepSize_ = (dmv ? dmv->getStateValidityCheckingResolution() : 0.01) * getMaximumExtent();
+	msg_.warn("The propagation step size is assumed to be %f", stepSize_);
     }
     else
 	// even if we need to do validation checking at a smaller resolution, we cannot go lower than the propagation step
-	if (resolution_ * getMaximumExtent() < stepSize_)
+	if (dmv && dmv->getStateValidityCheckingResolution() * getMaximumExtent() < stepSize_)
 	{
-	    resolution_ = stepSize_ / getMaximumExtent();
-	    msg_.warn("The state validity checking resolution is too small relative to the propagation step size. Increasing resolution to %f", resolution_);
+	    dmv->setStateValidityCheckingResolution(stepSize_ / getMaximumExtent());
+	    msg_.warn("The state validity checking resolution is too small relative to the propagation step size. Increasing resolution to %f", dmv->getStateValidityCheckingResolution());
 	}
     
     controlManifold_->setup();    

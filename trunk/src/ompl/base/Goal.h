@@ -44,6 +44,7 @@
 #include <iostream>
 #include <limits>
 #include <boost/noncopyable.hpp>
+#include <boost/concept_check.hpp>
 
 namespace ompl
 {
@@ -70,8 +71,28 @@ namespace ompl
 	    /** \brief Destructor. Clears the solution as well */
 	    virtual ~Goal(void)
 	    {
+	    }	
+
+	    /** \brief Cast this instance to a desired type. */
+	    template<class T>
+	    T* as(void)
+	    {
+		/** \brief Make sure the type we are casting to is indeed a goal */
+		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Goal*>));
+		
+		return static_cast<T*>(this);
 	    }
 
+	    /** \brief Cast this instance to a desired type. */
+	    template<class T>
+	    const T* as(void) const
+	    {	
+		/** \brief Make sure the type we are casting to is indeed a goal */
+		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Goal*>));
+		
+		return static_cast<const T*>(this);
+	    }
+	    
 	    /** \brief Return true if the state statisfies the goal
 	     *  constraints. */
 	    virtual bool isSatisfied(const State *st) const = 0;

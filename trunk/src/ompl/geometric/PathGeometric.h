@@ -80,12 +80,12 @@ namespace ompl
 	    /** \brief Print the path to a stream */
 	    virtual void print(std::ostream &out) const;
 
-	    /** \brief Insert states in a path at resolution \e r = \e
-		factor * \e svr, where \e svr is the state validity
-		checking resolution. If \e factor < 1, more states are
-		added along the path. */
-	    void interpolate(double factor = 1.0);
-	    
+	    /** \brief Insert a number of states in a path so that the
+		path is made up of at least \e count segments. If a
+		path has more than \e count segments, no changes are
+		performed. */
+	    void interpolate(unsigned int count);
+
 	    /** \brief The list of states that make up the path */
 	    std::vector<base::State*> states;
 	    

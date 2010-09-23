@@ -58,7 +58,7 @@ TEST(Allocation, Simple)
     si.setStateValidityChecker(boost::bind(&isValid, _1));
     si.setup();
     
-    const unsigned int N = 100000;
+    const unsigned int N = 50000;
     const unsigned int M = 100;
     std::vector<base::State*> states(N, NULL);
 

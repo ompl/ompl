@@ -168,7 +168,7 @@ public:
 		printf("Simplified solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
 	    /* fill in values that were linearly interpolated */
-	    path.interpolate();
+	    path.interpolate(path.states.size() * 2);
 	    
 	    if (pathLength)
 		*pathLength += path.length();

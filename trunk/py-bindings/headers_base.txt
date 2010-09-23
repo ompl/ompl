@@ -6,6 +6,7 @@ base/ProjectionEvaluator.h
 base/StateManifold.h
 base/StateAllocator.h
 base/StateValidityChecker.h
+base/MotionValidator.h
 base/SpaceInformation.h
 base/ScopedState.h
 base/Path.h
@@ -14,6 +15,7 @@ base/GoalRegion.h
 base/GoalSampleableRegion.h
 base/GoalState.h
 base/GoalStates.h
+base/DiscreteMotionValidator.h
 base/Planner.h
 base/ProblemDefinition.h
 base/samplers/UniformValidStateSampler.h

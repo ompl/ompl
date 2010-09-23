@@ -102,8 +102,15 @@ void ompl::geometric::PathGeometric::print(std::ostream &out) const
     out << std::endl;
 }
 
-void ompl::geometric::PathGeometric::interpolate(double factor) 
+void ompl::geometric::PathGeometric::interpolate(unsigned int count) 
 {
+    if (count < states.size() || states.size() < 2)
+	return;
+    
+    // the remaining length of the path we need to add states along
+    double remainingLength = length();
+    
+    // the new array of states this path will have
     std::vector<base::State*> newStates;
     const int n1 = states.size() - 1;
     
@@ -114,12 +121,45 @@ void ompl::geometric::PathGeometric::interpolate(double factor)
 	
 	newStates.push_back(s1);
 	
-	std::vector<base::State*> block;
-	si_->getMotionStates(s1, s2, block, factor, false, true);
-	newStates.insert(newStates.end(), block.begin(), block.end());
+	// the maximum number of states that can be added on the current motion (without its endpoints)
+	// such that we can at least fit the remaining states
+	int maxNStates = count + i - states.size();	
+	
+	if (maxNStates > 0)
+	{	
+	    // compute an approximate number of states the following segment needs to contain; this includes endpoints
+	    double segmentLength = si_->distance(s1, s2);
+	    int ns = i + 1 == n1 ? maxNStates + 2 : (int)floor(0.5 + (double)count * segmentLength / remainingLength) + 1;
+	    
+	    // if more than endpoints are needed
+	    if (ns > 2)
+	    {
+		ns -= 2; // subtract endpoints
+		
+		// make sure we don't add too many states
+		if (ns > maxNStates)
+		    ns = maxNStates;
+		
+		// compute intermediate states
+		std::vector<base::State*> block;
+		unsigned ans = si_->getMotionStates(s1, s2, block, ns, false, true);
+
+		// sanity checks
+		assert(ans == ns);
+		assert(block.size() == ans);
+		
+		newStates.insert(newStates.end(), block.begin(), block.end());
+	    }
+	    else 
+		ns = 0;
+	    
+	    // update what remains to be done
+	    count -= (ns + 1);
+	    remainingLength -= segmentLength;
+	}
     }
     
+    // add the last state
     newStates.push_back(states[n1]);
     states.swap(newStates);
 }
-
