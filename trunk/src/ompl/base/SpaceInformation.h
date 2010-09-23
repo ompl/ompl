@@ -315,8 +315,8 @@ namespace ompl
 		\param s1 the start state of the considered motion
 		\param s2 the end state of the considered motion
 		\param states the computed set of states along the specified motion
-		\param count the number of intermediate states ti compute
-		\param endpoints flag indicating whether s1 and s2 are to be included in states
+		\param count the number of intermediate states to compute
+		\param endpoints flag indicating whether \e s1 and \e s2 are to be included in states
 		\param alloc flag indicating whether memory is to be allocated automatically */
 	    unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const;
 
