@@ -101,9 +101,6 @@ class mySetup(object):
 		
 		self.manifold.addSubManifold(self.m1, 1.0)
 		self.manifold.addSubManifold(self.m2, 1.0)
-		# add a dummy manifold to test corner cases
-		self.m3 = ob.RealVectorStateManifold(0)
-		self.manifold.addSubManifold(self.m3, 0.0)
 		
 		isValidFn = partial(isValid, env.grid)
 		self.setup.setStateValidityChecker(isValidFn)
