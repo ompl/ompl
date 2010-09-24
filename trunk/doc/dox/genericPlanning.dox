@@ -58,35 +58,7 @@
        value may be too low, in which case planning will be slower, or
        it may be too high, in which case it is possible to have
        collisions in solution plans.
-   @code
-   // define this class:
-   class myStateValidityCheckerClass : public base::StateValidityChecker
-   {
-   public:
-	myStateValidityCheckerClass(const base::SpaceInformationPtr &si) :
-	  base::StateValidityChecker(si)
-   	{
-	}
-	
-	virtual bool isValid(const base::State *state) const
-	{
-		return ...;
-	}
-   };
-   // or this function:
-   bool myStateValidityCheckerFunction(const base::State *state)
-   {
-	return ...;
-   }	
-
-   base::SpaceInformationPtr si(manifold);
-   // either this call:
-   si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityCheckerClass(si)));
-   // or this call:
-   si->setStateValidityChecker(boost::bind(&myStateValidityCheckerFunction, _1));
-   si->setStateValidityCheckingResolution(0.03); // 3%
-   si->setup();
-   @endcode
+   @include svc.cpp
    Once the class is instantiated and parameters have been set,
    the ompl::base::SpaceInformation::setup() function needs to be
    called and the instance is ready for use.

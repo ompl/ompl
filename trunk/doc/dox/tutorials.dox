@@ -3,6 +3,7 @@
 
 \par Beginner
 - \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
+- \ref stateValidation "Setting up state validity checking"
 .
 
 \par Intermediate
