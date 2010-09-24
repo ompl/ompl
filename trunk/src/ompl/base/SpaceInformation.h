@@ -184,8 +184,7 @@ namespace ompl
 		states to be considered valid. This value is specified
 		as a fraction of the space's extent. This call is only
 		applicable if a ompl::base::DiscreteMotionValidator is
-		used. See
-		ompl::base::StateManifold::setLongestValidSegmentFraction() */
+		used. See \ref stateValidation. */
 	    void setStateValidityCheckingResolution(double resolution)
 	    {
 		stateManifold_->setLongestValidSegmentFraction(resolution);
@@ -193,8 +192,8 @@ namespace ompl
 	    
 	    /** \brief Get the resolution at which state validity is
 		verified. This call is only applicable if a
-		ompl::base::DiscreteMotionValidator is used. See
-		ompl::base::StateManifold::getLongestValidSegmentFraction() */
+		ompl::base::DiscreteMotionValidator is used. See \ref
+		stateValidation. */
 	    double getStateValidityCheckingResolution(void) const
 	    {
 		return stateManifold_->getLongestValidSegmentFraction();
