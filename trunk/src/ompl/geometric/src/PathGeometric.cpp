@@ -125,7 +125,7 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int count)
 	// the maximum number of states that can be added on the current motion (without its endpoints)
 	// such that we can at least fit the remaining states
 	int maxNStates = count + i - states.size();	
-	
+
 	if (maxNStates > 0)
 	{	
 	    // compute an approximate number of states the following segment needs to contain; this includes endpoints
@@ -144,7 +144,6 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int count)
 		// compute intermediate states
 		std::vector<base::State*> block;
 		unsigned int ans = si_->getMotionStates(s1, s2, block, ns, false, true);
-
 		// sanity checks
 		assert((int)ans == ns);
 		assert(block.size() == ans);
@@ -158,6 +157,8 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int count)
 	    count -= (ns + 1);
 	    remainingLength -= segmentLength;
 	}
+	else
+	    count--;
     }
     
     // add the last state
