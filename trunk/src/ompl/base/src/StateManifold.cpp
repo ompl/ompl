@@ -213,12 +213,17 @@ bool ompl::base::CompoundStateManifold::hasSubManifold(const std::string &name) 
     return false;
 }
 
-const ompl::base::StateManifoldPtr& ompl::base::CompoundStateManifold::getSubManifold(const std::string& name) const
+unsigned int ompl::base::CompoundStateManifold::getSubManifoldIndex(const std::string& name) const
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
 	if (components_[i]->getName() == name)
-	    return components_[i];
+	    return i;
     throw Exception("Submanifold " + name + " does not exist");
+}
+
+const ompl::base::StateManifoldPtr& ompl::base::CompoundStateManifold::getSubManifold(const std::string& name) const
+{
+    return components_[getSubManifoldIndex(name)];
 }
 
 double ompl::base::CompoundStateManifold::getSubManifoldWeight(const unsigned int index) const

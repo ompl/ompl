@@ -290,6 +290,9 @@ namespace ompl
 
 	    /** \brief Get a specific manifold from the compound manifold */
 	    const StateManifoldPtr& getSubManifold(const std::string& name) const;
+
+	    /** \brief Get the index of a specific manifold from the compound manifold */
+	    unsigned int getSubManifoldIndex(const std::string& name) const;
 	    
 	    /** \brief Check if a specific submanifold is contained in this manifold */
 	    bool hasSubManifold(const std::string &name) const;

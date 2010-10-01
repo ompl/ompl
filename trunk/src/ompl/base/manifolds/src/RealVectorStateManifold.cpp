@@ -127,6 +127,27 @@ unsigned int ompl::base::RealVectorStateManifold::getDimension(void) const
     return dimension_;
 }
 
+const std::string& ompl::base::RealVectorStateManifold::getDimensionName(unsigned int index) const
+{
+    if (index < dimensionNames_.size())
+	return dimensionNames_[index];
+    throw Exception("Index out of bounds");
+}
+
+int ompl::base::RealVectorStateManifold::getDimensionIndex(const std::string &name) const
+{
+    std::map<std::string, unsigned int>::const_iterator it = dimensionIndex_.find(name);
+    return it != dimensionIndex_.end() ? it->second : -1;
+}
+
+void ompl::base::RealVectorStateManifold::setDimensionName(unsigned int index, const std::string &name)
+{
+    if (index < dimensionNames_.size())
+	dimensionNames_[index] = name;
+    else
+	throw Exception("Cannot set dimension name. Index out of bounds");
+}
+
 double ompl::base::RealVectorStateManifold::getMaximumExtent(void) const
 {
     double e = 0.0;

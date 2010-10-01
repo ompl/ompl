@@ -40,6 +40,8 @@
 #include "ompl/base/StateManifold.h"
 #include "ompl/base/manifolds/RealVectorBounds.h"
 #include <vector>
+#include <string>
+#include <map>
 
 namespace ompl
 {
@@ -91,8 +93,11 @@ namespace ompl
 		double *values;
 	    };
 	    
+	    /** \brief Constructor. The dimension of of the space needs to be specified. A space representing
+		R<sup>dim</sup> will be instantiated */
 	    RealVectorStateManifold(unsigned int dim) : StateManifold(), dimension_(dim), stateBytes_(dim * sizeof(double)), bounds_(dim)
 	    {
+		dimensionNames_.resize(dim, "");
 	    }
 	    
 	    virtual ~RealVectorStateManifold(void)
@@ -111,6 +116,16 @@ namespace ompl
 	    }
 	    
 	    virtual unsigned int getDimension(void) const;
+	    
+	    /** \brief Each dimension can optionally have a name associated to it. If it does, this function returns that name.
+		Return empty string otherwise */
+	    const std::string& getDimensionName(unsigned int index) const;
+
+	    /** \brief Get the index of a specific dimension, by name. Return -1 if name is not found */
+	    int getDimensionIndex(const std::string &name) const;
+	    
+	    /** \brief Set the name of a dimension */
+	    void setDimensionName(unsigned int index, const std::string &name);
 	    
 	    virtual double getMaximumExtent(void) const;
 
@@ -140,10 +155,20 @@ namespace ompl
 	    
 	protected:
 	    
-	    unsigned int     dimension_;
-	    std::size_t      stateBytes_;
-	    RealVectorBounds bounds_;
+	    /** \brief The dimension of the space */
+	    unsigned int                        dimension_;
+	    
+	    /** \brief The size of a state, in bytes */
+	    std::size_t                         stateBytes_;
 
+	    /** \brief The bounds of the space (used for sampling) */
+	    RealVectorBounds                    bounds_;
+	    
+	    /** \brief Optional names for individual dimensions */
+	    std::vector<std::string>            dimensionNames_;
+	    
+	    /** \brief Map from names to index values for dimensions */
+	    std::map<std::string, unsigned int> dimensionIndex_;
 	};
     }
 }
