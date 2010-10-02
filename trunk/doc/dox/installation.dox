@@ -18,7 +18,7 @@ We show installation instructions for Ubuntu Linux and Mac OS X. Similar steps c
 
 \subsection install_linux_ubuntu Ubuntu Linux
 
-- If using Ubuntu 10.04 or earlier, the supplied Boost version is too old. You will need to add another repository. For Ubuntu 9.10 or 10.04, this can be done as with the following command:
+- If using Ubuntu 10.04 or earlier, the supplied Boost version is too old. You will need to add another repository. For Ubuntu 9.10 or 10.04, this can be done with the following command:
 \code
 sudo add-apt-repository ppa:gezakovacs/boost
 \endcode
