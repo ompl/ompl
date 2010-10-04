@@ -7,14 +7,14 @@ To compile OMPL the following two packages are required:
 .
 For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>. Detailed installation instructions for installing Py++ can be found \ref installPyPlusPlus "here". To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
-Below are installation instructions for <a href="#install_linux">Linux</a>, <a href="#install_osx">OS X</a>, and <a href="#install_windows">Windows</a>.
+Below are installation instructions for <a href="#install_linuxosx">Linux, OS X</a>, and <a href="#install_windows">Windows</a>.
 <br>
 
 \note If you are using <a href="http://code.ros.org">ROS</a>, please see the <a href="http://www.ros.org/wiki/ompl">ompl package in ROS</a>.
 
-\section install_linux Installation on Linux and Mac OS
+\section install_linuxosx Installation on Linux and Mac OS X
 
-We show installation instructions for Ubuntu Linux and Mac OS X. Similar steps can be taken for other distributions, but package names may not be identical.
+Below are installation instructions for Ubuntu Linux and Mac OS X. Similar steps can be taken for other distributions, but package names may not be identical.
 
 \subsection install_linux_ubuntu Ubuntu Linux
 
@@ -36,7 +36,7 @@ sudo apt-get install libgtest-dev doxygen python-dev
 \endcode
 - Follow the common steps \ref common_steps "below".
 
-\subsection install_linux_mac_os Mac OS X
+\subsection install_mac_os Mac OS X
 
 - It is easiest to install the dependencies through <a href="http://www.macports.org">MacPorts</a>, a package manager for OS X, so install MacPorts first.
 - Install Boost, CMake, and the Python libraries and headers. If you have MacPorts installed, type the following:
