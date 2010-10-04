@@ -34,7 +34,7 @@ sudo apt-get install libboost-all-dev cmake
 \code
 sudo apt-get install libgtest-dev doxygen python-dev
 \endcode
-- Follow the steps \ref common_steps "here".
+- Follow the common steps \ref common_steps "below".
 
 \subsection install_linux_mac_os Mac OS X
 
@@ -45,7 +45,7 @@ sudo port selfupdate
 sudo port install cmake boost +python26
 \endcode
 If you omit the \c +python26 part, Boost.Python will not be installed, and the Python bindings for OMPL cannot be compiled.
-- Follow the steps \ref common_steps "here".
+- Follow the common steps \ref common_steps "below".
 
 \subsection common_steps Common steps
 - Create a build directory and run cmake:
@@ -59,7 +59,7 @@ If you want a debug version of ompl, change "Release" to "Debug" above.
 - If Python bindings are to be generated, type <tt>make update_bindings</tt>.
 - Compile OMPL by typing \c make.
 - Optionally, run the test programs by typing <tt>make test</tt>.
-- Optionally, generatoe documentation by typing <tt>make doc</tt>.
+- Optionally, generate documentation by typing <tt>make doc</tt>.
 - If you need to install the library, you can type <tt>make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>.
 .
 
