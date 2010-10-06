@@ -41,6 +41,7 @@ if(BUILD_TESTS)
 
 	# Test utilities
 	add_ompl_test(test_random util/random/random.cpp)
+	add_ompl_test(test_memory util/memory/memory.cpp)
 
 	# Test base code
 	add_ompl_test(test_state_allocation base/state_allocation.cpp)
