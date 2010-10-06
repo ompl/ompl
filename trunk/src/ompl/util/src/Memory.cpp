@@ -75,7 +75,7 @@ ompl::MemUsage_t getProcessMemoryUsageAux(void)
 #include <mach/task.h>
 #include <sys/time.h> 
 #include <sys/resource.h>
-#include <cstdint> 
+#include <stdint.h> 
 #include <cstring>
 #include <unistd.h>
 
