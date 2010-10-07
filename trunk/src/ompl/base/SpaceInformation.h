@@ -209,7 +209,7 @@ namespace ompl
 	    
 	    /** @name State memory management
 		@{ */
-
+	    
 	    /** \brief Allocate memory for a state */
 	    State* allocState(void) const
 	    {
@@ -234,6 +234,14 @@ namespace ompl
 		State *copy = stateManifold_->allocState();
 		stateManifold_->copyState(copy, source);
 		return copy;
+	    }
+
+	    /** \brief Get access to the state allocator. This is the
+		class that is used to allocate and free states. The
+		memory is reused whenever possible. */
+	    StateAllocator& getStateAllocator(void)
+	    {
+		return sa_;
 	    }
 	    /**  @} */
 	

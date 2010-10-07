@@ -110,6 +110,14 @@ namespace ompl
 		controlManifold_->copyControl(copy, source);
 		return copy;
 	    }
+
+	    /** \brief Get access to the control allocator. This is the
+		class that is used to allocate and free controls. The
+		memory is reused whenever possible. */
+	    ControlAllocator& getControlAllocator(void)
+	    {
+		return ca_;
+	    }
 	    /** @} */
 	
 	    /** @name Topology-specific control operations (as in the control manifold) 
