@@ -159,6 +159,9 @@ namespace ompl
 		
 		/// The maximum allowed memory for planner computation during the experiment (MB)
 		double                         maxMem;
+
+		/// The amount of time spent to collect the information in this structure (seconds)
+		double                         totalDuration;
 	    };
 	    		
 	    /** \brief The instance of the problem to benchmark */

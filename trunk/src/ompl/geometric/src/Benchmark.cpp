@@ -52,7 +52,8 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
     out << exp_.planners.size() << " planners" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
     out << exp_.maxMem << " MB per run" << std::endl;
-    
+    out << exp_.totalDuration << " seconds spent to collect the data" << std::endl;
+
     for (unsigned int i = 0 ; i < exp_.planners.size() ; ++i)
     {
 	out << exp_.planners[i].name << std::endl;
@@ -112,7 +113,6 @@ namespace ompl
     {
 	if (time::now() < endTime && getProcessMemoryUsage() < maxMem)
 	    return false;
-	std::cout << "TERM" << std::endl;
 	return true;
     }
     
@@ -135,8 +135,10 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	return;
     }
     
-    status_.running = true;
+    time::point startBenchmark = time::now();
     
+    status_.running = true;
+    exp_.totalDuration = 0.0;
     exp_.maxTime = maxTime;
     exp_.maxMem = maxMem;
     
@@ -169,7 +171,7 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	{
 	    status_.activeRun = j;
 	    status_.progressPercentage = (double)(100 * (runCount * i + j)) / (double)(planners_.size() * runCount);
-
+	    
 	    // make sure there are no pre-allocated states and all planning data structures are cleared
 	    setup_.getSpaceInformation()->getStateAllocator().clear();
 	    planners_[i]->clear();
@@ -224,4 +226,6 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 
     status_.running = false;
     status_.progressPercentage = 100.0;
+
+    exp_.totalDuration = time::seconds(time::now() - startBenchmark);
 }
