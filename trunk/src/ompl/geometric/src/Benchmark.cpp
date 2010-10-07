@@ -50,6 +50,9 @@ void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
 void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 {
     out << exp_.size() << " planners" << std::endl;
+    out << expMaxTime_ << " seconds per run" << std::endl;
+    out << expMaxMem_ << " MB per run" << std::endl;
+    
     for (unsigned int i = 0 ; i < exp_.size() ; ++i)
     {
 	out << exp_[i].name << std::endl;
@@ -105,12 +108,10 @@ namespace ompl
 
     static bool terminationCondition(MemUsage_t maxMem, const time::point &endTime)
     {
-	if (time::now() > endTime)
-	    return true;
-	MemUsage_t memNow = getProcessMemoryUsage();
-	if (memNow > maxMem)
-	    return true;
-	return false;
+	if (time::now() < endTime && getProcessMemoryUsage() < maxMem)
+	    return false;
+	std::cout << "TERM" << std::endl;
+	return true;
     }
     
 }
@@ -126,6 +127,9 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	return;
     }
     
+    expMaxTime_ = maxTime;
+    expMaxMem_ = maxMem;
+    
     // the set of properties to be averaged, for each planner
     std::vector<std::string> avgProperties;
     avgProperties.push_back("solved");
@@ -134,8 +138,9 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     
     // clear previous experimental data
     exp_.clear();
-    exp_.resize(planners_.size());    
-    
+    exp_.resize(planners_.size());
+
+    // set up all the planners
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
 	// configure the planner
@@ -143,7 +148,10 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	if (!planners_[i]->isSetup())
 	    planners_[i]->setup();
 	exp_[i].name = planners_[i]->getName();
-	
+    }
+ 
+    for (unsigned int i = 0 ; i < planners_.size() ; ++i)
+    {
 	// run the planner 
 	for (unsigned int j = 0 ; j < runCount ; ++j)
 	{
@@ -151,7 +159,7 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    setup_.getSpaceInformation()->getStateAllocator().clear();
 	    planners_[i]->clear();
 	    setup_.getGoal()->clearSolutionPath();
-	    
+	
 	    MemUsage_t memStart = getProcessMemoryUsage();
 	    time::point timeStart = time::now();
 
@@ -162,6 +170,7 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    double timeUsed = time::seconds(time::now() - timeStart);
 	    MemUsage_t memUsed = getProcessMemoryUsage() - memStart;
 	    
+	    // store results 
 	    RunProperties run;
 	    run["solved"] = boost::lexical_cast<std::string>(solved);
 	    run["time"] = boost::lexical_cast<std::string>(timeUsed);

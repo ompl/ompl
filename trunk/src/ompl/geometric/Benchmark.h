@@ -85,11 +85,9 @@ namespace ompl
 	    }
 	    
 	    /** \brief Benchmark the added planners on the defined problem. 
-		\param maxTime the maximum amount of time a planner is allowed to run 
-		\param maxMem the maximum amount of memory a planner is allowed to use
-		\param runCount the number of times to run each planner
-		\param dropFirst drop the fastest \e dropFirst runs
-		\param dropLast drop the slowest \e dropLast runs */
+		\param maxTime the maximum amount of time a planner is allowed to run (seconds)
+		\param maxMem the maximum amount of memory a planner is allowed to use (MB)
+		\param runCount the number of times to run each planner */
 	    virtual void benchmark(double maxTime, double maxMem, unsigned int runCount);
 	    
 	    virtual void saveResultsToStream(std::ostream &out = std::cout) const;
@@ -124,6 +122,11 @@ namespace ompl
 	    /// The collected experimental data; each element of the array (an experiment) corresponds to a planner
 	    std::vector<Experiment>       exp_;
     	    
+	    /// The maximum allowed time for planner computation during last experiment (seconds)
+	    double                        expMaxTime_;
+	    
+	    /// The maximum allowed memory for planner computation during last experiment (MB)
+	    double                        expMaxMem_;
 	    
 	    /// Interface for console output
 	    msg::Interface                msg_;

@@ -113,15 +113,15 @@ namespace ompl
     }
     
     // periodically evaluate a termination condition and store the result at an indicated location
-    static void periodicConditionEvaluator(const base::PlannerTerminationCondition &ptc, double checkInterval, bool *flag)
+    static void periodicConditionEvaluator(const base::PlannerTerminationCondition &ptc, double checkInterval, bool *flag, bool *solutionFound)
     {	
 	time::duration s = time::seconds(checkInterval);
 	do
 	{
 	    *flag = ptc();
-	    if (*flag)
+	    if (*flag == false && *solutionFound == false)
 		boost::this_thread::sleep(s);
-	} while (*flag);
+	} while (*flag == false && *solutionFound == false);
     }
     
     static bool alwaysTrue(void)
@@ -133,8 +133,9 @@ namespace ompl
 bool ompl::base::Planner::solve(const PlannerTerminationCondition &ptc, double checkInterval)
 {
     bool flag = false;
-    boost::thread condEvaluator(boost::bind(&periodicConditionEvaluator, ptc, checkInterval, &flag));
-    bool result = solve(boost::bind(&evaluateFlag, &flag));
+    bool result = false;
+    boost::thread condEvaluator(boost::bind(&periodicConditionEvaluator, ptc, checkInterval, &flag, &result));
+    result = solve(boost::bind(&evaluateFlag, &flag));
     condEvaluator.join();
     return result;
 }
