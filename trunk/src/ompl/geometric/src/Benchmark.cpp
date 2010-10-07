@@ -38,6 +38,7 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/Memory.h"
+#include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <sstream>
 
@@ -102,13 +103,17 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 
 namespace ompl
 {    
-    template <typename T>
-    static std::string toString(const T &value)
+
+    static bool terminationCondition(MemUsage_t maxMem, const time::point &endTime)
     {
-	std::stringstream ss;
-	ss << value;
-	return ss.str();
-    }	
+	if (time::now() > endTime)
+	    return true;
+	MemUsage_t memNow = getProcessMemoryUsage();
+	if (memNow > maxMem)
+	    return true;
+	return false;
+    }
+    
 }
 
 void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount)
@@ -158,34 +163,36 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    MemUsage_t memStart = getProcessMemoryUsage();
 	    time::point timeStart = time::now();
 
-	    // \todo make sure the planned terminates when memory limit is passed
-	    bool solved = planners_[i]->solve(maxTime);
+	    bool solved = planners_[i]->solve(boost::bind(&terminationCondition,
+							  memStart + (MemUsage_t)(maxMem * 1024 * 1024),
+							  time::now() + time::seconds(maxTime)), 0.1);
 
 	    double timeUsed = time::seconds(time::now() - timeStart);
 	    MemUsage_t memUsed = getProcessMemoryUsage() - memStart;
 	    
 	    RunProperties run;
-	    run["solved"] = toString(solved);
-	    run["time"] = toString(timeUsed);
-	    run["memory"] = toString((double)memUsed / (1024.0 * 1024.0));
-	    run["preallocated states"] = toString(si_->getStateAllocator().size());
+	    run["solved"] = boost::lexical_cast<std::string>(solved);
+	    run["time"] = boost::lexical_cast<std::string>(timeUsed);
+	    run["memory"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
+	    run["preallocated states"] = boost::lexical_cast<std::string>(si_->getStateAllocator().size());
 	    if (solved)
 	    {
-		run["approximate solution"] = toString(getGoal()->isApproximate());
-		run["solution difference"] = toString(getGoal()->getDifference());
-		run["solution length"] = toString(static_cast<PathGeometric*>(getGoal()->getSolutionPath().get())->length());
+		run["approximate solution"] = boost::lexical_cast<std::string>(getGoal()->isApproximate());
+		run["solution difference"] = boost::lexical_cast<std::string>(getGoal()->getDifference());
+		run["solution length"] = boost::lexical_cast<std::string>(static_cast<PathGeometric*>(getGoal()->getSolutionPath().get())->length());
 	    }
 	    
 	    base::PlannerData pd;
 	    planners_[i]->getPlannerData(pd);
-	    run["graph states"] = toString(pd.states.size());
+	    run["graph states"] = boost::lexical_cast<std::string>(pd.states.size());
 	    unsigned long edges = 0;
 	    for (unsigned int k = 0 ; k < pd.edges.size() ; ++k)
 		edges += pd.edges[k].size();
-	    run["graph motions"] = toString(edges);
+	    run["graph motions"] = boost::lexical_cast<std::string>(edges);
 	    
-	    // \todo get planner specific properties
-
+	    for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
+		run[it->first] = it->second;
+	    
 	    exp_[i].runs.push_back(run);
 	}
 
@@ -194,13 +201,8 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	{
 	    double sum = 0.0;
 	    for (unsigned int j = 0 ; j < exp_[i].runs.size() ; ++i)
-	    {
-		std::stringstream ss(exp_[i].runs[j][avgProperties[p]]);
-		double value;
-		ss >> value;
-		sum += value;
-	    }
-	    exp_[i].avg[avgProperties[p]] = toString(sum / (double)exp_[i].runs.size());
+		sum += boost::lexical_cast<double>(exp_[i].runs[j][avgProperties[p]]);
+	    exp_[i].avg[avgProperties[p]] = boost::lexical_cast<std::string>(sum / (double)exp_[i].runs.size());
 	}
-    }    
+    }
 }

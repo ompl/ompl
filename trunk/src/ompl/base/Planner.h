@@ -47,6 +47,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
 
 namespace ompl
 {
@@ -112,6 +113,8 @@ namespace ompl
 	    /** \brief For each i, edges[i] contains the values edges[i][j] such that states[i] connects to every states[edges[i][j]] */
 	    std::vector< std::vector<unsigned int> > edges;
 	    
+	    /** \brief Any extra properties (key-value pairs) the planner can set. */
+	    std::map<std::string, std::string>       properties;
 	};
 	
 	/** \brief Helper class to extract valid start & goal
