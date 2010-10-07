@@ -227,7 +227,7 @@ void ompl::base::SO3StateManifold::setup(void)
     };
     
     StateManifold::setup();
-    registerProjection(DEFAULT_PROJECTION_NAME, ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO3DefaultProjection(this))));
+    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO3DefaultProjection(this))));
 }
 
 void ompl::base::SO3StateManifold::printState(const State *state, std::ostream &out) const
