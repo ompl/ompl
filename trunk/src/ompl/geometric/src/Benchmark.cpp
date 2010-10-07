@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/Benchmark.h"
-#include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/Memory.h"
 #include <boost/lexical_cast.hpp>
@@ -119,21 +118,14 @@ namespace ompl
 void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount)
 {
     // sanity checks
-    if (!si_)
-    {
-	msg_.error("No space information defined");
-	return;
-    }
+    setup_.setup();
 
-    if (!getGoal())
+    if (!setup_.getGoal())
     {
 	msg_.error("No goal defined");
 	return;
     }
     
-    if (!si_->isSetup())
-	si_->setup();
-
     // the set of properties to be averaged, for each planner
     std::vector<std::string> avgProperties;
     avgProperties.push_back("solved");
@@ -147,7 +139,7 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
 	// configure the planner
-	planners_[i]->setProblemDefinition(pdef_);
+	planners_[i]->setProblemDefinition(setup_.getProblemDefinition());
 	if (!planners_[i]->isSetup())
 	    planners_[i]->setup();
 	exp_[i].name = planners_[i]->getName();
@@ -156,9 +148,9 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	for (unsigned int j = 0 ; j < runCount ; ++j)
 	{
 	    // make sure there are no pre-allocated states and all planning data structures are cleared
-	    si_->getStateAllocator().clear();
+	    setup_.getSpaceInformation()->getStateAllocator().clear();
 	    planners_[i]->clear();
-	    getGoal()->clearSolutionPath();
+	    setup_.getGoal()->clearSolutionPath();
 	    
 	    MemUsage_t memStart = getProcessMemoryUsage();
 	    time::point timeStart = time::now();
@@ -174,12 +166,12 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    run["solved"] = boost::lexical_cast<std::string>(solved);
 	    run["time"] = boost::lexical_cast<std::string>(timeUsed);
 	    run["memory"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
-	    run["preallocated states"] = boost::lexical_cast<std::string>(si_->getStateAllocator().size());
+	    run["preallocated states"] = boost::lexical_cast<std::string>(setup_.getSpaceInformation()->getStateAllocator().size());
 	    if (solved)
 	    {
-		run["approximate solution"] = boost::lexical_cast<std::string>(getGoal()->isApproximate());
-		run["solution difference"] = boost::lexical_cast<std::string>(getGoal()->getDifference());
-		run["solution length"] = boost::lexical_cast<std::string>(static_cast<PathGeometric*>(getGoal()->getSolutionPath().get())->length());
+		run["approximate solution"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
+		run["solution difference"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
+		run["solution length"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
 	    }
 	    
 	    base::PlannerData pd;
