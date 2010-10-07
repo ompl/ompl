@@ -45,21 +45,20 @@ using namespace ompl;
 TEST(Memory, Simple)
 {
     MemUsage_t start = getProcessMemoryUsage();
-    for (int i = 1 ; i <= 20 ; ++i)
-    {
-	MemUsage_t size = i * 1024 * 1024 / sizeof(char);
-	char *data = (char*)malloc(size);
-	memset(data, 0, size);
-	
-	MemUsage_t m = getProcessMemoryUsage() - start;
-	
-	int allocated_MB = (size/1024)/1024;
-	int used_MB =  (m/1024)/1024;
-	
-	EXPECT_TRUE(abs(used_MB - allocated_MB) < 2);
-	
-	free(data);	
-    }
+
+    const unsigned int mb = 39;
+    MemUsage_t size = mb * 1024 * 1024 / sizeof(char);
+    char *data = (char*)malloc(size);
+    memset(data, 0, size);
+    
+    MemUsage_t u = getProcessMemoryUsage() - start;
+    
+    int allocated_MB = (size/1024)/1024;
+    int used_MB =  (u/1024)/1024;
+    
+    EXPECT_TRUE(abs(used_MB - allocated_MB) < 2);
+    
+    free(data);
 }
 
 int main(int argc, char **argv)
