@@ -52,7 +52,7 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
     out << exp_.size() << " planners" << std::endl;
     for (unsigned int i = 0 ; i < exp_.size() ; ++i)
     {
-	out << exp_[i].name;
+	out << exp_[i].name << std::endl;
 	
 	// construct the list of all possible properties for all runs
 	std::map<std::string, bool> propSeen;
@@ -192,7 +192,7 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	for (unsigned int p = 0 ; p < avgProperties.size() ; ++p)
 	{
 	    double sum = 0.0;
-	    for (unsigned int j = 0 ; j < exp_[i].runs.size() ; ++i)
+	    for (unsigned int j = 0 ; j < exp_[i].runs.size() ; ++j)
 		sum += boost::lexical_cast<double>(exp_[i].runs[j][avgProperties[p]]);
 	    exp_[i].avg[avgProperties[p]] = boost::lexical_cast<std::string>(sum / (double)exp_[i].runs.size());
 	}
