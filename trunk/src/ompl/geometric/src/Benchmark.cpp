@@ -49,18 +49,19 @@ void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
 
 void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 {
-    out << exp_.size() << " planners" << std::endl;
-    out << expMaxTime_ << " seconds per run" << std::endl;
-    out << expMaxMem_ << " MB per run" << std::endl;
+    out << exp_.planners.size() << " planners" << std::endl;
+    out << exp_.maxTime << " seconds per run" << std::endl;
+    out << exp_.maxMem << " MB per run" << std::endl;
     
-    for (unsigned int i = 0 ; i < exp_.size() ; ++i)
+    for (unsigned int i = 0 ; i < exp_.planners.size() ; ++i)
     {
-	out << exp_[i].name << std::endl;
+	out << exp_.planners[i].name << std::endl;
 	
 	// construct the list of all possible properties for all runs
 	std::map<std::string, bool> propSeen;
-	for (unsigned int j = 0 ; j < exp_[i].runs.size() ; ++j)
-	    for (std::map<std::string, std::string>::const_iterator mit = exp_[i].runs[j].begin() ;  mit != exp_[i].runs[j].end() ; ++mit)
+	for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
+	    for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].runs[j].begin() ;
+		 mit != exp_.planners[i].runs[j].end() ; ++mit)
 		propSeen[mit->first] = true;
 	std::vector<std::string> properties;
 	for (std::map<std::string, bool>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
@@ -73,13 +74,13 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 	    out << properties[j] << std::endl;
 
 	// print the data for each run
-	out << exp_[i].runs.size() << " runs" << std::endl;
-	for (unsigned int j = 0 ; j < exp_[i].runs.size() ; ++j)
+	out << exp_.planners[i].runs.size() << " runs" << std::endl;
+	for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
 	{
 	    for (unsigned int k = 0 ; k < properties.size() ; ++k)
 	    {
-		std::map<std::string, std::string>::const_iterator it = exp_[i].runs[j].find(properties[k]);
-		if (it != exp_[i].runs[j].end())
+		std::map<std::string, std::string>::const_iterator it = exp_.planners[i].runs[j].find(properties[k]);
+		if (it != exp_.planners[i].runs[j].end())
 		    out << it->second;
 		out << "; ";
 	    }
@@ -88,7 +89,8 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 
 	// get names of averaged properties
 	properties.clear();
-	for (std::map<std::string, std::string>::const_iterator mit = exp_[i].avg.begin() ;  mit != exp_[i].avg.end() ; ++mit)
+	for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].avg.begin() ;
+	     mit != exp_.planners[i].avg.end() ; ++mit)
 	    properties.push_back(mit->first);
 	std::sort(properties.begin(), properties.end());
 	
@@ -96,7 +98,7 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 	out << properties.size() << " averaged properties" << std::endl;
 	for (unsigned int k = 0 ; k < properties.size() ; ++k)
 	{
-	    std::map<std::string, std::string>::const_iterator it = exp_[i].avg.find(properties[k]);
+	    std::map<std::string, std::string>::const_iterator it = exp_.planners[i].avg.find(properties[k]);
 	    out << it->first << " = " << it->second << std::endl;
 	}
 	out << '.' << std::endl;
@@ -127,8 +129,16 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	return;
     }
     
-    expMaxTime_ = maxTime;
-    expMaxMem_ = maxMem;
+    if (planners_.empty())
+    {
+	msg_.error("There are no planners to benchmark");
+	return;
+    }
+    
+    status_.running = true;
+    
+    exp_.maxTime = maxTime;
+    exp_.maxMem = maxMem;
     
     // the set of properties to be averaged, for each planner
     std::vector<std::string> avgProperties;
@@ -137,8 +147,8 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     avgProperties.push_back("memory");
     
     // clear previous experimental data
-    exp_.clear();
-    exp_.resize(planners_.size());
+    exp_.planners.clear();
+    exp_.planners.resize(planners_.size());
 
     // set up all the planners
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
@@ -147,14 +157,19 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	planners_[i]->setProblemDefinition(setup_.getProblemDefinition());
 	if (!planners_[i]->isSetup())
 	    planners_[i]->setup();
-	exp_[i].name = planners_[i]->getName();
+	exp_.planners[i].name = planners_[i]->getName();
     }
  
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
+	status_.activePlanner = exp_.planners[i].name;
+	
 	// run the planner 
 	for (unsigned int j = 0 ; j < runCount ; ++j)
 	{
+	    status_.activeRun = j;
+	    status_.progressPercentage = (double)(100 * (runCount * i + j)) / (double)(planners_.size() * runCount);
+
 	    // make sure there are no pre-allocated states and all planning data structures are cleared
 	    setup_.getSpaceInformation()->getStateAllocator().clear();
 	    planners_[i]->clear();
@@ -194,16 +209,19 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
 		run[it->first] = it->second;
 	    
-	    exp_[i].runs.push_back(run);
+	    exp_.planners[i].runs.push_back(run);
 	}
 
 	// compute averages
 	for (unsigned int p = 0 ; p < avgProperties.size() ; ++p)
 	{
 	    double sum = 0.0;
-	    for (unsigned int j = 0 ; j < exp_[i].runs.size() ; ++j)
-		sum += boost::lexical_cast<double>(exp_[i].runs[j][avgProperties[p]]);
-	    exp_[i].avg[avgProperties[p]] = boost::lexical_cast<std::string>(sum / (double)exp_[i].runs.size());
+	    for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
+		sum += boost::lexical_cast<double>(exp_.planners[i].runs[j][avgProperties[p]]);
+	    exp_.planners[i].avg[avgProperties[p]] = boost::lexical_cast<std::string>(sum / (double)exp_.planners[i].runs.size());
 	}
-    }
+    } 
+
+    status_.running = false;
+    status_.progressPercentage = 100.0;
 }

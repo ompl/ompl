@@ -49,6 +49,26 @@ namespace ompl
 	{
 	public:
 	    
+	    /** \brief This structure contains information about the
+		activity of a benchmark instance.  If the instance is
+		running, it is possible to find out information such
+		as which planner is currently being tested or how much */
+	    struct Status
+	    {
+		Status(void)
+		{
+		    running = false;
+		    activePlanner = "";
+		    activeRun = 0;
+		    progressPercentage = 0.0;
+		}
+		
+		bool         running;
+		std::string  activePlanner;
+		unsigned int activeRun;
+		double       progressPercentage;		
+	    };
+	    
 	    /** \brief Constructor needs the manifold needed for planning. */
 	    explicit
 	    Benchmark(SimpleSetup &setup) : setup_(setup), msg_("Benchmark")
@@ -83,6 +103,12 @@ namespace ompl
 	    {
 		planners_.push_back(pa(setup_.getSpaceInformation()));
 	    }
+
+	    /** \brief Clear the set of planners to be benchmarked */
+	    void clear(void)
+	    {
+		planners_.clear();
+	    }	    
 	    
 	    /** \brief Benchmark the added planners on the defined problem. 
 		\param maxTime the maximum amount of time a planner is allowed to run (seconds)
@@ -90,16 +116,25 @@ namespace ompl
 		\param runCount the number of times to run each planner */
 	    virtual void benchmark(double maxTime, double maxMem, unsigned int runCount);
 	    
+	    /** \brief Get the status of this */
+	    const Status& getStatus(void) const;
+	    
+	    double progressPercentage(void) const;
+	    
+	    /** \brief Save the results of the benchmark to a stream. */
 	    virtual void saveResultsToStream(std::ostream &out = std::cout) const;
 
+	    /** \brief Save the results of the benchmark to a file. */
 	    void saveResultsToFile(const char *filename) const;
 	    
 	protected:
 
+	    /** \brief The data colledted from a run of a planner is
+		stored as key-value pairs. */
 	    typedef std::map<std::string, std::string> RunProperties;
 
 	    /** \brief The data collected after running a planner multiple times */
-	    struct Experiment
+	    struct PlannerExperiment
 	    {
 		/// The name of the planner
 		std::string                name;
@@ -113,20 +148,30 @@ namespace ompl
 		RunProperties              avg;
 	    };
 	    
+	    /** \brief This structure holds experimental data for a set of planners */
+	    struct CompleteExperiment
+	    {
+		/// The collected experimental data; each element of the array (an experiment) corresponds to a planner
+		std::vector<PlannerExperiment> planners;
+		
+		/// The maximum allowed time for planner computation during the experiment (seconds)
+		double                         maxTime;
+		
+		/// The maximum allowed memory for planner computation during the experiment (MB)
+		double                         maxMem;
+	    };
+	    		
 	    /** \brief The instance of the problem to benchmark */
 	    SimpleSetup                  &setup_;
 
 	    /// The set of planners to be tested
 	    std::vector<base::PlannerPtr> planners_;
-
-	    /// The collected experimental data; each element of the array (an experiment) corresponds to a planner
-	    std::vector<Experiment>       exp_;
-    	    
-	    /// The maximum allowed time for planner computation during last experiment (seconds)
-	    double                        expMaxTime_;
 	    
-	    /// The maximum allowed memory for planner computation during last experiment (MB)
-	    double                        expMaxMem_;
+	    /// The collected experimental data (for all planners)
+	    CompleteExperiment            exp_;
+	    
+	    /// The current status of this benchmarking instance
+	    Status                        status_;
 	    
 	    /// Interface for console output
 	    msg::Interface                msg_;
