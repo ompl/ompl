@@ -175,6 +175,9 @@ namespace ompl
 	    
 	    /** \brief Register a projection for this manifold under a specified name */
 	    void registerProjection(const std::string &name, const ProjectionEvaluatorPtr &projection);
+
+	    /** \brief Register the default projection for this manifold */
+	    void registerDefaultProjection(const ProjectionEvaluatorPtr &projection);
 	    
 	    /** \brief Get the projection registered under a specific name */
 	    ProjectionEvaluatorPtr getProjection(const std::string &name) const;

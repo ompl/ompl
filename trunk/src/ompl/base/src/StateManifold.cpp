@@ -134,6 +134,11 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateManifold::getProjection(cons
     }
 }
 
+void ompl::base::StateManifold::registerDefaultProjection(const ProjectionEvaluatorPtr &projection)
+{
+    registerProjection(DEFAULT_PROJECTION_NAME, projection);
+}
+
 void ompl::base::StateManifold::registerProjection(const std::string &name, const ProjectionEvaluatorPtr &projection)
 {
     if (projection)
