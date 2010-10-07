@@ -51,12 +51,18 @@ namespace ompl
 	    
 	    /** \brief Constructor needs the manifold needed for planning. */
 	    explicit
-	    Benchmark(geometric::SimpleSetup &setup) : setup_(setup), msg_("Benchmark")
+	    Benchmark(SimpleSetup &setup) : setup_(setup), msg_("Benchmark")
 	    {
 	    }
 	    
 	    virtual ~Benchmark(void)
 	    {
+	    }
+
+	    /** \brief Get the setup the planners are to be tested on */
+	    SimpleSetup& getSetup(void) const
+	    {
+		return setup_;
 	    }
 	    
 	    /** \brief Set the planner to use. If the planner is not
