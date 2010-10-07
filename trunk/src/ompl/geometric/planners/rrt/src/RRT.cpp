@@ -72,7 +72,7 @@ void ompl::geometric::RRT::freeMemory(void)
     }
 }
 
-bool ompl::geometric::RRT::solve(double solveTime)
+bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
@@ -84,8 +84,6 @@ bool ompl::geometric::RRT::solve(double solveTime)
 	return false;
     }
     
-    time::point endTime = time::now() + time::seconds(solveTime);
-
     while (const base::State *st = pis_.nextStart())
     {
 	Motion *motion = new Motion(si_);
@@ -108,7 +106,7 @@ bool ompl::geometric::RRT::solve(double solveTime)
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 
 	/* sample random state (with goal biasing) */

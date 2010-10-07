@@ -105,14 +105,14 @@ void ompl::geometric::PRM::growRoadmap(double growTime)
 
 void ompl::geometric::PRM::growRoadmap(const std::vector<Milestone*> &start,
 				       const std::vector<Milestone*> &goal,
-				       double growTime, base::State *workState)
+				       const base::PlannerTerminationCondition &ptc,
+				       base::State *workState)
 {
-    time::point endTime = time::now() + time::seconds(growTime);
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 	// search for a valid state
 	bool found = false;
-	while (!found && time::now() < endTime)
+	while (!found && ptc() == false)
 	{
 	    unsigned int attempts = 0;
 	    do
@@ -149,7 +149,16 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Milestone*> &start, co
     return false;
 }
 
-bool ompl::geometric::PRM::solve(double solveTime)
+namespace ompl
+{
+    // we grow a roadmap until the planner needs to stop or until a maximum amount of time has been reached
+    static bool growRoadmapTerminationCondition(const base::PlannerTerminationCondition &ptc, const time::point &endTime)
+    {
+	return ptc() || time::now() >= endTime;
+    }
+}
+
+bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -160,8 +169,6 @@ bool ompl::geometric::PRM::solve(double solveTime)
 	return false;
     }
     
-    time::point endTime = time::now() + time::seconds(solveTime);
-
     std::vector<Milestone*> startM;
     std::vector<Milestone*> goalM;
 
@@ -187,12 +194,12 @@ bool ompl::geometric::PRM::solve(double solveTime)
     base::State *xstate = si_->allocState();
     std::pair<Milestone*, Milestone*> solEndpoints;
     
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 	// find at least one valid goal state
 	if (goal->maxSampleCount() > goalM.size())
 	{
-	    const base::State *st = goalM.empty() ? pis_.nextGoal(endTime) : pis_.nextGoal();
+	    const base::State *st = goalM.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
 	    if (st)
 		goalM.push_back(addMilestone(si_->cloneState(st)));
 	    if (goalM.empty())
@@ -213,10 +220,10 @@ bool ompl::geometric::PRM::solve(double solveTime)
 	{
 	    // if it is worth looking at other goal regions, plan for part of the time
 	    if (goal->maxSampleCount() > goalM.size())
-		growRoadmap(startM, goalM, time::seconds(endTime - time::now()) / 4.0, xstate);
+		growRoadmap(startM, goalM, boost::bind(&growRoadmapTerminationCondition, ptc, time::now() + time::seconds(0.1)), xstate);
 	    // otherwise, just go ahead and build the roadmap
 	    else
-		growRoadmap(startM, goalM, time::seconds(endTime - time::now()), xstate);
+		growRoadmap(startM, goalM, ptc, xstate);
 	    // if a solution has been found, construct it
 	    if (haveSolution(startM, goalM, &solEndpoints))
 	    {

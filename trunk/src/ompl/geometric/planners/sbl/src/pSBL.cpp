@@ -75,7 +75,7 @@ void ompl::geometric::pSBL::freeGridMotions(Grid<MotionSet> &grid)
 	}
 }
 
-void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
+void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
 {   
     pis_.checkValidity();
     base::GoalState *goal = static_cast<base::GoalState*>(pdef_->getGoal().get());
@@ -85,10 +85,10 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, S
     base::State *xstate = si_->allocState();
     bool      startTree = rng.uniformBool();
     
-    while (!sol->found && time::now() < endTime)
+    while (!sol->found && ptc() == false)
     {
 	bool retry = true;
-	while (retry && !sol->found && time::now() < endTime)
+	while (retry && !sol->found && ptc() == false)
 	{
 	    removeList_.lock.lock();
 	    if (!removeList_.motions.empty())
@@ -109,7 +109,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, S
 	    removeList_.lock.unlock();
 	}
 	
-	if (sol->found || time::now() > endTime)
+	if (sol->found || ptc())
 	    break;
 	
 	loopLockCounter_.lock();
@@ -165,7 +165,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, time::point endTime, S
     si_->freeState(xstate);    
 }
 
-bool ompl::geometric::pSBL::solve(double solveTime)
+bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
 {
     base::GoalState *goal = dynamic_cast<base::GoalState*>(pdef_->getGoal().get());
     
@@ -174,8 +174,6 @@ bool ompl::geometric::pSBL::solve(double solveTime)
 	msg_.error("Unknown type of goal (or goal undefined)");
 	return false;
     }
-    
-    time::point endTime = time::now() + time::seconds(solveTime);
     
     while (const base::State *st = pis_.nextStart())
     {
@@ -214,7 +212,7 @@ bool ompl::geometric::pSBL::solve(double solveTime)
     
     std::vector<boost::thread*> th(threadCount_);
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
-	th[i] = new boost::thread(boost::bind(&pSBL::threadSolve, this, i, endTime, &sol));
+	th[i] = new boost::thread(boost::bind(&pSBL::threadSolve, this, i, ptc, &sol));
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
     {
 	th[i]->join();

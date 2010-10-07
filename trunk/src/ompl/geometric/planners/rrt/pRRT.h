@@ -89,7 +89,7 @@ namespace ompl
 	    
 	    virtual void getPlannerData(base::PlannerData &data) const;
 
-	    virtual bool solve(double solveTime);
+	    virtual bool solve(const base::PlannerTerminationCondition &ptc);
 	    
 	    virtual void clear(void);
 	    
@@ -177,7 +177,7 @@ namespace ompl
 		boost::mutex lock;
 	    };
 
-	    void threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol);
+	    void threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol);
 	    void freeMemory(void);
 	    
 	    double distanceFunction(const Motion* a, const Motion* b) const

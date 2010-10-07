@@ -81,8 +81,8 @@ namespace ompl
 
 	    virtual void getPlannerData(base::PlannerData &data) const;
 
-	    virtual bool solve(double solveTime);
-	    
+	    virtual bool solve(const base::PlannerTerminationCondition &ptc);
+	    	    
 	    virtual void clear(void);
 	    
 	    /** \brief Set the range the planner is supposed to use.

@@ -49,7 +49,7 @@ void ompl::geometric::LBKPIECE1::setup(void)
     sampler_ = si_->allocManifoldStateSampler();
 }
 
-bool ompl::geometric::LBKPIECE1::solve(double solveTime)
+bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -60,8 +60,6 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
 	return false;
     }
 
-    time::point endTime = time::now() + time::seconds(solveTime);
-    
     while (const base::State *st = pis_.nextStart())
     {
 	Motion* motion = new Motion(si_);
@@ -90,7 +88,7 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
     bool      startTree = true;
     bool      moreGoals = true;
     
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 	TreeData &tree      = startTree ? tStart_ : tGoal_;
 	startTree = !startTree;
@@ -100,7 +98,7 @@ bool ompl::geometric::LBKPIECE1::solve(double solveTime)
 	// if we have not sampled too many goals already
 	if (tGoal_.size == 0 ||  (moreGoals && pis_.getSampledGoalsCount() < tGoal_.size / 2))
 	{
-	    const base::State *st = tGoal_.size == 0 ? pis_.nextGoal(endTime) : pis_.nextGoal();
+	    const base::State *st = tGoal_.size == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
 	    if (st)
 	    {
 		Motion* motion = new Motion(si_);

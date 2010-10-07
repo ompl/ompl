@@ -103,7 +103,7 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 namespace ompl
 {    
     template <typename T>
-    std::string toString(const T &value)
+    static std::string toString(const T &value)
     {
 	std::stringstream ss;
 	ss << value;

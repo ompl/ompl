@@ -56,7 +56,7 @@ void ompl::control::RRT::clear(void)
     nn_->clear();
 }
 
-bool ompl::control::RRT::solve(double solveTime)
+bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get(); 
@@ -67,8 +67,6 @@ bool ompl::control::RRT::solve(double solveTime)
 	msg_.error("Goal undefined");
 	return false;
     }
-
-    time::point endTime = time::now() + time::seconds(solveTime);
 
     while (const base::State *st = pis_.nextStart())
     { 
@@ -95,7 +93,7 @@ bool ompl::control::RRT::solve(double solveTime)
     Control       *rctrl = rmotion->control;
     base::State  *xstate = si_->allocState();
     
-    while (time::now() < endTime)
+    while (ptc() == false)
     {	
 	/* sample random state (with goal biasing) */
 	if (goal_s && rng_.uniform01() < goalBias_)

@@ -83,7 +83,7 @@ void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-bool ompl::geometric::KPIECE1::solve(double solveTime)
+bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -95,8 +95,6 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 	msg_.error("Goal undefined");
 	return false;
     }
-    
-    time::point endTime = time::now() + time::seconds(solveTime);
     
     while (const base::State *st = pis_.nextStart())
     {
@@ -121,7 +119,7 @@ bool ompl::geometric::KPIECE1::solve(double solveTime)
 
     double improveValue = maxDistance_;
 
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 	tree_.iteration++;
 	

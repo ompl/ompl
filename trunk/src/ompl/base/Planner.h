@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 * 
-*  Copyright (c) 2008, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 * 
 *  Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,13 @@ namespace ompl
 		/** \brief This bit is set if planning to generic goal regions (ompl::base::Goal) is possible */
 		PLAN_TO_GOAL_ANY    = 32768 | PLAN_TO_GOAL_REGION
 	    };
+
+	/** \brief Datatype for functions deciding whether termination
+	    conditions have been met for the planner, even if no
+	    solution is found. This is usually reaching a time or
+	    memory limit.*/
+	typedef boost::function0<bool> PlannerTerminationCondition;
+
 	
 	/** \brief Forward declaration of ompl::base::Planner */
 	ClassForward(Planner);
@@ -192,12 +199,16 @@ namespace ompl
 	    /** \brief Return the next valid goal state or NULL if no
 		more valid goal states are available.  Because
 		sampling of goal states may also produce invalid
-		goals, this function takes an optional argument that
-		specifies the time point when it should give up
-		searching for valid goals. Only one attempt is made if
-		no such argument is given. */
-	    const State* nextGoal(time::point maxEndTime = time::now());
+		goals, this function takes an argument that specifies
+		whether a termination condition has been reached.  If
+		the termination condition evaluates to true the
+		function terminates even if no valid goal has been
+		found. */
+	    const State* nextGoal(const PlannerTerminationCondition &ptc);
 	    
+	    /** \brief Same as above but only one attempt is made to find a valid goal. */
+	    const State* nextGoal(void);
+
 	    /** \brief Check if there are more potential start states */
 	    bool haveMoreStartStates(void) const;
 
@@ -229,8 +240,7 @@ namespace ompl
 	    const ProblemDefinition    *pdef_;
 	    const SpaceInformation     *si_;
 	};
-	
-
+		
 	/** \brief Base class for a planner */
 	class Planner : private boost::noncopyable
 	{
@@ -266,8 +276,19 @@ namespace ompl
 		is not changed (unpredictable results otherwise). The
 		only change in the problem definition that is
 		accounted for is the addition of starting or goal
-		states (but not changing previously added start/goal states). */
-	    virtual bool solve(double solveTime) = 0;
+		states (but not changing previously added start/goal
+		states). The function terminates if the call to \e ptc
+		returns true. */
+	    virtual bool solve(const PlannerTerminationCondition &ptc) = 0;	    
+	    
+	    /** \brief Same as above except the termination condition
+		is only evaluated at a specified interval. */
+	    bool solve(const PlannerTerminationCondition &ptc, double checkInterval);
+
+	    /** \brief Same as above except the termination condition
+		is solely a time limit: the number of seconds the
+		algorithm is allowed to spend planning. */
+	    bool solve(double solveTime);	    
 	    
 	    /** \brief Clear all internal datastructures. Subsequent
 		calls to solve() will ignore all previous work. */

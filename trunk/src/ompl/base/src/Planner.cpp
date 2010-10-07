@@ -37,8 +37,11 @@
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include <boost/thread.hpp>
+#include <utility>
 
-ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) : si_(si), pis_(this), name_(name), type_(PLAN_UNKNOWN), setup_(false), msg_(name)
+ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
+    si_(si), pis_(this), name_(name), type_(PLAN_UNKNOWN), setup_(false), msg_(name)
 {
     if (!si_)
 	throw Exception(name_, "Invalid space information instance for planner");
@@ -93,6 +96,55 @@ void ompl::base::Planner::clear(void)
 {
     pis_.clear();
     pis_.update();
+}
+
+namespace ompl
+{
+    // return true if a certain point in time has passed
+    static bool timePassed(const time::point &endTime)
+    {
+	return time::now() > endTime;
+    }
+    
+    // return if an externally passed flag is true
+    static bool evaluateFlag(const bool *flag)
+    {
+	return *flag;
+    }
+    
+    // periodically evaluate a termination condition and store the result at an indicated location
+    static void periodicConditionEvaluator(const base::PlannerTerminationCondition &ptc, double checkInterval, bool *flag)
+    {	
+	time::duration s = time::seconds(checkInterval);
+	do
+	{
+	    *flag = ptc();
+	    if (*flag)
+		boost::this_thread::sleep(s);
+	} while (*flag);
+    }
+    
+    static bool alwaysTrue(void)
+    {
+	return true;
+    }
+}
+
+bool ompl::base::Planner::solve(const PlannerTerminationCondition &ptc, double checkInterval)
+{
+    bool flag = false;
+    boost::thread condEvaluator(boost::bind(&periodicConditionEvaluator, ptc, checkInterval, &flag));
+    bool result = solve(boost::bind(&evaluateFlag, &flag));
+    condEvaluator.join();
+    return result;
+}
+
+bool ompl::base::Planner::solve(double solveTime)
+{    	
+    if (solveTime < 1.0)
+	return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)));
+    else
+	return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)), std::min(solveTime / 100.0, 0.1));
 }
 
 void ompl::base::PlannerData::print(std::ostream &out) const
@@ -211,7 +263,13 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
     return NULL;
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(time::point maxEndTime)
+const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(void)
+{
+    static PlannerTerminationCondition ptc = boost::bind(&alwaysTrue);
+    return nextGoal(ptc);
+}
+
+const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerTerminationCondition &ptc)
 {
     if (pdef_ == NULL || si_ == NULL)
     {
@@ -243,7 +301,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(time::point ma
 		    msg.warn("Skipping invalid goal state");
 		}
 	    }
-	    while (sampledGoalsCount_ < goal->maxSampleCount() && time::now() < maxEndTime);
+	    while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
 	}
     return NULL;
 }

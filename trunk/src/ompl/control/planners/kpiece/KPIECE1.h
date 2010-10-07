@@ -86,7 +86,7 @@ namespace ompl
 		freeMemory();
 	    }
 	    
-	    virtual bool solve(double solveTime);
+	    virtual bool solve(const base::PlannerTerminationCondition &ptc);
 	    
 	    virtual void clear(void);
 	    

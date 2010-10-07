@@ -72,7 +72,7 @@ void ompl::geometric::pRRT::freeMemory(void)
     }
 }
 
-void ompl::geometric::pRRT::threadSolve(unsigned int tid, time::point endTime, SolutionInfo *sol)
+void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
 {
     pis_.checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
@@ -83,7 +83,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, time::point endTime, S
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     
-    while (sol->solution == NULL && time::now() < endTime)
+    while (sol->solution == NULL && ptc() == false)
     {
 	/* sample random state (with goal biasing) */
 	if (goal_s && rng.uniform01() < goalBias_)
@@ -145,7 +145,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, time::point endTime, S
     delete rmotion;
 }
 
-bool ompl::geometric::pRRT::solve(double solveTime)
+bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     base::GoalRegion *goal = dynamic_cast<base::GoalRegion*>(pdef_->getGoal().get());
     
@@ -154,8 +154,6 @@ bool ompl::geometric::pRRT::solve(double solveTime)
 	msg_.error("Goal undefined");
 	return false;
     }
-    
-    time::point endTime = time::now() + time::seconds(solveTime);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -179,7 +177,7 @@ bool ompl::geometric::pRRT::solve(double solveTime)
     
     std::vector<boost::thread*> th(threadCount_);
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
-	th[i] = new boost::thread(boost::bind(&pRRT::threadSolve, this, i, endTime, &sol));
+	th[i] = new boost::thread(boost::bind(&pRRT::threadSolve, this, i, ptc, &sol));
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
     {
 	th[i]->join();

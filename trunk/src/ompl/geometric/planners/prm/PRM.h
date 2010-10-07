@@ -111,7 +111,7 @@ namespace ompl
 		method will also improve the roadmap, as needed.*/
 	    virtual void growRoadmap(double growTime);
 	    
-	    virtual bool solve(double solveTime);
+	    virtual bool solve(const base::PlannerTerminationCondition &ptc);
 
 	    /** \brief If the user desires to recompute the previously
 		obtained solution, this function allows this
@@ -160,7 +160,7 @@ namespace ompl
 	    virtual void nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh);
 	    Milestone* addMilestone(base::State *state);
 	    void uniteComponents(Milestone *m1, Milestone *m2);
-	    void growRoadmap(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, double growTime, base::State *workState);
+	    void growRoadmap(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, const base::PlannerTerminationCondition &ptc, base::State *workState);
 	    bool haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, std::pair<Milestone*, Milestone*> *endpoints = NULL);
 	    void constructSolution(const Milestone* start, const Milestone* goal);
 

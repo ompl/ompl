@@ -85,7 +85,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Continue solving for some amount of time. Return true if solution was found. */
-	    virtual bool solve(double solveTime);
+	    virtual bool solve(const base::PlannerTerminationCondition &ptc);
 	    
 	    /** \brief Clear datastructures. Call this function if the
 		input data to the planner has changed and you do not

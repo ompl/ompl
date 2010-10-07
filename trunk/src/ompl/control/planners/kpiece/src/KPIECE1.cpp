@@ -104,7 +104,7 @@ unsigned int ompl::control::KPIECE1::findNextMotion(const Grid::Coord &origin, c
     return last;
 }
 
-bool ompl::control::KPIECE1::solve(double solveTime)
+bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::Goal                       *goal = pdef_->getGoal().get();
@@ -115,8 +115,6 @@ bool ompl::control::KPIECE1::solve(double solveTime)
 	msg_.error("Goal undefined");
 	return false;
     }
-    
-    time::point endTime = time::now() + time::seconds(solveTime);
 
     while (const base::State *st = pis_.nextStart())
     { 
@@ -156,7 +154,7 @@ bool ompl::control::KPIECE1::solve(double solveTime)
 	haveBestCoord = true;
     }
     
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 	tree_.iteration++;
 	

@@ -70,7 +70,7 @@ void ompl::geometric::EST::freeMemory(void)
     }
 }
 
-bool ompl::geometric::EST::solve(double solveTime)
+bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -81,8 +81,6 @@ bool ompl::geometric::EST::solve(double solveTime)
 	msg_.error("Goal undefined");
 	return false;
     }
-
-    time::point endTime = time::now() + time::seconds(solveTime);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -104,7 +102,7 @@ bool ompl::geometric::EST::solve(double solveTime)
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
     
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 	/* Decide on a state to expand from */
 	Motion *existing = selectMotion();
