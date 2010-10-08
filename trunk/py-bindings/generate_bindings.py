@@ -112,14 +112,6 @@ class ompl_base_generator_t(code_generator_t):
 				obj, _1));
 		}
 		""")
-		# hide optional argument of nextGoal, since we don't want to expose boost::posix_time
-		replacement['nextGoal'] = ('def("nextGoal", &nextGoalWrapper, bp::return_value_policy< bp::reference_existing_object >())', """
-		const ompl::base::State* nextGoalWrapper(%s* obj)
-		{
-			return obj->nextGoal();
-		}
-		""")
-		
 		code_generator_t.__init__(self, 'base', None, replacement)
 	
 	def filter_declarations(self):
@@ -195,8 +187,6 @@ class ompl_base_generator_t(code_generator_t):
 		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
 			'SpaceInformation').member_functions('setStateValidityChecker', 
 			arg_types=['::ompl::base::StateValidityCheckerFn const &']))
-		# hide optional argument of nextGoal, since we don't want to expose boost::posix_time
-		self.replace_member_function(self.ompl_ns.class_('PlannerInputStates').member_function('nextGoal'))
 		
 class ompl_control_generator_t(code_generator_t):
 	def __init__(self):
