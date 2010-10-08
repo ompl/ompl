@@ -1,43 +1,5 @@
 /**
-\page statesAndManifolds Working with States and Implementing Manifolds
-
-Below we will describe how to:
-- \ref implementStateManifold "implement new state manifolds", 
-- \ref stateAlloc "allocate memory for states", and
-- \ref stateOps "work with state objects"
-.
-
-\section implementStateManifold Implementing a state manifold
-
-@par Inheriting from existing manifolds
-In order to implement a new state manifold it is necessary to define a
-class that inherits from an existing manifold class. All manifold
-specific functions (pure virtual in the ompl::base::StateManifold
-class) need to be implemented accordingly. If the implementation of
-the new manifold defines a ompl::base::StateManifold::allocState()
-function, it should also provide a
-ompl::base::StateManifold::freeState() function and define (or
-typedef) @b StateType to the type of the state that is
-allocated/freed.
-
-@par Inheriting from ompl::base::CompoundStateManifold 
-Another option is to inherit from a ompl::base::CompoundStateManifold
-and call ompl::base::CompoundStateManifold::addSubManifold() in the
-constructor of the new class for other existing manifolds. This is the
-easiest way to create new manifolds -- only the constructor needs to
-be provided. For example, see
-ompl::base::SE2StateManifold. Optionally, the
-ompl::base::CompoundStateManifold::lock() function can be called after
-the components have been set in order to prevent the user of the
-manifold from adding further components.
-
-Optionally, if there exist projections to Euclidean spaces
-(ompl::base::ProjectionEvaluator) for the defined manifold, these can
-be registered by the ompl::base::StateManifold::setup() function (by
-calling ompl::StateManifold::registerProjection()). Registering a
-projection under the empty string name makes it the default
-projection. Planners that need a projection but do not have one
-defined will attempt using this default projection during planning.
+\page workingWithStates Working with States
 
 \section stateAlloc Allocating memory for states
 
