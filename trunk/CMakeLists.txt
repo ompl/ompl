@@ -17,7 +17,9 @@ else(ROS)
 		find_package(Boost COMPONENTS date_time thread filesystem system REQUIRED)
 		include_directories("${Boost_INCLUDE_DIR}")	
 		find_package(Doxygen)
-		find_package(Ruby)
+		# Ruby is only needed if you want the regenerate the CSS files for 
+		# the documentation
+		find_package(Ruby QUIET)
 		add_subdirectory(doc)
 
 		enable_testing()
