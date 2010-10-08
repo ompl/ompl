@@ -2,9 +2,12 @@
 
 \page changelog
 
-
-
-
+\section oct_07_2010 October 7, 2010
+	- Added the concept of MotionValidator for checking validity of path segments.
+	- The collision checking resolution is a percentage of the extent of the entire space
+	- Generic termination conditions for planners
+	- Added benchmakring for planning under geometric constraints
+	- Added registerDefaultProjection() for StateManifold.
 
 \section aug_09_2010 August 9, 2010
 
@@ -19,7 +22,8 @@
 	defined. Based on the topology-specific functionality offered by
 	these manifolds, primitives used by algorithms are
 	implemented (ompl::base::SpaceInformation and
-	ompl::control::SpaceInformation).
+	ompl::control::SpaceInformation). Euclidean projections are
+	defined for StateManifold using registerProjection()
 
 	- The representation of goals is abstract. In the most general
 	case, a goal is a predicate function that states whether the goal
