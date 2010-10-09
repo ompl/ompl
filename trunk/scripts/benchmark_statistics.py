@@ -53,6 +53,7 @@ def read_benchmark_log(filename):
 	result['num_planners'] = int(logfile.readline().split()[0])
 	result['time_limit'] = float(logfile.readline().split()[0])
 	result['memory_limit'] = float(logfile.readline().split()[0])
+	result['total_duration'] = float(logfile.readline().split()[0])
 	result['planner'] = {}
 	for i in range(result['num_planners']):
 		p = {}
