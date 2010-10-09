@@ -51,28 +51,68 @@ In order for states to be useful in setting start (or
 goal) positions, accessing their content is needed. It is
 assumed the reader is familiar with \ref stateAlloc.
 
-\li Simple version:\n
-After a state has been allocated from manifold T, no
-matter what the state type is: State *, State& or
-ScopedState&, an instance of T::Mapper can be defined to
-allow access to the state's members.
+\li Simple version:\n 
+The recommended use of states is with ompl::base::ScopedState. Given
+the instance of a manifold, this class will allocate a state from that
+manifold. The internally maintained state is freed when the instance
+of ompl::base::ScopedState goes out of scope.  ompl::base::ScopedState
+is templated class and it inherits from T::StateType. This allows it
+to cast the state it maintains to the desired type and thus exhibit
+the functionality (the same members) as T::StateType. If no template
+argument is specified, the internal state is kept as
+ompl::base::State*.
 \code
 ompl::base::StateManifoldPtr manifold(new ompl::base::SE2StateManifold());
 ompl::base::ScopedState<ompl::base::SE2StateManifold> state(manifold);
-state->setX(...);
+state->setX(0.1);
+state->setY(0.2);
+state->setYaw(0.0);
+
+ompl::base::ScopedState<> backup = state;
+// backup maintains its internal state as State*, so setX() is not available.
+// the content of backup is copied from state
+
+ompl::base::State *abstractState = manifold->allocState();
+
+
+// this will copy the content of abstractState to state and 
+// cast it internall as  ompl::base::SE2StateManifold::StateType
+state = abstractState;
+
+// restore state to it's original 
+state = backup;
+\endcode
+Combining ompl::base::ScopedState with ompl::base::CompoundManifold:
+\code
+ompl::base::CompoundStateManifold *cm = new ompl::base::CompoundStateManifold();
+cm.addSubManifold(ompl::base::StateManifoldPtr(new ompl::base::SE2StateManifold()));
+cm.addSubManifold(ompl::base::StateManifoldPtr(new ompl::base::SO3StateManifold()));
+
+// put the pointer to the manifold in a shared pointer
+ompl::base::StateManifoldPtr manifold(cm);
+
+// the ompl::base::ScopedState helps only with one cast here, since we still need to 
+// manually cast the components of the state to what we want them to be.
+ompl::base::ScopedState<ompl::base::CompoundManifold> state(manifold);
+state->as<ompl::base::SE2StateManifold::StateType>(0)->setX(0.0);
 \endcode
 
 \li Expert version:\n	    
-\code
-ompl::base::StateManifoldPtr manifold(new ompl::base::RealVectorStateManifold());
-ompl::base::State *state = manifold->allocState();
-state->as<ompl::base::RealVectorStateManifold::StateType>()->values[0] = ...;
-manifold->freeState(state);
-\endcode
 For a manifold type of type T, the result of
 ompl::base::StateManifold::allocState() can be casted to
-T::StateType to gain access to the state's members. To
+T::StateType* to gain access to the state's members. To
 ease this functionality, the ompl::base::State::as()
 functions have been defined.
+\code
+ompl::base::StateManifoldPtr manifold(new ompl::base::RealVectorStateManifold(1));
+ompl::base::State *state = manifold->allocState();
+state->as<ompl::base::RealVectorStateManifold::StateType>()->values[0] = 0.1;
+ompl::base::State *copy = manifold->allocState();
+manifold->copyState(copy, state);
+if (!manifold->equalStates(copy, state))
+   throw ompl::Exception("This should not happen");
+manifold->freeState(state);
+manifold->freeState(copy);
+\endcode
 
 */
