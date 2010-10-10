@@ -20,8 +20,12 @@ else(ROS)
 		# Ruby is only needed if you want the regenerate the CSS files for 
 		# the documentation
 		find_package(Ruby QUIET)
-		add_subdirectory(doc)
 
+		# ODE is only needed for ODE bindings
+		find_package(ODE QUIET)
+		
+		add_subdirectory(doc)
+		
 		enable_testing()
 	endif(NOT OMPLAPP_VERSION)
 endif(ROS)
