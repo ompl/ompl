@@ -79,8 +79,11 @@ ompl::base::State *abstractState = manifold->allocState();
 // cast it internall as  ompl::base::SE2StateManifold::StateType
 state = abstractState;
 
-// restore state to it's original 
+// restore state to it's original value
 state = backup;
+
+if (state != backup)
+   throw ompl::Exception("This should never happen");
 \endcode
 Combining ompl::base::ScopedState with ompl::base::CompoundManifold:
 \code
