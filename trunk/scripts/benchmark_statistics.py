@@ -129,7 +129,7 @@ def save_as_sql(fname, data):
 		fields = ", ".join(map(lambda x: "`" + x + "` DOUBLE NULL", stats["measurements"]))
 		table_cmd = "DROP TABLE IF EXISTS `" + planner + "`;\nCREATE TABLE `"+planner+"` (\n" + fields + ");\n"
 		sqldump.write(table_cmd)
-		runs = max(map(lambda x : len(stats["measurements"][x]), stats["measurements"]))
+		runs = min(map(lambda x : len(stats["measurements"][x]), stats["measurements"]))
 		for r in range(runs):
 			values = ", ".join(map(lambda x : "'" + str(stats["measurements"][x][r]) + "'", stats["measurements"]))
 			names = ", ".join(map(lambda x: "`" + x + "`", stats["measurements"]))
