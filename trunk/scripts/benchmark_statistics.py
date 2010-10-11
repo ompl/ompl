@@ -78,6 +78,7 @@ def read_benchmark_log(filename):
 		p['averages'] = averages
 		logfile.readline()
 		result['planner'][planner_name] = p
+	logfile.close()
 	return result
 	
 def plot_attribute(data, attribute):
@@ -100,7 +101,7 @@ def plot_attribute(data, attribute):
 			labels.append(planner)
 			measurements.append(cur_measurements)
 			nan_counts.append(nan_count)
-	bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5, bootstrap=1000)
+	bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5)
 	xtickNames = plt.setp(ax,xticklabels=labels)
 	plt.setp(xtickNames, rotation=30)
 	ax.set_xlabel('Motion planning algorithm')
@@ -122,11 +123,31 @@ def plot_statistics(fname, data):
 		pp.savefig(plt.gcf())
 	pp.close()
 
+def save_as_sql(fname, data):
+	sqldump = open(fname+".sql",'w')
+	for planner, stats in data['planner'].items():		
+		fields = ", ".join(map(lambda x: "`" + x + "` DOUBLE NULL", stats["measurements"]))
+		table_cmd = "DROP TABLE IF EXISTS `" + planner + "`;\nCREATE TABLE `"+planner+"` (\n" + fields + ");\n"
+		sqldump.write(table_cmd)
+		runs = max(map(lambda x : len(stats["measurements"][x]), stats["measurements"]))
+		for r in range(runs):
+			values = ", ".join(map(lambda x : "'" + str(stats["measurements"][x][r]) + "'", stats["measurements"]))
+			names = ", ".join(map(lambda x: "`" + x + "`", stats["measurements"]))
+			sqldump.write("INSERT INTO `" + planner + "` (" + names + ") VALUES(" + values + ");\n")
+	sqldump.close()
+	
 if __name__ == "__main__":
-	if len(argv)<2:
-		print "Usage: benchmark_statistics.py <benchmark.log>"
+	if len(argv) < 2:
+		print "Usage: benchmark_statistics.py <benchmark.log> [<filename>.<sql|m>]"
 		exit()
 	
 	data = read_benchmark_log(argv[1])
-	plot_statistics(splitext(basename(argv[1]))[0]+'.pdf', data)
+	
+	if len(argv) > 2:
+		(fname, ext) = argv[2].split(".")
+		if ext == "sql":
+			print "Generating SQL dump in " + argv[2]
+			save_as_sql(fname, data)
+	else:
+		plot_statistics(splitext(basename(argv[1]))[0]+'.pdf', data)
 	
