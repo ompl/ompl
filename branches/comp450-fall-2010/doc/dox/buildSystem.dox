@@ -1,0 +1,13 @@
+/**
+\page buildSystem Integrate your own code with OMPL's build system
+
+OMPL uses <a href="http://www.cmake.org">CMake</a> for its build system. CMake can generate Makefiles and project files for many IDE's. When developing your own code that relies on OMPL, you have two options:
+-# <b>Install OMPL and use your own build system</b>: In the OMPL build directory run
+\code
+cmake -DCMAKE_INSTALL_PREFIX=/some/path
+make install
+\endcode
+Alternatively, you can change \c CMAKE_INSTALL_PREFIX through the CMake GUI (“<tt>ccmake .</tt>” on UNIX-like systems). With this approach, your code is built completely independently from OMPL's code and you would use OMPL as any other library.
+-# <b>Add your own code in OMPL's directory structure</b>: If you create C++ code under \c ompl/src/ompl, it will automatically be detected by CMake and added to the OMPL library. See the \ref updating_python_bindings "Python documentation" for specific instructions on how to create python bindings for your own code. If you write new C++ command line programs, we suggest you look at \c ompl/demos/CMakeLists.txt and create similar CMake code for your own programs. 
+
+*/

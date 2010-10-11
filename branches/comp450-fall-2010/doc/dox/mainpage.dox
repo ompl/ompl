@@ -1,0 +1,36 @@
+/**
+\mainpage
+
+   The Open Motion Planning Library (@b OMPL) consists of a set of
+   sampling-based motion planning algorithms. The content of the
+   library is limited to these algorithms, which means there is no
+   environment specification, no collision detection or
+   visualization. The library is designed so it can be easily
+   integrated into systems that provide the additional needed
+   components. For examples of complete systems using OMPL, see <a
+   href="http://ompl.kavrakilab.org">OMPL.app</a> and <a
+   href="http://www.ros.org/wiki/ompl">ROS</a>.
+
+   OMPL is intended to be efficient, easy to use, easily extensible
+   and freely available. There are four main components: 
+   - the state manifold (ompl::base::StateManifold) we are planning in, and a control manifold (ompl::control::ControlManifold), if planning with controls,
+   - the space information (ompl::base::SpaceInformation), which is constructed from the state manifold (and the control manifold, if planning with controls; ompl::control::SpaceInformation),
+   - the problem definition (ompl::base::ProblemDefinition), and
+   - the planner (ompl::base::Planner).
+   .
+   These components can be easily used with
+   ompl::geometric::SimpleSetup or ompl::control::SimpleSetup.
+
+   <hr> 
+
+   The code in this library is meant to be thread safe. All static,
+   non-member or const member functions are thread safe. Calling
+   member functions that are not const in multiple threads
+   simultaneously is unsafe and locks should be used.
+   
+   \par Quick links:   
+      <a href="gettingStarted.html">Get started using OMPL</a>.<br>
+      <a href="availablePlanners.html">List of available planners</a>.<br>
+      Visit this project on <a href="http://sourceforge.net/projects/ompl/">SourceForge</a>.
+
+*/
