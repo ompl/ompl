@@ -261,7 +261,8 @@ namespace ompl
 	    ValidStateSamplerPtr allocValidStateSampler(void) const;
 
 	    
-	    /** \brief Set the allocator to use for a valid state sampler. This replaces the default uniform valid state sampler. */
+	    /** \brief Set the allocator to use for a valid state sampler. This replaces the default uniform valid state
+		sampler. This call can be made at any time, but it should not be changed while ompl::base::Planner::solve() is executing */
 	    void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
 	    {
 		vssa_ = vssa;
