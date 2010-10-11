@@ -40,6 +40,7 @@ from sys import argv, exit
 from os.path import basename, splitext
 import matplotlib
 matplotlib.use('pdf')
+from matplotlib import __version__ as matplotlibversion
 from matplotlib.backends.backend_pdf import PdfPages 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -101,7 +102,10 @@ def plot_attribute(data, attribute):
 			labels.append(planner)
 			measurements.append(cur_measurements)
 			nan_counts.append(nan_count)
-	bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5)
+	if int(matplotlibversion.split('.')[0])<1:
+		bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5)
+	else:
+		bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5, bootstrap=1000)
 	xtickNames = plt.setp(ax,xticklabels=labels)
 	plt.setp(xtickNames, rotation=30)
 	ax.set_xlabel('Motion planning algorithm')
