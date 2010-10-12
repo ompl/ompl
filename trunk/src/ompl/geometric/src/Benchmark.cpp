@@ -37,6 +37,7 @@
 #include "ompl/geometric/Benchmark.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/Memory.h"
+#include "ompl/util/Hostname.h"
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <sstream>
@@ -49,6 +50,7 @@ void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
 
 void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 {
+    out << getHostname() << std::endl;
     out << exp_.planners.size() << " planners" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
     out << exp_.maxMem << " MB per run" << std::endl;
