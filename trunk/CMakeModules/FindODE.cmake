@@ -3,7 +3,7 @@
 # This module finds if Open Dynamics Engine (ODE) is
 # installed and determines where the include files and libraries
 # are. The ODE_PATH variable (or environment variable) can be set
-# to specify where to look for ODE. More specifically, ODE_LIB_PATH
+# to specify where to look for ODE. In addition, ODE_LIB_PATH
 # and ODE_INCLUDE_PATH can be set to specify locations for the ode
 # library and include files as well.
 #
@@ -14,6 +14,9 @@
 #  ODE_VERSION     = the version of ODE that was found; empty if ode-config was not found
 
 include(FindPackageHandleStandardArgs)
+
+# Uncomment the following line to enable debug output
+#set(_ODE_DEBUG_OUTPUT true)
 
 if (NOT ODE_PATH)
   set(ODE_PATH $ENV{ODE_PATH})
@@ -48,7 +51,7 @@ else()
 endif()
 
 
-find_program(ODE_CONFIG NAMES ode-config PATHS ${ODE_PATH})
+find_program(ODE_CONFIG NAMES ode-config PATHS ${ODE_PATH} PATH_SUFFIXES bin)
 if (ODE_CONFIG)
 
   execute_process(COMMAND ${ODE_CONFIG} --version OUTPUT_VARIABLE ODE_VERSION)
@@ -101,7 +104,18 @@ if (_ODE_INCLUDE_H)
 endif()
 
 # find the lib
-find_library(ODE_LIBRARY ode PATHS ${_ODE_LIB_HINTS})
+find_library(ODE_LIBRARY ode PATHS ${_ODE_LIB_HINTS} PATH_SUFFIXES lib)
+
+if (_ODE_DEBUG_OUTPUT)
+  message(STATUS "------- FindODE.cmake Debug -------")
+  message(STATUS "ODE_CONFIG = '${ODE_CONFIG}'")
+  message(STATUS "ODE_DEFINITIONS = '${ODE_DEFINITIONS}'")
+  message(STATUS "_ODE_INCLUDE_HINTS = '${_ODE_INCLUDE_HINTS}'")
+  message(STATUS "ODE_INCLUDE = '${ODE_INCLUDE}'")
+  message(STATUS "_ODE_LIB_HINTS = '${_ODE_LIB_HINTS}'")
+  message(STATUS "ODE_LIBRARY = '${ODE_LIBRARY}'")
+  message(STATUS "-----------------------------------")
+endif()
 
 find_package_handle_standard_args(ODE DEFAULT_MSG ODE_LIBRARY ODE_INCLUDE)
 mark_as_advanced(ODE_LIBRARY ODE_INCLUDE ODE_DEFINITIONS ODE_VERSION)
