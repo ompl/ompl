@@ -1,5 +1,9 @@
 #include "ompl/extensions/ode/ODEStateManifold.h"
 
+const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_TRUE     = 1;
+const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_FALSE    = -1;
+const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_UNKNOWN  = 0;
+
 ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironment &env) : base::CompoundStateManifold(), env_(env)
 {
     for (unsigned int i = 0 ; i < env_.stateBodies.size() ; ++i)
@@ -67,7 +71,7 @@ bool ompl::control::ODEStateManifold::satisfiesBoundsExceptRotation(const StateT
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
 	if (i % 4 != 3)
-	    if (!component_[i]->satisfiedBounds(state->components[i]))
+	    if (!components_[i]->satisfiesBounds(state->components[i]))
 		return false;
     return true;
 }

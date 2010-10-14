@@ -50,9 +50,9 @@ namespace ompl
 	class ODEStateManifold : public base::CompoundStateManifold
 	{
 	public:
-	    static const int STATE_COLLISION_TRUE     = 1;
-	    static const int STATE_COLLISION_FALSE    = -1;
-	    static const int STATE_COLLISION_UNKNOWN  = 0;
+	    static const int STATE_COLLISION_TRUE;
+	    static const int STATE_COLLISION_FALSE;
+	    static const int STATE_COLLISION_UNKNOWN;
 	    
 	    class StateType : public base::CompoundStateManifold::StateType
 	    {
