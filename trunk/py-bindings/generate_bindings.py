@@ -112,6 +112,29 @@ class ompl_base_generator_t(code_generator_t):
 				obj, _1));
 		}
 		""")
+		# add a wrapper for the ompl::base::SpaceInformation::setValidStateSamplerAllocator.
+		replacement['setValidStateSamplerAllocator'] = ('def("setValidStateSamplerAllocator", &setValidStateSamplerAllocatorWrapper)', """
+		struct SetValidStateSamplerPyWrapper
+		{
+		    SetValidStateSamplerPyWrapper( bp::object callable ) : callable_( callable ) {}
+
+		    ompl::base::ValidStateSamplerPtr operator()(const ompl::base::SpaceInformation* si)
+		    {
+		        PyGILState_STATE gstate = PyGILState_Ensure();
+		        ompl::base::ValidStateSamplerPtr ret = bp::extract<ompl::base::ValidStateSamplerPtr>(callable_(bp::ptr(si)));
+		        PyGILState_Release( gstate );
+		        return ret;
+		    }
+
+		    bp::object callable_;
+		};
+
+		void setValidStateSamplerAllocatorWrapper(%s* obj, bp::object function)
+		{
+		    obj->setValidStateSamplerAllocator( boost::bind(
+			ompl::base::ValidStateSamplerAllocator(SetValidStateSamplerPyWrapper(function)), _1));
+		}
+		""")
 		code_generator_t.__init__(self, 'base', None, replacement)
 	
 	def filter_declarations(self):
@@ -187,6 +210,9 @@ class ompl_base_generator_t(code_generator_t):
 		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
 			'SpaceInformation').member_functions('setStateValidityChecker', 
 			arg_types=['::ompl::base::StateValidityCheckerFn const &']))
+		# add wrapper code for setValidStateSamplerAllocator
+		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
+				'SpaceInformation').member_functions('setValidStateSamplerAllocator'))
 		
 class ompl_control_generator_t(code_generator_t):
 	def __init__(self):
