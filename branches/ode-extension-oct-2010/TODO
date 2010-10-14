@@ -1,0 +1,81 @@
+1. Organize the test_geometric / test_control better
+   so that the StateManifold is defined in a single place
+2. merge tests for util/ & tests for datastructures/
+3. implement benchmarks for control/ not only for geometric/
+4. add a more detailed example for ScopedState in documentation
+
+5. define a parameter structure for classes that have parameters
+   - perhaps something that will allow parameter sweeps
+   template<typename T>
+class Parameter
+{
+	virtual T get() const = 0;
+	virtual void set(T value) = 0;
+	virtual T increment() const = 0;
+	virtual T decrement() const = 0;
+	bool done(void) = 0;
+};
+
+template<typename T>
+class AutoTune
+{
+public:
+  AutoTune(SimpleSetup &setup, Parameter<T> &param, unsigned int N = 100)
+  {
+
+  }
+
+  virtual double evaluateParam(void)
+  {
+	double sum = 0.0;
+	for (int i = 0 ; i < N ; ++i)
+	{
+		setup_.clear();
+		setup_.solve();
+		sum += setup_.getLastPlanningTime();
+	}
+	return sum / N;
+  }
+
+  void tune(void)
+  {
+	tune(setup_.getPlanner());
+  }
+
+  void tune(base::PlannerPtr &planner)
+  {
+	if (!planner)
+		scream;
+
+	setup_.setPlanner(planner);
+	setup_.setup();
+
+	double t0 = evaluateParam();
+	unsigned int steps = 0;
+	do 
+	{
+		steps++;
+		T value = param.get();
+		param.set(param.increment());
+		double t = evaluateParam();
+		if (t >= t0)
+		{
+			param.set(value);	
+			break;
+		}
+	} while (true);
+	if (steps < 2)
+	do 
+	{
+		T value = param.get();
+		param.set(param.decrement());
+		double t = evaluateParam();
+		if (t >= t0)
+		{
+			param.set(value);	
+			break;
+		}
+	} while (true);	
+  }
+}
+

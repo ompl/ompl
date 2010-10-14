@@ -1,0 +1,20 @@
+/**
+\page tutorials Tutorials
+
+\par Beginner
+- \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
+- \ref stateValidation "Setting up state validity checking"
+- \ref workingWithStates "Working with states"
+.
+
+\par Intermediate
+- \ref genericPlanning "Generic instructions for setting up a planner"
+- \ref implementingStateManifolds "Implementing manifolds"
+.
+
+
+\par Advanced
+- \ref newPlanner "Adding a new planner"
+.
+
+*/
