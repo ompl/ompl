@@ -119,7 +119,7 @@ public:
     {
     }
     
-    virtual control::PropagationResult propagate(const base::State *state, const control::Control* control, const double duration, base::State *result) const
+    virtual void propagate(const base::State *state, const control::Control* control, const double duration, base::State *result) const
     {
        	result->as<base::RealVectorStateManifold::StateType>()->values[0] =
 	    state->as<base::RealVectorStateManifold::StateType>()->values[0] + duration * control->as<control::RealVectorControlManifold::ControlType>()->values[0];
@@ -129,8 +129,6 @@ public:
 	result->as<base::RealVectorStateManifold::StateType>()->values[2] = control->as<control::RealVectorControlManifold::ControlType>()->values[0];
 	result->as<base::RealVectorStateManifold::StateType>()->values[3] = control->as<control::RealVectorControlManifold::ControlType>()->values[1];
 	stateManifold_->enforceBounds(result);
-	//	return SVC->isValid(state) ? control::PROPAGATION_START_VALID : control::PROPAGATION_START_INVALID;
-	return control::PROPAGATION_START_UNKNOWN;
     }
     
     base::StateValidityChecker *SVC;

@@ -51,11 +51,12 @@ namespace ompl
 	public:
 	    
 	    ODEControlManifold(const base::StateManifoldPtr &stateManifold) : 
-		RealVectorControlManifold(stateManifold, stateManifold->as<ODEStateManifold>()->getEnvironment().getControlDimension())
+		RealVectorControlManifold(stateManifold, stateManifold->as<ODEStateManifold>()->getEnvironment().getControlDimension()),
+		env_(stateManifold->as<ODEStateManifold>()->getEnvironment())
 	    {
 		contactGroup_ = dJointGroupCreate(0);
 		RealVectorBounds bounds(dimension_);
-		stateManifold->as<ODEStateManifold>()->getEnvironment().getControlBounds(bounds.low, bounds.high);
+		env_.getControlBounds(bounds.low, bounds.high);
 		setBounds(bounds);
 	    }
 	    
@@ -63,17 +64,23 @@ namespace ompl
 	    {
 		dJointGroupDestroy(contactGroup_);
 	    }
+
+	    const ODEEnvironment& getEnvironment(void) const
+	    {
+		return env_;
+	    }
 	    
 	    virtual bool canPropagateBackward(void) const
 	    {
 		return false;
 	    }
 	    
-	    virtual PropagationResult propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 	    
 	protected:
 	    
-	    mutable dJointGroupID contactGroup_;
+	    const ODEEnvironment  &env_;
+	    mutable dJointGroupID  contactGroup_;
 	};
     }
 

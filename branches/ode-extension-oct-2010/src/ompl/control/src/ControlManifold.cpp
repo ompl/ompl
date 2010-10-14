@@ -41,11 +41,6 @@ void ompl::control::ControlManifold::setup(void)
 {
 }
 
-const ompl::base::StateManifoldPtr& ompl::control::ControlManifold::getStateManifold(void) const
-{
-    return stateManifold_;
-}
-
 bool ompl::control::ControlManifold::canPropagateBackward(void) const
 {
     return true;
@@ -61,10 +56,10 @@ void ompl::control::ControlManifold::printSettings(std::ostream &out) const
     out << "ControlManifold '" << name_ << "' instance: " << this << std::endl;
 }
 
-ompl::control::PropagationResult ompl::control::ControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::ControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {
     if (statePropagation_)
-	return statePropagation_(state, control, duration, result);
+	statePropagation_(state, control, duration, result);
     else
 	throw Exception("State propagation routine is not set for control manifold. Either set this routine or provide a different implementation in an inherited class.");
 }
@@ -163,24 +158,17 @@ ompl::control::ControlSamplerPtr ompl::control::CompoundControlManifold::allocCo
     return ControlSamplerPtr(ss);
 }
 
-ompl::control::PropagationResult ompl::control::CompoundControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::CompoundControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {
     if (statePropagation_)
-	return statePropagation_(state, control, duration, result);
+	statePropagation_(state, control, duration, result);
     else
     {
 	const base::CompoundState *cstate = static_cast<const base::CompoundState*>(state);
 	const CompoundControl *ccontrol = static_cast<const CompoundControl*>(control);
 	base::CompoundState *cresult = static_cast<base::CompoundState*>(result);
-	PropagationResult pr = PROPAGATION_START_VALID;
 	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	{
-	    PropagationResult p = components_[i]->propagate(cstate->components[i], ccontrol->components[i], duration, cresult->components[i]);
-	    if (pr == PROPAGATION_START_VALID)
-		if (p != PROPAGATION_START_VALID)
-		    pr = p;
-	}
-	return pr;
+	    components_[i]->propagate(cstate->components[i], ccontrol->components[i], duration, cresult->components[i]);
     }
 }
 

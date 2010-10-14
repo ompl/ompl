@@ -74,7 +74,7 @@ namespace ompl
     }
 }
 
-ompl::control::PropagationResult ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {
     const ODEEnvironment &env = stateManifold_->as<ODEStateManifold>()->getEnvironment();
     env.mutex.lock();
@@ -104,6 +104,4 @@ ompl::control::PropagationResult ompl::control::ODEControlManifold::propagate(co
     // update the collision flag for the start state, if needed
     if (state->as<ODEStateManifold::StateType>()->collision == ODEStateManifold::STATE_COLLISION_UNKNOWN)
 	state->as<ODEStateManifold::StateType>()->collision = cp.collision ? ODEStateManifold::STATE_COLLISION_TRUE : ODEStateManifold::STATE_COLLISION_FALSE;
-    
-    return PROPAGATION_START_UNKNOWN;
 }

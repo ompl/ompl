@@ -49,7 +49,7 @@ namespace ompl
 	class ODEEnvironment
 	{
 	public:
-
+	    
 	    /** \brief The ODE world where the simulation is performed */
 	    dWorldID              world;
 
@@ -64,13 +64,16 @@ namespace ompl
 	    /** \brief The maximum number of contacts to create between two bodies when a collision occurs */
 	    unsigned int          maxContacts;
 
+	    /** \brief The simulation step size */
+	    double                stepSize;
+	    
 	    /** \brief Lock to use when performing simulations in the world. (ODE simulations are NOT thread safe) */
 	    mutable boost::mutex  mutex;
-	    
-	    ODEEnvironment(void)
+
+	    ODEEnvironment(void) : world(NULL), maxContacts(3), stepSize(0.05)
 	    {
 	    }
-	    
+
 	    virtual ~ODEEnvironment(void)
 	    {
 	    }

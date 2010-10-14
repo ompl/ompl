@@ -60,19 +60,8 @@ namespace ompl
 	/** \class ompl::control::ControlManifoldPtr
 	    \brief A boost shared pointer wrapper for ompl::control::ControlManifold */
 
-	/** \brief The return value of a propagation step executed by a ControlManifold */
-	enum PropagationResult
-	{
-	    /** \brief The initial state of the propagation is valid */
-	    PROPAGATION_START_VALID,
-	    /** \brief The initial state of the propagation is invalid */
-	    PROPAGATION_START_INVALID,
-	    /** \brief It is unknown whether the initial state of the propagation is valid or invalid */
-	    PROPAGATION_START_UNKNOWN
-	};
-
 	/** \brief A function that achieves state propagation.*/
-	typedef boost::function4<PropagationResult, const base::State*, const Control*, const double, base::State*> StatePropagationFn;
+	typedef boost::function4<void, const base::State*, const Control*, const double, base::State*> StatePropagationFn;
 	
 	/** \brief A manifold representing the space of applicable controls */
 	class ControlManifold : private boost::noncopyable
@@ -122,8 +111,11 @@ namespace ompl
 	    }
 
 	    /** \brief Return the state manifold this control manifold depends on */
-	    const base::StateManifoldPtr& getStateManifold(void) const;
-
+	    const base::StateManifoldPtr& getStateManifold(void) const
+	    {
+		return stateManifold_;
+	    }
+	    
 	    /** \brief Get the dimension of this manifold */
 	    virtual unsigned int getDimension(void) const = 0;
 	    
@@ -148,20 +140,9 @@ namespace ompl
 	    /** \brief Propagate from a state, given a control, for some specified amount of time (the amount of time can
 		also be negative, if canPropagateBackward() returns true)
 		
-		Notes:
-		\li Return value:
-		In the process of propagation, it is sometimes the case that collisions are evaluated (e.g., with physics
-		simulation).  Important: This is not the same as state validity, but it may represent an important
-		computational part of checking state validity. The implementation of this function may
-		choose to evaluate the full validity of the starting state of the propagation, for efficiency reasons. If this is the case, and the
-		state is valid, the return value of the function is PROPAGATION_START_VALID. If the state is not valid,
-		the return value is PROPAGATION_START_INVALID. If no such check is performed, the return value is
-		PROPAGATION_START_UNKNOWN. Returning PROPAGATION_START_UNKNOWN always leads to a correct
-		implementation but may not be the most efficient one.
-		
-		\li The pointer to the starting state and the result state may be the same.
+		\note The pointer to the starting state and the result state may be the same.
 	    */
-	    virtual PropagationResult propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 	    
 	    /** \brief Some systems can only propagate forward in time (i.e., the duration argument for the propagate()
 		function is always positive). If this is the case, this function should return false. Planners that need
@@ -245,7 +226,7 @@ namespace ompl
 	    
 	    virtual ControlSamplerPtr allocControlSampler(void) const;
 
-	    virtual PropagationResult propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 
 	    virtual bool canPropagateBackward(void) const;
 
