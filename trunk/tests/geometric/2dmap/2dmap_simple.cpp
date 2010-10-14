@@ -49,7 +49,7 @@
 
 using namespace ompl;
 
-static const double SOLUTION_TIME = 1.0;
+static const double SOLUTION_TIME = 2.0;
 
 bool isValid(const std::vector< std::vector<int> > *grid, const base::State *state) 
 {
@@ -268,7 +268,7 @@ TEST_F(PlanTest, SimpleSetup)
     runPlanTest(&p, &success, &avgruntime, &avglength);
     
     EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.5);
+    EXPECT_TRUE(avgruntime < 0.2);
     EXPECT_TRUE(avglength < 70.0);
 }
 
