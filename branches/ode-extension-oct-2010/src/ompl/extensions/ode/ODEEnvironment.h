@@ -50,11 +50,22 @@ namespace ompl
 	{
 	public:
 
-	    dWorldID                                   world;
-	    std::vector<dSpaceID>                      collisionSpaces;
-	    std::vector<dBodyID>                       stateBodies;
-	    unsigned int                               maxContacts;
-	    mutable boost::mutex                       mutex;
+	    /** \brief The ODE world where the simulation is performed */
+	    dWorldID              world;
+
+	    /** \brief The set of spaces where contacts need to be evaluated before simulation takes place */
+	    std::vector<dSpaceID> collisionSpaces;
+	    
+	    /** \brief The set of bodies that need to be considered
+		part of the state when planning. This is not
+		necessarily all the bodies in the environment.*/
+	    std::vector<dBodyID>  stateBodies;
+
+	    /** \brief The maximum number of contacts to create between two bodies when a collision occurs */
+	    unsigned int          maxContacts;
+
+	    /** \brief Lock to use when performing simulations in the world. (ODE simulations are NOT thread safe) */
+	    mutable boost::mutex  mutex;
 	    
 	    ODEEnvironment(void)
 	    {
@@ -64,8 +75,12 @@ namespace ompl
 	    {
 	    }
 	    
+	    /** \brief Number of parameters (double values) needed to specify a control input */
 	    virtual unsigned int getControlDimension(void) const = 0;
 	    
+	    /** \brief Get the control bounds -- the bounding box in which to sample controls */
+	    virtual void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const = 0;
+
 	    /** \brief Application of a control. This function sets
 		the forces/torques/velocities for bodies in the
 		simulation based on control inputs. */

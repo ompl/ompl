@@ -54,6 +54,9 @@ namespace ompl
 		RealVectorControlManifold(stateManifold, stateManifold->as<ODEStateManifold>()->getEnvironment().getControlDimension())
 	    {
 		contactGroup_ = dJointGroupCreate(0);
+		RealVectorBounds bounds(dimension_);
+		stateManifold->as<ODEStateManifold>()->getEnvironment().getControlBounds(bounds.low, bounds.high);
+		setBounds(bounds);
 	    }
 	    
 	    virtual ~ODEControlManifold(void)
