@@ -39,7 +39,13 @@ endif(NOT PYTHON_EXEC)
 # On OS X the python executable might be symlinked to the "real" location
 # of the python executable. The header files and libraries are found relative
 # to that path.
-get_filename_component(PYTHON_EXEC_ "${PYTHON_EXEC}" REALPATH)
+# For CMake 2.6 and below, the REALPATH option is included in the ABSOLUTE option
+if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.6)
+  get_filename_component(PYTHON_EXEC_ "${PYTHON_EXEC}" REALPATH)
+else()
+  get_filename_component(PYTHON_EXEC_ "${PYTHON_EXEC}" ABSOLUTE)
+endif()
+
 string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX "${PYTHON_EXEC_}")
 
 execute_process(COMMAND "${PYTHON_EXEC}" "-c"

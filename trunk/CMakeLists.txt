@@ -15,11 +15,7 @@ else(ROS)
 		set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 		include(CompilerSettings)
 		find_package(Boost COMPONENTS date_time thread filesystem system REQUIRED)
-		include_directories("${Boost_INCLUDE_DIR}")	
-		find_package(Doxygen QUIET)
-		# Ruby is only needed if you want the regenerate the CSS files for 
-		# the documentation
-		find_package(Ruby QUIET)
+		include_directories("${Boost_INCLUDE_DIR}")
 		
 		# ODE is only needed for ODE bindings
 		find_package(ODE QUIET)
