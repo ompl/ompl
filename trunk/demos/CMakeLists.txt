@@ -26,3 +26,7 @@ endif(ROS)
 add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
 add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
 add_ompl_demo(demo_RigidBodyPlanningWithIntegrationAndControls RigidBodyPlanningWithIntegrationAndControls.cpp)
+
+if (ODE_FOUND)
+      add_ompl_demo(demo_ODERigidBodyPlanning ODERigidBodyPlanning.cpp)
+endif()

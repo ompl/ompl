@@ -163,10 +163,9 @@ public:
     {
     }
     
-    virtual oc::PropagationResult propagate(const ob::State *state, const oc::Control* control, const double duration, ob::State *result) const
+    virtual void propagate(const ob::State *state, const oc::Control* control, const double duration, ob::State *result) const
     {
 	integrator_.propagate(state, control, duration, result);
-	return oc::PROPAGATION_START_UNKNOWN;
     }
     
     void setIntegrationTimeStep(double timeStep)

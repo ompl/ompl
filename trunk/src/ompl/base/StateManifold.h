@@ -127,7 +127,7 @@ namespace ompl
 	    /** \brief Check if a state is inside the bounding box */
 	    virtual bool satisfiesBounds(const State *state) const = 0;
 
-	    /** \brief Copy a state to another. The memory of source and destination should not overlap. */
+	    /** \brief Copy a state to another. The memory of source and destination should NOT overlap. */
 	    virtual void copyState(State *destination, const State *source) const = 0;
 	    
 	    /** \brief Computes distance to between two states. This value will always be between 0 and getMaximumExtent() */

@@ -66,7 +66,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
     return si->satisfiesBounds(state) && (void*)rot != (void*)pos;
 }
 
-oc::PropagationResult propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
+void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
 {
     const ob::SE2StateManifold::StateType *se2state = start->as<ob::SE2StateManifold::StateType>();
     const ob::RealVectorStateManifold::StateType *pos = se2state->as<ob::RealVectorStateManifold::StateType>(0);
@@ -81,8 +81,6 @@ oc::PropagationResult propagate(const ob::State *start, const oc::Control *contr
     
     result->as<ob::SE2StateManifold::StateType>()->as<ob::SO2StateManifold::StateType>(1)->value = 
 	rot->value + (*rctrl)[1];
-    
-    return oc::PROPAGATION_START_UNKNOWN;
 }
 
 void plan(void)
