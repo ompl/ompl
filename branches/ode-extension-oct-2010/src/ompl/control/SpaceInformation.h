@@ -209,7 +209,9 @@ namespace ompl
 		\param control the control to apply
 		\param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
 		\param result the set of states along the propagated motion
-		\param alloc flag indicating whether memory for the states in \e result should be allocated */
+		\param alloc flag indicating whether memory for the states in \e result should be allocated
+
+		\note Start state \e state is not included in \e result */
 	    void propagate(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
 
 	    /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
@@ -219,7 +221,9 @@ namespace ompl
 		\param control the control to apply
 		\param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
 		\param result the set of states along the propagated motion (only valid states included)
-		\param alloc flag indicating whether memory for the states in \e result should be allocated */
+		\param alloc flag indicating whether memory for the states in \e result should be allocated
+		
+		\note Start state \e state is not included in \e result */
 	    unsigned int propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
 
 	    /** @} */

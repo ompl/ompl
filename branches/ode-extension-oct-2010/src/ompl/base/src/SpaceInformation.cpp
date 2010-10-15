@@ -59,9 +59,6 @@ void ompl::base::SpaceInformation::setup(void)
     if (!motionValidator_)
 	motionValidator_.reset(new DiscreteMotionValidator(this));
     
-    if (setup_)
-	return;
-    
     stateManifold_->setup();
     if (stateManifold_->getDimension() <= 0)
 	throw Exception("The dimension of the state manifold we plan in must be > 0");
