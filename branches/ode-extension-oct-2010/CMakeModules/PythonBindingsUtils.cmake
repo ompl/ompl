@@ -2,10 +2,10 @@ find_package(Boost COMPONENTS python)
 # The python version needs to match the one used to build Boost.Python. 
 # You can optionally specify the desired version like so:
 # 	find_package(Python 2.6)
-find_package(Python)
-find_python_module(pyplusplus)
-find_python_module(pygccxml)
-find_package(GCCXML)
+find_package(Python QUIET)
+find_python_module(pyplusplus QUIET)
+find_python_module(pygccxml QUIET)
+find_package(GCCXML QUIET)
 
 if(APPLE)
 	# For some reason gccxml generates 32-bit binaries by default on OS X

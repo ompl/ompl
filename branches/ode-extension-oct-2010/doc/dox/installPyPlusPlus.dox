@@ -13,7 +13,8 @@ href="http://sourceforge.net/scm/?type=svn&group_id=118209">here</a>.
 \par
 If you are using Linux or Mac OS, you can follow these instructions:
 \code
-# make sure you have cvs and svn. e.g., for Ubuntu Linux: "sudo apt-get install cvs subversion"
+# Make sure you have cvs and svn. e.g., for Ubuntu Linux: "sudo apt-get install cvs subversion"
+# On OS X cvs and svn are already installed.
 
 # create a location to store downloaded data
 mkdir repos
@@ -27,7 +28,6 @@ make
 sudo make install
 
 # get latest version of pygccxml, build & install needed packages
-
 svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml
 cd pygccxml/pygccxml_dev
 python setup.py build
