@@ -8,17 +8,26 @@ set(OMPL_VERSION "${OMPL_MAJOR_VERSION}.${OMPL_MINOR_VERSION}.${OMPL_PATCH_VERSI
 if(ROS)
 	rosbuild_add_boost_directories()
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+	
+	include(CheckIncludeFileCXX)
+	# add ODE extension if ODE found
+	CHECK_INCLUDE_FILE_CXX(ode/ode.h ODE_FOUND)
 else(ROS)
 	if(NOT OMPLAPP_VERSION)
 		cmake_minimum_required(VERSION 2.8)
 		project(ompl CXX)
 		set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 		include(CompilerSettings)
+		
 		find_package(Boost COMPONENTS date_time thread filesystem system REQUIRED)
-		include_directories("${Boost_INCLUDE_DIR}")
+		include_directories(${Boost_INCLUDE_DIR})
 		
 		# ODE is only needed for ODE bindings
 		find_package(ODE QUIET)
+		if (ODE_FOUND)
+		        add_definitions(${ODE_DEFINITIONS})
+			include_directories(${ODE_INCLUDE})
+		endif()
 		
 		add_subdirectory(doc)
 		

@@ -1,21 +1,13 @@
 # recursively find all *.cpp files that correspond to the ompl library
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp)
 
-if (NOT ODE_FOUND AND ROS)
-  include(CheckIncludeFileCXX)
-  # add ODE extension if ODE found
-  CHECK_INCLUDE_FILE_CXX(ode/ode.h ODE_FOUND)
-endif()
-
 if (ODE_FOUND)
-  message(STATUS "Building ODE extension")
-  file(GLOB_RECURSE OMPL_ODE_EXTENSION_SOURCE_CODE extensions/ode/*.cpp)
-  set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_ODE_EXTENSION_SOURCE_CODE})
-  if (NOT ROS)
-    add_definitions(${ODE_DEFINITIONS})
-    include_directories(${ODE_INCLUDE})
-    list(APPEND OMPL_LINK_LIBRARIES ${ODE_LIBRARY})
-  endif()
+        message(STATUS "Building ODE extension")
+	file(GLOB_RECURSE OMPL_ODE_EXTENSION_SOURCE_CODE extensions/ode/*.cpp)
+	set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_ODE_EXTENSION_SOURCE_CODE})
+	if (NOT ROS)
+		list(APPEND OMPL_LINK_LIBRARIES ${ODE_LIBRARY})
+	endif()
 endif()
 
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" VERSION_DIR)
@@ -26,7 +18,6 @@ if(ROS)
 	rosbuild_add_compile_flags(ompl -Wextra)
 	rosbuild_link_boost(ompl thread date_time)
 else(ROS)
-	add_definitions(-fPIC)
 	add_library(ompl SHARED ${OMPL_SOURCE_CODE})
 	target_link_libraries(ompl
 		${Boost_THREAD_LIBRARY}

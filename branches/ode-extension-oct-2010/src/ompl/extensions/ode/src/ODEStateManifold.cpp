@@ -96,7 +96,9 @@ void ompl::control::ODEStateManifold::setAngularVelocityBounds(const base::RealV
 
 ompl::base::State* ompl::control::ODEStateManifold::allocState(void) const
 {
-    return new StateType();
+    StateType *state = new StateType();
+    allocStateComponents(state);
+    return state;
 }
 
 void ompl::control::ODEStateManifold::freeState(base::State *state) const
