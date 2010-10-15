@@ -37,10 +37,29 @@
 #include "ompl/geometric/Benchmark.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/Memory.h"
-#include "ompl/util/Hostname.h"
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <sstream>
+
+#if defined _WIN32
+#  include <winsock2.h>
+#else
+#  include <unistd.h>
+#endif
+
+namespace ompl
+{
+    
+    static std::string getHostname(void)
+    {
+	char buffer[1024];
+	int len = gethostname(buffer, sizeof(buffer));
+	if (len != 0)
+	    return std::string();
+	else
+	    return std::string(buffer);
+    }
+}
 
 void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
 {
@@ -50,7 +69,8 @@ void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
 
 void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 {
-    out << getHostname() << std::endl;
+    out << "Running on " << exp_.host << std::endl;
+    out << "Starting at " << boost::posix_time::to_simple_string(exp_.startTime) << std::endl;
     out << exp_.planners.size() << " planners" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
     out << exp_.maxMem << " MB per run" << std::endl;
@@ -137,12 +157,14 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	return;
     }
     
-    time::point startBenchmark = time::now();
     
     status_.running = true;
     exp_.totalDuration = 0.0;
     exp_.maxTime = maxTime;
     exp_.maxMem = maxMem;
+    exp_.host = getHostname();
+    
+    exp_.startTime = time::now();
     
     // the set of properties to be averaged, for each planner
     std::vector<std::string> avgProperties;
@@ -229,5 +251,5 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     status_.running = false;
     status_.progressPercentage = 100.0;
 
-    exp_.totalDuration = time::seconds(time::now() - startBenchmark);
+    exp_.totalDuration = time::seconds(time::now() - exp_.startTime);
 }

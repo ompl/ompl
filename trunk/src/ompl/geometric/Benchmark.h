@@ -160,8 +160,14 @@ namespace ompl
 		/// The maximum allowed memory for planner computation during the experiment (MB)
 		double                         maxMem;
 
+		/// The point in time when the experiment was started
+		time::point                    startTime;
+		
 		/// The amount of time spent to collect the information in this structure (seconds)
 		double                         totalDuration;
+		
+		/// Hostname that identifies the machine the benchmark ran on
+		std::string                    host;
 	    };
 	    		
 	    /** \brief The instance of the problem to benchmark */
