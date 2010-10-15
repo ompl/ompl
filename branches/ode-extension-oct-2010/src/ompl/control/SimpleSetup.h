@@ -41,6 +41,7 @@
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/control/PathControl.h"
+#include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 

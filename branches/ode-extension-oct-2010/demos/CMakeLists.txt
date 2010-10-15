@@ -28,5 +28,5 @@ add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.c
 add_ompl_demo(demo_RigidBodyPlanningWithIntegrationAndControls RigidBodyPlanningWithIntegrationAndControls.cpp)
 
 if (ODE_FOUND)
-      add_ompl_demo(demo_ODEPlanning ODEPlanning.cpp)
+      add_ompl_demo(demo_ODERigidBodyPlanning ODERigidBodyPlanning.cpp)
 endif()
