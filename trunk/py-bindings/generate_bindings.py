@@ -253,29 +253,7 @@ class ompl_control_generator_t(code_generator_t):
 				obj->getSpaceInformation().get(), _1));
 		}
 		""")
-		# add a wrapper for the setPropagationFunction. This wrapper deals correctly
-		# with C-style pointers.
-		replacement['setPropagationFunction'] = ('def("setPropagationFunction", &setPropagationFunctionWrapper)', """
-		struct PropagatePyWrapper
-		{
-			PropagatePyWrapper( bp::object callable ) : callable_( callable ) {}
 
-		    ompl::control::PropagationResult operator()(const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
-		    {
-				PyGILState_STATE gstate = PyGILState_Ensure();
-				ompl::control::PropagationResult ret = bp::extract<ompl::control::PropagationResult>(callable_(bp::ptr(start), bp::ptr(control), duration, bp::ptr(result)));
-				PyGILState_Release( gstate );
-				return ret;
-		    }
-
-		    bp::object callable_;
-		};
-
-		void setPropagationFunctionWrapper(%s* obj, bp::object function)
-		{
-			obj->setPropagationFunction(ompl::control::StatePropagationFn(PropagatePyWrapper(function)));
-		}
-		""")
 		code_generator_t.__init__(self, 'control', ['bindings/base'], replacement)
 	
 	def filter_declarations(self):
