@@ -112,6 +112,7 @@ class ompl_base_generator_t(code_generator_t):
 				obj, _1));
 		}
 		""")
+
 		# hide optional argument of nextGoal, since we don't want to expose boost::posix_time
 		replacement['nextGoal'] = ('def("nextGoal", &nextGoalWrapper, bp::return_value_policy< bp::reference_existing_object >())', """
 		const ompl::base::State* nextGoalWrapper(%s* obj)
@@ -120,6 +121,30 @@ class ompl_base_generator_t(code_generator_t):
 		}
 		""")
 		
+		# add a wrapper for the ompl::base::SpaceInformation::setValidStateSamplerAllocator.
+		replacement['setValidStateSamplerAllocator'] = ('def("setValidStateSamplerAllocator", &setValidStateSamplerAllocatorWrapper)', """
+		struct SetValidStateSamplerPyWrapper
+		{
+		    SetValidStateSamplerPyWrapper( bp::object callable ) : callable_( callable ) {}
+
+		    ompl::base::ValidStateSamplerPtr operator()(const ompl::base::SpaceInformation* si)
+		    {
+		        PyGILState_STATE gstate = PyGILState_Ensure();
+		        ompl::base::ValidStateSamplerPtr ret = bp::extract<ompl::base::ValidStateSamplerPtr>(callable_(bp::ptr(si)));
+		        PyGILState_Release( gstate );
+		        return ret;
+		    }
+
+		    bp::object callable_;
+		};
+
+		void setValidStateSamplerAllocatorWrapper(%s* obj, bp::object function)
+		{
+		    obj->setValidStateSamplerAllocator( boost::bind(
+			ompl::base::ValidStateSamplerAllocator(SetValidStateSamplerPyWrapper(function)), _1));
+		}
+		""")
+
 		code_generator_t.__init__(self, 'base', None, replacement)
 	
 	def filter_declarations(self):
@@ -197,6 +222,9 @@ class ompl_base_generator_t(code_generator_t):
 			arg_types=['::ompl::base::StateValidityCheckerFn const &']))
 		# hide optional argument of nextGoal, since we don't want to expose boost::posix_time
 		self.replace_member_function(self.ompl_ns.class_('PlannerInputStates').member_function('nextGoal'))
+		# add wrapper code for setValidStateSamplerAllocator
+		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
+				'SpaceInformation').member_functions('setValidStateSamplerAllocator'))
 		
 class ompl_control_generator_t(code_generator_t):
 	def __init__(self):

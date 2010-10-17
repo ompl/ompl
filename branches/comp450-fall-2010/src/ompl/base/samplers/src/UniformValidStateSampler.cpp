@@ -36,6 +36,12 @@
 
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
+#include <boost/bind.hpp>
+
+ompl::base::ValidStateSamplerAllocator ompl::base::UniformValidStateSampler::allocator(void)
+{
+    return boost::bind(&ValidStateSampler::alloc<UniformValidStateSampler>, _1);
+}
 
 ompl::base::UniformValidStateSampler::UniformValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())

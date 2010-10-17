@@ -91,6 +91,27 @@ namespace ompl
 	    
 	protected:
 	    
+	    /** \brief Generic allocator function. This matches the ValidStateSamplerAllocator type
+		and can be used by subclasses to return instances of ValidStateSamplerAllocator.
+
+		For example, 
+		\code
+		class MySampler : public ValidStateSampler
+		{
+		public:
+		...
+		     static allocator(void)
+		     {
+		          boost::bind(&ValidStateSampler::alloc<MySampler>, _1);
+		     }
+		\endcode
+	    */
+	    template<typename T>
+	    static ValidStateSamplerPtr alloc(const SpaceInformation *si)
+	    {
+		return ValidStateSamplerPtr(new T(si));
+	    }
+	    
 	    /** \brief The manifold this sampler samples */
 	    const SpaceInformation *si_;
 
