@@ -38,51 +38,83 @@
 
 from sys import argv, exit
 from os.path import basename, splitext
+import sqlite3
+import datetime
 import matplotlib
 matplotlib.use('pdf')
 from matplotlib import __version__ as matplotlibversion
 from matplotlib.backends.backend_pdf import PdfPages 
 import matplotlib.pyplot as plt
 import numpy as np
+from optparse import OptionParser, OptionGroup
 
-def read_benchmark_log(filename):
-	"""Parse a benchmark log file and return a dictionary of dictionaries 
-	with all the parsed data. This dictionary can then be used to easily
-	plot selected results or save them in a different file format."""
-	logfile = open(filename,'r')
-	result = {}
-	result['num_planners'] = int(logfile.readline().split()[0])
-	result['time_limit'] = float(logfile.readline().split()[0])
-	result['memory_limit'] = float(logfile.readline().split()[0])
-	result['total_duration'] = float(logfile.readline().split()[0])
-	result['planner'] = {}
-	for i in range(result['num_planners']):
-		p = {}
-		planner_name = logfile.readline()[:-1]
-		num_properties = int(logfile.readline().split()[0])
-		properties = []
-		for j in range(num_properties):
-			properties.append(logfile.readline()[:-1])
-		num_runs = int(logfile.readline().split()[0])
-		runs = np.empty( (num_runs, num_properties) )
-		for j in range(num_runs):
-			runs[j,:] = [np.nan if len(x)==0 else float(x) 
-				for x in logfile.readline().split('; ')[:-1]]
-		p['measurements'] = {}
-		for j in range(len(properties)):
-			p['measurements'][properties[j]] = runs[:,j]
-		num_averages = int(logfile.readline().split()[0])
-		averages = {}
-		for j in range(num_averages):
-			line = logfile.readline().split('= ')
-			averages[line[0]] = float(line[1])
-		p['averages'] = averages
-		logfile.readline()
-		result['planner'][planner_name] = p
-	logfile.close()
-	return result
+def read_benchmark_log(dbname, filenames):
+	"""Parse benchmark log files and store the parsed data in a sqlite3 database."""
+
+	conn = sqlite3.connect(dbname)
+	c = conn.cursor()
+	c.execute('pragma foreign_keys = on')
+	c.execute("select name from sqlite_master where type='table'")
+	table_names = [ str(t[0]) for t in c.fetchall() ]
+	if not 'experiments' in table_names:
+		c.execute("""create table experiments
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, timelimit REAL, memorylimit REAL, hostname TEXT, date DATE)""")
+	if not 'planners' in table_names:
+		c.execute("""create table planners
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)""")
+	for filename in filenames:
+		logfile = open(filename,'r')
+		num_planners = int(logfile.readline().split()[0])
+		timelimit = float(logfile.readline().split()[0])
+		memorylimit = float(logfile.readline().split()[0])
+
+		hostname = 'hostname' # FIXME
+		date = datetime.date.today() # FIXME
+		c.execute('insert into experiments values (?,?,?,?,?)',
+			(None, timelimit, memorylimit, hostname, date) )
+		c.execute('select last_insert_rowid()')
+		experiment_id = c.fetchone()[0]
+		
+		for i in range(num_planners):
+			planner_name = logfile.readline()[:-1]
+			print planner_name
+			c.execute('select id from planners where name=?', (planner_name,) )
+			p = c.fetchone()
+			if p==None:
+				c.execute("insert into planners values (?,?)", (None,planner_name))
+				c.execute('select last_insert_rowid()')
+				planner_id = c.fetchone()[0]
+			else:
+				planner_id = p[0]
+				
+			num_properties = int(logfile.readline().split()[0])
+			properties = """experimentid references experiments(id) on delete cascade,
+				plannerid references planners(id) on delete cascade"""
+			for j in range(num_properties):
+				properties = properties + ', \"' + logfile.readline()[:-1].replace(' ','_') +'\"'
+			# properties =  properties + \
+			# 	'foreign key(experimentid) references experiment(id), foreign key(plannerid) references planner(id)'
+			planner_table = 'planner_%s' % planner_name
+			print "create table %s (%s)" %  (planner_table,properties)
+			if not planner_table in table_names:
+				c.execute("create table %s (%s)" %  (planner_table,properties))
+			insert_fmt_str = 'insert into %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
+			
+			num_runs = int(logfile.readline().split()[0])
+			for j in range(num_runs):
+				run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x) 
+					for x in logfile.readline().split('; ')[:-1]])
+				print insert_fmt_str, run
+				c.execute(insert_fmt_str, run)
+				
+			num_averages = int(logfile.readline().split()[0])
+			for j in range(num_averages): logfile.readline()
+			logfile.readline()
+		logfile.close()
+	conn.commit()
+	c.close()
 	
-def plot_attribute(data, attribute):
+def plot_attribute(cur, planners, attribute):
 	"""Create a box plot for a particular attribute. It will include data for
 	all planners that have data for this attribute."""
 	plt.clf()
@@ -90,18 +122,15 @@ def plot_attribute(data, attribute):
 	labels = []
 	measurements = []
 	nan_counts = []
-	for planner, stats in data['planner'].items():
-		if stats['measurements'].has_key(attribute):
-			nan_count = 0
-			cur_measurements = []
-			for m in stats['measurements'][attribute]:
-				if np.isnan(m):
-					nan_count = nan_count+1
-				else:
-					cur_measurements.append(m)
-			labels.append(planner)
-			measurements.append(cur_measurements)
-			nan_counts.append(nan_count)
+	for planner in planners:
+		cur.execute('select * from %s' % planner)
+		attributes = [ t[0] for t in cur.description]
+		if attribute in attributes:
+			cur.execute('select %s from %s' % (attribute, planner))
+			result = [ t[0] for t in cur.fetchall() ]
+			nan_counts.append(len([x for x in result if x==None]))
+			measurements.append([x for x in result if not x==None])
+			labels.append(planner.replace('planner_',''))
 	if int(matplotlibversion.split('.')[0])<1:
 		bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5)
 	else:
@@ -109,7 +138,7 @@ def plot_attribute(data, attribute):
 	xtickNames = plt.setp(ax,xticklabels=labels)
 	plt.setp(xtickNames, rotation=30)
 	ax.set_xlabel('Motion planning algorithm')
-	ax.set_ylabel(attribute)
+	ax.set_ylabel(attribute.replace('_',' '))
 	ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
 	if max(nan_counts)>0:
 		maxy = max([max(y) for y in measurements])
@@ -117,41 +146,80 @@ def plot_attribute(data, attribute):
 			ax.text(i+1, .95*maxy, str(nan_counts[i]), horizontalalignment='center', size='small')
 	plt.show()
 	
-def plot_statistics(fname, data):
+def plot_statistics(dbname, fname):
 	"""Create a PDF file with box plots for all attributes."""
-	pp = PdfPages(fname)
-	attributes = data['planner'].items()[0][1]['measurements'].keys()
+	conn = sqlite3.connect(dbname)
+	c = conn.cursor()
+	c.execute('pragma foreign_keys = on')
+	c.execute("select name from sqlite_master where type='table'")
+	table_names = [ str(t[0]) for t in c.fetchall() ]
+	planner_names = [ t for t in table_names if t.startswith('planner_') ]
+	# use attributes from first planner
+	c.execute('select * from %s' % planner_names[0])
+	attributes = [ t[0] for t in c.description]
+	attributes.remove('plannerid')
+	attributes.remove('experimentid')
 	attributes.sort()
+
+	pp = PdfPages(fname)
 	for attribute in attributes:
-		plot_attribute(data,attribute)
+		plot_attribute(c,planner_names,attribute)
 		pp.savefig(plt.gcf())
 	pp.close()
 
-def save_as_sql(fname, data):
-	sqldump = open(fname+".sql",'w')
-	for planner, stats in data['planner'].items():		
-		fields = ", ".join(map(lambda x: "`" + x + "` DOUBLE NULL", stats["measurements"]))
-		table_cmd = "DROP TABLE IF EXISTS `" + planner + "`;\nCREATE TABLE `"+planner+"` (\n" + fields + ");\n"
-		sqldump.write(table_cmd)
-		runs = min(map(lambda x : len(stats["measurements"][x]), stats["measurements"]))
-		for r in range(runs):
-			values = ", ".join(map(lambda x : "'" + str(stats["measurements"][x][r]) + "'", stats["measurements"]))
-			names = ", ".join(map(lambda x: "`" + x + "`", stats["measurements"]))
-			sqldump.write("INSERT INTO `" + planner + "` (" + names + ") VALUES(" + values + ");\n")
-	sqldump.close()
+def save_as_mysql(dbname, mysqldump):
+	# See http://stackoverflow.com/questions/1067060/perl-to-python
+	import re
+	conn = sqlite3.connect(dbname)
+	mysqldump = open(mysqldump,'w')
+	for line in conn.iterdump():
+		process = False
+		for nope in ('BEGIN TRANSACTION','COMMIT',
+			'sqlite_sequence','CREATE UNIQUE INDEX'):
+			if nope in line: break
+	  	else:
+			process = True
+		if not process: continue
+		m = re.search('CREATE TABLE "([a-z_]*)"(.*)', line)
+		if m:
+			name, sub = m.groups()
+			sub = sub.replace('"','`')
+			line = '''DROP TABLE IF EXISTS %(name)s;
+			CREATE TABLE IF NOT EXISTS %(name)s%(sub)s
+			'''
+			line = line % dict(name=name, sub=sub)
+		else:
+			m = re.search('INSERT INTO "([a-z_]*)"(.*)', line)
+			if m:
+				line = 'INSERT INTO %s%s\n' % m.groups()
+				line = line.replace('"', r'\"')
+				line = line.replace('"', "'")
+		line = re.sub(r"([^'])'t'(.)", "\\1THIS_IS_TRUE\\2", line)
+		line = line.replace('THIS_IS_TRUE', '1')
+		line = re.sub(r"([^'])'f'(.)", "\\1THIS_IS_FALSE\\2", line)
+		line = line.replace('THIS_IS_FALSE', '0')
+		line = line.replace('AUTOINCREMENT', 'AUTO_INCREMENT')
+		mysqldump.write(line)
+	mysqldump.close()
 	
+
 if __name__ == "__main__":
-	if len(argv) < 2:
-		print "Usage: benchmark_statistics.py <benchmark.log> [<filename>.<sql|m>]"
-		exit()
+	usage = """%prog [options] [<benchmark.log> ...]"""
+	parser = OptionParser(usage)
+	parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
+		help="Filename of benchmark database [default: %default]")
+	parser.add_option("-b", "--boxplot", dest="boxplot", default="boxplot.pdf",
+		help="Create a PDF of box plots")
+	parser.add_option("-m", "--mysql", dest="mysqldb", default="benchmark.mysql",
+		help="Save SQLite3 database as a MySQL dump file")
+	(options, args) = parser.parse_args()
 	
-	data = read_benchmark_log(argv[1])
-	
-	if len(argv) > 2:
-		(fname, ext) = argv[2].split(".")
-		if ext == "sql":
-			print "Generating SQL dump in " + argv[2]
-			save_as_sql(fname, data)
-	else:
-		plot_statistics(splitext(basename(argv[1]))[0]+'.pdf', data)
-	
+	if len(args)>0:
+		read_benchmark_log(options.dbname, args)
+
+	if options.boxplot:
+		plot_statistics(options.dbname, options.boxplot)
+
+	if options.mysqldb:
+		save_as_mysql(options.dbname, options.mysqldb)
+
