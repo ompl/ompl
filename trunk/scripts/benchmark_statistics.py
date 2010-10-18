@@ -58,10 +58,10 @@ def read_benchmark_log(dbname, filenames):
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	if not 'experiments' in table_names:
 		c.execute("""create table experiments
-		(id INTEGER PRIMARY KEY AUTOINCREMENT, totaltime REAL, timelimit REAL, memorylimit REAL, hostname TEXT, date DATE)""")
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(512), date DATE)""")
 	if not 'planners' in table_names:
 		c.execute("""create table planners
-		(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)""")
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) UNIQUE)""")
 	for filename in filenames:
 		logfile = open(filename,'r')
 		hostname = logfile.readline().split()[-1]
@@ -78,7 +78,7 @@ def read_benchmark_log(dbname, filenames):
 		
 		for i in range(num_planners):
 			planner_name = logfile.readline()[:-1]
-			print planner_name
+			print "Parsing data for", planner_name
 			c.execute('select id from planners where name=?', (planner_name,) )
 			p = c.fetchone()
 			if p==None:
@@ -89,13 +89,13 @@ def read_benchmark_log(dbname, filenames):
 				planner_id = p[0]
 				
 			num_properties = int(logfile.readline().split()[0])
-			properties = """experimentid references experiments(id) on delete cascade,
-				plannerid references planners(id) on delete cascade"""
+			properties = """experimentid references experiments(id) ON DELETE CASCADE,
+				plannerid references planners(id) ON DELETE CASCADE"""
 			for j in range(num_properties):
-				properties = properties + ', \"' + logfile.readline()[:-1].replace(' ','_') +'\"'
+				properties = properties + ', \"' + logfile.readline()[:-1].replace(' ','_') +'\" REAL'
 
 			planner_table = 'planner_%s' % planner_name
-			print "create table %s (%s)" %  (planner_table,properties)
+#			print "create table %s (%s)" %  (planner_table,properties)
 			if not planner_table in table_names:
 				c.execute("create table %s (%s)" %  (planner_table,properties))
 			insert_fmt_str = 'insert into %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
@@ -104,7 +104,7 @@ def read_benchmark_log(dbname, filenames):
 			for j in range(num_runs):
 				run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x) 
 					for x in logfile.readline().split('; ')[:-1]])
-				print insert_fmt_str, run
+#				print insert_fmt_str, run
 				c.execute(insert_fmt_str, run)
 				
 			num_averages = int(logfile.readline().split()[0])
@@ -180,7 +180,8 @@ def save_as_mysql(dbname, mysqldump):
 	  	else:
 			process = True
 		if not process: continue
-		m = re.search('CREATE TABLE "([a-z_]*)"(.*)', line)
+		line = re.sub(r"[\n\r\t ]+", " ", line)
+		m = re.search('CREATE TABLE ([a-zA-Z0-9_]*)(.*)', line)
 		if m:
 			name, sub = m.groups()
 			sub = sub.replace('"','`')
@@ -188,12 +189,16 @@ def save_as_mysql(dbname, mysqldump):
 			CREATE TABLE IF NOT EXISTS %(name)s%(sub)s
 			'''
 			line = line % dict(name=name, sub=sub)
+			# make sure we use an engine that supports foreign keys
+			line = line.rstrip("\n\t ;") + " ENGINE = InnoDB;"
 		else:
-			m = re.search('INSERT INTO "([a-z_]*)"(.*)', line)
+			m = re.search('INSERT INTO "([a-zA-Z0-9_]*)"(.*)', line)
 			if m:
 				line = 'INSERT INTO %s%s\n' % m.groups()
 				line = line.replace('"', r'\"')
 				line = line.replace('"', "'")
+		# foreign keys need special attention
+		line = re.sub(r"([a-zA-Z0-9_]+) references ", "\\1 INTEGER, FOREIGN KEY (\\1) references ", line)
 		line = re.sub(r"([^'])'t'(.)", "\\1THIS_IS_TRUE\\2", line)
 		line = line.replace('THIS_IS_TRUE', '1')
 		line = re.sub(r"([^'])'f'(.)", "\\1THIS_IS_FALSE\\2", line)
