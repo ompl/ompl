@@ -58,7 +58,7 @@ def read_benchmark_log(dbname, filenames):
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	if not 'experiments' in table_names:
 		c.execute("""create table experiments
-		(id INTEGER PRIMARY KEY AUTOINCREMENT, timelimit REAL, memorylimit REAL, hostname TEXT, date DATE)""")
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, totaltime REAL, timelimit REAL, memorylimit REAL, hostname TEXT, date DATE)""")
 	if not 'planners' in table_names:
 		c.execute("""create table planners
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)""")
@@ -69,9 +69,10 @@ def read_benchmark_log(dbname, filenames):
 		num_planners = int(logfile.readline().split()[0])
 		timelimit = float(logfile.readline().split()[0])
 		memorylimit = float(logfile.readline().split()[0])
+		totaltime = float(logfile.readline().split()[0])
 
-		c.execute('insert into experiments values (?,?,?,?,?)',
-			(None, timelimit, memorylimit, hostname, date) )
+		c.execute('insert into experiments values (?,?,?,?,?,?)',
+			  (None, totaltime, timelimit, memorylimit, hostname, date) )
 		c.execute('select last_insert_rowid()')
 		experiment_id = c.fetchone()[0]
 		

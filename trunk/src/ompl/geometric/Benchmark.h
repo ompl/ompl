@@ -121,6 +121,7 @@ namespace ompl
 		\param maxTime the maximum amount of time a planner is allowed to run (seconds)
 		\param maxMem the maximum amount of memory a planner is allowed to use (MB)
 		\param runCount the number of times to run each planner
+		\param displayProgress flag indicating whether progress is to be displayed or not
 
 		\note The values returned for memory consumption may
 		be misleading. Memory allocators often free memory in
@@ -131,7 +132,7 @@ namespace ompl
 		0. To get correct averages for memory usage, use \e
 		runCount = 1 and run the process multiple times.
 	    */
-	    virtual void benchmark(double maxTime, double maxMem, unsigned int runCount);
+	    virtual void benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress = false);
 	    
 	    /** \brief Get the status of this */
 	    const Status& getStatus(void) const;
@@ -203,6 +204,7 @@ namespace ompl
 	    msg::Interface                msg_;
 	    
 	};
+	
     }
     
 }

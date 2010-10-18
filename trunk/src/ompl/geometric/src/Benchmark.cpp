@@ -38,6 +38,7 @@
 #include "ompl/util/Time.h"
 #include "ompl/util/Memory.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/progress.hpp>
 #include <fstream>
 #include <sstream>
 
@@ -140,7 +141,7 @@ namespace ompl
     
 }
 
-void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount)
+void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress)
 {
     // sanity checks
     setup_.setup();
@@ -156,7 +157,6 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	msg_.error("There are no planners to benchmark");
 	return;
     }
-    
     
     status_.running = true;
     exp_.totalDuration = 0.0;
@@ -184,7 +184,16 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    planners_[i]->setup();
 	exp_.planners[i].name = planners_[i]->getName();
     }
- 
+
+    msg_.inform("Beginning benchmark");
+    
+    msg::OutputHandler *oh = msg::getOutputHandler();
+    msg::noOutputHandler();
+    
+    boost::shared_ptr<boost::progress_display> progress;
+    if (displayProgress)
+	progress.reset(new boost::progress_display(100, std::cout));
+    
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
 	status_.activePlanner = exp_.planners[i].name;
@@ -194,6 +203,10 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	{
 	    status_.activeRun = j;
 	    status_.progressPercentage = (double)(100 * (runCount * i + j)) / (double)(planners_.size() * runCount);
+	    
+	    if (displayProgress)
+		while (status_.progressPercentage > progress->count())
+		    ++(*progress);
 	    
 	    // make sure there are no pre-allocated states and all planning data structures are cleared
 	    setup_.getSpaceInformation()->getStateAllocator().clear();
@@ -253,6 +266,15 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 
     status_.running = false;
     status_.progressPercentage = 100.0;
-
+    if (displayProgress)
+    {
+	while (status_.progressPercentage > progress->count())
+	    ++(*progress);
+	std::cout << std::endl;
+    }
+    
     exp_.totalDuration = time::seconds(time::now() - exp_.startTime);
+    msg::useOutputHandler(oh);
+
+    msg_.inform("Benchmark complete");
 }
