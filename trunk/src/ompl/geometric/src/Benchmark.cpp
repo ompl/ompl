@@ -71,7 +71,7 @@ void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
 void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 {
     out << "Running on " << exp_.host << std::endl;
-    out << "Starting at " << boost::posix_time::to_simple_string(exp_.startTime) << std::endl;
+    out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
     out << exp_.planners.size() << " planners" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
     out << exp_.maxMem << " MB per run" << std::endl;
