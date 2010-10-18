@@ -421,7 +421,7 @@ h2 {font-size:1.75em;margin-top:1.5em;color:#119;}
 h1+h2 {margin-top:-.5em;}
 p+div.fragment {margin-top:-1em;}
 p+ul {margin-top:-.75em;}
-h3 {font-style:italic;margin-top:1em;}
+h3 {font-style:italic;font-weight:bold;margin-top:1em;}
 #ompltitle {color:#fff;background:#119 url(images/gradient.png) repeat-x;font:helvetica;font-size:3em;text-shadow:#000 0px 0px 15px;padding:10px 0px .75em 10px;margin:0px 1px 1px 0px;width:940px;}
 .footer {font-size:small;font-weight:bold;color:#333;border-top:1px solid #119;margin-top:1em;padding-top:2px;}
 ul, ol {margin:0em 0em .5em 0em;padding-left:2em;}
