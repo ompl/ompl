@@ -64,12 +64,12 @@ def read_benchmark_log(dbname, filenames):
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)""")
 	for filename in filenames:
 		logfile = open(filename,'r')
+		hostname = logfile.readline().split()[-1]
+		date = " ".join(logfile.readline().split()[2:])
 		num_planners = int(logfile.readline().split()[0])
 		timelimit = float(logfile.readline().split()[0])
 		memorylimit = float(logfile.readline().split()[0])
 
-		hostname = 'hostname' # FIXME
-		date = datetime.date.today() # FIXME
 		c.execute('insert into experiments values (?,?,?,?,?)',
 			(None, timelimit, memorylimit, hostname, date) )
 		c.execute('select last_insert_rowid()')
@@ -92,8 +92,7 @@ def read_benchmark_log(dbname, filenames):
 				plannerid references planners(id) on delete cascade"""
 			for j in range(num_properties):
 				properties = properties + ', \"' + logfile.readline()[:-1].replace(' ','_') +'\"'
-			# properties =  properties + \
-			# 	'foreign key(experimentid) references experiment(id), foreign key(plannerid) references planner(id)'
+
 			planner_table = 'planner_%s' % planner_name
 			print "create table %s (%s)" %  (planner_table,properties)
 			if not planner_table in table_names:

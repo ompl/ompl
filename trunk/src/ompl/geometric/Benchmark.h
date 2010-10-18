@@ -63,9 +63,16 @@ namespace ompl
 		    progressPercentage = 0.0;
 		}
 		
+		/// Flag indicating whether benchmarking is running
 		bool         running;
+
+		/// The name of the planner currently being tested
 		std::string  activePlanner;
+
+		/// The number of the run currently being executed
 		unsigned int activeRun;
+
+		/// Total progress (0 to 100)
 		double       progressPercentage;		
 	    };
 	    
@@ -113,7 +120,17 @@ namespace ompl
 	    /** \brief Benchmark the added planners on the defined problem. 
 		\param maxTime the maximum amount of time a planner is allowed to run (seconds)
 		\param maxMem the maximum amount of memory a planner is allowed to use (MB)
-		\param runCount the number of times to run each planner */
+		\param runCount the number of times to run each planner
+
+		\note The values returned for memory consumption may
+		be misleading. Memory allocators often free memory in
+		a lazy fashion, so the returned values for memory
+		consumption indicate the increase in memory usage for
+		each run. Since not all the memory for the previous
+		run was freed, the increase in usage may be close to
+		0. To get correct averages for memory usage, use \e
+		runCount = 1 and run the process multiple times.
+	    */
 	    virtual void benchmark(double maxTime, double maxMem, unsigned int runCount);
 	    
 	    /** \brief Get the status of this */

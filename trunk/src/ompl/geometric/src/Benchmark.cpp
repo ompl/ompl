@@ -170,7 +170,6 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     std::vector<std::string> avgProperties;
     avgProperties.push_back("solved");
     avgProperties.push_back("time");
-    avgProperties.push_back("memory");
     
     // clear previous experimental data
     exp_.planners.clear();
@@ -209,7 +208,11 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 							  time::now() + time::seconds(maxTime)), 0.1);
 
 	    double timeUsed = time::seconds(time::now() - timeStart);
-	    MemUsage_t memUsed = getProcessMemoryUsage() - memStart;
+	    MemUsage_t memUsed = getProcessMemoryUsage();
+	    if (memStart < memUsed)
+		memUsed -= memStart;
+	    else
+		memUsed = 0;
 	    
 	    // store results 
 	    RunProperties run;
