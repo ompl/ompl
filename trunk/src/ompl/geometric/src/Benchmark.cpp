@@ -238,6 +238,13 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 		run["approximate solution"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
 		run["solution difference"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
 		run["solution length"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
+
+		// simplify solution
+		timeStart = time::now();
+		setup_.simplifySolution();
+		timeUsed = time::seconds(time::now() - timeStart);
+		run["simplification time"] = boost::lexical_cast<std::string>(timeUsed);
+		run["simplified solution length"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
 	    }
 	    
 	    base::PlannerData pd;
