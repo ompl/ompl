@@ -70,7 +70,7 @@ void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
 
 void ompl::geometric::Benchmark::saveResultsToFile(void) const
 {
-    std::string filename = "ompl_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
+    std::string filename = "ompl_" + exp_.host + "_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
     saveResultsToFile(filename.c_str());
 }
 
