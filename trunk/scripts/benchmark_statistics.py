@@ -96,7 +96,6 @@ def read_benchmark_log(dbname, filenames):
 				properties = properties + ', \"' + logfile.readline()[:-1].replace(' ','_') +'\" REAL'
 
 			planner_table = 'planner_%s' % planner_name
-#			print "create table %s (%s)" %  (planner_table,properties)
 			if not planner_table in table_names:
 				c.execute("create table %s (%s)" %  (planner_table,properties))
 			insert_fmt_str = 'insert into %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
@@ -105,7 +104,6 @@ def read_benchmark_log(dbname, filenames):
 			for j in range(num_runs):
 				run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x) 
 					for x in logfile.readline().split('; ')[:-1]])
-#				print insert_fmt_str, run
 				c.execute(insert_fmt_str, run)
 				
 			num_averages = int(logfile.readline().split()[0])
@@ -214,9 +212,9 @@ if __name__ == "__main__":
 	parser = OptionParser(usage)
 	parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
 		help="Filename of benchmark database [default: %default]")
-	parser.add_option("-b", "--boxplot", dest="boxplot", default="boxplot.pdf",
+	parser.add_option("-b", "--boxplot", dest="boxplot", default=None,
 		help="Create a PDF of box plots")
-	parser.add_option("-m", "--mysql", dest="mysqldb", default="benchmark.mysql",
+	parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
 		help="Save SQLite3 database as a MySQL dump file")
 	(options, args) = parser.parse_args()
 	
