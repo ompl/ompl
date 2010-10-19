@@ -144,7 +144,10 @@ namespace ompl
 
 	    /** \brief Save the results of the benchmark to a file. */
 	    void saveResultsToFile(const char *filename) const;
-	    
+
+	    /** \brief Save the results of the benchmark to a file. The name of the file is the current date and time. */
+	    void saveResultsToFile(void) const;
+
 	protected:
 
 	    /** \brief The data colledted from a run of a planner is

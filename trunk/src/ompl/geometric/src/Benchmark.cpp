@@ -68,8 +68,17 @@ void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
     saveResultsToStream(fout);
 }
 
+void ompl::geometric::Benchmark::saveResultsToFile(void) const
+{
+    std::string filename = "ompl_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
+    saveResultsToFile(filename.c_str());
+}
+
 void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 {
+    if (exp_.planners.empty())
+	return;
+    
     out << "Running on " << exp_.host << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
     out << exp_.planners.size() << " planners" << std::endl;
