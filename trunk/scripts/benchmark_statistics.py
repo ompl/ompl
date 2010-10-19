@@ -61,7 +61,7 @@ def read_benchmark_log(dbname, filenames):
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(1024), date DATETIME)""")
 	if not 'planners' in table_names:
 		c.execute("""CREATE TABLE planners
-		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), settings TEXT)""")
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
 	for filename in filenames:
 		logfile = open(filename,'r')
 		hostname = logfile.readline().split()[-1]
@@ -79,13 +79,15 @@ def read_benchmark_log(dbname, filenames):
 		for i in range(num_planners):
 			planner_name = logfile.readline()[:-1]
 			print "Parsing data for", planner_name
-
+			
+			# read common data for planner
 			num_common = int(logfile.readline().split()[0])
 			settings = ""
 			for j in range(num_common):
 				settings = settings + logfile.readline()
-				
-			c.execute('SELECT id FROM planners WHERE name=? AND settings="?"', (planner_name, settings,))
+
+			# find planner id
+			c.execute("SELECT id FROM planners WHERE (name=? AND settings=?)", (planner_name, settings,))
 			p = c.fetchone()
 			if p==None:
 				c.execute("INSERT INTO planners VALUES (?,?,?)", (None, planner_name, settings,))
@@ -93,8 +95,8 @@ def read_benchmark_log(dbname, filenames):
 				planner_id = c.fetchone()[0]
 			else:
 				planner_id = p[0]
-				
-
+			
+			# read run properties
 			num_properties = int(logfile.readline().split()[0])
 			properties = "experimentid INTEGER, plannerid INTEGER"
 			for j in range(num_properties):
