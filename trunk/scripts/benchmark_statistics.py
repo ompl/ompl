@@ -54,13 +54,13 @@ def read_benchmark_log(dbname, filenames):
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	c.execute('pragma foreign_keys = on')
-	c.execute("select name from sqlite_master where type='table'")
+	c.execute("SELECT name FROM sqlite_master WHERE type='table'")
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	if not 'experiments' in table_names:
-		c.execute("""create table experiments
-		(id INTEGER PRIMARY KEY AUTOINCREMENT, totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(512), date DATETIME)""")
+		c.execute("""CREATE TABLE experiments
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(1024), date DATETIME)""")
 	if not 'planners' in table_names:
-		c.execute("""create table planners
+		c.execute("""CREATE TABLE planners
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) UNIQUE)""")
 	for filename in filenames:
 		logfile = open(filename,'r')
@@ -71,33 +71,34 @@ def read_benchmark_log(dbname, filenames):
 		memorylimit = float(logfile.readline().split()[0])
 		totaltime = float(logfile.readline().split()[0])
 
-		c.execute('insert into experiments values (?,?,?,?,?,?)',
+		c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?)',
 			  (None, totaltime, timelimit, memorylimit, hostname, date) )
-		c.execute('select last_insert_rowid()')
+		c.execute('SELECT last_insert_rowid()')
 		experiment_id = c.fetchone()[0]
 		
 		for i in range(num_planners):
 			planner_name = logfile.readline()[:-1]
 			print "Parsing data for", planner_name
-			c.execute('select id from planners where name=?', (planner_name,) )
+			c.execute('SELECT id FROM planners WHERE name=?', (planner_name,) )
 			p = c.fetchone()
 			if p==None:
-				c.execute("insert into planners values (?,?)", (None,planner_name))
-				c.execute('select last_insert_rowid()')
+				c.execute("INSERT INTO planners VALUES (?,?)", (None,planner_name))
+				c.execute('SELECT last_insert_rowid()')
 				planner_id = c.fetchone()[0]
 			else:
 				planner_id = p[0]
 				
 			num_properties = int(logfile.readline().split()[0])
-			properties = """experimentid references experiments(id) ON DELETE CASCADE,
-				plannerid references planners(id) ON DELETE CASCADE"""
+			properties = "experimentid INTEGER, plannerid INTEGER"
 			for j in range(num_properties):
-				properties = properties + ', \"' + logfile.readline()[:-1].replace(' ','_') +'\" REAL'
+				properties = properties + ', ' + logfile.readline()[:-1].replace(' ','_') +' REAL'
+			properties = properties + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
+			properties = properties + ", FOREIGN KEY(plannerid) REFERENCES planners(id) ON DELETE CASCADE"
 
 			planner_table = 'planner_%s' % planner_name
 			if not planner_table in table_names:
-				c.execute("create table %s (%s)" %  (planner_table,properties))
-			insert_fmt_str = 'insert into %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
+				c.execute("CREATE TABLE %s (%s)" %  (planner_table,properties))
+			insert_fmt_str = 'INSERT INTO %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
 			
 			num_runs = int(logfile.readline().split()[0])
 			for j in range(num_runs):
@@ -121,10 +122,10 @@ def plot_attribute(cur, planners, attribute):
 	measurements = []
 	nan_counts = []
 	for planner in planners:
-		cur.execute('select * from %s' % planner)
+		cur.execute('SELECT * FROM %s' % planner)
 		attributes = [ t[0] for t in cur.description]
 		if attribute in attributes:
-			cur.execute('select %s from %s' % (attribute, planner))
+			cur.execute('SELECT %s FROM %s' % (attribute, planner))
 			result = [ t[0] for t in cur.fetchall() ]
 			nan_counts.append(len([x for x in result if x==None]))
 			measurements.append([x for x in result if not x==None])
@@ -149,11 +150,11 @@ def plot_statistics(dbname, fname):
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	c.execute('pragma foreign_keys = on')
-	c.execute("select name from sqlite_master where type='table'")
+	c.execute("SELECT name FROM sqlite_master WHERE type='table'")
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	planner_names = [ t for t in table_names if t.startswith('planner_') ]
 	# use attributes from first planner
-	c.execute('select * from %s' % planner_names[0])
+	c.execute('SELECT * FROM %s' % planner_names[0])
 	attributes = [ t[0] for t in c.description]
 	attributes.remove('plannerid')
 	attributes.remove('experimentid')
@@ -170,6 +171,22 @@ def save_as_mysql(dbname, mysqldump):
 	import re
 	conn = sqlite3.connect(dbname)
 	mysqldump = open(mysqldump,'w')
+	
+	# make sure all tables are dropped in an order that keepd foreign keys valid
+	c = conn.cursor()
+	c.execute("SELECT name FROM sqlite_master WHERE type='table'")
+	table_names = [ str(t[0]) for t in c.fetchall() ]
+	c.close()
+	last = ['experiments', 'planners']
+	for table in table_names:
+		if table.startswith("sqlite"):
+			continue
+		if not table in last:
+			mysqldump.write("DROP TABLE IF EXISTS `%s`;" % table)
+	for table in last:
+		if table in table_names:
+			mysqldump.write("DROP TABLE IF EXISTS `%s`;" % table)
+
 	for line in conn.iterdump():
 		process = False
 		for nope in ('BEGIN TRANSACTION','COMMIT',
@@ -183,9 +200,7 @@ def save_as_mysql(dbname, mysqldump):
 		if m:
 			name, sub = m.groups()
 			sub = sub.replace('"','`')
-			line = '''DROP TABLE IF EXISTS %(name)s;
-			CREATE TABLE IF NOT EXISTS %(name)s%(sub)s
-			'''
+			line = '''CREATE TABLE IF NOT EXISTS %(name)s%(sub)s'''
 			line = line % dict(name=name, sub=sub)
 			# make sure we use an engine that supports foreign keys
 			line = line.rstrip("\n\t ;") + " ENGINE = InnoDB;"
@@ -195,8 +210,7 @@ def save_as_mysql(dbname, mysqldump):
 				line = 'INSERT INTO %s%s\n' % m.groups()
 				line = line.replace('"', r'\"')
 				line = line.replace('"', "'")
-		# foreign keys need special attention
-		line = re.sub(r"([a-zA-Z0-9_]+) references ", "\\1 INTEGER, FOREIGN KEY (\\1) references ", line)
+
 		line = re.sub(r"([^'])'t'(.)", "\\1THIS_IS_TRUE\\2", line)
 		line = line.replace('THIS_IS_TRUE', '1')
 		line = re.sub(r"([^'])'f'(.)", "\\1THIS_IS_FALSE\\2", line)
