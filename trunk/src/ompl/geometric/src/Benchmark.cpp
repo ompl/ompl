@@ -113,16 +113,16 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 
 	// get names of averaged properties
 	properties.clear();
-	for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].avg.begin() ;
-	     mit != exp_.planners[i].avg.end() ; ++mit)
+	for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].common.begin() ;
+	     mit != exp_.planners[i].common.end() ; ++mit)
 	    properties.push_back(mit->first);
 	std::sort(properties.begin(), properties.end());
 	
-	// print names & values of averaged properties
-	out << properties.size() << " averaged properties" << std::endl;
+	// print names & values of common properties
+	out << properties.size() << " common properties" << std::endl;
 	for (unsigned int k = 0 ; k < properties.size() ; ++k)
 	{
-	    std::map<std::string, std::string>::const_iterator it = exp_.planners[i].avg.find(properties[k]);
+	    std::map<std::string, std::string>::const_iterator it = exp_.planners[i].common.find(properties[k]);
 	    out << it->first << " = " << it->second << std::endl;
 	}
 	out << '.' << std::endl;
@@ -165,11 +165,6 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     exp_.host = getHostname();
     
     exp_.startTime = time::now();
-    
-    // the set of properties to be averaged, for each planner
-    std::vector<std::string> avgProperties;
-    avgProperties.push_back("solved");
-    avgProperties.push_back("time");
     
     // clear previous experimental data
     exp_.planners.clear();
@@ -229,45 +224,36 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    
 	    // store results 
 	    RunProperties run;
-	    run["solved"] = boost::lexical_cast<std::string>(solved);
-	    run["time"] = boost::lexical_cast<std::string>(timeUsed);
-	    run["memory"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
-	    run["preallocated states"] = boost::lexical_cast<std::string>(setup_.getSpaceInformation()->getStateAllocator().size());
+	    run["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
+	    run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
+	    run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
+	    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(setup_.getSpaceInformation()->getStateAllocator().size());
 	    if (solved)
 	    {
-		run["approximate solution"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
-		run["solution difference"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
-		run["solution length"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
+		run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
+		run["solution difference REAL"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
+		run["solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
 
 		// simplify solution
 		timeStart = time::now();
 		setup_.simplifySolution();
 		timeUsed = time::seconds(time::now() - timeStart);
-		run["simplification time"] = boost::lexical_cast<std::string>(timeUsed);
-		run["simplified solution length"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
+		run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
+		run["simplified solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
 	    }
 	    
 	    base::PlannerData pd;
 	    planners_[i]->getPlannerData(pd);
-	    run["graph states"] = boost::lexical_cast<std::string>(pd.states.size());
+	    run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.states.size());
 	    unsigned long edges = 0;
 	    for (unsigned int k = 0 ; k < pd.edges.size() ; ++k)
 		edges += pd.edges[k].size();
-	    run["graph motions"] = boost::lexical_cast<std::string>(edges);
+	    run["graph motions INTEGER"] = boost::lexical_cast<std::string>(edges);
 	    
 	    for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
 		run[it->first] = it->second;
 	    
 	    exp_.planners[i].runs.push_back(run);
-	}
-
-	// compute averages
-	for (unsigned int p = 0 ; p < avgProperties.size() ; ++p)
-	{
-	    double sum = 0.0;
-	    for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
-		sum += boost::lexical_cast<double>(exp_.planners[i].runs[j][avgProperties[p]]);
-	    exp_.planners[i].avg[avgProperties[p]] = boost::lexical_cast<std::string>(sum / (double)exp_.planners[i].runs.size());
 	}
     } 
 

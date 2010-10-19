@@ -91,7 +91,10 @@ def read_benchmark_log(dbname, filenames):
 			num_properties = int(logfile.readline().split()[0])
 			properties = "experimentid INTEGER, plannerid INTEGER"
 			for j in range(num_properties):
-				properties = properties + ', ' + logfile.readline()[:-1].replace(' ','_') +' REAL'
+				field = logfile.readline().split()
+				ftype = field[-1]
+				fname = "_".join(field[:-1])
+				properties = properties + ', ' + fname + ' ' + ftype
 			properties = properties + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
 			properties = properties + ", FOREIGN KEY(plannerid) REFERENCES planners(id) ON DELETE CASCADE"
 
@@ -105,9 +108,11 @@ def read_benchmark_log(dbname, filenames):
 				run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x) 
 					for x in logfile.readline().split('; ')[:-1]])
 				c.execute(insert_fmt_str, run)
-				
-			num_averages = int(logfile.readline().split()[0])
-			for j in range(num_averages): logfile.readline()
+			
+			# ignore common properties FIXME; these should go to planners maybe? as a 
+			# string? (changed from avg properties to mean settings for the planner, common for all runs)
+			num_common = int(logfile.readline().split()[0])
+			for j in range(num_common): logfile.readline()
 			logfile.readline()
 		logfile.close()
 	conn.commit()

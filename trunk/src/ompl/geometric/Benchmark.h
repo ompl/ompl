@@ -160,10 +160,8 @@ namespace ompl
 		/// Data collected for each run
 		std::vector<RunProperties> runs;
 
-		/// Some common properties averaged from the
-		/// runs. This is not extra information. It is simply
-		/// useful for quick inspection of results.
-		RunProperties              avg;
+		/// Some common properties for all the runs
+		RunProperties              common;
 	    };
 	    
 	    /** \brief This structure holds experimental data for a set of planners */
