@@ -41,6 +41,8 @@
   ompl::base::StateManifoldPtr manifold(...);
   ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(manifold));
   si->setValidStateSamplerAllocator(boost::bind(&allocValidStateSampler, _1));
+  // for simplified calls, you can also use:
+  // si->setValidStateSamplerAllocator(&allocValidStateSampler);
   @endcode
 
 - Q: <em>How do I use state space projections?</em>

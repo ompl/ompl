@@ -81,13 +81,30 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
     {
 	out << exp_.planners[i].name << std::endl;
 	
+	// get names of common properties
+	std::vector<std::string> properties;
+	for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].common.begin() ;
+	     mit != exp_.planners[i].common.end() ; ++mit)
+	    properties.push_back(mit->first);
+	std::sort(properties.begin(), properties.end());
+	
+	// print names & values of common properties
+	out << properties.size() << " common properties" << std::endl;
+	for (unsigned int k = 0 ; k < properties.size() ; ++k)
+	{
+	    std::map<std::string, std::string>::const_iterator it = exp_.planners[i].common.find(properties[k]);
+	    out << it->first << " = " << it->second << std::endl;
+	}
+	
 	// construct the list of all possible properties for all runs
 	std::map<std::string, bool> propSeen;
 	for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
 	    for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].runs[j].begin() ;
 		 mit != exp_.planners[i].runs[j].end() ; ++mit)
 		propSeen[mit->first] = true;
-	std::vector<std::string> properties;
+
+	properties.clear();
+
 	for (std::map<std::string, bool>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
 	    properties.push_back(it->first);
 	std::sort(properties.begin(), properties.end());
@@ -110,21 +127,7 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 	    }
 	    out << std::endl;
 	}
-
-	// get names of averaged properties
-	properties.clear();
-	for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].common.begin() ;
-	     mit != exp_.planners[i].common.end() ; ++mit)
-	    properties.push_back(mit->first);
-	std::sort(properties.begin(), properties.end());
 	
-	// print names & values of common properties
-	out << properties.size() << " common properties" << std::endl;
-	for (unsigned int k = 0 ; k < properties.size() ; ++k)
-	{
-	    std::map<std::string, std::string>::const_iterator it = exp_.planners[i].common.find(properties[k]);
-	    out << it->first << " = " << it->second << std::endl;
-	}
 	out << '.' << std::endl;
     }
 }

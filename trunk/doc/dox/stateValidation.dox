@@ -71,20 +71,4 @@
       specific resolution.
       @include mv.cpp
 
-      \par
-      In addition to these classes, there is one optimization in the
-      ompl::control::ControlManifold class that could potentially
-      perform state validation: the function
-      ompl::control::ControlManifold::propagate() returns a flag of
-      type ompl::control::PropagationResult, which can optionally
-      indicate whether the state at which the propagation was
-      initiated was valid or not. The reason for this option is that,
-      in some cases, to propagate the system forward in time,
-      collision checking needs to be performed. This means that
-      potentially a large computational chunk of evaluating the state
-      validity is performed anyway. If this is the case, the value
-      returned by ompl::control::ControlManifold::propagate() may be
-      used by callers to perform fewer state validity checks.
-
-
 */

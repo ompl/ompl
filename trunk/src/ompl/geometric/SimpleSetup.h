@@ -114,6 +114,12 @@ namespace ompl
 	    {
 		return psk_;
 	    }
+
+	    /** \brief Get the path simplifier */
+	    PathSimplifierPtr& getPathSimplifier(void)
+	    {
+		return psk_;
+	    }
 	    
 	    /** \brief Get the solution path. Throw an exception if no solution is available */
 	    PathGeometric& getSolutionPath(void) const;
@@ -133,7 +139,8 @@ namespace ompl
 
 	    /** \brief Set the start and goal states to use. The state
 		manifold is inferred, if not yet set. */
-	    void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
+	    void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
+				       const double threshold = std::numeric_limits<double>::epsilon())
 	    {
 		pdef_->setStartAndGoalStates(start, goal, threshold);
 	    }
