@@ -66,7 +66,6 @@ def read_benchmark_log(dbname, filenames):
 		logfile = open(filename,'r')
 		hostname = logfile.readline().split()[-1]
 		date = " ".join(logfile.readline().split()[2:])
-		date = date.split(",")[0]
 		num_planners = int(logfile.readline().split()[0])
 		timelimit = float(logfile.readline().split()[0])
 		memorylimit = float(logfile.readline().split()[0])
