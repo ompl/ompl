@@ -77,9 +77,9 @@ namespace ompl
 	    };
 	    
 	    /** \brief Constructor needs the manifold needed for planning. */
-	    explicit
-	    Benchmark(SimpleSetup &setup) : setup_(setup), msg_("Benchmark")
+	    Benchmark(SimpleSetup &setup, const std::string &name = std::string()) : setup_(setup), msg_("Benchmark")
 	    {
+		exp_.name = name;
 	    }
 	    
 	    virtual ~Benchmark(void)
@@ -171,6 +171,9 @@ namespace ompl
 	    /** \brief This structure holds experimental data for a set of planners */
 	    struct CompleteExperiment
 	    {
+		/** \brief The name of the experiment */
+		std::string                    name;
+
 		/// The collected experimental data; each element of the array (an experiment) corresponds to a planner
 		std::vector<PlannerExperiment> planners;
 		
@@ -186,13 +189,16 @@ namespace ompl
 		/// The amount of time spent to collect the information in this structure (seconds)
 		double                         totalDuration;
 		
+		/// The output of SimpleSetup::print() before the experiment was started
+		std::string                    setupInfo;
+		
 		/// Hostname that identifies the machine the benchmark ran on
 		std::string                    host;
 	    };
 	    		
 	    /** \brief The instance of the problem to benchmark */
 	    SimpleSetup                  &setup_;
-
+	    	    
 	    /// The set of planners to be tested
 	    std::vector<base::PlannerPtr> planners_;
 	    

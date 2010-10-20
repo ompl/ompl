@@ -108,12 +108,15 @@ bool ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 	return false;
     }
     
-    out << "Running on " << exp_.host << std::endl;
+    out << "Experiment " << (exp_.name.empty() ? "NO_NAME" : exp_.name) << std::endl;
+    out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
-    out << exp_.planners.size() << " planners" << std::endl;
+    out << "<<<|" << std::endl << exp_.setupInfo << "|>>>" << std::endl;
+
     out << exp_.maxTime << " seconds per run" << std::endl;
     out << exp_.maxMem << " MB per run" << std::endl;
     out << exp_.totalDuration << " seconds spent to collect the data" << std::endl;
+    out << exp_.planners.size() << " planners" << std::endl;
 
     for (unsigned int i = 0 ; i < exp_.planners.size() ; ++i)
     {
@@ -222,6 +225,10 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	exp_.planners[i].name = planners_[i]->getName();
     }
 
+    std::stringstream setupInfo;
+    setup_.print(setupInfo);
+    exp_.setupInfo = setupInfo.str();
+    
     msg_.inform("Beginning benchmark");
     
     msg::OutputHandler *oh = msg::getOutputHandler();
@@ -230,7 +237,9 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     boost::shared_ptr<boost::progress_display> progress;
     if (displayProgress)
 	progress.reset(new boost::progress_display(100, std::cout));
-    
+
+    MemUsage_t memStart = getProcessMemoryUsage();
+
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
 	status_.activePlanner = exp_.planners[i].name;
@@ -249,8 +258,7 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    setup_.getSpaceInformation()->getStateAllocator().clear();
 	    planners_[i]->clear();
 	    setup_.getGoal()->clearSolutionPath();
-	
-	    MemUsage_t memStart = getProcessMemoryUsage();
+	    
 	    time::point timeStart = time::now();
 
 	    bool solved = false;

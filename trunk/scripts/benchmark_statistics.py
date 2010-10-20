@@ -58,24 +58,31 @@ def read_benchmark_log(dbname, filenames):
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	if not 'experiments' in table_names:
 		c.execute("""CREATE TABLE experiments
-		(id INTEGER PRIMARY KEY AUTOINCREMENT, totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(1024), date DATETIME)""")
+		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(1024), date DATETIME, setup TEXT)""")
 	if not 'planners' in table_names:
 		c.execute("""CREATE TABLE planners
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
 	for filename in filenames:
 		logfile = open(filename,'r')
+		expname =  logfile.readline().split()[-1]
 		hostname = logfile.readline().split()[-1]
 		date = " ".join(logfile.readline().split()[2:])
-		num_planners = int(logfile.readline().split()[0])
+		logfile.readline() # skip <<<|
+		expsetup = ""
+		expline = logfile.readline()
+		while not expline.startswith("|>>>"):
+			expsetup = expsetup + expline
+			expline = logfile.readline()
 		timelimit = float(logfile.readline().split()[0])
 		memorylimit = float(logfile.readline().split()[0])
 		totaltime = float(logfile.readline().split()[0])
 
-		c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?)',
-			  (None, totaltime, timelimit, memorylimit, hostname, date) )
+		c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?)',
+			  (None, expname, totaltime, timelimit, memorylimit, hostname, date, expsetup) )
 		c.execute('SELECT last_insert_rowid()')
 		experiment_id = c.fetchone()[0]
-		
+		num_planners = int(logfile.readline().split()[0])
+
 		for i in range(num_planners):
 			planner_name = logfile.readline()[:-1]
 			print "Parsing data for", planner_name
