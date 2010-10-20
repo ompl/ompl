@@ -10,6 +10,7 @@
 \par Intermediate
 - \ref genericPlanning "Generic instructions for setting up a planner"
 - \ref implementingStateManifolds "Implementing manifolds"
+- \ref goalRepresentation "Representing goals"
 .
 
 
