@@ -15,6 +15,7 @@
 
 
 \par Advanced
+- \ref benchmark "Benchmarking planners"
 - \ref newPlanner "Adding a new planner"
 .
 
