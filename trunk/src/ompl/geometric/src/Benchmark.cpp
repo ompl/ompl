@@ -62,22 +62,51 @@ namespace ompl
     }
 }
 
-void ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
+std::string ompl::geometric::Benchmark::getResultsFilename(void) const
 {
+    return "ompl_" + exp_.host + "_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
+}
+
+bool ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
+{
+    bool result = false;
+    
     std::ofstream fout(filename);
-    saveResultsToStream(fout);
+    if (fout.good())
+    {
+	result = saveResultsToStream(fout);
+	msg_.inform("Results saved to '%s'", filename);
+    }
+    else
+    {
+	// try to save to a different file, if we can
+	if (getResultsFilename() != std::string(filename))
+	    result = saveResultsToFile();
+	
+	msg_.error("Unable to write results to '%s'", filename);
+    }
+    return result;
 }
 
-void ompl::geometric::Benchmark::saveResultsToFile(void) const
+bool ompl::geometric::Benchmark::saveResultsToFile(void) const
 {
-    std::string filename = "ompl_" + exp_.host + "_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
-    saveResultsToFile(filename.c_str());
+    std::string filename = getResultsFilename();
+    return saveResultsToFile(filename.c_str());
 }
 
-void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
+bool ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 {
     if (exp_.planners.empty())
-	return;
+    {
+	msg_.warn("There is no experimental data to save");	
+	return false;
+    }
+    
+    if (!out.good())
+    {
+	msg_.error("Unable to write to stream");
+	return false;
+    }
     
     out << "Running on " << exp_.host << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
@@ -139,6 +168,7 @@ void ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
 	
 	out << '.' << std::endl;
     }
+    return true;
 }
 
 namespace ompl
@@ -223,10 +253,19 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 	    MemUsage_t memStart = getProcessMemoryUsage();
 	    time::point timeStart = time::now();
 
-	    bool solved = planners_[i]->solve(boost::bind(&terminationCondition,
-							  memStart + (MemUsage_t)(maxMem * 1024 * 1024),
-							  time::now() + time::seconds(maxTime)), 0.1);
-
+	    bool solved = false;
+	    
+	    try
+	    {
+		solved = planners_[i]->solve(boost::bind(&terminationCondition,
+							 memStart + (MemUsage_t)(maxMem * 1024 * 1024),
+							 time::now() + time::seconds(maxTime)), 0.1);
+	    }
+	    catch(...)
+	    {
+		msg_.error("There was an error executing planner %s, run = %u", status_.activePlanner.c_str(), j);
+	    }
+	    
 	    double timeUsed = time::seconds(time::now() - timeStart);
 	    MemUsage_t memUsed = getProcessMemoryUsage();
 	    if (memStart < memUsed)
@@ -235,37 +274,52 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 		memUsed = 0;
 	    
 	    // store results 
-	    RunProperties run;
-	    run["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
-	    run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
-	    run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
-	    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(setup_.getSpaceInformation()->getStateAllocator().size());
-	    if (solved)
-	    {
-		run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
-		run["solution difference REAL"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
-		run["solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
-
-		// simplify solution
-		timeStart = time::now();
-		setup_.simplifySolution();
-		timeUsed = time::seconds(time::now() - timeStart);
-		run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
-		run["simplified solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
+	    try
+	    {		
+		RunProperties run;
+		run["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
+		run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
+		run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
+		run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(setup_.getSpaceInformation()->getStateAllocator().size());
+		if (solved)
+		{
+		    run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
+		    run["solution difference REAL"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
+		    run["solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
+		    
+		    unsigned int factor = setup_.getStateManifold()->getValidSegmentCountFactor();
+		    setup_.getStateManifold()->setValidSegmentCountFactor(factor * 4);
+		    run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
+		    setup_.getStateManifold()->setValidSegmentCountFactor(factor);
+		    
+		    // simplify solution
+		    timeStart = time::now();
+		    setup_.simplifySolution();
+		    timeUsed = time::seconds(time::now() - timeStart);
+		    run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
+		    run["simplified solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
+		    setup_.getStateManifold()->setValidSegmentCountFactor(factor * 4);
+		    run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
+		    setup_.getStateManifold()->setValidSegmentCountFactor(factor);
+		}
+		
+		base::PlannerData pd;
+		planners_[i]->getPlannerData(pd);
+		run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.states.size());
+		unsigned long edges = 0;
+		for (unsigned int k = 0 ; k < pd.edges.size() ; ++k)
+		    edges += pd.edges[k].size();
+		run["graph motions INTEGER"] = boost::lexical_cast<std::string>(edges);
+		
+		for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
+		    run[it->first] = it->second;
+		
+		exp_.planners[i].runs.push_back(run);
 	    }
-	    
-	    base::PlannerData pd;
-	    planners_[i]->getPlannerData(pd);
-	    run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.states.size());
-	    unsigned long edges = 0;
-	    for (unsigned int k = 0 ; k < pd.edges.size() ; ++k)
-		edges += pd.edges[k].size();
-	    run["graph motions INTEGER"] = boost::lexical_cast<std::string>(edges);
-	    
-	    for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
-		run[it->first] = it->second;
-	    
-	    exp_.planners[i].runs.push_back(run);
+	    catch(...)
+	    {
+		msg_.error("There was an error in the extraction of planner results: planner = %s, run = %u", status_.activePlanner.c_str(), j);
+	    }
 	}
     } 
 

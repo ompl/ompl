@@ -137,18 +137,19 @@ namespace ompl
 	    /** \brief Get the status of this */
 	    const Status& getStatus(void) const;
 	    
-	    double progressPercentage(void) const;
-	    
 	    /** \brief Save the results of the benchmark to a stream. */
-	    virtual void saveResultsToStream(std::ostream &out = std::cout) const;
+	    virtual bool saveResultsToStream(std::ostream &out = std::cout) const;
 
 	    /** \brief Save the results of the benchmark to a file. */
-	    void saveResultsToFile(const char *filename) const;
+	    bool saveResultsToFile(const char *filename) const;
 
 	    /** \brief Save the results of the benchmark to a file. The name of the file is the current date and time. */
-	    void saveResultsToFile(void) const;
+	    bool saveResultsToFile(void) const;
 
 	protected:
+
+	    /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
+	    std::string getResultsFilename(void) const;
 
 	    /** \brief The data colledted from a run of a planner is
 		stored as key-value pairs. */

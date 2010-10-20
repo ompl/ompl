@@ -143,13 +143,29 @@ namespace ompl
 	    /** \brief When performing discrete validation of motions,
 		the length of the longest segment that does not
 		require state validation needs to be speficied. This
-		function sets this length as a fraction of the manifold's
-		maximum extent. */
+		function sets this length as a fraction of the
+		manifold's maximum extent.
+		
+		\note This function's effect is not considered until
+		after setup() has been called. For immediate effects
+		(i.e., during planning) use
+		setValidSegmentCountFactor() */
 	    virtual void setLongestValidSegmentFraction(double segmentFraction);
 	    
 	    /** \brief Count how many segments of the "longest valid length" fit on the motion from \e state1 to \e state2 */
 	    virtual unsigned int validSegmentCount(const State *state1, const State *state2) const;
 	    
+	    /** \brief Set \e factor to be the value to multiply the
+		return value of validSegmentCount(). By default, this
+		value is 1. The higher the value, the smaller the size
+		of the segments considered valid. The effect of this
+		function is immediate (setup() does not need to be
+		called). */
+	    void setValidSegmentCountFactor(unsigned int factor);
+
+	    /** \brief Get the value used to multiply the return value of validSegmentCount().*/
+	    unsigned int getValidSegmentCountFactor(void) const;
+
 	    /** \brief Checks whether two states are equal */
 	    virtual bool equalStates(const State *state1, const State *state2) const = 0;
 
@@ -225,7 +241,10 @@ namespace ompl
 	    
 	    /** \brief The longest valid segment at the time setup() was called */
 	    double                                        longestValidSegment_;
-
+	    
+	    /** \brief The factor to multiply the value returned by validSegmentCount() */
+	    unsigned int                                  longestValidSegmentCountFactor_;
+	    
 	    /** \brief Interface used for console output */
 	    msg::Interface                                msg_;
 	    

@@ -199,6 +199,7 @@ namespace ompl
 		return stateManifold_->getLongestValidSegmentFraction();
 	    }	    
 	    
+	    
 	    /** @}*/
 
 	    /** \brief Return the dimension of the state space */

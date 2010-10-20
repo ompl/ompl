@@ -264,6 +264,7 @@ void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
     out << "  - dimension: " << stateManifold_->getDimension() << std::endl;
     out << "  - extent: " << stateManifold_->getMaximumExtent() << std::endl;
     out << "  - state validity check resolution: " << (getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
+    out << "  - valid segment count factor: " << stateManifold_->getValidSegmentCountFactor() << std::endl;
     out << "  - state manifold:" << std::endl;
     stateManifold_->printSettings(out);
 }

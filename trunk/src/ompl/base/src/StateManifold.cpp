@@ -58,6 +58,8 @@ ompl::base::StateManifold::StateManifold(void)
     
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
+    longestValidSegmentCountFactor_ = 1;
+    
     maxExtent_ = std::numeric_limits<double>::infinity();
 }
 
@@ -147,11 +149,23 @@ void ompl::base::StateManifold::registerProjection(const std::string &name, cons
 	msg_.error("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
 }
 
+void ompl::base::StateManifold::setValidSegmentCountFactor(unsigned int factor)
+{
+    if (factor < 1)
+	throw Exception("The multiplicative factor for the valid segment count between two states must be strictly positive");
+    longestValidSegmentCountFactor_ = factor;
+}
+
 void ompl::base::StateManifold::setLongestValidSegmentFraction(double segmentFraction)
 {
     if (segmentFraction < std::numeric_limits<double>::epsilon() || segmentFraction > 1.0 - std::numeric_limits<double>::epsilon())
 	throw Exception("The fraction of the extent must be larger than 0 and less than 1");
     longestValidSegmentFraction_ = segmentFraction;
+}
+
+unsigned int ompl::base::StateManifold::getValidSegmentCountFactor(void) const
+{
+    return longestValidSegmentCountFactor_;
 }
 
 double ompl::base::StateManifold::getLongestValidSegmentFraction(void) const
@@ -161,7 +175,7 @@ double ompl::base::StateManifold::getLongestValidSegmentFraction(void) const
 
 unsigned int ompl::base::StateManifold::validSegmentCount(const State *state1, const State *state2) const
 {
-    return (unsigned int)ceil(distance(state1, state2) / longestValidSegment_);
+    return longestValidSegmentCountFactor_ * (unsigned int)ceil(distance(state1, state2) / longestValidSegment_);
 }
 
 void ompl::base::CompoundStateManifold::addSubManifold(const StateManifoldPtr &component, double weight)
