@@ -34,66 +34,66 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_STATES_
-#define OMPL_BASE_GOAL_STATES_
+#ifndef OMPL_BASE_GOAL_LAZY_SAMPLES_
+#define OMPL_BASE_GOAL_LAZY_SAMPLES_
 
-#include "ompl/base/GoalSampleableRegion.h"
-#include "ompl/base/ScopedState.h"
-#include <vector>
+#include "ompl/base/GoalStates.h"
+#include <boost/thread/thread.hpp>
+#include <boost/function.hpp>
 
 namespace ompl
 {
+    
     namespace base
     {
 	
-	/** \brief Definition of a set of goal states */
-	class GoalStates : public GoalSampleableRegion
+	/** \brief Definition of a goal region that can be sampled,
+	 but the sampling process can be slow.  This class allows
+	 sampling the happen in a separate thread, and the number of
+	 goals may increase, as the planner is running, in a
+	 thread-safe manner. */
+	class GoalLazySamples : public GoalStates
 	{
 	public:
 
-	    /** \brief Create a goal representation that is in fact a set of states  */	    
-	    GoalStates(const SpaceInformationPtr &si) : GoalSampleableRegion(si), samplePosition(0)
-	    {
-	    }
-	    
-	    virtual ~GoalStates(void);
+	    /** \brief Create a goal region that can be sampled in a
+		lazy fashion. A function that produces samples from
+		that region needs to be passed to this
+		constructor. That function returns a truth value. If
+		the return value is true, further calls to the
+		function can be made. If the return is false, no more
+		calls should be made. At every call, the function
+		fills its state argument with a goal state. */
+	    GoalLazySamples(const SpaceInformationPtr &si, const boost::function1<bool, State*> &samplerFunc);
+
+	    virtual ~GoalLazySamples(void);
 	    
 	    virtual void sampleGoal(State *st) const;
-
-	    virtual unsigned int maxSampleCount(void) const;
-
+	    
 	    virtual double distanceGoal(const State *st) const;
 	    
-	    virtual void print(std::ostream &out = std::cout) const;
-	    	    
-	    /** \brief Add a goal state */
 	    virtual void addState(const State* st);
 	    
-	    /** \brief Add a goal state (calls the previous definition of addState())*/
-	    void addState(const ScopedState<> &st);
-	    
-	    /** \brief Clear all goal states */
 	    virtual void clear(void);
 	    
-	    /** \brief Check if there are any states in this goal region */
-	    bool hasStates(void) const
-	    {
-		return !states.empty();
-	    }
+	protected:
 	    
-	    /** \brief The goal states. Only ones that are valid are considered by the motion planner. */
-	    std::vector<State*> states;
+	    void goalSamplingThread(void);
 	    
-	private:
+	    /** \brief Lock for updating the set of states */
+	    mutable boost::mutex           lock_;
 	    
-	    /** \brief The index of the next sample to be returned  */
-	    mutable unsigned int samplePosition;
+	    /** \brief Function that produces samples */
+	    boost::function1<bool, State*> samplerFunc_;
 	    
-	    /** \brief Free allocated memory */
-	    void freeMemory(void);
+	    /** \brief Flag used to notify the sampling thread to terminate sampling */
+	    bool                           terminateSamplingThread_;
+	    
+	    /** \brief Additional thread for sampling goal states */
+	    boost::thread                  samplingThread_;
 	    
 	};
-
+	
     }
 }
 

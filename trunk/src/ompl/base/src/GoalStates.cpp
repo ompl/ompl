@@ -41,14 +41,19 @@
 
 ompl::base::GoalStates::~GoalStates(void)
 {
-    clear();
+    freeMemory();
 }
 
 void ompl::base::GoalStates::clear(void)
 {
+    freeMemory();
+    states.clear();
+}
+
+void ompl::base::GoalStates::freeMemory(void)
+{
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	si_->freeState(states[i]);
-    states.clear();
 }
 
 double ompl::base::GoalStates::distanceGoal(const State *st) const

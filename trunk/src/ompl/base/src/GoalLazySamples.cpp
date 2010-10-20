@@ -34,67 +34,50 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_STATES_
-#define OMPL_BASE_GOAL_STATES_
-
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/GoalLazySamples.h"
 #include "ompl/base/ScopedState.h"
-#include <vector>
 
-namespace ompl
+ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const boost::function1<bool, State*> &samplerFunc) :
+    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(&GoalLazySamples::goalSamplingThread, this)
 {
-    namespace base
+}
+
+ompl::base::GoalLazySamples::~GoalLazySamples(void)
+{
+    terminateSamplingThread_ = true;
+    samplingThread_.join();
+}
+
+void ompl::base::GoalLazySamples::goalSamplingThread(void)
+{
+    if (!terminateSamplingThread_ && samplerFunc_)
     {
-	
-	/** \brief Definition of a set of goal states */
-	class GoalStates : public GoalSampleableRegion
-	{
-	public:
-
-	    /** \brief Create a goal representation that is in fact a set of states  */	    
-	    GoalStates(const SpaceInformationPtr &si) : GoalSampleableRegion(si), samplePosition(0)
-	    {
-	    }
-	    
-	    virtual ~GoalStates(void);
-	    
-	    virtual void sampleGoal(State *st) const;
-
-	    virtual unsigned int maxSampleCount(void) const;
-
-	    virtual double distanceGoal(const State *st) const;
-	    
-	    virtual void print(std::ostream &out = std::cout) const;
-	    	    
-	    /** \brief Add a goal state */
-	    virtual void addState(const State* st);
-	    
-	    /** \brief Add a goal state (calls the previous definition of addState())*/
-	    void addState(const ScopedState<> &st);
-	    
-	    /** \brief Clear all goal states */
-	    virtual void clear(void);
-	    
-	    /** \brief Check if there are any states in this goal region */
-	    bool hasStates(void) const
-	    {
-		return !states.empty();
-	    }
-	    
-	    /** \brief The goal states. Only ones that are valid are considered by the motion planner. */
-	    std::vector<State*> states;
-	    
-	private:
-	    
-	    /** \brief The index of the next sample to be returned  */
-	    mutable unsigned int samplePosition;
-	    
-	    /** \brief Free allocated memory */
-	    void freeMemory(void);
-	    
-	};
-
+	ScopedState<> s(si_);
+	while (!terminateSamplingThread_ && samplerFunc_(s.get()))
+	    addState(s.get());
     }
 }
 
-#endif
+void ompl::base::GoalLazySamples::clear(void)
+{
+    boost::mutex::scoped_lock slock(lock_);
+    GoalStates::clear();
+}
+
+double ompl::base::GoalLazySamples::distanceGoal(const State *st) const
+{
+    boost::mutex::scoped_lock slock(lock_);
+    return GoalStates::distanceGoal(st);
+}
+
+void ompl::base::GoalLazySamples::sampleGoal(base::State *st) const
+{
+    boost::mutex::scoped_lock slock(lock_);
+    GoalStates::sampleGoal(st);
+}
+
+void ompl::base::GoalLazySamples::addState(const State* st)
+{
+    boost::mutex::scoped_lock slock(lock_);
+    GoalStates::addState(st);
+}
