@@ -78,6 +78,7 @@ namespace ompl
 	    
 	protected:
 	    
+	    /** \brief The function that samples goals by calling \e samplerFunc_ in a separate thread */
 	    void goalSamplingThread(void);
 	    
 	    /** \brief Lock for updating the set of states */
