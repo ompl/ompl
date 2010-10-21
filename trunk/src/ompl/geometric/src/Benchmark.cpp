@@ -294,10 +294,11 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 		    run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
 		    run["solution difference REAL"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
 		    run["solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
+		    run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
 		    
 		    unsigned int factor = setup_.getStateManifold()->getValidSegmentCountFactor();
 		    setup_.getStateManifold()->setValidSegmentCountFactor(factor * 4);
-		    run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
+		    run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
 		    setup_.getStateManifold()->setValidSegmentCountFactor(factor);
 		    
 		    // simplify solution
@@ -306,8 +307,9 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 		    timeUsed = time::seconds(time::now() - timeStart);
 		    run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
 		    run["simplified solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
-		    setup_.getStateManifold()->setValidSegmentCountFactor(factor * 4);
 		    run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
+		    setup_.getStateManifold()->setValidSegmentCountFactor(factor * 4);
+		    run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
 		    setup_.getStateManifold()->setValidSegmentCountFactor(factor);
 		}
 		
