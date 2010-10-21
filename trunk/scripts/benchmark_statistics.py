@@ -53,7 +53,7 @@ def read_benchmark_log(dbname, filenames):
 
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
-	c.execute('pragma foreign_keys = on')
+	c.execute('PRAGMA FOREIGN_KEYS = ON')
 	c.execute("SELECT name FROM sqlite_master WHERE type='table'")
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	if not 'experiments' in table_names:
@@ -130,7 +130,7 @@ def read_benchmark_log(dbname, filenames):
 	conn.commit()
 	c.close()
 	
-def plot_attribute(cur, planners, attribute):
+def plot_attribute(cur, planners, attribute, typename):
 	"""Create a box plot for a particular attribute. It will include data for
 	all planners that have data for this attribute."""
 	plt.clf()
@@ -138,6 +138,7 @@ def plot_attribute(cur, planners, attribute):
 	labels = []
 	measurements = []
 	nan_counts = []
+	is_bool = True
 	for planner in planners:
 		cur.execute('SELECT * FROM %s' % planner)
 		attributes = [ t[0] for t in cur.description]
@@ -145,28 +146,39 @@ def plot_attribute(cur, planners, attribute):
 			cur.execute('SELECT %s FROM %s' % (attribute, planner))
 			result = [ t[0] for t in cur.fetchall() ]
 			nan_counts.append(len([x for x in result if x==None]))
-			measurements.append([x for x in result if not x==None])
+			measurement = [x for x in result if not x==None]
+			is_bool = is_bool and set(measurement).issubset(set([0,1]))
+			measurements.append(measurement)
 			labels.append(planner.replace('planner_',''))
-	if int(matplotlibversion.split('.')[0])<1:
-		bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5)
+	if is_bool:
+		width = .5
+		measurements_percentage = [sum(m)*100./len(m) for m in measurements]
+		ind = range(len(measurements))
+		plt.bar(ind, measurements_percentage, width)
+		xtickNames = plt.xticks([x+width/2. for x in ind], labels, rotation=30)
+		ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
 	else:
-		bp = plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5, bootstrap=1000)
-	xtickNames = plt.setp(ax,xticklabels=labels)
-	plt.setp(xtickNames, rotation=30)
+		if int(matplotlibversion.split('.')[0])<1:
+			plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5)
+		else:
+			plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5, bootstrap=1000)
+		ax.set_ylabel(attribute.replace('_',' '))
+		xtickNames = plt.setp(ax,xticklabels=labels)
+		plt.setp(xtickNames, rotation=30)
 	ax.set_xlabel('Motion planning algorithm')
-	ax.set_ylabel(attribute.replace('_',' '))
 	ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
 	if max(nan_counts)>0:
 		maxy = max([max(y) for y in measurements])
 		for i in range(len(labels)):
-			ax.text(i+1, .95*maxy, str(nan_counts[i]), horizontalalignment='center', size='small')
+			x = i+width/2 if is_bool else i+1
+			ax.text(x, .95*maxy, str(nan_counts[i]), horizontalalignment='center', size='small')
 	plt.show()
 	
 def plot_statistics(dbname, fname):
 	"""Create a PDF file with box plots for all attributes."""
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
-	c.execute('pragma foreign_keys = on')
+	c.execute('PRAGMA FOREIGN_KEYS = ON')
 	c.execute("SELECT name FROM sqlite_master WHERE type='table'")
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	planner_names = [ t for t in table_names if t.startswith('planner_') ]
@@ -176,11 +188,15 @@ def plot_statistics(dbname, fname):
 	attributes.remove('plannerid')
 	attributes.remove('experimentid')
 	attributes.sort()
-
-	pp = PdfPages(fname)
+	types = []
 	for attribute in attributes:
-		plot_attribute(c,planner_names,attribute)
-		pp.savefig(plt.gcf())
+		c.execute('SELECT typeof(%s) FROM %s' % (attribute, planner_names[0]))
+		types.append(c.fetchone()[0])
+	pp = PdfPages(fname)
+	for i in range(len(attributes)):
+		if types[i]=='integer' or types[i]=='real':
+			plot_attribute(c, planner_names, attributes[i], types[i])
+			pp.savefig(plt.gcf())
 	pp.close()
 
 def save_as_mysql(dbname, mysqldump):
@@ -242,8 +258,8 @@ if __name__ == "__main__":
 	parser = OptionParser(usage)
 	parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
 		help="Filename of benchmark database [default: %default]")
-	parser.add_option("-b", "--boxplot", dest="boxplot", default=None,
-		help="Create a PDF of box plots")
+	parser.add_option("-p", "--plot", dest="plot", default=None,
+		help="Create a PDF of plots")
 	parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
 		help="Save SQLite3 database as a MySQL dump file")
 	(options, args) = parser.parse_args()
@@ -251,8 +267,8 @@ if __name__ == "__main__":
 	if len(args)>0:
 		read_benchmark_log(options.dbname, args)
 
-	if options.boxplot:
-		plot_statistics(options.dbname, options.boxplot)
+	if options.plot:
+		plot_statistics(options.dbname, options.plot)
 
 	if options.mysqldb:
 		save_as_mysql(options.dbname, options.mysqldb)
