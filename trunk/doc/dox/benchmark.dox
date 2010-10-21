@@ -66,7 +66,7 @@
     database name is specified, the named is assumed to be benchmark.db
     Once this database is generated, we can construct plots:
     \code
-    scripts/benchmark_statistics.py -d mydatabase.db -b boxplot.pdf
+    scripts/benchmark_statistics.py -d mydatabase.db -p boxplot.pdf
     \endcode
     If you would like to process the data in different ways, you can generate 
     a dump file that you can load in a MySQL database:
@@ -84,29 +84,29 @@
     \endcode
 
     Collected benchmark data for each experiment:
-    - name: name of experiment (optional)
-    - totaltime: the total duration for conducting the experiment (seconds)
-    - timelimit: the maximum time allowed for every planner execution (seconds)
-    - memorylimit: the maximum memory allowed for every planner execution (MB)
-    - hostname: the name of the host on which the experiment was run
-    - date: the date and time when the experiment was started
+    - <strong>name:</strong> name of experiment (optional)
+    - <strong>totaltime:</strong> the total duration for conducting the experiment (seconds)
+    - <strong>timelimit:</strong> the maximum time allowed for every planner execution (seconds)
+    - <strong>memorylimit:</strong> the maximum memory allowed for every planner execution (MB)
+    - <strong>hostname:</strong> the name of the host on which the experiment was run
+    - <strong>date:</strong> the date and time when the experiment was started
       	    
     Collected benchmark data for each planner execution:
-    - solved: (boolean) flag indicating whether the planner found a solution
-    - time: (real) the amount of time spent planning, in seconds
-    - memory: (real) the amount of memory spent planning, in MB. Note: this may be inaccurate since memory is often freed in a lazy fashion
-    - preallocated states: (integer) the number of states that are allocated by ompl::base::StateAllocator but not used anywhere
-    - approximate solution: (boolean) flag indicating whether the found solution is approximate (does not reach the goal) 
-    - solution difference: (real) if solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
-    - solution length: (real) the length of the found solution
-    - correct solution: (boolean) flag indicating whether the found solution is correct. This should always be true.
-    - correct solution strict: (boolean) flag indicating whether the found solution is correct when checked at a finer resolution.
-    - simplification time: (real) the time spend simplifying the solution path, in seconds
-    - simplified solution length: (real) the length of the found solution after simplification
-    - simplified correct solution: (boolean) flag indicating whether the found solution is correct after simplification. This should always be true.
-    - simplified correct solution strict: (boolean) flag indicating whether the found solution is correct after simplification, when checked at a finer resolution.
-    - graph states: (integer) the number of states in the constructed graph
-    - graph motions: (integer) the number of edges (motions) in the constructed graph
+    - <strong>solved:</strong> (boolean) flag indicating whether the planner found a solution
+    - <strong>time:</strong> (real) the amount of time spent planning, in seconds
+    - <strong>memory:</strong> (real) the amount of memory spent planning, in MB. Note: this may be inaccurate since memory is often freed in a lazy fashion
+    - <strong>preallocated states:</strong> (integer) the number of states that are allocated by ompl::base::StateAllocator but not used anywhere
+    - <strong>approximate solution:</strong> (boolean) flag indicating whether the found solution is approximate (does not reach the goal) 
+    - <strong>solution difference:</strong> (real) if solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
+    - <strong>solution length:</strong> (real) the length of the found solution
+    - <strong>correct solution:</strong> (boolean) flag indicating whether the found solution is correct. This should always be true.
+    - <strong>correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct when checked at a finer resolution.
+    - <strong>simplification time:</strong> (real) the time spend simplifying the solution path, in seconds
+    - <strong>simplified solution length:</strong> (real) the length of the found solution after simplification
+    - <strong>simplified correct solution:</strong> (boolean) flag indicating whether the found solution is correct after simplification. This should always be true.
+    - <strong>simplified correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct after simplification, when checked at a finer resolution.
+    - <strong>graph states:</strong> (integer) the number of states in the constructed graph
+    - <strong>graph motions:</strong> (integer) the number of edges (motions) in the constructed graph
     - more planner-specific properties
 
     At this point, only benchmarking for geometric planners is implemented.	
