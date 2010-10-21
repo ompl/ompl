@@ -46,6 +46,7 @@ ompl::base::ValidStateSamplerAllocator ompl::base::GaussianValidStateSampler::al
 ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getMaximumExtent() / 10.0)
 {
+    name_ = "gaussian";
 }
 
 bool ompl::base::GaussianValidStateSampler::sample(State *state)

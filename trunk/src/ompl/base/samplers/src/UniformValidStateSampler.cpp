@@ -46,6 +46,7 @@ ompl::base::ValidStateSamplerAllocator ompl::base::UniformValidStateSampler::all
 ompl::base::UniformValidStateSampler::UniformValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())
 {
+    name_ = "uniform";
 }
 
 bool ompl::base::UniformValidStateSampler::sample(State *state)

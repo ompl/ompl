@@ -41,6 +41,7 @@
 #include "ompl/util/ClassForward.h"
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
+#include <string>
 
 namespace ompl
 {
@@ -61,12 +62,24 @@ namespace ompl
 	public:
 	    
 	    /** \brief Constructor */
-	    ValidStateSampler(const SpaceInformation *si) : si_(si), attempts_(10)
+	    ValidStateSampler(const SpaceInformation *si) : si_(si), attempts_(10), name_("not set")
 	    {
 	    }
 	    
 	    virtual ~ValidStateSampler(void)
 	    {
+	    }
+	    
+	    /** \brief Get the name of the sampler */
+	    const std::string& getName(void) const
+	    {
+		return name_;
+	    }
+
+	    /** \brief Set the name of the sampler */
+	    void setName(const std::string &name)
+	    {
+		name_ = name;
 	    }
 	    
 	    /** \brief Sample a state. Return false in case of failure */
@@ -117,6 +130,9 @@ namespace ompl
 
 	    /** \brief Number of attempts to find a valid sample */
 	    unsigned int            attempts_;
+
+	    /** \brief The name of the sampler */
+	    std::string             name_;
 	};
 
 	/** \brief Definition of a function that can allocate a state sampler */

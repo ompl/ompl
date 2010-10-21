@@ -57,6 +57,11 @@ const std::string& ompl::base::Planner::getName(void) const
     return name_;
 }
 
+void ompl::base::Planner::setName(const std::string &name)
+{
+    name_ = name;
+}
+
 const ompl::base::SpaceInformationPtr&  ompl::base::Planner::getSpaceInformation(void) const
 {
     return si_;

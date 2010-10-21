@@ -302,6 +302,9 @@ namespace ompl
 	    
 	    /** \brief Get the name of the planner */
 	    const std::string& getName(void) const;
+
+	    /** \brief Set the name of the planner */
+	    void setName(const std::string &name);
 	    
 	    /** \brief Return the type of the motion planner. This is useful if
 		the planner wants to advertise what type of problems it

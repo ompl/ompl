@@ -47,6 +47,7 @@ ompl::base::ValidStateSamplerAllocator ompl::base::ObstacleBasedValidStateSample
 ompl::base::ObstacleBasedValidStateSampler::ObstacleBasedValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())
 {
+    name_ = "obstacle";
 }
 
 bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)
