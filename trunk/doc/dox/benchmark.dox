@@ -83,6 +83,31 @@
     scripts/benchmark_statistics.py --help
     \endcode
 
+    Collected benchmark data for each experiment:
+    - name: name of experiment (optional)
+    - totaltime: the total duration for conducting the experiment (seconds)
+    - timelimit: the maximum time allowed for every planner execution (seconds)
+    - memorylimit: the maximum memory allowed for every planner execution (MB)
+    - hostname: the name of the host on which the experiment was run
+    - date: the date and time when the experiment was started
+      	    
+    Collected benchmark data for each planner execution:
+    - solved: (boolean) flag indicating whether the planner found a solution
+    - time: (real) the amount of time spent planning, in seconds
+    - memory: (real) the amount of memory spent planning, in MB. Note: this may be inaccurate since memory is often freed in a lazy fashion
+    - preallocated states: (integer) the number of states that are allocated by ompl::base::StateAllocator but not used anywhere
+    - approximate solution: (boolean) flag indicating whether the found solution is approximate (does not reach the goal) 
+    - solution difference: (real) if solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
+    - solution length: (real) the length of the found solution
+    - correct solution: (boolean) flag indicating whether the found solution is correct. This should always be true.
+    - correct solution strict: (boolean) flag indicating whether the found solution is correct when checked at a finer resolution.
+    - simplification time: (real) the time spend simplifying the solution path, in seconds
+    - simplified solution length: (real) the length of the found solution after simplification
+    - simplified correct solution: (boolean) flag indicating whether the found solution is correct after simplification. This should always be true.
+    - simplified correct solution strict: (boolean) flag indicating whether the found solution is correct after simplification, when checked at a finer resolution.
+    - graph states: (integer) the number of states in the constructed graph
+    - graph motions: (integer) the number of edges (motions) in the constructed graph
+    - more planner-specific properties
 
     At this point, only benchmarking for geometric planners is implemented.	
 */
