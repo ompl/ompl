@@ -233,10 +233,10 @@ def save_as_mysql(dbname, mysqldump):
 		if table.startswith("sqlite"):
 			continue
 		if not table in last:
-			mysqldump.write("DROP TABLE IF EXISTS `%s`;" % table)
+			mysqldump.write("DROP TABLE IF EXISTS `%s`;\n" % table)
 	for table in last:
 		if table in table_names:
-			mysqldump.write("DROP TABLE IF EXISTS `%s`;" % table)
+			mysqldump.write("DROP TABLE IF EXISTS `%s`;\n" % table)
 
 	for line in conn.iterdump():
 		process = False
@@ -254,7 +254,7 @@ def save_as_mysql(dbname, mysqldump):
 			line = '''CREATE TABLE IF NOT EXISTS %(name)s%(sub)s'''
 			line = line % dict(name=name, sub=sub)
 			# make sure we use an engine that supports foreign keys
-			line = line.rstrip("\n\t ;") + " ENGINE = InnoDB;"
+			line = line.rstrip("\n\t ;") + " ENGINE = InnoDB;\n"
 		else:
 			m = re.search('INSERT INTO "([a-zA-Z0-9_]*)"(.*)', line)
 			if m:
