@@ -54,13 +54,9 @@ def read_benchmark_log(dbname, filenames):
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	c.execute('PRAGMA FOREIGN_KEYS = ON')
-	c.execute("SELECT name FROM sqlite_master WHERE type='table'")
-	table_names = [ str(t[0]) for t in c.fetchall() ]
-	if not 'experiments' in table_names:
-		c.execute("""CREATE TABLE experiments
+	c.execute("""CREATE TABLE IF NOT EXISTS experiments
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(1024), date DATETIME, setup TEXT)""")
-	if not 'planners' in table_names:
-		c.execute("""CREATE TABLE planners
+	c.execute("""CREATE TABLE IF NOT EXISTS planners
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
 	for filename in filenames:
 		print "Processing " + filename
@@ -116,8 +112,7 @@ def read_benchmark_log(dbname, filenames):
 			properties = properties + ", FOREIGN KEY(plannerid) REFERENCES planners(id) ON DELETE CASCADE"
 
 			planner_table = 'planner_%s' % planner_name
-			if not planner_table in table_names:
-				c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table,properties))
+			c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table,properties))
 			insert_fmt_str = 'INSERT INTO %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
 			
 			num_runs = int(logfile.readline().split()[0])
@@ -148,7 +143,8 @@ def plot_attribute(cur, planners, attribute, typename):
 			result = [ t[0] for t in cur.fetchall() ]
 			nan_counts.append(len([x for x in result if x==None]))
 			measurement = [x for x in result if not x==None]
-			is_bool = is_bool and set(measurement).issubset(set([0,1]))
+			cur.execute('SELECT DISTINCT %s FROM %s' % (attribute, planner))
+			is_bool = is_bool and set([t[0] for t in cur.fetchall() if not t[0]==None]).issubset(set([0,1]))
 			measurements.append(measurement)
 			labels.append(planner.replace('planner_',''))
 	if is_bool:
