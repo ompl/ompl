@@ -63,6 +63,7 @@ def read_benchmark_log(dbname, filenames):
 		c.execute("""CREATE TABLE planners
 		(id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
 	for filename in filenames:
+		print "Processing " + filename
 		logfile = open(filename,'r')
 		expname =  logfile.readline().split()[-1]
 		hostname = logfile.readline().split()[-1]
@@ -116,7 +117,7 @@ def read_benchmark_log(dbname, filenames):
 
 			planner_table = 'planner_%s' % planner_name
 			if not planner_table in table_names:
-				c.execute("CREATE TABLE %s (%s)" %  (planner_table,properties))
+				c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table,properties))
 			insert_fmt_str = 'INSERT INTO %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
 			
 			num_runs = int(logfile.readline().split()[0])
