@@ -101,20 +101,41 @@ def read_benchmark_log(dbname, filenames):
 				planner_id = p[0]
 			
 			# read run properties
+
+			# number of properties to read from log file
 			num_properties = int(logfile.readline().split()[0])
-			properties = "experimentid INTEGER, plannerid INTEGER"
+
+			# load a dictionary of properties and types
+			# we keep the names of the properties in a list as well, to ensure the correct order of properties
+			properties = {}
+			propNames = ['experimentid', 'plannerid']
 			for j in range(num_properties):
 				field = logfile.readline().split()
 				ftype = field[-1]
 				fname = "_".join(field[:-1])
-				properties = properties + ', ' + fname + ' ' + ftype
-			properties = properties + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
-			properties = properties + ", FOREIGN KEY(plannerid) REFERENCES planners(id) ON DELETE CASCADE"
+				properties[fname] = ftype
+				propNames.append(fname)
+
+			# create the table, if needed
+			table_columns = "experimentid INTEGER, plannerid INTEGER"
+			for k, v in properties.iteritems():
+				table_columns = table_columns + ', ' + k + ' ' + v
+			table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
+			table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planners(id) ON DELETE CASCADE"
 
 			planner_table = 'planner_%s' % planner_name
-			c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table,properties))
-			insert_fmt_str = 'INSERT INTO %s values (' % planner_table + ','.join('?'*(num_properties+2)) + ')'
+			c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table, table_columns))
 			
+			# check if the table has all the needed columns; if not, add them
+			c.execute('SELECT * FROM %s' % planner_table)
+			added_columns = [ t[0] for t in c.description]
+			for col in properties.keys():
+				if not col in added_columns:
+					c.execute('ALTER TABLE ' + planner_table + ' ADD ' + col + ' ' + properties[col] + ';')
+			
+			# add measurements 
+			insert_fmt_str = 'INSERT INTO ' + planner_table + ' (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
+
 			num_runs = int(logfile.readline().split()[0])
 			for j in range(num_runs):
 				run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x) 
