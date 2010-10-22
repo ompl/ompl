@@ -139,8 +139,18 @@ namespace ompl
 
 	    /** \brief Propagate from a state, given a control, for some specified amount of time (the amount of time can
 		also be negative, if canPropagateBackward() returns true)
+		\param state the state to start propagating from
+		\param control the control to apply
+		\param duration the duration for which the control is applied
+		\param result the state the system is brought to
 		
-		\note The pointer to the starting state and the result state may be the same.
+		\note This function is <b>not used for integration</b>
+		internally. If integrating a system of differential
+		equations is needed, this should be implemented inside
+		the propagate() function.
+
+		\note The pointer to the starting state and the result
+		state may be the same.
 	    */
 	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 	    
