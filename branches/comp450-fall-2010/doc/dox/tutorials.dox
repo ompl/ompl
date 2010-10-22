@@ -3,11 +3,13 @@
 
 \par Beginner
 - \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
+- \ref stateValidation "Setting up state validity checking"
+- \ref workingWithStates "Working with states"
 .
 
 \par Intermediate
 - \ref genericPlanning "Generic instructions for setting up a planner"
-- \ref statesAndManifolds "Working with states and implementing manifolds"
+- \ref implementingStateManifolds "Implementing manifolds"
 .
 
 

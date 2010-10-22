@@ -5,23 +5,67 @@ To compile OMPL the following two packages are required:
 - <a href="http://www.boost.org">Boost</a> (recommended version 1.42 or higher) and 
 - <a href="http://www.cmake.org">CMake</a> (required version 2.8 or higher). 
 .
-For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a> (which, in turn, requires pygccxml and GCC-XML). You need the versions of GCC-XML, pygccxml, and Py++ that are taken directly from their respective repositories. (Directions for GCC-XML can be found <a href="http://www.gccxml.org/HTML/Download.html">here</a>, while for pygccxml/py++ they can be found <a href="http://sourceforge.net/scm/?type=svn&group_id=118209">here</a>.) To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
+For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
-Below are installation instructions for <a href="#install_linux">Linux</a>, <a href="#install_osx">OS X</a>, and <a href="#install_windows">Windows</a>.
+Below are installation instructions for <a href="#install_linuxosx">Linux, OS X</a>, and <a href="#install_windows">Windows</a>.
 <br>
 
 \note If you are using <a href="http://code.ros.org">ROS</a>, please see the <a href="http://www.ros.org/wiki/ompl">ompl package in ROS</a>.
 
-\section install_linux Installation on Linux
+\section install_linuxosx Installation on Linux and Mac OS X
 
-- Install Boost, CMake, and (optionally) Google Test and the Python libraries and headers. For example, with an Ubuntu 10.04 Linux distribution, you can type:
+Below are installation instructions for Ubuntu Linux and Mac OS X. Similar steps can be taken for other distributions, but package names may not be identical.
+
+\subsection install_linux_ubuntu Ubuntu Linux
+
+- If using Ubuntu 10.04 or earlier, the supplied Boost version is too old. You will need to add another repository. For Ubuntu 9.10 or 10.04, this can be done with the following command:
 \code
 sudo add-apt-repository ppa:gezakovacs/boost
-sudo apt-get install libboost-all-dev
 \endcode
-If a package for CMake version 2.8 or higher is not available through your package manager, then you can download it <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
+For ubuntu 9.04 or earlier, adding the repository will require a <a href="https://launchpad.net/~gezakovacs/+archive/boost">different approach</a>.
 
+- If using Ubuntu 9.10 or earlier, the supplied version of CMake is too old. 
+You can download the latest version from <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
+- Install Boost, CMake
+\code
+sudo apt-get install libboost-all-dev cmake
+\endcode
+- To be able to build tests, generate documentation and generate Python bindings, the following are also needed:
+\code
+sudo apt-get install libgtest-dev doxygen python-dev
+\endcode
+- To be able to generate Python bindings, follow \ref installPyPlusPlus "these" instructions.
+- Follow the common steps \ref common_steps "below".
 
+\subsection install_mac_os Mac OS X
+
+- It is easiest to install the dependencies through <a href="http://www.macports.org">MacPorts</a>, a package manager for OS X, so install MacPorts first.
+- Install Boost, CMake, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
+\code
+sudo port selfupdate
+sudo port install cmake py26-pyplusplus-devel boost +python26
+\endcode
+If you omit the \c +python26 part, Boost.Python will not be installed, and the Python bindings for OMPL cannot be compiled.
+- It is <b>very</b> important that you use the same installed version of Python for all dependencies and OMPL.app. If you are using MacPorts, then you <b>must</b> use the MacPorts version of python 2.6 (most likely installed in <tt>/opt/local/bin</tt>). To make this version the default python version, make sure <tt>/opt/local/bin</tt> appears before <tt>/usr/bin</tt> in your PATH. You can add a line like this to your <tt>${HOME}/.bash_profile</tt>:
+\code
+export PATH=/opt/local/bin:/opt/local/sbin:$PATH
+\endcode
+Next, execute the following commands:
+\code
+sudo port install python_select
+sudo python_select python26
+\endcode
+You can check if the MacPorts-installed python 2.6 is the default one by typing the following command:
+\code
+ls -l `which python`
+\endcode
+- To be able to build tests and generate documentation, Google Test and Doxygen are also needed:
+\code
+sudo port install google-test doxygen
+\endcode
+- Follow the common steps \ref common_steps "below".
+
+\subsection common_steps Common steps
 - Create a build directory and run cmake:
 \code
 cd ompl
@@ -30,34 +74,16 @@ cd build/Release
 cmake -DCMAKE_BUILD_TYPE=Release ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
 \endcode
 If you want a debug version of ompl, change "Release" to "Debug" above.
+- If Python bindings are to be generated, type <tt>make update_bindings</tt>.
 - Compile OMPL by typing \c make.
 - Optionally, run the test programs by typing <tt>make test</tt>.
+- Optionally, generate documentation by typing <tt>make doc</tt>.
 - If you need to install the library, you can type <tt>make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>.
-
-\section install_osx Installation on OS X
-
-- It is easiest to install the dependencies through <a href="http://www.macports.org">MacPorts</a>, a package manager for OS X, so install MacPorts first.
-- Install Boost, CMake, and the Python libraries and headers. If you have MacPorts installed, type the following:
-\code
-sudo port selfupdate
-sudo port install cmake boost +python26
-\endcode
-If you omit the \c +python26 part, Boost.Python will not be installed, and the Python bindings for OMPL cannot be compiled.
-- Create a build directory and run cmake:
-\code
-cd ompl
-mkdir -p build/Release
-cd build/Release
-cmake -DCMAKE_BUILD_TYPE=Release ../..
-\endcode
-If you want a debug version of ompl, change "Release" to "Debug" above.
-- Compile OMPL by typing \c make.
-- Optionally, run the test programs by typing <tt>make test</tt>.
 .
 
 \section install_windows Installation on Windows
 
-- Download and install <a href="http://www.cmake.org">CMake</a>
+- Download and install <a href="http://www.cmake.org">CMake</a>.
 - If you plan to use Microsoft Visual Studio, you can download Boost <a href="http://www.boostpro.com/download/">here</a>. If you want to use MinGW or Cygwin, follow the <a href="http://www.boost.org/doc/libs/1_43_0/more/getting_started/unix-variants.html">Unix installation instructions</a>.
 - Optionally, download and install <a href="http://www.python.org/download/">Python</a>.
 - Run CMake (either the GUI or the command line version). From the GUI it is easy to generate project files for Visual Studio or Makefiles.
