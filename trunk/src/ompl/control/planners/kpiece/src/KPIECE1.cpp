@@ -331,13 +331,11 @@ unsigned int ompl::control::KPIECE1::addMotion(Motion *motion, double dist)
 
 void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
 {
-    data.si = si_;
-    data.states.resize(0);
-    data.states.reserve(tree_.size);
+    Planner::getPlannerData(data);
     
     std::vector<CellData*> cdata;
     tree_.grid.getContent(cdata);
     for (unsigned int i = 0 ; i < cdata.size() ; ++i)
 	for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
-	    data.states.push_back(cdata[i]->motions[j]->state); 
+	    data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
 }

@@ -388,7 +388,7 @@ namespace ompl
 	    /** \brief Allocate the state components. Called by allocState() */
 	    void allocStateComponents(CompoundState *state) const;
 
-	    /** \brief The component manifolds that make up the compound manifold */
+	    /** \brief The component manifolds that make up the compound state manifold */
 	    std::vector<StateManifoldPtr> components_;
 	    
 	    /** \brief The number of components */

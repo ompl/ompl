@@ -364,22 +364,9 @@ void ompl::geometric::PRM::constructSolution(const Milestone* start, const Miles
 
 void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
 {
-    data.si = si_;
+    Planner::getPlannerData(data);
     
-    data.states.resize(milestones_.size());
-    data.edges.clear();
-    data.edges.resize(data.states.size());
-    
-    std::map<Milestone*, unsigned int> seen;
     for (unsigned int i = 0 ; i < milestones_.size() ; ++i)
-    {
-	data.states[i] = milestones_[i]->state;
-	seen[milestones_[i]] = milestones_[i]->index;
 	for (unsigned int j = 0 ; j < milestones_[i]->adjacent.size() ; ++j)
-	{
-	    std::map<Milestone*, unsigned int>::const_iterator it = seen.find(milestones_[i]->adjacent[j]);
-	    if (it != seen.end())
-		data.edges[i].push_back(it->second);
-	}
-    }
+	    data.recordEdge(milestones_[i]->state, milestones_[i]->adjacent[j]->state);
 }

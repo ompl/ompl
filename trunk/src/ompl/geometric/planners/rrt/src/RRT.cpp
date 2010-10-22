@@ -191,33 +191,12 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
 void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const
 {  
-    data.si = si_;
-    std::map<Motion*, unsigned int> index;
+    Planner::getPlannerData(data);
     
     std::vector<Motion*> motions;
-    nn_->list(motions);
-    data.states.resize(motions.size());
+    if (nn_)
+	nn_->list(motions);
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-    {
-	data.states[i] = motions[i]->state;
-	index[motions[i]] = i;
-    }
-    
-    data.edges.clear();
-    data.edges.resize(motions.size());
-    std::map<Motion*, bool> seen;
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-	if (seen.find(motions[i]) == seen.end())
-	{
-	    Motion *m = motions[i];
-	    while (m)
-	    {
-		if (seen.find(m) != seen.end())
-		    break;
-		seen[m] = true;
-		if (m->parent)
-		    data.edges[index[m->parent]].push_back(index[m]);
-		m = m->parent;
-	    }
-	}
+	data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
 }

@@ -103,6 +103,12 @@ void ompl::base::Planner::clear(void)
     pis_.update();
 }
 
+void ompl::base::Planner::getPlannerData(PlannerData &data) const
+{
+    data.clear();
+    data.si = si_;
+}
+
 namespace ompl
 {
     // return true if a certain point in time has passed
@@ -154,6 +160,60 @@ bool ompl::base::Planner::solve(double solveTime)
 	return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)));
     else
 	return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)), std::min(solveTime / 100.0, 0.1));
+}
+
+void ompl::base::PlannerData::clear(void)
+{
+    stateIndex.clear();
+    states.clear();
+    edges.clear();
+    properties.clear();
+    si.reset();
+}
+
+void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
+{
+    if (s1 == NULL || s2 == NULL)
+    {
+	const State *s = s1 == NULL ? s2 : s1;
+	if (s != NULL)
+	{
+	    std::map<const State*, unsigned int>::iterator it = stateIndex.find(s);
+	    if (it == stateIndex.end())
+	    {
+		unsigned int p = states.size();
+		states.push_back(s);
+		stateIndex[s] = p;
+	    }
+	}
+    }
+    else
+    {
+	std::map<const State*, unsigned int>::iterator it1 = stateIndex.find(s1);
+	std::map<const State*, unsigned int>::iterator it2 = stateIndex.find(s2);
+	
+	unsigned int p1;
+	if (it1 == stateIndex.end())
+	{
+	    p1 = states.size();
+	    states.push_back(s1);
+	    stateIndex[s1] = p1;
+	}
+	else
+	    p1 = it1->second;
+	
+	unsigned int p2;
+	if (it2 == stateIndex.end())
+	{
+	    p2 = states.size();
+	    states.push_back(s2);
+	    stateIndex[s2] = p2;
+	}
+	else
+	    p2 = it2->second;
+	
+	edges[p1].push_back(p2);
+    }
 }
 
 void ompl::base::PlannerData::print(std::ostream &out) const

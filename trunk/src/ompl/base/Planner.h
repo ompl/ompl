@@ -101,6 +101,14 @@ namespace ompl
 	    {
 	    }
 	    
+	    /** \brief Record an edge between two states. This function
+		is called by planners to fill \e states, \e stateIndex
+		and \e edges. */
+	    void recordEdge(const State *s1, const State *s2);
+	    
+	    /** \brief Clear any stored data */
+	    void clear(void);
+	    
 	    /** \brief Print this data to a stream */
 	    virtual void print(std::ostream &out = std::cout) const;
 	    
@@ -109,7 +117,11 @@ namespace ompl
 	    
 	    /** \brief The list of states in the current exploration datastructure */
 	    std::vector< const State* >              states;
-
+	    
+	    /** \brief The same list of states as above, provided for convenience, in a manner that allows finding out a
+		state's index from its pointer value */
+	    std::map< const State *, unsigned int >  stateIndex;
+	    
 	    /** \brief For each i, edges[i] contains the values edges[i][j] such that states[i] connects to every states[edges[i][j]] */
 	    std::vector< std::vector<unsigned int> > edges;
 	    
@@ -298,7 +310,7 @@ namespace ompl
 	    virtual void clear(void);
 	    
 	    /** \brief Get information about the current run of the motion planner  */
-	    virtual void getPlannerData(PlannerData &data) const = 0;
+	    virtual void getPlannerData(PlannerData &data) const;
 	    
 	    /** \brief Get the name of the planner */
 	    const std::string& getName(void) const;

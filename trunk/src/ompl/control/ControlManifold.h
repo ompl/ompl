@@ -182,6 +182,7 @@ namespace ompl
 	    /** \brief Define the type of control allocated by this manifold */
 	    typedef CompoundControl ControlType;
 	    
+	    /** \brief Constructor. The corresponding state manifold needs to be specified. */
 	    CompoundControlManifold(const base::StateManifoldPtr &stateManifold) : ControlManifold(stateManifold), componentCount_(0), locked_(false)
 	    {
 	    }
@@ -245,8 +246,13 @@ namespace ompl
 	     user to add further components. */
 	    void lock(void);
 	    
+	    /** \brief The component manifolds that make up the compound control space */
 	    std::vector<ControlManifoldPtr> components_;
+
+	    /** \brief The number of contained components */
 	    unsigned int                    componentCount_;
+
+	    /** \brief Flag indicating whether adding further componets is allowed or not */
 	    bool                            locked_;
 	};
     }

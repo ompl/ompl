@@ -260,15 +260,19 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
 void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
 {
-    data.si = si_;
+    Planner::getPlannerData(data);
+    
     std::vector<Motion*> motions;
-    tStart_->list(motions);
-    data.states.resize(motions.size());
+    if (tStart_)
+	tStart_->list(motions);
+    
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-	data.states[i] = motions[i]->state;
-    tGoal_->list(motions);
-    unsigned int s = data.states.size();
-    data.states.resize(s + motions.size());
+	data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
+    
+    motions.clear();
+    if (tGoal_)
+	tGoal_->list(motions);
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-	data.states[s + i] = motions[i]->state;
+	data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
 }

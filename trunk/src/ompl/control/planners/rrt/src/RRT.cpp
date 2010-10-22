@@ -184,10 +184,12 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
 void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
 {
-    data.si = si_;
+    Planner::getPlannerData(data);
+
     std::vector<Motion*> motions;
-    nn_->list(motions);
-    data.states.resize(motions.size());
+    if (nn_)
+	nn_->list(motions);
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-	data.states[i] = motions[i]->state;
+	data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
 }
