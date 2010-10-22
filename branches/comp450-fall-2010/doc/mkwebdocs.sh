@@ -14,12 +14,9 @@ for f in html/*.html; do
 	sed 's/="..\//=".\//g' $f > ${ASSET_DIR}/`basename $f`
 done
 cp -r css js exploration html/*.png html/*.map ${ASSET_DIR}
-chmod -R a+rX ${ASSET_DIR}
 
-# copy everything to web server
-tar cf - --exclude .svn ${ASSET_DIR} | ssh ${SERVER} 'cd '${ASSETS_ROOT}'; tar xf -'
-# fix permissions
-ssh ${SERVER} 'chgrp -R ompl '${ASSETS_ROOT}'/'${ASSET_DIR}'; chmod -R g+w '${ASSETS_ROOT}'/'${ASSET_DIR}
+# copy everything to web server and fix permissions
+tar cf - --exclude .svn ${ASSET_DIR} | ssh ${SERVER} 'cd '${ASSETS_ROOT}'; tar xf -; chmod -R a+rX '${ASSET_DIR}'; chgrp -R ompl '${ASSET_DIR}'; chmod -R g+w '${ASSET_DIR}
 
 # clean up
 rm -rf ${ASSET_DIR}
