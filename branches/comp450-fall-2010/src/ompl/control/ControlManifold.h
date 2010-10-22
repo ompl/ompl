@@ -146,20 +146,19 @@ namespace ompl
 	    virtual ControlSamplerPtr allocControlSampler(void) const = 0;
 
 	    /** \brief Propagate from a state, given a control, for some specified amount of time (the amount of time can
-		also be negative, if canPropagateBackward() returns true)
-		
+		also be negative, if canPropagateBackward() returns true)		
+		\param state the state to start propagating from
+		\param control the control to apply
+		\param duration the duration for which the control is applied
+		\param result the state the system is brought to
+
 		Notes:
-		\li Return value:
-		In the process of propagation, it is sometimes the case that collisions are evaluated (e.g., with physics
-		simulation).  Important: This is not the same as state validity, but it may represent an important
-		computational part of checking state validity. The implementation of this function may
-		choose to evaluate the full validity of the starting state of the propagation, for efficiency reasons. If this is the case, and the
-		state is valid, the return value of the function is PROPAGATION_START_VALID. If the state is not valid,
-		the return value is PROPAGATION_START_INVALID. If no such check is performed, the return value is
-		PROPAGATION_START_UNKNOWN. Returning PROPAGATION_START_UNKNOWN always leads to a correct
-		implementation but may not be the most efficient one.
-		
+		\li This function is <b>not used for integration</b>
+		internally. If integrating a system of differential
+		equations is needed, this should be implemented inside
+		the propagate() function.
 		\li The pointer to the starting state and the result state may be the same.
+		\li Return value: Always return PROPAGATION_START_UNKNOWN. (This feature is now obsolete)	
 	    */
 	    virtual PropagationResult propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 	    
