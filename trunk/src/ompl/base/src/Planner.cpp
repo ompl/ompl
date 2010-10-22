@@ -184,6 +184,7 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
 		unsigned int p = states.size();
 		states.push_back(s);
 		stateIndex[s] = p;
+		edges.resize(states.size());
 	    }
 	}
     }
@@ -198,6 +199,7 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
 	    p1 = states.size();
 	    states.push_back(s1);
 	    stateIndex[s1] = p1;
+	    edges.resize(states.size());
 	}
 	else
 	    p1 = it1->second;
@@ -208,6 +210,7 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
 	    p2 = states.size();
 	    states.push_back(s2);
 	    stateIndex[s2] = p2;
+	    edges.resize(states.size());
 	}
 	else
 	    p2 = it2->second;
