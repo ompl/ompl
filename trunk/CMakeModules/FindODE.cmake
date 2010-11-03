@@ -114,6 +114,7 @@ if (_ODE_DEBUG_OUTPUT)
   message(STATUS "ODE_INCLUDE = '${ODE_INCLUDE}'")
   message(STATUS "_ODE_LIB_HINTS = '${_ODE_LIB_HINTS}'")
   message(STATUS "ODE_LIBRARY = '${ODE_LIBRARY}'")
+  message(STATUS "ODE_VERSION = '${ODE_VERSION}'")
   message(STATUS "-----------------------------------")
 endif()
 
