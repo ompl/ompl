@@ -11,7 +11,7 @@ if (ODE_FOUND)
 endif()
 
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" VERSION_DIR)
-configure_file("${VERSION_DIR}/version.h.in" "${VERSION_DIR}/version.h")
+configure_file("${VERSION_DIR}/config.h.in" "${VERSION_DIR}/config.h")
 
 if(ROS)  
 	rosbuild_add_library(ompl ${OMPL_SOURCE_CODE})

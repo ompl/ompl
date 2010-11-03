@@ -38,9 +38,8 @@
 #include <ompl/extensions/ode/ODEStateValidityChecker.h>
 #include <ompl/base/GoalRegion.h>
 #include <ompl/control/SimpleSetup.h>
-#include <ompl/version.h>
+#include <ompl/config.h>
 #include <iostream>
-
 #include <ode/ode.h>
 
 namespace ob = ompl::base;

@@ -37,6 +37,11 @@
 #ifndef OMPL_EXTENSION_ODE_ENVIRONMENT_
 #define OMPL_EXTENSION_ODE_ENVIRONMENT_
 
+#include "ompl/config.h"
+#ifndef OMPL_EXTENSION_ODE
+#  error ODE extension not built
+#endif
+
 #include <ode/ode.h>
 #include <vector>
 #include <boost/thread/mutex.hpp>

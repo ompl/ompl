@@ -39,7 +39,7 @@
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/SimpleSetup.h>
 
-#include <ompl/version.h>
+#include <ompl/config.h>
 #include <iostream>
 
 namespace ob = ompl::base;

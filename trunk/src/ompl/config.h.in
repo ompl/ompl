@@ -34,10 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_VERSION_
-#define OMPL_VERSION_
+#ifndef OMPL_CONFIG_
+#define OMPL_CONFIG_
 
 /** \brief The ompl version */
 #define OMPL_VERSION "@OMPL_VERSION@"
+
+/** \brief Specify whether the ODE extension is built */
+#define OMPL_EXTENSION_ODE "@ODE_FOUND@"
 
 #endif
