@@ -8,10 +8,10 @@ ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironment &env) : b
 {
     for (unsigned int i = 0 ; i < env_.stateBodies.size() ; ++i)
     {
-	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0);
-	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0);
-	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0);
-	addSubManifold(base::StateManifoldPtr(new base::SO3StateManifold()), 1.0);
+	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0); // position
+	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0); // linear velocity
+	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0); // angular velocity
+	addSubManifold(base::StateManifoldPtr(new base::SO3StateManifold()), 1.0);         // orientation
     }
     lock();
 }

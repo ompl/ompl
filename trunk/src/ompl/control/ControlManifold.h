@@ -61,7 +61,7 @@ namespace ompl
 	    \brief A boost shared pointer wrapper for ompl::control::ControlManifold */
 
 	/** \brief A function that achieves state propagation.*/
-	typedef boost::function4<void, const base::State*, const Control*, const double, base::State*> StatePropagationFn;
+	typedef boost::function5<void, const base::State*, const Control*, const double, const unsigned int, base::State*> StatePropagationFn;
 	
 	/** \brief A manifold representing the space of applicable controls */
 	class ControlManifold : private boost::noncopyable
@@ -142,6 +142,13 @@ namespace ompl
 		\param state the state to start propagating from
 		\param control the control to apply
 		\param duration the duration for which the control is applied
+		\param step the number of times this control has been
+		applied for the same duration in the past, in
+		sequence. Typically, this function is called multiple
+		times, in sequence, with the same control, same
+		duration, starting at states produced by previous
+		calls. The \e step argument tells the propagate() the
+		number of iterative calls previously made.
 		\param result the state the system is brought to
 		
 		\note This function is <b>not used for integration</b>
@@ -152,7 +159,7 @@ namespace ompl
 		\note The pointer to the starting state and the result
 		state may be the same.
 	    */
-	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+	    virtual void propagate(const base::State *state, const Control* control, const double duration, const unsigned int step, base::State *result) const;
 	    
 	    /** \brief Some systems can only propagate forward in time (i.e., the duration argument for the propagate()
 		function is always positive). If this is the case, this function should return false. Planners that need
@@ -237,7 +244,7 @@ namespace ompl
 	    
 	    virtual ControlSamplerPtr allocControlSampler(void) const;
 
-	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+	    virtual void propagate(const base::State *state, const Control* control, const double duration, const unsigned int step, base::State *result) const;
 
 	    virtual bool canPropagateBackward(void) const;
 

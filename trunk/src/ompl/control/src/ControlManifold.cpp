@@ -56,10 +56,10 @@ void ompl::control::ControlManifold::printSettings(std::ostream &out) const
     out << "ControlManifold '" << name_ << "' instance: " << this << std::endl;
 }
 
-void ompl::control::ControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::ControlManifold::propagate(const base::State *state, const Control* control, const double duration, const unsigned int step, base::State *result) const
 {
     if (statePropagation_)
-	statePropagation_(state, control, duration, result);
+	statePropagation_(state, control, duration, step, result);
     else
 	throw Exception("State propagation routine is not set for control manifold. Either set this routine or provide a different implementation in an inherited class.");
 }
@@ -158,17 +158,17 @@ ompl::control::ControlSamplerPtr ompl::control::CompoundControlManifold::allocCo
     return ControlSamplerPtr(ss);
 }
 
-void ompl::control::CompoundControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::CompoundControlManifold::propagate(const base::State *state, const Control* control, const double duration, const unsigned int step, base::State *result) const
 {
     if (statePropagation_)
-	statePropagation_(state, control, duration, result);
+	statePropagation_(state, control, duration, step, result);
     else
     {
 	const base::CompoundState *cstate = static_cast<const base::CompoundState*>(state);
 	const CompoundControl *ccontrol = static_cast<const CompoundControl*>(control);
 	base::CompoundState *cresult = static_cast<base::CompoundState*>(result);
 	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	    components_[i]->propagate(cstate->components[i], ccontrol->components[i], duration, cresult->components[i]);
+	    components_[i]->propagate(cstate->components[i], ccontrol->components[i], duration, step, cresult->components[i]);
     }
 }
 

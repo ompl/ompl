@@ -80,9 +80,9 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     }
     else
     {
-	controlManifold_->propagate(state, control, stepSize_, result);
+	controlManifold_->propagate(state, control, stepSize_, 0, result);
         for (unsigned int i = 1 ; i < steps ; ++i)
-	    controlManifold_->propagate(result, control, stepSize_, result);
+	    controlManifold_->propagate(result, control, stepSize_, i, result);
     }
 }
 
@@ -96,7 +96,7 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
     }
     
     // perform the first step of propagation
-    controlManifold_->propagate(state, control, stepSize_, result);
+    controlManifold_->propagate(state, control, stepSize_, 0, result);
     
     // if we found a valid state after one step, we can go on
     if (isValid(result))
@@ -109,7 +109,7 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
 	// for the remaining number of steps
 	for (unsigned int i = 1 ; i < steps ; ++i)
 	{
-	    controlManifold_->propagate(temp1, control, stepSize_, temp2);
+	    controlManifold_->propagate(temp1, control, stepSize_, i, temp2);
 	    if (isValid(temp2))
 		std::swap(temp1, temp2);
 	    else
@@ -159,13 +159,13 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     
     if (st < steps)
     { 
-	controlManifold_->propagate(state, control, stepSize_, result[st]);
+	controlManifold_->propagate(state, control, stepSize_, 0, result[st]);
 	st++;
 	
 	while (st < steps)
 	{
-	    controlManifold_->propagate(result[st-1], control, stepSize_, result[st]);
-	    st++;	    
+	    controlManifold_->propagate(result[st-1], control, stepSize_, st, result[st]);
+	    st++;
 	}
     }
 }
@@ -187,7 +187,7 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
     {
 	if (alloc)
 	    result[st] = allocState();
-	controlManifold_->propagate(state, control, stepSize_, result[st]);
+	controlManifold_->propagate(state, control, stepSize_, 0, result[st]);
 	st++;
 
 	if (isValid(result[st-1]))
@@ -196,7 +196,7 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
 	    {
 		if (alloc)
 		    result[st] = allocState();
-		controlManifold_->propagate(result[st-1], control, stepSize_, result[st]);
+		controlManifold_->propagate(result[st-1], control, stepSize_, st, result[st]);
 		st++;
 		if (!isValid(result[st-1]))
 		{

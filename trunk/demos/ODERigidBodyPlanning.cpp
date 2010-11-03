@@ -83,7 +83,7 @@ public:
 	upper[2] = maxForce;
     }
     
-    virtual void applyControl(const double *control) const
+    virtual void applyControl(const double *control, const unsigned int step) const
     {
 	dBodyAddForce(boxBody, control[0], control[1], control[2]);
     }

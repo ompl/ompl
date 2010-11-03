@@ -36,6 +36,11 @@
 
 #include "ompl/extensions/ode/ODEEnvironment.h"
 
+unsigned int ompl::control::ODEEnvironment::getMaxContacts(dGeomID geom1, dGeomID geom2) const
+{
+    return maxContacts;
+}
+
 bool ompl::control::ODEEnvironment::isValidCollision(dGeomID geom1, dGeomID geom2, dContact& contact) const
 {
     return false;

@@ -51,6 +51,7 @@ namespace ompl
     namespace control
     {
 	
+	/** \brief This class contains the ODE constructs OMPL needs to know about when plannning. */
 	class ODEEnvironment
 	{
 	public:
@@ -97,15 +98,22 @@ namespace ompl
 
 	    /** \brief Application of a control. This function sets
 		the forces/torques/velocities for bodies in the
-		simulation based on control inputs. */
-	    virtual void applyControl(const double *control) const = 0;
+		simulation based on control inputs. \e step specifies
+		how many times this function has been called with the
+		same control, in sequence. */
+	    virtual void applyControl(const double *control, const unsigned int step) const = 0;
 	    
 	    /** \brief Decide whether a collision is a valid one or
 		not. In some cases, collisions between some bodies can
 		be allowed. By default, this function always returns
 		false, making all collisions invalid */
 	    virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, dContact& contact) const;
-
+	    
+	    /** \brief Get the maximum number of contacts to set up
+		between two colliding geoms. By default, this just
+		returns the member variable maxContacts */
+	    virtual unsigned int getMaxContacts(dGeomID geom1, dGeomID geom2) const;
+	    
 	    /** \brief Parameters to set when contacts are created between bodies. */
 	    virtual void setupContact(dContact &contact) const;
 	};

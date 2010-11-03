@@ -47,13 +47,21 @@ namespace ompl
     namespace control
     {
 	
+	/** \brief State manifold representing ODE states */
 	class ODEStateManifold : public base::CompoundStateManifold
 	{
 	public:
+
+	    /// Constant indicating that a state is in collision 
 	    static const int STATE_COLLISION_TRUE;
+
+	    /// Constant indicating that a state is not in collision 
 	    static const int STATE_COLLISION_FALSE;
+
+	    /// Constant indicating that it is unknown whether a state is in collision or not
 	    static const int STATE_COLLISION_UNKNOWN;
 	    
+	    /** \brief ODE State. This allows accessing the properties of the bodies the manifold is constructed for  */
 	    class StateType : public base::CompoundStateManifold::StateType
 	    {
 	    public:

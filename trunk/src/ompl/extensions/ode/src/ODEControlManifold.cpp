@@ -56,13 +56,14 @@ namespace ompl
 	
 	CallbackParam *cp = reinterpret_cast<CallbackParam*>(data);
 		
-	dContact contact[cp->env->maxContacts];
-	for (unsigned int i = 0; i < cp->env->maxContacts; ++i)
+	const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
+	dContact contact[maxContacts];
+	for (unsigned int i = 0; i < maxContacts; ++i)
 	    cp->env->setupContact(contact[i]);
 	
-	if (int numc = dCollide(o1, o2, cp->env->maxContacts, &contact[0].geom, sizeof(dContact)))
+	if (int numc = dCollide(o1, o2, maxContacts, &contact[0].geom, sizeof(dContact)))
 	{
-	    for (int i = 0; i < numc; i++)
+	    for (int i = 0; i < numc; ++i)
 	    {
 		dJointID c = dJointCreateContact(cp->env->world, cp->env->contactGroup, contact + i);
 		dJointAttach(c, b1, b2);
@@ -73,7 +74,7 @@ namespace ompl
     }
 }
 
-void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, const unsigned int step, base::State *result) const
 {
     const ODEEnvironment &env = stateManifold_->as<ODEStateManifold>()->getEnvironment();
     env.mutex.lock();
@@ -82,7 +83,7 @@ void ompl::control::ODEControlManifold::propagate(const base::State *state, cons
     stateManifold_->as<ODEStateManifold>()->writeState(state);
 
     // apply the controls
-    env.applyControl(control->as<RealVectorControlManifold::ControlType>()->values);
+    env.applyControl(control->as<RealVectorControlManifold::ControlType>()->values, step);
 
     // created contacts as needed
     CallbackParam cp = { &env, false };    

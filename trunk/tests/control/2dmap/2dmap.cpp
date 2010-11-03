@@ -119,7 +119,7 @@ public:
     {
     }
     
-    virtual void propagate(const base::State *state, const control::Control* control, const double duration, base::State *result) const
+    virtual void propagate(const base::State *state, const control::Control* control, const double duration, const unsigned int step, base::State *result) const
     {
        	result->as<base::RealVectorStateManifold::StateType>()->values[0] =
 	    state->as<base::RealVectorStateManifold::StateType>()->values[0] + duration * control->as<control::RealVectorControlManifold::ControlType>()->values[0];
