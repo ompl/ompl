@@ -3,9 +3,11 @@
 2. merge tests for util/ & tests for datastructures/
 3. implement benchmarks for control/ not only for geometric/
 
+4. fix how cell dimensions are computed for projections; try automatic computation
 6. define a parameter structure for classes that have parameters
    - perhaps something that will allow parameter sweeps
      (see code in unused/)
 
 7. finish ode extension
+
 8. document how to compile / link against ompl

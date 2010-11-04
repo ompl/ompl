@@ -2,6 +2,10 @@
 
 \page changelog
 
+\section nov_03_2010 November 3, 2010
+	- Added support for ODE bindings
+	- Added support for compound projections
+	
 \section oct_07_2010 October 7, 2010
 	- Added the concept of MotionValidator for checking validity of path segments.
 	- The collision checking resolution is a percentage of the extent of the entire space

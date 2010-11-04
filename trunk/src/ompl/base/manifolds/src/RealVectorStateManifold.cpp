@@ -99,7 +99,8 @@ void ompl::base::RealVectorStateManifold::setup(void)
 	    if (d < md)
 		md = d;
 	}
-
+	
+	/// \todo Check assignment of cellDims. Perhaps compute cell dimensions in the projection?
 	if (dimension_ > 2)
 	{
 	    int p = std::max(2, (int)ceil(log((double)dimension_)));

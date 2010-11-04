@@ -171,6 +171,7 @@ void ompl::base::CompoundProjectionEvaluator::computeProjection(void)
 	dimension_ = compoundDimension_;
     if (dimension_ < compoundDimension_)
     {
+	/// \todo Check assignment of cellDims. Normalization? Perhaps compute cell dimensions in the projection?
 	projection_.computeRandom(compoundDimension_, dimension_);
 	cellDimensions_.resize(dimension_);
 	projection_.project(&cdims[0], &cellDimensions_[0]);
