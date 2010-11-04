@@ -43,12 +43,17 @@
 void ompl::base::ProblemDefinition::setStartAndGoalStates(const State *start, const State *goal, const double threshold)
 {
     clearStartStates();
-    clearGoal();
     addStartState(start);
+    setGoalState(goal, threshold);
+}
+
+void ompl::base::ProblemDefinition::setGoalState(const State *goal, const double threshold)
+{
+    clearGoal();
     GoalState *gs = new GoalState(si_);
     gs->setState(goal);
     gs->setThreshold(threshold);
-    setGoal(base::GoalPtr(gs));
+    setGoal(GoalPtr(gs));
 }
 
 bool ompl::base::ProblemDefinition::hasStartState(const State *state, unsigned int *startIndex)

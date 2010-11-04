@@ -146,7 +146,7 @@ namespace ompl
 	    void getInputStates(std::vector<const State*> &states) const;
 	    
 	    /** \brief In the simplest case possible, we have a single
-		starting state and a goal state.
+		starting state and a single goal state.
 
 		This function simply configures the problem definition
 		using these states (performs the needed calls to
@@ -154,10 +154,19 @@ namespace ompl
 		ompl::base::GoalState and calls setGoal() on it. */
 	    void setStartAndGoalStates(const State *start, const State *goal, const double threshold = std::numeric_limits<double>::epsilon());
 
+	    /** \brief A simple form of setting the goal. This is called by setStartAndGoalStates(). A more general form is setGoal() */
+	    void setGoalState(const State *goal, const double threshold = std::numeric_limits<double>::epsilon());
+	    
 	    /** \copydoc setStartAndGoalStates() */
 	    void setStartAndGoalStates(const ScopedState<> &start, const ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
 	    {
 		setStartAndGoalStates(start.get(), goal.get(), threshold);
+	    }
+	    
+	    /** \copydoc setGoalState() */
+	    void setGoalState(const ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
+	    {
+		setGoalState(goal.get(), threshold);
 	    }
 	    
 	    /** \brief A problem is trivial if a given starting state already

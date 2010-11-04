@@ -134,6 +134,12 @@ namespace ompl
 		pdef_->setStartAndGoalStates(start, goal, threshold);
 	    }
 	    
+	    /** \brief A simple form of setGoal(). The goal will be an instance of ompl::base::GoalState */
+	    void setGoalState(const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
+	    {
+		pdef_->setGoalState(goal, threshold);
+	    }
+
 	    /** \brief Add a starting state for planning. The state
 		manifold is inferred, if not yet set. This call is not
 		needed if setStartAndGoalStates() has been called. */
