@@ -40,6 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
 #include <vector>
+#include <valarray>
 #include <iostream>
 #include <boost/noncopyable.hpp>
 
@@ -52,7 +53,7 @@ namespace ompl
 	/** \brief Grid cells corresponding to a projection value are described in terms of their coordinates. */
 	typedef std::vector<int> ProjectionCoordinates;
 
-	/** \brief The datatype for state projections. */
+	/** \brief The datatype for state projections. This class contains a real vector. */
 	class EuclideanProjection
 	{
 	public:
@@ -81,6 +82,39 @@ namespace ompl
 	    
 	    /** \brief The values of the R<sup>n</sup> vector that makes up the projection */
 	    double *values;
+	};
+
+	/** \brief A projection matrix -- it allows multiplication of
+	    real vectors by a specified matrix. The matrix can also be
+	    randomly generated. */
+	class ProjectionMatrix
+	{
+	public:
+	    
+	    /** \brief Datatype for projection matrices */
+	    typedef std::vector< std::valarray<double> > Matrix;
+	    
+	    /** \brief Compute a random projection matrix with \e from
+		columns and \e to rows. 
+
+		Each element is sampled with a Gaussian distribution
+		with mean 0 and variance 1 and the matrix columns are
+		made orthonormal. */
+	    static Matrix ComputeRandom(const unsigned int from, const unsigned int to);
+	    
+	    /** \brief Compute a random projection matrix with \e from
+		columns and \e to rows. 
+		
+		Each element is sampled with a Gaussian distribution
+		with mean 0 and variance 1 and the matrix columns are
+		made orthonormal. */
+	    void computeRandom(const unsigned int from, const unsigned int to);
+
+	    /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
+	    void project(const double *from, double *to) const;
+	    
+	    /** \brief Projection matrix */
+	    Matrix projection;
 	};
 	
 	ClassForward(StateManifold);
@@ -165,8 +199,65 @@ namespace ompl
 	    
 	};
 	
+	/** \brief Construct a projection evaluator from a set of
+	    existing projection evaluators. A compound state is
+	    projected by concatenating the projection of each
+	    component of a state into one composite projected
+	    vector. If this vector has dimension larger than 2, it is
+	    further projected with a random matrix to a dimension of
+	    logarithmic size. 
+
+	    \note For example, if two projection evaluators are
+	    composed, each with dimension 1, the result of the
+	    compound projection would simply be the concatenation of
+	    the two contained projections (so the result will be a
+	    projection of dimension 2). If the concatenation of the
+	    contained projections is K > 2, a projection of this
+	    concatenation to dimension ceil(log(K)) is computed. */
+	class CompoundProjectionEvaluator : public ProjectionEvaluator
+	{
+	public:
+
+	    /** \brief Constructor */
+	    CompoundProjectionEvaluator(const StateManifold *manifold) : ProjectionEvaluator(manifold), dimension_(0), compoundDimension_(0)
+	    {
+	    }
+
+	    /** \brief Constructor */
+	    CompoundProjectionEvaluator(const StateManifoldPtr &manifold) : ProjectionEvaluator(manifold), dimension_(0), compoundDimension_(0)
+	    {
+	    }
+	    
+	    virtual unsigned int getDimension(void) const;
+	    
+	    /** \brief Add a projection evaluator to consider when computing projections of compound states */
+	    virtual void addProjectionEvaluator(const ProjectionEvaluatorPtr &proj);
+	    
+	    virtual void project(const State *state, EuclideanProjection &projection) const;
+
+	    virtual void printSettings(std::ostream &out = std::cout) const;
+	    
+	protected:
+	    
+
+	    /** \brief Update the maintained projection. Called by addProjectionEvaluator() */
+	    void computeProjection(void);
+
+	    /** \brief Projections for each of the contained components */
+	    std::vector<ProjectionEvaluatorPtr> components_;
+	    
+	    /** \brief Projection matrix used in case the concatenanted projection vectors make up a vector of large dimension */
+	    ProjectionMatrix                    projection_;
+	    
+	    /** \brief The dimension of the projection (number of elements in the projected vector) */
+	    unsigned int                        dimension_;
+	    
+	    /** \brief The sum of dimensions of the contained components. This is the dimension of the concatenated projection vector */
+	    unsigned int                        compoundDimension_;
+	    
+	};
     }
+    
 }
 
 #endif
-

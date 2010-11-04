@@ -100,7 +100,7 @@ namespace ompl
 	{
 	public:
 	    
-	    CompoundState(void) : State()
+	    CompoundState(void) : State(), components(NULL)
 	    {
 	    }
 	    

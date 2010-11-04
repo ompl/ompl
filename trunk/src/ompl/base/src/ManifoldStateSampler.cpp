@@ -46,23 +46,23 @@ void ompl::base::CompoundManifoldStateSampler::addSampler(const ManifoldStateSam
 
 void ompl::base::CompoundManifoldStateSampler::sampleUniform(State *state)
 {
-    State **comps = static_cast<CompoundState*>(state)->components;
+    State **comps = state->as<CompoundState>()->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
 	samplers_[i]->sampleUniform(comps[i]);
 }
 
 void ompl::base::CompoundManifoldStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {    
-    State **comps = static_cast<CompoundState*>(state)->components;
-    State **nearComps = static_cast<const CompoundState*>(near)->components;
+    State **comps = state->as<CompoundState>()->components;
+    State **nearComps = near->as<CompoundState>()->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
 	samplers_[i]->sampleUniformNear(comps[i], nearComps[i], weightImportance_[i] * distance);
 }
 
 void ompl::base::CompoundManifoldStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {    
-    State **comps = static_cast<CompoundState*>(state)->components;
-    State **meanComps = static_cast<const CompoundState*>(mean)->components;
+    State **comps = state->as<CompoundState>()->components;
+    State **meanComps = mean->as<CompoundState>()->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
 	samplers_[i]->sampleGaussian(comps[i], meanComps[i], stdDev);
 }

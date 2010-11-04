@@ -39,7 +39,6 @@
 
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/base/manifolds/RealVectorStateManifold.h"
-#include <valarray>
 
 namespace ompl
 {
@@ -57,23 +56,20 @@ namespace ompl
 	    
 	    RealVectorLinearProjectionEvaluator(const StateManifold *manifold, 
 						const std::vector<double> &cellDimensions,
-						const std::vector< std::valarray<double> > &projection);
+						const ProjectionMatrix::Matrix &projection);
 	    
 	    RealVectorLinearProjectionEvaluator(const StateManifoldPtr &manifold,
 						const std::vector<double> &cellDimensions,
-						const std::vector< std::valarray<double> > &projection);
+						const ProjectionMatrix::Matrix &projection);
 	    
-	    virtual unsigned int getDimension(void) const
-	    {
-		return projection_.size();
-	    }
+	    virtual unsigned int getDimension(void) const;
 	    
 	    virtual void project(const State *state, EuclideanProjection &projection) const;
 	    
 	protected:
 	    
 	    /** \brief The projection matrix */
-	    std::vector< std::valarray<double> > projection_;
+	    ProjectionMatrix projection_;
 	    
 	};
 
@@ -85,24 +81,17 @@ namespace ompl
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifold *manifold,
 						      const std::vector<double> &cellDimensions) :
 		RealVectorLinearProjectionEvaluator(manifold, cellDimensions,
-						    computeProjection(manifold->getDimension(), cellDimensions.size()))
+						    ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
 	    {
 	    }
 	    
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifoldPtr &manifold,
 						      const std::vector<double> &cellDimensions) :
 		RealVectorLinearProjectionEvaluator(manifold.get(), cellDimensions,
-						    computeProjection(manifold->getDimension(), cellDimensions.size()))
+						    ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
 	    {
 	    }
-	    
-	protected:
-	    
-	    /** \brief Compute an orthonormal projection matrix of
-		specified dimensions in a form that can be supplied to
-		RealVectorLinearProjectionEvaluator. */
-	    std::vector< std::valarray<double> > computeProjection(unsigned int from, unsigned int to) const;
-	    
+
 	};
 	
 	/** \brief Definition for a class computing orthogonal projections */
@@ -117,11 +106,8 @@ namespace ompl
 						    const std::vector<double> &cellDimensions,
 						    const std::vector<unsigned int> &components);
 	    
-	    virtual unsigned int getDimension(void) const
-	    {
-		return components_.size();
-	    }
-	    
+	    virtual unsigned int getDimension(void) const;
+
 	    virtual void project(const State *state, EuclideanProjection &projection) const;
 	    
 	protected:
@@ -139,12 +125,9 @@ namespace ompl
 						  const std::vector<double> &cellDimensions);
 	    RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold,
 						  const std::vector<double> &cellDimensions);
-	    
-	    virtual unsigned int getDimension(void) const
-	    {
-		return manifold_->getDimension();
-	    }
-	    
+
+	    virtual unsigned int getDimension(void) const;
+	    	    
 	    virtual void project(const State *state, EuclideanProjection &projection) const;
 
 	private:

@@ -102,7 +102,7 @@ void ompl::base::RealVectorStateManifold::setup(void)
 
 	if (dimension_ > 2)
 	{
-	    int p = std::max(2, (int)ceil(log((double)getDimension())));
+	    int p = std::max(2, (int)ceil(log((double)dimension_)));
 	    std::vector<double> cellDims(p, md / 5.0);
 	    registerDefaultProjection(ProjectionEvaluatorPtr(new RealVectorRandomLinearProjectionEvaluator(this, cellDims)));
 	}

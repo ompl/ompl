@@ -94,7 +94,7 @@ namespace ompl
 	public:
 
 	    /** \brief Constructor */
-	    CompoundManifoldStateSampler(const StateManifold* manifold) : ManifoldStateSampler(manifold) 
+	    CompoundManifoldStateSampler(const StateManifold* manifold) : ManifoldStateSampler(manifold), samplerCount_(0)
 	    {
 	    }
 	    
