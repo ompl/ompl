@@ -87,6 +87,18 @@ void ompl::base::ProjectionMatrix::project(const double *from, double *to) const
     }
 }
 
+void ompl::base::ProjectionMatrix::print(std::ostream &out) const
+{
+    for (unsigned int i = 0 ; i < projection.size() ; ++i)
+    {
+	const std::valarray<double> &vec = projection[i];
+	const unsigned int dim = vec.size();
+	for (unsigned int j = 0 ; j < dim ; ++j)
+	    out << vec[j] << " ";
+	out << std::endl;
+    }
+}
+
 void ompl::base::ProjectionEvaluator::setCellDimensions(const std::vector<double> &cellDimensions)
 {
     cellDimensions_ = cellDimensions;
@@ -198,4 +210,12 @@ void ompl::base::CompoundProjectionEvaluator::printSettings(std::ostream &out) c
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
 	components_[i]->printSettings(out);
     out << "]" << std::endl;
+    out << "  projected to " << dimension_ << " elements" << std::endl;
+    if (compoundDimension_ > dimension_)
+    {
+	out << "  using a projection matrix:" << std::endl;
+	projection_.print(out);
+    }
+    else
+	out << "  (copy of contained projections)" << std::endl;
 }

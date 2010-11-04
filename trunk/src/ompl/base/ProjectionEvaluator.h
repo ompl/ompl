@@ -112,6 +112,9 @@ namespace ompl
 
 	    /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
 	    void project(const double *from, double *to) const;
+
+	    /** \brief Print the contained projection matrix to a stram */
+	    void print(std::ostream &out = std::cout) const;
 	    
 	    /** \brief Projection matrix */
 	    Matrix projection;
