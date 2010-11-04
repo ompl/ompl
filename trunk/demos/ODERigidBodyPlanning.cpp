@@ -83,12 +83,12 @@ public:
 	upper[2] = maxForce;
     }
     
-    virtual void applyControl(const double *control, const unsigned int step) const
+    virtual void applyControl(const double *control) const
     {
 	dBodyAddForce(boxBody, control[0], control[1], control[2]);
     }
     
-    virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, dContact& contact) const
+    virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const
     {
 	return false;
     }

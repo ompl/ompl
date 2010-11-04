@@ -74,7 +74,7 @@ namespace ompl
     }
 }
 
-void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, const unsigned int step, base::State *result) const
+void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {
     const ODEEnvironment &env = stateManifold_->as<ODEStateManifold>()->getEnvironment();
     env.mutex.lock();
@@ -83,7 +83,7 @@ void ompl::control::ODEControlManifold::propagate(const base::State *state, cons
     stateManifold_->as<ODEStateManifold>()->writeState(state);
 
     // apply the controls
-    env.applyControl(control->as<RealVectorControlManifold::ControlType>()->values, step);
+    env.applyControl(control->as<RealVectorControlManifold::ControlType>()->values);
 
     // created contacts as needed
     CallbackParam cp = { &env, false };    

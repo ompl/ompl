@@ -66,7 +66,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
     return si->satisfiesBounds(state) && (void*)rot != (void*)pos;
 }
 
-void propagate(const ob::State *start, const oc::Control *control, const double duration, const unsigned int step, ob::State *result)
+void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
 {
     const ob::SE2StateManifold::StateType *se2state = start->as<ob::SE2StateManifold::StateType>();
     const ob::RealVectorStateManifold::StateType *pos = se2state->as<ob::RealVectorStateManifold::StateType>(0);
@@ -107,7 +107,7 @@ void plan(void)
     cmanifold->as<oc::RealVectorControlManifold>()->setBounds(cbounds);
 
     // set the state propagation routine 
-    cmanifold->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4, _5));
+    cmanifold->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
     
     /// construct an instance of  space information from this manifold
     oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, cmanifold));
@@ -188,7 +188,7 @@ void planWithSimpleSetup(void)
     cmanifold->as<oc::RealVectorControlManifold>()->setBounds(cbounds);
 
     // set the state propagation routine 
-    cmanifold->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4, _5));
+    cmanifold->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
     
     // define a simple setup class
     oc::SimpleSetup ss(cmanifold);

@@ -98,16 +98,14 @@ namespace ompl
 
 	    /** \brief Application of a control. This function sets
 		the forces/torques/velocities for bodies in the
-		simulation based on control inputs. \e step specifies
-		how many times this function has been called with the
-		same control, in sequence. */
-	    virtual void applyControl(const double *control, const unsigned int step) const = 0;
+		simulation based on control inputs.*/
+	    virtual void applyControl(const double *control) const = 0;
 	    
 	    /** \brief Decide whether a collision is a valid one or
 		not. In some cases, collisions between some bodies can
 		be allowed. By default, this function always returns
 		false, making all collisions invalid */
-	    virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, dContact& contact) const;
+	    virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const;
 	    
 	    /** \brief Get the maximum number of contacts to set up
 		between two colliding geoms. By default, this just
