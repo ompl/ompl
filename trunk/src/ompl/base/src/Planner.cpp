@@ -37,6 +37,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/GoalLazySamples.h"
 #include <boost/thread.hpp>
 #include <utility>
 
@@ -355,26 +356,41 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
     const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
     
     if (goal)
-	if (sampledGoalsCount_ < goal->maxSampleCount())
+    {
+	const GoalLazySamples *gls = dynamic_cast<const GoalLazySamples*>(goal);
+	bool attempt = true;
+	while (attempt)
 	{
-	    if (tempState_ == NULL)
-		tempState_ = si_->allocState();
+	    attempt = false;
 	    
-	    do 
+	    if (sampledGoalsCount_ < goal->maxSampleCount())
 	    {
-		goal->sampleGoal(tempState_);
-		sampledGoalsCount_++;
+		if (tempState_ == NULL)
+		    tempState_ = si_->allocState();
 		
-		if (si_->satisfiesBounds(tempState_) && si_->isValid(tempState_))
-		    return tempState_;
-		else
+		do 
 		{
-		    msg::Interface msg(planner_ ? planner_->getName() : "");
-		    msg.warn("Skipping invalid goal state");
+		    goal->sampleGoal(tempState_);
+		    sampledGoalsCount_++;
+		    
+		    if (si_->satisfiesBounds(tempState_) && si_->isValid(tempState_))
+			return tempState_;
+		    else
+		    {
+			msg::Interface msg(planner_ ? planner_->getName() : "");
+			msg.warn("Skipping invalid goal state");
+		    }
 		}
+		while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
 	    }
-	    while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
+
+	    if (gls && !ptc())
+	    {
+		boost::this_thread::sleep(time::seconds(0.01));
+		attempt = !ptc();
+	    }
 	}
+    }
     return NULL;
 }
 
