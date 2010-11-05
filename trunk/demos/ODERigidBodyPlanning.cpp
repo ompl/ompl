@@ -34,10 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <ompl/extensions/ode/ODEControlManifold.h>
-#include <ompl/extensions/ode/ODEStateValidityChecker.h>
+#include <ompl/extensions/ode/ODESimpleSetup.h>
 #include <ompl/base/GoalRegion.h>
-#include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
 #include <iostream>
 #include <ode/ode.h>
@@ -203,38 +201,12 @@ public:
 	return sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    virtual void setup(void)
+    virtual void registerProjections(void)
     {
-	ODEStateManifold::setup();
-	registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
+    	registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
     }
     
 };
-
-
-/** \brief The simplest state validity checker: all states are valid */
-class RigidBodyStateValidityChecker : public oc::ODEStateValidityChecker
-{
-public:
-    
-    /** \brief Constructor */
-    RigidBodyStateValidityChecker(const RigidBodyEnvironment &env, const oc::SpaceInformationPtr &si) : ODEStateValidityChecker(si), env_(env)
-    {
-    }	
-        
-    /** \brief A state is considered valid if it is within bounds and not in collision */
-    virtual bool isValid(const ob::State *state) const
-    {
-	return ODEStateValidityChecker::isValid(state);
-	// potentially check other constraints
-    }
-    
-protected:
-
-    const RigidBodyEnvironment &env_;
-    
-};
-
 
 int main(int, char **)
 {
@@ -249,12 +221,8 @@ int main(int, char **)
     oc::ODEControlManifold *controlManifold = new oc::ODEControlManifold(ob::StateManifoldPtr(stateManifold));
     oc::ControlManifoldPtr cmp(controlManifold);
     
-    oc::SimpleSetup ss(cmp);
-
-    // set the current state of the ODE world as the start state for planning    
-    ob::ScopedState<> start(ss.getStateManifold());
-    stateManifold->readState(start.get());
-    ss.addStartState(start);
+    // this will take cacre of setting a proper collision checker and the starting state for the planner as the initial ODE state
+    oc::ODESimpleSetup ss(cmp);
 
     // set the goal we would like to reach
     ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));
@@ -274,9 +242,6 @@ int main(int, char **)
     stateManifold->setLinearVelocityBounds(bounds);
     stateManifold->setAngularVelocityBounds(bounds);
 
-    ss.setStateValidityChecker(ob::StateValidityCheckerPtr(new RigidBodyStateValidityChecker(env, ss.getSpaceInformation())));
-    
-    
     ss.setup();
     ss.print();
     

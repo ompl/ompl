@@ -452,6 +452,7 @@ void ompl::base::CompoundStateManifold::registerProjections(void)
 	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
 	    cproj->addProjectionEvaluator(components_[i]->getDefaultProjection());
 	registerDefaultProjection(ProjectionEvaluatorPtr(cproj));
+	msg_.warn("Using compound projection evaluator for compound state manifold. This can lead to poor performace.");
     }
 }
 
