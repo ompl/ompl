@@ -54,12 +54,13 @@ namespace ompl
 	{
 	public:
 	    
-	    RealVectorLinearProjectionEvaluator(const StateManifold *manifold, 
-						const std::vector<double> &cellDimensions,
+	    RealVectorLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
 						const ProjectionMatrix::Matrix &projection);
-	    
+	    RealVectorLinearProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions,
+						const ProjectionMatrix::Matrix &projection);
+	    RealVectorLinearProjectionEvaluator(const StateManifold *manifold, 
+						const ProjectionMatrix::Matrix &projection);
 	    RealVectorLinearProjectionEvaluator(const StateManifoldPtr &manifold,
-						const std::vector<double> &cellDimensions,
 						const ProjectionMatrix::Matrix &projection);
 	    
 	    virtual unsigned int getDimension(void) const;
@@ -78,17 +79,23 @@ namespace ompl
 	{
 	public:
 	    
-	    RealVectorRandomLinearProjectionEvaluator(const StateManifold *manifold,
-						      const std::vector<double> &cellDimensions) :
-		RealVectorLinearProjectionEvaluator(manifold, cellDimensions,
-						    ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
+	    RealVectorRandomLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions) :
+		RealVectorLinearProjectionEvaluator(manifold, cellDimensions, ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
 	    {
 	    }
 	    
-	    RealVectorRandomLinearProjectionEvaluator(const StateManifoldPtr &manifold,
-						      const std::vector<double> &cellDimensions) :
-		RealVectorLinearProjectionEvaluator(manifold.get(), cellDimensions,
-						    ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
+	    RealVectorRandomLinearProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions) :
+		RealVectorLinearProjectionEvaluator(manifold, cellDimensions, ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
+	    {
+	    }
+
+	    RealVectorRandomLinearProjectionEvaluator(const StateManifold *manifold, unsigned int dim) :
+		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim))
+	    {
+	    }
+	    
+	    RealVectorRandomLinearProjectionEvaluator(const StateManifoldPtr &manifold, unsigned int dim) :
+		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim))
 	    {
 	    }
 
@@ -99,12 +106,12 @@ namespace ompl
 	{
 	public:
 	    
-	    RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold,
-						    const std::vector<double> &cellDimensions,
+	    RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
 						    const std::vector<unsigned int> &components);
-	    RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold,
-						    const std::vector<double> &cellDimensions,
+	    RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions,
 						    const std::vector<unsigned int> &components);
+	    RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<unsigned int> &components);
+	    RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<unsigned int> &components);
 	    
 	    virtual unsigned int getDimension(void) const;
 
@@ -114,23 +121,28 @@ namespace ompl
 	    
 	    /** \brief The set of components selected by the projection */
 	    std::vector<unsigned int> components_;
-	    
+
+	private:
+
+	    void configure(void);
 	};	
 
 	/** \brief Define the identity projection */
 	class RealVectorIdentityProjectionEvaluator : public ProjectionEvaluator
 	{
 	public:
-	    RealVectorIdentityProjectionEvaluator(const StateManifold *manifold,
-						  const std::vector<double> &cellDimensions);
-	    RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold,
-						  const std::vector<double> &cellDimensions);
+	    RealVectorIdentityProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions);
+	    RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions);
+	    RealVectorIdentityProjectionEvaluator(const StateManifold *manifold);	    
+	    RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold);
 
 	    virtual unsigned int getDimension(void) const;
 	    	    
 	    virtual void project(const State *state, EuclideanProjection &projection) const;
 
 	private:
+
+	    void configure(void);
 	    
 	    /** \brief The amount of data to copy from projection to state */
 	    std::size_t copySize_;

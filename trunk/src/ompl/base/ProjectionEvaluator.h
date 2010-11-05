@@ -173,6 +173,12 @@ namespace ompl
 	    /** \brief Check if cell dimensions match projection dimension */
 	    void checkCellDimensions(void) const;
 	    
+	    /** \brief Sample the manifold and decide on default cell dimensions */
+	    void inferCellDimensions(void);
+	    
+	    /** \brief Perform configuration steps, if needed */
+	    virtual void setup(void);
+	    
 	    /** \brief Compute integer coordinates for a projection */
 	    void computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const;
 	    

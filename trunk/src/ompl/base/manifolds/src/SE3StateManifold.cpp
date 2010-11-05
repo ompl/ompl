@@ -49,7 +49,7 @@ void ompl::base::SE3StateManifold::freeState(State *state) const
     CompoundStateManifold::freeState(state);
 }
 
-void ompl::base::SE3StateManifold::setup(void)
+void ompl::base::SE3StateManifold::registerProjections(void)
 {
     class SE3DefaultProjection : public ProjectionEvaluator
     {
@@ -74,7 +74,6 @@ void ompl::base::SE3StateManifold::setup(void)
 	    memcpy(projection.values, state->as<SE3StateManifold::StateType>()->as<RealVectorStateManifold::StateType>(0)->values, 3 * sizeof(double));
 	}
     };
-    
-    CompoundStateManifold::setup();
+
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SE3DefaultProjection(this))));
 }

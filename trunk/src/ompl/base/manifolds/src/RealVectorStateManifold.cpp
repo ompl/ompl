@@ -84,35 +84,25 @@ void ompl::base::RealVectorStateSampler::sampleGaussian(State *state, const Stat
     }
 }
 
-void ompl::base::RealVectorStateManifold::setup(void)
+void ompl::base::RealVectorStateManifold::registerProjections(void)
 {
-    StateManifold::setup();
-    bounds_.check();
-    
     // compute a default random projection
     if (dimension_ > 0)
     {
-	double md = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0 ; i < dimension_ ; ++i)
-	{
-	    double d = bounds_.high[i] - bounds_.low[i];
-	    if (d < md)
-		md = d;
-	}
-	
-	/// \todo Check assignment of cellDims. Perhaps compute cell dimensions in the projection?
 	if (dimension_ > 2)
 	{
 	    int p = std::max(2, (int)ceil(log((double)dimension_)));
-	    std::vector<double> cellDims(p, md / 5.0);
-	    registerDefaultProjection(ProjectionEvaluatorPtr(new RealVectorRandomLinearProjectionEvaluator(this, cellDims)));
+	    registerDefaultProjection(ProjectionEvaluatorPtr(new RealVectorRandomLinearProjectionEvaluator(this, p)));
 	}
 	else
-	{
-	    std::vector<double> cellDims(dimension_, md / 5.0);
-	    registerDefaultProjection(ProjectionEvaluatorPtr(new RealVectorIdentityProjectionEvaluator(this, cellDims)));
-	}
+	    registerDefaultProjection(ProjectionEvaluatorPtr(new RealVectorIdentityProjectionEvaluator(this)));
     }
+}
+
+void ompl::base::RealVectorStateManifold::setup(void)
+{
+    bounds_.check();
+    StateManifold::setup();
 }
 
 void ompl::base::RealVectorStateManifold::setBounds(const RealVectorBounds &bounds)

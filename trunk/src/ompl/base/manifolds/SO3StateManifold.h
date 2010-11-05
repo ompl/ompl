@@ -133,7 +133,7 @@ namespace ompl
 	    
 	    virtual void printSettings(std::ostream &out) const;
 
-	    virtual void setup(void);	    
+	    virtual void registerProjections(void);
 	};
     }
 }

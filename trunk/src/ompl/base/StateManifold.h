@@ -195,6 +195,10 @@ namespace ompl
 	    /** \brief Register the default projection for this manifold */
 	    void registerDefaultProjection(const ProjectionEvaluatorPtr &projection);
 	    
+	    /** \brief Register the projections for this manifold. Usually, this is at least the default
+		projection. These are implicit projections, set by the implementation of the manifold. This is called by setup(). */
+	    virtual void registerProjections(void);
+	    
 	    /** \brief Get the projection registered under a specific name */
 	    ProjectionEvaluatorPtr getProjection(const std::string &name) const;
 	    
@@ -374,6 +378,8 @@ namespace ompl
 
 	    virtual void printSettings(std::ostream &out) const;
 
+	    virtual void registerProjections(void);
+	    
 	    virtual void setup(void);
 
 	protected:

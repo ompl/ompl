@@ -40,6 +40,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include <cmath>
 #include <cstring>
+#include <limits>
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to)
 {
@@ -113,6 +114,47 @@ void ompl::base::ProjectionEvaluator::checkCellDimensions(void) const
 	throw Exception("Number of dimensions in projection space does not match number of cell dimensions");
 }
 
+void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
+{
+    static const unsigned int TEST_STEPS = 100;
+    unsigned int dim = getDimension();
+    if (dim > 0)
+    {
+	ManifoldStateSamplerPtr sampler = manifold_->allocStateSampler();
+	State *s = manifold_->allocState();
+	EuclideanProjection proj(dim);
+	
+	std::vector<double> low(dim, std::numeric_limits<double>::infinity());
+	std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
+	
+	for (unsigned int i = 0 ; i < TEST_STEPS ; ++i)
+	{
+	    sampler->sampleUniform(s);
+	    project(s, proj);
+	    for (unsigned int j = 0 ; j < dim ; ++j)
+	    {
+		if (low[j] > proj.values[j])
+		    low[j] = proj.values[j];
+		if (high[j] < proj.values[j])
+		    high[j] = proj.values[j];
+	    }
+	}
+	
+	manifold_->freeState(s);
+	
+	cellDimensions_.resize(dim);
+	for (unsigned int j = 0 ; j < dim ; ++j)
+	    cellDimensions_[j] = (high[j] - low[j]) / 10.0;
+    }
+}
+
+void ompl::base::ProjectionEvaluator::setup(void)
+{
+    if (cellDimensions_.size() == 0 && getDimension() > 0)
+	inferCellDimensions();
+    checkCellDimensions();
+}
+
 void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const
 {
     unsigned int dim = getDimension();
@@ -157,27 +199,17 @@ void ompl::base::CompoundProjectionEvaluator::addProjectionEvaluator(const Proje
 void ompl::base::CompoundProjectionEvaluator::computeProjection(void)
 {
     compoundDimension_ = 0;
-    std::vector<double> cdims;
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
-    {
-	std::vector<double> d = components_[i]->getCellDimensions();
-	cdims.insert(cdims.end(), d.begin(), d.end());
 	compoundDimension_ += components_[i]->getDimension();
-    }
     
     if (compoundDimension_ > 2 && components_.size() > 1)
 	dimension_ = std::max(2, (int)ceil(log((double)compoundDimension_)));
     else
 	dimension_ = compoundDimension_;
+    
     if (dimension_ < compoundDimension_)
-    {
-	/// \todo Check assignment of cellDims. Normalization? Perhaps compute cell dimensions in the projection?
 	projection_.computeRandom(compoundDimension_, dimension_);
-	cellDimensions_.resize(dimension_);
-	projection_.project(&cdims[0], &cellDimensions_[0]);
-    }
-    else
-	cellDimensions_ = cdims;
+    cellDimensions_.clear();
 }
 
 unsigned int ompl::base::CompoundProjectionEvaluator::getDimension(void) const

@@ -135,7 +135,7 @@ namespace ompl
 	    virtual State* allocState(void) const;
 	    virtual void freeState(State *state) const;
 
-	    virtual void setup(void);
+	    virtual void registerProjections(void);
 	};	
     }
 }

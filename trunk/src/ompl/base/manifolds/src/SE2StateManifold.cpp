@@ -49,7 +49,7 @@ void ompl::base::SE2StateManifold::freeState(State *state) const
     CompoundStateManifold::freeState(state);
 }
 
-void ompl::base::SE2StateManifold::setup(void)
+void ompl::base::SE2StateManifold::registerProjections(void)
 {
     class SE2DefaultProjection : public ProjectionEvaluator
     {
@@ -74,7 +74,6 @@ void ompl::base::SE2StateManifold::setup(void)
 	}
     };
     
-    CompoundStateManifold::setup();
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SE2DefaultProjection(this))));
 }
 

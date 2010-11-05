@@ -66,5 +66,5 @@ void ompl::geometric::checkProjectionEvaluator(const base::Planner *planner, bas
     }
     if (!proj)
 	throw Exception(planner->getName(), "No projection evaluator specified");
-    proj->checkCellDimensions();
+    proj->setup();
 }

@@ -154,7 +154,7 @@ void ompl::base::SO2StateManifold::freeState(State *state) const
     delete static_cast<StateType*>(state);
 }
 
-void ompl::base::SO2StateManifold::setup(void)
+void ompl::base::SO2StateManifold::registerProjections(void)
 {
     class SO2DefaultProjection : public ProjectionEvaluator
     {
@@ -177,7 +177,6 @@ void ompl::base::SO2StateManifold::setup(void)
 	}
     };
     
-    StateManifold::setup();
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO2DefaultProjection(this))));
 }
 

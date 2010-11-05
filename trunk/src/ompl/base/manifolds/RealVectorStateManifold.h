@@ -151,6 +151,8 @@ namespace ompl
 
 	    virtual void printSettings(std::ostream &out) const;
 
+	    virtual void registerProjections(void);
+
 	    virtual void setup(void);
 	    
 	protected:

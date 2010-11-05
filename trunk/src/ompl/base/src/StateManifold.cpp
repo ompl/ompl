@@ -35,7 +35,7 @@
 #include "ompl/base/StateManifold.h"
 #include "ompl/util/Exception.h"
 #include <boost/thread/mutex.hpp>
-#include <sstream>
+#include <boost/lexical_cast.hpp>
 #include <numeric>
 #include <limits>
 #include <cmath>
@@ -52,15 +52,17 @@ ompl::base::StateManifold::StateManifold(void)
     m++;
     lock.unlock();
 
-    std::stringstream ss;
-    ss << "manifold" << m;
-    name_ = ss.str();
+    name_ = "manifold" + boost::lexical_cast<std::string>(m);
     
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
     longestValidSegmentCountFactor_ = 1;
     
     maxExtent_ = std::numeric_limits<double>::infinity();
+}
+
+void ompl::base::StateManifold::registerProjections(void)
+{
 }
 
 void ompl::base::StateManifold::setup(void)
@@ -70,6 +72,11 @@ void ompl::base::StateManifold::setup(void)
     
     if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
 	throw Exception("The longest valid segment for manifold " + name_ + " must be positive");
+
+    registerProjections();
+    
+    for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.begin() ; it != projections_.end() ; ++it)
+	it->second->setup();
 }
 
 void ompl::base::StateManifold::printState(const State *state, std::ostream &out) const
@@ -428,18 +435,16 @@ void ompl::base::CompoundStateManifold::printSettings(std::ostream &out) const
     out << "]" << std::endl;
     printProjections(out);
 }
-	
-void ompl::base::CompoundStateManifold::setup(void)
+
+void ompl::base::CompoundStateManifold::registerProjections(void)
 {
     bool defProj = componentCount_ > 0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-    {
-	components_[i]->setup();
 	if (!components_[i]->hasDefaultProjection())
+	{
 	    defProj = false;
-    }
-    
-    StateManifold::setup();
+	    break;
+	}
     
     if (defProj && !hasDefaultProjection())
     {
@@ -448,4 +453,12 @@ void ompl::base::CompoundStateManifold::setup(void)
 	    cproj->addProjectionEvaluator(components_[i]->getDefaultProjection());
 	registerDefaultProjection(ProjectionEvaluatorPtr(cproj));
     }
+}
+
+void ompl::base::CompoundStateManifold::setup(void)
+{
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	components_[i]->setup();
+    
+    StateManifold::setup();
 }
