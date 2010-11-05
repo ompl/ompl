@@ -42,7 +42,7 @@
 #include <cstring>
 #include <limits>
 
-ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to)
+ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
     RNG rng;
     
@@ -66,20 +66,32 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 	// normalize
 	row /= sqrt((row * row).sum());	
     }
+
+    // if we need to apply scaling, do so
+    if (scale.size() == from)
+    {
+	for (unsigned int i = 0 ; i < to ; ++i)
+	    for (unsigned int j = 0 ; j < from ; ++j)
+	    {
+		if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
+		    throw Exception("Scaling factor must be non-zero");
+		projection[i][j] /= scale[i];
+	    }
+    }
     
     return projection;
 }
 
-void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to)
+void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
-    projection = ComputeRandom(from, to);
+    mat = ComputeRandom(from, to, scale);
 }
 
 void ompl::base::ProjectionMatrix::project(const double *from, double *to) const
 {
-    for (unsigned int i = 0 ; i < projection.size() ; ++i)
+    for (unsigned int i = 0 ; i < mat.size() ; ++i)
     {
-	const std::valarray<double> &vec = projection[i];
+	const std::valarray<double> &vec = mat[i];
 	const unsigned int dim = vec.size();
 	double *pos = to + i;
 	*pos = 0.0;
@@ -90,9 +102,9 @@ void ompl::base::ProjectionMatrix::project(const double *from, double *to) const
 
 void ompl::base::ProjectionMatrix::print(std::ostream &out) const
 {
-    for (unsigned int i = 0 ; i < projection.size() ; ++i)
+    for (unsigned int i = 0 ; i < mat.size() ; ++i)
     {
-	const std::valarray<double> &vec = projection[i];
+	const std::valarray<double> &vec = mat[i];
 	const unsigned int dim = vec.size();
 	for (unsigned int j = 0 ; j < dim ; ++j)
 	    out << vec[j] << " ";
@@ -199,8 +211,12 @@ void ompl::base::CompoundProjectionEvaluator::addProjectionEvaluator(const Proje
 void ompl::base::CompoundProjectionEvaluator::computeProjection(void)
 {
     compoundDimension_ = 0;
+    std::vector<double> scale;
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
+    {
 	compoundDimension_ += components_[i]->getDimension();
+	scale.insert(scale.end(), components_[i]->getCellDimensions().begin(), components_[i]->getCellDimensions().end());
+    }
     
     if (compoundDimension_ > 2 && components_.size() > 1)
 	dimension_ = std::max(2, (int)ceil(log((double)compoundDimension_)));
@@ -208,7 +224,7 @@ void ompl::base::CompoundProjectionEvaluator::computeProjection(void)
 	dimension_ = compoundDimension_;
     
     if (dimension_ < compoundDimension_)
-	projection_.computeRandom(compoundDimension_, dimension_);
+	projection_.computeRandom(compoundDimension_, dimension_, scale);
     cellDimensions_.clear();
 }
 

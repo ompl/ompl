@@ -90,12 +90,14 @@ namespace ompl
 	    }
 
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifold *manifold, unsigned int dim) :
-		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim))
+		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim,
+											      manifold->as<RealVectorStateManifold>()->getBounds().getDifference()))
 	    {
 	    }
 	    
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifoldPtr &manifold, unsigned int dim) :
-		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim))
+		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim,
+											      manifold->as<RealVectorStateManifold>()->getBounds().getDifference()))
 	    {
 	    }
 

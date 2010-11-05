@@ -95,20 +95,24 @@ namespace ompl
 	    typedef std::vector< std::valarray<double> > Matrix;
 	    
 	    /** \brief Compute a random projection matrix with \e from
-		columns and \e to rows. 
+		columns and \e to rows. A vector with \e from elements
+		can be multiplied by this matrix in order to produce a
+		vector with \e to elements.
+
+		If the \e scale argument is specified, the columns of
+		the matrix are divided by the corresponding scaling
+		argument: all elements (rows) in column[i] are divided
+		by scale[i]. This is useful to specify if scaling of
+		the elements of the state is to be applied before
+		projection. 
 
 		Each element is sampled with a Gaussian distribution
 		with mean 0 and variance 1 and the matrix columns are
 		made orthonormal. */
-	    static Matrix ComputeRandom(const unsigned int from, const unsigned int to);
+	    static Matrix ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = std::vector<double>());
 	    
-	    /** \brief Compute a random projection matrix with \e from
-		columns and \e to rows. 
-		
-		Each element is sampled with a Gaussian distribution
-		with mean 0 and variance 1 and the matrix columns are
-		made orthonormal. */
-	    void computeRandom(const unsigned int from, const unsigned int to);
+	    /** \copydoc ComputeRandom() */
+	    void computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = std::vector<double>());
 
 	    /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
 	    void project(const double *from, double *to) const;
@@ -117,7 +121,7 @@ namespace ompl
 	    void print(std::ostream &out = std::cout) const;
 	    
 	    /** \brief Projection matrix */
-	    Matrix projection;
+	    Matrix mat;
 	};
 	
 	ClassForward(StateManifold);

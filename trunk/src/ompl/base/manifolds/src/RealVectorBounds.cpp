@@ -59,6 +59,15 @@ void ompl::base::RealVectorBounds::setHigh(unsigned int index, double value)
     high[index] = value;
 }
 
+std::vector<double> ompl::base::RealVectorBounds::getDifference(void) const
+{
+    unsigned int n = std::min(low.size(), high.size());
+    std::vector<double> result(n);
+    for (unsigned int i = 0 ; i < n ; ++i)
+	result[i] = high[i] - low[i];
+    return result;
+}
+
 double ompl::base::RealVectorBounds::getVolume(void) const
 {
     double v = 1.0;
