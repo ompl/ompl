@@ -52,13 +52,14 @@ void ompl::control::ODEStateManifold::setDefaultBounds(void)
 	    else
 	    {	
 		found = true;
-		const dReal *pos = dGeomGetPosition(geom);
-		if (pos[0] > MX) MX = pos[0];
-		if (pos[0] < mX) mX = pos[0];
-		if (pos[1] > MY) MY = pos[1];
-		if (pos[1] < mY) mY = pos[1];
-		if (pos[2] > MZ) MZ = pos[2];
-		if (pos[2] < mZ) mZ = pos[2];
+		dReal aabb[6];
+		dGeomGetAABB(geom, aabb);
+		if (aabb[0] < mX) mX = aabb[0];
+		if (aabb[1] > MX) MX = aabb[1];
+		if (aabb[2] < mY) mY = aabb[2];
+		if (aabb[3] > MY) MY = aabb[3];
+		if (aabb[4] < mZ) mZ = aabb[4];
+		if (aabb[5] > MZ) MZ = aabb[5];
 	    }
 	}
     }
