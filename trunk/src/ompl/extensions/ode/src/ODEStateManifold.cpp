@@ -1,4 +1,6 @@
 #include "ompl/extensions/ode/ODEStateManifold.h"
+#include <limits>
+#include <queue>
 
 const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_TRUE     = 1;
 const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_FALSE    = -1;
@@ -14,6 +16,74 @@ ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironment &env) : b
 	addSubManifold(base::StateManifoldPtr(new base::SO3StateManifold()), 1.0);         // orientation
     }
     lock();
+    setDefaultBounds();
+}
+
+void ompl::control::ODEStateManifold::setDefaultBounds(void)
+{   
+    // limit all velocities to 1 m/s, 1 rad/s, respectively
+    base::RealVectorBounds bounds1(3);
+    bounds1.setLow(-1);
+    bounds1.setHigh(1);
+    setLinearVelocityBounds(bounds1);
+    setAngularVelocityBounds(bounds1);
+    
+    // find the bounding box that contains all geoms included in the collision spaces
+    double mX, mY, mZ, MX, MY, MZ;
+    mX = mY = mZ = std::numeric_limits<double>::infinity();
+    MX = MY = MZ = -std::numeric_limits<double>::infinity();
+    bool found = false;
+    
+    std::queue<dSpaceID> spaces;
+    for (unsigned int i = 0 ; i < env_.collisionSpaces.size() ; ++i)
+	spaces.push(env_.collisionSpaces[i]);
+    
+    while (!spaces.empty())
+    {
+	dSpaceID space = spaces.front();
+	spaces.pop();
+	
+	int n = dSpaceGetNumGeoms(space);
+	for (int j = 0 ; j < n ; ++j)
+	{
+	    dGeomID geom = dSpaceGetGeom(space, j);
+	    if (dGeomIsSpace(geom))
+		spaces.push((dSpaceID)geom);
+	    else
+	    {	
+		found = true;
+		const dReal *pos = dGeomGetPosition(geom);
+		if (pos[0] > MX) MX = pos[0];
+		if (pos[0] < mX) mX = pos[0];
+		if (pos[1] > MY) MY = pos[1];
+		if (pos[1] < mY) mY = pos[1];
+		if (pos[2] > MZ) MZ = pos[2];
+		if (pos[2] < mZ) mZ = pos[2];
+	    }
+	}
+    }
+    
+    if (found)
+    {
+	double dx = MX - mX;
+	double dy = MY - mY;
+	double dz = MZ - mZ;
+	double dM = std::max(dx, std::max(dy, dz));
+	
+	// add 10% in each dimension + 1% of the max dimension
+	dx = dx / 10.0 + dM / 100.0;
+	dy = dy / 10.0 + dM / 100.0;
+	dz = dz / 10.0 + dM / 100.0;
+	
+	bounds1.low[0] = mX - dx;
+	bounds1.high[0] = MX + dx;
+	bounds1.low[1] = mY - dy;
+	bounds1.high[1] = MY + dy;
+	bounds1.low[2] = mZ - dz;
+	bounds1.high[2] = MZ + dz;
+	
+	setVolumeBounds(bounds1);
+    }
 }
 
 void ompl::control::ODEStateManifold::copyState(base::State *destination, const base::State *source) const

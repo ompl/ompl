@@ -34,59 +34,28 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_CONTROL_MANIFOLD_
-#define OMPL_EXTENSION_ODE_CONTROL_MANIFOLD_
+#include "ompl/extensions/ode/ODESimpleSetup.h"
+#include "ompl/util/Exception.h"
 
-#include "ompl/control/manifolds/RealVectorControlManifold.h"
-#include "ompl/extensions/ode/ODEStateManifold.h"
-
-namespace ompl
+ompl::control::ODESimpleSetup::ODESimpleSetup(const ControlManifoldPtr &manifold) : SimpleSetup(manifold)
 {
-
-    namespace control
-    {
-	
-	class ODEControlManifold : public RealVectorControlManifold
-	{
-	public:
-	    
-	    ODEControlManifold(const base::StateManifoldPtr &stateManifold) : 
-		RealVectorControlManifold(stateManifold, getStateManifoldEnvironment(stateManifold).getControlDimension()),
-		env_(getStateManifoldEnvironment(stateManifold))
-	    {
-		RealVectorBounds bounds(dimension_);
-		env_.getControlBounds(bounds.low, bounds.high);
-		setBounds(bounds);
-	    }
-	    
-	    virtual ~ODEControlManifold(void)
-	    {
-	    }
-
-	    const ODEEnvironment& getEnvironment(void) const
-	    {
-		return env_;
-	    }
-	    
-	    virtual bool canPropagateBackward(void) const
-	    {
-		return false;
-	    }
-	    
-	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
-	    
-	protected:
-	    
-	    const ODEEnvironment &env_;
-
-	private:
-	    
-	    const ODEEnvironment& getStateManifoldEnvironment(const base::StateManifoldPtr &manifold) const;
-	    
-	};
-    }
-
+    if (!dynamic_cast<ODEControlManifold*>(manifold.get()))
+	throw Exception("ODE Control Manifold needed for ODE Simple Setup");
 }
 
-
-#endif
+void ompl::control::ODESimpleSetup::setup(void)
+{
+    if (!si_->getStateValidityChecker())
+    {
+	msg_.inform("Using default state validity checker for ODE");
+	si_->setStateValidityChecker(base::StateValidityCheckerPtr(new ODEStateValidityChecker(si_)));
+    }
+    if (pdef_->getStartStateCount() == 0)
+    {
+	msg_.inform("Using the initial state of ODE as the starting state for the planner");
+	base::ScopedState<> start(getStateManifold());
+	getStateManifold()->as<ODEStateManifold>()->readState(start.get());
+	pdef_->addStartState(start);
+    }
+    SimpleSetup::setup();
+}

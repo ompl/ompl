@@ -34,59 +34,42 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_CONTROL_MANIFOLD_
-#define OMPL_EXTENSION_ODE_CONTROL_MANIFOLD_
+#ifndef OMPL_EXTENSION_ODE_SIMPLE_SETUP_
+#define OMPL_EXTENSION_ODE_SIMPLE_SETUP_
 
-#include "ompl/control/manifolds/RealVectorControlManifold.h"
-#include "ompl/extensions/ode/ODEStateManifold.h"
+#include "ompl/control/SimpleSetup.h"
+#include "ompl/extensions/ode/ODEStateValidityChecker.h"
+#include "ompl/extensions/ode/ODEControlManifold.h"
 
 namespace ompl
 {
 
     namespace control
     {
-	
-	class ODEControlManifold : public RealVectorControlManifold
+		
+	/** \brief Create the set of classes typically needed to solve a
+	    control problem */
+	class ODESimpleSetup : public SimpleSetup
 	{
 	public:
 	    
-	    ODEControlManifold(const base::StateManifoldPtr &stateManifold) : 
-		RealVectorControlManifold(stateManifold, getStateManifoldEnvironment(stateManifold).getControlDimension()),
-		env_(getStateManifoldEnvironment(stateManifold))
-	    {
-		RealVectorBounds bounds(dimension_);
-		env_.getControlBounds(bounds.low, bounds.high);
-		setBounds(bounds);
-	    }
+	    /** \brief Constructor needs the manifold needed for planning. */
+	    explicit
+	    ODESimpleSetup(const ControlManifoldPtr &manifold);
 	    
-	    virtual ~ODEControlManifold(void)
+	    virtual ~ODESimpleSetup(void)
 	    {
 	    }
-
-	    const ODEEnvironment& getEnvironment(void) const
+	    
+	    /** \brief Get the ODE environment associated to the manifold */
+	    const ODEEnvironment& getODEEnvironment(void) const
 	    {
-		return env_;
+		return getControlManifold()->as<ODEControlManifold>()->getEnvironment();
 	    }
 	    
-	    virtual bool canPropagateBackward(void) const
-	    {
-		return false;
-	    }
-	    
-	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
-	    
-	protected:
-	    
-	    const ODEEnvironment &env_;
-
-	private:
-	    
-	    const ODEEnvironment& getStateManifoldEnvironment(const base::StateManifoldPtr &manifold) const;
-	    
+	    virtual void setup(void);
 	};
     }
-
+    
 }
-
-
 #endif

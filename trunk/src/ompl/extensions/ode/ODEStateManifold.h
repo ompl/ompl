@@ -136,6 +136,8 @@ namespace ompl
 		return env_;
 	    }
 	    
+	    void setDefaultBounds(void);
+	    
 	    void setVolumeBounds(const base::RealVectorBounds &bounds);
 
 	    void setLinearVelocityBounds(const base::RealVectorBounds &bounds);

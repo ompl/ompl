@@ -35,6 +35,14 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/extensions/ode/ODEControlManifold.h"
+#include "ompl/util/Exception.h"
+
+const ompl::control::ODEEnvironment& ompl::control::ODEControlManifold::getStateManifoldEnvironment(const base::StateManifoldPtr &manifold) const
+{
+    if (!dynamic_cast<ODEStateManifold*>(manifold.get()))
+	throw Exception("ODE State Manifold needed for creating ODE Control Manifold");
+    return manifold->as<ODEStateManifold>()->getEnvironment();
+}
 
 namespace ompl
 {
