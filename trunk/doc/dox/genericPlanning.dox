@@ -49,7 +49,8 @@
        ompl::base::SpaceInformation::setStateValidityChecker()
        instead. By default, all states are considered valid, if this parameter
        is not set.
-     - a call needs to be made to
+     - if using ompl::base::DiscreteMotionValidator for validating motions 
+       (this is the default), a call needs to be made to
        ompl::base::SpaceInformation::setStateValidityCheckingResolution()
        in order to specify the maximum distance between states to be
        checked for validity along a path segment. This distance is
@@ -69,7 +70,7 @@
        one), using ompl::base::ProblemDefinition::addStartState().
      - an ompl::base::Goal specification must be set using
        ompl::base::ProblemDefinition::setGoal(). For simplicity,
-       the following specifications of this class are available:
+       specifications of this class are available:
        ompl::base::GoalRegion, ompl::base::GoalSampleableRegion,
        ompl::base::GoalState, ompl::base::GoalStates.       
      - as a simplification, a call can be made to
@@ -101,10 +102,10 @@
    After creation, a call to the planner's
    ompl::base::Planner::setup() method must be made and the planner
    instance is ready for use. The problem to be solved is set with
-   ompl::base::Planner:setProblemDefinition().
+   ompl::base::Planner::setProblemDefinition().
    The ompl::base::Planner::solve() method
    can be called repeatedly with different allowed time durations
-   until a solution is found. A call to ompl::base::Planner::clear()
+   until a solution is found. The planning process continues with the available data structures when sequential calls to ompl::base::Planner::solve() are made. A call to ompl::base::Planner::clear()
    will restore a planner to its state before any calls to the
    ompl::base::Planner::solve() method were made.
    @code

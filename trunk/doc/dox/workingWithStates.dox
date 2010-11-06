@@ -28,7 +28,7 @@ ompl::base::State* state = si->allocState();
 si->freeState(state);
 \endcode
 The structure of a state depends on a manifold
-specification. The State type is just an abstract base for
+specification. The ompl::base::State type is just an abstract base for
 the states of other manifolds.  For this reason, states
 cannot be allocated directly, but through the use of a
 manifold's allocation mechanism:
@@ -36,7 +36,7 @@ ompl::base::StateManifold::allocState(). States are to be
 freed using ompl::base::StateManifold::freeState(). For
 convenience, ompl::base::SpaceInformation::allocState()
 and ompl::base::SpaceInformation::freeState() are defined
-as well. Using the calls from the SpaceInformation class
+as well. Using the calls from the ompl::base::SpaceInformation class
 is better since they certainly use the same manifold as
 the one used for planning.  This is the lowest level of
 operating on states and only recomended for expert users.
@@ -56,7 +56,7 @@ The recommended use of states is with ompl::base::ScopedState. Given
 the instance of a manifold, this class will allocate a state from that
 manifold. The internally maintained state is freed when the instance
 of ompl::base::ScopedState goes out of scope.  ompl::base::ScopedState
-is templated class and it inherits from T::StateType. This allows it
+is a templated class and it inherits from T::StateType, where T is a manifold type. This allows it
 to cast the state it maintains to the desired type and thus exhibit
 the functionality (the same members) as T::StateType. If no template
 argument is specified, the internal state is kept as

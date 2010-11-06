@@ -10,7 +10,8 @@ the new manifold defines a ompl::base::StateManifold::allocState()
 function, it should also provide a
 ompl::base::StateManifold::freeState() function and define (or
 typedef) @b StateType to the type of the state that is
-allocated/freed.
+allocated/freed. In such cases it will often be necessary to also implement
+ompl::base::StateManifold::copyState().
 
 @par Inheriting from ompl::base::CompoundStateManifold 
 Another option is to inherit from a ompl::base::CompoundStateManifold
@@ -25,11 +26,10 @@ manifold from adding further components.
 
 Optionally, if there exist projections to Euclidean spaces
 (ompl::base::ProjectionEvaluator) for the defined manifold, these can
-be registered by the ompl::base::StateManifold::setup() function (by
-calling ompl::base::StateManifold::registerProjection() or
-ompl::base::StateManifold::registerDefaultProjection()). Registering a
-projection under the empty string name makes it the default
-projection. Planners that need a projection but do not have one
-defined will attempt using this default projection during planning.
+be registered by the ompl::base::StateManifold::registerProjections()
+function (by calling ompl::base::StateManifold::registerProjection()
+or ompl::base::StateManifold::registerDefaultProjection()). Planners
+that need a projection but do not have one defined will attempt using
+this default projection during planning.
 
 */

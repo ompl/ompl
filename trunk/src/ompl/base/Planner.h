@@ -79,7 +79,10 @@ namespace ompl
 	/** \brief Datatype for functions deciding whether termination
 	    conditions have been met for the planner, even if no
 	    solution is found. This is usually reaching a time or
-	    memory limit.*/
+	    memory limit. If the function returns true, the planner is
+	    signaled to terminate its computation. Otherwise,
+	    computation continues while this function returns false,
+	    until a solution is found. */
 	typedef boost::function0<bool> PlannerTerminationCondition;
 
 	

@@ -10,7 +10,7 @@
 	   the found solution path in the goal instance contained by
       	   ompl::base::ProblemDefinition. If no solution is found, the
 	   function should return false.
-	 - The function should terminate within the amount of time specified.
+	 - The function should terminate when a termination condition is met
 	 - It is desirable that calling solve() multiple times
            consecutively continues the solving process rather than
            restarting it.	  
@@ -21,7 +21,7 @@
       ompl::base::Planner::getPlannerData(). The provided
       implementation can be empty. This function is provided for
       debugging purposes: it allows the user of the algorithm to
-      inspect the constructed exploration datastructure.
+      inspect the constructed exploration data structure.
 
       \code 
       #include "ompl/base/Planner.h"
@@ -43,11 +43,14 @@
 		    // free any allocated memory
 		}
 		
-		virtual bool solve(double solveTime)
+		virtual bool solve(const base::PlannerTerminationCondition &ptc)
 		{
 		    // get problem definition from pdef_
 		    // get input states with pis_
 		    // call routines from si_
+		    
+		    // periodically check if ptc() returns true.
+		    // if it does, terminate planning
 
 		    // compute a valid motion plan
 		    // set it with pdef_->getGoal()->setSolutionPath()
