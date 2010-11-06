@@ -308,8 +308,9 @@ namespace ompl
 		algorithm is allowed to spend planning. */
 	    bool solve(double solveTime);	    
 	    
-	    /** \brief Clear all internal datastructures. Subsequent
-		calls to solve() will ignore all previous work. */
+	    /** \brief Clear all internal datastructures. Planner
+		settings are not affected. Subsequent calls to solve()
+		will ignore all previous work. */
 	    virtual void clear(void);
 	    
 	    /** \brief Get information about the current run of the motion planner  */
