@@ -73,7 +73,7 @@ namespace ompl
 	{
 	    for (int i = 0; i < numc; ++i)
 	    {
-		dJointID c = dJointCreateContact(cp->env->world, cp->env->contactGroup, contact + i);
+		dJointID c = dJointCreateContact(cp->env->world_, cp->env->contactGroup_, contact + i);
 		dJointAttach(c, b1, b2);
 		if (!cp->env->isValidCollision(o1, o2, contact[i]))
 		    cp->collision = true;
@@ -85,7 +85,7 @@ namespace ompl
 void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {
     const ODEEnvironment &env = stateManifold_->as<ODEStateManifold>()->getEnvironment();
-    env.mutex.lock();
+    env.mutex_.lock();
     
     // place the ODE world at the start state
     stateManifold_->as<ODEStateManifold>()->writeState(state);
@@ -95,19 +95,19 @@ void ompl::control::ODEControlManifold::propagate(const base::State *state, cons
 
     // created contacts as needed
     CallbackParam cp = { &env, false };    
-    for (unsigned int i = 0 ; i < env.collisionSpaces.size() ; ++i)
-	dSpaceCollide(env.collisionSpaces[i],  &cp, &nearCallback);
+    for (unsigned int i = 0 ; i < env.collisionSpaces_.size() ; ++i)
+	dSpaceCollide(env.collisionSpaces_[i],  &cp, &nearCallback);
     
     // propagate one step forward
-    dWorldQuickStep(env.world, duration);
+    dWorldQuickStep(env.world_, duration);
     
     // remove created contacts
-    dJointGroupEmpty(env.contactGroup);
+    dJointGroupEmpty(env.contactGroup_);
     
     // read the final state from the ODE world
     stateManifold_->as<ODEStateManifold>()->readState(result);
     
-    env.mutex.unlock();
+    env.mutex_.unlock();
     
     // update the collision flag for the start state, if needed
     if (state->as<ODEStateManifold::StateType>()->collision == ODEStateManifold::STATE_COLLISION_UNKNOWN)

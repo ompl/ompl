@@ -8,7 +8,7 @@ const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_UNK
 
 ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironment &env) : base::CompoundStateManifold(), env_(env)
 {
-    for (unsigned int i = 0 ; i < env_.stateBodies.size() ; ++i)
+    for (unsigned int i = 0 ; i < env_.stateBodies_.size() ; ++i)
     {
 	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0); // position
 	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), 1.0); // linear velocity
@@ -35,8 +35,8 @@ void ompl::control::ODEStateManifold::setDefaultBounds(void)
     bool found = false;
     
     std::queue<dSpaceID> spaces;
-    for (unsigned int i = 0 ; i < env_.collisionSpaces.size() ; ++i)
-	spaces.push(env_.collisionSpaces[i]);
+    for (unsigned int i = 0 ; i < env_.collisionSpaces_.size() ; ++i)
+	spaces.push(env_.collisionSpaces_[i]);
     
     while (!spaces.empty())
     {
@@ -129,12 +129,12 @@ void ompl::control::ODEStateManifold::evaluateCollision(const base::State *state
 {
     if (state->as<StateType>()->collision != STATE_COLLISION_UNKNOWN)
 	return;
-    env_.mutex.lock();
+    env_.mutex_.lock();
     writeState(state);
     CallbackParam cp = { &env_, false };
-    for (unsigned int i = 0 ; cp.collision == false && i < env_.collisionSpaces.size() ; ++i)
-	dSpaceCollide(env_.collisionSpaces[i], &cp, &nearCallback);
-    env_.mutex.unlock();
+    for (unsigned int i = 0 ; cp.collision == false && i < env_.collisionSpaces_.size() ; ++i)
+	dSpaceCollide(env_.collisionSpaces_[i], &cp, &nearCallback);
+    env_.mutex_.unlock();
     state->as<StateType>()->collision = cp.collision ? STATE_COLLISION_TRUE : STATE_COLLISION_FALSE;
 }
 
@@ -149,19 +149,19 @@ bool ompl::control::ODEStateManifold::satisfiesBoundsExceptRotation(const StateT
 
 void ompl::control::ODEStateManifold::setVolumeBounds(const base::RealVectorBounds &bounds)
 {
-    for (unsigned int i = 0 ; i < env_.stateBodies.size() ; ++i)
+    for (unsigned int i = 0 ; i < env_.stateBodies_.size() ; ++i)
 	components_[i * 4]->as<base::RealVectorStateManifold>()->setBounds(bounds);
 }
 
 void ompl::control::ODEStateManifold::setLinearVelocityBounds(const base::RealVectorBounds &bounds)
 {   
-    for (unsigned int i = 0 ; i < env_.stateBodies.size() ; ++i)
+    for (unsigned int i = 0 ; i < env_.stateBodies_.size() ; ++i)
 	components_[i * 4 + 1]->as<base::RealVectorStateManifold>()->setBounds(bounds);
 }
 
 void ompl::control::ODEStateManifold::setAngularVelocityBounds(const base::RealVectorBounds &bounds)
 {  
-    for (unsigned int i = 0 ; i < env_.stateBodies.size() ; ++i)
+    for (unsigned int i = 0 ; i < env_.stateBodies_.size() ; ++i)
 	components_[i * 4 + 2]->as<base::RealVectorStateManifold>()->setBounds(bounds);
 }
 
@@ -180,13 +180,13 @@ void ompl::control::ODEStateManifold::freeState(base::State *state) const
 void ompl::control::ODEStateManifold::readState(base::State *state) const
 {
     StateType *s = state->as<StateType>();
-    for (int i = (int)env_.stateBodies.size() - 1 ; i >= 0 ; --i)
+    for (int i = (int)env_.stateBodies_.size() - 1 ; i >= 0 ; --i)
     {
 	unsigned int _i4 = i * 4;
 	
-	const dReal *pos = dBodyGetPosition(env_.stateBodies[i]);
-	const dReal *vel = dBodyGetLinearVel(env_.stateBodies[i]);
-	const dReal *ang = dBodyGetAngularVel(env_.stateBodies[i]);
+	const dReal *pos = dBodyGetPosition(env_.stateBodies_[i]);
+	const dReal *vel = dBodyGetLinearVel(env_.stateBodies_[i]);
+	const dReal *ang = dBodyGetAngularVel(env_.stateBodies_[i]);
 	double *s_pos = s->as<base::RealVectorStateManifold::StateType>(_i4)->values; ++_i4;
 	double *s_vel = s->as<base::RealVectorStateManifold::StateType>(_i4)->values; ++_i4;
 	double *s_ang = s->as<base::RealVectorStateManifold::StateType>(_i4)->values; ++_i4;
@@ -198,7 +198,7 @@ void ompl::control::ODEStateManifold::readState(base::State *state) const
 	    s_ang[j] = ang[j];
 	}
 	
-	const dReal *rot = dBodyGetQuaternion(env_.stateBodies[i]);
+	const dReal *rot = dBodyGetQuaternion(env_.stateBodies_[i]);
     	base::SO3StateManifold::StateType &s_rot = *s->as<base::SO3StateManifold::StateType>(_i4);
 	
 	s_rot.w = rot[0];
@@ -211,18 +211,18 @@ void ompl::control::ODEStateManifold::readState(base::State *state) const
 void ompl::control::ODEStateManifold::writeState(const base::State *state) const
 { 
     const StateType *s = state->as<StateType>();
-    for (int i = (int)env_.stateBodies.size() - 1 ; i >= 0 ; --i)
+    for (int i = (int)env_.stateBodies_.size() - 1 ; i >= 0 ; --i)
     {
 	unsigned int _i4 = i * 4;
 	
 	double *s_pos = s->as<base::RealVectorStateManifold::StateType>(_i4)->values; ++_i4;
-	dBodySetPosition(env_.stateBodies[i], s_pos[0], s_pos[1], s_pos[2]);
+	dBodySetPosition(env_.stateBodies_[i], s_pos[0], s_pos[1], s_pos[2]);
 	
 	double *s_vel = s->as<base::RealVectorStateManifold::StateType>(_i4)->values; ++_i4;
-	dBodySetLinearVel(env_.stateBodies[i], s_vel[0], s_vel[1], s_vel[2]);
+	dBodySetLinearVel(env_.stateBodies_[i], s_vel[0], s_vel[1], s_vel[2]);
 
 	double *s_ang = s->as<base::RealVectorStateManifold::StateType>(_i4)->values; ++_i4;
-	dBodySetAngularVel(env_.stateBodies[i],  s_ang[0], s_ang[1], s_ang[2]);
+	dBodySetAngularVel(env_.stateBodies_[i],  s_ang[0], s_ang[1], s_ang[2]);
 	
     	const base::SO3StateManifold::StateType &s_rot = *s->as<base::SO3StateManifold::StateType>(_i4);
 	dQuaternion q;
@@ -230,6 +230,6 @@ void ompl::control::ODEStateManifold::writeState(const base::State *state) const
 	q[1] = s_rot.x;
 	q[2] = s_rot.y;
 	q[3] = s_rot.z;
-	dBodySetQuaternion(env_.stateBodies[i], q);
+	dBodySetQuaternion(env_.stateBodies_[i], q);
     }
 }

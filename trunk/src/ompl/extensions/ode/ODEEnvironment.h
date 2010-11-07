@@ -57,37 +57,43 @@ namespace ompl
 	public:
 	    
 	    /** \brief The ODE world where the simulation is performed */
-	    dWorldID              world;
+	    dWorldID              world_;
 
 	    /** \brief The set of spaces where contacts need to be evaluated before simulation takes place */
-	    std::vector<dSpaceID> collisionSpaces;
+	    std::vector<dSpaceID> collisionSpaces_;
 	    
 	    /** \brief The set of bodies that need to be considered
 		part of the state when planning. This is not
 		necessarily all the bodies in the environment.*/
-	    std::vector<dBodyID>  stateBodies;
+	    std::vector<dBodyID>  stateBodies_;
 
 	    /** \brief The group of joints where contacts are created */
-	    dJointGroupID         contactGroup;
+	    dJointGroupID         contactGroup_;
 	    
 	    /** \brief The maximum number of contacts to create between two bodies when a collision occurs */
-	    unsigned int          maxContacts;
+	    unsigned int          maxContacts_;
 
 	    /** \brief The simulation step size */
-	    double                stepSize;
-	    
-	    /** \brief Lock to use when performing simulations in the world. (ODE simulations are NOT thread safe) */
-	    mutable boost::mutex  mutex;
+	    double                stepSize_;
+            
+            /** \brief The maximum number of times a control is applies in sequence */
+            unsigned int          maxControlSteps_;
 
-	    ODEEnvironment(void) : world(NULL), maxContacts(3), stepSize(0.05)
+            /** \brief The minimum number of times a control is applies in sequence */
+            unsigned int          minControlSteps_;
+            
+	    /** \brief Lock to use when performing simulations in the world. (ODE simulations are NOT thread safe) */
+	    mutable boost::mutex  mutex_;
+
+            ODEEnvironment(void) : world_(NULL), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
 	    {
-		contactGroup = dJointGroupCreate(0);
+		contactGroup_ = dJointGroupCreate(0);
 	    }
 
 	    virtual ~ODEEnvironment(void)
 	    {
-		if (contactGroup)
-		    dJointGroupDestroy(contactGroup);
+		if (contactGroup_)
+		    dJointGroupDestroy(contactGroup_);
 	    }
 	    
 	    /** \brief Number of parameters (double values) needed to specify a control input */

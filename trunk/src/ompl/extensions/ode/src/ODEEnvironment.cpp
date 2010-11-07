@@ -38,7 +38,7 @@
 
 unsigned int ompl::control::ODEEnvironment::getMaxContacts(dGeomID geom1, dGeomID geom2) const
 {
-    return maxContacts;
+    return maxContacts_;
 }
 
 bool ompl::control::ODEEnvironment::isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const

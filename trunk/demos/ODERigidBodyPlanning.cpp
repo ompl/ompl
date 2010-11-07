@@ -226,12 +226,7 @@ int main(int, char **)
 
     // set the goal we would like to reach
     ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));
-
-    // set further needed parameters
-    ss.getSpaceInformation()->setPropagationStepSize(env.stepSize);
-    ss.getSpaceInformation()->setMinMaxControlDuration(10, 500);
     
-
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-200);
     bounds.setHigh(200);
@@ -309,9 +304,11 @@ void RigidBodyEnvironment::destroyWorld(void)
 void RigidBodyEnvironment::setPlanningParameters(void)
 {    
     /// Fill in parameters for OMPL:
-    world = bodyWorld;
-    collisionSpaces.push_back(space);
-    stateBodies.push_back(boxBody);
-    stepSize = 0.05;
-    maxContacts = 3;
+    world_ = bodyWorld;
+    collisionSpaces_.push_back(space);
+    stateBodies_.push_back(boxBody);
+    stepSize_ = 0.05;
+    maxContacts_ = 3;
+    minControlSteps_ = 10;
+    maxControlSteps_ = 500;
 }
