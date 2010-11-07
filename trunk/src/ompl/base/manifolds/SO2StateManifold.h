@@ -43,79 +43,79 @@ namespace ompl
 {
     namespace base
     {
-	
-	/** \brief Uniform sampler for the SO(2) manifold */
-	class SO2StateSampler : public ManifoldStateSampler
-	{
-	public:
-	    
-	    SO2StateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
-	    {
-	    }
-	    
-	    virtual void sampleUniform(State *state);
-	    virtual void sampleUniformNear(State *state, const State *near, const double distance);
-	    virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
-	};
-	
-	/** \brief A manifold representing SO(2). The distance
-	    function and interpolation take into account angle
-	    wrapping. */
-	class SO2StateManifold : public StateManifold
-	{
-	public:
+    
+    /** \brief Manifold sampler for SO(2) */
+    class SO2StateSampler : public ManifoldStateSampler
+    {
+    public:
+        
+        SO2StateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
+        {
+        }
+        
+        virtual void sampleUniform(State *state);
+        virtual void sampleUniformNear(State *state, const State *near, const double distance);
+        virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+    };
+    
+    /** \brief A manifold representing SO(2). The distance
+        function and interpolation take into account angle
+        wrapping. */
+    class SO2StateManifold : public StateManifold
+    {
+    public:
 
-	    /** \brief The definition of a state in SO(2) */
-	    class StateType : public State
-	    {
-	    public:
-		
-		/** \brief Set the state to identity -- no rotation (value = 0.0) */
-		void setIdentity(void)
-		{
-		    value = 0.0;
-		}
-		
-		/** \brief The value of the angle (between -PI and PI) */
-		double value;
-	    };
-	
-	    SO2StateManifold(void) : StateManifold()
-	    {
-	    }
-	    
-	    virtual ~SO2StateManifold(void)
-	    {	
-	    }
-	    
-	    virtual unsigned int getDimension(void) const;
+        /** \brief The definition of a state in SO(2) */
+        class StateType : public State
+        {
+        public:
+        
+        /** \brief Set the state to identity -- no rotation (value = 0.0) */
+        void setIdentity(void)
+        {
+            value = 0.0;
+        }
+        
+        /** \brief The value of the angle (between -PI and PI) */
+        double value;
+        };
+    
+        SO2StateManifold(void) : StateManifold()
+        {
+        }
+        
+        virtual ~SO2StateManifold(void)
+        {    
+        }
+        
+        virtual unsigned int getDimension(void) const;
 
-	    virtual double getMaximumExtent(void) const;
+        virtual double getMaximumExtent(void) const;
 
-	    virtual void enforceBounds(State *state) const;
-	    	    
-	    virtual bool satisfiesBounds(const State *state) const;
-	    
-	    virtual void copyState(State *destination, const State *source) const;
-	    
-	    virtual double distance(const State *state1, const State *state2) const;
-	    
-	    virtual bool equalStates(const State *state1, const State *state2) const;
+        virtual void enforceBounds(State *state) const;
+                
+        virtual bool satisfiesBounds(const State *state) const;
+        
+        virtual void copyState(State *destination, const State *source) const;
+        
+        virtual double distance(const State *state1, const State *state2) const;
+        
+        virtual bool equalStates(const State *state1, const State *state2) const;
 
-	    virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
+        virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-	    virtual ManifoldStateSamplerPtr allocStateSampler(void) const;
-	    
-	    virtual State* allocState(void) const;
+        virtual ManifoldStateSamplerPtr allocStateSampler(void) const;
+        
+        virtual State* allocState(void) const;
 
-	    virtual void freeState(State *state) const;
+        virtual void freeState(State *state) const;
 
-	    virtual void printState(const State *state, std::ostream &out) const;
-	    
-	    virtual void printSettings(std::ostream &out) const;
+        virtual void printState(const State *state, std::ostream &out) const;
+        
+        virtual void printSettings(std::ostream &out) const;
 
-	    virtual void registerProjections(void);
-	};
+        virtual void registerProjections(void);
+    };
     }
 }
 

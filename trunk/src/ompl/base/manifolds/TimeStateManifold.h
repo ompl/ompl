@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_MANIFOLDS_SO3_STATE_MANIFOLD_
-#define OMPL_BASE_MANIFOLDS_SO3_STATE_MANIFOLD_
+#ifndef OMPL_BASE_MANIFOLDS_TIME_STATE_MANIFOLD_
+#define OMPL_BASE_MANIFOLDS_TIME_STATE_MANIFOLD_
 
 #include "ompl/base/StateManifold.h"
 
@@ -44,12 +44,12 @@ namespace ompl
     namespace base
     {
         
-        /** \brief Manifold sampler for SO(3), using quaternion representation  */
-        class SO3StateSampler : public ManifoldStateSampler
+        /** \brief Manifold sampler for time */
+        class TimeStateSampler : public ManifoldStateSampler
         {
         public:
             
-        SO3StateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
+            TimeStateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
             {
             }
             
@@ -58,57 +58,60 @@ namespace ompl
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
         };
         
-        /** \brief A manifold representing SO(3). The internal
-            representation is done with quaternions. The distance
-            between states is the angle between quaternions and
-            interpolation is done with slerp. */
-        class SO3StateManifold : public StateManifold
+        /** \brief A manifold representing time. The time can be
+            unbounded, in which case enforceBounds() is a no-op,
+            satisfiesBounds() always returns true, sampling uniform
+            time states always produces time 0 and getMaximumExtent()
+            returns 1. If time is bounded (setBounds() has been
+            called), the manifold behaves as expected. After
+            construction, the manifold is unbounded.*/
+        class TimeStateManifold : public StateManifold
         {
         public:
             
-            
-            /** \brief The definition of a state in SO(3) represented as a unit quaternion
-                
-                \note The order of the elements matters in this
-                definition for the SO3StateUniformSampler::sample()
-                function. */
+            /** \brief The definition of a time state */
             class StateType : public State
             {
             public:
                 
-                /** \brief Set the quaternion from axis-angle representation */
-                void setAxisAngle(double ax, double ay, double az, double angle);
-                
-                /** \brief Set the state to identity -- no rotation */
-                void setIdentity(void);
-                
-                /** \brief X component of quaternion vector */
-                double x;
-                
-                /** \brief Y component of quaternion vector */
-                double y;
-                
-                /** \brief Z component of quaternion vector */
-                double z;
-                
-                /** \brief scalar component of quaternion */
-                double w;
+                /** \brief The position in time */
+                double position;
             };
             
-        SO3StateManifold(void) : StateManifold()
+            TimeStateManifold(void) : StateManifold(), bounded_(false), minTime_(0.0), maxTime_(0.0)
             {
             }
             
-            virtual ~SO3StateManifold(void)
+            virtual ~TimeStateManifold(void)
             {    
             }
-            
-            /** \brief Compute the norm of a state */
-            double norm(const StateType *state) const;
             
             virtual unsigned int getDimension(void) const;
             
             virtual double getMaximumExtent(void) const;
+            
+            /** \brief Set the minimum and maximum time bounds. This
+                will make the manifold switch into bounded time
+                mode. If this function is not called, sampling time
+                will always produce 0, enforceBounds() is a no-op,
+                satisfiesBounds() always returns true and
+                getMaximumExtent() returns 1. */
+            void setBounds(double minTime, double maxTime);
+            
+            double getMinTimeBound(void) const
+            {
+                return minTime_;
+            }
+            
+            double getMaxTimeBound(void) const
+            {
+                return maxTime_;
+            }
+            
+            bool isBounded(void) const
+            {
+                return bounded_;
+            }
             
             virtual void enforceBounds(State *state) const;
             
@@ -133,6 +136,13 @@ namespace ompl
             virtual void printSettings(std::ostream &out) const;
             
             virtual void registerProjections(void);
+            
+        protected:
+            
+            bool   bounded_;
+            double minTime_;
+            double maxTime_;
+            
         };
     }
 }
