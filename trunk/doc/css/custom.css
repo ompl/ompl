@@ -56,6 +56,8 @@ ul, ol {margin:0em 0em .5em 0em; padding-left:2em;}
 	-moz-box-shadow:rgba(0, 0, 0, 0.25) 3px 3px 3px;
 }
 .dlbutton a:hover { background-color: #00f; text-decoration: none; }
+ul.dropdown li.first { border-left: solid 1px #d9d9d9; margin-left:80px; }
 dl.user+ul { margin-top: -1.5em;}
+.nofloat { float: none; }
 #MSearchResultsWindow, #MSearchSelectWindow { z-index: 600;}
 #MSearchField { margin-bottom: 0; margin-top: 0;}

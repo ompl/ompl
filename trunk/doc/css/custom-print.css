@@ -8,3 +8,4 @@
 	padding-top: 2px;
 }
 a:link, a:visited { color: #119; }
+.nofloat { float: none; }
