@@ -1,4 +1,4 @@
-.container { width: 950px; }
+.container { width: 950px; float: left; }
 table { width:auto; margin: 4px;}
 table, td, th {vertical-align:top;padding: 2px;}
 th { text-align: center; }
@@ -15,12 +15,12 @@ h3 { font-style: italic; font-weight: bold; margin-top: 1em; }
 	color: #fff;
 	background: #119 url(images/gradient.png) repeat-x;
 	font: helvetica;
-	font-size: 3em;
+	font-size:1.5em;
 	text-shadow: #000 0px 0px 15px;
-	padding: 10px 0px .75em 10px;
+	padding: 10px 0px 10px 0px;
 	margin:0px 1px 1px 0px;
-	width: 940px;
 }
+#ompltitle .tablist li { background-image: none; padding-left: 10px; }
 .footer {
 	font-size: small;
 	font-weight: bold;
@@ -56,5 +56,6 @@ ul, ol {margin:0em 0em .5em 0em; padding-left:2em;}
 	-moz-box-shadow:rgba(0, 0, 0, 0.25) 3px 3px 3px;
 }
 .dlbutton a:hover { background-color: #00f; text-decoration: none; }
-ul.dropdown li.first { border-left: solid 1px #d9d9d9; margin-left: 40px; }
 dl.user+ul { margin-top: -1.5em;}
+#MSearchResultsWindow, #MSearchSelectWindow { z-index: 600;}
+#MSearchField { margin-bottom: 0; margin-top: 0;}

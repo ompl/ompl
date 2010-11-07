@@ -8,7 +8,7 @@ ul.dropdown {
 	z-index:597;
 	float:left;
 	font-weight:bold;
-	width: 950px; 
+	width: 100%; 
 	background-color:#f6f6f6; 
 	margin-bottom: 20px;
 }
