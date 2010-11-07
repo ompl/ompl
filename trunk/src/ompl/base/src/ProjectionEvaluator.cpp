@@ -38,6 +38,7 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
+#include "ompl/util/Console.h"
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -156,7 +157,16 @@ void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
 	
 	cellDimensions_.resize(dim);
 	for (unsigned int j = 0 ; j < dim ; ++j)
-	    cellDimensions_[j] = (high[j] - low[j]) / 10.0;
+        {
+            cellDimensions_[j] = (high[j] - low[j]) / 10.0;
+            if (cellDimensions_[j] < std::numeric_limits<double>::epsilon())
+            {
+                cellDimensions_[j] = 1.0;
+                msg::Interface msg;
+                msg.warn("Inferred cell size for dimension %u of a projection for manifold %s is 0. Setting arbitrary value of 1 instead.",
+                         j, manifold_->getName().c_str());
+            }
+        }
     }
 }
 
