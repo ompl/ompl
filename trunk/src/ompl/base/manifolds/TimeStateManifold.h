@@ -63,8 +63,10 @@ namespace ompl
             satisfiesBounds() always returns true, sampling uniform
             time states always produces time 0 and getMaximumExtent()
             returns 1. If time is bounded (setBounds() has been
-            called), the manifold behaves as expected. After
-            construction, the manifold is unbounded.*/
+            previously called), the manifold behaves as
+            expected. After construction, the manifold is
+            unbounded. isBounded() can be used to check if the manifold
+            is bounded or not. */
         class TimeStateManifold : public StateManifold
         {
         public:
@@ -93,21 +95,24 @@ namespace ompl
             /** \brief Set the minimum and maximum time bounds. This
                 will make the manifold switch into bounded time
                 mode. If this function is not called, sampling time
-                will always produce 0, enforceBounds() is a no-op,
+                will always produce position = 0, enforceBounds() is a no-op,
                 satisfiesBounds() always returns true and
                 getMaximumExtent() returns 1. */
             void setBounds(double minTime, double maxTime);
             
+            /** \brief Get the minimum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
             double getMinTimeBound(void) const
             {
                 return minTime_;
             }
             
+            /** \brief Get the maximum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
             double getMaxTimeBound(void) const
             {
                 return maxTime_;
             }
             
+            /** \brief Check if the time is bounded or not */
             bool isBounded(void) const
             {
                 return bounded_;
@@ -139,8 +144,13 @@ namespace ompl
             
         protected:
             
+            /** \brief Flag indicating whether the manifold is considering bounds or not */
             bool   bounded_;
+
+            /** \brief The minimum point in time considered by the manifold (if bounds are used) */
             double minTime_;
+
+            /** \brief The maximum point in time considered by the manifold (if bounds are used) */
             double maxTime_;
             
         };
