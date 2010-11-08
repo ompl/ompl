@@ -1,4 +1,4 @@
-.dropdown { display: none; }
+.dropdown, .navigation, #MSearchResultsWindow, #MSearchSelectWindow { display: none; }
 .footer {
 	font-size: small;
 	font-weight: bold;
@@ -9,3 +9,4 @@
 }
 a:link, a:visited { color: #119; }
 .nofloat { float: none; }
+div.contents { margin-left:0px; margin-right:0px; }

@@ -13,7 +13,7 @@ mkdir -p ${ASSET_DIR}
 for f in html/*.html; do
 	sed 's/="..\//=".\//g' $f > ${ASSET_DIR}/`basename $f`
 done
-cp -r css js exploration html/*.png html/*.map ${ASSET_DIR}
+cp -r css js exploration html/*.png html/*.map images ${ASSET_DIR}
 
 # copy everything to web server and fix permissions
 tar cf - --exclude .svn ${ASSET_DIR} | ssh ${SERVER} 'cd '${ASSETS_ROOT}'; tar xf -; chmod -R a+rX '${ASSET_DIR}'; chgrp -R ompl '${ASSET_DIR}'; chmod -R g+w '${ASSET_DIR}

@@ -74,7 +74,7 @@ cd build/Release
 cmake -DCMAKE_BUILD_TYPE=Release ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
 \endcode
 If you want a debug version of ompl, change "Release" to "Debug" above.
-- If Python bindings are to be generated, type <tt>make update_bindings</tt>.
+- If Python bindings are to be generated, type <tt>make update_bindings</tt>. <b>Note:</b> <tt>make update_bindings</tt> is <i>never</i> run automatically. If you change any of the OMPL header files, you need to type <tt>make update_bindings</tt> again for the changes to be reflected in the Python modules. The command <tt>make</tt> needs to be executed <b>after</b> every call to <tt>make update_bindings</tt>.
 - Compile OMPL by typing \c make.
 - Optionally, run the test programs by typing <tt>make test</tt>.
 - Optionally, generate documentation by typing <tt>make doc</tt>.

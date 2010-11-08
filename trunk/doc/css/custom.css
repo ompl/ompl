@@ -61,3 +61,4 @@ dl.user+ul { margin-top: -1.5em;}
 .nofloat { float: none; }
 #MSearchResultsWindow, #MSearchSelectWindow { z-index: 600;}
 #MSearchField { margin-bottom: 0; margin-top: 0;}
+div.contents { margin-left:0px; margin-right:0px; }

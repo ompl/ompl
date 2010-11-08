@@ -1,0 +1,15 @@
+/**
+\page api_overview API overview
+
+\htmlonly<img src="../images/ompl.png" class="nofloat" width="100%"><hr class="space">\endhtmlonly
+
+The class ownership diagram above shows the relationship between the essential base classes in OMPL. Users are encouraged to use the SimpleSetup class. With this class, it is only necessary to instantiate a StateManifold object, a ControlManifold object (when planning with controls), and a StateValidityChecker object. Many common state spaces have already been implemented as derived StateManifold classes: 
+- R<sup>n</sup> (ompl::base::RealVectorStateManifold),
+- SO(2) (rotation in the plane, ompl::base::SO2StateManifold),
+- SO(3) (rotation in 3D, ompl::base::SO3StateManifold),
+- SE(2) (rotation and translation in the plane, ompl::base::SE2StateManifold), and
+- SE(3) (rotation and translation in 3D, ompl::base::SE3StateManifold).
+.
+In addition, the ompl::base::CompoundStateManifold allows users to create arbitrarily complex state spaces out of simpler manifolds. The only ControlManifold-derived class that has been implemented is R<sup>n</sup> (ompl::control::RealVectorControlManifold), which should be sufficient for most common dynamic systems. The StateValidityChecker is problem-specific, so no default implementation is available.
+
+*/
