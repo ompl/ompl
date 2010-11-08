@@ -12,6 +12,7 @@ if(ROS)
 	include(CheckIncludeFileCXX)
 	# add ODE extension if ODE found
 	CHECK_INCLUDE_FILE_CXX(ode/ode.h ODE_FOUND)
+	set(OMPL_EXTENSION_ODE ODE_FOUND)
 else(ROS)
 	if(NOT OMPLAPP_VERSION)
 		cmake_minimum_required(VERSION 2.8)
@@ -23,6 +24,7 @@ else(ROS)
 		
 		# ODE is only needed for ODE bindings
 		find_package(ODE QUIET)
+		set(OMPL_EXTENSION_ODE ODE_FOUND)
 		if (ODE_FOUND)
  		        add_definitions(${ODE_DEFINITIONS})
  			include_directories(${ODE_INCLUDE})

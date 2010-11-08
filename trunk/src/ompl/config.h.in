@@ -41,6 +41,6 @@
 #define OMPL_VERSION "@OMPL_VERSION@"
 
 /** \brief Specify whether the ODE extension is built */
-#define OMPL_EXTENSION_ODE "@ODE_FOUND@"
+#cmakedefine01 OMPL_EXTENSION_ODE
 
 #endif
