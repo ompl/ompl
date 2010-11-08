@@ -42,7 +42,6 @@
 #include "ompl/base/Path.h"
 #include "ompl/util/ClassForward.h"
 #include <iostream>
-#include <limits>
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
 
@@ -63,10 +62,7 @@ namespace ompl
 	public:
 	    
 	    /** \brief Constructor. The goal must always know the space information it is part of */
-	    Goal(const SpaceInformationPtr &si) : si_(si), maximumPathLength_(std::numeric_limits<double>::max()),
-						  difference_(-1.0), approximate_(false)
-	    {
-	    }
+	    Goal(const SpaceInformationPtr &si);
 	    
 	    /** \brief Destructor. Clears the solution as well */
 	    virtual ~Goal(void)
@@ -108,12 +104,7 @@ namespace ompl
 	     *  \note The default implementation sets the distance to a constant.
 	     *  \note If this function returns true,
 	     *  isStartGoalPairValid() need not be called. */
-	    virtual bool isSatisfied(const State *st, double *distance) const
-	    {
-		if (distance != NULL)
-		    *distance = std::numeric_limits<double>::max();
-		return isSatisfied(st);
-	    }
+	    virtual bool isSatisfied(const State *st, double *distance) const;
 	    
 	    /** \brief Return true if the state statisfies the goal
 	     *  constraints and the path length is less than the
@@ -124,17 +115,7 @@ namespace ompl
 	     *  \param pathLength the length of the path that leads to \e st
 	     *  \param distance location at which distance to goal will be stored
 	     */
-	    bool isSatisfied(const State *st, double pathLength, double *distance) const
-	    {
-		if (pathLength > maximumPathLength_)
-		{
-		    if (distance != NULL)
-			isSatisfied(st, distance);
-		    return false;
-		}
-		else
-		    return isSatisfied(st, distance);
-	    }
+	    bool isSatisfied(const State *st, double pathLength, double *distance) const;
 	    
 	    /** \brief Since there can be multiple starting states
 		(and multiple goal states) it is possible certain
