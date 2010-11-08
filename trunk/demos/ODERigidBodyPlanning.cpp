@@ -218,11 +218,10 @@ int main(int, char **)
     
     // create the state space manifold and the control manifold for planning
     RigidBodyStateManifold *stateManifold = new RigidBodyStateManifold(env);
-    oc::ODEControlManifold *controlManifold = new oc::ODEControlManifold(ob::StateManifoldPtr(stateManifold));
-    oc::ControlManifoldPtr cmp(controlManifold);
+    ob::StateManifoldPtr stateManifoldPtr = ob::StateManifoldPtr(stateManifold);
     
-    // this will take cacre of setting a proper collision checker and the starting state for the planner as the initial ODE state
-    oc::ODESimpleSetup ss(cmp);
+    // this will take care of setting a proper collision checker and the starting state for the planner as the initial ODE state
+    oc::ODESimpleSetup ss(stateManifoldPtr);
 
     // set the goal we would like to reach
     ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));

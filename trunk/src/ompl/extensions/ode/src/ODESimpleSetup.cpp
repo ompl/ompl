@@ -41,9 +41,26 @@ ompl::control::ODESimpleSetup::ODESimpleSetup(const ControlManifoldPtr &manifold
 {
     if (!dynamic_cast<ODEControlManifold*>(manifold.get()))
 	throw Exception("ODE Control Manifold needed for ODE Simple Setup");
-    si_->setPropagationStepSize(manifold->as<ODEControlManifold>()->getEnvironment().stepSize_);
-    si_->setMinMaxControlDuration(manifold->as<ODEControlManifold>()->getEnvironment().minControlSteps_,
-                                  manifold->as<ODEControlManifold>()->getEnvironment().maxControlSteps_);
+    useEnvParams();
+}
+
+ompl::control::ODESimpleSetup::ODESimpleSetup(const base::StateManifoldPtr &manifold) :
+    SimpleSetup(ControlManifoldPtr(new ODEControlManifold(manifold)))
+{
+    useEnvParams();
+}
+
+ompl::control::ODESimpleSetup::ODESimpleSetup(const ODEEnvironment &env) : 
+    SimpleSetup(ControlManifoldPtr(new ODEControlManifold(base::StateManifoldPtr(new ODEStateManifold(env)))))
+{
+    useEnvParams();
+}
+
+void ompl::control::ODESimpleSetup::useEnvParams(void)
+{
+    si_->setPropagationStepSize(getControlManifold()->as<ODEControlManifold>()->getEnvironment().stepSize_);
+    si_->setMinMaxControlDuration(getControlManifold()->as<ODEControlManifold>()->getEnvironment().minControlSteps_,
+                                  getControlManifold()->as<ODEControlManifold>()->getEnvironment().maxControlSteps_);
 }
 
 void ompl::control::ODESimpleSetup::setup(void)

@@ -53,21 +53,37 @@ namespace ompl
 	{
 	public:
 	    
-	    /** \brief Constructor needs the manifold needed for planning. */
+	    /** \brief Constructor needs the control manifold needed for planning. */
 	    explicit
 	    ODESimpleSetup(const ControlManifoldPtr &manifold);
+
+	    /** \brief The control manifold is assumed to be ODEControlManifold. Constructor only needs the state manifold. */
+	    explicit
+	    ODESimpleSetup(const base::StateManifoldPtr &manifold);
+	    
+            /** \brief The control manifold is assumed to be
+                ODEControlManifold. The state manifold is assumed to
+                be ODEStateManifold. Constructor only needs the ODE
+                environment. */
+	    explicit
+	    ODESimpleSetup(const ODEEnvironment &env);
 	    
 	    virtual ~ODESimpleSetup(void)
 	    {
 	    }
 	    
-	    /** \brief Get the ODE environment associated to the manifold */
+	    /** \brief Get the ODE environment associated to the state and control manifolds */
 	    const ODEEnvironment& getODEEnvironment(void) const
 	    {
 		return getControlManifold()->as<ODEControlManifold>()->getEnvironment();
 	    }
 	    
 	    virtual void setup(void);
+
+        private:
+            
+            void useEnvParams(void);
+            
 	};
     }
     
