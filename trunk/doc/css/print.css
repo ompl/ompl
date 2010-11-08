@@ -147,7 +147,8 @@ div.header {background-image:url('nav_h.png');background-repeat:repeat-x;backgro
 div.headertitle {padding:5px 5px 5px 10px;}
 
 /* custom-print.css */
-.dropdown {display:none;}
+.dropdown, .navigation, #MSearchResultsWindow, #MSearchSelectWindow {display:none;}
 .footer {font-size:small;font-weight:bold;color:#333;border-top:1px solid #119;margin-top:1em;padding-top:2px;}
 a:link, a:visited {color:#119;}
 .nofloat {float:none;}
+div.contents {margin-left:0px;margin-right:0px;}
