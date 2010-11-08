@@ -248,7 +248,6 @@ void ompl::base::CompoundProjectionEvaluator::project(const State *state, Euclid
     // project all states to one big vector
     EuclideanProjection all(compoundDimension_);
     double *start = all.values;
-    unsigned int p = 0;
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
     {
 	components_[i]->project(state->as<CompoundState>()->components[i], all);

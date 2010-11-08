@@ -38,7 +38,7 @@
 #define OMPL_EXTENSION_ODE_ENVIRONMENT_
 
 #include "ompl/config.h"
-#ifndef OMPL_EXTENSION_ODE
+#if OMPL_EXTENSION_ODE == 0
 #  error ODE extension not built
 #endif
 
