@@ -43,6 +43,7 @@
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/function.hpp>
+#include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
 #include <iostream>
 #include <vector>
@@ -271,6 +272,26 @@ namespace ompl
 	    /** \brief Destructor */
 	    virtual ~Planner(void)
 	    {
+	    }
+
+	    /** \brief Cast this instance to a desired type. */
+	    template<class T>
+	    T* as(void)
+	    {
+		/** \brief Make sure the type we are casting to is indeed a planner */
+		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Planner*>));
+		
+		return static_cast<T*>(this);
+	    }
+
+	    /** \brief Cast this instance to a desired type. */
+	    template<class T>
+	    const T* as(void) const
+	    {	
+		/** \brief Make sure the type we are casting to is indeed a Planner */
+		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Planner*>));
+		
+		return static_cast<const T*>(this);
 	    }
 	    
 	    /** \brief Get the space information this planner is using */

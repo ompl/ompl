@@ -1,15 +1,16 @@
 /**
-\page api_overview API overview
+\page api_overview API Overview
 
 \htmlonly<img src="../images/ompl.png" class="nofloat" width="100%"><hr class="space">\endhtmlonly
 
-The class ownership diagram above shows the relationship between the essential base classes in OMPL. For example, @b SpaceInformation owns a @b StateManifold; @b Planner does @e not own @b SpaceInformation, although a @b Planner does know about the @b SpaceInformation, and uses provided functionality. Users are encouraged to use the SimpleSetup class (ompl::geometric::SimpleSetup or ompl::control::SimpleSetup). With this class, it is only necessary to instantiate a ompl::base::StateManifold object, a ompl::control::ControlManifold object (when planning with controls), and a ompl::base::StateValidityChecker object. Many common state spaces have already been implemented as derived StateManifold classes: 
-- R<sup>n</sup> (ompl::base::RealVectorStateManifold),
-- SO(2) (rotation in the plane, ompl::base::SO2StateManifold),
-- SO(3) (rotation in 3D, ompl::base::SO3StateManifold),
-- SE(2) (rotation and translation in the plane, ompl::base::SE2StateManifold), and
-- SE(3) (rotation and translation in 3D, ompl::base::SE3StateManifold).
-.
-In addition, the ompl::base::CompoundStateManifold allows users to create arbitrarily complex state spaces out of simpler manifolds. The only ControlManifold-derived class that has been implemented is R<sup>n</sup> (ompl::control::RealVectorControlManifold), which should be sufficient for most common dynamic systems. The ompl::base::StateValidityChecker is problem-specific, so no default implementation is available. See \ref stateValidation "this document" for more information on state validity checking. For more advanced definitions of goals, see \ref goalRepresentation "this document".
+The class ownership diagram above shows the relationship between the essential base classes in OMPL. For example, @b SpaceInformation owns a @b StateManifold; @b Planner does @e not own @b SpaceInformation, although a @b Planner does know about the @b SpaceInformation, and uses provided functionality. Users are encouraged to use the SimpleSetup class (ompl::geometric::SimpleSetup or ompl::control::SimpleSetup). With this class, it is only necessary to instantiate a ompl::base::StateManifold object, a ompl::control::ControlManifold object (when planning with controls), and a ompl::base::StateValidityChecker object. Many common state spaces have already been implemented as derived StateManifold classes. See a list \ref availableManifolds "here". 
+
+The ompl::base::StateValidityChecker is problem-specific, so no default implementation is available. See \ref stateValidation "this document" for more information on state validity checking. For more advanced definitions of goals, see \ref goalRepresentation "this document".
+
+
+\par Thread safety
+All static, non-member or const member functions are thread
+safe. Calling member functions that are not const in multiple
+threads simultaneously is unsafe and locks should be used.
 
 */

@@ -1,5 +1,6 @@
-/** \page projections Projections in OMPL    
+/** \page projections Use of Projections in OMPL    
 
+    \par
     Most planning algorithms use a data structure (in addition to the
     tree/graph of motions) for guiding the exploration of the
     space. In many cases, this data structure is in the form of a
@@ -12,13 +13,14 @@
     such as ompl::geometric::EST, ompl::geometric::SBL,
     ompl::geometric::KPIECE1.
 
+    \par
     To support this notion of projections, OMPL includes
     ompl::base::ProjectionEvaluator. This is an abstract class whose
     main operation is ompl::base::ProjectionEvaluator::project(),
     which takes a ompl::base::State* and produces a
     ompl::base::EuclideanProjection (this is a representation of an
     array of real numbers).
-
+    \n
     ompl::base::ProjectionEvaluator also includes utilities for
     discretizing the projected space (the low dimensional, Euclidean
     one). In particular, grids can be implicitly imposed on the
@@ -34,7 +36,7 @@
     into roughly 10 parts. This is merely a default and the user is
     encouraged to set desired cell sizes.
 
-    
+    \par
     Projections are specific to manifolds. This means that each
     ompl::base::StateManifold has its corresponding set of
     ompl::base::ProjectionEvaluator. In the implementation of
@@ -51,6 +53,44 @@
     user is encouraged to define appropriate projections, if
     available.
 
+    \par
+    Example code for adding a projection for an R<sup>n</sup> manifold:
+    \code
+    using namespace ompl;
+
+    class MyProjection : public base::ProjectionEvaluator
+    {
+    public:
+	
+	MyProjection(const base::StateManifoldPtr &manifold) : base::ProjectionEvaluator(manifold)
+	{
+	    cellDimensions_.resize(2);
+	    cellDimensions_[0] = 0.1;
+	    cellDimensions_[1] = 0.25;
+	}
+	
+	virtual unsigned int getDimension(void) const
+	{
+	    return 2;
+	}
+	
+	virtual void project(const base::State *state, base::EuclideanProjection &projection) const
+	{
+	    const double *values = state->as<base::RealVectorStateManifold::StateType>()->values;
+	    projection.values[0] = (values[0] + values[1]) / 2.0;
+	    projection.values[1] = (values[2] + values[3]) / 2.0;
+	}
+    };
+    ...
+    base::StateManifoldPtr manifold;
+    base::PlannerPtr planner;
+    
+    manifold->registerProjection("myProjection", base::ProjectionEvaluatorPtr(new MyProjection(manifold)));
+    ...
+    planner->as<geometric::KPIECE1>()->setProjectionEvaluator("myProjection");
+    \endcode
+
+    \par
     For more reading on this topic, please see:
         Șucan, Ioan A., Kavraki Lydia E., On the Performance of Random Linear Projections for Sampling-Based Motion Planning, in <em>IEEE/RSJ International Conference on Intelligent Robots and Systems</em>, pp. 2434-2439, Oct 2009. DOI: <a href="http://dx.doi.org/10.1109/IROS.2009.5354403">http://dx.doi.org/10.1109/IROS.2009.5354403</a>.
 

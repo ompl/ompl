@@ -1,0 +1,38 @@
+/**
+\page documentation Documentation
+
+\section gettingStarted Getting Started
+
+\par
+- Follow the instructions to \ref download "download" and \ref installation "install" OMPL.
+- Read the \ref api_overview "API overview".
+- Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
+- Keep in mind the \ref availablePlanners "available planners" and the \ref availableManifolds "available manifolds".
+- If using Python, see \ref python "this document".
+.
+
+\section tutorials Tutorials
+
+Here we include a number of tutorials we believe are useful for
+understanding how OMPL works, grouped by level of difficulty. Users
+are encouraged to look at the examples in @b demos/ as well.
+
+\par Beginner
+- \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
+- \ref stateValidation "Setting up state validity checking"
+- \ref workingWithStates "Working with states"
+.
+
+\par Intermediate
+- \ref genericPlanning "Generic instructions for setting up a planning context"
+- \ref implementingStateManifolds "Implementing manifolds"
+- \ref goalRepresentation "Representing goals"
+.
+
+\par Advanced
+- \ref benchmark "Benchmarking planners"
+- \ref newPlanner "Adding a new planner"
+- \ref projections "Setting up a projection"
+.
+ 
+*/
