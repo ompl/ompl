@@ -1,6 +1,10 @@
-find_package(Doxygen QUIET)
+option(OMPL_BUILD_DOC "Build OMPL documentation" ON)
 
-if(DOXYGEN_FOUND)
+if (OMPL_BUILD_DOC)
+  
+  find_package(Doxygen QUIET)
+
+  if(DOXYGEN_FOUND)
 
         # add "doc" target if Doxygen is detected
         add_custom_target(doc
@@ -28,4 +32,6 @@ if(DOXYGEN_FOUND)
 		DEPENDS doc
 		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
-endif(DOXYGEN_FOUND)
+  endif(DOXYGEN_FOUND)
+
+endif(OMPL_BUILD_DOC)

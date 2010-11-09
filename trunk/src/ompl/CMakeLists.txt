@@ -1,11 +1,11 @@
 # recursively find all *.cpp files that correspond to the ompl library
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp)
 
-if (ODE_FOUND)
+if (OMPL_EXTENSION_ODE)
         message(STATUS "Building ODE extension")
 	file(GLOB_RECURSE OMPL_ODE_EXTENSION_SOURCE_CODE extensions/ode/*.cpp)
 	set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_ODE_EXTENSION_SOURCE_CODE})
-	if (NOT ROS)
+	if (NOT OMPL_IN_ROS)
 	        list(APPEND OMPL_LINK_LIBRARIES ${ODE_LIBRARY})
 	endif()
 endif()
@@ -13,18 +13,18 @@ endif()
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" VERSION_DIR)
 configure_file("${VERSION_DIR}/config.h.in" "${VERSION_DIR}/config.h")
 
-if(ROS)  
+if(OMPL_IN_ROS)  
 	rosbuild_add_library(ompl ${OMPL_SOURCE_CODE})
 	rosbuild_add_compile_flags(ompl -Wextra)
 	rosbuild_link_boost(ompl thread date_time)
-else(ROS)
+else(OMPL_IN_ROS)
 	add_library(ompl SHARED ${OMPL_SOURCE_CODE})
 	target_link_libraries(ompl
 		${Boost_THREAD_LIBRARY}
 		${Boost_DATE_TIME_LIBRARY}
 		${OMPL_LINK_LIBRARIES}
 	)
-endif(ROS)
+endif(OMPL_IN_ROS)
 
 install(TARGETS ompl DESTINATION lib/)
 get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)

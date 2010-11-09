@@ -1,19 +1,14 @@
-option(ROS "Build against ROS" FALSE)
+option(OMPL_IN_ROS "Build OMPL against ROS" OFF)
 
 set(OMPL_MAJOR_VERSION 0)
 set(OMPL_MINOR_VERSION 3)
 set(OMPL_PATCH_VERSION 0)
 set(OMPL_VERSION "${OMPL_MAJOR_VERSION}.${OMPL_MINOR_VERSION}.${OMPL_PATCH_VERSION}")
 
-if(ROS)
+if(OMPL_IN_ROS)
 	rosbuild_add_boost_directories()
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
-	
-	include(CheckIncludeFileCXX)
-	# add ODE extension if ODE found
-	CHECK_INCLUDE_FILE_CXX(ode/ode.h ODE_FOUND)
-	set(OMPL_EXTENSION_ODE ${ODE_FOUND})
-else(ROS)
+else(OMPL_IN_ROS)
 	if(NOT OMPLAPP_VERSION)
 		cmake_minimum_required(VERSION 2.8)
 		project(ompl CXX)
@@ -29,12 +24,10 @@ else(ROS)
  		        add_definitions(${ODE_DEFINITIONS})
  			include_directories(${ODE_INCLUDE})
  		endif()
-
-		add_subdirectory(doc)
-		
+	
 		enable_testing()
 	endif(NOT OMPLAPP_VERSION)
-endif(ROS)
+endif(OMPL_IN_ROS)
 
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
 	CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
@@ -50,25 +43,24 @@ add_subdirectory(src)
 add_subdirectory(py-bindings)
 add_subdirectory(tests)
 add_subdirectory(demos)
+add_subdirectory(doc)
 
-if(NOT ROS)
-  install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}
-          PATTERN CMakeLists.txt EXCLUDE
-	  PATTERN .svn EXCLUDE
-	  PATTERN .DS_Store EXCLUDE)
-  install(DIRECTORY doc/ DESTINATION ${OMPL_DOC_INSTALL_DIR}
-	  PATTERN dox EXCLUDE 
-	  PATTERN header.html EXCLUDE 
-	  PATTERN footer.html EXCLUDE
-	  PATTERN mkwebdocs.sh EXCLUDE
-	  PATTERN CMakeLists.txt EXCLUDE
-	  PATTERN blueprint EXCLUDE
-	  PATTERN .svn EXCLUDE
-	  PATTERN .md5 EXCLUDE
-	  PATTERN .DS_Store EXCLUDE
-	  PATTERN Doxyfile EXCLUDE)
-endif()
+install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}
+        PATTERN CMakeLists.txt EXCLUDE
+	PATTERN .svn EXCLUDE
+	PATTERN .DS_Store EXCLUDE)
+install(DIRECTORY doc/ DESTINATION ${OMPL_DOC_INSTALL_DIR}
+        PATTERN dox EXCLUDE 
+	PATTERN header.html EXCLUDE 
+	PATTERN footer.html EXCLUDE
+	PATTERN mkwebdocs.sh EXCLUDE
+	PATTERN CMakeLists.txt EXCLUDE
+	PATTERN blueprint EXCLUDE
+	PATTERN .svn EXCLUDE
+	PATTERN .md5 EXCLUDE
+	PATTERN .DS_Store EXCLUDE
+	PATTERN Doxyfile EXCLUDE)
 
-if(NOT ROS AND NOT OMPLAPP_VERSION)
+if(NOT OMPL_IN_ROS AND NOT OMPLAPP_VERSION)
 	include(CPackSettings)
 endif()

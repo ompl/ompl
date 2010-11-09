@@ -1,16 +1,16 @@
-if(ROS)  
-	option(BUILD_TESTS "Build ompl tests" TRUE) 
-else(ROS)
+if(OMPL_IN_ROS)  
+	option(BUILD_OMPL_TESTS "Build OMPL tests" ON) 
+else(OMPL_IN_ROS)
 	find_package(GTest)
-	option(BUILD_TESTS "Build ompl tests" ${GTEST_FOUND})
-endif(ROS)
+	option(BUILD_OMPL_TESTS "Build OMPL tests" ${GTEST_FOUND})
+endif(OMPL_IN_ROS)
 
 
-if(BUILD_TESTS)
+if(BUILD_OMPL_TESTS)
 	file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources" TEST_RESOURCES_DIR)
 	configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config.h")
 	
-	if(ROS)
+	if(OMPL_IN_ROS)
 
 		macro(add_ompl_test test_name)
 			rosbuild_add_gtest(${ARGV})
@@ -18,7 +18,7 @@ if(BUILD_TESTS)
 			rosbuild_link_boost(${test_name} filesystem system thread date_time)
 		endmacro(add_ompl_test)
 
-	else(ROS)
+	else(OMPL_IN_ROS)
 		include_directories(${GTEST_INCLUDE_DIRS})
 
 		macro(add_ompl_test test_name)
@@ -32,7 +32,7 @@ if(BUILD_TESTS)
 			add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
 		endmacro(add_ompl_test)
 
-	endif(ROS)
+	endif(OMPL_IN_ROS)
 
 	# Test datastructures implementation
 	add_ompl_test(test_heap datastructures/heap/heap.cpp)
@@ -56,4 +56,4 @@ if(BUILD_TESTS)
 	# Test planning with controls on a 2D map
 	add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
 
-endif(BUILD_TESTS)
+endif(BUILD_OMPL_TESTS)
