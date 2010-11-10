@@ -36,16 +36,19 @@
 
 #include "ompl/geometric/PathSimplifier.h"
 #include <algorithm>
+#include <limits>
 #include <cstdlib>
 #include <cmath>
+#include <map>
 
 void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
 {
     if (path.states.size() < 3)
-	return;    
+	return;
     
     if (maxSteps == 0)
 	maxSteps = path.states.size();
+
     unsigned int nochange = 0;
     
     for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
@@ -80,7 +83,60 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
     }
 }
 
+void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps)
+{
+    if (path.states.size() < 3)
+	return; 
+
+    if (maxSteps == 0)
+	maxSteps = path.states.size();
+
+    // compute pair-wise distances in path
+    std::map<std::pair<const base::State*, const base::State*>, double> distances;
+    for (unsigned int i = 0 ; i < path.states.size() ; ++i)
+	for (unsigned int j = 0 ; j < path.states.size() ; ++j)
+	    if (abs(i - j) > 1)
+		distances[std::make_pair(path.states[i], path.states[j])] = si_->distance(path.states[i], path.states[j]);
+
+    unsigned int nochange = 0;
+    
+    for (unsigned int s = 0 ; s < maxSteps && nochange < maxEmptySteps ; ++s, ++nochange)
+    {
+	// find closest pair of points
+	double minDist = std::numeric_limits<double>::infinity();
+	int p1 = -1;
+	int p2 = -1;
+	for (unsigned int i = 0 ; i < path.states.size() ; ++i)
+	    for (unsigned int j = 0 ; j < path.states.size() ; ++j)
+		if (abs(i - j) > 1)
+		{
+		    double d = distances[std::make_pair(path.states[i], path.states[j])];
+		    if (d < minDist)
+		    {
+			minDist = d;
+			p1 = i;
+			p2 = j;
+		    }
+		}
+	if (p1 >= 0 && p2 >= 0)
+	{
+	    if (si_->checkMotion(path.states[p1], path.states[p2]))
+	    {
+		for (int i = p1 + 1 ; i < p2 ; ++i)
+		    si_->freeState(path.states[i]);
+		path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
+		nochange = 0;
+	    }
+	    else
+		distances[std::make_pair(path.states[p1], path.states[p2])] = std::numeric_limits<double>::infinity();
+	}
+	else
+	    break;
+    }
+}
+
 void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
+    collapseCloseVertices(path);    
 }
