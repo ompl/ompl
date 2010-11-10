@@ -63,83 +63,43 @@ namespace ompl
 	public:
 
 	    /** \brief Create an instance for a specified space information */
-	    PathSimplifier(const base::SpaceInformationPtr &si)
+	    PathSimplifier(const base::SpaceInformationPtr &si) : si_(si)
 	    {
-		si_ = si;
-		rangeRatio_ = 0.2;
-		maxSteps_ = 10;
-		maxEmptySteps_ = 3;
 	    }
 	    
 	    virtual ~PathSimplifier(void)
 	    {
 	    }
 	    
-	    /** \brief The implementation of reduceVertices() attempts
-		to directly connnect non-consecutive states along the
-		path. This function returns the maximum distance
-		between states a connection is attempted, as a
-		fraction relative to the path length (between 0 and
-		1). */
-	    double getRangeRatio(void) const
-	    {
-		return rangeRatio_;
-	    }
 
-	    /** \brief The implementation of reduceVertices() attempts
-		to directly connnect non-consecutive states along the
-		path. This function sets the maximum distance between
-		states a connection is attempted, as a fraction
-		relative to the path length (between 0 and 1). */
-	    void setRangeRatio(double rangeRatio)
-	    {
-		rangeRatio_ = rangeRatio;
-	    }
-
-	    /** \brief The implementation of reduceVertices() is
-		iterative. This function gets the maximum number of
-		steps reduceVertices() runs for */
-	    unsigned int getMaxSteps(void) const
-	    {
-		return maxSteps_;
-	    }
-	    
-	    /** \brief The implementation of reduceVertices() is
-		iterative. This function sets the maximum number of
-		steps reduceVertices() runs for */
-	    void setMaxSteps(unsigned int maxSteps)
-	    {
-		maxSteps_ = maxSteps;
-	    }
-	    
-	    /** \brief The path simplification implemented by
-		reduceVertices() is iterative. Not all iterations
-		produce a simplification. If an iteration does not
-		produce a simplification, it is called an empty
-		step. This function gets the maximum number of
-		consecutive empty steps before the simplification
-		terminates */
-	    unsigned int getMaxEmptySteps(void) const
-	    {
-		return maxEmptySteps_;
-	    }
-
-	    /** \brief The path simplification implemented by
-		reduceVertices() is iterative. Not all iterations
-		produce a simplification. If an iteration does not
-		produce a simplification, it is called an empty
-		step. This function sets the maximum number of
-		consecutive empty steps before the simplification
-		terminates */
-	    void setMaxEmptySteps(unsigned int maxEmptySteps)
-	    {
-		maxEmptySteps_ = maxEmptySteps;
-	    }
-	    
 	    /** \brief Given a path, attempt to remove vertices from
 		it while keeping the path valid. This is an iterative
-		process that runs for at most getMaxSteps() steps */
-	    virtual void reduceVertices(PathGeometric &path);
+		process that attempts to do "short-cutting" on the
+		path.  Connection is attempted between non-consecutive
+		states along the path. If the connection is succesful,
+		the path is shortened by removing the in-between
+		states.
+
+		\param path the path to reduce vertices from 
+
+		\param maxSteps the maximum number of attempts to
+		"short-cut" the path.  If this value is set to 0 (the
+		default), the number of attempts made is equal to the
+		number of states in \e path.
+
+		\param maxEmptySteps not all iterations of this function
+		produce a simplification. If an iteration does not
+		produce a simplification, it is called an empty
+		step. \e maxEmptySteps denotes the maximum number of
+		consecutive empty steps before the simplification
+		process terminates.
+		
+		\param rangeRatio the maximum distance between states
+		a connection is attempted, as a fraction relative to
+		the total number of states (between 0 and 1).
+
+	    */
+	    virtual void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5, double rangeRatio = 0.2);
 	    
 	    /** \brief Given a path, attempt to remove vertices from
 		it while keeping the path valid.  Then, interpolate
@@ -151,9 +111,7 @@ namespace ompl
 	    
 	    base::SpaceInformationPtr si_;
 	    RNG                       rng_;
-	    double                    rangeRatio_;
-	    unsigned int              maxSteps_;
-	    unsigned int              maxEmptySteps_;
+
 	};    
     }
 }

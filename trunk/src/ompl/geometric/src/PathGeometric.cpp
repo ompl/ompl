@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/PathGeometric.h"
+#include "ompl/base/samplers/UniformValidStateSampler.h"
 #include <cmath>
 
 ompl::geometric::PathGeometric::PathGeometric(const PathGeometric &path) : base::Path(path.si_)
@@ -101,6 +102,85 @@ void ompl::geometric::PathGeometric::print(std::ostream &out) const
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	si_->printState(states[i], out);
     out << std::endl;
+}
+
+bool ompl::geometric::PathGeometric::repair(unsigned int attempts)
+{
+    if (states.empty())
+	return true;
+    if (states.size() == 1)
+	return si_->isValid(states[0]);
+    
+    // a path with invalid endpoints cannot be fixed; planners should not return such paths anyway
+    const int n1 = states.size() - 1;
+    if (!si_->isValid(states[0]) || !si_->isValid(states[n1]))
+	return false;
+    
+    base::State *temp = NULL;
+    base::UniformValidStateSampler *uvss = NULL; 
+    bool result = true;
+    
+    for (int i = 1 ; i < n1 ; ++i)
+	if (!si_->checkMotion(states[i-1], states[i]))
+	{
+	    // we now compute a state around which to sample
+	    if (!temp)
+		temp = si_->allocState();
+	    if (!uvss)
+	    {
+		uvss = new base::UniformValidStateSampler(si_.get());
+		uvss->setNrAttempts(attempts);
+	    }
+	    
+	    // and a radius of sampling around that state
+	    double radius = 0.0;
+	    
+	    if (si_->isValid(states[i]))
+	    {
+		si_->copyState(temp, states[i]);
+		radius = si_->distance(states[i-1], states[i]);
+	    }
+	    else
+	    {
+		unsigned int nextValid;
+		for (int j = i + 1 ; j <= n1 ; ++j)
+		    if (si_->isValid(states[j]))
+		    {
+			nextValid = j;
+			break;
+		    }
+		// we know nextValid will be initialised because j == n1 is certainly valid.
+		si_->getStateManifold()->interpolate(states[i - 1], states[nextValid], 0.5, temp);
+		radius = std::max(si_->distance(states[i-1], temp), si_->distance(states[i-1], states[i]));
+	    }
+	    
+	    bool success = false;
+	    
+	    for (unsigned int a = 0 ; a < attempts ; ++a)
+		if (uvss->sampleNear(states[i], temp, radius))
+		{
+		    if (si_->checkMotion(states[i-1], states[i]))
+		    {
+			success = true;
+			break;
+		    }
+		}
+		else
+		    break;
+	    if (!success)
+	    {
+		result = false;
+		break;
+	    }
+	}
+    
+    // free potentially allocated memory
+    if (temp)
+	si_->freeState(temp);
+    if (uvss)
+	delete uvss;
+
+    return result;
 }
 
 void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount) 

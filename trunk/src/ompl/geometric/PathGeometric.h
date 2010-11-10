@@ -76,7 +76,14 @@ namespace ompl
 
 	    /** \brief Check if the path is valid */
 	    virtual bool check(void) const;	
-
+	    
+	    /** \brief Check if the path is valid. If it is not,
+		attempts are made to fix the path by sampling around
+		invalid states. Not more than \e attempts samples are
+		drawn. If the path remains invalid, the function
+		returns false. */
+	    bool repair(unsigned int attempts = 100);
+	    
 	    /** \brief Print the path to a stream */
 	    virtual void print(std::ostream &out) const;
 

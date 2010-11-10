@@ -64,9 +64,6 @@ namespace ompl
 		si_.reset(new base::SpaceInformation(manifold));
 		pdef_.reset(new base::ProblemDefinition(si_));
 		psk_.reset(new PathSimplifier(si_));
-		
-		psk_->setMaxSteps(50);
-		psk_->setMaxEmptySteps(5);
 	    }
 	    
 	    virtual ~SimpleSetup(void)

@@ -37,19 +37,22 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include <algorithm>
 #include <cstdlib>
+#include <cmath>
 
-void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path)
+void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
 {
     if (path.states.size() < 3)
 	return;    
     
+    if (maxSteps == 0)
+	maxSteps = path.states.size();
     unsigned int nochange = 0;
     
-    for (unsigned int i = 0 ; i < maxSteps_ && nochange < maxEmptySteps_ ; ++i, ++nochange)
+    for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
     {
 	int count = path.states.size();
 	int maxN  = count - 1;
-	int range = 1 + (int)((double)count * rangeRatio_);
+	int range = 1 + (int)(floor(0.5 + (double)count * rangeRatio));
 	
 	int p1 = rng_.uniformInt(0, maxN);
 	int p2 = rng_.uniformInt(std::max(p1 - range, 0), std::min(maxN, p1 + range));

@@ -199,8 +199,6 @@ public:
 	    
 	    /* make the solution more smooth */
 	    geometric::PathSimplifierPtr sm(new geometric::PathSimplifier(si));
-	    sm->setMaxSteps(50);
-	    sm->setMaxEmptySteps(10);
 
 	    startTime = ompl::time::now();
 	    sm->reduceVertices(*path);
