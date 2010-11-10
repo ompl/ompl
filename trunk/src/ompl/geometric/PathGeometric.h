@@ -81,9 +81,10 @@ namespace ompl
 	    virtual void print(std::ostream &out) const;
 
 	    /** \brief Insert a number of states in a path so that the
-		path is made up of at least \e count segments. If a
-		path has more than \e count segments, no changes are
-		performed. */
+		path is made up of exactly \e count segments. States
+		are inserted uniformly (more states on longer
+		segments). If a path has more than \e count segments,
+		no changes are performed. */
 	    void interpolate(unsigned int count);
 
 	    /** \brief The list of states that make up the path */

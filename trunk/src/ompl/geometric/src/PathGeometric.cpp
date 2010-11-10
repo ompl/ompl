@@ -164,4 +164,5 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int count)
     // add the last state
     newStates.push_back(states[n1]);
     states.swap(newStates);
+    assert(count == states.size());
 }
