@@ -1,13 +1,10 @@
-1. Organize the test_geometric / test_control better
-   so that the StateManifold is defined in a single place
-2. merge tests for util/ & tests for datastructures/
-3. implement benchmarks for control/ not only for geometric/
-
-4. fix how cell dimensions are computed for projections; try automatic computation
-6. define a parameter structure for classes that have parameters
+* Reorganize tests to be more general, move python tests from py-bindings to test directory.
+* Merge files for tests for util/ & tests for datastructures/.
+* Implement benchmarks for control/ not only for geometric/ (nice to have, not essential for release).
+* Define a parameter structure for classes that have parameters
    - perhaps something that will allow parameter sweeps
-     (see code in unused/)
-
-7. finish ode extension
-
-8. document how to compile / link against ompl
+     (see code in unused/) (for later).
+* Create a more complex ODE demo (nice to have).
+* Path smoothing with splines.
+* Make python bindings work again.
+* Add demo for GoalLazySampler using Inverse Kinematics code.
