@@ -2,6 +2,11 @@
 
 \page changelog
 
+\section nov_10_2010 November 10, 2010
+	- Added a new function for shortening computed solution paths: collapseCloseVertices()
+	- Added a repair() function to PathGeometric. 
+	- Added a representation of time as a state manifold (TimeStateManifold)
+	
 \section nov_03_2010 November 3, 2010
 	- Added support for ODE bindings
 	- Added support for compound projections
