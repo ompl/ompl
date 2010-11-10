@@ -269,9 +269,10 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 							 memStart + (MemUsage_t)(maxMem * 1024 * 1024),
 							 time::now() + time::seconds(maxTime)), 0.1);
 	    }
-	    catch(...)
+	    catch(std::runtime_error &e)
 	    {
-		msg_.error("There was an error executing planner %s, run = %u", status_.activePlanner.c_str(), j);
+		std::cerr << std::endl << "There was an error executing planner " << status_.activePlanner <<  ", run = " << j << std::endl;
+		std::cerr << "*** " << e.what() << std::endl;
 	    }
 	    
 	    double timeUsed = time::seconds(time::now() - timeStart);
@@ -326,9 +327,10 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 		
 		exp_.planners[i].runs.push_back(run);
 	    }
-	    catch(...)
+	    catch(std::runtime_error &e)
 	    {
-		msg_.error("There was an error in the extraction of planner results: planner = %s, run = %u", status_.activePlanner.c_str(), j);
+		std::cerr << std::endl << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << j << std::endl;
+		std::cerr << "*** " << e.what() << std::endl;
 	    }
 	}
     } 

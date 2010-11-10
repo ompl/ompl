@@ -90,7 +90,7 @@ bool ompl::geometric::PathGeometric::check(void) const
     if (result)
 	for (unsigned int j = 0 ; j < states.size() ; ++j)
 	    if (!si_->isValid(states[j]))
-		throw Exception("Internal error. This should not ever happen. Please contact the developers.");
+		throw Exception("Internal error while checking path. This should never happen. Please contact the developers.");
     
     return result;
 }
@@ -103,10 +103,12 @@ void ompl::geometric::PathGeometric::print(std::ostream &out) const
     out << std::endl;
 }
 
-void ompl::geometric::PathGeometric::interpolate(unsigned int count) 
+void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount) 
 {
-    if (count < states.size() || states.size() < 2)
+    if (requestCount < states.size() || states.size() < 2)
 	return;
+    
+    unsigned int count = requestCount;
     
     // the remaining length of the path we need to add states along
     double remainingLength = length();
@@ -164,5 +166,6 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int count)
     // add the last state
     newStates.push_back(states[n1]);
     states.swap(newStates);
-    assert(count == states.size());
+    if (requestCount != states.size())
+	throw Exception("Internal error in path interpolation. This should never happen. Please contact the developers.");
 }
