@@ -63,6 +63,13 @@ void ompl::control::ODESimpleSetup::useEnvParams(void)
                                   getStateManifold()->as<ODEStateManifold>()->getEnvironment()->maxControlSteps_);
 }
 
+ompl::base::ScopedState<ompl::control::ODEStateManifold> ompl::control::ODESimpleSetup::getCurrentState(void) const
+{
+    base::ScopedState<ODEStateManifold> current(getStateManifold());
+    getStateManifold()->as<ODEStateManifold>()->readState(current.get());
+    return current;
+}
+
 void ompl::control::ODESimpleSetup::setup(void)
 {
     if (!si_->getStateValidityChecker())
@@ -73,9 +80,7 @@ void ompl::control::ODESimpleSetup::setup(void)
     if (pdef_->getStartStateCount() == 0)
     {
 	msg_.inform("Using the initial state of ODE as the starting state for the planner");
-	base::ScopedState<> start(getStateManifold());
-	getStateManifold()->as<ODEStateManifold>()->readState(start.get());
-	pdef_->addStartState(start);
+	pdef_->addStartState(getCurrentState());
     }
     SimpleSetup::setup();
 }

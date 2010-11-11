@@ -78,6 +78,9 @@ namespace ompl
 		return getStateManifold()->as<ODEStateManifold>()->getEnvironment();
 	    }
 	    
+            /** \brief Get the current ODE state (read parameters from ODE bodies) */
+            base::ScopedState<ODEStateManifold> getCurrentState(void) const;
+            
 	    virtual void setup(void);
 
         private:
