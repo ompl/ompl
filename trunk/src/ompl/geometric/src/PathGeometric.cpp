@@ -104,7 +104,7 @@ void ompl::geometric::PathGeometric::print(std::ostream &out) const
     out << std::endl;
 }
 
-bool ompl::geometric::PathGeometric::repair(unsigned int attempts)
+bool ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
 {
     if (states.empty())
 	return true;
@@ -142,14 +142,14 @@ bool ompl::geometric::PathGeometric::repair(unsigned int attempts)
 	    }
 	    else
 	    {
-		unsigned int nextValid;
-		for (int j = i + 1 ; j <= n1 ; ++j)
+		unsigned int nextValid = n1;
+		for (int j = i + 1 ; j < n1 ; ++j)
 		    if (si_->isValid(states[j]))
 		    {
 			nextValid = j;
 			break;
 		    }
-		// we know nextValid will be initialised because j == n1 is certainly valid.
+		// we know nextValid will be initialised because n1 is certainly valid.
 		si_->getStateManifold()->interpolate(states[i - 1], states[nextValid], 0.5, temp);
 		radius = std::max(si_->distance(states[i-1], temp), si_->distance(states[i-1], states[i]));
 	    }

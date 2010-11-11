@@ -82,7 +82,7 @@ namespace ompl
 		invalid states. Not more than \e attempts samples are
 		drawn. If the path remains invalid, the function
 		returns false. */
-	    bool repair(unsigned int attempts = 100);
+	    bool checkAndRepair(unsigned int attempts = 100);
 	    
 	    /** \brief Print the path to a stream */
 	    virtual void print(std::ostream &out) const;
