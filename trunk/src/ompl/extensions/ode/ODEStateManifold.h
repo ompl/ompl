@@ -61,7 +61,7 @@ namespace ompl
 	    /// Constant indicating that it is unknown whether a state is in collision or not
 	    static const int STATE_COLLISION_UNKNOWN;
 	    
-	    /** \brief ODE State. This allows accessing the properties of the bodies the manifold is constructed for  */
+	    /** \brief ODE State. This is a compound state that allows accessing the properties of the bodies the manifold is constructed for. */
 	    class StateType : public base::CompoundStateManifold::StateType
 	    {
 	    public:
@@ -69,41 +69,49 @@ namespace ompl
 		{
 		}
 		
+		/** \brief Get the position (x, y, z) of the body at index \e body */
 		const double* getBodyPosition(unsigned int body) const
 		{
 		    return as<base::RealVectorStateManifold::StateType>(body * 4)->values;
 		}
 		
+		/** \brief Get the position (x, y, z) of the body at index \e body */
 		double* getBodyPosition(unsigned int body)
 		{
 		    return as<base::RealVectorStateManifold::StateType>(body * 4)->values;
 		}
 		
+		/** \brief Get the quaternion of the body at index \e body */
 		const base::SO3StateManifold::StateType& getBodyRotation(unsigned int body) const
 		{
 		    return *as<base::SO3StateManifold::StateType>(body * 4 + 3);
 		}
 		
+		/** \brief Get the quaternion of the body at index \e body */
 		base::SO3StateManifold::StateType& getBodyRotation(unsigned int body)
 		{
 		    return *as<base::SO3StateManifold::StateType>(body * 4 + 3);
 		}
-		
+
+		/** \brief Get the linear velocity (x, y, z) of the body at index \e body */
 		const double* getBodyLinearVelocity(unsigned int body) const
 		{
 		    return as<base::RealVectorStateManifold::StateType>(body * 4 + 1)->values;
 		}
 		
+		/** \brief Get the linear velocity (x, y, z) of the body at index \e body */
 		double* getBodyLinearVelocity(unsigned int body)
 		{
 		    return as<base::RealVectorStateManifold::StateType>(body * 4 + 1)->values;
 		}
 		
+		/** \brief Get the angular velocity (x, y, z) of the body at index \e body */
 		const double* getBodyAngularVelocity(unsigned int body) const
 		{
 		    return as<base::RealVectorStateManifold::StateType>(body * 4 + 2)->values;
 		}
 		
+		/** \brief Get the angular velocity (x, y, z) of the body at index \e body */
 		double* getBodyAngularVelocity(unsigned int body)
 		{
 		    return as<base::RealVectorStateManifold::StateType>(body * 4 + 2)->values;
@@ -111,32 +119,31 @@ namespace ompl
 		
 		/** \brief Flag indicating whether this state is known
 		    to be in collision or not. Initially, this flag is
-		    STATE_COLLISION_UNKNOWN for all states. This flag
-		    is equal to STATE_COLLISION_TRUE only if some
-		    bodies in the simulation collide AND
-		    isValidCollision() returns false. If the state is
-		    in collision, then it is invalid. If there is no
-		    collision, or isValidCollision() returns true, the
-		    value of the flag is STATE_COLLISION_FALSE. This
-		    does not directly imply the state is valid. The
-		    purpose of the flag is to avoid unnecessary
-		    collision checking calls. */
+		    ODEStateManifold::STATE_COLLISION_UNKNOWN for all
+		    states. This flag is equal to
+		    ODEStateManifold::STATE_COLLISION_TRUE only if
+		    some bodies in the simulation collide AND
+		    ODEEnvironment::isValidCollision() returns
+		    false. If the state is in collision, then it is
+		    invalid. If there is no collision, or
+		    ODEEnvironment::isValidCollision() returns true,
+		    the value of the flag is
+		    ODEStateManifold::STATE_COLLISION_FALSE. This does
+		    not directly imply the state is valid. The purpose
+		    of the flag is to avoid unnecessary collision
+		    checking calls. */
 		mutable int collision;
 		
 	    };
 	    
-            /** \brief Construct a manifold representing ODE
-                states. This will be a compound manifold with 4
-                components for each body in \e env.stateBodies_. The 4
-                submanifolds constructed for each body are: position
+            /** \brief Construct a manifold representing ODE states.
+
+		This will be a compound manifold with 4 components for
+                each body in \e env.stateBodies_. The 4 submanifolds
+                constructed for each body are: position
                 (R<sup>3</sup>), linear velocity (R<sup>3</sup>),
                 angular velocity (R<sup>3</sup>) and orientation
-                (SO(3)). By default, the volume bounds enclosing the
-                geometry of the environment are computed to include
-                all objects in the spaces collision checking is
-                performed (env.collisionSpaces_). The linear and
-                angular velocity bounds are set as -1 to 1 for each
-                dimension.
+                (SO(3)). Default bounds are set by calling setDefaultBounds().
 
                 \param env the environment to construct the manifold for
                 \param positionWeight the weight to pass to CompoundManifold::addSubManifold() for position submanifolds
@@ -158,12 +165,20 @@ namespace ompl
 		return env_;
 	    }
 	    
+	    /** \brief By default, the volume bounds enclosing the
+	      geometry of the environment are computed to include all
+	      objects in the spaces collision checking is performed
+	      (env.collisionSpaces_). The linear and angular velocity
+	      bounds are set as -1 to 1 for each dimension. */
 	    void setDefaultBounds(void);
 	    
+	    /** \brief Set the bounds for each of the position submanifolds */
 	    void setVolumeBounds(const base::RealVectorBounds &bounds);
 
+	    /** \brief Set the bounds for each of the linear velocity submanifolds */
 	    void setLinearVelocityBounds(const base::RealVectorBounds &bounds);
 
+	    /** \brief Set the bounds for each of the angular velocity submanifolds */
 	    void setAngularVelocityBounds(const base::RealVectorBounds &bounds);
 
 	    /** \brief Read the parameters of the ODE bodies and store

@@ -46,10 +46,27 @@ namespace ompl
     namespace control
     {
 	
+	/** \brief Representation of controls applied in ODE
+	    environments. This is an array of double values.  Only
+	    forward propagation is possible.
+		
+	    At every propagation step, controls are applied using
+	    ODEEnvironment::applyControl(), contacts are computed by
+	    calling \b dSpaceCollide() on the spaces in
+	    ODEEnvironment::collisionSpaces_ and then \b
+	    dWorldQuickStep() is called. If the \e state argument of
+	    propagate() does not have its
+	    ODEStateManifold::StateType::collision field set, it is
+	    set based on the information returned by contact
+	    computation. Certain collisions (contacts) are allowed, as
+	    indicated by ODEEnvironment::isValidCollision(). */
 	class ODEControlManifold : public RealVectorControlManifold
 	{
 	public:
 	    
+	    /** \brief Construct a representation of controls passed
+		to ODE. If \e stateManifold does not cast to an
+		ODEStateManifold, an exception is thrown. */
 	    ODEControlManifold(const base::StateManifoldPtr &stateManifold);
             
 	    virtual ~ODEControlManifold(void)

@@ -48,7 +48,7 @@ namespace ompl
     {
 		
 	/** \brief Create the set of classes typically needed to solve a
-	    control problem */
+	    control problem when forward propagation is computed with ODE. */
 	class ODESimpleSetup : public SimpleSetup
 	{
 	public:
