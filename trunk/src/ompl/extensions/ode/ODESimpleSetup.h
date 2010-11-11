@@ -66,16 +66,16 @@ namespace ompl
                 be ODEStateManifold. Constructor only needs the ODE
                 environment. */
 	    explicit
-	    ODESimpleSetup(const ODEEnvironment &env);
+	    ODESimpleSetup(const ODEEnvironmentPtr &env);
 	    
 	    virtual ~ODESimpleSetup(void)
 	    {
 	    }
 	    
 	    /** \brief Get the ODE environment associated to the state and control manifolds */
-	    const ODEEnvironment& getODEEnvironment(void) const
+	    const ODEEnvironmentPtr& getODEEnvironment(void) const
 	    {
-		return getControlManifold()->as<ODEControlManifold>()->getEnvironment();
+		return getStateManifold()->as<ODEStateManifold>()->getEnvironment();
 	    }
 	    
 	    virtual void setup(void);

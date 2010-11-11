@@ -50,23 +50,17 @@ namespace ompl
 	{
 	public:
 	    
-	    ODEControlManifold(const base::StateManifoldPtr &stateManifold) : 
-		RealVectorControlManifold(stateManifold, getStateManifoldEnvironment(stateManifold).getControlDimension()),
-		env_(getStateManifoldEnvironment(stateManifold))
-	    {
-		RealVectorBounds bounds(dimension_);
-		env_.getControlBounds(bounds.low, bounds.high);
-		setBounds(bounds);
-	    }
-	    
+	    ODEControlManifold(const base::StateManifoldPtr &stateManifold);
+            
 	    virtual ~ODEControlManifold(void)
 	    {
 	    }
 
-	    const ODEEnvironment& getEnvironment(void) const
+            /** \brief Get the ODE environment this manifold corresponds to */
+	    const ODEEnvironmentPtr& getEnvironment(void) const
 	    {
-		return env_;
-	    }
+		return stateManifold_->as<ODEStateManifold>()->getEnvironment();
+            }
 	    
 	    virtual bool canPropagateBackward(void) const
 	    {
@@ -74,14 +68,6 @@ namespace ompl
 	    }
 	    
 	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
-	    
-	protected:
-	    
-	    const ODEEnvironment &env_;
-
-	private:
-	    
-	    const ODEEnvironment& getStateManifoldEnvironment(const base::StateManifoldPtr &manifold) const;
 	    
 	};
     }

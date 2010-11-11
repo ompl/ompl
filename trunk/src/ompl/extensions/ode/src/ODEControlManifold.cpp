@@ -37,11 +37,22 @@
 #include "ompl/extensions/ode/ODEControlManifold.h"
 #include "ompl/util/Exception.h"
 
-const ompl::control::ODEEnvironment& ompl::control::ODEControlManifold::getStateManifoldEnvironment(const base::StateManifoldPtr &manifold) const
+namespace ompl
 {
-    if (!dynamic_cast<ODEStateManifold*>(manifold.get()))
-	throw Exception("ODE State Manifold needed for creating ODE Control Manifold");
-    return manifold->as<ODEStateManifold>()->getEnvironment();
+    const control::ODEEnvironmentPtr& getStateManifoldEnvironmentWithCheck(const base::StateManifoldPtr &manifold)
+    {
+        if (!dynamic_cast<control::ODEStateManifold*>(manifold.get()))
+            throw Exception("ODE State Manifold needed for creating ODE Control Manifold");
+        return manifold->as<control::ODEStateManifold>()->getEnvironment();
+    }
+}
+
+ompl::control::ODEControlManifold::ODEControlManifold(const base::StateManifoldPtr &stateManifold) : 
+    RealVectorControlManifold(stateManifold, getStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())
+{
+    RealVectorBounds bounds(dimension_);
+    getEnvironment()->getControlBounds(bounds.low, bounds.high);
+    setBounds(bounds);
 }
 
 namespace ompl
@@ -84,30 +95,30 @@ namespace ompl
 
 void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {
-    const ODEEnvironment &env = stateManifold_->as<ODEStateManifold>()->getEnvironment();
-    env.mutex_.lock();
+    const ODEEnvironmentPtr &env = stateManifold_->as<ODEStateManifold>()->getEnvironment();
+    env->mutex_.lock();
     
     // place the ODE world at the start state
     stateManifold_->as<ODEStateManifold>()->writeState(state);
 
     // apply the controls
-    env.applyControl(control->as<RealVectorControlManifold::ControlType>()->values);
+    env->applyControl(control->as<RealVectorControlManifold::ControlType>()->values);
 
     // created contacts as needed
-    CallbackParam cp = { &env, false };    
-    for (unsigned int i = 0 ; i < env.collisionSpaces_.size() ; ++i)
-	dSpaceCollide(env.collisionSpaces_[i],  &cp, &nearCallback);
+    CallbackParam cp = { env.get(), false };    
+    for (unsigned int i = 0 ; i < env->collisionSpaces_.size() ; ++i)
+	dSpaceCollide(env->collisionSpaces_[i],  &cp, &nearCallback);
     
     // propagate one step forward
-    dWorldQuickStep(env.world_, duration);
+    dWorldQuickStep(env->world_, duration);
     
     // remove created contacts
-    dJointGroupEmpty(env.contactGroup_);
+    dJointGroupEmpty(env->contactGroup_);
     
     // read the final state from the ODE world
     stateManifold_->as<ODEStateManifold>()->readState(result);
     
-    env.mutex_.unlock();
+    env->mutex_.unlock();
     
     // update the collision flag for the start state, if needed
     if (state->as<ODEStateManifold::StateType>()->collision == ODEStateManifold::STATE_COLLISION_UNKNOWN)

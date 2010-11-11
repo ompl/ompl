@@ -125,13 +125,35 @@ namespace ompl
 		
 	    };
 	    
-	    ODEStateManifold(const ODEEnvironment &env);
+            /** \brief Construct a manifold representing ODE
+                states. This will be a compound manifold with 4
+                components for each body in \e env.stateBodies_. The 4
+                submanifolds constructed for each body are: position
+                (R<sup>3</sup>), linear velocity (R<sup>3</sup>),
+                angular velocity (R<sup>3</sup>) and orientation
+                (SO(3)). By default, the volume bounds enclosing the
+                geometry of the environment are computed to include
+                all objects in the spaces collision checking is
+                performed (env.collisionSpaces_). The linear and
+                angular velocity bounds are set as -1 to 1 for each
+                dimension.
+
+                \param env the environment to construct the manifold for
+                \param positionWeight the weight to pass to CompoundManifold::addSubManifold() for position submanifolds
+                \param linVelWeight the weight to pass to CompoundManifold::addSubManifold() for linear velocity submanifolds
+                \param angVelWeight the weight to pass to CompoundManifold::addSubManifold() for angular velocity submanifolds
+                \param orientationWeight the weight to pass to CompoundManifold::addSubManifold() for orientation submanifolds
+            */
+	    ODEStateManifold(const ODEEnvironmentPtr &env,
+                             double positionWeight = 1.0, double linVelWeight = 0.5, 
+                             double angVelWeight = 0.5, double orientationWeight = 1.0);
 	    
 	    virtual ~ODEStateManifold(void)
 	    {
 	    }
 	    
-	    const ODEEnvironment& getEnvironment(void) const
+            /** \brief Get the ODE environment this manifold corresponds to */
+	    const ODEEnvironmentPtr& getEnvironment(void) const
 	    {
 		return env_;
 	    }
@@ -167,11 +189,13 @@ namespace ompl
 	    virtual void freeState(base::State *state) const;
 	    virtual void copyState(base::State *destination, const base::State *source) const;
 
+            /** \brief Fill the StateType::collision member of a state, if unknown. */
 	    virtual void evaluateCollision(const base::State *source) const;
 
 	protected:
 	    
-	    const ODEEnvironment &env_;
+            /** \brief Representation of the ODE parameters OMPL needs to plan */
+            ODEEnvironmentPtr env_;
 	};
     }
 }

@@ -50,7 +50,7 @@ ompl::control::ODESimpleSetup::ODESimpleSetup(const base::StateManifoldPtr &mani
     useEnvParams();
 }
 
-ompl::control::ODESimpleSetup::ODESimpleSetup(const ODEEnvironment &env) : 
+ompl::control::ODESimpleSetup::ODESimpleSetup(const ODEEnvironmentPtr &env) : 
     SimpleSetup(ControlManifoldPtr(new ODEControlManifold(base::StateManifoldPtr(new ODEStateManifold(env)))))
 {
     useEnvParams();
@@ -58,9 +58,9 @@ ompl::control::ODESimpleSetup::ODESimpleSetup(const ODEEnvironment &env) :
 
 void ompl::control::ODESimpleSetup::useEnvParams(void)
 {
-    si_->setPropagationStepSize(getControlManifold()->as<ODEControlManifold>()->getEnvironment().stepSize_);
-    si_->setMinMaxControlDuration(getControlManifold()->as<ODEControlManifold>()->getEnvironment().minControlSteps_,
-                                  getControlManifold()->as<ODEControlManifold>()->getEnvironment().maxControlSteps_);
+    si_->setPropagationStepSize(getStateManifold()->as<ODEStateManifold>()->getEnvironment()->stepSize_);
+    si_->setMinMaxControlDuration(getStateManifold()->as<ODEStateManifold>()->getEnvironment()->minControlSteps_,
+                                  getStateManifold()->as<ODEStateManifold>()->getEnvironment()->maxControlSteps_);
 }
 
 void ompl::control::ODESimpleSetup::setup(void)

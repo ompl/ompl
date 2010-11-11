@@ -42,6 +42,8 @@
 #  error ODE extension not built
 #endif
 
+#include "ompl/util/ClassForward.h"
+
 #include <ode/ode.h>
 #include <vector>
 #include <boost/thread/mutex.hpp>
@@ -50,7 +52,13 @@ namespace ompl
 {
     namespace control
     {
-	
+
+	/** \brief Forward declaration of ompl::control::ODEEnvironment */        
+        ClassForward(ODEEnvironment);
+
+        /** \class ompl::control::ODEEnvironmentPtr 
+	    \brief A boost shared pointer wrapper for ompl::control::ODEEnvironment */
+        
 	/** \brief This class contains the ODE constructs OMPL needs to know about when plannning. */
 	class ODEEnvironment
 	{

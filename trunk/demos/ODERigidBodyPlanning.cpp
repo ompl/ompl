@@ -187,7 +187,7 @@ class RigidBodyStateManifold : public oc::ODEStateManifold
 {
 public:
 
-    RigidBodyStateManifold(const RigidBodyEnvironment &env) : oc::ODEStateManifold(env)
+    RigidBodyStateManifold(const oc::ODEEnvironmentPtr &env) : oc::ODEStateManifold(env)
     {
     }
     
@@ -214,7 +214,7 @@ int main(int, char **)
     dInitODE2(0);
     
     // create the ODE environment
-    RigidBodyEnvironment env;
+    oc::ODEEnvironmentPtr env(new RigidBodyEnvironment());
     
     // create the state space manifold and the control manifold for planning
     RigidBodyStateManifold *stateManifold = new RigidBodyStateManifold(env);
