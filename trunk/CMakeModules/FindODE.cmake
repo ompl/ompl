@@ -51,16 +51,16 @@ else()
 endif()
 
 
-find_program(ODE_CONFIG NAMES ode-config PATHS ${ODE_PATH} PATH_SUFFIXES bin)
-if (ODE_CONFIG)
+find_program(_ODE_CONFIG NAMES ode-config PATHS ${ODE_PATH} PATH_SUFFIXES bin)
+if (_ODE_CONFIG)
 
-  execute_process(COMMAND ${ODE_CONFIG} --version OUTPUT_VARIABLE ODE_VERSION)
+  execute_process(COMMAND ${_ODE_CONFIG} --version OUTPUT_VARIABLE ODE_VERSION)
   # remove new line chars
   if (ODE_VERSION)
     string(REGEX REPLACE "[\r\n]+" "" ODE_VERSION ${ODE_VERSION})
   endif()
   
-  execute_process(COMMAND ${ODE_CONFIG} --cflags  OUTPUT_VARIABLE ODE_CFLAGS)
+  execute_process(COMMAND ${_ODE_CONFIG} --cflags  OUTPUT_VARIABLE ODE_CFLAGS)
   if (ODE_CFLAGS)
     # split the flags
     string(REGEX MATCHALL "[^ ]+" ODE_CFLAGS_LIST ${ODE_CFLAGS})
@@ -83,7 +83,7 @@ if (ODE_CONFIG)
     endforeach()
   endif()
 
-  execute_process(COMMAND ${ODE_CONFIG} --libs OUTPUT_VARIABLE ODE_LFLAGS)
+  execute_process(COMMAND ${_ODE_CONFIG} --libs OUTPUT_VARIABLE ODE_LFLAGS)
   if (ODE_LFLAGS)
     string(REGEX MATCHALL "[^ ]+" ODE_LFLAGS_LIST ${ODE_LFLAGS})
     foreach(ODE_LFLAG ${ODE_LFLAGS_LIST})
@@ -108,7 +108,7 @@ find_library(ODE_LIBRARY ode PATHS ${_ODE_LIB_HINTS} PATH_SUFFIXES lib)
 
 if (_ODE_DEBUG_OUTPUT)
   message(STATUS "------- FindODE.cmake Debug -------")
-  message(STATUS "ODE_CONFIG = '${ODE_CONFIG}'")
+  message(STATUS "ODE_CONFIG = '${_ODE_CONFIG}'")
   message(STATUS "ODE_DEFINITIONS = '${ODE_DEFINITIONS}'")
   message(STATUS "_ODE_INCLUDE_HINTS = '${_ODE_INCLUDE_HINTS}'")
   message(STATUS "ODE_INCLUDE = '${ODE_INCLUDE}'")
@@ -119,4 +119,5 @@ if (_ODE_DEBUG_OUTPUT)
 endif()
 
 find_package_handle_standard_args(ODE DEFAULT_MSG ODE_LIBRARY ODE_INCLUDE)
+mark_as_advanced(_ODE_CONFIG _ODE_INCLUDE_H)
 mark_as_advanced(ODE_LIBRARY ODE_INCLUDE ODE_DEFINITIONS ODE_VERSION)
