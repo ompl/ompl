@@ -26,6 +26,7 @@ if (OMPL_BUILD_DEMOS)
   
   
   add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
+  add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithIntegrationAndControls RigidBodyPlanningWithIntegrationAndControls.cpp)
   

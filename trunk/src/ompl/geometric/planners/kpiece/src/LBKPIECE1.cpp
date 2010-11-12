@@ -75,12 +75,12 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 	return false;
     }
 
-    if (goal->maxSampleCount() <= 0)
+    if (!goal->canSample())
     {
 	msg_.error("Insufficient states in sampleable goal region");
 	return false;
     }
-    
+
     msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
     
     std::vector<Motion*> solution;

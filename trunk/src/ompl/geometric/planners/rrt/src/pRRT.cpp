@@ -86,7 +86,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTer
     while (sol->solution == NULL && ptc() == false)
     {
 	/* sample random state (with goal biasing) */
-	if (goal_s && rng.uniform01() < goalBias_)
+	if (goal_s && rng.uniform01() < goalBias_ && goal_s->canSample())
 	    goal_s->sampleGoal(rstate);
 	else
 	    samplerArray_[tid]->sampleUniform(rstate);

@@ -110,7 +110,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
     {
 
 	/* sample random state (with goal biasing) */
-	if (goal_s && rng_.uniform01() < goalBias_)
+	if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
 	    goal_s->sampleGoal(rstate);
 	else
 	    sampler_->sampleUniform(rstate);

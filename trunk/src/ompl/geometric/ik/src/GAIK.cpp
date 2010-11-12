@@ -183,7 +183,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     }
     else
     {	
-	/* find an approximate solution */
+	/* one last attempt to find a solution */
 	std::sort(pool.begin(), pool.end(), gs);
 	for (unsigned int i = 0 ; i < 5 ; ++i)
 	{	
@@ -199,8 +199,10 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 		// if the improvement made the state no longer valid, revert to previous one
 		if (!valid(result))
 		    si_->copyState(result, pool[i].state);
-		solved = true;
-		break;
+                else
+                    solved = goal.isSatisfied(result);
+                if (solved)
+                    break;
 	    }
 	}
     }

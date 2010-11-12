@@ -64,7 +64,13 @@ namespace ompl
 	    
 	    /** \brief Return the maximum number of samples that can be asked for before repeating */
 	    virtual unsigned int maxSampleCount(void) const = 0;
-	};
+            
+            /** \brief Return true of maxSampleCount() > 0, since in this case samples can certainly be produced */
+            virtual bool canSample(void) const
+            {
+                return maxSampleCount() > 0;
+            }
+        };
 	
     }
 }

@@ -132,7 +132,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 	/* sample random state (with goal biasing) */
 	if (rng_.uniform01() < goalBias_)
 	{
-	    if (goal_s)
+	    if (goal_s && goal_s->canSample())
 		goal_s->sampleGoal(xstate);
 	    else
 	    {

@@ -147,7 +147,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     Grid::Coord best_coord, better_coord;
     bool haveBestCoord = false;
     bool haveBetterCoord = false;
-    if (goal_s)
+    if (goal_s && goal_s->canSample())
     {
 	goal_s->sampleGoal(states[0]);
 	projectionEvaluator_->computeCoordinates(states[0], best_coord);

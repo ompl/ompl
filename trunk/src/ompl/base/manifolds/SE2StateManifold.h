@@ -90,7 +90,14 @@ namespace ompl
 		{
 		    as<RealVectorStateManifold::StateType>(0)->values[1] = y;
 		}
-		
+                
+                /** \brief Set the X and Y components of the state */
+                void setXY(double x, double y)
+                {
+                    setX(x);
+                    setY(y);
+                }
+                
 		/** \brief Set the yaw component of the state. This is
 		    the rotation in plane, with respect to the Z
 		    axis. */

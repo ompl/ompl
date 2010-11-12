@@ -109,7 +109,7 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 	assert(existing);
 	
 	/* sample random state (with goal biasing) */
-	if (goal_s && rng_.uniform01() < goalBias_)
+	if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
 	    goal_s->sampleGoal(xstate);
 	else
 	    if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))

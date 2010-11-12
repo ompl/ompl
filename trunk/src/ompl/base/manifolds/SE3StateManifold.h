@@ -78,7 +78,7 @@ namespace ompl
 		}
 
 		/** \brief Get the rotation component of the state */
-		const SO3StateManifold::StateType& getRotation(void) const
+		const SO3StateManifold::StateType& rotation(void) const
 		{
 		    return *as<SO3StateManifold::StateType>(1);
 		}
@@ -106,6 +106,14 @@ namespace ompl
 		{
 		    as<RealVectorStateManifold::StateType>(0)->values[2] = z;
 		}
+
+                /** \brief Set the X, Y and Z components of the state */
+                void setXYZ(double x, double y, double z)
+                {
+                    setX(x);
+                    setY(y);
+                    setZ(z);
+                }
 		
 	    };	    
 

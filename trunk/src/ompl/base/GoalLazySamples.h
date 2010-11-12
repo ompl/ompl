@@ -40,6 +40,7 @@
 #include "ompl/base/GoalStates.h"
 #include <boost/thread/thread.hpp>
 #include <boost/function.hpp>
+#include <limits>
 
 namespace ompl
 {
@@ -59,12 +60,17 @@ namespace ompl
 	    /** \brief Create a goal region that can be sampled in a
 		lazy fashion. A function that produces samples from
 		that region needs to be passed to this
-		constructor. That function returns a truth value. If
+		constructor. The sampling thread is automatically
+		started if \e autoStart is true. 
+
+                The function \e samplerFunc returns a truth value. If
 		the return value is true, further calls to the
 		function can be made. If the return is false, no more
-		calls should be made. At every call, the function
-		fills its state argument with a goal state. */
-	    GoalLazySamples(const SpaceInformationPtr &si, const boost::function1<bool, State*> &samplerFunc);
+		calls should be made. The function takes two
+		arguments: the instance of GoalLazySamples making the
+		call and the state to fill with a goal state. For
+		every sampled state, addStateIfDifferent() is called. */
+	    GoalLazySamples(const SpaceInformationPtr &si, const boost::function2<bool, const GoalLazySamples*, State*> &samplerFunc, bool autoStart = true);
 
 	    virtual ~GoalLazySamples(void);
 	    
@@ -73,7 +79,21 @@ namespace ompl
 	    virtual double distanceGoal(const State *st) const;
 	    
 	    virtual void addState(const State* st);
-	    
+            
+            /** \brief Start the goal sampling thread */
+            void startSampling(void);
+            
+            /** \brief Stop the goal sampling thread */
+            void stopSampling(void);
+            
+            /** \brief Return true of maxSampleCount() > 0 or if the
+                sampling thread is active, as in this case it is
+                possible a sample can be produced. */
+            virtual bool canSample(void) const;
+            
+            /** \brief Add a state \e st if it further away that \e minDistance from previously added states. */
+            void addStateIfDifferent(const State* st, double minDistance = std::numeric_limits<double>::epsilon());
+
 	    virtual void clear(void);
 	    
 	protected:
@@ -85,13 +105,14 @@ namespace ompl
 	    mutable boost::mutex           lock_;
 	    
 	    /** \brief Function that produces samples */
-	    boost::function1<bool, State*> samplerFunc_;
+	    boost::function2<bool, const GoalLazySamples*, State*>
+                                           samplerFunc_;
 	    
 	    /** \brief Flag used to notify the sampling thread to terminate sampling */
 	    bool                           terminateSamplingThread_;
 	    
 	    /** \brief Additional thread for sampling goal states */
-	    boost::thread                  samplingThread_;
+	    boost::thread                 *samplingThread_;
 	    
 	};
 	
