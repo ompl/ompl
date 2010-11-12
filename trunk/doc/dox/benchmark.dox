@@ -4,7 +4,7 @@
     task in OMPL. The following code snippet shows you how to do it.
     Some initial code that you probably have already used:
     \code   
-    #include "ompl/geometric/Benchmark.h"
+    #include "ompl/benchmark/Benchmark.h"
     ...
     using namespace ompl;
     ...
@@ -30,7 +30,7 @@
     Benchmarking code starts here:
     \code
     // First we create a benchmark class:
-    ompl::geometric::Benchmark b(ss);
+    ompl::geometric::Benchmark b(ss, "my experiment");
 
     // We add the planners to evaluate.
     b.addPlanner(base::PlannerPtr(new geometric::KPIECE1(ss.getSpaceInformation())));
@@ -99,10 +99,12 @@
     - <strong>approximate solution:</strong> (boolean) flag indicating whether the found solution is approximate (does not reach the goal) 
     - <strong>solution difference:</strong> (real) if solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
     - <strong>solution length:</strong> (real) the length of the found solution
+    - <strong>solution segments:</strong> (integer) the number of segments on solution path
     - <strong>correct solution:</strong> (boolean) flag indicating whether the found solution is correct. This should always be true.
     - <strong>correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct when checked at a finer resolution.
     - <strong>simplification time:</strong> (real) the time spend simplifying the solution path, in seconds
     - <strong>simplified solution length:</strong> (real) the length of the found solution after simplification
+    - <strong>simplified solution segments:</strong> (integer) the number of segments on solution path after simplification
     - <strong>simplified correct solution:</strong> (boolean) flag indicating whether the found solution is correct after simplification. This should always be true.
     - <strong>simplified correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct after simplification, when checked at a finer resolution.
     - <strong>graph states:</strong> (integer) the number of states in the constructed graph

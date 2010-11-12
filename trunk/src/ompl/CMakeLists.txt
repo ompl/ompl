@@ -1,5 +1,5 @@
 # recursively find all *.cpp files that correspond to the ompl library
-file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp)
+file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp benchmark/*.cpp)
 
 if (OMPL_EXTENSION_ODE)
         message(STATUS "Building ODE extension")

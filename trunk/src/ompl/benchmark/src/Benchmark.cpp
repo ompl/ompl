@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/geometric/Benchmark.h"
+#include "ompl/benchmark/Benchmark.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/Memory.h"
 #include <boost/lexical_cast.hpp>
@@ -62,12 +62,12 @@ namespace ompl
     }
 }
 
-std::string ompl::geometric::Benchmark::getResultsFilename(void) const
+std::string ompl::Benchmark::getResultsFilename(void) const
 {
     return "ompl_" + exp_.host + "_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
 }
 
-bool ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
+bool ompl::Benchmark::saveResultsToFile(const char *filename) const
 {
     bool result = false;
     
@@ -88,13 +88,13 @@ bool ompl::geometric::Benchmark::saveResultsToFile(const char *filename) const
     return result;
 }
 
-bool ompl::geometric::Benchmark::saveResultsToFile(void) const
+bool ompl::Benchmark::saveResultsToFile(void) const
 {
     std::string filename = getResultsFilename();
     return saveResultsToFile(filename.c_str());
 }
 
-bool ompl::geometric::Benchmark::saveResultsToStream(std::ostream &out) const
+bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
 {
     if (exp_.planners.empty())
     {
@@ -186,12 +186,15 @@ namespace ompl
     
 }
 
-void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress)
+void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress)
 {
     // sanity checks
-    setup_.setup();
-
-    if (!setup_.getGoal())
+    if (gsetup_)
+        gsetup_->setup();
+    else
+        csetup_->setup();
+    
+    if (!(gsetup_ ? gsetup_->getGoal() : csetup_->getGoal()))
     {
 	msg_.error("No goal defined");
 	return;
@@ -215,18 +218,22 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
     exp_.planners.clear();
     exp_.planners.resize(planners_.size());
 
+    const base::ProblemDefinitionPtr &pdef = gsetup_ ? gsetup_->getProblemDefinition() : csetup_->getProblemDefinition();
     // set up all the planners
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
 	// configure the planner
-	planners_[i]->setProblemDefinition(setup_.getProblemDefinition());
+	planners_[i]->setProblemDefinition(pdef);
 	if (!planners_[i]->isSetup())
 	    planners_[i]->setup();
-	exp_.planners[i].name = planners_[i]->getName();
+	exp_.planners[i].name = (gsetup_ ? "geometric::" : "control::") + planners_[i]->getName();
     }
 
     std::stringstream setupInfo;
-    setup_.print(setupInfo);
+    if (gsetup_)
+        gsetup_->print(setupInfo);
+    else
+        csetup_->print(setupInfo);
     exp_.setupInfo = setupInfo.str();
     
     msg_.inform("Beginning benchmark");
@@ -255,10 +262,19 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 		    ++(*progress);
 	    
 	    // make sure there are no pre-allocated states and all planning data structures are cleared
-	    setup_.getSpaceInformation()->getStateAllocator().clear();
 	    planners_[i]->clear();
-	    setup_.getGoal()->clearSolutionPath();
-	    
+            if (gsetup_)
+            {
+                gsetup_->getSpaceInformation()->getStateAllocator().clear();
+                gsetup_->getGoal()->clearSolutionPath();
+            }
+            else
+            {
+                csetup_->getSpaceInformation()->getStateAllocator().clear();
+                csetup_->getSpaceInformation()->getControlAllocator().clear();
+                csetup_->getGoal()->clearSolutionPath();
+            }
+            
 	    time::point timeStart = time::now();
 
 	    bool solved = false;
@@ -289,30 +305,51 @@ void ompl::geometric::Benchmark::benchmark(double maxTime, double maxMem, unsign
 		run["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 		run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
 		run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
-		run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(setup_.getSpaceInformation()->getStateAllocator().size());
-		if (solved)
+                if (gsetup_)
+                {
+                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getStateAllocator().size());
+                }
+                else
+                {
+                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getStateAllocator().size());
+                    run["preallocated controls INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getControlAllocator().size());
+                }
+                if (solved)
 		{
-		    run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getGoal()->isApproximate());
-		    run["solution difference REAL"] = boost::lexical_cast<std::string>(setup_.getGoal()->getDifference());
-		    run["solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
-		    run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
-		    
-		    unsigned int factor = setup_.getStateManifold()->getValidSegmentCountFactor();
-		    setup_.getStateManifold()->setValidSegmentCountFactor(factor * 4);
-		    run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
-		    setup_.getStateManifold()->setValidSegmentCountFactor(factor);
-		    
-		    // simplify solution
-		    timeStart = time::now();
-		    setup_.simplifySolution();
-		    timeUsed = time::seconds(time::now() - timeStart);
-		    run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
-		    run["simplified solution length REAL"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().length());
-		    run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
-		    setup_.getStateManifold()->setValidSegmentCountFactor(factor * 4);
-		    run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(setup_.getSolutionPath().check());
-		    setup_.getStateManifold()->setValidSegmentCountFactor(factor);
-		}
+                    if (gsetup_)
+                    {                     
+                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getGoal()->isApproximate());
+                        run["solution difference REAL"] = boost::lexical_cast<std::string>(gsetup_->getGoal()->getDifference());
+                        run["solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
+                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
+                        run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                        
+                        unsigned int factor = gsetup_->getStateManifold()->getValidSegmentCountFactor();
+                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor * 4);
+                        run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor);
+                        
+                        // simplify solution
+                        timeStart = time::now();
+                        gsetup_->simplifySolution();
+                        timeUsed = time::seconds(time::now() - timeStart);
+                        run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
+                        run["simplified solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
+                        run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
+                        run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor * 4);
+                        run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor);
+                    }
+                    else
+                    {
+                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getGoal()->isApproximate());
+                        run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getGoal()->getDifference());
+                        run["solution length REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().length());
+                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().states.size() - 1);
+                        run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().check());       
+                    }
+                }
 		
 		base::PlannerData pd;
 		planners_[i]->getPlannerData(pd);
