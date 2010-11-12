@@ -111,9 +111,14 @@ namespace ompl
 		return planner_;
 	    }
 
+            /** \brief Return true if a solution path is available (previous call to solve() was succesful) */
+            bool haveSolutionPath(void) const
+            {
+                return getGoal()->getSolutionPath();
+            }
+
 	    /** \brief Get the solution path. Throw an exception if no solution is available */
-	    PathControl& getSolutionPath(void) const;
-	    
+	    PathControl& getSolutionPath(void) const;	    
 
 	    /** \brief Set the state validity checker to use */
 	    void setStateValidityChecker(const base::StateValidityCheckerPtr &svc)

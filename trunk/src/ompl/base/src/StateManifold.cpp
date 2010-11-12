@@ -431,7 +431,10 @@ void ompl::base::CompoundStateManifold::printSettings(std::ostream &out) const
 {
     out << "Compound state manifold '" << name_ << "' [" << std::endl;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	components_[i]->printSettings(out);
+    {
+        components_[i]->printSettings(out);
+        out << " of weight " << weights_[i] << std::endl;
+    }
     out << "]" << std::endl;
     printProjections(out);
 }

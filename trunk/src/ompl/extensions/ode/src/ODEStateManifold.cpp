@@ -29,7 +29,7 @@ void ompl::control::ODEStateManifold::setDefaultBounds(void)
     bounds1.setHigh(1);
     setLinearVelocityBounds(bounds1);
     setAngularVelocityBounds(bounds1);
-    
+
     // find the bounding box that contains all geoms included in the collision spaces
     double mX, mY, mZ, MX, MY, MZ;
     mX = mY = mZ = std::numeric_limits<double>::infinity();
@@ -44,8 +44,9 @@ void ompl::control::ODEStateManifold::setDefaultBounds(void)
     {
 	dSpaceID space = spaces.front();
 	spaces.pop();
-	
+
 	int n = dSpaceGetNumGeoms(space);
+
 	for (int j = 0 ; j < n ; ++j)
 	{
 	    dGeomID geom = dSpaceGetGeom(space, j);
@@ -53,16 +54,28 @@ void ompl::control::ODEStateManifold::setDefaultBounds(void)
 		spaces.push((dSpaceID)geom);
 	    else
 	    {	
-		found = true;
-		dReal aabb[6];
+                bool valid = true;
+                dReal aabb[6];
 		dGeomGetAABB(geom, aabb);
-		if (aabb[0] < mX) mX = aabb[0];
-		if (aabb[1] > MX) MX = aabb[1];
-		if (aabb[2] < mY) mY = aabb[2];
-		if (aabb[3] > MY) MY = aabb[3];
-		if (aabb[4] < mZ) mZ = aabb[4];
-		if (aabb[5] > MZ) MZ = aabb[5];
-	    }
+
+                // things like planes are infinite; we want to ignore those
+                for (int k = 0 ; k < 6 ; ++k)
+                    if (fabs(aabb[k]) >= std::numeric_limits<dReal>::max())
+                    {
+                        valid = false;
+                        break;
+                    }                
+                if (valid)
+                {
+                    found = true;
+                    if (aabb[0] < mX) mX = aabb[0];
+                    if (aabb[1] > MX) MX = aabb[1];
+                    if (aabb[2] < mY) mY = aabb[2];
+                    if (aabb[3] > MY) MY = aabb[3];
+                    if (aabb[4] < mZ) mZ = aabb[4];
+                    if (aabb[5] > MZ) MZ = aabb[5];
+                }
+            }
 	}
     }
     
@@ -120,10 +133,19 @@ namespace ompl
 	    
 	    // check if there is really a collision
 	    if (numc)
-		// check if the collision is allowed
-		reinterpret_cast<CallbackParam*>(data)->collision =
-		    !reinterpret_cast<CallbackParam*>(data)->env->isValidCollision(o1, o2, contact[0]);
-	}
+            {
+                // check if the collision is allowed
+                bool valid = reinterpret_cast<CallbackParam*>(data)->env->isValidCollision(o1, o2, contact[0]);
+		reinterpret_cast<CallbackParam*>(data)->collision = !valid;
+                if (reinterpret_cast<CallbackParam*>(data)->env->verboseContacts_)
+                {
+                    static msg::Interface msg;
+                    msg.debug((valid ? "Valid" : "Invalid") + std::string(" contact between ") + 
+                              reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o1) + " and " +
+                              reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o2));
+                }
+            }
+        }
     }
 }
 

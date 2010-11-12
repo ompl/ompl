@@ -118,6 +118,12 @@ namespace ompl
 		return psk_;
 	    }
 	    
+            /** \brief Return true if a solution path is available (previous call to solve() was succesful) */
+            bool haveSolutionPath(void) const
+            {
+                return getGoal()->getSolutionPath();
+            }
+            
 	    /** \brief Get the solution path. Throw an exception if no solution is available */
 	    PathGeometric& getSolutionPath(void) const;
 	    

@@ -86,8 +86,15 @@ namespace ompl
 	    {
 		dJointID c = dJointCreateContact(cp->env->world_, cp->env->contactGroup_, contact + i);
 		dJointAttach(c, b1, b2);
-		if (!cp->env->isValidCollision(o1, o2, contact[i]))
+                bool valid = cp->env->isValidCollision(o1, o2, contact[i]);
+                if (!valid)
 		    cp->collision = true;
+                if (cp->env->verboseContacts_)
+                {
+                    static msg::Interface msg;
+                    msg.debug((valid ? "Valid" : "Invalid") + std::string(" contact between ") + 
+                              cp->env->getGeomName(o1) + " and " + cp->env->getGeomName(o2));
+                }
 	    }
 	}
     }

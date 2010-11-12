@@ -164,7 +164,13 @@ namespace ompl
 	    {
 		return env_;
 	    }
-	    
+
+            /** \brief Get the number of bodies state is maintained for */
+            unsigned int getNrBodies(void) const
+            {
+                return env_->stateBodies_.size();
+            }
+            
 	    /** \brief By default, the volume bounds enclosing the
 	      geometry of the environment are computed to include all
 	      objects in the spaces collision checking is performed

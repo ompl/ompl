@@ -46,6 +46,8 @@
 
 #include <ode/ode.h>
 #include <vector>
+#include <string>
+#include <map>
 #include <boost/thread/mutex.hpp>
 
 namespace ompl
@@ -74,7 +76,14 @@ namespace ompl
 		part of the state when planning. This is not
 		necessarily all the bodies in the environment.*/
 	    std::vector<dBodyID>  stateBodies_;
-
+            
+            /** \brief Optional map of names given to geoms. This is useful when collision checking is verbose */
+            std::map<dGeomID, std::string>
+                                  geomNames_;
+            
+            /** \brief Issue debug messages when contacts are found. Default is false. This should only be used for debugging */
+            bool                  verboseContacts_;
+            
 	    /** \brief The group of joints where contacts are created */
 	    dJointGroupID         contactGroup_;
 	    
@@ -93,7 +102,7 @@ namespace ompl
 	    /** \brief Lock to use when performing simulations in the world. (ODE simulations are NOT thread safe) */
 	    mutable boost::mutex  mutex_;
 
-            ODEEnvironment(void) : world_(NULL), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
+            ODEEnvironment(void) : world_(NULL), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
 	    {
 		contactGroup_ = dJointGroupCreate(0);
 	    }
@@ -128,6 +137,13 @@ namespace ompl
 	    
 	    /** \brief Parameters to set when contacts are created between bodies. */
 	    virtual void setupContact(dContact &contact) const;
+
+            /** \brief Get the name of a body */
+            std::string getGeomName(dGeomID geom) const;
+
+            /** \brief Set the name of a body */
+            void setGeomName(dGeomID geom, const std::string &name);
+            
 	};
     }
 }

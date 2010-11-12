@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/extensions/ode/ODEEnvironment.h"
+#include <boost/lexical_cast.hpp>
 
 unsigned int ompl::control::ODEEnvironment::getMaxContacts(dGeomID geom1, dGeomID geom2) const
 {
@@ -54,4 +55,18 @@ void ompl::control::ODEEnvironment::setupContact(dContact &contact) const
     contact.surface.bounce = 0.01;
     contact.surface.bounce_vel = 0.001;
     contact.surface.soft_cfm = 0.01;
+}
+
+std::string ompl::control::ODEEnvironment::getGeomName(dGeomID geom) const
+{
+    std::map<dGeomID, std::string>::const_iterator it = geomNames_.find(geom);
+    if (it == geomNames_.end())
+        return boost::lexical_cast<std::string>(geom);
+    else
+        return it->second;
+}
+
+void ompl::control::ODEEnvironment::setGeomName(dGeomID geom, const std::string &name)
+{
+    geomNames_[geom] = name;
 }
