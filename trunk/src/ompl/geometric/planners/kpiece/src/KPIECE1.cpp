@@ -230,7 +230,7 @@ bool ompl::geometric::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell
 	tree_.grid.topExternal() : tree_.grid.topInternal();
 
     // We are running on finite precision, so our update scheme will end up 
-    // with 0 values for the score. This is where we fix this
+    // with 0 values for the score. This is where we fix the problem
     if (scell->data->score < std::numeric_limits<double>::epsilon())
     {
 	std::vector<CellData*> content;

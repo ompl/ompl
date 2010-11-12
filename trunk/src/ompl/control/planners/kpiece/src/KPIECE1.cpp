@@ -291,6 +291,19 @@ bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 {
     scell = rng_.uniform01() < std::max(selectBorderPercentage_, tree_.grid.fracExternal()) ?
 	tree_.grid.topExternal() : tree_.grid.topInternal();
+
+    // We are running on finite precision, so our update scheme will end up 
+    // with 0 values for the score. This is where we fix the problem
+    if (scell->data->score < std::numeric_limits<double>::epsilon())
+    {
+	std::vector<CellData*> content;
+	content.reserve(tree_.grid.size());
+	tree_.grid.getContent(content);
+	for (std::vector<CellData*>::iterator it = content.begin() ; it != content.end() ; ++it)
+	    (*it)->score += 1.0 + log((*it)->iteration);
+	tree_.grid.updateAll();
+    }
+
     if (scell && !scell->data->motions.empty())
     {
 	scell->data->selections++;
@@ -321,7 +334,7 @@ unsigned int ompl::control::KPIECE1::addMotion(Motion *motion, double dist)
 	cell->data->coverage = motion->steps;
 	cell->data->iteration = tree_.iteration;
 	cell->data->selections = 1;
-	cell->data->score = 1.0 / (1e-3 + dist);
+	cell->data->score = (1.0 + log((double)(tree_.iteration))) / (1e-3 + dist);
 	tree_.grid.add(cell);
 	created = 1;
     }
