@@ -2,7 +2,6 @@
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp benchmark/*.cpp)
 
 if (OMPL_EXTENSION_ODE)
-        message(STATUS "Building ODE extension")
 	file(GLOB_RECURSE OMPL_ODE_EXTENSION_SOURCE_CODE extensions/ode/*.cpp)
 	set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_ODE_EXTENSION_SOURCE_CODE})
 	if (NOT OMPL_IN_ROS)

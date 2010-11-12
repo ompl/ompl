@@ -40,8 +40,8 @@ try:
 	from ompl import base as ob
 	from ompl import geometric as og
 except:
-	# if the ompl module is not in the PYTHONPATH assume it is installed in the
-	# parent directory
+	# if the ompl module is not in the PYTHONPATH assume it is installed in a
+	# subdirectory of the parent directory called "py-bindings."
 	from os.path import basename, abspath, dirname, join
 	import sys
 	sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
@@ -67,7 +67,6 @@ def plan():
 	# create a simple setup object
 	ss = og.SimpleSetup(manifold)
 	ss.setStateValidityChecker(isStateValid)
-	print ss.getStateManifold().getBounds().low[0]
 	
 	start = ob.State(manifold)
 	# we can pick a random start state...

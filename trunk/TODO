@@ -1,9 +1,7 @@
-* Reorganize tests to be more general, move python tests from py-bindings to test directory.
+* Reorganize tests to be more general
 * Merge files for tests for util/ & tests for datastructures/.
 * Define a parameter structure for classes that have parameters
    - perhaps something that will allow parameter sweeps
      (see code in unused/) (for later).
 * Create a more complex ODE demo (nice to have).
 * Path smoothing with splines.
-* Make python bindings work again.
-

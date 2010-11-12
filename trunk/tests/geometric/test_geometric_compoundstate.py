@@ -37,8 +37,8 @@
 # Author: Mark Moll
 
 import sys
-from os.path import abspath, dirname
-sys.path.insert(0, dirname(dirname(abspath(__file__))))
+from os.path import abspath, dirname, join
+sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))),'py-bindings') )
 from functools import partial
 from os.path import dirname
 from time import clock
@@ -191,4 +191,4 @@ def suite():
 	return unittest.TestSuite(suites)
 
 if __name__ == '__main__':
-	unittest.TextTestRunner(verbosity=3).run(suite())
+	unittest.main()

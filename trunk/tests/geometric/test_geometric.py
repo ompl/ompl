@@ -37,8 +37,8 @@
 # Author: Mark Moll
 
 import sys
-from os.path import abspath, dirname
-sys.path.insert(0, dirname(dirname(abspath(__file__))))
+from os.path import abspath, dirname, join
+sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))),'py-bindings') )
 from functools import partial
 from os.path import dirname
 from time import clock
@@ -146,9 +146,6 @@ class TestPlanner(object):
 			
 			path = goal.getSolutionPath()
 			sm = og.PathSimplifier(si)
-			sm.setMaxSteps(50)
-			sm.setMaxEmptySteps(10)
-			
 			startTime = clock()
 			sm.reduceVertices(path)
 			elapsed = clock() - startTime
@@ -375,4 +372,4 @@ def suite():
 	return unittest.TestSuite(suites)
 
 if __name__ == '__main__':
-	unittest.TextTestRunner(verbosity=3).run(suite())
+	unittest.main()

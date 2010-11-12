@@ -94,6 +94,8 @@ namespace ompl
 	    /** \brief Datatype for projection matrices */
 	    typedef std::vector< std::valarray<double> > Matrix;
 	    
+	    static const std::vector<double> default_scale;
+	
 	    /** \brief Compute a random projection matrix with \e from
 		columns and \e to rows. A vector with \e from elements
 		can be multiplied by this matrix in order to produce a
@@ -109,10 +111,10 @@ namespace ompl
 		Each element is sampled with a Gaussian distribution
 		with mean 0 and variance 1 and the matrix columns are
 		made orthonormal. */
-	    static Matrix ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = std::vector<double>());
+	    static Matrix ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = default_scale);
 	    
 	    /** \copydoc ComputeRandom() */
-	    void computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = std::vector<double>());
+	    void computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = default_scale);
 
 	    /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
 	    void project(const double *from, double *to) const;

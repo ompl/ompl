@@ -151,6 +151,7 @@ class ompl_base_generator_t(code_generator_t):
 		self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
 		self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
 		self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
+		self.std_ns.class_('map< std::string, std::string>').rename('mapStringToString')
 		# don't export variables that need a wrapper
 		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
 		# force StateManifold::allocState to be exported.
@@ -189,6 +190,8 @@ class ompl_base_generator_t(code_generator_t):
 		# don't expose double*
 		self.ompl_ns.class_('RealVectorStateManifold').class_(
 			'StateType').variable('values').exclude()
+		# don't expose std::map< const State *, unsigned int >
+		self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
 		# add array indexing to the RealVectorState
 		self.add_array_access(self.ompl_ns.class_('RealVectorStateManifold').class_('StateType'))
 		# add array indexing to the EuclideanProjection
@@ -213,6 +216,9 @@ class ompl_base_generator_t(code_generator_t):
 		# add wrapper code for setValidStateSamplerAllocator
 		self.replace_member_functions(self.ompl_ns.namespace('base').class_(
 				'SpaceInformation').member_functions('setValidStateSamplerAllocator'))
+		# exclude solve() methods that take a "const PlannerTerminationCondition &" 
+		# as first argument; only keep the solve() that just takes a double argument
+		self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &', 'double']).exclude()
 		
 class ompl_control_generator_t(code_generator_t):
 	def __init__(self):
@@ -253,6 +259,30 @@ class ompl_control_generator_t(code_generator_t):
 				obj->getSpaceInformation().get(), _1));
 		}
 		""")
+		# add a wrapper for the setPropagationFunction. This wrapper deals correctly
+		# with C-style pointers.
+		replacement['setPropagationFunction'] = ('def("setPropagationFunction", &setPropagationFunctionWrapper)', """
+		struct PropagatePyWrapper
+		{
+			PropagatePyWrapper( bp::object callable ) : callable_( callable ) {}
+
+		    void operator()(const ompl::control::ControlManifold* cmanifold, const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
+		    {
+				PyGILState_STATE gstate = PyGILState_Ensure();
+				callable_(bp::ptr(cmanifold), bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
+				PyGILState_Release( gstate );
+		    }
+
+		    bp::object callable_;
+		};
+
+		void setPropagationFunctionWrapper(%s* obj, bp::object function)
+		{
+			obj->setPropagationFunction( boost::bind(
+			boost::function<void (const ompl::control::ControlManifold*, const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)>(PropagatePyWrapper(function)),
+				obj, _1, _2, _3, _4));
+		}
+		""")
 
 		code_generator_t.__init__(self, 'control', ['bindings/base'], replacement)
 	
@@ -289,6 +319,9 @@ class ompl_control_generator_t(code_generator_t):
 		# add wrapper code for setPropagationFunction
 		self.replace_member_functions(self.ompl_ns.namespace('control').class_(
 			'ControlManifold').member_functions('setPropagationFunction'))
+		# exclude solve() methods that take a "const PlannerTerminationCondition &" 
+		# as first argument; only keep the solve() that just takes a double argument
+		self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 		
 class ompl_geometric_generator_t(code_generator_t):
 	def __init__(self):
@@ -337,7 +370,10 @@ class ompl_geometric_generator_t(code_generator_t):
 		self.replace_member_functions(self.ompl_ns.namespace('geometric').class_(
 			'SimpleSetup').member_functions('setStateValidityChecker', 
 			arg_types=['::ompl::base::StateValidityCheckerFn const &']))
-
+		# exclude solve() methods that take a "const PlannerTerminationCondition &" 
+		# as first argument; only keep the solve() that just takes a double argument
+		self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
+		
 class ompl_util_generator_t(code_generator_t):
 	def __init__(self):
 		code_generator_t.__init__(self, 'util')

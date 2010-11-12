@@ -34,6 +34,11 @@ if(BUILD_OMPL_TESTS)
 
 	endif(OMPL_IN_ROS)
 
+	macro(add_ompl_python_test test_file)
+		get_filename_component(test_name "${test_file}" NAME)
+		add_test(${test_name} "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/${test_file}" "-v")
+	endmacro(add_ompl_python_test)
+	
 	# Test datastructures implementation
 	add_ompl_test(test_heap datastructures/heap/heap.cpp)
 	add_ompl_test(test_grid datastructures/grid/grid.cpp)
@@ -55,5 +60,12 @@ if(BUILD_OMPL_TESTS)
 
 	# Test planning with controls on a 2D map
 	add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
+
+	# Python unit tests
+	add_ompl_python_test(util/test_util.py)
+	add_ompl_python_test(base/test_base.py)
+	add_ompl_python_test(geometric/test_geometric.py)
+	add_ompl_python_test(geometric/test_geometric_compoundstate.py)
+	add_ompl_python_test(control/test_control.py)
 
 endif(BUILD_OMPL_TESTS)

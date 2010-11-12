@@ -24,7 +24,8 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
 		add_custom_target(update_bindings)
 	endif()
 	set(PY_OMPL_COMPILE ON CACHE BOOL
-		"Whether the OMPL Python modules should be built")
+		"Whether the OMPL Python modules can be built")
+	mark_as_advanced(PY_OMPL_COMPILE)
 	set(OMPL_PYTHON_INSTALL_DIR "lib/python${PYTHON_VERSION}/site-packages")
 endif()
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
@@ -36,7 +37,8 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
 		add_custom_target(py_ompl)
 	endif()
 	set(PY_OMPL_GENERATE ON CACHE BOOL 
-		"Whether the C++ code for the OMPL Python module should be generated")
+		"Whether the C++ code for the OMPL Python module can be generated")
+	mark_as_advanced(PY_OMPL_GENERATE)
 endif()
 
 function(create_module_header_file_target module dir)

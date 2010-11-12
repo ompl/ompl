@@ -45,7 +45,7 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-/// describe an arbitrary representation of a goal region in SE(3)
+// describe an arbitrary representation of a goal region in SE(3)
 class MyGoalRegion : public ob::GoalRegion
 {
 public:
@@ -91,20 +91,20 @@ bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::GoalReg
 
 void planWithIK(void)
 {
-    /// construct the manifold we are planning in
+    // construct the manifold we are planning in
     ob::StateManifoldPtr manifold(new ob::SE3StateManifold());
 
-    /// set the bounds for the R^3 part of SE(3)
+    // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
     
     manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
 
-    /// define a simple setup class
+    // define a simple setup class
     og::SimpleSetup ss(manifold);
 
-    /// create a random start state
+    // create a random start state
     ob::ScopedState<ob::SE3StateManifold> start(manifold);
     start->setXYZ(0, 0, 0);
     start->rotation().setIdentity();
@@ -123,21 +123,21 @@ void planWithIK(void)
     // we set a goal that is sampleable, but it in fact corresponds to a region that is not sampleable by default
     ss.setGoal(goal);
     
-    /// attempt to solve the problem 
+    // attempt to solve the problem 
     bool solved = ss.solve(3.0);
     
     if (solved)
     {
 	std::cout << "Found solution:" << std::endl;
-	/// print the path to screen
+	// print the path to screen
 	ss.simplifySolution();
 	ss.getSolutionPath().print(std::cout);
     }
     else
 	std::cout << "No solution found" << std::endl;
 
-    /// the region variable will now go out of scope. To make sure it is not used in the sampling function any more 
-    /// (i.e., the sampling thread was able to terminate), we make sure sampling has terminated
+    // the region variable will now go out of scope. To make sure it is not used in the sampling function any more 
+    // (i.e., the sampling thread was able to terminate), we make sure sampling has terminated
     goal->as<ob::GoalLazySamples>()->stopSampling();
 }
 

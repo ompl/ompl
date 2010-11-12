@@ -47,16 +47,16 @@ namespace og = ompl::geometric;
 
 bool isStateValid(const ob::State *state)
 {
-    /// cast the abstract state type to the type we expect
+    // cast the abstract state type to the type we expect
     const ob::SE3StateManifold::StateType *se3state = state->as<ob::SE3StateManifold::StateType>();
 
-    /// extract the first component of the state and cast it to what we expect
+    // extract the first component of the state and cast it to what we expect
     const ob::RealVectorStateManifold::StateType *pos = se3state->as<ob::RealVectorStateManifold::StateType>(0);
 
-    /// extract the second component of the state and cast it to what we expect
+    // extract the second component of the state and cast it to what we expect
     const ob::SO3StateManifold::StateType *rot = se3state->as<ob::SO3StateManifold::StateType>(1);
     
-    /// check validity of state defined by pos & rot
+    // check validity of state defined by pos & rot
     
 
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
@@ -65,65 +65,63 @@ bool isStateValid(const ob::State *state)
 
 void plan(void)
 {
-    /// construct the manifold we are planning in
+    // construct the manifold we are planning in
     ob::StateManifoldPtr manifold(new ob::SE3StateManifold());
 
-    /// set the bounds for the R^3 part of SE(3)
+    // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
     
     manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
     
-    /// construct an instance of  space information from this manifold
+    // construct an instance of  space information from this manifold
     ob::SpaceInformationPtr si(new ob::SpaceInformation(manifold));
 
-    /// set state validity checking for this space
+    // set state validity checking for this space
     si->setStateValidityChecker(boost::bind(&isStateValid, _1));
     
-    /// create a random start state
+    // create a random start state
     ob::ScopedState<> start(manifold);
     start.random();
 
-    /// create a random goal state
+    // create a random goal state
     ob::ScopedState<> goal(manifold);
     goal.random();
     
-    /// create a problem instance
+    // create a problem instance
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
 
-    /// set the start and goal states
+    // set the start and goal states
     pdef->setStartAndGoalStates(start, goal);
     
-
-    
-    /// create a planner for the defined space
+    // create a planner for the defined space
     ob::PlannerPtr planner(new og::RRTConnect(si));
 
-    /// set the problem we are trying to solve for the planner
+    // set the problem we are trying to solve for the planner
     planner->setProblemDefinition(pdef);
 
-    /// perform setup steps for the planner
+    // perform setup steps for the planner
     planner->setup();
 
 
-    /// print the settings for this space
+    // print the settings for this space
     si->printSettings(std::cout);
 
-    /// print the problem settings
+    // print the problem settings
     pdef->print(std::cout);    
     
-    /// attempt to solve the problem within one second of planning time
+    // attempt to solve the problem within one second of planning time
     bool solved = planner->solve(1.0);
 
     if (solved)
     {
-	/// get the goal representation from the problem definition (not the same as the goal state)
-	/// and inquire about the found path
+	// get the goal representation from the problem definition (not the same as the goal state)
+	// and inquire about the found path
 	ob::PathPtr path = pdef->getGoal()->getSolutionPath();
 	std::cout << "Found solution:" << std::endl;
 
-	/// print the path to screen
+	// print the path to screen
 	path->print(std::cout);
     }
     else
@@ -132,10 +130,10 @@ void plan(void)
 
 void planWithSimpleSetup(void)
 {
-    /// construct the manifold we are planning in
+    // construct the manifold we are planning in
     ob::StateManifoldPtr manifold(new ob::SE3StateManifold());
 
-    /// set the bounds for the R^3 part of SE(3)
+    // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
@@ -145,27 +143,27 @@ void planWithSimpleSetup(void)
     // define a simple setup class
     og::SimpleSetup ss(manifold);
 
-    /// set state validity checking for this space
+    // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
     
-    /// create a random start state
+    // create a random start state
     ob::ScopedState<> start(manifold);
     start.random();
 
-    /// create a random goal state
+    // create a random goal state
     ob::ScopedState<> goal(manifold);
     goal.random();
     
-    /// set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
+    // set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
     ss.setStartAndGoalStates(start, goal);
         
-    /// attempt to solve the problem within one second of planning time
+    // attempt to solve the problem within one second of planning time
     bool solved = ss.solve(1.0);
 
     if (solved)
     {
 	std::cout << "Found solution:" << std::endl;
-	/// print the path to screen
+	// print the path to screen
 	ss.simplifySolution();
 	ss.getSolutionPath().print(std::cout);
     }

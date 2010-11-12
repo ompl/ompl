@@ -302,7 +302,7 @@ void RigidBodyEnvironment::destroyWorld(void)
 
 void RigidBodyEnvironment::setPlanningParameters(void)
 {    
-    /// Fill in parameters for OMPL:
+    // Fill in parameters for OMPL:
     world_ = bodyWorld;
     collisionSpaces_.push_back(space);
     stateBodies_.push_back(boxBody);
