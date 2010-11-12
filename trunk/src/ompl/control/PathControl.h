@@ -39,6 +39,7 @@
 
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/base/Path.h"
+#include "ompl/geometric/PathGeometric.h"
 #include <vector>
 
 namespace ompl
@@ -81,7 +82,7 @@ namespace ompl
 	    void interpolate(void);
 	    
 	    /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied) */
-	    base::PathPtr asGeometric(void) const;
+	    geometric::PathGeometric asGeometric(void) const;
 	    
 	    /** \brief The list of states that make up the path */
 	    std::vector<base::State*>   states;

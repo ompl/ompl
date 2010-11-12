@@ -51,13 +51,13 @@ ompl::control::PathControl::PathControl(const PathControl &path) : base::Path(pa
     copyFrom(path);
 }
 
-ompl::base::PathPtr ompl::control::PathControl::asGeometric(void) const
+ompl::geometric::PathGeometric ompl::control::PathControl::asGeometric(void) const
 {
     PathControl pc(*this);
     pc.interpolate();
-    geometric::PathGeometric *pg = new geometric::PathGeometric(si_);
-    pg->states.swap(pc.states);
-    return base::PathPtr(pg);
+    geometric::PathGeometric pg(si_);
+    pg.states.swap(pc.states);
+    return pg;
 }
 
 ompl::control::PathControl& ompl::control::PathControl::operator=(const PathControl& other)

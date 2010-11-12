@@ -241,8 +241,8 @@ int main(int, char **)
     
     if (ss.solve(10))
     {
-	ob::PathPtr p = ss.getSolutionPath().asGeometric();
-	const std::vector<ob::State*> &states = static_cast<og::PathGeometric*>(p.get())->states;
+	const og::PathGeometric &p = ss.getSolutionPath().asGeometric();
+	const std::vector<ob::State*> &states = p.states;
         for (unsigned int i = 0 ; i < states.size() ; ++i)
 	{
 	    const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateManifold::StateType>(0)->values;

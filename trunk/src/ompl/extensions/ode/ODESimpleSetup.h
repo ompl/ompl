@@ -81,6 +81,9 @@ namespace ompl
             /** \brief Get the current ODE state (read parameters from ODE bodies) */
             base::ScopedState<ODEStateManifold> getCurrentState(void) const;
             
+            /** \brief Set the current ODE state (set parameters for ODE bodies) */
+            void setCurrentState(const base::ScopedState<> &state);
+
 	    virtual void setup(void);
 
         private:
