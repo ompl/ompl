@@ -43,7 +43,7 @@
 #include <cstring>
 #include <limits>
 
-const std::vector<double> ompl::base::ProjectionMatrix::default_scale = std::vector<double>();
+const std::vector<double> ompl::base::ProjectionMatrix::UNSCALED = std::vector<double>();
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
