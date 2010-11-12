@@ -226,7 +226,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 	planners_[i]->setProblemDefinition(pdef);
 	if (!planners_[i]->isSetup())
 	    planners_[i]->setup();
-	exp_.planners[i].name = (gsetup_ ? "geometric::" : "control::") + planners_[i]->getName();
+	exp_.planners[i].name = (gsetup_ ? "geometric_" : "control_") + planners_[i]->getName();
     }
 
     std::stringstream setupInfo;
