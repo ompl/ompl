@@ -48,6 +48,12 @@ namespace ompl
     namespace base
     {
 	
+        class GoalLazySamples;
+        
+        /** \brief Goal sampling function. Returns false when no further calls should be made to it. 
+            Fills its second argument (the state) with the sampled goal state. */
+        typedef boost::function2<bool, const GoalLazySamples*, State*> GoalSamplingFn;
+        
 	/** \brief Definition of a goal region that can be sampled,
 	 but the sampling process can be slow.  This class allows
 	 sampling the happen in a separate thread, and the number of
@@ -70,7 +76,7 @@ namespace ompl
 		arguments: the instance of GoalLazySamples making the
 		call and the state to fill with a goal state. For
 		every sampled state, addStateIfDifferent() is called. */
-	    GoalLazySamples(const SpaceInformationPtr &si, const boost::function2<bool, const GoalLazySamples*, State*> &samplerFunc, bool autoStart = true);
+	    GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart = true);
 
 	    virtual ~GoalLazySamples(void);
 	    
@@ -104,9 +110,8 @@ namespace ompl
 	    /** \brief Lock for updating the set of states */
 	    mutable boost::mutex           lock_;
 	    
-	    /** \brief Function that produces samples */
-	    boost::function2<bool, const GoalLazySamples*, State*>
-                                           samplerFunc_;
+            /** \brief Function that produces samples */
+            GoalSamplingFn                 samplerFunc_;
 	    
 	    /** \brief Flag used to notify the sampling thread to terminate sampling */
 	    bool                           terminateSamplingThread_;

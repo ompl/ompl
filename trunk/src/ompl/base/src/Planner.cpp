@@ -37,6 +37,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/GoalLazySamples.h"
 #include <boost/thread.hpp>
 #include <utility>
 
@@ -356,6 +357,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 
     if (goal)
     {
+        const GoalLazySamples *gls = dynamic_cast<const GoalLazySamples*>(goal);
 	bool attempt = true;
 	while (attempt)
 	{
@@ -382,7 +384,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 		while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
 	    }
 
-	    if (goal->canSample() && !ptc())
+	    if (gls && goal->canSample() && !ptc())
 	    {
                 boost::this_thread::sleep(time::seconds(0.01));
 		attempt = !ptc();

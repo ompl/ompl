@@ -38,7 +38,7 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/util/Time.h"
 
-ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const boost::function2<bool, const GoalLazySamples*, State*> &samplerFunc, bool autoStart) :
+ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart) :
     GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL)
 {
     if (autoStart)
