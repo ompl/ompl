@@ -1,10 +1,9 @@
 * Reorganize tests to be more general, move python tests from py-bindings to test directory.
 * Merge files for tests for util/ & tests for datastructures/.
-* Implement benchmarks for control/ not only for geometric/ (nice to have, not essential for release).
 * Define a parameter structure for classes that have parameters
    - perhaps something that will allow parameter sweeps
      (see code in unused/) (for later).
 * Create a more complex ODE demo (nice to have).
 * Path smoothing with splines.
 * Make python bindings work again.
-* Add demo for GoalLazySampler using Inverse Kinematics code.
+

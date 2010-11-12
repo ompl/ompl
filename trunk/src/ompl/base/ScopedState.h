@@ -277,6 +277,16 @@ namespace ompl
 	    ManifoldStateSamplerPtr  sampler_;
 	    StateType               *state_;
 	};
+
+	
+	/** \brief Overload stream output operator */
+	inline
+	std::ostream& operator<<(std::ostream &out, const ScopedState<> &state)
+	{
+	    state.print(out);
+	    return out;
+	}
+
     }
 }
 

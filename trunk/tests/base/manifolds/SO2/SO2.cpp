@@ -67,6 +67,12 @@ TEST(SO2, Simple)
 
     m->interpolate(s1.get(), s2.get(), 0.5, s3.get());
     EXPECT_NEAR(s3->value, M_PI / 2.0, 1e-3);
+
+    s2 = s1;
+    m->interpolate(s1.get(), s1.get(), 0.5, s1.get());
+    EXPECT_EQ(s1, s2);
+    
+    m->interpolate(s1.get(), s2.get(), 0.5, s1.get());
 }
 
 int main(int argc, char **argv)
