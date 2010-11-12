@@ -37,6 +37,7 @@
 # Author: Mark Moll
 
 from sys import argv, setrecursionlimit
+from pygccxml import declarations
 from pyplusplus.module_builder import call_policies
 from ompl.bindings_generator import code_generator_t, default_replacement
 
@@ -304,6 +305,7 @@ class ompl_control_generator_t(code_generator_t):
 		self.ompl_ns.class_('CompoundControl').variable('components').exclude()
 		# don't export some internal data structure
 		self.ompl_ns.class_('OrderCellsByImportance').exclude()
+		self.ompl_ns.class_('KPIECE1').member_functions('freeGridMotions').exclude()
 		# add array indexing to the RealVectorState
 		self.add_array_access(self.ompl_ns.class_('RealVectorControlManifold').class_('ControlType'))
 		# make objects printable that have a print function
@@ -360,10 +362,15 @@ class ompl_geometric_generator_t(code_generator_t):
 		# rename STL vectors of certain types
 		self.std_ns.class_('vector< int >').rename('vectorInt')
 		self.std_ns.class_('vector< double >').rename('vectorDouble')
+		self.std_ns.class_('vector< ompl::geometric::PRM::Milestone* >').rename('vectorPRMMileStonePtr')
 		# don't export variables that need a wrapper
 		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
 		# make objects printable that have a print function
 		self.replace_member_functions(self.ompl_ns.member_functions('print'))
+		self.ompl_ns.member_functions('freeGridMotions').exclude()
+		self.ompl_ns.class_('PRM').member_functions('haveSolution').exclude()
+		self.ompl_ns.class_('PRM').member_functions('growRoadmap', 
+		        function=declarations.access_type_matcher_t('protected')).exclude()
 		# don't export some internal data structure
 		self.ompl_ns.classes('OrderCellsByImportance').exclude()
 		# add wrapper code for setStateValidityChecker

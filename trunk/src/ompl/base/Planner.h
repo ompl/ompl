@@ -300,6 +300,9 @@ namespace ompl
 	    /** \brief Get the problem definition the planner is trying to solve */
 	    const ProblemDefinitionPtr& getProblemDefinition(void) const;
 	    
+	    /** \brief Get the planner input states */
+	    const PlannerInputStates& getPlannerInputStates(void) const;
+
 	    /** \brief Set the problem definition for the planner. The
 		problem needs to be set before calling solve(). Note:
 		If this problem definition replaces a previous one, it

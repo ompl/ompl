@@ -1,7 +1,6 @@
 /**
 \page stateValidation State Validity Checking
 
-      \par
       OMPL itself does not include code for state validity
       checking. This is intentional, since defining this notion
       depends on the type of problems to be solved. For instance,
@@ -12,13 +11,11 @@
       planning for protein folding, the state validity check has to do
       with the evaluation of energy functions.
 
-      \par
       In order to allow the user to specify the notion of state
       validity, OMPL defines two abstract classes: 
         - ompl::base::StateValidityChecker
         - ompl::base::MotionValidator
 
-      \par
       These classes abstract away properties specific to the systems
       we are planning for. For instance, OMPL does not need to
       represent robot or obstacle geometry. The user can specify which
@@ -27,7 +24,6 @@
       ompl::base::StateValidityChecker and ompl::base::MotionValidator
       need to be thread safe.
 
-      \par
       The ompl::base::StateValidityChecker class defines the
       ompl::base::StateValidityChecker::isValid() function, which
       allows planners to evaluate the validity of a state. If the user
@@ -36,7 +32,6 @@
       consider all states to be valid.
       @include svc.cpp
 
-      \par
       The ompl::base::MotionValidator class defines
       ompl::base::MotionValidator::checkMotion() routines that
       evaluate the validity of motions between two specified states.

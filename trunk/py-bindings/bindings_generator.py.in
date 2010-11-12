@@ -146,13 +146,7 @@ class code_generator_t(object):
 							call_policies.reference_existing_object)
 			
 	def filter_declarations(self):
-		"""Remove private and protected declarations. Remove some classes and 
-		functions from the std namespace"""
-		self.mb.calldefs( 
-			declarations.access_type_matcher_t('private')).exclude()
-		self.mb.calldefs( 
-			declarations.access_type_matcher_t('protected')).exclude()
-		#self.ompl_ns.member_functions(lambda decl: decl.has_ellipsis).exclude()	
+		"""Remove some classes and functions from the std namespace"""
 		self.std_ns.class_('ios_base').exclude()
 		self.std_ns.free_functions().exclude()
 		self.std_ns.operators().exclude()

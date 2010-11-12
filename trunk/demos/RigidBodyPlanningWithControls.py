@@ -56,9 +56,9 @@ def isStateValid(spaceInformation, state):
 	return spaceInformation.satisfiesBounds(state)
 
 def propagate(cmanifold, start, control, duration, state):
-	state.setX( start.getX() + control[0] * cos(start.getYaw()) )
-	state.setY( start.getY() + control[0] * sin(start.getYaw()) )
-	state.setYaw( start.getYaw() + control[1] )
+	state.setX( start.getX() + control[0] * duration * cos(start.getYaw()) )
+	state.setY( start.getY() + control[0] * duration * sin(start.getYaw()) )
+	state.setYaw(start.getYaw() + control[1] * duration)
 	
 def plan():
 	# construct the manifold we are planning in
@@ -102,7 +102,7 @@ def plan():
 	ss.setStartAndGoalStates(start, goal, 0.05)
 	
 	# attempt to solve the problem
-	solved = ss.solve(10.0)
+	solved = ss.solve(20.0)
 	
 	if solved:
 		# print the path to screen

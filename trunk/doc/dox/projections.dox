@@ -1,6 +1,5 @@
 /** \page projections Use of Projections in OMPL    
 
-    \par
     Most planning algorithms use a data structure (in addition to the
     tree/graph of motions) for guiding the exploration of the
     space. In many cases, this data structure is in the form of a
@@ -13,7 +12,6 @@
     such as ompl::geometric::EST, ompl::geometric::SBL,
     ompl::geometric::KPIECE1.
 
-    \par
     To support this notion of projections, OMPL includes
     ompl::base::ProjectionEvaluator. This is an abstract class whose
     main operation is ompl::base::ProjectionEvaluator::project(),
@@ -36,7 +34,6 @@
     into roughly 10 parts. This is merely a default and the user is
     encouraged to set desired cell sizes.
 
-    \par
     Projections are specific to manifolds. This means that each
     ompl::base::StateManifold has its corresponding set of
     ompl::base::ProjectionEvaluator. In the implementation of
@@ -53,7 +50,6 @@
     user is encouraged to define appropriate projections, if
     available.
 
-    \par
     Example code for adding a projection for an R<sup>n</sup> manifold:
     \code
     using namespace ompl;
@@ -90,7 +86,6 @@
     planner->as<geometric::KPIECE1>()->setProjectionEvaluator("myProjection");
     \endcode
 
-    \par
     For more reading on this topic, please see:
         Șucan, Ioan A., Kavraki Lydia E., On the Performance of Random Linear Projections for Sampling-Based Motion Planning, in <em>IEEE/RSJ International Conference on Intelligent Robots and Systems</em>, pp. 2434-2439, Oct 2009. DOI: <a href="http://dx.doi.org/10.1109/IROS.2009.5354403">http://dx.doi.org/10.1109/IROS.2009.5354403</a>.
 

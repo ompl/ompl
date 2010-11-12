@@ -79,6 +79,11 @@ void ompl::base::Planner::setProblemDefinition(const ProblemDefinitionPtr &pdef)
     pis_.update();
 }
 
+const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates(void) const
+{
+    return pis_;
+}
+
 void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())
