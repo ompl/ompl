@@ -73,6 +73,14 @@ TEST(SO2, Simple)
     EXPECT_EQ(s1, s2);
     
     m->interpolate(s1.get(), s2.get(), 0.5, s1.get());
+    EXPECT_EQ(s1, s2);
+    s1->value = 0.5;
+    s2->value = 1.5;
+    
+    m->interpolate(s1.get(), s2.get(), 0.0, s3.get());
+    EXPECT_NEAR(s3->value, s1->value, 1e-3);
+    m->interpolate(s1.get(), s2.get(), 1.0, s3.get());
+    EXPECT_NEAR(s3->value, s2->value, 1e-3);
 }
 
 int main(int argc, char **argv)
