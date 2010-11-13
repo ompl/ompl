@@ -75,13 +75,13 @@ namespace ompl
             double       progressPercentage;		
         };
 	
-        /** \brief Constructor needs the SimpleSetup instance needed for planning. */
+        /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
         Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL), msg_("Benchmark")
         {
             exp_.name = name;
         }
 	
-        /** \brief Constructor needs the SimpleSetup instance needed for planning. */
+        /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
         Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(NULL), csetup_(&setup), msg_("Benchmark")
         {
             exp_.name = name;
@@ -89,6 +89,18 @@ namespace ompl
 	
         virtual ~Benchmark(void)
         {
+        }
+        
+        /** \brief Set the name of the experiment */
+        void setExperimentName(const std::string &name)
+        {
+            exp_.name = name;
+        }
+        
+        /** \brief Get the name of the experiment */
+        const std::string& getExperimentName(void) const
+        {
+            return exp_.name;
         }
         
         /** \brief Set the planner to use. If the planner is not
@@ -112,12 +124,12 @@ namespace ompl
         }
         
         /** \brief Clear the set of planners to be benchmarked */
-        void clear(void)
+        void clearPlanners(void)
         {
             planners_.clear();
         }	    
 	
-        /** \brief Benchmark the added planners on the defined problem. 
+        /** \brief Benchmark the added planners on the defined problem. Repeated calls clear previously gathered data.
             \param maxTime the maximum amount of time a planner is allowed to run (seconds)
             \param maxMem the maximum amount of memory a planner is allowed to use (MB)
             \param runCount the number of times to run each planner

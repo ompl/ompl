@@ -243,8 +243,11 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     
     boost::shared_ptr<boost::progress_display> progress;
     if (displayProgress)
-	progress.reset(new boost::progress_display(100, std::cout));
-
+    {
+        std::cout << "Running experiment " << exp_.name << std::endl;
+        progress.reset(new boost::progress_display(100, std::cout));
+    }
+    
     MemUsage_t memStart = getProcessMemoryUsage();
 
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
