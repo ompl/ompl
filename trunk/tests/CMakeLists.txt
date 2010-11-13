@@ -66,10 +66,12 @@ if(BUILD_OMPL_TESTS)
 	add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
 
 	# Python unit tests
-	add_ompl_python_test(util/test_util.py)
-	add_ompl_python_test(base/test_base.py)
-	add_ompl_python_test(geometric/test_geometric.py)
-	add_ompl_python_test(geometric/test_geometric_compoundstate.py)
-	add_ompl_python_test(control/test_control.py)
-
+	if(OMPL_BUILD_PYBINDINGS)
+		add_ompl_python_test(util/test_util.py)
+		add_ompl_python_test(base/test_base.py)
+		add_ompl_python_test(geometric/test_geometric.py)
+		add_ompl_python_test(geometric/test_geometric_compoundstate.py)
+		add_ompl_python_test(control/test_control.py)
+	endif(OMPL_BUILD_PYBINDINGS)
+	
 endif(BUILD_OMPL_TESTS)
