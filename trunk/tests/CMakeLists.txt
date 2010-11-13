@@ -19,7 +19,8 @@ if(BUILD_OMPL_TESTS)
 		endmacro(add_ompl_test)
 
 	        macro(add_ompl_python_test test_file)
-                        rosbuild_add_pyunit(${test_file})
+#  Disable Python tests for ROS
+#                        rosbuild_add_pyunit(${test_file})
 	        endmacro(add_ompl_python_test)
 
 	else(OMPL_IN_ROS)
@@ -66,12 +67,12 @@ if(BUILD_OMPL_TESTS)
 	add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
 
 	# Python unit tests
-	if(OMPL_BUILD_PYBINDINGS)
+	if(OMPL_BUILD_PYTESTS)
 		add_ompl_python_test(util/test_util.py)
 		add_ompl_python_test(base/test_base.py)
 		add_ompl_python_test(geometric/test_geometric.py)
 		add_ompl_python_test(geometric/test_geometric_compoundstate.py)
 		add_ompl_python_test(control/test_control.py)
-	endif(OMPL_BUILD_PYBINDINGS)
+	endif()
 	
 endif(BUILD_OMPL_TESTS)
