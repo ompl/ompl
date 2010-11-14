@@ -112,15 +112,12 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     if (!result)
     {
 	// try to find a valid state nearby
-	ManifoldStateSamplerPtr ss = allocManifoldStateSampler();
-	State        *temp = allocState();
-	copyState(temp, state);	
-	for (unsigned int i = 0 ; i < attempts && !result ; ++i)
-	{
-	    ss->sampleUniformNear(state, temp, distance);
-	    result = isValid(state);
-	}
-	stateManifold_->freeState(temp);
+	UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
+	uvss->setNrAttempts(attempts);
+	State *temp = cloneState(state);
+	result = uvss->sampleNear(state, temp, distance);
+	freeState(temp);
+	delete uvss;
     }
     
     return result;

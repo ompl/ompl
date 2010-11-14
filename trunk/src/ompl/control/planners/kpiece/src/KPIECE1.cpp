@@ -46,12 +46,12 @@ void ompl::control::KPIECE1::setup(void)
     checkProjectionEvaluator(this, projectionEvaluator_);
     
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
-    controlSampler_ = siC_->allocControlSampler();
 }
 
 void ompl::control::KPIECE1::clear(void)
 {
     Planner::clear();
+    controlSampler_.reset();
     freeMemory();
     tree_.grid.clear();
     tree_.size = 0;
@@ -129,6 +129,9 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 	msg_.error("There are no valid initial states!");
 	return false;	
     }    
+
+    if (!controlSampler_)
+	controlSampler_ = siC_->allocControlSampler();
 
     msg_.inform("Starting with %u states", tree_.size);
     

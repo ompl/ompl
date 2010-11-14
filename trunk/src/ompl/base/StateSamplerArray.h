@@ -146,6 +146,12 @@ namespace ompl
 	    {
 		return samplers_.size();
 	    }
+
+	    /** \brief Clear all allocated samplers */
+	    void clear(void)
+	    {
+		resize(0);
+	    }
 	    
 	private:
 	    

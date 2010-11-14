@@ -150,6 +150,7 @@ namespace ompl
 	    void setStateValidityChecker(const StateValidityCheckerPtr &svc)
 	    {
 		stateValidityChecker_ = svc;
+		setup_ = false;
 	    }
 	    
 	    /** \brief If no state validity checking class is
@@ -171,6 +172,7 @@ namespace ompl
 	    void setMotionValidator(const MotionValidatorPtr &mv)
 	    {
 		motionValidator_ = mv;
+		setup_ = false;
 	    }	    
 
 	    /** \brief Return the instance of the used state validity checker */
@@ -188,6 +190,7 @@ namespace ompl
 	    void setStateValidityCheckingResolution(double resolution)
 	    {
 		stateManifold_->setLongestValidSegmentFraction(resolution);
+		setup_ = false;
 	    }
 	    
 	    /** \brief Get the resolution at which state validity is
@@ -267,6 +270,7 @@ namespace ompl
 	    void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
 	    {
 		vssa_ = vssa;
+		setup_ = false;
 	    }
 	    
 	    /** @}*/
@@ -283,7 +287,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
-	     *  The two passed state pointers must point to different states. Returns true on success. 
+	     *  The two passed state pointers need not point to different memory. Returns true on success. 
 	     *  \param state the location at which to store the valid state, if one is found. This location may be modified even if no valid state is found.
 	     *  \param near a state that may be invalid near which we would like to find a valid state
 	     *  \param distance the maximum allowed distance between \e state and \e near

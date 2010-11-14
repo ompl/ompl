@@ -53,12 +53,12 @@ void ompl::geometric::PRM::setup(void)
     if (!nn_)
 	nn_.reset(new NearestNeighborsSqrtApprox<Milestone*>());
     nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
-    sampler_ = si_->allocValidStateSampler();
 }
 
 void ompl::geometric::PRM::clear(void)
 {
     Planner::clear();
+    sampler_.reset();
     freeMemory();
     if (nn_)
 	nn_->clear();
@@ -187,7 +187,10 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 	msg_.error("Insufficient states in sampleable goal region");
 	return false;
     }
-    
+
+    if (!sampler_)
+	sampler_ = si_->allocValidStateSampler();
+
     unsigned int nrStartStates = milestones_.size();
     msg_.inform("Starting with %u states", nrStartStates);
     

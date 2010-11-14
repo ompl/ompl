@@ -46,12 +46,12 @@ void ompl::geometric::KPIECE1::setup(void)
     checkMotionLength(this, maxDistance_);
     
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocManifoldStateSampler();
 }
 
 void ompl::geometric::KPIECE1::clear(void)
 {
     Planner::clear();
+    sampler_.reset();
     freeMemory();
     tree_.grid.clear();
     tree_.size = 0;
@@ -108,6 +108,9 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 	msg_.error("There are no valid initial states!");
 	return false;	
     }    
+
+    if (!sampler_)
+	sampler_ = si_->allocManifoldStateSampler();
 
     msg_.inform("Starting with %u states", tree_.size);
     

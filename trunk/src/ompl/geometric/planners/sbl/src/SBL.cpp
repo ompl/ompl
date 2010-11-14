@@ -47,7 +47,6 @@ void ompl::geometric::SBL::setup(void)
 
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocValidStateSampler();
 }
 
 void ompl::geometric::SBL::freeGridMotions(Grid<MotionSet> &grid)
@@ -94,7 +93,10 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
 	msg_.error("Insufficient states in sampleable goal region");
 	return false;
     }
-    
+
+    if (!sampler_)
+	sampler_ = si_->allocValidStateSampler();
+
     msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
     
     std::vector<Motion*> solution;
@@ -324,6 +326,9 @@ void ompl::geometric::SBL::addMotion(TreeData &tree, Motion *motion)
 void ompl::geometric::SBL::clear(void)
 {
     Planner::clear();
+
+    sampler_.reset();
+    
     freeMemory();
     
     tStart_.grid.clear();

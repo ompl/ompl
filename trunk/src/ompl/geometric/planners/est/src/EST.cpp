@@ -46,12 +46,12 @@ void ompl::geometric::EST::setup(void)
     checkMotionLength(this, maxDistance_);
 
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocValidStateSampler();
 }
 
 void ompl::geometric::EST::clear(void)
 {
     Planner::clear();
+    sampler_.reset();
     freeMemory();
     tree_.grid.clear();
     tree_.size = 0;
@@ -94,6 +94,9 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 	msg_.error("There are no valid initial states!");
 	return false;	
     }    
+
+    if (!sampler_)
+	sampler_ = si_->allocValidStateSampler();
 
     msg_.inform("Starting with %u states", tree_.size);
         

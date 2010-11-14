@@ -53,6 +53,7 @@ void ompl::geometric::pRRT::setup(void)
 void ompl::geometric::pRRT::clear(void)
 {
     Planner::clear();
+    samplerArray_.clear();
     freeMemory();
     nn_->clear();
 }
@@ -155,6 +156,8 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
 	return false;
     }
 
+    samplerArray_.resize(threadCount_);
+
     while (const base::State *st = pis_.nextStart())
     {
 	Motion *motion = new Motion(si_);
@@ -234,5 +237,4 @@ void ompl::geometric::pRRT::setThreadCount(unsigned int nthreads)
 {
     assert(nthreads > 0);		
     threadCount_ = nthreads;
-    samplerArray_.resize(threadCount_);
 }

@@ -42,8 +42,6 @@
 void ompl::control::RRT::setup(void)
 {
     base::Planner::setup();	    
-    sampler_ = si_->allocManifoldStateSampler();
-    controlSampler_ = siC_->allocControlSampler();
     if (!nn_)
 	nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
@@ -52,6 +50,8 @@ void ompl::control::RRT::setup(void)
 void ompl::control::RRT::clear(void)
 {
     Planner::clear();
+    sampler_.reset();
+    controlSampler_.reset();
     freeMemory();
     nn_->clear();
 }
@@ -81,6 +81,11 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 	msg_.error("There are no valid initial states!");
 	return false;	
     }    
+
+    if (!sampler_)
+	sampler_ = si_->allocManifoldStateSampler();
+    if (!controlSampler_)
+	controlSampler_ = siC_->allocControlSampler();
 
     msg_.inform("Starting with %u states", nn_->size());
     

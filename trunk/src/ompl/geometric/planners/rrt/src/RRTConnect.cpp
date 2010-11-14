@@ -42,8 +42,6 @@ void ompl::geometric::RRTConnect::setup(void)
 {
     Planner::setup();
     checkMotionLength(this, maxDistance_);
-   
-    sampler_ = si_->allocManifoldStateSampler();
     
     if (!tStart_)
 	tStart_.reset(new NearestNeighborsSqrtApprox<Motion*>());
@@ -83,6 +81,7 @@ void ompl::geometric::RRTConnect::freeMemory(void)
 void ompl::geometric::RRTConnect::clear(void)
 { 
     Planner::clear();
+    sampler_.reset();
     freeMemory();
     tStart_->clear();
     tGoal_->clear();
@@ -155,6 +154,9 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 	msg_.error("Insufficient states in sampleable goal region");
 	return false;
     }
+
+    if (!sampler_)
+	sampler_ = si_->allocManifoldStateSampler();
     
     msg_.inform("Starting with %d states", (int)(tStart_->size() + tGoal_->size()));
 

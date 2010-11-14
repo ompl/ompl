@@ -46,7 +46,6 @@ void ompl::geometric::LBKPIECE1::setup(void)
     
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
-    sampler_ = si_->allocManifoldStateSampler();
 }
 
 bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
@@ -80,6 +79,9 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 	msg_.error("Insufficient states in sampleable goal region");
 	return false;
     }
+
+    if (!sampler_)
+	sampler_ = si_->allocManifoldStateSampler();
 
     msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
     
@@ -362,6 +364,8 @@ void ompl::geometric::LBKPIECE1::clear(void)
 {
     Planner::clear();
 
+    sampler_.reset();
+    
     freeMemory();
     
     tStart_.grid.clear();

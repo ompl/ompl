@@ -53,6 +53,9 @@ void ompl::geometric::pSBL::setup(void)
 void ompl::geometric::pSBL::clear(void)
 {
     Planner::clear();
+
+    samplerArray_.clear();
+    
     freeMemory();
     
     tStart_.grid.clear();
@@ -203,6 +206,8 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
 	msg_.error("Motion planning trees could not be initialized!");
 	return false;
     }
+
+    samplerArray_.resize(threadCount_);
     
     msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
     
@@ -437,5 +442,4 @@ void ompl::geometric::pSBL::setThreadCount(unsigned int nthreads)
 {
     assert(nthreads > 0);		
     threadCount_ = nthreads;
-    samplerArray_.resize(threadCount_);
 }

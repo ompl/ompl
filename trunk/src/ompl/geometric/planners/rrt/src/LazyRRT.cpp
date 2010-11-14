@@ -44,7 +44,6 @@ void ompl::geometric::LazyRRT::setup(void)
     Planner::setup();
     checkMotionLength(this, maxDistance_);
 
-    sampler_ = si_->allocManifoldStateSampler();
     if (!nn_)
 	nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());   
     nn_->setDistanceFunction(boost::bind(&LazyRRT::distanceFunction, this, _1, _2));
@@ -53,6 +52,7 @@ void ompl::geometric::LazyRRT::setup(void)
 void ompl::geometric::LazyRRT::clear(void)
 {
     Planner::clear();
+    sampler_.reset();
     freeMemory();
     nn_->clear();
 }
@@ -97,6 +97,9 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
 	msg_.error("There are no valid initial states!");
 	return false;	
     }    
+
+    if (!sampler_)
+	sampler_ = si_->allocManifoldStateSampler();
 
     msg_.inform("Starting with %u states", nn_->size());
 
