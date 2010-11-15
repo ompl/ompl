@@ -65,13 +65,25 @@ namespace ompl
 	    /** \brief A state is considered valid if it is within bounds and not in collision */
 	    virtual bool isValid(const base::State *state) const
 	    {
-		osm_->evaluateCollision(state);
-		const ODEStateManifold::StateType *s = state->as<ODEStateManifold::StateType>();
-		
-		if (s->collision == ODEStateManifold::STATE_COLLISION_FALSE)
-		    return osm_->satisfiesBoundsExceptRotation(s);
-		
-		return false;
+                const ODEStateManifold::StateType *s = state->as<ODEStateManifold::StateType>();
+                
+                // if we know the value of the validity flag for this state, we return it
+                if (s->collision & (1 << ODEStateManifold::STATE_VALIDITY_KNOWN_BIT))
+                    return s->collision & (1 << ODEStateManifold::STATE_VALIDITY_VALUE_BIT);
+                
+                // if not, we compute it:
+                bool valid = false;
+                
+		if (osm_->evaluateCollision(state))
+                    valid = osm_->satisfiesBoundsExceptRotation(s);
+                
+                if (valid)
+                    s->collision &= (1 << ODEStateManifold::STATE_VALIDITY_VALUE_BIT);
+
+                // mark the fact we know the value of the validity bit
+                s->collision &= (1 << ODEStateManifold::STATE_VALIDITY_KNOWN_BIT);
+                
+		return valid;
 	    }
 	    
 	protected:

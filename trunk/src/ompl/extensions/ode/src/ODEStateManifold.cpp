@@ -2,10 +2,6 @@
 #include <limits>
 #include <queue>
 
-const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_TRUE     = 1;
-const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_FALSE    = -1;
-const int ompl::control::ODEStateManifold::ODEStateManifold::STATE_COLLISION_UNKNOWN  = 0;
-
 ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironmentPtr &env, 
                                                   double positionWeight, double linVelWeight, double angVelWeight, double orientationWeight) :
     base::CompoundStateManifold(), env_(env)
@@ -149,17 +145,20 @@ namespace ompl
     }
 }
 
-void ompl::control::ODEStateManifold::evaluateCollision(const base::State *state) const
+bool ompl::control::ODEStateManifold::evaluateCollision(const base::State *state) const
 {
-    if (state->as<StateType>()->collision != STATE_COLLISION_UNKNOWN)
-	return;
+    if (state->as<StateType>()->collision & (1 << STATE_COLLISION_KNOWN_BIT))
+	return state->as<StateType>()->collision & (1 << STATE_COLLISION_VALUE_BIT);
     env_->mutex_.lock();
     writeState(state);
     CallbackParam cp = { env_.get(), false };
     for (unsigned int i = 0 ; cp.collision == false && i < env_->collisionSpaces_.size() ; ++i)
 	dSpaceCollide(env_->collisionSpaces_[i], &cp, &nearCallback);
     env_->mutex_.unlock();
-    state->as<StateType>()->collision = cp.collision ? STATE_COLLISION_TRUE : STATE_COLLISION_FALSE;
+    if (cp.collision)
+        state->as<StateType>()->collision &= (1 << STATE_COLLISION_VALUE_BIT);
+    state->as<StateType>()->collision &= (1 << STATE_COLLISION_KNOWN_BIT);
+    return cp.collision;
 }
 
 bool ompl::control::ODEStateManifold::satisfiesBoundsExceptRotation(const StateType *state) const

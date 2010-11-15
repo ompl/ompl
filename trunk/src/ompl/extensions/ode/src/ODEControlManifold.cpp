@@ -128,6 +128,10 @@ void ompl::control::ODEControlManifold::propagate(const base::State *state, cons
     env->mutex_.unlock();
     
     // update the collision flag for the start state, if needed
-    if (state->as<ODEStateManifold::StateType>()->collision == ODEStateManifold::STATE_COLLISION_UNKNOWN)
-	state->as<ODEStateManifold::StateType>()->collision = cp.collision ? ODEStateManifold::STATE_COLLISION_TRUE : ODEStateManifold::STATE_COLLISION_FALSE;
+    if (!(state->as<ODEStateManifold::StateType>()->collision & (1 << ODEStateManifold::STATE_COLLISION_KNOWN_BIT)))
+    {
+        if (cp.collision)
+            state->as<ODEStateManifold::StateType>()->collision &= (1 << ODEStateManifold::STATE_COLLISION_VALUE_BIT);
+        state->as<ODEStateManifold::StateType>()->collision &= (1 << ODEStateManifold::STATE_COLLISION_KNOWN_BIT);
+    }
 }

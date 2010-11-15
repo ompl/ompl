@@ -52,20 +52,23 @@ namespace ompl
 	{
 	public:
 
-	    /// Constant indicating that a state is in collision 
-	    static const int STATE_COLLISION_TRUE;
-
-	    /// Constant indicating that a state is not in collision 
-	    static const int STATE_COLLISION_FALSE;
-
-	    /// Constant indicating that it is unknown whether a state is in collision or not
-	    static const int STATE_COLLISION_UNKNOWN;
-	    
+            enum 
+                {
+                    /** \brief Index of bit in StateType::collision indicating whether it is known if a state is in collision or not. Initially this is 0. The value of this bit is updated by ODEStateManifold::evaluateCollision() and ODEControlManifold::propagate(). */
+                    STATE_COLLISION_KNOWN_BIT = 0,
+                    /** \brief Index of bit in StateType::collision indicating whether a state is in collision or not. Initially the value of this field is unspecified. The value gains meaning (1 or 0) when ODEStateManifold::STATE_COLLISION_KNOWN_BIT becomes 1. The value of this bit is updated by ODEStateManifold::evaluateCollision() and ODEControlManifold::propagate(). A value of 1 implies that there is no collision for which ODEEnvironment::isValidCollision() returns false. */
+                    STATE_COLLISION_VALUE_BIT = 1,
+                    /** \brief Index of bit in StateType::collision indicating whether it is known if a state is in valid or not. Initially this is 0. The value of this bit is updated by ODEStateValidityChecker::isValid(). This bit is only used if the ODEStateValidityChecker is used. */
+                    STATE_VALIDITY_KNOWN_BIT = 2,
+                    /** \brief Index of bit in StateType::collision indicating whether a state is valid or not. Initially the value of this field is unspecified. The value gains meaning (1 or 0) when ODEStateManifold::STATE_VALIDITY_KNOWN_BIT becomes 1. The value of this bit is updated by ODEEnvironment::isValid(). A value of 1 implies that a state is valid. This bit is only used if the ODEStateValidityChecker is used. */
+                    STATE_VALIDITY_VALUE_BIT = 3,
+                };
+            
 	    /** \brief ODE State. This is a compound state that allows accessing the properties of the bodies the manifold is constructed for. */
 	    class StateType : public base::CompoundStateManifold::StateType
 	    {
 	    public:
-		StateType(void) : base::CompoundStateManifold::StateType(), collision(STATE_COLLISION_UNKNOWN)
+                StateType(void) : base::CompoundStateManifold::StateType(), collision(0)
 		{
 		}
 		
@@ -117,21 +120,12 @@ namespace ompl
 		    return as<base::RealVectorStateManifold::StateType>(body * 4 + 2)->values;
 		}
 		
-		/** \brief Flag indicating whether this state is known
-		    to be in collision or not. Initially, this flag is
-		    ODEStateManifold::STATE_COLLISION_UNKNOWN for all
-		    states. This flag is equal to
-		    ODEStateManifold::STATE_COLLISION_TRUE only if
-		    some bodies in the simulation collide AND
-		    ODEEnvironment::isValidCollision() returns
-		    false. If the state is in collision, then it is
-		    invalid. If there is no collision, or
-		    ODEEnvironment::isValidCollision() returns true,
-		    the value of the flag is
-		    ODEStateManifold::STATE_COLLISION_FALSE. This does
-		    not directly imply the state is valid. The purpose
-		    of the flag is to avoid unnecessary collision
-		    checking calls. */
+		/** \brief Flag containing information about state validity.
+                    
+                    - BIT 0: (ODEStateManifold::STATE_COLLISION_KNOWN_BIT) 
+                    - BIT 1: (ODEStateManifold::STATE_COLLISION_VALUE_BIT)
+                    - BIT 2: (ODEStateManifold::STATE_VALIDITY_KNOWN_BIT)
+                    - BIT 3: (ODEStateManifold::STATE_VALIDITY_VALUE_BIT) */
 		mutable int collision;
 		
 	    };
@@ -210,8 +204,9 @@ namespace ompl
 	    virtual void freeState(base::State *state) const;
 	    virtual void copyState(base::State *destination, const base::State *source) const;
 
-            /** \brief Fill the StateType::collision member of a state, if unknown. */
-	    virtual void evaluateCollision(const base::State *source) const;
+            /** \brief Fill the ODEStateManifold::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state, if unspecified.
+                Return the value value of that bit. */
+	    virtual bool evaluateCollision(const base::State *source) const;
 
 	protected:
 	    
