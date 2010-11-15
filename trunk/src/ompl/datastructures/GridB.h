@@ -160,7 +160,7 @@ namespace ompl
 	void updateAll(void)
 	{
 	    std::vector< Cell* > cells;
-	    getCells(cells);
+	    this->getCells(cells);
 	    for (int i = cells.size() - 1 ; i >= 0 ; --i)
 		eventCellUpdate_(cells[i], eventCellUpdateData_);
 	    external_.rebuild();
@@ -174,7 +174,7 @@ namespace ompl
 	    cell->coord = coord;
 
 	    CellArray *list = nbh ? nbh : new CellArray();
-	    neighbors(cell->coord, *list);
+	    this->neighbors(cell->coord, *list);
 
 	    for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
 	    {
@@ -230,7 +230,7 @@ namespace ompl
 	    if (cell)
 	    {
 		CellArray *list = new CellArray();
-		neighbors(cell->coord, *list);
+		this->neighbors(cell->coord, *list);
 
 		for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
 		{
