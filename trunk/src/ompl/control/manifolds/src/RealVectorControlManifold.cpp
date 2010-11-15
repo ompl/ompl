@@ -42,7 +42,7 @@
 void ompl::control::RealVectorControlUniformSampler::sample(Control *control)
 {
     const unsigned int dim = manifold_->getDimension();
-    const RealVectorBounds &bounds = static_cast<const RealVectorControlManifold*>(manifold_)->getBounds();
+    const base::RealVectorBounds &bounds = static_cast<const RealVectorControlManifold*>(manifold_)->getBounds();
     
     RealVectorControlManifold::ControlType *rcontrol = static_cast<RealVectorControlManifold::ControlType*>(control);
     for (unsigned int i = 0 ; i < dim ; ++i)
@@ -55,7 +55,7 @@ void ompl::control::RealVectorControlManifold::setup(void)
     bounds_.check();
 }
 
-void ompl::control::RealVectorControlManifold::setBounds(const RealVectorBounds &bounds)
+void ompl::control::RealVectorControlManifold::setBounds(const base::RealVectorBounds &bounds)
 {
     bounds.check();
     if (bounds.low.size() != dimension_)

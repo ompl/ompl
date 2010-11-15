@@ -164,7 +164,7 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     base::StateManifoldPtr sManPtr(sMan);
     
     myControlManifold *cMan = new myControlManifold(sManPtr);
-    control::RealVectorBounds cbounds(2);
+    base::RealVectorBounds cbounds(2);
     
     cbounds.low[0] = -MAX_VELOCITY;
     cbounds.high[0] = MAX_VELOCITY;

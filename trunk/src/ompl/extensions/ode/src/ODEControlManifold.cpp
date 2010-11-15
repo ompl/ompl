@@ -36,6 +36,7 @@
 
 #include "ompl/extensions/ode/ODEControlManifold.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Console.h"
 
 namespace ompl
 {
@@ -50,7 +51,7 @@ namespace ompl
 ompl::control::ODEControlManifold::ODEControlManifold(const base::StateManifoldPtr &stateManifold) : 
     RealVectorControlManifold(stateManifold, getStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())
 {
-    RealVectorBounds bounds(dimension_);
+    base::RealVectorBounds bounds(dimension_);
     getEnvironment()->getControlBounds(bounds.low, bounds.high);
     setBounds(bounds);
 }

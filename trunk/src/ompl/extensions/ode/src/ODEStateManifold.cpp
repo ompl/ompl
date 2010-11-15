@@ -1,4 +1,5 @@
 #include "ompl/extensions/ode/ODEStateManifold.h"
+#include "ompl/util/Console.h"
 #include <limits>
 #include <queue>
 

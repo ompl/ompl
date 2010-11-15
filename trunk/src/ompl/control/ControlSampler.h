@@ -37,6 +37,7 @@
 #ifndef OMPL_CONTROL_CONTROL_SAMPLER_
 #define OMPL_CONTROL_CONTROL_SAMPLER_
 
+#include "ompl/base/State.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/ClassForward.h"
@@ -69,10 +70,36 @@ namespace ompl
 	    {
 	    }
 	    
-	    /** \brief Sample a control */
+	    /** \brief Sample a control. All other control sampling
+                functions default to this one, unless a user-specified
+                implementation is given. */
 	    virtual void sample(Control *control) = 0;
 
-	    /** \brief Sample a number of steps to execute a control for */
+            /** \brief Sample a control, given it is applied to a
+                specific state. The default implementation calls the
+                previous definition of sample(). */
+	    virtual void sample(Control *control, const base::State * /* state */)
+            {
+                sample(control);
+            }            
+            
+            /** \brief Sample a control, given the previously applied
+                control. The default implementation calls the first
+                definition of sample(). */
+	    virtual void sampleNextControl(Control *control, const Control * /* previous */)
+            {
+                sample(control);
+            }            
+
+            /** \brief Sample a control, given the previously applied
+                control and that it is applied to a specific
+                state. The default implementation calls the first definition of sample(). */
+	    virtual void sampleNextControl(Control *control, const Control * /* previous */, const base::State * /* state */)
+            {
+                sample(control);
+            }
+            
+            /** \brief Sample a number of steps to execute a control for */
 	    virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
 	    
 	protected:

@@ -46,9 +46,6 @@ namespace ompl
     namespace control
     {
 
-	/** \brief The real vector bounds are the same for a control manifold as they are for a state manifold */
-	typedef base::RealVectorBounds RealVectorBounds;
-
 	/** \brief Uniform sampler for the R<sup>n</sup> manifold */
 	class RealVectorControlUniformSampler : public ControlSampler
 	{
@@ -87,9 +84,10 @@ namespace ompl
 		
 		double *values;
 	    };
-	
+            
+            /** \brief Constructor takes the state manifold the controls correspond to and the dimension of the space of controls, \e dim */
 	    RealVectorControlManifold(const base::StateManifoldPtr &stateManifold, unsigned int dim) : 
-		ControlManifold(stateManifold), dimension_(dim), controlBytes_(dim * sizeof(double)), bounds_(dim)
+                ControlManifold(stateManifold), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
 	    {
 	    }
 	    
@@ -97,9 +95,11 @@ namespace ompl
 	    {	
 	    }
 	    
-	    void setBounds(const RealVectorBounds &bounds);
+            /** \brief Set the bounds (min max values for each dimension) for the control */
+	    void setBounds(const base::RealVectorBounds &bounds);
 
-	    const RealVectorBounds& getBounds(void) const
+            /** \brief Get the bounds (min max values for each dimension) for the control */
+	    const base::RealVectorBounds& getBounds(void) const
 	    {
 		return bounds_;
 	    }
@@ -135,10 +135,14 @@ namespace ompl
 	    		
 	protected:
 	    
-	    unsigned int     dimension_;
-	    std::size_t      controlBytes_;
-	    RealVectorBounds bounds_;
-	    
+            /** \brief The dimension of the manifold */
+	    unsigned int           dimension_;
+
+            /** \brief The bounds on controls */
+            base::RealVectorBounds bounds_;
+
+        private:
+	    std::size_t            controlBytes_;
 	};
     }
 }

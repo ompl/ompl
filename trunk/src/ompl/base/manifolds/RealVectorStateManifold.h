@@ -95,7 +95,7 @@ namespace ompl
 	    
 	    /** \brief Constructor. The dimension of of the space needs to be specified. A space representing
 		R<sup>dim</sup> will be instantiated */
-	    RealVectorStateManifold(unsigned int dim) : StateManifold(), dimension_(dim), stateBytes_(dim * sizeof(double)), bounds_(dim)
+            RealVectorStateManifold(unsigned int dim) : StateManifold(), dimension_(dim), bounds_(dim),  stateBytes_(dim * sizeof(double))
 	    {
 		dimensionNames_.resize(dim, "");
 	    }
@@ -160,9 +160,6 @@ namespace ompl
 	    /** \brief The dimension of the space */
 	    unsigned int                        dimension_;
 	    
-	    /** \brief The size of a state, in bytes */
-	    std::size_t                         stateBytes_;
-
 	    /** \brief The bounds of the space (used for sampling) */
 	    RealVectorBounds                    bounds_;
 	    
@@ -171,6 +168,12 @@ namespace ompl
 	    
 	    /** \brief Map from names to index values for dimensions */
 	    std::map<std::string, unsigned int> dimensionIndex_;
+
+        private:
+
+	    /** \brief The size of a state, in bytes */
+	    std::size_t                         stateBytes_;
+            
 	};
     }
 }

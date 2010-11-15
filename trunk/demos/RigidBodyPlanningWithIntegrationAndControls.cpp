@@ -198,7 +198,7 @@ void planWithSimpleSetup(void)
     oc::ControlManifoldPtr cmanifold(new DemoControlManifold(manifold));
     
     // set the bounds for the control manifold
-    oc::RealVectorBounds cbounds(2);
+    ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-0.3);
     cbounds.setHigh(0.3);
     
