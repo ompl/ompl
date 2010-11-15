@@ -53,7 +53,7 @@ TEST(Allocation, Simple)
     //    si.setup();
     
     const unsigned int N = 50000;
-    const unsigned int M = 100;
+    const unsigned int M = 20;
     std::vector<base::State*> states(N, NULL);
 
     ompl::time::point start = ompl::time::now();

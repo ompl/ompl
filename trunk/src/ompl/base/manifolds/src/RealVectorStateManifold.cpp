@@ -134,7 +134,10 @@ int ompl::base::RealVectorStateManifold::getDimensionIndex(const std::string &na
 void ompl::base::RealVectorStateManifold::setDimensionName(unsigned int index, const std::string &name)
 {
     if (index < dimensionNames_.size())
-	dimensionNames_[index] = name;
+    {
+        dimensionNames_[index] = name;
+        dimensionIndex_[name] = index;
+    }
     else
 	throw Exception("Cannot set dimension name. Index out of bounds");
 }

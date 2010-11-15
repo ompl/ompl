@@ -96,8 +96,8 @@ void ompl::base::TimeStateManifold::enforceBounds(State *state) const
 
 bool ompl::base::TimeStateManifold::satisfiesBounds(const State *state) const
 {
-    return bounded_ || (state->as<StateType>()->position >= minTime_ - std::numeric_limits<double>::epsilon() && 
-                        state->as<StateType>()->position <= maxTime_ + std::numeric_limits<double>::epsilon());
+    return !bounded_ || (state->as<StateType>()->position >= minTime_ - std::numeric_limits<double>::epsilon() && 
+                         state->as<StateType>()->position <= maxTime_ + std::numeric_limits<double>::epsilon());
 }
 
 void ompl::base::TimeStateManifold::copyState(State *destination, const State *source) const
@@ -144,6 +144,12 @@ void ompl::base::TimeStateManifold::registerProjections(void)
         
         TimeDefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
         {
+            std::vector<double> dims(1);
+            if (manifold->as<TimeStateManifold>()->isBounded())
+                dims[0] = (manifold->as<TimeStateManifold>()->getMaxTimeBound() - manifold->as<TimeStateManifold>()->getMinTimeBound()) / 10.0;
+            else
+                dims[0] = 1.0;
+            setCellDimensions(dims);
         }
         
         virtual unsigned int getDimension(void) const
