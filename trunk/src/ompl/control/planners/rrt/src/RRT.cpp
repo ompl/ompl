@@ -110,7 +110,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 	Motion *nmotion = nn_->nearest(rmotion);
 	
 	/* sample a random control */
-	controlSampler_->sampleNextControl(rctrl, nmotion->control, nmotion->state);
+	controlSampler_->sampleNext(rctrl, nmotion->control, nmotion->state);
 	unsigned int cd = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
 	cd = siC_->propagateWhileValid(nmotion->state, rctrl, cd, xstate);
 

@@ -57,11 +57,16 @@ namespace ompl
 	/** \class ompl::control::ControlSamplerPtr
 	    \brief A boost shared pointer wrapper for ompl::control::ControlSampler */
 
-	/** \brief Abstract definition of a control sampler. */
+	/** \brief Abstract definition of a control sampler. Motion
+	    planners that need to sample controls will call functions
+	    from this class. Planners should call the versions of
+	    sample() and sampleNext() with most arguments, whenever
+	    this information is available. */
 	class ControlSampler
 	{	    
 	public:
 
+	    /** \brief Constructor takes the manifold to construct samples for as argument */
 	    ControlSampler(const ControlManifold *manifold) : manifold_(manifold)
 	    {
 	    }
@@ -77,7 +82,12 @@ namespace ompl
 
             /** \brief Sample a control, given it is applied to a
                 specific state. The default implementation calls the
-                previous definition of sample(). */
+                previous definition of sample(). Providing a different
+                implementation of this function is useful if, for
+                example, the sampling of controls depends on the state
+                of the system. When attempting to sample controls that
+                keep a system stable, for example, knowing the state
+                at which the control is applied is important. */
 	    virtual void sample(Control *control, const base::State * /* state */)
             {
                 sample(control);
@@ -85,16 +95,28 @@ namespace ompl
             
             /** \brief Sample a control, given the previously applied
                 control. The default implementation calls the first
-                definition of sample(). */
-	    virtual void sampleNextControl(Control *control, const Control * /* previous */)
+                definition of sample(). For some systems it is
+                possible that large changes in controls are not
+                desireable. For example, switching from maximum
+                acceleration to maximum deceleration is not desireable
+                when driving a car. */
+	    virtual void sampleNext(Control *control, const Control * /* previous */)
             {
                 sample(control);
             }            
 
             /** \brief Sample a control, given the previously applied
                 control and that it is applied to a specific
-                state. The default implementation calls the first definition of sample(). */
-	    virtual void sampleNextControl(Control *control, const Control * /* previous */, const base::State * /* state */)
+                state. The default implementation calls the first
+                definition of sample(). This is the function planners
+                typically call. If implementations that require
+                information about the state or about the previous
+                control are provided, this function should be
+                reimplemented as well, to call those
+                functions. Providing an implementation that takes into
+                account both the previous control and the state is
+                also possible. */
+	    virtual void sampleNext(Control *control, const Control * /* previous */, const base::State * /* state */)
             {
                 sample(control);
             }
@@ -128,8 +150,11 @@ namespace ompl
 		compound control.  */
 	    virtual void addSampler(const ControlSamplerPtr &sampler);
 	    
-	    /** \brief Sample a control. */
+	    
 	    virtual void sample(Control *control);
+	    virtual void sample(Control *control, const base::State *state);
+	    virtual void sampleNext(Control *control, const Control *previous);
+	    virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
 	    
 	protected:
 	    

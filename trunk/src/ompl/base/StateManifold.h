@@ -267,6 +267,7 @@ namespace ompl
 	    
 	    CompoundStateManifold(void) : StateManifold(), componentCount_(0), locked_(false)
 	    {
+		name_ = "Compound" + name_;
 	    }
 	    
 	    virtual ~CompoundStateManifold(void)

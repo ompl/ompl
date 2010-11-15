@@ -97,6 +97,7 @@ namespace ompl
 		R<sup>dim</sup> will be instantiated */
             RealVectorStateManifold(unsigned int dim) : StateManifold(), dimension_(dim), bounds_(dim),  stateBytes_(dim * sizeof(double))
 	    {
+		name_ = "RealVector" + name_;
 		dimensionNames_.resize(dim, "");
 	    }
 	    

@@ -95,9 +95,10 @@ namespace ompl
                 double w;
             };
             
-        SO3StateManifold(void) : StateManifold()
+	    SO3StateManifold(void) : StateManifold()
             {
-            }
+		name_ = "SO3" + name_;
+	    }
             
             virtual ~SO3StateManifold(void)
             {    

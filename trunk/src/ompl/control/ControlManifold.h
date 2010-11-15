@@ -71,7 +71,7 @@ namespace ompl
 	    /** \brief Construct a control manifold, given the state manifold */
 	    ControlManifold(const base::StateManifoldPtr &stateManifold) : stateManifold_(stateManifold)
 	    {
-		name_ = "control[" + stateManifold_->getName() + "]";
+		name_ = "Control[" + stateManifold_->getName() + "]";
 	    }
 	    
 	    virtual ~ControlManifold(void)

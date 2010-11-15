@@ -89,6 +89,7 @@ namespace ompl
 	    RealVectorControlManifold(const base::StateManifoldPtr &stateManifold, unsigned int dim) : 
                 ControlManifold(stateManifold), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
 	    {
+		name_ = "RealVector" + name_;
 	    }
 	    
 	    virtual ~RealVectorControlManifold(void)

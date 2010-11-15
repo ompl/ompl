@@ -119,6 +119,7 @@ namespace ompl
 
 	    SE3StateManifold(void) : CompoundStateManifold()
 	    {
+		name_ = "SE3" + name_;
 		addSubManifold(StateManifoldPtr(new RealVectorStateManifold(3)), 1.0);
 		addSubManifold(StateManifoldPtr(new SO3StateManifold()), 0.5);
 		lock();

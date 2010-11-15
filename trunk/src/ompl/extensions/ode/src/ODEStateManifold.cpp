@@ -7,6 +7,7 @@ ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironmentPtr &env,
                                                   double positionWeight, double linVelWeight, double angVelWeight, double orientationWeight) :
     base::CompoundStateManifold(), env_(env)
 {
+    name_ = "ODE" + name_;
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
     {
 	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), positionWeight); // position

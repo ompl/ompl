@@ -82,7 +82,8 @@ namespace ompl
     
         SO2StateManifold(void) : StateManifold()
         {
-        }
+	    name_ = "SO2" + name_;
+	}
         
         virtual ~SO2StateManifold(void)
         {    

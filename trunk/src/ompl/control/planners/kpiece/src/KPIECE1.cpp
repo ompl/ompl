@@ -181,7 +181,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 	assert(existing);
 
 	/* sample a random control */
-	controlSampler_->sampleNextControl(rctrl, existing->control, existing->state);
+	controlSampler_->sampleNext(rctrl, existing->control, existing->state);
 	
 	/* propagate */
 	unsigned int cd = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());

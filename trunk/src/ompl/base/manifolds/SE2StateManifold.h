@@ -111,6 +111,7 @@ namespace ompl
 	    
 	    SE2StateManifold(void) : CompoundStateManifold()
 	    {
+		name_ = "SE2" + name_;
 		addSubManifold(StateManifoldPtr(new RealVectorStateManifold(2)), 1.0);
 		addSubManifold(StateManifoldPtr(new SO2StateManifold()), 0.5);
 		lock();

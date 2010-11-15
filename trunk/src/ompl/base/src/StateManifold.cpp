@@ -52,7 +52,7 @@ ompl::base::StateManifold::StateManifold(void)
     m++;
     lock.unlock();
 
-    name_ = "manifold" + boost::lexical_cast<std::string>(m);
+    name_ = "Manifold" + boost::lexical_cast<std::string>(m);
     
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
