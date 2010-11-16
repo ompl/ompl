@@ -439,26 +439,6 @@ void ompl::base::CompoundStateManifold::printSettings(std::ostream &out) const
     printProjections(out);
 }
 
-void ompl::base::CompoundStateManifold::registerProjections(void)
-{
-    bool defProj = componentCount_ > 0;
-    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	if (!components_[i]->hasDefaultProjection())
-	{
-	    defProj = false;
-	    break;
-	}
-    
-    if (defProj && !hasDefaultProjection())
-    {
-	CompoundProjectionEvaluator *cproj = new CompoundProjectionEvaluator(this);
-	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	    cproj->addProjectionEvaluator(components_[i]->getDefaultProjection());
-	registerDefaultProjection(ProjectionEvaluatorPtr(cproj));
-	msg_.warn("Using compound projection evaluator for compound state manifold. This can lead to poor performace.");
-    }
-}
-
 void ompl::base::CompoundStateManifold::setup(void)
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)

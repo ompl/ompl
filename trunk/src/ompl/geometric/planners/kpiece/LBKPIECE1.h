@@ -87,7 +87,7 @@ namespace ompl
 	    {
 		type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
 
-		minValidPathFraction_ = 0.2;
+		minValidPathFraction_ = 0.5;
 		selectBorderFraction_ = 0.9;
 		maxDistance_ = 0.0;
 		
@@ -152,6 +152,23 @@ namespace ompl
 	    double getBorderFraction(void) const
 	    {
 		return selectBorderFraction_;
+	    }
+
+	    /** \brief When extending a motion, the planner can decide
+		to keep the first valid part of it, even if invalid
+		states are found, as long as the valid part represents
+		a sufficiently large fraction from the original
+		motion. This function sets the minimum acceptable
+		fraction. */
+	    void setMinValidPathFraction(double fraction)
+	    {
+		minValidPathFraction_ = fraction;
+	    }
+
+	    /** \brief Get the value of the fraction set by setMinValidPathFraction() */
+	    double getMinValidPathFraction(void) const
+	    {
+		return minValidPathFraction_;
 	    }
 	    
 	    virtual void setup(void);

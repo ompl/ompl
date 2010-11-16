@@ -378,8 +378,6 @@ namespace ompl
 	    virtual void printState(const State *state, std::ostream &out) const;
 
 	    virtual void printSettings(std::ostream &out) const;
-
-	    virtual void registerProjections(void);
 	    
 	    virtual void setup(void);
 
