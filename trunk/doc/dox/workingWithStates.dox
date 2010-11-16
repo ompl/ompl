@@ -99,7 +99,33 @@ ompl::base::StateManifoldPtr manifold(cm);
 ompl::base::ScopedState<ompl::base::CompoundManifold> state(manifold);
 state->as<ompl::base::SE2StateManifold::StateType>(0)->setX(0.0);
 \endcode
+States can also be printed to streams:
+\code
+ompl::base::ScopedState<> state(manifold);
+std::cout << state;
+\endcode
+Sometimes it may be useful to extract parts of a state, or assign only
+to some parts of a state, especially when using compound manifolds:
+\code
+// an SE2 manifold is in fact a compound manifold consisting of R^2 and SO2
+ompl::base::StateManifoldPtr manifold(new ompl::base::SE2StateManifold());
+// define a full state for this manifold
+ompl::base::ScopedState<ompl::base::SE2StateManifold> fullState(manifold);
+// set the state to a random value
+fullState.random();
 
+// construct a state that corresponds to the position component of SE2 
+ompl::base::ScopedState<> pos(manifold->as<ompl::base::SE2StateManifold>()->getSubManifold(0));
+
+// copy the position 
+pos << fullState;
+
+// equivalently, this can be done too:
+fullState >> pos;
+
+// if we now modify pos somehow, we can set it back in the full state:
+pos >> fullState;
+\endcode
 \li Expert version:\n	    
 For a manifold type of type T, the result of
 ompl::base::StateManifold::allocState() can be casted to

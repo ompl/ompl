@@ -286,7 +286,52 @@ namespace ompl
 	    state.print(out);
 	    return out;
 	}
+	
+	/// @cond IGNORE
+	
+	// workhorse for the << and >> operators defined on states
+	int insertStateData(ScopedState<> &to, const ScopedState<> &from);
+	
+	/// @endcond
+	
+	/** \brief This is a fancy version of the assingment
+	    operator. The difference is that if the states are part of
+	    compound manifolds, the data is copied from \e from to \e
+	    to on a component by component basis. Manifolds are
+	    matched by name. If the manifold for \e to contains any
+	    sub-manifold whose name matches any sub-manifold of the
+	    manifold for \e from, the corresponding state components
+	    are copied. */
+	template<class T, class Y>
+	inline
+	ScopedState<T>& operator<<(ScopedState<T> &to, const ScopedState<Y> &from)
+	{
+	    // we do this to avoid using dynamic_cast in a header file.
+	    ScopedState<> copy(to);
+	    if (insertStateData(copy, from))
+		to = copy;
+	    return to;
+	}
 
+	/** \brief This is a fancy version of the assingment
+	    operator. The difference is that if the states are part of
+	    compound manifolds, the data is copied from \e from to \e
+	    to on a component by component basis. Manifolds are
+	    matched by name. If the manifold for \e to contains any
+	    sub-manifold whose name matches any sub-manifold of the
+	    manifold for \e from, the corresponding state components
+	    are copied. */
+	template<class T, class Y>
+	inline
+	const ScopedState<T>& operator>>(const ScopedState<T> &from, ScopedState<Y> &to)
+	{
+	    // we do this to avoid using dynamic_cast in a header file.
+	    ScopedState<> copy(to);
+	    if (insertStateData(copy, from))
+		to = copy;
+	    return from;
+	}
+	
     }
 }
 

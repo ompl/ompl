@@ -46,7 +46,74 @@
 
 using namespace ompl;
 
-TEST(Allocation, Simple)
+TEST(State, Scoped)
+{  
+    base::SE3StateManifold *mSE3 = new base::SE3StateManifold();
+    base::StateManifoldPtr pSE3(mSE3);
+    
+    base::RealVectorBounds b(3);
+    b.setLow(0);
+    b.setHigh(1);
+    mSE3->setBounds(b);
+    
+    
+    base::CompoundStateManifold *mC0 = new base::CompoundStateManifold();
+    base::StateManifoldPtr pC0(mC0);
+    mC0->addSubManifold(pSE3, 1.0);
+    
+    base::CompoundStateManifold *mC1 = new base::CompoundStateManifold();
+    base::StateManifoldPtr pC1(mC1);
+    mC1->addSubManifold(pC0, 1.0);
+
+    base::CompoundStateManifold *mC2 = new base::CompoundStateManifold();
+    base::StateManifoldPtr pC2(mC2);
+    mC2->addSubManifold(mSE3->getSubManifold(1), 1.0);
+    mC2->addSubManifold(mSE3->getSubManifold(0), 1.0);
+    
+    
+    base::ScopedState<base::SE3StateManifold> sSE3(pSE3);
+    base::ScopedState<base::RealVectorStateManifold> sSE3_R(mSE3->getSubManifold(0));
+    base::ScopedState<base::SO3StateManifold> sSE3_SO2(mSE3->getSubManifold(1));
+    base::ScopedState<base::CompoundStateManifold> sC0(pC0);
+    base::ScopedState<> sC1(pC1);
+    base::ScopedState<> sC2(pC2);
+    
+    sSE3.random();
+
+    sSE3 >> sSE3_SO2;
+
+    EXPECT_EQ(sSE3->rotation().x, sSE3_SO2->x);
+    EXPECT_EQ(sSE3->rotation().y, sSE3_SO2->y);
+    EXPECT_EQ(sSE3->rotation().z, sSE3_SO2->z);
+    EXPECT_EQ(sSE3->rotation().w, sSE3_SO2->w);
+
+    base::ScopedState<> sSE3_copy(pSE3);
+    sSE3_copy << sSE3;
+    EXPECT_EQ(sSE3_copy, sSE3);
+    sSE3 >> sSE3_copy;
+    EXPECT_EQ(sSE3_copy, sSE3);
+    
+    sSE3_R << sSE3_copy;
+
+    EXPECT_EQ(sSE3->getX(), sSE3_R->values[0]);
+    EXPECT_EQ(sSE3->getY(), sSE3_R->values[1]);
+    EXPECT_EQ(sSE3->getZ(), sSE3_R->values[2]);
+
+    sSE3_SO2 >> sC1;
+    sC1 << sSE3_R;
+    
+    sC1 >> sC0;
+    sSE3_copy = sC0->components[0];
+    EXPECT_EQ(sSE3_copy, sSE3);
+    
+    sSE3.random();
+    
+    sSE3 >> sC2;
+    sSE3_copy << sC2;
+    EXPECT_EQ(sSE3_copy, sSE3);    
+}
+
+TEST(State, Allocation)
 {
     base::StateManifoldPtr m(new base::SE3StateManifold());
     base::SpaceInformation si(m);

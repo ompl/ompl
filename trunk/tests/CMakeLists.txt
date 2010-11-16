@@ -54,7 +54,7 @@ if(BUILD_OMPL_TESTS)
 	add_ompl_test(test_memory util/memory/memory.cpp)
 
 	# Test base code
-	add_ompl_test(test_state_allocation base/state_allocation.cpp)
+	add_ompl_test(test_state_operations base/state_operations.cpp)
 	add_ompl_test(test_manifolds base/manifolds.cpp)
 
 	# Test kinematic motion planners on a 2D map
