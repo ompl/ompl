@@ -44,6 +44,8 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace oc = ompl::control;
 
+/// @cond IGNORE 
+
 class RigidBodyEnvironment : public oc::ODEEnvironment
 {
 public:
@@ -154,6 +156,7 @@ public:
     
 };  
 
+
 // Define how we project a state 
 class RigidBodyStateProjectionEvaluator : public ob::ProjectionEvaluator
 {
@@ -207,6 +210,8 @@ public:
     }
     
 };
+
+/// @endcond
 
 int main(int, char **)
 {

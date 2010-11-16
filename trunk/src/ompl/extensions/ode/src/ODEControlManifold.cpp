@@ -38,6 +38,7 @@
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 
+/// @cond IGNORE
 namespace ompl
 {
     const control::ODEEnvironmentPtr& getStateManifoldEnvironmentWithCheck(const base::StateManifoldPtr &manifold)
@@ -47,6 +48,7 @@ namespace ompl
         return manifold->as<control::ODEStateManifold>()->getEnvironment();
     }
 }
+/// @endcond
 
 ompl::control::ODEControlManifold::ODEControlManifold(const base::StateManifoldPtr &stateManifold) : 
     RealVectorControlManifold(stateManifold, getStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())

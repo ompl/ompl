@@ -154,6 +154,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
     return si->satisfiesBounds(state) && (void*)rot != (void*)pos;
 }
 
+/// @cond IGNORE
 class DemoControlManifold : public oc::RealVectorControlManifold
 {
 public:
@@ -181,6 +182,7 @@ public:
     EulerIntegrator<KinematicCarModel> integrator_;
     
 };
+/// @endcond
 
 void planWithSimpleSetup(void)
 {

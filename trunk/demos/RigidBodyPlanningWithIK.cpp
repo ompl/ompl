@@ -45,6 +45,7 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
+/// @cond IGNORE
 // describe an arbitrary representation of a goal region in SE(3)
 class MyGoalRegion : public ob::GoalRegion
 {
@@ -66,6 +67,7 @@ public:
     }
     
 };
+/// @cond IGNORE
 
 // Goal regions such as the one above cannot be sampled, so
 // bi-directional trees cannot be used for solving. However, we can
