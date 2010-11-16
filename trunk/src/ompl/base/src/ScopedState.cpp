@@ -71,7 +71,8 @@ namespace ompl
 		for (unsigned int i = 0 ; i < toM->getSubManifoldCount() ; ++i)
 		    if (toM->getSubManifold(i)->getName() == from.getManifold()->getName())
 		    {
-			from.getManifold()->copyState(dest->components[i], from.get());
+			if (dest->components[i] != from.get())
+			    from.getManifold()->copyState(dest->components[i], from.get());
 			return ALL_DATA_COPIED;
 		    }
 		
