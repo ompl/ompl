@@ -105,10 +105,10 @@ namespace ompl
 	    {	
 	    }
 	    
-	    /** \brief Increase the dimensionality of the manifold by 1. Optionally, bounds can be specified for this added dimension. */
+	    /** \brief Increase the dimensionality of the manifold by 1. Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding dimensions. */
 	    void addDimension(double minBound = 0.0, double maxBound = 0.0);
 
-	    /** \brief Increase the dimensionality of the manifold by 1 and specify the name of this dimension. Optionally, bounds can be specified for this added dimension. This function is a wrapper for the previous definition of addDimension(). */
+	    /** \brief Increase the dimensionality of the manifold by 1 and specify the name of this dimension. Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding dimensions. This function is a wrapper for the previous definition of addDimension(). */
 	    void addDimension(const std::string &name, double minBound = 0.0, double maxBound = 0.0);
 	    
 	    /** \brief Set the bounds of this manifold. This defines
