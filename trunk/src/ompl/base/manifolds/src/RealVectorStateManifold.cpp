@@ -105,6 +105,21 @@ void ompl::base::RealVectorStateManifold::setup(void)
     StateManifold::setup();
 }
 
+void ompl::base::RealVectorStateManifold::addDimension(const std::string &name, double minBound, double maxBound)
+{
+    addDimension(minBound, maxBound);
+    setDimensionName(dimension_ - 1, name);
+}
+
+void ompl::base::RealVectorStateManifold::addDimension(double minBound, double maxBound)
+{
+    dimension_++;
+    stateBytes_ = dimension_ * sizeof(double);
+    bounds_.low.push_back(minBound);
+    bounds_.high.push_back(maxBound);
+    dimensionNames_.resize(dimension_, "");
+}
+	    
 void ompl::base::RealVectorStateManifold::setBounds(const RealVectorBounds &bounds)
 {
     bounds.check();

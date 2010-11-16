@@ -95,7 +95,7 @@ namespace ompl
 	    
 	    /** \brief Constructor. The dimension of of the space needs to be specified. A space representing
 		R<sup>dim</sup> will be instantiated */
-            RealVectorStateManifold(unsigned int dim) : StateManifold(), dimension_(dim), bounds_(dim),  stateBytes_(dim * sizeof(double))
+            RealVectorStateManifold(unsigned int dim = 0) : StateManifold(), dimension_(dim), bounds_(dim),  stateBytes_(dim * sizeof(double))
 	    {
 		name_ = "RealVector" + name_;
 		dimensionNames_.resize(dim, "");
@@ -104,6 +104,12 @@ namespace ompl
 	    virtual ~RealVectorStateManifold(void)
 	    {	
 	    }
+	    
+	    /** \brief Increase the dimensionality of the manifold by 1. Optionally, bounds can be specified for this added dimension. */
+	    void addDimension(double minBound = 0.0, double maxBound = 0.0);
+
+	    /** \brief Increase the dimensionality of the manifold by 1 and specify the name of this dimension. Optionally, bounds can be specified for this added dimension. This function is a wrapper for the previous definition of addDimension(). */
+	    void addDimension(const std::string &name, double minBound = 0.0, double maxBound = 0.0);
 	    
 	    /** \brief Set the bounds of this manifold. This defines
 		the range of the space in which sampling is

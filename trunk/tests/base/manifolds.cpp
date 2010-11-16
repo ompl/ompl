@@ -212,6 +212,12 @@ TEST(RealVector, Simple)
     m->interpolate(s0.get(), s1.get(), 0.5, s0.get());
     
     EXPECT_NEAR((*s0)[rm.getDimensionIndex("testDim")], 0.5, 1e-3);
+
+    base::StateManifoldPtr m2(new base::RealVectorStateManifold());
+    m2->as<base::RealVectorStateManifold>()->addDimension(1, 2);
+    m2->setup();
+    EXPECT_NEAR(m2->getMaximumExtent(), 1.0, 1e-3);
+    EXPECT_EQ(m2->getDimension(), 1);
 }
         
 TEST(Time, Bounds)
