@@ -68,9 +68,7 @@ namespace ompl
 	    
 	    /** \brief Given the space that we are working with,
 		allocate a state from the corresponding
-		manifold. Throw an exception if the desired type to
-		cast this state into does not match the type of states
-		allocated. */
+		manifold.  */
 	    explicit
 	    ScopedState(const SpaceInformationPtr &si) : manifold_(si->getStateManifold())
 	    {	
@@ -84,9 +82,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Given the manifold that we are working with,
-		allocate a state. Throw an exception if the desired
-		type to cast this state into does not match the type
-		of states allocated. */
+		allocate a state. */
 	    explicit
 	    ScopedState(const StateManifoldPtr &manifold) : manifold_(manifold)
 	    {
@@ -125,6 +121,19 @@ namespace ompl
 		manifold_->copyState(s, static_cast<const State*>(other.get()));
 	    }
 
+	    /** \brief Given the manifold that we are working with,
+		allocate a state and fill that state with a given value. */
+	    ScopedState(const StateManifoldPtr &manifold, const State *state) : manifold_(manifold)
+	    {
+		State *s = manifold_->allocState();
+		manifold_->copyState(s, state);
+		
+		// ideally, this should be a dynamic_cast and we
+		// should throw an exception in case of
+		// failure. However, RTTI may not be available across
+		// shared library boundaries, so we do not use it
+		state_ = static_cast<StateType*>(s);
+	    }
 
 	    /** \brief Free the memory of the internally allocated state */
 	    ~ScopedState(void)
@@ -397,6 +406,54 @@ namespace ompl
 	    if (insertStateData(copy, from))
 		to = copy;
 	    return from;
+	}
+
+	/// @cond IGNORE
+	
+	// template specialization for cases that allow for some optimizations 
+	template<class Y>
+	inline
+	ScopedState<>& operator<<(ScopedState<> &to, const ScopedState<Y> &from)
+	{
+	    insertStateData(to, from);
+	    return to;
+	}
+
+	// template specialization for cases that allow for some optimizations 
+	template<class T>
+	inline
+	const ScopedState<T>& operator>>(const ScopedState<T> &from, ScopedState<> &to)
+	{
+	    insertStateData(to, from);
+	    return from;
+	}
+	/// @endcond
+
+	/** \brief Given state \e a from manifold A and state \e b
+	    from manifold B, construct a state from manifold A
+	    + B. The resulting state contains all the information from
+	    the input states. */
+	template<class T, class Y>
+	inline
+	ScopedState<> operator+(const ScopedState<T> &a, const ScopedState<Y> &b)
+	{
+	    ScopedState<> r(a.getManifold() + b.getManifold());
+	    r << a;
+	    r << b;
+	    return r;
+	}
+
+	/** \brief Given state \e a from manifold A and state \e b
+	    from manifold B, construct a state  from manifold A - B. 
+	    The resulting state contains the corresponding information from
+	    state \e a. */
+	template<class T, class Y>
+	inline
+	ScopedState<> operator-(const ScopedState<T> &a, const ScopedState<Y> &b)
+	{
+	    ScopedState<> r(a.getManifold() - b.getManifold());
+	    a >> r;
+	    return r;
 	}
 	
 	/** @} */

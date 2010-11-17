@@ -110,7 +110,16 @@ TEST(State, Scoped)
     
     sSE3 >> sC2;
     sSE3_copy << sC2;
-    EXPECT_EQ(sSE3_copy, sSE3);    
+    EXPECT_EQ(sSE3_copy, sSE3);
+
+    
+    sSE3.random();
+    sSE3 >> sSE3_SO2;
+    sSE3 >> sSE3_R;
+    
+    (sSE3_R + sSE3_SO2) >> sSE3_copy;
+    EXPECT_EQ(sSE3_copy, sSE3);
+    EXPECT_EQ((sSE3_copy - sSE3_R), sSE3_SO2);
 }
 
 TEST(State, Allocation)
