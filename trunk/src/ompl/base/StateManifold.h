@@ -424,6 +424,10 @@ namespace ompl
             manifold. If the compound manifold would contain solely
             one component, that component is returned instead. */
         StateManifoldPtr operator-(const StateManifoldPtr &a, const StateManifoldPtr &b);
+
+        /** \brief Construct a compound manifold that contains
+            submanifolds only from \e a, except for maybe the one named \e name */
+        StateManifoldPtr operator-(const StateManifoldPtr &a, const std::string &name);
     }
 }
 

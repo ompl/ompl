@@ -282,6 +282,11 @@ TEST(Compound, Simple)
     base::StateManifoldPtr d = s - m2;
     EXPECT_EQ(d->getDimension(), m1->getDimension() + m3->getDimension());
     EXPECT_TRUE((s + d)->getDimension() == s->getDimension());
+    
+    m4->setName("test");
+    base::StateManifoldPtr t = m1 + m4;
+    EXPECT_EQ((t - "test")->getDimension(), m1->getDimension());
+    EXPECT_EQ((m1 - m1)->getDimension(), 0);
 }
 
 int main(int argc, char **argv)

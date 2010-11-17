@@ -538,5 +538,37 @@ namespace ompl
                 csm->addSubManifold(components_a[i], weights_a[i]);
             return StateManifoldPtr(csm);
         }
+        
+        StateManifoldPtr operator-(const StateManifoldPtr &a, const std::string &name)
+        {
+            std::vector<StateManifoldPtr> components;
+            std::vector<double>           weights;
+            
+            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+                {
+                    if (csm_a->getSubManifold(i)->getName() == name)
+                        continue;
+                    components.push_back(csm_a->getSubManifold(i));
+                    weights.push_back(csm_a->getSubManifoldWeight(i));
+                }	
+            else
+            {
+                if (a->getName() != name)
+                {
+                    components.push_back(a);
+                    weights.push_back(1.0);
+                }
+            }
+            
+            if (components.size() == 1)
+                return components[0];
+            
+            CompoundStateManifold *csm = new CompoundStateManifold();
+            for (unsigned int i = 0 ; i < components.size() ; ++i)
+                csm->addSubManifold(components[i], weights[i]);
+            return StateManifoldPtr(csm);
+        }
+        
     }
 }
