@@ -137,7 +137,7 @@ double ompl::base::SO3StateManifold::distance(const State *state1, const State *
     const StateType *qs1 = static_cast<const StateType*>(state1);
     const StateType *qs2 = static_cast<const StateType*>(state2);
     double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
-    if (dq > 1.0 - std::numeric_limits<double>::epsilon())
+    if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
 	return 0.0;
     else
 	return acos(dq) * 2.0;
