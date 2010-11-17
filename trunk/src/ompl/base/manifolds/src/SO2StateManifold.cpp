@@ -114,7 +114,7 @@ double ompl::base::SO2StateManifold::distance(const State *state1, const State *
 
 bool ompl::base::SO2StateManifold::equalStates(const State *state1, const State *state2) const
 {
-    return fabs(state1->as<StateType>()->value - state2->as<StateType>()->value) < std::numeric_limits<double>::epsilon();
+    return fabs(state1->as<StateType>()->value - state2->as<StateType>()->value) < std::numeric_limits<double>::epsilon() * 2.0;
 }
 
 void ompl::base::SO2StateManifold::interpolate(const State *from, const State *to, const double t, State *state) const

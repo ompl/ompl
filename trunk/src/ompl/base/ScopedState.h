@@ -278,8 +278,75 @@ namespace ompl
 	    StateType               *state_;
 	};
 
+	/** \addtogroup stateAndManifoldOperators Operators for States and Manifolds
+	 
+	   These operators are intended to simplify code that
+	   manipulates states and manifolds. They rely on the fact
+	   that manifolds have unique names. Here are some examples 
+	   for using these operators:
+	  \code
+	   // Assume X, Y, Z, W are state manifold instances, none of
+	   // which inherits from ompl::base::CompoundStateManifold.
+	   // Denote a compound manifold as C[...], where "..." is the
+	   // list of submanifolds.
+	  
+	   ompl::base::StateManifoldPtr X;
+	   ompl::base::StateManifoldPtr Y;
+	   ompl::base::StateManifoldPtr Z;
+	   ompl::base::StateManifoldPtr W;
+	  
+	   // the following line will construct a manifold C1 = C[X, Y]
+	   ompl::base::StateManifoldPtr C1 = X + Y; 
+	  
+	   // the following line will construct a manifold C2 = C[X, Y, Z]
+	   ompl::base::StateManifoldPtr C2 = C1 + Z; 
+	  
+	   // the following line will leave C2 as C[X, Y, Z]
+	   ompl::base::StateManifoldPtr C2 = C1 + C2; 
+	  
+	   // the following line will construct a manifold C2 = C[X, Y, Z, W]
+	   ompl::base::StateManifoldPtr C2 = C2 + W; 
+	  
+	   // the following line will construct a manifold C3 = C[X, Z, Y]
+	   ompl::base::StateManifoldPtr C3 = X + Z + Y; 
+	  
+	   // the following line will construct a manifold C4 = C[Z, W]
+	   ompl::base::StateManifoldPtr C4 = C2 - C1; 
+	  
+	   // the following line will construct a manifold C5 = W
+	   ompl::base::StateManifoldPtr C5 = C2 - C3; 
+	  
+	   // the following line will construct an empty manifold C6 = C[]
+	   ompl::base::StateManifoldPtr C6 = X - X; 
+	  
+	   // the following line will construct an empty manifold C7 = Y
+	   ompl::base::StateManifoldPtr C7 = Y + C6; 
+	  \endcode
+	   These manifolds can be used when operating with states:
+	  \code
+	   ompl::base::ScopedState<> sX(X);
+	   ompl::base::ScopedState<> sXY(X + Y);
+	   ompl::base::ScopedState<> sY(Y);
+	   ompl::base::ScopedState<> sZX(Z + X);
+	   ompl::base::ScopedState<> sXZW(X + Z + W);
+	  
+	   // the following line will copy the content of the state sX to
+	   // the corresponding locations in sXZW. The components of the state
+	   // corresponding to the Z and W manifolds are not touched
+	   sX >> sXZW;
+	  
+	   // the following line will initialize the X component of sXY with 
+	   // the X component of sXZW;
+	   sXY << sXZW;
+	  
+	   // the following line will initialize both components of sZX, using 
+	   // the X and Z components of sXZW;
+	   sZX << sXZW;
+	  \endcode
+	    @{
+	 */
 	
-	/** \brief Overload stream output operator */
+	/** \brief Overload stream output operator. Calls ompl::base::StateManifold::printState() */
 	inline
 	std::ostream& operator<<(std::ostream &out, const ScopedState<> &state)
 	{
@@ -295,13 +362,13 @@ namespace ompl
 	/// @endcond
 	
 	/** \brief This is a fancy version of the assingment
-	    operator. The difference is that if the states are part of
-	    compound manifolds, the data is copied from \e from to \e
-	    to on a component by component basis. Manifolds are
-	    matched by name. If the manifold for \e to contains any
-	    sub-manifold whose name matches any sub-manifold of the
-	    manifold for \e from, the corresponding state components
-	    are copied. */
+	    operator. It is a partial assignment, in some sense. The
+	    difference is that if the states are part of compound
+	    manifolds, the data is copied from \e from to \e to on a
+	    component by component basis. Manifolds are matched by
+	    name. If the manifold for \e to contains any sub-manifold
+	    whose name matches any sub-manifold of the manifold for \e
+	    from, the corresponding state components are copied. */
 	template<class T, class Y>
 	inline
 	ScopedState<T>& operator<<(ScopedState<T> &to, const ScopedState<Y> &from)
@@ -314,13 +381,13 @@ namespace ompl
 	}
 
 	/** \brief This is a fancy version of the assingment
-	    operator. The difference is that if the states are part of
-	    compound manifolds, the data is copied from \e from to \e
-	    to on a component by component basis. Manifolds are
-	    matched by name. If the manifold for \e to contains any
-	    sub-manifold whose name matches any sub-manifold of the
-	    manifold for \e from, the corresponding state components
-	    are copied. */
+	    operator. It is a partial assignment, in some sense. The
+	    difference is that if the states are part of compound
+	    manifolds, the data is copied from \e from to \e to on a
+	    component by component basis. Manifolds are matched by
+	    name. If the manifold for \e to contains any sub-manifold
+	    whose name matches any sub-manifold of the manifold for \e
+	    from, the corresponding state components are copied. */
 	template<class T, class Y>
 	inline
 	const ScopedState<T>& operator>>(const ScopedState<T> &from, ScopedState<Y> &to)
@@ -331,6 +398,8 @@ namespace ompl
 		to = copy;
 	    return from;
 	}
+	
+	/** @} */
 	
     }
 }

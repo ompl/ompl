@@ -112,7 +112,7 @@ double ompl::base::TimeStateManifold::distance(const State *state1, const State 
 
 bool ompl::base::TimeStateManifold::equalStates(const State *state1, const State *state2) const
 {
-    return fabs(state1->as<StateType>()->position - state2->as<StateType>()->position) < std::numeric_limits<double>::epsilon();
+    return fabs(state1->as<StateType>()->position - state2->as<StateType>()->position) < std::numeric_limits<double>::epsilon() * 2.0;
 }
 
 void ompl::base::TimeStateManifold::interpolate(const State *from, const State *to, const double t, State *state) const

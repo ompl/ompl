@@ -73,7 +73,7 @@ namespace ompl
 	    /** \brief Define the type of state allocated by this manifold */
 	    typedef State StateType;
 	    
-	    /** \brief Constructor. Assigns a unique name to the manifold */
+	    /** \brief Constructor. Assigns a @b unique name to the manifold */
 	    StateManifold(void);
 	    
 	    virtual ~StateManifold(void)
@@ -407,6 +407,10 @@ namespace ompl
 	    
 	};
 
+	/** \addtogroup stateAndManifoldOperators
+	 *  @{
+	 */
+
         /** \brief Construct a compound manifold from two existing
             manifolds. The components of this compound manifold are \e
             a (or the components of \e a, if \e a is compound) and \e
@@ -428,6 +432,8 @@ namespace ompl
         /** \brief Construct a compound manifold that contains
             submanifolds only from \e a, except for maybe the one named \e name */
         StateManifoldPtr operator-(const StateManifoldPtr &a, const std::string &name);
+
+	/** @} */
     }
 }
 

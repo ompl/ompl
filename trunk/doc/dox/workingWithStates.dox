@@ -1,5 +1,5 @@
 /**
-\page workingWithStates Working with States
+\page workingWithStates Working with States and Manifolds
 
 \section stateAlloc Allocating memory for states
 
@@ -19,6 +19,8 @@ manifold. This is the recommended way of allocating states
 for code other than ompl internals. Convenience operators such
 as = and == are provided. If a type T is provided, where T is 
 a manifold type, the maintained state is cast as T::StateType.
+operator= will use ompl::base::StateManifold::copyState() and
+ operator== will use ompl::base::StateManifold::equalStates().
 
 \li The expert version:\n
 \code
@@ -47,9 +49,11 @@ allocated states.
 
 \section stateOps Operating with states
 
-In order for states to be useful in setting start (or
-goal) positions, accessing their content is needed. It is
-assumed the reader is familiar with \ref stateAlloc.
+In order for states to be useful in setting start (or goal) positions,
+accessing their content is needed. It is assumed the reader is
+familiar with \ref stateAlloc.  Furthermore, \ref
+stateAndManifoldOperators "operators on states and manifolds" are also
+used.
 
 \li Simple version:\n 
 The recommended use of states is with ompl::base::ScopedState. Given
@@ -85,11 +89,11 @@ state = backup;
 if (state != backup)
    throw ompl::Exception("This should never happen");
 \endcode
-Combining ompl::base::ScopedState with ompl::base::CompoundManifold:
+Combining ompl::base::ScopedState with ompl::base::CompoundStateManifold:
 \code
 ompl::base::CompoundStateManifold *cm = new ompl::base::CompoundStateManifold();
-cm.addSubManifold(ompl::base::StateManifoldPtr(new ompl::base::SE2StateManifold()));
-cm.addSubManifold(ompl::base::StateManifoldPtr(new ompl::base::SO3StateManifold()));
+cm->addSubManifold(ompl::base::StateManifoldPtr(new ompl::base::SO2StateManifold()), 1.0);
+cm->addSubManifold(ompl::base::StateManifoldPtr(new ompl::base::SO3StateManifold()), 1.0);
 
 // put the pointer to the manifold in a shared pointer
 ompl::base::StateManifoldPtr manifold(cm);
@@ -97,7 +101,21 @@ ompl::base::StateManifoldPtr manifold(cm);
 // the ompl::base::ScopedState helps only with one cast here, since we still need to 
 // manually cast the components of the state to what we want them to be.
 ompl::base::ScopedState<ompl::base::CompoundManifold> state(manifold);
-state->as<ompl::base::SE2StateManifold::StateType>(0)->setX(0.0);
+state->as<ompl::base::SO2StateManifold::StateType>(0)->setIdentity();
+\endcode
+The code above can be equivalently written as:
+\code
+// define the individual manifolds
+ompl::base::StateManifoldPtr so2(new ompl::base::SO2StateManifold());
+ompl::base::StateManifoldPtr so3(new ompl::base::SO3StateManifold());
+
+// construct a compound manifold using the overloaded operator+
+ompl::base::StateManifoldPtr manifold = so2 + so3;
+
+// the ompl::base::ScopedState helps only with one cast here, since we still need to 
+// manually cast the components of the state to what we want them to be.
+ompl::base::ScopedState<ompl::base::CompoundManifold> state(manifold);
+state->as<ompl::base::SO2StateManifold::StateType>(0)->setIdentity();
 \endcode
 States can also be printed to streams:
 \code

@@ -20,7 +20,7 @@ are encouraged to look at the examples in @b demos/ as well.
 \par Beginner
 - \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
 - \ref stateValidation "Setting up state validity checking"
-- \ref workingWithStates "Working with states"
+- \ref workingWithStates "Working with states and manifolds"
 .
 
 \par Intermediate

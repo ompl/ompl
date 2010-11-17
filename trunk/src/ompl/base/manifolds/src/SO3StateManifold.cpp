@@ -145,7 +145,7 @@ double ompl::base::SO3StateManifold::distance(const State *state1, const State *
 
 bool ompl::base::SO3StateManifold::equalStates(const State *state1, const State *state2) const
 {
-    return distance(state1, state2) < std::numeric_limits<double>::epsilon();
+    return distance(state1, state2) < std::numeric_limits<double>::epsilon() * 2.0;
 }
 
 /*
