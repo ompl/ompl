@@ -95,7 +95,7 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
     std::map<std::pair<const base::State*, const base::State*>, double> distances;
     for (unsigned int i = 0 ; i < path.states.size() ; ++i)
 	for (unsigned int j = 0 ; j < path.states.size() ; ++j)
-	    if (abs(i - j) > 1)
+	    if (abs((int)i - (int)j) > 1)
 		distances[std::make_pair(path.states[i], path.states[j])] = si_->distance(path.states[i], path.states[j]);
 
     unsigned int nochange = 0;
@@ -108,7 +108,7 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 	int p2 = -1;
 	for (unsigned int i = 0 ; i < path.states.size() ; ++i)
 	    for (unsigned int j = 0 ; j < path.states.size() ; ++j)
-		if (abs(i - j) > 1)
+		if (abs((int)i - (int)j) > 1)
 		{
 		    double d = distances[std::make_pair(path.states[i], path.states[j])];
 		    if (d < minDist)

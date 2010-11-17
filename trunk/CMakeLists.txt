@@ -16,6 +16,9 @@ else(OMPL_IN_ROS)
 		include(CompilerSettings)
 		find_package(Boost COMPONENTS date_time thread filesystem system REQUIRED)
 		include_directories(${Boost_INCLUDE_DIR})
+                if(MSVC)
+                        add_definitions(-DBOOST_ALL_NO_LIB)
+                endif()
 		
 		# ODE is only needed for ODE bindings
 		find_package(ODE QUIET)

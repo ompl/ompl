@@ -17,7 +17,11 @@ if(OMPL_IN_ROS)
 	rosbuild_add_compile_flags(ompl -Wextra)
 	rosbuild_link_boost(ompl thread date_time)
 else(OMPL_IN_ROS)
-	add_library(ompl SHARED ${OMPL_SOURCE_CODE})
+        if(MSVC)
+	        add_library(ompl STATIC ${OMPL_SOURCE_CODE})
+        else(MSVC)
+	        add_library(ompl SHARED ${OMPL_SOURCE_CODE})
+        endif(MSVC)
 	target_link_libraries(ompl
 		${Boost_THREAD_LIBRARY}
 		${Boost_DATE_TIME_LIBRARY}

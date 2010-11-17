@@ -303,7 +303,7 @@ bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 	content.reserve(tree_.grid.size());
 	tree_.grid.getContent(content);
 	for (std::vector<CellData*>::iterator it = content.begin() ; it != content.end() ; ++it)
-	    (*it)->score += 1.0 + log((*it)->iteration);
+	    (*it)->score += 1.0 + log((double)((*it)->iteration));
 	tree_.grid.updateAll();
     }
 

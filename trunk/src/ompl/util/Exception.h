@@ -38,6 +38,7 @@
 #define OMPL_UTIL_EXCEPTION_
 
 #include <stdexcept>
+#include <string>
 
 namespace ompl
 {
