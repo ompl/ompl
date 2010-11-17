@@ -47,50 +47,44 @@ namespace ompl
 	static const int SOME_DATA_COPIED = 1;
 	static const int ALL_DATA_COPIED  = 2;
 	
-	// return 2 = all data in from copied, 1 = part of from copied, 0 = nothing copied
-	int insertStateData(ScopedState<> &to, const ScopedState<> &from)
+	// return one of the constants defined above
+	int __private_insertStateData(const StateManifoldPtr &destM, State *dest, const StateManifoldPtr &sourceM, const State *source)
 	{    
 	    // if states correspond to the same manifold, simply do copy
-	    if (to.getManifold()->getName() == from.getManifold()->getName())
+	    if (destM->getName() == sourceM->getName())
 	    {
-		to = from;
+		if (dest != source)
+		    destM->copyState(dest, source);
 		return ALL_DATA_COPIED;
 	    }
 	    
 	    int result = NO_DATA_COPIED;
 	    
 	    // if "to" state is compound
-	    CompoundStateManifold *toM = dynamic_cast<CompoundStateManifold*>(to.getManifold().get());
-	    if (toM)
+	    CompoundStateManifold *compoundDestM = dynamic_cast<CompoundStateManifold*>(destM.get());
+	    if (compoundDestM)
 	    {
-		CompoundState *dest = dynamic_cast<CompoundState*>(to.get());
-		if (!dest)
+		CompoundState *compoundDest = dynamic_cast<CompoundState*>(dest);
+		if (!compoundDest)
 		    throw Exception("State allocated by compound manifold is not compound");
 		
 		// if there is a submanifold in "to" that corresponds to "from", set the data and return
-		for (unsigned int i = 0 ; i < toM->getSubManifoldCount() ; ++i)
-		    if (toM->getSubManifold(i)->getName() == from.getManifold()->getName())
+		for (unsigned int i = 0 ; i < compoundDestM->getSubManifoldCount() ; ++i)
+		    if (compoundDestM->getSubManifold(i)->getName() == sourceM->getName())
 		    {
-			if (dest->components[i] != from.get())
-			    from.getManifold()->copyState(dest->components[i], from.get());
+			if (compoundDest->components[i] != source)
+			    compoundDestM->getSubManifold(i)->copyState(compoundDest->components[i], source);
 			return ALL_DATA_COPIED;
 		    }
 		
 		// it could be there are further levels of compound manifolds where the data can be set
 		// so we call this function recursively
-		for (unsigned int i = 0 ; i < toM->getSubManifoldCount() ; ++i)
+		for (unsigned int i = 0 ; i < compoundDestM->getSubManifoldCount() ; ++i)
 		{
-		    // get a component of "to" and store it in temp
-		    ScopedState<> temp(toM->getSubManifold(i));
-		    temp = dest->components[i];
-		    int res = insertStateData(temp, from);
+		    int res = __private_insertStateData(compoundDestM->getSubManifold(i), compoundDest->components[i], sourceM, source);
 		    
-		    // if some data was copied to temp, put it back in "to"
 		    if (res != NO_DATA_COPIED)
-		    {
-			temp.getManifold()->copyState(dest->components[i], temp.get());
 			result = SOME_DATA_COPIED;
-		    }
 		    
 		    // if all data was copied, we stop
 		    if (res == ALL_DATA_COPIED)
@@ -100,21 +94,19 @@ namespace ompl
 	    
 	    // if we got to this point, it means that the data in "from" could not be copied as a chunk to "to"
 	    // it could be the case "from" is from a compound manifold as well, so we can copy parts of "from", as needed
-	    CompoundStateManifold *fromM = dynamic_cast<CompoundStateManifold*>(from.getManifold().get());
-	    if (fromM)
+	    CompoundStateManifold *compoundSourceM = dynamic_cast<CompoundStateManifold*>(sourceM.get());
+	    if (compoundSourceM)
 	    {
-		CompoundState *source = dynamic_cast<CompoundState*>(from.get());
-		if (!source)
+		const CompoundState *compoundSource = dynamic_cast<const CompoundState*>(source);
+		if (!compoundSource)
 		    throw Exception("State allocated by compound manifold is not compound");
 
 		unsigned int copiedComponents = 0;
 		
 		// if there is a submanifold in "to" that corresponds to "from", set the data and return
-		for (unsigned int i = 0 ; i < fromM->getSubManifoldCount() ; ++i)
+		for (unsigned int i = 0 ; i < compoundSourceM->getSubManifoldCount() ; ++i)
 		{
-		    ScopedState<> temp(fromM->getSubManifold(i));
-		    temp = source->components[i];
-		    int res = insertStateData(to, temp);
+		    int res = __private_insertStateData(destM, dest, compoundSourceM->getSubManifold(i), compoundSource->components[i]);
 		    if (res == ALL_DATA_COPIED)
 			copiedComponents++;
 		    if (res)
@@ -122,7 +114,7 @@ namespace ompl
 		}
 		
 		// if each individual component got copied, then the entire data in "from" got copied
-		if (copiedComponents == fromM->getSubManifoldCount())
+		if (copiedComponents == compoundSourceM->getSubManifoldCount())
 		    result = ALL_DATA_COPIED;
 	    }
 	    

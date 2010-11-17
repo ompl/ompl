@@ -366,7 +366,7 @@ namespace ompl
 	/// @cond IGNORE
 	
 	// workhorse for the << and >> operators defined on states
-	int insertStateData(ScopedState<> &to, const ScopedState<> &from);
+	int __private_insertStateData(const StateManifoldPtr &destM, State *dest, const StateManifoldPtr &sourceM, const State *source);
 	
 	/// @endcond
 	
@@ -382,10 +382,7 @@ namespace ompl
 	inline
 	ScopedState<T>& operator<<(ScopedState<T> &to, const ScopedState<Y> &from)
 	{
-	    // we do this to avoid using dynamic_cast in a header file.
-	    ScopedState<> copy(to);
-	    if (insertStateData(copy, from))
-		to = copy;
+	    __private_insertStateData(to.getManifold(), to.get(), from.getManifold(), from.get());
 	    return to;
 	}
 
@@ -401,33 +398,9 @@ namespace ompl
 	inline
 	const ScopedState<T>& operator>>(const ScopedState<T> &from, ScopedState<Y> &to)
 	{
-	    // we do this to avoid using dynamic_cast in a header file.
-	    ScopedState<> copy(to);
-	    if (insertStateData(copy, from))
-		to = copy;
+	    __private_insertStateData(to.getManifold(), to.get(), from.getManifold(), from.get());
 	    return from;
 	}
-
-	/// @cond IGNORE
-	
-	// template specialization for cases that allow for some optimizations 
-	template<class Y>
-	inline
-	ScopedState<>& operator<<(ScopedState<> &to, const ScopedState<Y> &from)
-	{
-	    insertStateData(to, from);
-	    return to;
-	}
-
-	// template specialization for cases that allow for some optimizations 
-	template<class T>
-	inline
-	const ScopedState<T>& operator>>(const ScopedState<T> &from, ScopedState<> &to)
-	{
-	    insertStateData(to, from);
-	    return from;
-	}
-	/// @endcond
 
 	/** \brief Given state \e a from manifold A and state \e b
 	    from manifold B, construct a state from manifold A
@@ -438,9 +411,7 @@ namespace ompl
 	ScopedState<> operator+(const ScopedState<T> &a, const ScopedState<Y> &b)
 	{
 	    ScopedState<> r(a.getManifold() + b.getManifold());
-	    r << a;
-	    r << b;
-	    return r;
+	    return r << a << b;
 	}
 
 	/** \brief Given state \e a from manifold A and state \e b
