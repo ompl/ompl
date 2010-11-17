@@ -270,6 +270,20 @@ TEST(Time, Simple)
     EXPECT_TRUE(s0 == ss);
 }
 
+TEST(Compound, Simple)
+{
+    base::StateManifoldPtr m1(new base::SE2StateManifold());
+    base::StateManifoldPtr m2(new base::SE3StateManifold());
+    base::StateManifoldPtr m3(new base::SO2StateManifold());
+    base::StateManifoldPtr m4(new base::SO3StateManifold());
+    
+    base::StateManifoldPtr s = m1 + m2 + m3;
+    EXPECT_EQ(s->getDimension(), m1->getDimension() + m2->getDimension() + m3->getDimension());
+    base::StateManifoldPtr d = s - m2;
+    EXPECT_EQ(d->getDimension(), m1->getDimension() + m3->getDimension());
+    EXPECT_TRUE((s + d)->getDimension() == s->getDimension());
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

@@ -446,3 +446,97 @@ void ompl::base::CompoundStateManifold::setup(void)
     
     StateManifold::setup();
 }
+
+namespace ompl
+{
+    namespace base
+    {
+        
+        StateManifoldPtr operator+(const StateManifoldPtr &a, const StateManifoldPtr &b)
+        {
+            std::vector<StateManifoldPtr> components;
+            std::vector<double>           weights;
+            
+            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+                {
+                    components.push_back(csm_a->getSubManifold(i));
+                    weights.push_back(csm_a->getSubManifoldWeight(i));
+                }	
+            else
+            {
+                components.push_back(a);
+                weights.push_back(1.0);
+            }
+            unsigned int size = components.size();
+            if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+                for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+                {
+                    bool ok = true;
+                    for (unsigned int j = 0 ; j < size ; ++j)
+                        if (components[j]->getName() == csm_b->getSubManifold(i)->getName())
+                        {
+                            ok = false;
+                            break;
+                        }
+                    if (ok)
+                    {
+                        components.push_back(csm_b->getSubManifold(i));
+                        weights.push_back(csm_b->getSubManifoldWeight(i));
+                    }
+                }	
+            else
+            {
+                components.push_back(b);
+                weights.push_back(1.0);
+            }
+            if (components.size() == 1)
+                return components[0];
+            CompoundStateManifold *csm = new CompoundStateManifold();
+            for (unsigned int i = 0 ; i < components.size() ; ++i)
+                csm->addSubManifold(components[i], weights[i]);
+            return StateManifoldPtr(csm);
+        }
+        
+        StateManifoldPtr operator-(const StateManifoldPtr &a, const StateManifoldPtr &b)
+        {
+            std::vector<StateManifoldPtr> components_a;
+            std::vector<double>           weights_a;
+            std::vector<StateManifoldPtr> components_b;
+            
+            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+                {
+                    components_a.push_back(csm_a->getSubManifold(i));
+                    weights_a.push_back(csm_a->getSubManifoldWeight(i));
+                }	
+            else
+            {
+		components_a.push_back(a);
+		weights_a.push_back(1.0);
+            }
+            
+            if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+                for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+                    components_b.push_back(csm_b->getSubManifold(i));
+            else
+		components_b.push_back(b);
+            
+            for (unsigned int i = 0 ; i < components_b.size() ; ++i)
+                for (unsigned int j = 0 ; j < components_a.size() ; ++j)
+                    if (components_a[j]->getName() == components_b[i]->getName())
+                    {
+			components_a.erase(components_a.begin() + j);
+			weights_a.erase(weights_a.begin() + j);
+			break;
+                    }
+            
+            if (components_a.size() == 1)
+                return components_a[0];
+            CompoundStateManifold *csm = new CompoundStateManifold();
+            for (unsigned int i = 0 ; i < components_a.size() ; ++i)
+                csm->addSubManifold(components_a[i], weights_a[i]);
+            return StateManifoldPtr(csm);
+        }
+    }
+}

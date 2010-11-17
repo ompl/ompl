@@ -406,6 +406,24 @@ namespace ompl
 	    bool                          locked_;
 	    
 	};
+
+        /** \brief Construct a compound manifold from two existing
+            manifolds. The components of this compound manifold are \e
+            a (or the components of \e a, if \e a is compound) and \e
+            b (or the components of \e b, if \e b is compound).
+            Manifolds are identified by name. Duplicates are checked
+            for and added only once. If the compound manifold would
+            contain solely one component, that component is returned
+            instead. */
+        StateManifoldPtr operator+(const StateManifoldPtr &a, const StateManifoldPtr &b);
+
+        /** \brief Construct a compound manifold that contains
+            submanifolds only from \e a. If \e a is compound, \e b (or
+            the components from \e b, if \e b is compound) are removed
+            and the remaining components are returned as a compound
+            manifold. If the compound manifold would contain solely
+            one component, that component is returned instead. */
+        StateManifoldPtr operator-(const StateManifoldPtr &a, const StateManifoldPtr &b);
     }
 }
 
