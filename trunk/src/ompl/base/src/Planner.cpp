@@ -111,7 +111,6 @@ void ompl::base::Planner::clear(void)
 
 void ompl::base::Planner::getPlannerData(PlannerData &data) const
 {
-    data.clear();
     data.si = si_;
 }
 
@@ -198,7 +197,9 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
     {
 	std::map<const State*, unsigned int>::iterator it1 = stateIndex.find(s1);
 	std::map<const State*, unsigned int>::iterator it2 = stateIndex.find(s2);
-	
+        
+        bool newEdge = false;
+        
 	unsigned int p1;
 	if (it1 == stateIndex.end())
 	{
@@ -206,7 +207,8 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
 	    states.push_back(s1);
 	    stateIndex[s1] = p1;
 	    edges.resize(states.size());
-	}
+            newEdge = true;
+        }
 	else
 	    p1 = it1->second;
 	
@@ -217,11 +219,25 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
 	    states.push_back(s2);
 	    stateIndex[s2] = p2;
 	    edges.resize(states.size());
+            newEdge = true;
 	}
 	else
 	    p2 = it2->second;
 	
-	edges[p1].push_back(p2);
+        // if we are not yet sure this is a new edge, we check indeed if this edge exists
+        if (!newEdge)
+        {
+            newEdge = true;
+            for (unsigned int i = 0 ; i < edges[p1].size() ; ++i)
+                if (edges[p1][i] == p2)
+                {
+                    newEdge = false;
+                    break;
+                }
+        }
+        
+        if (newEdge)
+            edges[p1].push_back(p2);
     }
 }
 

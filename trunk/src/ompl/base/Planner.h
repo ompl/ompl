@@ -105,9 +105,10 @@ namespace ompl
 	    {
 	    }
 	    
-	    /** \brief Record an edge between two states. This function
-		is called by planners to fill \e states, \e stateIndex
-		and \e edges. */
+	    /** \brief Record an edge between two states. This
+		function is called by planners to fill \e states, \e
+		stateIndex and \e edges. If the same state/edge is
+		seen multiple times, it is added only once. */
 	    void recordEdge(const State *s1, const State *s2);
 	    
 	    /** \brief Clear any stored data */
@@ -337,7 +338,12 @@ namespace ompl
 		will ignore all previous work. */
 	    virtual void clear(void);
 	    
-	    /** \brief Get information about the current run of the motion planner  */
+	    /** \brief Get information about the current run of the
+                motion planner. Repeated calls to this function will
+                update \e data (only additions are made). This is
+                useful to see what changed in the exploration
+                datastructure, between calls to solve(), for example
+                (without calling clear() in between).  */
 	    virtual void getPlannerData(PlannerData &data) const;
 	    
 	    /** \brief Get the name of the planner */
