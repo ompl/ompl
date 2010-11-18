@@ -117,9 +117,9 @@ TEST(State, Scoped)
     sSE3 >> sSE3_SO2;
     sSE3 >> sSE3_R;
     
-    (sSE3_R + sSE3_SO2) >> sSE3_copy;
+    (sSE3_R ^ sSE3_SO2) >> sSE3_copy;
     EXPECT_EQ(sSE3_copy, sSE3);
-    EXPECT_EQ((sSE3_copy - sSE3_R), sSE3_SO2);
+    EXPECT_EQ((sSE3_copy | sSE3_R), sSE3_SO2);
 }
 
 TEST(State, Allocation)

@@ -351,6 +351,17 @@ namespace ompl
 	   // the following line will initialize both components of sZX, using 
 	   // the X and Z components of sXZW;
 	   sZX << sXZW;
+	   
+	   // the following line compares the concatenation of states sX and sY with sXY
+	   // the concatenation will automatically construct the manifold X + Y and a state
+	   // from that manifold containing the information from sX and sY. Since sXY is 
+	   // constructed from the manifold X + Y, the two are comparable.
+	   bool eq1 = (sX ^ sY) == sXY;
+
+	   // the following line compares the state sX with a state obtained from sXY by removing
+	   // the sY component. This will be a state from the manifold C[X + Y] - Y, which is 
+	   // computed to be X. This makes the comparison valid.
+	   bool eq2 = sX == (sXY | sY);
 	  \endcode
 	    @{
 	 */
@@ -405,10 +416,10 @@ namespace ompl
 	/** \brief Given state \e a from manifold A and state \e b
 	    from manifold B, construct a state from manifold A
 	    + B. The resulting state contains all the information from
-	    the input states. */
+	    the input states (the states are concatenated). */
 	template<class T, class Y>
 	inline
-	ScopedState<> operator+(const ScopedState<T> &a, const ScopedState<Y> &b)
+	ScopedState<> operator^(const ScopedState<T> &a, const ScopedState<Y> &b)
 	{
 	    ScopedState<> r(a.getManifold() + b.getManifold());
 	    return r << a << b;
@@ -420,11 +431,10 @@ namespace ompl
 	    state \e a. */
 	template<class T, class Y>
 	inline
-	ScopedState<> operator-(const ScopedState<T> &a, const ScopedState<Y> &b)
+	ScopedState<> operator|(const ScopedState<T> &a, const ScopedState<Y> &b)
 	{
 	    ScopedState<> r(a.getManifold() - b.getManifold());
-	    a >> r;
-	    return r;
+	    return r << a;
 	}
 	
 	/** @} */
