@@ -162,4 +162,7 @@ manifold->freeState(state);
 manifold->freeState(copy);
 \endcode
 
+\section stateAndManifoldOperatorsCopy Operators for States and Manifolds
+\copydoc stateAndManifoldOperators
+
 */
