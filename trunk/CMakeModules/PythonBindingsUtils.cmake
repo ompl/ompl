@@ -54,7 +54,8 @@ function(create_module_header_file_target module dir)
 	add_custom_target(${module}.h
 		COMMAND ${CMAKE_COMMAND} -D module=${module} 
 		-P "${OMPL_CMAKE_UTIL_DIR}/generate_header.cmake"
-		DEPENDS ${headers} WORKING_DIRECTORY "${dir}")
+		DEPENDS ${headers} WORKING_DIRECTORY "${dir}"
+		COMMENT "Preparing C++ header file for Python binding generation for module ${module}")
 	add_dependencies(generate_headers ${module}.h)
 endfunction(create_module_header_file_target)
 
@@ -68,7 +69,8 @@ function(create_module_code_generation_target module dir)
 		COMMAND ${CMAKE_COMMAND} -D "PATH=${dir}/bindings/${module}"
 		-P "${OMPL_CMAKE_UTIL_DIR}/abs_to_rel_path.cmake"
 		COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
- 		WORKING_DIRECTORY ${dir})
+ 		WORKING_DIRECTORY ${dir}
+		COMMENT "Creating C++ code for Python module ${module} (see pyplusplus_${module}.log)")
 	add_dependencies(update_${module}_bindings ${module}.h)
 	add_dependencies(update_bindings update_${module}_bindings)	
 endfunction(create_module_code_generation_target)
@@ -104,7 +106,8 @@ function(create_module_target module dir)
 		add_custom_command(TARGET py_ompl_${module} POST_BUILD
 	        COMMAND ${CMAKE_COMMAND} -E copy "${PY${module}_NAME}" 
 	        "${_dest_dir}/${module}/_${module}${CMAKE_SHARED_MODULE_SUFFIX}"
-	        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+	        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
+	        COMMENT "Copying python module ${module} into place")
 		include_directories("${dir}/bindings/${module}" "${dir}")
 	else(NUM_SOURCE_FILES GREATER 0)
 		if(PY_OMPL_GENERATE)
