@@ -433,6 +433,9 @@ namespace ompl
             submanifolds only from \e a, except for maybe the one named \e name */
         StateManifoldPtr operator-(const StateManifoldPtr &a, const std::string &name);
 
+	/** \brief Construct a compound manifold that contains
+	    submanifolds that are in both \e a and \e b */
+	StateManifoldPtr operator*(const StateManifoldPtr &a, const StateManifoldPtr &b);
 	/** @} */
     }
 }

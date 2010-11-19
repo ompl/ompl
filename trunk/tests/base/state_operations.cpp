@@ -119,7 +119,8 @@ TEST(State, Scoped)
     
     (sSE3_R ^ sSE3_SO2) >> sSE3_copy;
     EXPECT_EQ(sSE3_copy, sSE3);
-    EXPECT_EQ((sSE3_copy | sSE3_R), sSE3_SO2);
+    EXPECT_EQ(sSE3_copy[pSE3 * sSE3_R.getManifold()], sSE3_R);
+    EXPECT_EQ(sSE3_copy[sSE3_SO2.getManifold()], sSE3_SO2);
 }
 
 TEST(State, Allocation)

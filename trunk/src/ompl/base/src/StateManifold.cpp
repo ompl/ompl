@@ -569,6 +569,57 @@ namespace ompl
                 csm->addSubManifold(components[i], weights[i]);
             return StateManifoldPtr(csm);
         }
-        
+
+	StateManifoldPtr operator*(const StateManifoldPtr &a, const StateManifoldPtr &b)
+	{
+	    std::vector<StateManifoldPtr> components_a;
+            std::vector<double>           weights_a;
+            std::vector<StateManifoldPtr> components_b;
+	    std::vector<double>           weights_b;
+
+            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+                {
+                    components_a.push_back(csm_a->getSubManifold(i));
+                    weights_a.push_back(csm_a->getSubManifoldWeight(i));
+                }	
+            else
+            {
+		components_a.push_back(a);
+		weights_a.push_back(1.0);
+            }
+            
+            if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+                for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+		{
+		    components_b.push_back(csm_b->getSubManifold(i));
+                    weights_b.push_back(csm_b->getSubManifoldWeight(i));
+		}
+	    else
+	    {
+		components_b.push_back(b);
+		weights_b.push_back(1.0);
+	    }
+	    
+            std::vector<StateManifoldPtr> components;
+	    std::vector<double>           weights;
+
+            for (unsigned int i = 0 ; i < components_b.size() ; ++i)
+                for (unsigned int j = 0 ; j < components_a.size() ; ++j)
+                    if (components_a[j]->getName() == components_b[i]->getName())
+                    {
+			components.push_back(components_b[i]);
+			weights.push_back(std::max(weights_a[i], weights_b[i]));
+			break;
+                    }
+            
+            if (components.size() == 1)
+                return components[0];
+            CompoundStateManifold *csm = new CompoundStateManifold();
+            for (unsigned int i = 0 ; i < components.size() ; ++i)
+                csm->addSubManifold(components[i], weights[i]);
+            return StateManifoldPtr(csm);
+	}
+	
     }
 }

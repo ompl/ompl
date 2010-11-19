@@ -242,6 +242,13 @@ namespace ompl
 		return !(*this == other);
 	    }
 	    
+	    /** \brief Extract a state that corresponds to the
+		components in manifold \e m. Those components will
+		have the same value as the current state (only the
+		ones included in the current state; others will be
+		uninitialised) */
+	    ScopedState<> operator[](const StateManifoldPtr &m) const;
+	    
 	    /** \brief Set this state to a random value (uniform) */
 	    void random(void)
 	    {
@@ -377,7 +384,8 @@ namespace ompl
 	/// @cond IGNORE
 	
 	// workhorse for the << and >> operators defined on states
-	int __private_insertStateData(const StateManifoldPtr &destM, State *dest, const StateManifoldPtr &sourceM, const State *source);
+	int __private_insertStateData(const StateManifoldPtr &destM, State *dest,
+				      const StateManifoldPtr &sourceM, const State *source);
 	
 	/// @endcond
 	
@@ -424,21 +432,18 @@ namespace ompl
 	    ScopedState<> r(a.getManifold() + b.getManifold());
 	    return r << a << b;
 	}
-
-	/** \brief Given state \e a from manifold A and state \e b
-	    from manifold B, construct a state  from manifold A - B. 
-	    The resulting state contains the corresponding information from
-	    state \e a. */
-	template<class T, class Y>
-	inline
-	ScopedState<> operator|(const ScopedState<T> &a, const ScopedState<Y> &b)
-	{
-	    ScopedState<> r(a.getManifold() - b.getManifold());
-	    return r << a;
-	}
 	
 	/** @} */
+
+	template<class T>
+	ScopedState<> ScopedState<T>::operator[](const StateManifoldPtr &m) const
+	{
+	    ScopedState<> r(m);
+	    return r << *this;
+	}
 	
+	/** \brief Shared pointer to a ScopedState<> */
+	typedef boost::shared_ptr< ScopedState<> > ScopedStatePtr;
     }
 }
 
