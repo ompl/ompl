@@ -251,7 +251,11 @@ bool ompl::geometric::DecoupledPlanner::processInputStates(const base::PlannerTe
         for (unsigned int i = 0 ; i < groups.size() ; ++i)
             if (i != index)
                 for (unsigned int j = 0 ; j < groups[i].second.size() ; ++j)
+                {
                     rejectedStartStates_.push_back(groups[i].second[j]);
+                    if (rejectedStartStates_.size() == 1)
+                        msg_.warn("Some of the start states for the decoupled planner are ignored");
+                }
         for (unsigned int j = 0 ; j < groups[index].second.size() ; ++j)
             startStates_.push_back(groups[index].second[j]);
     }
@@ -275,7 +279,11 @@ bool ompl::geometric::DecoupledPlanner::processInputStates(const base::PlannerTe
             if (*restS0 == add[rest0])
                 startStates_.push_back(add);
             else
+            {
                 rejectedStartStates_.push_back(add);
+                if (rejectedStartStates_.size() == 1)
+                    msg_.warn("Some of the start states for the decoupled planner are ignored");
+            }
         }
     }
     
@@ -404,6 +412,7 @@ namespace ompl
 void ompl::geometric::DecoupledPlanner::clearComponents(void)
 {
     components_.clear();
+    rejectedStartStates_.clear();
 }
 
 void ompl::geometric::DecoupledPlanner::setComponentCount(unsigned int components)
