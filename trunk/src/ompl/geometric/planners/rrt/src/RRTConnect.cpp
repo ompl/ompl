@@ -83,8 +83,10 @@ void ompl::geometric::RRTConnect::clear(void)
     Planner::clear();
     sampler_.reset();
     freeMemory();
-    tStart_->clear();
-    tGoal_->clear();
+    if (tStart_)
+        tStart_->clear();
+    if (tStart_)
+        tGoal_->clear();
 }
 
 ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion)

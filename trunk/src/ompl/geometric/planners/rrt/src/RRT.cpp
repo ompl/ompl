@@ -44,7 +44,8 @@ void ompl::geometric::RRT::clear(void)
     Planner::clear();
     sampler_.reset();
     freeMemory();
-    nn_->clear();
+    if (nn_)
+        nn_->clear();
 }
 
 void ompl::geometric::RRT::setup(void)

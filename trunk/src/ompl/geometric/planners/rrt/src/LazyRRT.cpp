@@ -54,7 +54,8 @@ void ompl::geometric::LazyRRT::clear(void)
     Planner::clear();
     sampler_.reset();
     freeMemory();
-    nn_->clear();
+    if (nn_)
+        nn_->clear();
 }
 
 void ompl::geometric::LazyRRT::freeMemory(void)

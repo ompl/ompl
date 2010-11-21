@@ -55,7 +55,8 @@ void ompl::geometric::pRRT::clear(void)
     Planner::clear();
     samplerArray_.clear();
     freeMemory();
-    nn_->clear();
+    if (nn_)
+        nn_->clear();
 }
 
 void ompl::geometric::pRRT::freeMemory(void)
