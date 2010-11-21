@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml; charset=UTF-8"/>
+<title>$title</title>
+<meta name="author" content="Ioan A. Șucan, Mark Moll, Lydia E. Kavraki">
+<link rel="stylesheet" href="../css/screen.css" type="text/css" media="screen, projection">
+<link rel="stylesheet" href="../css/print.css" type="text/css" media="print">
+<!--[if lt IE 7]>
+<script type="text/javascript" src="../js/jquery/jquery.js"></script>
+<script type="text/javascript" src="../js/jquery/jquery.dropdown.js"></script>
+<![endif]-->
+<script type="text/javaScript" src="search/search.js"></script>
+</head>
+<body onload='searchBox.OnSelectItem(0);'>
+<script type="text/javascript"><!--
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+--></script>
+<div class="navigation" id="top">
+  <div class="tabs" id="ompltitle">
+    <ul class="tablist">
+      <li>The Open Motion Planning Library</li>
+      <li id="searchli">
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <ul id="nav" class="dropdown">
+    <li class="first"><a href="index.html">Home</a></li>
+    <li><a href="download.html">Download</a></li>
+    <li><a href="documentation.html">Documentation</a></li>
+    <li><span class="dir">Code API</span>
+      <ul>
+        <li><a href="api_overview.html">API Overview</a></li>
+        <li><a href="namespaces.html">Namespaces</a></li>
+        <li><a href="annotated.html">Classes</a></li>
+        <li><a href="files.html">Files</a></li>
+        <li><a href="dirs.html">Directories</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </li>
+    <li><span class="dir">About</span>
+      <ul>
+        <li><a href="citations.html">Citations</a></li>
+        <li><a href="license.html">License</a></li>
+        <li><a href="releaseNotes.html">Release Notes</a></li>
+        <li><a href="acknowledgements.html">Acknowledgments</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<!--- window showing the filter options -->
+<div id="MSearchSelectWindow"
+  onmouseover="return searchBox.OnSearchSelectShow()"
+  onmouseout="return searchBox.OnSearchSelectHide()"
+  onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+  <iframe src="" frameborder="0"name="MSearchResults" id="MSearchResults"></iframe>
+</div>
+
+<div class="container">
+  <div class="span-22 push-2 first last">
