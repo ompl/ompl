@@ -249,6 +249,9 @@ namespace ompl
 	    msg::Interface                msg_;
 	    
 	};
+        
+        /** \brief Given a goal specification, decide on a planner for that goal */
+        base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
     
 }

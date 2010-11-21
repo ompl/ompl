@@ -41,6 +41,37 @@
 #include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
 
+ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &goal)
+{
+    base::PlannerPtr planner;
+    if (!goal)
+        throw Exception("Unable to allocate default planner for unspecified goal definition");    
+
+    // if we can sample the goal region, use a bi-directional planner
+    if (dynamic_cast<const base::GoalSampleableRegion*>(goal.get()))
+    {
+        // if we have a default projection
+        if (goal->getSpaceInformation()->getStateManifold()->hasDefaultProjection())
+            planner = base::PlannerPtr(new LBKPIECE1(goal->getSpaceInformation()));
+        else
+            planner = base::PlannerPtr(new RRTConnect(goal->getSpaceInformation()));
+    }
+    // other use a single-tree planner
+    else
+    {
+        // if we have a default projection
+        if (goal->getSpaceInformation()->getStateManifold()->hasDefaultProjection())
+            planner = base::PlannerPtr(new KPIECE1(goal->getSpaceInformation()));
+        else
+            planner = base::PlannerPtr(new RRT(goal->getSpaceInformation()));
+    }
+    
+    if (!planner)
+        throw Exception("Unable to allocate default planner");
+    
+    return planner;
+}
+
 void ompl::geometric::SimpleSetup::setup(void)
 {
     if (!configured_)
@@ -57,26 +88,7 @@ void ompl::geometric::SimpleSetup::setup(void)
 	    else
 	    {
 		msg_.inform("No planner specified. Using default.");
-		const base::GoalPtr &goal = getGoal();
-
-		// if we can sample the goal region, use a bi-directional planner
-		if (goal && dynamic_cast<const base::GoalSampleableRegion*>(goal.get()))
-		{
-		    // if we have a default projection
-		    if (si_->getStateManifold()->hasDefaultProjection())
-			planner_ = base::PlannerPtr(new LBKPIECE1(si_));
-		    else
-			planner_ = base::PlannerPtr(new RRTConnect(si_));
-		}
-		// other use a single-tree planner
-		else
-		{
-		    // if we have a default projection
-		    if (si_->getStateManifold()->hasDefaultProjection())
-			planner_ = base::PlannerPtr(new KPIECE1(si_));
-		    else
-			planner_ = base::PlannerPtr(new RRT(si_));
-		}
+                planner_ = getDefaultPlanner(getGoal());
 	    }
 	}
 	planner_->setProblemDefinition(pdef_);

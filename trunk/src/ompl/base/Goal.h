@@ -88,7 +88,13 @@ namespace ompl
 		
 		return static_cast<const T*>(this);
 	    }
-	    
+
+            /** \brief Get the space information this goal is for */
+            const SpaceInformationPtr& getSpaceInformation(void) const
+            {
+                return si_;
+            }
+            
 	    /** \brief Return true if the state statisfies the goal
 	     *  constraints. */
 	    virtual bool isSatisfied(const State *st) const = 0;

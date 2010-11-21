@@ -265,10 +265,11 @@ namespace ompl
 	    /** \brief Define the type of state allocated by this manifold */
 	    typedef CompoundState StateType;
 	    
-	    CompoundStateManifold(void) : StateManifold(), componentCount_(0), locked_(false)
-	    {
-		name_ = "Compound" + name_;
-	    }
+            /** \brief Construct an empty compound manifold */
+	    CompoundStateManifold(void);
+	    
+            /** \brief Construct a compound manifold from a list of sub-manifolds (\e components) and their correspoing weights (\e weights) */
+            CompoundStateManifold(const std::vector<StateManifoldPtr> &components, const std::vector<double> &weights);
 	    
 	    virtual ~CompoundStateManifold(void)
 	    {

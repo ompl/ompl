@@ -185,6 +185,21 @@ unsigned int ompl::base::StateManifold::validSegmentCount(const State *state1, c
     return longestValidSegmentCountFactor_ * (unsigned int)ceil(distance(state1, state2) / longestValidSegment_);
 }
 
+ompl::base::CompoundStateManifold::CompoundStateManifold(void) : StateManifold(), componentCount_(0), locked_(false)
+{
+    name_ = "Compound" + name_;
+}
+
+ompl::base::CompoundStateManifold::CompoundStateManifold(const std::vector<StateManifoldPtr> &components,
+                                                         const std::vector<double> &weights) : StateManifold(), componentCount_(0), locked_(false)
+{
+    if (components.size() != weights.size())
+        throw Exception("Number of component manifolds and weights are not the same");
+    name_ = "Compound" + name_;
+    for (unsigned int i = 0 ; i < components.size() ; ++i)
+        addSubManifold(components[i], weights[i]);
+}
+
 void ompl::base::CompoundStateManifold::addSubManifold(const StateManifoldPtr &component, double weight)
 {
     if (locked_)
@@ -492,10 +507,8 @@ namespace ompl
             }
             if (components.size() == 1)
                 return components[0];
-            CompoundStateManifold *csm = new CompoundStateManifold();
-            for (unsigned int i = 0 ; i < components.size() ; ++i)
-                csm->addSubManifold(components[i], weights[i]);
-            return StateManifoldPtr(csm);
+
+            return StateManifoldPtr(new CompoundStateManifold(components, weights));
         }
         
         StateManifoldPtr operator-(const StateManifoldPtr &a, const StateManifoldPtr &b)
@@ -533,10 +546,8 @@ namespace ompl
             
             if (components_a.size() == 1)
                 return components_a[0];
-            CompoundStateManifold *csm = new CompoundStateManifold();
-            for (unsigned int i = 0 ; i < components_a.size() ; ++i)
-                csm->addSubManifold(components_a[i], weights_a[i]);
-            return StateManifoldPtr(csm);
+            
+            return StateManifoldPtr(new CompoundStateManifold(components_a, weights_a));
         }
         
         StateManifoldPtr operator-(const StateManifoldPtr &a, const std::string &name)
@@ -564,10 +575,7 @@ namespace ompl
             if (components.size() == 1)
                 return components[0];
             
-            CompoundStateManifold *csm = new CompoundStateManifold();
-            for (unsigned int i = 0 ; i < components.size() ; ++i)
-                csm->addSubManifold(components[i], weights[i]);
-            return StateManifoldPtr(csm);
+            return StateManifoldPtr(new CompoundStateManifold(components, weights));
         }
 
 	StateManifoldPtr operator*(const StateManifoldPtr &a, const StateManifoldPtr &b)
@@ -615,10 +623,8 @@ namespace ompl
             
             if (components.size() == 1)
                 return components[0];
-            CompoundStateManifold *csm = new CompoundStateManifold();
-            for (unsigned int i = 0 ; i < components.size() ; ++i)
-                csm->addSubManifold(components[i], weights[i]);
-            return StateManifoldPtr(csm);
+            
+            return StateManifoldPtr(new CompoundStateManifold(components, weights));
 	}
 	
     }

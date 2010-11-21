@@ -67,11 +67,14 @@ namespace ompl
 		/** \brief This bit is set if planning to goal states (ompl::base::GoalState) is possible */
 		PLAN_TO_GOAL_STATE  = 1,
 
+		/** \brief This bit is set if planning to goal states (ompl::base::GoalStates) is possible */
+		PLAN_TO_GOAL_STATES  = 2,
+
 		/** \brief This bit is set if planning to sampleable goal regions (ompl::base::GoalSampleableRegion) is possible */
-		PLAN_TO_GOAL_SAMPLEABLE_REGION = 2 | PLAN_TO_GOAL_STATE,
+		PLAN_TO_GOAL_SAMPLEABLE_REGION = 4 | PLAN_TO_GOAL_STATES | PLAN_TO_GOAL_STATE,
 
 		/** \brief This bit is set if planning to goal regions (ompl::base::GoalRegion) is possible */
-		PLAN_TO_GOAL_REGION = 4 | PLAN_TO_GOAL_SAMPLEABLE_REGION,
+		PLAN_TO_GOAL_REGION = 8 | PLAN_TO_GOAL_SAMPLEABLE_REGION,
 		
 		/** \brief This bit is set if planning to generic goal regions (ompl::base::Goal) is possible */
 		PLAN_TO_GOAL_ANY    = 32768 | PLAN_TO_GOAL_REGION
@@ -394,6 +397,5 @@ namespace ompl
 	typedef boost::function1<PlannerPtr, const SpaceInformationPtr&> PlannerAllocator;
     }
 }
-
 
 #endif
