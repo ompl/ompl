@@ -40,7 +40,8 @@
 #include <boost/lexical_cast.hpp>
 #include <limits>
 
-ompl::geometric::DecoupledPlanner::DecoupledPlanner(const base::SpaceInformationPtr &si) : base::Planner(si, "DecoupledPlanner"), currentStartState_(si)
+ompl::geometric::DecoupledPlanner::DecoupledPlanner(const base::SpaceInformationPtr &si, const base::PlannerAllocator &pa) : 
+    base::Planner(si, "DecoupledPlanner"), currentStartState_(si), pa_(pa)
 {
     type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
     if (!dynamic_cast<base::CompoundStateManifold*>(si->getStateManifold().get()))
@@ -415,7 +416,7 @@ void ompl::geometric::DecoupledPlanner::clearComponents(void)
     rejectedStartStates_.clear();
 }
 
-void ompl::geometric::DecoupledPlanner::setComponentCount(unsigned int components)
+void ompl::geometric::DecoupledPlanner::setComponentCount(unsigned int components, const base::PlannerAllocator &pa)
 {
     clearComponents();
     
@@ -441,9 +442,9 @@ void ompl::geometric::DecoupledPlanner::setComponentCount(unsigned int component
         if (g[i].m.empty())
             continue;
         if (g[i].m.size() == 1)
-            addComponent(g[i].m[0]);
+            addComponent(g[i].m[0], pa);
         else
-            addComponent(base::StateManifoldPtr(new base::CompoundStateManifold(g[i].m, g[i].w)));
+            addComponent(base::StateManifoldPtr(new base::CompoundStateManifold(g[i].m, g[i].w)), pa);
     }
 }
 
@@ -465,7 +466,7 @@ void ompl::geometric::DecoupledPlanner::setup(void)
     if (components_.empty())
     {
         msg_.inform("Automatically decomposing state manifold ...");        
-        setComponentCount(2);
+        setComponentCount(2, pa_);
         msg_.inform("Using %d components", (int)components_.size());
     }
     

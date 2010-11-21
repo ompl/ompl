@@ -77,7 +77,7 @@ namespace ompl
         public:
             	    
 	    /** \brief Constructor */
-	    DecoupledPlanner(const base::SpaceInformationPtr &si);
+	    DecoupledPlanner(const base::SpaceInformationPtr &si, const base::PlannerAllocator &pa = base::PlannerAllocator());
 	    
 	    virtual ~DecoupledPlanner(void)
 	    {
@@ -107,7 +107,7 @@ namespace ompl
             void addComponent(const base::StateManifoldPtr &manifold, const base::PlannerAllocator &pa = base::PlannerAllocator());
             
             /** \brief Automatically split the full manifold into a maximum number of parts (\e componnets) */
-            void setComponentCount(unsigned int components);
+            void setComponentCount(unsigned int components, const base::PlannerAllocator &pa = base::PlannerAllocator());
             
             /** \brief Clear the set of partial manifolds used by the planner */
             void clearComponents(void);
@@ -134,6 +134,7 @@ namespace ompl
             std::vector<Component>                   components_;
             base::ScopedState<>                      currentStartState_;
             unsigned int                             startStateVersion_;
+            base::PlannerAllocator                   pa_;
             
             std::vector< base::ScopedState<> >       startStates_;
             std::vector< base::ScopedState<> >       rejectedStartStates_;
