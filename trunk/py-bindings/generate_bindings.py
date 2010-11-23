@@ -152,6 +152,7 @@ class ompl_base_generator_t(code_generator_t):
 		self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
 		self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
 		self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
+		self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateManifold> >').rename('vectorStateManifoldPtr')
 		self.std_ns.class_('map< std::string, std::string>').rename('mapStringToString')
 		# don't export variables that need a wrapper
 		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
