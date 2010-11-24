@@ -96,6 +96,7 @@
     - <strong>time:</strong> (real) the amount of time spent planning, in seconds
     - <strong>memory:</strong> (real) the amount of memory spent planning, in MB. Note: this may be inaccurate since memory is often freed in a lazy fashion
     - <strong>preallocated states:</strong> (integer) the number of states that are allocated by ompl::base::StateAllocator but not used anywhere
+    - <strong>total allocated states:</strong> (integer) the total number of states that are allocated by ompl::base::StateAllocator 
     - <strong>approximate solution:</strong> (boolean) flag indicating whether the found solution is approximate (does not reach the goal) 
     - <strong>solution difference:</strong> (real) if solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
     - <strong>solution length:</strong> (real) the length of the found solution

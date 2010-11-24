@@ -36,6 +36,7 @@
 
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
+#include <boost/thread.hpp>
 #include <libgen.h>
 #include <iostream>
 
@@ -126,8 +127,12 @@ TEST(State, Scoped)
 TEST(State, Allocation)
 {
     base::StateManifoldPtr m(new base::SE3StateManifold());
+    base::RealVectorBounds b(3);
+    b.setLow(0);
+    b.setHigh(1);
+    m->as<base::SE3StateManifold>()->setBounds(b);
     base::SpaceInformation si(m);
-    //    si.setup();
+    si.setup();
     
     const unsigned int N = 50000;
     const unsigned int M = 20;
@@ -173,6 +178,54 @@ TEST(State, Allocation)
     }
     d = ompl::time::seconds(ompl::time::now() - start);
     std::cout << (double)N * (double)M / d << " allocations per second" << std::endl;    
+    std::cout << "Preallocated states: " << si.getStateAllocator().sizeAvailable() << std::endl;    
+    std::cout << "In use states: " << si.getStateAllocator().sizeInUse() << std::endl;    
+}
+
+void randomizedAllocator(const base::SpaceInformation *si)
+{
+    RNG r;
+    int n = 5000;
+    
+    std::vector<base::State*> states(n + 1, NULL);
+    for (int i = 0 ; i < n * 1000 ; ++i)
+    {
+        int j = r.uniformInt(0, n);
+        if (states[j] == NULL)
+            states[j] = si->allocState();
+        else
+        {
+            si->freeState(states[j]);
+            states[j] = NULL;
+        }
+    }
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+        if (states[i])
+            si->freeState(states[i]);
+}
+
+TEST(State, AllocationWithThreads)
+{
+    base::StateManifoldPtr m(new base::SE3StateManifold());
+    base::RealVectorBounds b(3);
+    b.setLow(0);
+    b.setHigh(1);
+    m->as<base::SE3StateManifold>()->setBounds(b);
+    base::SpaceInformation si(m);
+    si.setup();
+    const int NT = 10;
+    time::point start = time::now();
+    std::vector<boost::thread*> threads;
+    for (int i = 0 ; i < NT ; ++i)
+        threads.push_back(new boost::thread(boost::bind(&randomizedAllocator, &si)));
+    for (int i = 0 ; i < NT ; ++i)
+    {
+        threads[i]->join();
+        delete threads[i];
+    }
+    std::cout << "Time spent randomly allocating & freeing states: "<< time::seconds(time::now() - start) << std::endl;
+    
+    std::cout << "Preallocated states: " << si.getStateAllocator().sizeAvailable() << std::endl;    
 }
 
 int main(int argc, char **argv)

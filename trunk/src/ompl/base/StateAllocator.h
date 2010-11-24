@@ -39,9 +39,6 @@
 
 #include "ompl/base/StateManifold.h"
 #include <boost/noncopyable.hpp>
-#include <boost/thread.hpp>
-#include <stack>
-#include <map>
 
 namespace ompl
 {
@@ -56,14 +53,9 @@ namespace ompl
 	public:
 
 	    /** \brief Constructor */
-	    StateAllocator(const StateManifoldPtr &manifold) : manifold_(manifold)
-	    {
-	    }
+	    StateAllocator(const StateManifoldPtr &manifold);
 	    
-	    ~StateAllocator(void)
-	    {
-		clear();
-	    }
+	    ~StateAllocator(void);
 	    
 	    /** \brief Allocate a state from the specified manifold */
 	    State* allocState(void) const;
@@ -75,16 +67,18 @@ namespace ompl
 	    void clear(void);
 	    
 	    /** \brief Return the number of pre-allocated states */
-	    unsigned int size(void) const;
-	    
+	    std::size_t sizeAvailable(void) const;
+
+	    /** \brief Return the number of allocated states that are in use */
+	    std::size_t sizeInUse(void) const;
+
+	    /** \brief Return the number of allocated states */
+            std::size_t sizeTotal(void) const;
+            
 	private:
-	    
-	    typedef std::map< boost::thread::id, std::stack<State*> > StorageType;
-
-	    StateManifoldPtr     manifold_;
-	    mutable StorageType  storage_;
-	    mutable boost::mutex lock_;
-
+            
+            StateManifoldPtr manifold_;
+            void            *data_;
 	};
 
     }

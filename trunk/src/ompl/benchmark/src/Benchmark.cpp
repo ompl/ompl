@@ -310,11 +310,12 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 		run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
                 if (gsetup_)
                 {
-                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getStateAllocator().size());
+                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getStateAllocator().sizeAvailable());
+                    run["total allocated states INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getStateAllocator().sizeTotal());
                 }
                 else
                 {
-                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getStateAllocator().size());
+                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getStateAllocator().sizeAvailable());
                     run["preallocated controls INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getControlAllocator().size());
                 }
                 if (solved)
