@@ -187,6 +187,7 @@ ompl::base::StateAllocator::StateAllocator(const StateManifoldPtr &manifold) : m
 
 ompl::base::StateAllocator::~StateAllocator(void)
 {
+    clear();
     delete CDATA;
 }
 
