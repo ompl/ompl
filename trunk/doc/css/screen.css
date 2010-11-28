@@ -462,7 +462,7 @@ h1 {font-size:2em;color:#119;}
 h2 {font-size:1.75em;margin-top:1.5em;color:#119;}
 h1+h2 {margin-top:-.5em;}
 p+div.fragment {margin-top:-1em;}
-p+ul {margin-top:-.75em;}
+p+ul, p+ol {margin-top:-.75em;}
 h3 {font-style:italic;font-weight:bold;margin-top:1em;}
 #ompltitle {color:#fff;background:#119 url(images/gradient.png) repeat-x;font:helvetica;font-size:1.5em;text-shadow:#000 0px 0px 15px;padding:10px 0px 10px 0px;margin:0px 1px 1px 0px;}
 #ompltitle .tablist li {background-image:none;padding-left:10px;}
