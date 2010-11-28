@@ -40,6 +40,7 @@ from math import sin, cos
 try:
 	from ompl import base as ob
 	from ompl import control as oc
+	from ompl import geometric as og
 except:
 	# if the ompl module is not in the PYTHONPATH assume it is installed in a
 	# subdirectory of the parent directory called "py-bindings."

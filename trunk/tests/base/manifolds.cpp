@@ -65,7 +65,7 @@ TEST(SO2, Simple)
     base::StateManifoldPtr m(new base::SO2StateManifold());
     m->setup();
     
-    EXPECT_EQ(m->getDimension(), 1);
+    EXPECT_EQ(m->getDimension(), 1u);
     EXPECT_EQ(m->getMaximumExtent(), PI);
     
     base::ScopedState<base::SO2StateManifold> s1(m);
@@ -110,7 +110,7 @@ TEST(SO2, Projection)
     m->setup();
     
     base::ProjectionEvaluatorPtr proj = m->getDefaultProjection();
-    EXPECT_EQ(proj->getDimension(), 1);
+    EXPECT_EQ(proj->getDimension(), 1u);
     
     base::EuclideanProjection p(proj->getDimension());
     base::ScopedState<base::SO2StateManifold> s(m);
@@ -123,7 +123,7 @@ TEST(SO3, Simple)
     base::StateManifoldPtr m(new base::SO3StateManifold());
     m->setup();
     
-    EXPECT_EQ(m->getDimension(), 3);
+    EXPECT_EQ(m->getDimension(), 3u);
     EXPECT_EQ(m->getMaximumExtent(), PI);
 
     base::ScopedState<base::SO3StateManifold> s1(m);
@@ -156,7 +156,7 @@ TEST(SO3, Simple)
     }
 
     base::ProjectionEvaluatorPtr proj = m->getDefaultProjection();
-    EXPECT_EQ(proj->getDimension(), 3);
+    EXPECT_EQ(proj->getDimension(), 3u);
 }
 
 TEST(RealVector, Bounds)
@@ -167,7 +167,7 @@ TEST(RealVector, Bounds)
     base::RealVectorStateManifold rsm1(1);
     rsm1.setBounds(bounds1);
     rsm1.setup();    
-    EXPECT_TRUE(rsm1.getDimension() == 1);
+    EXPECT_EQ(rsm1.getDimension(), 1u);
     EXPECT_NEAR(rsm1.getMaximumExtent(), 1.0, 1e-3);
     
     base::RealVectorBounds bounds3(3);
@@ -217,7 +217,7 @@ TEST(RealVector, Simple)
     m2->as<base::RealVectorStateManifold>()->addDimension(1, 2);
     m2->setup();
     EXPECT_NEAR(m2->getMaximumExtent(), 1.0, 1e-3);
-    EXPECT_EQ(m2->getDimension(), 1);
+    EXPECT_EQ(m2->getDimension(), 1u);
 }
         
 TEST(Time, Bounds)
@@ -225,7 +225,7 @@ TEST(Time, Bounds)
     base::TimeStateManifold t;
     t.setup();
     
-    EXPECT_EQ(t.getDimension(), 1);
+    EXPECT_EQ(t.getDimension(), 1u);
     EXPECT_FALSE(t.isBounded());
     EXPECT_NEAR(t.getMaximumExtent(), 1.0, 1e-3);
     
@@ -286,7 +286,7 @@ TEST(Compound, Simple)
     m4->setName("test");
     base::StateManifoldPtr t = m1 + m4;
     EXPECT_EQ((t - "test")->getDimension(), m1->getDimension());
-    EXPECT_EQ((m1 - m1)->getDimension(), 0);
+    EXPECT_EQ((m1 - m1)->getDimension(), 0u);
 }
 
 int main(int argc, char **argv)

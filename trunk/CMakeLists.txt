@@ -1,7 +1,7 @@
 option(OMPL_IN_ROS "Build OMPL against ROS" OFF)
 
 set(OMPL_MAJOR_VERSION 0)
-set(OMPL_MINOR_VERSION 8)
+set(OMPL_MINOR_VERSION 9)
 set(OMPL_PATCH_VERSION 0)
 set(OMPL_VERSION "${OMPL_MAJOR_VERSION}.${OMPL_MINOR_VERSION}.${OMPL_PATCH_VERSION}")
 
@@ -38,8 +38,10 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(OMPL_DEMO_INSTALL_DIR share/ompl/demos)
-set(OMPL_DOC_INSTALL_DIR share/ompl/doc)
+set(OMPL_DEMO_INSTALL_DIR share/ompl/demos 
+    CACHE STRING "Relative path to directory where demos will be installed")
+set(OMPL_DOC_INSTALL_DIR share/ompl/doc
+    CACHE STRING "Relative path to directory where documentation will be installed")
 
 include_directories(${OMPL_INCLUDE_DIR})
 add_subdirectory(src)
@@ -47,22 +49,6 @@ add_subdirectory(py-bindings)
 add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(doc)
-
-install(DIRECTORY demos/ DESTINATION ${OMPL_DEMO_INSTALL_DIR}
-        PATTERN CMakeLists.txt EXCLUDE
-	PATTERN .svn EXCLUDE
-	PATTERN .DS_Store EXCLUDE)
-install(DIRECTORY doc/ DESTINATION ${OMPL_DOC_INSTALL_DIR}
-        PATTERN dox EXCLUDE 
-	PATTERN header.html EXCLUDE 
-	PATTERN footer.html EXCLUDE
-	PATTERN mkwebdocs.sh EXCLUDE
-	PATTERN CMakeLists.txt EXCLUDE
-	PATTERN blueprint EXCLUDE
-	PATTERN .svn EXCLUDE
-	PATTERN .md5 EXCLUDE
-	PATTERN .DS_Store EXCLUDE
-	PATTERN Doxyfile EXCLUDE)
 
 if(NOT OMPL_IN_ROS AND NOT OMPLAPP_VERSION)
 	include(CPackSettings)

@@ -1,8 +1,8 @@
 if(OMPL_IN_ROS)  
-	option(BUILD_OMPL_TESTS "Build OMPL tests" ON) 
+	option(OMPL_BUILD_TESTS "Build OMPL tests" ON) 
 else(OMPL_IN_ROS)
 	find_package(GTest)
-	option(BUILD_OMPL_TESTS "Build OMPL tests" ${GTEST_FOUND})
+	option(OMPL_BUILD_TESTS "Build OMPL tests" ${GTEST_FOUND})
 endif(OMPL_IN_ROS)
 
 

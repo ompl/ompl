@@ -47,17 +47,13 @@ else()
 endif()
 
 string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX "${PYTHON_EXEC_}")
+string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX2 "${PYTHON_EXEC}")
 
 execute_process(COMMAND "${PYTHON_EXEC}" "-c"
 	"import sys; print '%d.%d' % (sys.version_info[0],sys.version_info[1])"
 	OUTPUT_VARIABLE PYTHON_VERSION
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 	
-find_library(PYTHON_LIBRARIES "python${PYTHON_VERSION}" 
-	PATHS 
-		"${PYTHON_PREFIX}/lib"
-		[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION}\\InstallPath]/libs
-	DOC "Python libraries" NO_DEFAULT_PATH)
 find_library(PYTHON_LIBRARIES "python${PYTHON_VERSION}" 
 	PATHS 
 		"${PYTHON_PREFIX}/lib"
@@ -74,8 +70,9 @@ find_path(PYTHON_INCLUDE_DIRS "Python.h"
 	
 execute_process(COMMAND "${PYTHON_EXEC}" "-c" 
 	"from distutils.sysconfig import get_python_lib; print get_python_lib()"
-	OUTPUT_VARIABLE PYTHON_SITE_MODULES
+	OUTPUT_VARIABLE PYTHON_SITE_MODULES_
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REGEX REPLACE "^${PYTHON_PREFIX2}/" "" PYTHON_SITE_MODULES "${PYTHON_SITE_MODULES_}")
 
 function(find_python_module module)
 	string(TOUPPER ${module} module_upper)

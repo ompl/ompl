@@ -214,7 +214,7 @@ TEST(State, AllocationWithThreads)
     base::SpaceInformation si(m);
     si.setup();
     const int NT = 10;
-    time::point start = time::now();
+    ompl::time::point start = ompl::time::now();
     std::vector<boost::thread*> threads;
     for (int i = 0 ; i < NT ; ++i)
         threads.push_back(new boost::thread(boost::bind(&randomizedAllocator, &si)));
@@ -223,7 +223,8 @@ TEST(State, AllocationWithThreads)
         threads[i]->join();
         delete threads[i];
     }
-    std::cout << "Time spent randomly allocating & freeing states: "<< time::seconds(time::now() - start) << std::endl;
+    std::cout << "Time spent randomly allocating & freeing states: "
+        << ompl::time::seconds(ompl::time::now() - start) << std::endl;
     
     std::cout << "Preallocated states: " << si.getStateAllocator().sizeAvailable() << std::endl;    
 }
