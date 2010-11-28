@@ -40,7 +40,13 @@ sudo apt-get install libgtest-dev doxygen python-dev
 \subsection install_mac_os Mac OS X
 
 - It is easiest to install the dependencies through <a href="http://www.macports.org">MacPorts</a>, a package manager for OS X, so install MacPorts first.
-- Install Boost, CMake, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
+- If you do not need to modify or see the source code of OMPL, then the easiest way to install OMPL is with the MacPorts \c port command:
+\code
+sudo port selfupdate
+sudo port install ompl
+\endcode
+This is it. You are done.
+- If you downloaded the source distribution of OMPL, install the dependencies Boost, CMake, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
 \code
 sudo port selfupdate
 sudo port install cmake py26-pyplusplus-devel boost +python26
