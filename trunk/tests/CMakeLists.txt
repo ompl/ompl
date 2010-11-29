@@ -5,8 +5,8 @@ else(OMPL_IN_ROS)
 	option(OMPL_BUILD_TESTS "Build OMPL tests" ${GTEST_FOUND})
 endif(OMPL_IN_ROS)
 
+if(OMPL_BUILD_TESTS)
 
-if(BUILD_OMPL_TESTS)
 	file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources" TEST_RESOURCES_DIR)
 	configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config.h")
 	
@@ -74,4 +74,4 @@ if(BUILD_OMPL_TESTS)
 		add_ompl_python_test(control/test_control.py)
 	endif()
 	
-endif(BUILD_OMPL_TESTS)
+endif(OMPL_BUILD_TESTS)
