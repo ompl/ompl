@@ -135,8 +135,8 @@ namespace ompl
 		returns the member variable maxContacts */
 	    virtual unsigned int getMaxContacts(dGeomID geom1, dGeomID geom2) const;
 	    
-	    /** \brief Parameters to set when contacts are created between bodies. */
-	    virtual void setupContact(dContact &contact) const;
+	    /** \brief Parameters to set when contacts are created between \e geom1 and \e geom2. */
+	    virtual void setupContact(dGeomID geom1, dGeomID geom2, dContact &contact) const;
 
             /** \brief Get the name of a body */
             std::string getGeomName(dGeomID geom) const;

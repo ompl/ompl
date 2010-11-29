@@ -82,7 +82,7 @@ namespace ompl
 	const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
 	dContact contact[maxContacts];
 	for (unsigned int i = 0; i < maxContacts; ++i)
-	    cp->env->setupContact(contact[i]);
+	    cp->env->setupContact(o1, o2, contact[i]);
 	
 	if (int numc = dCollide(o1, o2, maxContacts, &contact[0].geom, sizeof(dContact)))
 	{

@@ -93,7 +93,7 @@ public:
 	return false;
     }
     
-    virtual void setupContact(dContact &contact) const
+    virtual void setupContact(dGeomID geom1, dGeomID geom2, dContact &contact) const
     {
 	contact.surface.mode = dContactSoftCFM | dContactApprox1;
 	contact.surface.mu = 0.9;

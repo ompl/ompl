@@ -47,7 +47,7 @@ bool ompl::control::ODEEnvironment::isValidCollision(dGeomID geom1, dGeomID geom
     return false;
 }
 
-void ompl::control::ODEEnvironment::setupContact(dContact &contact) const
+void ompl::control::ODEEnvironment::setupContact(dGeomID geom1, dGeomID geom2, dContact &contact) const
 {
     contact.surface.mode = dContactBounce | dContactSoftCFM;
     contact.surface.mu = 0.1;
