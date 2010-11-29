@@ -88,12 +88,39 @@ namespace ompl
 	    virtual void print(std::ostream &out) const;
 
 	    /** \brief Insert a number of states in a path so that the
-		path is made up of exactly \e count segments. States
-		are inserted uniformly (more states on longer
-		segments). If a path has more than \e count segments,
-		no changes are performed. */
+		path is made up of exactly \e count states. States are
+		inserted uniformly (more states on longer
+		segments). Changes are performed only if a path has
+		less than \e count states. */
 	    void interpolate(unsigned int count);
 
+	    /** \brief Reverse the path */
+	    void reverse(void);
+	    
+	    /** \brief Overlay the path \e over on top of the current
+		path. States are added to the current path if needed
+		(by copying the last state). 
+
+		If \e over consists of states form a different
+		manifold than the existing path, the data from those
+		states is copied over, for the corresponding
+		components. If \e over is from the same manifold as this path, 
+		this function's result will be the same as with operator= */
+	    void overlay(const PathGeometric &over, unsigned int startIndex = 0);
+
+	    /** \brief Append \e path at the end of this path.
+		
+		Let the existing path consist of states [ \e s1, \e
+		s2, ..., \e sk ]. Let \e path consist of states [\e y1, ..., \e yp].
+		
+		If the existing path and \e path consist of states
+		from the same manifold, [\e y1, ..., \e yp] are added after \e sk.
+		If they are not from the same manifold, states [\e z1, ..., \e zp]
+		are added, where each \e zi is a copy of \e sk that
+		has components overwritten with ones in \e yi (if there are any common submanifolds). 
+	    */
+	    void append(const PathGeometric &path);
+	    
 	    /** \brief The list of states that make up the path */
 	    std::vector<base::State*> states;
 	    

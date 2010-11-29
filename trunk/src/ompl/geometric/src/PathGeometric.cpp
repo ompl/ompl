@@ -36,6 +36,8 @@
 
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
+#include "ompl/base/ScopedState.h"
+#include <algorithm>
 #include <cmath>
 
 ompl::geometric::PathGeometric::PathGeometric(const PathGeometric &path) : base::Path(path.si_)
@@ -88,11 +90,6 @@ bool ompl::geometric::PathGeometric::check(void) const
 	    result = false;
     }
 
-    if (result)
-	for (unsigned int j = 0 ; j < states.size() ; ++j)
-	    if (!si_->isValid(states[j]))
-		throw Exception("Internal error while checking path. This should never happen. Please contact the developers.");
-    
     return result;
 }
 
@@ -248,4 +245,54 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
     states.swap(newStates);
     if (requestCount != states.size())
 	throw Exception("Internal error in path interpolation. This should never happen. Please contact the developers.");
+}
+
+void ompl::geometric::PathGeometric::reverse(void)
+{
+    std::reverse(states.begin(), states.end());
+}
+
+void ompl::geometric::PathGeometric::overlay(const PathGeometric &over, unsigned int startIndex)
+{
+    if (startIndex > states.size())
+	throw Exception("Index of path is out of bounds");
+    const base::StateManifoldPtr &sm = over.si_->getStateManifold();
+    const base::StateManifoldPtr &dm = si_->getStateManifold();
+    bool copy = !states.empty();
+    for (unsigned int i = 0, j = startIndex ; i < over.states.size() ; ++i, ++j)
+    {
+	if (j == states.size())
+	{
+	    base::State *s = si_->allocState();
+	    if (copy)
+		si_->copyState(s, states.back());
+	    states.push_back(s);
+	}
+	
+	__private_insertStateData(dm, states[j], sm, over.states[i]);
+    }
+}
+
+void ompl::geometric::PathGeometric::append(const PathGeometric &path)
+{
+    if (path.si_->getStateManifold()->getName() == si_->getStateManifold()->getName())
+    {
+	PathGeometric copy(path);
+	states.insert(states.end(), copy.states.begin(), copy.states.end());
+	copy.states.clear();
+    }
+    else
+    {  
+	const base::StateManifoldPtr &sm = path.si_->getStateManifold();
+	const base::StateManifoldPtr &dm = si_->getStateManifold(); 
+	bool copy = !states.empty();
+	for (unsigned int i = 0 ; i < path.states.size() ; ++i)
+	{
+	    base::State *s = si_->allocState();
+	    if (copy)
+		si_->copyState(s, states.back());
+	    __private_insertStateData(dm, s, sm, path.states[i]);
+	    states.push_back(s);
+	}
+    }
 }
