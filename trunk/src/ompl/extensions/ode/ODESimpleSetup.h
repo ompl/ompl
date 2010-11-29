@@ -84,6 +84,15 @@ namespace ompl
             /** \brief Set the current ODE state (set parameters for ODE bodies) */
             void setCurrentState(const base::ScopedState<> &state);
 
+	    /** \brief Set the ODE world to the states that are
+		contained in a given path, sequentially. Using \e
+		timeFactor, the speed at which this sequence is
+		iterated through is altered. */
+	    void playPath(const control::PathControl &path, double timeFactor = 1.0) const;
+	    
+	    /** \brief Call playPath() on the solution path, if one is available */
+	    void playSolutionPath(double timeFactor = 1.0) const;
+	    
 	    virtual void setup(void);
 
         private:

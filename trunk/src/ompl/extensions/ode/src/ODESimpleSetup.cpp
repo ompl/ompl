@@ -89,3 +89,24 @@ void ompl::control::ODESimpleSetup::setup(void)
     }
     SimpleSetup::setup();
 }
+
+void ompl::control::ODESimpleSetup::playSolutionPath(double timeFactor) const
+{
+    if (haveSolutionPath())
+	playPath(getSolutionPath(), timeFactor);
+}
+
+void ompl::control::ODESimpleSetup::playPath(const control::PathControl &path, double timeFactor) const
+{
+    const geometric::PathGeometric &pg = path.asGeometric();
+    if (!pg.states.empty())
+    {
+	time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
+	getStateManifold()->as<ODEStateManifold>()->writeState(pg.states[0]);
+	for (unsigned int i = 1 ; i < pg.states.size() ; ++i)
+	{
+	    boost::this_thread::sleep(d);
+	    getStateManifold()->as<ODEStateManifold>()->writeState(pg.states[i]);
+	}
+    }
+}
