@@ -119,9 +119,9 @@ To compile the Python modules type “<tt>make py_ompl</tt>.” If you only want
 
 \subsection bindings_cmake Forcing CMake to do The Right Thing
 
-Every attempt has been to have CMake correctly identify dependencies and only generate and compile code when necessary. If you want force CMake to regenerate the bindings from scratch, you can remove the directory <tt>ompl/py-bindings/bindings</tt>. If, on the other hand, you want to (temporarily) disable the re-generation of Python bindings, type:
+Every attempt has been to have CMake correctly identify dependencies and only compile code when necessary. If you want force CMake to regenerate the bindings from scratch, you can remove the directory <tt>ompl/py-bindings/bindings</tt>. If, on the other hand, you want to (temporarily) disable the compilation of Python bindings, type:
 \code
-cmake -D PY_OMPL_GENERATE:BOOL=OFF -D PY_OMPL_COMPILE:BOOL=OFF .
+cmake -D OMPL_BUILD_PYBINDINGS:BOOL=OFF .
 \endcode
 in your build directory. You can re-enable them, by running this command again, but with OFF changed to ON. Changing these settings can also be done through the CMake GUI.
 

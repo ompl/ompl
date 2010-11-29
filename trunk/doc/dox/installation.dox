@@ -46,7 +46,7 @@ sudo port selfupdate
 sudo port install ompl
 \endcode
 This is it. You are done. Demo programs can be found in \c /opt/local/share/ompl.
-- If you downloaded the source distribution of OMPL, install the dependencies Boost, CMake, ODE, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
+- If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, and CMake. Optionally, you can also install the Open Dynamics Engine, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
 \code
 sudo port selfupdate
 sudo port install cmake ode py26-pyplusplus-devel boost +python26
