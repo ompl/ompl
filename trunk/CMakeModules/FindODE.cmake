@@ -97,14 +97,14 @@ if (_ODE_CONFIG)
 endif()
 
 # find the include path
-find_file(_ODE_INCLUDE_H ode.h PATHS ${_ODE_INCLUDE_HINTS} PATH_SUFFIXES ode include/ode)
-if (_ODE_INCLUDE_H)
-  get_filename_component(ODE_INCLUDE ${_ODE_INCLUDE_H} PATH)
+find_path(ODE_INCLUDE ode.h PATHS ${_ODE_INCLUDE_HINTS} PATH_SUFFIXES ode include/ode)
+if (ODE_INCLUDE)
   string(REGEX REPLACE "/ode$" "" ODE_INCLUDE ${ODE_INCLUDE})
 endif()
 
 # find the lib
-find_library(ODE_LIBRARY ode PATHS ${_ODE_LIB_HINTS} PATH_SUFFIXES lib)
+find_library(ODE_LIBRARY ode PATHS ${_ODE_LIB_HINTS} PATH_SUFFIXES lib ode/src/.libs src/.libs)
+
 
 if (_ODE_DEBUG_OUTPUT)
   message(STATUS "------- FindODE.cmake Debug -------")
