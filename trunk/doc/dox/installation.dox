@@ -30,9 +30,9 @@ You can download the latest version from <a href="http://www.cmake.org/cmake/res
 \code
 sudo apt-get install libboost-all-dev cmake
 \endcode
-- To be able to build tests, generate documentation and generate Python bindings, the following are also needed:
+- To be able to build tests, generate documentation, generate Python bindings, ODE extensions, the following are also needed:
 \code
-sudo apt-get install libgtest-dev doxygen python-dev
+sudo apt-get install libgtest-dev doxygen python-dev libode-dev
 \endcode
 - To be able to generate Python bindings, follow \ref installPyPlusPlus "these" instructions.
 - Follow the common steps \ref common_steps "below".

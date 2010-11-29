@@ -8,6 +8,8 @@ OMPL uses <a href="http://www.cmake.org">CMake</a> for its build system. CMake c
 cmake -DCMAKE_INSTALL_PREFIX=/some/path
 make install
 \endcode
+For ease of use, we include a CMake file that finds OMPL: \ref FindOMPL.cmake.
+
 Alternatively, you can change \c CMAKE_INSTALL_PREFIX through the CMake GUI (“<tt>ccmake .</tt>” on UNIX-like systems). With this approach, your code is built completely independently from OMPL's code and you would use OMPL as any other library.
 
 */
