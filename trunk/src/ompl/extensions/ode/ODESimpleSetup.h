@@ -88,10 +88,19 @@ namespace ompl
 		contained in a given path, sequentially. Using \e
 		timeFactor, the speed at which this sequence is
 		iterated through is altered. */
-	    void playPath(const control::PathControl &path, double timeFactor = 1.0) const;
+	    void playPath(const PathControl &path, double timeFactor = 1.0) const;
 	    
 	    /** \brief Call playPath() on the solution path, if one is available */
 	    void playSolutionPath(double timeFactor = 1.0) const;
+	    
+	    /** \brief Construct a path with this control and call playPath() on it  */
+	    void playControl(const double* control, double duration, double timeFactor = 1.0) const;
+	    
+	    /** \brief Construct a path with this control and call playPath() on it  */
+	    void playControl(const Control* control, double duration, double timeFactor = 1.0) const;
+
+	    /** \brief Construct a path with the null control and call playPath() on it  */
+	    void play(double duration, double timeFactor = 1.0) const;
 	    
 	    virtual void setup(void);
 

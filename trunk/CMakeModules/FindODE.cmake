@@ -9,7 +9,7 @@
 #
 # The following variables are set:
 #  ODE_LIBRARY     = location of ODE library
-#  ODE_INCLUDE     = include path for ODE
+#  ODE_INCLUDE_DIR = include path for ODE
 #  ODE_DEFINITIONS = defines for ODE; such as -DdSINGLE
 #  ODE_VERSION     = the version of ODE that was found; empty if ode-config was not found
 
@@ -97,9 +97,9 @@ if (_ODE_CONFIG)
 endif()
 
 # find the include path
-find_path(ODE_INCLUDE ode.h PATHS ${_ODE_INCLUDE_HINTS} PATH_SUFFIXES ode include/ode)
-if (ODE_INCLUDE)
-  string(REGEX REPLACE "/ode$" "" ODE_INCLUDE ${ODE_INCLUDE})
+find_path(ODE_INCLUDE_DIR ode.h PATHS ${_ODE_INCLUDE_HINTS} PATH_SUFFIXES ode include/ode)
+if (ODE_INCLUDE_DIR)
+  string(REGEX REPLACE "/ode$" "" ODE_INCLUDE_DIR ${ODE_INCLUDE_DIR})
 endif()
 
 # find the lib
@@ -111,13 +111,13 @@ if (_ODE_DEBUG_OUTPUT)
   message(STATUS "ODE_CONFIG = '${_ODE_CONFIG}'")
   message(STATUS "ODE_DEFINITIONS = '${ODE_DEFINITIONS}'")
   message(STATUS "_ODE_INCLUDE_HINTS = '${_ODE_INCLUDE_HINTS}'")
-  message(STATUS "ODE_INCLUDE = '${ODE_INCLUDE}'")
+  message(STATUS "ODE_INCLUDE_DIR = '${ODE_INCLUDE_DIR}'")
   message(STATUS "_ODE_LIB_HINTS = '${_ODE_LIB_HINTS}'")
   message(STATUS "ODE_LIBRARY = '${ODE_LIBRARY}'")
   message(STATUS "ODE_VERSION = '${ODE_VERSION}'")
   message(STATUS "-----------------------------------")
 endif()
 
-find_package_handle_standard_args(ODE DEFAULT_MSG ODE_LIBRARY ODE_INCLUDE)
+find_package_handle_standard_args(ODE DEFAULT_MSG ODE_LIBRARY ODE_INCLUDE_DIR)
 mark_as_advanced(_ODE_CONFIG _ODE_INCLUDE_H)
 mark_as_advanced(ODE_LIBRARY ODE_INCLUDE ODE_DEFINITIONS ODE_VERSION)

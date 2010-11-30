@@ -96,11 +96,13 @@ void ompl::control::ODESimpleSetup::playSolutionPath(double timeFactor) const
 	playPath(getSolutionPath(), timeFactor);
 }
 
-void ompl::control::ODESimpleSetup::playPath(const control::PathControl &path, double timeFactor) const
+void ompl::control::ODESimpleSetup::playPath(const PathControl &path, double timeFactor) const
 {
     const geometric::PathGeometric &pg = path.asGeometric();
     if (!pg.states.empty())
     {
+	msg_.debug("Playing through %u states (%0.3f seconds)", (unsigned int)pg.states.size(),
+		   timeFactor * si_->getPropagationStepSize() * (double)(pg.states.size() - 1));
 	time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
 	getStateManifold()->as<ODEStateManifold>()->writeState(pg.states[0]);
 	for (unsigned int i = 1 ; i < pg.states.size() ; ++i)
@@ -109,4 +111,37 @@ void ompl::control::ODESimpleSetup::playPath(const control::PathControl &path, d
 	    getStateManifold()->as<ODEStateManifold>()->writeState(pg.states[i]);
 	}
     }
+}
+
+void ompl::control::ODESimpleSetup::playControl(const double* control, double duration, double timeFactor) const
+{
+    Control *c = si_->allocControl();
+    memcpy(c->as<ODEControlManifold::ControlType>()->values, control, sizeof(double) * getControlManifold()->getDimension());
+    playControl(c, duration, timeFactor);
+    si_->freeControl(c);
+}
+
+void ompl::control::ODESimpleSetup::playControl(const Control* control, double duration, double timeFactor) const
+{
+    unsigned int steps = floor(0.5 + duration / si_->getPropagationStepSize());
+    PathControl p(si_);
+
+    base::State *s0 = si_->allocState();
+    getStateManifold()->as<ODEStateManifold>()->readState(s0);
+    p.states.push_back(s0);
+    
+    base::State *s1 = si_->allocState();
+    si_->propagate(s0, control, steps, s1);
+    p.states.push_back(s1);
+    
+    p.controls.push_back(si_->cloneControl(control));
+    p.controlDurations.push_back(steps);
+    playPath(p, timeFactor);
+}
+
+void ompl::control::ODESimpleSetup::play(double duration, double timeFactor) const
+{
+    Control *c = si_->allocControl();
+    si_->nullControl(c);
+    playControl(c, duration, timeFactor);
 }

@@ -110,7 +110,12 @@ void ompl::control::RealVectorControlManifold::nullControl(Control *control) con
 {
     ControlType *rcontrol = static_cast<ControlType*>(control);
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
-	rcontrol->values[i] = 0.0;
+    {
+	if (bounds_.low[i] <= 0.0 && bounds_.high[i] >= 0.0)
+	    rcontrol->values[i] = 0.0;
+	else
+	    rcontrol->values[i] = bounds_.low[i];
+    }
 }
 
 void ompl::control::RealVectorControlManifold::printControl(const Control *control, std::ostream &out) const

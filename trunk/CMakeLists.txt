@@ -29,7 +29,7 @@ else(OMPL_IN_ROS)
 	set(OMPL_EXTENSION_ODE ${ODE_FOUND})
 	if (ODE_FOUND)
 	        add_definitions(${ODE_DEFINITIONS})
-		include_directories(${ODE_INCLUDE})
+		include_directories(${ODE_INCLUDE_DIR})
 	endif()
 endif(OMPL_IN_ROS)
 
