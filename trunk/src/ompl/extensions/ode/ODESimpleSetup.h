@@ -84,6 +84,24 @@ namespace ompl
             /** \brief Set the current ODE state (set parameters for ODE bodies) */
             void setCurrentState(const base::ScopedState<> &state);
 
+	    /** \brief Set the bounds for the planning volume */
+	    void setVolumeBounds(const base::RealVectorBounds &bounds)
+	    {	
+		getStateManifold()->as<ODEStateManifold>()->setVolumeBounds(bounds);
+	    }
+	    
+	    /** \brief Set the bounds for the linear velocity */
+	    void setLinearVelocityBounds(const base::RealVectorBounds &bounds)
+	    {
+		getStateManifold()->as<ODEStateManifold>()->setLinearVelocityBounds(bounds);
+	    }
+	    
+	    /** \brief Set the bounds for the angular velocity */
+	    void setAngularVelocityBounds(const base::RealVectorBounds &bounds)
+	    {
+		getStateManifold()->as<ODEStateManifold>()->setAngularVelocityBounds(bounds);
+	    }	    
+	    
 	    /** \brief Set the ODE world to the states that are
 		contained in a given path, sequentially. Using \e
 		timeFactor, the speed at which this sequence is

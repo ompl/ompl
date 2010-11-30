@@ -1,5 +1,6 @@
 #include "ompl/extensions/ode/ODEStateManifold.h"
 #include "ompl/util/Console.h"
+#include <boost/lexical_cast.hpp>
 #include <limits>
 #include <queue>
 
@@ -10,10 +11,19 @@ ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironmentPtr &env,
     name_ = "ODE" + name_;
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
     {
+	std::string body = ":B" + boost::lexical_cast<std::string>(i);
+	
 	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), positionWeight); // position
+	components_.back()->setName(components_.back()->getName() + body + ":position");
+	
 	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), linVelWeight);   // linear velocity
+	components_.back()->setName(components_.back()->getName() + body + ":linvel");
+
 	addSubManifold(base::StateManifoldPtr(new base::RealVectorStateManifold(3)), angVelWeight);   // angular velocity
+	components_.back()->setName(components_.back()->getName() + body + ":angvel");
+	
 	addSubManifold(base::StateManifoldPtr(new base::SO3StateManifold()), orientationWeight);      // orientation
+	components_.back()->setName(components_.back()->getName() + body + ":orientation");
     }
     lock();
     setDefaultBounds();
