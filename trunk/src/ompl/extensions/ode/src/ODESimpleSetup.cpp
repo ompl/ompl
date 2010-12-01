@@ -93,12 +93,21 @@ void ompl::control::ODESimpleSetup::setup(void)
 void ompl::control::ODESimpleSetup::playSolutionPath(double timeFactor) const
 {
     if (haveSolutionPath())
-	playPath(getSolutionPath(), timeFactor);
+	playPath(getGoal()->getSolutionPath(), timeFactor);
 }
 
-void ompl::control::ODESimpleSetup::playPath(const PathControl &path, double timeFactor) const
+void ompl::control::ODESimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const
 {
-    const geometric::PathGeometric &pg = path.asGeometric();
+    bool ctl = false;
+    if (dynamic_cast<PathControl*>(path.get()))
+	ctl = true;
+    else
+	if (!dynamic_cast<geometric::PathGeometric*>(path.get()))
+	    throw Exception("Unknown type of path");
+    
+    const geometric::PathGeometric &pg = ctl ?
+	static_cast<PathControl*>(path.get())->asGeometric() : *static_cast<geometric::PathGeometric*>(path.get());
+    
     if (!pg.states.empty())
     {
 	msg_.debug("Playing through %u states (%0.3f seconds)", (unsigned int)pg.states.size(),
@@ -113,35 +122,37 @@ void ompl::control::ODESimpleSetup::playPath(const PathControl &path, double tim
     }
 }
 
-void ompl::control::ODESimpleSetup::playControl(const double* control, double duration, double timeFactor) const
+ompl::base::PathPtr ompl::control::ODESimpleSetup::simulateControl(const double* control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
     memcpy(c->as<ODEControlManifold::ControlType>()->values, control, sizeof(double) * getControlManifold()->getDimension());
-    playControl(c, duration, timeFactor);
+    base::PathPtr path = simulateControl(c, steps);
     si_->freeControl(c);
+    return path;
 }
 
-void ompl::control::ODESimpleSetup::playControl(const Control* control, double duration, double timeFactor) const
+ompl::base::PathPtr ompl::control::ODESimpleSetup::simulateControl(const Control* control, unsigned int steps) const
 {
-    unsigned int steps = floor(0.5 + duration / si_->getPropagationStepSize());
-    PathControl p(si_);
+    PathControl *p(new PathControl(si_));
 
     base::State *s0 = si_->allocState();
     getStateManifold()->as<ODEStateManifold>()->readState(s0);
-    p.states.push_back(s0);
+    p->states.push_back(s0);
     
     base::State *s1 = si_->allocState();
     si_->propagate(s0, control, steps, s1);
-    p.states.push_back(s1);
+    p->states.push_back(s1);
     
-    p.controls.push_back(si_->cloneControl(control));
-    p.controlDurations.push_back(steps);
-    playPath(p, timeFactor);
+    p->controls.push_back(si_->cloneControl(control));
+    p->controlDurations.push_back(steps);
+    return base::PathPtr(p);
 }
 
-void ompl::control::ODESimpleSetup::play(double duration, double timeFactor) const
+ompl::base::PathPtr ompl::control::ODESimpleSetup::simulate(unsigned int steps) const
 {
     Control *c = si_->allocControl();
     si_->nullControl(c);
-    playControl(c, duration, timeFactor);
+    base::PathPtr path = simulateControl(c, steps);
+    si_->freeControl(c);
+    return path;
 }

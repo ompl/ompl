@@ -73,7 +73,7 @@ namespace ompl
 	    }
 	    
 	    /** \brief Get the ODE environment associated to the state and control manifolds */
-	    const ODEEnvironmentPtr& getODEEnvironment(void) const
+	    const ODEEnvironmentPtr& getEnvironment(void) const
 	    {
 		return getStateManifold()->as<ODEStateManifold>()->getEnvironment();
 	    }
@@ -106,19 +106,24 @@ namespace ompl
 		contained in a given path, sequentially. Using \e
 		timeFactor, the speed at which this sequence is
 		iterated through is altered. */
-	    void playPath(const PathControl &path, double timeFactor = 1.0) const;
+	    void playPath(const base::PathPtr &path, double timeFactor = 1.0) const;
 	    
 	    /** \brief Call playPath() on the solution path, if one is available */
 	    void playSolutionPath(double timeFactor = 1.0) const;
 	    
-	    /** \brief Construct a path with this control and call playPath() on it  */
-	    void playControl(const double* control, double duration, double timeFactor = 1.0) const;
+	    /** \brief Simulate the ODE environment forward for \e steps simulation steps, using the control \e control.
+		Construct a path representing this action. */
+	    base::PathPtr simulateControl(const double* control, unsigned int steps) const;
 	    
-	    /** \brief Construct a path with this control and call playPath() on it  */
-	    void playControl(const Control* control, double duration, double timeFactor = 1.0) const;
+	    /** \brief Simulate the ODE environment forward for \e steps simulation steps, using the control \e control.
+		Construct a path representing this action. */
+	    base::PathPtr simulateControl(const Control* control, unsigned int steps) const;
 
-	    /** \brief Construct a path with the null control and call playPath() on it  */
-	    void play(double duration, double timeFactor = 1.0) const;
+	    /** \brief Simulate the ODE environment forward for \e
+		steps simulation steps, using the null control
+		(ompl::control::ControlManifold::nullControl()).
+		Construct a path representing this action. */
+	    base::PathPtr simulate(unsigned int steps) const;
 	    
 	    virtual void setup(void);
 
