@@ -143,3 +143,11 @@ ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(vo
     }
     throw Exception("No solution path");		
 }	
+
+ompl::base::PlannerData ompl::geometric::SimpleSetup::getPlannerData(void) const
+{
+    base::PlannerData pd;
+    if (planner_)
+	planner_->getPlannerData(pd);
+    return pd;
+}

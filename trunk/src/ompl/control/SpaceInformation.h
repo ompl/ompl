@@ -195,9 +195,9 @@ namespace ompl
 		\param result the state at the end of the propagation */
 	    void propagate(const base::State *state, const Control* control, unsigned int steps, base::State *result) const;
 
-	    /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
-		Stop if a collision is found and return the number of steps actually performed. If no collision is found, the returned value is 
-		equal to the steps argument. 
+	    /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
+		Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is 
+		equal to the \e steps argument. If a collision is found after the first step, the return value is 0 and \e result = \e state.
 		\param state the state to start at
 		\param control the control to apply
 		\param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
@@ -214,16 +214,18 @@ namespace ompl
 		\note Start state \e state is not included in \e result */
 	    void propagate(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
 
-	    /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
-		Stop if a collision is found and return the number of steps actually performed. If no collision is found, the returned value is 
-		equal to the steps argument. 
+	    /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
+		Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is 
+		equal to the \e steps argument.  If a collision is found after the first step, the return value is 0 and no states are added to \e result.
+		If \e alloc is false and \e result cannot store all the generated states, propagation is stopped prematurely (when \e result is full).
+		The starting state (\e state) is not included in \e result. The return value of the function indicates how many states have been written to \e result.
+
 		\param state the state to start at
 		\param control the control to apply
 		\param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
 		\param result the set of states along the propagated motion (only valid states included)
 		\param alloc flag indicating whether memory for the states in \e result should be allocated
-		
-		\note Start state \e state is not included in \e result */
+	    */
 	    unsigned int propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
 
 	    /** @} */
