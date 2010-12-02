@@ -103,7 +103,7 @@ class code_generator_t(object):
 		@name name of the python module
 		@dep name of another module this module depends on"""
 		module_builder.set_logger_level( logging.INFO )
-		candidate_include_paths = [ "@OMPL_INCLUDE_DIR@", "@OMPL_APP_INCLUDE_DIR@",
+		candidate_include_paths = [ "@OMPL_INCLUDE_DIR@", "@OMPLAPP_INCLUDE_DIR@",
 			"@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@", "@ASSIMP_INCLUDE_DIR@"]
 		include_paths = []
 		for path in candidate_include_paths:
