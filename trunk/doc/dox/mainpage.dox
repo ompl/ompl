@@ -1,6 +1,12 @@
 /**
 \mainpage Open Motion Planning Library
 
+\htmlonly
+<img src="../images/mp.png" style="width:40%; float:right;">
+\endhtmlonly
+
+<br><br>
+
 The Open Motion Planning Library (@b OMPL) consists of a set of
 sampling-based motion planning algorithms. The content of the
 library is limited to these algorithms, which means there is no
@@ -19,5 +25,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible
 and freely available (visit this project on <a
 href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 For more details, see \ref documentation "the documentation".
+
+For examples of using OMPL, see \ref gallery "our gallery page".
 
 */
