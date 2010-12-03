@@ -43,6 +43,11 @@ void ompl::geometric::LBKPIECE1::setup(void)
     Planner::setup();  
     checkProjectionEvaluator(this, projectionEvaluator_);
     checkMotionLength(this, maxDistance_);
+
+    if (minValidPathFraction_ < std::numeric_limits<double>::epsilon() || minValidPathFraction_ > 1.0)
+        throw Exception("The minimum valid path fraction must be in the range (0,1]");
+    if (selectBorderFraction_ < std::numeric_limits<double>::epsilon() || selectBorderFraction_ > 1.0)
+        throw Exception("The fraction of time spent selecting border cells must be in the range (0,1]");
     
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());

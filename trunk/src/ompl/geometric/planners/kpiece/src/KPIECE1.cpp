@@ -44,7 +44,16 @@ void ompl::geometric::KPIECE1::setup(void)
     Planner::setup();
     checkProjectionEvaluator(this, projectionEvaluator_);
     checkMotionLength(this, maxDistance_);
-    
+
+    if (badScoreFactor_ < std::numeric_limits<double>::epsilon() || badScoreFactor_ > 1.0)
+        throw Exception("Bad cell score factor must be in the range (0,1]");    
+    if (goodScoreFactor_ < std::numeric_limits<double>::epsilon() || goodScoreFactor_ > 1.0)
+        throw Exception("Good cell score factor must be in the range (0,1]");    
+    if (minValidPathFraction_ < std::numeric_limits<double>::epsilon() || minValidPathFraction_ > 1.0)
+        throw Exception("The minimum valid path fraction must be in the range (0,1]");
+    if (selectBorderFraction_ < std::numeric_limits<double>::epsilon() || selectBorderFraction_ > 1.0)
+        throw Exception("The fraction of time spent selecting border cells must be in the range (0,1]");
+
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 

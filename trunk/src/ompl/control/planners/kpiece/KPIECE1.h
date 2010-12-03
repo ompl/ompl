@@ -75,7 +75,7 @@ namespace ompl
 		
 		siC_ = si.get();
 		goalBias_ = 0.05;
-		selectBorderPercentage_ = 0.7;
+		selectBorderFraction_ = 0.7;
 		badScoreFactor_ = 0.3;
 		goodScoreFactor_ = 0.9;
 		tree_.grid.onCellUpdate(computeImportance, NULL);
@@ -107,6 +107,51 @@ namespace ompl
 	    {
 		return goalBias_;
 	    }
+
+	    /** \brief Set the fraction of time for focusing on the
+		border (between 0 and 1). This is the minimum fraction
+		used to select cells that are exterior (minimum
+		because if 95% of cells are on the border, they will
+		be selected with 95% chance, even if this fraction is
+		set to 90%)*/
+	    void setBorderFraction(double bp)
+	    {
+		selectBorderFraction_ = bp;
+	    }
+	    
+	    /** \brief Get the fraction of time to focus exploration
+		on boundary */
+	    double getBorderFraction(void) const
+	    {
+		return selectBorderFraction_;
+	    }
+
+            
+	    /** \brief When extending a motion from a cell, the
+		extension can be successful or it can fail.  If the
+		extension is successful, the score of the cell is
+		multiplied by \e good. If the extension fails, the
+		score of the cell is multiplied by \e bad. These
+		numbers should be in the range (0, 1]. */
+            void setCellScoreFactor(double good, double bad)
+            {
+                goodScoreFactor_ = good;
+                badScoreFactor_ = bad;
+            }
+            
+            /** \brief Get the factor that is multiplied to a cell's
+                score if extending a motion from that cell succeeded. */
+            double getGoodCellScoreFactor(void) const
+            {
+                return goodScoreFactor_;
+            }
+
+            /** \brief Get the factor that is multiplied to a cell's
+                score if extending a motion from that cell failed. */
+            double getBadCellScoreFactor(void) const
+            {
+                return badScoreFactor_;
+            }
 	    
 	    /** \brief Set the projection evaluator. This class is
 		able to compute the projection of a given state. */
@@ -220,7 +265,7 @@ namespace ompl
 	    
 	    double                        goodScoreFactor_;
 	    double                        badScoreFactor_;
-	    double                        selectBorderPercentage_;
+	    double                        selectBorderFraction_;
 	    double                        goalBias_;
 	    RNG                           rng_;	
 	};

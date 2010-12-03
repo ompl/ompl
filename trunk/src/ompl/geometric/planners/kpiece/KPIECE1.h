@@ -154,7 +154,50 @@ namespace ompl
 	    {
 		return selectBorderFraction_;
 	    }
-	    
+
+	    /** \brief When extending a motion, the planner can decide
+		to keep the first valid part of it, even if invalid
+		states are found, as long as the valid part represents
+		a sufficiently large fraction from the original
+		motion. This function sets the minimum acceptable
+		fraction (between 0 and 1). */
+	    void setMinValidPathFraction(double fraction)
+	    {
+		minValidPathFraction_ = fraction;
+	    }
+
+	    /** \brief Get the value of the fraction set by setMinValidPathFraction() */
+	    double getMinValidPathFraction(void) const
+	    {
+		return minValidPathFraction_;
+	    }
+            
+	    /** \brief When extending a motion from a cell, the
+		extension can be successful or it can fail.  If the
+		extension is successful, the score of the cell is
+		multiplied by \e good. If the extension fails, the
+		score of the cell is multiplied by \e bad. These
+		numbers should be in the range (0, 1]. */
+            void setCellScoreFactor(double good, double bad)
+            {
+                goodScoreFactor_ = good;
+                badScoreFactor_ = bad;
+            }
+            
+            /** \brief Get the factor that is multiplied to a cell's
+                score if extending a motion from that cell succeeded. */
+            double getGoodCellScoreFactor(void) const
+            {
+                return goodScoreFactor_;
+            }
+
+            /** \brief Get the factor that is multiplied to a cell's
+                score if extending a motion from that cell failed. */
+            double getBadCellScoreFactor(void) const
+            {
+                return badScoreFactor_;
+            }
+            
 	    /** \brief Set the projection evaluator. This class is
 		able to compute the projection of a given state. */
 	    void setProjectionEvaluator(const base::ProjectionEvaluatorPtr &projectionEvaluator)
@@ -333,7 +376,7 @@ namespace ompl
 	    double                                     minValidPathFraction_;
 
 	    /** \brief When extending a motion from a cell, the
-		extension can be succesful. If it is, the score of the
+		extension can be successful. If it is, the score of the
 		cell is multiplied by this factor. */
 	    double                                     goodScoreFactor_;
 

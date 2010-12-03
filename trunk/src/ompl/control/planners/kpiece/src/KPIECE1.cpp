@@ -45,6 +45,13 @@ void ompl::control::KPIECE1::setup(void)
     Planner::setup();
     checkProjectionEvaluator(this, projectionEvaluator_);
     
+    if (badScoreFactor_ < std::numeric_limits<double>::epsilon() || badScoreFactor_ > 1.0)
+        throw Exception("Bad cell score factor must be in the range (0,1]");    
+    if (goodScoreFactor_ < std::numeric_limits<double>::epsilon() || goodScoreFactor_ > 1.0)
+        throw Exception("Good cell score factor must be in the range (0,1]");    
+    if (selectBorderFraction_ < std::numeric_limits<double>::epsilon() || selectBorderFraction_ > 1.0)
+        throw Exception("The fraction of time spent selecting border cells must be in the range (0,1]");
+
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 
@@ -141,8 +148,11 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
     Control *rctrl = siC_->allocControl();
     Grid::Coord origin;
-    std::vector<Grid::Coord> coords(siC_->getMaxControlDuration() + 1);
+
     std::vector<base::State*> states(siC_->getMaxControlDuration() + 1);
+    std::vector<Grid::Coord>  coords(states.size());
+    std::vector<Grid::Cell*>  cells(coords.size());
+    
     for (unsigned int i = 0 ; i < states.size() ; ++i)
 	states[i] = si_->allocState();
     
@@ -190,50 +200,65 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 	/* if we have enough steps */
 	if (cd >= siC_->getMinControlDuration())
 	{
-
+	    std::size_t avgCov_two_thirds = (2 * tree_.size) / (3 * tree_.grid.size());
+	    bool interestingMotion = false;
+	    
 	    // split the motion into smaller ones, so we do not cross cell boundaries
 	    projectionEvaluator_->computeCoordinates(existing->state, origin);
 	    for (unsigned int i = 0 ; i < cd ; ++i)
+	    {
 		projectionEvaluator_->computeCoordinates(states[i], coords[i]);
-	    
-	    unsigned int last = cd - 1;
-	    unsigned int index = 0;
-	    while (index < last)
-	    {		
-		unsigned int nextIndex = findNextMotion(origin, coords, index, last);
-		Motion *motion = new Motion(siC_);
-		si_->copyState(motion->state, states[nextIndex]);
-		siC_->copyControl(motion->control, rctrl);
-		motion->steps = nextIndex - index + 1;
-		motion->parent = existing;
-
-		double dist = 0.0;
-		bool solved = goal->isSatisfied(motion->state, &dist);
-		addMotion(motion, dist);
-		
-		if (solved)
+		cells[i] = tree_.grid.getCell(coords[i]);
+		if (!cells[i])
+		    interestingMotion = true;
+		else
 		{
-		    approxdif = dist;
-		    solution = motion;    
-		    break;
+		    if (!interestingMotion && cells[i]->data->motions.size() <= avgCov_two_thirds)
+			interestingMotion = true;
 		}
-		if (dist < approxdif)
-		{
-		    approxdif = dist;
-		    approxsol = motion;
-		    better_coord = coords[nextIndex];
-		    haveBetterCoord = true;
-		}
-		
-		// new parent will be the newly created motion
-		existing = motion;
-		
-		origin = coords[nextIndex];
-		index = nextIndex + 1;
 	    }
+            
+	    if (interestingMotion || rng_.uniform01() < 0.05)
+	    {
+		unsigned int last = cd - 1;
+		unsigned int index = 0;
+		while (index < last)
+		{		
+		    unsigned int nextIndex = findNextMotion(origin, coords, index, last);
+		    Motion *motion = new Motion(siC_);
+		    si_->copyState(motion->state, states[nextIndex]);
+		    siC_->copyControl(motion->control, rctrl);
+		    motion->steps = nextIndex - index + 1;
+		    motion->parent = existing;
+		    
+		    double dist = 0.0;
+		    bool solved = goal->isSatisfied(motion->state, &dist);
+		    addMotion(motion, dist);
+		    
+		    if (solved)
+		    {
+			approxdif = dist;
+			solution = motion;    
+			break;
+		    }
+		    if (dist < approxdif)
+		    {
+			approxdif = dist;
+			approxsol = motion;
+			better_coord = coords[nextIndex];
+			haveBetterCoord = true;
+		    }
+		    
+		    // new parent will be the newly created motion
+		    existing = motion;
+		    
+		    origin = coords[nextIndex];
+		    index = nextIndex + 1;
+		}
 	    
-	    if (solution)
-		break;
+		if (solution)
+		    break;
+	    }
 	    
 	    // update cell score 
 	    ecell->data->score *= goodScoreFactor_;
@@ -292,7 +317,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
 bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 {
-    scell = rng_.uniform01() < std::max(selectBorderPercentage_, tree_.grid.fracExternal()) ?
+    scell = rng_.uniform01() < std::max(selectBorderFraction_, tree_.grid.fracExternal()) ?
 	tree_.grid.topExternal() : tree_.grid.topInternal();
 
     // We are running on finite precision, so our update scheme will end up 
