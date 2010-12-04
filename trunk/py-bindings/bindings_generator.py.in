@@ -35,6 +35,7 @@
 # Author: Mark Moll
 
 import logging
+from os.path import exists
 from pygccxml import declarations
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
@@ -107,7 +108,7 @@ class code_generator_t(object):
 			"@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@", "@ASSIMP_INCLUDE_DIR@"]
 		include_paths = []
 		for path in candidate_include_paths:
-			if len(path)>0:
+			if len(path)>0 and exists(path):
 				include_paths.append(path)
 		self.mb = module_builder.module_builder_t(
 			files = [ 'bindings/' + name + '.h' ],
