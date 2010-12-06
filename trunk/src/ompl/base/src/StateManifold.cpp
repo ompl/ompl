@@ -472,39 +472,56 @@ namespace ompl
             std::vector<StateManifoldPtr> components;
             std::vector<double>           weights;
             
-            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
-                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
-                {
-                    components.push_back(csm_a->getSubManifold(i));
-                    weights.push_back(csm_a->getSubManifoldWeight(i));
-                }	
-            else
-            {
-                components.push_back(a);
-                weights.push_back(1.0);
-            }
-            unsigned int size = components.size();
-            if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
-                for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
-                {
-                    bool ok = true;
-                    for (unsigned int j = 0 ; j < size ; ++j)
-                        if (components[j]->getName() == csm_b->getSubManifold(i)->getName())
-                        {
-                            ok = false;
-                            break;
-                        }
-                    if (ok)
-                    {
-                        components.push_back(csm_b->getSubManifold(i));
-                        weights.push_back(csm_b->getSubManifoldWeight(i));
-                    }
-                }	
-            else
-            {
-                components.push_back(b);
-                weights.push_back(1.0);
-            }
+	    if (a)
+	    {
+		if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+		    for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+		    {
+			components.push_back(csm_a->getSubManifold(i));
+			weights.push_back(csm_a->getSubManifoldWeight(i));
+		    }	
+		else
+		{
+		    components.push_back(a);
+		    weights.push_back(1.0);
+		}
+	    }
+	    if (b)
+	    {
+		unsigned int size = components.size();
+		if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+		    for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+		    {
+			bool ok = true;
+			for (unsigned int j = 0 ; j < size ; ++j)
+			    if (components[j]->getName() == csm_b->getSubManifold(i)->getName())
+			    {
+				ok = false;
+				break;
+			    }
+			if (ok)
+			{
+			    components.push_back(csm_b->getSubManifold(i));
+			    weights.push_back(csm_b->getSubManifoldWeight(i));
+			}
+		    }	
+		else
+		{
+		    bool ok = true;
+		    for (unsigned int j = 0 ; j < size ; ++j)
+			if (components[j]->getName() == b->getName())
+			{
+			    ok = false;
+			    break;
+			}
+		    if (ok)
+		    {
+			components.push_back(b);
+			weights.push_back(1.0);
+		    }
+		}
+	    }
+	    
             if (components.size() == 1)
                 return components[0];
 
@@ -529,12 +546,15 @@ namespace ompl
 		weights_a.push_back(1.0);
             }
             
-            if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
-                for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
-                    components_b.push_back(csm_b->getSubManifold(i));
-            else
-		components_b.push_back(b);
-            
+	    if (b)
+	    {
+		if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+		    for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+			components_b.push_back(csm_b->getSubManifold(i));
+		else
+		    components_b.push_back(b);
+            }
+	    
             for (unsigned int i = 0 ; i < components_b.size() ; ++i)
                 for (unsigned int j = 0 ; j < components_a.size() ; ++j)
                     if (components_a[j]->getName() == components_b[i]->getName())
@@ -585,28 +605,34 @@ namespace ompl
             std::vector<StateManifoldPtr> components_b;
 	    std::vector<double>           weights_b;
 
-            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
-                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
-                {
-                    components_a.push_back(csm_a->getSubManifold(i));
-                    weights_a.push_back(csm_a->getSubManifoldWeight(i));
-                }	
-            else
-            {
-		components_a.push_back(a);
-		weights_a.push_back(1.0);
-            }
-            
-            if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
-                for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
-		{
-		    components_b.push_back(csm_b->getSubManifold(i));
-                    weights_b.push_back(csm_b->getSubManifoldWeight(i));
-		}
-	    else
+	    if (a)
 	    {
-		components_b.push_back(b);
-		weights_b.push_back(1.0);
+		if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+		    for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+		    {
+			components_a.push_back(csm_a->getSubManifold(i));
+			weights_a.push_back(csm_a->getSubManifoldWeight(i));
+		    }	
+		else
+		{
+		    components_a.push_back(a);
+		    weights_a.push_back(1.0);
+		}
+            }
+	    
+	    if (b)
+	    {
+		if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+		    for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+		    {
+			components_b.push_back(csm_b->getSubManifold(i));
+			weights_b.push_back(csm_b->getSubManifoldWeight(i));
+		    }
+		else
+		{
+		    components_b.push_back(b);
+		    weights_b.push_back(1.0);
+		}
 	    }
 	    
             std::vector<StateManifoldPtr> components;
