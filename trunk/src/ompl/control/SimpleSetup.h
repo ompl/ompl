@@ -135,8 +135,7 @@ namespace ompl
 		si_->setStateValidityChecker(svc);
 	    }
 
-	    /** \brief Set the start and goal states to use. The state
-		manifold is inferred, if not yet set. */
+	    /** \brief Set the start and goal states to use. */
 	    void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
 	    {
 		pdef_->setStartAndGoalStates(start, goal, threshold);
@@ -148,12 +147,24 @@ namespace ompl
 		pdef_->setGoalState(goal, threshold);
 	    }
 
-	    /** \brief Add a starting state for planning. The state
-		manifold is inferred, if not yet set. This call is not
+	    /** \brief Add a starting state for planning. This call is not
 		needed if setStartAndGoalStates() has been called. */
 	    void addStartState(const base::ScopedState<> &state)
 	    {
 		pdef_->addStartState(state);
+	    }
+
+	    /** \brief Clear the currently set starting states */
+	    void clearStartStates(void)
+	    {
+		pdef_->clearStartStates();
+	    }
+
+	    /** \brief Clear the currently set starting states and add \e state as the starting state */
+	    void setStartState(const base::ScopedState<> &state)
+	    {
+		clearStartStates();
+		addStartState(state);
 	    }
 	    
 	    /** \brief Set the goal for planning. This call is not
