@@ -5,3 +5,4 @@
      (see code in unused/) (for later).
 * Create a more complex ODE demo (nice to have).
 * Path smoothing with splines.
+* Expose ODE extension through Python bindings.
