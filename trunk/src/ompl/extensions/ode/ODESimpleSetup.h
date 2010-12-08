@@ -84,6 +84,9 @@ namespace ompl
             /** \brief Set the current ODE state (set parameters for ODE bodies) */
             void setCurrentState(const base::ScopedState<> &state);
 
+            /** \brief Set the current ODE state (set parameters for ODE bodies) */
+            void setCurrentState(const base::State *state);
+
 	    /** \brief Set the bounds for the planning volume */
 	    void setVolumeBounds(const base::RealVectorBounds &bounds)
 	    {	

@@ -70,6 +70,11 @@ ompl::base::ScopedState<ompl::control::ODEStateManifold> ompl::control::ODESimpl
     return current;
 }
 
+void ompl::control::ODESimpleSetup::setCurrentState(const base::State *state)
+{
+    getStateManifold()->as<ODEStateManifold>()->writeState(state);
+}
+
 void ompl::control::ODESimpleSetup::setCurrentState(const base::ScopedState<> &state)
 {
     getStateManifold()->as<ODEStateManifold>()->writeState(state.get());
