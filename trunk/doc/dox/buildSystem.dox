@@ -10,7 +10,7 @@ cmake -DCMAKE_INSTALL_PREFIX=/some/path
 make install
 \endcode
 	Alternatively, you can change \c CMAKE_INSTALL_PREFIX through the CMake GUI (“<tt>ccmake .</tt>” on UNIX-like systems). With this approach, your code is built completely independently from OMPL's code and you would use OMPL as any other library. Note that it's not required to install OMPL; you can just as easily use the headers from the OMPL source tree and the libraries from the build directory.
-	- If you use Makefiles, add “\c -I/usr/local/include” (or, e.g., “\c -I${HOME}/ompl/src”) to your compile flags, and “\c-L/usr/local/lib \c-lompl” (or, e.g., “\c-L${HOME}/ompl/build/Release/lib \c-lompl”) to your link flags. 
+	- If you use Makefiles, add “\c -I/usr/local/include” (or, e.g., “\c -I${HOME}/ompl/src”) to your compile flags, and “\c -L/usr/local/lib \c -lompl” (or, e.g., “\c -L${HOME}/ompl/build/Release/lib \c -lompl”) to your link flags. 
 For ease of use with CMake, we have included a CMake file that finds OMPL: \ref FindOMPL.cmake.
 
  

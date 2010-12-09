@@ -52,7 +52,8 @@ namespace ompl
 	class RealVectorStateSampler : public ManifoldStateSampler
 	{
 	public:
-	    
+
+            /** \brief Constructor */
 	    RealVectorStateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
 	    {
 	    }

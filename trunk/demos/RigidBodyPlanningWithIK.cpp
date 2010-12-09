@@ -67,7 +67,6 @@ public:
     }
     
 };
-/// @cond IGNORE
 
 // Goal regions such as the one above cannot be sampled, so
 // bi-directional trees cannot be used for solving. However, we can
@@ -142,6 +141,7 @@ void planWithIK(void)
     // (i.e., the sampling thread was able to terminate), we make sure sampling has terminated
     goal->as<ob::GoalLazySamples>()->stopSampling();
 }
+/// @endcond
 
 int main(int, char **)
 {

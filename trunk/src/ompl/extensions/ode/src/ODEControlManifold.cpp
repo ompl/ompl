@@ -59,16 +59,15 @@ ompl::control::ODEControlManifold::ODEControlManifold(const base::StateManifoldP
     setBounds(bounds);
 }
 
+/// @cond IGNORE
 namespace ompl
 {
 
-    /// @cond IGNORE
     struct CallbackParam
     {
 	const control::ODEEnvironment *env;
 	bool                           collision;
     };
-    /// @cond
 
     void nearCallback(void *data, dGeomID o1, dGeomID o2)
     {
@@ -103,6 +102,7 @@ namespace ompl
 	}
     }
 }
+/// @endcond
 
 void ompl::control::ODEControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {

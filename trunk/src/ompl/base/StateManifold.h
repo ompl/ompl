@@ -65,7 +65,7 @@ namespace ompl
 	    performed. Topology specific sampling, interpolation and distance
 	    are defined. 
 	
-	    See \ref implementStateManifold. */
+	    See \ref implementingStateManifolds. */
 	class StateManifold : private boost::noncopyable
 	{
 	public:

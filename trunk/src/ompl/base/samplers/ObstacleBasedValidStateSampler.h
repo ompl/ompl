@@ -46,7 +46,7 @@ namespace ompl
     {
 	
 
-	/** \brief A state sampler that only samples valid states. */
+	/** \brief Generate valid samples using the Bridge Test. */
 	class ObstacleBasedValidStateSampler : public ValidStateSampler
 	{	    
 	public:

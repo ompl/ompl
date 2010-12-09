@@ -133,8 +133,11 @@ namespace ompl
 	    virtual void simplifyMax(PathGeometric &path);
 	    
 	protected:
-	    
+            
+            /** \brief The space information this path simplifier uses */
 	    base::SpaceInformationPtr si_;
+
+            /** \brief Instance of random number generator */
 	    RNG                       rng_;
 
 	};    

@@ -49,6 +49,7 @@ namespace ompl
     {
     public:
         
+        /** \brief Constructor */
         SO2StateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
         {
         }

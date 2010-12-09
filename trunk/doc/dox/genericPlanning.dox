@@ -8,7 +8,7 @@
    ompl::base::StateManifold, or select one from the available implementations.
    To change the definition of the employed
    sampler or distance function, it is possible to provide a further
-   specialization of such a manifold. See @ref implementStateManifold.
+   specialization of such a manifold. See @ref implementingStateManifolds.
    @code
    base::StateManifoldPtr manifold(new base::SE2StateManifold());
    // set bounds ....

@@ -48,6 +48,8 @@ namespace ompl
 	class RealVectorBounds
 	{
 	public:
+            
+            /** \brief Constructor; \e dim represents the dimension of the space these bounds are for. */
 	    RealVectorBounds(unsigned int dim)
 	    {
 		low.resize(dim, 0.0);

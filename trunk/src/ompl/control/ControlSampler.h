@@ -125,8 +125,11 @@ namespace ompl
 	    virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
 	    
 	protected:
-	    
+            
+            /** \brief The manifold this sampler operates on */
 	    const ControlManifold *manifold_;
+            
+            /** \brief Instance of random number generator */
 	    RNG                    rng_;
 	};
 
@@ -157,8 +160,13 @@ namespace ompl
 	    virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
 	    
 	protected:
-	    
+            
+            /** \brief The instances of samplers used for compound sampler */
 	    std::vector<ControlSamplerPtr> samplers_;
+
+        private:
+            
+            /** \brief Number of sampler instances */
 	    unsigned int                   samplerCount_;
 	    
 	};

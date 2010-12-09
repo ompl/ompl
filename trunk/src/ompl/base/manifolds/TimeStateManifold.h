@@ -49,6 +49,7 @@ namespace ompl
         {
         public:
             
+            /** \brief COnstructor */
             TimeStateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
             {
             }

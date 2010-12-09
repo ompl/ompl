@@ -44,6 +44,7 @@
 #include <limits>
 
 const std::vector<double> ompl::base::ProjectionMatrix::UNSCALED = std::vector<double>();
+extern const double SPLIT_PARTS = 20.0;
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
@@ -160,7 +161,7 @@ void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
 	cellDimensions_.resize(dim);
 	for (unsigned int j = 0 ; j < dim ; ++j)
         {
-            cellDimensions_[j] = (high[j] - low[j]) / 10.0;
+            cellDimensions_[j] = (high[j] - low[j]) / SPLIT_PARTS;
             if (cellDimensions_[j] < std::numeric_limits<double>::epsilon())
             {
                 cellDimensions_[j] = 1.0;

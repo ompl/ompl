@@ -267,6 +267,7 @@ int main(int, char **)
 
 
 
+/// @cond IGNORE
 
 /***********************************************
  * Member function implementations             *
@@ -316,3 +317,4 @@ void RigidBodyEnvironment::setPlanningParameters(void)
     minControlSteps_ = 10;
     maxControlSteps_ = 500;
 }
+/// @endcond

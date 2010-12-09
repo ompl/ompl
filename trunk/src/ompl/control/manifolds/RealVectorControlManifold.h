@@ -50,7 +50,8 @@ namespace ompl
 	class RealVectorControlUniformSampler : public ControlSampler
 	{
 	public:
-	    
+            
+            /** \brief Constructor */
 	    RealVectorControlUniformSampler(const ControlManifold *manifold) : ControlSampler(manifold)
 	    {
 	    }
@@ -82,6 +83,7 @@ namespace ompl
 		    return values[i];
 		}
 		
+                /** \brief An array of length \e n, representing the value of the control */
 		double *values;
 	    };
             

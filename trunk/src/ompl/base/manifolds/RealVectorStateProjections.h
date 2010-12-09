@@ -54,12 +54,23 @@ namespace ompl
 	{
 	public:
 	    
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                \e projection and the cell dimensions are \e cellDimensions. */
 	    RealVectorLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
 						const ProjectionMatrix::Matrix &projection);
+
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                \e projection and the cell dimensions are \e cellDimensions. */
 	    RealVectorLinearProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions,
 						const ProjectionMatrix::Matrix &projection);
+
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                \e projection and the cell dimensions are automatically inferred through sampling. */
 	    RealVectorLinearProjectionEvaluator(const StateManifold *manifold, 
 						const ProjectionMatrix::Matrix &projection);
+
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                \e projection and the cell dimensions are automatically inferred through sampling. */
 	    RealVectorLinearProjectionEvaluator(const StateManifoldPtr &manifold,
 						const ProjectionMatrix::Matrix &projection);
 	    
@@ -79,22 +90,30 @@ namespace ompl
 	{
 	public:
 	    
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                sampled at random and the cell dimensions are automatically inferred through sampling. */
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions) :
 		RealVectorLinearProjectionEvaluator(manifold, cellDimensions, ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
 	    {
 	    }
-	    
+
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                sampled at random and the cell dimensions are automatically inferred through sampling. */	    
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions) :
 		RealVectorLinearProjectionEvaluator(manifold, cellDimensions, ProjectionMatrix::ComputeRandom(manifold->getDimension(), cellDimensions.size()))
 	    {
 	    }
 
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                sampled at random to produce a space of dimension \e dim and the cell dimensions are automatically inferred through sampling. */
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifold *manifold, unsigned int dim) :
 		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim,
 											      manifold->as<RealVectorStateManifold>()->getBounds().getDifference()))
 	    {
 	    }
-	    
+
+            /** \brief Initialize a linear projection evaluator for state manifold \e manifold. The used projection matrix is
+                sampled at random to produce a space of dimension \e dim and the cell dimensions are automatically inferred through sampling. */	    
 	    RealVectorRandomLinearProjectionEvaluator(const StateManifoldPtr &manifold, unsigned int dim) :
 		RealVectorLinearProjectionEvaluator(manifold, ProjectionMatrix::ComputeRandom(manifold->getDimension(), dim,
 											      manifold->as<RealVectorStateManifold>()->getBounds().getDifference()))
@@ -108,11 +127,22 @@ namespace ompl
 	{
 	public:
 	    
+            /** \brief Initialize an orthogonal projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are in \e cellDimensions */
 	    RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
 						    const std::vector<unsigned int> &components);
+
+            /** \brief Initialize an orthogonal projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are in \e cellDimensions */
 	    RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions,
 						    const std::vector<unsigned int> &components);
+
+            /** \brief Initialize an orthogonal projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are a tenth of the corresponding bounds from the state manifold. */
 	    RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<unsigned int> &components);
+
+            /** \brief Initialize an orthogonal projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are a tenth of the corresponding bounds from the state manifold.  */
 	    RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<unsigned int> &components);
 	    
 	    virtual unsigned int getDimension(void) const;
@@ -133,9 +163,21 @@ namespace ompl
 	class RealVectorIdentityProjectionEvaluator : public ProjectionEvaluator
 	{
 	public:
+
+            /** \brief Initialize the identity projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are in \e cellDimensions */            
 	    RealVectorIdentityProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions);
+
+            /** \brief Initialize the identity projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are in \e cellDimensions */            
 	    RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions);
+
+            /** \brief Initialize the identity projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are a tenth of the bounds from the state manifold.  */
 	    RealVectorIdentityProjectionEvaluator(const StateManifold *manifold);	    
+
+            /** \brief Initialize the identity projection evaluator for state manifold \e manifold. The indices of the
+                kept components are in \e components and the cell dimensions are a tenth of the bounds from the state manifold.  */
 	    RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold);
 
 	    virtual unsigned int getDimension(void) const;

@@ -45,6 +45,7 @@ namespace ompl
     namespace base
     {
 	
+        /** \brief Generate valid samples using the Gaussian sampling strategy */
 	class GaussianValidStateSampler : public ValidStateSampler
 	{	    
 	public:

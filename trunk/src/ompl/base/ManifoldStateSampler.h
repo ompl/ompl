@@ -125,6 +125,8 @@ namespace ompl
 	    /** \brief The weight of each sampler (used when sampling near a state) */
 	    std::vector<double>                  weightImportance_;
 
+        private:
+
 	    /** \brief The number of samplers that are composed */
 	    unsigned int                         samplerCount_;
 	    
