@@ -9,6 +9,19 @@
 <object width="640" height="390"><param name="movie" value="http://www.youtube.com/v/3jdTyKuIkrs&hl=en_US&feature=player_embedded&version=3"></param><param name="allowFullScreen" value="true"></param><param name="allowScriptAccess" value="always"></param><embed src="http://www.youtube.com/v/3jdTyKuIkrs&hl=en_US&feature=player_embedded&version=3" type="application/x-shockwave-flash" allowfullscreen="true" allowScriptAccess="always" width="640" height="390"></embed></object>
 \endhtmlonly
 
+\section gallery_ode Planning for a Car-Like Vehicle Using ODE
+
+   An example of using OMPL to plan for a robotic system simulated
+with <a href="http://sourceforge.net/projects/opende/">ODE</a>.  The
+goal is for the yellow car to reach the location of the green box
+without hitting the red box. The computation is performed using \ref
+cKPIECE1 "KPIECE". For each computed motion plan, a representation of
+the exploration data structure (a tree of motions) is also shown.
+
+\htmlonly
+<object width="480" height="385"><param name="movie" value="http://www.youtube.com/v/bX23YA-pasg?fs=1&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/bX23YA-pasg?fs=1&amp;hl=en_US" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="480" height="385"></embed></object>
+\endhtmlonly
+
 \section gallery_omplapp Planning for Rigid Bodies Using OMPL.app
 
 Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app. 
