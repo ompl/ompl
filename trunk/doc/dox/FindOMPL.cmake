@@ -24,10 +24,10 @@ endif()
 
 
 # find the lib
-find_library(OMPL_LIBRARY ompl PATHS ${OMPL_LIB_PATH} PATH_SUFFIXES lib)
+find_library(OMPL_LIBRARY ompl PATHS ${OMPL_LIB_PATH} PATH_SUFFIXES lib build/lib)
 
 # find include path
-find_path(OMPL_INCLUDE SpaceInformation.h PATHS ${OMPL_INCLUDE_PATH} PATH_SUFFIXES base ompl/base include/ompl/base)
+find_path(OMPL_INCLUDE SpaceInformation.h PATHS ${OMPL_INCLUDE_PATH} PATH_SUFFIXES base ompl/base include/ompl/base src/ompl/base)
 if (OMPL_INCLUDE)
     string(REGEX REPLACE "/ompl/base$" "" OMPL_INCLUDE ${OMPL_INCLUDE})
 else()
