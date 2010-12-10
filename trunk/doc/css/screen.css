@@ -480,4 +480,4 @@ dl.user+ul {margin-top:-1.5em;}
 #MSearchResultsWindow, #MSearchSelectWindow {z-index:600;}
 #MSearchField {margin-bottom:0;margin-top:0;}
 div.contents {margin-left:0px;margin-right:0px;}
-a.download, a.download:hover {background-color:#469;color:#fff;font:12px bold;text-decoration:none;padding:2px 6px;margin:10px;line-height:200%;}
+a.download, a.download:hover, a.download:visited {background-color:#469;color:#fff;font:12px bold;text-decoration:none;padding:2px 6px;margin:10px;line-height:200%;}
