@@ -9,7 +9,7 @@ As part of this effort, we have developed a series of lectures and a collection 
 -# Development of a new motion planning algorithm for dynamical systems. The students are asked to test their planner on a pendulum system and a simple car-like vehicle system and compare the performance against two planning algorithms that are already implemented in OMPL.
 -# A final project on topics such as:
   - Path clustering
-  - Path optimization
+  - Path optimization (see \ref gallery_comp450 "gallery")
   - Dynamic manipulation
   - Centralized multi-robot planning
   - Protein folding

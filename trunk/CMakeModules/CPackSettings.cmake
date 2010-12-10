@@ -19,6 +19,7 @@ set(CPACK_SOURCE_IGNORE_FILES
 	".DS_Store"
 	"mkwebdocs.sh"
 	"/html/"
+	"/bindings/"
 	"TODO")
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_GENERATOR "TGZ;ZIP")

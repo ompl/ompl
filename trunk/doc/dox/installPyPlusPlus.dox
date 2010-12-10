@@ -11,7 +11,7 @@ installing pygccxml/py++ they can be found <a
 href="http://sourceforge.net/scm/?type=svn&group_id=118209">here</a>.
 
 \par
-If you are using Linux or Mac OS, you can follow these instructions:
+If you are using Linux or Mac OS X, you can follow these instructions:
 \code
 # Make sure you have cvs and svn. e.g., for Ubuntu Linux: "sudo apt-get install cvs subversion"
 # On OS X cvs and svn are already installed.

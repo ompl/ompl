@@ -3,7 +3,7 @@
 
 To compile OMPL the following two packages are required: 
 - <a href="http://www.boost.org">Boost</a> (recommended version 1.42 or higher) and 
-- <a href="http://www.cmake.org">CMake</a> (required version 2.8.0 or higher). 
+- <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher). 
 .
 For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
@@ -90,7 +90,7 @@ If you want a debug version of ompl, change "Release" to "Debug" above.
 \section install_windows Installation on Windows
 
 - Download and install <a href="http://www.cmake.org">CMake</a>.
-- If you plan to use Microsoft Visual Studio, you can download Boost <a href="http://www.boostpro.com/download/">here</a>. If you want to use MinGW or Cygwin, follow the <a href="http://www.boost.org/doc/libs/1_43_0/more/getting_started/unix-variants.html">Unix installation instructions</a>.
+- If you plan to use Microsoft Visual Studio, you can download Boost <a href="http://www.boostpro.com/download/">here</a>. If you want to use MinGW or Cygwin, follow the <a href="http://www.boost.org/doc/libs/release/more/getting_started/unix-variants.html">Unix installation instructions</a>.
 - Optionally, download and install <a href="http://www.python.org/download/">Python</a>.
 - Run CMake (either the GUI or the command line version). From the GUI it is easy to generate project files for Visual Studio or Makefiles.
 - Build the "solution" ALL in Visual Studio, or run \c make if you use MinGW/Cygwin.
