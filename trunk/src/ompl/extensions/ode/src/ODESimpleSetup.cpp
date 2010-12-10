@@ -36,6 +36,7 @@
 
 #include "ompl/extensions/ode/ODESimpleSetup.h"
 #include "ompl/util/Exception.h"
+#include <boost/thread.hpp>
 
 ompl::control::ODESimpleSetup::ODESimpleSetup(const ControlManifoldPtr &manifold) : SimpleSetup(manifold)
 {

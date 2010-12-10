@@ -42,7 +42,7 @@
 #include <cassert>
 
 ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) : 
-    stateManifold_(manifold), sa_(manifold), motionValidator_(new DiscreteMotionValidator(this)), setup_(false), msg_("SpaceInformation")
+    stateManifold_(manifold), motionValidator_(new DiscreteMotionValidator(this)), setup_(false), msg_("SpaceInformation")
 {
     if (!stateManifold_)
 	throw Exception("Invalid manifold definition");

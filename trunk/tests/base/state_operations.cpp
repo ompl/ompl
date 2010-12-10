@@ -178,8 +178,6 @@ TEST(State, Allocation)
     }
     d = ompl::time::seconds(ompl::time::now() - start);
     std::cout << (double)N * (double)M / d << " allocations per second" << std::endl;    
-    std::cout << "Preallocated states: " << si.getStateAllocator().sizeAvailable() << std::endl;    
-    std::cout << "In use states: " << si.getStateAllocator().sizeInUse() << std::endl;    
 }
 
 void randomizedAllocator(const base::SpaceInformation *si)
@@ -225,8 +223,6 @@ TEST(State, AllocationWithThreads)
     }
     std::cout << "Time spent randomly allocating & freeing states: "
         << ompl::time::seconds(ompl::time::now() - start) << std::endl;
-    
-    std::cout << "Preallocated states: " << si.getStateAllocator().sizeAvailable() << std::endl;    
 }
 
 int main(int argc, char **argv)

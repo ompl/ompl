@@ -264,19 +264,12 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 		while (status_.progressPercentage > progress->count())
 		    ++(*progress);
 	    
-	    // make sure there are no pre-allocated states and all planning data structures are cleared
+	    // make sure all planning data structures are cleared
 	    planners_[i]->clear();
             if (gsetup_)
-            {
-                gsetup_->getSpaceInformation()->getStateAllocator().clear();
                 gsetup_->getGoal()->clearSolutionPath();
-            }
             else
-            {
-                csetup_->getSpaceInformation()->getStateAllocator().clear();
-                csetup_->getSpaceInformation()->getControlAllocator().clear();
                 csetup_->getGoal()->clearSolutionPath();
-            }
             
 	    time::point timeStart = time::now();
 
@@ -308,16 +301,6 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 		run["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 		run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
 		run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
-                if (gsetup_)
-                {
-                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getStateAllocator().sizeAvailable());
-                    run["total allocated states INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getStateAllocator().sizeTotal());
-                }
-                else
-                {
-                    run["preallocated states INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getStateAllocator().sizeAvailable());
-                    run["preallocated controls INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getControlAllocator().size());
-                }
                 if (solved)
 		{
                     if (gsetup_)

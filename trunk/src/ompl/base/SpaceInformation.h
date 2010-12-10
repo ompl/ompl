@@ -41,7 +41,6 @@
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/StateManifold.h"
-#include "ompl/base/StateAllocator.h"
 #include "ompl/base/ValidStateSampler.h"
 
 #include "ompl/util/ClassForward.h"
@@ -217,13 +216,13 @@ namespace ompl
 	    /** \brief Allocate memory for a state */
 	    State* allocState(void) const
 	    {
-		return sa_.allocState();
+		return stateManifold_->allocState();
 	    }
 	    
 	    /** \brief Free the memory of a state */
 	    void freeState(State *state) const
 	    {
-		sa_.freeState(state);
+		stateManifold_->freeState(state);
 	    }
 
 	    /** \brief Copy a state to another */
@@ -240,13 +239,6 @@ namespace ompl
 		return copy;
 	    }
 
-	    /** \brief Get access to the state allocator. This is the
-		class that is used to allocate and free states. The
-		memory is reused whenever possible. */
-	    StateAllocator& getStateAllocator(void)
-	    {
-		return sa_;
-	    }
 	    /**  @} */
 	
 	
@@ -352,9 +344,6 @@ namespace ompl
 	    /** \brief The manifold planning is to be performed in */
 	    StateManifoldPtr           stateManifold_;
 
-	    /** \brief The state allocator used by allocState() and freeState() */
-	    StateAllocator             sa_;
-	    
 	    /** \brief The instance of the state validity checker used for determinig the validity of states in the planning process */
 	    StateValidityCheckerPtr    stateValidityChecker_;
 	    
