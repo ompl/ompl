@@ -1,4 +1,4 @@
-Visit http://ompl-beta.kavrakilab.org/core/installation.html for
+Visit http://ompl.kavrakilab.org/core/installation.html for
 detailed installation instructions.
 
 OMPL has the following required dependencies:
@@ -10,7 +10,7 @@ The following dependencies are optional:
  * Google-test (needed to run the test programs)
  * Py++ (needed to generate Python bindings)
  * Doxygen (needed to create a local copy of the documentation at
-   http://ompl.kavrakilab.org)
+   http://ompl.kavrakilab.org/core)
 
 Once dependencies are installed, you can build OMPL on Linux and OS X like so:
    cd ompl
