@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -44,87 +44,87 @@ namespace ompl
     namespace control
     {
 
-	/** \brief Definition of an abstract control */
-	class Control
-	{
-	private:
-	    
-	    /** \brief Disable copy-constructor */
-	    Control(const Control&);
+        /** \brief Definition of an abstract control */
+        class Control
+        {
+        private:
 
-	    /** \brief Disable copy operator */
-	    const Control& operator=(const Control&);
-	    
-	protected:
-	    
-	    Control(void)
-	    {
-	    }
-	    
-	    virtual ~Control(void)
-	    {
-	    }
+            /** \brief Disable copy-constructor */
+            Control(const Control&);
 
-	public:
+            /** \brief Disable copy operator */
+            const Control& operator=(const Control&);
 
-	    /** \brief Cast this instance to a desired type. */
-	    template<class T>
-	    const T* as(void) const
-	    {
-		/** \brief Make sure the type we are allocating is indeed a state */
-		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+        protected:
 
-		return static_cast<const T*>(this);
-	    }
+            Control(void)
+            {
+            }
 
-	    /** \brief Cast this instance to a desired type. */
-	    template<class T>
-	    T* as(void)
-	    {	
-		/** \brief Make sure the type we are allocating is indeed a state */
-		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
-		
-		return static_cast<T*>(this);
-	    }
-	    
-	};
+            virtual ~Control(void)
+            {
+            }
 
-	/** \brief Definition of a compound control */
-	class CompoundControl : public Control
-	{
-	public:
-	    
-	    CompoundControl(void) : Control()
-	    {
-	    }
-	    
-	    virtual ~CompoundControl(void)
-	    {
-	    }
+        public:
 
-	    /** \brief Cast a component of this instance to a desired type. */
-	    template<class T>
-	    const T* as(const unsigned int index) const
-	    {	    	
-		/** \brief Make sure the type we are allocating is indeed a state */
-		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+            /** \brief Cast this instance to a desired type. */
+            template<class T>
+            const T* as(void) const
+            {
+                /** \brief Make sure the type we are allocating is indeed a state */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
 
-		return static_cast<const T*>(components[index]);
-	    }
+                return static_cast<const T*>(this);
+            }
 
-	    /** \brief Cast a component of this instance to a desired type. */
-	    template<class T>
-	    T* as(const unsigned int index)
-	    {
-		/** \brief Make sure the type we are allocating is indeed a state */
-		BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
-		
-		return static_cast<T*>(components[index]);
-	    }
-	    
-	    /** \brief The components that make up a compound control */
-	    Control **components;
-	};
+            /** \brief Cast this instance to a desired type. */
+            template<class T>
+            T* as(void)
+            {
+                /** \brief Make sure the type we are allocating is indeed a state */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+
+                return static_cast<T*>(this);
+            }
+
+        };
+
+        /** \brief Definition of a compound control */
+        class CompoundControl : public Control
+        {
+        public:
+
+            CompoundControl(void) : Control()
+            {
+            }
+
+            virtual ~CompoundControl(void)
+            {
+            }
+
+            /** \brief Cast a component of this instance to a desired type. */
+            template<class T>
+            const T* as(const unsigned int index) const
+            {
+                /** \brief Make sure the type we are allocating is indeed a state */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+
+                return static_cast<const T*>(components[index]);
+            }
+
+            /** \brief Cast a component of this instance to a desired type. */
+            template<class T>
+            T* as(const unsigned int index)
+            {
+                /** \brief Make sure the type we are allocating is indeed a state */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+
+                return static_cast<T*>(components[index]);
+            }
+
+            /** \brief The components that make up a compound control */
+            Control **components;
+        };
     }
 }
 #endif

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -50,22 +50,22 @@ namespace og = ompl::geometric;
 class MyGoalRegion : public ob::GoalRegion
 {
 public:
-    
+
     MyGoalRegion(const ob::SpaceInformationPtr &si) : ob::GoalRegion(si)
     {
         setThreshold(1e-2);
     }
-    
+
     virtual double distanceGoal(const ob::State *state) const
     {
         // goal region is given by states where x + y = z and orientation is close to identity
-        double d = fabs(state->as<ob::SE3StateManifold::StateType>()->getX() 
-                        + state->as<ob::SE3StateManifold::StateType>()->getY() 
+        double d = fabs(state->as<ob::SE3StateManifold::StateType>()->getX()
+                        + state->as<ob::SE3StateManifold::StateType>()->getY()
                         - state->as<ob::SE3StateManifold::StateType>()->getZ())
             + fabs(state->as<ob::SE3StateManifold::StateType>()->rotation().w - 1.0);
         return d;
     }
-    
+
 };
 
 // Goal regions such as the one above cannot be sampled, so
@@ -79,13 +79,13 @@ bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::GoalReg
 {
     og::GAIK g(si);
     bool cont = g.solve(1.0, *region, result);
-    
+
     if (cont)
     {
         std::cout << "Found goal state: " << std::endl;
-        si->printState(result);    
+        si->printState(result);
     }
-    
+
     // we continue sampling while we are able to find solutions, we have found not more than 2 previous solutions and we have not yet solved the problem
     return cont && gls->maxSampleCount() < 3 && !gls->isAchieved();
 }
@@ -99,7 +99,7 @@ void planWithIK(void)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    
+
     manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
 
     // define a simple setup class
@@ -110,34 +110,34 @@ void planWithIK(void)
     start->setXYZ(0, 0, 0);
     start->rotation().setIdentity();
     ss.addStartState(start);
-    
+
     // define our goal region
     MyGoalRegion region(ss.getSpaceInformation());
-    
+
     // bind a sampling function that fills its argument with a sampled state and returns true while it can produce new samples
     // we don't need to check if new samples are different from ones previously computed as this is pefromed automatically by GoalLazySamples
     ob::GoalSamplingFn samplingFunction = boost::bind(&regionSamplingWithGAIK, ss.getSpaceInformation(), &region, _1, _2);
-    
+
     // create an instance of GoalLazySamples:
     ob::GoalPtr goal(new ob::GoalLazySamples(ss.getSpaceInformation(), samplingFunction));
-    
+
     // we set a goal that is sampleable, but it in fact corresponds to a region that is not sampleable by default
     ss.setGoal(goal);
-    
-    // attempt to solve the problem 
+
+    // attempt to solve the problem
     bool solved = ss.solve(3.0);
-    
+
     if (solved)
     {
-	std::cout << "Found solution:" << std::endl;
-	// print the path to screen
-	ss.simplifySolution();
-	ss.getSolutionPath().print(std::cout);
+        std::cout << "Found solution:" << std::endl;
+        // print the path to screen
+        ss.simplifySolution();
+        ss.getSolutionPath().print(std::cout);
     }
     else
-	std::cout << "No solution found" << std::endl;
+        std::cout << "No solution found" << std::endl;
 
-    // the region variable will now go out of scope. To make sure it is not used in the sampling function any more 
+    // the region variable will now go out of scope. To make sure it is not used in the sampling function any more
     // (i.e., the sampling thread was able to terminate), we make sure sampling has terminated
     goal->as<ob::GoalLazySamples>()->stopSampling();
 }
@@ -146,8 +146,8 @@ void planWithIK(void)
 int main(int, char **)
 {
     std::cout << "ompl version: " << OMPL_VERSION << std::endl;
-    
+
     planWithIK();
-    
+
     return 0;
 }

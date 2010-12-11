@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -48,99 +48,99 @@ namespace ompl
     namespace geometric
     {
 
-	/** \brief Forward declaration of ompl::geometric::PathSimplifier */
-	ClassForward(PathSimplifier);
+        /** \brief Forward declaration of ompl::geometric::PathSimplifier */
+        ClassForward(PathSimplifier);
 
-	/** \class ompl::geometric::PathSimplifierPtr
-	    \brief A boost shared pointer wrapper for ompl::geometric::PathSimplifier */
-	
-	/** \brief This class contains routines that attempt to simplify geometric paths.
+        /** \class ompl::geometric::PathSimplifierPtr
+            \brief A boost shared pointer wrapper for ompl::geometric::PathSimplifier */
 
-	    These are in fact routines that shorten the path, and do not
-	    necessarily make it smoother. */
-	class PathSimplifier
-	{
-	public:
+        /** \brief This class contains routines that attempt to simplify geometric paths.
 
-	    /** \brief Create an instance for a specified space information */
-	    PathSimplifier(const base::SpaceInformationPtr &si) : si_(si)
-	    {
-	    }
-	    
-	    virtual ~PathSimplifier(void)
-	    {
-	    }
-	    
+            These are in fact routines that shorten the path, and do not
+            necessarily make it smoother. */
+        class PathSimplifier
+        {
+        public:
 
-	    /** \brief Given a path, attempt to remove vertices from
-		it while keeping the path valid. This is an iterative
-		process that attempts to do "short-cutting" on the
-		path.  Connection is attempted between non-consecutive
-		states along the path. If the connection is succesful,
-		the path is shortened by removing the in-between
-		states.
+            /** \brief Create an instance for a specified space information */
+            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si)
+            {
+            }
 
-		\param path the path to reduce vertices from 
+            virtual ~PathSimplifier(void)
+            {
+            }
 
-		\param maxSteps the maximum number of attempts to
-		"short-cut" the path.  If this value is set to 0 (the
-		default), the number of attempts made is equal to the
-		number of states in \e path.
 
-		\param maxEmptySteps not all iterations of this function
-		produce a simplification. If an iteration does not
-		produce a simplification, it is called an empty
-		step. \e maxEmptySteps denotes the maximum number of
-		consecutive empty steps before the simplification
-		process terminates.
-		
-		\param rangeRatio the maximum distance between states
-		a connection is attempted, as a fraction relative to
-		the total number of states (between 0 and 1).
+            /** \brief Given a path, attempt to remove vertices from
+                it while keeping the path valid. This is an iterative
+                process that attempts to do "short-cutting" on the
+                path.  Connection is attempted between non-consecutive
+                states along the path. If the connection is succesful,
+                the path is shortened by removing the in-between
+                states.
 
-	    */
-	    void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5, double rangeRatio = 0.2);
+                \param path the path to reduce vertices from
 
-	    /** \brief Given a path, attempt to remove vertices from
-		it while keeping the path valid. This is an iterative
-		process that attempts to do "short-cutting" on the
-		path.  Connection is attempted between non-consecutive
-		states that are close along the path. If the
-		connection is succesful, the path is shortened by
-		removing the in-between states.
+                \param maxSteps the maximum number of attempts to
+                "short-cut" the path.  If this value is set to 0 (the
+                default), the number of attempts made is equal to the
+                number of states in \e path.
 
-		\param path the path to reduce vertices from 
+                \param maxEmptySteps not all iterations of this function
+                produce a simplification. If an iteration does not
+                produce a simplification, it is called an empty
+                step. \e maxEmptySteps denotes the maximum number of
+                consecutive empty steps before the simplification
+                process terminates.
 
-		\param maxSteps the maximum number of attempts to
-		"short-cut" the path.  If this value is set to 0 (the
-		default), the number of attempts made is equal to the
-		number of states in \e path.
+                \param rangeRatio the maximum distance between states
+                a connection is attempted, as a fraction relative to
+                the total number of states (between 0 and 1).
 
-		\param maxEmptySteps not all iterations of this function
-		produce a simplification. If an iteration does not
-		produce a simplification, it is called an empty
-		step. \e maxEmptySteps denotes the maximum number of
-		consecutive empty steps before the simplification
-		process terminates.
-	    */
-	    void collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5);
-	    
+            */
+            void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5, double rangeRatio = 0.2);
 
-	    /** \brief Given a path, attempt to remove vertices from
-		it while keeping the path valid.  Then, interpolate
-		the path, to add more vertices and try to remove them
-		again. This should produce smoother solutions.  */
-	    virtual void simplifyMax(PathGeometric &path);
-	    
-	protected:
-            
+            /** \brief Given a path, attempt to remove vertices from
+                it while keeping the path valid. This is an iterative
+                process that attempts to do "short-cutting" on the
+                path.  Connection is attempted between non-consecutive
+                states that are close along the path. If the
+                connection is succesful, the path is shortened by
+                removing the in-between states.
+
+                \param path the path to reduce vertices from
+
+                \param maxSteps the maximum number of attempts to
+                "short-cut" the path.  If this value is set to 0 (the
+                default), the number of attempts made is equal to the
+                number of states in \e path.
+
+                \param maxEmptySteps not all iterations of this function
+                produce a simplification. If an iteration does not
+                produce a simplification, it is called an empty
+                step. \e maxEmptySteps denotes the maximum number of
+                consecutive empty steps before the simplification
+                process terminates.
+            */
+            void collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5);
+
+
+            /** \brief Given a path, attempt to remove vertices from
+                it while keeping the path valid.  Then, interpolate
+                the path, to add more vertices and try to remove them
+                again. This should produce smoother solutions.  */
+            virtual void simplifyMax(PathGeometric &path);
+
+        protected:
+
             /** \brief The space information this path simplifier uses */
-	    base::SpaceInformationPtr si_;
+            base::SpaceInformationPtr si_;
 
             /** \brief Instance of random number generator */
-	    RNG                       rng_;
+            RNG                       rng_;
 
-	};    
+        };
     }
 }
 

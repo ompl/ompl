@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,16 +43,16 @@ using namespace ompl;
 
 TEST(Grid, Simple)
 {
-    Grid<int> g(2); 
-    
+    Grid<int> g(2);
+
     EXPECT_EQ((unsigned int)2, g.getDimension());
-    
+
     Grid<int>::Coord coord(2);
     coord[0] = 1;
     coord[1] = 0;
     EXPECT_FALSE(g.has(coord));
     Grid<int>::Cell *cell1 = g.createCell(coord);
-    EXPECT_FALSE(cell1 == NULL);    
+    EXPECT_FALSE(cell1 == NULL);
     cell1->data = 1;
     g.add(cell1);
     EXPECT_TRUE(g.has(coord));
@@ -60,52 +60,52 @@ TEST(Grid, Simple)
     coord[1] = 1;
     EXPECT_FALSE(g.has(coord));
     Grid<int>::Cell *cell2 = g.createCell(coord);
-    EXPECT_FALSE(cell2 == NULL);    
+    EXPECT_FALSE(cell2 == NULL);
     cell2->data = 2;
     g.add(cell2);
     EXPECT_TRUE(g.has(coord));
-    
+
     Grid<int>::CellArray ca;
     g.neighbors(cell2, ca);
     EXPECT_EQ((unsigned int)1, ca.size());
     EXPECT_EQ(ca[0], cell1);
-    
+
     coord[0] = 0;
     EXPECT_FALSE(g.has(coord));
     ca.clear();
     g.neighbors(coord, ca);
     EXPECT_EQ((unsigned int)1, ca.size());
     EXPECT_EQ(ca[0], cell2);
-    
+
     Grid<int>::Cell *cell3 = g.createCell(coord);
-    EXPECT_FALSE(cell3 == NULL);    
+    EXPECT_FALSE(cell3 == NULL);
     cell3->data = 3;
     g.add(cell3);
     EXPECT_TRUE(g.has(coord));
-    
-    EXPECT_EQ((unsigned int)3, g.size());    
+
+    EXPECT_EQ((unsigned int)3, g.size());
     int sum = 0;
     for (Grid<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-	sum += it->second->data;
+        sum += it->second->data;
     EXPECT_EQ(6, sum);
 
     g.remove(cell2);
     g.destroyCell(cell2);
 
-    EXPECT_EQ((unsigned int)2, g.size());    
+    EXPECT_EQ((unsigned int)2, g.size());
     sum = 0;
     for (Grid<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-	sum += it->second->data;
+        sum += it->second->data;
     EXPECT_EQ(4, sum);
 }
 
 TEST(GridN, Simple)
 {
-    GridN<int> g(0); 
+    GridN<int> g(0);
     g.setDimension(2);
-    
+
     EXPECT_EQ((unsigned int)2, g.getDimension());
-    
+
     GridN<int>::Coord coord(2);
     coord[0] = 1;
     coord[1] = 0;
@@ -116,29 +116,29 @@ TEST(GridN, Simple)
     cell1->data = 1;
     g.add(cell1);
     EXPECT_TRUE(g.has(coord));
-    
+
     coord[1] = 1;
     EXPECT_FALSE(g.has(coord));
     GridN<int>::Cell *cell2 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     EXPECT_TRUE(cell1->neighbors == 1);
     EXPECT_TRUE(cell2->neighbors == 1);
-    EXPECT_FALSE(cell2 == NULL);    
+    EXPECT_FALSE(cell2 == NULL);
     cell2->data = 2;
     g.add(cell2);
     EXPECT_TRUE(g.has(coord));
-    
+
     GridN<int>::CellArray ca;
     g.neighbors(cell2, ca);
     EXPECT_EQ((unsigned int)1, ca.size());
     EXPECT_EQ(ca[0], cell1);
-    
+
     coord[0] = 0;
     EXPECT_FALSE(g.has(coord));
     ca.clear();
     g.neighbors(coord, ca);
     EXPECT_EQ((unsigned int)1, ca.size());
     EXPECT_EQ(ca[0], cell2);
-    
+
     GridN<int>::Cell *cell3 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     EXPECT_FALSE(cell3 == NULL);
     EXPECT_TRUE(cell1->neighbors == 1);
@@ -147,11 +147,11 @@ TEST(GridN, Simple)
     cell3->data = 3;
     g.add(cell3);
     EXPECT_TRUE(g.has(coord));
-    
-    EXPECT_EQ((unsigned int)3, g.size());    
+
+    EXPECT_EQ((unsigned int)3, g.size());
     int sum = 0;
     for (GridN<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-	sum += it->second->data;
+        sum += it->second->data;
     EXPECT_EQ(6, sum);
 
     coord[0] = 2;
@@ -161,7 +161,7 @@ TEST(GridN, Simple)
     g.add(cell4);
     EXPECT_TRUE(cell2->neighbors == 3);
     EXPECT_TRUE(cell2->border);
-    
+
     coord[0] = 1;
     coord[1] = 2;
     GridN<int>::Cell *cell5 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
@@ -174,17 +174,17 @@ TEST(GridN, Simple)
     EXPECT_TRUE(cell3->border);
     EXPECT_TRUE(cell4->border);
     EXPECT_TRUE(cell5->border);
-    
+
     EXPECT_TRUE(g.getCell(cell5->coord) == cell5);
-    
+
     g.remove(cell1);
     g.destroyCell(cell1);
     EXPECT_TRUE(cell2->border);
-    
-    EXPECT_EQ((unsigned int)4, g.size());    
+
+    EXPECT_EQ((unsigned int)4, g.size());
     sum = 0;
     for (GridN<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-	sum += it->second->data;
+        sum += it->second->data;
     EXPECT_EQ(14, sum);
 }
 

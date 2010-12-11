@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -56,7 +56,7 @@ namespace ompl
         ManifoldIndex(void) : singleIndex(-1)
         {
         }
-        
+
         int                       singleIndex;
         std::vector<unsigned int> multiIndex;
     };
@@ -67,7 +67,7 @@ namespace ompl
     class PartialToFullStateConverter
     {
     public:
-        
+
         PartialToFullStateConverter(const base::StateManifoldPtr &fullStateManifold) : fullStateManifold_(fullStateManifold)
         {
             totalComponents_ = static_cast<base::CompoundStateManifold*>(fullStateManifold_.get())->getSubManifoldCount();
@@ -75,21 +75,21 @@ namespace ompl
             fullState_ = static_cast<base::CompoundState*>(fullStateManifold_->allocState());
             memcpy(backup_, fullState_->components, sizeof(base::State*) * totalComponents_);
         }
-        
+
         ~PartialToFullStateConverter(void)
         {
             memcpy(fullState_->components, backup_, sizeof(base::State*) * totalComponents_);
             delete[] backup_;
             fullStateManifold_->freeState(fullState_);
         }
-        
+
         void useFullState(const ManifoldIndex &mi, const base::State *state)
         {
             mi_ = mi;
             memcpy(fullState_->components, backup_, sizeof(base::State*) * totalComponents_);
             fullStateManifold_->copyState(fullState_, state);
         }
-        
+
         void applyPartialState(const base::State *state)
         {
             if (mi_.singleIndex >= 0)
@@ -98,22 +98,22 @@ namespace ompl
                 for (unsigned int i = 0 ; i < mi_.multiIndex.size() ; ++i)
                     fullState_->components[mi_.multiIndex[i]] = static_cast<const base::CompoundState*>(state)->components[i];
         }
-        
+
         const base::State* getFullState(void) const
         {
             return fullState_;
         }
-        
+
     private:
-        
+
         base::StateManifoldPtr fullStateManifold_;
         unsigned int           totalComponents_;
         ManifoldIndex          mi_;
         base::CompoundState   *fullState_;
         base::State          **backup_;
     };
-    
-    
+
+
     // Perform state validation for a partial state using a full
     // state to fill in the blanks and the state validator for the full state.
     // This class automatically updates the full state based on a version
@@ -126,11 +126,11 @@ namespace ompl
             fullStartStatePtr_(fullStartStatePtr), availableFullStartStateVersion_(fullStartStateVersion), maintainedFullStartStateVersion_(0)
         {
         }
-        
+
         virtual ~DecoupledStateValidityChecker(void)
         {
         }
-        
+
         virtual bool isValid(const base::State *state) const
         {
             if (maintainedFullStartStateVersion_ != *availableFullStartStateVersion_)
@@ -141,9 +141,9 @@ namespace ompl
             p2f_.applyPartialState(state);
             return fullStateChecker_->isValid(p2f_.getFullState());
         }
-        
+
     protected:
-        
+
         base::StateValidityCheckerPtr       fullStateChecker_;
         mutable PartialToFullStateConverter p2f_;
         ManifoldIndex                       mi_;
@@ -152,7 +152,7 @@ namespace ompl
         mutable unsigned int                maintainedFullStartStateVersion_;
     };
 
-    // Extract a description of how to rewire a full state to include a partial state, given the partial & full manifolds 
+    // Extract a description of how to rewire a full state to include a partial state, given the partial & full manifolds
     ManifoldIndex getManifoldIndex(const base::StateManifoldPtr &manifold, const base::StateManifoldPtr &fullManifold)
     {
         base::CompoundStateManifold *cm = static_cast<base::CompoundStateManifold*>(fullManifold.get());
@@ -191,36 +191,36 @@ namespace ompl
 bool ompl::geometric::DecoupledPlanner::processInputStates(const base::PlannerTerminationCondition &ptc)
 {
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
-    
+
     if (!goal)
     {
-	msg_.error("Unknown type of goal (or goal undefined)");
-	return false;
+        msg_.error("Unknown type of goal (or goal undefined)");
+        return false;
     }
-    
+
     unsigned int ss0 = startStates_.size();
     unsigned int gs0 = goalStates_.size();
-    
+
     const base::StateManifoldPtr &fullM0 = components_[0].planner->getSpaceInformation()->getStateManifold();
     if (startStates_.empty())
     {
         // If we have no start states, get all the states and group
         // them based on the state values that the first component is
         // not planning for. Pick as starting states the largest group.
-        
+
         std::vector< base::ScopedState<> > sts;
         while (const base::State *st = pis_.nextStart())
             sts.push_back(base::ScopedState<>(si_->getStateManifold(), st));
-        
+
         if (sts.empty())
         {
             msg_.error("Motion planning start tree could not be initialized!");
             return false;
         }
-        
+
         base::StateManifoldPtr rest0 = si_->getStateManifold() - fullM0;
         std::vector < std::pair < base::ScopedState<>, std::vector<base::ScopedState<> > > > groups;
-        
+
         for (unsigned int i = 0 ; i < sts.size() ; ++i)
         {
             bool found = false;
@@ -239,7 +239,7 @@ bool ompl::geometric::DecoupledPlanner::processInputStates(const base::PlannerTe
                 groups.push_back(std::make_pair(r, e));
             }
         }
-        
+
         unsigned int index = 0;
         unsigned int maxG = groups[0].second.size();
         for (unsigned int i = 1 ; i < groups.size() ; ++i)
@@ -274,7 +274,7 @@ bool ompl::geometric::DecoupledPlanner::processInputStates(const base::PlannerTe
                 restS0.reset(new base::ScopedState<>(rest0));
                 *restS0 = startStates_[0][rest0];
             }
-            
+
             base::ScopedState<> add(si_->getStateManifold(), st);
             if (*restS0 == add[rest0])
                 startStates_.push_back(add);
@@ -286,13 +286,13 @@ bool ompl::geometric::DecoupledPlanner::processInputStates(const base::PlannerTe
             }
         }
     }
-    
+
     if (!goal->canSample())
     {
-	msg_.error("Insufficient states in sampleable goal region");
-	return false;
+        msg_.error("Insufficient states in sampleable goal region");
+        return false;
     }
-    
+
     // how many more draws are we going to make
     unsigned int maxGoals = goal->maxSampleCount() < std::numeric_limits<unsigned int>::max() ? (goal->maxSampleCount() - gs0) : startStates_.size() * 2;
     for (unsigned int i = 0 ; i < maxGoals ; ++i)
@@ -309,32 +309,32 @@ bool ompl::geometric::DecoupledPlanner::processInputStates(const base::PlannerTe
         msg_.error("Motion planning goal tree could not be initialized!");
         return false;
     }
-    
+
     currentStartState_ = startStates_[0];
     startStateVersion_++;
-    
+
     for (unsigned int i = ss0 ; i < startStates_.size() ; ++i)
         components_[0].pdef->addStartState(startStates_[i][fullM0]);
 
     for (unsigned int i = gs0 ; i < goalStates_.size() ; ++i)
         static_cast<base::GoalStates*>(components_[0].pdef->getGoal().get())->addState(goalStates_[i][fullM0]);
-    
+
     return true;
 }
 
 bool ompl::geometric::DecoupledPlanner::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
-    
+
     if (!processInputStates(ptc))
         return false;
-    
+
     base::StateManifoldPtr plannedFor(new base::CompoundStateManifold());
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
     {
         if (ptc())
             return false;
-        
+
         if (!components_[i].pdef->getGoal()->getSolutionPath())
         {
             msg_.debug("Begin planning for component %u using %d start states and %d goal states", i,
@@ -371,7 +371,7 @@ bool ompl::geometric::DecoupledPlanner::solve(const base::PlannerTerminationCond
             }
         }
     }
-    
+
     if (components_.back().pdef->getGoal()->getSolutionPath())
     {
         PathGeometric *fullSol = new PathGeometric(si_);
@@ -401,7 +401,7 @@ namespace ompl
         Group(void) : d(0)
         {
         }
-        
+
         std::vector<base::StateManifoldPtr> m;
         std::vector<double>                 w;
         unsigned int                        d;
@@ -418,13 +418,13 @@ void ompl::geometric::DecoupledPlanner::clearComponents(void)
 void ompl::geometric::DecoupledPlanner::setComponentCount(unsigned int components)
 {
     clearComponents();
-    
+
     if (components < 1)
         return;
-        
+
     base::CompoundStateManifold *cm = static_cast<base::CompoundStateManifold*>(si_->getStateManifold().get());
     std::vector<Group> g(components);
-    
+
     for (unsigned int i = 0 ; i < cm->getSubManifoldCount() ; ++i)
     {
         unsigned int p = 0;
@@ -435,7 +435,7 @@ void ompl::geometric::DecoupledPlanner::setComponentCount(unsigned int component
         g[p].w.push_back(cm->getSubManifoldWeight(i));
         g[p].d += cm->getSubManifold(i)->getDimension();
     }
-    
+
     for (unsigned int i = 0 ; i < g.size() ; ++i)
     {
         if (g[i].m.empty())
@@ -450,7 +450,7 @@ void ompl::geometric::DecoupledPlanner::setComponentCount(unsigned int component
 void ompl::geometric::DecoupledPlanner::clear(void)
 {
     Planner::clear();
-    
+
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
     {
         components_[i].planner->clear();
@@ -464,11 +464,11 @@ void ompl::geometric::DecoupledPlanner::setup(void)
     currentStartState_.random();
     if (components_.empty())
     {
-        msg_.inform("Automatically decomposing state manifold ...");        
+        msg_.inform("Automatically decomposing state manifold ...");
         setComponentCount(2);
         msg_.inform("Using %d components", (int)components_.size());
     }
-    
+
     // make sure the components we have fully cover the compound manifold, disjointly
     base::CompoundStateManifold *cm = static_cast<base::CompoundStateManifold*>(si_->getStateManifold().get());
     unsigned int td = 0;
@@ -491,7 +491,7 @@ void ompl::geometric::DecoupledPlanner::setup(void)
                         " dimensions of manifold '" + cm->getName() + "' are planned for. More components need to be added.");
     if (td > cm->getDimension())
         throw Exception("Some of the components for manifold '" + cm->getName() + "' are planned for multiple times. Revise the added components.");
-    
+
     clear();
 }
 
@@ -513,7 +513,7 @@ void ompl::geometric::DecoupledPlanner::addComponent(const base::StateManifoldPt
 {
     ManifoldIndex mi = getManifoldIndex(manifold, si_->getStateManifold());
     base::SpaceInformationPtr si(new base::SpaceInformation(manifold));
-    
+
     si->setStateValidityChecker(base::StateValidityCheckerPtr(new DecoupledStateValidityChecker(si, si_, mi, &currentStartState_, &startStateVersion_)));
     base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
     pdef->setGoal(base::GoalPtr(new base::GoalStates(si)));
@@ -522,7 +522,7 @@ void ompl::geometric::DecoupledPlanner::addComponent(const base::StateManifoldPt
         planner = pa(si);
     else
         planner = getDefaultPlanner(pdef->getGoal());
-    
+
     addComponent(planner, pdef);
 }
 

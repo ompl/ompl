@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,48 +45,48 @@ namespace ompl
 
     namespace control
     {
-	
-	/** \brief Representation of controls applied in ODE
-	    environments. This is an array of double values.  Only
-	    forward propagation is possible.
-		
-	    At every propagation step, controls are applied using
-	    ODEEnvironment::applyControl(), contacts are computed by
-	    calling \b dSpaceCollide() on the spaces in
-	    ODEEnvironment::collisionSpaces_ and then \b
-	    dWorldQuickStep() is called. If the \e state argument of
-	    propagate() does not have its
-	    ODEStateManifold::StateType::collision field set, it is
-	    set based on the information returned by contact
-	    computation. Certain collisions (contacts) are allowed, as
-	    indicated by ODEEnvironment::isValidCollision(). */
-	class ODEControlManifold : public RealVectorControlManifold
-	{
-	public:
-	    
-	    /** \brief Construct a representation of controls passed
-		to ODE. If \e stateManifold does not cast to an
-		ODEStateManifold, an exception is thrown. */
-	    ODEControlManifold(const base::StateManifoldPtr &stateManifold);
-            
-	    virtual ~ODEControlManifold(void)
-	    {
-	    }
+
+        /** \brief Representation of controls applied in ODE
+            environments. This is an array of double values.  Only
+            forward propagation is possible.
+
+            At every propagation step, controls are applied using
+            ODEEnvironment::applyControl(), contacts are computed by
+            calling \b dSpaceCollide() on the spaces in
+            ODEEnvironment::collisionSpaces_ and then \b
+            dWorldQuickStep() is called. If the \e state argument of
+            propagate() does not have its
+            ODEStateManifold::StateType::collision field set, it is
+            set based on the information returned by contact
+            computation. Certain collisions (contacts) are allowed, as
+            indicated by ODEEnvironment::isValidCollision(). */
+        class ODEControlManifold : public RealVectorControlManifold
+        {
+        public:
+
+            /** \brief Construct a representation of controls passed
+                to ODE. If \e stateManifold does not cast to an
+                ODEStateManifold, an exception is thrown. */
+            ODEControlManifold(const base::StateManifoldPtr &stateManifold);
+
+            virtual ~ODEControlManifold(void)
+            {
+            }
 
             /** \brief Get the ODE environment this manifold corresponds to */
-	    const ODEEnvironmentPtr& getEnvironment(void) const
-	    {
-		return stateManifold_->as<ODEStateManifold>()->getEnvironment();
+            const ODEEnvironmentPtr& getEnvironment(void) const
+            {
+                return stateManifold_->as<ODEStateManifold>()->getEnvironment();
             }
-	    
-	    virtual bool canPropagateBackward(void) const
-	    {
-		return false;
-	    }
-	    
-	    virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
-	    
-	};
+
+            virtual bool canPropagateBackward(void) const
+            {
+                return false;
+            }
+
+            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+
+        };
     }
 
 }

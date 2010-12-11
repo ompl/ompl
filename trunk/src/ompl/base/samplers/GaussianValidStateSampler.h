@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -44,45 +44,45 @@ namespace ompl
 {
     namespace base
     {
-	
-        /** \brief Generate valid samples using the Gaussian sampling strategy */
-	class GaussianValidStateSampler : public ValidStateSampler
-	{	    
-	public:
-	    
-	    /** \brief Constructor */
-	    GaussianValidStateSampler(const SpaceInformation *si);
-	    
-	    virtual ~GaussianValidStateSampler(void)
-	    {
-	    }
-	    
-	    virtual bool sample(State *state);
-	    virtual bool sampleNear(State *state, const State *near, const double distance);
-	    
-	    /** \brief Get the standard deviation used when sampling */
-	    double getStdDev(void) const
-	    {
-		return stddev_;
-	    }
-	    
-	    /** \brief Set the standard deviation to use when sampling */
-	    void setStdDev(double stddev)
-	    {
-		stddev_ = stddev;
-	    }
 
-	    /** \brief Return an allocator for this type of sampler */
-	    static ValidStateSamplerAllocator allocator(void);	
-	    
-	protected:
-	    
-	    /** \brief The sampler to build upon */
-	    ManifoldStateSamplerPtr sampler_;
-	    
-	    /** \brief The standard deviation to use in the sampling process */
-	    double                  stddev_;
-	};
+        /** \brief Generate valid samples using the Gaussian sampling strategy */
+        class GaussianValidStateSampler : public ValidStateSampler
+        {
+        public:
+
+            /** \brief Constructor */
+            GaussianValidStateSampler(const SpaceInformation *si);
+
+            virtual ~GaussianValidStateSampler(void)
+            {
+            }
+
+            virtual bool sample(State *state);
+            virtual bool sampleNear(State *state, const State *near, const double distance);
+
+            /** \brief Get the standard deviation used when sampling */
+            double getStdDev(void) const
+            {
+                return stddev_;
+            }
+
+            /** \brief Set the standard deviation to use when sampling */
+            void setStdDev(double stddev)
+            {
+                stddev_ = stddev;
+            }
+
+            /** \brief Return an allocator for this type of sampler */
+            static ValidStateSamplerAllocator allocator(void);
+
+        protected:
+
+            /** \brief The sampler to build upon */
+            ManifoldStateSamplerPtr sampler_;
+
+            /** \brief The standard deviation to use in the sampling process */
+            double                  stddev_;
+        };
 
     }
 }

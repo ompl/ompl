@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,14 +45,14 @@
     ompl::base::SpaceInformation::getMaximumExtent()) is to be
     used as the maximum length of a motion */
 static const double MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.2;
-	
+
 void ompl::geometric::checkMotionLength(const base::Planner *planner, double &length)
-{ 
+{
     if (length < std::numeric_limits<double>::epsilon())
     {
-	length = planner->getSpaceInformation()->getMaximumExtent() * MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-	msg::Interface msg(planner->getName());
-	msg.inform("Maximum motion extension distance is assumed to be %f", length);
+        length = planner->getSpaceInformation()->getMaximumExtent() * MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+        msg::Interface msg(planner->getName());
+        msg.inform("Maximum motion extension distance is assumed to be %f", length);
     }
 }
 
@@ -60,11 +60,11 @@ void ompl::geometric::checkProjectionEvaluator(const base::Planner *planner, bas
 {
     if (!proj)
     {
-	msg::Interface msg(planner->getName());
-	msg.inform("Attempting to use default projection.");
-	proj = planner->getSpaceInformation()->getStateManifold()->getDefaultProjection();
+        msg::Interface msg(planner->getName());
+        msg.inform("Attempting to use default projection.");
+        proj = planner->getSpaceInformation()->getStateManifold()->getDefaultProjection();
     }
     if (!proj)
-	throw Exception(planner->getName(), "No projection evaluator specified");
+        throw Exception(planner->getName(), "No projection evaluator specified");
     proj->setup();
 }

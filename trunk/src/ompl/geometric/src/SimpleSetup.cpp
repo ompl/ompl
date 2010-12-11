@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,7 +45,7 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
 {
     base::PlannerPtr planner;
     if (!goal)
-        throw Exception("Unable to allocate default planner for unspecified goal definition");    
+        throw Exception("Unable to allocate default planner for unspecified goal definition");
 
     // if we can sample the goal region, use a bi-directional planner
     if (dynamic_cast<const base::GoalSampleableRegion*>(goal.get()))
@@ -65,10 +65,10 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
         else
             planner = base::PlannerPtr(new RRT(goal->getSpaceInformation()));
     }
-    
+
     if (!planner)
         throw Exception("Unable to allocate default planner");
-    
+
     return planner;
 }
 
@@ -76,34 +76,34 @@ void ompl::geometric::SimpleSetup::setup(void)
 {
     if (!configured_)
     {
-	if (!si_)
-	    throw Exception("No space information defined");
-	
-	if (!si_->isSetup())
-	    si_->setup();
-	if (!planner_)
-	{
-	    if (pa_)
-		planner_ = pa_(si_);
-	    else
-	    {
-		msg_.inform("No planner specified. Using default.");
+        if (!si_)
+            throw Exception("No space information defined");
+
+        if (!si_->isSetup())
+            si_->setup();
+        if (!planner_)
+        {
+            if (pa_)
+                planner_ = pa_(si_);
+            else
+            {
+                msg_.inform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
-	    }
-	}
-	planner_->setProblemDefinition(pdef_);
-	if (!planner_->isSetup())
-	    planner_->setup();
-	configured_ = true;
+            }
+        }
+        planner_->setProblemDefinition(pdef_);
+        if (!planner_->isSetup())
+            planner_->setup();
+        configured_ = true;
     }
 }
 
 void ompl::geometric::SimpleSetup::clear(void)
 {
     if (planner_)
-	planner_->clear();
+        planner_->clear();
     if (pdef_ && pdef_->getGoal())
-	pdef_->getGoal()->clearSolutionPath();
+        pdef_->getGoal()->clearSolutionPath();
 }
 
 bool ompl::geometric::SimpleSetup::solve(double time)
@@ -113,9 +113,9 @@ bool ompl::geometric::SimpleSetup::solve(double time)
     bool result = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
     if (result)
-	msg_.inform("Solution found in %f seconds", planTime_);
+        msg_.inform("Solution found in %f seconds", planTime_);
     else
-	msg_.inform("No solution found after %f seconds", planTime_);
+        msg_.inform("No solution found after %f seconds", planTime_);
     return result;
 }
 
@@ -123,31 +123,31 @@ void ompl::geometric::SimpleSetup::simplifySolution(void)
 {
     if (pdef_ && pdef_->getGoal())
     {
-	const base::PathPtr &p =  pdef_->getGoal()->getSolutionPath();
-	if (p)
-	    psk_->simplifyMax(static_cast<PathGeometric&>(*p));
-	else
-	    msg_.warn("No solution to simplify");
+        const base::PathPtr &p =  pdef_->getGoal()->getSolutionPath();
+        if (p)
+            psk_->simplifyMax(static_cast<PathGeometric&>(*p));
+        else
+            msg_.warn("No solution to simplify");
     }
     else
-	msg_.warn("No solution to simplify");
+        msg_.warn("No solution to simplify");
 }
 
 ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const
 {
     if (pdef_ && pdef_->getGoal())
     {
-	const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
-	if (p)
-	    return static_cast<PathGeometric&>(*p);
+        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        if (p)
+            return static_cast<PathGeometric&>(*p);
     }
-    throw Exception("No solution path");		
-}	
+    throw Exception("No solution path");
+}
 
 ompl::base::PlannerData ompl::geometric::SimpleSetup::getPlannerData(void) const
 {
     base::PlannerData pd;
     if (planner_)
-	planner_->getPlannerData(pd);
+        planner_->getPlannerData(pd);
     return pd;
 }

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -46,44 +46,44 @@ namespace ompl
 {
     namespace base
     {
-	
-	ClassForward(SpaceInformation);
-	
-	/** \brief Forward declaration of ompl::base::Path */
-	ClassForward(Path);
 
-	/** \class ompl::base::PathPtr
-	    \brief A boost shared pointer wrapper for ompl::base::Path */
+        ClassForward(SpaceInformation);
 
-	/** \brief Abstract definition of a path */
-	class Path : private boost::noncopyable
-	{
-	public:
-	    
-	    /** \brief Constructor. A path must always know the space information it is part of */
-	    Path(const SpaceInformationPtr &si) : si_(si)
-	    {
-	    }
-	    
-	    /** \brief Destructor */
-	    virtual ~Path(void)
-	    {
-	    }
-	    
-	    /** \brief Return the length of a path */
-	    virtual double length(void) const = 0;
-	    
-	    /** \brief Check if the path is valid */
-	    virtual bool check(void) const = 0;
-	    	    
-	    /** \brief Print the path to a stream */
-	    virtual void print(std::ostream &out) const = 0;
-	    
-	protected:
-	    
-	    /** \brief The space information this path is part of */
-	    SpaceInformationPtr si_;
-	};
+        /** \brief Forward declaration of ompl::base::Path */
+        ClassForward(Path);
+
+        /** \class ompl::base::PathPtr
+            \brief A boost shared pointer wrapper for ompl::base::Path */
+
+        /** \brief Abstract definition of a path */
+        class Path : private boost::noncopyable
+        {
+        public:
+
+            /** \brief Constructor. A path must always know the space information it is part of */
+            Path(const SpaceInformationPtr &si) : si_(si)
+            {
+            }
+
+            /** \brief Destructor */
+            virtual ~Path(void)
+            {
+            }
+
+            /** \brief Return the length of a path */
+            virtual double length(void) const = 0;
+
+            /** \brief Check if the path is valid */
+            virtual bool check(void) const = 0;
+
+            /** \brief Print the path to a stream */
+            virtual void print(std::ostream &out) const = 0;
+
+        protected:
+
+            /** \brief The space information this path is part of */
+            SpaceInformationPtr si_;
+        };
 
     }
 }

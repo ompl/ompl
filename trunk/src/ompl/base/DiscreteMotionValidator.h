@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -42,43 +42,43 @@
 
 namespace ompl
 {
-    
+
     namespace base
     {
 
-	/** \brief A motion validator that only uses the state validity checker. Motions are checked for validity at a specified resolution. */
-	class DiscreteMotionValidator : public MotionValidator
-	{
-	public:
+        /** \brief A motion validator that only uses the state validity checker. Motions are checked for validity at a specified resolution. */
+        class DiscreteMotionValidator : public MotionValidator
+        {
+        public:
 
-	    /** \brief Constructor */
-	    DiscreteMotionValidator(SpaceInformation* si) : MotionValidator(si)
-	    {
-		defaultSettings();
-	    }
+            /** \brief Constructor */
+            DiscreteMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            {
+                defaultSettings();
+            }
 
-	    /** \brief Constructor */
-	    DiscreteMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
-	    {
-		defaultSettings();
-	    }
-	    
-	    virtual ~DiscreteMotionValidator(void)
-	    {
-	    }	   
- 
-	    virtual bool checkMotion(const State *s1, const State *s2) const;
-	    
-	    virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
-	    
-	private:
-	    
-	    StateManifold *stateManifold_;
-	    
-	    void defaultSettings(void);
-	    
-	};
-	
+            /** \brief Constructor */
+            DiscreteMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
+            {
+                defaultSettings();
+            }
+
+            virtual ~DiscreteMotionValidator(void)
+            {
+            }
+
+            virtual bool checkMotion(const State *s1, const State *s2) const;
+
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+
+        private:
+
+            StateManifold *stateManifold_;
+
+            void defaultSettings(void);
+
+        };
+
     }
 }
 

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,10 +43,10 @@ void ompl::control::RealVectorControlUniformSampler::sample(Control *control)
 {
     const unsigned int dim = manifold_->getDimension();
     const base::RealVectorBounds &bounds = static_cast<const RealVectorControlManifold*>(manifold_)->getBounds();
-    
+
     RealVectorControlManifold::ControlType *rcontrol = static_cast<RealVectorControlManifold::ControlType*>(control);
     for (unsigned int i = 0 ; i < dim ; ++i)
-	rcontrol->values[i] = rng_.uniformReal(bounds.low[i], bounds.high[i]);
+        rcontrol->values[i] = rng_.uniformReal(bounds.low[i], bounds.high[i]);
 }
 
 void ompl::control::RealVectorControlManifold::setup(void)
@@ -59,7 +59,7 @@ void ompl::control::RealVectorControlManifold::setBounds(const base::RealVectorB
 {
     bounds.check();
     if (bounds.low.size() != dimension_)
-	throw Exception("Bounds do not match dimension of manifold");
+        throw Exception("Bounds do not match dimension of manifold");
     bounds_ = bounds;
 }
 
@@ -71,7 +71,7 @@ unsigned int ompl::control::RealVectorControlManifold::getDimension(void) const
 void ompl::control::RealVectorControlManifold::copyControl(Control *destination, const Control *source) const
 {
     memcpy(static_cast<ControlType*>(destination)->values,
-	   static_cast<const ControlType*>(source)->values, controlBytes_);    
+           static_cast<const ControlType*>(source)->values, controlBytes_);
 }
 
 bool ompl::control::RealVectorControlManifold::equalControls(const Control *control1, const Control *control2) const
@@ -79,15 +79,15 @@ bool ompl::control::RealVectorControlManifold::equalControls(const Control *cont
     const double *s1 = static_cast<const ControlType*>(control1)->values;
     const double *s2 = static_cast<const ControlType*>(control2)->values;
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
-    {	 
-	double diff = (*s1++) - (*s2++);
-	if (fabs(diff) > std::numeric_limits<double>::epsilon() * 2.0)
-	    return false;
+    {
+        double diff = (*s1++) - (*s2++);
+        if (fabs(diff) > std::numeric_limits<double>::epsilon() * 2.0)
+            return false;
     }
     return true;
 }
 
-ompl::control::ControlSamplerPtr ompl::control::RealVectorControlManifold::allocControlSampler(void) const 
+ompl::control::ControlSamplerPtr ompl::control::RealVectorControlManifold::allocControlSampler(void) const
 {
     return ControlSamplerPtr(new RealVectorControlUniformSampler(this));
 }
@@ -111,10 +111,10 @@ void ompl::control::RealVectorControlManifold::nullControl(Control *control) con
     ControlType *rcontrol = static_cast<ControlType*>(control);
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
     {
-	if (bounds_.low[i] <= 0.0 && bounds_.high[i] >= 0.0)
-	    rcontrol->values[i] = 0.0;
-	else
-	    rcontrol->values[i] = bounds_.low[i];
+        if (bounds_.low[i] <= 0.0 && bounds_.high[i] >= 0.0)
+            rcontrol->values[i] = 0.0;
+        else
+            rcontrol->values[i] = bounds_.low[i];
     }
 }
 
@@ -123,16 +123,16 @@ void ompl::control::RealVectorControlManifold::printControl(const Control *contr
     out << "RealVectorControl [";
     if (control)
     {
-	const ControlType *rcontrol = static_cast<const ControlType*>(control);
-	for (unsigned int i = 0 ; i < dimension_ ; ++i)
-	{
-	    out << rcontrol->values[i];
-	    if (i + 1 < dimension_) 
-		out << ' ';
-	}
+        const ControlType *rcontrol = static_cast<const ControlType*>(control);
+        for (unsigned int i = 0 ; i < dimension_ ; ++i)
+        {
+            out << rcontrol->values[i];
+            if (i + 1 < dimension_)
+                out << ' ';
+        }
     }
     else
-	out << "NULL";
+        out << "NULL";
     out << ']' << std::endl;
 }
 
@@ -141,10 +141,10 @@ void ompl::control::RealVectorControlManifold::printSettings(std::ostream &out) 
     out << "Real vector control manifold '" << name_ << "' with bounds: " << std::endl;
     out << "  - min: ";
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
-	out << bounds_.low[i] << " ";
-    out << std::endl;    
+        out << bounds_.low[i] << " ";
+    out << std::endl;
     out << "  - max: ";
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
-	out << bounds_.high[i] << " ";
+        out << bounds_.high[i] << " ";
     out << std::endl;
 }

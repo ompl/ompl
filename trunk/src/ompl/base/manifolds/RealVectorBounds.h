@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,48 +43,48 @@ namespace ompl
 {
     namespace base
     {
-	
-	/** \brief The lower and upper bounds for an R<sup>n</sup> manifold */
-	class RealVectorBounds
-	{
-	public:
-            
+
+        /** \brief The lower and upper bounds for an R<sup>n</sup> manifold */
+        class RealVectorBounds
+        {
+        public:
+
             /** \brief Constructor; \e dim represents the dimension of the space these bounds are for. */
-	    RealVectorBounds(unsigned int dim)
-	    {
-		low.resize(dim, 0.0);
-		high.resize(dim, 0.0);
-	    }
-	    
-	    /** \brief Set the lower bound in each dimension to a specific value */
-	    void setLow(double value);
+            RealVectorBounds(unsigned int dim)
+            {
+                low.resize(dim, 0.0);
+                high.resize(dim, 0.0);
+            }
 
-	    /** \brief Set the upper bound in each dimension to a specific value */
-	    void setHigh(double value);
+            /** \brief Set the lower bound in each dimension to a specific value */
+            void setLow(double value);
 
-	    /** \brief Set the lower bound of a dimension to a specific value */
-	    void setLow(unsigned int index, double value);
+            /** \brief Set the upper bound in each dimension to a specific value */
+            void setHigh(double value);
 
-	    /** \brief Set the upper bound of a dimension to a specific value */
-	    void setHigh(unsigned int index, double value);
-	    
-	    /** \brief Compute the volume of the space enclosed by the bounds */
-	    double getVolume(void) const;
-	    
-	    /** \brief Get the difference between the high and low bounds for each dimension: result[i] = high[i] - low[i] */
-	    std::vector<double> getDifference(void) const;
-	    
-	    /** \brief Check if the bounds are valid (same length for
-		low and high, high[i] > low[i]). Throw an exception if
-		this is not the case. */
-	    void check(void) const;
-	    
-	    /** \brief Lower bound */
-	    std::vector<double> low;
+            /** \brief Set the lower bound of a dimension to a specific value */
+            void setLow(unsigned int index, double value);
 
-	    /** \brief Upper bound */
-	    std::vector<double> high;
-	};
+            /** \brief Set the upper bound of a dimension to a specific value */
+            void setHigh(unsigned int index, double value);
+
+            /** \brief Compute the volume of the space enclosed by the bounds */
+            double getVolume(void) const;
+
+            /** \brief Get the difference between the high and low bounds for each dimension: result[i] = high[i] - low[i] */
+            std::vector<double> getDifference(void) const;
+
+            /** \brief Check if the bounds are valid (same length for
+                low and high, high[i] > low[i]). Throw an exception if
+                this is not the case. */
+            void check(void) const;
+
+            /** \brief Lower bound */
+            std::vector<double> low;
+
+            /** \brief Upper bound */
+            std::vector<double> high;
+        };
     }
 }
 #endif

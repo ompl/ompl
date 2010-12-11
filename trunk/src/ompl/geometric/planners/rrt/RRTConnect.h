@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -42,153 +42,152 @@
 
 namespace ompl
 {
-    
+
     namespace geometric
     {
-	
-	/**
-	   @anchor gRRTC
-	   
-	   @par Short description
-	   
-	   The basic idea is to grow to RRTs, one from the start and
-	   one from the goal, and attempt to connect them.
-	   
-	   
-	   @par External documentation
-	   J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
-	   <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
-	   <a href="http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree">[Wikipedia]</a>
-	   <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
-	*/
 
-	/** \brief RRT-Connect (RRTConnect) */
-	class RRTConnect : public base::Planner
-	{
-	public:
+        /**
+           @anchor gRRTC
 
-	    /** \brief Constructor */
-	    RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
-	    {
-		type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
-		maxDistance_ = 0.0;
-	    }
-	    
-	    virtual ~RRTConnect(void)
-	    {
-		freeMemory();
-	    }
+           @par Short description
 
-	    virtual void getPlannerData(base::PlannerData &data) const;
+           The basic idea is to grow to RRTs, one from the start and
+           one from the goal, and attempt to connect them.
 
-	    virtual bool solve(const base::PlannerTerminationCondition &ptc);
-	    	    
-	    virtual void clear(void);
-	    
-	    /** \brief Set the range the planner is supposed to use.
 
-		This parameter greatly influences the runtime of the
-		algorithm. It represents the maximum length of a
-		motion to be added in the tree of motions. */
-	    void setRange(double distance)
-	    {
-		maxDistance_ = distance;
-	    }
-	    
-	    /** \brief Get the range the planner is using */
-	    double getRange(void) const
-	    {
-		return maxDistance_;
-	    }
+           @par External documentation
+           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
+           <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
+           <a href="http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree">[Wikipedia]</a>
+           <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
+        */
 
-	    /** \brief Set a different nearest neighbors datastructure */
-	    template<template<typename T> class NN>
-	    void setNearestNeighbors(void)
-	    {
-		tStart_.reset(new NN<Motion*>());
-		tGoal_.reset(new NN<Motion*>());
-	    }
-	    
-	    virtual void setup(void);
+        /** \brief RRT-Connect (RRTConnect) */
+        class RRTConnect : public base::Planner
+        {
+        public:
 
-	protected:
-	    
-	    /** \brief Representation of a motion */
-	    class Motion
-	    {
-	    public:
-		
-		Motion(void) : root(NULL), state(NULL), parent(NULL)
-		{
-		    parent = NULL;
-		    state  = NULL;
-		}
-		
-		Motion(const base::SpaceInformationPtr &si) : root(NULL), state(si->allocState()), parent(NULL)
-		{
-		}
-		
-		~Motion(void)
-		{
-		}
-		
-		const base::State *root;
-		base::State       *state;
-		Motion            *parent;
-		
-	    };
-	    
-	    /** \brief A nearest-neighbor datastructure representing a tree of motions */
-	    typedef boost::shared_ptr< NearestNeighbors<Motion*> > TreeData;
+            /** \brief Constructor */
+            RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
+            {
+                type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
+                maxDistance_ = 0.0;
+            }
 
-	    /** \brief Information attached to growing a tree of motions (used internally) */
-	    struct TreeGrowingInfo
-	    {
-		base::State         *xstate;
-		Motion              *xmotion;
-	    };
-	    
-	    /** \brief The state of the tree after an attempt to extend it */
-	    enum GrowState 
-		{
-		    /// no progress has been made
-		    TRAPPED, 
-		    /// progress has been made towards the randomly sampled state
-		    ADVANCED, 
-		    /// the randomly sampled state was reached
-		    REACHED
-		};
-	    
-	    /** \brief Free the memory allocated by this planner */
-	    void freeMemory(void);
-	    
-	    /** \brief Compute distance between motions (actually distance between contained states) */
-	    double distanceFunction(const Motion* a, const Motion* b) const
-	    {
-		return si_->distance(a->state, b->state);
-	    }
+            virtual ~RRTConnect(void)
+            {
+                freeMemory();
+            }
 
-	    /** \brief Grow a tree towards a random state */
-	    GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion);
-	    
-	    /** \brief State sampler */
-	    base::ManifoldStateSamplerPtr sampler_;
-	    
-	    /** \brief The start tree */
-	    TreeData                      tStart_;
+            virtual void getPlannerData(base::PlannerData &data) const;
 
-	    /** \brief The goal tree */
-	    TreeData                      tGoal_;
-	    
-	    /** \brief The maximum length of a motion to be added to a tree */
-	    double                        maxDistance_;
+            virtual bool solve(const base::PlannerTerminationCondition &ptc);
 
-	    /** \brief The random number generator */
-	    RNG                           rng_;
-	};
-	
+            virtual void clear(void);
+
+            /** \brief Set the range the planner is supposed to use.
+
+                This parameter greatly influences the runtime of the
+                algorithm. It represents the maximum length of a
+                motion to be added in the tree of motions. */
+            void setRange(double distance)
+            {
+                maxDistance_ = distance;
+            }
+
+            /** \brief Get the range the planner is using */
+            double getRange(void) const
+            {
+                return maxDistance_;
+            }
+
+            /** \brief Set a different nearest neighbors datastructure */
+            template<template<typename T> class NN>
+            void setNearestNeighbors(void)
+            {
+                tStart_.reset(new NN<Motion*>());
+                tGoal_.reset(new NN<Motion*>());
+            }
+
+            virtual void setup(void);
+
+        protected:
+
+            /** \brief Representation of a motion */
+            class Motion
+            {
+            public:
+
+                Motion(void) : root(NULL), state(NULL), parent(NULL)
+                {
+                    parent = NULL;
+                    state  = NULL;
+                }
+
+                Motion(const base::SpaceInformationPtr &si) : root(NULL), state(si->allocState()), parent(NULL)
+                {
+                }
+
+                ~Motion(void)
+                {
+                }
+
+                const base::State *root;
+                base::State       *state;
+                Motion            *parent;
+
+            };
+
+            /** \brief A nearest-neighbor datastructure representing a tree of motions */
+            typedef boost::shared_ptr< NearestNeighbors<Motion*> > TreeData;
+
+            /** \brief Information attached to growing a tree of motions (used internally) */
+            struct TreeGrowingInfo
+            {
+                base::State         *xstate;
+                Motion              *xmotion;
+            };
+
+            /** \brief The state of the tree after an attempt to extend it */
+            enum GrowState
+                {
+                    /// no progress has been made
+                    TRAPPED,
+                    /// progress has been made towards the randomly sampled state
+                    ADVANCED,
+                    /// the randomly sampled state was reached
+                    REACHED
+                };
+
+            /** \brief Free the memory allocated by this planner */
+            void freeMemory(void);
+
+            /** \brief Compute distance between motions (actually distance between contained states) */
+            double distanceFunction(const Motion* a, const Motion* b) const
+            {
+                return si_->distance(a->state, b->state);
+            }
+
+            /** \brief Grow a tree towards a random state */
+            GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion);
+
+            /** \brief State sampler */
+            base::ManifoldStateSamplerPtr sampler_;
+
+            /** \brief The start tree */
+            TreeData                      tStart_;
+
+            /** \brief The goal tree */
+            TreeData                      tGoal_;
+
+            /** \brief The maximum length of a motion to be added to a tree */
+            double                        maxDistance_;
+
+            /** \brief The random number generator */
+            RNG                           rng_;
+        };
+
     }
 }
 
 #endif
-    

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,57 +43,57 @@ bool ompl::geometric::HCIK::tryToImprove(const base::GoalRegion &goal, base::Sta
 
     bool wasValid = valid(state);
     bool wasValidStart = wasValid;
-    
+
     bool wasSatisfied = goal.isSatisfied(state, &initialDistance);
     bool wasSatisfiedStart = wasSatisfied;
-    
+
     double bestDist = initialDistance;
-    
+
     base::ManifoldStateSamplerPtr ss = si_->allocManifoldStateSampler();
     base::State *test = si_->allocState();
     unsigned int noUpdateSteps = 0;
-    
+
     for (unsigned int i = 0 ; noUpdateSteps < 10 && i < maxImproveSteps_ ; ++i)
     {
-	bool update = false;
-	ss->sampleUniformNear(test, state, nearDistance);
-	bool isValid = valid(test);
-	bool isSatisfied = goal.isSatisfied(test, &tempDistance);
-	if (!wasValid && isValid)
-	{
-	    si_->copyState(state, test);
-	    wasValid = true;
-	    wasSatisfied = isSatisfied;
-	    update = true;
-	}
-	else
-	    if (wasValid == isValid)
-	    {
-		if (!wasSatisfied && isSatisfied)
-		{
-		    si_->copyState(state, test);
-		    wasSatisfied = true;
-		    update = true;
-		}
-		else
-		    if (wasSatisfied == isSatisfied)
-		    {
-			if (tempDistance < bestDist)
-			{
-			    si_->copyState(state, test);
-			    bestDist = tempDistance;
-			    update = true;
-			}
-		    }
-	    }
-	if (update)
-	    noUpdateSteps = 0;
-	else
-	    noUpdateSteps++;
-    }    
+        bool update = false;
+        ss->sampleUniformNear(test, state, nearDistance);
+        bool isValid = valid(test);
+        bool isSatisfied = goal.isSatisfied(test, &tempDistance);
+        if (!wasValid && isValid)
+        {
+            si_->copyState(state, test);
+            wasValid = true;
+            wasSatisfied = isSatisfied;
+            update = true;
+        }
+        else
+            if (wasValid == isValid)
+            {
+                if (!wasSatisfied && isSatisfied)
+                {
+                    si_->copyState(state, test);
+                    wasSatisfied = true;
+                    update = true;
+                }
+                else
+                    if (wasSatisfied == isSatisfied)
+                    {
+                        if (tempDistance < bestDist)
+                        {
+                            si_->copyState(state, test);
+                            bestDist = tempDistance;
+                            update = true;
+                        }
+                    }
+            }
+        if (update)
+            noUpdateSteps = 0;
+        else
+            noUpdateSteps++;
+    }
     si_->freeState(test);
-    
+
     if (betterGoalDistance)
-	*betterGoalDistance = bestDist;
+        *betterGoalDistance = bestDist;
     return (bestDist < initialDistance) || (!wasSatisfiedStart && wasSatisfied) || (!wasValidStart && wasValid);
 }

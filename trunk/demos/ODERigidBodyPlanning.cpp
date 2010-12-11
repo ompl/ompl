@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -44,7 +44,7 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace oc = ompl::control;
 
-/// @cond IGNORE 
+/// @cond IGNORE
 
 class RigidBodyEnvironment : public oc::ODEEnvironment
 {
@@ -52,52 +52,52 @@ public:
 
     RigidBodyEnvironment(void) : oc::ODEEnvironment()
     {
-	createWorld();
+        createWorld();
     }
-    
+
     virtual ~RigidBodyEnvironment(void)
     {
-	destroyWorld();
+        destroyWorld();
     }
-    
+
     /**************************************************
      * Implementation of functions needed by planning *
      **************************************************/
 
     virtual unsigned int getControlDimension(void) const
     {
-	return 3;
+        return 3;
     }
-    
+
     virtual void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const
     {
-	static double maxForce = 0.2;
-	lower.resize(3);
-	lower[0] = -maxForce;
-	lower[1] = -maxForce;
-	lower[2] = -maxForce;
-	
-	upper.resize(3);
-	upper[0] = maxForce;
-	upper[1] = maxForce;
-	upper[2] = maxForce;
+        static double maxForce = 0.2;
+        lower.resize(3);
+        lower[0] = -maxForce;
+        lower[1] = -maxForce;
+        lower[2] = -maxForce;
+
+        upper.resize(3);
+        upper[0] = maxForce;
+        upper[1] = maxForce;
+        upper[2] = maxForce;
     }
-    
+
     virtual void applyControl(const double *control) const
     {
-	dBodyAddForce(boxBody, control[0], control[1], control[2]);
+        dBodyAddForce(boxBody, control[0], control[1], control[2]);
     }
-    
+
     virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const
     {
-	return false;
+        return false;
     }
-    
+
     virtual void setupContact(dGeomID geom1, dGeomID geom2, dContact &contact) const
     {
-	contact.surface.mode = dContactSoftCFM | dContactApprox1;
-	contact.surface.mu = 0.9;
-	contact.surface.soft_cfm = 0.2;
+        contact.surface.mode = dContactSoftCFM | dContactApprox1;
+        contact.surface.mu = 0.9;
+        contact.surface.soft_cfm = 0.2;
     }
 
     /**************************************************/
@@ -112,7 +112,7 @@ public:
 
     // Clear all ODE objects
     void destroyWorld(void);
-    
+
     // Set parameters needed by the base class (such as the bodies
     // that make up to state of the system we are planning for)
     void setPlanningParameters(void);
@@ -124,14 +124,14 @@ public:
     dSpaceID space;
 
     // the car mass
-    dMass    m;  
-  
+    dMass    m;
+
     // the body geom
-    dGeomID  boxGeom;	
-    
+    dGeomID  boxGeom;
+
     // the body
-    dBodyID  boxBody;	
-	
+    dBodyID  boxBody;
+
 };
 
 
@@ -139,50 +139,50 @@ public:
 class RigidBodyGoal : public ob::GoalRegion
 {
 public:
-    
+
     RigidBodyGoal(const ob::SpaceInformationPtr &si) : ob::GoalRegion(si)
     {
-	threshold_ = 0.5;
+        threshold_ = 0.5;
     }
-    
+
     virtual double distanceGoal(const ob::State *st) const
     {
-	const double *pos = st->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
-	double dx = fabs(pos[0] - 30);
-	double dy = fabs(pos[1] - 55);
-	double dz = fabs(pos[2] - 35);
-	return sqrt(dx * dx + dy * dy + dz * dz);
+        const double *pos = st->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
+        double dx = fabs(pos[0] - 30);
+        double dy = fabs(pos[1] - 55);
+        double dz = fabs(pos[2] - 35);
+        return sqrt(dx * dx + dy * dy + dz * dz);
     }
-    
-};  
+
+};
 
 
-// Define how we project a state 
+// Define how we project a state
 class RigidBodyStateProjectionEvaluator : public ob::ProjectionEvaluator
 {
-public: 
+public:
 
     RigidBodyStateProjectionEvaluator(const ob::StateManifold *manifold) : ob::ProjectionEvaluator(manifold)
     {
-	cellDimensions_.resize(3);
-	cellDimensions_[0] = 1;
-	cellDimensions_[1] = 1;
-	cellDimensions_[2] = 1;
+        cellDimensions_.resize(3);
+        cellDimensions_[0] = 1;
+        cellDimensions_[1] = 1;
+        cellDimensions_[2] = 1;
     }
-    
+
     virtual unsigned int getDimension(void) const
     {
-	return 3;
+        return 3;
     }
-    
+
     virtual void project(const ob::State *state, ob::EuclideanProjection &projection) const
     {
-	const double *pos = state->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
-	projection[0] = pos[0];
-	projection[1] = pos[1];
-	projection[2] = pos[2];
+        const double *pos = state->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
+        projection[0] = pos[0];
+        projection[1] = pos[1];
+        projection[2] = pos[2];
     }
-    
+
 };
 
 // Define our own manifold, to include a distance function we want and register a default projection
@@ -193,22 +193,22 @@ public:
     RigidBodyStateManifold(const oc::ODEEnvironmentPtr &env) : oc::ODEStateManifold(env)
     {
     }
-    
+
     virtual double distance(const ob::State *s1, const ob::State *s2) const
     {
-	const double *p1 = s1->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
-	const double *p2 = s1->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
-	double dx = fabs(p1[0] - p2[0]);
-	double dy = fabs(p1[1] - p2[1]);
-	double dz = fabs(p1[2] - p2[2]);
-	return sqrt(dx * dx + dy * dy + dz * dz);
+        const double *p1 = s1->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
+        const double *p2 = s1->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
+        double dx = fabs(p1[0] - p2[0]);
+        double dy = fabs(p1[1] - p2[1]);
+        double dz = fabs(p1[2] - p2[2]);
+        return sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     virtual void registerProjections(void)
     {
-    	registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
+            registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
     }
-    
+
 };
 
 /// @endcond
@@ -217,20 +217,20 @@ int main(int, char **)
 {
     // initialize ODE
     dInitODE2(0);
-    
+
     // create the ODE environment
     oc::ODEEnvironmentPtr env(new RigidBodyEnvironment());
-    
+
     // create the state space manifold and the control manifold for planning
     RigidBodyStateManifold *stateManifold = new RigidBodyStateManifold(env);
     ob::StateManifoldPtr stateManifoldPtr = ob::StateManifoldPtr(stateManifold);
-    
+
     // this will take care of setting a proper collision checker and the starting state for the planner as the initial ODE state
     oc::ODESimpleSetup ss(stateManifoldPtr);
 
     // set the goal we would like to reach
     ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));
-    
+
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-200);
     bounds.setHigh(200);
@@ -243,20 +243,20 @@ int main(int, char **)
 
     ss.setup();
     ss.print();
-    
+
     if (ss.solve(10))
     {
-	const og::PathGeometric &p = ss.getSolutionPath().asGeometric();
-	const std::vector<ob::State*> &states = p.states;
+        const og::PathGeometric &p = ss.getSolutionPath().asGeometric();
+        const std::vector<ob::State*> &states = p.states;
         for (unsigned int i = 0 ; i < states.size() ; ++i)
-	{
-	    const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateManifold::StateType>(0)->values;
-	    std::cout << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
-	}
+        {
+            const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateManifold::StateType>(0)->values;
+            std::cout << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
+        }
     }
-    
+
     dCloseODE();
-    
+
     return 0;
 }
 
@@ -277,26 +277,26 @@ void RigidBodyEnvironment::createWorld(void)
 {
     // BEGIN SETTING UP AN ODE ENVIRONMENT
     // ***********************************
-    
+
     bodyWorld = dWorldCreate();
     space = dHashSpaceCreate(0);
-    
+
     dWorldSetGravity(bodyWorld, 0, 0, -0.981);
-    
+
     double lx = 0.2;
     double ly = 0.2;
     double lz = 0.1;
-    
+
     dMassSetBox(&m, 1, lx, ly, lz);
 
     boxGeom = dCreateBox(space, lx, ly, lz);
     boxBody = dBodyCreate(bodyWorld);
     dBodySetMass(boxBody, &m);
     dGeomSetBody(boxGeom, boxBody);
-    
+
     // *********************************
     // END SETTING UP AN ODE ENVIRONMENT
-    
+
     setPlanningParameters();
 }
 
@@ -307,7 +307,7 @@ void RigidBodyEnvironment::destroyWorld(void)
 }
 
 void RigidBodyEnvironment::setPlanningParameters(void)
-{    
+{
     // Fill in parameters for OMPL:
     world_ = bodyWorld;
     collisionSpaces_.push_back(space);

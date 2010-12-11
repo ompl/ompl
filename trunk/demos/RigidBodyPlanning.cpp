@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -55,9 +55,9 @@ bool isStateValid(const ob::State *state)
 
     // extract the second component of the state and cast it to what we expect
     const ob::SO3StateManifold::StateType *rot = se3state->as<ob::SO3StateManifold::StateType>(1);
-    
+
     // check validity of state defined by pos & rot
-    
+
 
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
     return (void*)rot != (void*)pos;
@@ -72,15 +72,15 @@ void plan(void)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    
+
     manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
-    
+
     // construct an instance of  space information from this manifold
     ob::SpaceInformationPtr si(new ob::SpaceInformation(manifold));
 
     // set state validity checking for this space
     si->setStateValidityChecker(boost::bind(&isStateValid, _1));
-    
+
     // create a random start state
     ob::ScopedState<> start(manifold);
     start.random();
@@ -88,13 +88,13 @@ void plan(void)
     // create a random goal state
     ob::ScopedState<> goal(manifold);
     goal.random();
-    
+
     // create a problem instance
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
 
     // set the start and goal states
     pdef->setStartAndGoalStates(start, goal);
-    
+
     // create a planner for the defined space
     ob::PlannerPtr planner(new og::RRTConnect(si));
 
@@ -109,23 +109,23 @@ void plan(void)
     si->printSettings(std::cout);
 
     // print the problem settings
-    pdef->print(std::cout);    
-    
+    pdef->print(std::cout);
+
     // attempt to solve the problem within one second of planning time
     bool solved = planner->solve(1.0);
 
     if (solved)
     {
-	// get the goal representation from the problem definition (not the same as the goal state)
-	// and inquire about the found path
-	ob::PathPtr path = pdef->getGoal()->getSolutionPath();
-	std::cout << "Found solution:" << std::endl;
+        // get the goal representation from the problem definition (not the same as the goal state)
+        // and inquire about the found path
+        ob::PathPtr path = pdef->getGoal()->getSolutionPath();
+        std::cout << "Found solution:" << std::endl;
 
-	// print the path to screen
-	path->print(std::cout);
+        // print the path to screen
+        path->print(std::cout);
     }
     else
-	std::cout << "No solution found" << std::endl;
+        std::cout << "No solution found" << std::endl;
 }
 
 void planWithSimpleSetup(void)
@@ -137,7 +137,7 @@ void planWithSimpleSetup(void)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    
+
     manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
 
     // define a simple setup class
@@ -145,7 +145,7 @@ void planWithSimpleSetup(void)
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
-    
+
     // create a random start state
     ob::ScopedState<> start(manifold);
     start.random();
@@ -153,33 +153,33 @@ void planWithSimpleSetup(void)
     // create a random goal state
     ob::ScopedState<> goal(manifold);
     goal.random();
-    
+
     // set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
     ss.setStartAndGoalStates(start, goal);
-        
+
     // attempt to solve the problem within one second of planning time
     bool solved = ss.solve(1.0);
 
     if (solved)
     {
-	std::cout << "Found solution:" << std::endl;
-	// print the path to screen
-	ss.simplifySolution();
-	ss.getSolutionPath().print(std::cout);
+        std::cout << "Found solution:" << std::endl;
+        // print the path to screen
+        ss.simplifySolution();
+        ss.getSolutionPath().print(std::cout);
     }
     else
-	std::cout << "No solution found" << std::endl;
+        std::cout << "No solution found" << std::endl;
 }
 
 int main(int, char **)
 {
     std::cout << "ompl version: " << OMPL_VERSION << std::endl;
-    
+
     plan();
-    
+
     std::cout << std::endl << std::endl;
-    
+
     planWithSimpleSetup();
-    
+
     return 0;
 }

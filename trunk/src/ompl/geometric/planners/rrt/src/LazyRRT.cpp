@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,7 +45,7 @@ void ompl::geometric::LazyRRT::setup(void)
     checkMotionLength(this, maxDistance_);
 
     if (!nn_)
-	nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());   
+        nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
     nn_->setDistanceFunction(boost::bind(&LazyRRT::distanceFunction, this, _1, _2));
 }
 
@@ -62,14 +62,14 @@ void ompl::geometric::LazyRRT::freeMemory(void)
 {
     if (nn_)
     {
-	std::vector<Motion*> motions;
-	nn_->list(motions);
-	for (unsigned int i = 0 ; i < motions.size() ; ++i)
-	{
-	    if (motions[i]->state)
-		si_->freeState(motions[i]->state);
-	    delete motions[i];
-	}
+        std::vector<Motion*> motions;
+        nn_->list(motions);
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        {
+            if (motions[i]->state)
+                si_->freeState(motions[i]->state);
+            delete motions[i];
+        }
     }
 }
 
@@ -78,29 +78,29 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
     pis_.checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-    
+
     if (!goal)
     {
-	msg_.error("Goal undefined");
-	return false;
+        msg_.error("Goal undefined");
+        return false;
     }
 
     while (const base::State *st = pis_.nextStart())
     {
-	Motion *motion = new Motion(si_);
-	si_->copyState(motion->state, st);
-	motion->valid = true;
-	nn_->add(motion);
+        Motion *motion = new Motion(si_);
+        si_->copyState(motion->state, st);
+        motion->valid = true;
+        nn_->add(motion);
     }
-    
+
     if (nn_->size() == 0)
     {
-	msg_.error("There are no valid initial states!");
-	return false;	
-    }    
+        msg_.error("There are no valid initial states!");
+        return false;
+    }
 
     if (!sampler_)
-	sampler_ = si_->allocManifoldStateSampler();
+        sampler_ = si_->allocManifoldStateSampler();
 
     msg_.inform("Starting with %u states", nn_->size());
 
@@ -109,83 +109,83 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
     Motion *rmotion  = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
-    
+
  RETRY:
 
     while (ptc() == false)
     {
-	/* sample random state (with goal biasing) */
-	if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
-	    goal_s->sampleGoal(rstate);
-	else
-	    sampler_->sampleUniform(rstate);
+        /* sample random state (with goal biasing) */
+        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+            goal_s->sampleGoal(rstate);
+        else
+            sampler_->sampleUniform(rstate);
 
-	/* find closest state in the tree */
-	Motion *nmotion = nn_->nearest(rmotion);
-	assert(nmotion != rmotion);
-	base::State *dstate = rstate;
-	
-	/* find state to add */
-	double d = si_->distance(nmotion->state, rstate);
-	if (d > maxDistance_)
-	{
-	    si_->getStateManifold()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
-	    dstate = xstate;
-	}
+        /* find closest state in the tree */
+        Motion *nmotion = nn_->nearest(rmotion);
+        assert(nmotion != rmotion);
+        base::State *dstate = rstate;
 
-	/* create a motion */
-	Motion *motion = new Motion(si_);
-	si_->copyState(motion->state, dstate);
-	motion->parent = nmotion;
-	nmotion->children.push_back(motion);
-	nn_->add(motion);
-	
-	double dist = 0.0;
-	if (goal->isSatisfied(motion->state, &dist))
-	{
-	    distsol = dist;
-	    solution = motion;
-	    break;
-	}
+        /* find state to add */
+        double d = si_->distance(nmotion->state, rstate);
+        if (d > maxDistance_)
+        {
+            si_->getStateManifold()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
+            dstate = xstate;
+        }
+
+        /* create a motion */
+        Motion *motion = new Motion(si_);
+        si_->copyState(motion->state, dstate);
+        motion->parent = nmotion;
+        nmotion->children.push_back(motion);
+        nn_->add(motion);
+
+        double dist = 0.0;
+        if (goal->isSatisfied(motion->state, &dist))
+        {
+            distsol = dist;
+            solution = motion;
+            break;
+        }
     }
-    
+
     if (solution != NULL)
     {
-	/* construct the solution path */
-	std::vector<Motion*> mpath;
-	while (solution != NULL)
-	{
-	    mpath.push_back(solution);
-	    solution = solution->parent;
-	}
-	
-	/* check the path */
-	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-	    if (!mpath[i]->valid)
-	    {
-		if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state))
-		    mpath[i]->valid = true;
-		else
-		{
-		    removeMotion(mpath[i]);
-		    goto RETRY;
-		}
-	    }
-	
-	/* set the solution path */
-	PathGeometric *path = new PathGeometric(si_);
-	for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-	    path->states.push_back(si_->cloneState(mpath[i]->state));
-	
-	goal->setDifference(distsol);
-	goal->setSolutionPath(base::PathPtr(path));
-	
+        /* construct the solution path */
+        std::vector<Motion*> mpath;
+        while (solution != NULL)
+        {
+            mpath.push_back(solution);
+            solution = solution->parent;
+        }
+
+        /* check the path */
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+            if (!mpath[i]->valid)
+            {
+                if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state))
+                    mpath[i]->valid = true;
+                else
+                {
+                    removeMotion(mpath[i]);
+                    goto RETRY;
+                }
+            }
+
+        /* set the solution path */
+        PathGeometric *path = new PathGeometric(si_);
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+            path->states.push_back(si_->cloneState(mpath[i]->state));
+
+        goal->setDifference(distsol);
+        goal->setSolutionPath(base::PathPtr(path));
+
     }
-    
+
     si_->freeState(xstate);
     si_->freeState(rstate);
     delete rmotion;
-    
+
     msg_.inform("Created %u states", nn_->size());
 
     return goal->isAchieved();
@@ -194,28 +194,28 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
 void ompl::geometric::LazyRRT::removeMotion(Motion *motion)
 {
     nn_->remove(motion);
-    
+
     /* remove self from parent list */
-    
+
     if (motion->parent)
     {
-	for (unsigned int i = 0 ; i < motion->parent->children.size() ; ++i)
-	    if (motion->parent->children[i] == motion)
-	    {
-		motion->parent->children.erase(motion->parent->children.begin() + i);
-		break;
-	    }
-    }    
+        for (unsigned int i = 0 ; i < motion->parent->children.size() ; ++i)
+            if (motion->parent->children[i] == motion)
+            {
+                motion->parent->children.erase(motion->parent->children.begin() + i);
+                break;
+            }
+    }
 
     /* remove children */
     for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
     {
-	motion->children[i]->parent = NULL;
-	removeMotion(motion->children[i]);
+        motion->children[i]->parent = NULL;
+        removeMotion(motion->children[i]);
     }
 
     if (motion->state)
-	si_->freeState(motion->state);
+        si_->freeState(motion->state);
     delete motion;
 }
 
@@ -225,8 +225,8 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
 
     std::vector<Motion*> motions;
     if (nn_)
-	nn_->list(motions);
+        nn_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-	data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
+        data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
 }

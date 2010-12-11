@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,13 +43,13 @@ ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goa
     base::PlannerPtr planner;
     if (!goal)
         throw Exception("Unable to allocate default planner for unspecified goal definition");
-    
+
     SpaceInformationPtr si = boost::static_pointer_cast<SpaceInformation, base::SpaceInformation>(goal->getSpaceInformation());
     if (si->getStateManifold()->hasDefaultProjection())
         planner = base::PlannerPtr(new KPIECE1(si));
     else
         planner = base::PlannerPtr(new RRT(si));
-    
+
     return planner;
 }
 
@@ -57,34 +57,34 @@ void ompl::control::SimpleSetup::setup(void)
 {
     if (!configured_)
     {
-	if (!si_)
-	    throw Exception("No space information defined");
-	
-	if (!si_->isSetup())
-	    si_->setup();
-	if (!planner_)
-	{
-	    if (pa_)
-		planner_ = pa_(si_);
-	    else
-	    {
-		msg_.inform("No planner specified. Using default.");
+        if (!si_)
+            throw Exception("No space information defined");
+
+        if (!si_->isSetup())
+            si_->setup();
+        if (!planner_)
+        {
+            if (pa_)
+                planner_ = pa_(si_);
+            else
+            {
+                msg_.inform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
-	    }
-	}
-	planner_->setProblemDefinition(pdef_);
-	if (!planner_->isSetup())
-	    planner_->setup();
-	configured_ = true;
+            }
+        }
+        planner_->setProblemDefinition(pdef_);
+        if (!planner_->isSetup())
+            planner_->setup();
+        configured_ = true;
     }
 }
 
 void ompl::control::SimpleSetup::clear(void)
 {
     if (planner_)
-	planner_->clear();
+        planner_->clear();
     if (pdef_ && pdef_->getGoal())
-	pdef_->getGoal()->clearSolutionPath();
+        pdef_->getGoal()->clearSolutionPath();
 }
 
 bool ompl::control::SimpleSetup::solve(double time)
@@ -94,9 +94,9 @@ bool ompl::control::SimpleSetup::solve(double time)
     bool result = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
     if (result)
-	msg_.inform("Solution found in %f seconds", planTime_);
+        msg_.inform("Solution found in %f seconds", planTime_);
     else
-	msg_.inform("No solution found after %f seconds", planTime_);
+        msg_.inform("No solution found after %f seconds", planTime_);
     return result;
 }
 
@@ -104,17 +104,17 @@ ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) co
 {
     if (pdef_ && pdef_->getGoal())
     {
-	const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
-	if (p)
-	    return static_cast<PathControl&>(*p);
+        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        if (p)
+            return static_cast<PathControl&>(*p);
     }
-    throw Exception("No solution path");		
-}	
+    throw Exception("No solution path");
+}
 
 ompl::base::PlannerData ompl::control::SimpleSetup::getPlannerData(void) const
 {
     base::PlannerData pd;
     if (planner_)
-	planner_->getPlannerData(pd);
+        planner_->getPlannerData(pd);
     return pd;
 }

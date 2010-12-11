@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -64,14 +64,14 @@ TEST(SO2, Simple)
 {
     base::StateManifoldPtr m(new base::SO2StateManifold());
     m->setup();
-    
+
     EXPECT_EQ(m->getDimension(), 1u);
     EXPECT_EQ(m->getMaximumExtent(), PI);
-    
+
     base::ScopedState<base::SO2StateManifold> s1(m);
     base::ScopedState<base::SO2StateManifold> s2(m);
     base::ScopedState<base::SO2StateManifold> s3(m);
-    
+
     s1->value = PI - 0.1;
     s2->value = -PI + 0.1;
     EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
@@ -92,12 +92,12 @@ TEST(SO2, Simple)
     s2 = s1;
     m->interpolate(s1.get(), s1.get(), 0.5, s1.get());
     EXPECT_EQ(s1, s2);
-    
+
     m->interpolate(s1.get(), s2.get(), 0.5, s1.get());
     EXPECT_EQ(s1, s2);
     s1->value = 0.5;
     s2->value = 1.5;
-    
+
     m->interpolate(s1.get(), s2.get(), 0.0, s3.get());
     EXPECT_NEAR(s3->value, s1->value, 1e-3);
     m->interpolate(s1.get(), s2.get(), 1.0, s3.get());
@@ -108,10 +108,10 @@ TEST(SO2, Projection)
 {
     base::StateManifoldPtr m(new base::SO2StateManifold());
     m->setup();
-    
+
     base::ProjectionEvaluatorPtr proj = m->getDefaultProjection();
     EXPECT_EQ(proj->getDimension(), 1u);
-    
+
     base::EuclideanProjection p(proj->getDimension());
     base::ScopedState<base::SO2StateManifold> s(m);
     proj->project(s.get(), p);
@@ -122,35 +122,35 @@ TEST(SO3, Simple)
 {
     base::StateManifoldPtr m(new base::SO3StateManifold());
     m->setup();
-    
+
     EXPECT_EQ(m->getDimension(), 3u);
     EXPECT_EQ(m->getMaximumExtent(), PI);
 
     base::ScopedState<base::SO3StateManifold> s1(m);
     base::ScopedState<base::SO3StateManifold> s2(m);
-    
+
     s1.random();
     s2 = s1;
 
     EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
     EXPECT_EQ(s1, s2);
-    
+
     s2.random();
 
     base::SpaceInformation si(m);
     si.setStateValidityChecker(boost::bind(&isValid, _1));
     si.setup();
-    
+
     std::vector<base::State*> states;
     unsigned int ns = 100;
     unsigned int count = si.getMotionStates(s1.get(), s2.get(), states, ns, true, true);
     EXPECT_TRUE(states.size() == count);
     EXPECT_TRUE(ns + 2 == count);
-    
+
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
-	double nrm = m->as<base::SO3StateManifold>()->norm(states[i]->as<base::SO3StateManifold::StateType>());
-	EXPECT_NEAR(nrm, 1.0, 1e-15);
+        double nrm = m->as<base::SO3StateManifold>()->norm(states[i]->as<base::SO3StateManifold::StateType>());
+        EXPECT_NEAR(nrm, 1.0, 1e-15);
         EXPECT_TRUE(m->satisfiesBounds(states[i]));
         si.freeState(states[i]);
     }
@@ -166,10 +166,10 @@ TEST(RealVector, Bounds)
     bounds1.setHigh(1);
     base::RealVectorStateManifold rsm1(1);
     rsm1.setBounds(bounds1);
-    rsm1.setup();    
+    rsm1.setup();
     EXPECT_EQ(rsm1.getDimension(), 1u);
     EXPECT_NEAR(rsm1.getMaximumExtent(), 1.0, 1e-3);
-    
+
     base::RealVectorBounds bounds3(3);
     bounds3.setLow(0);
     bounds3.setHigh(1);
@@ -193,12 +193,12 @@ TEST(RealVector, Simple)
     rm.setBounds(bounds3);
     rm.setDimensionName(2, "testDim");
     m->setup();
-    
+
     base::ScopedState<base::RealVectorStateManifold> s0(m);
     (*s0)[0] = 0;
     (*s0)[1] = 0;
     (*s0)[2] = 0;
-    
+
     EXPECT_TRUE(m->satisfiesBounds(s0.get()));
 
     base::ScopedState<base::RealVectorStateManifold> s1 = s0;
@@ -207,10 +207,10 @@ TEST(RealVector, Simple)
     m->interpolate(s0.get(), s0.get(), 0.6, s0.get());
     EXPECT_EQ(s0, s1);
     s1->values[2] = 1.0;
-    
+
     EXPECT_TRUE(m->satisfiesBounds(s1.get()));
     m->interpolate(s0.get(), s1.get(), 0.5, s0.get());
-    
+
     EXPECT_NEAR((*s0)[rm.getDimensionIndex("testDim")], 0.5, 1e-3);
 
     base::StateManifoldPtr m2(new base::RealVectorStateManifold());
@@ -219,16 +219,16 @@ TEST(RealVector, Simple)
     EXPECT_NEAR(m2->getMaximumExtent(), 1.0, 1e-3);
     EXPECT_EQ(m2->getDimension(), 1u);
 }
-        
+
 TEST(Time, Bounds)
 {
     base::TimeStateManifold t;
     t.setup();
-    
+
     EXPECT_EQ(t.getDimension(), 1u);
     EXPECT_FALSE(t.isBounded());
     EXPECT_NEAR(t.getMaximumExtent(), 1.0, 1e-3);
-    
+
     t.setBounds(-1, 1);
     EXPECT_TRUE(t.isBounded());
     EXPECT_NEAR(t.getMaximumExtent(), 2.0, 1e-3);
@@ -238,15 +238,15 @@ TEST(Time, Simple)
 {
     base::StateManifoldPtr t(new base::TimeStateManifold());
     t->setup();
-    
+
     base::ScopedState<base::TimeStateManifold> ss(t);
     ss.random();
     EXPECT_EQ(ss->position, 0.0);
     EXPECT_TRUE(t->satisfiesBounds(ss.get()));
-    
+
     t->as<base::TimeStateManifold>()->setBounds(-1, 1);
     t->setup();
-    
+
     for (int i = 0 ; i < 100 ; ++i)
     {
         ss.random();
@@ -276,13 +276,13 @@ TEST(Compound, Simple)
     base::StateManifoldPtr m2(new base::SE3StateManifold());
     base::StateManifoldPtr m3(new base::SO2StateManifold());
     base::StateManifoldPtr m4(new base::SO3StateManifold());
-    
+
     base::StateManifoldPtr s = m1 + m2 + m3;
     EXPECT_EQ(s->getDimension(), m1->getDimension() + m2->getDimension() + m3->getDimension());
     base::StateManifoldPtr d = s - m2;
     EXPECT_EQ(d->getDimension(), m1->getDimension() + m3->getDimension());
     EXPECT_TRUE((s + d)->getDimension() == s->getDimension());
-    
+
     m4->setName("test");
     base::StateManifoldPtr t = m1 + m4;
     EXPECT_EQ((t - "test")->getDimension(), m1->getDimension());

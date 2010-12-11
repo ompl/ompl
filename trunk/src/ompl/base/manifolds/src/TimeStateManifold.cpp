@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -57,7 +57,7 @@ void ompl::base::TimeStateSampler::sampleUniformNear(State *state, const State *
 
 void ompl::base::TimeStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
-    state->as<TimeStateManifold::StateType>()->position = 
+    state->as<TimeStateManifold::StateType>()->position =
         rng_.gaussian(mean->as<TimeStateManifold::StateType>()->position, stdDev);
     manifold_->enforceBounds(state);
 }
@@ -71,7 +71,7 @@ void ompl::base::TimeStateManifold::setBounds(double minTime, double maxTime)
 {
     if (minTime > maxTime)
         throw Exception("The maximum position in time cannot be before the minimum position in time");
-    
+
     minTime_ = minTime;
     maxTime_ = maxTime;
     bounded_ = true;
@@ -92,11 +92,11 @@ void ompl::base::TimeStateManifold::enforceBounds(State *state) const
             if (state->as<StateType>()->position < minTime_)
                 state->as<StateType>()->position = minTime_;
     }
-}    
+}
 
 bool ompl::base::TimeStateManifold::satisfiesBounds(const State *state) const
 {
-    return !bounded_ || (state->as<StateType>()->position >= minTime_ - std::numeric_limits<double>::epsilon() && 
+    return !bounded_ || (state->as<StateType>()->position >= minTime_ - std::numeric_limits<double>::epsilon() &&
                          state->as<StateType>()->position <= maxTime_ + std::numeric_limits<double>::epsilon());
 }
 
@@ -121,7 +121,7 @@ void ompl::base::TimeStateManifold::interpolate(const State *from, const State *
         (to->as<StateType>()->position - from->as<StateType>()->position) * t;
 }
 
-ompl::base::ManifoldStateSamplerPtr ompl::base::TimeStateManifold::allocStateSampler(void) const 
+ompl::base::ManifoldStateSamplerPtr ompl::base::TimeStateManifold::allocStateSampler(void) const
 {
     return ManifoldStateSamplerPtr(new TimeStateSampler(this));
 }
@@ -141,7 +141,7 @@ void ompl::base::TimeStateManifold::registerProjections(void)
     class TimeDefaultProjection : public ProjectionEvaluator
     {
     public:
-        
+
         TimeDefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
         {
             std::vector<double> dims(1);
@@ -151,18 +151,18 @@ void ompl::base::TimeStateManifold::registerProjections(void)
                 dims[0] = 1.0;
             setCellDimensions(dims);
         }
-        
+
         virtual unsigned int getDimension(void) const
         {
             return 1;
         }
-        
+
         virtual void project(const State *state, EuclideanProjection &projection) const
         {
             projection.values[0] = state->as<TimeStateManifold::StateType>()->position;
         }
     };
-    
+
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new TimeDefaultProjection(this))));
 }
 

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,22 +43,22 @@ namespace ompl
 {
     namespace base
     {
-        
+
         /** \brief Manifold sampler for SO(3), using quaternion representation  */
         class SO3StateSampler : public ManifoldStateSampler
         {
         public:
-            
+
             /** \brief Constructor */
             SO3StateSampler(const StateManifold *manifold) : ManifoldStateSampler(manifold)
             {
             }
-            
+
             virtual void sampleUniform(State *state);
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
         };
-        
+
         /** \brief A manifold representing SO(3). The internal
             representation is done with quaternions. The distance
             between states is the angle between quaternions and
@@ -66,74 +66,74 @@ namespace ompl
         class SO3StateManifold : public StateManifold
         {
         public:
-            
-            
+
+
             /** \brief The definition of a state in SO(3) represented as a unit quaternion
-                
+
                 \note The order of the elements matters in this
                 definition for the SO3StateUniformSampler::sample()
                 function. */
             class StateType : public State
             {
             public:
-                
+
                 /** \brief Set the quaternion from axis-angle representation */
                 void setAxisAngle(double ax, double ay, double az, double angle);
-                
+
                 /** \brief Set the state to identity -- no rotation */
                 void setIdentity(void);
-                
+
                 /** \brief X component of quaternion vector */
                 double x;
-                
+
                 /** \brief Y component of quaternion vector */
                 double y;
-                
+
                 /** \brief Z component of quaternion vector */
                 double z;
-                
+
                 /** \brief scalar component of quaternion */
                 double w;
             };
-            
-	    SO3StateManifold(void) : StateManifold()
+
+            SO3StateManifold(void) : StateManifold()
             {
-		name_ = "SO3" + name_;
-	    }
-            
-            virtual ~SO3StateManifold(void)
-            {    
+                name_ = "SO3" + name_;
             }
-            
+
+            virtual ~SO3StateManifold(void)
+            {
+            }
+
             /** \brief Compute the norm of a state */
             double norm(const StateType *state) const;
-            
+
             virtual unsigned int getDimension(void) const;
-            
+
             virtual double getMaximumExtent(void) const;
-            
+
             virtual void enforceBounds(State *state) const;
-            
+
             virtual bool satisfiesBounds(const State *state) const;
-            
+
             virtual void copyState(State *destination, const State *source) const;
-            
+
             virtual double distance(const State *state1, const State *state2) const;
-            
+
             virtual bool equalStates(const State *state1, const State *state2) const;
-            
+
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
-            
+
             virtual ManifoldStateSamplerPtr allocStateSampler(void) const;
-            
+
             virtual State* allocState(void) const;
-            
+
             virtual void freeState(State *state) const;
-            
+
             virtual void printState(const State *state, std::ostream &out) const;
-            
+
             virtual void printSettings(std::ostream &out) const;
-            
+
             virtual void registerProjections(void);
         };
     }

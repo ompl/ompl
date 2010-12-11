@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -42,7 +42,7 @@ ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(base::SpaceInfor
     if (!dynamic_cast<ODEStateManifold*>(si->getStateManifold().get()))
         throw Exception("Cannot create state validity checking for ODE without ODE manifold");
     osm_ = si->getStateManifold()->as<ODEStateManifold>();
-}	
+}
 
 ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(const SpaceInformationPtr &si) : base::StateValidityChecker(si)
 {
@@ -54,22 +54,22 @@ ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(const SpaceInfor
 bool ompl::control::ODEStateValidityChecker::isValid(const base::State *state) const
 {
     const ODEStateManifold::StateType *s = state->as<ODEStateManifold::StateType>();
-    
+
     // if we know the value of the validity flag for this state, we return it
     if (s->collision & (1 << ODEStateManifold::STATE_VALIDITY_KNOWN_BIT))
         return s->collision & (1 << ODEStateManifold::STATE_VALIDITY_VALUE_BIT);
-    
+
     // if not, we compute it:
     bool valid = false;
-    
+
     if (!osm_->evaluateCollision(state))
         valid = osm_->satisfiesBoundsExceptRotation(s);
-    
+
     if (valid)
         s->collision &= (1 << ODEStateManifold::STATE_VALIDITY_VALUE_BIT);
-    
+
     // mark the fact we know the value of the validity bit
     s->collision &= (1 << ODEStateManifold::STATE_VALIDITY_KNOWN_BIT);
-    
+
     return valid;
 }

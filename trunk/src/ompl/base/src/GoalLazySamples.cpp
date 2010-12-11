@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -75,12 +75,12 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
     // wait for everything to be set up before performing computation
     while (!terminateSamplingThread_ && !si_->isSetup())
         boost::this_thread::sleep(time::seconds(0.01));
-    
+
     if (!terminateSamplingThread_ && samplerFunc_)
     {
-	ScopedState<> s(si_);
-	while (!terminateSamplingThread_ && samplerFunc_(this, s.get()))
-	    addStateIfDifferent(s.get());
+        ScopedState<> s(si_);
+        while (!terminateSamplingThread_ && samplerFunc_(this, s.get()))
+            addStateIfDifferent(s.get());
     }
     terminateSamplingThread_ = true;
 }

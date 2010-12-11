@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,7 +45,7 @@ ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &n
     si_(si), pis_(this), name_(name), type_(PLAN_UNKNOWN), setup_(false), msg_(name)
 {
     if (!si_)
-	throw Exception(name_, "Invalid space information instance for planner");
+        throw Exception(name_, "Invalid space information instance for planner");
 }
 
 ompl::base::PlannerType ompl::base::Planner::getType(void) const
@@ -88,14 +88,14 @@ void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())
     {
-	msg_.inform("Space information setup was not yet called. Calling now.");
-	si_->setup();
+        msg_.inform("Space information setup was not yet called. Calling now.");
+        si_->setup();
     }
-    
+
     if (setup_)
-	msg_.warn("Planner setup called multiple times");
+        msg_.warn("Planner setup called multiple times");
     else
-	setup_ = true;
+        setup_ = true;
 }
 
 bool ompl::base::Planner::isSetup(void) const
@@ -119,32 +119,32 @@ namespace ompl
     // return true if a certain point in time has passed
     static bool timePassed(const time::point &endTime)
     {
-	return time::now() > endTime;
+        return time::now() > endTime;
     }
-    
+
     // return if an externally passed flag is true
     static bool evaluateFlag(const bool *flag)
     {
-	return *flag;
+        return *flag;
     }
-    
+
     // periodically evaluate a termination condition and store the result at an indicated location
     static void periodicConditionEvaluator(const base::PlannerTerminationCondition &ptc, double checkInterval, bool *flag)
-    {	
-	time::duration s = time::seconds(checkInterval);
-	do
-	{
-	    bool shouldTerminate = ptc();
-	    if (shouldTerminate)
-		*flag = true;
-	    if (*flag == false)
-		boost::this_thread::sleep(s);
-	} while (*flag == false);
+    {
+        time::duration s = time::seconds(checkInterval);
+        do
+        {
+            bool shouldTerminate = ptc();
+            if (shouldTerminate)
+                *flag = true;
+            if (*flag == false)
+                boost::this_thread::sleep(s);
+        } while (*flag == false);
     }
-    
+
     static bool alwaysTrue(void)
     {
-	return true;
+        return true;
     }
 }
 
@@ -160,11 +160,11 @@ bool ompl::base::Planner::solve(const PlannerTerminationCondition &ptc, double c
 }
 
 bool ompl::base::Planner::solve(double solveTime)
-{    	
+{
     if (solveTime < 1.0)
-	return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)));
+        return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)));
     else
-	return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)), std::min(solveTime / 100.0, 0.1));
+        return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)), std::min(solveTime / 100.0, 0.1));
 }
 
 void ompl::base::PlannerData::clear(void)
@@ -180,50 +180,50 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
 {
     if (s1 == NULL || s2 == NULL)
     {
-	const State *s = s1 == NULL ? s2 : s1;
-	if (s != NULL)
-	{
-	    std::map<const State*, unsigned int>::iterator it = stateIndex.find(s);
-	    if (it == stateIndex.end())
-	    {
-		unsigned int p = states.size();
-		states.push_back(s);
-		stateIndex[s] = p;
-		edges.resize(states.size());
-	    }
-	}
+        const State *s = s1 == NULL ? s2 : s1;
+        if (s != NULL)
+        {
+            std::map<const State*, unsigned int>::iterator it = stateIndex.find(s);
+            if (it == stateIndex.end())
+            {
+                unsigned int p = states.size();
+                states.push_back(s);
+                stateIndex[s] = p;
+                edges.resize(states.size());
+            }
+        }
     }
     else
     {
-	std::map<const State*, unsigned int>::iterator it1 = stateIndex.find(s1);
-	std::map<const State*, unsigned int>::iterator it2 = stateIndex.find(s2);
-        
+        std::map<const State*, unsigned int>::iterator it1 = stateIndex.find(s1);
+        std::map<const State*, unsigned int>::iterator it2 = stateIndex.find(s2);
+
         bool newEdge = false;
-        
-	unsigned int p1;
-	if (it1 == stateIndex.end())
-	{
-	    p1 = states.size();
-	    states.push_back(s1);
-	    stateIndex[s1] = p1;
-	    edges.resize(states.size());
+
+        unsigned int p1;
+        if (it1 == stateIndex.end())
+        {
+            p1 = states.size();
+            states.push_back(s1);
+            stateIndex[s1] = p1;
+            edges.resize(states.size());
             newEdge = true;
         }
-	else
-	    p1 = it1->second;
-	
-	unsigned int p2;
-	if (it2 == stateIndex.end())
-	{
-	    p2 = states.size();
-	    states.push_back(s2);
-	    stateIndex[s2] = p2;
-	    edges.resize(states.size());
+        else
+            p1 = it1->second;
+
+        unsigned int p2;
+        if (it2 == stateIndex.end())
+        {
+            p2 = states.size();
+            states.push_back(s2);
+            stateIndex[s2] = p2;
+            edges.resize(states.size());
             newEdge = true;
-	}
-	else
-	    p2 = it2->second;
-	
+        }
+        else
+            p2 = it2->second;
+
         // if we are not yet sure this is a new edge, we check indeed if this edge exists
         if (!newEdge)
         {
@@ -235,7 +235,7 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
                     break;
                 }
         }
-        
+
         if (newEdge)
             edges[p1].push_back(p2);
     }
@@ -246,30 +246,30 @@ void ompl::base::PlannerData::print(std::ostream &out) const
     out << states.size() << std::endl;
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
-	out << i << ": ";
-	if (si)
-	    si->printState(states[i], out);
-	else
-	    out << states[i] << std::endl;
+        out << i << ": ";
+        if (si)
+            si->printState(states[i], out);
+        else
+            out << states[i] << std::endl;
     }
-    
+
     for (unsigned int i = 0 ; i < edges.size() ; ++i)
     {
-	if (edges[i].empty())
-	    continue;
-	out << i << ": ";
-	for (unsigned int j = 0 ; j < edges[i].size() ; ++j)
-	    out << edges[i][j] << ' ';
-	out << std::endl;
-    }    
+        if (edges[i].empty())
+            continue;
+        out << i << ": ";
+        for (unsigned int j = 0 ; j < edges[i].size() ; ++j)
+            out << edges[i][j] << ' ';
+        out << std::endl;
+    }
 }
 
 void ompl::base::PlannerInputStates::clear(void)
 {
     if (tempState_)
     {
-	si_->freeState(tempState_);
-	tempState_ = NULL;
+        si_->freeState(tempState_);
+        tempState_ = NULL;
     }
     addedStartStates_ = 0;
     sampledGoalsCount_ = 0;
@@ -280,42 +280,42 @@ void ompl::base::PlannerInputStates::clear(void)
 bool ompl::base::PlannerInputStates::update(void)
 {
     if (!planner_)
-	throw Exception("No planner set for PlannerInputStates");
+        throw Exception("No planner set for PlannerInputStates");
     return use(planner_->getSpaceInformation(), planner_->getProblemDefinition());
 }
 
 void ompl::base::PlannerInputStates::checkValidity(void) const
 {
     std::string error;
-    
+
     if (!pdef_)
-	error = "Problem definition not specified";
+        error = "Problem definition not specified";
     else
     {
-	if (pdef_->getStartStateCount() <= 0)
-	    error = "No start states specified";
-	else
-	    if (!pdef_->getGoal())
-		error = "No goal specified";
+        if (pdef_->getStartStateCount() <= 0)
+            error = "No start states specified";
+        else
+            if (!pdef_->getGoal())
+                error = "No goal specified";
     }
-    
+
     if (!error.empty())
     {
-	if (planner_)
-	    throw Exception(planner_->getName(), error);
-	else
-	    throw Exception(error);
+        if (planner_)
+            throw Exception(planner_->getName(), error);
+        else
+            throw Exception(error);
     }
 }
 
 bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef)
 {
     if (si && pdef)
-	return use(si.get(), pdef.get());
+        return use(si.get(), pdef.get());
     else
     {
-	clear();
-	return true;
+        clear();
+        return true;
     }
 }
 
@@ -323,10 +323,10 @@ bool ompl::base::PlannerInputStates::use(const SpaceInformation *si, const Probl
 {
     if (pdef_ != pdef || si_ != si)
     {
-	clear();
-	pdef_ = pdef;
-	si_ = si;
-	return true;
+        clear();
+        pdef_ = pdef;
+        si_ = si;
+        return true;
     }
     return false;
 }
@@ -335,24 +335,24 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
 {
     if (pdef_ == NULL || si_ == NULL)
     {
-	std::string error = "Missing space information or problem definition";
-	if (planner_)
-	    throw Exception(planner_->getName(), error);
-	else
-	    throw Exception(error);
+        std::string error = "Missing space information or problem definition";
+        if (planner_)
+            throw Exception(planner_->getName(), error);
+        else
+            throw Exception(error);
     }
-    
+
     while (addedStartStates_ < pdef_->getStartStateCount())
     {
-	const base::State *st = pdef_->getStartState(addedStartStates_);
-	addedStartStates_++;
-	if (si_->satisfiesBounds(st) && si_->isValid(st))
-	    return st;
-	else
-	{
-	    msg::Interface msg(planner_ ? planner_->getName() : "");
-	    msg.warn("Skipping invalid start state");
-	}
+        const base::State *st = pdef_->getStartState(addedStartStates_);
+        addedStartStates_++;
+        if (si_->satisfiesBounds(st) && si_->isValid(st))
+            return st;
+        else
+        {
+            msg::Interface msg(planner_ ? planner_->getName() : "");
+            msg.warn("Skipping invalid start state");
+        }
     }
     return NULL;
 }
@@ -367,50 +367,50 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 {
     if (pdef_ == NULL || si_ == NULL)
     {
-	std::string error = "Missing space information or problem definition";
-	if (planner_)
-	    throw Exception(planner_->getName(), error);
-	else
-	    throw Exception(error);
+        std::string error = "Missing space information or problem definition";
+        if (planner_)
+            throw Exception(planner_->getName(), error);
+        else
+            throw Exception(error);
     }
-        
+
     const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (goal)
     {
         const GoalLazySamples *gls = dynamic_cast<const GoalLazySamples*>(goal);
-	bool attempt = true;
-	while (attempt)
-	{
-	    attempt = false;
-	    
-	    if (sampledGoalsCount_ < goal->maxSampleCount())
-	    {
-		if (tempState_ == NULL)
-		    tempState_ = si_->allocState();
-		
-		do 
-		{
-		    goal->sampleGoal(tempState_);
-		    sampledGoalsCount_++;
-		    
-		    if (si_->satisfiesBounds(tempState_) && si_->isValid(tempState_))
-			return tempState_;
-		    else
-		    {
-			msg::Interface msg(planner_ ? planner_->getName() : "");
-			msg.warn("Skipping invalid goal state");
-		    }
-		}
-		while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
-	    }
+        bool attempt = true;
+        while (attempt)
+        {
+            attempt = false;
 
-	    if (gls && goal->canSample() && !ptc())
-	    {
+            if (sampledGoalsCount_ < goal->maxSampleCount())
+            {
+                if (tempState_ == NULL)
+                    tempState_ = si_->allocState();
+
+                do
+                {
+                    goal->sampleGoal(tempState_);
+                    sampledGoalsCount_++;
+
+                    if (si_->satisfiesBounds(tempState_) && si_->isValid(tempState_))
+                        return tempState_;
+                    else
+                    {
+                        msg::Interface msg(planner_ ? planner_->getName() : "");
+                        msg.warn("Skipping invalid goal state");
+                    }
+                }
+                while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
+            }
+
+            if (gls && goal->canSample() && !ptc())
+            {
                 boost::this_thread::sleep(time::seconds(0.01));
-		attempt = !ptc();
-	    }
-	}
+                attempt = !ptc();
+            }
+        }
     }
     return NULL;
 }
@@ -418,7 +418,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 bool ompl::base::PlannerInputStates::haveMoreStartStates(void) const
 {
     if (pdef_)
-	return addedStartStates_ < pdef_->getStartStateCount();
+        return addedStartStates_ < pdef_->getStartStateCount();
     return false;
 }
 
@@ -426,9 +426,9 @@ bool ompl::base::PlannerInputStates::haveMoreGoalStates(void) const
 {
     if (pdef_ && pdef_->getGoal())
     {
-	const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
-	if (goal)
-	    return sampledGoalsCount_ < goal->maxSampleCount();
+        const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
+        if (goal)
+            return sampledGoalsCount_ < goal->maxSampleCount();
     }
     return false;
 }

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -42,7 +42,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/constants/constants.hpp>
 
-    
+
 /// Flag indicating whether the user asked for a seed or not
 static bool            userDefinedSeed = false;
 
@@ -57,11 +57,11 @@ static boost::uint32_t firstSeed(void)
 {
     firstSeedGenerated = true;
     if (userDefinedSeed)
-	return userSetSeed;
+        return userSetSeed;
     else
-	return 
-	    (boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
-			      boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds();
+        return
+            (boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
+                              boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds();
 }
 
 /// We use a different random number generator for the seeds of the
@@ -82,17 +82,17 @@ static boost::uint32_t nextSeed(void)
 void ompl::RNG::setSeed(boost::uint32_t seed)
 {
     if (firstSeedGenerated)
-	throw Exception("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
+        throw Exception("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
 
     userDefinedSeed = true;
     userSetSeed = seed;
 }
 
 ompl::RNG::RNG(void) : generator_(nextSeed()),
-		       uniDist_(0, 1),
-		       normalDist_(0, 1),
-		       uni_(generator_, uniDist_),
-		       normal_(generator_, normalDist_)
+                       uniDist_(0, 1),
+                       normalDist_(0, 1),
+                       uni_(generator_, uniDist_),
+                       normal_(generator_, normalDist_)
 {
 }
 
@@ -100,7 +100,7 @@ double ompl::RNG::halfNormalReal(double r_min, double r_max, double focus)
 {
     const double mean = r_max - r_min;
     double       v    = gaussian(mean, mean/focus);
-    
+
     if (v > mean) v = 2.0 * mean - v;
     double r = v >= 0.0 ? v + r_min : r_min;
     return r > r_max ? r_max : r;
@@ -115,7 +115,7 @@ int ompl::RNG::halfNormalInt(int r_min, int r_max, double focus)
 //       pg. 124-132
 void ompl::RNG::quaternion(double value[4])
 {
-    double x0 = uni_();    
+    double x0 = uni_();
     double r1 = sqrt(1.0 - x0), r2 = sqrt(x0);
     double t1 = 2.0 * boost::math::constants::pi<double>() * uni_(), t2 = 2.0 * boost::math::constants::pi<double>() * uni_();
     double c1 = cos(t1), s1 = sin(t1);

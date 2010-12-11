@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,67 +45,67 @@ namespace ompl
 {
     namespace base
     {
-		
-	/** \brief A manifold representing SE(3) */
-	class SE3StateManifold : public CompoundStateManifold
-	{
-	public:
 
-	    /** \brief A state in SE(3): position = (x, y, z), quaternion = (x, y, z, w) */
-	    class StateType : public CompoundStateManifold::StateType
-	    {
-	    public:
-		StateType(void) : CompoundStateManifold::StateType()
-		{
-		}
+        /** \brief A manifold representing SE(3) */
+        class SE3StateManifold : public CompoundStateManifold
+        {
+        public:
 
-		/** \brief Get the X component of the state */
-		double getX(void) const
-		{
-		    return as<RealVectorStateManifold::StateType>(0)->values[0];
-		}
-		
-		/** \brief Get the Y component of the state */
-		double getY(void) const
-		{
-		    return as<RealVectorStateManifold::StateType>(0)->values[1];
-		}
+            /** \brief A state in SE(3): position = (x, y, z), quaternion = (x, y, z, w) */
+            class StateType : public CompoundStateManifold::StateType
+            {
+            public:
+                StateType(void) : CompoundStateManifold::StateType()
+                {
+                }
 
-		/** \brief Get the Z component of the state */
-		double getZ(void) const
-		{
-		    return as<RealVectorStateManifold::StateType>(0)->values[2];
-		}
+                /** \brief Get the X component of the state */
+                double getX(void) const
+                {
+                    return as<RealVectorStateManifold::StateType>(0)->values[0];
+                }
 
-		/** \brief Get the rotation component of the state */
-		const SO3StateManifold::StateType& rotation(void) const
-		{
-		    return *as<SO3StateManifold::StateType>(1);
-		}
-		
-		/** \brief Get the rotation component of the state and allow changing it as well */
-		SO3StateManifold::StateType& rotation(void)
-		{
-		    return *as<SO3StateManifold::StateType>(1);
-		}
+                /** \brief Get the Y component of the state */
+                double getY(void) const
+                {
+                    return as<RealVectorStateManifold::StateType>(0)->values[1];
+                }
 
-		/** \brief Set the X component of the state */
-		void setX(double x)
-		{
-		    as<RealVectorStateManifold::StateType>(0)->values[0] = x;
-		}
+                /** \brief Get the Z component of the state */
+                double getZ(void) const
+                {
+                    return as<RealVectorStateManifold::StateType>(0)->values[2];
+                }
 
-		/** \brief Set the Y component of the state */
-		void setY(double y)
-		{
-		    as<RealVectorStateManifold::StateType>(0)->values[1] = y;
-		}
+                /** \brief Get the rotation component of the state */
+                const SO3StateManifold::StateType& rotation(void) const
+                {
+                    return *as<SO3StateManifold::StateType>(1);
+                }
 
-		/** \brief Set the Z component of the state */
-		void setZ(double z)
-		{
-		    as<RealVectorStateManifold::StateType>(0)->values[2] = z;
-		}
+                /** \brief Get the rotation component of the state and allow changing it as well */
+                SO3StateManifold::StateType& rotation(void)
+                {
+                    return *as<SO3StateManifold::StateType>(1);
+                }
+
+                /** \brief Set the X component of the state */
+                void setX(double x)
+                {
+                    as<RealVectorStateManifold::StateType>(0)->values[0] = x;
+                }
+
+                /** \brief Set the Y component of the state */
+                void setY(double y)
+                {
+                    as<RealVectorStateManifold::StateType>(0)->values[1] = y;
+                }
+
+                /** \brief Set the Z component of the state */
+                void setZ(double z)
+                {
+                    as<RealVectorStateManifold::StateType>(0)->values[2] = z;
+                }
 
                 /** \brief Set the X, Y and Z components of the state */
                 void setXYZ(double x, double y, double z)
@@ -114,38 +114,38 @@ namespace ompl
                     setY(y);
                     setZ(z);
                 }
-		
-	    };	    
 
-	    SE3StateManifold(void) : CompoundStateManifold()
-	    {
-		name_ = "SE3" + name_;
-		addSubManifold(StateManifoldPtr(new RealVectorStateManifold(3)), 1.0);
-		addSubManifold(StateManifoldPtr(new SO3StateManifold()), 0.5);
-		lock();
-	    }
-	    
-	    virtual ~SE3StateManifold(void)
-	    {
-	    }
+            };
 
-	    /** \copydoc RealVectorStateManifold::setBounds() */
-	    void setBounds(const RealVectorBounds &bounds)
-	    {
-		as<RealVectorStateManifold>(0)->setBounds(bounds);
-	    }
-	    
-	    /** \copydoc RealVectorStateManifold::getBounds() */
-	    const RealVectorBounds& getBounds(void) const
-	    {
-		return as<RealVectorStateManifold>(0)->getBounds();
-	    }
+            SE3StateManifold(void) : CompoundStateManifold()
+            {
+                name_ = "SE3" + name_;
+                addSubManifold(StateManifoldPtr(new RealVectorStateManifold(3)), 1.0);
+                addSubManifold(StateManifoldPtr(new SO3StateManifold()), 0.5);
+                lock();
+            }
 
-	    virtual State* allocState(void) const;
-	    virtual void freeState(State *state) const;
+            virtual ~SE3StateManifold(void)
+            {
+            }
 
-	    virtual void registerProjections(void);
-	};	
+            /** \copydoc RealVectorStateManifold::setBounds() */
+            void setBounds(const RealVectorBounds &bounds)
+            {
+                as<RealVectorStateManifold>(0)->setBounds(bounds);
+            }
+
+            /** \copydoc RealVectorStateManifold::getBounds() */
+            const RealVectorBounds& getBounds(void) const
+            {
+                return as<RealVectorStateManifold>(0)->getBounds();
+            }
+
+            virtual State* allocState(void) const;
+            virtual void freeState(State *state) const;
+
+            virtual void registerProjections(void);
+        };
     }
 }
 

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -44,42 +44,42 @@ namespace ompl
 {
     namespace base
     {
-	
-	/** \brief Definition of an state allocator. This reuses
-	    memory for states and frees them only when the instance is
-	    destroyed. */
-	class StateAllocator : private boost::noncopyable
-	{
-	public:
 
-	    /** \brief Constructor */
-	    StateAllocator(const StateManifoldPtr &manifold);
-	    
-	    ~StateAllocator(void);
-	    
-	    /** \brief Allocate a state from the specified manifold */
-	    State* allocState(void) const;
-	    
-	    /** \brief Free the memory of the allocated state */
-	    void freeState(State *state) const;
-	    
-	    /** \brief Clear all the allocated memory */
-	    void clear(void);
-	    
-	    /** \brief Return the number of pre-allocated states */
-	    std::size_t sizeAvailable(void) const;
+        /** \brief Definition of an state allocator. This reuses
+            memory for states and frees them only when the instance is
+            destroyed. */
+        class StateAllocator : private boost::noncopyable
+        {
+        public:
 
-	    /** \brief Return the number of allocated states that are in use */
-	    std::size_t sizeInUse(void) const;
+            /** \brief Constructor */
+            StateAllocator(const StateManifoldPtr &manifold);
 
-	    /** \brief Return the number of allocated states */
+            ~StateAllocator(void);
+
+            /** \brief Allocate a state from the specified manifold */
+            State* allocState(void) const;
+
+            /** \brief Free the memory of the allocated state */
+            void freeState(State *state) const;
+
+            /** \brief Clear all the allocated memory */
+            void clear(void);
+
+            /** \brief Return the number of pre-allocated states */
+            std::size_t sizeAvailable(void) const;
+
+            /** \brief Return the number of allocated states that are in use */
+            std::size_t sizeInUse(void) const;
+
+            /** \brief Return the number of allocated states */
             std::size_t sizeTotal(void) const;
-            
-	private:
-            
+
+        private:
+
             StateManifoldPtr manifold_;
             void            *data_;
-	};
+        };
 
     }
 }

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -47,14 +47,14 @@ void ompl::base::SO3StateManifold::StateType::setAxisAngle(double ax, double ay,
 {
     double norm = sqrt(ax * ax + ay * ay + az * az);
     if (norm < std::numeric_limits<double>::epsilon())
-	setIdentity();
+        setIdentity();
     else
     {
-	double s = sin(angle / 2.0);
-	x = s * ax / norm;
-	y = s * ay / norm;
-	z = s * az / norm;
-	w = cos(angle / 2.0);
+        double s = sin(angle / 2.0);
+        x = s * ax / norm;
+        y = s * ay / norm;
+        z = s * az / norm;
+        w = cos(angle / 2.0);
     }
 }
 
@@ -104,13 +104,13 @@ void ompl::base::SO3StateManifold::enforceBounds(State *state) const
     double nrm = norm(qstate);
     if (fabs(nrm - 1.0) > MAX_QUATERNION_NORM_ERROR)
     {
-	qstate->x /= nrm;
-	qstate->y /= nrm;
-	qstate->z /= nrm;
-	qstate->w /= nrm;
+        qstate->x /= nrm;
+        qstate->y /= nrm;
+        qstate->z /= nrm;
+        qstate->w /= nrm;
     }
-}    
-	    	    
+}
+
 bool ompl::base::SO3StateManifold::satisfiesBounds(const State *state) const
 {
     return fabs(norm(static_cast<const StateType*>(state)) - 1.0) < MAX_QUATERNION_NORM_ERROR;
@@ -138,9 +138,9 @@ double ompl::base::SO3StateManifold::distance(const State *state1, const State *
     const StateType *qs2 = static_cast<const StateType*>(state2);
     double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
     if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
-	return 0.0;
+        return 0.0;
     else
-	return acos(dq) * 2.0;
+        return acos(dq) * 2.0;
 }
 
 bool ompl::base::SO3StateManifold::equalStates(const State *state1, const State *state2) const
@@ -161,30 +161,30 @@ void ompl::base::SO3StateManifold::interpolate(const State *from, const State *t
     double theta = distance(from, to) / 2.0;
     if (theta > std::numeric_limits<double>::epsilon())
     {
-	double d = 1.0 / sin(theta);
-	double s0 = sin((1.0 - t) * theta);
-	double s1 = sin(t * theta);
-	
-	const StateType *qs1 = static_cast<const StateType*>(from);
-	const StateType *qs2 = static_cast<const StateType*>(to);
-	StateType       *qr  = static_cast<StateType*>(state);
-	double dq = qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w;
-	if (dq < 0)  // Take care of long angle case see http://en.wikipedia.org/wiki/Slerp
-	    s1 = -s1;
-	
-	qr->x = (qs1->x * s0 + qs2->x * s1) * d;
-	qr->y = (qs1->y * s0 + qs2->y * s1) * d;
-	qr->z = (qs1->z * s0 + qs2->z * s1) * d;
-	qr->w = (qs1->w * s0 + qs2->w * s1) * d;
+        double d = 1.0 / sin(theta);
+        double s0 = sin((1.0 - t) * theta);
+        double s1 = sin(t * theta);
+
+        const StateType *qs1 = static_cast<const StateType*>(from);
+        const StateType *qs2 = static_cast<const StateType*>(to);
+        StateType       *qr  = static_cast<StateType*>(state);
+        double dq = qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w;
+        if (dq < 0)  // Take care of long angle case see http://en.wikipedia.org/wiki/Slerp
+            s1 = -s1;
+
+        qr->x = (qs1->x * s0 + qs2->x * s1) * d;
+        qr->y = (qs1->y * s0 + qs2->y * s1) * d;
+        qr->z = (qs1->z * s0 + qs2->z * s1) * d;
+        qr->w = (qs1->w * s0 + qs2->w * s1) * d;
     }
     else
     {
-	if (state != from)
-	    copyState(state, from);
+        if (state != from)
+            copyState(state, from);
     }
 }
 
-ompl::base::ManifoldStateSamplerPtr ompl::base::SO3StateManifold::allocStateSampler(void) const 
+ompl::base::ManifoldStateSamplerPtr ompl::base::SO3StateManifold::allocStateSampler(void) const
 {
     return ManifoldStateSamplerPtr(new SO3StateSampler(this));
 }
@@ -204,28 +204,28 @@ void ompl::base::SO3StateManifold::registerProjections(void)
     class SO3DefaultProjection : public ProjectionEvaluator
     {
     public:
-	
-	SO3DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
-	{
-	    cellDimensions_.resize(3);
-	    cellDimensions_[0] = boost::math::constants::pi<double>() / 10.0;
-	    cellDimensions_[1] = boost::math::constants::pi<double>() / 10.0;
-	    cellDimensions_[2] = boost::math::constants::pi<double>() / 10.0;
-	}
-	
-	virtual unsigned int getDimension(void) const
-	{
-	    return 3;
-	}
-	
-	virtual void project(const State *state, EuclideanProjection &projection) const
-	{
-	    projection.values[0] = state->as<SO3StateManifold::StateType>()->x;
-	    projection.values[1] = state->as<SO3StateManifold::StateType>()->y;
-	    projection.values[2] = state->as<SO3StateManifold::StateType>()->z;
-	}
+
+        SO3DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
+        {
+            cellDimensions_.resize(3);
+            cellDimensions_[0] = boost::math::constants::pi<double>() / 10.0;
+            cellDimensions_[1] = boost::math::constants::pi<double>() / 10.0;
+            cellDimensions_[2] = boost::math::constants::pi<double>() / 10.0;
+        }
+
+        virtual unsigned int getDimension(void) const
+        {
+            return 3;
+        }
+
+        virtual void project(const State *state, EuclideanProjection &projection) const
+        {
+            projection.values[0] = state->as<SO3StateManifold::StateType>()->x;
+            projection.values[1] = state->as<SO3StateManifold::StateType>()->y;
+            projection.values[2] = state->as<SO3StateManifold::StateType>()->z;
+        }
     };
-    
+
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO3DefaultProjection(this))));
 }
 
@@ -234,11 +234,11 @@ void ompl::base::SO3StateManifold::printState(const State *state, std::ostream &
     out << "SO3State [";
     if (state)
     {
-	const StateType *qstate = static_cast<const StateType*>(state);
-	out << qstate->x << " " << qstate->y << " " << qstate->z << " " << qstate->w;
+        const StateType *qstate = static_cast<const StateType*>(state);
+        out << qstate->x << " " << qstate->y << " " << qstate->z << " " << qstate->w;
     }
     else
-	out << "NULL";
+        out << "NULL";
     out << ']' << std::endl;
 }
 

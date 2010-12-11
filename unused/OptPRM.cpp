@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,20 +43,20 @@ void ompl::geometric::OptPRM::setup(void)
     PRM::setup();
     if (ballRadiusMax_ < std::numeric_limits<double>::epsilon())
     {
-	ballRadiusMax_ = si_->getMaximumExtent() / 10.0;
-	msg_.inform("Maximum ball radius for nearest neighbors estimated to be %f", ballRadiusMax_);
+        ballRadiusMax_ = si_->getMaximumExtent() / 10.0;
+        msg_.inform("Maximum ball radius for nearest neighbors estimated to be %f", ballRadiusMax_);
     }
     if (ballRadiusConst_ < std::numeric_limits<double>::epsilon())
-	throw Exception(name_, "The ball radius constant must be positive");
+        throw Exception(name_, "The ball radius constant must be positive");
 }
 
 void ompl::geometric::OptPRM::nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh)
 {
     double r = std::min(ballRadiusConst_ * (sqrt(log((double)(1 + nn_->size())) / ((double)(nn_->size())))),
-			ballRadiusMax_);
+                        ballRadiusMax_);
     nn_->nearestR(milestone, r, nbh);
     if (nbh.size() > maxNearestNeighbors_)
-	nbh.resize(maxNearestNeighbors_);
+        nbh.resize(maxNearestNeighbors_);
 }
 
 bool ompl::geometric::OptPRM::solve(double solveTime)
@@ -65,18 +65,18 @@ bool ompl::geometric::OptPRM::solve(double solveTime)
     bool solved = PRM::solve(solveTime);
     while (solved && time::now() < endTime)
     {
-	double maxL = pdef_->getGoal()->getMaximumPathLength();
-	double L = pdef_->getGoal()->getSolutionPath()->length();
-	if (L > maxL)
-	{
-	    msg_.inform("Attempting to improve solution of length %f", L);
-	    double sec = std::max(0.0, time::seconds(endTime - time::now()) / 10.0);
-	    if (sec > 0.0)
-	    {
-		growRoadmap(sec);
-		reconstructLastSolution();
-	    }
-	}
+        double maxL = pdef_->getGoal()->getMaximumPathLength();
+        double L = pdef_->getGoal()->getSolutionPath()->length();
+        if (L > maxL)
+        {
+            msg_.inform("Attempting to improve solution of length %f", L);
+            double sec = std::max(0.0, time::seconds(endTime - time::now()) / 10.0);
+            if (sec > 0.0)
+            {
+                growRoadmap(sec);
+                reconstructLastSolution();
+            }
+        }
     }
     return solved;
 }

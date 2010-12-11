@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -53,7 +53,7 @@ void ompl::base::GoalStates::clear(void)
 void ompl::base::GoalStates::freeMemory(void)
 {
     for (unsigned int i = 0 ; i < states.size() ; ++i)
-	si_->freeState(states[i]);
+        si_->freeState(states[i]);
 }
 
 double ompl::base::GoalStates::distanceGoal(const State *st) const
@@ -61,9 +61,9 @@ double ompl::base::GoalStates::distanceGoal(const State *st) const
     double dist = std::numeric_limits<double>::infinity();
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
-	double d = si_->distance(st, states[i]);
-	if (d < dist)
-	    dist = d;
+        double d = si_->distance(st, states[i]);
+        if (d < dist)
+            dist = d;
     }
     return dist;
 }
@@ -73,15 +73,15 @@ void ompl::base::GoalStates::print(std::ostream &out) const
     out << states.size() << " goal states, threshold = " << threshold_ << ", memory address = " << this << std::endl;
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
-	si_->printState(states[i], out);
-	out << std::endl;
+        si_->printState(states[i], out);
+        out << std::endl;
     }
 }
 
 void ompl::base::GoalStates::sampleGoal(base::State *st) const
 {
     if (states.empty())
-	throw Exception("There are no goals to sample");
+        throw Exception("There are no goals to sample");
     si_->copyState(st, states[samplePosition]);
     samplePosition = (samplePosition + 1) % states.size();
 }
@@ -100,5 +100,3 @@ void ompl::base::GoalStates::addState(const ScopedState<> &st)
 {
     addState(st.get());
 }
-
-	    

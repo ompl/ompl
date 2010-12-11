@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -77,28 +77,28 @@ void ompl::msg::Interface::setPrefix(const std::string &prefix)
 {
     prefix_ = prefix;
     if (!prefix_.empty())
-	prefix_ += ": ";
+        prefix_ += ": ";
 }
 
 // the maximum buffer size to use when printing a message
 #define MAX_BUFFER_SIZE 1024
 
 // macro that combines the set of arguments into a single string
-#define COMBINE(m, buf, size)						\
-    va_list __ap;							\
-    va_start(__ap, m);							\
-    char buf##_chr[size];						\
-    vsnprintf(buf##_chr, sizeof(buf##_chr), m, __ap);			\
-    va_end(__ap);							\
+#define COMBINE(m, buf, size)                                                \
+    va_list __ap;                                                        \
+    va_start(__ap, m);                                                        \
+    char buf##_chr[size];                                                \
+    vsnprintf(buf##_chr, sizeof(buf##_chr), m, __ap);                        \
+    va_end(__ap);                                                        \
     std::string buf(buf##_chr)
 
 void ompl::msg::Interface::debug(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-	_lock.lock();
-	OUTPUT_HANDLER->debug(prefix_ + text);
-	_lock.unlock();
+        _lock.lock();
+        OUTPUT_HANDLER->debug(prefix_ + text);
+        _lock.unlock();
     }
 }
 
@@ -112,14 +112,14 @@ void ompl::msg::Interface::inform(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-	_lock.lock();
-	OUTPUT_HANDLER->inform(prefix_ + text);
-	_lock.unlock();
+        _lock.lock();
+        OUTPUT_HANDLER->inform(prefix_ + text);
+        _lock.unlock();
     }
 }
 
 void ompl::msg::Interface::inform(const char *msg, ...) const
-{ 
+{
     COMBINE(msg, buf, MAX_BUFFER_SIZE);
     inform(buf);
 }
@@ -128,9 +128,9 @@ void ompl::msg::Interface::warn(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-	_lock.lock();
-	OUTPUT_HANDLER->warn(prefix_ + text);
-	_lock.unlock();
+        _lock.lock();
+        OUTPUT_HANDLER->warn(prefix_ + text);
+        _lock.unlock();
     }
 }
 
@@ -144,14 +144,14 @@ void ompl::msg::Interface::error(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-	_lock.lock();
-	OUTPUT_HANDLER->error(prefix_ + text);
-	_lock.unlock();
+        _lock.lock();
+        OUTPUT_HANDLER->error(prefix_ + text);
+        _lock.unlock();
     }
 }
 
 void ompl::msg::Interface::error(const char *msg, ...) const
-{ 
+{
     COMBINE(msg, buf, MAX_BUFFER_SIZE);
     error(buf);
 }
@@ -169,7 +169,7 @@ void ompl::msg::OutputHandlerSTD::warn(const std::string &text)
 }
 
 void ompl::msg::OutputHandlerSTD::inform(const std::string &text)
-{ 
+{
     std::cout << "Info:    " << text << std::endl;
     std::cout.flush();
 }

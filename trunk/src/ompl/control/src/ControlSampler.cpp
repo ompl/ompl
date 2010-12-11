@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -52,28 +52,28 @@ void ompl::control::CompoundControlSampler::sample(Control *control)
 {
     Control **comps = static_cast<CompoundControl*>(control)->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sample(comps[i]);
+        samplers_[i]->sample(comps[i]);
 }
 
 void ompl::control::CompoundControlSampler::sample(Control *control, const base::State *state)
-{    
+{
     Control **comps = static_cast<CompoundControl*>(control)->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sample(comps[i], state);
+        samplers_[i]->sample(comps[i], state);
 }
 
 void ompl::control::CompoundControlSampler::sampleNext(Control *control, const Control *previous)
-{  
+{
     Control **comps = static_cast<CompoundControl*>(control)->components;
     const Control * const *prev = static_cast<const CompoundControl*>(previous)->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sampleNext(comps[i], prev[i]);
+        samplers_[i]->sampleNext(comps[i], prev[i]);
 }
 
 void ompl::control::CompoundControlSampler::sampleNext(Control *control, const Control *previous, const base::State *state)
-{  
+{
     Control **comps = static_cast<CompoundControl*>(control)->components;
     const Control * const *prev = static_cast<const CompoundControl*>(previous)->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-	samplers_[i]->sampleNext(comps[i], prev[i], state);
+        samplers_[i]->sampleNext(comps[i], prev[i], state);
 }

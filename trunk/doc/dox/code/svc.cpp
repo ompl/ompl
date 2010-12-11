@@ -2,21 +2,21 @@
    class myStateValidityCheckerClass : public base::StateValidityChecker
    {
    public:
-	myStateValidityCheckerClass(const base::SpaceInformationPtr &si) :
-	  base::StateValidityChecker(si)
-   	{
-	}
-	
-	virtual bool isValid(const base::State *state) const
-	{
-		return ...;
-	}
+        myStateValidityCheckerClass(const base::SpaceInformationPtr &si) :
+          base::StateValidityChecker(si)
+           {
+        }
+
+        virtual bool isValid(const base::State *state) const
+        {
+                return ...;
+        }
    };
    // or this function:
    bool myStateValidityCheckerFunction(const base::State *state)
    {
-	return ...;
-   }	
+        return ...;
+   }
 
    base::SpaceInformationPtr si(manifold);
    // either this call:

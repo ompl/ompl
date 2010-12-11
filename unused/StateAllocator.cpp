@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -46,7 +46,7 @@ namespace ompl
 {
     namespace base
     {
-        
+
         // This class corresponds to an instance of a StateAllocator. It gets deleted only after the
         // StateAllocator is deleted and all threads that use this instance have terminated.
         // This ensures that all stacks of states will be cleared.
@@ -56,12 +56,12 @@ namespace ompl
             AllocatorStacks(const StateManifoldPtr &manifold) : manifold_(manifold)
             {
             }
-            
+
             ~AllocatorStacks(void)
             {
                 freeMemory();
             }
-            
+
             std::stack<State*>* getStack(void)
             {
                 boost::mutex::scoped_lock lock(lock_);
@@ -71,7 +71,7 @@ namespace ompl
                     inuse_.push_back(s);
                     return s;
                 }
-                
+
                 std::list< std::stack<State*>* >::iterator pos = avail_.begin();
                 for (std::list< std::stack<State*>* >::iterator it = ++avail_.begin() ; it != avail_.end() ; ++it)
                     if ((*pos)->size() < (*it)->size())
@@ -81,7 +81,7 @@ namespace ompl
                 inuse_.push_back(s);
                 return s;
             }
-            
+
             void returnStack(std::stack<State*> *s)
             {
                 boost::mutex::scoped_lock lock(lock_);
@@ -91,7 +91,7 @@ namespace ompl
                 inuse_.erase(pos);
                 avail_.push_back(s);
             }
-            
+
             void clearAvailStacks(void)
             {
                 boost::mutex::scoped_lock lock(lock_);
@@ -102,8 +102,8 @@ namespace ompl
                 }
                 avail_.clear();
             }
-            
-            std::pair<std::size_t,std::size_t> size(void) 
+
+            std::pair<std::size_t,std::size_t> size(void)
             {
                 std::size_t sz1 = 0;
                 std::size_t sz2 = 0;
@@ -114,9 +114,9 @@ namespace ompl
                     sz2 += (*it)->size();
                 return std::make_pair(sz1, sz2);
             }
-            
+
         private:
-            
+
             void clearStack(std::stack<State*> &s) const
             {
                 while (!s.empty())
@@ -125,41 +125,41 @@ namespace ompl
                     s.pop();
                 }
             }
-            
+
             void freeMemory(void)
             {
                 clearAvailStacks();
                 if (!inuse_.empty())
                     throw Exception("Stack of states to be freed is in use by a thread. This should not happen.");
             }
-            
+
             StateManifoldPtr                 manifold_;
             std::list< std::stack<State*>* > inuse_;
             std::list< std::stack<State*>* > avail_;
             boost::mutex                     lock_;
         };
-        
-        // this class gets allocated by each thread. it holds a shared pointer to the instance of AllocatorStacks 
+
+        // this class gets allocated by each thread. it holds a shared pointer to the instance of AllocatorStacks
         // associated to the state allocator. Even if the StateAllocator has been deleted, the AllocatorStacks will exist
         // and this instance will be able to return its stack whenever the thread terminates
         class ThreadStorage
         {
         public:
-            
+
             ThreadStorage(const boost::shared_ptr<AllocatorStacks> &availableStacks) : astacks(availableStacks)
             {
                 stack = astacks->getStack();
             }
-            
+
             ~ThreadStorage(void)
             {
                 astacks->returnStack(stack);
             }
-            
+
             boost::shared_ptr<AllocatorStacks>  astacks;
             std::stack<base::State*>           *stack;
         };
-        
+
         // this object is created for every instance of StateAllocator and casted as void*
         // to avoid having to include too many header files in the .h file
         // this class is allocated by the constructor of StateAllocator and freed by the destructor.
@@ -169,7 +169,7 @@ namespace ompl
             StateAllocatorData(const StateManifoldPtr &manifold) : astacks(new AllocatorStacks(manifold))
             {
             }
-            
+
             boost::shared_ptr<AllocatorStacks>        astacks;
             boost::thread_specific_ptr<ThreadStorage> ts;
         };
@@ -195,7 +195,7 @@ ompl::base::State* ompl::base::StateAllocator::allocState(void) const
 {
     if (!CDATA->ts.get())
         CDATA->ts.reset(new ThreadStorage(CDATA->astacks));
-    
+
     if (!CDATA->ts->stack->empty())
     {
         State *result = CDATA->ts->stack->top();

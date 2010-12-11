@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -59,136 +59,136 @@ void ompl::base::ProblemDefinition::setGoalState(const State *goal, const double
 bool ompl::base::ProblemDefinition::hasStartState(const State *state, unsigned int *startIndex)
 {
     for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-	if (si_->equalStates(state, startStates_[i]))
-	{
-	    if (startIndex)
-		*startIndex = i;
-	    return true;
-	}
+        if (si_->equalStates(state, startStates_[i]))
+        {
+            if (startIndex)
+                *startIndex = i;
+            return true;
+        }
     return false;
 }
 
 bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double dist, bool start, unsigned int attempts)
-{ 
+{
     bool result = false;
 
     bool b = si_->satisfiesBounds(state);
     bool v = false;
     if (b)
     {
-	v = si_->isValid(state);
-	if (!v)
-	    msg_.debug("%s state is not valid", start ? "Start" : "Goal");
+        v = si_->isValid(state);
+        if (!v)
+            msg_.debug("%s state is not valid", start ? "Start" : "Goal");
     }
     else
-	msg_.debug("%s state is not within space bounds", start ? "Start" : "Goal");
-    
+        msg_.debug("%s state is not within space bounds", start ? "Start" : "Goal");
+
     if (!b || !v)
     {
-	std::stringstream ss;
-	si_->printState(state, ss);
-	ss << " within distance " << dist;
-	msg_.debug("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
-	
-	State *temp = si_->allocState();
-	if (si_->searchValidNearby(temp, state, dist, attempts))
-	{
-	    si_->copyState(state, temp);
-	    result = true;
-	}
-	else
-	    msg_.warn("Unable to fix %s state", start ? "start" : "goal");
-	si_->freeState(temp);
+        std::stringstream ss;
+        si_->printState(state, ss);
+        ss << " within distance " << dist;
+        msg_.debug("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
+
+        State *temp = si_->allocState();
+        if (si_->searchValidNearby(temp, state, dist, attempts))
+        {
+            si_->copyState(state, temp);
+            result = true;
+        }
+        else
+            msg_.warn("Unable to fix %s state", start ? "start" : "goal");
+        si_->freeState(temp);
     }
-    
-    return result;    
+
+    return result;
 }
 
 
 bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, double distGoal, unsigned int attempts)
 {
     bool result = true;
-    
+
     // fix start states
     for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-	if (!fixInvalidInputState(startStates_[i], distStart, true, attempts))
-	    result = false;
-    
+        if (!fixInvalidInputState(startStates_[i], distStart, true, attempts))
+            result = false;
+
     // fix goal state
     GoalState *goal = dynamic_cast<GoalState*>(goal_.get());
     if (goal)
     {
-	if (!fixInvalidInputState(goal->state, distGoal, false, attempts))
-	    result = false;
+        if (!fixInvalidInputState(goal->state, distGoal, false, attempts))
+            result = false;
     }
 
     // fix goal state
     GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
     if (goals)
     {
-	for (unsigned int i = 0 ; i < goals->states.size() ; ++i)
-	    if (!fixInvalidInputState(goals->states[i], distGoal, false, attempts))
-		result = false;
+        for (unsigned int i = 0 ; i < goals->states.size() ; ++i)
+            if (!fixInvalidInputState(goals->states[i], distGoal, false, attempts))
+                result = false;
     }
-    
-    return result;    
+
+    return result;
 }
 
 void ompl::base::ProblemDefinition::getInputStates(std::vector<const State*> &states) const
 {
     states.clear();
     for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-	states.push_back(startStates_[i]);
+        states.push_back(startStates_[i]);
 
     GoalState *goal = dynamic_cast<GoalState*>(goal_.get());
     if (goal)
-	states.push_back(goal->state);
+        states.push_back(goal->state);
 
     GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
     if (goals)
-	for (unsigned int i = 0 ; i < goals->states.size() ; ++i)
-	    states.push_back(goals->states[i]);
+        for (unsigned int i = 0 ; i < goals->states.size() ; ++i)
+            states.push_back(goals->states[i]);
 }
 
 bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *distance) const
 {
     if (!goal_)
     {
-	msg_.error("Goal undefined");
-	return false;
+        msg_.error("Goal undefined");
+        return false;
     }
-    
+
     for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
     {
-	const State *start = startStates_[i];
-	if (start && si_->isValid(start) && si_->satisfiesBounds(start))
-	{
-	    double dist;
-	    if (goal_->isSatisfied(start, &dist))
-	    {
-		if (startIndex)
-		    *startIndex = i;
-		if (distance)
-		    *distance = dist;
-		return true;
-	    }	    
-	}
-	else
-	{
-	    msg_.error("Initial state is in collision!");
-	}
+        const State *start = startStates_[i];
+        if (start && si_->isValid(start) && si_->satisfiesBounds(start))
+        {
+            double dist;
+            if (goal_->isSatisfied(start, &dist))
+            {
+                if (startIndex)
+                    *startIndex = i;
+                if (distance)
+                    *distance = dist;
+                return true;
+            }
+        }
+        else
+        {
+            msg_.error("Initial state is in collision!");
+        }
     }
-    
-    return false;    
+
+    return false;
 }
 
 void ompl::base::ProblemDefinition::print(std::ostream &out) const
 {
     out << "Start states:" << std::endl;
     for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-	si_->printState(startStates_[i], out);
+        si_->printState(startStates_[i], out);
     if (goal_)
-	goal_->print(out);
+        goal_->print(out);
     else
-	out << "Goal = NULL" << std::endl;
+        out << "Goal = NULL" << std::endl;
 }

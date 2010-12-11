@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,11 +43,11 @@
 #include "ompl/base/manifolds/SE3StateManifold.h"
 
 #define DeclareStateType(T) \
-	inline int __dummy##T() \
-	{ \
-		return sizeof(ompl::base::ScopedState<T##StateManifold>) + \
-			sizeof(ompl::base::T##StateManifold::StateType); \
-	}
+        inline int __dummy##T() \
+        { \
+                return sizeof(ompl::base::ScopedState<T##StateManifold>) + \
+                        sizeof(ompl::base::T##StateManifold::StateType); \
+        }
 
 namespace std
 {
@@ -62,16 +62,16 @@ namespace std
 
 namespace ompl
 {
-	namespace base
-	{
-		DeclareStateType();
-		DeclareStateType(Compound);
-		DeclareStateType(RealVector);
-		DeclareStateType(SO2);
-		DeclareStateType(SO3);
-		DeclareStateType(SE2);
-		DeclareStateType(SE3);
-	}
+        namespace base
+        {
+                DeclareStateType();
+                DeclareStateType(Compound);
+                DeclareStateType(RealVector);
+                DeclareStateType(SO2);
+                DeclareStateType(SO3);
+                DeclareStateType(SE2);
+                DeclareStateType(SE3);
+        }
 }
 
 #endif

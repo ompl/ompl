@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -50,14 +50,14 @@ TEST(Memory, Simple)
     MemUsage_t size = mb * 1024 * 1024 / sizeof(char);
     char *data = (char*)malloc(size);
     memset(data, 0, size);
-    
+
     MemUsage_t u = getProcessMemoryUsage() - start;
-    
+
     int allocated_MB = (size/1024)/1024;
     int used_MB =  (u/1024)/1024;
-    
+
     EXPECT_TRUE(abs(used_MB - allocated_MB) < 2);
-    
+
     free(data);
 }
 

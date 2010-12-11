@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -39,22 +39,22 @@
 ompl::control::Control* ompl::control::ControlAllocator::allocControl(void) const
 {
     Control *result = NULL;
-    
+
     StorageType::iterator it = storage_.find(boost::this_thread::get_id());
-    
+
     if (it != storage_.end())
     {
-	if (it->second.empty())
-	    result = manifold_->allocControl();
-	else
-	{
-	    result = it->second.top();
-	    it->second.pop();
-	}
+        if (it->second.empty())
+            result = manifold_->allocControl();
+        else
+        {
+            result = it->second.top();
+            it->second.pop();
+        }
     }
     else
-	result = manifold_->allocControl();
-    
+        result = manifold_->allocControl();
+
     return result;
 }
 
@@ -62,14 +62,14 @@ void ompl::control::ControlAllocator::freeControl(Control *control) const
 {
     boost::thread::id id = boost::this_thread::get_id();
     StorageType::iterator it = storage_.find(id);
-    
+
     if (it != storage_.end())
-	it->second.push(control);
+        it->second.push(control);
     else
     {
-	lock_.lock();
-	storage_[id].push(control);
-	lock_.unlock();
+        lock_.lock();
+        storage_[id].push(control);
+        lock_.unlock();
     }
 }
 
@@ -77,17 +77,17 @@ unsigned int ompl::control::ControlAllocator::size(void) const
 {
     unsigned int s = 0;
     for (StorageType::const_iterator it = storage_.begin() ; it != storage_.end() ; ++it)
-	s += it->second.size();
+        s += it->second.size();
     return s;
 }
 
 void ompl::control::ControlAllocator::clear(void)
 {
     for (StorageType::iterator it = storage_.begin() ; it != storage_.end() ; ++it)
-	while (!it->second.empty())
-	{
-	    manifold_->freeControl(it->second.top());
-	    it->second.pop();
-	}
+        while (!it->second.empty())
+        {
+            manifold_->freeControl(it->second.top());
+            it->second.pop();
+        }
     storage_.clear();
 }

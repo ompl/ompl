@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -56,40 +56,40 @@ bool ompl::base::GaussianValidStateSampler::sample(State *state)
     State *temp = si_->allocState();
     do
     {
-	sampler_->sampleUniform(state);
-	bool v1 = si_->isValid(state);
-	sampler_->sampleGaussian(temp, state, stddev_);
-	bool v2 = si_->isValid(temp);
-	if (v1 != v2)
-	{
-	    if (v2)
-		si_->copyState(state, temp);
-	    result = true;
-	}	
-	attempts++;
+        sampler_->sampleUniform(state);
+        bool v1 = si_->isValid(state);
+        sampler_->sampleGaussian(temp, state, stddev_);
+        bool v2 = si_->isValid(temp);
+        if (v1 != v2)
+        {
+            if (v2)
+                si_->copyState(state, temp);
+            result = true;
+        }
+        attempts++;
     } while (!result && attempts < attempts_);
     si_->freeState(temp);
     return result;
 }
 
 bool ompl::base::GaussianValidStateSampler::sampleNear(State *state, const State *near, const double distance)
-{    
+{
     bool result = false;
     unsigned int attempts = 0;
     State *temp = si_->allocState();
     do
     {
-	sampler_->sampleUniformNear(state, near, distance);
-	bool v1 = si_->isValid(state);
-	sampler_->sampleGaussian(temp, state, distance);
-	bool v2 = si_->isValid(temp);
-	if (v1 != v2)
-	{
-	    if (v2)
-		si_->copyState(state, temp);
-	    result = true;
-	}	
-	attempts++;
+        sampler_->sampleUniformNear(state, near, distance);
+        bool v1 = si_->isValid(state);
+        sampler_->sampleGaussian(temp, state, distance);
+        bool v2 = si_->isValid(temp);
+        if (v1 != v2)
+        {
+            if (v2)
+                si_->copyState(state, temp);
+            result = true;
+        }
+        attempts++;
     } while (!result && attempts < attempts_);
     si_->freeState(temp);
     return result;

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -46,32 +46,32 @@ namespace ompl
     namespace time
     {
 
-	/** \brief Representation of a point in time */
-	typedef boost::posix_time::ptime         point;
+        /** \brief Representation of a point in time */
+        typedef boost::posix_time::ptime         point;
 
-	/** \brief Representation of a time duration */
-	typedef boost::posix_time::time_duration duration;
-	
-	/** \brief Get the current time point */
-	inline point now(void)
-	{
-	    return boost::posix_time::microsec_clock::universal_time();
-	}
-	
-	/** \brief Return the time duration representing a given number of seconds */
-	inline duration seconds(double sec)
-	{
-	    long s  = (long)sec;
-	    long us = (long)((sec - s) * 1000000);
-	    return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
-	}
-	
-	/** \brief Return the number of seconds that a time duration represents */
-	inline double seconds(const duration &d)
-	{
-	    return (double)d.total_microseconds() / 1000000.0;
-	}
-	
+        /** \brief Representation of a time duration */
+        typedef boost::posix_time::time_duration duration;
+
+        /** \brief Get the current time point */
+        inline point now(void)
+        {
+            return boost::posix_time::microsec_clock::universal_time();
+        }
+
+        /** \brief Return the time duration representing a given number of seconds */
+        inline duration seconds(double sec)
+        {
+            long s  = (long)sec;
+            long us = (long)((sec - s) * 1000000);
+            return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
+        }
+
+        /** \brief Return the number of seconds that a time duration represents */
+        inline double seconds(const duration &d)
+        {
+            return (double)d.total_microseconds() / 1000000.0;
+        }
+
     }
 }
 

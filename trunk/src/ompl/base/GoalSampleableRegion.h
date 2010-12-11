@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -41,37 +41,37 @@
 
 namespace ompl
 {
-    
+
     namespace base
     {
-	
-	/** \brief Abstract definition of a goal region that can be sampled */
-	class GoalSampleableRegion : public GoalRegion
-	{
-	public:
 
-	    /** \brief Create a goal region that can be sampled */	    
-	    GoalSampleableRegion(const SpaceInformationPtr &si) : GoalRegion(si)
-	    {
-	    }
-	    
-	    virtual ~GoalSampleableRegion(void)
-	    {
-	    }
-	    
-	    /** \brief Sample a state in the goal region */
-	    virtual void sampleGoal(State *st) const = 0;
-	    
-	    /** \brief Return the maximum number of samples that can be asked for before repeating */
-	    virtual unsigned int maxSampleCount(void) const = 0;
-            
+        /** \brief Abstract definition of a goal region that can be sampled */
+        class GoalSampleableRegion : public GoalRegion
+        {
+        public:
+
+            /** \brief Create a goal region that can be sampled */
+            GoalSampleableRegion(const SpaceInformationPtr &si) : GoalRegion(si)
+            {
+            }
+
+            virtual ~GoalSampleableRegion(void)
+            {
+            }
+
+            /** \brief Sample a state in the goal region */
+            virtual void sampleGoal(State *st) const = 0;
+
+            /** \brief Return the maximum number of samples that can be asked for before repeating */
+            virtual unsigned int maxSampleCount(void) const = 0;
+
             /** \brief Return true of maxSampleCount() > 0, since in this case samples can certainly be produced */
             virtual bool canSample(void) const
             {
                 return maxSampleCount() > 0;
             }
         };
-	
+
     }
 }
 

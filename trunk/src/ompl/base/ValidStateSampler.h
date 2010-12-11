@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -47,97 +47,97 @@ namespace ompl
 {
     namespace base
     {
-	
-	ClassForward(SpaceInformation);
 
-	/** \brief Forward declaration of ompl::base::ValidStateSampler */
-	ClassForward(ValidStateSampler);
+        ClassForward(SpaceInformation);
 
-	/** \class ompl::base::ValidStateSamplerPtr
-	    \brief A boost shared pointer wrapper for ompl::base::ValidStateSampler */
+        /** \brief Forward declaration of ompl::base::ValidStateSampler */
+        ClassForward(ValidStateSampler);
 
-	/** \brief Abstract definition of a state sampler. */
-	class ValidStateSampler : private boost::noncopyable
-	{	    
-	public:
-	    
-	    /** \brief Constructor */
-	    ValidStateSampler(const SpaceInformation *si) : si_(si), attempts_(10), name_("not set")
-	    {
-	    }
-	    
-	    virtual ~ValidStateSampler(void)
-	    {
-	    }
-	    
-	    /** \brief Get the name of the sampler */
-	    const std::string& getName(void) const
-	    {
-		return name_;
-	    }
+        /** \class ompl::base::ValidStateSamplerPtr
+            \brief A boost shared pointer wrapper for ompl::base::ValidStateSampler */
 
-	    /** \brief Set the name of the sampler */
-	    void setName(const std::string &name)
-	    {
-		name_ = name;
-	    }
-	    
-	    /** \brief Sample a state. Return false in case of failure */
-	    virtual bool sample(State *state) = 0;
-	    
-	    /** \brief Sample a state near another, within specified distance. Return false, in case of failure.
-		\note The memory for \e near must be disjoint from the memory for \e state */
-	    virtual bool sampleNear(State *state, const State *near, const double distance) = 0;
+        /** \brief Abstract definition of a state sampler. */
+        class ValidStateSampler : private boost::noncopyable
+        {
+        public:
 
-	    /** \brief Finding a valid sample usually requires
-		performing multiple attempts. This call allows setting
-		the number of such attempts. */
-	    void setNrAttempts(unsigned int attempts)
-	    {
-		attempts_ = attempts;
-	    }
-	    
-	    /** \brief Get the number of attempts to be performed by the sampling routine */
-	    unsigned int getNrAttempts(void) const
-	    {
-		return attempts_;
-	    }
-	    
-	protected:
-	    
-	    /** \brief Generic allocator function. This matches the ValidStateSamplerAllocator type
-		and can be used by subclasses to return instances of ValidStateSamplerAllocator.
+            /** \brief Constructor */
+            ValidStateSampler(const SpaceInformation *si) : si_(si), attempts_(10), name_("not set")
+            {
+            }
 
-		For example, 
-		\code
-		class MySampler : public ValidStateSampler
-		{
-		public:
-		...
-		     static allocator(void)
-		     {
-		          boost::bind(&ValidStateSampler::alloc<MySampler>, _1);
-		     }
-		\endcode
-	    */
-	    template<typename T>
-	    static ValidStateSamplerPtr alloc(const SpaceInformation *si)
-	    {
-		return ValidStateSamplerPtr(new T(si));
-	    }
-	    
-	    /** \brief The manifold this sampler samples */
-	    const SpaceInformation *si_;
+            virtual ~ValidStateSampler(void)
+            {
+            }
 
-	    /** \brief Number of attempts to find a valid sample */
-	    unsigned int            attempts_;
+            /** \brief Get the name of the sampler */
+            const std::string& getName(void) const
+            {
+                return name_;
+            }
 
-	    /** \brief The name of the sampler */
-	    std::string             name_;
-	};
+            /** \brief Set the name of the sampler */
+            void setName(const std::string &name)
+            {
+                name_ = name;
+            }
 
-	/** \brief Definition of a function that can allocate a state sampler */
-	typedef boost::function1<ValidStateSamplerPtr, const SpaceInformation*> ValidStateSamplerAllocator;
+            /** \brief Sample a state. Return false in case of failure */
+            virtual bool sample(State *state) = 0;
+
+            /** \brief Sample a state near another, within specified distance. Return false, in case of failure.
+                \note The memory for \e near must be disjoint from the memory for \e state */
+            virtual bool sampleNear(State *state, const State *near, const double distance) = 0;
+
+            /** \brief Finding a valid sample usually requires
+                performing multiple attempts. This call allows setting
+                the number of such attempts. */
+            void setNrAttempts(unsigned int attempts)
+            {
+                attempts_ = attempts;
+            }
+
+            /** \brief Get the number of attempts to be performed by the sampling routine */
+            unsigned int getNrAttempts(void) const
+            {
+                return attempts_;
+            }
+
+        protected:
+
+            /** \brief Generic allocator function. This matches the ValidStateSamplerAllocator type
+                and can be used by subclasses to return instances of ValidStateSamplerAllocator.
+
+                For example,
+                \code
+                class MySampler : public ValidStateSampler
+                {
+                public:
+                ...
+                     static allocator(void)
+                     {
+                          boost::bind(&ValidStateSampler::alloc<MySampler>, _1);
+                     }
+                \endcode
+            */
+            template<typename T>
+            static ValidStateSamplerPtr alloc(const SpaceInformation *si)
+            {
+                return ValidStateSamplerPtr(new T(si));
+            }
+
+            /** \brief The manifold this sampler samples */
+            const SpaceInformation *si_;
+
+            /** \brief Number of attempts to find a valid sample */
+            unsigned int            attempts_;
+
+            /** \brief The name of the sampler */
+            std::string             name_;
+        };
+
+        /** \brief Definition of a function that can allocate a state sampler */
+        typedef boost::function1<ValidStateSamplerPtr, const SpaceInformation*> ValidStateSamplerAllocator;
     }
 }
 

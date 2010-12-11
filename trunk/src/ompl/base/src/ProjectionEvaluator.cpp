@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -49,40 +49,40 @@ extern const double SPLIT_PARTS = 20.0;
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
     RNG rng;
-    
+
     Matrix projection(to);
     for (unsigned int i = 0 ; i < to ; ++i)
     {
-	projection[i].resize(from);
-	for (unsigned int j = 0 ; j < from ; ++j)
-	    projection[i][j] = rng.gaussian01();	
+        projection[i].resize(from);
+        for (unsigned int j = 0 ; j < from ; ++j)
+            projection[i][j] = rng.gaussian01();
     }
-    
+
     for (unsigned int i = 1 ; i < to ; ++i)
     {
-	std::valarray<double> &row = projection[i];
-	for (unsigned int j = 0 ; j < i ; ++j)
-	{
-	    std::valarray<double> &prevRow = projection[j];
-	    // subtract projection
-	    row -= (row * prevRow).sum() * prevRow;
-	}
-	// normalize
-	row /= sqrt((row * row).sum());	
+        std::valarray<double> &row = projection[i];
+        for (unsigned int j = 0 ; j < i ; ++j)
+        {
+            std::valarray<double> &prevRow = projection[j];
+            // subtract projection
+            row -= (row * prevRow).sum() * prevRow;
+        }
+        // normalize
+        row /= sqrt((row * row).sum());
     }
 
     // if we need to apply scaling, do so
     if (scale.size() == from)
     {
-	for (unsigned int i = 0 ; i < to ; ++i)
-	    for (unsigned int j = 0 ; j < from ; ++j)
-	    {
-		if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
-		    throw Exception("Scaling factor must be non-zero");
-		projection[i][j] /= scale[i];
-	    }
+        for (unsigned int i = 0 ; i < to ; ++i)
+            for (unsigned int j = 0 ; j < from ; ++j)
+            {
+                if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
+                    throw Exception("Scaling factor must be non-zero");
+                projection[i][j] /= scale[i];
+            }
     }
-    
+
     return projection;
 }
 
@@ -95,12 +95,12 @@ void ompl::base::ProjectionMatrix::project(const double *from, double *to) const
 {
     for (unsigned int i = 0 ; i < mat.size() ; ++i)
     {
-	const std::valarray<double> &vec = mat[i];
-	const unsigned int dim = vec.size();
-	double *pos = to + i;
-	*pos = 0.0;
-	for (unsigned int j = 0 ; j < dim ; ++j)
-	    *pos += from[j] * vec[j];
+        const std::valarray<double> &vec = mat[i];
+        const unsigned int dim = vec.size();
+        double *pos = to + i;
+        *pos = 0.0;
+        for (unsigned int j = 0 ; j < dim ; ++j)
+            *pos += from[j] * vec[j];
     }
 }
 
@@ -108,11 +108,11 @@ void ompl::base::ProjectionMatrix::print(std::ostream &out) const
 {
     for (unsigned int i = 0 ; i < mat.size() ; ++i)
     {
-	const std::valarray<double> &vec = mat[i];
-	const unsigned int dim = vec.size();
-	for (unsigned int j = 0 ; j < dim ; ++j)
-	    out << vec[j] << " ";
-	out << std::endl;
+        const std::valarray<double> &vec = mat[i];
+        const unsigned int dim = vec.size();
+        for (unsigned int j = 0 ; j < dim ; ++j)
+            out << vec[j] << " ";
+        out << std::endl;
     }
 }
 
@@ -125,9 +125,9 @@ void ompl::base::ProjectionEvaluator::setCellDimensions(const std::vector<double
 void ompl::base::ProjectionEvaluator::checkCellDimensions(void) const
 {
     if (getDimension() <= 0)
-	throw Exception("Dimension of projection needs to be larger than 0");
+        throw Exception("Dimension of projection needs to be larger than 0");
     if (cellDimensions_.size() != getDimension())
-	throw Exception("Number of dimensions in projection space does not match number of cell dimensions");
+        throw Exception("Number of dimensions in projection space does not match number of cell dimensions");
 }
 
 void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
@@ -136,30 +136,30 @@ void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
     unsigned int dim = getDimension();
     if (dim > 0)
     {
-	ManifoldStateSamplerPtr sampler = manifold_->allocStateSampler();
-	State *s = manifold_->allocState();
-	EuclideanProjection proj(dim);
-	
-	std::vector<double> low(dim, std::numeric_limits<double>::infinity());
-	std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
-	
-	for (unsigned int i = 0 ; i < TEST_STEPS ; ++i)
-	{
-	    sampler->sampleUniform(s);
-	    project(s, proj);
-	    for (unsigned int j = 0 ; j < dim ; ++j)
-	    {
-		if (low[j] > proj.values[j])
-		    low[j] = proj.values[j];
-		if (high[j] < proj.values[j])
-		    high[j] = proj.values[j];
-	    }
-	}
-	
-	manifold_->freeState(s);
-	
-	cellDimensions_.resize(dim);
-	for (unsigned int j = 0 ; j < dim ; ++j)
+        ManifoldStateSamplerPtr sampler = manifold_->allocStateSampler();
+        State *s = manifold_->allocState();
+        EuclideanProjection proj(dim);
+
+        std::vector<double> low(dim, std::numeric_limits<double>::infinity());
+        std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
+
+        for (unsigned int i = 0 ; i < TEST_STEPS ; ++i)
+        {
+            sampler->sampleUniform(s);
+            project(s, proj);
+            for (unsigned int j = 0 ; j < dim ; ++j)
+            {
+                if (low[j] > proj.values[j])
+                    low[j] = proj.values[j];
+                if (high[j] < proj.values[j])
+                    high[j] = proj.values[j];
+            }
+        }
+
+        manifold_->freeState(s);
+
+        cellDimensions_.resize(dim);
+        for (unsigned int j = 0 ; j < dim ; ++j)
         {
             cellDimensions_[j] = (high[j] - low[j]) / SPLIT_PARTS;
             if (cellDimensions_[j] < std::numeric_limits<double>::epsilon())
@@ -176,7 +176,7 @@ void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
 void ompl::base::ProjectionEvaluator::setup(void)
 {
     if (cellDimensions_.size() == 0 && getDimension() > 0)
-	inferCellDimensions();
+        inferCellDimensions();
     checkCellDimensions();
 }
 
@@ -185,18 +185,18 @@ void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjecti
     unsigned int dim = getDimension();
     coord.resize(dim);
     for (unsigned int i = 0 ; i < dim ; ++i)
-	coord[i] = (int)floor(projection.values[i]/cellDimensions_[i]);
+        coord[i] = (int)floor(projection.values[i]/cellDimensions_[i]);
 }
 
 void ompl::base::ProjectionEvaluator::printSettings(std::ostream &out) const
-{ 
+{
     out << "Projection of dimension " << getDimension() << std::endl;
     out << "Cell dimensions: [";
     for (unsigned int i = 0 ; i < cellDimensions_.size() ; ++i)
     {
-	out << cellDimensions_[i];
-	if (i + 1 < cellDimensions_.size())
-	    out << ' ';
+        out << cellDimensions_[i];
+        if (i + 1 < cellDimensions_.size())
+            out << ' ';
     }
     out << ']' << std::endl;
 }
@@ -206,13 +206,13 @@ void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection 
     unsigned int d = getDimension();
     if (d > 0)
     {
-	--d;
-	for (unsigned int i = 0 ; i < d ; ++i)
-	    out << projection.values[i] << ' ';
-	out << projection.values[d] << std::endl;
+        --d;
+        for (unsigned int i = 0 ; i < d ; ++i)
+            out << projection.values[i] << ' ';
+        out << projection.values[d] << std::endl;
     }
     else
-	out << "NULL" << std::endl;
+        out << "NULL" << std::endl;
 }
 
 void ompl::base::CompoundProjectionEvaluator::addProjectionEvaluator(const ProjectionEvaluatorPtr &proj)
@@ -227,17 +227,17 @@ void ompl::base::CompoundProjectionEvaluator::computeProjection(void)
     std::vector<double> scale;
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
     {
-	compoundDimension_ += components_[i]->getDimension();
-	scale.insert(scale.end(), components_[i]->getCellDimensions().begin(), components_[i]->getCellDimensions().end());
+        compoundDimension_ += components_[i]->getDimension();
+        scale.insert(scale.end(), components_[i]->getCellDimensions().begin(), components_[i]->getCellDimensions().end());
     }
-    
+
     if (compoundDimension_ > 2 && components_.size() > 1)
-	dimension_ = std::max(2, (int)ceil(log((double)compoundDimension_)));
+        dimension_ = std::max(2, (int)ceil(log((double)compoundDimension_)));
     else
-	dimension_ = compoundDimension_;
-    
+        dimension_ = compoundDimension_;
+
     if (dimension_ < compoundDimension_)
-	projection_.computeRandom(compoundDimension_, dimension_, scale);
+        projection_.computeRandom(compoundDimension_, dimension_, scale);
     cellDimensions_.clear();
 }
 
@@ -253,30 +253,30 @@ void ompl::base::CompoundProjectionEvaluator::project(const State *state, Euclid
     double *start = all.values;
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
     {
-	components_[i]->project(state->as<CompoundState>()->components[i], all);
-	all.values += components_[i]->getDimension();
+        components_[i]->project(state->as<CompoundState>()->components[i], all);
+        all.values += components_[i]->getDimension();
     }
     all.values = start;
-    
+
     if (compoundDimension_ > dimension_)
-	// project to lower dimension
-	projection_.project(all.values, projection.values);
+        // project to lower dimension
+        projection_.project(all.values, projection.values);
     else
-	memcpy(projection.values, all.values, sizeof(double) * dimension_);
+        memcpy(projection.values, all.values, sizeof(double) * dimension_);
 }
 
 void ompl::base::CompoundProjectionEvaluator::printSettings(std::ostream &out) const
 {
     out << "Compound projection [" << std::endl;
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
-	components_[i]->printSettings(out);
+        components_[i]->printSettings(out);
     out << "]" << std::endl;
     out << "  projected to " << dimension_ << " elements" << std::endl;
     if (compoundDimension_ > dimension_)
     {
-	out << "  using a projection matrix:" << std::endl;
-	projection_.print(out);
+        out << "  using a projection matrix:" << std::endl;
+        projection_.print(out);
     }
     else
-	out << "  (copy of contained projections)" << std::endl;
+        out << "  (copy of contained projections)" << std::endl;
 }

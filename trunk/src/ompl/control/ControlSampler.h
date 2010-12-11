@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -48,37 +48,37 @@ namespace ompl
 {
     namespace control
     {
-	
-	ClassForward(ControlManifold);
 
-	/** \brief Forward declaration of ompl::control::ControlSampler */	
-	ClassForward(ControlSampler);
+        ClassForward(ControlManifold);
 
-	/** \class ompl::control::ControlSamplerPtr
-	    \brief A boost shared pointer wrapper for ompl::control::ControlSampler */
+        /** \brief Forward declaration of ompl::control::ControlSampler */
+        ClassForward(ControlSampler);
 
-	/** \brief Abstract definition of a control sampler. Motion
-	    planners that need to sample controls will call functions
-	    from this class. Planners should call the versions of
-	    sample() and sampleNext() with most arguments, whenever
-	    this information is available. */
-	class ControlSampler
-	{	    
-	public:
+        /** \class ompl::control::ControlSamplerPtr
+            \brief A boost shared pointer wrapper for ompl::control::ControlSampler */
 
-	    /** \brief Constructor takes the manifold to construct samples for as argument */
-	    ControlSampler(const ControlManifold *manifold) : manifold_(manifold)
-	    {
-	    }
+        /** \brief Abstract definition of a control sampler. Motion
+            planners that need to sample controls will call functions
+            from this class. Planners should call the versions of
+            sample() and sampleNext() with most arguments, whenever
+            this information is available. */
+        class ControlSampler
+        {
+        public:
 
-	    virtual ~ControlSampler(void)
-	    {
-	    }
-	    
-	    /** \brief Sample a control. All other control sampling
+            /** \brief Constructor takes the manifold to construct samples for as argument */
+            ControlSampler(const ControlManifold *manifold) : manifold_(manifold)
+            {
+            }
+
+            virtual ~ControlSampler(void)
+            {
+            }
+
+            /** \brief Sample a control. All other control sampling
                 functions default to this one, unless a user-specified
                 implementation is given. */
-	    virtual void sample(Control *control) = 0;
+            virtual void sample(Control *control) = 0;
 
             /** \brief Sample a control, given it is applied to a
                 specific state. The default implementation calls the
@@ -88,11 +88,11 @@ namespace ompl
                 of the system. When attempting to sample controls that
                 keep a system stable, for example, knowing the state
                 at which the control is applied is important. */
-	    virtual void sample(Control *control, const base::State * /* state */)
+            virtual void sample(Control *control, const base::State * /* state */)
             {
                 sample(control);
-            }            
-            
+            }
+
             /** \brief Sample a control, given the previously applied
                 control. The default implementation calls the first
                 definition of sample(). For some systems it is
@@ -100,10 +100,10 @@ namespace ompl
                 desireable. For example, switching from maximum
                 acceleration to maximum deceleration is not desireable
                 when driving a car. */
-	    virtual void sampleNext(Control *control, const Control * /* previous */)
+            virtual void sampleNext(Control *control, const Control * /* previous */)
             {
                 sample(control);
-            }            
+            }
 
             /** \brief Sample a control, given the previously applied
                 control and that it is applied to a specific
@@ -116,63 +116,63 @@ namespace ompl
                 functions. Providing an implementation that takes into
                 account both the previous control and the state is
                 also possible. */
-	    virtual void sampleNext(Control *control, const Control * /* previous */, const base::State * /* state */)
+            virtual void sampleNext(Control *control, const Control * /* previous */, const base::State * /* state */)
             {
                 sample(control);
             }
-            
+
             /** \brief Sample a number of steps to execute a control for */
-	    virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
-	    
-	protected:
-            
+            virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
+
+        protected:
+
             /** \brief The manifold this sampler operates on */
-	    const ControlManifold *manifold_;
-            
+            const ControlManifold *manifold_;
+
             /** \brief Instance of random number generator */
-	    RNG                    rng_;
-	};
+            RNG                    rng_;
+        };
 
-	/** \brief Definition of a compound control sampler. This is useful to construct samplers for compound controls. */
-	class CompoundControlSampler : public ControlSampler
-	{	    
-	public:
+        /** \brief Definition of a compound control sampler. This is useful to construct samplers for compound controls. */
+        class CompoundControlSampler : public ControlSampler
+        {
+        public:
 
-	    /** \brief Constructor */
-	    CompoundControlSampler(const ControlManifold* manifold) : ControlSampler(manifold) 
-	    {
-	    }
-	    
-	    /** \brief Destructor. This frees the added samplers as well. */
-	    virtual ~CompoundControlSampler(void)
-	    {
-	    }
-	    
-	    /** \brief Add a sampler as part of the new compound
-		sampler. This sampler is used to sample part of the
-		compound control.  */
-	    virtual void addSampler(const ControlSamplerPtr &sampler);
-	    
-	    
-	    virtual void sample(Control *control);
-	    virtual void sample(Control *control, const base::State *state);
-	    virtual void sampleNext(Control *control, const Control *previous);
-	    virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
-	    
-	protected:
-            
+            /** \brief Constructor */
+            CompoundControlSampler(const ControlManifold* manifold) : ControlSampler(manifold)
+            {
+            }
+
+            /** \brief Destructor. This frees the added samplers as well. */
+            virtual ~CompoundControlSampler(void)
+            {
+            }
+
+            /** \brief Add a sampler as part of the new compound
+                sampler. This sampler is used to sample part of the
+                compound control.  */
+            virtual void addSampler(const ControlSamplerPtr &sampler);
+
+
+            virtual void sample(Control *control);
+            virtual void sample(Control *control, const base::State *state);
+            virtual void sampleNext(Control *control, const Control *previous);
+            virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
+
+        protected:
+
             /** \brief The instances of samplers used for compound sampler */
-	    std::vector<ControlSamplerPtr> samplers_;
+            std::vector<ControlSamplerPtr> samplers_;
 
         private:
-            
-            /** \brief Number of sampler instances */
-	    unsigned int                   samplerCount_;
-	    
-	};
 
-	/** \brief Definition of a function that can allocate a control sampler */
-	typedef boost::function1<ControlSamplerPtr, const ControlManifold*> ControlSamplerAllocator;
+            /** \brief Number of sampler instances */
+            unsigned int                   samplerCount_;
+
+        };
+
+        /** \brief Definition of a function that can allocate a control sampler */
+        typedef boost::function1<ControlSamplerPtr, const ControlManifold*> ControlSamplerAllocator;
     }
 }
 

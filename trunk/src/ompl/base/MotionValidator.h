@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,58 +43,58 @@
 
 namespace ompl
 {
-    
+
     namespace base
     {
 
-	ClassForward(SpaceInformation);
+        ClassForward(SpaceInformation);
 
-	/** \brief Forward declaration of ompl::base::MotionValidator */
-	ClassForward(MotionValidator);
+        /** \brief Forward declaration of ompl::base::MotionValidator */
+        ClassForward(MotionValidator);
 
-	/** \class ompl::base::MotionValidatorPtr
-	    \brief A boost shared pointer wrapper for ompl::base::MotionValidator */
+        /** \class ompl::base::MotionValidatorPtr
+            \brief A boost shared pointer wrapper for ompl::base::MotionValidator */
 
-	/** \brief Abstract definition for a class checking the
-	    validity of motions -- path segments between states. This
-	    is often called a local planner. The implementation of
-	    this class must be thread safe. */
-	class MotionValidator
-	{
-	public:
+        /** \brief Abstract definition for a class checking the
+            validity of motions -- path segments between states. This
+            is often called a local planner. The implementation of
+            this class must be thread safe. */
+        class MotionValidator
+        {
+        public:
 
-	    /** \brief Constructor */
-	    MotionValidator(SpaceInformation* si) : si_(si)
-	    {
-	    }
+            /** \brief Constructor */
+            MotionValidator(SpaceInformation* si) : si_(si)
+            {
+            }
 
-	    /** \brief Constructor */
-	    MotionValidator(const SpaceInformationPtr &si) : si_(si.get())
-	    {
-	    }
-	    
-	    virtual ~MotionValidator(void)
-	    {
-	    }
-	    
-	    /** \brief Check if the path between two states (from \e s1 to \e s2) is valid. This function assumes \e s1 is valid. */
-	    virtual bool checkMotion(const State *s1, const State *s2) const = 0;
-	    
-	    /** \brief Check if the path between two states is valid. Also compute the last state that was
-		valid and the time of that state. The time is used to parametrize the motion from \e s1 to \e s2, \e s1 being at t =
-		0 and \e s2 being at t = 1. This function assumes \e s1 is valid.
-		\param s1 start state of the motion to be checked (assumed to be valid)
-		\param s2 final state of the motion to be checked 
-		\param lastValid first: storage for the last valid state; this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */
-	    virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const = 0;
-	    	    
-	protected:
-	    
-	    /** \brief The instance of space information this state validity checker operates on */
-	    SpaceInformation *si_;
-	    
-	};
-	
+            /** \brief Constructor */
+            MotionValidator(const SpaceInformationPtr &si) : si_(si.get())
+            {
+            }
+
+            virtual ~MotionValidator(void)
+            {
+            }
+
+            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid. This function assumes \e s1 is valid. */
+            virtual bool checkMotion(const State *s1, const State *s2) const = 0;
+
+            /** \brief Check if the path between two states is valid. Also compute the last state that was
+                valid and the time of that state. The time is used to parametrize the motion from \e s1 to \e s2, \e s1 being at t =
+                0 and \e s2 being at t = 1. This function assumes \e s1 is valid.
+                \param s1 start state of the motion to be checked (assumed to be valid)
+                \param s2 final state of the motion to be checked
+                \param lastValid first: storage for the last valid state; this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const = 0;
+
+        protected:
+
+            /** \brief The instance of space information this state validity checker operates on */
+            SpaceInformation *si_;
+
+        };
+
     }
 }
 

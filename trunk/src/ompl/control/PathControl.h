@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -46,63 +46,63 @@ namespace ompl
 {
     namespace control
     {
-	
-	/** \brief Definition of a control path.
 
-	 This is the type of path produced when planning with
-	 differential constraints. */
-	class PathControl : public base::Path
-	{
-	public:
-	   
-	    /** \brief Constructor */
-	    PathControl(const base::SpaceInformationPtr &si);
-	    
-	    /** \brief Copy constructor */
-	    PathControl(const PathControl &path);
-	    
-	    virtual ~PathControl(void)
-	    {
-		freeMemory();
-	    }
+        /** \brief Definition of a control path.
 
-	    /** \brief Assignment operator */
-	    PathControl& operator=(const PathControl& other);
+         This is the type of path produced when planning with
+         differential constraints. */
+        class PathControl : public base::Path
+        {
+        public:
 
-	    /** \brief The path length (sum of control durations) */
-	    virtual double length(void) const;
+            /** \brief Constructor */
+            PathControl(const base::SpaceInformationPtr &si);
 
-	    /** \brief Check if the path is valid */
-	    virtual bool check(void) const;
+            /** \brief Copy constructor */
+            PathControl(const PathControl &path);
 
-	    /** \brief Print the path to a stream */
-	    virtual void print(std::ostream &out) const;
-	    
-	    /** \brief Make the path such that all controls are applied for a single time step (computes intermediate states) */
-	    void interpolate(void);
-	    
-	    /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied) */
-	    geometric::PathGeometric asGeometric(void) const;
-	    
-	    /** \brief The list of states that make up the path */
-	    std::vector<base::State*>   states;
+            virtual ~PathControl(void)
+            {
+                freeMemory();
+            }
 
-	    /** \brief The control applied at each state. This array contains one element less than the list of states */
-	    std::vector<Control*>       controls;
+            /** \brief Assignment operator */
+            PathControl& operator=(const PathControl& other);
 
-	    /** \brief The duration of the control applied at each state. This array contains one element less than the list of states */
-	    std::vector<double>         controlDurations;
-	    
-	protected:
-	    
-	    /** \brief Free the memory allocated by the path */
-	    void freeMemory(void);
+            /** \brief The path length (sum of control durations) */
+            virtual double length(void) const;
 
-	    /** \brief Copy the content of a path to this one */
-	    void copyFrom(const PathControl& other);
-	    
-	};
-	
+            /** \brief Check if the path is valid */
+            virtual bool check(void) const;
+
+            /** \brief Print the path to a stream */
+            virtual void print(std::ostream &out) const;
+
+            /** \brief Make the path such that all controls are applied for a single time step (computes intermediate states) */
+            void interpolate(void);
+
+            /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied) */
+            geometric::PathGeometric asGeometric(void) const;
+
+            /** \brief The list of states that make up the path */
+            std::vector<base::State*>   states;
+
+            /** \brief The control applied at each state. This array contains one element less than the list of states */
+            std::vector<Control*>       controls;
+
+            /** \brief The duration of the control applied at each state. This array contains one element less than the list of states */
+            std::vector<double>         controlDurations;
+
+        protected:
+
+            /** \brief Free the memory allocated by the path */
+            void freeMemory(void);
+
+            /** \brief Copy the content of a path to this one */
+            void copyFrom(const PathControl& other);
+
+        };
+
     }
 }
 

@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2010, Rice University
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -38,14 +38,14 @@
 #include <limits>
 
 ompl::base::Goal::Goal(const SpaceInformationPtr &si) : si_(si), maximumPathLength_(std::numeric_limits<double>::max()),
-							difference_(-1.0), approximate_(false)
+                                                        difference_(-1.0), approximate_(false)
 {
 }
 
 bool ompl::base::Goal::isSatisfied(const State *st, double *distance) const
 {
     if (distance != NULL)
-	*distance = std::numeric_limits<double>::max();
+        *distance = std::numeric_limits<double>::max();
     return isSatisfied(st);
 }
 
@@ -53,10 +53,10 @@ bool ompl::base::Goal::isSatisfied(const State *st, double pathLength, double *d
 {
     if (pathLength > maximumPathLength_)
     {
-	if (distance != NULL)
-	    isSatisfied(st, distance);
-	return false;
+        if (distance != NULL)
+            isSatisfied(st, distance);
+        return false;
     }
     else
-	return isSatisfied(st, distance);
+        return isSatisfied(st, distance);
 }
