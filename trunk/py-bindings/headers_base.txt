@@ -4,7 +4,6 @@
 ../src/ompl/base/ValidStateSampler.h
 ../src/ompl/base/ProjectionEvaluator.h
 ../src/ompl/base/StateManifold.h
-../src/ompl/base/StateAllocator.h
 ../src/ompl/base/StateValidityChecker.h
 ../src/ompl/base/MotionValidator.h
 ../src/ompl/base/SpaceInformation.h
