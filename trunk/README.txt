@@ -14,9 +14,9 @@ The following dependencies are optional:
 
 Once dependencies are installed, you can build OMPL on Linux and OS X like so:
    cd ompl
-   mkdir build/Release
+   mkdir -p build/Release
    cd build/Release
    cmake -DCMAKE_BUILD_TYPE=Release ../..
    make update_bindings  # if you want Python bindings and have Py++ installed
-   make
+   make -j 4 # replace "4" with the number of cores on your machine
 
