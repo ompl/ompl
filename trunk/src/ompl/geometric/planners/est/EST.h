@@ -52,11 +52,16 @@ namespace ompl
            @anchor gEST
 
            @par Short description
-
-           EST attempts to detect the less explored area of the space
-           through the use of a grid imposed on a projection of the state
-           space. Using this information, EST continues tree expansion
-           primarily from less explored areas.
+           EST is a tree-based motion planner that attempts to detect
+           the less explored area of the space through the use of a
+           grid imposed on a projection of the state space. Using this
+           information, EST continues tree expansion primarily from
+           less explored areas.  It is important to set the projection
+           the algorithm uses (setProjectionEvaluator() function). If
+           no projection is set, the planner will attempt to use the
+           default projection associated to the state manifold. An
+           exception is thrown if no default projection is available
+           either.
 
            @par External documentation
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,

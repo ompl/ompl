@@ -50,18 +50,17 @@ namespace ompl
            @anchor gRRT
 
            @par Short description
-
-           The basic idea of RRT is that it samples a random state @b qr
-           in the state space, then finds the state @b qc among the
-           previously seen states that is closest to @b qr and expands
-           from @b qc towards @b qr, until a state @b qm is reached and @b
-           qm is the new state to be visited.
+           RRT is a tree-based motion planner that uses the following
+           idea: RRT samples a random state @b qr in the state space,
+           then finds the state @b qc among the previously seen states
+           that is closest to @b qr and expands from @b qc towards @b
+           qr, until a state @b qm is reached. @b qm is then added to
+           the exploration tree.
 
 
            @par External documentation
            J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
            <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
-           <a href="http://en.wikipedia.org/wiki/Rapidly-exploring_random_tree">[Wikipedia]</a>
            <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
         */
 

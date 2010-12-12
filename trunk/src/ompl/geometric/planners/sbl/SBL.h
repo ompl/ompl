@@ -52,17 +52,16 @@ namespace ompl
            @anchor gSBL
 
            @par Short description
-
            SBL is a tree-based motion planner that attempts to grow two
            trees at once: one grows from the starting state and the other
-           from the goal state. Attempts are made to connect these trees
+           from the goal state. The tree expansion strategy is the same as for \ref gEST "EST".
+           Attempts are made to connect these trees
            at every step of the expansion. If they are connected, a
            solution path is obtained. However, this solution path is not
            certain to be valid (the lazy part of the algorithm) so it is
            checked for validity. If invalid parts are found, they are
            removed from the tree and exploration of the state space
            continues until a solution is found.
-
            To guide the exploration, and additional grid data
            structure is maintained. Grid cells contain states that
            have been previously visited. When deciding which state to
@@ -70,8 +69,11 @@ namespace ompl
            filled grid cells have most chances of being selected. The
            grid is usually imposed on a projection of the state
            space. This projection needs to be set before using the
-           planner.  Connection of states in different trees is
-           attempted they fall in the same grid cell.
+           planner (setProjectionEvaluator() function). Connection of states in different trees is
+           attempted they fall in the same grid cell. If no projection is
+           set, the planner will attempt to use the default projection
+           associated to the state manifold. An exception is thrown if
+           no default projection is available either.
 
            @par External documentation
            G. Sánchez and J.-C. Latombe, A single-query bi-directional probabilistic roadmap planner with lazy collision checking, in <em>The Tenth International Symposium on Robotics Research</em>, pp. 403–417, 2001.

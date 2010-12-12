@@ -54,7 +54,6 @@ namespace ompl
            @anchor gKPIECE1
 
            @par Short description
-
            KPIECE is a tree-based planner that uses a discretization
            (multiple levels, in general) to guide the exploration of
            the continous space. This implementation is a simplified
@@ -64,6 +63,11 @@ namespace ompl
            this grid. The boundary is computed to be the set of grid
            cells that have less than 2n non-diagonal neighbors in an
            n-dimensional projection space.
+           It is important to set the projection the algorithm uses
+           (setProjectionEvaluator() function). If no projection is
+           set, the planner will attempt to use the default projection
+           associated to the state manifold. An exception is thrown if
+           no default projection is available either.
 
            @par External documentation
            I.A. Şucan and L.E. Kavraki, Kinodynamic motion planning by interior-exterior cell exploration,

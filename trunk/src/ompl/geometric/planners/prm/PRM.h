@@ -52,10 +52,14 @@ namespace ompl
         /**
            @anchor gPRM
 
-           @par Short description
-
-           Construct a roadmap of milestones that approximate the
-           connectivity of the state space.
+           @par Short description 
+           PRM is a planner that constructs a roadmap of milestones
+           that approximate the connectivity of the state space. The
+           milestones are valid states in the state space. Near-by
+           milestones are connected by valid motions. Finding a motion
+           plan that connects two given states is reduced to a
+           discrete search (this implementation uses Dijskstra) in the
+           roadmap.
 
            @par External documentation
            L.E. Kavraki, P.Švestka, J.-C. Latombe, and M.H. Overmars,
@@ -63,7 +67,6 @@ namespace ompl
            <em>IEEE Trans. on Robotics and Automation</em>, vol. 12, pp. 566–580, Aug. 1996.
            DOI: <a href="http://dx.doi.org/10.1109/70.508439">10.1109/70.508439</a><br>
            <a href="http://ieeexplore.ieee.org/ielx4/70/11078/00508439.pdf?tp=&arnumber=508439&isnumber=11078">[PDF]</a>
-           <a href="http://en.wikipedia.org/wiki/Probabilistic_roadmap">[Wikipedia]</a>
            <a href="http://www.kavrakilab.org/robotics/prm.html">[more]</a>
 
         */
