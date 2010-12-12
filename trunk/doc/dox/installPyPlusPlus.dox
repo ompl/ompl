@@ -9,9 +9,7 @@ repositories. Directions for installing GCC-XML can be found <a
 href="http://www.gccxml.org/HTML/Download.html">here</a>, and for
 installing pygccxml/py++ they can be found <a
 href="http://sourceforge.net/scm/?type=svn&group_id=118209">here</a>.
-
-\par
-If you are using Linux or Mac OS X, you can follow these instructions:
+The combined set of instructions is presented below (for Linux or Mac OS X):
 \code
 # Make sure you have cvs and svn. e.g., for Ubuntu Linux: "sudo apt-get install cvs subversion"
 # On OS X cvs and svn are already installed.
