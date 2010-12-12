@@ -64,15 +64,15 @@ namespace ompl
            checked for validity. If invalid parts are found, they are
            removed from the tree and exploration of the state space
            continues until a solution is found.
-           To guide the exploration, and additional grid data
+           To guide the exploration, an additional grid data
            structure is maintained. Grid cells contain states that
            have been previously visited. When deciding which state to
-           use for further expansion, this grid is used and least
-           filled grid cells have most chances of being selected. The
+           use for further expansion, this grid is used; 
+           least-filled grid cells have most chances of being selected. The
            grid is usually imposed on a projection of the state
            space. This projection needs to be set before using the
            planner (setProjectionEvaluator() function). Connection of states in different trees is
-           attempted they fall in the same grid cell. If no projection is
+           attempted if they fall in the same grid cell. If no projection is
            set, the planner will attempt to use the default projection
            associated to the state manifold. An exception is thrown if
            no default projection is available either.

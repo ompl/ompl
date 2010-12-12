@@ -89,6 +89,7 @@ If you want a debug version of ompl, change "Release" to "Debug" above.
 
 \section install_windows Installation on Windows
 
+At this point we support only Linux and OS X, and we have not done any extensive testing on Windows. That said, it is definitely possible to compile and install OMPL on Windows.
 - Download and install <a href="http://www.cmake.org">CMake</a>.
 - If you plan to use Microsoft Visual Studio, you can download Boost <a href="http://www.boostpro.com/download/">here</a>. If you want to use MinGW or Cygwin, follow the <a href="http://www.boost.org/doc/libs/release/more/getting_started/unix-variants.html">Unix installation instructions</a>.
 - Optionally, download and install <a href="http://www.python.org/download/">Python</a>.

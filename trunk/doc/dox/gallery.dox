@@ -30,10 +30,10 @@ Below are some rigid body motion planning problems and corresponding solutions f
 \endhtmlonly
 <b>An L-shaped robot has to fly through a number of rooms and the “basement” to reach the goal state:</b><br> 
 \htmlonly
-<div class="span-11">
+<div class="span-8 push-1">
   <img src="../images/cubicles-problem.png" width="100%">
 </div>
-<div class="span-11 last">
+<div class="span-8 push-2 last">
   <img src="../images/cubicles-solution.png" width="100%">
 </div>
 <hr class="space">
@@ -41,10 +41,10 @@ Below are some rigid body motion planning problems and corresponding solutions f
 
 <b>A twisted shape has to make a complex maneuver to move through a narrow passage:</b><br>
 \htmlonly
-<div class="span-11">
+<div class="span-8 push-1">
   <img src="../images/narrow-passage-problem.png" width="100%">
 </div>
-<div class="span-11 last">
+<div class="span-8 push-2 last">
   <img src="../images/narrow-passage-solution.png" width="100%">
 </div>
 <hr class="space">

@@ -2,9 +2,9 @@
 \mainpage Open Motion Planning Library
 
 \htmlonly
-<div class="span-3"><a href="http://www.ros.org/wiki/ompl"><img src="../images/pr2.png" width="100%"></a></div>
 <div class="span-10"><img src="../images/mp.png" width="100%"></div>
-<div class="span-9 last"><a href="http://ompl.kavrakilab.org/gui.html"><img src="../images/gui_path.png"  width="100%"></a></div>
+<div class="span-9"><a href="http://ompl.kavrakilab.org/gui.html"><img src="../images/gui_path.png"  width="100%"></a></div>
+<div class="span-3 last"><a href="http://www.ros.org/wiki/ompl"><img src="../images/pr2.png" width="100%"></a></div>
 <hr class="space">
 \endhtmlonly
 
@@ -22,11 +22,13 @@ centered around OMPL.app. We are looking for educational partners
 to use and further develop the material. Please contact us for 
 more information.
 
+\htmlonly<div></div>\endhtmlonly
 OMPL is intended to be efficient, thread safe, easy to use, easily extensible
 and freely available (visit this project on <a
 href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 For more details, see \ref documentation "the documentation".
 
+\htmlonly<div></div>\endhtmlonly
 For examples uses of OMPL, see \ref gallery "our gallery page".
 
 */
