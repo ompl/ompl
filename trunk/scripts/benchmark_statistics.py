@@ -159,7 +159,7 @@ def plot_attribute(cur, planners, attribute, typename):
 	for planner in planners:
 		cur.execute('SELECT * FROM %s' % planner)
 		attributes = [ t[0] for t in cur.description]
-		if attribute in attributes:
+ 		if attribute in attributes:
 			cur.execute('SELECT %s FROM %s' % (attribute, planner))
 			result = [ t[0] for t in cur.fetchall() ]
 			nan_counts.append(len([x for x in result if x==None]))
@@ -200,20 +200,25 @@ def plot_statistics(dbname, fname):
 	c.execute("SELECT name FROM sqlite_master WHERE type='table'")
 	table_names = [ str(t[0]) for t in c.fetchall() ]
 	planner_names = [ t for t in table_names if t.startswith('planner_') ]
-	# use attributes from first planner
-	c.execute('SELECT * FROM %s' % planner_names[0])
-	attributes = [ t[0] for t in c.description]
-	attributes.remove('plannerid')
-	attributes.remove('experimentid')
-	attributes.sort()
-	types = []
-	for attribute in attributes:
-		c.execute('SELECT typeof(%s) FROM %s' % (attribute, planner_names[0]))
-		types.append(c.fetchone()[0])
+        attributes = []
+	types = {}
+	# merge possible attributes from all planners
+        for p in planner_names:
+                c.execute('SELECT * FROM %s' % p)
+                atr = [ t[0] for t in c.description]
+                atr.remove('plannerid')
+                atr.remove('experimentid')
+                for a in atr:
+                        if a not in attributes:
+                                c.execute('SELECT typeof(%s) FROM %s' % (a, p))
+                                attributes.append(a)
+                                types[a] = c.fetchone()[0]
+        attributes.sort()
+
 	pp = PdfPages(fname)
-	for i in range(len(attributes)):
-		if types[i]=='integer' or types[i]=='real':
-			plot_attribute(c, planner_names, attributes[i], types[i])
+	for atr in attributes:
+		if types[atr]=='integer' or types[atr]=='real':
+			plot_attribute(c, planner_names, atr, types[atr])
 			pp.savefig(plt.gcf())
 	pp.close()
 
