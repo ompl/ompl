@@ -67,7 +67,7 @@ namespace ompl
            To guide the exploration, an additional grid data
            structure is maintained. Grid cells contain states that
            have been previously visited. When deciding which state to
-           use for further expansion, this grid is used; 
+           use for further expansion, this grid is used;
            least-filled grid cells have most chances of being selected. The
            grid is usually imposed on a projection of the state
            space. This projection needs to be set before using the

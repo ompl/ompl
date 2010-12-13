@@ -52,7 +52,7 @@ namespace ompl
         /**
            @anchor gPRM
 
-           @par Short description 
+           @par Short description
            PRM is a planner that constructs a roadmap of milestones
            that approximate the connectivity of the state space. The
            milestones are valid states in the state space. Near-by

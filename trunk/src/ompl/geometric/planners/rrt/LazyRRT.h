@@ -70,7 +70,7 @@ namespace ompl
            - J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
            <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
            <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
-           - R. Bohlin and L.E. Kavraki, A Randomized Algorithm for Robot Path Planning Based on Lazy Evaluation, in <em>Handbook on Randomized Computing</em>, pp. 221–249, 2001.<br> 
+           - R. Bohlin and L.E. Kavraki, A Randomized Algorithm for Robot Path Planning Based on Lazy Evaluation, in <em>Handbook on Randomized Computing</em>, pp. 221–249, 2001.<br>
            <a href="http://www.kavrakilab.org/sites/default/files/bohlin2001lazy-evaluation.pdf">[PDF]</a>
            - R. Bohlin and L.E. Kavraki, Path planning using lazy PRM, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 521–528, 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
            <a href="http://ieeexplore.ieee.org/ielx5/6794/18235/00844107.pdf?tp=&arnumber=844107&isnumber=18235">[PDF]
