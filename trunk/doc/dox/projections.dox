@@ -10,7 +10,9 @@
     Euclidean space (R<sup>k</sup>, k usually around 2 or 3), and
     discretize that Euclidean space instead. This includes algorithms
     such as ompl::geometric::EST, ompl::geometric::SBL,
-    ompl::geometric::KPIECE1.
+    ompl::geometric::KPIECE1. This projection can also be thought of
+    as a hash function that maps states to cells in a low dimensional
+    Euclidean space.
 
     To support this notion of projections, OMPL includes
     ompl::base::ProjectionEvaluator. This is an abstract class whose
@@ -18,7 +20,7 @@
     which takes a ompl::base::State* and produces a
     ompl::base::EuclideanProjection (this is a representation of an
     array of real numbers).
-    \n
+
     ompl::base::ProjectionEvaluator also includes utilities for
     discretizing the projected space (the low dimensional, Euclidean
     one). In particular, grids can be implicitly imposed on the
@@ -31,7 +33,7 @@
     sizes of cells for the grid have not been set,
     ompl::base::ProjectionEvaluator::setup() uses sampling to identify
     sizes such that each dimension of the projection space is split
-    into roughly 10 parts. This is merely a default and the user is
+    into roughly 20 parts. This is merely a default and the user is
     encouraged to set desired cell sizes.
 
     Projections are specific to manifolds. This means that each
@@ -44,11 +46,12 @@
     calling ompl::base::ProjectionEvaluator::setup() when needed.
     Most manifolds have at least a default projection set by
     ompl::base::StateManifold::registerProjections(). For compound
-    manifolds (ompl::base::CompoundStateManifold), there is an
-    automatic projection computed, based on the default projection of
-    contained manifolds. This is typically slow to compute and the
-    user is encouraged to define appropriate projections, if
-    available.
+    manifolds (ompl::base::CompoundStateManifold), an automatic
+    projection can be computed
+    (ompl::base::CompoundProjectionEvaluator), based on the default
+    projection of contained manifolds. This is typically slow to
+    evaluate and not set by default. The user is encouraged to define
+    appropriate projections, if available.
 
     Example code for adding a projection for an R<sup>n</sup> manifold:
     \code
@@ -87,6 +90,7 @@
     \endcode
 
     For more reading on this topic, please see:
+    \n
         Șucan, Ioan A., Kavraki Lydia E., On the Performance of Random Linear Projections for Sampling-Based Motion Planning, in <em>IEEE/RSJ International Conference on Intelligent Robots and Systems</em>, pp. 2434-2439, Oct 2009. DOI: <a href="http://dx.doi.org/10.1109/IROS.2009.5354403">http://dx.doi.org/10.1109/IROS.2009.5354403</a>.
 
 */
