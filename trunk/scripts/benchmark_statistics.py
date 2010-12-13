@@ -160,10 +160,10 @@ def plot_attribute(cur, planners, attribute, typename):
 		cur.execute('SELECT * FROM %s' % planner)
 		attributes = [ t[0] for t in cur.description]
  		if attribute in attributes:
-			cur.execute('SELECT %s FROM %s' % (attribute, planner))
-			result = [ t[0] for t in cur.fetchall() ]
-			nan_counts.append(len([x for x in result if x==None]))
-			measurement = [x for x in result if not x==None]
+			cur.execute('SELECT %s FROM %s WHERE %s IS NOT NULL' % (attribute, planner, attribute))
+			measurement = [ t[0] for t in cur.fetchall() ]
+                        cur.execute('SELECT count(*) FROM %s WHERE %s IS NULL' % (planner, attribute))
+			nan_counts.append(cur.fetchone()[0])
 			cur.execute('SELECT DISTINCT %s FROM %s' % (attribute, planner))
 			is_bool = is_bool and set([t[0] for t in cur.fetchall() if not t[0]==None]).issubset(set([0,1]))
 			measurements.append(measurement)
