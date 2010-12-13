@@ -15,13 +15,11 @@ endif(APPLE)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
 	include_directories(${PYTHON_INCLUDE_DIRS})
-	# make sure targets are defined only once
-	get_target_property(_target generate_headers EXCLUDE_FROM_ALL)
+	# make sure target is defined only once
+	get_target_property(_target py_ompl EXCLUDE_FROM_ALL)
 	if(NOT _target)
-		# top-level target for updating all-in-one header file for each module
-		add_custom_target(generate_headers)
-		# top-level target for regenerating code for all python modules
-		add_custom_target(update_bindings)
+		# top-level target for compiling python modules
+		add_custom_target(py_ompl)
 	endif()
 	set(PY_OMPL_COMPILE ON CACHE BOOL
 		"Whether the OMPL Python modules can be built")
@@ -29,11 +27,13 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
 endif()
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
 	AND PY_PYGCCXML AND GCCXML)
-	# make sure target is defined only once
-	get_target_property(_target py_ompl EXCLUDE_FROM_ALL)
+	# make sure targets are defined only once
+	get_target_property(_target generate_headers EXCLUDE_FROM_ALL)
 	if(NOT _target)
-		# top-level target for compiling python modules
-		add_custom_target(py_ompl)
+		# top-level target for updating all-in-one header file for each module
+		add_custom_target(generate_headers)
+		# top-level target for regenerating code for all python modules
+		add_custom_target(update_bindings)
 	endif()
 	set(PY_OMPL_GENERATE ON CACHE BOOL 
 		"Whether the C++ code for the OMPL Python module can be generated")
