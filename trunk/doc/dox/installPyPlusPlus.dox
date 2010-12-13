@@ -24,6 +24,7 @@ cd gccxml
 cmake .
 make
 sudo make install
+cd ..
 
 # get latest version of pygccxml, build & install needed packages
 svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml
