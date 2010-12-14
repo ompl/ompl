@@ -50,7 +50,7 @@ void ompl::geometric::OptRRT::setup(void)
         ballRadiusMax_ = maxDistance_;
     if (ballRadiusConst_ < std::numeric_limits<double>::epsilon())
         throw Exception(name_, "The ball radius constant must be positive");
-    sampler_ = si_->allocManifoldStateSampler();
+
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
     nn_->setDistanceFunction(boost::bind(&OptRRT::distanceFunction, this, _1, _2));
@@ -59,23 +59,28 @@ void ompl::geometric::OptRRT::setup(void)
 void ompl::geometric::OptRRT::clear(void)
 {
     Planner::clear();
-    freeMemory();
-    nn_->clear();
+    sampler_.reset();
+    freeMemory();    
+    if (nn_)
+        nn_->clear();
 }
 
 void ompl::geometric::OptRRT::freeMemory(void)
 {
-    std::vector<Motion*> motions;
-    nn_->list(motions);
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    if (nn_)
     {
-        if (motions[i]->state)
-            si_->freeState(motions[i]->state);
-        delete motions[i];
+        std::vector<Motion*> motions;
+        nn_->list(motions);
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        {
+            if (motions[i]->state)
+                si_->freeState(motions[i]->state);
+            delete motions[i];
+        }
     }
 }
 
-bool ompl::geometric::OptRRT::solve(double solveTime)
+bool ompl::geometric::OptRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
@@ -85,8 +90,6 @@ bool ompl::geometric::OptRRT::solve(double solveTime)
         msg_.error("Goal undefined");
         return false;
     }
-
-    time::point endTime = time::now() + time::seconds(solveTime);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -100,6 +103,9 @@ bool ompl::geometric::OptRRT::solve(double solveTime)
         msg_.error("There are no valid initial states!");
         return false;
     }
+    
+    if (!sampler_)
+        sampler_ = si_->allocManifoldStateSampler();
 
     msg_.inform("Starting with %u states", nn_->size());
 
@@ -115,11 +121,11 @@ bool ompl::geometric::OptRRT::solve(double solveTime)
     std::vector<int>     valid;
     long unsigned int    rewireTest = 0;
 
-    while (time::now() < endTime)
+    while (ptc() == false)
     {
 
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_)
+        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
@@ -266,33 +272,12 @@ bool ompl::geometric::OptRRT::solve(double solveTime)
 
 void ompl::geometric::OptRRT::getPlannerData(base::PlannerData &data) const
 {
-    data.si = si_;
-    std::map<Motion*, unsigned int> index;
+    Planner::getPlannerData(data);
 
     std::vector<Motion*> motions;
-    nn_->list(motions);
-    data.states.resize(motions.size());
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-    {
-        data.states[i] = motions[i]->state;
-        index[motions[i]] = i;
-    }
+    if (nn_)
+        nn_->list(motions);
 
-    data.edges.clear();
-    data.edges.resize(motions.size());
-    std::map<Motion*, bool> seen;
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        if (seen.find(motions[i]) == seen.end())
-        {
-            Motion *m = motions[i];
-            while (m)
-            {
-                if (seen.find(m) != seen.end())
-                    break;
-                seen[m] = true;
-                if (m->parent)
-                    data.edges[index[m->parent]].push_back(index[m]);
-                m = m->parent;
-            }
-        }
+        data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
 }

@@ -50,7 +50,6 @@ namespace ompl
            @anchor gOptRRT
 
            @par Short description
-
            RRT version that rewires the exploration tree as it is
            being grown. This allows finding optimal solutions, given
            enough time. The notion of optimality is with respect to
@@ -65,15 +64,11 @@ namespace ompl
            different values.
 
            @par External documentation
-
            S. Karaman and E. Frazzoli, Incremental Sampling-based
            Algorithms for Optimal Motion Planning, Robotics: Science
            and Systems (RSS) Conference, 2010.
-
            <a href="http://arxiv.org/abs/1005.0416">http://arxiv.org/abs/1005.0416</a>
 
-           @par Example exploration
-           <img src="../exploration/OptRRT.png"/>
         */
 
         /** \brief Rapidly-exploring Random Trees with Optimization */
@@ -98,7 +93,7 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual bool solve(double solveTime);
+            virtual bool solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 

@@ -1,0 +1,27 @@
+
+void ompl::base::SpaceInformation::randomBounceMotion(const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const
+{
+    ManifoldStateSamplerPtr mss = allocManifoldStateSampler();
+    
+    if (alloc)
+    {
+        states.resize(steps);
+        for (unsigned int i = 0 ; i < steps ; ++i)
+            states[i] = allocState();
+    }
+    else
+        if (states.size() < steps)
+            steps = states.size();
+    
+    State *prev = start;
+    std::pair<State*, double> lastValid;
+    
+    for (unsigned int i = 0 ; i < steps ; ++i)
+    {
+        mss->sample(states[i]);
+        lastValid.first = states[i];
+        checkMotion(prev, states[i], lastValid);
+        prev = states[i];
+    }
+}
+
