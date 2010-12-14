@@ -363,14 +363,14 @@ class ompl_geometric_generator_t(code_generator_t):
 		# rename STL vectors of certain types
 		self.std_ns.class_('vector< int >').rename('vectorInt')
 		self.std_ns.class_('vector< double >').rename('vectorDouble')
-		self.std_ns.class_('vector< ompl::geometric::PRM::Milestone* >').rename('vectorPRMMileStonePtr')
+		self.std_ns.class_('vector< ompl::geometric::BasicPRM::Milestone* >').rename('vectorBasicPRMMileStonePtr')
 		# don't export variables that need a wrapper
 		self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()	
 		# make objects printable that have a print function
 		self.replace_member_functions(self.ompl_ns.member_functions('print'))
 		self.ompl_ns.member_functions('freeGridMotions').exclude()
-		self.ompl_ns.class_('PRM').member_functions('haveSolution').exclude()
-		self.ompl_ns.class_('PRM').member_functions('growRoadmap', 
+		self.ompl_ns.class_('BasicPRM').member_functions('haveSolution').exclude()
+		self.ompl_ns.class_('BasicPRM').member_functions('growRoadmap', 
 		        function=declarations.access_type_matcher_t('protected')).exclude()
 		# don't export some internal data structure
 		self.ompl_ns.classes('OrderCellsByImportance').exclude()
