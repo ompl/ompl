@@ -167,7 +167,7 @@ def plot_attribute(cur, planners, attribute, typename):
 			cur.execute('SELECT DISTINCT %s FROM %s' % (attribute, planner))
 			is_bool = is_bool and set([t[0] for t in cur.fetchall() if not t[0]==None]).issubset(set([0,1]))
 			measurements.append(measurement)
-			labels.append(planner.replace('planner_',''))
+			labels.append(planner.replace('planner_geometric_','').replace('planner_control_',''))
 	if is_bool:
 		width = .5
 		measurements_percentage = [sum(m)*100./len(m) for m in measurements]
@@ -182,7 +182,7 @@ def plot_attribute(cur, planners, attribute, typename):
 			plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5, bootstrap=1000)
 		ax.set_ylabel(attribute.replace('_',' '))
 		xtickNames = plt.setp(ax,xticklabels=labels)
-		plt.setp(xtickNames, rotation=30)
+		plt.setp(xtickNames, rotation=25)
 	ax.set_xlabel('Motion planning algorithm')
 	ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
 	if max(nan_counts)>0:
