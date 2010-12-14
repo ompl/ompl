@@ -194,6 +194,7 @@ def plot_attribute(cur, planners, attribute, typename):
 	
 def plot_statistics(dbname, fname):
 	"""Create a PDF file with box plots for all attributes."""
+	print "Generating plot..."
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	c.execute('PRAGMA FOREIGN_KEYS = ON')
@@ -202,6 +203,7 @@ def plot_statistics(dbname, fname):
 	planner_names = [ t for t in table_names if t.startswith('planner_') ]
         attributes = []
 	types = {}
+	experiments = []
 	# merge possible attributes from all planners
         for p in planner_names:
                 c.execute('SELECT * FROM %s' % p)
@@ -213,18 +215,52 @@ def plot_statistics(dbname, fname):
                                 c.execute('SELECT typeof(%s) FROM %s' % (a, p))
                                 attributes.append(a)
                                 types[a] = c.fetchone()[0]
+		c.execute('SELECT DISTINCT experimentid FROM %s' % p)
+		eid = [t[0] for t in c.fetchall() if not t[0]==None]
+		for e in eid:
+			if e not in experiments:
+				experiments.append(e)
         attributes.sort()
-
+	
 	pp = PdfPages(fname)
 	for atr in attributes:
 		if types[atr]=='integer' or types[atr]=='real':
 			plot_attribute(c, planner_names, atr, types[atr])
 			pp.savefig(plt.gcf())
+	plt.clf()
+	pagey = 0.9
+	pagex = 0.06
+	for e in experiments:		
+		# get the number of runs, per planner, for this experiment
+		runcount = []
+		for p in planner_names:
+			c.execute('SELECT count(*) FROM %s WHERE experimentid = %s' % (p, e))
+			runcount.append(c.fetchone()[0])
+
+		# check if this number is the same for all planners
+		runs = "Number of averaged runs: "
+		if len([r for r in runcount if not r == runcount[0]]) > 0:
+			runs = runs + ", ".join([planner_names[i].replace('planner_geometric_','').replace('planner_control_','') +
+						 "=" + str(runcount[i]) for i in range(len(runcount))])
+		else:
+			runs = runs + str(runcount[0])
+
+		c.execute('SELECT name, timelimit, memorylimit FROM experiments WHERE id = %s' % e)
+		d = c.fetchone()
+		plt.figtext(pagex, pagey, "Experiment '%s'" % d[0])
+		plt.figtext(pagex, pagey-0.05, runs)
+		plt.figtext(pagex, pagey-0.10, "Time limit per run: %s seconds" % d[1])
+		plt.figtext(pagex, pagey-0.15, "Memory limit per run: %s MB" % d[2])
+		pagey -= 0.22
+	plt.show()
+	pp.savefig(plt.gcf())
 	pp.close()
 
 def save_as_mysql(dbname, mysqldump):
 	# See http://stackoverflow.com/questions/1067060/perl-to-python
 	import re
+	print "Saving as MySQL dump file..."
+
 	conn = sqlite3.connect(dbname)
 	mysqldump = open(mysqldump,'w')
 	
