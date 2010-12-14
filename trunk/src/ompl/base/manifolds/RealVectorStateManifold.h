@@ -117,6 +117,10 @@ namespace ompl
                 performed. */
             void setBounds(const RealVectorBounds &bounds);
 
+            /** \brief Set the bounds of this manifold. The bounds for
+                each dimension will be the same: [\e low, \e high]. */
+            void setBounds(double low, double high);
+
             /** \brief Get the bounds for this manifold */
             const RealVectorBounds& getBounds(void) const
             {

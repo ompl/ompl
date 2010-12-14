@@ -128,6 +128,14 @@ void ompl::base::RealVectorStateManifold::setBounds(const RealVectorBounds &boun
     bounds_ = bounds;
 }
 
+void ompl::base::RealVectorStateManifold::setBounds(double low, double high)
+{
+    RealVectorBounds bounds(dimension_);
+    bounds.setLow(low);
+    bounds.setHigh(high);
+    setBounds(bounds);
+}
+
 unsigned int ompl::base::RealVectorStateManifold::getDimension(void) const
 {
     return dimension_;
