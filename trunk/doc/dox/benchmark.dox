@@ -1,21 +1,30 @@
 /** \page benchmark How to benchmark planners
 
+    - \ref benchmark_code 
+    - \ref benchmark_log
+    - \ref benchmark_sample_results
+    
+    \section benchmark_code Writing Benchmarking Code
+
     Benchmarking a set of planners on a specified problem is a simple
-    task in OMPL. The following code snippet shows you how to do it.
-    Some initial code that you probably have already used:
+    task in OMPL. The steps involved are as follows:
+    - Configure the benchmark problem using ompl::geometric::SimpleSetup or ompl::control::SimpleSetup
+    - Create a ompl::Benchmark object that takes the problem as input
+    - Add one or more planners to the benchmark
+    - Run the benchmark problem a specified number of times, subject to specified time and memory limits
+    .
+    
+    The following code snippet shows you how to do this. We will start with some initial code that you have probably already used:
     \code   
     #include "ompl/benchmark/Benchmark.h"
-    ...
-    using namespace ompl;
-    ...
 
-    // A function that matches the PlannerAllocator type.
+    // A function that matches the ompl::base::PlannerAllocator type.
     // It will be used later to allocate an instance of EST
-    base::PlannerPtr myConfiguredPlanner(const base::SpaceInformationPtr &si)
+    ompl::base::PlannerPtr myConfiguredPlanner(const ompl::base::SpaceInformationPtr &si)
     {
-	geometric::EST *est = new geometric::EST(si);
-	est->setRange(100.0);
-	return base::PlannerPtr(est);
+        geometric::EST *est = new ompl::geometric::EST(si);
+        est->setRange(100.0);
+        return ompl::base::PlannerPtr(est);
     }
 
     // Create a manifold for the space we are planning in
@@ -30,7 +39,7 @@
     Benchmarking code starts here:
     \code
     // First we create a benchmark class:
-    ompl::geometric::Benchmark b(ss, "my experiment");
+    ompl::Benchmark b(ss, "my experiment");
 
     // We add the planners to evaluate.
     b.addPlanner(base::PlannerPtr(new geometric::KPIECE1(ss.getSpaceInformation())));
@@ -40,22 +49,23 @@
     // etc
 
     // For planners that we want to configure in specific ways,
-    // the base::PlannerAllocator should be used:
+    // the ompl::base::PlannerAllocator should be used:
     b.addPlanner(boost::bind(&myConfiguredPlanner, _1));
-    // etc
-
+    // etc.
 
     // Now we can benchmark: 5 second time limit for each plan computation,
     // 100 MB maximum memory usage per plan computation, 50 runs for each planner
     // and true means that a text-mode progress bar should be displayed while
     // computation is running.
-    b.benchmark(5, 100, 50, true);
+    b.benchmark(5., 100., 50, true);
 
     // This will generate a file of the form ompl_host_time.log
     b.saveResultsToFile();
     \endcode
 
-    Once the C++ code computing the results has been executed, a .log
+    \section benchmark_log Processing the benchmarking log file
+    
+    Once the C++ code computing the results has been executed, a log
     file is generated. This contains information about the settings of
     the planners, the parameters of the problem tested on, etc.    
     To visualize this information, we first need to parse it:
@@ -68,15 +78,17 @@
     \code
     scripts/benchmark_statistics.py -d mydatabase.db -p boxplot.pdf
     \endcode
+    This will generate a series of plots, one for each of the attributes described below, showing the results for each planner. \ref benchmark_sample_results "Below" we have included some sample benchmark results.
+    
     If you would like to process the data in different ways, you can generate 
     a dump file that you can load in a MySQL database:
     \code
     scripts/benchmark_statistics.py -d mydatabase.db -m mydump.sql
     \endcode
-    The database will contain 2+k tables:
+    The database will contain 2+<em>k</em> tables:
     - \e planners is a table that contains planner configurations
     - \e experiments is a table that contains details about conducted experiments
-    - k tables named \e planner_<name>, one for each planner, containing measurements
+    - <em>k</em> tables named \e planner_<name>, one for each planner, containing measurements
 
     For more details on how to use the benchmark script, see:
     \code
@@ -90,7 +102,7 @@
     - <strong>memorylimit:</strong> the maximum memory allowed for every planner execution (MB)
     - <strong>hostname:</strong> the name of the host on which the experiment was run
     - <strong>date:</strong> the date and time when the experiment was started
-      	    
+    
     Collected benchmark data for each planner execution:
     - <strong>solved:</strong> (boolean) flag indicating whether the planner found a solution
     - <strong>time:</strong> (real) the amount of time spent planning, in seconds
@@ -110,5 +122,24 @@
     - <strong>graph motions:</strong> (integer) the number of edges (motions) in the constructed graph
     - more planner-specific properties
 
-    At this point, only benchmarking for geometric planners is implemented.	
+    \section benchmark_sample_results Sample benchmark results
+    
+    Below are sample results for running benchmarks for two sample problems: the “cubicles” environment and the “Twistycool” enviroment. The complete benchmarking program (SE3RigidBodyPlanningBenchmark.cpp), the environment and robot files are included with OMPL.app, so you can rerun the same benchmarks on your own machine.  See the \ref gallery_omplapp "gallery" for sample solutions to both problems. The results below were run on a recent model Apple MacBook Pro (2.66 GHz Intel Core i7, 8GB of RAM). It is import to note that none of the planner parameters were tuned; all benchmarks were run with default settings. From these results one cannot draw any firm conclusions about which planner is “better” than some other planner.
+    
+    These are the PDF files with plots as generated by the benchmark_statistics.py script:
+    - <strong>The “cubicles” problem:</strong> with <a href="../images/cubicles_uniform.pdf">uniform</a>, <a href="../images/cubicles_gaussian.pdf">Gaussian</a>, and <a href="../images/cubicles_obstacle.pdf">obstacle-based</a> sampling.
+    - <strong>The “Twistycool” problem:</strong> with <a href="../images/Twistycool_uniform.pdf">uniform</a>, <a href="../images/Twistycool_gaussian.pdf">Gaussian</a>, and <a href="../images/Twistycool_obstacle.pdf">obstacle-based</a> sampling.
+    .
+    The plots show comparisons between ompl::geometric::RRTConnect, ompl::geometric::RRT, ompl::geometric::LazyRRT, ompl::geometric::LBKPIECE1, ompl::geometric::KPIECE, ompl::geometric::SBL, ompl::geometric::EST, and ompl::geometric::BasicPRM.
+    Each planner is run 500 times for the cubicles problem for each sampling strategy, while for the Twistycool problem each planner is run 50 times.
+    
+    For boolean measurements the script will create bar charts with the percentage of \b true values. For example, here is the plot for the boolean attribute <strong>solved</strong> for the Twistycool environment with uniform sampling:
+
+    \htmlonly<div class="span-22"><img src="../images/Twistycool_uniform_solved.png" class="push-2 span-12 last"></div>\endhtmlonly
+
+    For integer and real-valued measurements the script will compute <a href="http://en.wikipedia.org/wiki/Box_plot">box plots</a>. For example, here is the plot for the real-valued attribute <strong>time</strong> for the cubicles environment with Gaussian sampling:
+
+    \htmlonly<div class="span-22"><img src="../images/cubicles_gaussian_time.png" class="push-2 span-12 last"></div>\endhtmlonly
+    
+    Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute <strong>correct solution</strong> is not set if a solution is not found.
 */

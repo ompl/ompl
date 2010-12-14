@@ -28,7 +28,7 @@ Below are some rigid body motion planning problems and corresponding solutions f
 \htmlonly
 <hr class="space">
 \endhtmlonly
-<b>An L-shaped robot has to fly through a number of rooms and the “basement” to reach the goal state:</b><br> 
+<b>The “cubicles” environment.</b> An L-shaped robot has to fly through a number of rooms and the “basement” to reach the goal state:<br> 
 \htmlonly
 <div class="span-8 push-1">
   <img src="../images/cubicles-problem.png" width="100%">
@@ -39,7 +39,7 @@ Below are some rigid body motion planning problems and corresponding solutions f
 <hr class="space">
 \endhtmlonly
 
-<b>A twisted shape has to make a complex maneuver to move through a narrow passage:</b><br>
+<b>The “Twistycool” environment.</b> A twisted shape has to make a complex maneuver to move through a narrow passage:<br>
 \htmlonly
 <div class="span-8 push-1">
   <img src="../images/narrow-passage-problem.png" width="100%">
