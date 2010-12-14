@@ -50,7 +50,7 @@ namespace ompl
     {
 
         /**
-           @anchor gPRM
+           @anchor gBasicPRM
 
            @par Short description
            PRM is a planner that constructs a roadmap of milestones
@@ -60,6 +60,9 @@ namespace ompl
            plan that connects two given states is reduced to a
            discrete search (this implementation uses Dijskstra) in the
            roadmap.
+           The construction process for the roadmap includes an
+           expansion strategy. This expansion strategy is not included
+           in this implementation, hence the name BasicPRM.
 
            @par External documentation
            L.E. Kavraki, P.Švestka, J.-C. Latombe, and M.H. Overmars,
@@ -72,11 +75,11 @@ namespace ompl
         */
 
         /** \brief Probabilistic RoadMap planner */
-        class PRM : public base::Planner
+        class BasicPRM : public base::Planner
         {
         public:
 
-            PRM(const base::SpaceInformationPtr &si) : base::Planner(si, "PRM")
+            BasicPRM(const base::SpaceInformationPtr &si) : base::Planner(si, "BasicPRM")
             {
                 type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
 
@@ -86,7 +89,7 @@ namespace ompl
                 lastGoal_ = NULL;
             }
 
-            virtual ~PRM(void)
+            virtual ~BasicPRM(void)
             {
                 freeMemory();
             }

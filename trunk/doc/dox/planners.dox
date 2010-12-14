@@ -21,7 +21,7 @@
    - @ref gpRRT "Parallel RRT (pRRT)"
    - @ref gLazyRRT "Lazy RRT (LazyRRT)"
    \htmlonly<hr class="space">\endhtmlonly
-   - @ref gPRM "Probabilistic RoadMaps (PRM)"
+   - @ref gBasicPRM "Probabilistic RoadMaps (PRM)"
 
    Other tools:
 

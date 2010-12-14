@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/geometric/planners/prm/PRM.h"
+#include "ompl/geometric/planners/prm/BasicPRM.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include <algorithm>
@@ -47,15 +47,15 @@
 static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
 
-void ompl::geometric::PRM::setup(void)
+void ompl::geometric::BasicPRM::setup(void)
 {
     Planner::setup();
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Milestone*>());
-    nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(boost::bind(&BasicPRM::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::PRM::clear(void)
+void ompl::geometric::BasicPRM::clear(void)
 {
     Planner::clear();
     sampler_.reset();
@@ -69,7 +69,7 @@ void ompl::geometric::PRM::clear(void)
     lastGoal_ = NULL;
 }
 
-void ompl::geometric::PRM::freeMemory(void)
+void ompl::geometric::BasicPRM::freeMemory(void)
 {
     for (unsigned int i = 0 ; i < milestones_.size() ; ++i)
     {
@@ -79,7 +79,7 @@ void ompl::geometric::PRM::freeMemory(void)
     }
 }
 
-void ompl::geometric::PRM::growRoadmap(double growTime)
+void ompl::geometric::BasicPRM::growRoadmap(double growTime)
 {
     time::point endTime = time::now() + time::seconds(growTime);
     base::State *workState = si_->allocState();
@@ -103,10 +103,10 @@ void ompl::geometric::PRM::growRoadmap(double growTime)
     si_->freeState(workState);
 }
 
-void ompl::geometric::PRM::growRoadmap(const std::vector<Milestone*> &start,
-                                       const std::vector<Milestone*> &goal,
-                                       const base::PlannerTerminationCondition &ptc,
-                                       base::State *workState)
+void ompl::geometric::BasicPRM::growRoadmap(const std::vector<Milestone*> &start,
+                                            const std::vector<Milestone*> &goal,
+                                            const base::PlannerTerminationCondition &ptc,
+                                            base::State *workState)
 {
     while (ptc() == false)
     {
@@ -131,8 +131,8 @@ void ompl::geometric::PRM::growRoadmap(const std::vector<Milestone*> &start,
     }
 }
 
-bool ompl::geometric::PRM::haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal,
-                                        std::pair<Milestone*, Milestone*> *endpoints)
+bool ompl::geometric::BasicPRM::haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal,
+                                             std::pair<Milestone*, Milestone*> *endpoints)
 {
     base::Goal *g = pdef_->getGoal().get();
     for (unsigned int i = 0 ; i < goal.size() ; ++i)
@@ -158,7 +158,7 @@ namespace ompl
     }
 }
 
-bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
+bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &ptc)
 {
     pis_.checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -242,12 +242,12 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     return goal->isAchieved();
 }
 
-void ompl::geometric::PRM::nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh)
+void ompl::geometric::BasicPRM::nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh)
 {
     nn_->nearestK(milestone, maxNearestNeighbors_, nbh);
 }
 
-ompl::geometric::PRM::Milestone* ompl::geometric::PRM::addMilestone(base::State *state)
+ompl::geometric::BasicPRM::Milestone* ompl::geometric::BasicPRM::addMilestone(base::State *state)
 {
     Milestone *m = new Milestone();
     m->state = state;
@@ -278,7 +278,7 @@ ompl::geometric::PRM::Milestone* ompl::geometric::PRM::addMilestone(base::State 
     return m;
 }
 
-void ompl::geometric::PRM::uniteComponents(Milestone *m1, Milestone *m2)
+void ompl::geometric::BasicPRM::uniteComponents(Milestone *m1, Milestone *m2)
 {
     if (m1->component == m2->component)
         return;
@@ -307,7 +307,7 @@ void ompl::geometric::PRM::uniteComponents(Milestone *m1, Milestone *m2)
     }
 }
 
-void ompl::geometric::PRM::reconstructLastSolution(void)
+void ompl::geometric::BasicPRM::reconstructLastSolution(void)
 {
     if (lastStart_ && lastGoal_)
         constructSolution(lastStart_, lastGoal_);
@@ -315,7 +315,7 @@ void ompl::geometric::PRM::reconstructLastSolution(void)
         msg_.warn("There is no solution to reconstruct");
 }
 
-void ompl::geometric::PRM::constructSolution(const Milestone* start, const Milestone* goal)
+void ompl::geometric::BasicPRM::constructSolution(const Milestone* start, const Milestone* goal)
 {
     const unsigned int N = milestones_.size();
     std::vector<double> dist(N, std::numeric_limits<double>::infinity());
@@ -365,7 +365,7 @@ void ompl::geometric::PRM::constructSolution(const Milestone* start, const Miles
         throw Exception(name_, "Internal error in computing shortest path");
 }
 
-void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::BasicPRM::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
