@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
-#define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_BASIC_PRM_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_BASIC_PRM_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
@@ -79,6 +79,7 @@ namespace ompl
         {
         public:
 
+            /** \brief Constructor */
             BasicPRM(const base::SpaceInformationPtr &si) : base::Planner(si, "BasicPRM")
             {
                 type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
@@ -147,6 +148,7 @@ namespace ompl
                 {
                 }
 
+                /** \brief Automatically allocate memory for a milestone's state */
                 Milestone(const base::SpaceInformationPtr &si) : state(si->allocState()), index(0)
                 {
                 }
@@ -155,34 +157,74 @@ namespace ompl
                 {
                 }
 
+                /** \brief The state corresponding to the milestone */
                 base::State            *state;
+
+                /** \brief The index of this milestone in the array of milestones (BasicPRM::milestones_) */
                 unsigned int            index;
+
+                /** \brief The id of the connected component this milestone is part of */
                 unsigned long           component;
+
+                /** \brief The array of milestones that can be connected to with valid paths */
                 std::vector<Milestone*> adjacent;
+
+                /** \brief The cost of the edges indicated by \e adjacent */
                 std::vector<double>     costs;
             };
 
+            /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
+
+            /** \brief Get the list of nearest neighbors (\e nbh) for a given milestone (\e milestone) */
             virtual void nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh);
+
+            /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
             Milestone* addMilestone(base::State *state);
+
+            /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Milestone *m1, Milestone *m2);
+
+            /** \brief Randomly sample the state space, add and connect milestones in the roadmap. Stop this process when the termination condition \e ptc returns true or when any of the \e start milestones are in the same connected component as any of the \e goal milestones. Use \e workState as temporary memory. */
             void growRoadmap(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, const base::PlannerTerminationCondition &ptc, base::State *workState);
+
+            /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If \e endpoints is not null, that pair is recorded. */
             bool haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, std::pair<Milestone*, Milestone*> *endpoints = NULL);
+
+            /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             void constructSolution(const Milestone* start, const Milestone* goal);
 
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
             double distanceFunction(const Milestone* a, const Milestone* b) const
             {
                 return si_->distance(a->state, b->state);
             }
 
+            /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                        sampler_;
+
+            /** \brief Nearest neighbors data structure */
             boost::shared_ptr< NearestNeighbors<Milestone*> > nn_;
+
+             /** \brief Array of available milestones */
             std::vector<Milestone*>                           milestones_;
+
+            /** \brief constructSolution() will set this variable to be the milestone used as the start. This is useful if multiple solution paths are to be generated. */
             const Milestone                                  *lastStart_;
+
+            /** \brief constructSolution() will set this variable to be the milestone used as the goal. This is useful if multiple solution paths are to be generated. */
             const Milestone                                  *lastGoal_;
+
+            /** \brief Maximum number of nearest neighbors to attempt to connect new milestones to */
             unsigned int                                      maxNearestNeighbors_;
+
+            /** \brief Number of elements in each component */
             std::map<unsigned long, unsigned long>            componentSizes_;
+
+            /** \brief The number of components that have been used at a point in time. There is no component with id larger than this value, but it is not necessary for all components with smaller id to exist (they could have been merged) */
             unsigned long                                     componentCount_;
+
+            /** \brief Random number generator */
             RNG                                               rng_;
         };
 

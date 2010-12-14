@@ -53,7 +53,25 @@ void ompl::control::RRT::clear(void)
     sampler_.reset();
     controlSampler_.reset();
     freeMemory();
-    nn_->clear();
+    if (nn_)
+        nn_->clear();
+}
+
+void ompl::control::RRT::freeMemory(void)
+{
+    if (nn_)
+    {
+        std::vector<Motion*> motions;
+        nn_->list(motions);
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        {
+            if (motions[i]->state)
+                si_->freeState(motions[i]->state);
+            if (motions[i]->control)
+                siC_->freeControl(motions[i]->control);
+            delete motions[i];
+        }
+    }
 }
 
 bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)

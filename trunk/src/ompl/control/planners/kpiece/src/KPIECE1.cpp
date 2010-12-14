@@ -92,7 +92,6 @@ void ompl::control::KPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-// return the index of the state to be used in the next motion (the reached state of the motion)
 unsigned int ompl::control::KPIECE1::findNextMotion(const Grid::Coord &origin, const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int last)
 {
     // if the first state is already out of the origin cell, then most of the motion is in that cell

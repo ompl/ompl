@@ -70,6 +70,7 @@ namespace ompl
         {
         public:
 
+            /** \brief Constructor */
             RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT")
             {
                 type_ = base::PLAN_TO_GOAL_ANY;
@@ -122,6 +123,11 @@ namespace ompl
 
         protected:
 
+
+            /** \brief Representation of a motion
+
+                This only contains pointers to parent motions as we
+                only need to go backwards in the tree. */
             class Motion
             {
             public:
@@ -130,6 +136,7 @@ namespace ompl
                 {
                 }
 
+                /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
                 {
                 }
@@ -138,38 +145,44 @@ namespace ompl
                 {
                 }
 
+                /** \brief The state contained by the motion */
                 base::State       *state;
+
+                /** \brief The control contained by the motion */
                 Control           *control;
+
+                /** \brief The number of steps the control is applied for */
                 unsigned int       steps;
+
+                /** \brief The parent motion in the exploration tree */
                 Motion            *parent;
             };
 
-            void freeMemory(void)
-            {
-                std::vector<Motion*> motions;
-                nn_->list(motions);
-                for (unsigned int i = 0 ; i < motions.size() ; ++i)
-                {
-                    if (motions[i]->state)
-                        si_->freeState(motions[i]->state);
-                    if (motions[i]->control)
-                        siC_->freeControl(motions[i]->control);
-                    delete motions[i];
-                }
-            }
+            /** \brief Free the memory allocated by this planner */
+            void freeMemory(void);
 
+            /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion* a, const Motion* b) const
             {
                 return si_->distance(a->state, b->state);
             }
 
+            /** \brief State sampler */
             base::ManifoldStateSamplerPtr                  sampler_;
+
+            /** \brief Control sampler */
             ControlSamplerPtr                              controlSampler_;
+
+            /** \brief The base::SpaceInformation cast as control::SpaceInformation, for convenience */
             const SpaceInformation                        *siC_;
 
+            /** \brief A nearest-neighbors datastructure containing the tree of motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;
+
+            /** \brief The random number generator */
             RNG                                            rng_;
         };
 
