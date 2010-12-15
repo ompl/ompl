@@ -49,8 +49,8 @@ void ompl::geometric::OptRRT::setup(void)
     if (ballRadiusMax_ < std::numeric_limits<double>::epsilon())
         ballRadiusMax_ = maxDistance_;
     if (ballRadiusConst_ < std::numeric_limits<double>::epsilon())
-        throw Exception(name_, "The ball radius constant must be positive");
-
+        ballRadiusConst_ = si_->getMaximumExtent();
+    
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
     nn_->setDistanceFunction(boost::bind(&OptRRT::distanceFunction, this, _1, _2));

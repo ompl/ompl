@@ -212,7 +212,7 @@ def plot_statistics(dbname, fname):
                 atr.remove('experimentid')
                 for a in atr:
                         if a not in attributes:
-                                c.execute('SELECT typeof(%s) FROM %s' % (a, p))
+                                c.execute('SELECT typeof(%s) FROM %s WHERE %s IS NOT NULL' % (a, p, a))
                                 attributes.append(a)
                                 types[a] = c.fetchone()[0]
 		c.execute('SELECT DISTINCT experimentid FROM %s' % p)
@@ -221,7 +221,7 @@ def plot_statistics(dbname, fname):
 			if e not in experiments:
 				experiments.append(e)
         attributes.sort()
-	
+
 	pp = PdfPages(fname)
 	for atr in attributes:
 		if types[atr]=='integer' or types[atr]=='real':
