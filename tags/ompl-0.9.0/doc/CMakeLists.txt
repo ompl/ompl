@@ -33,11 +33,6 @@ if (OMPL_BUILD_DOC)
             COMMAND ./mkwebdocs.sh
             DEPENDS doc
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-
-        # install target
-        install(DIRECTORY css html images js DESTINATION "${OMPL_DOC_INSTALL_DIR}"
-            PATTERN ".svn" EXCLUDE)
-        install(FILES index.html DESTINATION "${OMPL_DOC_INSTALL_DIR}")
     endif(DOXYGEN)
 
 endif(OMPL_BUILD_DOC)
