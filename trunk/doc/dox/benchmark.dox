@@ -68,7 +68,7 @@
     Once the C++ code computing the results has been executed, a log
     file is generated. This contains information about the settings of
     the planners, the parameters of the problem tested on, etc.    
-    To visualize this information, we first need to parse it:
+    To visualize this information, we provide a script that parses the log files:
     \code
     scripts/benchmark_statistics.py logfile.log -d mydatabase.db
     \endcode
@@ -104,15 +104,15 @@
     - <strong>date:</strong> the date and time when the experiment was started
     
     Collected benchmark data for each planner execution:
-    - <strong>solved:</strong> (boolean) flag indicating whether the planner found a solution
     - <strong>time:</strong> (real) the amount of time spent planning, in seconds
     - <strong>memory:</strong> (real) the amount of memory spent planning, in MB. Note: this may be inaccurate since memory is often freed in a lazy fashion
-    - <strong>approximate solution:</strong> (boolean) flag indicating whether the found solution is approximate (does not reach the goal) 
-    - <strong>solution difference:</strong> (real) if solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
+    - <strong>solved:</strong> (boolean) flag indicating whether the planner found a solution. Note: the solution can be approximate
+    - <strong>approximate solution:</strong> (boolean) flag indicating whether the found solution is approximate (does not reach the goal, but moves towards it) 
+    - <strong>solution difference:</strong> (real) if the solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
     - <strong>solution length:</strong> (real) the length of the found solution
-    - <strong>solution segments:</strong> (integer) the number of segments on solution path
-    - <strong>correct solution:</strong> (boolean) flag indicating whether the found solution is correct. This should always be true.
-    - <strong>correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct when checked at a finer resolution.
+    - <strong>solution segments:</strong> (integer) the number of segments on the solution path
+    - <strong>correct solution:</strong> (boolean) flag indicating whether the found solution is correct (a separate check is conducted). This should always be true.
+    - <strong>correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct when checked at a finer resolution than the planner used when validating motion segments. If this is sometimes false it means that the used state validation resolution is too high (only applies when using ompl::base::DiscreteMotionValidator).
     - <strong>simplification time:</strong> (real) the time spend simplifying the solution path, in seconds
     - <strong>simplified solution length:</strong> (real) the length of the found solution after simplification
     - <strong>simplified solution segments:</strong> (integer) the number of segments on solution path after simplification

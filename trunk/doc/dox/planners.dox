@@ -33,4 +33,6 @@
    - @ref cKPIECE1 "Kinodynamic Planning by Interior-Exterior Cell Exploration (KPIECE)"
    - @ref cRRT "Rapidly-exploring Random Trees (RRT)"
 
+   <br>
+   To see how to benchmark planners, click \ref benchmark "here".
 */
