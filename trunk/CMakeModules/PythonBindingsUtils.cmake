@@ -95,6 +95,7 @@ function(create_module_target module dir)
 			set(_dest_dir "${dir}/ompl")
 		endif()
 		add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
+		set_target_properties(py_ompl_${module} PROPERTIES OUTPUT_NAME _${module})
 		target_link_libraries(py_ompl_${module} 
 			ompl
 			${_extra_libs}
@@ -109,6 +110,7 @@ function(create_module_target module dir)
 	        "${_dest_dir}/${module}/_${module}${CMAKE_SHARED_MODULE_SUFFIX}"
 	        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
 	        COMMENT "Copying python module ${module} into place")
+		install(TARGETS py_ompl_${module} DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl/${module}/")
 		include_directories("${dir}/bindings/${module}" "${dir}")
 	else(NUM_SOURCE_FILES GREATER 0)
 		if(PY_OMPL_GENERATE)
