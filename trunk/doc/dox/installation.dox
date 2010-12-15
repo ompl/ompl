@@ -32,7 +32,7 @@ sudo apt-get install libboost-all-dev cmake
 \endcode
 - To be able to build tests, generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
 \code
-sudo apt-get install libgtest-dev doxygen python-dev libode-dev
+sudo apt-get install libgtest-dev doxygen graphviz python-dev libode-dev
 \endcode
 - To be able to generate Python bindings, follow \ref installPyPlusPlus "these" instructions.
 - Follow the common steps \ref common_steps "below".
