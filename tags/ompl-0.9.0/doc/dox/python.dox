@@ -1,0 +1,128 @@
+/**
+\page python Python Bindings
+
+Almost all of the functionality of the C++ OMPL library is accessible through Python using more or less the same API. Some important differences will be described below. The Python bindings are generated with <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>, which relies on <a href="http://www.boost.org/doc/libs/release/libs/python/doc">Boost.Python</a>. The bindings are packaged in the ompl module. The main namespaces (ompl::base, ompl::control, ompl::geometric) are available as sub-modules. To quickly get an idea of what classes, functions, etc., are available within each submodule, type something like this at the Python prompt:
+\code
+>>> from ompl import base, control, geometric, util
+>>> dir(base), dir(control), dir(geometric), dir(util)
+\endcode
+
+\par Contents:
+- \ref cpp_py_diffs "Important differences between C++ and Python"
+- \ref py_api_diffs "Differences between the C++ and Python API's"
+- \ref py_example "A simple example"
+- \ref updating_python_bindings "Updating the Python bindings"
+.
+
+\section cpp_py_diffs Important differences between C++ and Python:
+- There are no templates in Python, so templated classes and functions need to be fully instantiated to allow them to be exposed to python.
+- There are no C-style pointers in python, and no "new" or "delete" operators. This could be a problem, but can be dealt with mostly by using Boost <a href="http://www.boost.org/doc/libs/release/libs/smart_ptr/shared_ptr.htm">shared_ptr</a>'s. If a C++ function takes pointer input/output parameters, \em usually a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods. In some cases odd side effects may occur if you pass temporary objects (e.g., <tt>function_call(Constructor_call())</tt>), so it's advisable to create variables with the appropriate scope.
+.
+
+
+\section py_api_diffs Differences between the C++ and Python API's
+- An STL vector of int's is of type vectorInt in Python (analogously for other types).
+- The C++ class State has been renamed AbstractState, while the C++ class ScopedState\<\> is called State in Python.
+- The C++ class ScopedState<RealVectorManifold> is called RealVectorState. The ScopedState's for the other pre-defined manifolds have been renamed analogously.
+- The C++ class RealVectorManifold::StateType has been renamed to RealVectorStateInternal (analogously for the other manifold types), to emphasize that an end user should really be using RealVectorState.
+- To get a reference to a C++ State stored inside a ScopedState from Python, use the "()" operator:
+\code
+m = SE3StateManifold() # create an SE(3) state manifold
+s = State(m)           # allocate a state corresponding to a C++ ScopedState<SE3StateManifold>
+sref = s()             # sref corresponds to a C++ State*. In this case sref is 
+		       # a reference SE3StateManifold::StateType
+sref.setX(1.0)         # set the X coordinate
+s().setX(1.0)          # this also works
+\endcode
+- The print method (for classes that have one) is mapped to the special python method __str__, so a C++ call like <tt>foo.print(std::cout)</tt> becomes <tt>print foo</tt> in python. Similarly, a C++ call like <tt>foo.printSettings(std::cout)</tt> becomes <tt>print foo.settings()</tt> in python.
+- The signature of the state validity checker is changed. In python the state validity checker has the following form:
+\code
+def isStateValid(spaceInformation, state):
+	return spaceInformation.satiesfiesBounds(state)
+\endcode
+.
+Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code. 
+
+\section py_example A simple example
+
+Below is a simple annotated example. It is available in ompl/py-bindings/demos/RigidBodyPlanning.py.
+
+\code
+from ompl import base as ob
+from ompl import geometric as og
+	
+def isStateValid(spaceInformation, state):
+	# "state" is of type SE2StateInternal, so we don't need to use the "()"
+	# operator.
+	#
+	# Some arbitrary condition on the state (note that thanks to 
+	# dynamic type checking we can just call getX() and do not need
+	# to convert state to an SE2State.)
+	return state.getX() < .6
+	
+def plan():
+	# create an SE2 manifold
+	manifold = ob.SE2StateManifold()
+
+	# set lower and upper bounds
+	bounds = ob.RealVectorBounds(2)
+	bounds.setLow(-1)
+	bounds.setHigh(1)
+	manifold.setBounds(bounds)
+
+	# create a simple setup object
+	ss = og.SimpleSetup(manifold)
+	ss.setStateValidityChecker(isStateValid)
+
+	start = ob.State(manifold)
+	# we can pick a random start state...
+	start.random()
+	# ... or set specific values
+	start().setX(.5)
+
+	goal = ob.State(manifold)
+	# we can pick a random goal state...
+	goal.random()
+	# ... or set specific values
+	goal().setY(-.5)
+
+	ss.setStartAndGoalStates(start, goal)
+
+	# this will automatically choose a default planner with 
+	# default parameters
+	solved = ss.solve(1.0)
+
+	if solved:
+		# try to shorten the path
+		ss.simplifySolution()
+		# print the simplified path
+		print ss.getSolutionPath()
+
+
+if __name__ == "__main__":
+	plan()
+\endcode
+
+\section updating_python_bindings (Re)generating the Python bindings
+
+The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, you will need to update the Python bindings. Updating the bindings is a two-step process. First, the code for the modules needs to be generated. Second, the code needs to be compiled into binary Python modules. 
+
+\subsection binding_code_generation Code generation
+
+<b>The code for the Python bindings can be generated by typing “<tt>make update_bindings</tt>.”</b> This creates one header file per module, formed by concatenating all relevant header files for that module. This header file is then parsed by Py++ and the appropriate C++ code is generated. This code uses Boost.Python. Py++ is smart enough to create wrapper classes when necessary, register Python \<-\> C++ type conversions, and so on. If you only need to update the bindings for one module (say \c base), you can type “<tt>make update_base_bindings</tt>.” Any diagnostic information from Py++ is stored in a log file in the build directory for each module (\c pyplusplus_base.log for the module \c base and likewise for other modules).
+
+For each module the relevant header files are listed in <tt>ompl/py-bindings/headers_\<<i>modulename</i>\>.txt.</tt> The order in which the header files are listed is important. A header file should not be included by another header file listed above it. 
+
+\subsection compile_bindings Compiling the Python modules
+
+To compile the Python modules type “<tt>make py_ompl</tt>.” If you only want to compile one python module (say \c base), type “<tt>make py_ompl_base</tt>.” The modules will appear as libraries in the lib subdirectory in the build directory, but they are also copied to <tt>ompl/py-bindings/ompl/\<<i>modulename</i>\>/_\<<i>modulename</i>\>.so</tt>.
+
+\subsection bindings_cmake Forcing CMake to do The Right Thing
+
+Every attempt has been to have CMake correctly identify dependencies and only compile code when necessary. If you want force CMake to regenerate the bindings from scratch, you can remove the directory <tt>ompl/py-bindings/bindings</tt> and type “<tt>make update_bindings</tt>” again. If, on the other hand, you want to (temporarily) disable the compilation of Python bindings, type:
+\code
+cmake -D OMPL_BUILD_PYBINDINGS:BOOL=OFF .
+\endcode
+in your build directory. You can re-enable them, by running this command again, but with OFF changed to ON. Changing these settings can also be done through the CMake GUI.
+
+*/

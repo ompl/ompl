@@ -1,0 +1,73 @@
+.container { width: 950px; float: left; }
+table { width:auto; margin: 4px;}
+table, td, th {vertical-align:top;padding: 2px;}
+th { text-align: center; }
+pre, code, tt {font:1em monospace; line-height:1.5;}
+body { font-size: 13px; }
+a.anchor, a.el { text-decoration: none; color: #119; }
+h1 { font-size: 2em; color: #119; }
+h2 { font-size: 1.75em; margin-top: 1.5em; color: #119; }
+h1+h2 { margin-top: -.5em; }
+p+div.fragment { margin-top: -1em; }
+p+ul, p+ol { margin-top: -.75em; }
+h3 { font-style: italic; font-weight: bold; margin-top: 1em; }
+#ompltitle {
+	color: #fff;
+	background: #119 url(images/gradient.png) repeat-x;
+	font: helvetica;
+	font-size:1.5em;
+	text-shadow: #000 0px 0px 15px;
+	padding: 10px 0px 10px 0px;
+	margin:0px 1px 1px 0px;
+}
+#ompltitle .tablist li { background-image: none; padding-left: 10px; }
+.footer {
+	font-size: small;
+	font-weight: bold;
+	color: #333;
+	border-top: 1px solid #119;
+	margin-top: 1em;
+	padding-top: 2px;
+}
+ul, ol {margin:0em 0em .5em 0em; padding-left:2em;}
+.leftalign { text-align: left;}
+.rightalign { text-align: right;}
+.centeralign {text-align: center;}
+.attention { 
+	background-color: #f8f8ff; 
+	border: 1px solid #ddf;
+	padding:2px 1em 2px 1em;
+	-webkit-box-shadow:5px 5px 5px rgba(0, 0, 0, 0.25); 
+	-moz-box-shadow: rgba(0, 0, 0, 0.25) 5px 5px 5px;
+}
+.dlbutton a, .dlbutton a:link, .dlbutton a:visited {
+	color:#fff;
+	font-weight:bold;
+	font-size:16px;
+	background-color:#12a;
+	border:solid thin #12d;
+	border-radius:0.5em;
+	-webkit-border-radius:.5em;
+	-moz-border-radius:.5em; 
+	padding: 3px; 
+	line-height: 3; 
+	margin-right: 4px; 
+	-webkit-box-shadow:3px 3px 3px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:rgba(0, 0, 0, 0.25) 3px 3px 3px;
+}
+.dlbutton a:hover { background-color: #00f; text-decoration: none; }
+ul.dropdown li.first { border-left: solid 1px #d9d9d9; margin-left:80px; }
+dl.user+ul { margin-top: -1.5em;}
+.nofloat { float: none; }
+#MSearchResultsWindow, #MSearchSelectWindow { z-index: 600;}
+#MSearchField { margin-bottom: 0; margin-top: 0;}
+div.contents { margin-left:0px; margin-right:0px; }
+a.download, a.download:hover, a.download:visited {
+    background-color: #469;
+    color: #fff;
+    font: 12px bold;
+    text-decoration: none;
+    padding: 2px 6px;
+    margin: 10px;
+    line-height: 200%;
+}

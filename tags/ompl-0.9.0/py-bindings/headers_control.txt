@@ -1,0 +1,9 @@
+../src/ompl/control/Control.h
+../src/ompl/control/ControlSampler.h
+../src/ompl/control/ControlManifold.h
+../src/ompl/control/SpaceInformation.h
+../src/ompl/control/PathControl.h
+../src/ompl/control/SimpleSetup.h
+../src/ompl/control/manifolds/RealVectorControlManifold.h
+../src/ompl/control/planners/kpiece/KPIECE1.h
+../src/ompl/control/planners/rrt/RRT.h
