@@ -1,0 +1,93 @@
+ul.dropdown, ul.dropdown li, ul.dropdown ul {
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+ul.dropdown {
+	position:relative;
+	z-index:597;
+	float:left;
+	font-weight:bold;
+	width: 100%; 
+	background-color:#f6f6f6; 
+	margin-bottom: 20px;
+}
+ul.dropdown a, ul.dropdown span {display:block;padding:7px 10px;}
+ul.dropdown a:hover {color:#000;}
+ul.dropdown a:active {color:#ffa500;}
+ul.dropdown li {
+	float:left;
+	line-height:1.3em;
+	vertical-align:middle;
+	zoom:1;
+	padding:7px 10px;
+	border-style:solid;
+	border-width:1px 1px 1px 0;
+	border-color:#fff #d9d9d9 #d9d9d9;
+	background-color:#f6f6f6;
+	color:#000;
+	padding:0;
+	border:none;
+	font-size: 12px;
+	min-width: 100px;
+}
+ul.dropdown li.hover, ul.dropdown li:hover {
+	position:relative;
+	z-index:599;
+	cursor:default;
+	background-color:#eee;
+	color:#000;
+	background:url(images/grad2.png) 0 100% repeat-x;
+	color:#000;
+}
+ul.dropdown a:link, ul.dropdown a:visited {color:#000;text-decoration:none;}
+ul.dropdown ul {
+	visibility:hidden;
+	position:absolute;
+	top:100%;
+	left:0;
+	z-index:598;
+	width:100%;
+	width:150px;
+	margin-top:0;
+}
+ul.dropdown ul li {float:none;font-weight:normal;}
+ul.dropdown ul ul {top:1px;left:99%;}
+ul.dropdown li:hover > ul {visibility:visible;}
+
+ul.dropdown *.dir { 
+	padding-right:20px;
+	background-image:url(images/nav-arrow-down.png);
+	background-position:100% 50%;
+	background-repeat:no-repeat;
+}
+ul.dropdown ul *.dir {
+	padding-right:15px;
+	background-image:url(images/nav-arrow-right.png);
+	background-position:100% 50%;
+	background-repeat:no-repeat;
+}
+
+ul.dropdown ul a, ul.dropdown ul span {padding:8px;}
+ul.dropdown li a:active {
+	background:url(images/grad1.png) repeat-x;
+}
+ul.dropdown li a, ul.dropdown *.dir {
+	border-style:solid;border-width:1px 1px 1px 0;
+	border-color:#fff #d9d9d9 #d9d9d9;
+}
+ul.dropdown li.hover *.open {
+	border-style:solid;border-width:1px 1px 1px 0;
+	border-color:#ffa500 #d9d9d9 #d9d9d9;
+	background-color:#fff;color:#000;
+}
+ul.dropdown ul li.hover *.open {
+	padding-left:15px;
+	border-top-color:#fff;
+	border-left:solid 1px #ffa500;
+}
+ul.dropdown li:hover > *.dir {
+	border-style:solid;border-width:1px 1px 1px 0;
+	border-color:#ffa500 #d9d9d9 #d9d9d9;
+	background-color:#fff;color:#000;
+}

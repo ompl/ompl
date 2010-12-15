@@ -1,0 +1,34 @@
+/**
+\mainpage Open Motion Planning Library
+
+\htmlonly
+<div class="span-10"><img src="../images/mp.jpg" width="100%"></div>
+<div class="span-9"><a href="http://ompl.kavrakilab.org/gui.html"><img src="../images/gui_path-small.png"  width="100%"></a></div>
+<div class="span-3 last"><a href="http://www.ros.org/wiki/ompl"><img src="../images/pr2-small.png" width="100%"></a></div>
+<hr class="space">
+\endhtmlonly
+
+The Open Motion Planning Library (@b OMPL) consists of a set of
+sampling-based motion planning algorithms. The content of the
+library is limited to these algorithms, which means there is no
+environment specification, no collision detection or
+visualization. The library is designed so it can be easily
+integrated into systems that provide the additional needed
+components. For examples of complete systems using OMPL, see <a
+href="http://ompl.kavrakilab.org">OMPL.app</a> and <a
+href="http://www.ros.org/wiki/ompl">ROS</a>. We have also developed
+a \ref education "educational module on motion planning" that is 
+centered around OMPL.app. We are looking for educational partners
+to use and further develop the material. Please contact us for 
+more information.
+
+\htmlonly<div></div>\endhtmlonly
+OMPL is intended to be efficient, thread safe, easy to use, easily extensible
+and freely available (visit this project on <a
+href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
+For more details, see \ref documentation "the documentation".
+
+\htmlonly<div></div>\endhtmlonly
+For examples uses of OMPL, see \ref gallery "our gallery page".
+
+*/
