@@ -41,7 +41,7 @@ and ompl::base::SpaceInformation::freeState() are defined
 as well. Using the calls from the ompl::base::SpaceInformation class
 is better since they certainly use the same manifold as
 the one used for planning.  This is the lowest level of
-operating on states and only recomended for expert users.
+operating on states and only recommended for expert users.
 
 See \ref stateOps for how to fill the contents of the
 allocated states.

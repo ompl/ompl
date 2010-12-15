@@ -135,14 +135,14 @@ namespace ompl
 
             /** \brief When performing discrete validation of motions,
                 the length of the longest segment that does not
-                require state validation needs to be speficied. This
+                require state validation needs to be specified. This
                 function returns this length, for this manifold, as a
                 fraction of the manifold's maximum extent. */
             virtual double getLongestValidSegmentFraction(void) const;
 
             /** \brief When performing discrete validation of motions,
                 the length of the longest segment that does not
-                require state validation needs to be speficied. This
+                require state validation needs to be specified. This
                 function sets this length as a fraction of the
                 manifold's maximum extent.
 
@@ -268,7 +268,7 @@ namespace ompl
             /** \brief Construct an empty compound manifold */
             CompoundStateManifold(void);
 
-            /** \brief Construct a compound manifold from a list of sub-manifolds (\e components) and their correspoing weights (\e weights) */
+            /** \brief Construct a compound manifold from a list of sub-manifolds (\e components) and their corresponding weights (\e weights) */
             CompoundStateManifold(const std::vector<StateManifoldPtr> &components, const std::vector<double> &weights);
 
             virtual ~CompoundStateManifold(void)
@@ -356,7 +356,7 @@ namespace ompl
 
             /** \brief When performing discrete validation of motions,
                 the length of the longest segment that does not
-                require state validation needs to be speficied. This
+                require state validation needs to be specified. This
                 function sets this length as a fraction of the manifold's
                 maximum extent. The call is passed to all contained manifolds */
             virtual void setLongestValidSegmentFraction(double segmentFraction);
@@ -403,7 +403,7 @@ namespace ompl
             /** \brief The weight assigned to each component of the manifold when computing the compound distance */
             std::vector<double>           weights_;
 
-            /** \brief Flag indicating whether adding further componets is allowed or not */
+            /** \brief Flag indicating whether adding further components is allowed or not */
             bool                          locked_;
 
         };

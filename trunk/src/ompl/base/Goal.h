@@ -95,11 +95,11 @@ namespace ompl
                 return si_;
             }
 
-            /** \brief Return true if the state statisfies the goal
+            /** \brief Return true if the state satisfies the goal
              *  constraints. */
             virtual bool isSatisfied(const State *st) const = 0;
 
-            /** \brief Return true if the state statisfies the goal
+            /** \brief Return true if the state satisfies the goal
              *  constraints and compute the distance between the state
              *  given as argument and the goal (even if the goal is
              *  not satisfied). This distance can be an
@@ -112,9 +112,9 @@ namespace ompl
              *  isStartGoalPairValid() need not be called. */
             virtual bool isSatisfied(const State *st, double *distance) const;
 
-            /** \brief Return true if the state statisfies the goal
+            /** \brief Return true if the state satisfies the goal
              *  constraints and the path length is less than the
-             *  desired maximum length.  This call aslo computes the
+             *  desired maximum length.  This call also computes the
              *  distance between the state given as argument and the
              *  goal.
              *  \param st the state to check for validity

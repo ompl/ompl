@@ -24,7 +24,7 @@
 
 \section aug_09_2010 August 9, 2010
 
-	- Including the following sampling-based motion planning alorithms (inherit from ompl::base::Planner):
+	- Including the following sampling-based motion planning algorithms (inherit from ompl::base::Planner):
 		- planning under geometric constraints: KPIECE, LBKPIECE, SBL,
 		pSBL, EST, RRT, pRRT, RRTConnect, LazyRRT, PRM
 		- planning under differential constraints: KPIECE, RRT

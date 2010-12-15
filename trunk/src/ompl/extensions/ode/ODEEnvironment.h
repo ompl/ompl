@@ -61,7 +61,7 @@ namespace ompl
         /** \class ompl::control::ODEEnvironmentPtr
             \brief A boost shared pointer wrapper for ompl::control::ODEEnvironment */
 
-        /** \brief This class contains the ODE constructs OMPL needs to know about when plannning. */
+        /** \brief This class contains the ODE constructs OMPL needs to know about when planning. */
         class ODEEnvironment
         {
         public:

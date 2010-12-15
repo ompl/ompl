@@ -111,7 +111,7 @@ namespace ompl
                 return planner_;
             }
 
-            /** \brief Return true if a solution path is available (previous call to solve() was succesful) */
+            /** \brief Return true if a solution path is available (previous call to solve() was successful) */
             bool haveSolutionPath(void) const
             {
                 return getGoal()->getSolutionPath();

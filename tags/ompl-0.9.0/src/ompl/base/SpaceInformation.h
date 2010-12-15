@@ -154,7 +154,7 @@ namespace ompl
 
             /** \brief If no state validity checking class is
                 specified (StateValidityChecker), a boost function can
-                be specified instead. This version however incurrs a
+                be specified instead. This version however incurs a
                 small additional overhead when calling the function,
                 since there is one more level of indirection */
             void setStateValidityChecker(const StateValidityCheckerFn &svc);
@@ -344,10 +344,10 @@ namespace ompl
             /** \brief The manifold planning is to be performed in */
             StateManifoldPtr           stateManifold_;
 
-            /** \brief The instance of the state validity checker used for determinig the validity of states in the planning process */
+            /** \brief The instance of the state validity checker used for determining the validity of states in the planning process */
             StateValidityCheckerPtr    stateValidityChecker_;
 
-            /** \brief The instance of the motion validator to use when determinig the validity of motions in the planning process */
+            /** \brief The instance of the motion validator to use when determining the validity of motions in the planning process */
             MotionValidatorPtr         motionValidator_;
 
             /** \brief Flag indicating whether setup() has been called on this instance */

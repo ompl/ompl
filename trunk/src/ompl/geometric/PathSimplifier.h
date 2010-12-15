@@ -76,7 +76,7 @@ namespace ompl
                 it while keeping the path valid. This is an iterative
                 process that attempts to do "short-cutting" on the
                 path.  Connection is attempted between non-consecutive
-                states along the path. If the connection is succesful,
+                states along the path. If the connection is successful,
                 the path is shortened by removing the in-between
                 states.
 
@@ -106,7 +106,7 @@ namespace ompl
                 process that attempts to do "short-cutting" on the
                 path.  Connection is attempted between non-consecutive
                 states that are close along the path. If the
-                connection is succesful, the path is shortened by
+                connection is successful, the path is shortened by
                 removing the in-between states.
 
                 \param path the path to reduce vertices from

@@ -94,7 +94,7 @@ namespace ompl
             /** \brief Datatype for projection matrices */
             typedef std::vector< std::valarray<double> > Matrix;
 
-            /** \brief Special value for specifying that the columns in the projection matrix are as originaly sampled (unscaled) */
+            /** \brief Special value for specifying that the columns in the projection matrix are as originally sampled (unscaled) */
             static const std::vector<double> UNSCALED;
 
             /** \brief Compute a random projection matrix with \e from
@@ -262,7 +262,7 @@ namespace ompl
             /** \brief Projections for each of the contained components */
             std::vector<ProjectionEvaluatorPtr> components_;
 
-            /** \brief Projection matrix used in case the concatenanted projection vectors make up a vector of large dimension */
+            /** \brief Projection matrix used in case the concatenated projection vectors make up a vector of large dimension */
             ProjectionMatrix                    projection_;
 
             /** \brief The dimension of the projection (number of elements in the projected vector) */

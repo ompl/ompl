@@ -97,8 +97,8 @@ namespace ompl
                 control. The default implementation calls the first
                 definition of sample(). For some systems it is
                 possible that large changes in controls are not
-                desireable. For example, switching from maximum
-                acceleration to maximum deceleration is not desireable
+                desirable. For example, switching from maximum
+                acceleration to maximum deceleration is not desirable
                 when driving a car. */
             virtual void sampleNext(Control *control, const Control * /* previous */)
             {

@@ -176,7 +176,7 @@ namespace ompl
                 optionally be returned as well. */
             bool isTrivial(unsigned int *startIndex = NULL, double *distance = NULL) const;
 
-            /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automaticaly
+            /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automatically
               * find a nearby state that is valid so motion planning can be performed. This function enables this behaviour.
               * The allowed distance for both start and goal states is specified. The number of attempts
               * is also specified. Returns true if all states are valid after completion. */

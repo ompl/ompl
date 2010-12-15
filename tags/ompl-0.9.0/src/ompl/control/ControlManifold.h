@@ -262,7 +262,7 @@ namespace ompl
             /** \brief The number of contained components */
             unsigned int                    componentCount_;
 
-            /** \brief Flag indicating whether adding further componets is allowed or not */
+            /** \brief Flag indicating whether adding further components is allowed or not */
             bool                            locked_;
         };
     }

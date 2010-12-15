@@ -54,7 +54,7 @@ namespace ompl
            @par Short description
            KPIECE is a tree-based planner that uses a discretization
            (multiple levels, in general) to guide the exploration of
-           the continous space. This implementation is a simplified
+           the continuous space. This implementation is a simplified
            one, using a single level of discretization: one grid. The
            grid is imposed on a projection of the state space. When
            exploring the space, preference is given to the boundary of

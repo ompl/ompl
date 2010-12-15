@@ -32,7 +32,7 @@ available. Here are types of information planners can use:
 
 - If an approximation of distance to the goal is available, not
   necessarily a metric, this information can be given to the
-  planner by also prividing an implementation of
+  planner by also providing an implementation of
   ompl::base::Goal::isSatisfied() (the version that takes a
   ompl::base::State* and a double* as arguments). By default, the
   implementation of this function simply sets the distance to the

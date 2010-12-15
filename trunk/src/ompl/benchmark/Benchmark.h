@@ -163,7 +163,7 @@ namespace ompl
         /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
         std::string getResultsFilename(void) const;
 
-        /** \brief The data colledted from a run of a planner is
+        /** \brief The data collected from a run of a planner is
             stored as key-value pairs. */
         typedef std::map<std::string, std::string> RunProperties;
 
