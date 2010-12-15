@@ -206,13 +206,13 @@ def plot_statistics(dbname, fname):
 	experiments = []
 	# merge possible attributes from all planners
         for p in planner_names:
-                c.execute('SELECT * FROM %s' % p)
+                c.execute('SELECT * FROM %s LIMIT 1' % p)
                 atr = [ t[0] for t in c.description]
                 atr.remove('plannerid')
                 atr.remove('experimentid')
                 for a in atr:
                         if a not in attributes:
-                                c.execute('SELECT typeof(%s) FROM %s WHERE %s IS NOT NULL' % (a, p, a))
+                                c.execute('SELECT typeof(%s) FROM %s WHERE %s IS NOT NULL LIMIT 1' % (a, p, a))
                                 attributes.append(a)
                                 types[a] = c.fetchone()[0]
 		c.execute('SELECT DISTINCT experimentid FROM %s' % p)
