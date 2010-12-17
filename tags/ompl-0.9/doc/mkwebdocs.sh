@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BRANCH=release-0.9.0
+BRANCH=release-0.9
 
 # web server
 export SERVER=arachne.cs.rice.edu
