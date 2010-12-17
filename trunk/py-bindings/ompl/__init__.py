@@ -1,10 +1,15 @@
 def dll_loader(lib, fallback_dir):
 	import ctypes
 	from ctypes.util import find_library
+        loaded = False
 	libname = find_library(lib)
 	if libname:
-		ctypes.CDLL(libname, ctypes.RTLD_GLOBAL)
-	else:
+                try:
+                        ctypes.CDLL(libname, ctypes.RTLD_GLOBAL)
+                        loaded = True
+                except:
+                        pass
+	if not loaded:
 		from platform import system
 		from os.path import isfile
 		
