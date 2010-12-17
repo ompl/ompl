@@ -24,6 +24,8 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
 	set(PY_OMPL_COMPILE ON CACHE BOOL
 		"Whether the OMPL Python modules can be built")
 	mark_as_advanced(PY_OMPL_COMPILE)
+	set(OMPL_PYTHON_INSTALL_DIR "${PYTHON_SITE_MODULES}" CACHE STRING
+	    "Path to directory where OMPL python modules will be installed")
 endif()
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
 	AND PY_PYGCCXML AND GCCXML)
@@ -38,8 +40,6 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
 	set(PY_OMPL_GENERATE ON CACHE BOOL 
 		"Whether the C++ code for the OMPL Python module can be generated")
 	mark_as_advanced(PY_OMPL_GENERATE)
-	set(OMPL_PYTHON_INSTALL_DIR "${PYTHON_SITE_MODULES}" CACHE STRING
-	    "Path to directory where OMPL python modules will be installed")
 endif()
 
 function(create_module_header_file_target module dir)
