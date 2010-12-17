@@ -84,7 +84,7 @@ If you want a debug version of ompl, change "Release" to "Debug" above.
 - Compile OMPL by typing \c make.
 - Optionally, run the test programs by typing <tt>make test</tt>.
 - Optionally, generate documentation by typing <tt>make doc</tt>.
-- If you need to install the library, you can type <tt>make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>.
+- If you need to install the library, you can type <tt>make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed.
 .
 
 \section install_windows Installation on Windows

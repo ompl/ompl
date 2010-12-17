@@ -33,7 +33,7 @@ if (OMPL_BUILD_PYBINDINGS)
         option(OMPL_BUILD_PYTESTS "Build OMPL Python tests" ON)
 
         install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"
-            PATTERN .svn EXCLUDE PATTERN "*.pyc" EXCLUDE PATTERN "*.so" EXCLUDE)
+            PATTERN .svn EXCLUDE PATTERN "*.pyc" EXCLUDE PATTERN "_*.so" EXCLUDE)
     endif()
 
 endif(OMPL_BUILD_PYBINDINGS)

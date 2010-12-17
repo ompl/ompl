@@ -12,8 +12,8 @@ The following dependencies are optional:
  * Doxygen (needed to create a local copy of the documentation at
    http://ompl.kavrakilab.org/core)
 
-Once dependencies are installed, you can build OMPL on Linux and OS X like so:
-   cd ompl
+Once dependencies are installed, you can build OMPL on Linux and OS X. 
+Go to the top-level directory of OMPL and type the following commands:
    mkdir -p build/Release
    cd build/Release
    cmake -DCMAKE_BUILD_TYPE=Release ../..
