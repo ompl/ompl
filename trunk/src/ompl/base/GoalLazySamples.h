@@ -75,8 +75,14 @@ namespace ompl
                 calls should be made. The function takes two
                 arguments: the instance of GoalLazySamples making the
                 call and the state to fill with a goal state. For
-                every sampled state, addStateIfDifferent() is called. */
-            GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart = true);
+                every state filled in by \e samplerFunc,
+                addStateIfDifferent() is called.  A state computed by
+                the sampling thread is added if it is "sufficiently
+                different" from previously added states. A state is
+                considered "sufficiently different" if it is at least
+                \e minDist away from previously added states.  */
+            GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc,
+                            bool autoStart = true, double minDist = std::numeric_limits<double>::epsilon());
 
             virtual ~GoalLazySamples(void);
 
@@ -97,8 +103,22 @@ namespace ompl
                 possible a sample can be produced. */
             virtual bool canSample(void) const;
 
+            /** \brief Set the minimum distance that a new state returned by the sampling thread needs to be away from
+                previously added states, so that it is added to the list of goal states. */
+            void setMinNewSampleDistance(double dist)
+            {
+                minDist_ = dist;
+            }
+            
+            /** \brief Get the minimum distance that a new state returned by the sampling thread needs to be away from
+                previously added states, so that it is added to the list of goal states. */
+            double getMinNewSampleDistance(void) const
+            {
+                return minDist_;
+            }
+            
             /** \brief Add a state \e st if it further away that \e minDistance from previously added states. */
-            void addStateIfDifferent(const State* st, double minDistance = std::numeric_limits<double>::epsilon());
+            void addStateIfDifferent(const State* st, double minDistance);
 
             virtual void clear(void);
 
@@ -119,6 +139,9 @@ namespace ompl
             /** \brief Additional thread for sampling goal states */
             boost::thread                 *samplingThread_;
 
+            /** \brief Samples returned by the sampling thread are added to the list of states only if
+                they are at least minDist_ away from already added samples. */
+            double                         minDist_;
         };
 
     }

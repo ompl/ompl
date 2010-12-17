@@ -38,8 +38,8 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/util/Time.h"
 
-ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart) :
-    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL)
+ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart, double minDist) :
+    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL), minDist_(minDist)
 {
     if (autoStart)
         startSampling();
@@ -80,7 +80,7 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
     {
         ScopedState<> s(si_);
         while (!terminateSamplingThread_ && samplerFunc_(this, s.get()))
-            addStateIfDifferent(s.get());
+            addStateIfDifferent(s.get(), minDist_);
     }
     terminateSamplingThread_ = true;
 }
