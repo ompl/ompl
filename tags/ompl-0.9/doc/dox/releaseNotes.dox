@@ -1,7 +1,8 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_9_0 OMPL 0.9.1
+\section release_0_9_1 OMPL 0.9.1
+
 - Minor updates to build system
 
 \section release_0_9_0 OMPL 0.9.0 (initial release)
