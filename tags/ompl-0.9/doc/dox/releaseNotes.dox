@@ -1,6 +1,9 @@
 /**
 \page releaseNotes Release Notes
 
+\section release_0_9_0 OMPL 0.9.1
+- Minor updates to build system
+
 \section release_0_9_0 OMPL 0.9.0 (initial release)
 
 - Implementations of many state-of-the-art sampling-based motion planning algorithms. For purely geometric planning, there are implementations of KPIECE, SBL, RRT, RRT Connect, EST, PRM, Lazy RRT, and others. For planning with differential constraints there are implementations of KPIECE and RRT. Addition of new planners poses very few constraints on the added code.
