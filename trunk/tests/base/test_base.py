@@ -44,59 +44,59 @@ from math import pi
 from ompl.base import *
 
 def isValid(spaceInformation, state):
-	return True
+    return True
 
 class TestSO2(unittest.TestCase):
-	def testSimple(self):
-		m = SO2StateManifold()
-		s1 = SO2State(m)
-		s2 = SO2State(m)
-		s3 = SO2State(m)
-		s1().value = pi - 0.1
-		s2().value = -pi + 0.1
-		self.assertAlmostEqual(m.distance(s2(), s1()), 0.2, 3)
-		self.assertAlmostEqual(m.distance(s1(), s2()), 0.2, 3)
-		self.assertAlmostEqual(m.distance(s1(), s1()), 0.0, 3)
-		
-		s1().value = pi - 0.08
-		m.interpolate(s1(), s2(), 0.5, s3())
-		self.assertAlmostEqual(s3().value, -pi+0.01, 3)
-		
-		s1().value = pi - 0.1
-		s2().value = 0.1
-		self.assertAlmostEqual(m.distance(s2(), s1()), pi - 0.2, 3)
-		
-		m.interpolate(s1(), s2(), 0.5, s3())
-		self.assertAlmostEqual(s3().value, pi / 2.0, 3)
-		
+    def testSimple(self):
+        m = SO2StateManifold()
+        s1 = SO2State(m)
+        s2 = SO2State(m)
+        s3 = SO2State(m)
+        s1().value = pi - 0.1
+        s2().value = -pi + 0.1
+        self.assertAlmostEqual(m.distance(s2(), s1()), 0.2, 3)
+        self.assertAlmostEqual(m.distance(s1(), s2()), 0.2, 3)
+        self.assertAlmostEqual(m.distance(s1(), s1()), 0.0, 3)
+        
+        s1().value = pi - 0.08
+        m.interpolate(s1(), s2(), 0.5, s3())
+        self.assertAlmostEqual(s3().value, -pi+0.01, 3)
+        
+        s1().value = pi - 0.1
+        s2().value = 0.1
+        self.assertAlmostEqual(m.distance(s2(), s1()), pi - 0.2, 3)
+        
+        m.interpolate(s1(), s2(), 0.5, s3())
+        self.assertAlmostEqual(s3().value, pi / 2.0, 3)
+        
 class TestSO3(unittest.TestCase):
-	def testSimple(self):
-		m = SO3StateManifold()
-		s1 = SO3State(m)
-		s1.random()
-		s2 = s1;
-		self.assertAlmostEqual(m.distance(s1(),s2()), 0.0, 3)
-		s2.random()
-		
-		si = SpaceInformation(m)
-		si.setStateValidityChecker(isValid)
-		si.setup()
-		
-		states = vectorState()
-		count = si.getMotionStates(s1(), s2(), states, 10, True, True)
-		self.assertEqual(count, len(states))
-		
-		for i in range(len(states)):
-			nrm = m.norm(states[i])
-			self.assertAlmostEqual(nrm, 1.0, 15)
-			si.freeState(states[i])
+    def testSimple(self):
+        m = SO3StateManifold()
+        s1 = SO3State(m)
+        s1.random()
+        s2 = s1;
+        self.assertAlmostEqual(m.distance(s1(),s2()), 0.0, 3)
+        s2.random()
+        
+        si = SpaceInformation(m)
+        si.setStateValidityChecker(isValid)
+        si.setup()
+        
+        states = vectorState()
+        count = si.getMotionStates(s1(), s2(), states, 10, True, True)
+        self.assertEqual(count, len(states))
+        
+        for i in range(len(states)):
+            nrm = m.norm(states[i])
+            self.assertAlmostEqual(nrm, 1.0, 15)
+            si.freeState(states[i])
 
-				
+                
 def suite():
-	suites = (
-		unittest.makeSuite(TestSO2), 
-		unittest.makeSuite(TestSO3))
-	return unittest.TestSuite(suites)
+    suites = (
+        unittest.makeSuite(TestSO2), 
+        unittest.makeSuite(TestSO3))
+    return unittest.TestSuite(suites)
 
 if __name__ == '__main__':
-	unittest.main()
+    unittest.main()
