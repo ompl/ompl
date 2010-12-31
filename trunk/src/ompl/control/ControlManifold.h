@@ -163,6 +163,13 @@ namespace ompl
             /** \brief Set the function that performs state propagation */
             void setPropagationFunction(const StatePropagationFn &fn);
 
+            /** \brief If a control of the manifold can be converted
+                to an array of real values, the values of \e control are
+                appended to the array \e reals. If a conversion is not
+                possible (this is the default), an exception is
+                thrown. If an exception is thrown, the content of \e reals is not modified. */
+            virtual void copyToReals(const Control *control, std::vector<double> &reals) const;
+
             /** \brief Print a control to a stream */
             virtual void printControl(const Control *control, std::ostream &out) const;
 
@@ -241,6 +248,8 @@ namespace ompl
 
             virtual bool canPropagateBackward(void) const;
 
+            virtual void copyToReals(const Control *control, std::vector<double> &reals) const;
+            
             virtual void printControl(const Control *control, std::ostream &out = std::cout) const;
 
             virtual void printSettings(std::ostream &out) const;

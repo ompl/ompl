@@ -249,6 +249,11 @@ namespace ompl
                 uninitialised) */
             ScopedState<> operator[](const StateManifoldPtr &m) const;
 
+            /** \brief Attempt to convert this state to an array of
+                reals and return the component corresponding to \e index. 
+                If conversion is not possible, an exception is thrown. */
+            double operator[](const unsigned int index) const;
+
             /** \brief Set this state to a random value (uniform) */
             void random(void)
             {
@@ -442,6 +447,14 @@ namespace ompl
             return r << *this;
         }
 
+        template<class T>
+        double ScopedState<T>::operator[](const unsigned int index) const
+        {
+            std::vector<double> r;
+            manifold_->copyToReals(state_, r);
+            return r[index];
+        }
+        
         /** \brief Shared pointer to a ScopedState<> */
         typedef boost::shared_ptr< ScopedState<> > ScopedStatePtr;
     }

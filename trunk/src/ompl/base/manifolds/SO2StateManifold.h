@@ -111,6 +111,8 @@ namespace ompl
         virtual State* allocState(void) const;
 
         virtual void freeState(State *state) const;
+        
+        virtual void copyToReals(const State *state, std::vector<double> &reals) const;
 
         virtual void printState(const State *state, std::ostream &out) const;
 

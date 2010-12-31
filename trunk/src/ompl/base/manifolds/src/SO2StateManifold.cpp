@@ -180,6 +180,11 @@ void ompl::base::SO2StateManifold::registerProjections(void)
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO2DefaultProjection(this))));
 }
 
+void ompl::base::SO2StateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+{
+    reals.push_back(state->as<StateType>()->value);
+}
+
 void ompl::base::SO2StateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "SO2State [";

@@ -260,6 +260,14 @@ void ompl::base::RealVectorStateManifold::freeState(State *state) const
     delete rstate;
 }
 
+void ompl::base::RealVectorStateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+{
+    reals.reserve(reals.size() + dimension_);
+    const StateType *rstate = static_cast<const StateType*>(state);
+    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+        reals.push_back(rstate->values[i]);
+}
+
 void ompl::base::RealVectorStateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "RealVectorState [";

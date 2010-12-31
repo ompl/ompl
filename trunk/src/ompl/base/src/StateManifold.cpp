@@ -79,6 +79,11 @@ void ompl::base::StateManifold::setup(void)
         it->second->setup();
 }
 
+void ompl::base::StateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+{
+    throw Exception("Cannot convert state from state manifold " + name_ + " to real values");
+}
+
 void ompl::base::StateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "State instance [" << state << ']' << std::endl;
@@ -431,6 +436,15 @@ void ompl::base::CompoundStateManifold::freeState(State *state) const
 void ompl::base::CompoundStateManifold::lock(void)
 {
     locked_ = true;
+}
+
+void ompl::base::CompoundStateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+{
+    std::vector<double> temp;
+    const CompoundState *cstate = static_cast<const CompoundState*>(state);
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+        components_[i]->copyToReals(cstate->components[i], temp);
+    reals.insert(reals.end(), temp.begin(), temp.end());
 }
 
 void ompl::base::CompoundStateManifold::printState(const State *state, std::ostream &out) const

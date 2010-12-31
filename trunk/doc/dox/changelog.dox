@@ -1,7 +1,9 @@
 /**
 
 \page changelog Changelog
-
+\section dec_31_2010 December 31, 2010
+	- Added copyToReals for states & controls
+	
 \section nov_15_2010 November 15, 2010
 	- Improved ODE bindings
 	- Added support for sampling controls based on the previous control and/or the state at which the control will be executed.

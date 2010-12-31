@@ -107,31 +107,24 @@ namespace ompl
                 return bounds_;
             }
 
-            /** \brief Get the dimension of the space */
             virtual unsigned int getDimension(void) const;
 
-            /** \brief Copy a control to another */
             virtual void copyControl(Control *destination, const Control *source) const;
 
-            /** \brief Checks whether two controls are equal */
             virtual bool equalControls(const Control *control1, const Control *control2) const;
 
-            /** \brief Allocate an instance of a uniform control sampler for this space */
             virtual ControlSamplerPtr allocControlSampler(void) const;
 
-            /** \brief Allocate a control that can store a point in the described space */
             virtual Control* allocControl(void) const;
 
-            /** \brief Free the memory of the allocated control */
             virtual void freeControl(Control *control) const;
 
-            /** \brief Make the control have no effect if it were to be applied to a state for any amount of time. */
             virtual void nullControl(Control *control) const;
 
-            /** \brief Print a control to screen */
+            virtual void copyToReals(const Control *control, std::vector<double> &reals) const;
+
             virtual void printControl(const Control *control, std::ostream &out) const;
 
-            /** \brief Print the settings for this manifold to a stream */
             virtual void printSettings(std::ostream &out) const;
 
             virtual void setup(void);
