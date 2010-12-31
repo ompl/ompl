@@ -368,12 +368,7 @@ namespace ompl
            // the concatenation will automatically construct the manifold X + Y and a state
            // from that manifold containing the information from sX and sY. Since sXY is
            // constructed from the manifold X + Y, the two are comparable.
-           bool eq1 = (sX ^ sY) == sXY;
-
-           // the following line compares the state sX with a state obtained from sXY by removing
-           // the sY component. This will be a state from the manifold C[X + Y] - Y, which is
-           // computed to be X. This makes the comparison valid.
-           bool eq2 = sX == (sXY | sY);
+           bool eq = (sX ^ sY) == sXY;
           \endcode
             @{
          */
