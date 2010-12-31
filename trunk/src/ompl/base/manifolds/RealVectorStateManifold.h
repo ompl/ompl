@@ -161,6 +161,8 @@ namespace ompl
 
             virtual void copyToReals(const State *state, std::vector<double> &reals) const;
             
+            virtual unsigned int copyFromReals(State *state, const std::vector<double> &reals) const;
+            
             virtual void printState(const State *state, std::ostream &out) const;
 
             virtual void printSettings(std::ostream &out) const;

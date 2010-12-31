@@ -84,6 +84,12 @@ void ompl::base::StateManifold::copyToReals(const State *state, std::vector<doub
     throw Exception("Cannot convert state from state manifold " + name_ + " to real values");
 }
 
+unsigned int ompl::base::StateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
+{
+    throw Exception("Cannot convert state from state manifold " + name_ + " to real values");
+    return 0;
+}
+
 void ompl::base::StateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "State instance [" << state << ']' << std::endl;
@@ -445,6 +451,23 @@ void ompl::base::CompoundStateManifold::copyToReals(const State *state, std::vec
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         components_[i]->copyToReals(cstate->components[i], temp);
     reals.insert(reals.end(), temp.begin(), temp.end());
+}
+
+unsigned int ompl::base::CompoundStateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
+{
+    if (componentCount_ > 0)
+    {
+        CompoundState *cstate = static_cast<CompoundState*>(state);
+        unsigned int read = components_[0]->copyFromReals(cstate->components[0], reals);
+        for (unsigned int i = 1 ; i < componentCount_ ; ++i)
+        {
+            std::vector<double> to_read;
+            to_read.insert(to_read.begin(), reals.begin() + read, reals.end());
+            read += components_[i]->copyFromReals(cstate->components[i], to_read);
+        }
+        return read;
+    }
+    return 0;
 }
 
 void ompl::base::CompoundStateManifold::printState(const State *state, std::ostream &out) const

@@ -123,6 +123,8 @@ namespace ompl
 
             virtual void copyToReals(const Control *control, std::vector<double> &reals) const;
 
+            virtual unsigned int copyFromReals(Control *control, const std::vector<double> &reals) const;
+            
             virtual void printControl(const Control *control, std::ostream &out) const;
 
             virtual void printSettings(std::ostream &out) const;

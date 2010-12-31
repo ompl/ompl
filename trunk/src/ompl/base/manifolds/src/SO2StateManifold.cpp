@@ -185,6 +185,12 @@ void ompl::base::SO2StateManifold::copyToReals(const State *state, std::vector<d
     reals.push_back(state->as<StateType>()->value);
 }
 
+unsigned int ompl::base::SO2StateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
+{
+    state->as<StateType>()->value = reals[0];
+    return 1;
+}
+
 void ompl::base::SO2StateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "SO2State [";

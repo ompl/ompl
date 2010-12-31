@@ -126,6 +126,14 @@ void ompl::control::RealVectorControlManifold::copyToReals(const Control *contro
         reals.push_back(rcontrol->values[i]);
 }
 
+unsigned int ompl::control::RealVectorControlManifold::copyFromReals(Control *control, const std::vector<double> &reals) const
+{
+    ControlType *rcontrol = static_cast<ControlType*>(control);
+    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+        rcontrol->values[i] = reals[i];
+    return dimension_;
+}
+
 void ompl::control::RealVectorControlManifold::printControl(const Control *control, std::ostream &out) const
 {
     out << "RealVectorControl [";

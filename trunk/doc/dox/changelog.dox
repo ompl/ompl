@@ -2,7 +2,7 @@
 
 \page changelog Changelog
 \section dec_31_2010 December 31, 2010
-	- Added copyToReals for states & controls
+	- Added copyToReals/copyFromReals for states & controls
 	
 \section nov_15_2010 November 15, 2010
 	- Improved ODE bindings

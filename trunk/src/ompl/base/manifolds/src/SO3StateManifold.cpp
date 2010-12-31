@@ -231,10 +231,19 @@ void ompl::base::SO3StateManifold::registerProjections(void)
 
 void ompl::base::SO3StateManifold::copyToReals(const State *state, std::vector<double> &reals) const
 {
-    reals.push_back(state->as<SO3StateManifold::StateType>()->x);
-    reals.push_back(state->as<SO3StateManifold::StateType>()->y);
-    reals.push_back(state->as<SO3StateManifold::StateType>()->z);
-    reals.push_back(state->as<SO3StateManifold::StateType>()->w);
+    reals.push_back(state->as<StateType>()->x);
+    reals.push_back(state->as<StateType>()->y);
+    reals.push_back(state->as<StateType>()->z);
+    reals.push_back(state->as<StateType>()->w);
+}
+
+unsigned int ompl::base::SO3StateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
+{
+    state->as<StateType>()->x = reals[0];
+    state->as<StateType>()->y = reals[1];
+    state->as<StateType>()->z = reals[2];
+    state->as<StateType>()->w = reals[3];
+    return 4;
 }
 
 void ompl::base::SO3StateManifold::printState(const State *state, std::ostream &out) const

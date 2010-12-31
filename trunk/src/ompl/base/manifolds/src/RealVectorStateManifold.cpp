@@ -268,6 +268,14 @@ void ompl::base::RealVectorStateManifold::copyToReals(const State *state, std::v
         reals.push_back(rstate->values[i]);
 }
 
+unsigned int ompl::base::RealVectorStateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
+{
+    StateType *rstate = static_cast<StateType*>(state);
+    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+        rstate->values[i] = reals[i];
+    return dimension_;
+}
+
 void ompl::base::RealVectorStateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "RealVectorState [";

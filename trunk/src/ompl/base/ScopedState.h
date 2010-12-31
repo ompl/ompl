@@ -219,6 +219,13 @@ namespace ompl
                 return *this;
             }
 
+            /** \brief Assignment operator */
+            ScopedState<T>& operator=(const std::vector<double> &reals)
+            {
+                manifold_->copyFromReals(state_, reals);
+                return *this;
+            }
+            
             /** \brief Checks equality of two states */
             template<class O>
             bool operator==(const ScopedState<O> &other) const
@@ -252,7 +259,10 @@ namespace ompl
             /** \brief Attempt to convert this state to an array of
                 reals and return the component corresponding to \e index. 
                 If conversion is not possible, an exception is thrown. */
-            double operator[](const unsigned int index) const;
+            double operator[](const unsigned int index) const
+            {
+                return reals()[index];
+            }
 
             /** \brief Set this state to a random value (uniform) */
             void random(void)
@@ -261,7 +271,17 @@ namespace ompl
                     sampler_ = manifold_->allocStateSampler();
                 sampler_->sampleUniform(state_);
             }
-
+            
+            /** \brief Return the real values corresponding to this
+                state. If a conversion is not possible, an exception
+                is thrown.*/
+            std::vector<double> reals(void) const
+            {
+                std::vector<double> r;
+                manifold_->copyToReals(state_, r);
+                return r;
+            }
+            
             /** \brief Print this state to a stream */
             void print(std::ostream &out = std::cout) const
             {
@@ -442,14 +462,6 @@ namespace ompl
             return r << *this;
         }
 
-        template<class T>
-        double ScopedState<T>::operator[](const unsigned int index) const
-        {
-            std::vector<double> r;
-            manifold_->copyToReals(state_, r);
-            return r[index];
-        }
-        
         /** \brief Shared pointer to a ScopedState<> */
         typedef boost::shared_ptr< ScopedState<> > ScopedStatePtr;
     }
