@@ -109,14 +109,14 @@ namespace ompl
             {
                 minDist_ = dist;
             }
-            
+
             /** \brief Get the minimum distance that a new state returned by the sampling thread needs to be away from
                 previously added states, so that it is added to the list of goal states. */
             double getMinNewSampleDistance(void) const
             {
                 return minDist_;
             }
-            
+
             /** \brief Add a state \e st if it further away that \e minDistance from previously added states. */
             void addStateIfDifferent(const State* st, double minDistance);
 

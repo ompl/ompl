@@ -225,7 +225,7 @@ namespace ompl
                 manifold_->copyFromReals(state_, reals);
                 return *this;
             }
-            
+
             /** \brief Checks equality of two states */
             template<class O>
             bool operator==(const ScopedState<O> &other) const
@@ -257,7 +257,7 @@ namespace ompl
             ScopedState<> operator[](const StateManifoldPtr &m) const;
 
             /** \brief Attempt to convert this state to an array of
-                reals and return the component corresponding to \e index. 
+                reals and return the component corresponding to \e index.
                 If conversion is not possible, an exception is thrown. */
             double operator[](const unsigned int index) const
             {
@@ -271,7 +271,7 @@ namespace ompl
                     sampler_ = manifold_->allocStateSampler();
                 sampler_->sampleUniform(state_);
             }
-            
+
             /** \brief Return the real values corresponding to this
                 state. If a conversion is not possible, an exception
                 is thrown.*/
@@ -281,7 +281,7 @@ namespace ompl
                 manifold_->copyToReals(state_, r);
                 return r;
             }
-            
+
             /** \brief Print this state to a stream */
             void print(std::ostream &out = std::cout) const
             {
