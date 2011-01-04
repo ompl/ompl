@@ -256,14 +256,6 @@ namespace ompl
                 uninitialised) */
             ScopedState<> operator[](const StateManifoldPtr &m) const;
 
-            /** \brief Attempt to convert this state to an array of
-                reals and return the component corresponding to \e index.
-                If conversion is not possible, an exception is thrown. */
-            double operator[](const unsigned int index) const
-            {
-                return reals()[index];
-            }
-
             /** \brief Set this state to a random value (uniform) */
             void random(void)
             {

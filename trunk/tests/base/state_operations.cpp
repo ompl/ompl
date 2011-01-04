@@ -124,7 +124,7 @@ TEST(State, Scoped)
     EXPECT_EQ(sSE3_copy[sSE3_SO2.getManifold()], sSE3_SO2);
 
     sSE3->setY(1.0);
-    EXPECT_NEAR(sSE3[1], 1.0, 1e-12);
+    EXPECT_NEAR(sSE3.reals()[1], 1.0, 1e-12);
 
     sSE3.random();
     std::vector<double> r = sSE3.reals();
