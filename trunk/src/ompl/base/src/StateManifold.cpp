@@ -444,6 +444,11 @@ void ompl::base::CompoundStateManifold::lock(void)
     locked_ = true;
 }
 
+bool ompl::base::CompoundStateManifold::isLocked(void) const
+{
+    return locked_;
+}
+
 void ompl::base::CompoundStateManifold::copyToReals(const State *state, std::vector<double> &reals) const
 {
     std::vector<double> temp;
