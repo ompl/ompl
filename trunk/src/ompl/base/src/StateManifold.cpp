@@ -167,6 +167,11 @@ void ompl::base::StateManifold::registerProjection(const std::string &name, cons
         msg_.error("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
 }
 
+bool ompl::base::StateManifold::isCompound(void) const
+{
+    return false;
+}
+
 void ompl::base::StateManifold::setValidSegmentCountFactor(unsigned int factor)
 {
     if (factor < 1)
@@ -220,6 +225,11 @@ void ompl::base::CompoundStateManifold::addSubManifold(const StateManifoldPtr &c
     components_.push_back(component);
     weights_.push_back(weight);
     componentCount_ = components_.size();
+}
+
+bool ompl::base::CompoundStateManifold::isCompound(void) const
+{
+    return true;
 }
 
 void ompl::base::CompoundStateManifold::replaceSubManifold(const unsigned int index, const StateManifoldPtr &component, double weight)

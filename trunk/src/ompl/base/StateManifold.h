@@ -100,6 +100,9 @@ namespace ompl
                 return static_cast<const T*>(this);
             }
 
+	    /** \brief Check if the manifold is compound */
+	    virtual bool isCompound(void) const;
+	    
             /** \brief Get the name of the manifold */
             const std::string& getName(void) const
             {
@@ -311,6 +314,8 @@ namespace ompl
 
                 return static_cast<T*>(getSubManifold(name).get());
             }
+
+	    virtual bool isCompound(void) const;
 
             /** @name Management of contained manifolds
                 @{ */
