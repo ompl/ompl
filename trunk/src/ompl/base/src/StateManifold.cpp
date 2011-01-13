@@ -526,13 +526,19 @@ namespace ompl
 
             if (a)
             {
-                if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
-                    for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
-                    {
-                        components.push_back(csm_a->getSubManifold(i));
-                        weights.push_back(csm_a->getSubManifoldWeight(i));
-                    }
-                else
+		bool used = false;
+		if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+		    if (!csm_a->isLocked())
+		    {
+			used = true;
+			for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+			{
+			    components.push_back(csm_a->getSubManifold(i));
+			    weights.push_back(csm_a->getSubManifoldWeight(i));
+			}
+		    }
+		
+                if (!used)
                 {
                     components.push_back(a);
                     weights.push_back(1.0);
@@ -540,24 +546,31 @@ namespace ompl
             }
             if (b)
             {
-                unsigned int size = components.size();
+		bool used = false;
+                unsigned int size = components.size();	
+
                 if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
-                    for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
-                    {
-                        bool ok = true;
-                        for (unsigned int j = 0 ; j < size ; ++j)
-                            if (components[j]->getName() == csm_b->getSubManifold(i)->getName())
-                            {
-                                ok = false;
-                                break;
-                            }
-                        if (ok)
-                        {
-                            components.push_back(csm_b->getSubManifold(i));
-                            weights.push_back(csm_b->getSubManifoldWeight(i));
-                        }
-                    }
-                else
+		    if (!csm_b->isLocked())
+		    {	
+			used = true;
+			for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+			{
+			    bool ok = true;
+			    for (unsigned int j = 0 ; j < size ; ++j)
+				if (components[j]->getName() == csm_b->getSubManifold(i)->getName())
+				{
+				    ok = false;
+				    break;
+				}
+			    if (ok)
+			    {
+				components.push_back(csm_b->getSubManifold(i));
+				weights.push_back(csm_b->getSubManifoldWeight(i));
+			    }
+			}
+		    }
+		
+		if (!used)
                 {
                     bool ok = true;
                     for (unsigned int j = 0 ; j < size ; ++j)
@@ -585,26 +598,40 @@ namespace ompl
             std::vector<StateManifoldPtr> components_a;
             std::vector<double>           weights_a;
             std::vector<StateManifoldPtr> components_b;
-
-            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
-                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
-                {
-                    components_a.push_back(csm_a->getSubManifold(i));
-                    weights_a.push_back(csm_a->getSubManifoldWeight(i));
-                }
-            else
-            {
-                components_a.push_back(a);
-                weights_a.push_back(1.0);
-            }
-
+	    
+	    if (a)
+	    {		
+		bool used = false;
+		if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+		    if (!csm_a->isLocked())
+		    {		    
+			used = true;
+			for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+			{
+			    components_a.push_back(csm_a->getSubManifold(i));
+			    weights_a.push_back(csm_a->getSubManifoldWeight(i));
+			}
+		    }
+		
+		if (!used)
+		{
+		    components_a.push_back(a);
+		    weights_a.push_back(1.0);
+		}
+	    }
+	    
             if (b)
             {
-                if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
-                    for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
-                        components_b.push_back(csm_b->getSubManifold(i));
-                else
-                    components_b.push_back(b);
+		bool used = false;
+		if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+		    if (!csm_b->isLocked())
+		    {
+			used = true;
+			for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+			    components_b.push_back(csm_b->getSubManifold(i));
+		    }
+		if (!used)
+		    components_b.push_back(b);
             }
 
             for (unsigned int i = 0 ; i < components_b.size() ; ++i)
@@ -627,23 +654,32 @@ namespace ompl
             std::vector<StateManifoldPtr> components;
             std::vector<double>           weights;
 
-            if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
-                for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
-                {
-                    if (csm_a->getSubManifold(i)->getName() == name)
-                        continue;
-                    components.push_back(csm_a->getSubManifold(i));
-                    weights.push_back(csm_a->getSubManifoldWeight(i));
-                }
-            else
-            {
-                if (a->getName() != name)
-                {
-                    components.push_back(a);
-                    weights.push_back(1.0);
-                }
-            }
-
+	    if (a)
+	    {
+		bool used = false;
+		if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+		    if (!csm_a->isLocked())
+		    {
+			used = true;
+			for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+			{
+			    if (csm_a->getSubManifold(i)->getName() == name)
+				continue;
+			    components.push_back(csm_a->getSubManifold(i));
+			    weights.push_back(csm_a->getSubManifoldWeight(i));
+			}
+		    }
+		
+		if (!used)
+		{
+		    if (a->getName() != name)
+		    {
+			components.push_back(a);
+			weights.push_back(1.0);
+		    }
+		}
+	    }
+	    
             if (components.size() == 1)
                 return components[0];
 
@@ -659,13 +695,19 @@ namespace ompl
 
             if (a)
             {
-                if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
-                    for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
-                    {
-                        components_a.push_back(csm_a->getSubManifold(i));
-                        weights_a.push_back(csm_a->getSubManifoldWeight(i));
-                    }
-                else
+		bool used = false;
+		if (CompoundStateManifold *csm_a = dynamic_cast<CompoundStateManifold*>(a.get()))
+		    if (!csm_a->isLocked())
+		    {
+			used = true;
+			for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
+			{
+			    components_a.push_back(csm_a->getSubManifold(i));
+			    weights_a.push_back(csm_a->getSubManifoldWeight(i));
+			}
+		    }
+		
+		if (!used)
                 {
                     components_a.push_back(a);
                     weights_a.push_back(1.0);
@@ -674,13 +716,19 @@ namespace ompl
 
             if (b)
             {
-                if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
-                    for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
-                    {
-                        components_b.push_back(csm_b->getSubManifold(i));
-                        weights_b.push_back(csm_b->getSubManifoldWeight(i));
-                    }
-                else
+		bool used = false;
+		if (CompoundStateManifold *csm_b = dynamic_cast<CompoundStateManifold*>(b.get()))
+		    if (!csm_b->isLocked())
+		    {
+			used = true;
+			for (unsigned int i = 0 ; i < csm_b->getSubManifoldCount() ; ++i)
+			{
+			    components_b.push_back(csm_b->getSubManifold(i));
+			    weights_b.push_back(csm_b->getSubManifoldWeight(i));
+			}
+		    }
+		
+		if (!used)
                 {
                     components_b.push_back(b);
                     weights_b.push_back(1.0);
