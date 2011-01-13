@@ -38,6 +38,7 @@
 #define OMPL_BASE_STATE_MANIFOLD_
 
 #include "ompl/base/State.h"
+#include "ompl/base/StateManifoldTypes.h"
 #include "ompl/base/ManifoldStateSampler.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Console.h"
@@ -100,9 +101,9 @@ namespace ompl
                 return static_cast<const T*>(this);
             }
 
-	    /** \brief Check if the manifold is compound */
-	    virtual bool isCompound(void) const;
-	    
+            /** \brief Check if the manifold is compound */
+            virtual bool isCompound(void) const;
+
             /** \brief Get the name of the manifold */
             const std::string& getName(void) const
             {
@@ -113,6 +114,14 @@ namespace ompl
             void setName(const std::string &name)
             {
                 name_ = name;
+            }
+
+            /** \brief Get the type of the manifold. The type can be
+                used to verify whether two manifold instances are of
+                the same type (e.g., SO2) */
+            int getType(void) const
+            {
+                return type_;
             }
 
             /** @name Functionality specific to the manifold (to be implemented)
@@ -257,6 +266,9 @@ namespace ompl
             /** \brief Manifold name */
             std::string                                   name_;
 
+            /** \brief A type assigned for this manifold */
+            int                                           type_;
+
             /** \brief The extent of this manifold at the time setup() was called */
             double                                        maxExtent_;
 
@@ -278,7 +290,7 @@ namespace ompl
         };
 
         /** \brief A manifold to allow the composition of state manifolds */
-            class CompoundStateManifold : public StateManifold
+        class CompoundStateManifold : public StateManifold
         {
         public:
 
@@ -315,7 +327,7 @@ namespace ompl
                 return static_cast<T*>(getSubManifold(name).get());
             }
 
-	    virtual bool isCompound(void) const;
+            virtual bool isCompound(void) const;
 
             /** @name Management of contained manifolds
                 @{ */
@@ -358,12 +370,12 @@ namespace ompl
 
             /** \brief Set a specific manifold's weight in the compound manifold (used in distance computation) */
             void setSubManifoldWeight(const std::string &name, double weight);
-            
+
             /** \brief Return true if the manifold is locked. A value
                 of true means that no further manifolds can be added
                 as components. */
             bool isLocked(void) const;
-            
+
             /** @} */
 
             /** @name Functionality specific to the compound manifold

@@ -83,6 +83,8 @@ namespace ompl
 
             TimeStateManifold(void) : StateManifold(), bounded_(false), minTime_(0.0), maxTime_(0.0)
             {
+                name_ = "Time" + name_;
+                type_ = STATE_MANIFOLD_TIME;
             }
 
             virtual ~TimeStateManifold(void)

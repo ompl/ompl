@@ -99,6 +99,7 @@ namespace ompl
             SO3StateManifold(void) : StateManifold()
             {
                 name_ = "SO3" + name_;
+                type_ = STATE_MANIFOLD_SO3;
             }
 
             virtual ~SO3StateManifold(void)
