@@ -305,4 +305,16 @@ void ompl::base::RealVectorStateManifold::printSettings(std::ostream &out) const
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
         out << bounds_.high[i] << " ";
     out << std::endl;
+
+    bool printNames = false;
+    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+	if (!dimensionNames_[i].empty())
+	    printNames = true;
+    if (printNames)
+    {
+	out << "  and dimension names: ";
+	for (unsigned int i = 0 ; i < dimension_ ; ++i)
+	    out << "'" << dimensionNames_[i] << "' ";
+	out << std::endl;
+    }
 }
