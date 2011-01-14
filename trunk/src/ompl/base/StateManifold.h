@@ -336,14 +336,6 @@ namespace ompl
                 space, the weight of the component also needs to be specified. */
             virtual void addSubManifold(const StateManifoldPtr &component, double weight);
 
-            /** \brief Replaces a specific manifold as part of the compound space. For computing distances within the compound
-                space, the weight of the component also needs to be specified. */
-            virtual void replaceSubManifold(const unsigned int index, const StateManifoldPtr &component, double weight);
-
-            /** \brief Replaces a specific manifold as part of the compound space. For computing distances within the compound
-                space, the weight of the component also needs to be specified. */
-            virtual void replaceSubManifold(const std::string &name, const StateManifoldPtr &component, double weight);
-
             /** \brief Get the number of manifolds that make up the compound manifold */
             unsigned int getSubManifoldCount(void) const;
 
