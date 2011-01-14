@@ -473,6 +473,17 @@ namespace ompl
             submanifolds that are in both \e a and \e b */
         StateManifoldPtr operator*(const StateManifoldPtr &a, const StateManifoldPtr &b);
         /** @} */
+
+        /** \brief Copy data from \e source (state from manifold \e
+            sourceM) to \e dest (state from manifold \e destM) on a
+            component by component basis. Manifolds are matched by
+            name. If the manifold \e destM contains any sub-manifold
+            whose name matches any sub-manifold of the manifold \e
+            sourceM, the corresponding state components are
+            copied. The return value is either 0 (no data copied), 1
+            (some data copied), 2 (all data copied) */
+        int copyStateData(const StateManifoldPtr &destM, State *dest,
+			  const StateManifoldPtr &sourceM, const State *source);
     }
 }
 

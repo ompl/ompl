@@ -393,15 +393,7 @@ namespace ompl
             return out;
         }
 
-        /// @cond IGNORE
-
-        // workhorse for the << and >> operators defined on states
-        int __private_insertStateData(const StateManifoldPtr &destM, State *dest,
-                                      const StateManifoldPtr &sourceM, const State *source);
-
-        /// @endcond
-
-        /** \brief This is a fancy version of the assingment
+        /** \brief This is a fancy version of the assignment
             operator. It is a partial assignment, in some sense. The
             difference is that if the states are part of compound
             manifolds, the data is copied from \e from to \e to on a
@@ -413,11 +405,11 @@ namespace ompl
         inline
         ScopedState<T>& operator<<(ScopedState<T> &to, const ScopedState<Y> &from)
         {
-            __private_insertStateData(to.getManifold(), to.get(), from.getManifold(), from.get());
+            copyStateData(to.getManifold(), to.get(), from.getManifold(), from.get());
             return to;
         }
 
-        /** \brief This is a fancy version of the assingment
+        /** \brief This is a fancy version of the assignment
             operator. It is a partial assignment, in some sense. The
             difference is that if the states are part of compound
             manifolds, the data is copied from \e from to \e to on a
@@ -429,7 +421,7 @@ namespace ompl
         inline
         const ScopedState<T>& operator>>(const ScopedState<T> &from, ScopedState<Y> &to)
         {
-            __private_insertStateData(to.getManifold(), to.get(), from.getManifold(), from.get());
+            copyStateData(to.getManifold(), to.get(), from.getManifold(), from.get());
             return from;
         }
 

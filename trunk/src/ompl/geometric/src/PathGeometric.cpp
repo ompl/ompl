@@ -269,7 +269,7 @@ void ompl::geometric::PathGeometric::overlay(const PathGeometric &over, unsigned
             states.push_back(s);
         }
 
-        __private_insertStateData(dm, states[j], sm, over.states[i]);
+        copyStateData(dm, states[j], sm, over.states[i]);
     }
 }
 
@@ -291,7 +291,7 @@ void ompl::geometric::PathGeometric::append(const PathGeometric &path)
             base::State *s = si_->allocState();
             if (copy)
                 si_->copyState(s, states.back());
-            __private_insertStateData(dm, s, sm, path.states[i]);
+            copyStateData(dm, s, sm, path.states[i]);
             states.push_back(s);
         }
     }

@@ -499,6 +499,88 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
+
+        static const int NO_DATA_COPIED   = 0;
+        static const int SOME_DATA_COPIED = 1;
+        static const int ALL_DATA_COPIED  = 2;
+	
+	/// @endcond
+
+        // return one of the constants defined above
+        int copyStateData(const StateManifoldPtr &destM, State *dest, const StateManifoldPtr &sourceM, const State *source)
+        {
+            // if states correspond to the same manifold, simply do copy
+            if (destM->getName() == sourceM->getName())
+            {
+                if (dest != source)
+                    destM->copyState(dest, source);
+                return ALL_DATA_COPIED;
+            }
+
+            int result = NO_DATA_COPIED;
+
+            // if "to" state is compound
+            CompoundStateManifold *compoundDestM = dynamic_cast<CompoundStateManifold*>(destM.get());
+            if (compoundDestM)
+            {
+                CompoundState *compoundDest = dynamic_cast<CompoundState*>(dest);
+                if (!compoundDest)
+                    throw Exception("State allocated by compound manifold is not compound");
+
+                // if there is a submanifold in "to" that corresponds to "from", set the data and return
+                for (unsigned int i = 0 ; i < compoundDestM->getSubManifoldCount() ; ++i)
+                    if (compoundDestM->getSubManifold(i)->getName() == sourceM->getName())
+                    {
+                        if (compoundDest->components[i] != source)
+                            compoundDestM->getSubManifold(i)->copyState(compoundDest->components[i], source);
+                        return ALL_DATA_COPIED;
+                    }
+
+                // it could be there are further levels of compound manifolds where the data can be set
+                // so we call this function recursively
+                for (unsigned int i = 0 ; i < compoundDestM->getSubManifoldCount() ; ++i)
+                {
+                    int res = copyStateData(compoundDestM->getSubManifold(i), compoundDest->components[i], sourceM, source);
+
+                    if (res != NO_DATA_COPIED)
+                        result = SOME_DATA_COPIED;
+
+                    // if all data was copied, we stop
+                    if (res == ALL_DATA_COPIED)
+                        return ALL_DATA_COPIED;
+                }
+            }
+
+            // if we got to this point, it means that the data in "from" could not be copied as a chunk to "to"
+            // it could be the case "from" is from a compound manifold as well, so we can copy parts of "from", as needed
+            CompoundStateManifold *compoundSourceM = dynamic_cast<CompoundStateManifold*>(sourceM.get());
+            if (compoundSourceM)
+            {
+                const CompoundState *compoundSource = dynamic_cast<const CompoundState*>(source);
+                if (!compoundSource)
+                    throw Exception("State allocated by compound manifold is not compound");
+
+                unsigned int copiedComponents = 0;
+
+                // if there is a submanifold in "to" that corresponds to "from", set the data and return
+                for (unsigned int i = 0 ; i < compoundSourceM->getSubManifoldCount() ; ++i)
+                {
+                    int res = copyStateData(destM, dest, compoundSourceM->getSubManifold(i), compoundSource->components[i]);
+                    if (res == ALL_DATA_COPIED)
+                        copiedComponents++;
+                    if (res)
+                        result = SOME_DATA_COPIED;
+                }
+
+                // if each individual component got copied, then the entire data in "from" got copied
+                if (copiedComponents == compoundSourceM->getSubManifoldCount())
+                    result = ALL_DATA_COPIED;
+            }
+
+            return result;
+        }
+
         StateManifoldPtr operator+(const StateManifoldPtr &a, const StateManifoldPtr &b)
         {
             std::vector<StateManifoldPtr> components;
