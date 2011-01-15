@@ -1,8 +1,0 @@
-file(READ "headers_${module}.txt" headers_string)
-separate_arguments(headers UNIX_COMMAND "${headers_string}")
-set(module_header "bindings/${module}.h")
-file(WRITE "${module_header}" "")
-foreach(header ${headers})
-	file(READ "${header}" _header_txt)
-	file(APPEND "${module_header}" "${_header_txt}")
-endforeach(header)
