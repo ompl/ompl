@@ -79,7 +79,11 @@ namespace ompl
         CallbackParam *cp = reinterpret_cast<CallbackParam*>(data);
 
         const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
+#ifdef MSVC
+        dContact *contact = _malloca(maxContacts);
+#else
         dContact contact[maxContacts];
+#endif
         for (unsigned int i = 0; i < maxContacts; ++i)
             cp->env->setupContact(o1, o2, contact[i]);
 
@@ -121,7 +125,7 @@ void ompl::control::ODEControlManifold::propagate(const base::State *state, cons
         dSpaceCollide(env->collisionSpaces_[i],  &cp, &nearCallback);
 
     // propagate one step forward
-    dWorldQuickStep(env->world_, duration);
+    dWorldQuickStep(env->world_, (const dReal)duration);
 
     // remove created contacts
     dJointGroupEmpty(env->contactGroup_);
