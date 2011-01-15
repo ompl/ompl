@@ -1,2 +1,0 @@
-../src/ompl/util/Exception.h
-../src/ompl/util/RandomNumbers.h
