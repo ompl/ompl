@@ -17,7 +17,7 @@ The latest source is available via Mercurial. For anonymous checkout use:
 \code
 $ hg clone http://ompl.hg.sourceforge.net:8000/hgroot/ompl/ompl
 \endcode
-To view the source code right now in your browser, click <a href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/">here</a>.
+To view the source code right now in your browser, click <a href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/">here</a>. Alternatively, get a zip snapshot <a href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/archive/tip.zip">here</a>.
 <br><br>
 A <a href="http://www.ros.org">ROS</a> package providing the latest version of this library is available at:
 \code
