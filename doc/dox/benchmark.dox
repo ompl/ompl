@@ -120,6 +120,7 @@
     - <strong>simplified correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct after simplification, when checked at a finer resolution.
     - <strong>graph states:</strong> (integer) the number of states in the constructed graph
     - <strong>graph motions:</strong> (integer) the number of edges (motions) in the constructed graph
+    - <strong>valid segment fraction:</strong> (real) the fraction of segments that turned out to be valid (using ompl::base::MotionValidator) out of all the segments that were checked for validity
     - more planner-specific properties
 
     \section benchmark_sample_results Sample benchmark results

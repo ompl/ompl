@@ -267,10 +267,16 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             // make sure all planning data structures are cleared
             planners_[i]->clear();
             if (gsetup_)
-                gsetup_->getGoal()->clearSolutionPath();
-            else
-                csetup_->getGoal()->clearSolutionPath();
-
+	    {
+		gsetup_->getGoal()->clearSolutionPath();
+		gsetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+	    }
+	    else
+	    {
+		csetup_->getGoal()->clearSolutionPath();
+		csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+	    }
+	    
             time::point timeStart = time::now();
 
             bool solved = false;
@@ -301,6 +307,15 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 run["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
                 run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
                 run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
+		if (gsetup_)
+		{
+		    run["valid segment fraction REAL"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+		}
+		else
+		{
+		    run["valid segment fraction REAL"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+		}
+		
                 if (solved)
                 {
                     if (gsetup_)

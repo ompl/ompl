@@ -81,6 +81,11 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
             result = false;
         }
 
+    if (result)
+	valid_++;
+    else
+	invalid_++;
+    
     return result;
 }
 
@@ -126,6 +131,11 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
 
         si_->freeState(test);
     }
+
+    if (result)
+	valid_++;
+    else
+	invalid_++;
 
     return result;
 }
