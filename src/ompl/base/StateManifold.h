@@ -483,7 +483,7 @@ namespace ompl
             copied. The return value is either 0 (no data copied), 1
             (some data copied), 2 (all data copied) */
         int copyStateData(const StateManifoldPtr &destM, State *dest,
-			  const StateManifoldPtr &sourceM, const State *source);
+                          const StateManifoldPtr &sourceM, const State *source);
     }
 }
 

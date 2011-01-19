@@ -77,9 +77,9 @@ namespace ompl
             {
             }
 
-            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid. This function assumes \e s1 is valid. 
+            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid. This function assumes \e s1 is valid.
 
-		\note This function updates the number of valid and invalid segments. */
+                \note This function updates the number of valid and invalid segments. */
             virtual bool checkMotion(const State *s1, const State *s2) const = 0;
 
             /** \brief Check if the path between two states is valid. Also compute the last state that was
@@ -87,46 +87,46 @@ namespace ompl
                 0 and \e s2 being at t = 1. This function assumes \e s1 is valid.
                 \param s1 start state of the motion to be checked (assumed to be valid)
                 \param s2 final state of the motion to be checked
-                \param lastValid first: storage for the last valid state; this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 
+                \param lastValid first: storage for the last valid state; this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2
 
-		\note This function updates the number of valid and invalid segments. */
+                \note This function updates the number of valid and invalid segments. */
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const = 0;
 
-	    /** \brief Get the number of segments that tested as valid */
-	    unsigned int getValidMotionCount(void) const
-	    {
-		return valid_;
-	    }
+            /** \brief Get the number of segments that tested as valid */
+            unsigned int getValidMotionCount(void) const
+            {
+                return valid_;
+            }
 
-	    /** \brief Get the number of segments that tested as invalid */
-	    unsigned int getInvalidMotionCount(void) const
-	    {
-		return invalid_;
-	    }
+            /** \brief Get the number of segments that tested as invalid */
+            unsigned int getInvalidMotionCount(void) const
+            {
+                return invalid_;
+            }
 
-	    /** \brief Get the fraction of segments that tested as valid */
-	    double getValidMotionFraction(void) const
-	    {
-		return valid_ == 0 ? 0.0 : (double)valid_ / (double)(invalid_ + valid_);
-	    }
-	    
-	    /** \brief Reset the counters for valid and invalid segments */
-	    void resetMotionCounter(void)
-	    {
-		valid_ = invalid_ = 0;
-	    }
-	    
+            /** \brief Get the fraction of segments that tested as valid */
+            double getValidMotionFraction(void) const
+            {
+                return valid_ == 0 ? 0.0 : (double)valid_ / (double)(invalid_ + valid_);
+            }
+
+            /** \brief Reset the counters for valid and invalid segments */
+            void resetMotionCounter(void)
+            {
+                valid_ = invalid_ = 0;
+            }
+
         protected:
 
             /** \brief The instance of space information this state validity checker operates on */
             SpaceInformation    *si_;
 
-	    /** \brief Number of valid segments */
-	    mutable unsigned int valid_;
+            /** \brief Number of valid segments */
+            mutable unsigned int valid_;
 
-	    /** \brief Number of invalid segments */
-	    mutable unsigned int invalid_;
-	    
+            /** \brief Number of invalid segments */
+            mutable unsigned int invalid_;
+
         };
 
     }

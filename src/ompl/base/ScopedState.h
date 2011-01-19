@@ -256,6 +256,19 @@ namespace ompl
                 uninitialised) */
             ScopedState<> operator[](const StateManifoldPtr &m) const;
 
+            template<class O>
+            double distance(const ScopedState<O> &other) const
+            {
+                BOOST_CONCEPT_ASSERT((boost::Convertible<O*, StateManifold*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType*, State*>));
+                return distance(other.get());
+            }
+
+            double distance(const State *state) const
+            {
+                return manifold_->distance(static_cast<const State*>(state_), state);
+            }
+
             /** \brief Set this state to a random value (uniform) */
             void random(void)
             {

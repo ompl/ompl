@@ -504,8 +504,8 @@ namespace ompl
         static const int NO_DATA_COPIED   = 0;
         static const int SOME_DATA_COPIED = 1;
         static const int ALL_DATA_COPIED  = 2;
-	
-	/// @endcond
+
+        /// @endcond
 
         // return one of the constants defined above
         int copyStateData(const StateManifoldPtr &destM, State *dest, const StateManifoldPtr &sourceM, const State *source)

@@ -82,10 +82,10 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
         }
 
     if (result)
-	valid_++;
+        valid_++;
     else
-	invalid_++;
-    
+        invalid_++;
+
     return result;
 }
 
@@ -133,9 +133,9 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
     }
 
     if (result)
-	valid_++;
+        valid_++;
     else
-	invalid_++;
+        invalid_++;
 
     return result;
 }
