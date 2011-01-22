@@ -381,7 +381,8 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
     if (goal)
     {
         const GoalLazySamples *gls = dynamic_cast<const GoalLazySamples*>(goal);
-        bool attempt = true;
+	bool first = true;
+	bool attempt = true;
         while (attempt)
         {
             attempt = false;
@@ -410,6 +411,12 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 
             if (gls && goal->canSample() && !ptc())
             {
+		if (first)
+		{
+		    first = false;
+		    msg::Interface msg(planner_ ? planner_->getName() : "");
+		    msg.debug("Waiting for goal region samples ...");
+		}
                 boost::this_thread::sleep(time::seconds(0.01));
                 attempt = !ptc();
             }
