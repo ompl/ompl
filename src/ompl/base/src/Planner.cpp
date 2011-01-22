@@ -346,12 +346,14 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
     {
         const base::State *st = pdef_->getStartState(addedStartStates_);
         addedStartStates_++;
-        if (si_->satisfiesBounds(st) && si_->isValid(st))
+	bool bounds = si_->satisfiesBounds(st);
+	bool valid = bounds ? si_->isValid(st) : false;
+	if (bounds && valid)
             return st;
         else
         {
             msg::Interface msg(planner_ ? planner_->getName() : "");
-            msg.warn("Skipping invalid start state");
+            msg.warn("Skipping invalid start state (invalid %s)", bounds ? "bounds" : "state");
         }
     }
     return NULL;
@@ -393,13 +395,14 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                 {
                     goal->sampleGoal(tempState_);
                     sampledGoalsCount_++;
-
-                    if (si_->satisfiesBounds(tempState_) && si_->isValid(tempState_))
+		    bool bounds = si_->satisfiesBounds(tempState_);
+		    bool valid = bounds ? si_->isValid(tempState_) : false;
+                    if (bounds && valid)
                         return tempState_;
                     else
                     {
                         msg::Interface msg(planner_ ? planner_->getName() : "");
-                        msg.warn("Skipping invalid goal state");
+                        msg.warn("Skipping invalid goal state (invalid %s)", bounds ? "bounds" : "state");
                     }
                 }
                 while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
