@@ -12,7 +12,6 @@ ompl::base::StateManifoldPtr r5(new ompl::base::RealVectorStateManifold(5));
 ompl::base::StateManifoldPtr so2(new ompl::base::SO2StateManifold())
 ompl::base::StateManifoldPtr newManifold = r5 + so2;
 @endcode
-
 Alternatively to using the "+" operator on manifolds (see \ref
 workingWithStates "working with states and manifolds"), one could
 directly create an instance of ompl::base::CompoundStateManifold and
