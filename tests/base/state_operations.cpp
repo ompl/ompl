@@ -128,7 +128,7 @@ TEST(State, Scoped)
 
     sSE3.random();
     std::vector<double> r = sSE3.reals();
-    EXPECT_EQ(r.size(), 7);
+    EXPECT_EQ(r.size(), 7u);
     sSE3_copy = r;
     EXPECT_EQ(sSE3_copy, sSE3);
 }
