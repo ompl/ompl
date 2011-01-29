@@ -290,19 +290,19 @@ namespace ompl
                     sampler_ = manifold_->allocStateSampler();
                 sampler_->sampleUniform(state_);
             }
-	    
-	    /** \brief Enforce the bounds on the maintained state */
-	    void enforceBounds(void)
-	    {
-		manifold_->enforceBounds(state_);
-	    }
 
-	    /** \brief Check if the maintained state satisfies bounds */
-	    bool satisfiesBounds(void) const
-	    {
-		return manifold_->satisfiesBounds(state_);
-	    }
-	    
+            /** \brief Enforce the bounds on the maintained state */
+            void enforceBounds(void)
+            {
+                manifold_->enforceBounds(state_);
+            }
+
+            /** \brief Check if the maintained state satisfies bounds */
+            bool satisfiesBounds(void) const
+            {
+                return manifold_->satisfiesBounds(state_);
+            }
+
             /** \brief Return the real values corresponding to this
                 state. If a conversion is not possible, an exception
                 is thrown.*/

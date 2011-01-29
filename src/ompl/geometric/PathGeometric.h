@@ -94,6 +94,12 @@ namespace ompl
                 less than \e count states. */
             void interpolate(unsigned int count);
 
+            /** \brief Insert a number of states in a path so that the
+                path is made up of (approximately) the states checked
+                for validity when a discrete motion validator is
+                used. */
+            void interpolate(void);
+
             /** \brief Reverse the path */
             void reverse(void);
 

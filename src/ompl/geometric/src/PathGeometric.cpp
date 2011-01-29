@@ -180,6 +180,15 @@ bool ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
     return result;
 }
 
+void ompl::geometric::PathGeometric::interpolate(void)
+{
+    unsigned int n = 0;
+    const int n1 = states.size() - 1;
+    for (int i = 0 ; i < n1 ; ++i)
+        n += si_->getStateManifold()->validSegmentCount(states[i], states[i + 1]);
+    interpolate(n);
+}
+
 void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
 {
     if (requestCount < states.size() || states.size() < 2)

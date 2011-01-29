@@ -346,9 +346,9 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
     {
         const base::State *st = pdef_->getStartState(addedStartStates_);
         addedStartStates_++;
-	bool bounds = si_->satisfiesBounds(st);
-	bool valid = bounds ? si_->isValid(st) : false;
-	if (bounds && valid)
+        bool bounds = si_->satisfiesBounds(st);
+        bool valid = bounds ? si_->isValid(st) : false;
+        if (bounds && valid)
             return st;
         else
         {
@@ -381,8 +381,8 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
     if (goal)
     {
         const GoalLazySamples *gls = dynamic_cast<const GoalLazySamples*>(goal);
-	bool first = true;
-	bool attempt = true;
+        bool first = true;
+        bool attempt = true;
         while (attempt)
         {
             attempt = false;
@@ -396,8 +396,8 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                 {
                     goal->sampleGoal(tempState_);
                     sampledGoalsCount_++;
-		    bool bounds = si_->satisfiesBounds(tempState_);
-		    bool valid = bounds ? si_->isValid(tempState_) : false;
+                    bool bounds = si_->satisfiesBounds(tempState_);
+                    bool valid = bounds ? si_->isValid(tempState_) : false;
                     if (bounds && valid)
                         return tempState_;
                     else
@@ -411,12 +411,12 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 
             if (gls && goal->canSample() && !ptc())
             {
-		if (first)
-		{
-		    first = false;
-		    msg::Interface msg(planner_ ? planner_->getName() : "");
-		    msg.debug("Waiting for goal region samples ...");
-		}
+                if (first)
+                {
+                    first = false;
+                    msg::Interface msg(planner_ ? planner_->getName() : "");
+                    msg.debug("Waiting for goal region samples ...");
+                }
                 boost::this_thread::sleep(time::seconds(0.01));
                 attempt = !ptc();
             }
