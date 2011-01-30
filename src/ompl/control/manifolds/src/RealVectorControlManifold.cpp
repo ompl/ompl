@@ -36,6 +36,7 @@
 
 #include "ompl/control/manifolds/RealVectorControlManifold.h"
 #include "ompl/util/Exception.h"
+#include <boost/lexical_cast.hpp>
 #include <cstring>
 #include <limits>
 
@@ -59,7 +60,9 @@ void ompl::control::RealVectorControlManifold::setBounds(const base::RealVectorB
 {
     bounds.check();
     if (bounds.low.size() != dimension_)
-        throw Exception("Bounds do not match dimension of manifold");
+        throw Exception("Bounds do not match dimension of manifold: expected dimension " +
+                        boost::lexical_cast<std::string>(dimension_) + " but got dimension " +
+                        boost::lexical_cast<std::string>(bounds.low.size()));
     bounds_ = bounds;
 }
 
