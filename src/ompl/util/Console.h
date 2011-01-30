@@ -67,6 +67,9 @@ namespace ompl
                 message forwarded by this Interface instance. */
             void setPrefix(const std::string &prefix);
 
+            /** \brief Get the text that appears in front of every forwarded message. */
+            const std::string& getPrefix(void) const;
+
             /** \brief Forward information */
             void inform(const std::string &text) const;
 
