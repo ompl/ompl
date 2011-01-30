@@ -37,6 +37,7 @@
 #include "ompl/base/manifolds/RealVectorStateManifold.h"
 #include "ompl/base/manifolds/RealVectorStateProjections.h"
 #include "ompl/util/Exception.h"
+#include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -124,7 +125,9 @@ void ompl::base::RealVectorStateManifold::setBounds(const RealVectorBounds &boun
 {
     bounds.check();
     if (bounds.low.size() != dimension_)
-        throw Exception("Bounds do not match dimension of manifold");
+        throw Exception("Bounds do not match dimension of manifold: expected dimension " +
+                        boost::lexical_cast<std::string>(dimension_) + " but got dimension " +
+                        boost::lexical_cast<std::string>(bounds.low.size()));
     bounds_ = bounds;
 }
 
