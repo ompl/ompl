@@ -73,6 +73,11 @@ ompl::msg::Interface::~Interface(void)
 {
 }
 
+const std::string& ompl::msg::Interface::getPrefix(void) const
+{
+    return prefix_;
+}
+
 void ompl::msg::Interface::setPrefix(const std::string &prefix)
 {
     prefix_ = prefix;
