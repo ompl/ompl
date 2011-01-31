@@ -125,12 +125,19 @@ TEST(State, Scoped)
 
     sSE3->setY(1.0);
     EXPECT_NEAR(sSE3.reals()[1], 1.0, 1e-12);
+    
+    EXPECT_NEAR(sSE3[1], 1.0, 1e-12);
+    sSE3[2] = 0.1;
+    EXPECT_NEAR(sSE3.reals()[2], 0.1, 1e-12);
 
     sSE3.random();
     std::vector<double> r = sSE3.reals();
     EXPECT_EQ(r.size(), 7u);
     sSE3_copy = r;
     EXPECT_EQ(sSE3_copy, sSE3);
+    EXPECT_EQ(sSE3[6], r[6]);
+    EXPECT_EQ(sSE3[0], r[0]);
+    EXPECT_EQ(sSE3.getManifold()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
 }
 
 TEST(State, Allocation)

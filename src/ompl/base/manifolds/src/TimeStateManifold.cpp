@@ -166,6 +166,11 @@ void ompl::base::TimeStateManifold::registerProjections(void)
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new TimeDefaultProjection(this))));
 }
 
+double* ompl::base::TimeStateManifold::getValueAddressAtIndex(State *state, const unsigned int index) const
+{
+    return index == 0 ? &(state->as<StateType>()->position) : NULL;
+}
+
 void ompl::base::TimeStateManifold::printState(const State *state, std::ostream &out) const
 {
     out << "TimeState [";

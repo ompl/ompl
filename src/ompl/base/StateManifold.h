@@ -225,22 +225,7 @@ namespace ompl
 
             /** @} */
 
-            /** \brief If the state of the manifold can be converted
-                to an array of real values, the values of \e state are
-                appended to the array \e reals. If a conversion is not
-                possible (this is the default), an exception is
-                thrown. If an exception is thrown, the content of \e reals is not modified. */
-            virtual void copyToReals(const State *state, std::vector<double> &reals) const;
-
-            /** \brief If the state of the manifold can be converted
-                to an array of real values, the values of \e state are
-                set using values from the array \e reals. If a
-                conversion is not possible (this is the default), an
-                exception is thrown. If an exception is thrown, the
-                content of \e state may be modified. If the copy is
-                succesful, the number of values read from \e reals is
-                returned. */
-            virtual unsigned int copyFromReals(State *state, const std::vector<double> &reals) const;
+            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
 
             /** \brief Print a state to a stream */
             virtual void printState(const State *state, std::ostream &out) const;
@@ -407,9 +392,7 @@ namespace ompl
             virtual void freeState(State *state) const;
             /** @} */
 
-            virtual void copyToReals(const State *state, std::vector<double> &reals) const;
-
-            virtual unsigned int copyFromReals(State *state, const std::vector<double> &reals) const;
+            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
 
             virtual void printState(const State *state, std::ostream &out) const;
 

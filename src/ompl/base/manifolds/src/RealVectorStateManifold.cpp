@@ -263,20 +263,9 @@ void ompl::base::RealVectorStateManifold::freeState(State *state) const
     delete rstate;
 }
 
-void ompl::base::RealVectorStateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+double* ompl::base::RealVectorStateManifold::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    reals.reserve(reals.size() + dimension_);
-    const StateType *rstate = static_cast<const StateType*>(state);
-    for (unsigned int i = 0 ; i < dimension_ ; ++i)
-        reals.push_back(rstate->values[i]);
-}
-
-unsigned int ompl::base::RealVectorStateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
-{
-    StateType *rstate = static_cast<StateType*>(state);
-    for (unsigned int i = 0 ; i < dimension_ ; ++i)
-        rstate->values[i] = reals[i];
-    return dimension_;
+    return index < dimension_ ? static_cast<StateType*>(state)->values + index : NULL;
 }
 
 void ompl::base::RealVectorStateManifold::printState(const State *state, std::ostream &out) const

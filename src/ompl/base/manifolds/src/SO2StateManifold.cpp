@@ -180,15 +180,9 @@ void ompl::base::SO2StateManifold::registerProjections(void)
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO2DefaultProjection(this))));
 }
 
-void ompl::base::SO2StateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+double* ompl::base::SO2StateManifold::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    reals.push_back(state->as<StateType>()->value);
-}
-
-unsigned int ompl::base::SO2StateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
-{
-    state->as<StateType>()->value = reals[0];
-    return 1;
+    return index == 0 ? &(state->as<StateType>()->value) : NULL;
 }
 
 void ompl::base::SO2StateManifold::printState(const State *state, std::ostream &out) const

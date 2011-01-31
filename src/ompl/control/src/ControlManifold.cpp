@@ -46,16 +46,6 @@ bool ompl::control::ControlManifold::canPropagateBackward(void) const
     return true;
 }
 
-void ompl::control::ControlManifold::copyToReals(const Control *control, std::vector<double> &reals) const
-{
-    throw Exception("Cannot convert control from control manifold " + name_ + " to real values");
-}
-
-unsigned int ompl::control::ControlManifold::copyFromReals(Control *control, const std::vector<double> &reals) const
-{
-    throw Exception("Cannot convert control from control manifold " + name_ + " to real values");
-}
-
 void ompl::control::ControlManifold::printControl(const Control *control, std::ostream &out) const
 {
     out << "Control instance: " << control << std::endl;
@@ -193,32 +183,6 @@ bool ompl::control::CompoundControlManifold::canPropagateBackward(void) const
         if (!components_[i]->canPropagateBackward())
             return false;
     return true;
-}
-
-void ompl::control::CompoundControlManifold::copyToReals(const Control *control, std::vector<double> &reals) const
-{
-    std::vector<double> temp;
-    const CompoundControl *ccontrol = static_cast<const CompoundControl*>(control);
-    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-        components_[i]->copyToReals(ccontrol->components[i], temp);
-    reals.insert(reals.end(), temp.begin(), temp.end());
-}
-
-unsigned int ompl::control::CompoundControlManifold::copyFromReals(Control *control, const std::vector<double> &reals) const
-{
-    if (componentCount_ > 0)
-    {
-        CompoundControl *ccontrol = static_cast<CompoundControl*>(control);
-        unsigned int read = components_[0]->copyFromReals(ccontrol->components[0], reals);
-        for (unsigned int i = 1 ; i < componentCount_ ; ++i)
-        {
-            std::vector<double> to_read;
-            to_read.insert(to_read.begin(), reals.begin() + read, reals.end());
-            read += components_[i]->copyFromReals(ccontrol->components[i], to_read);
-        }
-        return read;
-    }
-    return 0;
 }
 
 void ompl::control::CompoundControlManifold::printControl(const Control *control, std::ostream &out) const

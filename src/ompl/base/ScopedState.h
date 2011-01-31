@@ -222,7 +222,11 @@ namespace ompl
             /** \brief Assignment operator */
             ScopedState<T>& operator=(const std::vector<double> &reals)
             {
-                manifold_->copyFromReals(state_, reals);
+                for (unsigned int i = 0 ; i < reals.size() ; ++i)
+                    if (double *va = manifold_->getValueAddressAtIndex(state_, i))
+                        *va = reals[i];
+                    else
+                        break;
                 return *this;
             }
 
@@ -256,6 +260,16 @@ namespace ompl
                 uninitialised) */
             ScopedState<> operator[](const StateManifoldPtr &m) const;
 
+            double& operator[](const unsigned int index)
+            {
+                return *(manifold_->getValueAddressAtIndex(state_, index));
+            }
+
+            double operator[](const unsigned int index) const
+            {
+                return *(manifold_->getValueAddressAtIndex(state_, index));
+            }
+
             template<class O>
             double distance(const ScopedState<O> &other) const
             {
@@ -283,7 +297,9 @@ namespace ompl
             std::vector<double> reals(void) const
             {
                 std::vector<double> r;
-                manifold_->copyToReals(state_, r);
+                unsigned int index = 0;
+                while (double *va = manifold_->getValueAddressAtIndex(state_, index++))
+                    r.push_back(*va);
                 return r;
             }
 
