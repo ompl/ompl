@@ -117,8 +117,14 @@ namespace ompl
                 return minDist_;
             }
 
-            /** \brief Add a state \e st if it further away that \e minDistance from previously added states. */
-            void addStateIfDifferent(const State* st, double minDistance);
+            /** \brief Return true if the last state returned by the sampling function was added. Return false otherwise. */
+            bool wasLastStateAdded(void) const
+            {
+                return lastStateAdded_;
+            }
+
+            /** \brief Add a state \e st if it further away that \e minDistance from previously added states. Return true if the state was added. */
+            bool addStateIfDifferent(const State* st, double minDistance);
 
             virtual void clear(void);
 
@@ -138,6 +144,9 @@ namespace ompl
 
             /** \brief Additional thread for sampling goal states */
             boost::thread                 *samplingThread_;
+
+            /** \brief Flag indicating whether the last state returned by the sampling function was added or not */
+            bool                           lastStateAdded_;
 
             /** \brief Samples returned by the sampling thread are added to the list of states only if
                 they are at least minDist_ away from already added samples. */

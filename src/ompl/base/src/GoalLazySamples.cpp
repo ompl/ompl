@@ -39,7 +39,7 @@
 #include "ompl/util/Time.h"
 
 ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart, double minDist) :
-    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL), minDist_(minDist)
+    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL), lastStateAdded_(false), minDist_(minDist)
 {
     if (autoStart)
         startSampling();
@@ -114,9 +114,15 @@ void ompl::base::GoalLazySamples::addState(const State* st)
     GoalStates::addState(st);
 }
 
-void ompl::base::GoalLazySamples::addStateIfDifferent(const State* st, double minDistance)
+bool ompl::base::GoalLazySamples::addStateIfDifferent(const State* st, double minDistance)
 {
     boost::mutex::scoped_lock slock(lock_);
     if (GoalStates::distanceGoal(st) > minDistance)
+    {
         GoalStates::addState(st);
+        lastStateAdded_ = true;
+    }
+    else
+        lastStateAdded_ = false;
+    return lastStateAdded_;
 }
