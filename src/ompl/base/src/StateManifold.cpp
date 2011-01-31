@@ -81,15 +81,9 @@ void ompl::base::StateManifold::setup(void)
         it->second->setup();
 }
 
-void ompl::base::StateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+double* ompl::base::StateManifold::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    throw Exception("Cannot convert state from state manifold " + name_ + " to real values");
-}
-
-unsigned int ompl::base::StateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
-{
-    throw Exception("Cannot convert state from state manifold " + name_ + " to real values");
-    return 0;
+    return NULL;
 }
 
 void ompl::base::StateManifold::printState(const State *state, std::ostream &out) const
@@ -439,30 +433,26 @@ bool ompl::base::CompoundStateManifold::isLocked(void) const
     return locked_;
 }
 
-void ompl::base::CompoundStateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+double* ompl::base::CompoundStateManifold::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    std::vector<double> temp;
-    const CompoundState *cstate = static_cast<const CompoundState*>(state);
-    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-        components_[i]->copyToReals(cstate->components[i], temp);
-    reals.insert(reals.end(), temp.begin(), temp.end());
-}
+    CompoundState *cstate = static_cast<CompoundState*>(state);
+    unsigned int idx = 0;
 
-unsigned int ompl::base::CompoundStateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
-{
-    if (componentCount_ > 0)
-    {
-        CompoundState *cstate = static_cast<CompoundState*>(state);
-        unsigned int read = components_[0]->copyFromReals(cstate->components[0], reals);
-        for (unsigned int i = 1 ; i < componentCount_ ; ++i)
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+        for (unsigned int j = 0 ; j <= index ; ++j)
         {
-            std::vector<double> to_read;
-            to_read.insert(to_read.begin(), reals.begin() + read, reals.end());
-            read += components_[i]->copyFromReals(cstate->components[i], to_read);
+            double *va = components_[i]->getValueAddressAtIndex(cstate->components[i], j);
+            if (va)
+            {
+                if (idx == index)
+                    return va;
+                else
+                    idx++;
+            }
+            else
+                break;
         }
-        return read;
-    }
-    return 0;
+    return NULL;
 }
 
 void ompl::base::CompoundStateManifold::printState(const State *state, std::ostream &out) const

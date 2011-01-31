@@ -160,9 +160,7 @@ namespace ompl
 
             virtual void freeState(State *state) const;
 
-            virtual void copyToReals(const State *state, std::vector<double> &reals) const;
-
-            virtual unsigned int copyFromReals(State *state, const std::vector<double> &reals) const;
+            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
 
             virtual void printState(const State *state, std::ostream &out) const;
 

@@ -229,21 +229,9 @@ void ompl::base::SO3StateManifold::registerProjections(void)
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO3DefaultProjection(this))));
 }
 
-void ompl::base::SO3StateManifold::copyToReals(const State *state, std::vector<double> &reals) const
+double* ompl::base::SO3StateManifold::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    reals.push_back(state->as<StateType>()->x);
-    reals.push_back(state->as<StateType>()->y);
-    reals.push_back(state->as<StateType>()->z);
-    reals.push_back(state->as<StateType>()->w);
-}
-
-unsigned int ompl::base::SO3StateManifold::copyFromReals(State *state, const std::vector<double> &reals) const
-{
-    state->as<StateType>()->x = reals[0];
-    state->as<StateType>()->y = reals[1];
-    state->as<StateType>()->z = reals[2];
-    state->as<StateType>()->w = reals[3];
-    return 4;
+    return index < 4 ? &(state->as<StateType>()->x) + index : NULL;
 }
 
 void ompl::base::SO3StateManifold::printState(const State *state, std::ostream &out) const

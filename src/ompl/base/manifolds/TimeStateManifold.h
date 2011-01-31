@@ -139,6 +139,8 @@ namespace ompl
 
             virtual void freeState(State *state) const;
 
+            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
+
             virtual void printState(const State *state, std::ostream &out) const;
 
             virtual void printSettings(std::ostream &out) const;
