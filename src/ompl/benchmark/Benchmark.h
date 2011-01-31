@@ -75,6 +75,51 @@ namespace ompl
             double       progressPercentage;
         };
 
+        /** \brief The data collected from a run of a planner is
+            stored as key-value pairs. */
+        typedef std::map<std::string, std::string> RunProperties;
+
+        /** \brief The data collected after running a planner multiple times */
+        struct PlannerExperiment
+        {
+            /// The name of the planner
+            std::string                name;
+
+            /// Data collected for each run
+            std::vector<RunProperties> runs;
+
+            /// Some common properties for all the runs
+            RunProperties              common;
+        };
+
+        /** \brief This structure holds experimental data for a set of planners */
+        struct CompleteExperiment
+        {
+            /** \brief The name of the experiment */
+            std::string                    name;
+
+            /// The collected experimental data; each element of the array (an experiment) corresponds to a planner
+            std::vector<PlannerExperiment> planners;
+
+            /// The maximum allowed time for planner computation during the experiment (seconds)
+            double                         maxTime;
+
+            /// The maximum allowed memory for planner computation during the experiment (MB)
+            double                         maxMem;
+
+            /// The point in time when the experiment was started
+            time::point                    startTime;
+
+            /// The amount of time spent to collect the information in this structure (seconds)
+            double                         totalDuration;
+
+            /// The output of SimpleSetup::print() before the experiment was started
+            std::string                    setupInfo;
+
+            /// Hostname that identifies the machine the benchmark ran on
+            std::string                    host;
+        };
+
         /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
         Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL), msg_("Benchmark")
         {
@@ -146,8 +191,20 @@ namespace ompl
         */
         virtual void benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress = false);
 
-        /** \brief Get the status of this */
-        const Status& getStatus(void) const;
+        /** \brief Get the status of the benchmarking code. This function can be called in a separate thread to check how much progress has been made */
+        const Status& getStatus(void) const
+        {
+            return status_;
+        }
+
+        /** \brief Return all the experiment data that would be
+            written to the results file. The data should not be
+            changed, but it could be useful to quickly extract cartain
+            statistics. */
+        const CompleteExperiment& getRecordedExperimentData(void) const
+        {
+            return exp_;
+        }
 
         /** \brief Save the results of the benchmark to a stream. */
         virtual bool saveResultsToStream(std::ostream &out = std::cout) const;
@@ -162,51 +219,6 @@ namespace ompl
 
         /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
         std::string getResultsFilename(void) const;
-
-        /** \brief The data collected from a run of a planner is
-            stored as key-value pairs. */
-        typedef std::map<std::string, std::string> RunProperties;
-
-        /** \brief The data collected after running a planner multiple times */
-        struct PlannerExperiment
-        {
-            /// The name of the planner
-            std::string                name;
-
-            /// Data collected for each run
-            std::vector<RunProperties> runs;
-
-            /// Some common properties for all the runs
-            RunProperties              common;
-        };
-
-        /** \brief This structure holds experimental data for a set of planners */
-        struct CompleteExperiment
-        {
-            /** \brief The name of the experiment */
-            std::string                    name;
-
-            /// The collected experimental data; each element of the array (an experiment) corresponds to a planner
-            std::vector<PlannerExperiment> planners;
-
-            /// The maximum allowed time for planner computation during the experiment (seconds)
-            double                         maxTime;
-
-            /// The maximum allowed memory for planner computation during the experiment (MB)
-            double                         maxMem;
-
-            /// The point in time when the experiment was started
-            time::point                    startTime;
-
-            /// The amount of time spent to collect the information in this structure (seconds)
-            double                         totalDuration;
-
-            /// The output of SimpleSetup::print() before the experiment was started
-            std::string                    setupInfo;
-
-            /// Hostname that identifies the machine the benchmark ran on
-            std::string                    host;
-        };
 
         /** \brief The instance of the problem to benchmark (if geometric planning) */
         geometric::SimpleSetup       *gsetup_;
