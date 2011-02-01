@@ -55,6 +55,13 @@ void ompl::geometric::BasicPRM::setup(void)
     nn_->setDistanceFunction(boost::bind(&BasicPRM::distanceFunction, this, _1, _2));
 }
 
+void ompl::geometric::BasicPRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
+{
+    Planner::setProblemDefinition(pdef);
+    startM_.clear();
+    goalM_.clear();
+}
+
 void ompl::geometric::BasicPRM::clear(void)
 {
     Planner::clear();
@@ -63,6 +70,8 @@ void ompl::geometric::BasicPRM::clear(void)
     if (nn_)
         nn_->clear();
     milestones_.clear();
+    startM_.clear();
+    goalM_.clear();
     componentCount_ = 0;
     componentSizes_.clear();
     lastStart_ = NULL;
@@ -168,14 +177,12 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
         msg_.error("Goal undefined or unknown type of goal");
         return false;
     }
-    std::vector<Milestone*> startM;
-    std::vector<Milestone*> goalM;
-
+    
     // add the valid start states as milestones
     while (const base::State *st = pis_.nextStart())
-        startM.push_back(addMilestone(si_->cloneState(st)));
+        startM_.push_back(addMilestone(si_->cloneState(st)));
 
-    if (startM.size() == 0)
+    if (startM_.size() == 0)
     {
         msg_.error("There are no valid initial states!");
         return false;
@@ -199,12 +206,12 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
     while (ptc() == false)
     {
         // find at least one valid goal state
-        if (goal->maxSampleCount() > goalM.size())
+        if (goal->maxSampleCount() > goalM_.size() || goalM_.empty())
         {
-            const base::State *st = goalM.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
+            const base::State *st = goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
-                goalM.push_back(addMilestone(si_->cloneState(st)));
-            if (goalM.empty())
+                goalM_.push_back(addMilestone(si_->cloneState(st)));
+            if (goalM_.empty())
             {
                 msg_.error("Unable to find any valid goal states");
                 break;
@@ -212,7 +219,7 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
         }
 
         // if there already is a solution, construct it
-        if (haveSolution(startM, goalM, &solEndpoints))
+        if (haveSolution(startM_, goalM_, &solEndpoints))
         {
             constructSolution(solEndpoints.first, solEndpoints.second);
             break;
@@ -221,13 +228,13 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
         else
         {
             // if it is worth looking at other goal regions, plan for part of the time
-            if (goal->maxSampleCount() > goalM.size())
-                growRoadmap(startM, goalM, boost::bind(&growRoadmapTerminationCondition, ptc, time::now() + time::seconds(0.1)), xstate);
+            if (goal->maxSampleCount() > goalM_.size())
+                growRoadmap(startM_, goalM_, boost::bind(&growRoadmapTerminationCondition, ptc, time::now() + time::seconds(0.1)), xstate);
             // otherwise, just go ahead and build the roadmap
             else
-                growRoadmap(startM, goalM, ptc, xstate);
+                growRoadmap(startM_, goalM_, ptc, xstate);
             // if a solution has been found, construct it
-            if (haveSolution(startM, goalM, &solEndpoints))
+            if (haveSolution(startM_, goalM_, &solEndpoints))
             {
                 constructSolution(solEndpoints.first, solEndpoints.second);
                 break;

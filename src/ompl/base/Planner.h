@@ -311,7 +311,7 @@ namespace ompl
                 problem needs to be set before calling solve(). Note:
                 If this problem definition replaces a previous one, it
                 may also be necessary to call clear(). */
-            void setProblemDefinition(const ProblemDefinitionPtr &pdef);
+            virtual void setProblemDefinition(const ProblemDefinitionPtr &pdef);
 
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
@@ -370,7 +370,7 @@ namespace ompl
                 state (setup has been called, a goal was set, the
                 input states seem to be in order). In case of error,
                 this function throws an exception. q*/
-            void checkValidity(void);
+            virtual void checkValidity(void);
 
             /** \brief Check if setup() was called for this planner */
             bool isSetup(void) const;
