@@ -128,7 +128,7 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
 
 bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)
 {
-    pis_.checkValidity();
+    checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)

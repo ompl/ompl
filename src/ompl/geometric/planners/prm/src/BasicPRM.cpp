@@ -160,7 +160,7 @@ namespace ompl
 
 bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &ptc)
 {
-    pis_.checkValidity();
+    checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
@@ -168,7 +168,6 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
         msg_.error("Goal undefined or unknown type of goal");
         return false;
     }
-
     std::vector<Milestone*> startM;
     std::vector<Milestone*> goalM;
 
@@ -268,7 +267,7 @@ ompl::geometric::BasicPRM::Milestone* ompl::geometric::BasicPRM::addMilestone(ba
             uniteComponents(m, nbh[i]);
         }
 
-    // if the new milestone was no absorbed in an existing component,
+    // if the new milestone was not absorbed in an existing component,
     // increase the number of components
     if (m->component == componentCount_)
         componentCount_++;

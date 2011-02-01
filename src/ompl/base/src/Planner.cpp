@@ -98,6 +98,13 @@ void ompl::base::Planner::setup(void)
         setup_ = true;
 }
 
+void ompl::base::Planner::checkValidity(void)
+{
+    if (!isSetup())
+        setup();
+    pis_.checkValidity();
+}
+
 bool ompl::base::Planner::isSetup(void) const
 {
     return setup_;

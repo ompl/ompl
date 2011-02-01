@@ -366,6 +366,12 @@ namespace ompl
                 must be called before solving */
             virtual void setup(void);
 
+            /** \brief Check to see if the planner is in a working
+                state (setup has been called, a goal was set, the
+                input states seem to be in order). In case of error,
+                this function throws an exception. q*/
+            void checkValidity(void);
+
             /** \brief Check if setup() was called for this planner */
             bool isSetup(void) const;
 

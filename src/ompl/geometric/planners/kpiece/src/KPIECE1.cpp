@@ -94,7 +94,7 @@ void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
 
 bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
-    pis_.checkValidity();
+    checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
     base::GoalRegion           *goal_r = dynamic_cast<base::GoalRegion*>(goal);
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);

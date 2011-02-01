@@ -76,7 +76,7 @@ void ompl::geometric::pRRT::freeMemory(void)
 
 void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
 {
-    pis_.checkValidity();
+    checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     RNG                         rng;

@@ -209,6 +209,12 @@ namespace ompl
              /** \brief Array of available milestones */
             std::vector<Milestone*>                           milestones_;
 
+            /** \brief Array of start milestones */
+            std::vector<Milestone*>                           startM_;
+
+            /** \brief Array of goal milestones */
+            std::vector<Milestone*>                           goalM_;
+
             /** \brief constructSolution() will set this variable to be the milestone used as the start. This is useful if multiple solution paths are to be generated. */
             const Milestone                                  *lastStart_;
 

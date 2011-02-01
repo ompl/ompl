@@ -75,7 +75,7 @@ void ompl::geometric::RRT::freeMemory(void)
 
 bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
-    pis_.checkValidity();
+    checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
