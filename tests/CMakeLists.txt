@@ -45,9 +45,9 @@ if(OMPL_BUILD_TESTS)
 	endif(OMPL_IN_ROS)
 	
 	# Test datastructures implementation
-	add_ompl_test(test_heap datastructures/heap/heap.cpp)
-	add_ompl_test(test_grid datastructures/grid/grid.cpp)
-	add_ompl_test(test_gridb datastructures/grid/gridb.cpp)
+	add_ompl_test(test_heap datastructures/heap.cpp)
+	add_ompl_test(test_grid datastructures/grid.cpp)
+	add_ompl_test(test_gridb datastructures/gridb.cpp)
 	add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
 
 	# Test utilities
