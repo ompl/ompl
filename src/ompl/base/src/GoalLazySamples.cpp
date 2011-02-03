@@ -61,7 +61,7 @@ void ompl::base::GoalLazySamples::startSampling(void)
 
 void ompl::base::GoalLazySamples::stopSampling(void)
 {
-    if (samplingThread_)
+    if (isSampling())
     {
         terminateSamplingThread_ = true;
         samplingThread_->join();
@@ -83,6 +83,11 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
             addStateIfDifferent(s.get(), minDist_);
     }
     terminateSamplingThread_ = true;
+}
+
+bool ompl::base::GoalLazySamples::isSampling(void) const
+{
+    return terminateSamplingThread_ == false && samplingThread_ != NULL;
 }
 
 bool ompl::base::GoalLazySamples::canSample(void) const

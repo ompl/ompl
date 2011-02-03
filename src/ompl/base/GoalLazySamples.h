@@ -98,6 +98,9 @@ namespace ompl
             /** \brief Stop the goal sampling thread */
             void stopSampling(void);
 
+            /** \brief Return true if the sampling thread is active */
+            bool isSampling(void) const;
+
             /** \brief Return true of maxSampleCount() > 0 or if the
                 sampling thread is active, as in this case it is
                 possible a sample can be produced. */

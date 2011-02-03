@@ -82,9 +82,9 @@ namespace ompl
             class (not only as a singleton) */
         Profiler(bool printOnDestroy = false, bool autoStart = false) : running_(false), printOnDestroy_(printOnDestroy)
         {
-	    if (autoStart)
-		start();
-	}
+            if (autoStart)
+                start();
+        }
 
         /** \brief Destructor */
         ~Profiler(void)
@@ -165,38 +165,38 @@ namespace ompl
         /** \brief Information about time spent in a section of the code */
         struct TimeInfo
         {
-	    TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin)
-	    {
-	    }
-	    
+            TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin)
+            {
+            }
+
             /** \brief Total time counted. */
             time::duration total;
-	    
-	    /** \brief The shortest counted time interval */
-	    time::duration shortest;
-	    
-	    /** \brief The longest counted time interval */
-	    time::duration longest;
-	    
+
+            /** \brief The shortest counted time interval */
+            time::duration shortest;
+
+            /** \brief The longest counted time interval */
+            time::duration longest;
+
             /** \brief The point in time when counting time started */
             time::point    start;
 
             /** \brief Begin counting time */
             void set(void)
             {
-		start = time::now();
+                start = time::now();
             }
 
             /** \brief Add the counted time to the total time */
             void update(void)
             {
-		const time::duration &dt = time::now() - start;
-		if (dt > longest)
-		    longest = dt;
-		if (dt < shortest)
-		    shortest = dt;
-		total = total + dt;
-	    }
+                const time::duration &dt = time::now() - start;
+                if (dt > longest)
+                    longest = dt;
+                if (dt < shortest)
+                    shortest = dt;
+                total = total + dt;
+            }
         };
 
         /** \brief Timing information to be maintained for each thread */
@@ -211,7 +211,7 @@ namespace ompl
 
         void printThreadInfo(std::ostream &out, const PerThread &data);
 
-	boost::mutex                           lock_;
+        boost::mutex                           lock_;
         std::map<boost::thread::id, PerThread> data_;
         TimeInfo                               tinfo_;
         bool                                   running_;

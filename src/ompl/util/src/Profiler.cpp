@@ -100,7 +100,7 @@ void ompl::Profiler::end(const std::string &name)
 
 void ompl::Profiler::status(std::ostream &out, bool merge)
 {
-    stop(); 
+    stop();
     lock_.lock();
     printOnDestroy_ = false;
 
@@ -115,15 +115,15 @@ void ompl::Profiler::status(std::ostream &out, bool merge)
             for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin() ; iev != it->second.events.end(); ++iev)
                 combined.events[iev->first] += iev->second;
             for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin() ; itm != it->second.time.end(); ++itm)
-	    {
-		TimeInfo &tc = combined.time[itm->first];
-		tc.total = tc.total + itm->second.total;
-		if (tc.shortest > itm->second.shortest)
-		    tc.shortest = itm->second.shortest;
-		if (tc.longest < itm->second.longest)
-		    tc.longest = itm->second.longest;
-	    }
-	}
+            {
+                TimeInfo &tc = combined.time[itm->first];
+                tc.total = tc.total + itm->second.total;
+                if (tc.shortest > itm->second.shortest)
+                    tc.shortest = itm->second.shortest;
+                if (tc.longest < itm->second.longest)
+                    tc.longest = itm->second.longest;
+            }
+        }
         printThreadInfo(out, combined);
     }
     else
@@ -131,7 +131,7 @@ void ompl::Profiler::status(std::ostream &out, bool merge)
         {
             out << "Thread " << it->first << ":" << std::endl;
             printThreadInfo(out, it->second);
-        } 
+        }
     lock_.unlock();
 }
 
@@ -197,11 +197,11 @@ void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
     double unaccounted = total;
     for (unsigned int i = 0 ; i < time.size() ; ++i)
     {
-	double tS = time::seconds(data.time.find(time[i].name)->second.shortest);
-	double tL = time::seconds(data.time.find(time[i].name)->second.longest);
-        out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), [" 
-	    << tS << "s --> " << tL << "s]" << std::endl;
-	unaccounted -= time[i].value;
+        double tS = time::seconds(data.time.find(time[i].name)->second.shortest);
+        double tL = time::seconds(data.time.find(time[i].name)->second.longest);
+        out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
+            << tS << "s --> " << tL << "s]" << std::endl;
+        unaccounted -= time[i].value;
     }
     out << "Unaccounted time : " << unaccounted << " (" << (100.0 * unaccounted / total) << " %)" << std::endl;
 

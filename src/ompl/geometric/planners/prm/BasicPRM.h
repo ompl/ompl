@@ -93,9 +93,9 @@ namespace ompl
             virtual ~BasicPRM(void)
             {
                 freeMemory();
-            }   
+            }
 
-	    virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
+            virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
             /** \brief Set the maximum number of neighbors for which a
                 connection to will be attempted when a new milestone
