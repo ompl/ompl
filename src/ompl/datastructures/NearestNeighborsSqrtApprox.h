@@ -77,13 +77,19 @@ namespace ompl
             checks_ = 1 + (int)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
         }
 
+        virtual void add(std::vector<_T> &data)
+        {
+            NearestNeighborsLinear<_T>::add(data);
+            checks_ = 1 + (int)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
+        }
+        
         virtual _T nearest(const _T &data) const
         {
             int pos = -1;
-            if (checks_ > 0)
+            unsigned int n = NearestNeighborsLinear<_T>::data_.size();
+            if (checks_ > 0 && n>0)
             {
                 double dmin = 0.0;
-                unsigned int n = NearestNeighborsLinear<_T>::data_.size();
                 unsigned int offset = reinterpret_cast<unsigned long>(&data) % checks_;
                 for (unsigned int j = 0 ; j < checks_ ; ++j)
                 {

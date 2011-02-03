@@ -78,6 +78,14 @@ namespace ompl
 
         /** \brief Add an element to the datastructure */
         virtual void add(_T &data) = 0;
+        
+        /** \brief Add a vector of points */
+        virtual void add(std::vector<_T> &data)
+        {
+            typename std::vector<_T>::iterator elt;
+            for(elt=data.begin(); elt!=data.end(); elt++)
+                add(*elt);
+        }
 
         /** \brief Remove an element from the datastructure */
         virtual bool remove(_T &data) = 0;

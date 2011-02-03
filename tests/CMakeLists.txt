@@ -48,6 +48,7 @@ if(OMPL_BUILD_TESTS)
 	add_ompl_test(test_heap datastructures/heap/heap.cpp)
 	add_ompl_test(test_grid datastructures/grid/grid.cpp)
 	add_ompl_test(test_gridb datastructures/grid/gridb.cpp)
+	add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
 
 	# Test utilities
 	add_ompl_test(test_random util/random/random.cpp)
