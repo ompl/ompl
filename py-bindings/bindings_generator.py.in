@@ -171,14 +171,15 @@ class code_generator_t(object):
         for decl in decls:
              self.replace_member_function(decl)
             
-    def add_array_access(self, cls):
+    def add_array_access(self, cls, rettype=None):
         """Add array indexing to a class."""
         op = cls.operators("[]")
         op.exclude()
         self.mb.logger.info('Adding array access to class ' + cls.decl_string)
         (reg, wrapper) = self.replacement['array_read_access']
         cls.add_registration_code(reg)
-        cls.add_declaration_code(wrapper % (op[0].return_type.decl_string, cls.decl_string))
+        if not rettype: rettype=op[0].return_type.decl_string
+        cls.add_declaration_code(wrapper % (rettype, cls.decl_string))
         (reg, wrapper) = self.replacement['array_write_access']
         cls.add_registration_code(reg)
-        cls.add_declaration_code(wrapper % (cls.decl_string, op[0].return_type.decl_string))
+        cls.add_declaration_code(wrapper % (cls.decl_string, rettype))

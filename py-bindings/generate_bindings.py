@@ -173,6 +173,8 @@ class ompl_base_generator_t(code_generator_t):
         bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateManifold >')
         bstate.rename('State')
         bstate.operator('=', arg_types=['::ompl::base::State const &']).exclude()
+        # add array access to double components of state
+        self.add_array_access(bstate,'double')
         # loop over all predefined state manifolds
         for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3']:
             # create a python type for each of their corresponding state types
@@ -189,6 +191,10 @@ class ompl_base_generator_t(code_generator_t):
             # add a constructor that allows, e.g., an State to be constructed from a SE3State
             bstate.add_registration_code(
                 'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateManifold> const &>(( bp::arg("other") )))' % stype)
+            # add array access to double components of state
+            self.add_array_access(state,'double')
+        # don't this utility function
+        self.ompl_ns.member_functions('getValueAddressAtIndex').exclude() 
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateManifold').class_(
             'StateType').variable('values').exclude()
