@@ -44,25 +44,33 @@
 #include <boost/math/constants/constants.hpp>
 
 
-/// Flag indicating whether the user asked for a seed or not
-static bool            userDefinedSeed = false;
-
-/// The seed the user asked for
+/// The seed the user asked for (cannot be 0)
 static boost::uint32_t userSetSeed = 0;
 
 /// Flag indicating whether the first seed has already been generated or not
 static bool            firstSeedGenerated = false;
 
+/// The value of the first seed
+static boost::uint32_t firstSeedValue = 0;
+
 /// Compute the first seed to be used; this function should be called only once
 static boost::uint32_t firstSeed(void)
 {
-    firstSeedGenerated = true;
-    if (userDefinedSeed)
-        return userSetSeed;
+    static boost::mutex fsLock;
+    fsLock.lock();
+    if (firstSeedGenerated)
+        return firstSeedValue;
+
+    if (userSetSeed != 0)
+        firstSeedValue = userSetSeed;
     else
-        return
+        firstSeedValue =
             (boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
                               boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds();
+    firstSeedGenerated = true;
+    fsLock.unlock();
+
+    return firstSeedValue;
 }
 
 /// We use a different random number generator for the seeds of the
@@ -80,10 +88,18 @@ static boost::uint32_t nextSeed(void)
     return v;
 }
 
+boost::uint32_t ompl::RNG::getSeed(void)
+{
+    return firstSeed();
+}
+
 void ompl::RNG::setSeed(boost::uint32_t seed)
 {
     if (firstSeedGenerated)
-        throw Exception("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
+    {
+        msg::Interface msg;
+        msg.error("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
+    }
     if (seed == 0)
     {
         msg::Interface msg;
@@ -92,7 +108,6 @@ void ompl::RNG::setSeed(boost::uint32_t seed)
     }
     else
         userSetSeed = seed;
-    userDefinedSeed = true;
 }
 
 ompl::RNG::RNG(void) : generator_(nextSeed()),

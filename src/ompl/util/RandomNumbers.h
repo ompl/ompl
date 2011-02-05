@@ -116,6 +116,12 @@ namespace ompl
             generated. */
         static void setSeed(boost::uint32_t seed);
 
+        /** \brief Get the seed used for random number
+            generation. Passing the returned value to setSeed() at a
+            subsequent execution of the code will ensure deterministic
+            (repeatable) behaviour. Useful for debugging. */
+        static boost::uint32_t getSeed(void);
+
     private:
 
         boost::mt19937                                                          generator_;
