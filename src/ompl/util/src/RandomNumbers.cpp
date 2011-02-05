@@ -36,6 +36,7 @@
 
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Console.h"
 #include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/thread/mutex.hpp>
@@ -83,9 +84,15 @@ void ompl::RNG::setSeed(boost::uint32_t seed)
 {
     if (firstSeedGenerated)
         throw Exception("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
-
+    if (seed == 0)
+    {
+        msg::Interface msg;
+        msg.warn("Random generator seed cannot be 0. Using 1 instead.");
+        userSetSeed = 1;
+    }
+    else
+        userSetSeed = seed;
     userDefinedSeed = true;
-    userSetSeed = seed;
 }
 
 ompl::RNG::RNG(void) : generator_(nextSeed()),
