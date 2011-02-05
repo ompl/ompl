@@ -57,7 +57,8 @@ static boost::uint32_t firstSeedValue = 0;
 static boost::uint32_t firstSeed(void)
 {
     static boost::mutex fsLock;
-    fsLock.lock();
+    boost::mutex::scoped_lock slock(fsLock);
+
     if (firstSeedGenerated)
         return firstSeedValue;
 
@@ -68,7 +69,6 @@ static boost::uint32_t firstSeed(void)
             (boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
                               boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds();
     firstSeedGenerated = true;
-    fsLock.unlock();
 
     return firstSeedValue;
 }
