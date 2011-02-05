@@ -324,7 +324,7 @@ namespace ompl
             /** \brief When generated motions are to be added to the tree of motions, they often need to be split, so they don't cross cell boundaries.
                 Given that a motion starts out in the cell \e origin and it crosses the cells in \e coords[\e index] through \e coords[\e last] (inclusively),
                 return the index of the state to be used in the next part of the motion (that is within a cell). This will be a value between \e index and \e last. */
-            unsigned int findNextMotion(const Grid::Coord &origin, const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int last);
+            unsigned int findNextMotion(const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int count);
 
             /** \brief A control sampler */
             ControlSamplerPtr             controlSampler_;

@@ -80,7 +80,7 @@ namespace ompl
             data_.reserve(data_.size() + data.size());
             data_.insert(data_.end(), data.begin(), data.end());
         }
-        
+
         virtual bool remove(_T &data)
         {
             for (int i = data_.size() - 1 ; i >= 0 ; --i)

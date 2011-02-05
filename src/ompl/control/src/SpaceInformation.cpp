@@ -160,12 +160,12 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     if (st < steps)
     {
         controlManifold_->propagate(state, control, stepSize_, result[st]);
-        st++;
+        ++st;
 
         while (st < steps)
         {
             controlManifold_->propagate(result[st-1], control, stepSize_, result[st]);
-            st++;
+            ++st;
         }
     }
 }
@@ -188,32 +188,34 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
         if (alloc)
             result[st] = allocState();
         controlManifold_->propagate(state, control, stepSize_, result[st]);
-        st++;
 
-        if (isValid(result[st-1]))
+        if (isValid(result[st]))
         {
+                 ++st;
             while (st < steps)
             {
                 if (alloc)
                     result[st] = allocState();
                 controlManifold_->propagate(result[st-1], control, stepSize_, result[st]);
-                st++;
-                if (!isValid(result[st-1]))
+
+                if (!isValid(result[st]))
                 {
                     if (alloc)
                     {
-                        freeState(result[st-1]);
+                        freeState(result[st]);
                         result.resize(st);
                     }
                     break;
                 }
+                else
+                    ++st;
             }
         }
         else
         {
             if (alloc)
             {
-                freeState(result[st-1]);
+                freeState(result[st]);
                 result.resize(st);
             }
         }

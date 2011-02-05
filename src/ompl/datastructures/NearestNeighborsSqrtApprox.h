@@ -82,7 +82,7 @@ namespace ompl
             NearestNeighborsLinear<_T>::add(data);
             checks_ = 1 + (int)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
         }
-        
+
         virtual _T nearest(const _T &data) const
         {
             int pos = -1;

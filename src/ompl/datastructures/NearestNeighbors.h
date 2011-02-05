@@ -78,7 +78,7 @@ namespace ompl
 
         /** \brief Add an element to the datastructure */
         virtual void add(_T &data) = 0;
-        
+
         /** \brief Add a vector of points */
         virtual void add(std::vector<_T> &data)
         {

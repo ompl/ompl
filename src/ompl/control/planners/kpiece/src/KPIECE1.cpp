@@ -92,22 +92,13 @@ void ompl::control::KPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-unsigned int ompl::control::KPIECE1::findNextMotion(const Grid::Coord &origin, const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int last)
+unsigned int ompl::control::KPIECE1::findNextMotion(const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int count)
 {
-    // if the first state is already out of the origin cell, then most of the motion is in that cell
-    if (coords[index] != origin)
-    {
-        for (unsigned int i = index + 1 ; i <= last ; ++i)
-            if (coords[i] != coords[index])
-                return i - 1;
-    }
-    else
-    {
-        for (unsigned int i = index + 1 ; i <= last ; ++i)
-            if (coords[i] != origin)
-                return i - 1;
-    }
-    return last;
+    for (unsigned int i = index + 1 ; i < count ; ++i)
+        if (coords[i] != coords[index])
+            return i - 1;
+
+    return count - 1;
 }
 
 bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
@@ -146,7 +137,6 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     double  approxdif = std::numeric_limits<double>::infinity();
 
     Control *rctrl = siC_->allocControl();
-    Grid::Coord origin;
 
     std::vector<base::State*> states(siC_->getMaxControlDuration() + 1);
     std::vector<Grid::Coord>  coords(states.size());
@@ -203,7 +193,6 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
             bool interestingMotion = false;
 
             // split the motion into smaller ones, so we do not cross cell boundaries
-            projectionEvaluator_->computeCoordinates(existing->state, origin);
             for (unsigned int i = 0 ; i < cd ; ++i)
             {
                 projectionEvaluator_->computeCoordinates(states[i], coords[i]);
@@ -219,11 +208,10 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
             if (interestingMotion || rng_.uniform01() < 0.05)
             {
-                unsigned int last = cd - 1;
                 unsigned int index = 0;
-                while (index < last)
+                while (index < cd)
                 {
-                    unsigned int nextIndex = findNextMotion(origin, coords, index, last);
+                    unsigned int nextIndex = findNextMotion(coords, index, cd);
                     Motion *motion = new Motion(siC_);
                     si_->copyState(motion->state, states[nextIndex]);
                     siC_->copyControl(motion->control, rctrl);
@@ -250,8 +238,6 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
                     // new parent will be the newly created motion
                     existing = motion;
-
-                    origin = coords[nextIndex];
                     index = nextIndex + 1;
                 }
 
