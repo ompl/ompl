@@ -1,6 +1,15 @@
 /**
 
 \page changelog Changelog
+	
+\section feb_5_2011 Febryary 5, 2011
+	- Bugfix for planning with controls
+	
+\section jan_14_2011 January 14, 2011
+	- Convenience operators on scoped states: state[index] will return a double value, if one exists,
+	  state[manifold] will return the part of the state that corresponds to the specified manifold.
+	  manifold1 + manifold2 yields the Cartesian product of the two. A corresponding - operator exists as well.
+	
 \section dec_31_2010 December 31, 2010
 	- Added copyToReals/copyFromReals for states & controls
 	
