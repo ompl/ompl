@@ -83,35 +83,37 @@ namespace ompl
 
         virtual bool remove(_T &data)
         {
-            for (int i = data_.size() - 1 ; i >= 0 ; --i)
-                if (data_[i] == data)
-                {
-                    data_.erase(data_.begin() + i);
-                    return true;
-                }
+            if (!data_.empty())
+                for (int i = data_.size() - 1 ; i >= 0 ; --i)
+                    if (data_[i] == data)
+                    {
+                        data_.erase(data_.begin() + i);
+                        return true;
+                    }
             return false;
         }
 
         virtual _T nearest(const _T &data) const
         {
-            int pos = -1;
+            const std::size_t sz = data_.size();
+            std::size_t pos = sz;
             double dmin = 0.0;
-            for (unsigned int i = 0 ; i < data_.size() ; ++i)
+            for (std::size_t i = 0 ; i < sz ; ++i)
             {
                 double distance = NearestNeighbors<_T>::distFun_(data_[i], data);
-                if (pos < 0 || dmin > distance)
+                if (pos == sz || dmin > distance)
                 {
                     pos = i;
                     dmin = distance;
                 }
             }
-            if (pos >= 0)
+            if (pos != sz)
                 return data_[pos];
 
             throw Exception("No elements found");
         }
 
-        virtual void nearestK(const _T &data, unsigned int k, std::vector<_T> &nbh) const
+        virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
         {
             nbh = data_;
             if (nbh.size() > k)
@@ -129,7 +131,7 @@ namespace ompl
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
         {
             nbh.clear();
-            for (unsigned int i = 0 ; i < data_.size() ; ++i)
+            for (std::size_t i = 0 ; i < data_.size() ; ++i)
                 if (NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
                     nbh.push_back(data_[i]);
             std::sort(nbh.begin(), nbh.end(), MySort(data, NearestNeighbors<_T>::distFun_));

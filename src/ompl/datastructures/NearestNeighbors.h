@@ -51,7 +51,7 @@ namespace ompl
     public:
 
         /** \brief The definition of a distance function */
-        typedef        boost::function2<double, const _T&, const _T&> DistanceFunction;
+        typedef boost::function2<double, const _T&, const _T&> DistanceFunction;
 
         NearestNeighbors(void)
         {
@@ -82,8 +82,7 @@ namespace ompl
         /** \brief Add a vector of points */
         virtual void add(std::vector<_T> &data)
         {
-            typename std::vector<_T>::iterator elt;
-            for(elt=data.begin(); elt!=data.end(); elt++)
+            for (typename std::vector<_T>::iterator elt = data.begin() ; elt != data.end() ; ++elt)
                 add(*elt);
         }
 
@@ -94,7 +93,7 @@ namespace ompl
         virtual _T nearest(const _T &data) const = 0;
 
         /** \brief Get the k-nearest neighbors of a point */
-        virtual void nearestK(const _T &data, unsigned int k, std::vector<_T> &nbh) const = 0;
+        virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const = 0;
 
         /** \brief Get the nearest neighbors of a point, within a specified radius */
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const = 0;
