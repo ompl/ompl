@@ -53,7 +53,7 @@ namespace ompl
 ompl::control::ODEControlManifold::ODEControlManifold(const base::StateManifoldPtr &stateManifold) :
     RealVectorControlManifold(stateManifold, getStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())
 {
-    name_ = "ODE" + name_;
+    setName("ODE" + getName());
     base::RealVectorBounds bounds(dimension_);
     getEnvironment()->getControlBounds(bounds.low, bounds.high);
     setBounds(bounds);

@@ -8,7 +8,7 @@ ompl::control::ODEStateManifold::ODEStateManifold(const ODEEnvironmentPtr &env,
                                                   double positionWeight, double linVelWeight, double angVelWeight, double orientationWeight) :
     base::CompoundStateManifold(), env_(env)
 {
-    name_ = "ODE" + name_;
+    setName("ODE" + getName());
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
     {
         std::string body = ":B" + boost::lexical_cast<std::string>(i);
