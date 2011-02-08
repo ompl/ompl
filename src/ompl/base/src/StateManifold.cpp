@@ -38,7 +38,9 @@
 #include <boost/lexical_cast.hpp>
 #include <numeric>
 #include <limits>
+#include <queue>
 #include <cmath>
+#include <set>
 
 const std::string ompl::base::StateManifold::DEFAULT_PROJECTION_NAME = "";
 
@@ -48,25 +50,37 @@ namespace ompl
     namespace base
     {
 
-        static void recordName(const std::string &name, bool add)
+        static void namesList(int op, const std::string &name1, const std::string &name2 = "")
         {
             static boost::mutex lock;
-            static std::map<std::string, bool> used;
+            static std::set<std::string> used;
             boost::mutex::scoped_lock slock(lock);
 
-            if (add)
+            if (op == 1) // add
             {
-                if (used.find(name) != used.end())
-                    throw Exception("State manifold name '" + name + "' already in use. Manifold names must be unique.");
-                used[name] = true;
+                if (used.find(name1) != used.end())
+                    throw Exception("State manifold name '" + name1 + "' already in use. Manifold names must be unique.");
+                used.insert(name1);
             }
             else
-            {
-                std::map<std::string, bool>::iterator pos = used.find(name);
-                if (pos == used.end())
-                    throw Exception("No state manifold with name '" + name + "' exists.");
-                used.erase(pos);
-            }
+                if (op == 2) // remove
+                {
+                    std::set<std::string>::iterator pos = used.find(name1);
+                    if (pos == used.end())
+                        throw Exception("No state manifold with name '" + name1 + "' exists.");
+                    used.erase(pos);
+                }
+                else
+                    if (op == 3) // replace
+                    {
+                        std::set<std::string>::iterator pos = used.find(name1);
+                        if (pos == used.end())
+                            throw Exception("No state manifold with name '" + name1 + "' exists.");
+                        if (used.find(name2) != used.end())
+                            throw Exception("State manifold name '" + name2 + "' already in use. Manifold names must be unique.");
+                        used.erase(pos);
+                        used.insert(name2);
+                    }
         }
     }
 }
@@ -83,7 +97,7 @@ ompl::base::StateManifold::StateManifold(void)
     lock.unlock();
 
     name_ = "Manifold" + boost::lexical_cast<std::string>(m);
-    recordName(name_, true);
+    namesList(1, name_);
 
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
@@ -96,7 +110,7 @@ ompl::base::StateManifold::StateManifold(void)
 
 ompl::base::StateManifold::~StateManifold(void)
 {
-    recordName(name_, false);
+    namesList(2, name_);
 }
 
 const std::string& ompl::base::StateManifold::getName(void) const
@@ -106,8 +120,7 @@ const std::string& ompl::base::StateManifold::getName(void) const
 
 void ompl::base::StateManifold::setName(const std::string &name)
 {
-    recordName(name_, false);
-    recordName(name, true);
+    namesList(3, name_, name);
     name_ = name;
 }
 
@@ -163,6 +176,26 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
             it->second->printSettings(out);
         }
     }
+}
+
+bool ompl::base::StateManifold::includes(const StateManifoldPtr &other) const
+{
+    std::queue<const StateManifold*> q;
+    q.push(this);
+    while (!q.empty())
+    {
+        const StateManifold *m = q.front();
+        q.pop();
+        if (m->getName() == other->getName())
+            return true;
+        if (m->isCompound())
+        {
+            unsigned int c = m->as<CompoundStateManifold>()->getSubManifoldCount();
+            for (unsigned int i = 0 ; i < c ; ++i)
+                q.push(m->as<CompoundStateManifold>()->getSubManifold(i).get());
+        }
+    }
+    return false;
 }
 
 bool ompl::base::StateManifold::hasDefaultProjection(void) const
