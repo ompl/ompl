@@ -183,5 +183,5 @@ void ompl::base::TimeStateManifold::printState(const State *state, std::ostream 
 
 void ompl::base::TimeStateManifold::printSettings(std::ostream &out) const
 {
-    out << "Time state manifold '" << name_ << "'" << std::endl;
+    out << "Time state manifold '" << getName() << "'" << std::endl;
 }

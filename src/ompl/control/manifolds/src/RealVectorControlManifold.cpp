@@ -121,6 +121,11 @@ void ompl::control::RealVectorControlManifold::nullControl(Control *control) con
     }
 }
 
+double* ompl::control::RealVectorControlManifold::getValueAddressAtIndex(Control *control, const unsigned int index) const
+{
+    return index < dimension_ ? static_cast<ControlType*>(control)->values + index : NULL;
+}
+
 void ompl::control::RealVectorControlManifold::printControl(const Control *control, std::ostream &out) const
 {
     out << "RealVectorControl [";
@@ -141,7 +146,7 @@ void ompl::control::RealVectorControlManifold::printControl(const Control *contr
 
 void ompl::control::RealVectorControlManifold::printSettings(std::ostream &out) const
 {
-    out << "Real vector control manifold '" << name_ << "' with bounds: " << std::endl;
+    out << "Real vector control manifold '" << getName() << "' with bounds: " << std::endl;
     out << "  - min: ";
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
         out << bounds_.low[i] << " ";

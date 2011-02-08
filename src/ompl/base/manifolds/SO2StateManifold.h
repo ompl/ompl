@@ -83,7 +83,7 @@ namespace ompl
 
         SO2StateManifold(void) : StateManifold()
             {
-                name_ = "SO2" + name_;
+                setName("SO2" + getName());
                 type_ = STATE_MANIFOLD_SO2;
             }
 

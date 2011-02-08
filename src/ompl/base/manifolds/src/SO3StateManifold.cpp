@@ -249,5 +249,5 @@ void ompl::base::SO3StateManifold::printState(const State *state, std::ostream &
 
 void ompl::base::SO3StateManifold::printSettings(std::ostream &out) const
 {
-    out << "SO(3) state manifold '" << name_ << "' (represented using quaternions)" << std::endl;
+    out << "SO(3) state manifold '" << getName() << "' (represented using quaternions)" << std::endl;
 }

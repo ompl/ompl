@@ -36,6 +36,60 @@
 
 #include "ompl/control/ControlManifold.h"
 #include "ompl/util/Exception.h"
+#include <boost/thread/mutex.hpp>
+
+/// @cond IGNORE
+namespace ompl
+{
+    namespace control
+    {
+
+        static void recordName(const std::string &name, bool add)
+        {
+            static boost::mutex lock;
+            static std::map<std::string, bool> used;
+            boost::mutex::scoped_lock slock(lock);
+
+            if (add)
+            {
+                if (used.find(name) != used.end())
+                    throw Exception("Control manifold name '" + name + "' already in use. Manifold names must be unique.");
+                used[name] = true;
+            }
+            else
+            {
+                std::map<std::string, bool>::iterator pos = used.find(name);
+                if (pos == used.end())
+                    throw Exception("No control manifold with name '" + name + "' exists.");
+                used.erase(pos);
+            }
+        }
+    }
+}
+/// @endcond
+
+ompl::control::ControlManifold::ControlManifold(const base::StateManifoldPtr &stateManifold) : stateManifold_(stateManifold)
+{
+    name_ = "Control[" + stateManifold_->getName() + "]";
+    recordName(name_, true);
+}
+
+ompl::control::ControlManifold::~ControlManifold(void)
+{
+    recordName(name_, false);
+}
+
+const std::string& ompl::control::ControlManifold::getName(void) const
+{
+    return name_;
+}
+
+void ompl::control::ControlManifold::setName(const std::string &name)
+{
+    recordName(name_, false);
+    recordName(name, true);
+    name_ = name;
+}
 
 void ompl::control::ControlManifold::setup(void)
 {
@@ -46,6 +100,11 @@ bool ompl::control::ControlManifold::canPropagateBackward(void) const
     return true;
 }
 
+double* ompl::control::ControlManifold::getValueAddressAtIndex(Control *control, const unsigned int index) const
+{
+    return NULL;
+}
+
 void ompl::control::ControlManifold::printControl(const Control *control, std::ostream &out) const
 {
     out << "Control instance: " << control << std::endl;
@@ -53,7 +112,7 @@ void ompl::control::ControlManifold::printControl(const Control *control, std::o
 
 void ompl::control::ControlManifold::printSettings(std::ostream &out) const
 {
-    out << "ControlManifold '" << name_ << "' instance: " << this << std::endl;
+    out << "ControlManifold '" << getName() << "' instance: " << this << std::endl;
 }
 
 void ompl::control::ControlManifold::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
@@ -185,6 +244,28 @@ bool ompl::control::CompoundControlManifold::canPropagateBackward(void) const
     return true;
 }
 
+double* ompl::control::CompoundControlManifold::getValueAddressAtIndex(Control *control, const unsigned int index) const
+{
+    CompoundControl *ccontrol = static_cast<CompoundControl*>(control);
+    unsigned int idx = 0;
+
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+        for (unsigned int j = 0 ; j <= index ; ++j)
+        {
+            double *va = components_[i]->getValueAddressAtIndex(ccontrol->components[i], j);
+            if (va)
+            {
+                if (idx == index)
+                    return va;
+                else
+                    idx++;
+            }
+            else
+                break;
+        }
+    return NULL;
+}
+
 void ompl::control::CompoundControlManifold::printControl(const Control *control, std::ostream &out) const
 {
     out << "Compound control [" << std::endl;
@@ -196,7 +277,7 @@ void ompl::control::CompoundControlManifold::printControl(const Control *control
 
 void ompl::control::CompoundControlManifold::printSettings(std::ostream &out) const
 {
-    out << "Compound control manifold '" << name_ << "' [" << std::endl;
+    out << "Compound control manifold '" << getName() << "' [" << std::endl;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         components_[i]->printSettings(out);
     out << "]" << std::endl;
