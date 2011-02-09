@@ -79,11 +79,9 @@ namespace ompl
         CallbackParam *cp = reinterpret_cast<CallbackParam*>(data);
 
         const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
-#ifdef MSVC
-        dContact *contact = _malloca(maxContacts);
-#else
-        dContact contact[maxContacts];
-#endif
+
+        dContact *contact = (dContact*)alloca(maxContacts * sizeof(dContact));
+
         for (unsigned int i = 0; i < maxContacts; ++i)
             cp->env->setupContact(o1, o2, contact[i]);
 
