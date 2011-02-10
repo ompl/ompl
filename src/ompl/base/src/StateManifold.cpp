@@ -592,12 +592,10 @@ namespace ompl
             int result = NO_DATA_COPIED;
 
             // if "to" state is compound
-            CompoundStateManifold *compoundDestM = dynamic_cast<CompoundStateManifold*>(destM.get());
-            if (compoundDestM)
+            if (destM->isCompound())
             {
-                CompoundState *compoundDest = dynamic_cast<CompoundState*>(dest);
-                if (!compoundDest)
-                    throw Exception("State allocated by compound manifold is not compound");
+                const CompoundStateManifold *compoundDestM = destM->as<CompoundStateManifold>();
+                CompoundState *compoundDest = dest->as<CompoundState>();
 
                 // if there is a submanifold in "to" that corresponds to "from", set the data and return
                 for (unsigned int i = 0 ; i < compoundDestM->getSubManifoldCount() ; ++i)
@@ -625,12 +623,10 @@ namespace ompl
 
             // if we got to this point, it means that the data in "from" could not be copied as a chunk to "to"
             // it could be the case "from" is from a compound manifold as well, so we can copy parts of "from", as needed
-            CompoundStateManifold *compoundSourceM = dynamic_cast<CompoundStateManifold*>(sourceM.get());
-            if (compoundSourceM)
+            if (sourceM->isCompound())
             {
-                const CompoundState *compoundSource = dynamic_cast<const CompoundState*>(source);
-                if (!compoundSource)
-                    throw Exception("State allocated by compound manifold is not compound");
+                const CompoundStateManifold *compoundSourceM = sourceM->as<CompoundStateManifold>();
+                const CompoundState *compoundSource = source->as<CompoundState>();
 
                 unsigned int copiedComponents = 0;
 
