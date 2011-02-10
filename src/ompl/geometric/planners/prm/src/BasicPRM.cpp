@@ -177,7 +177,9 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
         msg_.error("Goal undefined or unknown type of goal");
         return false;
     }
-    
+
+    unsigned int nrStartStates = milestones_.size();
+
     // add the valid start states as milestones
     while (const base::State *st = pis_.nextStart())
         startM_.push_back(addMilestone(si_->cloneState(st)));
@@ -197,7 +199,6 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    unsigned int nrStartStates = milestones_.size();
     msg_.inform("Starting with %u states", nrStartStates);
 
     base::State *xstate = si_->allocState();

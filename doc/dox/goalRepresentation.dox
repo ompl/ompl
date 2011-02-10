@@ -1,7 +1,7 @@
 /**
 
 @page goalRepresentation Representing goals in OMPL
-   
+
 \section settingGoalRegion Setting the goal
 
 The most general representation of a goal is ompl::base::Goal.  This
@@ -14,14 +14,14 @@ is in the goal region and what is not.
 class MyArbitraryGoal : public ompl::base::Goal
 {
 public:
-	MyArbitraryGoal(const SpaceInformationPtr &si) : ompl::base::Goal(si)
-	{
-	}
+    MyArbitraryGoal(const SpaceInformationPtr &si) : ompl::base::Goal(si)
+    {
+    }
 
-	virtual bool isSatisfied(const State *st) const
-	{	
-		// perform any operations and return a truth value
-	}
+    virtual bool isSatisfied(const State *st) const
+    {
+        // perform any operations and return a truth value
+    }
 };
 \endcode
 
@@ -41,36 +41,36 @@ available. Here are types of information planners can use:
 class MyArbitraryGoal : public ompl::base::Goal
 {
 public:
-	MyArbitraryGoal(const SpaceInformationPtr &si) : ompl::base::Goal(si)
-	{
-	}
+    MyArbitraryGoal(const SpaceInformationPtr &si) : ompl::base::Goal(si)
+    {
+    }
 
-	virtual bool isSatisfied(const State *st) const
+    virtual bool isSatisfied(const State *st) const
         {
-		perform_any_operations();
-		return truth value;
-	}
+        perform_any_operations();
+        return truth value;
+    }
 
-	virtual bool isSatisfied(const State *st, double *distance) const
+    virtual bool isSatisfied(const State *st, double *distance) const
         {
-		bool result = isSatisfied(st);
+        bool result = isSatisfied(st);
 
-		if (distance != NULL)
-		{
-			if (state_clearly_out_of_goal_region(st))
-	                {
-				*distance = std::numeric_limits<double>::max();
-			}
-			else
-			{
-				if (state_near_goal(st))
-					*distance = 1;
-				else
-					*distance = 100;
-			}
-		}
-		return result;
-	}		
+        if (distance != NULL)
+        {
+            if (state_clearly_out_of_goal_region(st))
+                    {
+                *distance = std::numeric_limits<double>::max();
+            }
+            else
+            {
+                if (state_near_goal(st))
+                    *distance = 1;
+                else
+                    *distance = 100;
+            }
+        }
+        return result;
+    }
 };
 \endcode
 
@@ -89,15 +89,15 @@ public:
 class MyGoalRegion : public ompl::base::GoalRegion
 {
 public:
-	MyGoalRegion(const SpaceInformationPtr &si) : ompl::base::GoalRegion(si)
-	{
-		setThreshold(0.1);
-	}
+    MyGoalRegion(const SpaceInformationPtr &si) : ompl::base::GoalRegion(si)
+    {
+        setThreshold(0.1);
+    }
 
-	virtual double distanceGoal(const State *st) const
+    virtual double distanceGoal(const State *st) const
         {
-		// perform any operations and return a double indicating the distance to the goal
-	}
+        // perform any operations and return a double indicating the distance to the goal
+    }
 };
 \endcode
 
@@ -153,13 +153,13 @@ There are a few implementations of ompl::base::GoalSampleableRegion available, f
   representation they can use. For uni-directional planners,
   ompl::base::Goal is fine. For bi-directional planners however, this
   needs to be ompl::base::GoalSampleableRegion.
-  
+
   If the planner can use the goal specification, it will compute a
   motion plan. If successful, the found path is stored in the goal
   region. Flags indicating whether the solution was approximate are
   also set. The user can query all the information the planner has set
   using accessors from ompl::base::Goal.
-  
+
   Planners that include the notion of path length, and attempt to find
   solution paths that are shorter, also make use of a third version of
   ompl::base::Goal::isSatisfied(), the one that takes a path length as

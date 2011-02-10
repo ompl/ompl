@@ -69,14 +69,9 @@ namespace ompl
         public:
 
             /** \brief Construct a control manifold, given the state manifold */
-            ControlManifold(const base::StateManifoldPtr &stateManifold) : stateManifold_(stateManifold)
-            {
-                name_ = "Control[" + stateManifold_->getName() + "]";
-            }
+            ControlManifold(const base::StateManifoldPtr &stateManifold);
 
-            virtual ~ControlManifold(void)
-            {
-            }
+            virtual ~ControlManifold(void);
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
@@ -99,16 +94,10 @@ namespace ompl
             }
 
             /** \brief Get the name of the manifold */
-            const std::string& getName(void) const
-            {
-                return name_;
-            }
+            const std::string& getName(void) const;
 
             /** \brief Set the name of the manifold */
-            void setName(const std::string &name)
-            {
-                name_ = name;
-            }
+            void setName(const std::string &name);
 
             /** \brief Return the state manifold this control manifold depends on */
             const base::StateManifoldPtr& getStateManifold(void) const
@@ -163,6 +152,12 @@ namespace ompl
             /** \brief Set the function that performs state propagation */
             void setPropagationFunction(const StatePropagationFn &fn);
 
+            /** \brief Many controls contain a number of double values. This function provides a means to get the
+                memory address of a double value from a control \e control located at position \e index. The first double value
+                is returned for \e index = 0. If \e index is too large (does not point to any double values in the control),
+                the return value is NULL. */
+            virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
+
             /** \brief Print a control to a stream */
             virtual void printControl(const Control *control, std::ostream &out) const;
 
@@ -179,6 +174,8 @@ namespace ompl
 
             /** \brief Function that can perform state propagation */
             StatePropagationFn     statePropagation_;
+
+        private:
 
             /** \brief The name of this manifold */
             std::string            name_;
@@ -240,6 +237,8 @@ namespace ompl
             virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 
             virtual bool canPropagateBackward(void) const;
+
+            virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
 
             virtual void printControl(const Control *control, std::ostream &out = std::cout) const;
 

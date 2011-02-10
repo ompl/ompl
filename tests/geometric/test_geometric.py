@@ -2,14 +2,14 @@
 
 ######################################################################
 # Software License Agreement (BSD License)
-# 
+#
 #  Copyright (c) 2010, Rice University
 #  All rights reserved.
-# 
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
 #  are met:
-# 
+#
 #   * Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above
@@ -19,7 +19,7 @@
 #   * Neither the name of the Rice University nor the names of its
 #     contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -62,7 +62,7 @@ class Environment(object):
             self.grid.append(
                 [int(i) for i in lines[4+i].split(' ')[0:self.height]])
         self.char_mapping = ['__', '##', 'oo', 'XX']
-                
+
     def __str__(self):
         result = ''
         for line in self.grid:
@@ -75,43 +75,43 @@ def isValid(grid, spaceinformation, state):
     x = int(state[0])
     y = int(state[1])
     return grid[x][y] == 0 # 0 means valid state
-    
+
 class myManifold(ob.RealVectorStateManifold):
     def __init__(self):
         super(myManifold, self).__init__(2)
-    
+
     def distance(self, state1, state2):
         x1 = int(state1[0])
         y1 = int(state1[1])
         x2 = int(state2[0])
         y2 = int(state2[1])
         return fabs(x1-x2) + fabs(y1-y2)
-        
+
 class mySpaceInformation(ob.SpaceInformation):
     def __init__(self, env):
         self.sMan = myManifold()
         super(mySpaceInformation, self).__init__(self.sMan)
         sbounds = ob.RealVectorBounds(2)
-        
-        # dimension 0 (x) spans between [0, width) 
-        # dimension 1 (y) spans between [0, height) 
-        # since sampling is continuous and we round down, we allow values until 
+
+        # dimension 0 (x) spans between [0, width)
+        # dimension 1 (y) spans between [0, height)
+        # since sampling is continuous and we round down, we allow values until
         # just under the max limit
         # the resolution is 1.0 since we check cells only
         sbounds.low[0] = 0.0
         sbounds.high[0] = float(env.width) - 0.000000001
-        
+
         sbounds.low[1] = 0.0
         sbounds.high[1] = float(env.height) - 0.000000001
-        
+
         self.sMan.setBounds(sbounds)
         self.setStateValidityCheckingResolution(0.5)
         isValidFn = partial(isValid, env.grid)
         self.setStateValidityChecker(isValidFn)
         self.setup()
-        
+
 class TestPlanner(object):
-    
+
     def execute(self, env, time, pathLength, show = False):
         result = True
         # instantiate space information
@@ -122,13 +122,13 @@ class TestPlanner(object):
         planner = self.newplanner(si)
         planner.setProblemDefinition(pdef)
         planner.setup()
-        
+
         # the initial state
         state = ob.State(si)
         state()[0] = env.start[0]
         state()[1] = env.start[1]
         pdef.addStartState(state)
-        
+
         goal = ob.GoalState(si)
         gstate = ob.State(si)
         gstate()[0] = env.goal[0]
@@ -136,14 +136,14 @@ class TestPlanner(object):
         goal.setState(gstate)
         goal.threshold = 1e-3
         pdef.setGoal(goal)
-        
+
         startTime = clock()
         if planner.solve(SOLUTION_TIME):
             elapsed = clock() - startTime
             time = time + elapsed
             if show:
                 print 'Found solution in %f seconds!' % elapsed
-            
+
             path = goal.getSolutionPath()
             sm = og.PathSimplifier(si)
             startTime = clock()
@@ -152,7 +152,7 @@ class TestPlanner(object):
             time = time + elapsed
             if show:
                 print 'Simplified solution in %f seconds!' % elapsed
-            
+
             path.interpolate(100)
             pathLength = pathLength + path.length()
             if show:
@@ -168,9 +168,9 @@ class TestPlanner(object):
                 print temp, '\n'
         else:
             result = False
-        
+
         return (result, time, pathLength)
-        
+
     def newPlanner(si):
         raise NotImplementedError('pure virtual method')
 
@@ -179,7 +179,7 @@ class RRTTest(TestPlanner):
         planner = og.RRT(si)
         planner.setRange(10.0)
         return planner
-        
+
 class RRTConnectTest(TestPlanner):
     def newplanner(self, si):
         planner = og.RRTConnect(si)
@@ -207,7 +207,7 @@ class SBLTest(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection) 
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -220,7 +220,7 @@ class pSBLTest(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection) 
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -232,7 +232,7 @@ class KPIECE1Test(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection) 
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -244,7 +244,7 @@ class LBKPIECE1Test(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection) 
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -256,7 +256,7 @@ class ESTTest(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection) 
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -271,42 +271,42 @@ class PlanTest(unittest.TestCase):
         if self.env.width * self.env.height == 0:
             self.fail('The environment has a 0 dimension. Cannot continue')
         self.verbose = True
-    
+
     def runPlanTest(self, planner):
         time = 0.0
         length = 0.0
         good = 0
         N = 50
-        
+
         for i in range(N):
             (result, time, length) = planner.execute(self.env, time, length, False)
             if result: good = good + 1
-        
+
         success = 100.0 * float(good) / float(N)
         avgruntime = time / float(N)
         avglength = length / float(N)
-        
+
         if self.verbose:
             print '    Success rate: %f%%' % success
             print '    Average runtime: %f' % avgruntime
             print '    Average path length: %f' % avglength
-        
+
         return (success, avgruntime, avglength)
-    
+
     def testGeometric_RRT(self):
         planner = RRTTest()
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 0.3)
         self.assertTrue(avglength < 100.0)
-    
+
     def testGeometric_RRTConnect(self):
         planner = RRTConnectTest()
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 0.5)
         self.assertTrue(avglength < 100.0)
-    
+
     # need to make bindings threadsafe
     # see http://wiki.python.org/moin/boost.python/HowTo#MultithreadingSupportformyfunction
     # def testGeometric_pRRT(self):

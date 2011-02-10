@@ -1,7 +1,7 @@
 /**
 
    @page availablePlanners Available Planners
-   
+
    @section geometric_planners Planning under geometric constraints
 
    This set of planners only accounts for the geometric constraints of
@@ -29,7 +29,7 @@
    - @ref GAIK "Inverse Kinematics with Genetic Algorithms"
 
    @section dynamic_planners Planning under differential constraints
-   
+
    - @ref cKPIECE1 "Kinodynamic Planning by Interior-Exterior Cell Exploration (KPIECE)"
    - @ref cRRT "Rapidly-exploring Random Trees (RRT)"
 

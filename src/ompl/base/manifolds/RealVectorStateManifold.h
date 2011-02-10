@@ -99,7 +99,7 @@ namespace ompl
             RealVectorStateManifold(unsigned int dim = 0) : StateManifold(), dimension_(dim), bounds_(dim),  stateBytes_(dim * sizeof(double))
             {
                 type_ = STATE_MANIFOLD_REAL_VECTOR;
-                name_ = "RealVector" + name_;
+                setName("RealVector" + getName());
                 dimensionNames_.resize(dim, "");
             }
 

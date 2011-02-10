@@ -37,102 +37,71 @@
 
 #include "ompl/util/Profiler.h"
 
+ompl::Profiler* ompl::Profiler::Instance(void)
+{
+    static Profiler p(true, true);
+    return &p;
+}
+
 #if ENABLE_PROFILING
 
 #include <vector>
 #include <algorithm>
 
-class StaticProfilerInstance
-{
-public:
-
-    StaticProfilerInstance(void)
-    {
-        defaultLock = new boost::mutex();
-        defaultProfiler = new ompl::Profiler(true);
-        defaultProfiler->start();
-    }
-
-    ~StaticProfilerInstance(void)
-    {
-        delete defaultProfiler;
-        delete defaultLock;
-    }
-
-    void lock(void)
-    {
-        defaultLock->lock();
-    }
-
-    void unlock(void)
-    {
-        defaultLock->unlock();
-    }
-
-    boost::mutex   *defaultLock;
-    ompl::Profiler *defaultProfiler;
-};
-
-static StaticProfilerInstance spi;
-
-ompl::Profiler* ompl::Profiler::Instance(void)
-{
-    return spi.defaultProfiler;
-}
-
 void ompl::Profiler::start(void)
 {
-    spi.lock();
+    lock_.lock();
     if (!running_)
     {
         tinfo_.set();
         running_ = true;
     }
-    spi.unlock();
+    lock_.unlock();
 }
 
 void ompl::Profiler::stop(void)
 {
-    spi.lock();
+    lock_.lock();
     if (running_)
     {
         tinfo_.update();
         running_ = false;
     }
-    spi.unlock();
+    lock_.unlock();
 }
 
 void ompl::Profiler::clear(void)
 {
-    spi.lock();
+    lock_.lock();
     data_.clear();
-    spi.unlock();
+    lock_.unlock();
 }
 
 void ompl::Profiler::event(const std::string &name, const unsigned int times)
 {
-    spi.lock();
+    lock_.lock();
     data_[boost::this_thread::get_id()].events[name] += times;
-    spi.unlock();
+    lock_.unlock();
 }
 
 void ompl::Profiler::begin(const std::string &name)
 {
-    spi.lock();
+    lock_.lock();
     data_[boost::this_thread::get_id()].time[name].set();
-    spi.unlock();
+    lock_.unlock();
 }
 
 void ompl::Profiler::end(const std::string &name)
 {
-    spi.lock();
+    lock_.lock();
     data_[boost::this_thread::get_id()].time[name].update();
-    spi.unlock();
+    lock_.unlock();
 }
 
 void ompl::Profiler::status(std::ostream &out, bool merge)
 {
     stop();
+    lock_.lock();
     printOnDestroy_ = false;
 
     out << std::endl;
@@ -146,7 +115,14 @@ void ompl::Profiler::status(std::ostream &out, bool merge)
             for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin() ; iev != it->second.events.end(); ++iev)
                 combined.events[iev->first] += iev->second;
             for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin() ; itm != it->second.time.end(); ++itm)
-                combined.time[itm->first].total = combined.time[itm->first].total + itm->second.total;
+            {
+                TimeInfo &tc = combined.time[itm->first];
+                tc.total = tc.total + itm->second.total;
+                if (tc.shortest > itm->second.shortest)
+                    tc.shortest = itm->second.shortest;
+                if (tc.longest < itm->second.longest)
+                    tc.longest = itm->second.longest;
+            }
         }
         printThreadInfo(out, combined);
     }
@@ -156,6 +132,7 @@ void ompl::Profiler::status(std::ostream &out, bool merge)
             out << "Thread " << it->first << ":" << std::endl;
             printThreadInfo(out, it->second);
         }
+    lock_.unlock();
 }
 
 namespace ompl
@@ -190,7 +167,7 @@ namespace ompl
     };
 }
 
-void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data) const
+void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
 {
     double total = time::seconds(tinfo_.total);
 
@@ -220,7 +197,10 @@ void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data) c
     double unaccounted = total;
     for (unsigned int i = 0 ; i < time.size() ; ++i)
     {
-        out << time[i].name << ": " << time[i].value << " (" << (100.0 * time[i].value/total) << " %)" << std::endl;
+        double tS = time::seconds(data.time.find(time[i].name)->second.shortest);
+        double tL = time::seconds(data.time.find(time[i].name)->second.longest);
+        out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
+            << tS << "s --> " << tL << "s]" << std::endl;
         unaccounted -= time[i].value;
     }
     out << "Unaccounted time : " << unaccounted << " (" << (100.0 * unaccounted / total) << " %)" << std::endl;

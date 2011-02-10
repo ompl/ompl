@@ -7,20 +7,20 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${OMPL_MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${OMPL_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${OMPL_PATCH_VERSION}")
 
-set(CPACK_SOURCE_IGNORE_FILES 
-	"/.svn/"
-	"/build/"
-	".pyc$"
-	".pyo$"
-	".so$"
-	".dylib$"
-	".md5$"
-	"/blueprint/"
-	".DS_Store"
-	"mkwebdocs.sh"
-	"/html/"
-	"/bindings/"
-	"TODO")
+set(CPACK_SOURCE_IGNORE_FILES
+    "/.svn/"
+    "/build/"
+    ".pyc$"
+    ".pyo$"
+    ".so$"
+    ".dylib$"
+    ".md5$"
+    "/blueprint/"
+    ".DS_Store"
+    "mkwebdocs.sh"
+    "/html/"
+    "/bindings/"
+    "TODO")
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_GENERATOR "TGZ;ZIP")
 

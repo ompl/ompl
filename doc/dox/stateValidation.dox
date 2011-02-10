@@ -12,7 +12,7 @@
       with the evaluation of energy functions.
 
       In order to allow the user to specify the notion of state
-      validity, OMPL defines two abstract classes: 
+      validity, OMPL defines two abstract classes:
         - ompl::base::StateValidityChecker
         - ompl::base::MotionValidator
 

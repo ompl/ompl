@@ -284,9 +284,28 @@ TEST(Compound, Simple)
     EXPECT_TRUE((s + d)->getDimension() == s->getDimension());
 
     m4->setName("test");
+    EXPECT_TRUE(m4->getName() == "test");
+
     base::StateManifoldPtr t = m1 + m4;
     EXPECT_EQ((t - "test")->getDimension(), m1->getDimension());
     EXPECT_EQ((m1 - m1)->getDimension(), 0u);
+    bool ok = false;
+    try
+    {
+    t->setName(m1->getName());
+    }
+    catch(...)
+    {
+    ok = true;
+    }
+    EXPECT_TRUE(ok);
+    base::ScopedState<> st(t);
+    EXPECT_TRUE(t->getValueAddressAtIndex(st.get(), 10000) == NULL);
+    EXPECT_TRUE(t->includes(m1));
+    EXPECT_FALSE(t->includes(m2));
+    EXPECT_FALSE(m1->includes(t));
+    EXPECT_TRUE(m3->includes(m3));
+    EXPECT_TRUE(t->includes(t));
 }
 
 int main(int argc, char **argv)

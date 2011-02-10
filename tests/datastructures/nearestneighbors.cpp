@@ -56,42 +56,42 @@ TEST(NearestNeighbors, Linear)
     std::vector<base::State*> states(n), nghbr(10);
     NearestNeighborsLinear<base::State*> proximity;
     base::State* s;
-    
+
     b.setLow(0);
     b.setHigh(1);
     SE3.setBounds(b);
     sampler = SE3.allocStateSampler();
 
     proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateManifold>, &SE3, _1, _2));
-    
+
     for(i=0; i<n; ++i)
     {
         states[i] = SE3.allocState();
         sampler->sampleUniform(states[i]);
         proximity.add(states[i]);
     }
-    
+
     EXPECT_EQ(proximity.size(), n);
-    
+
     for(i=0; i<n; ++i)
     {
         s = proximity.nearest(states[i]);
         EXPECT_EQ(s, states[i]);
-        
+
         proximity.nearestK(states[i], 10, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(), 10);
-        
+
         proximity.nearestR(states[i], 1000., nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(),proximity.size());
     }
-    
+
     proximity.list(nghbr);
     EXPECT_EQ(nghbr.size(),proximity.size());
     for(i=0; i<n; ++i)
         EXPECT_EQ(states[i], nghbr[i]);
-        
+
     for(i=n-1; i>=0; --i)
     {
         proximity.remove(states[i]);
@@ -116,38 +116,38 @@ TEST(NearestNeighbors, SqrtApprox)
     std::vector<base::State*> states(n), nghbr(10);
     NearestNeighborsSqrtApprox<base::State*> proximity;
     base::State* s;
-    
+
     b.setLow(0);
     b.setHigh(1);
     SE3.setBounds(b);
     sampler = SE3.allocStateSampler();
 
     proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateManifold>, &SE3, _1, _2));
-    
+
     for(i=0; i<n; ++i)
     {
         states[i] = SE3.allocState();
         sampler->sampleUniform(states[i]);
         proximity.add(states[i]);
     }
-    
+
     EXPECT_EQ(proximity.size(), n);
-    
+
     for(i=0,j=0; i<n; ++i)
     {
         s = proximity.nearest(states[i]);
         if (s==states[i]) j++;
-        
+
         proximity.nearestK(states[i], 10, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(), 10);
-        
+
         proximity.nearestR(states[i], 1000., nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(),proximity.size());
     }
     EXPECT_GE(j, 10);
-    
+
     proximity.list(nghbr);
     EXPECT_EQ(nghbr.size(),proximity.size());
     for(i=0; i<n; ++i)

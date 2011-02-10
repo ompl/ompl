@@ -9,21 +9,21 @@
 - Q: <em>Why is the code I added to the OMPL source not being compiled?</em>
   <br>
   See \ref buildSystem. Essentially, just run \c cmake again after adding new files.
- 
+
 - Q: <em>How do I specify collision checking for a planner?</em>
   <br>
   A: See ompl::base::SpaceInformation::setStateValidityChecker() and
   ompl::base::StateValidityChecker.
 
 - Q: <em>Can I visualize the exploration datastructure used by a planner?</em>
-  <br> 
+  <br>
   A: Yes. You need to call ompl::base::Planner::getPlannerData(). This
   will give you an instance of ompl::base::PlannerData which contains
   all the states and the edges between them. Functionality for
   plotting this data is however not available.
 
 - Q: <em>Can I change the state manifold during planning?</em>
-  <br> 
+  <br>
   A: No. Such changes will make the code crash.
 
 - Q: <em>Can I set the sampler to use for a planner?</em>
@@ -44,7 +44,7 @@
   ...
   ompl::base::ValidStateSamplerPtr allocValidStateSampler(const ompl::base::SpaceInformation *si)
   {
-    	return ompl::base::ValidStateSamplerPtr(new ompl::base::ObstacleBasedValidStateSampler(si));
+        return ompl::base::ValidStateSamplerPtr(new ompl::base::ObstacleBasedValidStateSampler(si));
   }
   ...
   ompl::base::StateManifoldPtr manifold(...);

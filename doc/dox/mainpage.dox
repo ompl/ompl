@@ -17,9 +17,9 @@ integrated into systems that provide the additional needed
 components. For examples of complete systems using OMPL, see <a
 href="http://ompl.kavrakilab.org">OMPL.app</a> and <a
 href="http://www.ros.org/wiki/ompl">ROS</a>. We have also developed
-a \ref education "educational module on motion planning" that is 
+a \ref education "educational module on motion planning" that is
 centered around OMPL.app. We are looking for educational partners
-to use and further develop the material. Please contact us for 
+to use and further develop the material. Please contact us for
 more information.
 
 \htmlonly<div></div>\endhtmlonly

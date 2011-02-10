@@ -77,9 +77,7 @@ namespace ompl
             /** \brief Constructor. Assigns a @b unique name to the manifold */
             StateManifold(void);
 
-            virtual ~StateManifold(void)
-            {
-            }
+            virtual ~StateManifold(void);
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
@@ -105,16 +103,10 @@ namespace ompl
             virtual bool isCompound(void) const;
 
             /** \brief Get the name of the manifold */
-            const std::string& getName(void) const
-            {
-                return name_;
-            }
+            const std::string& getName(void) const;
 
             /** \brief Set the name of the manifold */
-            void setName(const std::string &name)
-            {
-                name_ = name;
-            }
+            void setName(const std::string &name);
 
             /** \brief Get the type of the manifold. The type can be
                 used to verify whether two manifold instances are of
@@ -123,6 +115,9 @@ namespace ompl
             {
                 return type_;
             }
+
+            /** \brief Return true if \e other is a manifold included (perhaps equal, perhaps a submanifold) in this one. */
+            bool includes(const StateManifoldPtr &other) const;
 
             /** @name Functionality specific to the manifold (to be implemented)
                 @{ */
@@ -144,6 +139,12 @@ namespace ompl
 
             /** \brief Computes distance to between two states. This value will always be between 0 and getMaximumExtent() */
             virtual double distance(const State *state1, const State *state2) const = 0;
+
+            /** \brief Many states contain a number of double values. This function provides a means to get the
+                memory address of a double value from state \e state located at position \e index. The first double value
+                is returned for \e index = 0. If \e index is too large (does not point to any double values in the state),
+                the return value is NULL. */
+            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
 
             /** \brief When performing discrete validation of motions,
                 the length of the longest segment that does not
@@ -225,8 +226,6 @@ namespace ompl
 
             /** @} */
 
-            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
-
             /** \brief Print a state to a stream */
             virtual void printState(const State *state, std::ostream &out) const;
 
@@ -247,9 +246,6 @@ namespace ompl
 
             /** \brief The name used for the default projection */
             static const std::string DEFAULT_PROJECTION_NAME;
-
-            /** \brief Manifold name */
-            std::string                                   name_;
 
             /** \brief A type assigned for this manifold */
             int                                           type_;
@@ -272,6 +268,10 @@ namespace ompl
             /** \brief List of available projections */
             std::map<std::string, ProjectionEvaluatorPtr> projections_;
 
+        private:
+
+            /** \brief Manifold name */
+            std::string                                   name_;
         };
 
         /** \brief A manifold to allow the composition of state manifolds */

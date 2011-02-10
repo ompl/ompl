@@ -1,7 +1,7 @@
 /**
 \page installPyPlusPlus Installation of Py++
 
-\par 
+\par
 <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>
 requires pygccxml and GCC-XML. You need the versions of GCC-XML,
 pygccxml, and Py++ that are taken directly from their respective
@@ -19,7 +19,7 @@ mkdir repos
 cd repos
 
 # get latest version of gccxml, build & install it
-cvs -d :pserver:anoncvs@www.gccxml.org:/cvsroot/GCC_XML co gccxml  
+cvs -d :pserver:anoncvs@www.gccxml.org:/cvsroot/GCC_XML co gccxml
 cd gccxml
 cmake .
 make

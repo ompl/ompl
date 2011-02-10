@@ -57,7 +57,7 @@ namespace ompl
     class NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
     {
     public:
-        NearestNeighborsSqrtApprox(void) : NearestNeighborsLinear<_T>(), checks_(0)
+        NearestNeighborsSqrtApprox(void) : NearestNeighborsLinear<_T>(), checks_(0), offset_(0)
         {
         }
 
@@ -69,41 +69,51 @@ namespace ompl
         {
             NearestNeighborsLinear<_T>::clear();
             checks_ = 0;
+            offset_ = 0;
         }
 
         virtual void add(_T &data)
         {
             NearestNeighborsLinear<_T>::add(data);
-            checks_ = 1 + (int)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
+            updateCheckCount();
         }
 
         virtual void add(std::vector<_T> &data)
         {
             NearestNeighborsLinear<_T>::add(data);
-            checks_ = 1 + (int)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
+            updateCheckCount();
+        }
+
+        virtual bool remove(_T &data)
+        {
+            bool result = NearestNeighborsLinear<_T>::remove(data);
+            if (result)
+                updateCheckCount();
+            return result;
         }
 
         virtual _T nearest(const _T &data) const
         {
-            int pos = -1;
-            unsigned int n = NearestNeighborsLinear<_T>::data_.size();
-            if (checks_ > 0 && n>0)
+            const std::size_t n = NearestNeighborsLinear<_T>::data_.size();
+            std::size_t pos = n;
+
+            if (checks_ > 0 && n > 0)
             {
                 double dmin = 0.0;
-                unsigned int offset = reinterpret_cast<unsigned long>(&data) % checks_;
-                for (unsigned int j = 0 ; j < checks_ ; ++j)
+                for (std::size_t j = 0 ; j < checks_ ; ++j)
                 {
-                    unsigned int i = (j * checks_ + offset) % n;
+                    std::size_t i = (j * checks_ + offset_) % n;
 
                     double distance = NearestNeighbors<_T>::distFun_(NearestNeighborsLinear<_T>::data_[i], data);
-                    if (pos < 0 || dmin > distance)
+                    if (pos == n || dmin > distance)
                     {
                         pos = i;
                         dmin = distance;
                     }
                 }
+                offset_ = (offset_ + 1) % checks_;
             }
-            if (pos >= 0)
+            if (pos != n)
                 return NearestNeighborsLinear<_T>::data_[pos];
 
             throw Exception("No elements found");
@@ -111,8 +121,17 @@ namespace ompl
 
     protected:
 
+        inline
+        void updateCheckCount(void)
+        {
+            checks_ = 1 + (std::size_t)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
+        }
+
         /** \brief The number of checks to be performed when looking for a nearest neighbor */
-        unsigned int      checks_;
+        std::size_t         checks_;
+
+        /** \brief The offset to start checking at (between 0 and \e checks_) */
+        mutable std::size_t offset_;
 
     };
 

@@ -262,12 +262,18 @@ namespace ompl
 
             double& operator[](const unsigned int index)
             {
-                return *(manifold_->getValueAddressAtIndex(state_, index));
+                double *val = manifold_->getValueAddressAtIndex(state_, index);
+                if (!val)
+                    throw Exception("Index out of bounds");
+                return *val;
             }
 
             double operator[](const unsigned int index) const
             {
-                return *(manifold_->getValueAddressAtIndex(state_, index));
+                const double *val = manifold_->getValueAddressAtIndex(state_, index);
+                if (!val)
+                    throw Exception("Index out of bounds");
+                return *val;
             }
 
             template<class O>
@@ -322,24 +328,42 @@ namespace ompl
             }
 
             /** \brief De-references to the contained state */
-            StateType& operator*(void) const
+            StateType& operator*(void)
+            {
+                return *state_;
+            }
+
+            /** \brief De-references to the contained state */
+            const StateType& operator*(void) const
             {
                 return *state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* operator->(void) const
+            StateType* operator->(void)
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* get(void) const
+            const StateType* operator->(void) const
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
+            StateType* get(void)
+            {
+                return state_;
+            }
+
+            /** \brief Returns a pointer to the contained state */
+            const StateType* get(void) const
+            {
+                return state_;
+            }
+
+            /** \brief Returns a pointer to the contained state (used for Python bindings) */
             StateType* operator()(void) const
             {
                 return state_;
@@ -427,8 +451,9 @@ namespace ompl
          */
 
         /** \brief Overload stream output operator. Calls ompl::base::StateManifold::printState() */
+        template<class T>
         inline
-        std::ostream& operator<<(std::ostream &out, const ScopedState<> &state)
+        std::ostream& operator<<(std::ostream &out, const ScopedState<T> &state)
         {
             state.print(out);
             return out;

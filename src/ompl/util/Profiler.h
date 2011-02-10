@@ -80,8 +80,10 @@ namespace ompl
 
         /** \brief Constructor. It is allowed to separately instantiate this
             class (not only as a singleton) */
-        Profiler(bool printOnDestroy = false) : running_(false), printOnDestroy_(printOnDestroy)
+        Profiler(bool printOnDestroy = false, bool autoStart = false) : running_(false), printOnDestroy_(printOnDestroy)
         {
+            if (autoStart)
+                start();
         }
 
         /** \brief Destructor */
@@ -163,8 +165,18 @@ namespace ompl
         /** \brief Information about time spent in a section of the code */
         struct TimeInfo
         {
+            TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin)
+            {
+            }
+
             /** \brief Total time counted. */
             time::duration total;
+
+            /** \brief The shortest counted time interval */
+            time::duration shortest;
+
+            /** \brief The longest counted time interval */
+            time::duration longest;
 
             /** \brief The point in time when counting time started */
             time::point    start;
@@ -178,7 +190,12 @@ namespace ompl
             /** \brief Add the counted time to the total time */
             void update(void)
             {
-                total = total + (time::now() - start);
+                const time::duration &dt = time::now() - start;
+                if (dt > longest)
+                    longest = dt;
+                if (dt < shortest)
+                    shortest = dt;
+                total = total + dt;
             }
         };
 
@@ -192,8 +209,9 @@ namespace ompl
             std::map<std::string, TimeInfo>          time;
         };
 
-        void printThreadInfo(std::ostream &out, const PerThread &data) const;
+        void printThreadInfo(std::ostream &out, const PerThread &data);
 
+        boost::mutex                           lock_;
         std::map<boost::thread::id, PerThread> data_;
         TimeInfo                               tinfo_;
         bool                                   running_;
@@ -217,12 +235,9 @@ namespace ompl
     {
     public:
 
-        static Profiler* Instance(void)
-        {
-            return NULL;
-        }
+        static Profiler* Instance(void);
 
-        Profiler(void)
+        Profiler(bool dummy1 = true, bool dummy2 = true)
         {
         }
 

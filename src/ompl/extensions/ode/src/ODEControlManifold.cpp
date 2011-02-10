@@ -41,7 +41,7 @@
 /// @cond IGNORE
 namespace ompl
 {
-    const control::ODEEnvironmentPtr& getStateManifoldEnvironmentWithCheck(const base::StateManifoldPtr &manifold)
+    const control::ODEEnvironmentPtr& getODEStateManifoldEnvironmentWithCheck(const base::StateManifoldPtr &manifold)
     {
         if (!dynamic_cast<control::ODEStateManifold*>(manifold.get()))
             throw Exception("ODE State Manifold needed for creating ODE Control Manifold");
@@ -51,9 +51,9 @@ namespace ompl
 /// @endcond
 
 ompl::control::ODEControlManifold::ODEControlManifold(const base::StateManifoldPtr &stateManifold) :
-    RealVectorControlManifold(stateManifold, getStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())
+    RealVectorControlManifold(stateManifold, getODEStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())
 {
-    name_ = "ODE" + name_;
+    setName("ODE" + getName());
     base::RealVectorBounds bounds(dimension_);
     getEnvironment()->getControlBounds(bounds.low, bounds.high);
     setBounds(bounds);
@@ -79,11 +79,9 @@ namespace ompl
         CallbackParam *cp = reinterpret_cast<CallbackParam*>(data);
 
         const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
-#ifdef MSVC
-        dContact *contact = _malloca(maxContacts);
-#else
-        dContact contact[maxContacts];
-#endif
+
+        dContact *contact = (dContact*)alloca(maxContacts * sizeof(dContact));
+
         for (unsigned int i = 0; i < maxContacts; ++i)
             cp->env->setupContact(o1, o2, contact[i]);
 

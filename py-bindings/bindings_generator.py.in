@@ -1,13 +1,13 @@
 ######################################################################
 # Software License Agreement (BSD License)
-# 
+#
 #  Copyright (c) 2010, Rice University
 #  All rights reserved.
-# 
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
 #  are met:
-# 
+#
 #   * Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 #   * Neither the name of the Rice University nor the names of its
 #     contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -50,7 +50,7 @@ messages.disable( messages.W1040 )
 # declaration with another method. The dictionary is indexed by method name,
 # either with or without full scope. For each method there is a 2-tuple. The
 # first component is a string that tells Boost.Python how to export the
-# replacement method. The second component is a string that contains the C++ 
+# replacement method. The second component is a string that contains the C++
 # code for the replacement method.
 default_replacement = {}
 # A C++ call like "foo.print(std::cout)" will be replaced with something more
@@ -98,7 +98,7 @@ def returns_reference(decl):
 
 class code_generator_t(object):
     """The base class code generator."""
-    
+
     def __init__(self, name, deps=None, replacement_dict=default_replacement):
         """Constructor.
         @name name of the python module
@@ -119,7 +119,7 @@ class code_generator_t(object):
             indexing_suite_version = 1 )
         self.replacement = {} if replacement_dict==None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
-        self.std_ns = self.mb.namespace('std')    
+        self.std_ns = self.mb.namespace('std')
         self.ompl_ns = self.mb.namespace('ompl')
         self.call_policies()
         self.filter_declarations()
@@ -128,15 +128,15 @@ class code_generator_t(object):
                 self.mb.register_module_dependency(dep)
         self.mb.build_code_creator( module_name='_'+name )
         self.mb.split_module('bindings/' + name, use_files_sum_repository=True)
-    
+
     def call_policies(self):
-        """Define default call policies: for anything that returns a reference, 
+        """Define default call policies: for anything that returns a reference,
         return a reference to the existing object. This is potentially dangerous."""
         decllist = [ self.mb.member_functions(returns_reference),
             self.mb.free_functions(returns_reference),
             self.mb.operators(returns_reference) ]
         for decls in decllist:
-            for decl in decls: 
+            for decl in decls:
                 if decl.return_type.decl_string[-7:]=='const &':
                     decl.call_policies = \
                         call_policies.return_value_policy(
@@ -145,18 +145,18 @@ class code_generator_t(object):
                     decl.call_policies = \
                         call_policies.return_value_policy(
                             call_policies.reference_existing_object)
-            
+
     def filter_declarations(self):
         """Remove some classes and functions from the std namespace"""
         self.std_ns.class_('ios_base').exclude()
         self.std_ns.free_functions().exclude()
         self.std_ns.operators().exclude()
-        
+
     def replace_member_function(self, decl):
         """Utility function to replace a declaration."""
         decl.exclude()
         cls = decl.parent
-        
+
         self.mb.logger.info('Replacing member function ' + cls.decl_string+'::'+decl.name)
         try:
             (reg, wrapper) = self.replacement[cls.decl_string+'::'+decl.name]
@@ -165,12 +165,12 @@ class code_generator_t(object):
         cls.add_registration_code(reg)
         cls.add_declaration_code(wrapper % cls.decl_string)
         #cls.add_wrapper_code(wrapper)
-    
+
     def replace_member_functions(self, decls):
         """Utility function to replace multiple declarations."""
         for decl in decls:
              self.replace_member_function(decl)
-            
+
     def add_array_access(self, cls, rettype=None):
         """Add array indexing to a class."""
         op = cls.operators("[]")

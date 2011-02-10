@@ -91,7 +91,7 @@ namespace ompl
             RealVectorControlManifold(const base::StateManifoldPtr &stateManifold, unsigned int dim) :
                 ControlManifold(stateManifold), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
             {
-                name_ = "RealVector" + name_;
+                setName("RealVector" + getName());
             }
 
             virtual ~RealVectorControlManifold(void)
@@ -122,6 +122,8 @@ namespace ompl
             virtual void nullControl(Control *control) const;
 
             virtual void printControl(const Control *control, std::ostream &out) const;
+
+            virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
 
             virtual void printSettings(std::ostream &out) const;
 

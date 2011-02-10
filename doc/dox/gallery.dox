@@ -24,11 +24,11 @@ the exploration data structure (a tree of motions) is also shown.
 
 \section gallery_omplapp Planning for Rigid Bodies Using OMPL.app
 
-Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app. 
+Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app.
 \htmlonly
 <hr class="space">
 \endhtmlonly
-<b>The “cubicles” environment.</b> An L-shaped robot has to fly through a number of rooms and the “basement” to reach the goal state:<br> 
+<b>The “cubicles” environment.</b> An L-shaped robot has to fly through a number of rooms and the “basement” to reach the goal state:<br>
 \htmlonly
 <div class="span-8 push-1">
   <img src="../images/cubicles-problem.png" width="100%">

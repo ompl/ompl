@@ -16,11 +16,11 @@
 
    \par Instantiating a control manifold
    If planning with differential constraints, a representation of the
-   space of controls is needed as well.   
+   space of controls is needed as well.
    Simply create an instance of a class that inherits from
    ompl::control::ControlManifold. Usually,
    ompl::control::RealVectorControlManifold is sufficient.
-   An implementation needs to be specified for the ompl::control:ControlManifold::propagate() 
+   An implementation needs to be specified for the ompl::control:ControlManifold::propagate()
    either by inheriting from the manifold class or by calling
    ompl::control::ControlManifold::setPropagationFunction().
    @code
@@ -49,7 +49,7 @@
        ompl::base::SpaceInformation::setStateValidityChecker()
        instead. By default, all states are considered valid, if this parameter
        is not set.
-     - if using ompl::base::DiscreteMotionValidator for validating motions 
+     - if using ompl::base::DiscreteMotionValidator for validating motions
        (this is the default), a call needs to be made to
        ompl::base::SpaceInformation::setStateValidityCheckingResolution()
        in order to specify the maximum distance between states to be
@@ -72,7 +72,7 @@
        ompl::base::ProblemDefinition::setGoal(). For simplicity,
        specifications of this class are available:
        ompl::base::GoalRegion, ompl::base::GoalSampleableRegion,
-       ompl::base::GoalState, ompl::base::GoalStates.       
+       ompl::base::GoalState, ompl::base::GoalStates.
      - as a simplification, a call can be made to
        ompl::base::ProblemDefinition::setStartAndGoalStates(). This
        will clear previous settings, add one start state and create an
@@ -120,7 +120,7 @@
    if (pdef->getGoal()->getSolutionPath())
    {
       // do something with the solution
-   }      
+   }
    planner->clear();
    @endcode
 
@@ -128,7 +128,7 @@
    The instantiation of all the above classes is facilitated by the
    ompl::geometric::SimpleSetup class (ompl::control::SimpleSetup,
    respectively). Please see the documentation of these classes for
-   more information. Making use of their functionality is recommended, 
+   more information. Making use of their functionality is recommended,
    if appropriate.
 
 */

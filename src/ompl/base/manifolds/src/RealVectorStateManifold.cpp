@@ -288,7 +288,7 @@ void ompl::base::RealVectorStateManifold::printState(const State *state, std::os
 
 void ompl::base::RealVectorStateManifold::printSettings(std::ostream &out) const
 {
-    out << "Real vector state manifold '" << name_ << "' of dimension " << dimension_ << " with bounds: " << std::endl;
+    out << "Real vector state manifold '" << getName() << "' of dimension " << dimension_ << " with bounds: " << std::endl;
     out << "  - min: ";
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
         out << bounds_.low[i] << " ";

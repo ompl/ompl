@@ -38,9 +38,53 @@
 #include <boost/lexical_cast.hpp>
 #include <numeric>
 #include <limits>
+#include <queue>
 #include <cmath>
+#include <set>
 
 const std::string ompl::base::StateManifold::DEFAULT_PROJECTION_NAME = "";
+
+/// @cond IGNORE
+namespace ompl
+{
+    namespace base
+    {
+
+        static void namesList(int op, const std::string &name1, const std::string &name2 = "")
+        {
+            static boost::mutex lock;
+            static std::set<std::string> used;
+            boost::mutex::scoped_lock slock(lock);
+
+            if (op == 1) // add
+            {
+                if (used.find(name1) != used.end())
+                    throw Exception("State manifold name '" + name1 + "' already in use. Manifold names must be unique.");
+                used.insert(name1);
+            }
+            else
+                if (op == 2) // remove
+                {
+                    std::set<std::string>::iterator pos = used.find(name1);
+                    if (pos == used.end())
+                        throw Exception("No state manifold with name '" + name1 + "' exists.");
+                    used.erase(pos);
+                }
+                else
+                    if (op == 3) // replace
+                    {
+                        std::set<std::string>::iterator pos = used.find(name1);
+                        if (pos == used.end())
+                            throw Exception("No state manifold with name '" + name1 + "' exists.");
+                        if (used.find(name2) != used.end())
+                            throw Exception("State manifold name '" + name2 + "' already in use. Manifold names must be unique.");
+                        used.erase(pos);
+                        used.insert(name2);
+                    }
+        }
+    }
+}
+/// @endcond
 
 ompl::base::StateManifold::StateManifold(void)
 {
@@ -53,6 +97,7 @@ ompl::base::StateManifold::StateManifold(void)
     lock.unlock();
 
     name_ = "Manifold" + boost::lexical_cast<std::string>(m);
+    namesList(1, name_);
 
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
@@ -61,6 +106,22 @@ ompl::base::StateManifold::StateManifold(void)
     type_ = STATE_MANIFOLD_UNKNOWN;
 
     maxExtent_ = std::numeric_limits<double>::infinity();
+}
+
+ompl::base::StateManifold::~StateManifold(void)
+{
+    namesList(2, name_);
+}
+
+const std::string& ompl::base::StateManifold::getName(void) const
+{
+    return name_;
+}
+
+void ompl::base::StateManifold::setName(const std::string &name)
+{
+    namesList(3, name_, name);
+    name_ = name;
 }
 
 void ompl::base::StateManifold::registerProjections(void)
@@ -73,7 +134,7 @@ void ompl::base::StateManifold::setup(void)
     longestValidSegment_ = maxExtent_ * longestValidSegmentFraction_;
 
     if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
-        throw Exception("The longest valid segment for manifold " + name_ + " must be positive");
+        throw Exception("The longest valid segment for manifold " + getName() + " must be positive");
 
     registerProjections();
 
@@ -93,7 +154,7 @@ void ompl::base::StateManifold::printState(const State *state, std::ostream &out
 
 void ompl::base::StateManifold::printSettings(std::ostream &out) const
 {
-    out << "StateManifold '" << name_ << "' instance: " << this << std::endl;
+    out << "StateManifold '" << getName() << "' instance: " << this << std::endl;
     printProjections(out);
 }
 
@@ -115,6 +176,26 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
             it->second->printSettings(out);
         }
     }
+}
+
+bool ompl::base::StateManifold::includes(const StateManifoldPtr &other) const
+{
+    std::queue<const StateManifold*> q;
+    q.push(this);
+    while (!q.empty())
+    {
+        const StateManifold *m = q.front();
+        q.pop();
+        if (m->getName() == other->getName())
+            return true;
+        if (m->isCompound())
+        {
+            unsigned int c = m->as<CompoundStateManifold>()->getSubManifoldCount();
+            for (unsigned int i = 0 ; i < c ; ++i)
+                q.push(m->as<CompoundStateManifold>()->getSubManifold(i).get());
+        }
+    }
+    return false;
 }
 
 bool ompl::base::StateManifold::hasDefaultProjection(void) const
@@ -199,7 +280,7 @@ unsigned int ompl::base::StateManifold::validSegmentCount(const State *state1, c
 
 ompl::base::CompoundStateManifold::CompoundStateManifold(void) : StateManifold(), componentCount_(0), locked_(false)
 {
-    name_ = "Compound" + name_;
+    setName("Compound" + getName());
 }
 
 ompl::base::CompoundStateManifold::CompoundStateManifold(const std::vector<StateManifoldPtr> &components,
@@ -207,7 +288,7 @@ ompl::base::CompoundStateManifold::CompoundStateManifold(const std::vector<State
 {
     if (components.size() != weights.size())
         throw Exception("Number of component manifolds and weights are not the same");
-    name_ = "Compound" + name_;
+    setName("Compound" + getName());
     for (unsigned int i = 0 ; i < components.size() ; ++i)
         addSubManifold(components[i], weights[i]);
 }
@@ -466,7 +547,7 @@ void ompl::base::CompoundStateManifold::printState(const State *state, std::ostr
 
 void ompl::base::CompoundStateManifold::printSettings(std::ostream &out) const
 {
-    out << "Compound state manifold '" << name_ << "' [" << std::endl;
+    out << "Compound state manifold '" << getName() << "' [" << std::endl;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
     {
         components_[i]->printSettings(out);
