@@ -2,14 +2,14 @@
 
 ######################################################################
 # Software License Agreement (BSD License)
-# 
+#
 #  Copyright (c) 2010, Rice University
 #  All rights reserved.
-# 
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
 #  are met:
-# 
+#
 #   * Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above
@@ -19,7 +19,7 @@
 #   * Neither the name of the Rice University nor the names of its
 #     contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -47,45 +47,89 @@ except:
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
     from ompl import base as ob
     from ompl import geometric as og
-    
+
 def isStateValid(spaceInformation, state):
-    # Some arbitrary condition on the state (note that thanks to 
+    # Some arbitrary condition on the state (note that thanks to
     # dynamic type checking we can just call getX() and do not need
     # to convert state to an SE2State.)
     return state.getX() < .6
-    
+
 def plan():
     # create an SE2 manifold
     manifold = ob.SE2StateManifold()
-    
     # set lower and upper bounds
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
     bounds.setHigh(1)
     manifold.setBounds(bounds)
-    
+    # construct an instance of space information from this manifold
+    si = ob.SpaceInformation(manifold)
+    # set state validity checking for this space
+    si.setStateValidityChecker(isStateValid)
+    # create a random start state
+    start = ob.State(manifold)
+    start.random()
+    # create a random goal state
+    goal = ob.State(manifold)
+    goal.random()
+    # create a problem instance
+    pdef = ob.ProblemDefinition(si)
+    # set the start and goal states
+    pdef.setStartAndGoalStates(start, goal)
+    # create a planner for the defined space
+    planner = og.RRTConnect(si)
+    # set the problem we are trying to solve for the planner
+    planner.setProblemDefinition(pdef)
+    # perform setup steps for the planner
+    planner.setup()
+    # print the settings for this space
+    print si.settings()
+    # print the problem settings
+    print pdef
+    # attempt to solve the problem within one second of planning time
+    solved = planner.solve(1.0)
+
+    if solved:
+        # get the goal representation from the problem definition (not the same as the goal state)
+        # and inquire about the found path
+        path = pdef.getGoal().getSolutionPath()
+        print "Found solution:\n", path
+    else:
+        print "No solution found"
+
+
+def planWithSimpleSetup():
+    # create an SE2 manifold
+    manifold = ob.SE2StateManifold()
+
+    # set lower and upper bounds
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-1)
+    bounds.setHigh(1)
+    manifold.setBounds(bounds)
+
     # create a simple setup object
     ss = og.SimpleSetup(manifold)
     ss.setStateValidityChecker(isStateValid)
-    
+
     start = ob.State(manifold)
     # we can pick a random start state...
     start.random()
     # ... or set specific values
     start().setX(.5)
-    
+
     goal = ob.State(manifold)
     # we can pick a random goal state...
     goal.random()
     # ... or set specific values
     goal().setY(-.5)
-    
+
     ss.setStartAndGoalStates(start, goal)
-    
-    # this will automatically choose a default planner with 
+
+    # this will automatically choose a default planner with
     # default parameters
     solved = ss.solve(1.0)
-    
+
     if solved:
         # try to shorten the path
         ss.simplifySolution()
@@ -95,3 +139,5 @@ def plan():
 
 if __name__ == "__main__":
     plan()
+    print ""
+    planWithSimpleSetup()
