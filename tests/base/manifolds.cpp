@@ -285,18 +285,18 @@ TEST(Compound, Simple)
 
     m4->setName("test");
     EXPECT_TRUE(m4->getName() == "test");
-    
+
     base::StateManifoldPtr t = m1 + m4;
     EXPECT_EQ((t - "test")->getDimension(), m1->getDimension());
     EXPECT_EQ((m1 - m1)->getDimension(), 0u);
     bool ok = false;
     try
     {
-	t->setName(m1->getName());
+    t->setName(m1->getName());
     }
     catch(...)
     {
-	ok = true;
+    ok = true;
     }
     EXPECT_TRUE(ok);
     base::ScopedState<> st(t);

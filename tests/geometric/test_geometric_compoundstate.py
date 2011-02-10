@@ -2,14 +2,14 @@
 
 ######################################################################
 # Software License Agreement (BSD License)
-# 
+#
 #  Copyright (c) 2010, Rice University
 #  All rights reserved.
-# 
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
 #  are met:
-# 
+#
 #   * Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above
@@ -19,7 +19,7 @@
 #   * Neither the name of the Rice University nor the names of its
 #     contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -62,7 +62,7 @@ class Environment(object):
             self.grid.append(
                 [int(i) for i in lines[4+i].split(' ')[0:self.height]])
         self.char_mapping = ['__', '##', 'oo', 'XX']
-                
+
     def __str__(self):
         result = ''
         for line in self.grid:
@@ -75,16 +75,16 @@ def isValid(grid, spaceinformation, state):
     x = int(state[0][0])
     y = int(state[1][0])
     return grid[x][y] == 0 # 0 means valid state
-    
+
 class myManifold1(ob.RealVectorStateManifold):
     def __init__(self):
         super(myManifold1, self).__init__(1)
-    
+
     def distance(self, state1, state2):
         x1 = int(state1[0])
         x2 = int(state2[0])
         return fabs(x1-x2)
-        
+
 class mySetup(object):
     def __init__(self, env):
         self.manifold = ob.CompoundStateManifold()
@@ -94,30 +94,30 @@ class mySetup(object):
         bounds.setHigh(float(env.width) - 0.000000001)
         self.m1 = myManifold1()
         self.m1.setBounds(bounds)
-        
+
         bounds.setHigh(float(env.height) - 0.000000001)
         self.m2 = myManifold1()
         self.m2.setBounds(bounds)
-        
+
         self.manifold.addSubManifold(self.m1, 1.0)
         self.manifold.addSubManifold(self.m2, 1.0)
-        
+
         isValidFn = partial(isValid, env.grid)
         self.setup.setStateValidityChecker(isValidFn)
-        
+
         state = ob.CompoundState(self.manifold)
         state()[0][0] = env.start[0]
         state()[1][0] = env.start[1]
         self.start = ob.State(state)
-        
+
         gstate = ob.CompoundState(self.manifold)
         gstate()[0][0] = env.goal[0]
         gstate()[1][0] = env.goal[1]
         self.goal = ob.State(gstate)
 
         self.setup.setStartAndGoalStates(self.start, self.goal)
-        
-        
+
+
 def testPlanner(env, time, pathLength, show = False):
     result = True
     setup = mySetup(env)
@@ -127,14 +127,14 @@ def testPlanner(env, time, pathLength, show = False):
         time = time + elapsed
         if show:
             print 'Found solution in %f seconds!' % elapsed
-        
+
         startTime = clock()
         setup.setup.simplifySolution()
         elapsed = clock() - startTime
         time = time + elapsed
         if show:
             print 'Simplified solution in %f seconds!' % elapsed
-        
+
         path = setup.setup.getSolutionPath()
         path.interpolate(100)
         pathLength = pathLength + path.length()
@@ -151,7 +151,7 @@ def testPlanner(env, time, pathLength, show = False):
             print temp, '\n'
     else:
         result = False
-    
+
     return (result, time, pathLength)
 
 
@@ -161,26 +161,26 @@ class PlanTest(unittest.TestCase):
         if self.env.width * self.env.height == 0:
             self.fail('The environment has a 0 dimension. Cannot continue')
         self.verbose = True
-        
+
     def testRunPlanner(self):
         time = 0.0
         length = 0.0
         good = 0
         N = 25
-        
+
         for i in range(N):
             (result, time, length) = testPlanner(self.env, time, length, False)
             if result: good = good + 1
-            
+
         success = 100.0 * float(good) / float(N)
         avgruntime = time / float(N)
         avglength = length / float(N)
-        
+
         if self.verbose:
             print '    Success rate: %f%%' % success
             print '    Average runtime: %f' % avgruntime
             print '    Average path length: %f' % avglength
-        
+
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 2.5)
         self.assertTrue(avglength < 70.0)

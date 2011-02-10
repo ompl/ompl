@@ -13,7 +13,7 @@
 \section release_0_9_0 OMPL 0.9.0 (initial release)
 
 - Implementations of many state-of-the-art sampling-based motion planning algorithms. For purely geometric planning, there are implementations of KPIECE, SBL, RRT, RRT Connect, EST, PRM, Lazy RRT, and others. For planning with differential constraints there are implementations of KPIECE and RRT. Addition of new planners poses very few constraints on the added code.
-- A flexible mechanism for constructing arbitrarily complex configuration spaces and control spaces from simpler ones. 
+- A flexible mechanism for constructing arbitrarily complex configuration spaces and control spaces from simpler ones.
 - A general method of defining goals: as states, as regions in configuration space, or implicitly.
 - Various sampling strategies and an easy way to add other ones.
 - Automatic selection of reasonable default parameters. Performance can be improved by tuning parameters, but solutions can be obtained without setting any parameters.

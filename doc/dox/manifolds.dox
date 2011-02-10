@@ -1,7 +1,7 @@
 /**
 
    @page availableManifolds Available Manifolds
-   
+
    @section state_manifolds State Manifolds
 
    This set of state manifolds included in in OMPL:
@@ -14,7 +14,7 @@
    - ODE   (representation of ODE states, if the <a href="http://sourceforge.net/projects/opende/">Open Dynamics Engine</a> library is available, ompl::control::ODEStateManifold).
 .
 
-   In addition, the ompl::base::CompoundStateManifold allows users to create arbitrarily complex state spaces out of simpler manifolds. 
+   In addition, the ompl::base::CompoundStateManifold allows users to create arbitrarily complex state spaces out of simpler manifolds.
 
 
    @section control_manifolds Control Manifolds

@@ -1,9 +1,9 @@
 /**
 \page installation Installation
 
-To compile OMPL the following two packages are required: 
-- <a href="http://www.boost.org">Boost</a> (recommended version 1.42 or higher) and 
-- <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher). 
+To compile OMPL the following two packages are required:
+- <a href="http://www.boost.org">Boost</a> (recommended version 1.42 or higher) and
+- <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher).
 .
 For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
@@ -24,7 +24,7 @@ sudo add-apt-repository ppa:gezakovacs/boost
 \endcode
 For Ubuntu 9.04 or earlier, adding the repository will require a <a href="https://launchpad.net/~gezakovacs/+archive/boost">different approach</a>.
 
-- If using Ubuntu 9.10 or earlier, the supplied version of CMake is too old. 
+- If using Ubuntu 9.10 or earlier, the supplied version of CMake is too old.
 You can download the latest version from <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
 - Install Boost, CMake
 \code

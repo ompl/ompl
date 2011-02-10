@@ -17,7 +17,7 @@ The ompl::base::ScopedState class will do the necessary
 memory operations to allocate a state from the correct
 manifold. This is the recommended way of allocating states
 for code other than ompl internals. Convenience operators such
-as = and == are provided. If a type T is provided, where T is 
+as = and == are provided. If a type T is provided, where T is
 a manifold type, the maintained state is cast as T::StateType.
 operator= will use ompl::base::StateManifold::copyState() and
  operator== will use ompl::base::StateManifold::equalStates().
@@ -55,7 +55,7 @@ familiar with \ref stateAlloc.  Furthermore, \ref
 stateAndManifoldOperators "operators on states and manifolds" are also
 used.
 
-\li Simple version:\n 
+\li Simple version:\n
 The recommended use of states is with ompl::base::ScopedState. Given
 the instance of a manifold, this class will allocate a state from that
 manifold. The internally maintained state is freed when the instance
@@ -79,7 +79,7 @@ ompl::base::ScopedState<> backup = state;
 ompl::base::State *abstractState = manifold->allocState();
 
 
-// this will copy the content of abstractState to state and 
+// this will copy the content of abstractState to state and
 // cast it internall as  ompl::base::SE2StateManifold::StateType
 state = abstractState;
 
@@ -98,7 +98,7 @@ cm->addSubManifold(ompl::base::StateManifoldPtr(new ompl::base::SO3StateManifold
 // put the pointer to the manifold in a shared pointer
 ompl::base::StateManifoldPtr manifold(cm);
 
-// the ompl::base::ScopedState helps only with one cast here, since we still need to 
+// the ompl::base::ScopedState helps only with one cast here, since we still need to
 // manually cast the components of the state to what we want them to be.
 ompl::base::ScopedState<ompl::base::CompoundManifold> state(manifold);
 state->as<ompl::base::SO2StateManifold::StateType>(0)->setIdentity();
@@ -112,7 +112,7 @@ ompl::base::StateManifoldPtr so3(new ompl::base::SO3StateManifold());
 // construct a compound manifold using the overloaded operator+
 ompl::base::StateManifoldPtr manifold = so2 + so3;
 
-// the ompl::base::ScopedState helps only with one cast here, since we still need to 
+// the ompl::base::ScopedState helps only with one cast here, since we still need to
 // manually cast the components of the state to what we want them to be.
 ompl::base::ScopedState<ompl::base::CompoundManifold> state(manifold);
 state->as<ompl::base::SO2StateManifold::StateType>(0)->setIdentity();
@@ -132,10 +132,10 @@ ompl::base::ScopedState<ompl::base::SE2StateManifold> fullState(manifold);
 // set the state to a random value
 fullState.random();
 
-// construct a state that corresponds to the position component of SE2 
+// construct a state that corresponds to the position component of SE2
 ompl::base::ScopedState<> pos(manifold->as<ompl::base::SE2StateManifold>()->getSubManifold(0));
 
-// copy the position 
+// copy the position
 pos << fullState;
 
 // equivalently, this can be done too:
@@ -144,7 +144,7 @@ fullState >> pos;
 // if we now modify pos somehow, we can set it back in the full state:
 pos >> fullState;
 \endcode
-\li Expert version:\n	    
+\li Expert version:\n
 For a manifold type of type T, the result of
 ompl::base::StateManifold::allocState() can be casted to
 T::StateType* to gain access to the state's members. To

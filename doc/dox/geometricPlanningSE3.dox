@@ -1,4 +1,4 @@
-/**	
+/**
    @page geometricPlanningSE3 Geometric planning for a rigid body in 3D
 
    This tutorial shows how to plan for a rigid body in 3D. We show how
@@ -13,12 +13,12 @@
    limit the functionality of the code in any way.
    <br>
 
-   \par 
+   \par
    Setting up geometric planning for a rigid body in 3D requires the following steps:
       - identify the space we are planning in: SE(3)
       - select a corresponding state manifold from the available ones, or implement one. For SE(3), the ompl::base::SE3StateManifold is appropriate.
       - since SE(3) contains an R<sup>3</sup> component, we need to define bounds.
-      - define the notion of state validity. 
+      - define the notion of state validity.
       - define start states and a goal representation.
 
    Once these steps are complete, the specification of the problem is
@@ -54,7 +54,7 @@
    @skipline setStartAndGoalStates
    We can now try to solve the problem. This will also trigger a call to ompl::geometric::SimpleSetup::setup() and create a default instance of a planner,
    since we have not specified one. Furthermore, ompl::base::Planner::setup() is called, which in turn calls ompl::base::SpaceInformation::setup(). This chain
-   of calls will lead to computation of runtime parameters such as the state validity checking resolution. This call returns a boolean flag indicating whether 
+   of calls will lead to computation of runtime parameters such as the state validity checking resolution. This call returns a boolean flag indicating whether
    a solution has been found within the specified amount of time (in seconds).
    @skipline bool solved
    If a solution has been found, we can optionally simplify it and the display it
@@ -96,7 +96,7 @@
    @skipline setProblemDefinition
    Make sure all the settings for the space and planner are in order. This will also lead to the runtime computation of the state validity checking resolution.
    @skipline planner->setup
-   We can now try to solve the problem. This call returns a boolean flag indicating whether 
+   We can now try to solve the problem. This call returns a boolean flag indicating whether
    a solution has been found within the specified amount of time (in seconds).
    @skipline bool solved
    If a solution has been found, we display it. Simplification could be done, but we would need to create an instance of ompl::geometric::PathSimplifier.

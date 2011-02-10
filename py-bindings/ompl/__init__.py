@@ -12,7 +12,7 @@ def dll_loader(lib, fallback_dir):
     if not loaded:
         from platform import system
         from os.path import isfile
-        
+
         sys = system()
         if sys=='Windows':
             ext='.dll'

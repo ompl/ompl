@@ -37,7 +37,7 @@ typedef) @b StateType to the type of the state that is
 allocated/freed. In such cases it will often be necessary to also implement
 ompl::base::StateManifold::copyState().
 
-@par Inheriting from ompl::base::CompoundStateManifold 
+@par Inheriting from ompl::base::CompoundStateManifold
 Another option is to inherit from a ompl::base::CompoundStateManifold
 and call ompl::base::CompoundStateManifold::addSubManifold() in the
 constructor of the new class for other existing manifolds. This is the

@@ -2,14 +2,14 @@
 
 ######################################################################
 # Software License Agreement (BSD License)
-# 
+#
 #  Copyright (c) 2010, Rice University
 #  All rights reserved.
-# 
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
 #  are met:
-# 
+#
 #   * Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above
@@ -19,7 +19,7 @@
 #   * Neither the name of the Rice University nor the names of its
 #     contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -41,10 +41,10 @@ from pygccxml import declarations
 from pyplusplus.module_builder import call_policies
 from ompl.bindings_generator import code_generator_t, default_replacement
 
-        
+
 class ompl_base_generator_t(code_generator_t):
     """Class for generating the ompl.base python module."""
-    
+
     def __init__(self):
         replacement = default_replacement
         # special case for abstract base class Path with pure virtual print method:
@@ -137,10 +137,10 @@ class ompl_base_generator_t(code_generator_t):
         }
         """)
         code_generator_t.__init__(self, 'base', None, replacement)
-    
+
     def filter_declarations(self):
         # force ProblemDefinition to be included, because it is used by other modules
-        self.ompl_ns.class_('ProblemDefinition').include()        
+        self.ompl_ns.class_('ProblemDefinition').include()
         # force the abstract base class Path to be included, because it is used by other modules
         self.ompl_ns.class_('Path').include()
         code_generator_t.filter_declarations(self)
@@ -155,7 +155,7 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateManifold> >').rename('vectorStateManifoldPtr')
         self.std_ns.class_('map< std::string, std::string>').rename('mapStringToString')
         # don't export variables that need a wrapper
-        self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()    
+        self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force StateManifold::allocState to be exported.
         # (not sure why this is necessary)
         allocStateFn = self.ompl_ns.class_('StateManifold').member_function('allocState')
@@ -184,7 +184,7 @@ class ompl_base_generator_t(code_generator_t):
             # add a constructor that allows, e.g., an SE3State to be constructed from a State
             state.add_registration_code(
                 'def(bp::init<ompl::base::ScopedState<ompl::base::StateManifold> const &>(( bp::arg("other") )))')
-            # mark the manifold statetype as 'internal' to emphasize that it 
+            # mark the manifold statetype as 'internal' to emphasize that it
             # shouldn't typically be used by a regular python user
             self.ompl_ns.class_(stype + 'StateManifold').decls('StateType').rename(
                 stype + 'StateInternal')
@@ -194,7 +194,7 @@ class ompl_base_generator_t(code_generator_t):
             # add array access to double components of state
             self.add_array_access(state,'double')
         # don't this utility function
-        self.ompl_ns.member_functions('getValueAddressAtIndex').exclude() 
+        self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateManifold').class_(
             'StateType').variable('values').exclude()
@@ -219,15 +219,15 @@ class ompl_base_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printProjection'))
         # add wrapper code for setStateValidityChecker
         self.replace_member_functions(self.ompl_ns.namespace('base').class_(
-            'SpaceInformation').member_functions('setStateValidityChecker', 
+            'SpaceInformation').member_functions('setStateValidityChecker',
             arg_types=['::ompl::base::StateValidityCheckerFn const &']))
         # add wrapper code for setValidStateSamplerAllocator
         self.replace_member_functions(self.ompl_ns.namespace('base').class_(
                 'SpaceInformation').member_functions('setValidStateSamplerAllocator'))
-        # exclude solve() methods that take a "const PlannerTerminationCondition &" 
+        # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &', 'double']).exclude()
-        
+
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
@@ -293,7 +293,7 @@ class ompl_control_generator_t(code_generator_t):
         """)
 
         code_generator_t.__init__(self, 'control', ['bindings/base'], replacement)
-    
+
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
@@ -301,7 +301,7 @@ class ompl_control_generator_t(code_generator_t):
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
         # don't export variables that need a wrapper
-        self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()    
+        self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force ControlManifold::allocState to be exported.
         # (not sure why this is necessary)
         allocControlFn = self.ompl_ns.class_('ControlManifold').member_function('allocControl')
@@ -323,15 +323,15 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
         # add wrapper code for setStateValidityChecker
         self.replace_member_functions(self.ompl_ns.namespace('control').class_(
-            'SimpleSetup').member_functions('setStateValidityChecker', 
+            'SimpleSetup').member_functions('setStateValidityChecker',
             arg_types=['::ompl::base::StateValidityCheckerFn const &']))
         # add wrapper code for setPropagationFunction
         self.replace_member_functions(self.ompl_ns.namespace('control').class_(
             'ControlManifold').member_functions('setPropagationFunction'))
-        # exclude solve() methods that take a "const PlannerTerminationCondition &" 
+        # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
-        
+
 class ompl_geometric_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
@@ -371,23 +371,23 @@ class ompl_geometric_generator_t(code_generator_t):
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< ompl::geometric::BasicPRM::Milestone* >').rename('vectorBasicPRMMileStonePtr')
         # don't export variables that need a wrapper
-        self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()    
+        self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         self.ompl_ns.member_functions('freeGridMotions').exclude()
         self.ompl_ns.class_('BasicPRM').member_functions('haveSolution').exclude()
-        self.ompl_ns.class_('BasicPRM').member_functions('growRoadmap', 
+        self.ompl_ns.class_('BasicPRM').member_functions('growRoadmap',
                 function=declarations.access_type_matcher_t('protected')).exclude()
         # don't export some internal data structure
         self.ompl_ns.classes('OrderCellsByImportance').exclude()
         # add wrapper code for setStateValidityChecker
         self.replace_member_functions(self.ompl_ns.namespace('geometric').class_(
-            'SimpleSetup').member_functions('setStateValidityChecker', 
+            'SimpleSetup').member_functions('setStateValidityChecker',
             arg_types=['::ompl::base::StateValidityCheckerFn const &']))
-        # exclude solve() methods that take a "const PlannerTerminationCondition &" 
+        # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
-        
+
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
         code_generator_t.__init__(self, 'util')

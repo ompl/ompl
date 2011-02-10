@@ -2,14 +2,14 @@
 
 ######################################################################
 # Software License Agreement (BSD License)
-# 
+#
 #  Copyright (c) 2010, Rice University
 #  All rights reserved.
-# 
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
 #  are met:
-# 
+#
 #   * Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above
@@ -19,7 +19,7 @@
 #   * Neither the name of the Rice University nor the names of its
 #     contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,7 +43,7 @@ import datetime
 import matplotlib
 matplotlib.use('pdf')
 from matplotlib import __version__ as matplotlibversion
-from matplotlib.backends.backend_pdf import PdfPages 
+from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
 from optparse import OptionParser, OptionGroup
@@ -83,7 +83,7 @@ def read_benchmark_log(dbname, filenames):
         for i in range(num_planners):
             planner_name = logfile.readline()[:-1]
             print "Parsing data for", planner_name
-            
+
             # read common data for planner
             num_common = int(logfile.readline().split()[0])
             settings = ""
@@ -99,7 +99,7 @@ def read_benchmark_log(dbname, filenames):
                 planner_id = c.fetchone()[0]
             else:
                 planner_id = p[0]
-            
+
             # read run properties
 
             # number of properties to read from log file
@@ -125,28 +125,28 @@ def read_benchmark_log(dbname, filenames):
 
             planner_table = 'planner_%s' % planner_name
             c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table, table_columns))
-            
+
             # check if the table has all the needed columns; if not, add them
             c.execute('SELECT * FROM %s' % planner_table)
             added_columns = [ t[0] for t in c.description]
             for col in properties.keys():
                 if not col in added_columns:
                     c.execute('ALTER TABLE ' + planner_table + ' ADD ' + col + ' ' + properties[col] + ';')
-            
-            # add measurements 
+
+            # add measurements
             insert_fmt_str = 'INSERT INTO ' + planner_table + ' (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
 
             num_runs = int(logfile.readline().split()[0])
             for j in range(num_runs):
-                run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x) 
+                run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x)
                     for x in logfile.readline().split('; ')[:-1]])
                 c.execute(insert_fmt_str, run)
-            
+
             logfile.readline()
         logfile.close()
     conn.commit()
     c.close()
-    
+
 def plot_attribute(cur, planners, attribute, typename):
     """Create a box plot for a particular attribute. It will include data for
     all planners that have data for this attribute."""
@@ -191,7 +191,7 @@ def plot_attribute(cur, planners, attribute, typename):
             x = i+width/2 if is_bool else i+1
             ax.text(x, .95*maxy, str(nan_counts[i]), horizontalalignment='center', size='small')
     plt.show()
-    
+
 def plot_statistics(dbname, fname):
     """Create a PDF file with box plots for all attributes."""
     print "Generating plot..."
@@ -230,7 +230,7 @@ def plot_statistics(dbname, fname):
     plt.clf()
     pagey = 0.9
     pagex = 0.06
-    for e in experiments:        
+    for e in experiments:
         # get the number of runs, per planner, for this experiment
         runcount = []
         for p in planner_names:
@@ -263,7 +263,7 @@ def save_as_mysql(dbname, mysqldump):
 
     conn = sqlite3.connect(dbname)
     mysqldump = open(mysqldump,'w')
-    
+
     # make sure all tables are dropped in an order that keepd foreign keys valid
     c = conn.cursor()
     c.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -310,7 +310,7 @@ def save_as_mysql(dbname, mysqldump):
         line = line.replace('AUTOINCREMENT', 'AUTO_INCREMENT')
         mysqldump.write(line)
     mysqldump.close()
-    
+
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
@@ -322,7 +322,7 @@ if __name__ == "__main__":
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
     (options, args) = parser.parse_args()
-    
+
     if len(args)>0:
         read_benchmark_log(options.dbname, args)
 

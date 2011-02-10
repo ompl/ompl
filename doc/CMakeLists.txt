@@ -14,11 +14,11 @@ if (OMPL_BUILD_DOC)
             COMMAND ${CMAKE_COMMAND} -E copy js/search.js html/search
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
-        # Ruby is only needed if you want the regenerate the CSS files for 
+        # Ruby is only needed if you want the regenerate the CSS files for
         # the documentation
         find_package(Ruby QUIET)
 
-        # if ruby is installed, we can also regenerate the CSS file from 
+        # if ruby is installed, we can also regenerate the CSS file from
         # individual CSS files using the Blueprint framework
         if(RUBY_EXECUTABLE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/blueprint/lib/compress.rb")
             add_custom_target(update_css

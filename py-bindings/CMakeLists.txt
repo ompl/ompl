@@ -6,8 +6,8 @@ if (OMPL_BUILD_PYBINDINGS)
 
     set(OMPL_MODULES base control geometric util)
 
-    if(PY_OMPL_GENERATE)	
-        # need to run cmake to regenerate ompl/bindings_generator.py if 
+    if(PY_OMPL_GENERATE)
+        # need to run cmake to regenerate ompl/bindings_generator.py if
         # bindings_generator.py.in is changed.
         configure_file("${CMAKE_CURRENT_SOURCE_DIR}/bindings_generator.py.in"
             "${CMAKE_CURRENT_SOURCE_DIR}/ompl/bindings_generator.py" @ONLY)

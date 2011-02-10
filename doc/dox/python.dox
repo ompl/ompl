@@ -29,8 +29,8 @@ Almost all of the functionality of the C++ OMPL library is accessible through Py
 \code
 m = SE3StateManifold() # create an SE(3) state manifold
 s = State(m)           # allocate a state corresponding to a C++ ScopedState<SE3StateManifold>
-sref = s()             # sref corresponds to a C++ State*. In this case sref is 
-		       # a reference SE3StateManifold::StateType
+sref = s()             # sref corresponds to a C++ State*. In this case sref is
+               # a reference SE3StateManifold::StateType
 sref.setX(1.0)         # set the X coordinate
 s().setX(1.0)          # this also works
 \endcode
@@ -38,10 +38,10 @@ s().setX(1.0)          # this also works
 - The signature of the state validity checker is changed. In python the state validity checker has the following form:
 \code
 def isStateValid(spaceInformation, state):
-	return spaceInformation.satiesfiesBounds(state)
+    return spaceInformation.satiesfiesBounds(state)
 \endcode
 .
-Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code. 
+Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code.
 
 \section py_example A simple example
 
@@ -50,68 +50,68 @@ Below is a simple annotated example. It is available in ompl/py-bindings/demos/R
 \code
 from ompl import base as ob
 from ompl import geometric as og
-	
+
 def isStateValid(spaceInformation, state):
-	# "state" is of type SE2StateInternal, so we don't need to use the "()"
-	# operator.
-	#
-	# Some arbitrary condition on the state (note that thanks to 
-	# dynamic type checking we can just call getX() and do not need
-	# to convert state to an SE2State.)
-	return state.getX() < .6
-	
+    # "state" is of type SE2StateInternal, so we don't need to use the "()"
+    # operator.
+    #
+    # Some arbitrary condition on the state (note that thanks to
+    # dynamic type checking we can just call getX() and do not need
+    # to convert state to an SE2State.)
+    return state.getX() < .6
+
 def plan():
-	# create an SE2 manifold
-	manifold = ob.SE2StateManifold()
+    # create an SE2 manifold
+    manifold = ob.SE2StateManifold()
 
-	# set lower and upper bounds
-	bounds = ob.RealVectorBounds(2)
-	bounds.setLow(-1)
-	bounds.setHigh(1)
-	manifold.setBounds(bounds)
+    # set lower and upper bounds
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-1)
+    bounds.setHigh(1)
+    manifold.setBounds(bounds)
 
-	# create a simple setup object
-	ss = og.SimpleSetup(manifold)
-	ss.setStateValidityChecker(isStateValid)
+    # create a simple setup object
+    ss = og.SimpleSetup(manifold)
+    ss.setStateValidityChecker(isStateValid)
 
-	start = ob.State(manifold)
-	# we can pick a random start state...
-	start.random()
-	# ... or set specific values
-	start().setX(.5)
+    start = ob.State(manifold)
+    # we can pick a random start state...
+    start.random()
+    # ... or set specific values
+    start().setX(.5)
 
-	goal = ob.State(manifold)
-	# we can pick a random goal state...
-	goal.random()
-	# ... or set specific values
-	goal().setY(-.5)
+    goal = ob.State(manifold)
+    # we can pick a random goal state...
+    goal.random()
+    # ... or set specific values
+    goal().setY(-.5)
 
-	ss.setStartAndGoalStates(start, goal)
+    ss.setStartAndGoalStates(start, goal)
 
-	# this will automatically choose a default planner with 
-	# default parameters
-	solved = ss.solve(1.0)
+    # this will automatically choose a default planner with
+    # default parameters
+    solved = ss.solve(1.0)
 
-	if solved:
-		# try to shorten the path
-		ss.simplifySolution()
-		# print the simplified path
-		print ss.getSolutionPath()
+    if solved:
+        # try to shorten the path
+        ss.simplifySolution()
+        # print the simplified path
+        print ss.getSolutionPath()
 
 
 if __name__ == "__main__":
-	plan()
+    plan()
 \endcode
 
 \section updating_python_bindings (Re)generating the Python bindings
 
-The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, you will need to update the Python bindings. Updating the bindings is a two-step process. First, the code for the modules needs to be generated. Second, the code needs to be compiled into binary Python modules. 
+The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, you will need to update the Python bindings. Updating the bindings is a two-step process. First, the code for the modules needs to be generated. Second, the code needs to be compiled into binary Python modules.
 
 \subsection binding_code_generation Code generation
 
 <b>The code for the Python bindings can be generated by typing “<tt>make update_bindings</tt>.”</b> This creates one header file per module, formed by concatenating all relevant header files for that module. This header file is then parsed by Py++ and the appropriate C++ code is generated. This code uses Boost.Python. Py++ is smart enough to create wrapper classes when necessary, register Python \<-\> C++ type conversions, and so on. If you only need to update the bindings for one module (say \c base), you can type “<tt>make update_base_bindings</tt>.” Any diagnostic information from Py++ is stored in a log file in the build directory for each module (\c pyplusplus_base.log for the module \c base and likewise for other modules).
 
-For each module the relevant header files are listed in <tt>ompl/py-bindings/headers_\<<i>modulename</i>\>.txt.</tt> The order in which the header files are listed is important. A header file should not be included by another header file listed above it. 
+For each module the relevant header files are listed in <tt>ompl/py-bindings/headers_\<<i>modulename</i>\>.txt.</tt> The order in which the header files are listed is important. A header file should not be included by another header file listed above it.
 
 \subsection compile_bindings Compiling the Python modules
 
