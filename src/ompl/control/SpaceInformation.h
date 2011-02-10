@@ -64,9 +64,9 @@ namespace ompl
 
             /** \brief Constructor. Sets the instance of the manifold
                 to plan on. */
-            SpaceInformation(const base::StateManifoldPtr &stateManifold, const ControlManifoldPtr &controlManifold) : base::SpaceInformation(stateManifold),
-                                                                                                                       controlManifold_(controlManifold),
-                                                                                                                       minSteps_(0), maxSteps_(0), stepSize_(0.0)
+            SpaceInformation(const base::StateManifoldPtr &stateManifold, const ControlManifoldPtr &controlManifold) :
+                base::SpaceInformation(stateManifold), controlManifold_(controlManifold),
+                minSteps_(0), maxSteps_(0), stepSize_(0.0)
             {
             }
 

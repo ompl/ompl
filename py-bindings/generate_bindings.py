@@ -312,6 +312,8 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.class_('CompoundControl').variable('components').exclude()
         # don't export some internal data structure
         self.ompl_ns.class_('OrderCellsByImportance').exclude()
+        # don't expose this utility function
+        self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         self.ompl_ns.class_('KPIECE1').member_functions('freeGridMotions').exclude()
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorControlManifold').class_('ControlType'))

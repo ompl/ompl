@@ -41,7 +41,7 @@
 /// @cond IGNORE
 namespace ompl
 {
-    const control::ODEEnvironmentPtr& getStateManifoldEnvironmentWithCheck(const base::StateManifoldPtr &manifold)
+    const control::ODEEnvironmentPtr& getODEStateManifoldEnvironmentWithCheck(const base::StateManifoldPtr &manifold)
     {
         if (!dynamic_cast<control::ODEStateManifold*>(manifold.get()))
             throw Exception("ODE State Manifold needed for creating ODE Control Manifold");
@@ -51,7 +51,7 @@ namespace ompl
 /// @endcond
 
 ompl::control::ODEControlManifold::ODEControlManifold(const base::StateManifoldPtr &stateManifold) :
-    RealVectorControlManifold(stateManifold, getStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())
+    RealVectorControlManifold(stateManifold, getODEStateManifoldEnvironmentWithCheck(stateManifold)->getControlDimension())
 {
     setName("ODE" + getName());
     base::RealVectorBounds bounds(dimension_);
