@@ -111,7 +111,13 @@ namespace ompl
                 return planner_;
             }
 
-            /** \brief Return true if a solution path is available (previous call to solve() was successful) */
+            /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
+            bool haveExactSolutionPath(void) const
+            {
+                return haveSolutionPath() && !getGoal()->isApproximate();
+            }
+
+            /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
             bool haveSolutionPath(void) const
             {
                 return getGoal()->getSolutionPath();
