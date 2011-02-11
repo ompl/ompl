@@ -334,6 +334,24 @@ class ompl_control_generator_t(code_generator_t):
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 
+        # Py++ seems to get confused by virtual methods declared in one module
+        # that are *not* overridden in a derived class. The Planner class is
+        # defined in ompl::base and two of its virtual methods,
+        # setProblemDefinition and checkValidity, and not overridden by most
+        # planners. The code below forces Py++ to do the right thing (or at
+        # least make it work). It seems rather hacky and there may be a better
+        # solution.
+
+        # do this for all planners
+        for planner in ['KPIECE1', 'RRT']:
+            self.ompl_ns.class_(planner).add_registration_code("""
+            def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
+                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
+            self.ompl_ns.class_(planner).add_registration_code("""
+            def("checkValidity",&::ompl::base::Planner::checkValidity,
+                    &%s_wrapper::default_checkValidity )""" % planner)
+
+
 class ompl_geometric_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
@@ -389,6 +407,26 @@ class ompl_geometric_generator_t(code_generator_t):
         # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
+
+        # Py++ seems to get confused by virtual methods declared in one module
+        # that are *not* overridden in a derived class. The Planner class is
+        # defined in ompl::base and two of its virtual methods,
+        # setProblemDefinition and checkValidity, and not overridden by most
+        # planners. The code below forces Py++ to do the right thing (or at
+        # least make it work). It seems rather hacky and there may be a better
+        # solution.
+
+        # do this for all planners
+        for planner in ['EST', 'KPIECE1', 'LBKPIECE1', 'BasicPRM', 'LazyRRT', 'pRRT', 'RRT', 'RRTConnect', 'pSBL', 'SBL']:
+            if planner!='BasicPRM':
+                # BasicPRM overrides setProblemDefinition, so we don't need to add this code
+                self.ompl_ns.class_(planner).add_registration_code("""
+                def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
+                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
+            self.ompl_ns.class_(planner).add_registration_code("""
+            def("checkValidity",&::ompl::base::Planner::checkValidity,
+                &%s_wrapper::default_checkValidity )""" % planner)
+
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
