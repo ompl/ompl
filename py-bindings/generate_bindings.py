@@ -335,8 +335,8 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 
         # Py++ seems to get confused by virtual methods declared in one module
-        # that are *not* overridden in a derived class. The Planner class is
-        # defined in ompl::base and two of its virtual methods,
+        # that are *not* overridden in a derived class in another module. The
+        # Planner class is defined in ompl::base and two of its virtual methods,
         # setProblemDefinition and checkValidity, and not overridden by most
         # planners. The code below forces Py++ to do the right thing (or at
         # least make it work). It seems rather hacky and there may be a better
@@ -409,8 +409,8 @@ class ompl_geometric_generator_t(code_generator_t):
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 
         # Py++ seems to get confused by virtual methods declared in one module
-        # that are *not* overridden in a derived class. The Planner class is
-        # defined in ompl::base and two of its virtual methods,
+        # that are *not* overridden in a derived class in another module. The
+        # Planner class is defined in ompl::base and two of its virtual methods,
         # setProblemDefinition and checkValidity, and not overridden by most
         # planners. The code below forces Py++ to do the right thing (or at
         # least make it work). It seems rather hacky and there may be a better
