@@ -277,7 +277,33 @@ TEST(Compound, Simple)
     base::StateManifoldPtr m3(new base::SO2StateManifold());
     base::StateManifoldPtr m4(new base::SO3StateManifold());
 
+    EXPECT_TRUE(m1 + m1 == m1);
+    
     base::StateManifoldPtr s = m1 + m2 + m3;
+    EXPECT_TRUE(s + s == s);
+    EXPECT_TRUE(s - s + s == s);
+    EXPECT_TRUE(s + s - s + s  == s);
+    EXPECT_TRUE(s * s  == s);
+    EXPECT_TRUE(s * m2 == m2);
+    EXPECT_TRUE(m1 * s == m1);
+    EXPECT_TRUE(m1 + s == s);
+    EXPECT_TRUE(s + m2 == s);
+    EXPECT_TRUE(m1 + s + m2 == s);
+    EXPECT_TRUE(m1 + s + m2 - "x" == s);
+    EXPECT_TRUE(s - "random" == s);
+    EXPECT_TRUE(m3 + m3 == m3);
+    EXPECT_TRUE(m3 + s * m3 * s - m2 - m1 == m3 * s);
+    
+    EXPECT_TRUE(base::StateManifoldPtr() + m1 == m1);
+    EXPECT_TRUE(m1 + base::StateManifoldPtr() == m1);
+    EXPECT_FALSE(m1 + base::StateManifoldPtr() == m2 * s);
+    EXPECT_TRUE(base::StateManifoldPtr() * s + m1 == m1);
+    EXPECT_TRUE(m3 * base::StateManifoldPtr() + m1 == m1);
+    EXPECT_TRUE(base::StateManifoldPtr() * base::StateManifoldPtr() + m4 == m4);
+    EXPECT_TRUE(base::StateManifoldPtr() + base::StateManifoldPtr() + m4 == m4);
+    EXPECT_TRUE(base::StateManifoldPtr() - base::StateManifoldPtr() + m4 == m4);
+    EXPECT_TRUE((base::StateManifoldPtr() - "")->getDimension() == 0);
+
     EXPECT_EQ(s->getDimension(), m1->getDimension() + m2->getDimension() + m3->getDimension());
     base::StateManifoldPtr d = s - m2;
     EXPECT_EQ(d->getDimension(), m1->getDimension() + m3->getDimension());
@@ -292,13 +318,14 @@ TEST(Compound, Simple)
     bool ok = false;
     try
     {
-    t->setName(m1->getName());
+        t->setName(m1->getName());
     }
     catch(...)
     {
-    ok = true;
+        ok = true;
     }
     EXPECT_TRUE(ok);
+    t->setName(t->getName());
     base::ScopedState<> st(t);
     EXPECT_TRUE(t->getValueAddressAtIndex(st.get(), 10000) == NULL);
     EXPECT_TRUE(t->includes(m1));
