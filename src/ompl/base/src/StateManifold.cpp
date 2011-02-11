@@ -71,7 +71,7 @@ namespace ompl
                     used.erase(pos);
                 }
                 else
-                    if (op == 3) // replace
+                    if (op == 3 && name1 != name2) // replace
                     {
                         std::set<std::string>::iterator pos = used.find(name1);
                         if (pos == used.end())

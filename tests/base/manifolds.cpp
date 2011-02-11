@@ -292,13 +292,14 @@ TEST(Compound, Simple)
     bool ok = false;
     try
     {
-    t->setName(m1->getName());
+        t->setName(m1->getName());
     }
     catch(...)
     {
-    ok = true;
+        ok = true;
     }
     EXPECT_TRUE(ok);
+    t->setName(t->getName());
     base::ScopedState<> st(t);
     EXPECT_TRUE(t->getValueAddressAtIndex(st.get(), 10000) == NULL);
     EXPECT_TRUE(t->includes(m1));
