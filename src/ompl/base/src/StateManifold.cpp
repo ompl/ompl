@@ -650,9 +650,15 @@ namespace ompl
 
         StateManifoldPtr operator+(const StateManifoldPtr &a, const StateManifoldPtr &b)
         {
+            if ((!a || a->getDimension() == 0) && b && b->getDimension() > 0)
+                return b;
+            if ((!b || b->getDimension() == 0) && a && a->getDimension() > 0)
+                return a;
+
             std::vector<StateManifoldPtr> components;
             std::vector<double>           weights;
 
+            bool change = false;
             if (a)
             {
                 bool used = false;
@@ -695,8 +701,11 @@ namespace ompl
                             {
                                 components.push_back(csm_b->getSubManifold(i));
                                 weights.push_back(csm_b->getSubManifoldWeight(i));
+                                change = true;
                             }
                         }
+                        if (components.size() == csm_b->getSubManifoldCount())
+                            return b;
                     }
 
                 if (!used)
@@ -712,9 +721,13 @@ namespace ompl
                     {
                         components.push_back(b);
                         weights.push_back(1.0);
+                        change = true;
                     }
                 }
             }
+
+            if (!change && a)
+                return a;
 
             if (components.size() == 1)
                 return components[0];
@@ -763,14 +776,19 @@ namespace ompl
                     components_b.push_back(b);
             }
 
+            bool change = false;
             for (unsigned int i = 0 ; i < components_b.size() ; ++i)
                 for (unsigned int j = 0 ; j < components_a.size() ; ++j)
                     if (components_a[j]->getName() == components_b[i]->getName())
                     {
                         components_a.erase(components_a.begin() + j);
                         weights_a.erase(weights_a.begin() + j);
+                        change = true;
                         break;
                     }
+
+            if (!change && a)
+                return a;
 
             if (components_a.size() == 1)
                 return components_a[0];
@@ -783,6 +801,7 @@ namespace ompl
             std::vector<StateManifoldPtr> components;
             std::vector<double>           weights;
 
+            bool change = false;
             if (a)
             {
                 bool used = false;
@@ -793,7 +812,10 @@ namespace ompl
                         for (unsigned int i = 0 ; i < csm_a->getSubManifoldCount() ; ++i)
                         {
                             if (csm_a->getSubManifold(i)->getName() == name)
+                            {
+                                change = true;
                                 continue;
+                            }
                             components.push_back(csm_a->getSubManifold(i));
                             weights.push_back(csm_a->getSubManifoldWeight(i));
                         }
@@ -806,8 +828,13 @@ namespace ompl
                         components.push_back(a);
                         weights.push_back(1.0);
                     }
+                    else
+                        change = true;
                 }
             }
+
+            if (!change && a)
+                return a;
 
             if (components.size() == 1)
                 return components[0];
@@ -868,13 +895,21 @@ namespace ompl
             std::vector<double>           weights;
 
             for (unsigned int i = 0 ; i < components_b.size() ; ++i)
+            {
                 for (unsigned int j = 0 ; j < components_a.size() ; ++j)
                     if (components_a[j]->getName() == components_b[i]->getName())
                     {
                         components.push_back(components_b[i]);
-                        weights.push_back(std::max(weights_a[i], weights_b[i]));
+                        weights.push_back(std::max(weights_a[j], weights_b[i]));
                         break;
                     }
+            }
+
+            if (a && components.size() == components_a.size())
+                return a;
+
+            if (b && components.size() == components_b.size())
+                return b;
 
             if (components.size() == 1)
                 return components[0];
