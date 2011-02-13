@@ -348,6 +348,12 @@ namespace ompl
             /** \brief Set a specific manifold's weight in the compound manifold (used in distance computation) */
             void setSubManifoldWeight(const std::string &name, double weight);
 
+            /** \brief Get the list of components */
+            const std::vector<StateManifoldPtr>& getSubManifolds(void) const;
+
+            /** \brief Get the list of component weights */
+            const std::vector<double>& getSubManifoldWeights(void) const;
+
             /** \brief Return true if the manifold is locked. A value
                 of true means that no further manifolds can be added
                 as components. */

@@ -380,6 +380,16 @@ void ompl::base::CompoundStateManifold::setSubManifoldWeight(const std::string &
     throw Exception("Submanifold " + name + " does not exist");
 }
 
+const std::vector<ompl::base::StateManifoldPtr>& ompl::base::CompoundStateManifold::getSubManifolds(void) const
+{
+    return components_;
+}
+
+const std::vector<double>& ompl::base::CompoundStateManifold::getSubManifoldWeights(void) const
+{
+    return weights_;
+}
+
 unsigned int ompl::base::CompoundStateManifold::getDimension(void) const
 {
     unsigned int dim = 0;
