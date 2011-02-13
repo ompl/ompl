@@ -400,14 +400,14 @@ namespace ompl
 
             virtual void setup(void);
 
-        protected:
-
             /** \brief Lock this manifold. This means no further
              manifolds can be added as components.  This function can
              be for instance called from the constructor of a manifold
              that inherits from CompoundStateManifold to prevent the
              user to add further components. */
             void lock(void);
+
+        protected:
 
             /** \brief Allocate the state components. Called by allocState() */
             void allocStateComponents(CompoundState *state) const;
