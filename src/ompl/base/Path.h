@@ -70,6 +70,12 @@ namespace ompl
             {
             }
 
+            /** \brief Get the space information associated to this class */
+            const SpaceInformationPtr& getSpaceInformation(void) const
+            {
+                return si_;
+            }
+
             /** \brief Return the length of a path */
             virtual double length(void) const = 0;
 

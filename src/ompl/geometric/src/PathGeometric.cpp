@@ -264,7 +264,7 @@ void ompl::geometric::PathGeometric::reverse(void)
 void ompl::geometric::PathGeometric::overlay(const PathGeometric &over, unsigned int startIndex)
 {
     if (startIndex > states.size())
-        throw Exception("Index of path is out of bounds");
+        throw Exception("Index on path is out of bounds");
     const base::StateManifoldPtr &sm = over.si_->getStateManifold();
     const base::StateManifoldPtr &dm = si_->getStateManifold();
     bool copy = !states.empty();
