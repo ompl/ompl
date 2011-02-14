@@ -178,6 +178,22 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
     }
 }
 
+bool ompl::base::StateManifold::covers(const StateManifoldPtr &other) const
+{
+    if (includes(other))
+        return true;
+    else
+        if (other->isCompound())
+        {
+            unsigned int c = other->as<CompoundStateManifold>()->getSubManifoldCount();
+            for (unsigned int i = 0 ; i < c ; ++i)
+                if (!covers(other->as<CompoundStateManifold>()->getSubManifold(i)))
+                    return false;
+            return true;
+        }
+    return false;
+}
+
 bool ompl::base::StateManifold::includes(const StateManifoldPtr &other) const
 {
     std::queue<const StateManifold*> q;

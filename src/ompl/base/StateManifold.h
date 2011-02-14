@@ -99,6 +99,9 @@ namespace ompl
                 return static_cast<const T*>(this);
             }
 
+            /** @name Generic functionality for manifolds
+                @{ */
+
             /** \brief Check if the manifold is compound */
             virtual bool isCompound(void) const;
 
@@ -119,7 +122,15 @@ namespace ompl
             /** \brief Return true if \e other is a manifold included (perhaps equal, perhaps a submanifold) in this one. */
             bool includes(const StateManifoldPtr &other) const;
 
-            /** @name Functionality specific to the manifold (to be implemented)
+            /** \brief Return true if \e other is a manifold that is
+                either included (perhaps equal, perhaps a submanifold)
+                in this one, or all of its submanifolds are included
+                in this one. */
+            bool covers(const StateManifoldPtr &other) const;
+
+            /** @} */
+
+            /** @name Functionality specific to the manifold (to be implemented by inherited manifolds)
                 @{ */
 
             /** \brief Get the dimension of the space */
