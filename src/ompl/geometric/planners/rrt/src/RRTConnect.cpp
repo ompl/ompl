@@ -85,7 +85,7 @@ void ompl::geometric::RRTConnect::clear(void)
     freeMemory();
     if (tStart_)
         tStart_->clear();
-    if (tStart_)
+    if (tGoal_)
         tGoal_->clear();
 }
 
