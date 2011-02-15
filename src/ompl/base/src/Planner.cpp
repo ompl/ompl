@@ -360,7 +360,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
         else
         {
             msg::Interface msg(planner_ ? planner_->getName() : "");
-            msg.warn("Skipping invalid start state (invalid %s)", bounds ? "bounds" : "state");
+            msg.warn("Skipping invalid start state (invalid %s)", bounds ? "state": "bounds");
         }
     }
     return NULL;
@@ -410,7 +410,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     else
                     {
                         msg::Interface msg(planner_ ? planner_->getName() : "");
-                        msg.warn("Skipping invalid goal state (invalid %s)", bounds ? "bounds" : "state");
+                        msg.warn("Skipping invalid goal state (invalid %s)", bounds ? "state": "bounds");
                     }
                 }
                 while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
