@@ -36,12 +36,6 @@
 
 #include "ompl/base/samplers/GaussianValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
-#include <boost/bind.hpp>
-
-ompl::base::ValidStateSamplerAllocator ompl::base::GaussianValidStateSampler::allocator(void)
-{
-    return boost::bind(&ValidStateSampler::alloc<GaussianValidStateSampler>, _1);
-}
 
 ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getMaximumExtent() / 10.0)

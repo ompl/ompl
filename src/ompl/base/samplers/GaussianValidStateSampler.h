@@ -72,9 +72,6 @@ namespace ompl
                 stddev_ = stddev;
             }
 
-            /** \brief Return an allocator for this type of sampler */
-            static ValidStateSamplerAllocator allocator(void);
-
         protected:
 
             /** \brief The sampler to build upon */

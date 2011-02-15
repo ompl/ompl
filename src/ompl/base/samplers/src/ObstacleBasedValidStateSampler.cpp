@@ -37,13 +37,6 @@
 #include "ompl/base/samplers/ObstacleBasedValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 
-#include <boost/bind.hpp>
-
-ompl::base::ValidStateSamplerAllocator ompl::base::ObstacleBasedValidStateSampler::allocator(void)
-{
-    return boost::bind(&ValidStateSampler::alloc<ObstacleBasedValidStateSampler>, _1);
-}
-
 ompl::base::ObstacleBasedValidStateSampler::ObstacleBasedValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocManifoldStateSampler())
 {
