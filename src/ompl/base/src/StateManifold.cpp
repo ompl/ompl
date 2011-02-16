@@ -679,9 +679,7 @@ namespace ompl
         {
             if (!m)
                 return false;
-            if (m->getDimension() > 0)
-                return true;
-            if (m->isCompound())
+            if (m->getDimension() == 0 && m->getType() == STATE_MANIFOLD_UNKNOWN && m->isCompound())
             {
                 const unsigned int nc = m->as<CompoundStateManifold>()->getSubManifoldCount();
                 for (unsigned int i = 0 ; i < nc ; ++i)
