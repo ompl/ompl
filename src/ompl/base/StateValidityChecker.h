@@ -75,11 +75,20 @@ namespace ompl
             {
             }
 
-            /** \brief Return true if the state is valid. Usually, this means at least collision checking. If it is
+            /** \brief Return true if the state \e state is valid. Usually, this means at least collision checking. If it is
                 possible that ompl::base::StateManifold::interpolate() or ompl::control::ControlManifold::propagate() return states that
                 are outside of bounds, this function should also make a call to ompl::base::SpaceInformation::satisfiesBounds(). */
             virtual bool isValid(const State *state) const = 0;
 
+	    /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest invalid state.
+		If a direction that moves \e state away from being invalid is available, it is set in \e gradient. \e gradient is an element
+		of the tangent space that contains \e state.*/
+	    virtual bool isValid(const State *state, double &dist, State *gradient = NULL) const
+	    {
+		dist = 0.0;
+		return isValid(state);
+	    }
+	    
         protected:
 
             /** \brief The instance of space information this state validity checker operates on */
@@ -101,7 +110,8 @@ namespace ompl
             AllValidStateValidityChecker(const SpaceInformationPtr &si) : StateValidityChecker(si)
             {
             }
-
+	    
+	    /** \brief Always return true (all states are considered valid) */
             virtual bool isValid(const State * /* state */ ) const
             {
                 return true;
