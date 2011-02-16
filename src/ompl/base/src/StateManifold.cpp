@@ -573,7 +573,7 @@ void ompl::base::CompoundStateManifold::printState(const State *state, std::ostr
 
 void ompl::base::CompoundStateManifold::printSettings(std::ostream &out) const
 {
-    out << "Compound state manifold '" << getName() << "' [" << std::endl;
+    out << "Compound state manifold '" << getName() << "' of dimension " << getDimension() << (isLocked() ? " (locked)" : "") << " [" << std::endl;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
     {
         components_[i]->printSettings(out);
@@ -674,11 +674,31 @@ namespace ompl
             return result;
         }
 
+        /// @cond IGNORE
+        inline bool StateManifoldHasContent(const StateManifoldPtr &m)
+        {
+            if (!m)
+                return false;
+            if (m->getDimension() > 0)
+                return true;
+            if (m->isCompound())
+            {
+                const unsigned int nc = m->as<CompoundStateManifold>()->getSubManifoldCount();
+                for (unsigned int i = 0 ; i < nc ; ++i)
+                    if (StateManifoldHasContent(m->as<CompoundStateManifold>()->getSubManifold(i)))
+                        return true;
+                return false;
+            }
+            return true;
+        }
+        /// @endcond
+
         StateManifoldPtr operator+(const StateManifoldPtr &a, const StateManifoldPtr &b)
         {
-            if ((!a || a->getDimension() == 0) && b && b->getDimension() > 0)
+            if (!StateManifoldHasContent(a) && StateManifoldHasContent(b))
                 return b;
-            if ((!b || b->getDimension() == 0) && a && a->getDimension() > 0)
+
+            if (!StateManifoldHasContent(b) && StateManifoldHasContent(a))
                 return a;
 
             std::vector<StateManifoldPtr> components;
