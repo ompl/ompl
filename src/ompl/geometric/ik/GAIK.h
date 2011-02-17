@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_IK_GAIK_
-#define OMPL_GEOMETRIC_PLANNERS_IK_GAIK_
+#ifndef OMPL_GEOMETRIC_IK_GAIK_
+#define OMPL_GEOMETRIC_IK_GAIK_
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/GoalRegion.h"
@@ -65,14 +65,11 @@ namespace ompl
         public:
 
             /** \brief Construct an instance of a genetic algorithm for inverse kinematics given the space information to search within */
-            GAIK(const base::SpaceInformationPtr &si) : hcik_(si), msg_("GAIK")
+            GAIK(const base::SpaceInformationPtr &si) : hcik_(si), si_(si), poolSize_(100), poolMutation_(20), poolRandom_(30),
+                                                        maxDistance_(0.0), msg_("GAIK")
             {
-                si_ = si;
-                poolSize_ = 80;
-                poolExpansion_ = 100;
                 hcik_.setMaxImproveSteps(3);
                 setValidityCheck(true);
-                maxDistance_ = 0.0;
             }
 
             ~GAIK(void)
@@ -120,16 +117,28 @@ namespace ompl
                 return poolSize_;
             }
 
-            /** \brief Set the number of individuals to add to the population in each generation */
-            void setPoolExpansionSize(unsigned int size)
+            /** \brief Set the number of individuals to mutate at each generation. */
+            void setPoolMutationSize(unsigned int size)
             {
-                poolExpansion_ = size;
+                poolMutation_ = size;
             }
 
-            /** \brief Get the number of individuals to add to the population in each generation */
-            unsigned int getPoolExpansionSize(void) const
+            /** \brief Get the number of individuals that are mutated at each generation */
+            unsigned int getPoolMutationSize(void) const
             {
-                return poolExpansion_;
+                return poolMutation_;
+            }
+
+            /** \brief Set the number of individuals to randomly sample at each generation */
+            void setPoolRandomSize(unsigned int size)
+            {
+                poolRandom_ = size;
+            }
+
+            /** \brief Get the number of individuals to randomly sample at each generation */
+            unsigned int getPoolRandomSize(void) const
+            {
+                return poolRandom_;
             }
 
             /** \brief Set the range (distance) to be used when sampling around a state */
@@ -176,7 +185,8 @@ namespace ompl
             HCIK                                         hcik_;
             base::SpaceInformationPtr                    si_;
             unsigned int                                 poolSize_;
-            unsigned int                                 poolExpansion_;
+            unsigned int                                 poolMutation_;
+            unsigned int                                 poolRandom_;
             bool                                         checkValidity_;
 
             double                                       maxDistance_;

@@ -56,7 +56,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 
     time::point             endTime = time::now() + time::seconds(solveTime);
 
-    unsigned int            maxPoolSize = poolSize_ + poolExpansion_;
+    unsigned int            maxPoolSize = poolSize_ + poolMutation_ + poolRandom_;
     std::vector<Individual> pool(maxPoolSize);
     IndividualSort          gs;
     bool                    solved = false;
@@ -120,11 +120,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 
     // run the genetic algorithm
     unsigned int generations = 1;
-    unsigned int mutationsSize = maxPoolSize - maxPoolSize % poolSize_;
-    if (mutationsSize == 0)
-        mutationsSize = maxPoolSize;
-    if (mutationsSize == maxPoolSize)
-        mutationsSize--;
+    unsigned int mutationsSize = poolSize_ + poolMutation_;
 
     while (!solved && time::now() < endTime)
     {
