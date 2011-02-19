@@ -74,6 +74,9 @@ void ompl::Profiler::clear(void)
 {
     lock_.lock();
     data_.clear();
+    tinfo_ = TimeInfo();
+    if (running_)
+        tinfo_.set();
     lock_.unlock();
 }
 
