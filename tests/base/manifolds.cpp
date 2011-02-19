@@ -315,16 +315,6 @@ TEST(Compound, Simple)
     base::StateManifoldPtr t = m1 + m4;
     EXPECT_EQ((t - "test")->getDimension(), m1->getDimension());
     EXPECT_EQ((m1 - m1)->getDimension(), 0u);
-    bool ok = false;
-    try
-    {
-        t->setName(m1->getName());
-    }
-    catch(...)
-    {
-        ok = true;
-    }
-    EXPECT_TRUE(ok);
     t->setName(t->getName());
     base::ScopedState<> st(t);
     EXPECT_TRUE(t->getValueAddressAtIndex(st.get(), 10000) == NULL);
@@ -333,6 +323,8 @@ TEST(Compound, Simple)
     EXPECT_FALSE(m1->includes(t));
     EXPECT_TRUE(m3->includes(m3));
     EXPECT_TRUE(t->includes(t));
+    base::StateManifold::diagram(std::cout);
+    
 }
 
 int main(int argc, char **argv)

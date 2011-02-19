@@ -253,6 +253,9 @@ namespace ompl
                 multiple times. */
             virtual void setup(void);
 
+            /** \brief Print a Graphviz digraph that represents the containment diagram for all the available manifolds */
+            static void diagram(std::ostream &out);
+
         protected:
 
             /** \brief The name used for the default projection */

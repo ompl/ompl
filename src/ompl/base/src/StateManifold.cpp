@@ -40,7 +40,7 @@
 #include <limits>
 #include <queue>
 #include <cmath>
-#include <set>
+#include <list>
 
 const std::string ompl::base::StateManifold::DEFAULT_PROJECTION_NAME = "";
 
@@ -49,39 +49,8 @@ namespace ompl
 {
     namespace base
     {
-
-        static void namesList(int op, const std::string &name1, const std::string &name2 = "")
-        {
-            static boost::mutex lock;
-            static std::set<std::string> used;
-            boost::mutex::scoped_lock slock(lock);
-
-            if (op == 1) // add
-            {
-                if (used.find(name1) != used.end())
-                    throw Exception("State manifold name '" + name1 + "' already in use. Manifold names must be unique.");
-                used.insert(name1);
-            }
-            else
-                if (op == 2) // remove
-                {
-                    std::set<std::string>::iterator pos = used.find(name1);
-                    if (pos == used.end())
-                        throw Exception("No state manifold with name '" + name1 + "' exists.");
-                    used.erase(pos);
-                }
-                else
-                    if (op == 3 && name1 != name2) // replace
-                    {
-                        std::set<std::string>::iterator pos = used.find(name1);
-                        if (pos == used.end())
-                            throw Exception("No state manifold with name '" + name1 + "' exists.");
-                        if (used.find(name2) != used.end())
-                            throw Exception("State manifold name '" + name2 + "' already in use. Manifold names must be unique.");
-                        used.erase(pos);
-                        used.insert(name2);
-                    }
-        }
+        static std::list<StateManifold*> STATE_MANIFOLD_LIST;
+        static boost::mutex              STATE_MANIFOLD_LIST_LOCK;
     }
 }
 /// @endcond
@@ -97,7 +66,8 @@ ompl::base::StateManifold::StateManifold(void)
     lock.unlock();
 
     name_ = "Manifold" + boost::lexical_cast<std::string>(m);
-    namesList(1, name_);
+    boost::mutex::scoped_lock smLock(STATE_MANIFOLD_LIST_LOCK);
+    STATE_MANIFOLD_LIST.push_back(this);
 
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
@@ -110,7 +80,25 @@ ompl::base::StateManifold::StateManifold(void)
 
 ompl::base::StateManifold::~StateManifold(void)
 {
-    namesList(2, name_);
+    boost::mutex::scoped_lock smLock(STATE_MANIFOLD_LIST_LOCK);
+    STATE_MANIFOLD_LIST.remove(this);
+}
+
+void ompl::base::StateManifold::diagram(std::ostream &out)
+{
+    boost::mutex::scoped_lock smLock(STATE_MANIFOLD_LIST_LOCK);
+    out << "digraph StateManifolds {" << std::endl;
+    for (std::list<StateManifold*>::iterator it = STATE_MANIFOLD_LIST.begin() ; it != STATE_MANIFOLD_LIST.end(); ++it)
+    {
+        out << '"' << (*it)->getName() << '"' << std::endl;
+        for (std::list<StateManifold*>::iterator jt = STATE_MANIFOLD_LIST.begin() ; jt != STATE_MANIFOLD_LIST.end(); ++jt)
+            if (it != jt)
+            {
+                if ((*it)->isCompound() && (*it)->as<CompoundStateManifold>()->hasSubManifold((*jt)->getName()))
+                    out << '"' << (*it)->getName() << "\" -> \"" << (*jt)->getName() << '"' << std::endl;
+            }
+    }
+    out << '}' << std::endl;
 }
 
 const std::string& ompl::base::StateManifold::getName(void) const
@@ -120,7 +108,6 @@ const std::string& ompl::base::StateManifold::getName(void) const
 
 void ompl::base::StateManifold::setName(const std::string &name)
 {
-    namesList(3, name_, name);
     name_ = name;
 }
 

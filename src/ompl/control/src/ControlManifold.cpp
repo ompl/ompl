@@ -36,60 +36,14 @@
 
 #include "ompl/control/ControlManifold.h"
 #include "ompl/util/Exception.h"
-#include <boost/thread/mutex.hpp>
-#include <set>
-
-/// @cond IGNORE
-namespace ompl
-{
-    namespace control
-    {
-
-        static void namesList(int op, const std::string &name1, const std::string &name2 = "")
-        {
-            static boost::mutex lock;
-            static std::set<std::string> used;
-            boost::mutex::scoped_lock slock(lock);
-
-            if (op == 1) // add
-            {
-                if (used.find(name1) != used.end())
-                    throw Exception("Control manifold name '" + name1 + "' already in use. Manifold names must be unique.");
-                used.insert(name1);
-            }
-            else
-                if (op == 2) // remove
-                {
-                    std::set<std::string>::iterator pos = used.find(name1);
-                    if (pos == used.end())
-                        throw Exception("No control manifold with name '" + name1 + "' exists.");
-                    used.erase(pos);
-                }
-                else
-                    if (op == 3 && name1 != name2) // replace
-                    {
-                        std::set<std::string>::iterator pos = used.find(name1);
-                        if (pos == used.end())
-                            throw Exception("No control manifold with name '" + name1 + "' exists.");
-                        if (used.find(name2) != used.end())
-                            throw Exception("Control manifold name '" + name2 + "' already in use. Manifold names must be unique.");
-                        used.erase(pos);
-                        used.insert(name2);
-                    }
-        }
-    }
-}
-/// @endcond
 
 ompl::control::ControlManifold::ControlManifold(const base::StateManifoldPtr &stateManifold) : stateManifold_(stateManifold)
 {
     name_ = "Control[" + stateManifold_->getName() + "]";
-    namesList(1, name_);
 }
 
 ompl::control::ControlManifold::~ControlManifold(void)
 {
-    namesList(2, name_);
 }
 
 const std::string& ompl::control::ControlManifold::getName(void) const
@@ -99,7 +53,6 @@ const std::string& ompl::control::ControlManifold::getName(void) const
 
 void ompl::control::ControlManifold::setName(const std::string &name)
 {
-    namesList(3, name_, name);
     name_ = name;
 }
 
