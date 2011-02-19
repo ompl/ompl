@@ -323,8 +323,6 @@ TEST(Compound, Simple)
     EXPECT_FALSE(m1->includes(t));
     EXPECT_TRUE(m3->includes(m3));
     EXPECT_TRUE(t->includes(t));
-    base::StateManifold::diagram(std::cout);
-    
 }
 
 int main(int argc, char **argv)
