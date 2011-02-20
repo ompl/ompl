@@ -84,23 +84,6 @@ ompl::base::StateManifold::~StateManifold(void)
     STATE_MANIFOLD_LIST.remove(this);
 }
 
-void ompl::base::StateManifold::diagram(std::ostream &out)
-{
-    boost::mutex::scoped_lock smLock(STATE_MANIFOLD_LIST_LOCK);
-    out << "digraph StateManifolds {" << std::endl;
-    for (std::list<StateManifold*>::iterator it = STATE_MANIFOLD_LIST.begin() ; it != STATE_MANIFOLD_LIST.end(); ++it)
-    {
-        out << '"' << (*it)->getName() << '"' << std::endl;
-        for (std::list<StateManifold*>::iterator jt = STATE_MANIFOLD_LIST.begin() ; jt != STATE_MANIFOLD_LIST.end(); ++jt)
-            if (it != jt)
-            {
-                if ((*it)->isCompound() && (*it)->as<CompoundStateManifold>()->hasSubManifold((*jt)->getName()))
-                    out << '"' << (*it)->getName() << "\" -> \"" << (*jt)->getName() << '"' << std::endl;
-            }
-    }
-    out << '}' << std::endl;
-}
-
 const std::string& ompl::base::StateManifold::getName(void) const
 {
     return name_;
@@ -165,40 +148,81 @@ void ompl::base::StateManifold::printProjections(std::ostream &out) const
     }
 }
 
+/// @cond IGNORE
+namespace ompl
+{
+    namespace base
+    {
+        static bool StateManifoldIncludes(const StateManifold *self, const StateManifold *other)
+        {
+            std::queue<const StateManifold*> q;
+            q.push(self);
+            while (!q.empty())
+            {
+                const StateManifold *m = q.front();
+                q.pop();
+                if (m->getName() == other->getName())
+                    return true;
+                if (m->isCompound())
+                {
+                    unsigned int c = m->as<CompoundStateManifold>()->getSubManifoldCount();
+                    for (unsigned int i = 0 ; i < c ; ++i)
+                        q.push(m->as<CompoundStateManifold>()->getSubManifold(i).get());
+                }
+            }
+            return false;
+        }
+
+        static bool StateManifoldCovers(const StateManifold *self, const StateManifold *other)
+        {
+            if (StateManifoldIncludes(self, other))
+                return true;
+            else
+                if (other->isCompound())
+                {
+                    unsigned int c = other->as<CompoundStateManifold>()->getSubManifoldCount();
+                    for (unsigned int i = 0 ; i < c ; ++i)
+                        if (!StateManifoldCovers(self, other->as<CompoundStateManifold>()->getSubManifold(i).get()))
+                            return false;
+                    return true;
+                }
+            return false;
+        }
+    }
+}
+
+/// @endcond
+
 bool ompl::base::StateManifold::covers(const StateManifoldPtr &other) const
 {
-    if (includes(other))
-        return true;
-    else
-        if (other->isCompound())
-        {
-            unsigned int c = other->as<CompoundStateManifold>()->getSubManifoldCount();
-            for (unsigned int i = 0 ; i < c ; ++i)
-                if (!covers(other->as<CompoundStateManifold>()->getSubManifold(i)))
-                    return false;
-            return true;
-        }
-    return false;
+    return StateManifoldCovers(this, other.get());
 }
 
 bool ompl::base::StateManifold::includes(const StateManifoldPtr &other) const
 {
-    std::queue<const StateManifold*> q;
-    q.push(this);
-    while (!q.empty())
+    return StateManifoldIncludes(this, other.get());
+}
+
+void ompl::base::StateManifold::diagram(std::ostream &out)
+{
+    boost::mutex::scoped_lock smLock(STATE_MANIFOLD_LIST_LOCK);
+    out << "digraph StateManifolds {" << std::endl;
+    for (std::list<StateManifold*>::iterator it = STATE_MANIFOLD_LIST.begin() ; it != STATE_MANIFOLD_LIST.end(); ++it)
     {
-        const StateManifold *m = q.front();
-        q.pop();
-        if (m->getName() == other->getName())
-            return true;
-        if (m->isCompound())
-        {
-            unsigned int c = m->as<CompoundStateManifold>()->getSubManifoldCount();
-            for (unsigned int i = 0 ; i < c ; ++i)
-                q.push(m->as<CompoundStateManifold>()->getSubManifold(i).get());
-        }
+        out << '"' << (*it)->getName() << '"' << std::endl;
+        for (std::list<StateManifold*>::iterator jt = STATE_MANIFOLD_LIST.begin() ; jt != STATE_MANIFOLD_LIST.end(); ++jt)
+            if (it != jt)
+            {
+                if ((*it)->isCompound() && (*it)->as<CompoundStateManifold>()->hasSubManifold((*jt)->getName()))
+                    out << '"' << (*it)->getName() << "\" -> \"" << (*jt)->getName() << "\" [label=\"" <<
+                        boost::lexical_cast<std::string>((*it)->as<CompoundStateManifold>()->getSubManifoldWeight((*jt)->getName())) <<
+                        "\"];" << std::endl;
+                else
+                    if (!StateManifoldIncludes(*it, *jt) && StateManifoldCovers(*it, *jt))
+                        out << '"' << (*it)->getName() << "\" -> \"" << (*jt)->getName() << "\" [style=dashed];" << std::endl;
+            }
     }
-    return false;
+    out << '}' << std::endl;
 }
 
 bool ompl::base::StateManifold::hasDefaultProjection(void) const
