@@ -203,7 +203,7 @@ void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
         double tS = time::seconds(data.time.find(time[i].name)->second.shortest);
         double tL = time::seconds(data.time.find(time[i].name)->second.longest);
         out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
-            << tS << "s --> " << tL << "s]" << std::endl;
+            << tS << "s --> " << tL << " s]" << std::endl;
         unaccounted -= time[i].value;
     }
     out << "Unaccounted time : " << unaccounted << " (" << (100.0 * unaccounted / total) << " %)" << std::endl;

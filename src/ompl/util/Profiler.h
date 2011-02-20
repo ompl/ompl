@@ -75,6 +75,27 @@ namespace ompl
     {
     public:
 
+        /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope. */
+        class BeginBlock
+        {
+        public:
+
+            BeginBlock(const std::string &name, Profiler *prof = Profiler::Instance()) : name_(name), prof_(prof)
+            {
+                prof->begin(name);
+            }
+
+            ~BeginBlock(void)
+            {
+                prof_->end(name_);
+            }
+
+        private:
+
+            std::string  name_;
+            Profiler    *prof_;
+        };
+
         /** \brief Return an instance of the class */
         static Profiler* Instance(void);
 
@@ -218,7 +239,6 @@ namespace ompl
         bool                                   printOnDestroy_;
 
     };
-
 }
 
 #else
@@ -234,6 +254,19 @@ namespace ompl
     class Profiler
     {
     public:
+
+        class BeginBlock
+        {
+        public:
+
+            BeginBlock(const std::string &, Profiler *dummy = NULL)
+            {
+            }
+
+            ~BeginBlock(void)
+            {
+            }
+        };
 
         static Profiler* Instance(void);
 
