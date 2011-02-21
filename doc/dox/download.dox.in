@@ -6,8 +6,10 @@
 - \b OMPL @OMPL_VERSION@, released February 2011 (<a href="releaseNotes.html">release notes</a>)<br>
 <a href="https://sourceforge.net/projects/ompl/files/ompl-@OMPL_VERSION@-Source.tar.gz" class="download">TGZ</a>
 <a href="https://sourceforge.net/projects/ompl/files/ompl-@OMPL_VERSION@-Source.zip" class="download">ZIP</a>
+- <a href="http://sourceforge.net/projects/ompl/files">Older releases</a>. See the \ref releaseNotes "release notes" for a brief a description of changes for each release.
 .
 
+\n\par
 Alternatively, you can use the <a
 href="http://www.ros.org/wiki/ompl">version included in ROS</a>.
 
