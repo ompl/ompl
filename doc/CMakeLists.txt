@@ -5,6 +5,9 @@ if (OMPL_BUILD_DOC)
     find_package(Doxygen QUIET)
 
     if(DOXYGEN)
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dox/download.dox.in"
+            "${CMAKE_CURRENT_SOURCE_DIR}/dox/download.dox")
+
         # add "doc" target if Doxygen is detected
         add_custom_target(doc
             COMMAND ${CMAKE_COMMAND} -E remove_directory html
