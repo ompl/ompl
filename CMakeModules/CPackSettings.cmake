@@ -8,6 +8,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "${OMPL_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${OMPL_PATCH_VERSION}")
 
 set(CPACK_SOURCE_IGNORE_FILES
+    "/.hg"
     "/.svn/"
     "/build/"
     ".pyc$"
