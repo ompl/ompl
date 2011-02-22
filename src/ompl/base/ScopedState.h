@@ -260,6 +260,7 @@ namespace ompl
                 uninitialised) */
             ScopedState<> operator[](const StateManifoldPtr &m) const;
 
+            /** \brief Access the \e index<sup>th</sup> double value this state contains. */
             double& operator[](const unsigned int index)
             {
                 double *val = manifold_->getValueAddressAtIndex(state_, index);
@@ -268,6 +269,7 @@ namespace ompl
                 return *val;
             }
 
+            /** \brief Access the \e index<sup>th</sup> double value this state contains. */
             double operator[](const unsigned int index) const
             {
                 const double *val = manifold_->getValueAddressAtIndex(state_, index);
@@ -276,6 +278,7 @@ namespace ompl
                 return *val;
             }
 
+            /** \brief Compute the distance to another state. */
             template<class O>
             double distance(const ScopedState<O> &other) const
             {
@@ -284,6 +287,7 @@ namespace ompl
                 return distance(other.get());
             }
 
+            /** \brief Compute the distance to another state. */
             double distance(const State *state) const
             {
                 return manifold_->distance(static_cast<const State*>(state_), state);
