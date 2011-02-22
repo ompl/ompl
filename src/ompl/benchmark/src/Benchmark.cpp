@@ -113,6 +113,7 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
     out << "<<<|" << std::endl << exp_.setupInfo << "|>>>" << std::endl;
 
+    out << exp_.seed << " is the random seed" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
     out << exp_.maxMem << " MB per run" << std::endl;
     out << exp_.totalDuration << " seconds spent to collect the data" << std::endl;
@@ -211,6 +212,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     exp_.maxTime = maxTime;
     exp_.maxMem = maxMem;
     exp_.host = getHostname();
+    exp_.seed = RNG::getSeed();
 
     exp_.startTime = time::now();
 
