@@ -153,7 +153,10 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
                     si_->copyState(xstate, approxsol->state);
                     msg_.debug("Start Running HCIK (%f)...", improveValue);
                     if (hcik_.tryToImprove(*goal_r, xstate, improveValue))
-                        improveValue /= 2.0;
+                    {
+                        if (improveValue > maxDistance_ / 100.0)
+                            improveValue /= 2.0;
+                    }
                     else
                         sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
                     msg_.debug("End Running HCIK");
