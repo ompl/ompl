@@ -116,6 +116,9 @@ namespace ompl
             /// The output of SimpleSetup::print() before the experiment was started
             std::string                    setupInfo;
 
+            /// The random seed that was used at the start of the benchmark program
+            boost::uint32_t                seed;
+
             /// Hostname that identifies the machine the benchmark ran on
             std::string                    host;
         };
