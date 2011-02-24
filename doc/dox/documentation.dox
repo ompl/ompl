@@ -22,6 +22,7 @@ are encouraged to look at the examples in @b demos/ as well.
 - \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
 - \ref stateValidation "Setting up state validity checking"
 - \ref workingWithStates "Working with states and manifolds"
+- \ref samplers "Using existing samplers and creating new ones"
 .
 
 \par Intermediate
