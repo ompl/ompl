@@ -30,6 +30,8 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithIntegrationAndControls RigidBodyPlanningWithIntegrationAndControls.cpp)
 
+  add_ompl_demo(demo_StateSampling StateSampling.cpp)
+
   if (OMPL_EXTENSION_ODE)
     add_ompl_demo(demo_ODERigidBodyPlanning ODERigidBodyPlanning.cpp)
   endif()

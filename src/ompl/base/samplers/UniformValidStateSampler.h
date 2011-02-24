@@ -61,9 +61,6 @@ namespace ompl
             virtual bool sample(State *state);
             virtual bool sampleNear(State *state, const State *near, const double distance);
 
-            /** \brief Return an allocator for this type of sampler */
-            static ValidStateSamplerAllocator allocator(void);
-
         protected:
 
             /** \brief The sampler to build upon */
