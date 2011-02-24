@@ -56,7 +56,9 @@ void ompl::msg::noOutputHandler(void)
 
 void ompl::msg::restorePreviousOutputHandler(void)
 {
+    _lock.lock();
     std::swap(PREVIOUS_OH, OUTPUT_HANDLER);
+    _lock.unlock();
 }
 
 void ompl::msg::useOutputHandler(OutputHandler *oh)
