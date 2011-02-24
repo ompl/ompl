@@ -186,21 +186,24 @@ namespace ompl
         /** \brief Information about time spent in a section of the code */
         struct TimeInfo
         {
-            TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin)
+            TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
             {
             }
 
             /** \brief Total time counted. */
-            time::duration total;
+            time::duration    total;
 
             /** \brief The shortest counted time interval */
-            time::duration shortest;
+            time::duration    shortest;
 
             /** \brief The longest counted time interval */
-            time::duration longest;
+            time::duration    longest;
+
+            /** \brief Number of times a chunk of time was added to this structure */
+            unsigned long int parts;
 
             /** \brief The point in time when counting time started */
-            time::point    start;
+            time::point       start;
 
             /** \brief Begin counting time */
             void set(void)
@@ -217,6 +220,7 @@ namespace ompl
                 if (dt < shortest)
                     shortest = dt;
                 total = total + dt;
+                ++parts;
             }
         };
 
