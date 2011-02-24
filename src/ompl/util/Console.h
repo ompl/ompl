@@ -157,6 +157,9 @@ namespace ompl
         /** \brief This function instructs ompl that no messages should be outputted. */
         void noOutputHandler(void);
 
+        /** \brief Restore the output handler that was previously in use */
+        void restorePreviousOutputHandler(void);
+
         /** \brief Specify the instance of the OutputHandler to use. By default, this is OutputHandlerSTD */
         void useOutputHandler(OutputHandler *oh);
 

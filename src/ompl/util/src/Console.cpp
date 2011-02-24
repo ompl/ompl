@@ -43,18 +43,26 @@
 
 static ompl::msg::OutputHandlerSTD _defaultOutputHandler;
 static ompl::msg::OutputHandler   *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&_defaultOutputHandler);
+static ompl::msg::OutputHandler   *PREVIOUS_OH = OUTPUT_HANDLER;
 static boost::mutex                _lock; // it is likely the outputhandler does some I/O, so we serialize it
 
 void ompl::msg::noOutputHandler(void)
 {
     _lock.lock();
+    PREVIOUS_OH = OUTPUT_HANDLER;
     OUTPUT_HANDLER = NULL;
     _lock.unlock();
+}
+
+void ompl::msg::restorePreviousOutputHandler(void)
+{
+    std::swap(PREVIOUS_OH, OUTPUT_HANDLER);
 }
 
 void ompl::msg::useOutputHandler(OutputHandler *oh)
 {
     _lock.lock();
+    PREVIOUS_OH = OUTPUT_HANDLER;
     OUTPUT_HANDLER = oh;
     _lock.unlock();
 }
