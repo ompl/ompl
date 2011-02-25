@@ -71,7 +71,7 @@ TEST(NearestNeighbors, Linear)
         proximity.add(states[i]);
     }
 
-    EXPECT_EQ(proximity.size(), n);
+    EXPECT_EQ((int)proximity.size(), n);
 
     for(i=0; i<n; ++i)
     {
@@ -80,7 +80,7 @@ TEST(NearestNeighbors, Linear)
 
         proximity.nearestK(states[i], 10, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ(nghbr.size(), 10);
+        EXPECT_EQ(nghbr.size(), 10u);
 
         proximity.nearestR(states[i], 1000., nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
@@ -95,7 +95,7 @@ TEST(NearestNeighbors, Linear)
     for(i=n-1; i>=0; --i)
     {
         proximity.remove(states[i]);
-        EXPECT_EQ(proximity.size(), i);
+        EXPECT_EQ((int)proximity.size(), i);
     }
     try
     {
@@ -131,7 +131,7 @@ TEST(NearestNeighbors, SqrtApprox)
         proximity.add(states[i]);
     }
 
-    EXPECT_EQ(proximity.size(), n);
+    EXPECT_EQ((int)proximity.size(), n);
 
     for(i=0,j=0; i<n; ++i)
     {
@@ -140,7 +140,7 @@ TEST(NearestNeighbors, SqrtApprox)
 
         proximity.nearestK(states[i], 10, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ(nghbr.size(), 10);
+        EXPECT_EQ(nghbr.size(), 10u);
 
         proximity.nearestR(states[i], 1000., nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
@@ -156,7 +156,7 @@ TEST(NearestNeighbors, SqrtApprox)
     for(i=n-1; i>=0; --i)
     {
         proximity.remove(states[i]);
-        EXPECT_EQ(proximity.size(), i);
+        EXPECT_EQ((int)proximity.size(), i);
     }
     try
     {
