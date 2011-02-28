@@ -53,8 +53,10 @@ execute_process(COMMAND "${PYTHON_EXEC}" "-c"
     "import sys; print '%d.%d' % (sys.version_info[0],sys.version_info[1])"
     OUTPUT_VARIABLE PYTHON_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REPLACE "." "" PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
-find_library(PYTHON_LIBRARIES "python${PYTHON_VERSION}"
+find_library(PYTHON_LIBRARIES 
+    NAMES "python${PYTHON_VERSION_NO_DOTS}" "python${PYTHON_VERSION}"
     PATHS
         "${PYTHON_PREFIX}/lib"
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION}\\InstallPath]/libs
