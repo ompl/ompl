@@ -79,8 +79,14 @@ string(REGEX REPLACE "^${PYTHON_PREFIX2}/" "" PYTHON_SITE_MODULES "${PYTHON_SITE
 function(find_python_module module)
     string(TOUPPER ${module} module_upper)
     if(NOT PY_${module_upper})
-        if(ARGC GREATER 1 AND ARGV1 STREQUAL "REQUIRED")
-            set(PY_${module}_FIND_REQUIRED TRUE)
+        if(ARGC GREATER 1)
+            if (ARGV1 STREQUAL "REQUIRED")
+                set(PY_${module}_FIND_REQUIRED TRUE)
+            else()
+                if (ARGV1 STREQUAL "QUIET")
+                    set(PY_${module}_FIND_QUIETLY TRUE)
+                endif()
+            endif()
         endif()
         # A module's location is usually a directory, but for binary modules
         # it's a .so file.
