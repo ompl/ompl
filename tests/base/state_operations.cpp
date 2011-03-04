@@ -138,6 +138,9 @@ TEST(State, Scoped)
     EXPECT_EQ(sSE3[6], r[6]);
     EXPECT_EQ(sSE3[0], r[0]);
     EXPECT_EQ(sSE3.getManifold()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
+
+    sSE3_R = 0.5;
+    EXPECT_EQ(sSE3_R[0], 0.5);
 }
 
 TEST(State, Allocation)
