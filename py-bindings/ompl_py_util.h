@@ -43,11 +43,11 @@
 #include "ompl/base/manifolds/SE3StateManifold.h"
 
 #define DeclareStateType(T) \
-        inline int __dummy##T() \
-        { \
-                return sizeof(ompl::base::ScopedState<T##StateManifold>) + \
-                        sizeof(ompl::base::T##StateManifold::StateType); \
-        }
+    inline int __dummy##T() \
+    { \
+        return sizeof(ompl::base::ScopedState<T##StateManifold>) + \
+        sizeof(ompl::base::T##StateManifold::StateType); \
+    }
 
 namespace std
 {
@@ -62,16 +62,16 @@ namespace std
 
 namespace ompl
 {
-        namespace base
-        {
-                DeclareStateType();
-                DeclareStateType(Compound);
-                DeclareStateType(RealVector);
-                DeclareStateType(SO2);
-                DeclareStateType(SO3);
-                DeclareStateType(SE2);
-                DeclareStateType(SE3);
-        }
+    namespace base
+    {
+        DeclareStateType();
+        DeclareStateType(Compound);
+        DeclareStateType(RealVector);
+        DeclareStateType(SO2);
+        DeclareStateType(SO3);
+        DeclareStateType(SE2);
+        DeclareStateType(SE3);
+    }
 }
 
 #endif
