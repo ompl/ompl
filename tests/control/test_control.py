@@ -121,7 +121,7 @@ class TestPlanner(object):
         sMan.setBounds(sbounds)
 
         cMan = myControlManifold(sMan)
-        cbounds = oc.RealVectorBounds(2)
+        cbounds = ob.RealVectorBounds(2)
         cbounds.low[0] = -MAX_VELOCITY
         cbounds.high[0] = MAX_VELOCITY
         cbounds.low[1] = -MAX_VELOCITY

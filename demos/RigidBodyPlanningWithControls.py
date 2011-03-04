@@ -75,7 +75,7 @@ def plan():
     cmanifold = oc.RealVectorControlManifold(manifold, 2)
 
     # set the bounds for the control manifold
-    cbounds = oc.RealVectorBounds(2)
+    cbounds = ob.RealVectorBounds(2)
     cbounds.setLow(-.3)
     cbounds.setHigh(.3)
     cmanifold.setBounds(cbounds)
