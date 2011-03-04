@@ -114,6 +114,9 @@ namespace ompl
                 seen multiple times, it is added only once. */
             void recordEdge(const State *s1, const State *s2);
 
+            /** \brief Assign a tag to a state */
+            void tagState(const State *s, int tag);
+
             /** \brief Clear any stored data */
             void clear(void);
 
@@ -125,6 +128,10 @@ namespace ompl
 
             /** \brief The list of states in the current exploration datastructure */
             std::vector< const State* >              states;
+
+            /** \brief For every state, a tag may be associated by the planner. For example, a bi-directional planner
+                may assign one tag for states in the start tree and another for states in the goal tree. By default the tag has value 0. */
+            std::vector< int >                       tags;
 
             /** \brief The same list of states as above, provided for convenience, in a manner that allows finding out a
                 state's index from its pointer value */

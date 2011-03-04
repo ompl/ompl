@@ -94,9 +94,12 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
     // compute pair-wise distances in path
     std::map<std::pair<const base::State*, const base::State*>, double> distances;
     for (unsigned int i = 0 ; i < path.states.size() ; ++i)
-        for (unsigned int j = 0 ; j < path.states.size() ; ++j)
-            if (abs((int)i - (int)j) > 1)
-                distances[std::make_pair(path.states[i], path.states[j])] = si_->distance(path.states[i], path.states[j]);
+        for (unsigned int j = i + 1 ; j < path.states.size() ; ++j)
+        {
+            double d = si_->distance(path.states[i], path.states[j]);
+            distances[std::make_pair(path.states[i], path.states[j])] = d;
+            distances[std::make_pair(path.states[j], path.states[i])] = d;
+        }
 
     unsigned int nochange = 0;
 
@@ -107,17 +110,17 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
         int p1 = -1;
         int p2 = -1;
         for (unsigned int i = 0 ; i < path.states.size() ; ++i)
-            for (unsigned int j = 0 ; j < path.states.size() ; ++j)
-                if (abs((int)i - (int)j) > 1)
+            for (unsigned int j = i + 1 ; j < path.states.size() ; ++j)
+            {
+                double d = distances[std::make_pair(path.states[i], path.states[j])];
+                if (d < minDist)
                 {
-                    double d = distances[std::make_pair(path.states[i], path.states[j])];
-                    if (d < minDist)
-                    {
-                        minDist = d;
-                        p1 = i;
-                        p2 = j;
-                    }
+                    minDist = d;
+                    p1 = i;
+                    p2 = j;
                 }
+            }
+
         if (p1 >= 0 && p2 >= 0)
         {
             if (si_->checkMotion(path.states[p1], path.states[p2]))
