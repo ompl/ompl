@@ -219,7 +219,7 @@ namespace ompl
                 return *this;
             }
 
-            /** \brief Assignment operator */
+            /** \brief Partial assignment operator. Only sets the double values of the state to specified real values */
             ScopedState<T>& operator=(const std::vector<double> &reals)
             {
                 for (unsigned int i = 0 ; i < reals.size() ; ++i)
@@ -227,6 +227,15 @@ namespace ompl
                         *va = reals[i];
                     else
                         break;
+                return *this;
+            }
+
+            /** \brief Partial assignment operator. Only sets the double values of the state to a fixed value */
+            ScopedState<T>& operator=(const double value)
+            {
+                unsigned int index = 0;
+                while (double *va = manifold_->getValueAddressAtIndex(state_, index++))
+                    *va = value;
                 return *this;
             }
 
