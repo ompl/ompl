@@ -81,7 +81,7 @@ namespace ompl
                 double value;
             };
 
-        SO2StateManifold(void) : StateManifold()
+            SO2StateManifold(void) : StateManifold()
             {
                 setName("SO2" + getName());
                 type_ = STATE_MANIFOLD_SO2;
