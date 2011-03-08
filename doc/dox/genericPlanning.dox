@@ -79,7 +79,7 @@
        ompl::base::GoalState representation for the goal.
    @code
    base::SpaceInformationPtr si(...);
-   base::ProblemDefinifionPtr pdef(new base::ProblemDefinition(si));
+   base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
    base::ScopedState start;
    // fill start state
