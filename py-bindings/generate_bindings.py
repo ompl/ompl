@@ -292,7 +292,7 @@ class ompl_control_generator_t(code_generator_t):
         }
         """)
 
-        code_generator_t.__init__(self, 'control', ['bindings/base'], replacement)
+        code_generator_t.__init__(self, 'control', ['bindings/base', 'bindings/geometric'], replacement)
 
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
@@ -330,9 +330,16 @@ class ompl_control_generator_t(code_generator_t):
         # add wrapper code for setPropagationFunction
         self.replace_member_functions(self.ompl_ns.namespace('control').class_(
             'ControlManifold').member_functions('setPropagationFunction'))
+        # LLVM's clang++ compiler doesn't like exporting this method because
+        # the argument type (Grid::Cell) is protected
+        self.ompl_ns.member_functions('computeImportance').exclude()
         # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
+
+        # do this for all classes that exist with the same name in another namespace
+        for cls in ['SimpleSetup', 'KPIECE1', 'RRT']:
+            self.ompl_ns.class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -346,11 +353,10 @@ class ompl_control_generator_t(code_generator_t):
         for planner in ['KPIECE1', 'RRT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
-                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
+                    &Control%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
             self.ompl_ns.class_(planner).add_registration_code("""
             def("checkValidity",&::ompl::base::Planner::checkValidity,
-                    &%s_wrapper::default_checkValidity )""" % planner)
-
+                    &Control%s_wrapper::default_checkValidity )""" % planner)
 
 class ompl_geometric_generator_t(code_generator_t):
     def __init__(self):
@@ -390,6 +396,7 @@ class ompl_geometric_generator_t(code_generator_t):
         self.std_ns.class_('vector< int >').rename('vectorInt')
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< ompl::geometric::BasicPRM::Milestone* >').rename('vectorBasicPRMMileStonePtr')
+
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # make objects printable that have a print function
@@ -400,6 +407,9 @@ class ompl_geometric_generator_t(code_generator_t):
                 function=declarations.access_type_matcher_t('protected')).exclude()
         # don't export some internal data structure
         self.ompl_ns.classes('OrderCellsByImportance').exclude()
+        # LLVM's clang++ compiler doesn't like exporting this method because
+        # the argument type (Grid::Cell) is protected
+        self.ompl_ns.member_functions('computeImportance').exclude()
         # add wrapper code for setStateValidityChecker
         self.replace_member_functions(self.ompl_ns.namespace('geometric').class_(
             'SimpleSetup').member_functions('setStateValidityChecker',
