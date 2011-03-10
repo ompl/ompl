@@ -39,11 +39,10 @@
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Console.h"
+#include "ompl/util/MagicConstants.h"
 #include <cmath>
 #include <cstring>
 #include <limits>
-
-extern const double SPLIT_PARTS = 20.0;
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
@@ -141,7 +140,6 @@ void ompl::base::ProjectionEvaluator::checkCellDimensions(void) const
 
 void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
 {
-    static const unsigned int TEST_STEPS = 100;
     unsigned int dim = getDimension();
     if (dim > 0)
     {
@@ -152,7 +150,7 @@ void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
         std::vector<double> low(dim, std::numeric_limits<double>::infinity());
         std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
 
-        for (unsigned int i = 0 ; i < TEST_STEPS ; ++i)
+        for (unsigned int i = 0 ; i < magic::PROJECTION_EXTENTS_SAMPLES ; ++i)
         {
             sampler->sampleUniform(s);
             project(s, proj);
@@ -170,7 +168,7 @@ void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
         cellDimensions_.resize(dim);
         for (unsigned int j = 0 ; j < dim ; ++j)
         {
-            cellDimensions_[j] = (high[j] - low[j]) / SPLIT_PARTS;
+            cellDimensions_[j] = (high[j] - low[j]) / magic::PROJECTION_DIMENSION_SPLITS;
             if (cellDimensions_[j] < std::numeric_limits<double>::epsilon())
             {
                 cellDimensions_[j] = 1.0;

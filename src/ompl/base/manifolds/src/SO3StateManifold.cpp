@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
-
+#include "ompl/util/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
 
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
@@ -208,9 +208,9 @@ void ompl::base::SO3StateManifold::registerProjections(void)
         SO3DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
         {
             cellDimensions_.resize(3);
-            cellDimensions_[0] = boost::math::constants::pi<double>() / 10.0;
-            cellDimensions_[1] = boost::math::constants::pi<double>() / 10.0;
-            cellDimensions_[2] = boost::math::constants::pi<double>() / 10.0;
+            cellDimensions_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
+            cellDimensions_[1] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
+            cellDimensions_[2] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
         virtual unsigned int getDimension(void) const

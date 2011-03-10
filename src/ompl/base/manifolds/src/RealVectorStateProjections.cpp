@@ -36,9 +36,8 @@
 
 #include "ompl/base/manifolds/RealVectorStateProjections.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/MagicConstants.h"
 #include <cstring>
-
-extern const double SPLIT_PARTS;
 
 ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
                                                                                      const ProjectionMatrix::Matrix &projection) :
@@ -116,7 +115,7 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::configure(void)
         const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
         std::vector<double> cellDimensions(components_.size());
         for (unsigned int i = 0 ; i < cellDimensions.size() ; ++i)
-            cellDimensions[i] = (bounds.high[components_[i]] - bounds.low[components_[i]]) / SPLIT_PARTS;
+            cellDimensions[i] = (bounds.high[components_[i]] - bounds.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
         setCellDimensions(cellDimensions);
     }
 }
@@ -180,7 +179,7 @@ void ompl::base::RealVectorIdentityProjectionEvaluator::configure(void)
         const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
         std::vector<double> cellDimensions(getDimension());
         for (unsigned int i = 0 ; i < cellDimensions.size() ; ++i)
-            cellDimensions[i] = (bounds.high[i] - bounds.low[i]) / SPLIT_PARTS;
+            cellDimensions[i] = (bounds.high[i] - bounds.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
         setCellDimensions(cellDimensions);
     }
 }

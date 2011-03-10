@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
-
+#include "ompl/util/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
 
 void ompl::base::SO2StateSampler::sampleUniform(State *state)
@@ -163,7 +163,7 @@ void ompl::base::SO2StateManifold::registerProjections(void)
         SO2DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
         {
             cellDimensions_.resize(1);
-            cellDimensions_[0] = boost::math::constants::pi<double>() / 10.0;
+            cellDimensions_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
         virtual unsigned int getDimension(void) const

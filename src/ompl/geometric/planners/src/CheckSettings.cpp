@@ -37,20 +37,14 @@
 #include "ompl/geometric/planners/CheckSettings.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
+#include "ompl/util/MagicConstants.h"
 #include <limits>
-
-/** \brief If default values are to be used for the maximum
-    length of motions, this constant defines what fraction of
-    the space extent (computed with
-    ompl::base::SpaceInformation::getMaximumExtent()) is to be
-    used as the maximum length of a motion */
-static const double MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.2;
 
 void ompl::geometric::checkMotionLength(const base::Planner *planner, double &length)
 {
     if (length < std::numeric_limits<double>::epsilon())
     {
-        length = planner->getSpaceInformation()->getMaximumExtent() * MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+        length = planner->getSpaceInformation()->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
         msg::Interface msg(planner->getName());
         msg.inform("Maximum motion extension distance is assumed to be %f", length);
     }

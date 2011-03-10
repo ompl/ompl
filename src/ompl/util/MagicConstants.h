@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,47 +34,41 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/manifolds/SE3StateManifold.h"
-#include "ompl/util/MagicConstants.h"
-#include <cstring>
+#ifndef OMPL_UTIL_MAGIC_CONSTANTS_
+#define OMPL_UTIL_MAGIC_CONSTANTS_
 
-ompl::base::State* ompl::base::SE3StateManifold::allocState(void) const
+namespace ompl
 {
-    StateType *state = new StateType();
-    allocStateComponents(state);
-    return state;
-}
 
-void ompl::base::SE3StateManifold::freeState(State *state) const
-{
-    CompoundStateManifold::freeState(state);
-}
+    /** \brief This namespace includes magic constants used in various places in OMPL.
 
-void ompl::base::SE3StateManifold::registerProjections(void)
-{
-    class SE3DefaultProjection : public ProjectionEvaluator
+        We strive to minimize the use of constants in the code, but at
+        places, this is necessary. These constants typically do not
+        have to be changed, but we chose to expose their
+        functionality for the more curious user.*/
+    namespace magic
     {
-    public:
 
-        SE3DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
-        {
-            cellDimensions_.resize(3);
-            const RealVectorBounds &b = manifold->as<SE3StateManifold>()->as<RealVectorStateManifold>(0)->getBounds();
-            cellDimensions_[0] = (b.high[0] - b.low[0]) / magic::PROJECTION_DIMENSION_SPLITS;
-            cellDimensions_[1] = (b.high[1] - b.low[1]) / magic::PROJECTION_DIMENSION_SPLITS;
-            cellDimensions_[2] = (b.high[2] - b.low[2]) / magic::PROJECTION_DIMENSION_SPLITS;
-        }
+        /** \brief When the cell sizes for a projection are
+            automatically computed, this value defines the number of
+            parts into which each dimension is split. */
+        static const double PROJECTION_DIMENSION_SPLITS = 20.0;
 
-        virtual unsigned int getDimension(void) const
-        {
-            return 3;
-        }
 
-        virtual void project(const State *state, EuclideanProjection &projection) const
-        {
-            memcpy(projection.values, state->as<SE3StateManifold::StateType>()->as<RealVectorStateManifold::StateType>(0)->values, 3 * sizeof(double));
-        }
-    };
+        /** \brief When no cell sizes are specified for a projection, they are inferred like so:
+            1. approximate extent of projected space by taking a number of samples (the constant below)
+            2. compute the cell sizes by dividing the extent by PROJECTION_DIMENSION_SPLITS */
+        static const unsigned int PROJECTION_EXTENTS_SAMPLES = 100;
 
-    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SE3DefaultProjection(this))));
+
+        /** \brief For planners: if default values are to be used for
+            the maximum length of motions, this constant defines what
+            fraction of the space extent (computed with
+            ompl::base::SpaceInformation::getMaximumExtent()) is to be
+            used as the maximum length of a motion */
+        static const double MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.2;
+
+    }
 }
+
+#endif
