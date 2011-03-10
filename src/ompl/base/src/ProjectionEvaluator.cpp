@@ -43,7 +43,6 @@
 #include <cstring>
 #include <limits>
 
-const std::vector<double> ompl::base::ProjectionMatrix::UNSCALED = std::vector<double>();
 extern const double SPLIT_PARTS = 20.0;
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
@@ -86,9 +85,19 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
     return projection;
 }
 
+ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to)
+{
+    return ComputeRandom(from, to, std::vector<double>());
+}
+
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
     mat = ComputeRandom(from, to, scale);
+}
+
+void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to)
+{
+    mat = ComputeRandom(from, to);
 }
 
 void ompl::base::ProjectionMatrix::project(const double *from, double *to) const
@@ -213,70 +222,4 @@ void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection 
     }
     else
         out << "NULL" << std::endl;
-}
-
-void ompl::base::CompoundProjectionEvaluator::addProjectionEvaluator(const ProjectionEvaluatorPtr &proj)
-{
-    components_.push_back(proj);
-    computeProjection();
-}
-
-void ompl::base::CompoundProjectionEvaluator::computeProjection(void)
-{
-    compoundDimension_ = 0;
-    std::vector<double> scale;
-    for (unsigned int i = 0 ; i < components_.size() ; ++i)
-    {
-        compoundDimension_ += components_[i]->getDimension();
-        scale.insert(scale.end(), components_[i]->getCellDimensions().begin(), components_[i]->getCellDimensions().end());
-    }
-
-    if (compoundDimension_ > 2 && components_.size() > 1)
-        dimension_ = std::max(2, (int)ceil(log((double)compoundDimension_)));
-    else
-        dimension_ = compoundDimension_;
-
-    if (dimension_ < compoundDimension_)
-        projection_.computeRandom(compoundDimension_, dimension_, scale);
-    cellDimensions_.clear();
-}
-
-unsigned int ompl::base::CompoundProjectionEvaluator::getDimension(void) const
-{
-    return dimension_;
-}
-
-void ompl::base::CompoundProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
-{
-    // project all states to one big vector
-    EuclideanProjection all(compoundDimension_);
-    double *start = all.values;
-    for (unsigned int i = 0 ; i < components_.size() ; ++i)
-    {
-        components_[i]->project(state->as<CompoundState>()->components[i], all);
-        all.values += components_[i]->getDimension();
-    }
-    all.values = start;
-
-    if (compoundDimension_ > dimension_)
-        // project to lower dimension
-        projection_.project(all.values, projection.values);
-    else
-        memcpy(projection.values, all.values, sizeof(double) * dimension_);
-}
-
-void ompl::base::CompoundProjectionEvaluator::printSettings(std::ostream &out) const
-{
-    out << "Compound projection [" << std::endl;
-    for (unsigned int i = 0 ; i < components_.size() ; ++i)
-        components_[i]->printSettings(out);
-    out << "]" << std::endl;
-    out << "  projected to " << dimension_ << " elements" << std::endl;
-    if (compoundDimension_ > dimension_)
-    {
-        out << "  using a projection matrix:" << std::endl;
-        projection_.print(out);
-    }
-    else
-        out << "  (copy of contained projections)" << std::endl;
 }

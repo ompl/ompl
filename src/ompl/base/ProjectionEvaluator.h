@@ -94,9 +94,6 @@ namespace ompl
             /** \brief Datatype for projection matrices */
             typedef std::vector< std::valarray<double> > Matrix;
 
-            /** \brief Special value for specifying that the columns in the projection matrix are as originally sampled (unscaled) */
-            static const std::vector<double> UNSCALED;
-
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements
                 can be multiplied by this matrix in order to produce a
@@ -112,10 +109,23 @@ namespace ompl
                 Each element is sampled with a Gaussian distribution
                 with mean 0 and variance 1 and the matrix columns are
                 made orthonormal. */
-            static Matrix ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = UNSCALED);
+            static Matrix ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale);
 
-            /** \copydoc ComputeRandom() */
-            void computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale = UNSCALED);
+            /** \brief Compute a random projection matrix with \e from
+                columns and \e to rows. A vector with \e from elements
+                can be multiplied by this matrix in order to produce a
+                vector with \e to elements.
+
+                Each element is sampled with a Gaussian distribution
+                with mean 0 and variance 1 and the matrix columns are
+                made orthonormal. */
+            static Matrix ComputeRandom(const unsigned int from, const unsigned int to);
+
+            /** \brief Wrapper for ComputeRandom(from, to, scale) */
+            void computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale);
+
+            /** \brief Wrapper for ComputeRandom(from, to) */
+            void computeRandom(const unsigned int from, const unsigned int to);
 
             /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
             void project(const double *from, double *to) const;
@@ -215,63 +225,6 @@ namespace ompl
 
         };
 
-        /** \brief Construct a projection evaluator from a set of
-            existing projection evaluators. A compound state is
-            projected by concatenating the projection of each
-            component of a state into one composite projected
-            vector. If this vector has dimension larger than 2, it is
-            further projected with a random matrix to a dimension of
-            logarithmic size.
-
-            \note For example, if two projection evaluators are
-            composed, each with dimension 1, the result of the
-            compound projection would simply be the concatenation of
-            the two contained projections (so the result will be a
-            projection of dimension 2). If the concatenation of the
-            contained projections is K > 2, a projection of this
-            concatenation to dimension ceil(log(K)) is computed. */
-        class CompoundProjectionEvaluator : public ProjectionEvaluator
-        {
-        public:
-
-            /** \brief Constructor */
-            CompoundProjectionEvaluator(const StateManifold *manifold) : ProjectionEvaluator(manifold), dimension_(0), compoundDimension_(0)
-            {
-            }
-
-            /** \brief Constructor */
-            CompoundProjectionEvaluator(const StateManifoldPtr &manifold) : ProjectionEvaluator(manifold), dimension_(0), compoundDimension_(0)
-            {
-            }
-
-            virtual unsigned int getDimension(void) const;
-
-            /** \brief Add a projection evaluator to consider when computing projections of compound states */
-            virtual void addProjectionEvaluator(const ProjectionEvaluatorPtr &proj);
-
-            virtual void project(const State *state, EuclideanProjection &projection) const;
-
-            virtual void printSettings(std::ostream &out = std::cout) const;
-
-        protected:
-
-
-            /** \brief Update the maintained projection. Called by addProjectionEvaluator() */
-            void computeProjection(void);
-
-            /** \brief Projections for each of the contained components */
-            std::vector<ProjectionEvaluatorPtr> components_;
-
-            /** \brief Projection matrix used in case the concatenated projection vectors make up a vector of large dimension */
-            ProjectionMatrix                    projection_;
-
-            /** \brief The dimension of the projection (number of elements in the projected vector) */
-            unsigned int                        dimension_;
-
-            /** \brief The sum of dimensions of the contained components. This is the dimension of the concatenated projection vector */
-            unsigned int                        compoundDimension_;
-
-        };
     }
 
 }
