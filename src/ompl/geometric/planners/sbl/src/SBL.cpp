@@ -347,12 +347,20 @@ void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+        {
             data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
+            data.tagState(motions[i][j]->state, 1);
+        }
+
 
     motions.clear();
     tGoal_.grid.getContent(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+        {
             data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
+            data.tagState(motions[i][j]->state, 2);
+        }
+
 }

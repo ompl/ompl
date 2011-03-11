@@ -421,21 +421,25 @@ void ompl::geometric::pSBL::addMotion(TreeData &tree, Motion *motion)
 
 void ompl::geometric::pSBL::getPlannerData(base::PlannerData &data) const
 {
-    data.si = si_;
-    data.states.resize(0);
-    data.states.reserve(tStart_.size + tGoal_.size);
+    Planner::getPlannerData(data);
 
     std::vector<MotionSet> motions;
     tStart_.grid.getContent(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.states.push_back(motions[i][j]->state);
+        {
+            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
+            data.tagState(motions[i][j]->state, 1);
+        }
 
     motions.clear();
     tGoal_.grid.getContent(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.states.push_back(motions[i][j]->state);
+        {
+            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
+            data.tagState(motions[i][j]->state, 2);
+        }
 }
 
 void ompl::geometric::pSBL::setThreadCount(unsigned int nthreads)

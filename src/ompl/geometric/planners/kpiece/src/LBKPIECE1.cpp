@@ -390,11 +390,18 @@ void ompl::geometric::LBKPIECE1::getPlannerData(base::PlannerData &data) const
     tStart_.grid.getContent(cdata);
     for (unsigned int i = 0 ; i < cdata.size() ; ++i)
         for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
+        {
             data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
+            data.tagState(cdata[i]->motions[j]->state, 1);
+        }
+
 
     cdata.clear();
     tGoal_.grid.getContent(cdata);
     for (unsigned int i = 0 ; i < cdata.size() ; ++i)
         for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
+        {
             data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
+            data.tagState(cdata[i]->motions[j]->state, 2);
+        }
 }

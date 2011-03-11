@@ -378,5 +378,8 @@ void ompl::geometric::BasicPRM::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < milestones_.size() ; ++i)
         for (unsigned int j = 0 ; j < milestones_[i]->adjacent.size() ; ++j)
+        {
             data.recordEdge(milestones_[i]->state, milestones_[i]->adjacent[j]->state);
+            data.tagState(milestones_[i]->state, milestones_[i]->component);
+        }
 }
