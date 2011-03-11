@@ -36,9 +36,10 @@
 
 #include "ompl/base/samplers/GaussianValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/util/MagicConstants.h"
 
 ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getMaximumExtent() / 10.0)
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
 {
     name_ = "gaussian";
 }

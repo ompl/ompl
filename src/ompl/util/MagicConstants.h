@@ -44,8 +44,10 @@ namespace ompl
 
         We strive to minimize the use of constants in the code, but at
         places, this is necessary. These constants typically do not
-        have to be changed, but we chose to expose their
-        functionality for the more curious user.*/
+        have to be changed, but we chose to expose their functionality
+        for the more curious user. The constants in this namespace
+        include values typically used in the computation of default
+        settings. */
     namespace magic
     {
 
@@ -68,6 +70,11 @@ namespace ompl
             used as the maximum length of a motion */
         static const double MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.2;
 
+        /** \brief When standard deviation is needed for Gaussian
+            sampling in the state space, by default the value of the
+            standard deviation is computed as a fraction of the extent
+            of the space */
+        static const double STD_DEV_AS_SPACE_EXTENT_FRACTION = 0.1;
     }
 }
 
