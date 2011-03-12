@@ -126,6 +126,8 @@ void ompl::base::ProjectionMatrix::print(std::ostream &out) const
 
 void ompl::base::ProjectionEvaluator::setCellDimensions(const std::vector<double> &cellDimensions)
 {
+    defaultCellDimensions_ = false;
+    cellDimensionsWereInferred_ = false;
     cellDimensions_ = cellDimensions;
     checkCellDimensions();
 }
@@ -138,8 +140,13 @@ void ompl::base::ProjectionEvaluator::checkCellDimensions(void) const
         throw Exception("Number of dimensions in projection space does not match number of cell dimensions");
 }
 
+void ompl::base::ProjectionEvaluator::defaultCellDimensions(void)
+{
+}
+
 void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
 {
+    cellDimensionsWereInferred_ = true;
     unsigned int dim = getDimension();
     if (dim > 0)
     {
@@ -182,8 +189,12 @@ void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
 
 void ompl::base::ProjectionEvaluator::setup(void)
 {
-    if (cellDimensions_.size() == 0 && getDimension() > 0)
+    if (defaultCellDimensions_)
+        defaultCellDimensions();
+
+    if ((cellDimensions_.size() == 0 && getDimension() > 0) || cellDimensionsWereInferred_)
         inferCellDimensions();
+
     checkCellDimensions();
 }
 
@@ -198,7 +209,17 @@ void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjecti
 void ompl::base::ProjectionEvaluator::printSettings(std::ostream &out) const
 {
     out << "Projection of dimension " << getDimension() << std::endl;
-    out << "Cell dimensions: [";
+    out << "Cell dimensions";
+    if (cellDimensionsWereInferred_)
+        out << " (inferred by sampling)";
+    else
+    {
+        if (defaultCellDimensions_)
+            out << " (computed defaults)";
+        else
+            out << " (set by user)";
+    }
+    out << ": [";
     for (unsigned int i = 0 ; i < cellDimensions_.size() ; ++i)
     {
         out << cellDimensions_[i];

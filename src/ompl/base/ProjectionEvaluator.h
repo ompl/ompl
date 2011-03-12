@@ -156,12 +156,12 @@ namespace ompl
         public:
 
             /** \brief Construct a projection evaluator for a specific manifold */
-            ProjectionEvaluator(const StateManifold *manifold) : manifold_(manifold)
+            ProjectionEvaluator(const StateManifold *manifold) : manifold_(manifold), defaultCellDimensions_(true), cellDimensionsWereInferred_(false)
             {
             }
 
             /** \brief Construct a projection evaluator for a specific manifold */
-            ProjectionEvaluator(const StateManifoldPtr &manifold) : manifold_(manifold.get())
+            ProjectionEvaluator(const StateManifoldPtr &manifold) : manifold_(manifold.get()), defaultCellDimensions_(true), cellDimensionsWereInferred_(false)
             {
             }
 
@@ -175,10 +175,13 @@ namespace ompl
             /** \brief Compute the projection as an array of double values */
             virtual void project(const State *state, EuclideanProjection &projection) const = 0;
 
-            /** \brief Define the dimension (each component) of a grid cell. The
-                number of dimensions set here must be the same as the
-                dimension of the projection computed by the projection
-                evaluator. */
+            /** \brief Define the dimension (each component) of a grid
+                cell. The number of dimensions set here must be the
+                same as the dimension of the projection computed by
+                the projection evaluator. After a call to this
+                function, setup() will not call
+                defaultCellDimensions() or inferCellDimensions() any
+                more. */
             void setCellDimensions(const std::vector<double> &cellDimensions);
 
             /** \brief Get the dimension (each component) of a grid cell  */
@@ -190,8 +193,18 @@ namespace ompl
             /** \brief Check if cell dimensions match projection dimension */
             void checkCellDimensions(void) const;
 
-            /** \brief Sample the manifold and decide on default cell dimensions */
+            /** \brief Sample the state manifold and decide on default
+                cell dimensions. This function is called by setup() if
+                no cell dimensions have been set and
+                defaultCellDimensions() does not fill the cell
+                dimensions either. */
             void inferCellDimensions(void);
+
+            /** \brief Set the default cell dimensions for this
+                projection. The default implementation of this
+                function is empty. setup() calls this function if no
+                cell dimensions have been previously set. */
+            virtual void defaultCellDimensions(void);
 
             /** \brief Perform configuration steps, if needed */
             virtual void setup(void);
@@ -223,6 +236,15 @@ namespace ompl
                 grid. */
             std::vector<double>  cellDimensions_;
 
+            /** \brief Flag indicating whether cell dimensions have
+                been set by the user, or whether they were inferred
+                automatically. This flag becomes false if
+                setCellDimensions() is called. */
+            bool                 defaultCellDimensions_;
+
+            /** \brief Flag indicating whether projection dimensions
+                were automatically inferred. */
+            bool                 cellDimensionsWereInferred_;
         };
 
     }

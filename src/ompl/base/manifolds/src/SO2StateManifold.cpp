@@ -162,13 +162,17 @@ void ompl::base::SO2StateManifold::registerProjections(void)
 
         SO2DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
         {
-            cellDimensions_.resize(1);
-            cellDimensions_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
         virtual unsigned int getDimension(void) const
         {
             return 1;
+        }
+
+        virtual void defaultCellDimensions(void)
+        {
+            cellDimensions_.resize(1);
+            cellDimensions_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
         virtual void project(const State *state, EuclideanProjection &projection) const

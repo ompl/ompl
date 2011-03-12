@@ -147,6 +147,8 @@ namespace ompl
 
             virtual unsigned int getDimension(void) const;
 
+            virtual void defaultCellDimensions(void);
+
             virtual void project(const State *state, EuclideanProjection &projection) const;
 
         protected:
@@ -154,9 +156,6 @@ namespace ompl
             /** \brief The set of components selected by the projection */
             std::vector<unsigned int> components_;
 
-        private:
-
-            void configure(void);
         };
 
         /** \brief Define the identity projection */
@@ -182,11 +181,13 @@ namespace ompl
 
             virtual unsigned int getDimension(void) const;
 
+            virtual void defaultCellDimensions(void);
+
+            virtual void setup(void);
+
             virtual void project(const State *state, EuclideanProjection &projection) const;
 
         private:
-
-            void configure(void);
 
             /** \brief The amount of data to copy from projection to state */
             std::size_t copySize_;

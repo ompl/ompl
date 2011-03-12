@@ -39,12 +39,25 @@
 #include "ompl/util/MagicConstants.h"
 #include <cstring>
 
+/// @cond IGNORE
+namespace ompl
+{
+    namespace base
+    {
+        static inline void checkManifoldType(const StateManifold *m)
+        {
+            if (!dynamic_cast<const RealVectorStateManifold*>(m))
+                throw Exception("Expected real vector manifold for projection");
+        }
+    }
+}
+/// @endcond
+
 ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
                                                                                      const ProjectionMatrix::Matrix &projection) :
     ProjectionEvaluator(manifold)
 {
-    if (!dynamic_cast<const RealVectorStateManifold*>(manifold_))
-        throw Exception("Expected real vector manifold for projection");
+    checkManifoldType(manifold_);
     projection_.mat = projection;
     setCellDimensions(cellDimensions);
 }
@@ -53,8 +66,7 @@ ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvalu
                                                                                      const ProjectionMatrix::Matrix &projection) :
     ProjectionEvaluator(manifold)
 {
-    if (!dynamic_cast<const RealVectorStateManifold*>(manifold_))
-        throw Exception("Expected real vector manifold for projection");
+    checkManifoldType(manifold_);
     projection_.mat = projection;
     setCellDimensions(cellDimensions);
 }
@@ -63,8 +75,7 @@ ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvalu
                                                                                      const ProjectionMatrix::Matrix &projection) :
     ProjectionEvaluator(manifold)
 {
-    if (!dynamic_cast<const RealVectorStateManifold*>(manifold_))
-        throw Exception("Expected real vector manifold for projection");
+    checkManifoldType(manifold_);
     projection_.mat = projection;
 }
 
@@ -72,8 +83,7 @@ ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvalu
                                                                                      const ProjectionMatrix::Matrix &projection) :
     ProjectionEvaluator(manifold)
 {
-    if (!dynamic_cast<const RealVectorStateManifold*>(manifold_))
-        throw Exception("Expected real vector manifold for projection");
+    checkManifoldType(manifold_);
     projection_.mat = projection;
 }
 
@@ -81,43 +91,36 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
                                                                                              const std::vector<unsigned int> &components) :
     ProjectionEvaluator(manifold), components_(components)
 {
+    checkManifoldType(manifold_);
     setCellDimensions(cellDimensions);
-    configure();
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions,
                                                                                              const std::vector<unsigned int> &components) :
     ProjectionEvaluator(manifold), components_(components)
 {
+    checkManifoldType(manifold_);
     setCellDimensions(cellDimensions);
-    configure();
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<unsigned int> &components) :
     ProjectionEvaluator(manifold), components_(components)
 {
-    configure();
+    checkManifoldType(manifold_);
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<unsigned int> &components) :
     ProjectionEvaluator(manifold), components_(components)
 {
-    configure();
+    checkManifoldType(manifold_);
 }
 
-void ompl::base::RealVectorOrthogonalProjectionEvaluator::configure(void)
+void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellDimensions(void)
 {
-    if (!dynamic_cast<const RealVectorStateManifold*>(manifold_))
-        throw Exception("Expected real vector manifold for projection");
-
-    if (cellDimensions_.empty())
-    {
-        const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
-        std::vector<double> cellDimensions(components_.size());
-        for (unsigned int i = 0 ; i < cellDimensions.size() ; ++i)
-            cellDimensions[i] = (bounds.high[components_[i]] - bounds.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
-        setCellDimensions(cellDimensions);
-    }
+    const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
+    cellDimensions_.resize(components_.size());
+    for (unsigned int i = 0 ; i < cellDimensions_.size() ; ++i)
+        cellDimensions_[i] = (bounds.high[components_[i]] - bounds.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
 unsigned int ompl::base::RealVectorLinearProjectionEvaluator::getDimension(void) const
@@ -144,46 +147,42 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::project(const State *s
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions) :
     ProjectionEvaluator(manifold)
 {
+    checkManifoldType(manifold_);
     setCellDimensions(cellDimensions);
-    configure();
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifold *manifold) :
     ProjectionEvaluator(manifold)
 {
-    configure();
+    checkManifoldType(manifold_);
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions) :
     ProjectionEvaluator(manifold)
 {
+    checkManifoldType(manifold_);
     setCellDimensions(cellDimensions);
-    configure();
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold) :
     ProjectionEvaluator(manifold)
 {
-    configure();
+    checkManifoldType(manifold_);
 }
 
-void ompl::base::RealVectorIdentityProjectionEvaluator::configure(void)
+void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellDimensions(void)
 {
-    if (!dynamic_cast<const RealVectorStateManifold*>(manifold_))
-        throw Exception("Expected real vector manifold for projection");
-
-    copySize_ = getDimension() * sizeof(double);
-
-    if (cellDimensions_.empty())
-    {
-        const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
-        std::vector<double> cellDimensions(getDimension());
-        for (unsigned int i = 0 ; i < cellDimensions.size() ; ++i)
-            cellDimensions[i] = (bounds.high[i] - bounds.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
-        setCellDimensions(cellDimensions);
-    }
+    const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
+    cellDimensions_.resize(getDimension());
+    for (unsigned int i = 0 ; i < cellDimensions_.size() ; ++i)
+        cellDimensions_[i] = (bounds.high[i] - bounds.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
+void ompl::base::RealVectorIdentityProjectionEvaluator::setup(void)
+{
+    copySize_ = getDimension() * sizeof(double);
+    ProjectionEvaluator::setup();
+}
 
 unsigned int ompl::base::RealVectorIdentityProjectionEvaluator::getDimension(void) const
 {

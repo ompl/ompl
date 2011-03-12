@@ -58,16 +58,20 @@ void ompl::base::SE3StateManifold::registerProjections(void)
 
         SE3DefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
         {
-            cellDimensions_.resize(3);
-            const RealVectorBounds &b = manifold->as<SE3StateManifold>()->as<RealVectorStateManifold>(0)->getBounds();
-            cellDimensions_[0] = (b.high[0] - b.low[0]) / magic::PROJECTION_DIMENSION_SPLITS;
-            cellDimensions_[1] = (b.high[1] - b.low[1]) / magic::PROJECTION_DIMENSION_SPLITS;
-            cellDimensions_[2] = (b.high[2] - b.low[2]) / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
         virtual unsigned int getDimension(void) const
         {
             return 3;
+        }
+
+        virtual void defaultCellDimensions(void)
+        {
+            cellDimensions_.resize(3);
+            const RealVectorBounds &b = manifold_->as<SE3StateManifold>()->getBounds();
+            cellDimensions_[0] = (b.high[0] - b.low[0]) / magic::PROJECTION_DIMENSION_SPLITS;
+            cellDimensions_[1] = (b.high[1] - b.low[1]) / magic::PROJECTION_DIMENSION_SPLITS;
+            cellDimensions_[2] = (b.high[2] - b.low[2]) / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
         virtual void project(const State *state, EuclideanProjection &projection) const
