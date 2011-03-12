@@ -131,13 +131,13 @@ def plan(samplerIndex):
     # set state validity checking for this space
     ss.setStateValidityChecker(isStateValid)
 
-    # create a random start state
+    # create a start state
     start = ob.State(manifold)
     start[0] = 0
     start[1] = 0
     start[2] = 0
 
-    # create a random goal state
+    # create a goal state
     goal = ob.State(manifold)
     goal[0] = 0
     goal[1] = 0

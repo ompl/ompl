@@ -146,11 +146,11 @@ void plan(int samplerIndex)
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
 
-    // create a random start state
+    // create a start state
     ob::ScopedState<> start(manifold);
     start[0] = start[1] = start[2] = 0;
 
-    // create a random goal state
+    // create a goal state
     ob::ScopedState<> goal(manifold);
     goal[0] = goal[1] = 0.;
     goal[2] = 1;
