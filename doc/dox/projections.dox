@@ -63,14 +63,18 @@
 
     MyProjection(const base::StateManifoldPtr &manifold) : base::ProjectionEvaluator(manifold)
     {
-        cellDimensions_.resize(2);
-        cellDimensions_[0] = 0.1;
-        cellDimensions_[1] = 0.25;
     }
 
     virtual unsigned int getDimension(void) const
     {
         return 2;
+    }
+
+    virtual void defaultCellDimensions(void)
+    {
+        cellDimensions_.resize(2);
+        cellDimensions_[0] = 0.1;
+        cellDimensions_[1] = 0.25;
     }
 
     virtual void project(const base::State *state, base::EuclideanProjection &projection) const

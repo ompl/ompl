@@ -46,7 +46,7 @@ static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
 void ompl::base::SO3StateManifold::StateType::setAxisAngle(double ax, double ay, double az, double angle)
 {
     double norm = sqrt(ax * ax + ay * ay + az * az);
-    if (norm < std::numeric_limits<double>::epsilon())
+    if (norm < MAX_QUATERNION_NORM_ERROR)
         setIdentity();
     else
     {
@@ -109,6 +109,8 @@ void ompl::base::SO3StateManifold::enforceBounds(State *state) const
         qstate->z /= nrm;
         qstate->w /= nrm;
     }
+    else
+        qstate->setIdentity();
 }
 
 bool ompl::base::SO3StateManifold::satisfiesBounds(const State *state) const
