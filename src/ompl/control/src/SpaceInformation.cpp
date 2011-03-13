@@ -61,10 +61,6 @@ void ompl::control::SpaceInformation::setup(void)
             throw Exception("The propagation step size must be larger than 0");
         msg_.warn("The propagation step size is assumed to be %f", stepSize_);
     }
-    else
-        // even if we need to do validation checking at a smaller resolution, we cannot go lower than the propagation step
-        if (getStateValidityCheckingResolution() * getMaximumExtent() < stepSize_)
-            msg_.warn("The state validity checking resolution is too small relative to the propagation step size. Resolution is %f%% (=%f), step size is %f. Ideally, the resolution should be an integer multiple of the step size. It however must be larger than the step size.", getStateValidityCheckingResolution() * 100.0, getStateValidityCheckingResolution() * getMaximumExtent(), stepSize_);
 
     controlManifold_->setup();
     if (controlManifold_->getDimension() <= 0)
