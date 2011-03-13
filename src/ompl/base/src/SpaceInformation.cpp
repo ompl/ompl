@@ -98,7 +98,33 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
 }
 
-bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const
+unsigned int ompl::base::SpaceInformation::randomBounceMotion(const ManifoldStateSamplerPtr &mss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const
+{
+    if (alloc)
+    {
+        states.resize(steps);
+        for (unsigned int i = 0 ; i < steps ; ++i)
+            states[i] = allocState();
+    }
+    else
+        if (states.size() < steps)
+            steps = states.size();
+
+    const State *prev = start;
+    std::pair<State*, double> lastValid;
+
+    unsigned int j = 0;
+    for (unsigned int i = 0 ; i < steps ; ++i)
+    {
+        mss->sampleUniform(states[j]);
+        lastValid.first = states[j];
+        if (checkMotion(prev, states[j], lastValid) || lastValid.second > std::numeric_limits<double>::epsilon())
+            prev = states[j++];
+    }
+    return j;
+}
+
+bool ompl::base::SpaceInformation::searchValidNearby(const ValidStateSamplerPtr &sampler, State *state, const State *near, double distance) const
 {
     if (state != near)
         copyState(state, near);
@@ -112,15 +138,29 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     if (!result)
     {
         // try to find a valid state nearby
-        UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
-        uvss->setNrAttempts(attempts);
         State *temp = cloneState(state);
-        result = uvss->sampleNear(state, temp, distance);
+        result = sampler->sampleNear(state, temp, distance);
         freeState(temp);
-        delete uvss;
     }
 
     return result;
+}
+
+bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const
+{
+    if (satisfiesBounds(near) && isValid(near))
+    {
+        if (state != near)
+            copyState(state, near);
+        return true;
+    }
+    else
+    {
+        // try to find a valid state nearby
+        UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
+        uvss->setNrAttempts(attempts);
+        return searchValidNearby(ValidStateSamplerPtr(uvss), state, near, distance);
+    }
 }
 
 unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const

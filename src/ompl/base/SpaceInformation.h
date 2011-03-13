@@ -287,6 +287,23 @@ namespace ompl
              */
             bool searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const;
 
+            /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
+             *  The two passed state pointers need not point to different memory. Returns true on success.
+             *  \param sampler the valid state sampler to use when attemting to find a valid sample.
+             *  \param state the location at which to store the valid state, if one is found. This location may be modified even if no valid state is found.
+             *  \param near a state that may be invalid near which we would like to find a valid state
+             *  \param distance the maximum allowed distance between \e state and \e near
+             */
+            bool searchValidNearby(const ValidStateSamplerPtr &sampler, State *state, const State *near, double distance) const;
+
+            /** \brief Produce a valid motion starting at \e start by randomly bouncing off of invalid states. The start state \e start is not included in the computed motion (\e states). Returns the number of elements written to \e states (less or equal to \e steps).
+             *  \param mss the manifold state sampler to use
+             *  \param start the state at which to start bouncing
+             *  \param steps the number of bouncing steps to take
+             *  \param states the location at which generated states will be stored
+             *  \param alloc flag indicating whether memory should be allocated for \e states */
+            unsigned int randomBounceMotion(const ManifoldStateSamplerPtr &mss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const;
+
             /** \brief Incrementally check if the path between two motions is valid. Also compute the last state that was
                 valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at t =
                 0 and s2 being at t = 1. This function assumes s1 is valid.
