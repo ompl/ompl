@@ -127,8 +127,8 @@ namespace ompl
         boost::mt19937                                                          generator_;
         boost::uniform_real<>                                                   uniDist_;
         boost::normal_distribution<>                                            normalDist_;
-        boost::variate_generator<boost::mt19937, boost::uniform_real<> >        uni_;
-        boost::variate_generator<boost::mt19937, boost::normal_distribution<> > normal_;
+        boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
+        boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > normal_;
 
     };
 
