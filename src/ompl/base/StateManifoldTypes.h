@@ -42,15 +42,33 @@ namespace ompl
     namespace base
     {
 
-        enum
+        /** \brief The type of a state manifold */
+        enum StateManifoldType
             {
+
+                /** \brief Unset type; this is the default type */
                 STATE_MANIFOLD_UNKNOWN     =  0,
+
+                /** \brief ompl::base::RealVectorStateManifold */
                 STATE_MANIFOLD_REAL_VECTOR =  1,
+
+                /** \brief ompl::base::SO2StateManifold */
                 STATE_MANIFOLD_SO2         =  2,
+
+                /** \brief ompl::base::SO3StateManifold */
                 STATE_MANIFOLD_SO3         =  3,
+
+                /** \brief ompl::base::SE2StateManifold */
                 STATE_MANIFOLD_SE2         =  4,
+
+                /** \brief ompl::base::SE3StateManifold */
                 STATE_MANIFOLD_SE3         =  5,
+
+                /** \brief ompl::base::TimeStateManifold */
                 STATE_MANIFOLD_TIME        =  6,
+
+                /** \brief Number of manifold types; To add new types,
+                    use values that are larger than the count*/
                 STATE_MANIFOLD_TYPE_COUNT
             };
     }
