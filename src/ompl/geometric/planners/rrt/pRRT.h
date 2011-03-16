@@ -183,14 +183,14 @@ namespace ompl
                 return si_->distance(a->state, b->state);
             }
 
-            base::StateSamplerArray<base::SAMPLER_MANIFOLD> samplerArray_;
-            boost::shared_ptr< NearestNeighbors<Motion*> >  nn_;
-            boost::mutex                                    nnLock_;
+            base::StateSamplerArray<base::ManifoldStateSampler> samplerArray_;
+            boost::shared_ptr< NearestNeighbors<Motion*> >      nn_;
+            boost::mutex                                        nnLock_;
 
-            unsigned int                                    threadCount_;
+            unsigned int                                        threadCount_;
 
-            double                                          goalBias_;
-            double                                          maxDistance_;
+            double                                              goalBias_;
+            double                                              maxDistance_;
         };
 
     }

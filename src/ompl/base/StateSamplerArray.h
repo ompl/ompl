@@ -47,28 +47,18 @@ namespace ompl
     namespace base
     {
 
-        /** \brief The type of state samplers we can allocate */
-        enum SamplerType
-        {
-            /// Allocate a sampler from the manifold contained by the space information (ompl::base::ManifoldStateSampler)
-            SAMPLER_MANIFOLD,
-
-            /// Allocate a valid state sampler from the space information (ompl::base::ValidStateSampler)
-            SAMPLER_VALID
-        };
-
         /** \brief Depending on the type of sampler, we have different allocation routines
 
             This struct will provide that allocation routine,
             depending on the template argument of ompl::base::SamplerType.*/
-        template<SamplerType T>
+        template<typename T>
         struct SamplerSelector
         {
         };
 
         /** \cond IGNORE */
         template<>
-        struct SamplerSelector<SAMPLER_MANIFOLD>
+        struct SamplerSelector<ManifoldStateSampler>
         {
             typedef ManifoldStateSampler    StateSampler;
             typedef ManifoldStateSamplerPtr StateSamplerPtr;
@@ -81,7 +71,7 @@ namespace ompl
         };
 
         template<>
-        struct SamplerSelector<SAMPLER_VALID>
+        struct SamplerSelector<ValidStateSampler>
         {
             typedef ValidStateSampler    StateSampler;
             typedef ValidStateSamplerPtr StateSamplerPtr;
@@ -94,7 +84,7 @@ namespace ompl
         /** \endcond */
 
         /** \brief Class to ease the creation of a set of samplers. This is especially useful for multi-threaded planners. */
-        template<SamplerType T>
+        template<typename T>
         class StateSamplerArray
         {
         public:
@@ -121,7 +111,7 @@ namespace ompl
 
             /** \brief Access operator for a specific sampler. For
                 performance reasons, the bounds are not checked. */
-            StateSampler* operator[](std::size_t index)
+            StateSampler* operator[](std::size_t index) const
             {
                 return samplers_[index].get();
             }
