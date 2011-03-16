@@ -41,6 +41,7 @@
 #include <boost/random/uniform_real.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <cassert>
 
 namespace ompl
 {
@@ -66,6 +67,7 @@ namespace ompl
         /** \brief Generate a random real within given bounds */
         double uniformReal(double lower_bound, double upper_bound)
         {
+            assert(lower_bound <= upper_bound);
             return (upper_bound - lower_bound) * uni_() + lower_bound;
         }
 

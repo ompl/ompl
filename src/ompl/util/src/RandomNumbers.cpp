@@ -43,7 +43,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/constants/constants.hpp>
 
-
 /// The seed the user asked for (cannot be 0)
 static boost::uint32_t userSetSeed = 0;
 
@@ -82,7 +81,7 @@ static boost::uint32_t nextSeed(void)
     rngMutex.lock();
     static boost::lagged_fibonacci607 sGen(firstSeed());
     static boost::uniform_int<>       sDist(1, 1000000000);
-    static boost::variate_generator<boost::lagged_fibonacci607, boost::uniform_int<> > s(sGen, sDist);
+    static boost::variate_generator<boost::lagged_fibonacci607&, boost::uniform_int<> > s(sGen, sDist);
     boost::uint32_t v = s();
     rngMutex.unlock();
     return v;
@@ -120,6 +119,8 @@ ompl::RNG::RNG(void) : generator_(nextSeed()),
 
 double ompl::RNG::halfNormalReal(double r_min, double r_max, double focus)
 {
+    assert(r_min <= r_max);
+
     const double mean = r_max - r_min;
     double       v    = gaussian(mean, mean/focus);
 
@@ -130,7 +131,8 @@ double ompl::RNG::halfNormalReal(double r_min, double r_max, double focus)
 
 int ompl::RNG::halfNormalInt(int r_min, int r_max, double focus)
 {
-    return (int)halfNormalReal((double)r_min, (double)r_max + (1.0 - 1e-9), focus);
+    int r = (int)floor(halfNormalReal((double)r_min, (double)(r_max) + 1.0, focus));
+    return (r > r_max) ? r_max : r;
 }
 
 // From: "Uniform Random Rotations", Ken Shoemake, Graphics Gems III,

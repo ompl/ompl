@@ -88,6 +88,80 @@ TEST(Random, ValidRangeInts)
         EXPECT_TRUE(c[i] > V/N/3);
 }
 
+static double avgIntsN(int s, int l, const int N)
+{
+    RNG r;
+    double sum = 0.0;
+    for (int i = 0 ; i < N ; ++i)
+        sum += r.uniformInt(s, l);
+    return sum / (double)N;
+}
+
+static double avgInts(int s, int l)
+{
+    return avgIntsN(s, l, 1000000);
+}
+
+
+
+TEST(Random, AvgInts)
+{
+    EXPECT_NEAR(avgInts(0, 1), 0.5, 0.01);
+    EXPECT_NEAR(avgInts(0, 10), 5.0, 0.01);
+    EXPECT_NEAR(avgInts(-1, 1), 0.0, 0.01);
+    EXPECT_NEAR(avgInts(-1, 0), -0.5, 0.01);
+    EXPECT_NEAR(avgInts(-2, 4), 1.0, 0.01);
+    EXPECT_NEAR(avgInts(2, 4), 3.0, 0.01);
+    EXPECT_NEAR(avgInts(-6, -2), -4.0, 0.01);
+    EXPECT_NEAR(avgIntsN(0, 0, 1000), 0.0, 1e-5);
+}
+
+static double avgRealsN(double s, double l, const int N)
+{
+    RNG r;
+    double sum = 0.0;
+    for (int i = 0 ; i < N ; ++i)
+        sum += r.uniformReal(s, l);
+    return sum / (double)N;
+}
+
+static double avgReals(double s, double l)
+{
+    return avgRealsN(s, l, 1000000);
+}
+
+TEST(Random, AvgReals)
+{
+    EXPECT_NEAR(avgReals(-0.1, 0.3), 0.1, 0.001);
+    EXPECT_NEAR(avgReals(0, 1), 0.5, 0.01);
+    EXPECT_NEAR(avgReals(0, 10), 5.0, 0.01);
+    EXPECT_NEAR(avgReals(-1, 1), 0.0, 0.01);
+    EXPECT_NEAR(avgReals(-1, 0), -0.5, 0.01);
+    EXPECT_NEAR(avgReals(-2, 4), 1.0, 0.01);
+    EXPECT_NEAR(avgReals(2, 4), 3.0, 0.01);
+    EXPECT_NEAR(avgReals(-6, -2), -4.0, 0.01);
+    EXPECT_NEAR(avgRealsN(0, 0, 1000), 0.0, 1e-5);
+}
+
+static double avgNormalRealsN(double mean, double stddev, const int N)
+{
+    RNG r;
+    double sum = 0.0;
+    for (int i = 0 ; i < N ; ++i)
+        sum += r.gaussian(mean, stddev);
+    return sum / (double)N;
+}
+
+static double avgNormalReals(double m, double s)
+{
+    return avgNormalRealsN(m, s, 1000000);
+}
+
+TEST(Random, NormalReals)
+{
+    EXPECT_NEAR(avgNormalReals(10.0, 1.0), 10.0, 0.01);
+}
+
 int main(int argc, char **argv)
 {
     ompl::RNG::setSeed(1);
