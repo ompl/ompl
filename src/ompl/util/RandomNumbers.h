@@ -66,7 +66,7 @@ namespace ompl
         /** \brief Generate a random real within given bounds */
         double uniformReal(double lower_bound, double upper_bound)
         {
-            return (upper_bound - lower_bound) * uni_()        + lower_bound;
+            return (upper_bound - lower_bound) * uni_() + lower_bound;
         }
 
         /** \brief Generate a random integer within given bounds */
@@ -124,9 +124,9 @@ namespace ompl
 
     private:
 
-        boost::mt19937                                                          generator_;
-        boost::uniform_real<>                                                   uniDist_;
-        boost::normal_distribution<>                                            normalDist_;
+        boost::mt19937                                                           generator_;
+        boost::uniform_real<>                                                    uniDist_;
+        boost::normal_distribution<>                                             normalDist_;
         boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
         boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > normal_;
 
