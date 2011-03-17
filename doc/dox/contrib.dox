@@ -1,0 +1,36 @@
+/** 
+\page contrib External Contributions
+
+We welcome external contributions. We want to make the process of contributing code as easy as possible. To this end we came up with the following guidelines:
+
+-# Contributions are each stored in a separate directory in ompl/src/ompl/contrib. The contributors can choose a descriptive name for their directory such as their group name or the name of their algorithm.
+-# Within the contribution’s directory there are the following files / directories:
+       - src [required], a directory that contains all source code.
+       - tests [required], a directory that contains testing code that demonstrates that essential bits of code are running correctly
+       - README.txt [optional], a high-level description of the functionality of the contribution(s). This can include primary citations.
+       - doc [optional], additional documentation, ideally in doxygen format (analogous to the high-level OMPL documentation). Images or (short) videos are also welcome.
+       .
+All source code files must have a BSD license at the top of each file plus the names of the authors. Also, the code should contain doxygen-style documentation, so that the API documentation can be automatically generated and included in the OMPL web site.
+-# We will create a page within the documentation that lists all contributions. This page will be directly accessible from the OMPL web site menu bar and referenced on individual pages where appropriate. For each contribution there will be a short description with proper acknowledgements of the authors. We will also try to include the documentation in  the README.txt and doc directory in a reasonable place in the OMPL web site. Ideally the README.txt content can be used as the short description, while the more detailed documentation in doc goes in a separate page.
+-# We will add the appropriate CMake code to ompl/src/ompl/CMakeLists to compile the code in a contribution’s src directory. Something like this might work in many cases:
+\code
+if (OMPL_CONTRIB_XXX)
+       file(GLOB_RECURSE OMPL_XXX_CONTRIB_SOURCE_CODE contrib/XXX/*.cpp)
+       set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_XXX_CONTRIB_SOURCE_CODE})
+       # if additional libraries need to be linked, they are added to manifest.xml for ROS
+       # or they are added to the list of OMPL_LINK_LIBRARIES
+endif()
+\endcode
+-# It is possible that some people write code that simply uses OMPL as a low-level dependency. In that case, bundling that code with OMPL might not make sense, but we can still list this as contribution with links to an external web site if it is likely that users of OMPL are also likely to be interested in this code.
+-# The mechanics of contributions are handled in one of two ways:
+       - Mercurial [preferred]: contributors clone the OMPL repository on sourceforge.net like so:
+\code
+$ hg clone http://ompl.hg.sourceforge.net:8000/hgroot/ompl/ompl
+\endcode
+       Contributors can then add their files in the appropriate places, and send us a “pull” request.
+       - tar balls / zip files / etc.: contributors just email us their files and we put them in the appropriate place.
+       .
+-# In the unlikely event that the submitted code is of poor quality, we will try to suggest the changes necessary to include the contribution in OMPL. If the contributors cannot do this themselves, we reserve the right to reject the contribution.
+.
+
+*/
