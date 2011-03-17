@@ -153,7 +153,7 @@ TEST(State, Allocation)
     base::SpaceInformation si(m);
     si.setup();
 
-    const unsigned int N = 50000;
+    const unsigned int N = 30000;
     const unsigned int M = 20;
     std::vector<base::State*> states(N, NULL);
 
@@ -202,7 +202,7 @@ TEST(State, Allocation)
 void randomizedAllocator(const base::SpaceInformation *si)
 {
     RNG r;
-    const unsigned int n = 5000;
+    const unsigned int n = 500;
 
     std::vector<base::State*> states(n + 1, NULL);
     for (unsigned int i = 0 ; i < n * 1000 ; ++i)
