@@ -39,10 +39,17 @@
 #include "ompl/base/ScopedState.h"
 #include <algorithm>
 #include <cmath>
+#include <boost/math/constants/constants.hpp>
 
 ompl::geometric::PathGeometric::PathGeometric(const PathGeometric &path) : base::Path(path.si_)
 {
     copyFrom(path);
+}
+
+ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &si, const base::State *state) : base::Path(si)
+{
+    states.resize(1);
+    states[0] = si_->cloneState(state);
 }
 
 ompl::geometric::PathGeometric& ompl::geometric::PathGeometric::operator=(const PathGeometric &other)
@@ -72,6 +79,22 @@ double ompl::geometric::PathGeometric::length(void) const
     for (unsigned int i = 1 ; i < states.size() ; ++i)
         L += si_->distance(states[i-1], states[i]);
     return L;
+}
+
+/* Based on COMP450 2010 project of Yun Yu and Linda Hill (Rice University) */
+double ompl::geometric::PathGeometric::smoothness(void) const
+{
+    double angle = 0.0;
+    for (unsigned int i = 2 ; i < states.size() ; ++i)
+    {
+        double a = si_->distance(states[i-2], states[i-1]);
+        double b = si_->distance(states[i-1], states[i]);
+        double c = si_->distance(states[i-2], states[i]);
+        double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+        if (acosValue > -1.0 && acosValue < 1.0)
+            angle += (boost::math::constants::pi<double>() - acos(acosValue));
+    }
+    return angle;
 }
 
 bool ompl::geometric::PathGeometric::check(void) const
@@ -178,6 +201,21 @@ bool ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
         delete uvss;
 
     return result;
+}
+
+void ompl::geometric::PathGeometric::subdivide(void)
+{
+    if (states.size() < 2)
+        return;
+    std::vector<base::State*> newStates(1, states[0]);
+    for (unsigned int i = 1 ; i < states.size() ; ++i)
+    {
+        base::State *temp = si_->allocState();
+        si_->getStateManifold()->interpolate(newStates.back(), states[i], 0.5, temp);
+        newStates.push_back(temp);
+        newStates.push_back(states[i]);
+    }
+    states.swap(newStates);
 }
 
 void ompl::geometric::PathGeometric::interpolate(void)
@@ -291,17 +329,5 @@ void ompl::geometric::PathGeometric::append(const PathGeometric &path)
         copy.states.clear();
     }
     else
-    {
-        const base::StateManifoldPtr &sm = path.si_->getStateManifold();
-        const base::StateManifoldPtr &dm = si_->getStateManifold();
-        bool copy = !states.empty();
-        for (unsigned int i = 0 ; i < path.states.size() ; ++i)
-        {
-            base::State *s = si_->allocState();
-            if (copy)
-                si_->copyState(s, states.back());
-            copyStateData(dm, s, sm, path.states[i]);
-            states.push_back(s);
-        }
-    }
+        overlay(path, states.size());
 }

@@ -63,6 +63,9 @@ namespace ompl
             /** \brief Copy constructor */
             PathGeometric(const PathGeometric &path);
 
+            /** \brief Construct a path instance from a single state */
+            PathGeometric(const base::SpaceInformationPtr &si, const base::State *state);
+
             virtual ~PathGeometric(void)
             {
                 freeMemory();
@@ -76,6 +79,11 @@ namespace ompl
 
             /** \brief Check if the path is valid */
             virtual bool check(void) const;
+
+            /** \brief Compute a notion of smootheness for this
+                path. The closer the value is to 0, the smoother the
+                path. */
+            double smoothness(void) const;
 
             /** \brief Check if the path is valid. If it is not,
                 attempts are made to fix the path by sampling around
@@ -100,6 +108,9 @@ namespace ompl
                 used. */
             void interpolate(void);
 
+            /** \brief Add a state at the middle of each segment */
+            void subdivide(void);
+
             /** \brief Reverse the path */
             void reverse(void);
 
@@ -111,7 +122,8 @@ namespace ompl
                 manifold than the existing path, the data from those
                 states is copied over, for the corresponding
                 components. If \e over is from the same manifold as this path,
-                this function's result will be the same as with operator= */
+                and \e startIndex is 0, this function's result will be the same
+                as with operator= */
             void overlay(const PathGeometric &over, unsigned int startIndex = 0);
 
             /** \brief Append \e path at the end of this path.

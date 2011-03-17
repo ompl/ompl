@@ -41,6 +41,7 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/RandomNumbers.h"
+#include <limits>
 
 namespace ompl
 {
@@ -125,11 +126,22 @@ namespace ompl
             */
             void collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5);
 
+            /** \brief Given a path, attempt to smooth it (the
+                validity of the path is maintained).
+
+                This function applies \e maxSteps steps of smoothing
+                with B-Splines. Fewer steps are applied if no progress
+                is detected: states are either not updated or their
+                update is smaller than \e minChange.  At each step the
+                path is subdivided and states along it are updated
+                such that the smoothness is improved.
+
+                \note This function may significantly increase the number of states along the solution path. */
+            void smoothBSpline(PathGeometric &path, unsigned int maxSteps = 5, double minChange = std::numeric_limits<double>::epsilon());
 
             /** \brief Given a path, attempt to remove vertices from
-                it while keeping the path valid.  Then, interpolate
-                the path, to add more vertices and try to remove them
-                again. This should produce smoother solutions.  */
+                it while keeping the path valid.  Then, try to smooth
+                the path.  */
             virtual void simplifyMax(PathGeometric &path);
 
         protected:
@@ -139,7 +151,6 @@ namespace ompl
 
             /** \brief Instance of random number generator */
             RNG                       rng_;
-
         };
     }
 }

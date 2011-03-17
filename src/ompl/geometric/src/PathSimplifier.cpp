@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2011, Rice University, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -41,6 +41,41 @@
 #include <cmath>
 #include <map>
 
+/* Based on COMP450 2010 project of Yun Yu and Linda Hill (Rice University) */
+void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigned int maxSteps, double minChange)
+{
+    if (path.states.size() < 3)
+        return;
+
+    const base::SpaceInformationPtr &si = path.getSpaceInformation();
+    base::State *temp1 = si->allocState();
+    base::State *temp2 = si->allocState();
+
+    for (unsigned int s = 0 ; s < maxSteps ; ++s)
+    {
+        path.subdivide();
+        unsigned int i = 2, u = 0;
+        while (i < path.states.size())
+        {
+            si->getStateManifold()->interpolate(path.states[i - 1], path.states[i], 0.5, temp1);
+            si->getStateManifold()->interpolate(path.states[i], path.states[i + 1], 0.5, temp2);
+            si->getStateManifold()->interpolate(temp1, temp2, 0.5, temp1);
+            if (si->checkMotion(path.states[i-1], temp1) && si->checkMotion(temp1, path.states[i + 1]))
+                if (si->distance(path.states[i], temp1) > minChange)
+                {
+                    si->copyState(path.states[i], temp1);
+                    ++u;
+                }
+            i += 2;
+        }
+        if (u == 0)
+            break;
+    }
+
+    si->freeState(temp1);
+    si->freeState(temp2);
+}
+
 void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
 {
     if (path.states.size() < 3)
@@ -50,6 +85,7 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
         maxSteps = path.states.size();
 
     unsigned int nochange = 0;
+    const base::SpaceInformationPtr &si = path.getSpaceInformation();
 
     for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
     {
@@ -73,10 +109,10 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
         if (p1 > p2)
             std::swap(p1, p2);
 
-        if (si_->checkMotion(path.states[p1], path.states[p2]))
+        if (si->checkMotion(path.states[p1], path.states[p2]))
         {
             for (int i = p1 + 1 ; i < p2 ; ++i)
-                si_->freeState(path.states[i]);
+                si->freeState(path.states[i]);
             path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
             nochange = 0;
         }
@@ -91,12 +127,14 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
     if (maxSteps == 0)
         maxSteps = path.states.size();
 
+    const base::SpaceInformationPtr &si = path.getSpaceInformation();
+
     // compute pair-wise distances in path
     std::map<std::pair<const base::State*, const base::State*>, double> distances;
     for (unsigned int i = 0 ; i < path.states.size() ; ++i)
         for (unsigned int j = i + 1 ; j < path.states.size() ; ++j)
         {
-            double d = si_->distance(path.states[i], path.states[j]);
+            double d = si->distance(path.states[i], path.states[j]);
             distances[std::make_pair(path.states[i], path.states[j])] = d;
             distances[std::make_pair(path.states[j], path.states[i])] = d;
         }
@@ -123,10 +161,10 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 
         if (p1 >= 0 && p2 >= 0)
         {
-            if (si_->checkMotion(path.states[p1], path.states[p2]))
+            if (si->checkMotion(path.states[p1], path.states[p2]))
             {
                 for (int i = p1 + 1 ; i < p2 ; ++i)
-                    si_->freeState(path.states[i]);
+                    si->freeState(path.states[i]);
                 path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
                 nochange = 0;
             }
@@ -142,4 +180,5 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
     collapseCloseVertices(path);
+    smoothBSpline(path, 10, path.length()/100.0);
 }
