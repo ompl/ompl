@@ -2,7 +2,21 @@
 
 \page changelog Changelog
 
-\section feb_5_2011 Febryary 5, 2011
+\section mar_17_2011 March 17, 2011
+    - Path smoothing with B-Splines
+
+\section mar_10_2011 March 10, 2011
+    - Expose magic constants
+
+\section feb_15_2011 February 15, 2011
+    - StateValidityChecker allows for distances to invalid states to be specified
+    - Improvements to GAIK and Profiler
+
+\section feb_10_2011 February 10, 2011
+    - Function to visualize the structure of a manifold (diagram())
+    - Additions and bugfixes for state operators
+
+\section feb_5_2011 February 5, 2011
     - Bugfix for planning with controls
 
 \section jan_14_2011 January 14, 2011
