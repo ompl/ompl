@@ -93,14 +93,16 @@ namespace ompl
                 produce a simplification, it is called an empty
                 step. \e maxEmptySteps denotes the maximum number of
                 consecutive empty steps before the simplification
-                process terminates.
+                process terminates. If this value is set to 0 (the
+                default), the number of attempts made is equal to the
+                number of states in \e path.
 
                 \param rangeRatio the maximum distance between states
                 a connection is attempted, as a fraction relative to
                 the total number of states (between 0 and 1).
 
             */
-            void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5, double rangeRatio = 0.2);
+            void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.2);
 
             /** \brief Given a path, attempt to remove vertices from
                 it while keeping the path valid. This is an iterative
@@ -115,6 +117,8 @@ namespace ompl
                 \param maxSteps the maximum number of attempts to
                 "short-cut" the path.  If this value is set to 0 (the
                 default), the number of attempts made is equal to the
+                number of states in \e path. If this value is set to 0 (the
+                default), the number of attempts made is equal to the
                 number of states in \e path.
 
                 \param maxEmptySteps not all iterations of this function
@@ -124,7 +128,7 @@ namespace ompl
                 consecutive empty steps before the simplification
                 process terminates.
             */
-            void collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 5);
+            void collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0);
 
             /** \brief Given a path, attempt to smooth it (the
                 validity of the path is maintained).

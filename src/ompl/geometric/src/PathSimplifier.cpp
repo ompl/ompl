@@ -54,20 +54,24 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
     for (unsigned int s = 0 ; s < maxSteps ; ++s)
     {
         path.subdivide();
-        unsigned int i = 2, u = 0;
-        while (i < path.states.size())
+
+        unsigned int i = 2, u = 0, n1 = path.states.size() - 1;
+        while (i < n1)
         {
             si->getStateManifold()->interpolate(path.states[i - 1], path.states[i], 0.5, temp1);
             si->getStateManifold()->interpolate(path.states[i], path.states[i + 1], 0.5, temp2);
             si->getStateManifold()->interpolate(temp1, temp2, 0.5, temp1);
-            if (si->checkMotion(path.states[i-1], temp1) && si->checkMotion(temp1, path.states[i + 1]))
+            if (si->checkMotion(path.states[i - 1], temp1) && si->checkMotion(temp1, path.states[i + 1]))
+            {
                 if (si->distance(path.states[i], temp1) > minChange)
                 {
                     si->copyState(path.states[i], temp1);
                     ++u;
                 }
+            }
             i += 2;
         }
+
         if (u == 0)
             break;
     }
@@ -83,6 +87,9 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 
     if (maxSteps == 0)
         maxSteps = path.states.size();
+
+    if (maxEmptySteps == 0)
+        maxEmptySteps = path.states.size();
 
     unsigned int nochange = 0;
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
@@ -126,6 +133,9 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 
     if (maxSteps == 0)
         maxSteps = path.states.size();
+
+    if (maxEmptySteps == 0)
+        maxEmptySteps = path.states.size();
 
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
 
