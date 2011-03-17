@@ -110,6 +110,7 @@
     - <strong>approximate solution:</strong> (boolean) flag indicating whether the found solution is approximate (does not reach the goal, but moves towards it)
     - <strong>solution difference:</strong> (real) if the solution is approximate, this is the distance from the end-point of the found approximate solution to the actual goal
     - <strong>solution length:</strong> (real) the length of the found solution
+    - <strong>solution smoothness:</strong> (real) the smoothness of the found solution (the closer to 0, the smoother the path is)
     - <strong>solution segments:</strong> (integer) the number of segments on the solution path
     - <strong>correct solution:</strong> (boolean) flag indicating whether the found solution is correct (a separate check is conducted). This should always be true.
     - <strong>correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct when checked at a finer resolution than the planner used when validating motion segments. If this is sometimes false it means that the used state validation resolution is too high (only applies when using ompl::base::DiscreteMotionValidator).
