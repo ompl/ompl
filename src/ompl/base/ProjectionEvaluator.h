@@ -203,9 +203,9 @@ namespace ompl
             /** \brief Given a set of samples, usually from the
                 exploration data structure of an algorithm, compute
                 the set of cells sizes that best fits this data
-                structure. The cell sizes are then set as if the
-                user had set them (defaults are no longer used). */
-            void inferCellSizes(const std::vector<const State*> &states);
+                structure. The cell sizes are not actually set. A call
+                to setCellSizes() needs to be subsequently made. */
+            std::vector<double> computeCellSizes(const std::vector<const State*> &states) const;
 
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this

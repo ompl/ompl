@@ -40,6 +40,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/MagicConstants.h"
+#include "ompl/datastructures/GridN.h"
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -144,8 +145,50 @@ void ompl::base::ProjectionEvaluator::defaultCellSizes(void)
 {
 }
 
-void ompl::base::ProjectionEvaluator::inferCellSizes(const std::vector<const State*> &states)
+std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const State*> &states) const
 {
+    unsigned int dim = getDimension();
+    std::vector<double> low(dim, std::numeric_limits<double>::infinity());
+    std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
+    std::vector<EuclideanProjection*> proj(states.size());
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    {
+        proj[i] = new EuclideanProjection(dim);
+        project(states[i], *proj[i]);
+        for (unsigned int j = 0 ; j < dim ; ++j)
+        {
+            if (low[j] > proj[i]->values[j])
+                low[j] = proj[i]->values[j];
+            if (high[j] < proj[i]->values[j])
+                high[j] = proj[i]->values[j];
+        }
+    }
+
+    std::vector<double> cs(dim);
+
+    for (unsigned int j = 0 ; j < dim ; ++j)
+    {
+        cs[j] = (high[j] - low[j]) / magic::PROJECTION_DIMENSION_SPLITS;
+        if (cs[j] < std::numeric_limits<double>::epsilon())
+            cs[j] = 1.0;
+    }
+
+    Grid<int> grid(dim);
+    ProjectionCoordinates coord;
+    for (unsigned int i = 0 ; i < proj.size() ; ++i)
+    {
+        computeCoordinates(*proj[i], coord);
+        Grid<int>::Cell *c = grid.createCell(coord);
+        c->data = -1;
+        grid.add(c);
+    }
+
+    std::vector< std::vector<Grid<int>::Cell*> > c = grid.components();
+
+    for (unsigned int i = 0 ; i < proj.size() ; ++i)
+        delete proj[i];
+
+    return cs;
 }
 
 void ompl::base::ProjectionEvaluator::inferCellSizes(void)

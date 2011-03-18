@@ -186,6 +186,15 @@ TEST(GridN, Simple)
     for (GridN<int>::iterator it = g.begin() ; it != g.end() ; ++it)
         sum += it->second->data;
     EXPECT_EQ(14, sum);
+
+    EXPECT_EQ((unsigned int)1, g.components().size());
+
+    coord[0] = 10;
+    coord[1] = 2;
+    GridN<int>::Cell *cell6 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
+    g.add(cell6);
+    EXPECT_EQ((unsigned int)2, g.components().size());
+    EXPECT_EQ(g.components()[0].size() + g.components()[1].size(), g.size());
 }
 
 int main(int argc, char **argv)

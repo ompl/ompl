@@ -77,7 +77,7 @@ namespace ompl
 
 
         /// The constructor takes the dimension of the grid as argument
-               explicit
+        explicit
         Grid(unsigned int dimension)
         {
             setDimension(dimension);
@@ -160,6 +160,55 @@ namespace ompl
                     list.push_back(cell);
                 coord[i]--;
             }
+        }
+
+        /// Get the connected components formed by the cells in this grid (based on neighboring relation)
+        std::vector< std::vector<Cell*> > components(void) const
+        {
+            typedef boost::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
+            typedef typename ComponentHash::iterator CHit;
+
+            int components = 0;
+            ComponentHash ch;
+            std::vector< std::vector<Cell*> > res;
+
+            for (iterator i = hash_.begin() ; i != hash_.end() ; ++i)
+            {
+                Cell *c0 = i->second;
+                CHit pos = ch.find(&c0->coord);
+                int comp = (pos != ch.end()) ? pos->second : -1;
+
+                if (comp < 0)
+                {
+                    res.resize(res.size() + 1);
+                    std::vector<Cell*> &q = res.back();
+                    q.push_back(c0);
+                    std::size_t index = 0;
+                    while (index < q.size())
+                    {
+                        Cell *c = q[index++];
+                        pos = ch.find(&c->coord);
+                        comp = (pos != ch.end()) ? pos->second : -1;
+
+                        if (comp < 0)
+                        {
+                            ch.insert(std::make_pair(&c->coord, components));
+                            std::vector< Cell* > nbh;
+                            neighbors(c, nbh);
+                            for (unsigned int j = 0 ; j < nbh.size() ; ++j)
+                            {
+                                pos = ch.find(&nbh[j]->coord);
+                                comp = (pos != ch.end()) ? pos->second : -1;
+                                if (comp < 0)
+                                    q.push_back(nbh[j]);
+                            }
+                        }
+                    }
+                    ++components;
+                }
+            }
+
+            return res;
         }
 
         /// Instantiate a new cell at given coordinates; optionally

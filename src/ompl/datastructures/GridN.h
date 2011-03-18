@@ -61,7 +61,7 @@ namespace ompl
         struct Cell : public BaseCell
         {
             /// The number of neighbors
-            unsigned short      neighbors;
+            unsigned int        neighbors;
 
             /// A flag indicating whether this cell is on the border or not
             bool                border;
@@ -80,7 +80,7 @@ namespace ompl
 
 
         /// The constructor takes the dimension of the grid as argument
-               explicit
+        explicit
         GridN(unsigned int dimension) : Grid<_T>(dimension)
         {
             hasBounds_ = false;
@@ -96,13 +96,9 @@ namespace ompl
         /// unless the grid is empty
         void setDimension(unsigned int dimension)
         {
-#ifndef NDEBUG
-            static const unsigned short MAX_GRID_NEIGHBORS = 255;
-#endif
             assert(Grid<_T>::empty() == true);
             Grid<_T>::dimension_ = dimension;
             Grid<_T>::maxNeighbors_ = 2 * dimension;
-            assert(Grid<_T>::maxNeighbors_ < MAX_GRID_NEIGHBORS);
             if (!overrideCellNeighborsLimit_)
                 interiorCellNeighborsLimit_ = Grid<_T>::maxNeighbors_;
         }
