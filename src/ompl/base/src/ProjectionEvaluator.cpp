@@ -144,6 +144,10 @@ void ompl::base::ProjectionEvaluator::defaultCellDimensions(void)
 {
 }
 
+void ompl::base::ProjectionEvaluator::inferCellDimensions(const std::vector<const State*> &states)
+{
+}
+
 void ompl::base::ProjectionEvaluator::inferCellDimensions(void)
 {
     cellDimensionsWereInferred_ = true;

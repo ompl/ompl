@@ -100,6 +100,19 @@ bool ompl::control::SimpleSetup::solve(double time)
     return result;
 }
 
+void ompl::control::SimpleSetup::updateProjectionCellDimensions(void) 
+{
+    const std::vector<const base::State*> &states = getPlannerData().states;
+    if (states.empty())
+	msg_.warn("There are no states in the exploration data structure of the planner");
+    else
+    {
+	const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateManifold()->getRegisteredProjections();
+	for (std::map<std::string, base::ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
+	    it->second->inferCellDimensions(states);
+    }		
+}
+
 ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) const
 {
     if (pdef_ && pdef_->getGoal())

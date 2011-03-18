@@ -209,7 +209,12 @@ namespace ompl
                 planner_.reset();
                 configured_ = false;
             }
-
+	    
+	    /** \brief Use the exploration data structure of the
+		planner to compute the cell dimensions of the
+		projection evaluator. */
+	    void updateProjectionCellDimensions(void);
+	    
             /** \brief Run the planner for a specified amount of time (default is 1 second) */
             virtual bool solve(double time = 1.0);
 

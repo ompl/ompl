@@ -200,6 +200,13 @@ namespace ompl
                 dimensions either. */
             void inferCellDimensions(void);
 
+	    /** \brief Given a set of samples, usually from the
+		exploration data structure of an algorithm, compute
+		the set of cells dimensions that best fits this data
+		structure. The cell dimentions are then set as if the
+		user had set them (defaults are no longer used). */
+            void inferCellDimensions(const std::vector<const State*> &states);
+
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this
                 function is empty. setup() calls this function if no
