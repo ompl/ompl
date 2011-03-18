@@ -36,6 +36,7 @@
 
 #include "ompl/base/manifolds/TimeStateManifold.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/MagicConstants.h"
 #include <limits>
 
 void ompl::base::TimeStateSampler::sampleUniform(State *state)
@@ -144,17 +145,20 @@ void ompl::base::TimeStateManifold::registerProjections(void)
 
         TimeDefaultProjection(const StateManifold *manifold) : ProjectionEvaluator(manifold)
         {
-            std::vector<double> dims(1);
-            if (manifold->as<TimeStateManifold>()->isBounded())
-                dims[0] = (manifold->as<TimeStateManifold>()->getMaxTimeBound() - manifold->as<TimeStateManifold>()->getMinTimeBound()) / 10.0;
-            else
-                dims[0] = 1.0;
-            setCellDimensions(dims);
         }
 
         virtual unsigned int getDimension(void) const
         {
             return 1;
+        }
+
+        virtual void defaultCellSizes(void)
+        {
+            cellSizes_.resize(1);
+            if (manifold_->as<TimeStateManifold>()->isBounded())
+                cellSizes_[0] = (manifold_->as<TimeStateManifold>()->getMaxTimeBound() - manifold_->as<TimeStateManifold>()->getMinTimeBound()) / magic::PROJECTION_DIMENSION_SPLITS;
+            else
+                cellSizes_[0] = 1.0;
         }
 
         virtual void project(const State *state, EuclideanProjection &projection) const

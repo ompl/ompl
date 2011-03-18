@@ -152,15 +152,15 @@ ompl::base::PlannerData ompl::geometric::SimpleSetup::getPlannerData(void) const
     return pd;
 }
 
-void ompl::geometric::SimpleSetup::updateProjectionCellDimensions(void) 
+void ompl::geometric::SimpleSetup::updateProjectionCellSizes(void)
 {
     const std::vector<const base::State*> &states = getPlannerData().states;
     if (states.empty())
-	msg_.warn("There are no states in the exploration data structure of the planner");
+        msg_.warn("There are no states in the exploration data structure of the planner");
     else
     {
-	const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateManifold()->getRegisteredProjections();
-	for (std::map<std::string, base::ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
-	    it->second->inferCellDimensions(states);
-    }		
+        const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateManifold()->getRegisteredProjections();
+        for (std::map<std::string, base::ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
+            it->second->inferCellSizes(states);
+    }
 }

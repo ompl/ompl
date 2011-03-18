@@ -53,22 +53,22 @@ namespace ompl
 }
 /// @endcond
 
-ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
+ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellSizes,
                                                                                      const ProjectionMatrix::Matrix &projection) :
     ProjectionEvaluator(manifold)
 {
     checkManifoldType(manifold_);
     projection_.mat = projection;
-    setCellDimensions(cellDimensions);
+    setCellSizes(cellSizes);
 }
 
-ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions,
+ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellSizes,
                                                                                      const ProjectionMatrix::Matrix &projection) :
     ProjectionEvaluator(manifold)
 {
     checkManifoldType(manifold_);
     projection_.mat = projection;
-    setCellDimensions(cellDimensions);
+    setCellSizes(cellSizes);
 }
 
 ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateManifold *manifold,
@@ -87,20 +87,20 @@ ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvalu
     projection_.mat = projection;
 }
 
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions,
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellSizes,
                                                                                              const std::vector<unsigned int> &components) :
     ProjectionEvaluator(manifold), components_(components)
 {
     checkManifoldType(manifold_);
-    setCellDimensions(cellDimensions);
+    setCellSizes(cellSizes);
 }
 
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions,
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellSizes,
                                                                                              const std::vector<unsigned int> &components) :
     ProjectionEvaluator(manifold), components_(components)
 {
     checkManifoldType(manifold_);
-    setCellDimensions(cellDimensions);
+    setCellSizes(cellSizes);
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateManifold *manifold, const std::vector<unsigned int> &components) :
@@ -115,12 +115,12 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
     checkManifoldType(manifold_);
 }
 
-void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellDimensions(void)
+void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes(void)
 {
     const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
-    cellDimensions_.resize(components_.size());
-    for (unsigned int i = 0 ; i < cellDimensions_.size() ; ++i)
-        cellDimensions_[i] = (bounds.high[components_[i]] - bounds.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
+    cellSizes_.resize(components_.size());
+    for (unsigned int i = 0 ; i < cellSizes_.size() ; ++i)
+        cellSizes_[i] = (bounds.high[components_[i]] - bounds.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
 unsigned int ompl::base::RealVectorLinearProjectionEvaluator::getDimension(void) const
@@ -144,11 +144,11 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::project(const State *s
         projection.values[i] = state->as<RealVectorStateManifold::StateType>()->values[components_[i]];
 }
 
-ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellDimensions) :
+ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifold *manifold, const std::vector<double> &cellSizes) :
     ProjectionEvaluator(manifold)
 {
     checkManifoldType(manifold_);
-    setCellDimensions(cellDimensions);
+    setCellSizes(cellSizes);
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifold *manifold) :
@@ -157,11 +157,11 @@ ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionE
     checkManifoldType(manifold_);
 }
 
-ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellDimensions) :
+ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold, const std::vector<double> &cellSizes) :
     ProjectionEvaluator(manifold)
 {
     checkManifoldType(manifold_);
-    setCellDimensions(cellDimensions);
+    setCellSizes(cellSizes);
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateManifoldPtr &manifold) :
@@ -170,12 +170,12 @@ ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionE
     checkManifoldType(manifold_);
 }
 
-void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellDimensions(void)
+void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellSizes(void)
 {
     const RealVectorBounds &bounds = manifold_->as<RealVectorStateManifold>()->getBounds();
-    cellDimensions_.resize(getDimension());
-    for (unsigned int i = 0 ; i < cellDimensions_.size() ; ++i)
-        cellDimensions_[i] = (bounds.high[i] - bounds.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
+    cellSizes_.resize(getDimension());
+    for (unsigned int i = 0 ; i < cellSizes_.size() ; ++i)
+        cellSizes_[i] = (bounds.high[i] - bounds.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
 void ompl::base::RealVectorIdentityProjectionEvaluator::setup(void)

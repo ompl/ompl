@@ -148,20 +148,20 @@ namespace ompl
         /** \brief Abstract definition for a class computing
             projections to R<sup>n</sup>. Implicit integer grids are
             imposed on this projection space by setting cell
-            sizes. Before use, the user must supply cell dimensions
-            for the integer grid (setCellDimensions()). The
+            sizes. Before use, the user must supply cell sizes
+            for the integer grid (setCellSizes()). The
             implementation of this class is thread safe. */
         class ProjectionEvaluator : private boost::noncopyable
         {
         public:
 
             /** \brief Construct a projection evaluator for a specific manifold */
-            ProjectionEvaluator(const StateManifold *manifold) : manifold_(manifold), defaultCellDimensions_(true), cellDimensionsWereInferred_(false)
+            ProjectionEvaluator(const StateManifold *manifold) : manifold_(manifold), defaultCellSizes_(true), cellSizesWereInferred_(false)
             {
             }
 
             /** \brief Construct a projection evaluator for a specific manifold */
-            ProjectionEvaluator(const StateManifoldPtr &manifold) : manifold_(manifold.get()), defaultCellDimensions_(true), cellDimensionsWereInferred_(false)
+            ProjectionEvaluator(const StateManifoldPtr &manifold) : manifold_(manifold.get()), defaultCellSizes_(true), cellSizesWereInferred_(false)
             {
             }
 
@@ -175,43 +175,43 @@ namespace ompl
             /** \brief Compute the projection as an array of double values */
             virtual void project(const State *state, EuclideanProjection &projection) const = 0;
 
-            /** \brief Define the dimension (each component) of a grid
-                cell. The number of dimensions set here must be the
+            /** \brief Define the size (in each dimension) of a grid
+                cell. The number of sizes set here must be the
                 same as the dimension of the projection computed by
                 the projection evaluator. After a call to this
                 function, setup() will not call
-                defaultCellDimensions() or inferCellDimensions() any
+                defaultCellSizes() or inferCellSizes() any
                 more. */
-            void setCellDimensions(const std::vector<double> &cellDimensions);
+            void setCellSizes(const std::vector<double> &cellSizes);
 
-            /** \brief Get the dimension (each component) of a grid cell  */
-            const std::vector<double>& getCellDimensions(void) const
+            /** \brief Get the size (each dimension) of a grid cell  */
+            const std::vector<double>& getCellSizes(void) const
             {
-                return cellDimensions_;
+                return cellSizes_;
             }
 
             /** \brief Check if cell dimensions match projection dimension */
-            void checkCellDimensions(void) const;
+            void checkCellSizes(void) const;
 
             /** \brief Sample the state manifold and decide on default
-                cell dimensions. This function is called by setup() if
-                no cell dimensions have been set and
-                defaultCellDimensions() does not fill the cell
-                dimensions either. */
-            void inferCellDimensions(void);
+                cell sizes. This function is called by setup() if
+                no cell dsizes have been set and
+                defaultCellSizes() does not fill the cell
+                sizes either. */
+            void inferCellSizes(void);
 
-	    /** \brief Given a set of samples, usually from the
-		exploration data structure of an algorithm, compute
-		the set of cells dimensions that best fits this data
-		structure. The cell dimentions are then set as if the
-		user had set them (defaults are no longer used). */
-            void inferCellDimensions(const std::vector<const State*> &states);
+            /** \brief Given a set of samples, usually from the
+                exploration data structure of an algorithm, compute
+                the set of cells sizes that best fits this data
+                structure. The cell sizes are then set as if the
+                user had set them (defaults are no longer used). */
+            void inferCellSizes(const std::vector<const State*> &states);
 
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this
                 function is empty. setup() calls this function if no
                 cell dimensions have been previously set. */
-            virtual void defaultCellDimensions(void);
+            virtual void defaultCellSizes(void);
 
             /** \brief Perform configuration steps, if needed */
             virtual void setup(void);
@@ -241,17 +241,17 @@ namespace ompl
             /** \brief The size of a cell, in every dimension of the
                 projected space, in the implicitly defined integer
                 grid. */
-            std::vector<double>  cellDimensions_;
+            std::vector<double>  cellSizes_;
 
-            /** \brief Flag indicating whether cell dimensions have
+            /** \brief Flag indicating whether cell sizes have
                 been set by the user, or whether they were inferred
                 automatically. This flag becomes false if
-                setCellDimensions() is called. */
-            bool                 defaultCellDimensions_;
+                setCellSizes() is called. */
+            bool                 defaultCellSizes_;
 
-            /** \brief Flag indicating whether projection dimensions
+            /** \brief Flag indicating whether projection cell sizes
                 were automatically inferred. */
-            bool                 cellDimensionsWereInferred_;
+            bool                 cellSizesWereInferred_;
         };
 
     }

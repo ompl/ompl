@@ -48,5 +48,5 @@ void ompl::control::checkProjectionEvaluator(const base::Planner *planner, base:
     }
     if (!proj)
         throw Exception(planner->getName(), "No projection evaluator specified");
-    proj->checkCellDimensions();
+    proj->checkCellSizes();
 }

@@ -305,9 +305,9 @@ protected:
 class myProjectionEvaluator : public base::ProjectionEvaluator
 {
 public:
-    myProjectionEvaluator(const base::StateManifoldPtr &manifold, const std::vector<double> &cellDimensions) : base::ProjectionEvaluator(manifold)
+    myProjectionEvaluator(const base::StateManifoldPtr &manifold, const std::vector<double> &cellSizes) : base::ProjectionEvaluator(manifold)
     {
-        setCellDimensions(cellDimensions);
+        setCellSizes(cellSizes);
     }
 
     virtual unsigned int getDimension(void) const

@@ -169,10 +169,10 @@ void ompl::base::SO2StateManifold::registerProjections(void)
             return 1;
         }
 
-        virtual void defaultCellDimensions(void)
+        virtual void defaultCellSizes(void)
         {
-            cellDimensions_.resize(1);
-            cellDimensions_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
+            cellSizes_.resize(1);
+            cellSizes_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
         virtual void project(const State *state, EuclideanProjection &projection) const

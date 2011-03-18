@@ -188,9 +188,9 @@ class RRTTest(TestPlanner):
         return planner
 
 class myProjectionEvaluator(ob.ProjectionEvaluator):
-    def __init__(self, manifold, cellDimensions):
+    def __init__(self, manifold, cellSizes):
         super(myProjectionEvaluator, self).__init__(manifold)
-        self.setCellDimensions(cellDimensions)
+        self.setCellSizes(cellSizes)
 
     def getDimension(self):
         return 2

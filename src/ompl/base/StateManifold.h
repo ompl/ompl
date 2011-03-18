@@ -234,9 +234,9 @@ namespace ompl
 
             /** \brief Check if a default projection is available */
             bool hasDefaultProjection(void) const;
-	    
-	    /** \brief Get all the registered projections */
-	    const std::map<std::string, ProjectionEvaluatorPtr>& getRegisteredProjections(void) const;
+
+            /** \brief Get all the registered projections */
+            const std::map<std::string, ProjectionEvaluatorPtr>& getRegisteredProjections(void) const;
 
             /** @} */
 
