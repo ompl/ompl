@@ -184,6 +184,9 @@ namespace ompl
                 more. */
             void setCellSizes(const std::vector<double> &cellSizes);
 
+            /** \brief Return true if any user configuration has been done to this projection evaluator (setCellSizes() was called) */
+            bool userConfigured(void) const;
+
             /** \brief Get the size (each dimension) of a grid cell  */
             const std::vector<double>& getCellSizes(void) const
             {

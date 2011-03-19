@@ -106,7 +106,17 @@ void ompl::base::StateManifold::setup(void)
     if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
         throw Exception("The longest valid segment for manifold " + getName() + " must be positive");
 
+    // make sure we don't overwrite projections that have been configured by the user
+    std::map<std::string, ProjectionEvaluatorPtr> oldProjections = projections_;
     registerProjections();
+    for (std::map<std::string, ProjectionEvaluatorPtr>::iterator it = oldProjections.begin() ; it != oldProjections.end() ; ++it)
+        if (it->second->userConfigured())
+        {
+            std::map<std::string, ProjectionEvaluatorPtr>::iterator o = projections_.find(it->first);
+            if (o != projections_.end())
+                if (!o->second->userConfigured())
+                    projections_[it->first] = it->second;
+        }
 
     for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.begin() ; it != projections_.end() ; ++it)
         it->second->setup();

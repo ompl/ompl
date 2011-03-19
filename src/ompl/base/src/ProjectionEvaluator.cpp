@@ -124,6 +124,11 @@ void ompl::base::ProjectionMatrix::print(std::ostream &out) const
     }
 }
 
+bool ompl::base::ProjectionEvaluator::userConfigured(void) const
+{
+    return !defaultCellSizes_ && !cellSizesWereInferred_;
+}
+
 void ompl::base::ProjectionEvaluator::setCellSizes(const std::vector<double> &cellSizes)
 {
     defaultCellSizes_ = false;
@@ -146,6 +151,7 @@ void ompl::base::ProjectionEvaluator::defaultCellSizes(void)
 
 std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const State*> &states) const
 {
+ /*
     unsigned int dim = getDimension();
     std::vector<double> low(dim, std::numeric_limits<double>::infinity());
     std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
@@ -153,13 +159,12 @@ std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std:
     std::vector<int> highC(dim, std::numeric_limits<int>::min());
     std::vector<EuclideanProjection*>  proj(states.size());
     std::vector<ProjectionCoordinates> coord(states.size());
-    
+
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
         proj[i] = new EuclideanProjection(dim);
         project(states[i], *proj[i]);
-	computeCoordinates(*proj[i], coord[i]);
-	
+        computeCoordinates(*proj[i], coord[i]);
         for (unsigned int j = 0 ; j < dim ; ++j)
         {
             if (low[j] > proj[i]->values[j])
@@ -174,20 +179,21 @@ std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std:
         }
     }
     std::cout << "Computing projections from " << states.size() << " states" << std::endl;
-    
+
     for (unsigned int j = 0 ; j < dim ; ++j)
     {
-	unsigned int nc = highC[j] - lowC[j] + 1;
-	std::vector<unsigned int> pd(nc);
-	for (unsigned int i = 0 ; i < coord.size() ; ++i)
-	    pd[coord[i][j] - lowC[j]]++;
-	std::cout << "Dimension " << j << std::endl;
-	for (unsigned int i = 0 ; i < nc ; ++i)
-	    std::cout << pd[i] << " ";
-	std::cout << std::endl;
+        unsigned int nc = highC[j] - lowC[j] + 1;
+        std::vector<unsigned int> pd(nc);
+        for (unsigned int i = 0 ; i < coord.size() ; ++i)
+            pd[coord[i][j] - lowC[j]]++;
+        std::cout << "d" << j << " = [" << std::endl;
+        for (unsigned int i = 0 ; i < nc ; ++i)
+            std::cout << pd[i] << " ";
+        std::cout << "];" << std::endl << " figure(" << j + 1 << "); clf; " << std::endl << "plot(d" << j << ")" << std::endl;
+        std::cout << "hold on; plot(1:length(d"<<j<<"), zeros(1, length(d"<<j<<")) + median(d"<<j<<"))" << std::endl;
     }
-    
-    
+
+
     std::vector<double> cs(dim);
 
     for (unsigned int j = 0 ; j < dim ; ++j)
@@ -196,11 +202,11 @@ std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std:
         if (cs[j] < std::numeric_limits<double>::epsilon())
             cs[j] = 1.0;
     }
-    
+
     for (unsigned int i = 0 ; i < proj.size() ; ++i)
         delete proj[i];
 
-    return cs;
+	return cs;*/
 }
 
 void ompl::base::ProjectionEvaluator::inferCellSizes(void)
