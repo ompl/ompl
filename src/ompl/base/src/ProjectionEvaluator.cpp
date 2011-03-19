@@ -40,7 +40,6 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/MagicConstants.h"
-#include "ompl/datastructures/GridN.h"
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -150,20 +149,45 @@ std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std:
     unsigned int dim = getDimension();
     std::vector<double> low(dim, std::numeric_limits<double>::infinity());
     std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
-    std::vector<EuclideanProjection*> proj(states.size());
+    std::vector<int> lowC(dim, std::numeric_limits<int>::max());
+    std::vector<int> highC(dim, std::numeric_limits<int>::min());
+    std::vector<EuclideanProjection*>  proj(states.size());
+    std::vector<ProjectionCoordinates> coord(states.size());
+    
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
         proj[i] = new EuclideanProjection(dim);
         project(states[i], *proj[i]);
+	computeCoordinates(*proj[i], coord[i]);
+	
         for (unsigned int j = 0 ; j < dim ; ++j)
         {
             if (low[j] > proj[i]->values[j])
                 low[j] = proj[i]->values[j];
             if (high[j] < proj[i]->values[j])
                 high[j] = proj[i]->values[j];
+
+            if (lowC[j] > coord[i][j])
+                lowC[j] = coord[i][j];
+            if (highC[j] < coord[i][j])
+                highC[j] = coord[i][j];
         }
     }
-
+    std::cout << "Computing projections from " << states.size() << " states" << std::endl;
+    
+    for (unsigned int j = 0 ; j < dim ; ++j)
+    {
+	unsigned int nc = highC[j] - lowC[j] + 1;
+	std::vector<unsigned int> pd(nc);
+	for (unsigned int i = 0 ; i < coord.size() ; ++i)
+	    pd[coord[i][j] - lowC[j]]++;
+	std::cout << "Dimension " << j << std::endl;
+	for (unsigned int i = 0 ; i < nc ; ++i)
+	    std::cout << pd[i] << " ";
+	std::cout << std::endl;
+    }
+    
+    
     std::vector<double> cs(dim);
 
     for (unsigned int j = 0 ; j < dim ; ++j)
@@ -172,19 +196,7 @@ std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std:
         if (cs[j] < std::numeric_limits<double>::epsilon())
             cs[j] = 1.0;
     }
-
-    Grid<int> grid(dim);
-    ProjectionCoordinates coord;
-    for (unsigned int i = 0 ; i < proj.size() ; ++i)
-    {
-        computeCoordinates(*proj[i], coord);
-        Grid<int>::Cell *c = grid.createCell(coord);
-        c->data = -1;
-        grid.add(c);
-    }
-
-    std::vector< std::vector<Grid<int>::Cell*> > c = grid.components();
-
+    
     for (unsigned int i = 0 ; i < proj.size() ; ++i)
         delete proj[i];
 
