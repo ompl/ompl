@@ -204,6 +204,11 @@ namespace ompl
                                     q.push_back(nbh[j]);
                             }
                         }
+                        else
+                        {
+                            --index;
+                            q.erase(q.begin() + index);
+                        }
                     }
                     ++components;
                 }
