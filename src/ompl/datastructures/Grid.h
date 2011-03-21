@@ -41,6 +41,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <boost/unordered_map.hpp>
+#include <algorithm>
 
 namespace ompl
 {
@@ -207,7 +208,7 @@ namespace ompl
                     ++components;
                 }
             }
-
+            std::sort(res.begin(), res.end(), SortComponents());
             return res;
         }
 
@@ -347,6 +348,15 @@ namespace ompl
 
         /// Define the datatype for the used hash structure
         typedef boost::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
+
+        /// Helper to sort components by size
+        struct SortComponents
+        {
+            bool operator()(const std::vector<Cell*> &a, const std::vector<Cell*> &b) const
+            {
+                return a.size() > b.size();
+            }
+        };
 
     public:
 
