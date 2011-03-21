@@ -206,7 +206,7 @@ std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std:
     for (unsigned int i = 0 ; i < proj.size() ; ++i)
         delete proj[i];
 
-	return cs;*/
+        return cs;*/
 }
 
 void ompl::base::ProjectionEvaluator::inferCellSizes(void)

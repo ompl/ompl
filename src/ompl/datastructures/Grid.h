@@ -294,6 +294,17 @@ namespace ompl
             return hash_.size();
         }
 
+        /// Print information about the data in this grid structure
+        virtual void status(std::ostream &out = std::cout) const
+        {
+            out << size() << " total cells " << std::endl;
+            const std::vector< std::vector<Cell*> > &comp = components();
+            out << comp.size() << " connected components: ";
+            for (std::size_t i = 0 ; i < comp.size() ; ++i)
+                out << comp[i].size() << " ";
+            out << std::endl;
+        }
+
     protected:
 
         /// Free the allocated memory

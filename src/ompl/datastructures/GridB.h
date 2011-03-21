@@ -279,6 +279,13 @@ namespace ompl
             clearHeaps();
         }
 
+        virtual void status(std::ostream &out = std::cout) const
+        {
+            GridN<_T>::status(out);
+            out << countInternal() << " internal cells" << std::endl;
+            out << countExternal() << " external cells" << std::endl;
+        }
+
     protected:
 
         /// Pointer to function to be called when a cell needs to be updated
