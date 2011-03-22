@@ -44,6 +44,8 @@
 #include <cstring>
 #include <limits>
 
+static const double DIMENSION_UPDATE_FACTOR = 1.2;
+
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
     RNG rng;
@@ -154,6 +156,15 @@ namespace ompl
 {
     namespace base
     {
+
+        static inline void computeCoordinatesHelper(const std::vector<double> &cellSizes, const EuclideanProjection &projection, ProjectionCoordinates &coord)
+        {
+            const std::size_t dim = cellSizes.size();
+            coord.resize(dim);
+            for (unsigned int i = 0 ; i < dim ; ++i)
+                coord[i] = (int)floor(projection.values[i]/cellSizes[i]);
+        }
+
         static Grid<int> constructGrid(unsigned int dim, const std::vector<ProjectionCoordinates> &coord)
         {
             Grid<int> g(dim);
@@ -171,9 +182,46 @@ namespace ompl
             }
             return g;
         }
+
+        static unsigned int getComponentCount(const std::vector<EuclideanProjection*> &proj,
+                                              const std::vector<double> &cellSizes)
+        {
+            std::vector<ProjectionCoordinates> coord(proj.size());
+            for (std::size_t i = 0 ; i < proj.size() ; ++i)
+                computeCoordinatesHelper(cellSizes, *proj[i], coord[i]);
+            return constructGrid(cellSizes.size(), coord).components().size();
+        }
+
+        static int updateComponentCountDimension(const std::vector<EuclideanProjection*> &proj,
+						 std::vector<double> &cellSizes, bool increase)
+        {
+            unsigned int dim = cellSizes.size();
+            const double factor = increase ? DIMENSION_UPDATE_FACTOR : 1.0 / DIMENSION_UPDATE_FACTOR;
+
+            int bestD = -1;
+            unsigned int best = 0;
+            for (unsigned int d = 0 ; d < dim ; ++d)
+            {
+                double backup = cellSizes[d];
+                cellSizes[d] *= factor;
+                unsigned int nc = getComponentCount(proj, cellSizes);
+                if (bestD < 0 || (increase && nc > best) || (!increase && nc < best))
+                {
+                    best = nc;
+                    bestD = d;
+                }
+                cellSizes[d] = backup;
+            }
+            cellSizes[bestD] *= factor;
+            return bestD;
+        }
+
     }
 }
 /// @endcond
+
+
+
 
 void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const State*> &states)
 {
@@ -200,8 +248,6 @@ void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const S
         }
     }
 
-    static const double DIMENSION_UPDATE_FACTOR = 1.2;
-
     bool dir1 = false, dir2 = false;
     do
     {
@@ -225,50 +271,14 @@ void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const S
             if (f < 0.7)
             {
                 dir1 = true;
-
-                int bestD = -1;
-                std::size_t best = 0;
-                for (unsigned int d = 0 ; d < dim ; ++d)
-                {
-                    double backup = cellSizes_[d];
-                    cellSizes_[d] *= DIMENSION_UPDATE_FACTOR;
-                    for (std::size_t i = 0 ; i < proj.size() ; ++i)
-                        computeCoordinates(*proj[i], coord[i]);
-                    const Grid<int> &g1 = constructGrid(dim, coord);
-                    std::size_t nc = g1.components().size();
-                    if (nc < best || bestD < 0)
-                    {
-                        best = nc;
-                        bestD = d;
-                    }
-                    cellSizes_[d] = backup;
-                }
-                cellSizes_[bestD] *= DIMENSION_UPDATE_FACTOR;
+                int bestD = updateComponentCountDimension(proj, cellSizes_, true);
                 msg_.debug("Increasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
             }
             else
                 if (f > 0.9)
                 {
                     dir2 = true;
-
-                    int bestD = -1;
-                    std::size_t best = 0;
-                    for (unsigned int d = 0 ; d < dim ; ++d)
-                    {
-                        double backup = cellSizes_[d];
-                        cellSizes_[d] /= DIMENSION_UPDATE_FACTOR;
-                        for (std::size_t i = 0 ; i < proj.size() ; ++i)
-                            computeCoordinates(*proj[i], coord[i]);
-                        const Grid<int> &g1 = constructGrid(dim, coord);
-                        std::size_t nc = g1.components().size();
-                        if (nc > best || bestD < 0)
-                        {
-                            best = nc;
-                            bestD = d;
-                        }
-                        cellSizes_[d] = backup;
-                    }
-                    cellSizes_[bestD] /= DIMENSION_UPDATE_FACTOR;
+                    int bestD = updateComponentCountDimension(proj, cellSizes_, false);
                     msg_.debug("Decreasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
                 }
                 else
@@ -341,10 +351,7 @@ void ompl::base::ProjectionEvaluator::setup(void)
 
 void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const
 {
-    unsigned int dim = getDimension();
-    coord.resize(dim);
-    for (unsigned int i = 0 ; i < dim ; ++i)
-        coord[i] = (int)floor(projection.values[i]/cellSizes_[i]);
+    computeCoordinatesHelper(cellSizes_, projection, coord);
 }
 
 void ompl::base::ProjectionEvaluator::printSettings(std::ostream &out) const
