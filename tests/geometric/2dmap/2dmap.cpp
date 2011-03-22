@@ -45,6 +45,7 @@
 #include "ompl/base/GoalState.h"
 
 #include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
+#include "ompl/geometric/planners/kpiece/BKPIECE1.h"
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
 #include "ompl/geometric/planners/sbl/SBL.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
@@ -399,6 +400,30 @@ protected:
 
 };
 
+class BKPIECE1Test : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::BKPIECE1 *kpiece = new geometric::BKPIECE1(si);
+        kpiece->setRange(10.0);
+
+        std::vector<unsigned int> projection;
+        projection.push_back(0);
+        projection.push_back(1);
+
+        std::vector<double> cdim;
+        cdim.push_back(1);
+        cdim.push_back(1);
+
+        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateManifold(), cdim, projection)));
+
+        return base::PlannerPtr(kpiece);
+    }
+
+};
+
 class ESTTest : public TestPlanner
 {
 protected:
@@ -590,6 +615,21 @@ TEST_F(PlanTest, geometric_LBKPIECE1)
     double avglength  = 0.0;
 
     TestPlanner *p = new LBKPIECE1Test();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.1);
+    EXPECT_TRUE(avglength < 100.0);
+}
+
+TEST_F(PlanTest, geometric_BKPIECE1)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new BKPIECE1Test();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

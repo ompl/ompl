@@ -37,7 +37,6 @@
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include <limits>
-#include <sstream>
 #include <cassert>
 
 void ompl::geometric::KPIECE1::setup(void)
@@ -234,10 +233,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
     si_->freeState(xstate);
 
-    std::stringstream ss;
-    ss << "Created " << tree_.size << " states in grid with " << std::endl;
-    tree_.grid.status(ss);
-    msg_.inform(ss.str());
+    msg_.inform("Created %u states in %u cells (%u internal + %u external)", tree_.size, tree_.grid.size(),
+                 tree_.grid.countInternal(), tree_.grid.countExternal());
 
     return goal->isAchieved();
 }

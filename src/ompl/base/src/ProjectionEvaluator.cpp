@@ -193,7 +193,7 @@ namespace ompl
         }
 
         static int updateComponentCountDimension(const std::vector<EuclideanProjection*> &proj,
-						 std::vector<double> &cellSizes, bool increase)
+                                                 std::vector<double> &cellSizes, bool increase)
         {
             unsigned int dim = cellSizes.size();
             const double factor = increase ? DIMENSION_UPDATE_FACTOR : 1.0 / DIMENSION_UPDATE_FACTOR;
