@@ -38,8 +38,8 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
-#include "ompl/util/Console.h"
 #include "ompl/util/MagicConstants.h"
+#include "ompl/datastructures/Grid.h"
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -149,64 +149,138 @@ void ompl::base::ProjectionEvaluator::defaultCellSizes(void)
 {
 }
 
-std::vector<double> ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const State*> &states) const
+/// @cond IGNORE
+namespace ompl
 {
- /*
+    namespace base
+    {
+        static Grid<int> constructGrid(unsigned int dim, const std::vector<ProjectionCoordinates> &coord)
+        {
+            Grid<int> g(dim);
+            for (std::size_t i = 0 ; i < coord.size() ; ++i)
+            {
+                Grid<int>::Cell *c = g.getCell(coord[i]);
+                if (c)
+                    c->data++;
+                else
+                {
+                    Grid<int>::Cell *c = g.createCell(coord[i]);
+                    c->data = 1;
+                    g.add(c);
+                }
+            }
+            return g;
+        }
+    }
+}
+/// @endcond
+
+void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const State*> &states)
+{
+    setup();
+
+    msg_.debug("Computing projections from %u states", states.size());
+
     unsigned int dim = getDimension();
     std::vector<double> low(dim, std::numeric_limits<double>::infinity());
     std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
-    std::vector<int> lowC(dim, std::numeric_limits<int>::max());
-    std::vector<int> highC(dim, std::numeric_limits<int>::min());
     std::vector<EuclideanProjection*>  proj(states.size());
     std::vector<ProjectionCoordinates> coord(states.size());
 
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    for (std::size_t i = 0 ; i < states.size() ; ++i)
     {
         proj[i] = new EuclideanProjection(dim);
         project(states[i], *proj[i]);
-        computeCoordinates(*proj[i], coord[i]);
-        for (unsigned int j = 0 ; j < dim ; ++j)
+        for (std::size_t j = 0 ; j < dim ; ++j)
         {
             if (low[j] > proj[i]->values[j])
                 low[j] = proj[i]->values[j];
             if (high[j] < proj[i]->values[j])
                 high[j] = proj[i]->values[j];
-
-            if (lowC[j] > coord[i][j])
-                lowC[j] = coord[i][j];
-            if (highC[j] < coord[i][j])
-                highC[j] = coord[i][j];
         }
     }
-    std::cout << "Computing projections from " << states.size() << " states" << std::endl;
 
-    for (unsigned int j = 0 ; j < dim ; ++j)
+    static const double DIMENSION_UPDATE_FACTOR = 1.2;
+
+    bool dir1 = false, dir2 = false;
+    do
     {
-        unsigned int nc = highC[j] - lowC[j] + 1;
-        std::vector<unsigned int> pd(nc);
-        for (unsigned int i = 0 ; i < coord.size() ; ++i)
-            pd[coord[i][j] - lowC[j]]++;
-        std::cout << "d" << j << " = [" << std::endl;
-        for (unsigned int i = 0 ; i < nc ; ++i)
-            std::cout << pd[i] << " ";
-        std::cout << "];" << std::endl << " figure(" << j + 1 << "); clf; " << std::endl << "plot(d" << j << ")" << std::endl;
-        std::cout << "hold on; plot(1:length(d"<<j<<"), zeros(1, length(d"<<j<<")) + median(d"<<j<<"))" << std::endl;
-    }
+        for (std::size_t i = 0 ; i < proj.size() ; ++i)
+            computeCoordinates(*proj[i], coord[i]);
+        const Grid<int> &g = constructGrid(dim, coord);
 
+        const std::vector< std::vector<Grid<int>::Cell*> > &comp = g.components();
+        if (comp.size() > 0)
+        {
+            std::size_t n = comp.size() / 10;
+            if (n < 1)
+                n = 1;
+            std::size_t s = 0;
+            for (std::size_t i = 0 ; i < n ; ++i)
+                s += comp[i].size();
+            double f = (double)s / (double)g.size();
 
-    std::vector<double> cs(dim);
+            msg_.debug("There are %u connected components in the projected grid. The first 10%% fractions is %f", comp.size(), f);
 
-    for (unsigned int j = 0 ; j < dim ; ++j)
-    {
-        cs[j] = (high[j] - low[j]) / magic::PROJECTION_DIMENSION_SPLITS;
-        if (cs[j] < std::numeric_limits<double>::epsilon())
-            cs[j] = 1.0;
-    }
+            if (f < 0.7)
+            {
+                dir1 = true;
+
+                int bestD = -1;
+                std::size_t best = 0;
+                for (unsigned int d = 0 ; d < dim ; ++d)
+                {
+                    double backup = cellSizes_[d];
+                    cellSizes_[d] *= DIMENSION_UPDATE_FACTOR;
+                    for (std::size_t i = 0 ; i < proj.size() ; ++i)
+                        computeCoordinates(*proj[i], coord[i]);
+                    const Grid<int> &g1 = constructGrid(dim, coord);
+                    std::size_t nc = g1.components().size();
+                    if (nc < best || bestD < 0)
+                    {
+                        best = nc;
+                        bestD = d;
+                    }
+                    cellSizes_[d] = backup;
+                }
+                cellSizes_[bestD] *= DIMENSION_UPDATE_FACTOR;
+                msg_.debug("Increasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
+            }
+            else
+                if (f > 0.9)
+                {
+                    dir2 = true;
+
+                    int bestD = -1;
+                    std::size_t best = 0;
+                    for (unsigned int d = 0 ; d < dim ; ++d)
+                    {
+                        double backup = cellSizes_[d];
+                        cellSizes_[d] /= DIMENSION_UPDATE_FACTOR;
+                        for (std::size_t i = 0 ; i < proj.size() ; ++i)
+                            computeCoordinates(*proj[i], coord[i]);
+                        const Grid<int> &g1 = constructGrid(dim, coord);
+                        std::size_t nc = g1.components().size();
+                        if (nc > best || bestD < 0)
+                        {
+                            best = nc;
+                            bestD = d;
+                        }
+                        cellSizes_[d] = backup;
+                    }
+                    cellSizes_[bestD] /= DIMENSION_UPDATE_FACTOR;
+                    msg_.debug("Decreasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
+                }
+                else
+                {
+                    msg_.debug("No more changes made to cell sizes");
+                    break;
+                }
+        }
+    } while (dir1 ^ dir2);
 
     for (unsigned int i = 0 ; i < proj.size() ; ++i)
         delete proj[i];
-
-        return cs;*/
 }
 
 void ompl::base::ProjectionEvaluator::inferCellSizes(void)
@@ -244,9 +318,8 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             if (cellSizes_[j] < std::numeric_limits<double>::epsilon())
             {
                 cellSizes_[j] = 1.0;
-                msg::Interface msg;
-                msg.warn("Inferred cell size for dimension %u of a projection for manifold %s is 0. Setting arbitrary value of 1 instead.",
-                         j, manifold_->getName().c_str());
+                msg_.warn("Inferred cell size for dimension %u of a projection for manifold %s is 0. Setting arbitrary value of 1 instead.",
+                          j, manifold_->getName().c_str());
             }
         }
     }

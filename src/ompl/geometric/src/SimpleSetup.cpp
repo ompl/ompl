@@ -161,6 +161,6 @@ void ompl::geometric::SimpleSetup::updateProjectionCellSizes(void)
     {
         const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateManifold()->getRegisteredProjections();
         for (std::map<std::string, base::ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
-            it->second->setCellSizes(it->second->computeCellSizes(states));
+            it->second->computeCellSizes(states);
     }
 }

@@ -39,6 +39,7 @@
 
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/util/Console.h"
 #include <vector>
 #include <valarray>
 #include <iostream>
@@ -206,9 +207,8 @@ namespace ompl
             /** \brief Given a set of samples, usually from the
                 exploration data structure of an algorithm, compute
                 the set of cells sizes that best fits this data
-                structure. The cell sizes are not actually set. A call
-                to setCellSizes() needs to be subsequently made. */
-            std::vector<double> computeCellSizes(const std::vector<const State*> &states) const;
+                structure. */
+            void computeCellSizes(const std::vector<const State*> &states);
 
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this
@@ -255,6 +255,9 @@ namespace ompl
             /** \brief Flag indicating whether projection cell sizes
                 were automatically inferred. */
             bool                 cellSizesWereInferred_;
+
+            /** \brief The console interface */
+            msg::Interface       msg_;
         };
 
     }
