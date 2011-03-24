@@ -54,7 +54,7 @@ namespace ompl
         /** \brief When the cell sizes for a projection are
             automatically computed, this value defines the number of
             parts into which each dimension is split. */
-        static const double PROJECTION_DIMENSION_SPLITS = 100.0;
+        static const double PROJECTION_DIMENSION_SPLITS = 20.0;
 
 
         /** \brief When no cell sizes are specified for a projection, they are inferred like so:
