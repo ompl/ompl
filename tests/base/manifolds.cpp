@@ -118,6 +118,22 @@ TEST(SO2, Projection)
     EXPECT_EQ(p[0], s->value);
 }
 
+TEST(SO2, Sampler)
+{
+    base::StateManifoldPtr m(new base::SO2StateManifold());
+    m->setup();
+    base::ManifoldStateSamplerPtr s = m->allocStateSampler();
+    base::ScopedState<base::SO2StateManifold> x(m);
+    base::ScopedState<base::SO2StateManifold> y(m);
+    x.random();
+    for (int i = 0 ; i < 100 ; ++i)
+    {
+	s->sampleUniformNear(y.get(), x.get(), 10000);
+	EXPECT_TRUE(y.satisfiesBounds());
+    }
+}
+
+
 TEST(SO3, Simple)
 {
     base::StateManifoldPtr m(new base::SO3StateManifold());
