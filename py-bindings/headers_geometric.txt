@@ -4,6 +4,7 @@
 ../src/ompl/geometric/planners/prm/BasicPRM.h
 ../src/ompl/geometric/planners/est/EST.h
 ../src/ompl/geometric/planners/kpiece/KPIECE1.h
+../src/ompl/geometric/planners/kpiece/BKPIECE1.h
 ../src/ompl/geometric/planners/kpiece/LBKPIECE1.h
 ../src/ompl/geometric/planners/rrt/RRT.h
 ../src/ompl/geometric/planners/rrt/RRTConnect.h
