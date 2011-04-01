@@ -141,7 +141,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
     {
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
-        motion->root = st;
+        motion->root = motion->state;
         tStart_->add(motion);
     }
 

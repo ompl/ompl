@@ -38,9 +38,7 @@
 #define OMPL_GEOMETRIC_PLANNERS_KPIECE_LBKPIECE1_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
-#include "ompl/base/ProjectionEvaluator.h"
-#include "ompl/datastructures/GridB.h"
-#include <vector>
+#include "ompl/geometric/planners/kpiece/Discretization.h"
 
 namespace ompl
 {
@@ -85,21 +83,18 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1")
+            LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1"),
+                                                             dStart_(boost::bind(&LBKPIECE1::freeMotion, this, _1)),
+                                                             dGoal_(boost::bind(&LBKPIECE1::freeMotion, this, _1))
             {
                 type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
 
                 minValidPathFraction_ = 0.5;
-                selectBorderFraction_ = 0.9;
                 maxDistance_ = 0.0;
-
-                tStart_.grid.onCellUpdate(computeImportance, NULL);
-                tGoal_.grid.onCellUpdate(computeImportance, NULL);
             }
 
             virtual ~LBKPIECE1(void)
             {
-                freeMemory();
             }
 
             /** \brief Set the projection evaluator. This class is
@@ -137,7 +132,6 @@ namespace ompl
             {
                 return maxDistance_;
             }
-
             /** \brief Set the fraction of time for focusing on the
                 border (between 0 and 1). This is the minimum fraction
                 used to select cells that are exterior (minimum
@@ -146,14 +140,15 @@ namespace ompl
                 set to 90%)*/
             void setBorderFraction(double bp)
             {
-                selectBorderFraction_ = bp;
+                dStart_.setBorderFraction(bp);
+                dGoal_.setBorderFraction(bp);
             }
 
-            /** \brief Set the fraction of time for focusing on the
-                border (between 0 and 1). */
+            /** \brief Get the fraction of time to focus exploration
+                on boundary */
             double getBorderFraction(void) const
             {
-                return selectBorderFraction_;
+                return dStart_.getBorderFraction();
             }
 
             /** \brief When extending a motion, the planner can decide
@@ -216,119 +211,22 @@ namespace ompl
                 std::vector<Motion*> children;
             };
 
-            /** \brief The data held by a cell in the grid of motions */
-            struct CellData
-            {
-                CellData(void) : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
-                {
-                }
-
-                ~CellData(void)
-                {
-                }
-
-                /** \brief The set of motions contained in this grid cell */
-                std::vector<Motion*> motions;
-
-                /** \brief A measure of coverage for this cell. For
-                    this implementation, this is the sum of motion
-                    lengths */
-                double               coverage;
-
-                /** \brief The number of times this cell has been
-                    selected for expansion */
-                unsigned int         selections;
-
-                /** \brief A heuristic score computed based on
-                    distance to goal (if available), successes and
-                    failures at expanding from this cell. */
-                double               score;
-
-                /** \brief The iteration at which this cell was created */
-                unsigned int         iteration;
-
-                /** \brief The computed importance (based on other class members) */
-                double               importance;
-            };
-
-            /** \brief Definintion of an operator passed to the Grid
-                structure, to order cells by importance */
-            struct OrderCellsByImportance
-            {
-                /** \brief Order function */
-                bool operator()(const CellData * const a, const CellData * const b) const
-                {
-                    return a->importance > b->importance;
-                }
-            };
-
-            /** \brief The datatype for the maintained grid datastructure */
-            typedef GridB<CellData*, OrderCellsByImportance> Grid;
-
-            /** \brief The data defining a tree of motions for this algorithm */
-            struct TreeData
-            {
-                TreeData(void) : grid(0), size(0), iteration(1)
-                {
-                }
-
-                /** \brief A grid containing motions, imposed on a
-                    projection of the state space */
-                Grid         grid;
-
-                /** \brief The total number of motions (there can be
-                    multiple per cell) in the grid */
-                unsigned int size;
-
-                /** \brief The number of iterations performed on this tree */
-                unsigned int iteration;
-            };
-
-            /** \brief This function is provided as a callback to the
-                grid datastructure to update the importance of a
-                cell */
-            static void computeImportance(Grid::Cell *cell, void*)
-            {
-                CellData &cd = *(cell->data);
-                cd.importance =  cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
-            }
-
-            /** \brief Free all the memory allocated by this planner */
-            void freeMemory(void);
-
-            /** \brief Free the memory for the motions contained in a grid */
-            void freeGridMotions(Grid &grid);
-
-            /** \brief Free the memory for the data contained in a grid cell */
-            void freeCellData(CellData *cdata);
-
             /** \brief Free the memory for a motion */
             void freeMotion(Motion *motion);
 
-            /** \brief Add a motion to the grid containing motions. As
-                a hint, \e dist specifies the distance to the goal
-                from the state of the motion being added. The function
-                Returns the number of cells created to accommodate the
-                new motion (0 or 1). */
-            void addMotion(TreeData &tree, Motion* motion);
-
-            /** \brief Select a motion and the cell it is part of from
-                the grid of motions. This is where preference is given
-                to cells on the boundary of the grid.*/
-            Motion* selectMotion(TreeData &tree);
-
             /** \brief Remove a motion from a tree of motions */
-            void removeMotion(TreeData &tree, Motion* motion);
+            void removeMotion(Discretization<Motion> &disc, Motion* motion);
 
             /** \brief Since solutions are computed in a lazy fashion,
                 once trees are connected, the solution found needs to
                 be checked for validity. This function checks whether
                 the reverse path from a given motion to a root is
                 valid. If this is not the case, invalid motions are removed  */
-            bool isPathValid(TreeData &tree, Motion* motion, base::State *temp);
+            bool isPathValid(Discretization<Motion> &disc, Motion* motion, base::State *temp);
 
             /** \brief Check if a solution can be obtained by connecting two trees using a specified motion */
-            bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution, base::State *temp);
+            bool checkSolution(bool start, Discretization<Motion> &disc, Discretization<Motion> &otherDisc,
+                               Motion* motion, std::vector<Motion*> &solution, base::State *tempS, Discretization<Motion>::Coord &tempC);
 
             /** \brief The employed state sampler */
             base::ManifoldStateSamplerPtr              sampler_;
@@ -337,10 +235,10 @@ namespace ompl
             base::ProjectionEvaluatorPtr               projectionEvaluator_;
 
             /** \brief The start tree */
-            TreeData                                   tStart_;
+            Discretization<Motion>                     dStart_;
 
             /** \brief The goal tree */
-            TreeData                                   tGoal_;
+            Discretization<Motion>                     dGoal_;
 
             /** \brief When extending a motion, the planner can decide
                 to keep the first valid part of it, even if invalid
@@ -348,10 +246,6 @@ namespace ompl
                 a sufficiently large fraction from the original
                 motion */
             double                                     minValidPathFraction_;
-
-            /** \brief The fraction of time to focus exploration on
-                the border of the grid. */
-            double                                     selectBorderFraction_;
 
             /** \brief The maximum length of a motion to be added to a tree */
             double                                     maxDistance_;

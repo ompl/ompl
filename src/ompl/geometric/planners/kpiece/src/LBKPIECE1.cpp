@@ -46,11 +46,9 @@ void ompl::geometric::LBKPIECE1::setup(void)
 
     if (minValidPathFraction_ < std::numeric_limits<double>::epsilon() || minValidPathFraction_ > 1.0)
         throw Exception("The minimum valid path fraction must be in the range (0,1]");
-    if (selectBorderFraction_ < std::numeric_limits<double>::epsilon() || selectBorderFraction_ > 1.0)
-        throw Exception("The fraction of time spent selecting border cells must be in the range (0,1]");
 
-    tStart_.grid.setDimension(projectionEvaluator_->getDimension());
-    tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
+    dStart_.setDimension(projectionEvaluator_->getDimension());
+    dGoal_.setDimension(projectionEvaluator_->getDimension());
 }
 
 bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
@@ -64,16 +62,19 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
         return false;
     }
 
+    Discretization<Motion>::Coord xcoord;
+
     while (const base::State *st = pis_.nextStart())
     {
         Motion* motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->root = st;
         motion->valid = true;
-        addMotion(tStart_, motion);
+        projectionEvaluator_->computeCoordinates(motion->state, xcoord);
+        dStart_.addMotion(motion, xcoord);
     }
 
-    if (tStart_.size == 0)
+    if (dStart_.getMotionCount() == 0)
     {
         msg_.error("Motion planning start tree could not be initialized!");
         return false;
@@ -88,7 +89,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
     if (!sampler_)
         sampler_ = si_->allocManifoldStateSampler();
 
-    msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
+    msg_.inform("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -96,31 +97,34 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 
     while (ptc() == false)
     {
-        TreeData &tree      = startTree ? tStart_ : tGoal_;
+        Discretization<Motion> &disc      = startTree ? dStart_ : dGoal_;
         startTree = !startTree;
-        TreeData &otherTree = startTree ? tStart_ : tGoal_;
-        tree.iteration++;
+        Discretization<Motion> &otherDisc = startTree ? dStart_ : dGoal_;
+        disc.countIteration();
 
         // if we have not sampled too many goals already
-        if (tGoal_.size == 0 || pis_.getSampledGoalsCount() < tGoal_.size / 2)
+        if (dGoal_.getMotionCount() == 0 || pis_.getSampledGoalsCount() < dGoal_.getMotionCount() / 2)
         {
-            const base::State *st = tGoal_.size == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
+            const base::State *st = dGoal_.getMotionCount() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
                 Motion* motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 motion->valid = true;
-                addMotion(tGoal_, motion);
+                projectionEvaluator_->computeCoordinates(motion->state, xcoord);
+                dGoal_.addMotion(motion, xcoord);
             }
-            if (tGoal_.size == 0)
+            if (dGoal_.getMotionCount() == 0)
             {
                 msg_.error("Unable to sample any valid states for goal tree");
                 break;
             }
         }
 
-        Motion* existing = selectMotion(tree);
+        Motion* existing = NULL;
+        Discretization<Motion>::Cell *ecell = NULL;
+        disc.selectMotion(existing, ecell);
         assert(existing);
         sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 
@@ -130,10 +134,10 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
         motion->parent = existing;
         motion->root = existing->root;
         existing->children.push_back(motion);
+        projectionEvaluator_->computeCoordinates(motion->state, xcoord);
+        disc.addMotion(motion, xcoord);
 
-        addMotion(tree, motion);
-
-        if (checkSolution(!startTree, tree, otherTree, motion, solution, xstate))
+        if (checkSolution(!startTree, disc, otherDisc, motion, solution, xstate, xcoord))
         {
             PathGeometric *path = new PathGeometric(si_);
             for (unsigned int i = 0 ; i < solution.size() ; ++i)
@@ -148,18 +152,18 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
     si_->freeState(xstate);
 
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
-                tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
-                tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tStart_.grid.countExternal(),
-                tGoal_.grid.size(), tGoal_.grid.countExternal());
+                dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(), dGoal_.getMotionCount(),
+                dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getTreeData().grid.countExternal(),
+                dGoal_.getCellCount(), dGoal_.getTreeData().grid.countExternal());
 
     return goal->isAchieved();
 }
 
-bool ompl::geometric::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion* motion, std::vector<Motion*> &solution, base::State *temp)
+bool ompl::geometric::LBKPIECE1::checkSolution(bool start, Discretization<Motion> &disc, Discretization<Motion> &otherDisc,
+                                               Motion* motion, std::vector<Motion*> &solution, base::State *tempS, Discretization<Motion>::Coord &tempC)
 {
-    Grid::Coord coord;
-    projectionEvaluator_->computeCoordinates(motion->state, coord);
-    Grid::Cell* cell = otherTree.grid.getCell(coord);
+    projectionEvaluator_->computeCoordinates(motion->state, tempC);
+    Discretization<Motion>::Cell *cell = otherDisc.getTreeData().grid.getCell(tempC);
 
     if (cell && !cell->data->motions.empty())
     {
@@ -168,14 +172,14 @@ bool ompl::geometric::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeD
         if (pdef_->getGoal()->isStartGoalPairValid(start ? motion->root : connectOther->root, start ? connectOther->root : motion->root))
         {
             Motion* connect = new Motion(si_);
-
             si_->copyState(connect->state, connectOther->state);
             connect->parent = motion;
             connect->root = motion->root;
             motion->children.push_back(connect);
-            addMotion(tree, connect);
+            projectionEvaluator_->computeCoordinates(connect->state, tempC);
+            disc.addMotion(connect, tempC);
 
-            if (isPathValid(tree, connect, temp) && isPathValid(otherTree, connectOther, temp))
+            if (isPathValid(disc, connect, tempS) && isPathValid(otherDisc, connectOther, tempS))
             {
                 /* extract the motions and put them in solution vector */
 
@@ -207,7 +211,7 @@ bool ompl::geometric::LBKPIECE1::checkSolution(bool start, TreeData &tree, TreeD
     return false;
 }
 
-bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion, base::State *temp)
+bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp)
 {
     std::vector<Motion*> mpath;
 
@@ -230,7 +234,7 @@ bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion, bas
             else
             {
                 Motion *parent = mpath[i]->parent;
-                removeMotion(tree, mpath[i]);
+                removeMotion(disc, mpath[i]);
 
                 // add the valid part of the path, if sufficiently long
                 if (lastValid.second > minValidPathFraction_)
@@ -241,7 +245,9 @@ bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion, bas
                     reAdd->root = parent->root;
                     parent->children.push_back(reAdd);
                     reAdd->valid = true;
-                    addMotion(tree, reAdd);
+                    Discretization<Motion>::Coord coord;
+                    projectionEvaluator_->computeCoordinates(reAdd->state, coord);
+                    disc.addMotion(reAdd, coord);
                 }
 
                 return false;
@@ -250,44 +256,13 @@ bool ompl::geometric::LBKPIECE1::isPathValid(TreeData &tree, Motion *motion, bas
     return true;
 }
 
-ompl::geometric::LBKPIECE1::Motion* ompl::geometric::LBKPIECE1::selectMotion(TreeData &tree)
-{
-    Grid::Cell* cell = rng_.uniform01() < std::max(selectBorderFraction_, tree.grid.fracExternal()) ?
-        tree.grid.topExternal() : tree.grid.topInternal();
-
-    if (cell && !cell->data->motions.empty())
-    {
-        cell->data->selections++;
-        tree.grid.update(cell);
-        return cell->data->motions[rng_.halfNormalInt(0, cell->data->motions.size() - 1)];
-    }
-    else
-        return NULL;
-}
-
-void ompl::geometric::LBKPIECE1::removeMotion(TreeData &tree, Motion *motion)
+void ompl::geometric::LBKPIECE1::removeMotion(Discretization<Motion> &disc, Motion *motion)
 {
     /* remove from grid */
 
-    Grid::Coord coord;
+    Discretization<Motion>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
-    Grid::Cell* cell = tree.grid.getCell(coord);
-    if (cell)
-    {
-        for (unsigned int i = 0 ; i < cell->data->motions.size(); ++i)
-            if (cell->data->motions[i] == motion)
-            {
-                cell->data->motions.erase(cell->data->motions.begin() + i);
-                tree.size--;
-                break;
-            }
-        if (cell->data->motions.empty())
-        {
-            tree.grid.remove(cell);
-            freeCellData(cell->data);
-            tree.grid.destroyCell(cell);
-        }
-    }
+    disc.removeMotion(motion, coord);
 
     /* remove self from parent list */
 
@@ -305,55 +280,12 @@ void ompl::geometric::LBKPIECE1::removeMotion(TreeData &tree, Motion *motion)
     for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
     {
         motion->children[i]->parent = NULL;
-        removeMotion(tree, motion->children[i]);
+        removeMotion(disc, motion->children[i]);
     }
 
     freeMotion(motion);
 }
 
-void ompl::geometric::LBKPIECE1::addMotion(TreeData &tree, Motion *motion)
-{
-    Grid::Coord coord;
-    projectionEvaluator_->computeCoordinates(motion->state, coord);
-    Grid::Cell *cell = tree.grid.getCell(coord);
-    if (cell)
-    {
-        cell->data->motions.push_back(motion);
-        cell->data->coverage += 1.0;
-        tree.grid.update(cell);
-    }
-    else
-    {
-        cell = tree.grid.createCell(coord);
-        cell->data = new CellData();
-        cell->data->motions.push_back(motion);
-        cell->data->coverage = 1.0;
-        cell->data->iteration = tree.iteration;
-        cell->data->selections = 1;
-        cell->data->score = 1.0 + log((double)(tree.iteration));
-        tree.grid.add(cell);
-    }
-    tree.size++;
-}
-
-void ompl::geometric::LBKPIECE1::freeMemory(void)
-{
-    freeGridMotions(tStart_.grid);
-    freeGridMotions(tGoal_.grid);
-}
-
-void ompl::geometric::LBKPIECE1::freeGridMotions(Grid &grid)
-{
-    for (Grid::iterator it = grid.begin(); it != grid.end() ; ++it)
-        freeCellData(it->second->data);
-}
-
-void ompl::geometric::LBKPIECE1::freeCellData(CellData *cdata)
-{
-    for (unsigned int i = 0 ; i < cdata->motions.size() ; ++i)
-        freeMotion(cdata->motions[i]);
-    delete cdata;
-}
 
 void ompl::geometric::LBKPIECE1::freeMotion(Motion *motion)
 {
@@ -367,38 +299,13 @@ void ompl::geometric::LBKPIECE1::clear(void)
     Planner::clear();
 
     sampler_.reset();
-
-    freeMemory();
-
-    tStart_.grid.clear();
-    tStart_.size = 0;
-    tStart_.iteration = 1;
-
-    tGoal_.grid.clear();
-    tGoal_.size = 0;
-    tGoal_.iteration = 1;
+    dStart_.clear();
+    dGoal_.clear();
 }
 
 void ompl::geometric::LBKPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-
-    std::vector<CellData*> cdata;
-    tStart_.grid.getContent(cdata);
-    for (unsigned int i = 0 ; i < cdata.size() ; ++i)
-        for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
-        {
-            data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
-            data.tagState(cdata[i]->motions[j]->state, 1);
-        }
-
-
-    cdata.clear();
-    tGoal_.grid.getContent(cdata);
-    for (unsigned int i = 0 ; i < cdata.size() ; ++i)
-        for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
-        {
-            data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
-            data.tagState(cdata[i]->motions[j]->state, 2);
-        }
+    dStart_.getPlannerData(data, 1);
+    dGoal_.getPlannerData(data, 2);
 }

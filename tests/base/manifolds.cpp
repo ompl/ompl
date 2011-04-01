@@ -128,8 +128,8 @@ TEST(SO2, Sampler)
     x.random();
     for (int i = 0 ; i < 100 ; ++i)
     {
-	s->sampleUniformNear(y.get(), x.get(), 10000);
-	EXPECT_TRUE(y.satisfiesBounds());
+        s->sampleUniformNear(y.get(), x.get(), 10000);
+        EXPECT_TRUE(y.satisfiesBounds());
     }
 }
 

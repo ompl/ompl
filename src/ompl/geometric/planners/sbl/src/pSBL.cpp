@@ -183,7 +183,7 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->valid = true;
-        motion->root = st;
+        motion->root = motion->state;
         addMotion(tStart_, motion);
     }
 
@@ -194,7 +194,7 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, goal->state);
             motion->valid = true;
-            motion->root = goal->state;
+            motion->root = motion->state;
             addMotion(tGoal_, motion);
         }
         else

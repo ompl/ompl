@@ -78,7 +78,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->valid = true;
-        motion->root = st;
+        motion->root = motion->state;
         addMotion(tStart_, motion);
     }
 

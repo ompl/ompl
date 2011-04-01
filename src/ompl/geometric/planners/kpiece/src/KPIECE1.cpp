@@ -51,38 +51,15 @@ void ompl::geometric::KPIECE1::setup(void)
         throw Exception("Good cell score factor must be in the range (0,1]");
     if (minValidPathFraction_ < std::numeric_limits<double>::epsilon() || minValidPathFraction_ > 1.0)
         throw Exception("The minimum valid path fraction must be in the range (0,1]");
-    if (selectBorderFraction_ < std::numeric_limits<double>::epsilon() || selectBorderFraction_ > 1.0)
-        throw Exception("The fraction of time spent selecting border cells must be in the range (0,1]");
 
-    tree_.grid.setDimension(projectionEvaluator_->getDimension());
+    disc_.setDimension(projectionEvaluator_->getDimension());
 }
 
 void ompl::geometric::KPIECE1::clear(void)
 {
     Planner::clear();
     sampler_.reset();
-    freeMemory();
-    tree_.grid.clear();
-    tree_.size = 0;
-    tree_.iteration = 1;
-}
-
-void ompl::geometric::KPIECE1::freeMemory(void)
-{
-    freeGridMotions(tree_.grid);
-}
-
-void ompl::geometric::KPIECE1::freeGridMotions(Grid &grid)
-{
-    for (Grid::iterator it = grid.begin(); it != grid.end() ; ++it)
-        freeCellData(it->second->data);
-}
-
-void ompl::geometric::KPIECE1::freeCellData(CellData *cdata)
-{
-    for (unsigned int i = 0 ; i < cdata->motions.size() ; ++i)
-        freeMotion(cdata->motions[i]);
-    delete cdata;
+    disc_.clear();
 }
 
 void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
@@ -105,14 +82,17 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
         return false;
     }
 
+    Discretization<Motion>::Coord xcoord;
+
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
-        addMotion(motion, 1.0);
+        projectionEvaluator_->computeCoordinates(motion->state, xcoord);
+        disc_.addMotion(motion, xcoord, 1.0);
     }
 
-    if (tree_.grid.size() == 0)
+    if (disc_.getTreeData().grid.size() == 0)
     {
         msg_.error("There are no valid initial states!");
         return false;
@@ -121,24 +101,23 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     if (!sampler_)
         sampler_ = si_->allocManifoldStateSampler();
 
-    msg_.inform("Starting with %u states", tree_.size);
+    msg_.inform("Starting with %u states", disc_.getTreeData().size);
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
-    Grid::Coord  xcoord;
 
     double improveValue = maxDistance_;
 
     while (ptc() == false)
     {
-        tree_.iteration++;
+        disc_.countIteration();
 
         /* Decide on a state to expand from */
         Motion     *existing = NULL;
-        Grid::Cell *ecell = NULL;
-        selectMotion(existing, ecell);
+        Discretization<Motion>::Cell *ecell = NULL;
+        disc_.selectMotion(existing, ecell);
         assert(existing);
 
         /* sample random state (with goal biasing) */
@@ -182,7 +161,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
             double dist = 0.0;
             bool solved = goal->isSatisfied(motion->state, &dist);
-            addMotion(motion, dist);
+            projectionEvaluator_->computeCoordinates(motion->state, xcoord);
+            disc_.addMotion(motion, xcoord, dist);
 
             if (solved)
             {
@@ -200,7 +180,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
         else
             ecell->data->score *= badScoreFactor_;
 
-        tree_.grid.update(ecell);
+        disc_.updateCell(ecell);
     }
 
     bool approximate = false;
@@ -233,74 +213,14 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
     si_->freeState(xstate);
 
-    msg_.inform("Created %u states in %u cells (%u internal + %u external)", tree_.size, tree_.grid.size(),
-                 tree_.grid.countInternal(), tree_.grid.countExternal());
+    msg_.inform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
+                disc_.getTreeData().grid.countInternal(), disc_.getTreeData().grid.countExternal());
 
     return goal->isAchieved();
-}
-
-bool ompl::geometric::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
-{
-    scell = rng_.uniform01() < std::max(selectBorderFraction_, tree_.grid.fracExternal()) ?
-        tree_.grid.topExternal() : tree_.grid.topInternal();
-
-    // We are running on finite precision, so our update scheme will end up
-    // with 0 values for the score. This is where we fix the problem
-    if (scell->data->score < std::numeric_limits<double>::epsilon())
-    {
-        std::vector<CellData*> content;
-        content.reserve(tree_.grid.size());
-        tree_.grid.getContent(content);
-        for (std::vector<CellData*>::iterator it = content.begin() ; it != content.end() ; ++it)
-            (*it)->score += 1.0 + log((double)((*it)->iteration));
-        tree_.grid.updateAll();
-    }
-
-    if (scell && !scell->data->motions.empty())
-    {
-        scell->data->selections++;
-        smotion = scell->data->motions[rng_.halfNormalInt(0, scell->data->motions.size() - 1)];
-        return true;
-    }
-    else
-        return false;
-}
-
-unsigned int ompl::geometric::KPIECE1::addMotion(Motion *motion, double dist)
-{
-    Grid::Coord coord;
-    projectionEvaluator_->computeCoordinates(motion->state, coord);
-    Grid::Cell* cell = tree_.grid.getCell(coord);
-    unsigned int created = 0;
-    if (cell)
-    {
-        cell->data->motions.push_back(motion);
-        cell->data->coverage += 1.0;
-        tree_.grid.update(cell);
-    }
-    else
-    {
-        cell = tree_.grid.createCell(coord);
-        cell->data = new CellData();
-        cell->data->motions.push_back(motion);
-        cell->data->coverage = 1.0;
-        cell->data->iteration = tree_.iteration;
-        cell->data->selections = 1;
-        cell->data->score = (1.0 + log((double)(tree_.iteration))) / (1e-3 + dist);
-        tree_.grid.add(cell);
-        created = 1;
-    }
-    tree_.size++;
-    return created;
 }
 
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-
-    std::vector<CellData*> cdata;
-    tree_.grid.getContent(cdata);
-    for (unsigned int i = 0 ; i < cdata.size() ; ++i)
-        for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
-            data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
+    disc_.getPlannerData(data, 0);
 }

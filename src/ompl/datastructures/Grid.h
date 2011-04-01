@@ -106,6 +106,8 @@ namespace ompl
         /// unless the grid is empty
         void setDimension(unsigned int dimension)
         {
+            if (!empty())
+                throw;
             dimension_ = dimension;
             maxNeighbors_ = 2 * dimension_;
         }
