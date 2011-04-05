@@ -224,10 +224,6 @@ namespace ompl
                 valid. If this is not the case, invalid motions are removed  */
             bool isPathValid(Discretization<Motion> &disc, Motion* motion, base::State *temp);
 
-            /** \brief Check if a solution can be obtained by connecting two trees using a specified motion */
-            bool checkSolution(bool start, Discretization<Motion> &disc, Discretization<Motion> &otherDisc,
-                               Motion* motion, std::vector<Motion*> &solution, base::State *tempS, Discretization<Motion>::Coord &tempC);
-
             /** \brief The employed state sampler */
             base::ManifoldStateSamplerPtr              sampler_;
 

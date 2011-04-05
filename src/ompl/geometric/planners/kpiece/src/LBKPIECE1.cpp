@@ -91,7 +91,6 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 
     msg_.inform("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
-    std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
     bool      startTree = true;
 
@@ -122,8 +121,8 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
             }
         }
 
-        Motion* existing = NULL;
-        Discretization<Motion>::Cell *ecell = NULL;
+        Discretization<Motion>::Cell *ecell    = NULL;
+        Motion                       *existing = NULL;
         disc.selectMotion(existing, ecell);
         assert(existing);
         sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
@@ -137,15 +136,55 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
         projectionEvaluator_->computeCoordinates(motion->state, xcoord);
         disc.addMotion(motion, xcoord);
 
-        if (checkSolution(!startTree, disc, otherDisc, motion, solution, xstate, xcoord))
+        /* attempt to connect trees */
+        Discretization<Motion>::Cell *ocell = otherDisc.getTreeData().grid.getCell(xcoord);
+        if (ocell && !ocell->data->motions.empty())
         {
-            PathGeometric *path = new PathGeometric(si_);
-            for (unsigned int i = 0 ; i < solution.size() ; ++i)
-                path->states.push_back(si_->cloneState(solution[i]->state));
+            Motion* connectOther = ocell->data->motions[rng_.uniformInt(0, ocell->data->motions.size() - 1)];
 
-            goal->setDifference(0.0);
-            goal->setSolutionPath(base::PathPtr(path));
-            break;
+            if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root))
+            {
+                Motion* connect = new Motion(si_);
+                si_->copyState(connect->state, connectOther->state);
+                connect->parent = motion;
+                connect->root = motion->root;
+                motion->children.push_back(connect);
+                projectionEvaluator_->computeCoordinates(connect->state, xcoord);
+                disc.addMotion(connect, xcoord);
+
+                if (isPathValid(disc, connect, xstate) && isPathValid(otherDisc, connectOther, xstate))
+                {
+                    /* extract the motions and put them in solution vector */
+
+                    std::vector<Motion*> mpath1;
+                    while (motion != NULL)
+                    {
+                        mpath1.push_back(motion);
+                        motion = motion->parent;
+                    }
+
+                    std::vector<Motion*> mpath2;
+                    while (connectOther != NULL)
+                    {
+                        mpath2.push_back(connectOther);
+                        connectOther = connectOther->parent;
+                    }
+
+                    if (startTree)
+                        mpath1.swap(mpath2);
+
+                    PathGeometric *path = new PathGeometric(si_);
+                    path->states.reserve(mpath1.size() + mpath2.size());
+                    for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+                        path->states.push_back(si_->cloneState(mpath1[i]->state));
+                    for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
+                        path->states.push_back(si_->cloneState(mpath2[i]->state));
+
+                    goal->setDifference(0.0);
+                    goal->setSolutionPath(base::PathPtr(path));
+                    break;
+                }
+            }
         }
     }
 
@@ -157,58 +196,6 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
                 dGoal_.getCellCount(), dGoal_.getTreeData().grid.countExternal());
 
     return goal->isAchieved();
-}
-
-bool ompl::geometric::LBKPIECE1::checkSolution(bool start, Discretization<Motion> &disc, Discretization<Motion> &otherDisc,
-                                               Motion* motion, std::vector<Motion*> &solution, base::State *tempS, Discretization<Motion>::Coord &tempC)
-{
-    projectionEvaluator_->computeCoordinates(motion->state, tempC);
-    Discretization<Motion>::Cell *cell = otherDisc.getTreeData().grid.getCell(tempC);
-
-    if (cell && !cell->data->motions.empty())
-    {
-        Motion* connectOther = cell->data->motions[rng_.uniformInt(0, cell->data->motions.size() - 1)];
-
-        if (pdef_->getGoal()->isStartGoalPairValid(start ? motion->root : connectOther->root, start ? connectOther->root : motion->root))
-        {
-            Motion* connect = new Motion(si_);
-            si_->copyState(connect->state, connectOther->state);
-            connect->parent = motion;
-            connect->root = motion->root;
-            motion->children.push_back(connect);
-            projectionEvaluator_->computeCoordinates(connect->state, tempC);
-            disc.addMotion(connect, tempC);
-
-            if (isPathValid(disc, connect, tempS) && isPathValid(otherDisc, connectOther, tempS))
-            {
-                /* extract the motions and put them in solution vector */
-
-                std::vector<Motion*> mpath1;
-                while (motion != NULL)
-                {
-                    mpath1.push_back(motion);
-                    motion = motion->parent;
-                }
-
-                std::vector<Motion*> mpath2;
-                while (connectOther != NULL)
-                {
-                    mpath2.push_back(connectOther);
-                    connectOther = connectOther->parent;
-                }
-
-                if (!start)
-                    mpath1.swap(mpath2);
-
-                for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
-                    solution.push_back(mpath1[i]);
-                solution.insert(solution.end(), mpath2.begin(), mpath2.end());
-
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp)
