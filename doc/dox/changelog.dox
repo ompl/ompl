@@ -2,6 +2,15 @@
 
 \page changelog Changelog
 
+\section apr_05_2011 April 5, 2011
+    - Added bi-directional version of KPIECE (BKPIECE)
+    - Removed use of hill climbing in KPIECE
+    - Added a common Discretization to be used by all KPIECE-type planners
+    - bugfix for SO2StateManifold
+
+\section mar_21_2011 March 21, 2011
+    - Some work on automatic computation of cell sizes for projections
+
 \section mar_17_2011 March 17, 2011
     - Path smoothing with B-Splines
 
