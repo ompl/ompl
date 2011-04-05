@@ -38,7 +38,7 @@
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
-#include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
+#include "ompl/geometric/planners/kpiece/BKPIECE1.h"
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
 
 ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &goal)
@@ -52,7 +52,7 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
     {
         // if we have a default projection
         if (goal->getSpaceInformation()->getStateManifold()->hasDefaultProjection())
-            planner = base::PlannerPtr(new LBKPIECE1(goal->getSpaceInformation()));
+            planner = base::PlannerPtr(new BKPIECE1(goal->getSpaceInformation()));
         else
             planner = base::PlannerPtr(new RRTConnect(goal->getSpaceInformation()));
     }
