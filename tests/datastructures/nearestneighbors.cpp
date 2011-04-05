@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll */
 
 #include <gtest/gtest.h>
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
@@ -49,7 +49,7 @@ double distance(const T* manifold, base::State* const &s0, base::State* const &s
 
 TEST(NearestNeighbors, Linear)
 {
-    int i, n=1000;
+    int i, n = 200;
     base::SE3StateManifold SE3;
     base::ManifoldStateSamplerPtr sampler;
     base::RealVectorBounds b(3);
@@ -109,7 +109,7 @@ TEST(NearestNeighbors, Linear)
 
 TEST(NearestNeighbors, SqrtApprox)
 {
-    int i, j, n=1000;
+    int i, j, n = 200;
     base::SE3StateManifold SE3;
     base::ManifoldStateSamplerPtr sampler;
     base::RealVectorBounds b(3);
