@@ -103,47 +103,24 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Starting with %u states", disc_.getTreeData().size);
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    Motion *solution    = NULL;
+    Motion *approxsol   = NULL;
+    double  approxdif   = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
-
-    double improveValue = maxDistance_;
 
     while (ptc() == false)
     {
         disc_.countIteration();
 
         /* Decide on a state to expand from */
-        Motion     *existing = NULL;
-        Discretization<Motion>::Cell *ecell = NULL;
+        Motion                       *existing = NULL;
+        Discretization<Motion>::Cell *ecell    = NULL;
         disc_.selectMotion(existing, ecell);
         assert(existing);
 
         /* sample random state (with goal biasing) */
-        if (rng_.uniform01() < goalBias_)
-        {
-            if (goal_s && goal_s->canSample())
-                goal_s->sampleGoal(xstate);
-            else
-            {
-                if (approxsol && goal_r)
-                {
-                    si_->copyState(xstate, approxsol->state);
-                    msg_.debug("Start Running HCIK (%f)...", improveValue);
-                    if (hcik_.tryToImprove(*goal_r, xstate, improveValue))
-                    {
-                        if (improveValue > maxDistance_ / 100.0)
-                            improveValue /= 2.0;
-                    }
-                    else
-                        sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
-                    msg_.debug("End Running HCIK");
-                }
-                else
-                    sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
-            }
-        }
+        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+            goal_s->sampleGoal(xstate);
         else
             sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 

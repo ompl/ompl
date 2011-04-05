@@ -39,7 +39,6 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/geometric/planners/kpiece/Discretization.h"
-#include "ompl/geometric/ik/HCIK.h"
 
 namespace ompl
 {
@@ -80,7 +79,7 @@ namespace ompl
 
             /** \brief Constructor */
             KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
-                                                           hcik_(si), disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
+                                                           disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
             {
                 type_ = base::PLAN_TO_GOAL_ANY;
 
@@ -89,8 +88,6 @@ namespace ompl
                 goodScoreFactor_ = 0.9;
                 minValidPathFraction_ = 0.2;
                 maxDistance_ = 0.0;
-
-                hcik_.setMaxImproveSteps(50);
             }
 
             virtual ~KPIECE1(void)
@@ -254,10 +251,6 @@ namespace ompl
 
             /** \brief A manifold sampler */
             base::ManifoldStateSamplerPtr              sampler_;
-
-            /** \brief A hill climbing algorithm used to find states
-                closer to the goal */
-            HCIK                                       hcik_;
 
             /** \brief The tree datastructure and the grid that covers it */
             Discretization<Motion>                     disc_;
