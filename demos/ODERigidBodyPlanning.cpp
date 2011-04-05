@@ -172,13 +172,13 @@ public:
     }
 
     virtual void defaultCellSizes(void)
-    {   
-	cellSizes_.resize(3);
+    {
+        cellSizes_.resize(3);
         cellSizes_[0] = 1;
         cellSizes_[1] = 1;
         cellSizes_[2] = 1;
     }
-    
+
     virtual void project(const ob::State *state, ob::EuclideanProjection &projection) const
     {
         const double *pos = state->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);

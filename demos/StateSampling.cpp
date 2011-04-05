@@ -61,7 +61,7 @@ public:
         name_ = "my sampler";
     }
     // Generate a sample in the valid part of the R^3 state space
-    // Valid states satisfy the following constraints: 
+    // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
     virtual bool sample(ob::State *state)
@@ -108,7 +108,7 @@ bool isStateValid(const ob::State *state)
     // expensive to emphasize the benefit of explicitly generating valid
     // samples
     boost::this_thread::sleep(ompl::time::seconds(.001));
-    // Valid states satisfy the following constraints: 
+    // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
     return !(fabs(pos[0]<.8) && fabs(pos[1]<.8) && pos[2]>.25 && pos[2]<.5);
@@ -117,7 +117,7 @@ bool isStateValid(const ob::State *state)
 // return an obstacle-based sampler
 ob::ValidStateSamplerPtr allocOBValidStateSampler(const ob::SpaceInformation *si)
 {
-    // we can perform any additional setup / configuration of a sampler here, 
+    // we can perform any additional setup / configuration of a sampler here,
     // but there is nothing to tweak in case of the ObstacleBasedValidStateSampler.
     return ob::ValidStateSamplerPtr(new ob::ObstacleBasedValidStateSampler(si));
 }
