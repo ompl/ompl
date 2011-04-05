@@ -124,8 +124,8 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
             }
         }
 
-        Discretization<Motion>::Cell *ecell = NULL;
-        Motion* existing  = NULL;
+        Discretization<Motion>::Cell *ecell    = NULL;
+        Motion                       *existing = NULL;
         disc.selectMotion(existing, ecell);
         assert(existing);
         sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
