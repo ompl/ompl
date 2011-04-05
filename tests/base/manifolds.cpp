@@ -60,10 +60,80 @@ bool isValid(const base::State *)
     return true;
 }
 
+class StateManifoldTest
+{
+public:
+
+    StateManifoldTest(const base::StateManifoldPtr &m, int N = 100, double EPS = std::numeric_limits<double>::epsilon() * 10.0) : manifold_(m), N_(N), EPS_(EPS)
+    {
+    }
+
+    ~StateManifoldTest(void)
+    {
+    }
+
+    void testDistance(void)
+    {
+        base::ScopedState<> s1(manifold_);
+        base::ScopedState<> s2(manifold_);
+
+        for (int i = 0 ; i < N_ ; ++i)
+        {
+            s1.random();
+            EXPECT_NEAR(s1.distance(s1), 0.0, EPS_);
+            s2.random();
+            if (s1 != s2)
+                EXPECT_TRUE(s1.distance(s2) > 0.0);
+        }
+    }
+
+    void testInterpolation(void)
+    {
+        base::ScopedState<> s1(manifold_);
+        base::ScopedState<> s2(manifold_);
+        base::ScopedState<> s3(manifold_);
+
+        for (int i = 0 ; i < N_ ; ++i)
+        {
+            s1.random(); s2.random(); s3.random();
+
+            manifold_->interpolate(s1.get(), s2.get(), 0.0, s3.get());
+            EXPECT_NEAR(s1.distance(s3), 0.0, EPS_);
+
+            manifold_->interpolate(s1.get(), s2.get(), 1.0, s3.get());
+            EXPECT_NEAR(s2.distance(s3), 0.0, EPS_);
+
+            manifold_->interpolate(s1.get(), s2.get(), 0.5, s3.get());
+            EXPECT_NEAR(s1.distance(s3) + s3.distance(s2), s1.distance(s2), EPS_);
+
+            manifold_->interpolate(s3.get(), s2.get(), 0.5, s3.get());
+            manifold_->interpolate(s1.get(), s2.get(), 0.75, s2.get());
+            EXPECT_NEAR(s2.distance(s3), 0.0, EPS_);
+        }
+    }
+
+    void test(void)
+    {
+        testDistance();
+        testInterpolation();
+    }
+
+private:
+
+    base::StateManifoldPtr        manifold_;
+    RNG                           rng_;
+
+    int                           N_;
+    double                        EPS_;
+};
+
 TEST(SO2, Simple)
 {
     base::StateManifoldPtr m(new base::SO2StateManifold());
     m->setup();
+
+    StateManifoldTest mt(m, 1000, 1e-15);
+    mt.test();
 
     EXPECT_EQ(m->getDimension(), 1u);
     EXPECT_EQ(m->getMaximumExtent(), PI);
@@ -139,6 +209,9 @@ TEST(SO3, Simple)
     base::StateManifoldPtr m(new base::SO3StateManifold());
     m->setup();
 
+    StateManifoldTest mt(m, 1000, 1e-12);
+    mt.test();
+
     EXPECT_EQ(m->getDimension(), 3u);
     EXPECT_EQ(m->getMaximumExtent(), PI);
 
@@ -210,6 +283,9 @@ TEST(RealVector, Simple)
     rm.setDimensionName(2, "testDim");
     m->setup();
 
+    StateManifoldTest mt(m, 1000, 1e-12);
+    mt.test();
+
     base::ScopedState<base::RealVectorStateManifold> s0(m);
     (*s0)[0] = 0;
     (*s0)[1] = 0;
@@ -254,6 +330,9 @@ TEST(Time, Simple)
 {
     base::StateManifoldPtr t(new base::TimeStateManifold());
     t->setup();
+
+    StateManifoldTest mt(t, 1000, 1e-12);
+    mt.test();
 
     base::ScopedState<base::TimeStateManifold> ss(t);
     ss.random();
