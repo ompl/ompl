@@ -58,15 +58,18 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
         unsigned int i = 2, u = 0, n1 = path.states.size() - 1;
         while (i < n1)
         {
-            si->getStateManifold()->interpolate(path.states[i - 1], path.states[i], 0.5, temp1);
-            si->getStateManifold()->interpolate(path.states[i], path.states[i + 1], 0.5, temp2);
-            si->getStateManifold()->interpolate(temp1, temp2, 0.5, temp1);
-            if (si->checkMotion(path.states[i - 1], temp1) && si->checkMotion(temp1, path.states[i + 1]))
+            if (si->isValid(path.states[i - 1]))
             {
-                if (si->distance(path.states[i], temp1) > minChange)
+                si->getStateManifold()->interpolate(path.states[i - 1], path.states[i], 0.5, temp1);
+                si->getStateManifold()->interpolate(path.states[i], path.states[i + 1], 0.5, temp2);
+                si->getStateManifold()->interpolate(temp1, temp2, 0.5, temp1);
+                if (si->checkMotion(path.states[i - 1], temp1) && si->checkMotion(temp1, path.states[i + 1]))
                 {
-                    si->copyState(path.states[i], temp1);
-                    ++u;
+                    if (si->distance(path.states[i], temp1) > minChange)
+                    {
+                        si->copyState(path.states[i], temp1);
+                        ++u;
+                    }
                 }
             }
             i += 2;
@@ -190,5 +193,5 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
     collapseCloseVertices(path);
-    smoothBSpline(path, 10, path.length()/100.0);
+    smoothBSpline(path, 5, path.length()/100.0);
 }
