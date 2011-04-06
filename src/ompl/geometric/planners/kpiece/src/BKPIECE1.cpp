@@ -148,8 +148,6 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
 
             projectionEvaluator_->computeCoordinates(xstate, xcoord);
             Discretization<Motion>::Cell* cellC = otherDisc.getTreeData().grid.getCell(xcoord);
-            if (!cellC)
-                cellC = otherDisc.getTreeData().recentCell;
 
             if (cellC && !cellC->data->motions.empty())
             {
