@@ -118,7 +118,7 @@ namespace ompl
             /** \brief The data defining a tree of motions for this algorithm */
             struct TreeData
             {
-                TreeData(void) : grid(0), size(0), iteration(1)
+                TreeData(void) : grid(0), size(0), iteration(1), recentCell(NULL)
                 {
                 }
 
@@ -132,6 +132,9 @@ namespace ompl
 
                 /** \brief The number of iterations performed on this tree */
                 unsigned int iteration;
+
+                /** \brief The most recently created cell */
+                Cell        *recentCell;
             };
 
             /** \brief The signature of a function that frees the memory for a motion */
@@ -180,6 +183,7 @@ namespace ompl
                 freeMemory();
                 tree_.size = 0;
                 tree_.iteration = 1;
+                tree_.recentCell = NULL;
             }
 
             void countIteration(void)
@@ -234,6 +238,7 @@ namespace ompl
                     cell->data->selections = 1;
                     cell->data->score = (1.0 + log((double)(tree_.iteration))) / (1.0 + dist);
                     tree_.grid.add(cell);
+                    tree_.recentCell = cell;
                     created = 1;
                 }
                 ++tree_.size;
@@ -262,8 +267,8 @@ namespace ompl
 
                 assert(scell && !scell->data->motions.empty());
 
-                scell->data->selections++;
-                smotion= scell->data->motions[rng_.halfNormalInt(0, scell->data->motions.size() - 1)];
+                ++scell->data->selections;
+                smotion = scell->data->motions[rng_.halfNormalInt(0, scell->data->motions.size() - 1)];
             }
 
             bool removeMotion(Motion *motion, const Coord &coord)
