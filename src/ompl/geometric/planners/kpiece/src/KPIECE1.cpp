@@ -92,7 +92,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
         disc_.addMotion(motion, xcoord, 1.0);
     }
 
-    if (disc_.getTreeData().grid.size() == 0)
+    if (disc_.getMotionCount() == 0)
     {
         msg_.error("There are no valid initial states!");
         return false;
@@ -101,7 +101,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     if (!sampler_)
         sampler_ = si_->allocManifoldStateSampler();
 
-    msg_.inform("Starting with %u states", disc_.getTreeData().size);
+    msg_.inform("Starting with %u states", disc_.getMotionCount());
 
     Motion *solution    = NULL;
     Motion *approxsol   = NULL;
@@ -191,7 +191,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     si_->freeState(xstate);
 
     msg_.inform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
-                disc_.getTreeData().grid.countInternal(), disc_.getTreeData().grid.countExternal());
+                disc_.getGrid().countInternal(), disc_.getGrid().countExternal());
 
     return goal->isAchieved();
 }

@@ -115,34 +115,13 @@ namespace ompl
             /** \brief The datatype for the maintained grid coordinates */
             typedef typename Grid::Coord Coord;
 
-            /** \brief The data defining a tree of motions for this algorithm */
-            struct TreeData
-            {
-                TreeData(void) : grid(0), size(0), iteration(1), recentCell(NULL)
-                {
-                }
-
-                /** \brief A grid containing motions, imposed on a
-                    projection of the state space */
-                Grid         grid;
-
-                /** \brief The total number of motions (there can be
-                    multiple per cell) in the grid */
-                std::size_t  size;
-
-                /** \brief The number of iterations performed on this tree */
-                unsigned int iteration;
-
-                /** \brief The most recently created cell */
-                Cell        *recentCell;
-            };
-
             /** \brief The signature of a function that frees the memory for a motion */
             typedef typename boost::function1<void, Motion*> FreeMotionFn;
 
-            Discretization(const FreeMotionFn &freeMotion) : freeMotion_(freeMotion)
+            Discretization(const FreeMotionFn &freeMotion) : grid_(0), size_(0), iteration_(1), recentCell_(NULL),
+                                                             freeMotion_(freeMotion)
             {
-                tree_.grid.onCellUpdate(computeImportance, NULL);
+                grid_.onCellUpdate(computeImportance, NULL);
                 selectBorderFraction_ = 0.9;
             }
 
@@ -174,39 +153,39 @@ namespace ompl
             /** \brief Set the dimension of the grid to be maintained */
             void setDimension(unsigned int dim)
             {
-                tree_.grid.setDimension(dim);
+                grid_.setDimension(dim);
             }
 
             /** \brief Restore the discretization to its original form */
             void clear(void)
             {
                 freeMemory();
-                tree_.size = 0;
-                tree_.iteration = 1;
-                tree_.recentCell = NULL;
+                size_ = 0;
+                iteration_ = 1;
+                recentCell_ = NULL;
             }
 
             void countIteration(void)
             {
-                ++tree_.iteration;
+                ++iteration_;
             }
 
             std::size_t getMotionCount(void)
             {
-                return tree_.size;
+                return size_;
             }
 
             std::size_t getCellCount(void)
             {
-                return tree_.grid.size();
+                return grid_.size();
             }
 
             /** \brief Free the memory for the motions contained in a grid */
             void freeMemory(void)
             {
-                for (typename Grid::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
+                for (typename Grid::iterator it = grid_.begin(); it != grid_.end() ; ++it)
                     freeCellData(it->second->data);
-                tree_.grid.clear();
+                grid_.clear();
             }
 
             /** \brief Add a motion to the grid containing motions. As
@@ -219,29 +198,29 @@ namespace ompl
                 passed to the constructor. */
             unsigned int addMotion(Motion* motion, const Coord &coord, double dist = 0.0)
             {
-                Cell *cell = tree_.grid.getCell(coord);
+                Cell *cell = grid_.getCell(coord);
 
                 unsigned int created = 0;
                 if (cell)
                 {
                     cell->data->motions.push_back(motion);
                     cell->data->coverage += 1.0;
-                    tree_.grid.update(cell);
+                    grid_.update(cell);
                 }
                 else
                 {
-                    cell = tree_.grid.createCell(coord);
+                    cell = grid_.createCell(coord);
                     cell->data = new CellData();
                     cell->data->motions.push_back(motion);
                     cell->data->coverage = 1.0;
-                    cell->data->iteration = tree_.iteration;
+                    cell->data->iteration = iteration_;
                     cell->data->selections = 1;
-                    cell->data->score = (1.0 + log((double)(tree_.iteration))) / (1.0 + dist);
-                    tree_.grid.add(cell);
-                    tree_.recentCell = cell;
+                    cell->data->score = (1.0 + log((double)(iteration_))) / (1.0 + dist);
+                    grid_.add(cell);
+                    recentCell_ = cell;
                     created = 1;
                 }
-                ++tree_.size;
+                ++size_;
                 return created;
             }
 
@@ -250,19 +229,19 @@ namespace ompl
                 to cells on the boundary of the grid.*/
             void selectMotion(Motion* &smotion, Cell* &scell)
             {
-                scell = rng_.uniform01() < std::max(selectBorderFraction_, tree_.grid.fracExternal()) ?
-                    tree_.grid.topExternal() : tree_.grid.topInternal();
+                scell = rng_.uniform01() < std::max(selectBorderFraction_, grid_.fracExternal()) ?
+                    grid_.topExternal() : grid_.topInternal();
 
                 // We are running on finite precision, so our update scheme will end up
                 // with 0 values for the score. This is where we fix the problem
                 if (scell->data->score < std::numeric_limits<double>::epsilon())
                 {
                     std::vector<CellData*> content;
-                    content.reserve(tree_.grid.size());
-                    tree_.grid.getContent(content);
+                    content.reserve(grid_.size());
+                    grid_.getContent(content);
                     for (typename std::vector<CellData*>::iterator it = content.begin() ; it != content.end() ; ++it)
                         (*it)->score += 1.0 + log((double)((*it)->iteration));
-                    tree_.grid.updateAll();
+                    grid_.updateAll();
                 }
 
                 assert(scell && !scell->data->motions.empty());
@@ -273,7 +252,7 @@ namespace ompl
 
             bool removeMotion(Motion *motion, const Coord &coord)
             {
-                Cell* cell = tree_.grid.getCell(coord);
+                Cell* cell = grid_.getCell(coord);
                 if (cell)
                 {
                     bool found = false;
@@ -282,14 +261,14 @@ namespace ompl
                         {
                             cell->data->motions.erase(cell->data->motions.begin() + i);
                             found = true;
-                            tree_.size--;
+                            --size_;
                             break;
                         }
                     if (cell->data->motions.empty())
                     {
-                        tree_.grid.remove(cell);
+                        grid_.remove(cell);
                         freeCellData(cell->data);
-                        tree_.grid.destroyCell(cell);
+                        grid_.destroyCell(cell);
                     }
                     return found;
                 }
@@ -298,18 +277,18 @@ namespace ompl
 
             void updateCell(Cell *cell)
             {
-                tree_.grid.update(cell);
+                grid_.update(cell);
             }
 
-            const TreeData& getTreeData(void) const
+            const Grid& getGrid(void) const
             {
-                return tree_;
+                return grid_;
             }
 
             void getPlannerData(base::PlannerData &data, int tag) const
             {
                 std::vector<CellData*> cdata;
-                tree_.grid.getContent(cdata);
+                grid_.getContent(cdata);
                 for (unsigned int i = 0 ; i < cdata.size() ; ++i)
                     for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
                     {
@@ -337,19 +316,29 @@ namespace ompl
                 cd.importance =  cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
             }
 
-            /** \brief The tree datastructure */
-            TreeData                                   tree_;
+            /** \brief A grid containing motions, imposed on a
+                projection of the state space */
+            Grid         grid_;
+
+            /** \brief The total number of motions (there can be
+                multiple per cell) in the grid */
+            std::size_t  size_;
+
+            /** \brief The number of iterations performed on this tree */
+            unsigned int iteration_;
+
+            /** \brief The most recently created cell */
+            Cell        *recentCell_;
 
             /** \brief Method that can free the memory for a stored motion */
-            FreeMotionFn                               freeMotion_;
+            FreeMotionFn freeMotion_;
 
             /** \brief The fraction of time to focus exploration on
                 the border of the grid. */
-            double                                     selectBorderFraction_;
+            double       selectBorderFraction_;
 
             /** \brief The random number generator */
-            RNG                                        rng_;
-
+            RNG          rng_;
 
         };
     }

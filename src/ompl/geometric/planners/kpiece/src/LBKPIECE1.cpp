@@ -137,7 +137,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
         disc.addMotion(motion, xcoord);
 
         /* attempt to connect trees */
-        Discretization<Motion>::Cell *ocell = otherDisc.getTreeData().grid.getCell(xcoord);
+        Discretization<Motion>::Cell *ocell = otherDisc.getGrid().getCell(xcoord);
         if (ocell && !ocell->data->motions.empty())
         {
             Motion* connectOther = ocell->data->motions[rng_.uniformInt(0, ocell->data->motions.size() - 1)];
@@ -192,8 +192,8 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
                 dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(), dGoal_.getMotionCount(),
-                dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getTreeData().grid.countExternal(),
-                dGoal_.getCellCount(), dGoal_.getTreeData().grid.countExternal());
+                dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
+                dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
     return goal->isAchieved();
 }

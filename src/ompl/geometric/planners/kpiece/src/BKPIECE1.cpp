@@ -147,7 +147,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
             disc.addMotion(motion, xcoord);
 
             projectionEvaluator_->computeCoordinates(xstate, xcoord);
-            Discretization<Motion>::Cell* cellC = otherDisc.getTreeData().grid.getCell(xcoord);
+            Discretization<Motion>::Cell* cellC = otherDisc.getGrid().getCell(xcoord);
 
             if (cellC && !cellC->data->motions.empty())
             {
@@ -201,8 +201,8 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
 
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
                 dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(), dGoal_.getMotionCount(),
-                dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getTreeData().grid.countExternal(),
-                dGoal_.getCellCount(), dGoal_.getTreeData().grid.countExternal());
+                dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
+                dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
     return goal->isAchieved();
 }
