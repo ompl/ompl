@@ -51,7 +51,6 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
     base::State *temp1 = si->allocState();
     base::State *temp2 = si->allocState();
-    bool check = false;
 
     for (unsigned int s = 0 ; s < maxSteps ; ++s)
     {
@@ -74,19 +73,16 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
                     }
                 }
             }
-            else
-                check = true;
+
             i += 2;
         }
-
+	
         if (u == 0)
             break;
     }
 
     si->freeState(temp1);
     si->freeState(temp2);
-    if (check)
-        path.checkAndRepair(magic::VALID_SAMPLE_ATTEMPTS);
 }
 
 void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
@@ -199,5 +195,7 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
     collapseCloseVertices(path);
-    smoothBSpline(path, 5, path.length()/100.0);
+    smoothBSpline(path, 5, path.length()/100.0);  
+    if (!path.checkAndRepair(magic::VALID_SAMPLE_ATTEMPTS))
+	msg_.warn("Solution path may slightly touch on an invalid region of the state space");
 }

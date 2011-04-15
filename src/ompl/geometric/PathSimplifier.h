@@ -41,6 +41,7 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/RandomNumbers.h"
+#include "ompl/util/Console.h"
 #include <limits>
 
 namespace ompl
@@ -64,7 +65,7 @@ namespace ompl
         public:
 
             /** \brief Create an instance for a specified space information */
-            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si)
+            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si), msg_("PathSimplifier")
             {
             }
 
@@ -155,7 +156,10 @@ namespace ompl
 
             /** \brief Instance of random number generator */
             RNG                       rng_;
-        };
+
+            /** \brief Interface for console output */
+	    msg::Interface            msg_;
+	};
     }
 }
 
