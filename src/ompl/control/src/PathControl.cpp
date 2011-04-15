@@ -191,8 +191,9 @@ void ompl::control::PathControl::random(void)
     ss->sampleUniform(states[0]);
     ControlSamplerPtr cs = si->allocControlSampler();
     cs->sample(controls[0], states[0]);
-    controlDurations[0] = cs->sampleStepCount(si->getMinControlDuration(), si->getMaxControlDuration());
-    si->propagate(states[0], controls[0], controlDurations[0], states[1]);
+    unsigned int steps = cs->sampleStepCount(si->getMinControlDuration(), si->getMaxControlDuration());
+    controlDurations[0] = steps * si->getPropagationStepSize();
+    si->propagate(states[0], controls[0], steps, states[1]);
 }
 
 bool ompl::control::PathControl::randomValid(unsigned int attempts)
@@ -215,8 +216,9 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
         if (uvss->sample(states[0]))
         {
             cs->sample(controls[0], states[0]);
-            controlDurations[0] = cs->sampleStepCount(si->getMinControlDuration(), si->getMaxControlDuration());
-            if (si->propagateWhileValid(states[0], controls[0], controlDurations[0], states[1]) == controlDurations[0])
+            unsigned int steps = cs->sampleStepCount(si->getMinControlDuration(), si->getMaxControlDuration());
+            controlDurations[0] = steps * si->getPropagationStepSize();
+            if (si->propagateWhileValid(states[0], controls[0], steps, states[1]) == steps)
             {
                 ok = true;
                 break;
