@@ -81,6 +81,12 @@ namespace ompl
             /** \brief Make the path such that all controls are applied for a single time step (computes intermediate states) */
             void interpolate(void);
 
+            /** \brief Set this path to a random segment */
+            void random(void);
+
+            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
+            bool randomValid(unsigned int attempts);
+
             /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied) */
             geometric::PathGeometric asGeometric(void) const;
 

@@ -90,7 +90,7 @@ namespace ompl
                 invalid states. Not more than \e attempts samples are
                 drawn. If the path remains invalid, the function
                 returns false. */
-            bool checkAndRepair(unsigned int attempts = 100);
+            bool checkAndRepair(unsigned int attempts);
 
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const;
@@ -138,6 +138,12 @@ namespace ompl
                 has components overwritten with ones in \e yi (if there are any common submanifolds).
             */
             void append(const PathGeometric &path);
+
+            /** \brief Set this path to a random segment */
+            void random(void);
+
+            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
+            bool randomValid(unsigned int attempts);
 
             /** \brief The list of states that make up the path */
             std::vector<base::State*> states;

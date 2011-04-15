@@ -36,6 +36,7 @@
 
 #include "ompl/control/PathControl.h"
 #include "ompl/geometric/PathGeometric.h"
+#include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/util/Exception.h"
 #include <numeric>
 #include <cmath>
@@ -172,6 +173,65 @@ bool ompl::control::PathControl::check(void) const
                 throw Exception("Internal error. This should not ever happen. Please contact the developers.");
 
     return valid;
+}
+
+void ompl::control::PathControl::random(void)
+{
+    freeMemory();
+    states.resize(2);
+    controlDurations.resize(1);
+    controls.resize(1);
+
+    const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
+    states[0] = si->allocState();
+    states[1] = si->allocState();
+    controls[0] = si->allocControl();
+
+    base::ManifoldStateSamplerPtr ss = si->allocManifoldStateSampler();
+    ss->sampleUniform(states[0]);
+    ControlSamplerPtr cs = si->allocControlSampler();
+    cs->sample(controls[0], states[0]);
+    controlDurations[0] = cs->sampleStepCount(si->getMinControlDuration(), si->getMaxControlDuration());
+    si->propagate(states[0], controls[0], controlDurations[0], states[1]);
+}
+
+bool ompl::control::PathControl::randomValid(unsigned int attempts)
+{
+    freeMemory();
+    states.resize(2);
+    controlDurations.resize(1);
+    controls.resize(1);
+
+    const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
+    states[0] = si->allocState();
+    states[1] = si->allocState();
+    controls[0] = si->allocControl();
+
+    ControlSamplerPtr cs = si->allocControlSampler();
+    base::UniformValidStateSampler *uvss = new base::UniformValidStateSampler(si);
+    uvss->setNrAttempts(attempts);
+    bool ok = false;
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+        if (uvss->sample(states[0]))
+        {
+            cs->sample(controls[0], states[0]);
+            controlDurations[0] = cs->sampleStepCount(si->getMinControlDuration(), si->getMaxControlDuration());
+            if (si->propagateWhileValid(states[0], controls[0], controlDurations[0], states[1]) == controlDurations[0])
+            {
+                ok = true;
+                break;
+            }
+        }
+    delete uvss;
+
+    if (!ok)
+    {
+        freeMemory();
+        states.clear();
+        controls.clear();
+        controlDurations.clear();
+    }
+    return ok;
 }
 
 void ompl::control::PathControl::freeMemory(void)

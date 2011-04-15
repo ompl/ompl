@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/PathSimplifier.h"
+#include "ompl/util/MagicConstants.h"
 #include <algorithm>
 #include <limits>
 #include <cstdlib>
@@ -50,6 +51,7 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
     base::State *temp1 = si->allocState();
     base::State *temp2 = si->allocState();
+    bool check = false;
 
     for (unsigned int s = 0 ; s < maxSteps ; ++s)
     {
@@ -72,6 +74,8 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
                     }
                 }
             }
+            else
+                check = true;
             i += 2;
         }
 
@@ -81,6 +85,8 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
 
     si->freeState(temp1);
     si->freeState(temp2);
+    if (check)
+        path.checkAndRepair(magic::VALID_SAMPLE_ATTEMPTS);
 }
 
 void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)

@@ -299,6 +299,44 @@ void ompl::geometric::PathGeometric::reverse(void)
     std::reverse(states.begin(), states.end());
 }
 
+void ompl::geometric::PathGeometric::random(void)
+{
+    freeMemory();
+    states.resize(2);
+    states[0] = si_->allocState();
+    states[1] = si_->allocState();
+    base::ManifoldStateSamplerPtr ss = si_->allocManifoldStateSampler();
+    ss->sampleUniform(states[0]);
+    ss->sampleUniform(states[1]);
+}
+
+bool ompl::geometric::PathGeometric::randomValid(unsigned int attempts)
+{
+    freeMemory();
+    states.resize(2);
+    states[0] = si_->allocState();
+    states[1] = si_->allocState();
+    base::UniformValidStateSampler *uvss = new base::UniformValidStateSampler(si_.get());
+    uvss->setNrAttempts(attempts);
+    bool ok = false;
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+    {
+        if (uvss->sample(states[0]) && uvss->sample(states[1]))
+            if (si_->checkMotion(states[0], states[1]))
+            {
+                ok = true;
+                break;
+            }
+    }
+    delete uvss;
+    if (!ok)
+    {
+        freeMemory();
+        states.clear();
+    }
+    return ok;
+}
+
 void ompl::geometric::PathGeometric::overlay(const PathGeometric &over, unsigned int startIndex)
 {
     if (startIndex > states.size())
