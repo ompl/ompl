@@ -2,6 +2,9 @@
 
 \page changelog Changelog
 
+\section apr_15_2011 April 15, 2011
+    - Added ability to generate random paths
+
 \section apr_05_2011 April 5, 2011
     - Added bi-directional version of KPIECE (BKPIECE)
     - Removed use of hill climbing in KPIECE
