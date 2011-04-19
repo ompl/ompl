@@ -73,7 +73,6 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalRegion           *goal_r = dynamic_cast<base::GoalRegion*>(goal);
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
     if (!goal)
