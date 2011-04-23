@@ -39,7 +39,6 @@
 
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
-#include <vector>
 
 namespace ompl
 {
