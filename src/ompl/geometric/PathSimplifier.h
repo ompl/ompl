@@ -158,8 +158,8 @@ namespace ompl
             RNG                       rng_;
 
             /** \brief Interface for console output */
-	    msg::Interface            msg_;
-	};
+            msg::Interface            msg_;
+        };
     }
 }
 

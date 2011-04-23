@@ -76,7 +76,7 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
 
             i += 2;
         }
-	
+
         if (u == 0)
             break;
     }
@@ -195,7 +195,7 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
     collapseCloseVertices(path);
-    smoothBSpline(path, 5, path.length()/100.0);  
+    smoothBSpline(path, 5, path.length()/100.0);
     if (!path.checkAndRepair(magic::VALID_SAMPLE_ATTEMPTS))
-	msg_.warn("Solution path may slightly touch on an invalid region of the state space");
+        msg_.warn("Solution path may slightly touch on an invalid region of the state space");
 }
