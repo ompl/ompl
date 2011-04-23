@@ -39,6 +39,7 @@
 #include "ompl/base/ScopedState.h"
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <boost/math/constants/constants.hpp>
 
 ompl::geometric::PathGeometric::PathGeometric(const PathGeometric &path) : base::Path(path.si_)
@@ -86,6 +87,10 @@ double ompl::geometric::PathGeometric::clearance(void) const
     double c = 0.0;
     for (unsigned int i = 0 ; i < states.size() ; ++i)
         c += si_->getStateValidityChecker()->clearance(states[i]);
+    if (states.empty())
+        c = std::numeric_limits<double>::infinity();
+    else
+        c /= (double)states.size();
     return c;
 }
 
