@@ -85,6 +85,10 @@ namespace ompl
                 path. */
             double smoothness(void) const;
 
+            /** \brief Compute the clearance of the end points along
+                the path (no interpolation is performed). The clearance for the points is added. */
+            double clearance(void) const;
+
             /** \brief Check if the path is valid. If it is not,
                 attempts are made to fix the path by sampling around
                 invalid states. Not more than \e attempts samples are

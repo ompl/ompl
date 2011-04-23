@@ -81,6 +81,14 @@ double ompl::geometric::PathGeometric::length(void) const
     return L;
 }
 
+double ompl::geometric::PathGeometric::clearance(void) const
+{
+    double c = 0.0;
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+        c += si_->getStateValidityChecker()->clearance(states[i]);
+    return c;
+}
+
 /* Based on COMP450 2010 project of Yun Yu and Linda Hill (Rice University) */
 double ompl::geometric::PathGeometric::smoothness(void) const
 {

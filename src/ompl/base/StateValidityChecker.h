@@ -39,6 +39,7 @@
 
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
+#include <vector>
 
 namespace ompl
 {
@@ -80,13 +81,35 @@ namespace ompl
                 are outside of bounds, this function should also make a call to ompl::base::SpaceInformation::satisfiesBounds(). */
             virtual bool isValid(const State *state) const = 0;
 
+            /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest invalid state. */
+            virtual bool isValid(const State *state, double &dist) const
+            {
+                dist = clearance(state);
+                return isValid(state);
+            }
+
             /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest invalid state.
                 If a direction that moves \e state away from being invalid is available, it is set in \e gradient. \e gradient is an element
-                of the tangent space that contains \e state.*/
-            virtual bool isValid(const State *state, double &dist, State *gradient = NULL) const
+                of the tangent space that contains \e state.  \e gradientAvailable is set to true if \e gradient is updated. */
+            virtual bool isValid(const State *state, double &dist, State *gradient, bool &gradientAvailable) const
             {
-                dist = 0.0;
+                dist = clearance(state, gradient, gradientAvailable);
                 return isValid(state);
+            }
+
+            /** \brief Report the distance to the nearest invalid state when starting from \e state */
+            virtual double clearance(const State *state) const
+            {
+                return 0.0;
+            }
+
+            /** \brief Report the distance to the nearest invalid state when starting from \e state, and if available,
+                also set the gradient: the direction that moves away from the colliding state. \e gradientAvailable is set
+                to true if \e gradient is updated. */
+            virtual double clearance(const State *state, State *gradient, bool &gradientAvailable) const
+            {
+                gradientAvailable = false;
+                return clearance(state);
             }
 
         protected:
