@@ -51,7 +51,7 @@ bool ompl::base::UniformValidStateSampler::sample(State *state)
     {
         sampler_->sampleUniform(state);
         valid = si_->isValid(state);
-        attempts++;
+        ++attempts;
     } while (!valid && attempts < attempts_);
     return valid;
 }
@@ -64,7 +64,7 @@ bool ompl::base::UniformValidStateSampler::sampleNear(State *state, const State 
     {
         sampler_->sampleUniformNear(state, near, distance);
         valid = si_->isValid(state);
-        attempts++;
+        ++attempts;
     } while (!valid && attempts < attempts_);
     return valid;
 }

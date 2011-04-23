@@ -34,58 +34,74 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/samplers/GaussianValidStateSampler.h"
+#include "ompl/base/samplers/MaximizeClearanceValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/util/MagicConstants.h"
 
-ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
+ompl::base::MaximizeClearanceValidStateSampler::MaximizeClearanceValidStateSampler(const SpaceInformation *si) :
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), work_(si->allocState())
 {
-    name_ = "gaussian";
+    name_ = "max_clear_uniform";
 }
 
-bool ompl::base::GaussianValidStateSampler::sample(State *state)
+ompl::base::MaximizeClearanceValidStateSampler::~MaximizeClearanceValidStateSampler(void)
 {
-    bool result = false;
+    si_->freeState(work_);
+}
+
+bool ompl::base::MaximizeClearanceValidStateSampler::sample(State *state)
+{
     unsigned int attempts = 0;
-    State *temp = si_->allocState();
+    bool valid = false;
+    double dist = 0.0;
     do
     {
         sampler_->sampleUniform(state);
-        bool v1 = si_->isValid(state);
-        sampler_->sampleGaussian(temp, state, stddev_);
-        bool v2 = si_->isValid(temp);
-        if (v1 != v2)
-        {
-            if (v2)
-                si_->copyState(state, temp);
-            result = true;
-        }
+        valid = si_->getStateValidityChecker()->isValid(state, dist);
         ++attempts;
-    } while (!result && attempts < attempts_);
-    si_->freeState(temp);
-    return result;
+    } while (!valid && attempts < attempts_);
+
+    bool validW = false;
+    double distW = 0.0;
+    while (attempts < attempts_)
+    {
+        sampler_->sampleUniform(work_);
+        validW = si_->getStateValidityChecker()->isValid(work_, distW);
+        ++attempts;
+        if (validW && distW > dist)
+        {
+            dist = distW;
+            si_->copyState(state, work_);
+        }
+    }
+
+    return valid;
 }
 
-bool ompl::base::GaussianValidStateSampler::sampleNear(State *state, const State *near, const double distance)
+bool ompl::base::MaximizeClearanceValidStateSampler::sampleNear(State *state, const State *near, const double distance)
 {
-    bool result = false;
     unsigned int attempts = 0;
-    State *temp = si_->allocState();
+    bool valid = false;
+    double dist = 0.0;
     do
     {
         sampler_->sampleUniformNear(state, near, distance);
-        bool v1 = si_->isValid(state);
-        sampler_->sampleGaussian(temp, state, distance);
-        bool v2 = si_->isValid(temp);
-        if (v1 != v2)
-        {
-            if (v2)
-                si_->copyState(state, temp);
-            result = true;
-        }
+        valid = si_->getStateValidityChecker()->isValid(state, dist);
         ++attempts;
-    } while (!result && attempts < attempts_);
-    si_->freeState(temp);
-    return result;
+    } while (!valid && attempts < attempts_);
+
+    bool validW = false;
+    double distW = 0.0;
+    while (attempts < attempts_)
+    {
+        sampler_->sampleUniformNear(work_, near, distance);
+        validW = si_->getStateValidityChecker()->isValid(work_, distW);
+        ++attempts;
+        if (validW && distW > dist)
+        {
+            dist = distW;
+            si_->copyState(state, work_);
+        }
+    }
+
+    return valid;
 }

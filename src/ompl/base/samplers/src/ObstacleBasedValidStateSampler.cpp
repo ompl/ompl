@@ -52,7 +52,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)
     {
         sampler_->sampleUniform(state);
         valid = si_->isValid(state);
-        attempts++;
+        ++attempts;
     } while (valid && attempts < attempts_);
     if (valid)
         return false;
@@ -65,7 +65,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)
     {
         sampler_->sampleUniform(temp);
         valid = si_->isValid(temp);
-        attempts++;
+        ++attempts;
     } while (!valid && attempts < attempts_);
 
 
@@ -90,7 +90,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sampleNear(State *state, const 
     {
         sampler_->sampleUniformNear(state, near, distance);
         valid = si_->isValid(state);
-        attempts++;
+        ++attempts;
     } while (valid && attempts < attempts_);
     if (valid)
         return false;
@@ -103,7 +103,7 @@ bool ompl::base::ObstacleBasedValidStateSampler::sampleNear(State *state, const 
     {
         sampler_->sampleUniform(temp);
         valid = si_->isValid(temp);
-        attempts++;
+        ++attempts;
     } while (!valid && attempts < attempts_);
 
 

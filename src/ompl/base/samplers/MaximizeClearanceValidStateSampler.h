@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,58 +34,44 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/samplers/GaussianValidStateSampler.h"
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/util/MagicConstants.h"
+#ifndef OMPL_BASE_SAMPLERS_MAXIMIZE_CLEARANCE_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_MAXIMIZE_CLEARANCE_VALID_STATE_SAMPLER_
 
-ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
-{
-    name_ = "gaussian";
-}
+#include "ompl/base/ValidStateSampler.h"
+#include "ompl/base/ManifoldStateSampler.h"
 
-bool ompl::base::GaussianValidStateSampler::sample(State *state)
+namespace ompl
 {
-    bool result = false;
-    unsigned int attempts = 0;
-    State *temp = si_->allocState();
-    do
+    namespace base
     {
-        sampler_->sampleUniform(state);
-        bool v1 = si_->isValid(state);
-        sampler_->sampleGaussian(temp, state, stddev_);
-        bool v2 = si_->isValid(temp);
-        if (v1 != v2)
+
+
+        /** \brief Generate valid samples randomly, but with a bias towards higher clearance. */
+        class MaximizeClearanceValidStateSampler : public ValidStateSampler
         {
-            if (v2)
-                si_->copyState(state, temp);
-            result = true;
-        }
-        ++attempts;
-    } while (!result && attempts < attempts_);
-    si_->freeState(temp);
-    return result;
+        public:
+
+            /** \brief Constructor */
+            MaximizeClearanceValidStateSampler(const SpaceInformation *si);
+
+            virtual ~MaximizeClearanceValidStateSampler(void);
+
+            virtual bool sample(State *state);
+
+            virtual bool sampleNear(State *state, const State *near, const double distance);
+
+        protected:
+
+            /** \brief The sampler to build upon */
+            ManifoldStateSamplerPtr sampler_;
+
+        private:
+            /** \brief Temporary work area */
+            State                  *work_;
+        };
+
+    }
 }
 
-bool ompl::base::GaussianValidStateSampler::sampleNear(State *state, const State *near, const double distance)
-{
-    bool result = false;
-    unsigned int attempts = 0;
-    State *temp = si_->allocState();
-    do
-    {
-        sampler_->sampleUniformNear(state, near, distance);
-        bool v1 = si_->isValid(state);
-        sampler_->sampleGaussian(temp, state, distance);
-        bool v2 = si_->isValid(temp);
-        if (v1 != v2)
-        {
-            if (v2)
-                si_->copyState(state, temp);
-            result = true;
-        }
-        ++attempts;
-    } while (!result && attempts < attempts_);
-    si_->freeState(temp);
-    return result;
-}
+
+#endif
