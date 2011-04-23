@@ -90,7 +90,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
     }
 
     if (!sampler_)
-        sampler_ = si_->allocManifoldStateSampler();
+        sampler_ = si_->allocValidStateSampler();
 
     msg_.inform("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
@@ -128,72 +128,73 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
         Motion                       *existing = NULL;
         disc.selectMotion(existing, ecell);
         assert(existing);
-        sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
-
-        std::pair<base::State*, double> fail(xstate, 0.0);
-        bool keep = si_->checkMotion(existing->state, xstate, fail);
-        if (!keep && fail.second > minValidPathFraction_)
-            keep = true;
-
-        if (keep)
+        if (sampler_->sampleNear(xstate, existing->state, maxDistance_))
         {
-            /* create a motion */
-            Motion *motion = new Motion(si_);
-            si_->copyState(motion->state, xstate);
-            motion->root = existing->root;
-            motion->parent = existing;
+            std::pair<base::State*, double> fail(xstate, 0.0);
+            bool keep = si_->checkMotion(existing->state, xstate, fail);
+            if (!keep && fail.second > minValidPathFraction_)
+                keep = true;
 
-            projectionEvaluator_->computeCoordinates(motion->state, xcoord);
-            disc.addMotion(motion, xcoord);
-
-            projectionEvaluator_->computeCoordinates(xstate, xcoord);
-            Discretization<Motion>::Cell* cellC = otherDisc.getGrid().getCell(xcoord);
-
-            if (cellC && !cellC->data->motions.empty())
+            if (keep)
             {
-                Motion* connectOther = cellC->data->motions[rng_.uniformInt(0, cellC->data->motions.size() - 1)];
+                /* create a motion */
+                Motion *motion = new Motion(si_);
+                si_->copyState(motion->state, xstate);
+                motion->root = existing->root;
+                motion->parent = existing;
 
-                if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root) &&
-                    si_->checkMotion(motion->state, connectOther->state))
+                projectionEvaluator_->computeCoordinates(motion->state, xcoord);
+                disc.addMotion(motion, xcoord);
+
+                projectionEvaluator_->computeCoordinates(xstate, xcoord);
+                Discretization<Motion>::Cell* cellC = otherDisc.getGrid().getCell(xcoord);
+
+                if (cellC && !cellC->data->motions.empty())
                 {
-                    /* extract the motions and put them in solution vector */
+                    Motion* connectOther = cellC->data->motions[rng_.uniformInt(0, cellC->data->motions.size() - 1)];
 
-                    std::vector<Motion*> mpath1;
-                    while (motion != NULL)
+                    if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root) &&
+                        si_->checkMotion(motion->state, connectOther->state))
                     {
-                        mpath1.push_back(motion);
-                        motion = motion->parent;
+                        /* extract the motions and put them in solution vector */
+
+                        std::vector<Motion*> mpath1;
+                        while (motion != NULL)
+                        {
+                            mpath1.push_back(motion);
+                            motion = motion->parent;
+                        }
+
+                        std::vector<Motion*> mpath2;
+                        while (connectOther != NULL)
+                        {
+                            mpath2.push_back(connectOther);
+                            connectOther = connectOther->parent;
+                        }
+
+                        if (startTree)
+                            mpath1.swap(mpath2);
+
+                        std::vector<Motion*> solution;
+                        for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+                            solution.push_back(mpath1[i]);
+                        solution.insert(solution.end(), mpath2.begin(), mpath2.end());
+
+                        PathGeometric *path = new PathGeometric(si_);
+                        for (unsigned int i = 0 ; i < solution.size() ; ++i)
+                            path->states.push_back(si_->cloneState(solution[i]->state));
+
+                        goal->setDifference(0.0);
+                        goal->setSolutionPath(base::PathPtr(path));
+                        break;
                     }
-
-                    std::vector<Motion*> mpath2;
-                    while (connectOther != NULL)
-                    {
-                        mpath2.push_back(connectOther);
-                        connectOther = connectOther->parent;
-                    }
-
-                    if (startTree)
-                        mpath1.swap(mpath2);
-
-                    std::vector<Motion*> solution;
-                    for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
-                        solution.push_back(mpath1[i]);
-                    solution.insert(solution.end(), mpath2.begin(), mpath2.end());
-
-                    PathGeometric *path = new PathGeometric(si_);
-                    for (unsigned int i = 0 ; i < solution.size() ; ++i)
-                        path->states.push_back(si_->cloneState(solution[i]->state));
-
-                    goal->setDifference(0.0);
-                    goal->setSolutionPath(base::PathPtr(path));
-                    break;
                 }
-            }
 
-            ecell->data->score *= goodScoreFactor_;
+                ecell->data->score *= goodScoreFactor_;
+            }
+            else
+                ecell->data->score *= badScoreFactor_;
         }
-        else
-            ecell->data->score *= badScoreFactor_;
         disc.updateCell(ecell);
     }
 

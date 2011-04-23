@@ -237,7 +237,7 @@ namespace ompl
             void freeMotion(Motion *motion);
 
             /** \brief The employed state sampler */
-            base::ManifoldStateSamplerPtr              sampler_;
+            base::ValidStateSamplerPtr                 sampler_;
 
             /** \brief The employed projection evaluator */
             base::ProjectionEvaluatorPtr               projectionEvaluator_;
