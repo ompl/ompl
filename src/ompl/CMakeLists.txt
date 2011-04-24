@@ -71,6 +71,11 @@ else(OMPL_IN_ROS)
         ${Boost_DATE_TIME_LIBRARY}
         ${OMPL_LINK_LIBRARIES}
     )
+    if(WIN32)
+      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}")
+    else(WIN32)
+      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "0")
+    endif(WIN32)
 endif(OMPL_IN_ROS)
 
 # install the library
