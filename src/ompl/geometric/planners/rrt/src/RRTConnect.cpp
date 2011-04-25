@@ -237,14 +237,12 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
                 if (!startTree)
                     mpath2.swap(mpath1);
 
-                std::vector<Motion*> sol;
-                for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
-                    sol.push_back(mpath1[i]);
-                sol.insert(sol.end(), mpath2.begin(), mpath2.end());
-
                 PathGeometric *path = new PathGeometric(si_);
-                for (unsigned int i = 0 ; i < sol.size() ; ++i)
-                    path->states.push_back(si_->cloneState(sol[i]->state));
+                path->states.reserve(mpath1.size() + mpath2.size());
+                for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+                    path->states.push_back(si_->cloneState(mpath1[i]->state));
+                for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
+                    path->states.push_back(si_->cloneState(mpath2[i]->state));
 
                 goal->setDifference(0.0);
                 goal->setSolutionPath(base::PathPtr(path));
