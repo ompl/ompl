@@ -60,10 +60,25 @@ namespace ompl
 
             virtual bool sampleNear(State *state, const State *near, const double distance);
 
+            /** \brief The number of attempts at improving the clearance of the sampled state. */
+            void setNrImproveAttempts(unsigned int attempts)
+            {
+                improveAttempts_ = attempts;
+            }
+
+            /** \brief Get the number of attempts to improve a sampled state */
+            unsigned int getNrImproveAttempts(void) const
+            {
+                return improveAttempts_;
+            }
+
         protected:
 
             /** \brief The sampler to build upon */
             ManifoldStateSamplerPtr sampler_;
+
+            /** \brief Number of attempts to improve a valid sample */
+            unsigned int            improveAttempts_;
 
         private:
             /** \brief Temporary work area */

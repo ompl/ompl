@@ -38,7 +38,7 @@
 #include "ompl/base/SpaceInformation.h"
 
 ompl::base::MaximizeClearanceValidStateSampler::MaximizeClearanceValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), work_(si->allocState())
+    ValidStateSampler(si), sampler_(si->allocManifoldStateSampler()), improveAttempts_(3), work_(si->allocState())
 {
     name_ = "max_clear_uniform";
 }
@@ -60,21 +60,26 @@ bool ompl::base::MaximizeClearanceValidStateSampler::sample(State *state)
         ++attempts;
     } while (!valid && attempts < attempts_);
 
-    bool validW = false;
-    double distW = 0.0;
-    while (attempts < attempts_)
+    if (valid)
     {
-        sampler_->sampleUniform(work_);
-        validW = si_->getStateValidityChecker()->isValid(work_, distW);
-        ++attempts;
-        if (validW && distW > dist)
+        bool validW = false;
+        double distW = 0.0;
+        attempts = 0;
+        while (attempts < improveAttempts_)
         {
-            dist = distW;
-            si_->copyState(state, work_);
+            sampler_->sampleUniform(work_);
+            validW = si_->getStateValidityChecker()->isValid(work_, distW);
+            ++attempts;
+            if (validW && distW > dist)
+            {
+                dist = distW;
+                si_->copyState(state, work_);
+            }
         }
+        return true;
     }
-
-    return valid;
+    else
+        return false;
 }
 
 bool ompl::base::MaximizeClearanceValidStateSampler::sampleNear(State *state, const State *near, const double distance)
@@ -89,19 +94,24 @@ bool ompl::base::MaximizeClearanceValidStateSampler::sampleNear(State *state, co
         ++attempts;
     } while (!valid && attempts < attempts_);
 
-    bool validW = false;
-    double distW = 0.0;
-    while (attempts < attempts_)
+    if (valid)
     {
-        sampler_->sampleUniformNear(work_, near, distance);
-        validW = si_->getStateValidityChecker()->isValid(work_, distW);
-        ++attempts;
-        if (validW && distW > dist)
+        bool validW = false;
+        double distW = 0.0;
+        attempts = 0;
+        while (attempts < improveAttempts_)
         {
-            dist = distW;
-            si_->copyState(state, work_);
+            sampler_->sampleUniformNear(work_, near, distance);
+            validW = si_->getStateValidityChecker()->isValid(work_, distW);
+            ++attempts;
+            if (validW && distW > dist)
+            {
+                dist = distW;
+                si_->copyState(state, work_);
+            }
         }
+        return true;
     }
-
-    return valid;
+    else
+        return false;
 }
