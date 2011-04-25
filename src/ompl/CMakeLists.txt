@@ -74,7 +74,7 @@ else(OMPL_IN_ROS)
     if(WIN32)
       set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}")
     else(WIN32)
-      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "0")
+      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "${OMPL_MAJOR_VERSION}")
     endif(WIN32)
 endif(OMPL_IN_ROS)
 
