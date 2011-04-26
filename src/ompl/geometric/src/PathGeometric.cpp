@@ -94,20 +94,27 @@ double ompl::geometric::PathGeometric::clearance(void) const
     return c;
 }
 
-/* Based on COMP450 2010 project of Yun Yu and Linda Hill (Rice University) */
 double ompl::geometric::PathGeometric::smoothness(void) const
 {
-    double angle = 0.0;
-    for (unsigned int i = 2 ; i < states.size() ; ++i)
+    double s = 0.0;
+    if (states.size() > 2)
     {
-        double a = si_->distance(states[i-2], states[i-1]);
-        double b = si_->distance(states[i-1], states[i]);
-        double c = si_->distance(states[i-2], states[i]);
-        double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
-        if (acosValue > -1.0 && acosValue < 1.0)
-            angle += (boost::math::constants::pi<double>() - acos(acosValue));
+        double a = si_->distance(states[0], states[1]);
+        for (unsigned int i = 2 ; i < states.size() ; ++i)
+        {
+            double b = si_->distance(states[i-1], states[i]);
+            double c = si_->distance(states[i-2], states[i]);
+            double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+            if (acosValue > -1.0 && acosValue < 1.0)
+            {
+                double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+                double k = 2.0 * angle / (a + b);
+                s += k * k;
+            }
+            a = b;
+        }
     }
-    return angle;
+    return s;
 }
 
 bool ompl::geometric::PathGeometric::check(void) const
