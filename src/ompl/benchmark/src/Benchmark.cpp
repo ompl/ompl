@@ -326,6 +326,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                         run["solution difference REAL"] = boost::lexical_cast<std::string>(gsetup_->getGoal()->getDifference());
                         run["solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
                         run["solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
+                        run["solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
                         run["solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
                         run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
 
@@ -351,6 +352,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                         run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getGoal()->isApproximate());
                         run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getGoal()->getDifference());
                         run["solution length REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().length());
+                        run["solution clearance REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().asGeometric().clearance());
                         run["solution segments INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().states.size() - 1);
                         run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().check());
                     }
