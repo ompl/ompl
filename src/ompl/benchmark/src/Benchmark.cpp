@@ -341,6 +341,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                         timeUsed = time::seconds(time::now() - timeStart);
                         run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
                         run["simplified solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
+                        run["simplified solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
+                        run["simplified solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
                         run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
                         run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
                         gsetup_->getStateManifold()->setValidSegmentCountFactor(factor * 4);

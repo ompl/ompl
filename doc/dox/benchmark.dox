@@ -117,6 +117,8 @@
     - <strong>correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct when checked at a finer resolution than the planner used when validating motion segments. If this is sometimes false it means that the used state validation resolution is too high (only applies when using ompl::base::DiscreteMotionValidator).
     - <strong>simplification time:</strong> (real) the time spend simplifying the solution path, in seconds
     - <strong>simplified solution length:</strong> (real) the length of the found solution after simplification
+    - <strong>simplified solution smoothness:</strong> (real) the smoothness of the found solution after simplification (the closer to 0, the smoother the path is)
+    - <strong>simplified solution clearance:</strong> (real) the clearance of the found solution after simplification (the higher the value, the larger the distance to invalid regions)
     - <strong>simplified solution segments:</strong> (integer) the number of segments on solution path after simplification
     - <strong>simplified correct solution:</strong> (boolean) flag indicating whether the found solution is correct after simplification. This should always be true.
     - <strong>simplified correct solution strict:</strong> (boolean) flag indicating whether the found solution is correct after simplification, when checked at a finer resolution.

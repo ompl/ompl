@@ -123,9 +123,14 @@ void ompl::geometric::SimpleSetup::simplifySolution(void)
 {
     if (pdef_ && pdef_->getGoal())
     {
-        const base::PathPtr &p =  pdef_->getGoal()->getSolutionPath();
+        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
         if (p)
+        {
+            time::point start = time::now();
             psk_->simplifyMax(static_cast<PathGeometric&>(*p));
+            simplifyTime_ = time::seconds(time::now() - start);
+            msg_.inform("Path simplification took %f seconds", simplifyTime_);
+        }
         else
             msg_.warn("No solution to simplify");
     }

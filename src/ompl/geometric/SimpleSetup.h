@@ -59,7 +59,7 @@ namespace ompl
 
             /** \brief Constructor needs the manifold needed for planning. */
             explicit
-            SimpleSetup(const base::StateManifoldPtr &manifold) : configured_(false), planTime_(0.0), msg_("SimpleSetup")
+            SimpleSetup(const base::StateManifoldPtr &manifold) : configured_(false), planTime_(0.0), simplifyTime_(0.0), msg_("SimpleSetup")
             {
                 si_.reset(new base::SpaceInformation(manifold));
                 pdef_.reset(new base::ProblemDefinition(si_));
@@ -224,6 +224,12 @@ namespace ompl
                 return planTime_;
             }
 
+            /** \brief Get the amount of time (in seconds) spend during the last path simplification step */
+            double getLastSimplificationTime(void) const
+            {
+                return simplifyTime_;
+            }
+
             /** \brief Attempt to simplify the current solution path */
             void simplifySolution(void);
 
@@ -268,6 +274,9 @@ namespace ompl
 
             /// The amount of time the last planning step took
             double                        planTime_;
+
+            /// The amount of time the last path simplification step took
+            double                        simplifyTime_;
 
             /// Interface for console output
             msg::Interface                msg_;
