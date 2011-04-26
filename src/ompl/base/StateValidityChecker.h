@@ -96,7 +96,8 @@ namespace ompl
                 return isValid(state);
             }
 
-            /** \brief Report the distance to the nearest invalid state when starting from \e state */
+            /** \brief Report the distance to the nearest invalid state when starting from \e state. If the distance is
+		negative, the value of clearance is the penetration depth.*/
             virtual double clearance(const State *state) const
             {
                 return 0.0;

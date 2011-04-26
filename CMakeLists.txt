@@ -1,7 +1,5 @@
 option(OMPL_IN_ROS "Build OMPL against ROS" OFF)
 
-include(version)
-
 if(OMPL_IN_ROS)
     rosbuild_add_boost_directories()
     set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -25,6 +23,8 @@ else(OMPL_IN_ROS)
         include_directories(${ODE_INCLUDE_DIR})
     endif()
 endif(OMPL_IN_ROS)
+
+include(OMPLVersion)
 
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
