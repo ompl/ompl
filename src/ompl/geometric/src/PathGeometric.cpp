@@ -144,17 +144,20 @@ void ompl::geometric::PathGeometric::print(std::ostream &out) const
     out << std::endl;
 }
 
-bool ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
+std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
 {
     if (states.empty())
-        return true;
+        return std::make_pair(true, true);
     if (states.size() == 1)
-        return si_->isValid(states[0]);
+    {
+        bool result = si_->isValid(states[0]);
+        return std::make_pair(result, result);
+    }
 
     // a path with invalid endpoints cannot be fixed; planners should not return such paths anyway
     const int n1 = states.size() - 1;
     if (!si_->isValid(states[0]) || !si_->isValid(states[n1]))
-        return false;
+        return std::make_pair(false, false);
 
     base::State *temp = NULL;
     base::UniformValidStateSampler *uvss = NULL;
@@ -217,10 +220,11 @@ bool ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
     // free potentially allocated memory
     if (temp)
         si_->freeState(temp);
+    bool originalValid = uvss == NULL;
     if (uvss)
         delete uvss;
 
-    return result;
+    return std::make_pair(originalValid, result);
 }
 
 void ompl::geometric::PathGeometric::subdivide(void)

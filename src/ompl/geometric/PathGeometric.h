@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/Path.h"
 #include <vector>
+#include <utility>
 
 namespace ompl
 {
@@ -92,9 +93,14 @@ namespace ompl
             /** \brief Check if the path is valid. If it is not,
                 attempts are made to fix the path by sampling around
                 invalid states. Not more than \e attempts samples are
-                drawn. If the path remains invalid, the function
-                returns false. */
-            bool checkAndRepair(unsigned int attempts);
+                drawn. A pair of boolean values is returned. The first
+                value represents the validity of the path before any
+                change was made. The second value represents the
+                validity of the path after changes were attempted. If
+                no changes are attempted, the both values are true.
+
+                \note If repairing a path fails, the path may still be altered */
+            std::pair<bool, bool> checkAndRepair(unsigned int attempts);
 
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const;

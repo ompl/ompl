@@ -196,6 +196,10 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
     reduceVertices(path);
     collapseCloseVertices(path);
     smoothBSpline(path, 5, path.length()/100.0);
-    if (!path.checkAndRepair(magic::VALID_SAMPLE_ATTEMPTS))
+    const std::pair<bool, bool> &p = path.checkAndRepair(magic::VALID_SAMPLE_ATTEMPTS);
+    if (!p.second)
         msg_.warn("Solution path may slightly touch on an invalid region of the state space");
+    else
+        if (!p.first)
+            msg_.debug("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
 }
