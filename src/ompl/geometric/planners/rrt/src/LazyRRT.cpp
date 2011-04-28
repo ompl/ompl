@@ -228,5 +228,9 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
         nn_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    {
         data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
+        if (motions[i]->valid)
+            data.tagState(motions[i]->state, 1);
+    }
 }
