@@ -39,16 +39,14 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
+#include "ompl/base/PlannerData.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
-#include <iostream>
-#include <vector>
 #include <string>
-#include <map>
 
 namespace ompl
 {
@@ -96,53 +94,6 @@ namespace ompl
         /** \class ompl::base::PlannerPtr
             \brief A boost shared pointer wrapper for ompl::base::Planner */
 
-        /** \brief Datatype holding data a planner can expose for debug purposes. */
-        class PlannerData
-        {
-        public:
-            PlannerData(void)
-            {
-            }
-
-            virtual ~PlannerData(void)
-            {
-            }
-
-            /** \brief Record an edge between two states. This
-                function is called by planners to fill \e states, \e
-                stateIndex and \e edges. If the same state/edge is
-                seen multiple times, it is added only once. */
-            void recordEdge(const State *s1, const State *s2);
-
-            /** \brief Assign a tag to a state */
-            void tagState(const State *s, int tag);
-
-            /** \brief Clear any stored data */
-            void clear(void);
-
-            /** \brief Print this data to a stream */
-            virtual void print(std::ostream &out = std::cout) const;
-
-            /** \brief The space information containing the states of the exploration datastructure */
-            SpaceInformationPtr                      si;
-
-            /** \brief The list of states in the current exploration datastructure */
-            std::vector< const State* >              states;
-
-            /** \brief For every state, a tag may be associated by the planner. For example, a bi-directional planner
-                may assign one tag for states in the start tree and another for states in the goal tree. By default the tag has value 0. */
-            std::vector< int >                       tags;
-
-            /** \brief The same list of states as above, provided for convenience, in a manner that allows finding out a
-                state's index from its pointer value */
-            std::map< const State *, unsigned int >  stateIndex;
-
-            /** \brief For each i, edges[i] contains the values edges[i][j] such that states[i] connects to every states[edges[i][j]] */
-            std::vector< std::vector<unsigned int> > edges;
-
-            /** \brief Any extra properties (key-value pairs) the planner can set. */
-            std::map<std::string, std::string>       properties;
-        };
 
         /** \brief Helper class to extract valid start & goal
             states. Usually used internally by planners.
