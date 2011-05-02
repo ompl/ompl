@@ -6,14 +6,14 @@
     - Provide an implementation of ompl::base::Planner::solve(). We
       suggest leveraging the implementations of the routines available
       in ompl::base::SpaceInformation, but this is not required.
-         - If a solution is found, this function should return true and set
-       the found solution path in the goal instance contained by
-           ompl::base::ProblemDefinition. If no solution is found, the
-       function should return false.
-     - The function should terminate when a termination condition is met
-     - It is desirable that calling solve() multiple times
-           consecutively continues the solving process rather than
-           restarting it.
+    - If a solution is found, this function should return true and set
+      the found solution path in the goal instance contained by
+      ompl::base::ProblemDefinition. If no solution is found, the
+      function should return false.
+    - The function should terminate when a termination condition is met
+    - It is desirable that calling solve() multiple times
+      consecutively continues the solving process rather than
+      restarting it.
     - Provide an implementation of ompl::base::Planner::clear(). The
       state of the planner should be restored to what it was at
       creation time.
