@@ -1,5 +1,18 @@
 option(OMPL_IN_ROS "Build OMPL against ROS" OFF)
 
+set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
+    CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(OMPL_DEMO_INSTALL_DIR share/ompl/demos
+    CACHE STRING "Relative path to directory where demos will be installed")
+set(OMPL_DOC_INSTALL_DIR share/ompl/doc
+    CACHE STRING "Relative path to directory where documentation will be installed")
+
+include_directories("${OMPL_INCLUDE_DIR}")
+
 if(OMPL_IN_ROS)
     rosbuild_add_boost_directories()
     set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -26,18 +39,7 @@ endif(OMPL_IN_ROS)
 
 include(OMPLVersion)
 
-set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
-    CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(OMPL_DEMO_INSTALL_DIR share/ompl/demos
-    CACHE STRING "Relative path to directory where demos will be installed")
-set(OMPL_DOC_INSTALL_DIR share/ompl/doc
-    CACHE STRING "Relative path to directory where documentation will be installed")
-
-include_directories("${OMPL_INCLUDE_DIR}")
 add_subdirectory(src)
 add_subdirectory(py-bindings)
 add_subdirectory(tests)
