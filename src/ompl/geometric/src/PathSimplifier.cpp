@@ -144,15 +144,11 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
 
-    // compute pair-wise distances in path
+    // compute pair-wise distances in path (construct only half the matrix)
     std::map<std::pair<const base::State*, const base::State*>, double> distances;
     for (unsigned int i = 0 ; i < path.states.size() ; ++i)
-        for (unsigned int j = i + 1 ; j < path.states.size() ; ++j)
-        {
-            double d = si->distance(path.states[i], path.states[j]);
-            distances[std::make_pair(path.states[i], path.states[j])] = d;
-            distances[std::make_pair(path.states[j], path.states[i])] = d;
-        }
+        for (unsigned int j = i + 2 ; j < path.states.size() ; ++j)
+            distances[std::make_pair(path.states[i], path.states[j])] = si->distance(path.states[i], path.states[j]);
 
     unsigned int nochange = 0;
 
@@ -163,7 +159,7 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
         int p1 = -1;
         int p2 = -1;
         for (unsigned int i = 0 ; i < path.states.size() ; ++i)
-            for (unsigned int j = i + 1 ; j < path.states.size() ; ++j)
+            for (unsigned int j = i + 2 ; j < path.states.size() ; ++j)
             {
                 double d = distances[std::make_pair(path.states[i], path.states[j])];
                 if (d < minDist)
