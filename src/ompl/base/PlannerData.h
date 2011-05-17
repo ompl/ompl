@@ -47,7 +47,7 @@ namespace ompl
 {
     namespace base
     {
-	
+
         /** \brief Datatype holding data a planner can expose for debug purposes. */
         class PlannerData
         {

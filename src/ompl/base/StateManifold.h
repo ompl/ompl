@@ -154,7 +154,14 @@ namespace ompl
             /** \brief Many states contain a number of double values. This function provides a means to get the
                 memory address of a double value from state \e state located at position \e index. The first double value
                 is returned for \e index = 0. If \e index is too large (does not point to any double values in the state),
-                the return value is NULL. */
+                the return value is NULL.
+
+                \note This function does @b not map a state to an
+                array of doubles. There may be components of a state
+                that do not correspond to double values and they are
+                'invisible' to this function. Furthermore, this
+                function is slow and is not intended for use in the
+                implementation of planners. */
             virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
 
             /** \brief When performing discrete validation of motions,
