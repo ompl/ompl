@@ -64,14 +64,14 @@ namespace ompl
             return uni_();
         }
 
-        /** \brief Generate a random real within given bounds */
+        /** \brief Generate a random real within given bounds: [\e lower_bound, \e upper_bound) */
         double uniformReal(double lower_bound, double upper_bound)
         {
             assert(lower_bound <= upper_bound);
             return (upper_bound - lower_bound) * uni_() + lower_bound;
         }
 
-        /** \brief Generate a random integer within given bounds */
+        /** \brief Generate a random integer within given bounds: [\e lower_bound, \e upper_bound] */
         int uniformInt(int lower_bound, int upper_bound)
         {
             int r = (int)floor(uniformReal((double)lower_bound, (double)(upper_bound) + 1.0));
@@ -96,18 +96,16 @@ namespace ompl
             return normal_() * stddev + mean;
         }
 
-        /** \brief Generate a random real using a half-normal
-            distribution. The value is within specified bounds, but
-            with a bias towards r_max.  The higher the focus, the more
-            probable it is that generated numbers are close to
-            r_max. */
+        /** \brief Generate a random real using a half-normal distribution. The value is within specified bounds [\e
+            r_min, \e r_max], but with a bias towards \e r_max. The function is implemended using a Gaussian distribution with
+            mean at \e r_max - \e r_min. The distribution is 'folded' around \e r_max axis towards \e r_min.
+            The variance of the distribution is (\e r_max - \e r_min) / \e focus. The higher the focus,
+            the more probable it is that generated numbers are close to \e r_max. */
         double halfNormalReal(double r_min, double r_max, double focus = 3.0);
 
         /** \brief Generate a random integer using a half-normal
-            distribution. The value is within specified bounds, but
-            with a bias towards r_max.  The higher the focus, the more
-            probable it is that generated numbers are close to
-            r_max. */
+            distribution. The value is within specified bounds ([\e r_min, \e r_max]), but
+            with a bias towards \e r_max. The function is implemented on top of halfNormalReal() */
         int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
 
         /** \brief Uniform random unit quaternion sampling. The returned value has the order (x,y,z,w) */
