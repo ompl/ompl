@@ -224,9 +224,9 @@ class ompl_base_generator_t(code_generator_t):
         # add wrapper code for setValidStateSamplerAllocator
         self.replace_member_functions(self.ompl_ns.namespace('base').class_(
                 'SpaceInformation').member_functions('setValidStateSamplerAllocator'))
-        # exclude solve() methods that take a "const PlannerTerminationCondition &"
+        # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
-        self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &', 'double']).exclude()
+        self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationConditionFn const &', 'double']).exclude()
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):

@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/PlannerData.h"
+#include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
@@ -77,16 +78,6 @@ namespace ompl
                 /** \brief This bit is set if planning to generic goal regions (ompl::base::Goal) is possible */
                 PLAN_TO_GOAL_ANY    = 32768 | PLAN_TO_GOAL_REGION
             };
-
-        /** \brief Datatype for functions deciding whether termination
-            conditions have been met for the planner, even if no
-            solution is found. This is usually reaching a time or
-            memory limit. If the function returns true, the planner is
-            signaled to terminate its computation. Otherwise,
-            computation continues while this function returns false,
-            until a solution is found. */
-        typedef boost::function0<bool> PlannerTerminationCondition;
-
 
         /** \brief Forward declaration of ompl::base::Planner */
         ClassForward(Planner);
@@ -287,7 +278,7 @@ namespace ompl
 
             /** \brief Same as above except the termination condition
                 is only evaluated at a specified interval. */
-            bool solve(const PlannerTerminationCondition &ptc, double checkInterval);
+            bool solve(const PlannerTerminationConditionFn &ptc, double checkInterval);
 
             /** \brief Same as above except the termination condition
                 is solely a time limit: the number of seconds the

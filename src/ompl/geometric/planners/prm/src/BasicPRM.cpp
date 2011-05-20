@@ -158,14 +158,16 @@ bool ompl::geometric::BasicPRM::haveSolution(const std::vector<Milestone*> &star
     return false;
 }
 
+/// @cond IGNORE
 namespace ompl
 {
     // we grow a roadmap until the planner needs to stop or until a maximum amount of time has been reached
-    static bool growRoadmapTerminationCondition(const base::PlannerTerminationCondition &ptc, const time::point &endTime)
+    static bool timePassed(const time::point &endTime)
     {
-        return ptc() || time::now() >= endTime;
+        return time::now() > endTime;
     }
 }
+/// @endcond
 
 bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &ptc)
 {
@@ -230,7 +232,7 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
         {
             // if it is worth looking at other goal regions, plan for part of the time
             if (goal->maxSampleCount() > goalM_.size())
-                growRoadmap(startM_, goalM_, boost::bind(&growRoadmapTerminationCondition, ptc, time::now() + time::seconds(0.1)), xstate);
+                growRoadmap(startM_, goalM_, ptc + base::PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(0.1))), xstate);
             // otherwise, just go ahead and build the roadmap
             else
                 growRoadmap(startM_, goalM_, ptc, xstate);

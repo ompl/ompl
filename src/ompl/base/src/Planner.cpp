@@ -39,7 +39,6 @@
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/base/GoalLazySamples.h"
 #include <boost/thread.hpp>
-#include <utility>
 
 ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
     si_(si), pis_(this), name_(name), type_(PLAN_UNKNOWN), setup_(false), msg_(name)
@@ -121,57 +120,14 @@ void ompl::base::Planner::getPlannerData(PlannerData &data) const
     data.si = si_;
 }
 
-namespace ompl
+bool ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double checkInterval)
 {
-    // return true if a certain point in time has passed
-    static bool timePassed(const time::point &endTime)
-    {
-        return time::now() > endTime;
-    }
-
-    // return if an externally passed flag is true
-    static bool evaluateFlag(const bool *flag)
-    {
-        return *flag;
-    }
-
-    // periodically evaluate a termination condition and store the result at an indicated location
-    static void periodicConditionEvaluator(const base::PlannerTerminationCondition &ptc, double checkInterval, bool *flag)
-    {
-        time::duration s = time::seconds(checkInterval);
-        do
-        {
-            bool shouldTerminate = ptc();
-            if (shouldTerminate)
-                *flag = true;
-            if (*flag == false)
-                boost::this_thread::sleep(s);
-        } while (*flag == false);
-    }
-
-    static bool alwaysTrue(void)
-    {
-        return true;
-    }
-}
-
-bool ompl::base::Planner::solve(const PlannerTerminationCondition &ptc, double checkInterval)
-{
-    bool flag = false;
-    boost::thread condEvaluator(boost::bind(&periodicConditionEvaluator, ptc, checkInterval, &flag));
-    bool result = solve(boost::bind(&evaluateFlag, &flag));
-    flag = true;
-    condEvaluator.interrupt();
-    condEvaluator.join();
-    return result;
+    return solve(PlannerThreadedTerminationCondition(ptc, checkInterval));
 }
 
 bool ompl::base::Planner::solve(double solveTime)
 {
-    if (solveTime < 1.0)
-        return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)));
-    else
-        return solve(boost::bind(&timePassed, time::now() + time::seconds(solveTime)), std::min(solveTime / 100.0, 0.1));
+    return solve(timedPlannerTerminationCondition(solveTime));
 }
 
 void ompl::base::PlannerInputStates::clear(void)
@@ -271,7 +227,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
 
 const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(void)
 {
-    static PlannerTerminationCondition ptc = boost::bind(&alwaysTrue);
+    static PlannerAlwaysTerminatingCondition ptc;
     return nextGoal(ptc);
 }
 
