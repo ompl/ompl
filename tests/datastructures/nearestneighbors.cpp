@@ -37,21 +37,21 @@
 #include <gtest/gtest.h>
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/base/ScopedState.h"
-#include "ompl/base/manifolds/SE3StateManifold.h"
+#include "ompl/base/spaces/SE3StateSpace.h"
 
 using namespace ompl;
 
 template<typename T>
-double distance(const T* manifold, base::State* const &s0, base::State* const &s1)
+double distance(const T* space, base::State* const &s0, base::State* const &s1)
 {
-    return manifold->distance(s0,s1);
+    return space->distance(s0, s1);
 }
 
 TEST(NearestNeighbors, Linear)
 {
     int i, n = 200;
-    base::SE3StateManifold SE3;
-    base::ManifoldStateSamplerPtr sampler;
+    base::SE3StateSpace SE3;
+    base::StateSamplerPtr sampler;
     base::RealVectorBounds b(3);
     std::vector<base::State*> states(n), nghbr(10);
     NearestNeighborsLinear<base::State*> proximity;
@@ -62,7 +62,7 @@ TEST(NearestNeighbors, Linear)
     SE3.setBounds(b);
     sampler = SE3.allocStateSampler();
 
-    proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateManifold>, &SE3, _1, _2));
+    proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateSpace>, &SE3, _1, _2));
 
     for(i=0; i<n; ++i)
     {
@@ -110,8 +110,8 @@ TEST(NearestNeighbors, Linear)
 TEST(NearestNeighbors, SqrtApprox)
 {
     int i, j, n = 200;
-    base::SE3StateManifold SE3;
-    base::ManifoldStateSamplerPtr sampler;
+    base::SE3StateSpace SE3;
+    base::StateSamplerPtr sampler;
     base::RealVectorBounds b(3);
     std::vector<base::State*> states(n), nghbr(10);
     NearestNeighborsSqrtApprox<base::State*> proximity;
@@ -122,7 +122,7 @@ TEST(NearestNeighbors, SqrtApprox)
     SE3.setBounds(b);
     sampler = SE3.allocStateSampler();
 
-    proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateManifold>, &SE3, _1, _2));
+    proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateSpace>, &SE3, _1, _2));
 
     for(i=0; i<n; ++i)
     {

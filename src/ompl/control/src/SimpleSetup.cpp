@@ -45,7 +45,7 @@ ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goa
         throw Exception("Unable to allocate default planner for unspecified goal definition");
 
     SpaceInformationPtr si = boost::static_pointer_cast<SpaceInformation, base::SpaceInformation>(goal->getSpaceInformation());
-    if (si->getStateManifold()->hasDefaultProjection())
+    if (si->getStateSpace()->hasDefaultProjection())
         planner = base::PlannerPtr(new KPIECE1(si));
     else
         planner = base::PlannerPtr(new RRT(si));
@@ -107,7 +107,7 @@ void ompl::control::SimpleSetup::updateProjectionCellSizes(void)
         msg_.warn("There are no states in the exploration data structure of the planner");
     else
     {
-        const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateManifold()->getRegisteredProjections();
+        const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateSpace()->getRegisteredProjections();
         for (std::map<std::string, base::ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
             it->second->computeCellSizes(states);
     }

@@ -147,7 +147,7 @@ public:
 
     virtual double distanceGoal(const ob::State *st) const
     {
-        const double *pos = st->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
+        const double *pos = st->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
         double dx = fabs(pos[0] - 30);
         double dy = fabs(pos[1] - 55);
         double dz = fabs(pos[2] - 35);
@@ -162,7 +162,7 @@ class RigidBodyStateProjectionEvaluator : public ob::ProjectionEvaluator
 {
 public:
 
-    RigidBodyStateProjectionEvaluator(const ob::StateManifold *manifold) : ob::ProjectionEvaluator(manifold)
+    RigidBodyStateProjectionEvaluator(const ob::StateSpace *space) : ob::ProjectionEvaluator(space)
     {
     }
 
@@ -181,7 +181,7 @@ public:
 
     virtual void project(const ob::State *state, ob::EuclideanProjection &projection) const
     {
-        const double *pos = state->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
+        const double *pos = state->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
         projection[0] = pos[0];
         projection[1] = pos[1];
         projection[2] = pos[2];
@@ -189,19 +189,19 @@ public:
 
 };
 
-// Define our own manifold, to include a distance function we want and register a default projection
-class RigidBodyStateManifold : public oc::ODEStateManifold
+// Define our own space, to include a distance function we want and register a default projection
+class RigidBodyStateSpace : public oc::ODEStateSpace
 {
 public:
 
-    RigidBodyStateManifold(const oc::ODEEnvironmentPtr &env) : oc::ODEStateManifold(env)
+    RigidBodyStateSpace(const oc::ODEEnvironmentPtr &env) : oc::ODEStateSpace(env)
     {
     }
 
     virtual double distance(const ob::State *s1, const ob::State *s2) const
     {
-        const double *p1 = s1->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
-        const double *p2 = s1->as<oc::ODEStateManifold::StateType>()->getBodyPosition(0);
+        const double *p1 = s1->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
+        const double *p2 = s1->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
         double dx = fabs(p1[0] - p2[0]);
         double dy = fabs(p1[1] - p2[1]);
         double dz = fabs(p1[2] - p2[2]);
@@ -225,12 +225,12 @@ int main(int, char **)
     // create the ODE environment
     oc::ODEEnvironmentPtr env(new RigidBodyEnvironment());
 
-    // create the state space manifold and the control manifold for planning
-    RigidBodyStateManifold *stateManifold = new RigidBodyStateManifold(env);
-    ob::StateManifoldPtr stateManifoldPtr = ob::StateManifoldPtr(stateManifold);
+    // create the state space and the control space for planning
+    RigidBodyStateSpace *stateSpace = new RigidBodyStateSpace(env);
+    ob::StateSpacePtr stateSpacePtr = ob::StateSpacePtr(stateSpace);
 
     // this will take care of setting a proper collision checker and the starting state for the planner as the initial ODE state
-    oc::ODESimpleSetup ss(stateManifoldPtr);
+    oc::ODESimpleSetup ss(stateSpacePtr);
 
     // set the goal we would like to reach
     ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));
@@ -238,12 +238,12 @@ int main(int, char **)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-200);
     bounds.setHigh(200);
-    stateManifold->setVolumeBounds(bounds);
+    stateSpace->setVolumeBounds(bounds);
 
     bounds.setLow(-20);
     bounds.setHigh(20);
-    stateManifold->setLinearVelocityBounds(bounds);
-    stateManifold->setAngularVelocityBounds(bounds);
+    stateSpace->setLinearVelocityBounds(bounds);
+    stateSpace->setAngularVelocityBounds(bounds);
 
     ss.setup();
     ss.print();
@@ -254,7 +254,7 @@ int main(int, char **)
         const std::vector<ob::State*> &states = p.states;
         for (unsigned int i = 0 ; i < states.size() ; ++i)
         {
-            const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateManifold::StateType>(0)->values;
+            const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(0)->values;
             std::cout << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
         }
     }

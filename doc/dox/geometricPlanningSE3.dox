@@ -16,7 +16,7 @@
    \par
    Setting up geometric planning for a rigid body in 3D requires the following steps:
       - identify the space we are planning in: SE(3)
-      - select a corresponding state manifold from the available ones, or implement one. For SE(3), the ompl::base::SE3StateManifold is appropriate.
+      - select a corresponding state space from the available ones, or implement one. For SE(3), the ompl::base::SE3StateSpace is appropriate.
       - since SE(3) contains an R<sup>3</sup> component, we need to define bounds.
       - define the notion of state validity.
       - define start states and a goal representation.
@@ -33,10 +33,10 @@
    @until ompl::geometric
    And a state validity checking function defined like this:
    @skipline isStateValid
-   We first create an instance of the manifold we are planning in.
+   We first create an instance of the state space we are planning in.
    @skip planWithSimpleSetup
-   @until StateManifold
-   We then set the bounds for the R<sup>3</sup> component of this manifold:
+   @until StateSpace
+   We then set the bounds for the R<sup>3</sup> component of this state space:
    @skip RealVectorBounds
    @until setBounds
    Create an instance of ompl::geometric::SimpleSetup. Instances of ompl::base::SpaceInformation,
@@ -45,10 +45,10 @@
    Set the state validity checker
    @skipline setStateValidityChecker
    Create a random start state:
-   @skip start(manifold)
+   @skip start(space)
    @until start.random
    And a random goal state:
-   @skip goal(manifold)
+   @skip goal(space)
    @until goal.random
    Set these states as start and goal for SimpleSetup.
    @skipline setStartAndGoalStates
@@ -70,21 +70,21 @@
    @until ompl::geometric
    And a state validity checking function defined like this:
    @skipline isStateValid
-   We first create an instance of the manifold we are planning in.
+   We first create an instance of the state space we are planning in.
    @skip plan
-   @until StateManifold
-   We then set the bounds for the R<sup>3</sup> component of this manifold:
+   @until StateSpace
+   We then set the bounds for the R<sup>3</sup> component of this state space:
    @skip RealVectorBounds
    @until setBounds
-   Create an instance of ompl::base::SpaceInformation for the manifold
+   Create an instance of ompl::base::SpaceInformation for the state space
    @skipline SpaceInformationPtr
    Set the state validity checker
    @skipline setStateValidityChecker
    Create a random start state:
-   @skip start(manifold)
+   @skip start(space)
    @until start.random
    And a random goal state:
-   @skip goal(manifold)
+   @skip goal(space)
    @until goal.random
    Create an instance of ompl::base::ProblemDefinition
    @skipline ProblemDefinitionPtr

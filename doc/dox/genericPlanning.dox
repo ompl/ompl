@@ -1,42 +1,42 @@
 /**
    @page genericPlanning Generic instructions for setting up a planning context
 
-   \par Instantiating a state manifold
+   \par Instantiating a state space
    The first step for setting up a planning problem is selecting the space
    we are planning in.
    Simply create an instance of a class that inherits from
-   ompl::base::StateManifold, or select one from the available implementations.
+   ompl::base::StateSpace, or select one from the available implementations.
    To change the definition of the employed
    sampler or distance function, it is possible to provide a further
-   specialization of such a manifold. See @ref implementingStateManifolds.
+   specialization of such a state space. See @ref implementingStateSpaces.
    @code
-   base::StateManifoldPtr manifold(new base::SE2StateManifold());
+   base::StateSpacePtr space(new base::SE2StateSpace());
    // set bounds ....
    @endcode
 
-   \par Instantiating a control manifold
+   \par Instantiating a control space
    If planning with differential constraints, a representation of the
    space of controls is needed as well.
    Simply create an instance of a class that inherits from
-   ompl::control::ControlManifold. Usually,
-   ompl::control::RealVectorControlManifold is sufficient.
-   An implementation needs to be specified for the ompl::control:ControlManifold::propagate()
-   either by inheriting from the manifold class or by calling
-   ompl::control::ControlManifold::setPropagationFunction().
+   ompl::control::ControlSpace. Usually,
+   ompl::control::RealVectorControlSpace is sufficient.
+   An implementation needs to be specified for the ompl::control:ControlSpace::propagate()
+   either by inheriting from the control space class or by calling
+   ompl::control::ControlSpace::setPropagationFunction().
    @code
-   base::StateManifoldPtr manifold(new base::SE2StateManifold());
-   // set bounds for manifold
-   control::ControlManifoldPtr cmanifold(new control::RealVectorControlManifold(manifold));
-   // set bounds for cmanifold
+   base::StateSpacePtr space(new base::SE2StateSpace());
+   // set bounds for state space
+   control::ControlSpacePtr cspace(new control::RealVectorControlSpace(space));
+   // set bounds for cspace
    @endcode
 
    \par Instantiating a space information class
    Creating an actual instance of a space information class
    (ompl::base::SpaceInformation) is trivial as the constructor
-   requires only a state manifold to be specified
-   (ompl::base::StateManifold). When planning with controls
+   requires only a state space to be specified
+   (ompl::base::StateSpace). When planning with controls
    (ompl::control::SpaceInformation), this constructor requires a
-   control manifold (ompl::control::ControlManifold) as well.  The space information
+   control space (ompl::control::ControlSpace) as well.  The space information
    class also needs to be configured before use:\n\n
      - ompl::base::StateValidityChecker is an abstract class that
        provides functionality for determining whether a state is valid

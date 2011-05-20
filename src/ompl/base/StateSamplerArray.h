@@ -38,7 +38,7 @@
 #define OMPL_BASE_STATE_SAMPLER_ARRAY_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/ManifoldStateSampler.h"
+#include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
 #include <vector>
 
@@ -47,7 +47,7 @@ namespace ompl
     namespace base
     {
 
-        /** \brief Depending on the type of sampler, we have different allocation routines
+        /** \brief Depending on the type of state sampler, we have different allocation routines
 
             This struct will provide that allocation routine,
             depending on the template argument of ompl::base::SamplerType.*/
@@ -58,14 +58,14 @@ namespace ompl
 
         /** \cond IGNORE */
         template<>
-        struct SamplerSelector<ManifoldStateSampler>
+        struct SamplerSelector<StateSampler>
         {
-            typedef ManifoldStateSampler    StateSampler;
-            typedef ManifoldStateSamplerPtr StateSamplerPtr;
+            typedef StateSampler    Sampler;
+            typedef StateSamplerPtr SamplerPtr;
 
-            StateSamplerPtr allocStateSampler(const SpaceInformation *si)
+            SamplerPtr allocStateSampler(const SpaceInformation *si)
             {
-                return si->allocManifoldStateSampler();
+                return si->allocStateSampler();
             }
 
         };
@@ -73,10 +73,10 @@ namespace ompl
         template<>
         struct SamplerSelector<ValidStateSampler>
         {
-            typedef ValidStateSampler    StateSampler;
-            typedef ValidStateSamplerPtr StateSamplerPtr;
+            typedef ValidStateSampler    Sampler;
+            typedef ValidStateSamplerPtr SamplerPtr;
 
-            StateSamplerPtr allocStateSampler(const SpaceInformation *si)
+            SamplerPtr allocStateSampler(const SpaceInformation *si)
             {
                 return si->allocValidStateSampler();
             }
@@ -90,10 +90,10 @@ namespace ompl
         public:
 
             /** \brief Pointer to the type of sampler allocated */
-            typedef typename SamplerSelector<T>::StateSamplerPtr StateSamplerPtr;
+            typedef typename SamplerSelector<T>::SamplerPtr SamplerPtr;
 
             /** \brief The type of sampler allocated */
-            typedef typename SamplerSelector<T>::StateSampler    StateSampler;
+            typedef typename SamplerSelector<T>::Sampler    Sampler;
 
             /** \brief Constructor */
             StateSamplerArray(const SpaceInformationPtr &si) : si_(si.get())
@@ -111,7 +111,7 @@ namespace ompl
 
             /** \brief Access operator for a specific sampler. For
                 performance reasons, the bounds are not checked. */
-            StateSampler* operator[](std::size_t index) const
+            Sampler* operator[](std::size_t index) const
             {
                 return samplers_[index].get();
             }
@@ -145,9 +145,9 @@ namespace ompl
 
         private:
 
-            const SpaceInformation       *si_;
-            SamplerSelector<T>            ss_;
-            std::vector<StateSamplerPtr>  samplers_;
+            const SpaceInformation  *si_;
+            SamplerSelector<T>       ss_;
+            std::vector<SamplerPtr>  samplers_;
 
         };
     }

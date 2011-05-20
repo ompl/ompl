@@ -41,11 +41,11 @@
 #include <queue>
 #include <cassert>
 
-ompl::base::SpaceInformation::SpaceInformation(const StateManifoldPtr &manifold) :
-    stateManifold_(manifold), motionValidator_(new DiscreteMotionValidator(this)), setup_(false), msg_("SpaceInformation")
+ompl::base::SpaceInformation::SpaceInformation(const StateSpacePtr &space) :
+    stateSpace_(space), motionValidator_(new DiscreteMotionValidator(this)), setup_(false), msg_("SpaceInformation")
 {
-    if (!stateManifold_)
-        throw Exception("Invalid manifold definition");
+    if (!stateSpace_)
+        throw Exception("Invalid space definition");
 }
 
 void ompl::base::SpaceInformation::setup(void)
@@ -59,9 +59,9 @@ void ompl::base::SpaceInformation::setup(void)
     if (!motionValidator_)
         motionValidator_.reset(new DiscreteMotionValidator(this));
 
-    stateManifold_->setup();
-    if (stateManifold_->getDimension() <= 0)
-        throw Exception("The dimension of the state manifold we plan in must be > 0");
+    stateSpace_->setup();
+    if (stateSpace_->getDimension() <= 0)
+        throw Exception("The dimension of the state space we plan in must be > 0");
 
     setup_ = true;
 }
@@ -98,7 +98,7 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
 }
 
-unsigned int ompl::base::SpaceInformation::randomBounceMotion(const ManifoldStateSamplerPtr &mss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const
+unsigned int ompl::base::SpaceInformation::randomBounceMotion(const StateSamplerPtr &sss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const
 {
     if (alloc)
     {
@@ -116,7 +116,7 @@ unsigned int ompl::base::SpaceInformation::randomBounceMotion(const ManifoldStat
     unsigned int j = 0;
     for (unsigned int i = 0 ; i < steps ; ++i)
     {
-        mss->sampleUniform(states[j]);
+        sss->sampleUniform(states[j]);
         lastValid.first = states[j];
         if (checkMotion(prev, states[j], lastValid) || lastValid.second > std::numeric_limits<double>::epsilon())
             prev = states[j++];
@@ -219,7 +219,7 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
     {
         if (alloc)
             states[added] = allocState();
-        stateManifold_->interpolate(s1, s2, (double)j / (double)count, states[added]);
+        stateSpace_->interpolate(s1, s2, (double)j / (double)count, states[added]);
         added++;
     }
 
@@ -298,10 +298,10 @@ ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSa
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "State space settings:" << std::endl;
-    out << "  - dimension: " << stateManifold_->getDimension() << std::endl;
-    out << "  - extent: " << stateManifold_->getMaximumExtent() << std::endl;
+    out << "  - dimension: " << stateSpace_->getDimension() << std::endl;
+    out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;
     out << "  - state validity check resolution: " << (getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
-    out << "  - valid segment count factor: " << stateManifold_->getValidSegmentCountFactor() << std::endl;
-    out << "  - state manifold:" << std::endl;
-    stateManifold_->printSettings(out);
+    out << "  - valid segment count factor: " << stateSpace_->getValidSegmentCountFactor() << std::endl;
+    out << "  - state space:" << std::endl;
+    stateSpace_->printSettings(out);
 }

@@ -18,7 +18,7 @@
         return ...;
    }
 
-   base::SpaceInformationPtr si(manifold);
+   base::SpaceInformationPtr si(space);
    // either this call:
    si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityCheckerClass(si)));
    // or this call:

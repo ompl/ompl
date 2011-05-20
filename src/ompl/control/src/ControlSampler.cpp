@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/ControlSampler.h"
-#include "ompl/control/ControlManifold.h"
+#include "ompl/control/ControlSpace.h"
 
 unsigned int ompl::control::ControlSampler::sampleStepCount(unsigned int minSteps, unsigned int maxSteps)
 {

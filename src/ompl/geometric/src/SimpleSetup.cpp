@@ -51,7 +51,7 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
     if (dynamic_cast<const base::GoalSampleableRegion*>(goal.get()))
     {
         // if we have a default projection
-        if (goal->getSpaceInformation()->getStateManifold()->hasDefaultProjection())
+        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
             planner = base::PlannerPtr(new LBKPIECE1(goal->getSpaceInformation()));
         else
             planner = base::PlannerPtr(new RRTConnect(goal->getSpaceInformation()));
@@ -60,7 +60,7 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
     else
     {
         // if we have a default projection
-        if (goal->getSpaceInformation()->getStateManifold()->hasDefaultProjection())
+        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
             planner = base::PlannerPtr(new KPIECE1(goal->getSpaceInformation()));
         else
             planner = base::PlannerPtr(new RRT(goal->getSpaceInformation()));
@@ -164,7 +164,7 @@ void ompl::geometric::SimpleSetup::updateProjectionCellSizes(void)
         msg_.warn("There are no states in the exploration data structure of the planner");
     else
     {
-        const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateManifold()->getRegisteredProjections();
+        const std::map<std::string, base::ProjectionEvaluatorPtr> &prj = getStateSpace()->getRegisteredProjections();
         for (std::map<std::string, base::ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
             it->second->computeCellSizes(states);
     }

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/StateManifold.h"
+#include "ompl/base/StateSpace.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
@@ -302,8 +302,8 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
     unsigned int dim = getDimension();
     if (dim > 0)
     {
-        ManifoldStateSamplerPtr sampler = manifold_->allocStateSampler();
-        State *s = manifold_->allocState();
+        StateSamplerPtr sampler = space_->allocStateSampler();
+        State *s = space_->allocState();
         EuclideanProjection proj(dim);
 
         std::vector<double> low(dim, std::numeric_limits<double>::infinity());
@@ -322,7 +322,7 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             }
         }
 
-        manifold_->freeState(s);
+        space_->freeState(s);
 
         cellSizes_.resize(dim);
         for (unsigned int j = 0 ; j < dim ; ++j)
@@ -331,8 +331,8 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             if (cellSizes_[j] < std::numeric_limits<double>::epsilon())
             {
                 cellSizes_[j] = 1.0;
-                msg_.warn("Inferred cell size for dimension %u of a projection for manifold %s is 0. Setting arbitrary value of 1 instead.",
-                          j, manifold_->getName().c_str());
+                msg_.warn("Inferred cell size for dimension %u of a projection for state space %s is 0. Setting arbitrary value of 1 instead.",
+                          j, space_->getName().c_str());
             }
         }
     }

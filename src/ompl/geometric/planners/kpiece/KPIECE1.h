@@ -63,7 +63,7 @@ namespace ompl
            It is important to set the projection the algorithm uses
            (setProjectionEvaluator() function). If no projection is
            set, the planner will attempt to use the default projection
-           associated to the state manifold. An exception is thrown if
+           associated to the state space. An exception is thrown if
            no default projection is available either.
 
            @par External documentation
@@ -203,10 +203,10 @@ namespace ompl
             }
 
             /** \brief Set the projection evaluator (select one from
-                the ones registered with the state manifold). */
+                the ones registered with the state space). */
             void setProjectionEvaluator(const std::string &name)
             {
-                projectionEvaluator_ = si_->getStateManifold()->getProjection(name);
+                projectionEvaluator_ = si_->getStateSpace()->getProjection(name);
             }
 
             /** \brief Get the projection evaluator */
@@ -249,8 +249,8 @@ namespace ompl
             /** \brief Free the memory for a motion */
             void freeMotion(Motion *motion);
 
-            /** \brief A manifold sampler */
-            base::ManifoldStateSamplerPtr              sampler_;
+            /** \brief A state space sampler */
+            base::StateSamplerPtr                      sampler_;
 
             /** \brief The tree datastructure and the grid that covers it */
             Discretization<Motion>                     disc_;

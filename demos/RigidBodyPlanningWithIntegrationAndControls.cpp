@@ -36,8 +36,8 @@
 
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/base/GoalState.h>
-#include <ompl/base/manifolds/SE2StateManifold.h>
-#include <ompl/control/manifolds/RealVectorControlManifold.h>
+#include <ompl/base/spaces/SE2StateSpace.h>
+#include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/rrt/RRT.h>
 #include <ompl/control/SimpleSetup.h>
@@ -55,15 +55,15 @@ class KinematicCarModel
 {
 public:
 
-    KinematicCarModel(const ob::StateManifold *manifold) : manifold_(manifold), carLength_(0.2)
+    KinematicCarModel(const ob::StateSpace *space) : space_(space), carLength_(0.2)
     {
     }
 
     /// implement the function describing the robot motion: qdot = f(q, u)
     void operator()(const ob::State *state, const oc::Control *control, std::valarray<double> &dstate) const
     {
-        const double *u = control->as<oc::RealVectorControlManifold::ControlType>()->values;
-        const double theta = state->as<ob::SE2StateManifold::StateType>()->getYaw();
+        const double *u = control->as<oc::RealVectorControlSpace::ControlType>()->values;
+        const double theta = state->as<ob::SE2StateSpace::StateType>()->getYaw();
 
         dstate.resize(3);
         dstate[0] = u[0] * cos(theta);
@@ -74,16 +74,16 @@ public:
     /// implement y(n+1) = y(n) + d
     void update(ob::State *state, const std::valarray<double> &dstate) const
     {
-        ob::SE2StateManifold::StateType &s = *state->as<ob::SE2StateManifold::StateType>();
+        ob::SE2StateSpace::StateType &s = *state->as<ob::SE2StateSpace::StateType>();
         s.setX(s.getX() + dstate[0]);
         s.setY(s.getY() + dstate[1]);
         s.setYaw(s.getYaw() + dstate[2]);
-        manifold_->enforceBounds(state);
+        space_->enforceBounds(state);
     }
 
 private:
 
-    const ob::StateManifold *manifold_;
+    const ob::StateSpace *space_;
     const double             carLength_;
 
 };
@@ -95,7 +95,7 @@ class EulerIntegrator
 {
 public:
 
-    EulerIntegrator(const ob::StateManifold *manifold, double timeStep) : manifold_(manifold), timeStep_(timeStep), ode_(manifold)
+    EulerIntegrator(const ob::StateSpace *space, double timeStep) : space_(space), timeStep_(timeStep), ode_(space)
     {
     }
 
@@ -103,7 +103,7 @@ public:
     {
         double t = timeStep_;
         std::valarray<double> dstate;
-        manifold_->copyState(result, start);
+        space_->copyState(result, start);
         while (t < duration + std::numeric_limits<double>::epsilon())
         {
             ode_(result, control, dstate);
@@ -129,7 +129,7 @@ public:
 
 private:
 
-    const ob::StateManifold *manifold_;
+    const ob::StateSpace *space_;
     double                   timeStep_;
     F                        ode_;
 };
@@ -137,15 +137,15 @@ private:
 
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
-    //    ob::ScopedState<ob::SE2StateManifold>
+    //    ob::ScopedState<ob::SE2StateSpace>
     /// cast the abstract state type to the type we expect
-    const ob::SE2StateManifold::StateType *se2state = state->as<ob::SE2StateManifold::StateType>();
+    const ob::SE2StateSpace::StateType *se2state = state->as<ob::SE2StateSpace::StateType>();
 
     /// extract the first component of the state and cast it to what we expect
-    const ob::RealVectorStateManifold::StateType *pos = se2state->as<ob::RealVectorStateManifold::StateType>(0);
+    const ob::RealVectorStateSpace::StateType *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
 
     /// extract the second component of the state and cast it to what we expect
-    const ob::SO2StateManifold::StateType *rot = se2state->as<ob::SO2StateManifold::StateType>(1);
+    const ob::SO2StateSpace::StateType *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
 
     /// check validity of state defined by pos & rot
 
@@ -155,12 +155,12 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 }
 
 /// @cond IGNORE
-class DemoControlManifold : public oc::RealVectorControlManifold
+class DemoControlSpace : public oc::RealVectorControlSpace
 {
 public:
 
-    DemoControlManifold(const ob::StateManifoldPtr &stateManifold) : oc::RealVectorControlManifold(stateManifold, 2),
-                                                                     integrator_(stateManifold.get(), 0.0)
+    DemoControlSpace(const ob::StateSpacePtr &stateSpace) : oc::RealVectorControlSpace(stateSpace, 2),
+                                                                     integrator_(stateSpace.get(), 0.0)
     {
     }
 
@@ -186,50 +186,50 @@ public:
 
 void planWithSimpleSetup(void)
 {
-    /// construct the manifold we are planning in
-    ob::StateManifoldPtr manifold(new ob::SE2StateManifold());
+    /// construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::SE2StateSpace());
 
     /// set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    manifold->as<ob::SE2StateManifold>()->setBounds(bounds);
+    space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    // create a control manifold
-    oc::ControlManifoldPtr cmanifold(new DemoControlManifold(manifold));
+    // create a control space
+    oc::ControlSpacePtr cspace(new DemoControlSpace(space));
 
-    // set the bounds for the control manifold
+    // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-0.3);
     cbounds.setHigh(0.3);
 
-    cmanifold->as<DemoControlManifold>()->setBounds(cbounds);
+    cspace->as<DemoControlSpace>()->setBounds(cbounds);
 
     // define a simple setup class
-    oc::SimpleSetup ss(cmanifold);
+    oc::SimpleSetup ss(cspace);
 
     /// set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, ss.getSpaceInformation().get(), _1));
 
     /// create a start state
-    ob::ScopedState<ob::SE2StateManifold> start(manifold);
+    ob::ScopedState<ob::SE2StateSpace> start(space);
     start->setX(-0.5);
     start->setY(0.0);
     start->setYaw(0.0);
 
     /// create a  goal state; use the hard way to set the elements
-    ob::ScopedState<ob::SE2StateManifold> goal(manifold);
+    ob::ScopedState<ob::SE2StateSpace> goal(space);
     goal->setX(0.0);
     goal->setY(0.5);
     goal->setYaw(0.0);
 
-    /// set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
+    /// set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05);
 
     /// we want to have a reasonable value for the propagation step size
     ss.setup();
-    cmanifold->as<DemoControlManifold>()->setIntegrationTimeStep(ss.getSpaceInformation()->getPropagationStepSize());
+    cspace->as<DemoControlSpace>()->setIntegrationTimeStep(ss.getSpaceInformation()->getPropagationStepSize());
 
     /// attempt to solve the problem within one second of planning time
     bool solved = ss.solve(10.0);

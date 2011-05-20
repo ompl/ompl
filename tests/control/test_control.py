@@ -79,9 +79,9 @@ def isValid(grid, spaceinformation, state):
         return False
     return grid[x][y] == 0 # 0 means valid state
 
-class myStateManifold(ob.RealVectorStateManifold):
+class myStateSpace(ob.RealVectorStateSpace):
     def __init__(self):
-        super(myStateManifold, self).__init__(4)
+        super(myStateSpace, self).__init__(4)
 
     def distance(self, state1, state2):
         x1 = int(state1[0])
@@ -90,9 +90,9 @@ class myStateManifold(ob.RealVectorStateManifold):
         y2 = int(state2[1])
         return fabs(x1-x2) + fabs(y1-y2)
 
-class myControlManifold(oc.RealVectorControlManifold):
-    def __init__(self, statemanifold):
-        super(myControlManifold, self).__init__(statemanifold, 2)
+class myControlSpace(oc.RealVectorControlSpace):
+    def __init__(self, statespace):
+        super(myControlSpace, self).__init__(statespace, 2)
 
     def propagate(self, state, control, duration, result):
         result[0] = state[0] + duration*control[0]
@@ -105,7 +105,7 @@ class TestPlanner(object):
     def execute(self, env, time, pathLength, show = False):
         result = True
 
-        sMan = myStateManifold()
+        sSpace = myStateSpace()
         sbounds = ob.RealVectorBounds(4)
         # dimension 0 (x) spans between [0, width)
         # dimension 1 (y) spans between [0, height)
@@ -118,17 +118,17 @@ class TestPlanner(object):
         sbounds.high.extend([float(env.width) - 0.000000001,
             float(env.height) - 0.000000001,
             MAX_VELOCITY, MAX_VELOCITY])
-        sMan.setBounds(sbounds)
+        sSpace.setBounds(sbounds)
 
-        cMan = myControlManifold(sMan)
+        cSpace = myControlSpace(sSpace)
         cbounds = ob.RealVectorBounds(2)
         cbounds.low[0] = -MAX_VELOCITY
         cbounds.high[0] = MAX_VELOCITY
         cbounds.low[1] = -MAX_VELOCITY
         cbounds.high[1] = MAX_VELOCITY
-        cMan.setBounds(cbounds)
+        cSpace.setBounds(cbounds)
 
-        ss = oc.SimpleSetup(cMan)
+        ss = oc.SimpleSetup(cSpace)
         isValidFn = partial(isValid, env.grid)
         ss.setStateValidityChecker(isValidFn)
 
@@ -136,13 +136,13 @@ class TestPlanner(object):
         ss.setPlanner(planner)
 
         # the initial state
-        start = ob.State(sMan)
+        start = ob.State(sSpace)
         start()[0] = env.start[0]
         start()[1] = env.start[1]
         start()[2] = 0.0
         start()[3] = 0.0
 
-        goal = ob.State(sMan)
+        goal = ob.State(sSpace)
         goal()[0] = env.goal[0]
         goal()[1] = env.goal[1]
         goal()[2] = 0.0
@@ -188,8 +188,8 @@ class RRTTest(TestPlanner):
         return planner
 
 class myProjectionEvaluator(ob.ProjectionEvaluator):
-    def __init__(self, manifold, cellSizes):
-        super(myProjectionEvaluator, self).__init__(manifold)
+    def __init__(self, space, cellSizes):
+        super(myProjectionEvaluator, self).__init__(space)
         self.setCellSizes(cellSizes)
 
     def getDimension(self):
@@ -205,7 +205,7 @@ class KPIECE1Test(TestPlanner):
         planner = oc.KPIECE1(si)
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        ope = myProjectionEvaluator(si.getStateManifold(), cdim)
+        ope = myProjectionEvaluator(si.getStateSpace(), cdim)
         planner.setProjectionEvaluator(ope)
         return planner
 

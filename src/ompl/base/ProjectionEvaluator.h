@@ -138,7 +138,7 @@ namespace ompl
             Matrix mat;
         };
 
-        ClassForward(StateManifold);
+        ClassForward(StateSpace);
 
         /** \brief Forward declaration of ompl::base::ProjectionEvaluator */
         ClassForward(ProjectionEvaluator);
@@ -156,13 +156,13 @@ namespace ompl
         {
         public:
 
-            /** \brief Construct a projection evaluator for a specific manifold */
-            ProjectionEvaluator(const StateManifold *manifold) : manifold_(manifold), defaultCellSizes_(true), cellSizesWereInferred_(false)
+            /** \brief Construct a projection evaluator for a specific state space */
+            ProjectionEvaluator(const StateSpace *space) : space_(space), defaultCellSizes_(true), cellSizesWereInferred_(false)
             {
             }
 
-            /** \brief Construct a projection evaluator for a specific manifold */
-            ProjectionEvaluator(const StateManifoldPtr &manifold) : manifold_(manifold.get()), defaultCellSizes_(true), cellSizesWereInferred_(false)
+            /** \brief Construct a projection evaluator for a specific state space */
+            ProjectionEvaluator(const StateSpacePtr &space) : space_(space.get()), defaultCellSizes_(true), cellSizesWereInferred_(false)
             {
             }
 
@@ -197,7 +197,7 @@ namespace ompl
             /** \brief Check if cell dimensions match projection dimension */
             void checkCellSizes(void) const;
 
-            /** \brief Sample the state manifold and decide on default
+            /** \brief Sample the state space and decide on default
                 cell sizes. This function is called by setup() if
                 no cell dsizes have been set and
                 defaultCellSizes() does not fill the cell
@@ -238,8 +238,8 @@ namespace ompl
 
         protected:
 
-            /** \brief The manifold this projection operates on */
-            const StateManifold *manifold_;
+            /** \brief The state space this projection operates on */
+            const StateSpace *space_;
 
             /** \brief The size of a cell, in every dimension of the
                 projected space, in the implicitly defined integer

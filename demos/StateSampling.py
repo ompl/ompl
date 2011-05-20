@@ -116,34 +116,34 @@ def allocMyValidStateSampler(si):
     return ob.ValidStateSamplerPtr(MyValidStateSampler(si))
 
 def plan(samplerIndex):
-    # construct the manifold we are planning in
-    manifold = ob.RealVectorStateManifold(3)
+    # construct the state space we are planning in
+    space = ob.RealVectorStateSpace(3)
 
     # set the bounds
     bounds = ob.RealVectorBounds(3)
     bounds.setLow(-1)
     bounds.setHigh(1)
-    manifold.setBounds(bounds)
+    space.setBounds(bounds)
 
     # define a simple setup class
-    ss = og.SimpleSetup(manifold)
+    ss = og.SimpleSetup(space)
 
     # set state validity checking for this space
     ss.setStateValidityChecker(isStateValid)
 
     # create a start state
-    start = ob.State(manifold)
+    start = ob.State(space)
     start[0] = 0
     start[1] = 0
     start[2] = 0
 
     # create a goal state
-    goal = ob.State(manifold)
+    goal = ob.State(space)
     goal[0] = 0
     goal[1] = 0
     goal[2] = 1
 
-    # set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
+    # set the start and goal states;
     ss.setStartAndGoalStates(start, goal)
 
     # set sampler (optional; the default is uniform sampling)

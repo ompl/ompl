@@ -41,7 +41,7 @@
 #include <iostream>
 
 #include "ompl/base/ScopedState.h"
-#include "ompl/base/manifolds/SE3StateManifold.h"
+#include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Time.h"
 
@@ -49,8 +49,8 @@ using namespace ompl;
 
 TEST(State, Scoped)
 {
-    base::SE3StateManifold *mSE3 = new base::SE3StateManifold();
-    base::StateManifoldPtr pSE3(mSE3);
+    base::SE3StateSpace *mSE3 = new base::SE3StateSpace();
+    base::StateSpacePtr pSE3(mSE3);
 
     base::RealVectorBounds b(3);
     b.setLow(0);
@@ -58,24 +58,24 @@ TEST(State, Scoped)
     mSE3->setBounds(b);
 
 
-    base::CompoundStateManifold *mC0 = new base::CompoundStateManifold();
-    base::StateManifoldPtr pC0(mC0);
-    mC0->addSubManifold(pSE3, 1.0);
+    base::CompoundStateSpace *mC0 = new base::CompoundStateSpace();
+    base::StateSpacePtr pC0(mC0);
+    mC0->addSubSpace(pSE3, 1.0);
 
-    base::CompoundStateManifold *mC1 = new base::CompoundStateManifold();
-    base::StateManifoldPtr pC1(mC1);
-    mC1->addSubManifold(pC0, 1.0);
+    base::CompoundStateSpace *mC1 = new base::CompoundStateSpace();
+    base::StateSpacePtr pC1(mC1);
+    mC1->addSubSpace(pC0, 1.0);
 
-    base::CompoundStateManifold *mC2 = new base::CompoundStateManifold();
-    base::StateManifoldPtr pC2(mC2);
-    mC2->addSubManifold(mSE3->getSubManifold(1), 1.0);
-    mC2->addSubManifold(mSE3->getSubManifold(0), 1.0);
+    base::CompoundStateSpace *mC2 = new base::CompoundStateSpace();
+    base::StateSpacePtr pC2(mC2);
+    mC2->addSubSpace(mSE3->getSubSpace(1), 1.0);
+    mC2->addSubSpace(mSE3->getSubSpace(0), 1.0);
 
 
-    base::ScopedState<base::SE3StateManifold> sSE3(pSE3);
-    base::ScopedState<base::RealVectorStateManifold> sSE3_R(mSE3->getSubManifold(0));
-    base::ScopedState<base::SO3StateManifold> sSE3_SO2(mSE3->getSubManifold(1));
-    base::ScopedState<base::CompoundStateManifold> sC0(pC0);
+    base::ScopedState<base::SE3StateSpace> sSE3(pSE3);
+    base::ScopedState<base::RealVectorStateSpace> sSE3_R(mSE3->getSubSpace(0));
+    base::ScopedState<base::SO3StateSpace> sSE3_SO2(mSE3->getSubSpace(1));
+    base::ScopedState<base::CompoundStateSpace> sC0(pC0);
     base::ScopedState<> sC1(pC1);
     base::ScopedState<> sC2(pC2);
 
@@ -120,8 +120,8 @@ TEST(State, Scoped)
 
     (sSE3_R ^ sSE3_SO2) >> sSE3_copy;
     EXPECT_EQ(sSE3_copy, sSE3);
-    EXPECT_EQ(sSE3_copy[pSE3 * sSE3_R.getManifold()], sSE3_R);
-    EXPECT_EQ(sSE3_copy[sSE3_SO2.getManifold()], sSE3_SO2);
+    EXPECT_EQ(sSE3_copy[pSE3 * sSE3_R.getSpace()], sSE3_R);
+    EXPECT_EQ(sSE3_copy[sSE3_SO2.getSpace()], sSE3_SO2);
 
     sSE3->setY(1.0);
     EXPECT_NEAR(sSE3.reals()[1], 1.0, 1e-12);
@@ -137,7 +137,7 @@ TEST(State, Scoped)
     EXPECT_EQ(sSE3_copy, sSE3);
     EXPECT_EQ(sSE3[6], r[6]);
     EXPECT_EQ(sSE3[0], r[0]);
-    EXPECT_EQ(sSE3.getManifold()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
+    EXPECT_EQ(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
 
     sSE3_R = 0.5;
     EXPECT_EQ(sSE3_R[0], 0.5);
@@ -145,11 +145,11 @@ TEST(State, Scoped)
 
 TEST(State, Allocation)
 {
-    base::StateManifoldPtr m(new base::SE3StateManifold());
+    base::StateSpacePtr m(new base::SE3StateSpace());
     base::RealVectorBounds b(3);
     b.setLow(0);
     b.setHigh(1);
-    m->as<base::SE3StateManifold>()->setBounds(b);
+    m->as<base::SE3StateSpace>()->setBounds(b);
     base::SpaceInformation si(m);
     si.setup();
 
@@ -223,11 +223,11 @@ void randomizedAllocator(const base::SpaceInformation *si)
 
 TEST(State, AllocationWithThreads)
 {
-    base::StateManifoldPtr m(new base::SE3StateManifold());
+    base::StateSpacePtr m(new base::SE3StateSpace());
     base::RealVectorBounds b(3);
     b.setLow(0);
     b.setHigh(1);
-    m->as<base::SE3StateManifold>()->setBounds(b);
+    m->as<base::SE3StateSpace>()->setBounds(b);
     base::SpaceInformation si(m);
     si.setup();
     const int NT = 10;

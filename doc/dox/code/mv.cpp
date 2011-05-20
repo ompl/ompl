@@ -5,6 +5,6 @@
        // implement checkMotion()
    };
 
-   base::SpaceInformationPtr si(manifold);
+   base::SpaceInformationPtr si(space);
    si->setMotionValidator(base::MotionValidatorPtr(new myMotionValidator(si)));
    si->setup();

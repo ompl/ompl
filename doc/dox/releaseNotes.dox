@@ -9,7 +9,7 @@
 - A number of bug fixes
 
 \section release_0_9_2 OMPL 0.9.2 (February 21, 2011)
-- Updates to operations on states: indexing in states can be done using manifolds or using integer values
+- Updates to operations on states: indexing in states can be done using state spaces or using integer values
 - Bug fixes for planning with controls
 - Minor doc improvements
 

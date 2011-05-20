@@ -40,9 +40,9 @@
 
 void ompl::base::DiscreteMotionValidator::defaultSettings(void)
 {
-    stateManifold_ = si_->getStateManifold().get();
-    if (!stateManifold_)
-        throw Exception("No state manifold for motion validator");
+    stateSpace_ = si_->getStateSpace().get();
+    if (!stateSpace_)
+        throw Exception("No state space for motion validator");
 }
 
 bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
@@ -50,7 +50,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
     /* assume motion starts in a valid configuration so s1 is valid */
 
     bool result = true;
-    int nd = stateManifold_->validSegmentCount(s1, s2);
+    int nd = stateSpace_->validSegmentCount(s1, s2);
 
     if (nd > 1)
     {
@@ -59,12 +59,12 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
 
         for (int j = 1 ; j < nd ; ++j)
         {
-            stateManifold_->interpolate(s1, s2, (double)j / (double)nd, test);
+            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, test);
             if (!si_->isValid(test))
             {
                 lastValid.second = (double)(j - 1) / (double)nd;
                 if (lastValid.first)
-                    stateManifold_->interpolate(s1, s2, lastValid.second, lastValid.first);
+                    stateSpace_->interpolate(s1, s2, lastValid.second, lastValid.first);
                 result = false;
                 break;
             }
@@ -77,7 +77,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
         {
             lastValid.second = (double)(nd - 1) / (double)nd;
             if (lastValid.first)
-                stateManifold_->interpolate(s1, s2, lastValid.second, lastValid.first);
+                stateSpace_->interpolate(s1, s2, lastValid.second, lastValid.first);
             result = false;
         }
 
@@ -96,7 +96,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
         return false;
 
     bool result = true;
-    int nd = stateManifold_->validSegmentCount(s1, s2);
+    int nd = stateSpace_->validSegmentCount(s1, s2);
 
     /* initialize the queue of test positions */
     std::queue< std::pair<int, int> > pos;
@@ -113,7 +113,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
             std::pair<int, int> x = pos.front();
 
             int mid = (x.first + x.second) / 2;
-            stateManifold_->interpolate(s1, s2, (double)mid / (double)nd, test);
+            stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, test);
 
             if (!si_->isValid(test))
             {

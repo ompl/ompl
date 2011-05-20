@@ -98,7 +98,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     }
 
     if (!sampler_)
-        sampler_ = si_->allocManifoldStateSampler();
+        sampler_ = si_->allocStateSampler();
 
     msg_.inform("Starting with %u states", disc_.getMotionCount());
 

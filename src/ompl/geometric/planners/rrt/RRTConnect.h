@@ -169,7 +169,7 @@ namespace ompl
             GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion);
 
             /** \brief State sampler */
-            base::ManifoldStateSamplerPtr sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief The start tree */
             TreeData                      tStart_;

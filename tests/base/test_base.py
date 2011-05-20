@@ -48,7 +48,7 @@ def isValid(spaceInformation, state):
 
 class TestSO2(unittest.TestCase):
     def testSimple(self):
-        m = SO2StateManifold()
+        m = SO2StateSpace()
         s1 = SO2State(m)
         s2 = SO2State(m)
         s3 = SO2State(m)
@@ -71,7 +71,7 @@ class TestSO2(unittest.TestCase):
 
 class TestSO3(unittest.TestCase):
     def testSimple(self):
-        m = SO3StateManifold()
+        m = SO3StateSpace()
         s1 = SO3State(m)
         s1.random()
         s2 = s1;

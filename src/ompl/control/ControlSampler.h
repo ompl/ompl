@@ -49,7 +49,7 @@ namespace ompl
     namespace control
     {
 
-        ClassForward(ControlManifold);
+        ClassForward(ControlSpace);
 
         /** \brief Forward declaration of ompl::control::ControlSampler */
         ClassForward(ControlSampler);
@@ -66,8 +66,8 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor takes the manifold to construct samples for as argument */
-            ControlSampler(const ControlManifold *manifold) : manifold_(manifold)
+            /** \brief Constructor takes the state space to construct samples for as argument */
+            ControlSampler(const ControlSpace *space) : space_(space)
             {
             }
 
@@ -126,8 +126,8 @@ namespace ompl
 
         protected:
 
-            /** \brief The manifold this sampler operates on */
-            const ControlManifold *manifold_;
+            /** \brief The control space this sampler operates on */
+            const ControlSpace *space_;
 
             /** \brief Instance of random number generator */
             RNG                    rng_;
@@ -139,7 +139,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CompoundControlSampler(const ControlManifold* manifold) : ControlSampler(manifold)
+            CompoundControlSampler(const ControlSpace* space) : ControlSampler(space)
             {
             }
 
@@ -172,7 +172,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a control sampler */
-        typedef boost::function1<ControlSamplerPtr, const ControlManifold*> ControlSamplerAllocator;
+        typedef boost::function1<ControlSamplerPtr, const ControlSpace*> ControlSamplerAllocator;
     }
 }
 

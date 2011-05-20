@@ -9,7 +9,7 @@
 
 \par Intermediate
 - \ref genericPlanning "Generic instructions for setting up a planning context"
-- \ref implementingStateManifolds "Implementing manifolds"
+- \ref implementingStateSpaces "Implementing new state spaces"
 - \ref goalRepresentation "Representing goals"
 .
 

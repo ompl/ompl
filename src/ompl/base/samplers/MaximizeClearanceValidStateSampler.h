@@ -38,7 +38,7 @@
 #define OMPL_BASE_SAMPLERS_MAXIMIZE_CLEARANCE_VALID_STATE_SAMPLER_
 
 #include "ompl/base/ValidStateSampler.h"
-#include "ompl/base/ManifoldStateSampler.h"
+#include "ompl/base/StateSampler.h"
 
 namespace ompl
 {
@@ -75,7 +75,7 @@ namespace ompl
         protected:
 
             /** \brief The sampler to build upon */
-            ManifoldStateSamplerPtr sampler_;
+            StateSamplerPtr sampler_;
 
             /** \brief Number of attempts to improve a valid sample */
             unsigned int            improveAttempts_;

@@ -56,50 +56,50 @@ def isStateValid(spaceInformation, state):
     # satisfied
     return spaceInformation.satisfiesBounds(state)
 
-def propagate(cmanifold, start, control, duration, state):
+def propagate(cspace, start, control, duration, state):
     state.setX( start.getX() + control[0] * duration * cos(start.getYaw()) )
     state.setY( start.getY() + control[0] * duration * sin(start.getYaw()) )
     state.setYaw(start.getYaw() + control[1] * duration)
 
 def plan():
-    # construct the manifold we are planning in
-    manifold = ob.SE2StateManifold()
+    # construct the state space we are planning in
+    space = ob.SE2StateSpace()
 
     # set the bounds for the R^2 part of SE(2)
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
     bounds.setHigh(1)
-    manifold.setBounds(bounds)
+    space.setBounds(bounds)
 
-    # create a control manifold
-    cmanifold = oc.RealVectorControlManifold(manifold, 2)
+    # create a control space
+    cspace = oc.RealVectorControlSpace(space, 2)
 
-    # set the bounds for the control manifold
+    # set the bounds for the control space
     cbounds = ob.RealVectorBounds(2)
     cbounds.setLow(-.3)
     cbounds.setHigh(.3)
-    cmanifold.setBounds(cbounds)
+    cspace.setBounds(cbounds)
 
     # set the state propagation routine
-    cmanifold.setPropagationFunction(propagate)
+    cspace.setPropagationFunction(propagate)
 
     # define a simple setup class
-    ss = oc.SimpleSetup(cmanifold)
+    ss = oc.SimpleSetup(cspace)
     ss.setStateValidityChecker(isStateValid)
 
     # create a start state
-    start = ob.State(manifold)
+    start = ob.State(space)
     start().setX(-0.5);
     start().setY(0.0);
     start().setYaw(0.0);
 
     # create a goal state
-    goal = ob.State(manifold);
+    goal = ob.State(space);
     goal().setX(0.0);
     goal().setY(0.5);
     goal().setYaw(0.0);
 
-    # set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
+    # set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05)
 
     # attempt to solve the problem

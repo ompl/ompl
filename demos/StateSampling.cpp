@@ -35,7 +35,7 @@
 /* Author: Mark Moll */
 
 #include <ompl/base/SpaceInformation.h>
-#include <ompl/base/manifolds/SE3StateManifold.h>
+#include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/SimpleSetup.h>
@@ -66,7 +66,7 @@ public:
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
     virtual bool sample(ob::State *state)
     {
-        double* val = static_cast<ob::RealVectorStateManifold::StateType*>(state)->values;
+        double* val = static_cast<ob::RealVectorStateSpace::StateType*>(state)->values;
         double z = rng_.uniformReal(-1,1);
 
         if (z>.25 && z<.5)
@@ -103,7 +103,7 @@ protected:
 // above, because we need to check path segments for validity
 bool isStateValid(const ob::State *state)
 {
-    const ob::RealVectorStateManifold::StateType& pos = *state->as<ob::RealVectorStateManifold::StateType>();
+    const ob::RealVectorStateSpace::StateType& pos = *state->as<ob::RealVectorStateSpace::StateType>();
     // Let's pretend that the validity check is computationally relatively
     // expensive to emphasize the benefit of explicitly generating valid
     // samples
@@ -131,31 +131,31 @@ ob::ValidStateSamplerPtr allocMyValidStateSampler(const ob::SpaceInformation *si
 
 void plan(int samplerIndex)
 {
-    // construct the manifold we are planning in
-    ob::StateManifoldPtr manifold(new ob::RealVectorStateManifold(3));
+    // construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::RealVectorStateSpace(3));
 
     // set the bounds
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    manifold->as<ob::RealVectorStateManifold>()->setBounds(bounds);
+    space->as<ob::RealVectorStateSpace>()->setBounds(bounds);
 
     // define a simple setup class
-    og::SimpleSetup ss(manifold);
+    og::SimpleSetup ss(space);
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
 
     // create a start state
-    ob::ScopedState<> start(manifold);
+    ob::ScopedState<> start(space);
     start[0] = start[1] = start[2] = 0;
 
     // create a goal state
-    ob::ScopedState<> goal(manifold);
+    ob::ScopedState<> goal(space);
     goal[0] = goal[1] = 0.;
     goal[2] = 1;
 
-    // set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
+    // set the start and goal states
     ss.setStartAndGoalStates(start, goal);
 
     // set sampler (optional; the default is uniform sampling)

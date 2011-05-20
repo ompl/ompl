@@ -2,6 +2,9 @@
 
 \page changelog Changelog
 
+\section may_19_2011 May 19, 2011
+    - Renamed StateManifold to StateSpace and ControlManifold to ControlSpace
+
 \section apr_15_2011 April 15, 2011
     - Added ability to generate random paths
 
@@ -9,7 +12,7 @@
     - Added bi-directional version of KPIECE (BKPIECE)
     - Removed use of hill climbing in KPIECE
     - Added a common Discretization to be used by all KPIECE-type planners
-    - bugfix for SO2StateManifold
+    - bugfix for SO2StateSpace
 
 \section mar_21_2011 March 21, 2011
     - Some work on automatic computation of cell sizes for projections
@@ -25,7 +28,7 @@
     - Improvements to GAIK and Profiler
 
 \section feb_10_2011 February 10, 2011
-    - Function to visualize the structure of a manifold (diagram())
+    - Function to visualize the structure of a state space (diagram())
     - Additions and bugfixes for state operators
 
 \section feb_5_2011 February 5, 2011
@@ -33,8 +36,8 @@
 
 \section jan_14_2011 January 14, 2011
     - Convenience operators on scoped states: state[index] will return a double value, if one exists,
-      state[manifold] will return the part of the state that corresponds to the specified manifold.
-      manifold1 + manifold2 yields the Cartesian product of the two. A corresponding - operator exists as well.
+      state[space] will return the part of the state that corresponds to the specified state space.
+      space1 + space2 yields the Cartesian product of the two. A corresponding - operator exists as well.
 
 \section dec_31_2010 December 31, 2010
     - Added copyToReals/copyFromReals for states & controls
@@ -46,7 +49,7 @@
 \section nov_10_2010 November 10, 2010
     - Added a new function for shortening computed solution paths: collapseCloseVertices()
     - Added a repair() function to PathGeometric.
-    - Added a representation of time as a state manifold (TimeStateManifold)
+    - Added a representation of time as a state space (TimeStateSpace)
 
 \section nov_03_2010 November 3, 2010
     - Added support for ODE bindings
@@ -57,7 +60,7 @@
     - The collision checking resolution is a percentage of the extent of the entire space
     - Generic termination conditions for planners
     - Added benchmakring for planning under geometric constraints
-    - Added registerDefaultProjection() for StateManifold.
+    - Added registerDefaultProjection() for StateSpace.
 
 \section aug_09_2010 August 9, 2010
 
@@ -67,13 +70,13 @@
         - planning under differential constraints: KPIECE, RRT
 
     - The representation of states (ompl::base::State) is abstract:
-    manifolds that operate on states (ompl::base::StateManifold) and
-    controls (ompl::control::ControlManifold) need to be
+    state spaces that operate on states (ompl::base::StateSpace) and
+    controls (ompl::control::ControlSpace) need to be
     defined. Based on the topology-specific functionality offered by
-    these manifolds, primitives used by algorithms are
+    these state spaces, primitives used by algorithms are
     implemented (ompl::base::SpaceInformation and
     ompl::control::SpaceInformation). Euclidean projections are
-    defined for StateManifold using registerProjection()
+    defined for StateSpace using registerProjection()
 
     - The representation of goals is abstract. In the most general
     case, a goal is a predicate function that states whether the goal

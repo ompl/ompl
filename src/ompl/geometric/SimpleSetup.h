@@ -57,11 +57,11 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor needs the manifold needed for planning. */
+            /** \brief Constructor needs the state space used for planning. */
             explicit
-            SimpleSetup(const base::StateManifoldPtr &manifold) : configured_(false), planTime_(0.0), simplifyTime_(0.0), msg_("SimpleSetup")
+            SimpleSetup(const base::StateSpacePtr &space) : configured_(false), planTime_(0.0), simplifyTime_(0.0), msg_("SimpleSetup")
             {
-                si_.reset(new base::SpaceInformation(manifold));
+                si_.reset(new base::SpaceInformation(space));
                 pdef_.reset(new base::ProblemDefinition(si_));
                 psk_.reset(new PathSimplifier(si_));
             }
@@ -82,10 +82,10 @@ namespace ompl
                 return pdef_;
             }
 
-            /** \brief Get the current instance of the state manifold */
-            const base::StateManifoldPtr& getStateManifold(void) const
+            /** \brief Get the current instance of the state space */
+            const base::StateSpacePtr& getStateSpace(void) const
             {
-                return si_->getStateManifold();
+                return si_->getStateSpace();
             }
 
             /** \brief Get the current instance of the state validity checker */

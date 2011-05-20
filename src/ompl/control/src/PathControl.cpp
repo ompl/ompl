@@ -187,7 +187,7 @@ void ompl::control::PathControl::random(void)
     states[1] = si->allocState();
     controls[0] = si->allocControl();
 
-    base::ManifoldStateSamplerPtr ss = si->allocManifoldStateSampler();
+    base::StateSamplerPtr ss = si->allocStateSampler();
     ss->sampleUniform(states[0]);
     ControlSamplerPtr cs = si->allocControlSampler();
     cs->sample(controls[0], states[0]);

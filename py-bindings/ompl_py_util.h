@@ -39,14 +39,14 @@
 
 #include <valarray>
 #include "ompl/base/ScopedState.h"
-#include "ompl/base/manifolds/SE2StateManifold.h"
-#include "ompl/base/manifolds/SE3StateManifold.h"
+#include "ompl/base/spaces/SE2StateSpace.h"
+#include "ompl/base/spaces/SE3StateSpace.h"
 
 #define DeclareStateType(T) \
     inline int __dummy##T() \
     { \
-        return sizeof(ompl::base::ScopedState<T##StateManifold>) + \
-        sizeof(ompl::base::T##StateManifold::StateType); \
+        return sizeof(ompl::base::ScopedState<T##StateSpace>) + \
+        sizeof(ompl::base::T##StateSpace::StateType); \
     }
 
 namespace std

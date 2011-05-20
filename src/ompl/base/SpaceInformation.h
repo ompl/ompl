@@ -40,7 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/MotionValidator.h"
-#include "ompl/base/StateManifold.h"
+#include "ompl/base/StateSpace.h"
 #include "ompl/base/ValidStateSampler.h"
 
 #include "ompl/util/ClassForward.h"
@@ -85,9 +85,8 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor. Sets the instance of the manifold
-                to plan on. */
-            SpaceInformation(const StateManifoldPtr &manifold);
+            /** \brief Constructor. Sets the instance of the state space to plan with. */
+            SpaceInformation(const StateSpacePtr &space);
 
             virtual ~SpaceInformation(void)
             {
@@ -99,43 +98,43 @@ namespace ompl
                 return stateValidityChecker_->isValid(state);
             }
 
-            /** \brief Return the instance of the used manifold */
-            const StateManifoldPtr& getStateManifold(void) const
+            /** \brief Return the instance of the used state space */
+            const StateSpacePtr& getStateSpace(void) const
             {
-                return stateManifold_;
+                return stateSpace_;
             }
 
-            /** @name Topology-specific state operations (as in the state manifold)
+            /** @name Topology-specific state operations (as in the state space)
                 @{ */
 
             /** \brief Check if two states are the same */
             bool equalStates(const State *state1, const State *state2) const
             {
-                return stateManifold_->equalStates(state1, state2);
+                return stateSpace_->equalStates(state1, state2);
             }
 
             /** \brief Check if a state is inside the bounding box */
             bool satisfiesBounds(const State *state) const
             {
-                return stateManifold_->satisfiesBounds(state);
+                return stateSpace_->satisfiesBounds(state);
             }
 
             /** \brief Compute the distance between two states */
             double distance(const State *state1, const State *state2) const
             {
-                return stateManifold_->distance(state1, state2);
+                return stateSpace_->distance(state1, state2);
             }
 
             /** \brief Bring the state within the bounds of the state space */
             void enforceBounds(State *state) const
             {
-                stateManifold_->enforceBounds(state);
+                stateSpace_->enforceBounds(state);
             }
 
             /** \brief Print a state to a stream */
             void printState(const State *state, std::ostream &out = std::cout) const
             {
-                stateManifold_->printState(state, out);
+                stateSpace_->printState(state, out);
             }
 
             /** @} */
@@ -188,7 +187,7 @@ namespace ompl
                 used. See \ref stateValidation. */
             void setStateValidityCheckingResolution(double resolution)
             {
-                stateManifold_->setLongestValidSegmentFraction(resolution);
+                stateSpace_->setLongestValidSegmentFraction(resolution);
                 setup_ = false;
             }
 
@@ -198,7 +197,7 @@ namespace ompl
                 stateValidation. */
             double getStateValidityCheckingResolution(void) const
             {
-                return stateManifold_->getLongestValidSegmentFraction();
+                return stateSpace_->getLongestValidSegmentFraction();
             }
 
 
@@ -207,7 +206,7 @@ namespace ompl
             /** \brief Return the dimension of the state space */
             unsigned int getStateDimension(void) const
             {
-                return stateManifold_->getDimension();
+                return stateSpace_->getDimension();
             }
 
             /** @name State memory management
@@ -216,26 +215,26 @@ namespace ompl
             /** \brief Allocate memory for a state */
             State* allocState(void) const
             {
-                return stateManifold_->allocState();
+                return stateSpace_->allocState();
             }
 
             /** \brief Free the memory of a state */
             void freeState(State *state) const
             {
-                stateManifold_->freeState(state);
+                stateSpace_->freeState(state);
             }
 
             /** \brief Copy a state to another */
             void copyState(State *destination, const State *source) const
             {
-                stateManifold_->copyState(destination, source);
+                stateSpace_->copyState(destination, source);
             }
 
             /** \brief Clone a state */
             State* cloneState(const State *source) const
             {
-                State *copy = stateManifold_->allocState();
-                stateManifold_->copyState(copy, source);
+                State *copy = stateSpace_->allocState();
+                stateSpace_->copyState(copy, source);
                 return copy;
             }
 
@@ -245,10 +244,10 @@ namespace ompl
             /** @name Sampling of valid states
                 @{ */
 
-            /** \brief Allocate a uniform state sampler for the manifold representing the space */
-            ManifoldStateSamplerPtr allocManifoldStateSampler(void) const
+            /** \brief Allocate a uniform state sampler for the state space */
+            StateSamplerPtr allocStateSampler(void) const
             {
-                return stateManifold_->allocStateSampler();
+                return stateSpace_->allocStateSampler();
             }
 
             /** \brief Allocate an instance of a valid state sampler for this space. If setValidStateSamplerAllocator() was previously called,
@@ -275,7 +274,7 @@ namespace ompl
                 be reported between any two given states */
             double getMaximumExtent(void) const
             {
-                return stateManifold_->getMaximumExtent();
+                return stateSpace_->getMaximumExtent();
             }
 
             /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
@@ -297,12 +296,12 @@ namespace ompl
             bool searchValidNearby(const ValidStateSamplerPtr &sampler, State *state, const State *near, double distance) const;
 
             /** \brief Produce a valid motion starting at \e start by randomly bouncing off of invalid states. The start state \e start is not included in the computed motion (\e states). Returns the number of elements written to \e states (less or equal to \e steps).
-             *  \param mss the manifold state sampler to use
+             *  \param sss the state space sampler to use
              *  \param start the state at which to start bouncing
              *  \param steps the number of bouncing steps to take
              *  \param states the location at which generated states will be stored
              *  \param alloc flag indicating whether memory should be allocated for \e states */
-            unsigned int randomBounceMotion(const ManifoldStateSamplerPtr &mss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const;
+            unsigned int randomBounceMotion(const StateSamplerPtr &sss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const;
 
             /** \brief Incrementally check if the path between two motions is valid. Also compute the last state that was
                 valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at t =
@@ -358,8 +357,8 @@ namespace ompl
 
         protected:
 
-            /** \brief The manifold planning is to be performed in */
-            StateManifoldPtr           stateManifold_;
+            /** \brief The state space planning is to be performed in */
+            StateSpacePtr              stateSpace_;
 
             /** \brief The instance of the state validity checker used for determining the validity of states in the planning process */
             StateValidityCheckerPtr    stateValidityChecker_;

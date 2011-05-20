@@ -101,7 +101,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
     }
 
     if (!sampler_)
-        sampler_ = si_->allocManifoldStateSampler();
+        sampler_ = si_->allocStateSampler();
     if (!controlSampler_)
         controlSampler_ = siC_->allocControlSampler();
 

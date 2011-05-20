@@ -330,10 +330,10 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                         run["solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
                         run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
 
-                        unsigned int factor = gsetup_->getStateManifold()->getValidSegmentCountFactor();
-                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor * 4);
+                        unsigned int factor = gsetup_->getStateSpace()->getValidSegmentCountFactor();
+                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
                         run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor);
+                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
 
                         // simplify solution
                         timeStart = time::now();
@@ -345,9 +345,9 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                         run["simplified solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
                         run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
                         run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor * 4);
+                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
                         run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateManifold()->setValidSegmentCountFactor(factor);
+                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
                     }
                     else
                     {

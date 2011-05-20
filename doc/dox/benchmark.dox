@@ -27,8 +27,8 @@
         return ompl::base::PlannerPtr(est);
     }
 
-    // Create a manifold for the space we are planning in
-    ompl::geometric::SimpleSetup ss(manifold);
+    // Create a state space for the space we are planning in
+    ompl::geometric::SimpleSetup ss(space);
 
     // Configure the problem to solve: set start state(s)
     // and goal representation

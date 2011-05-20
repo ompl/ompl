@@ -193,7 +193,7 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
                         break;
                     }
                 // we know nextValid will be initialised because n1 is certainly valid.
-                si_->getStateManifold()->interpolate(states[i - 1], states[nextValid], 0.5, temp);
+                si_->getStateSpace()->interpolate(states[i - 1], states[nextValid], 0.5, temp);
                 radius = std::max(si_->distance(states[i-1], temp), si_->distance(states[i-1], states[i]));
             }
 
@@ -235,7 +235,7 @@ void ompl::geometric::PathGeometric::subdivide(void)
     for (unsigned int i = 1 ; i < states.size() ; ++i)
     {
         base::State *temp = si_->allocState();
-        si_->getStateManifold()->interpolate(newStates.back(), states[i], 0.5, temp);
+        si_->getStateSpace()->interpolate(newStates.back(), states[i], 0.5, temp);
         newStates.push_back(temp);
         newStates.push_back(states[i]);
     }
@@ -247,7 +247,7 @@ void ompl::geometric::PathGeometric::interpolate(void)
     unsigned int n = 0;
     const int n1 = states.size() - 1;
     for (int i = 0 ; i < n1 ; ++i)
-        n += si_->getStateManifold()->validSegmentCount(states[i], states[i + 1]);
+        n += si_->getStateSpace()->validSegmentCount(states[i], states[i + 1]);
     interpolate(n);
 }
 
@@ -329,7 +329,7 @@ void ompl::geometric::PathGeometric::random(void)
     states.resize(2);
     states[0] = si_->allocState();
     states[1] = si_->allocState();
-    base::ManifoldStateSamplerPtr ss = si_->allocManifoldStateSampler();
+    base::StateSamplerPtr ss = si_->allocStateSampler();
     ss->sampleUniform(states[0]);
     ss->sampleUniform(states[1]);
 }
@@ -365,8 +365,8 @@ void ompl::geometric::PathGeometric::overlay(const PathGeometric &over, unsigned
 {
     if (startIndex > states.size())
         throw Exception("Index on path is out of bounds");
-    const base::StateManifoldPtr &sm = over.si_->getStateManifold();
-    const base::StateManifoldPtr &dm = si_->getStateManifold();
+    const base::StateSpacePtr &sm = over.si_->getStateSpace();
+    const base::StateSpacePtr &dm = si_->getStateSpace();
     bool copy = !states.empty();
     for (unsigned int i = 0, j = startIndex ; i < over.states.size() ; ++i, ++j)
     {
@@ -384,7 +384,7 @@ void ompl::geometric::PathGeometric::overlay(const PathGeometric &over, unsigned
 
 void ompl::geometric::PathGeometric::append(const PathGeometric &path)
 {
-    if (path.si_->getStateManifold()->getName() == si_->getStateManifold()->getName())
+    if (path.si_->getStateSpace()->getName() == si_->getStateSpace()->getName())
     {
         PathGeometric copy(path);
         states.insert(states.end(), copy.states.begin(), copy.states.end());

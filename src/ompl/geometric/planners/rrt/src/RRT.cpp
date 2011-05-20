@@ -99,7 +99,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
     }
 
     if (!sampler_)
-        sampler_ = si_->allocManifoldStateSampler();
+        sampler_ = si_->allocStateSampler();
 
     msg_.inform("Starting with %u states", nn_->size());
 
@@ -127,7 +127,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
         double d = si_->distance(nmotion->state, rstate);
         if (d > maxDistance_)
         {
-            si_->getStateManifold()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
+            si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
             dstate = xstate;
         }
 

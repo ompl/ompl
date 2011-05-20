@@ -64,7 +64,7 @@ namespace ompl
            It is important to set the projection the algorithm uses
            (setProjectionEvaluator() function). If no projection is
            set, the planner will attempt to use the default projection
-           associated to the state manifold. An exception is thrown if
+           associated to the state space. An exception is thrown if
            no default projection is available either.
            This implementation is intended for systems with differential constraints.
 
@@ -172,10 +172,10 @@ namespace ompl
             }
 
             /** \brief Set the projection evaluator (select one from
-                the ones registered with the state manifold). */
+                the ones registered with the state space). */
             void setProjectionEvaluator(const std::string &name)
             {
-                projectionEvaluator_ = si_->getStateManifold()->getProjection(name);
+                projectionEvaluator_ = si_->getStateSpace()->getProjection(name);
             }
 
             /** \brief Get the projection evaluator */

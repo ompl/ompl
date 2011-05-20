@@ -126,7 +126,7 @@ There are a few implementations of ompl::base::GoalSampleableRegion available, f
     ompl::base::GoalSampleableRegion) stores one state as the
     goal. Sampling the goal state will always return this state and the
     distance to the goal is implemented by calling
-    ompl::base::StateManifold::distance() between the stored goal state
+    ompl::base::StateSpace::distance() between the stored goal state
     and the state passed to ompl::base::GoalRegion::distanceGoal().
   - ompl::base::GoalStates (inherits from
     ompl::base::GoalSampleableRegion) is a generalization of

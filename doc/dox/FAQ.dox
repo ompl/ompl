@@ -22,15 +22,15 @@
   all the states and the edges between them. Functionality for
   plotting this data is however not available.
 
-- Q: <em>Can I change the state manifold during planning?</em>
+- Q: <em>Can I change the state space during planning?</em>
   <br>
   A: No. Such changes will make the code crash.
 
 - Q: <em>Can I set the sampler to use for a planner?</em>
   <br>
   A: Yes. The sampler instances used by planners are allocated by
-  either ompl::base::SpaceInformation::allocManifoldStateSampler()
-  (which calls ompl::base::StateManifold::allocStateSampler()
+  either ompl::base::SpaceInformation::allocStateSampler()
+  (which calls ompl::base::StateSpace::allocStateSampler()
   under the hood) or by
   ompl::base::SpaceInformation::allocValidStateSampler().  By default,
   ompl::base::SpaceInformation::allocValidStateSampler() produces an
@@ -47,8 +47,8 @@
         return ompl::base::ValidStateSamplerPtr(new ompl::base::ObstacleBasedValidStateSampler(si));
   }
   ...
-  ompl::base::StateManifoldPtr manifold(...);
-  ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(manifold));
+  ompl::base::StateSpacePtr space(...);
+  ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
   si->setValidStateSamplerAllocator(boost::bind(&allocValidStateSampler, _1));
   // for simplified calls, you can also use:
   // si->setValidStateSamplerAllocator(&allocValidStateSampler);

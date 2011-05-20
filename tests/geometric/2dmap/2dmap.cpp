@@ -40,8 +40,8 @@
 #include <iostream>
 
 #include "ompl/geometric/PathSimplifier.h"
-#include "ompl/base/manifolds/RealVectorStateManifold.h"
-#include "ompl/base/manifolds/RealVectorStateProjections.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/base/spaces/RealVectorStateProjections.h"
 #include "ompl/base/GoalState.h"
 
 #include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
@@ -77,8 +77,8 @@ public:
     virtual bool isValid(const base::State *state) const
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x = (int)(state->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y = (int)(state->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
         return grid_[x][y] == 0; // 0 means valid state
     }
 
@@ -88,22 +88,22 @@ protected:
 
 };
 
-class myManifold : public base::RealVectorStateManifold
+class mySpace : public base::RealVectorStateSpace
 {
 public:
 
-    myManifold() : base::RealVectorStateManifold(2)
+    mySpace() : base::RealVectorStateSpace(2)
     {
     }
 
     virtual double distance(const base::State *state1, const base::State *state2) const
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x1 = (int)(state1->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y1 = (int)(state1->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
-        int x2 = (int)(state2->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y2 = (int)(state2->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
         return abs(x1 - x2) + abs(y1 - y2);
     }
@@ -112,7 +112,7 @@ public:
 /** \brief Space information */
 base::SpaceInformationPtr mySpaceInformation(Environment2D &env)
 {
-    base::RealVectorStateManifold *sMan = new myManifold();
+    base::RealVectorStateSpace *sSpace = new mySpace();
 
     base::RealVectorBounds sbounds(2);
 
@@ -127,11 +127,11 @@ base::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     sbounds.low[1] = 0.0;
     sbounds.high[1] = (double)env.height - 0.000000001;
 
-    sMan->setBounds(sbounds);
+    sSpace->setBounds(sbounds);
 
-    base::StateManifoldPtr sManPtr(sMan);
+    base::StateSpacePtr sSpacePtr(sSpace);
 
-    base::SpaceInformationPtr si(new base::SpaceInformation(sManPtr));
+    base::SpaceInformationPtr si(new base::SpaceInformation(sSpacePtr));
     si->setStateValidityCheckingResolution(0.016);
 
     si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityChecker(si.get(), env.grid)));
@@ -169,14 +169,14 @@ public:
         planner->setup();
 
         /* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
-        base::ScopedState<base::RealVectorStateManifold> state(si);
+        base::ScopedState<base::RealVectorStateSpace> state(si);
         state->values[0] = env.start.first;
         state->values[1] = env.start.second;
         pdef->addStartState(state);
 
         /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
         base::GoalState *goal = new base::GoalState(si);
-        base::ScopedState<base::RealVectorStateManifold> gstate(si);
+        base::ScopedState<base::RealVectorStateSpace> gstate(si);
         gstate->values[0] = env.goal.first;
         gstate->values[1] = env.goal.second;
         goal->setState(gstate);
@@ -227,8 +227,8 @@ public:
             /* display the solution */
             for (unsigned int i = 0 ; i < path->states.size() ; ++i)
             {
-                int x = (int)(path->states[i]->as<base::RealVectorStateManifold::StateType>()->values[0]);
-                int y = (int)(path->states[i]->as<base::RealVectorStateManifold::StateType>()->values[1]);
+                int x = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[0]);
+                int y = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[1]);
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else
@@ -320,7 +320,7 @@ protected:
         cdim.push_back(1);
         cdim.push_back(1);
 
-        sbl->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateManifold(), cdim, projection)));
+        sbl->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
 
         return base::PlannerPtr(sbl);
     }
@@ -346,7 +346,7 @@ protected:
         cdim.push_back(1);
         cdim.push_back(1);
 
-        sbl->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateManifold(), cdim, projection)));
+        sbl->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
 
         return base::PlannerPtr(sbl);
     }
@@ -370,7 +370,7 @@ protected:
         cdim.push_back(1);
         cdim.push_back(1);
 
-        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateManifold(), cdim, projection)));
+        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
 
         return base::PlannerPtr(kpiece);
     }
@@ -393,7 +393,7 @@ protected:
         cdim.push_back(1);
         cdim.push_back(1);
 
-        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateManifold(), cdim, projection)));
+        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
 
         return base::PlannerPtr(kpiece);
     }
@@ -417,7 +417,7 @@ protected:
         cdim.push_back(1);
         cdim.push_back(1);
 
-        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateManifold(), cdim, projection)));
+        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
 
         return base::PlannerPtr(kpiece);
     }
@@ -441,7 +441,7 @@ protected:
         projection.push_back(0);
         projection.push_back(1);
 
-        est->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateManifold(), cdim, projection)));
+        est->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
 
         return base::PlannerPtr(est);
     }

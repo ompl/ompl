@@ -39,25 +39,25 @@
 
 ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(base::SpaceInformation* si) : base::StateValidityChecker(si)
 {
-    if (!dynamic_cast<ODEStateManifold*>(si->getStateManifold().get()))
-        throw Exception("Cannot create state validity checking for ODE without ODE manifold");
-    osm_ = si->getStateManifold()->as<ODEStateManifold>();
+    if (!dynamic_cast<ODEStateSpace*>(si->getStateSpace().get()))
+        throw Exception("Cannot create state validity checking for ODE without ODE state space");
+    osm_ = si->getStateSpace()->as<ODEStateSpace>();
 }
 
 ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(const SpaceInformationPtr &si) : base::StateValidityChecker(si)
 {
-    if (!dynamic_cast<ODEStateManifold*>(si->getStateManifold().get()))
-        throw Exception("Cannot create state validity checking for ODE without ODE manifold");
-    osm_ = si->getStateManifold()->as<ODEStateManifold>();
+    if (!dynamic_cast<ODEStateSpace*>(si->getStateSpace().get()))
+        throw Exception("Cannot create state validity checking for ODE without ODE state space");
+    osm_ = si->getStateSpace()->as<ODEStateSpace>();
 }
 
 bool ompl::control::ODEStateValidityChecker::isValid(const base::State *state) const
 {
-    const ODEStateManifold::StateType *s = state->as<ODEStateManifold::StateType>();
+    const ODEStateSpace::StateType *s = state->as<ODEStateSpace::StateType>();
 
     // if we know the value of the validity flag for this state, we return it
-    if (s->collision & (1 << ODEStateManifold::STATE_VALIDITY_KNOWN_BIT))
-        return s->collision & (1 << ODEStateManifold::STATE_VALIDITY_VALUE_BIT);
+    if (s->collision & (1 << ODEStateSpace::STATE_VALIDITY_KNOWN_BIT))
+        return s->collision & (1 << ODEStateSpace::STATE_VALIDITY_VALUE_BIT);
 
     // if not, we compute it:
     bool valid = false;
@@ -66,10 +66,10 @@ bool ompl::control::ODEStateValidityChecker::isValid(const base::State *state) c
         valid = osm_->satisfiesBoundsExceptRotation(s);
 
     if (valid)
-        s->collision &= (1 << ODEStateManifold::STATE_VALIDITY_VALUE_BIT);
+        s->collision &= (1 << ODEStateSpace::STATE_VALIDITY_VALUE_BIT);
 
     // mark the fact we know the value of the validity bit
-    s->collision &= (1 << ODEStateManifold::STATE_VALIDITY_KNOWN_BIT);
+    s->collision &= (1 << ODEStateSpace::STATE_VALIDITY_KNOWN_BIT);
 
     return valid;
 }

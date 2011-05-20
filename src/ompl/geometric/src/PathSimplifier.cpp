@@ -61,9 +61,9 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
         {
             if (si->isValid(path.states[i - 1]))
             {
-                si->getStateManifold()->interpolate(path.states[i - 1], path.states[i], 0.5, temp1);
-                si->getStateManifold()->interpolate(path.states[i], path.states[i + 1], 0.5, temp2);
-                si->getStateManifold()->interpolate(temp1, temp2, 0.5, temp1);
+                si->getStateSpace()->interpolate(path.states[i - 1], path.states[i], 0.5, temp1);
+                si->getStateSpace()->interpolate(path.states[i], path.states[i + 1], 0.5, temp2);
+                si->getStateSpace()->interpolate(temp1, temp2, 0.5, temp1);
                 if (si->checkMotion(path.states[i - 1], temp1) && si->checkMotion(temp1, path.states[i + 1]))
                 {
                     if (si->distance(path.states[i], temp1) > minChange)

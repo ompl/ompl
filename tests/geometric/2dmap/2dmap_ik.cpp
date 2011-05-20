@@ -40,7 +40,7 @@
 #include <iostream>
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/manifolds/RealVectorStateManifold.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/GoalState.h"
 #include "ompl/geometric/ik/GAIK.h"
 #include "ompl/util/Time.h"
@@ -65,8 +65,8 @@ public:
     virtual bool isValid(const base::State *state) const
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x = (int)(state->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y = (int)(state->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
         return grid_[x][y] == 0; // 0 means valid state
     }
 
@@ -76,22 +76,22 @@ protected:
 
 };
 
-class myManifold : public base::RealVectorStateManifold
+class mySpace : public base::RealVectorStateSpace
 {
 public:
 
-    myManifold() : base::RealVectorStateManifold(2)
+    mySpace() : base::RealVectorStateSpace(2)
     {
     }
 
     virtual double distance(const base::State *state1, const base::State *state2) const
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x1 = (int)(state1->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y1 = (int)(state1->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
-        int x2 = (int)(state2->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y2 = (int)(state2->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
         return abs(x1 - x2) + abs(y1 - y2);
     }
@@ -100,7 +100,7 @@ public:
 /** \brief Space information */
 base::SpaceInformationPtr mySpaceInformation(Environment2D &env)
 {
-    base::RealVectorStateManifold *sMan = new myManifold();
+    base::RealVectorStateSpace *sSpace = new mySpace();
 
     base::RealVectorBounds sbounds(2);
 
@@ -115,11 +115,11 @@ base::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     sbounds.low[1] = 0.0;
     sbounds.high[1] = (double)env.height - 0.000000001;
 
-    sMan->setBounds(sbounds);
+    sSpace->setBounds(sbounds);
 
-    base::StateManifoldPtr sManPtr(sMan);
+    base::StateSpacePtr sSpacePtr(sSpace);
 
-    base::SpaceInformationPtr si(new base::SpaceInformation(sManPtr));
+    base::SpaceInformationPtr si(new base::SpaceInformation(sSpacePtr));
     si->setStateValidityCheckingResolution(0.016);
 
     si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityChecker(si.get(), env.grid)));
@@ -150,7 +150,7 @@ TEST(GAIK, Simple)
 
     /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
     base::GoalState goal(si);
-    base::ScopedState<base::RealVectorStateManifold> gstate(si);
+    base::ScopedState<base::RealVectorStateSpace> gstate(si);
     gstate->values[0] = env.goal.first;
     gstate->values[1] = env.goal.second;
     goal.setState(gstate);
@@ -158,7 +158,7 @@ TEST(GAIK, Simple)
 
     geometric::GAIK gaik(si);
     gaik.setRange(5.0);
-    base::ScopedState<base::RealVectorStateManifold> found(si);
+    base::ScopedState<base::RealVectorStateSpace> found(si);
     double time = 0.0;
 
     /* start counting time */

@@ -76,9 +76,9 @@ def isValid(grid, spaceinformation, state):
     y = int(state[1][0])
     return grid[x][y] == 0 # 0 means valid state
 
-class myManifold1(ob.RealVectorStateManifold):
+class mySpace1(ob.RealVectorStateSpace):
     def __init__(self):
-        super(myManifold1, self).__init__(1)
+        super(mySpace1, self).__init__(1)
 
     def distance(self, state1, state2):
         x1 = int(state1[0])
@@ -87,30 +87,30 @@ class myManifold1(ob.RealVectorStateManifold):
 
 class mySetup(object):
     def __init__(self, env):
-        self.manifold = ob.CompoundStateManifold()
-        self.setup = og.SimpleSetup(self.manifold)
+        self.space = ob.CompoundStateSpace()
+        self.setup = og.SimpleSetup(self.space)
         bounds = ob.RealVectorBounds(1)
         bounds.setLow(0)
         bounds.setHigh(float(env.width) - 0.000000001)
-        self.m1 = myManifold1()
+        self.m1 = mySpace1()
         self.m1.setBounds(bounds)
 
         bounds.setHigh(float(env.height) - 0.000000001)
-        self.m2 = myManifold1()
+        self.m2 = mySpace1()
         self.m2.setBounds(bounds)
 
-        self.manifold.addSubManifold(self.m1, 1.0)
-        self.manifold.addSubManifold(self.m2, 1.0)
+        self.space.addSubSpace(self.m1, 1.0)
+        self.space.addSubSpace(self.m2, 1.0)
 
         isValidFn = partial(isValid, env.grid)
         self.setup.setStateValidityChecker(isValidFn)
 
-        state = ob.CompoundState(self.manifold)
+        state = ob.CompoundState(self.space)
         state()[0][0] = env.start[0]
         state()[1][0] = env.start[1]
         self.start = ob.State(state)
 
-        gstate = ob.CompoundState(self.manifold)
+        gstate = ob.CompoundState(self.space)
         gstate()[0][0] = env.goal[0]
         gstate()[1][0] = env.goal[1]
         self.goal = ob.State(gstate)

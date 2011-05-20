@@ -56,7 +56,7 @@ void ompl::geometric::checkProjectionEvaluator(const base::Planner *planner, bas
     {
         msg::Interface msg(planner->getName());
         msg.inform("Attempting to use default projection.");
-        proj = planner->getSpaceInformation()->getStateManifold()->getDefaultProjection();
+        proj = planner->getSpaceInformation()->getStateSpace()->getDefaultProjection();
     }
     if (!proj)
         throw Exception(planner->getName(), "No projection evaluator specified");

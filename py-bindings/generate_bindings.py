@@ -59,10 +59,10 @@ class ompl_base_generator_t(code_generator_t):
         # A C++ call like "foo.printState(state, std::cout)" will be replaced with
         # something more pythonesque: "print foo.string(state)"
         replacement['printState'] = ('def("string", &__printState)', """
-        std::string __printState(%s* manifold, ompl::base::State* state)
+        std::string __printState(%s* space, ompl::base::State* state)
         {
             std::ostringstream s;
-            manifold->printState(state, s);
+            space->printState(state, s);
             return s.str();
         }
         """)
@@ -152,13 +152,13 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
         self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
         self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
-        self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateManifold> >').rename('vectorStateManifoldPtr')
+        self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
         self.std_ns.class_('map< std::string, std::string>').rename('mapStringToString')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
-        # force StateManifold::allocState to be exported.
+        # force StateSpace::allocState to be exported.
         # (not sure why this is necessary)
-        allocStateFn = self.ompl_ns.class_('StateManifold').member_function('allocState')
+        allocStateFn = self.ompl_ns.class_('StateSpace').member_function('allocState')
         allocStateFn.include()
         allocStateFn.call_policies = \
             call_policies.return_value_policy(call_policies.reference_existing_object)
@@ -170,38 +170,38 @@ class ompl_base_generator_t(code_generator_t):
         state.variable('components').exclude()
         state.rename('CompoundStateInternal')
         # rename a ScopedState<> to State
-        bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateManifold >')
+        bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateSpace >')
         bstate.rename('State')
         bstate.operator('=', arg_types=['::ompl::base::State const &']).exclude()
         # add array access to double components of state
         self.add_array_access(bstate,'double')
-        # loop over all predefined state manifolds
+        # loop over all predefined state spaces
         for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3']:
             # create a python type for each of their corresponding state types
-            state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateManifold >' % stype)
+            state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
             state.rename(stype+'State')
             state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
             # add a constructor that allows, e.g., an SE3State to be constructed from a State
             state.add_registration_code(
-                'def(bp::init<ompl::base::ScopedState<ompl::base::StateManifold> const &>(( bp::arg("other") )))')
-            # mark the manifold statetype as 'internal' to emphasize that it
+                'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
+            # mark the space statetype as 'internal' to emphasize that it
             # shouldn't typically be used by a regular python user
-            self.ompl_ns.class_(stype + 'StateManifold').decls('StateType').rename(
+            self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                 stype + 'StateInternal')
             # add a constructor that allows, e.g., an State to be constructed from a SE3State
             bstate.add_registration_code(
-                'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateManifold> const &>(( bp::arg("other") )))' % stype)
+                'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
             # add array access to double components of state
             self.add_array_access(state,'double')
         # don't this utility function
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         # don't expose double*
-        self.ompl_ns.class_('RealVectorStateManifold').class_(
+        self.ompl_ns.class_('RealVectorStateSpace').class_(
             'StateType').variable('values').exclude()
         # don't expose std::map< const State *, unsigned int >
         self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
         # add array indexing to the RealVectorState
-        self.add_array_access(self.ompl_ns.class_('RealVectorStateManifold').class_('StateType'))
+        self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
         # add array indexing to the EuclideanProjection
         self.add_array_access(self.ompl_ns.class_('EuclideanProjection'))
         # make objects printable that have a print function
@@ -234,10 +234,10 @@ class ompl_control_generator_t(code_generator_t):
         # A C++ call like "foo.printControl(control, std::cout)" will be replaced with
         # something more pythonesque: "print foo.string(control)"
         replacement['printControl'] = ('def("string", &__printControl)', """
-        std::string __printControl(%s* manifold, ompl::control::Control* control)
+        std::string __printControl(%s* space, ompl::control::Control* control)
         {
             std::ostringstream s;
-            manifold->printControl(control, s);
+            space->printControl(control, s);
             return s.str();
         }
         """)
@@ -274,10 +274,10 @@ class ompl_control_generator_t(code_generator_t):
         {
             PropagatePyWrapper( bp::object callable ) : callable_( callable ) {}
 
-            void operator()(const ompl::control::ControlManifold* cmanifold, const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
+            void operator()(const ompl::control::ControlSpace* cspace, const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
             {
                 PyGILState_STATE gstate = PyGILState_Ensure();
-                callable_(bp::ptr(cmanifold), bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
+                callable_(bp::ptr(cspace), bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
                 PyGILState_Release( gstate );
             }
 
@@ -287,7 +287,7 @@ class ompl_control_generator_t(code_generator_t):
         void setPropagationFunctionWrapper(%s* obj, bp::object function)
         {
             obj->setPropagationFunction( boost::bind(
-            boost::function<void (const ompl::control::ControlManifold*, const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)>(PropagatePyWrapper(function)),
+            boost::function<void (const ompl::control::ControlSpace*, const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)>(PropagatePyWrapper(function)),
                 obj, _1, _2, _3, _4));
         }
         """)
@@ -302,9 +302,9 @@ class ompl_control_generator_t(code_generator_t):
         self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
-        # force ControlManifold::allocState to be exported.
+        # force ControlSpace::allocState to be exported.
         # (not sure why this is necessary)
-        allocControlFn = self.ompl_ns.class_('ControlManifold').member_function('allocControl')
+        allocControlFn = self.ompl_ns.class_('ControlSpace').member_function('allocControl')
         allocControlFn.include()
         allocControlFn.call_policies = \
             call_policies.return_value_policy(call_policies.reference_existing_object)
@@ -316,7 +316,7 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         self.ompl_ns.class_('KPIECE1').member_functions('freeGridMotions').exclude()
         # add array indexing to the RealVectorState
-        self.add_array_access(self.ompl_ns.class_('RealVectorControlManifold').class_('ControlType'))
+        self.add_array_access(self.ompl_ns.class_('RealVectorControlSpace').class_('ControlType'))
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         # make settings printable
@@ -329,7 +329,7 @@ class ompl_control_generator_t(code_generator_t):
             arg_types=['::ompl::base::StateValidityCheckerFn const &']))
         # add wrapper code for setPropagationFunction
         self.replace_member_functions(self.ompl_ns.namespace('control').class_(
-            'ControlManifold').member_functions('setPropagationFunction'))
+            'ControlSpace').member_functions('setPropagationFunction'))
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()

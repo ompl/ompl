@@ -37,7 +37,7 @@
 #ifndef OMPL_EXTENSION_ODE_STATE_VALIDITY_CHECKER_
 #define OMPL_EXTENSION_ODE_STATE_VALIDITY_CHECKER_
 
-#include "ompl/extensions/ode/ODEStateManifold.h"
+#include "ompl/extensions/ode/ODEStateSpace.h"
 #include "ompl/control/SpaceInformation.h"
 
 namespace ompl
@@ -61,8 +61,8 @@ namespace ompl
 
         protected:
 
-            /** \brief The corresponding ODE state manifold */
-            ODEStateManifold *osm_;
+            /** \brief The corresponding ODE state space */
+            ODEStateSpace *osm_;
         };
     }
 }

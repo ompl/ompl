@@ -1,0 +1,59 @@
+/**
+\page implementingStateSpaces Implementing State Spaces
+
+@par Combining existing state spaces
+The simplest way to obtain new state spaces is to combine existing
+ones. For example, to get the state space of a manipulator arm one could
+combine R<sup>5</sup> (ompl::base::RealVectorStateSpace) and SO2
+(ompl::base::SO2StateSpace) to represent 5 joints that have bounds
+and one joint that can rotate continuously:
+@code
+ompl::base::StateSpacePtr r5(new ompl::base::RealVectorStateSpace(5));
+ompl::base::StateSpacePtr so2(new ompl::base::SO2StateSpace())
+ompl::base::StateSpacePtr newSpace = r5 + so2;
+@endcode
+Alternatively to using the "+" operator on state spaces (see \ref
+workingWithStates "working with states and state spaces"), one could
+directly create an instance of ompl::base::CompoundStateSpace and
+call ompl::base::CompoundStateSpace::addSubSpace() on it. This
+approach allows setting the weights of each added subspace for
+computing distances bewteen states in the compound state space. When
+using the "+" operator these weights are assumed to be 1.0.
+@code
+ompl::base::CompoundStateSpace *newSpace = new ompl::base::CompoundStateSpace();
+newSpace->addSubSpace(ompl::base::StateSpacePtr(new ompl::base::RealVectorStateSpace(5)), 1.0);
+newSpace->addSubSpace(ompl::base::StateSpacePtr(new ompl::base::SO2StateSpace()), 0.5);
+@endcode
+
+@par Inheriting from existing state spaces
+In order to implement a new state space it is necessary to define a
+class that inherits from an existing state space class. All state space
+specific functions (pure virtual in the ompl::base::StateSpace
+class) need to be implemented accordingly. If the implementation of
+the new state space defines a ompl::base::StateSpace::allocState()
+function, it should also provide a
+ompl::base::StateSpace::freeState() function and define (or
+typedef) @b StateType to the type of the state that is
+allocated/freed. In such cases it will often be necessary to also implement
+ompl::base::StateSpace::copyState() and perhaps ompl::base::StateSpace::equalStates().
+
+@par Inheriting from ompl::base::CompoundStateSpace
+Another option is to inherit from a ompl::base::CompoundStateSpace
+and call ompl::base::CompoundStateSpace::addSubSpace() in the
+constructor of the new class for other existing state spaces. This is the
+easiest way to create new state spaces -- only the constructor needs to
+be provided. For example, see
+ompl::base::SE2StateSpace. Optionally, the
+ompl::base::CompoundStateSpace::lock() function can be called after
+the components have been set in order to prevent the user of the
+state space from adding further components.
+
+Optionally, if there exist projections to Euclidean spaces
+(ompl::base::ProjectionEvaluator) for the defined state space, these can
+be registered by the ompl::base::StateSpace::registerProjections()
+function (by calling ompl::base::StateSpace::registerProjection()
+or ompl::base::StateSpace::registerDefaultProjection()). Planners
+that need a projection but do not have one defined will attempt using
+this default projection during planning.
+
+*/

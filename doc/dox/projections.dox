@@ -36,24 +36,19 @@
     into roughly 20 parts. This is merely a default and the user is
     encouraged to set desired cell sizes.
 
-    Projections are specific to manifolds. This means that each
-    ompl::base::StateManifold has its corresponding set of
-    ompl::base::ProjectionEvaluator. In the implementation of
-    manifolds, it is recommended that projections are set in the
-    ompl::base::StateManifold::registerProjections()
-    function. Although not required, it is good practice to register
-    all projections to their corresponding manifold, as this ensures
-    calling ompl::base::ProjectionEvaluator::setup() when needed.
-    Most manifolds have at least a default projection set by
-    ompl::base::StateManifold::registerProjections(). For compound
-    manifolds (ompl::base::CompoundStateManifold), an automatic
-    projection can be computed
-    (ompl::base::CompoundProjectionEvaluator), based on the default
-    projection of contained manifolds. This is typically slow to
-    evaluate and not set by default. The user is encouraged to define
-    appropriate projections, if available.
+    Projections are specific to state spaces. This means that each
+    ompl::base::StateSpace has its corresponding set of
+    ompl::base::ProjectionEvaluator. In the implementation of state
+    spaces, it is recommended that projections are set in the
+    ompl::base::StateSpace::registerProjections() function. Although
+    not required, it is good practice to register all projections to
+    their corresponding state space, as this ensures calling
+    ompl::base::ProjectionEvaluator::setup() when needed.  Most state
+    spaces have at least a default projection set by
+    ompl::base::StateSpace::registerProjections(). The user is
+    encouraged to define appropriate projections, if available.
 
-    Example code for adding a projection for an R<sup>n</sup> manifold:
+    Example code for adding a projection for an R<sup>n</sup> state space:
     \code
     using namespace ompl;
 
@@ -61,7 +56,7 @@
     {
     public:
 
-    MyProjection(const base::StateManifoldPtr &manifold) : base::ProjectionEvaluator(manifold)
+    MyProjection(const base::StateSpacePtr &space) : base::ProjectionEvaluator(space)
     {
     }
 
@@ -79,16 +74,16 @@
 
     virtual void project(const base::State *state, base::EuclideanProjection &projection) const
     {
-        const double *values = state->as<base::RealVectorStateManifold::StateType>()->values;
+        const double *values = state->as<base::RealVectorStateSpace::StateType>()->values;
         projection.values[0] = (values[0] + values[1]) / 2.0;
         projection.values[1] = (values[2] + values[3]) / 2.0;
     }
     };
     ...
-    base::StateManifoldPtr manifold;
+    base::StateSpacePtr space;
     base::PlannerPtr planner;
 
-    manifold->registerProjection("myProjection", base::ProjectionEvaluatorPtr(new MyProjection(manifold)));
+    space->registerProjection("myProjection", base::ProjectionEvaluatorPtr(new MyProjection(space)));
     ...
     planner->as<geometric::KPIECE1>()->setProjectionEvaluator("myProjection");
     \endcode

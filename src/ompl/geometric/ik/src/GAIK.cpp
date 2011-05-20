@@ -62,7 +62,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     bool                    solved = false;
     int                     solution = -1;
 
-    base::ManifoldStateSamplerPtr sampler = si_->allocManifoldStateSampler();
+    base::StateSamplerPtr sampler = si_->allocStateSampler();
 
     // add hint states
     unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());

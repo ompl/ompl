@@ -40,8 +40,8 @@
 #include <iostream>
 
 #include "ompl/base/GoalState.h"
-#include "ompl/base/manifolds/RealVectorStateManifold.h"
-#include "ompl/control/manifolds/RealVectorControlManifold.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/control/planners/kpiece/KPIECE1.h"
 
@@ -67,8 +67,8 @@ public:
     virtual bool isValid(const base::State *state) const
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x = (int)(state->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y = (int)(state->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
         if (x < 0 || y < 0 || x >= w_ || y >= h_)
             return false;
@@ -90,45 +90,45 @@ protected:
 
 };
 
-class myStateManifold : public base::RealVectorStateManifold
+class myStateSpace : public base::RealVectorStateSpace
 {
 public:
 
-    myStateManifold() : base::RealVectorStateManifold(4)
+    myStateSpace() : base::RealVectorStateSpace(4)
     {
     }
 
     virtual double distance(const base::State *state1, const base::State *state2) const
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x1 = (int)(state1->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y1 = (int)(state1->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
-        int x2 = (int)(state2->as<base::RealVectorStateManifold::StateType>()->values[0]);
-        int y2 = (int)(state2->as<base::RealVectorStateManifold::StateType>()->values[1]);
+        int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        int y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
         return abs(x1 - x2) + abs(y1 - y2);
     }
 };
 
-class myControlManifold : public control::RealVectorControlManifold
+class myControlSpace : public control::RealVectorControlSpace
 {
 public:
 
-    myControlManifold(const base::StateManifoldPtr &m) : control::RealVectorControlManifold(m, 2)
+    myControlSpace(const base::StateSpacePtr &m) : control::RealVectorControlSpace(m, 2)
     {
     }
 
     virtual void propagate(const base::State *state, const control::Control* control, const double duration, base::State *result) const
     {
-               result->as<base::RealVectorStateManifold::StateType>()->values[0] =
-            state->as<base::RealVectorStateManifold::StateType>()->values[0] + duration * control->as<control::RealVectorControlManifold::ControlType>()->values[0];
-        result->as<base::RealVectorStateManifold::StateType>()->values[1] =
-            state->as<base::RealVectorStateManifold::StateType>()->values[1] + duration * control->as<control::RealVectorControlManifold::ControlType>()->values[1];
+        result->as<base::RealVectorStateSpace::StateType>()->values[0] =
+            state->as<base::RealVectorStateSpace::StateType>()->values[0] + duration * control->as<control::RealVectorControlSpace::ControlType>()->values[0];
+        result->as<base::RealVectorStateSpace::StateType>()->values[1] =
+            state->as<base::RealVectorStateSpace::StateType>()->values[1] + duration * control->as<control::RealVectorControlSpace::ControlType>()->values[1];
 
-        result->as<base::RealVectorStateManifold::StateType>()->values[2] = control->as<control::RealVectorControlManifold::ControlType>()->values[0];
-        result->as<base::RealVectorStateManifold::StateType>()->values[3] = control->as<control::RealVectorControlManifold::ControlType>()->values[1];
-        stateManifold_->enforceBounds(result);
+        result->as<base::RealVectorStateSpace::StateType>()->values[2] = control->as<control::RealVectorControlSpace::ControlType>()->values[0];
+        result->as<base::RealVectorStateSpace::StateType>()->values[3] = control->as<control::RealVectorControlSpace::ControlType>()->values[1];
+        stateSpace_->enforceBounds(result);
     }
 
     base::StateValidityChecker *SVC;
@@ -139,7 +139,7 @@ public:
 /** Space information */
 control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
 {
-    base::RealVectorStateManifold *sMan = new myStateManifold();
+    base::RealVectorStateSpace *sMan = new myStateSpace();
 
     base::RealVectorBounds sbounds(4);
 
@@ -161,9 +161,9 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     sbounds.high[3] = MAX_VELOCITY;
     sMan->setBounds(sbounds);
 
-    base::StateManifoldPtr sManPtr(sMan);
+    base::StateSpacePtr sManPtr(sMan);
 
-    myControlManifold *cMan = new myControlManifold(sManPtr);
+    myControlSpace *cMan = new myControlSpace(sManPtr);
     base::RealVectorBounds cbounds(2);
 
     cbounds.low[0] = -MAX_VELOCITY;
@@ -172,7 +172,7 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     cbounds.high[1] = MAX_VELOCITY;
     cMan->setBounds(cbounds);
 
-    control::SpaceInformationPtr si(new control::SpaceInformation(sManPtr, control::ControlManifoldPtr(cMan)));
+    control::SpaceInformationPtr si(new control::SpaceInformation(sManPtr, control::ControlSpacePtr(cMan)));
     si->setMinMaxControlDuration(2, 25);
     si->setPropagationStepSize(0.25);
 
@@ -211,7 +211,7 @@ public:
         planner->setup();
 
         /* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
-        base::ScopedState<base::RealVectorStateManifold> state(si);
+        base::ScopedState<base::RealVectorStateSpace> state(si);
         state->values[0] = env.start.first;
         state->values[1] = env.start.second;
         state->values[2] = 0.0;
@@ -220,7 +220,7 @@ public:
 
         /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
         base::GoalState *goal = new base::GoalState(si);
-        base::ScopedState<base::RealVectorStateManifold> gstate(si);
+        base::ScopedState<base::RealVectorStateSpace> gstate(si);
         gstate->values[0] = env.goal.first;
         gstate->values[1] = env.goal.second;
         gstate->values[2] = 0.0;
@@ -265,8 +265,8 @@ public:
             /* display the solution */
             for (unsigned int i = 0 ; i < path->states.size() ; ++i)
             {
-                int x = (int)(path->states[i]->as<base::RealVectorStateManifold::StateType>()->values[0]);
-                int y = (int)(path->states[i]->as<base::RealVectorStateManifold::StateType>()->values[1]);
+                int x = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[0]);
+                int y = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[1]);
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else
@@ -305,7 +305,7 @@ protected:
 class myProjectionEvaluator : public base::ProjectionEvaluator
 {
 public:
-    myProjectionEvaluator(const base::StateManifoldPtr &manifold, const std::vector<double> &cellSizes) : base::ProjectionEvaluator(manifold)
+    myProjectionEvaluator(const base::StateSpacePtr &space, const std::vector<double> &cellSizes) : base::ProjectionEvaluator(space)
     {
         setCellSizes(cellSizes);
     }
@@ -317,8 +317,8 @@ public:
 
     virtual void project(const base::State *state, base::EuclideanProjection &projection) const
     {
-        projection.values[0] = state->as<base::RealVectorStateManifold::StateType>()->values[0];
-        projection.values[1] = state->as<base::RealVectorStateManifold::StateType>()->values[1];
+        projection.values[0] = state->as<base::RealVectorStateSpace::StateType>()->values[0];
+        projection.values[1] = state->as<base::RealVectorStateSpace::StateType>()->values[1];
     }
 };
 
@@ -333,7 +333,7 @@ protected:
         std::vector<double> cdim;
         cdim.push_back(1);
         cdim.push_back(1);
-        base::ProjectionEvaluatorPtr ope(new myProjectionEvaluator(si->getStateManifold(), cdim));
+        base::ProjectionEvaluatorPtr ope(new myProjectionEvaluator(si->getStateSpace(), cdim));
 
         kpiece->setProjectionEvaluator(ope);
 

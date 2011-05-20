@@ -168,7 +168,7 @@ namespace ompl
             }
 
             /** \brief State sampler */
-            base::ManifoldStateSamplerPtr                  sampler_;
+            base::StateSamplerPtr                  sampler_;
 
             /** \brief Control sampler */
             ControlSamplerPtr                              controlSampler_;

@@ -129,9 +129,9 @@ namespace ompl
                 (by copying the last state).
 
                 If \e over consists of states form a different
-                manifold than the existing path, the data from those
+                state space than the existing path, the data from those
                 states is copied over, for the corresponding
-                components. If \e over is from the same manifold as this path,
+                components. If \e over is from the same state space as this path,
                 and \e startIndex is 0, this function's result will be the same
                 as with operator= */
             void overlay(const PathGeometric &over, unsigned int startIndex = 0);
@@ -142,10 +142,10 @@ namespace ompl
                 s2, ..., \e sk ]. Let \e path consist of states [\e y1, ..., \e yp].
 
                 If the existing path and \e path consist of states
-                from the same manifold, [\e y1, ..., \e yp] are added after \e sk.
-                If they are not from the same manifold, states [\e z1, ..., \e zp]
+                from the same state space, [\e y1, ..., \e yp] are added after \e sk.
+                If they are not from the same state space, states [\e z1, ..., \e zp]
                 are added, where each \e zi is a copy of \e sk that
-                has components overwritten with ones in \e yi (if there are any common submanifolds).
+                has components overwritten with ones in \e yi (if there are any common subspaces).
             */
             void append(const PathGeometric &path);
 

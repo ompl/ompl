@@ -183,7 +183,7 @@ namespace ompl
                 return si_->distance(a->state, b->state);
             }
 
-            base::StateSamplerArray<base::ManifoldStateSampler> samplerArray_;
+            base::StateSamplerArray<base::StateSampler> samplerArray_;
             boost::shared_ptr< NearestNeighbors<Motion*> >      nn_;
             boost::mutex                                        nnLock_;
 

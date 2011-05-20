@@ -23,14 +23,14 @@ Almost all of the functionality of the C++ OMPL library is accessible through Py
 \section py_api_diffs Differences between the C++ and Python API's
 - An STL vector of int's is of type vectorInt in Python (analogously for other types).
 - The C++ class State has been renamed AbstractState, while the C++ class ScopedState\<\> is called State in Python.
-- The C++ class ScopedState<RealVectorManifold> is called RealVectorState. The ScopedState's for the other pre-defined manifolds have been renamed analogously.
-- The C++ class RealVectorManifold::StateType has been renamed to RealVectorStateInternal (analogously for the other manifold types), to emphasize that an end user should really be using RealVectorState.
+- The C++ class ScopedState<RealVectorStateSpace> is called RealVectorState. The ScopedState's for the other pre-defined state spaces have been renamed analogously.
+- The C++ class RealVectorStateSpace::StateType has been renamed to RealVectorStateInternal (analogously for the other state space types), to emphasize that an end user should really be using RealVectorState.
 - To get a reference to a C++ State stored inside a ScopedState from Python, use the "()" operator:
 \code
-m = SE3StateManifold() # create an SE(3) state manifold
-s = State(m)           # allocate a state corresponding to a C++ ScopedState<SE3StateManifold>
+spc = SE3StateSpace()  # create an SE(3) state space
+s = State(spc)         # allocate a state corresponding to a C++ ScopedState<SE3StateSpace>
 sref = s()             # sref corresponds to a C++ State*. In this case sref is
-               # a reference SE3StateManifold::StateType
+                       # a reference SE3StateSpace::StateType
 sref.setX(1.0)         # set the X coordinate
 s().setX(1.0)          # this also works
 \endcode
@@ -61,26 +61,26 @@ def isStateValid(spaceInformation, state):
     return state.getX() < .6
 
 def plan():
-    # create an SE2 manifold
-    manifold = ob.SE2StateManifold()
+    # create an SE2 state space
+    space = ob.SE2StateSpace()
 
     # set lower and upper bounds
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
     bounds.setHigh(1)
-    manifold.setBounds(bounds)
+    space.setBounds(bounds)
 
     # create a simple setup object
-    ss = og.SimpleSetup(manifold)
+    ss = og.SimpleSetup(space)
     ss.setStateValidityChecker(isStateValid)
 
-    start = ob.State(manifold)
+    start = ob.State(space)
     # we can pick a random start state...
     start.random()
     # ... or set specific values
     start().setX(.5)
 
-    goal = ob.State(manifold)
+    goal = ob.State(space)
     # we can pick a random goal state...
     goal.random()
     # ... or set specific values

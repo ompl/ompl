@@ -73,7 +73,7 @@ namespace ompl
 
         private:
 
-            StateManifold *stateManifold_;
+            StateSpace *stateSpace_;
 
             void defaultSettings(void);
 

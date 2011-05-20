@@ -38,47 +38,47 @@
 #include "ompl/util/Exception.h"
 #include <boost/thread.hpp>
 
-ompl::control::ODESimpleSetup::ODESimpleSetup(const ControlManifoldPtr &manifold) : SimpleSetup(manifold)
+ompl::control::ODESimpleSetup::ODESimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
 {
-    if (!dynamic_cast<ODEControlManifold*>(manifold.get()))
-        throw Exception("ODE Control Manifold needed for ODE Simple Setup");
+    if (!dynamic_cast<ODEControlSpace*>(space.get()))
+        throw Exception("ODE Control Space needed for ODE Simple Setup");
     useEnvParams();
 }
 
-ompl::control::ODESimpleSetup::ODESimpleSetup(const base::StateManifoldPtr &manifold) :
-    SimpleSetup(ControlManifoldPtr(new ODEControlManifold(manifold)))
+ompl::control::ODESimpleSetup::ODESimpleSetup(const base::StateSpacePtr &space) :
+    SimpleSetup(ControlSpacePtr(new ODEControlSpace(space)))
 {
     useEnvParams();
 }
 
 ompl::control::ODESimpleSetup::ODESimpleSetup(const ODEEnvironmentPtr &env) :
-    SimpleSetup(ControlManifoldPtr(new ODEControlManifold(base::StateManifoldPtr(new ODEStateManifold(env)))))
+    SimpleSetup(ControlSpacePtr(new ODEControlSpace(base::StateSpacePtr(new ODEStateSpace(env)))))
 {
     useEnvParams();
 }
 
 void ompl::control::ODESimpleSetup::useEnvParams(void)
 {
-    si_->setPropagationStepSize(getStateManifold()->as<ODEStateManifold>()->getEnvironment()->stepSize_);
-    si_->setMinMaxControlDuration(getStateManifold()->as<ODEStateManifold>()->getEnvironment()->minControlSteps_,
-                                  getStateManifold()->as<ODEStateManifold>()->getEnvironment()->maxControlSteps_);
+    si_->setPropagationStepSize(getStateSpace()->as<ODEStateSpace>()->getEnvironment()->stepSize_);
+    si_->setMinMaxControlDuration(getStateSpace()->as<ODEStateSpace>()->getEnvironment()->minControlSteps_,
+                                  getStateSpace()->as<ODEStateSpace>()->getEnvironment()->maxControlSteps_);
 }
 
-ompl::base::ScopedState<ompl::control::ODEStateManifold> ompl::control::ODESimpleSetup::getCurrentState(void) const
+ompl::base::ScopedState<ompl::control::ODEStateSpace> ompl::control::ODESimpleSetup::getCurrentState(void) const
 {
-    base::ScopedState<ODEStateManifold> current(getStateManifold());
-    getStateManifold()->as<ODEStateManifold>()->readState(current.get());
+    base::ScopedState<ODEStateSpace> current(getStateSpace());
+    getStateSpace()->as<ODEStateSpace>()->readState(current.get());
     return current;
 }
 
 void ompl::control::ODESimpleSetup::setCurrentState(const base::State *state)
 {
-    getStateManifold()->as<ODEStateManifold>()->writeState(state);
+    getStateSpace()->as<ODEStateSpace>()->writeState(state);
 }
 
 void ompl::control::ODESimpleSetup::setCurrentState(const base::ScopedState<> &state)
 {
-    getStateManifold()->as<ODEStateManifold>()->writeState(state.get());
+    getStateSpace()->as<ODEStateSpace>()->writeState(state.get());
 }
 
 void ompl::control::ODESimpleSetup::setup(void)
@@ -119,11 +119,11 @@ void ompl::control::ODESimpleSetup::playPath(const base::PathPtr &path, double t
         msg_.debug("Playing through %u states (%0.3f seconds)", (unsigned int)pg.states.size(),
                    timeFactor * si_->getPropagationStepSize() * (double)(pg.states.size() - 1));
         time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
-        getStateManifold()->as<ODEStateManifold>()->writeState(pg.states[0]);
+        getStateSpace()->as<ODEStateSpace>()->writeState(pg.states[0]);
         for (unsigned int i = 1 ; i < pg.states.size() ; ++i)
         {
             boost::this_thread::sleep(d);
-            getStateManifold()->as<ODEStateManifold>()->writeState(pg.states[i]);
+            getStateSpace()->as<ODEStateSpace>()->writeState(pg.states[i]);
         }
     }
 }
@@ -131,7 +131,7 @@ void ompl::control::ODESimpleSetup::playPath(const base::PathPtr &path, double t
 ompl::base::PathPtr ompl::control::ODESimpleSetup::simulateControl(const double* control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
-    memcpy(c->as<ODEControlManifold::ControlType>()->values, control, sizeof(double) * getControlManifold()->getDimension());
+    memcpy(c->as<ODEControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
     base::PathPtr path = simulateControl(c, steps);
     si_->freeControl(c);
     return path;
@@ -142,7 +142,7 @@ ompl::base::PathPtr ompl::control::ODESimpleSetup::simulateControl(const Control
     PathControl *p(new PathControl(si_));
 
     base::State *s0 = si_->allocState();
-    getStateManifold()->as<ODEStateManifold>()->readState(s0);
+    getStateSpace()->as<ODEStateSpace>()->readState(s0);
     p->states.push_back(s0);
 
     base::State *s1 = si_->allocState();

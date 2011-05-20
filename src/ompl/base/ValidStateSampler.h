@@ -105,7 +105,7 @@ namespace ompl
 
         protected:
 
-            /** \brief The manifold this sampler samples */
+            /** \brief The state space this sampler samples */
             const SpaceInformation *si_;
 
             /** \brief Number of attempts to find a valid sample */

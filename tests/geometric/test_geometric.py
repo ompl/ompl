@@ -76,9 +76,9 @@ def isValid(grid, spaceinformation, state):
     y = int(state[1])
     return grid[x][y] == 0 # 0 means valid state
 
-class myManifold(ob.RealVectorStateManifold):
+class mySpace(ob.RealVectorStateSpace):
     def __init__(self):
-        super(myManifold, self).__init__(2)
+        super(mySpace, self).__init__(2)
 
     def distance(self, state1, state2):
         x1 = int(state1[0])
@@ -89,7 +89,7 @@ class myManifold(ob.RealVectorStateManifold):
 
 class mySpaceInformation(ob.SpaceInformation):
     def __init__(self, env):
-        self.sMan = myManifold()
+        self.sMan = mySpace()
         super(mySpaceInformation, self).__init__(self.sMan)
         sbounds = ob.RealVectorBounds(2)
 
@@ -207,7 +207,7 @@ class SBLTest(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateSpace(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -220,7 +220,7 @@ class pSBLTest(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateSpace(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -232,7 +232,7 @@ class KPIECE1Test(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateSpace(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -244,7 +244,7 @@ class LBKPIECE1Test(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateSpace(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 
@@ -256,7 +256,7 @@ class ESTTest(TestPlanner):
         projection.extend([0, 1])
         cdim = ob.vectorDouble()
         cdim.extend([1, 1])
-        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateManifold(), cdim, projection)
+        proj = ob.RealVectorOrthogonalProjectionEvaluator(si.getStateSpace(), cdim, projection)
         planner.setProjectionEvaluator(proj)
         return planner
 

@@ -38,7 +38,7 @@
 #define OMPL_CONTROL_SPACE_INFORMATION_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/control/ControlManifold.h"
+#include "ompl/control/ControlSpace.h"
 #include "ompl/control/ControlSampler.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
@@ -62,10 +62,9 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor. Sets the instance of the manifold
-                to plan on. */
-            SpaceInformation(const base::StateManifoldPtr &stateManifold, const ControlManifoldPtr &controlManifold) :
-                base::SpaceInformation(stateManifold), controlManifold_(controlManifold),
+            /** \brief Constructor. Sets the instance of the state and control spaces to plan with. */
+            SpaceInformation(const base::StateSpacePtr &stateSpace, const ControlSpacePtr &controlSpace) :
+                base::SpaceInformation(stateSpace), controlSpace_(controlSpace),
                 minSteps_(0), maxSteps_(0), stepSize_(0.0)
             {
             }
@@ -74,10 +73,10 @@ namespace ompl
             {
             }
 
-            /** \brief Get the control manifold */
-            const ControlManifoldPtr& getControlManifold(void) const
+            /** \brief Get the control space */
+            const ControlSpacePtr& getControlSpace(void) const
             {
-                return controlManifold_;
+                return controlSpace_;
             }
 
             /** @name Control memory management
@@ -86,50 +85,50 @@ namespace ompl
             /** \brief Allocate memory for a control */
             Control* allocControl(void) const
             {
-                return controlManifold_->allocControl();
+                return controlSpace_->allocControl();
             }
 
             /** \brief Free the memory of a control */
             void freeControl(Control *control) const
             {
-                controlManifold_->freeControl(control);
+                controlSpace_->freeControl(control);
             }
 
             /** \brief Copy a control to another */
             void copyControl(Control *destination, const Control *source) const
             {
-                controlManifold_->copyControl(destination, source);
+                controlSpace_->copyControl(destination, source);
             }
 
             /** \brief Clone a control */
             Control* cloneControl(const Control *source) const
             {
-                Control *copy = controlManifold_->allocControl();
-                controlManifold_->copyControl(copy, source);
+                Control *copy = controlSpace_->allocControl();
+                controlSpace_->copyControl(copy, source);
                 return copy;
             }
 
             /** @} */
 
-            /** @name Topology-specific control operations (as in the control manifold)
+            /** @name Topology-specific control operations (as in the control space)
                 @{ */
 
             /** \brief Print a control to a stream */
             void printControl(const Control *control, std::ostream &out = std::cout) const
             {
-                controlManifold_->printControl(control, out);
+                controlSpace_->printControl(control, out);
             }
 
             /** \brief Check if two controls are the same */
             bool equalControls(const Control *control1, const Control *control2) const
             {
-                return controlManifold_->equalControls(control1, control2);
+                return controlSpace_->equalControls(control1, control2);
             }
 
             /** \brief Make the control have no effect if it were to be applied to a state for any amount of time. */
             void nullControl(Control *control) const
             {
-                controlManifold_->nullControl(control);
+                controlSpace_->nullControl(control);
             }
 
             /** @} */
@@ -140,7 +139,7 @@ namespace ompl
             /** \brief Allocate a control sampler */
             ControlSamplerPtr allocControlSampler(void) const
             {
-                return controlManifold_->allocControlSampler();
+                return controlSpace_->allocControlSampler();
             }
 
             /** \brief When controls are applied to states, they are applied for a time duration that is an integer
@@ -229,8 +228,8 @@ namespace ompl
 
         protected:
 
-            /** \brief The manifold describing the space of controls applicable to states in the state manifold */
-            ControlManifoldPtr controlManifold_;
+            /** \brief The control space describing the space of controls applicable to states in the state space */
+            ControlSpacePtr controlSpace_;
 
             /** \brief The minimum number of steps to apply a control for */
             unsigned int       minSteps_;

@@ -36,8 +36,8 @@
 
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/base/GoalState.h>
-#include <ompl/base/manifolds/SE2StateManifold.h>
-#include <ompl/control/manifolds/RealVectorControlManifold.h>
+#include <ompl/base/spaces/SE2StateSpace.h>
+#include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/rrt/RRT.h>
 #include <ompl/control/SimpleSetup.h>
@@ -49,15 +49,15 @@ namespace oc = ompl::control;
 
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
-    //    ob::ScopedState<ob::SE2StateManifold>
+    //    ob::ScopedState<ob::SE2StateSpace>
     // cast the abstract state type to the type we expect
-    const ob::SE2StateManifold::StateType *se2state = state->as<ob::SE2StateManifold::StateType>();
+    const ob::SE2StateSpace::StateType *se2state = state->as<ob::SE2StateSpace::StateType>();
 
     // extract the first component of the state and cast it to what we expect
-    const ob::RealVectorStateManifold::StateType *pos = se2state->as<ob::RealVectorStateManifold::StateType>(0);
+    const ob::RealVectorStateSpace::StateType *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
 
     // extract the second component of the state and cast it to what we expect
-    const ob::SO2StateManifold::StateType *rot = se2state->as<ob::SO2StateManifold::StateType>(1);
+    const ob::SO2StateSpace::StateType *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
 
     // check validity of state defined by pos & rot
 
@@ -68,61 +68,61 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
 {
-    const ob::SE2StateManifold::StateType *se2state = start->as<ob::SE2StateManifold::StateType>();
-    const ob::RealVectorStateManifold::StateType *pos = se2state->as<ob::RealVectorStateManifold::StateType>(0);
-    const ob::SO2StateManifold::StateType *rot = se2state->as<ob::SO2StateManifold::StateType>(1);
-    const oc::RealVectorControlManifold::ControlType *rctrl = control->as<oc::RealVectorControlManifold::ControlType>();
+    const ob::SE2StateSpace::StateType *se2state = start->as<ob::SE2StateSpace::StateType>();
+    const ob::RealVectorStateSpace::StateType *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
+    const ob::SO2StateSpace::StateType *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
+    const oc::RealVectorControlSpace::ControlType *rctrl = control->as<oc::RealVectorControlSpace::ControlType>();
 
-    result->as<ob::SE2StateManifold::StateType>()->as<ob::RealVectorStateManifold::StateType>(0)->values[0] =
+    result->as<ob::SE2StateSpace::StateType>()->as<ob::RealVectorStateSpace::StateType>(0)->values[0] =
         (*pos)[0] + (*rctrl)[0] * duration * cos(rot->value);
 
-    result->as<ob::SE2StateManifold::StateType>()->as<ob::RealVectorStateManifold::StateType>(0)->values[1] =
+    result->as<ob::SE2StateSpace::StateType>()->as<ob::RealVectorStateSpace::StateType>(0)->values[1] =
         (*pos)[1] + (*rctrl)[0] * duration * sin(rot->value);
 
-    result->as<ob::SE2StateManifold::StateType>()->as<ob::SO2StateManifold::StateType>(1)->value =
+    result->as<ob::SE2StateSpace::StateType>()->as<ob::SO2StateSpace::StateType>(1)->value =
         rot->value + (*rctrl)[1];
 }
 
 void plan(void)
 {
 
-    // construct the manifold we are planning in
-    ob::StateManifoldPtr manifold(new ob::SE2StateManifold());
+    // construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::SE2StateSpace());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    manifold->as<ob::SE2StateManifold>()->setBounds(bounds);
+    space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    // create a control manifold
-    oc::ControlManifoldPtr cmanifold(new oc::RealVectorControlManifold(manifold, 2));
+    // create a control space
+    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
 
-    // set the bounds for the control manifold
+    // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-0.3);
     cbounds.setHigh(0.3);
 
-    cmanifold->as<oc::RealVectorControlManifold>()->setBounds(cbounds);
+    cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
     // set the state propagation routine
-    cmanifold->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
+    cspace->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
 
-    // construct an instance of  space information from this manifold
-    oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, cmanifold));
+    // construct an instance of  space information from this control space
+    oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
 
     // set state validity checking for this space
     si->setStateValidityChecker(boost::bind(&isStateValid, si.get(),  _1));
 
     // create a start state
-    ob::ScopedState<ob::SE2StateManifold> start(manifold);
+    ob::ScopedState<ob::SE2StateSpace> start(space);
     start->setX(-0.5);
     start->setY(0.0);
     start->setYaw(0.0);
 
     // create a goal state
-    ob::ScopedState<ob::SE2StateManifold> goal(start);
+    ob::ScopedState<ob::SE2StateSpace> goal(start);
     goal->setX(0.5);
 
     // create a problem instance
@@ -167,49 +167,49 @@ void plan(void)
 
 void planWithSimpleSetup(void)
 {
-    // construct the manifold we are planning in
-    ob::StateManifoldPtr manifold(new ob::SE2StateManifold());
+    // construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::SE2StateSpace());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    manifold->as<ob::SE2StateManifold>()->setBounds(bounds);
+    space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    // create a control manifold
-    oc::ControlManifoldPtr cmanifold(new oc::RealVectorControlManifold(manifold, 2));
+    // create a control space
+    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
 
-    // set the bounds for the control manifold
+    // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-0.3);
     cbounds.setHigh(0.3);
 
-    cmanifold->as<oc::RealVectorControlManifold>()->setBounds(cbounds);
+    cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
     // set the state propagation routine
-    cmanifold->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
+    cspace->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
 
     // define a simple setup class
-    oc::SimpleSetup ss(cmanifold);
+    oc::SimpleSetup ss(cspace);
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, ss.getSpaceInformation().get(), _1));
 
     // create a start state
-    ob::ScopedState<ob::SE2StateManifold> start(manifold);
+    ob::ScopedState<ob::SE2StateSpace> start(space);
     start->setX(-0.5);
     start->setY(0.0);
     start->setYaw(0.0);
 
     // create a  goal state; use the hard way to set the elements
-    ob::ScopedState<ob::SE2StateManifold> goal(manifold);
-    (*goal)[0]->as<ob::RealVectorStateManifold::StateType>()->values[0] = 0.0;
-    (*goal)[0]->as<ob::RealVectorStateManifold::StateType>()->values[1] = 0.5;
-    (*goal)[1]->as<ob::SO2StateManifold::StateType>()->value = 0.0;
+    ob::ScopedState<ob::SE2StateSpace> goal(space);
+    (*goal)[0]->as<ob::RealVectorStateSpace::StateType>()->values[0] = 0.0;
+    (*goal)[0]->as<ob::RealVectorStateSpace::StateType>()->values[1] = 0.5;
+    (*goal)[1]->as<ob::SO2StateSpace::StateType>()->value = 0.0;
 
 
-    // set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
+    // set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05);
 
     // attempt to solve the problem within one second of planning time

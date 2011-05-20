@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <ompl/base/SpaceInformation.h>
-#include <ompl/base/manifolds/SE3StateManifold.h>
+#include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/SimpleSetup.h>
 
@@ -48,13 +48,13 @@ namespace og = ompl::geometric;
 bool isStateValid(const ob::State *state)
 {
     // cast the abstract state type to the type we expect
-    const ob::SE3StateManifold::StateType *se3state = state->as<ob::SE3StateManifold::StateType>();
+    const ob::SE3StateSpace::StateType *se3state = state->as<ob::SE3StateSpace::StateType>();
 
     // extract the first component of the state and cast it to what we expect
-    const ob::RealVectorStateManifold::StateType *pos = se3state->as<ob::RealVectorStateManifold::StateType>(0);
+    const ob::RealVectorStateSpace::StateType *pos = se3state->as<ob::RealVectorStateSpace::StateType>(0);
 
     // extract the second component of the state and cast it to what we expect
-    const ob::SO3StateManifold::StateType *rot = se3state->as<ob::SO3StateManifold::StateType>(1);
+    const ob::SO3StateSpace::StateType *rot = se3state->as<ob::SO3StateSpace::StateType>(1);
 
     // check validity of state defined by pos & rot
 
@@ -65,28 +65,28 @@ bool isStateValid(const ob::State *state)
 
 void plan(void)
 {
-    // construct the manifold we are planning in
-    ob::StateManifoldPtr manifold(new ob::SE3StateManifold());
+    // construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::SE3StateSpace());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
+    space->as<ob::SE3StateSpace>()->setBounds(bounds);
 
-    // construct an instance of  space information from this manifold
-    ob::SpaceInformationPtr si(new ob::SpaceInformation(manifold));
+    // construct an instance of  space information from this state space
+    ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
 
     // set state validity checking for this space
     si->setStateValidityChecker(boost::bind(&isStateValid, _1));
 
     // create a random start state
-    ob::ScopedState<> start(manifold);
+    ob::ScopedState<> start(space);
     start.random();
 
     // create a random goal state
-    ob::ScopedState<> goal(manifold);
+    ob::ScopedState<> goal(space);
     goal.random();
 
     // create a problem instance
@@ -130,31 +130,31 @@ void plan(void)
 
 void planWithSimpleSetup(void)
 {
-    // construct the manifold we are planning in
-    ob::StateManifoldPtr manifold(new ob::SE3StateManifold());
+    // construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::SE3StateSpace());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
+    space->as<ob::SE3StateSpace>()->setBounds(bounds);
 
     // define a simple setup class
-    og::SimpleSetup ss(manifold);
+    og::SimpleSetup ss(space);
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
 
     // create a random start state
-    ob::ScopedState<> start(manifold);
+    ob::ScopedState<> start(space);
     start.random();
 
     // create a random goal state
-    ob::ScopedState<> goal(manifold);
+    ob::ScopedState<> goal(space);
     goal.random();
 
-    // set the start and goal states; this call allows SimpleSetup to infer the planning manifold, if needed
+    // set the start and goal states
     ss.setStartAndGoalStates(start, goal);
 
     // attempt to solve the problem within one second of planning time

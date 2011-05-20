@@ -1,8 +1,8 @@
 /**
 \page samplers Using Existing Samplers and Creating New Ones
 
-There are two different kinds of samplers that sound similar, but have different roles: <i>manifold</i> state samplers (ompl::base::ManifoldStateSampler) and <i>valid</i> state samplers (ompl::base::ValidStateSampler). For each type of manifold there needs to exist a corresponding derived ompl::base::ManifoldStateSampler class that allows one to generate uniform samples from that manifold and generate states near another state from that manifold. The valid state samplers use the manifold state samplers as a low level primitive. Typically, they generate a number of state samples using the appropriate manifold state sampler until a valid state is found or a maximum number of iterations is exceeded. The validity of a state is determined through the ompl::base::SpaceInformation::isValid method. There are three pre-defined derived ompl::base::ValidStateSampler classes:
-- ompl::base::UniformValidStateSampler: This is the default sampler. It simply calls the manifold's uniform state sampler until a valid state is found or a maximum number of iterations is exceeded.
+There are two different kinds of samplers that sound similar, but have different roles: state space samplers (ompl::base::StateSampler) and <i>valid</i> state samplers (ompl::base::ValidStateSampler). For each type of state space there needs to exist a corresponding derived ompl::base::StateSampler class that allows one to generate uniform samples from that state space, generate states near another state from that state space and generate states using a Gaussian distribution. The valid state samplers use the state space samplers as a low level primitive. Typically, they generate a number of state samples using the appropriat state space sampler until a valid state is found or a maximum number of iterations is exceeded. The validity of a state is determined through the ompl::base::SpaceInformation::isValid method. There are three pre-defined derived ompl::base::ValidStateSampler classes:
+- ompl::base::UniformValidStateSampler: This is the default sampler. It simply calls the state space sampler to generate uniform samples until a valid state is found or a maximum number of iterations is exceeded.
 - ompl::base::ObstacleBasedValidStateSampler: This sampler tries to first find one invalid sample and one valid sample. Next, it interpolates states incrementally from the valid to the invalid state. It returns the last state that is valid before reaching an invalid state. The idea is that samples near obstacles improve the chance of finding samples in narrow passages. Finding such samples is often the crucial problem in solving motion planning queries.
 - ompl::base::GaussianValidStateSampler: This sampler tries to accomplish something similar to the previous one, but in a different way. It repeatedly generates pairs of of states. The first one is uniformly random, while the second one is sampled according to a Gaussian distribution centered around the first sample. If one sample is valid and the other one invalid, the valid one is returned. If both are valid or invalid, it generates a new pair. This process repeats until a maximum number of iterations is exceeded.
 .
@@ -19,7 +19,7 @@ We cannot set the type of sampler directly in the SimpleSetup or SpaceInformatio
 \skip allocOBValidStateSampler
 \until }
 \skip plan
-\until StateManifoldPtr
+\until StateSpacePtr
 \skipline SimpleSetup
 \skip sampler
 \until allocOBValidStateSampler

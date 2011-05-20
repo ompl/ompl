@@ -48,18 +48,18 @@
       checked along each motion, slowing down the planner
       significantly. The resolution at which motions are discretized
       is computed using
-      ompl::base::StateManifold::validSegmentCount(): each state
-      manifold provides the ability to compute how many segments the
+      ompl::base::StateSpace::validSegmentCount(): each state
+      space provides the ability to compute how many segments the
       motion should be split into so that the number of states checked
       for validity is satisfactory. The user can define this
-      resolution in terms of percentages of the manifold's maximum
-      extent (ompl::base::StateManifold::getMaximumExtent()) by
+      resolution in terms of percentages of the space's maximum
+      extent (ompl::base::StateSpace::getMaximumExtent()) by
       calling
       ompl::base::SpaceInformation::setStateValidityCheckingResolution()
       or by calling
-      ompl::base::StateManifold::setLongestValidSegmentFraction() for
-      individual manifolds. Different resolutions can be used in
-      sub-manifolds, if using ompl::base::CompoundStateManifold.  If
+      ompl::base::StateSpace::setLongestValidSegmentFraction() for
+      individual state spaces. Different resolutions can be used in
+      subspaces, if using ompl::base::CompoundStateSpace.  If
       continuous collision checking is available, it is recommended that a
       different implementation of ompl::base::MotionValidator is
       provided, one that does not rely on discretizing the motion at a

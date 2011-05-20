@@ -103,7 +103,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTer
         double d = si_->distance(nmotion->state, rstate);
         if (d > maxDistance_)
         {
-            si_->getStateManifold()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
+            si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
             dstate = xstate;
         }
 

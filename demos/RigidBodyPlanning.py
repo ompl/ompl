@@ -55,22 +55,22 @@ def isStateValid(spaceInformation, state):
     return state.getX() < .6
 
 def plan():
-    # create an SE2 manifold
-    manifold = ob.SE2StateManifold()
+    # create an SE2 state space
+    space = ob.SE2StateSpace()
     # set lower and upper bounds
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
     bounds.setHigh(1)
-    manifold.setBounds(bounds)
-    # construct an instance of space information from this manifold
-    si = ob.SpaceInformation(manifold)
+    space.setBounds(bounds)
+    # construct an instance of space information from this state space
+    si = ob.SpaceInformation(space)
     # set state validity checking for this space
     si.setStateValidityChecker(isStateValid)
     # create a random start state
-    start = ob.State(manifold)
+    start = ob.State(space)
     start.random()
     # create a random goal state
-    goal = ob.State(manifold)
+    goal = ob.State(space)
     goal.random()
     # create a problem instance
     pdef = ob.ProblemDefinition(si)
@@ -99,26 +99,26 @@ def plan():
 
 
 def planWithSimpleSetup():
-    # create an SE2 manifold
-    manifold = ob.SE2StateManifold()
+    # create an SE2 state space
+    space = ob.SE2StateSpace()
 
     # set lower and upper bounds
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
     bounds.setHigh(1)
-    manifold.setBounds(bounds)
+    space.setBounds(bounds)
 
     # create a simple setup object
-    ss = og.SimpleSetup(manifold)
+    ss = og.SimpleSetup(space)
     ss.setStateValidityChecker(isStateValid)
 
-    start = ob.State(manifold)
+    start = ob.State(space)
     # we can pick a random start state...
     start.random()
     # ... or set specific values
     start().setX(.5)
 
-    goal = ob.State(manifold)
+    goal = ob.State(space)
     # we can pick a random goal state...
     goal.random()
     # ... or set specific values

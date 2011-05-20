@@ -102,7 +102,7 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     double d = si_->distance(nmotion->state, rmotion->state);
     if (d > maxDistance_)
     {
-        si_->getStateManifold()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
+        si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
         dstate = tgi.xstate;
         reach = false;
     }
@@ -158,7 +158,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
     }
 
     if (!sampler_)
-        sampler_ = si_->allocManifoldStateSampler();
+        sampler_ = si_->allocStateSampler();
 
     msg_.inform("Starting with %d states", (int)(tStart_->size() + tGoal_->size()));
 

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <ompl/base/manifolds/SE3StateManifold.h>
+#include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/GoalLazySamples.h>
 #include <ompl/geometric/ik/GAIK.h>
@@ -59,10 +59,10 @@ public:
     virtual double distanceGoal(const ob::State *state) const
     {
         // goal region is given by states where x + y = z and orientation is close to identity
-        double d = fabs(state->as<ob::SE3StateManifold::StateType>()->getX()
-                        + state->as<ob::SE3StateManifold::StateType>()->getY()
-                        - state->as<ob::SE3StateManifold::StateType>()->getZ())
-            + fabs(state->as<ob::SE3StateManifold::StateType>()->rotation().w - 1.0);
+        double d = fabs(state->as<ob::SE3StateSpace::StateType>()->getX()
+                        + state->as<ob::SE3StateSpace::StateType>()->getY()
+                        - state->as<ob::SE3StateSpace::StateType>()->getZ())
+            + fabs(state->as<ob::SE3StateSpace::StateType>()->rotation().w - 1.0);
         return d;
     }
 
@@ -92,21 +92,21 @@ bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::GoalReg
 
 void planWithIK(void)
 {
-    // construct the manifold we are planning in
-    ob::StateManifoldPtr manifold(new ob::SE3StateManifold());
+    // construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::SE3StateSpace());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    manifold->as<ob::SE3StateManifold>()->setBounds(bounds);
+    space->as<ob::SE3StateSpace>()->setBounds(bounds);
 
     // define a simple setup class
-    og::SimpleSetup ss(manifold);
+    og::SimpleSetup ss(space);
 
     // create a random start state
-    ob::ScopedState<ob::SE3StateManifold> start(manifold);
+    ob::ScopedState<ob::SE3StateSpace> start(space);
     start->setXYZ(0, 0, 0);
     start->rotation().setIdentity();
     ss.addStartState(start);

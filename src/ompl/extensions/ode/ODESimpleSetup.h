@@ -39,7 +39,7 @@
 
 #include "ompl/control/SimpleSetup.h"
 #include "ompl/extensions/ode/ODEStateValidityChecker.h"
-#include "ompl/extensions/ode/ODEControlManifold.h"
+#include "ompl/extensions/ode/ODEControlSpace.h"
 
 namespace ompl
 {
@@ -53,17 +53,17 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor needs the control manifold needed for planning. */
+            /** \brief Constructor needs the control space needed for planning. */
             explicit
-            ODESimpleSetup(const ControlManifoldPtr &manifold);
+            ODESimpleSetup(const ControlSpacePtr &space);
 
-            /** \brief The control manifold is assumed to be ODEControlManifold. Constructor only needs the state manifold. */
+            /** \brief The control space is assumed to be ODEControlSpace. Constructor only needs the state space. */
             explicit
-            ODESimpleSetup(const base::StateManifoldPtr &manifold);
+            ODESimpleSetup(const base::StateSpacePtr &space);
 
-            /** \brief The control manifold is assumed to be
-                ODEControlManifold. The state manifold is assumed to
-                be ODEStateManifold. Constructor only needs the ODE
+            /** \brief The control space is assumed to be
+                ODEControlSpace. The state space is assumed to
+                be ODEStateSpace. Constructor only needs the ODE
                 environment. */
             explicit
             ODESimpleSetup(const ODEEnvironmentPtr &env);
@@ -72,14 +72,14 @@ namespace ompl
             {
             }
 
-            /** \brief Get the ODE environment associated to the state and control manifolds */
+            /** \brief Get the ODE environment associated to the state and control spaces */
             const ODEEnvironmentPtr& getEnvironment(void) const
             {
-                return getStateManifold()->as<ODEStateManifold>()->getEnvironment();
+                return getStateSpace()->as<ODEStateSpace>()->getEnvironment();
             }
 
             /** \brief Get the current ODE state (read parameters from ODE bodies) */
-            base::ScopedState<ODEStateManifold> getCurrentState(void) const;
+            base::ScopedState<ODEStateSpace> getCurrentState(void) const;
 
             /** \brief Set the current ODE state (set parameters for ODE bodies) */
             void setCurrentState(const base::ScopedState<> &state);
@@ -90,19 +90,19 @@ namespace ompl
             /** \brief Set the bounds for the planning volume */
             void setVolumeBounds(const base::RealVectorBounds &bounds)
             {
-                getStateManifold()->as<ODEStateManifold>()->setVolumeBounds(bounds);
+                getStateSpace()->as<ODEStateSpace>()->setVolumeBounds(bounds);
             }
 
             /** \brief Set the bounds for the linear velocity */
             void setLinearVelocityBounds(const base::RealVectorBounds &bounds)
             {
-                getStateManifold()->as<ODEStateManifold>()->setLinearVelocityBounds(bounds);
+                getStateSpace()->as<ODEStateSpace>()->setLinearVelocityBounds(bounds);
             }
 
             /** \brief Set the bounds for the angular velocity */
             void setAngularVelocityBounds(const base::RealVectorBounds &bounds)
             {
-                getStateManifold()->as<ODEStateManifold>()->setAngularVelocityBounds(bounds);
+                getStateSpace()->as<ODEStateSpace>()->setAngularVelocityBounds(bounds);
             }
 
             /** \brief Set the ODE world to the states that are
@@ -124,7 +124,7 @@ namespace ompl
 
             /** \brief Simulate the ODE environment forward for \e
                 steps simulation steps, using the null control
-                (ompl::control::ControlManifold::nullControl()).
+                (ompl::control::ControlSpace::nullControl()).
                 Construct a path representing this action. */
             base::PathPtr simulate(unsigned int steps) const;
 
