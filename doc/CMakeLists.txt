@@ -5,6 +5,11 @@ if (OMPL_BUILD_DOC)
     find_package(Doxygen QUIET)
 
     if(DOXYGEN)
+        if(UNIX)
+            execute_process(COMMAND date "+%b %d, %Y" 
+                OUTPUT_VARIABLE OMPL_RELEASE_DATE
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+        endif()
         configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dox/download.dox.in"
             "${CMAKE_CURRENT_SOURCE_DIR}/dox/download.dox")
 
