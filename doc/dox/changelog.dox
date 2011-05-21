@@ -2,6 +2,9 @@
 
 \page changelog Changelog
 
+\section may_20_2011 May 20, 2011
+    - Generalized planner termination conditions. The user can now call terminate() at any time to signal a planner it should stop its computation
+
 \section may_19_2011 May 19, 2011
     - Renamed StateManifold to StateSpace and ControlManifold to ControlSpace
 
