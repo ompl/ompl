@@ -32,6 +32,8 @@ if (OMPL_BUILD_DEMOS)
 
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
 
+  add_ompl_demo(syclop Syclop.cpp)
+
   if (OMPL_EXTENSION_ODE)
     add_ompl_demo(demo_ODERigidBodyPlanning ODERigidBodyPlanning.cpp)
   endif()
