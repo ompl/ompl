@@ -4,7 +4,7 @@
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/State.h>
 #include <ompl/control/planners/syclop/SyclopRRT.h>
-#include <ompl/datastructures/GridDecomposition.h>
+#include <ompl/control/planners/syclop/GridDecomposition.h>
 #include <iostream>
 #include <vector>
 
