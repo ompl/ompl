@@ -34,14 +34,11 @@ namespace ompl {
 		/* Locate the region in the grid containing the point determined by coord. Since
 		 * we are assuming a 2-dimensional grid, coord.size() will be 2 for now. */
 		virtual int locateRegion(const std::vector<double> coord) {
-			std::vector<int> gridLoc(coord.size());
-			/* Once I verify that this works, I will collapse the two loops into one. */
-			for (unsigned int i = 0; i < gridLoc.size(); ++i)
-				gridLoc[i] = (int) ( length*(coord[i] - bounds.low[i]) / (bounds.high[i]-bounds.low[i]) );
 			int region = 0;
 			int factor = 1;
-			for (int i = gridLoc.size()-1; i >= 0; --i) {
-				region += factor*gridLoc[i];
+			for (int i = coord.size()-1; i >= 0; --i) {
+				const int index = (int) (length*(coord[i]-bounds.low[i])/(bounds.high[i]-bounds.low[i]));
+				region += factor*index;
 				factor *= length;
 			}
 			return region;
