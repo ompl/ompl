@@ -37,7 +37,7 @@ namespace ompl {
 			std::vector<int> gridLoc(coord.size());
 			/* Once I verify that this works, I will collapse the two loops into one. */
 			for (unsigned int i = 0; i < gridLoc.size(); ++i)
-				gridLoc[i] = (int) ( (coord[i] - bounds.low[i]) / length );
+				gridLoc[i] = (int) ( length*(coord[i] - bounds.low[i]) / (bounds.high[i]-bounds.low[i]) );
 			int region = 0;
 			int factor = 1;
 			for (int i = gridLoc.size()-1; i >= 0; --i) {
