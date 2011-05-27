@@ -3,7 +3,7 @@
 
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
-#include "ompl/datastructures/Decomposition.h"
+#include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/datastructures/Grid.h"
 
 namespace ompl {
@@ -28,7 +28,8 @@ namespace ompl {
 		 * dimension as the grid. */
 		virtual int locateRegion(const base::State *s) = 0;
 
-		protected:		
+		protected:
+		/* Using datastructures/grid may not even be necessary. */
 		Grid<Region*> grid;
 
 		/* Locate the region in the grid containing the point determined by coord. Since
@@ -56,6 +57,13 @@ namespace ompl {
 					grid.add(cell);
 				} 
 			}
+
+			const int dim = 2;
+			double vol = 1;
+			for (int d = 0; d < dim; ++d)
+				vol *= (bounds.high[d]-bounds.low[d])/length;
+			for (int i = 0; i < n*n; ++i)
+				regions[i].volume = vol;
 		}
 
 		const int length;

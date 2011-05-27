@@ -21,6 +21,8 @@ namespace ompl {
 			}
 
 			virtual Region* selectRegion(const std::set<Region*>& regions);
+
+			/* Finding available regions depends on the tree of the low-level planner. */
 			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) = 0;
 			
 
