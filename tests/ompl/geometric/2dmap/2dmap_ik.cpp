@@ -45,8 +45,8 @@
 #include "ompl/geometric/ik/GAIK.h"
 #include "ompl/util/Time.h"
 
-#include "../../resources/config.h"
-#include "../../resources/environment2D.h"
+#include "resources/config.h"
+#include "resources/environment2D.h"
 
 using namespace ompl;
 

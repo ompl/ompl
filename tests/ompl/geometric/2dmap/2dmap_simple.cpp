@@ -44,8 +44,9 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/geometric/SimpleSetup.h"
 
-#include "../../resources/config.h"
-#include "../../resources/environment2D.h"
+#include "resources/config.h"
+#include "resources/environment2D.h"
+#include "commonheaders/PlannerTest.h"
 
 using namespace ompl;
 
@@ -229,6 +230,14 @@ public:
         }
     }
 
+    void simpleTest(void)
+    {
+        mySetup s(env);
+        s->setup();
+        PlannerTest pt(s->getPlanner());
+        pt.test();
+    }
+
 protected:
 
     PlanTest(void)
@@ -263,6 +272,8 @@ TEST_F(PlanTest, SimpleSetup)
     double success    = 0.0;
     double avgruntime = 0.0;
     double avglength  = 0.0;
+
+    simpleTest();
 
     TestPlanner p;
     runPlanTest(&p, &success, &avgruntime, &avglength);

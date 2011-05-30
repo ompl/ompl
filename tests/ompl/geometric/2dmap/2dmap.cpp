@@ -56,8 +56,8 @@
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/BasicPRM.h"
 
-#include "../../resources/config.h"
-#include "../../resources/environment2D.h"
+#include "resources/config.h"
+#include "resources/environment2D.h"
 
 using namespace ompl;
 

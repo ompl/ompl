@@ -1,4 +1,5 @@
 option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" ON)
+option(OMPL_BUILD_PYTESTS "Build OMPL Python tests" ON)
 
 if (OMPL_BUILD_PYBINDINGS)
 
@@ -21,17 +22,12 @@ if (OMPL_BUILD_PYBINDINGS)
         add_dependencies(update_control_bindings update_geometric_bindings)
         add_dependencies(update_control_bindings update_base_bindings)
 
-        # enable running of tests
-        option(OMPL_BUILD_PYTESTS "Build OMPL Python tests" ON)
     endif(PY_OMPL_GENERATE)
 
     if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
         foreach(module ${OMPL_MODULES})
             create_module_target(${module} ${CMAKE_CURRENT_SOURCE_DIR})
         endforeach(module)
-
-        # enable running of tests
-        option(OMPL_BUILD_PYTESTS "Build OMPL Python tests" ON)
 
         install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"
             PATTERN .svn EXCLUDE PATTERN "*.pyc" EXCLUDE PATTERN "_*.so" EXCLUDE)
