@@ -27,7 +27,7 @@ namespace ompl {
 			int numValid;
 			int numInvalid;
 
-			Region() : numSelections(0), coverage(0), numValid(0), numInValid(0) {
+			Region() : numSelections(0), coverage(0), numValid(0), numInvalid(0) {
 			}
 			virtual ~Region() {
 			}
