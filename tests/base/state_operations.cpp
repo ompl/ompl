@@ -143,6 +143,37 @@ TEST(State, Scoped)
     EXPECT_EQ(sSE3_R[0], 0.5);
 }
 
+TEST(State, ScopedRV)
+{
+    base::StateSpacePtr m(new base::RealVectorStateSpace(2));
+
+    base::ScopedState<base::RealVectorStateSpace> s1(m);
+    s1->values[0] = 1.0;
+    s1->values[1] = 2.0;
+
+    base::ScopedState<base::RealVectorStateSpace> s2 = s1;
+    EXPECT_TRUE(s2->values[1] == s1->values[1]);
+
+    base::ScopedState<> s3(m);
+    s3 = s1;
+    base::ScopedState<> s4 = s3;
+    EXPECT_TRUE(s4 == s3);
+    EXPECT_TRUE(s4 == s1);
+
+    base::ScopedState<base::RealVectorStateSpace> s5 = s2;
+    EXPECT_TRUE(s5 == s1);
+
+    s1->values[1] = 4.0;
+
+    EXPECT_TRUE(s5 != s1);
+
+    base::ScopedState<base::RealVectorStateSpace> s6(s5);
+    EXPECT_TRUE(s6 != s1);
+    s1 = s5;
+    s5 = s1;
+    EXPECT_TRUE(s6 == s1);
+}
+
 TEST(State, Allocation)
 {
     base::StateSpacePtr m(new base::SE3StateSpace());

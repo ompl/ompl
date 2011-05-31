@@ -35,109 +35,18 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
-#include <libgen.h>
+#include "2dmapSetup.h"
 #include <iostream>
 
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/base/GoalState.h"
 #include "ompl/geometric/ik/GAIK.h"
 #include "ompl/util/Time.h"
 
-#include "resources/config.h"
-#include "resources/environment2D.h"
-
 using namespace ompl;
-
-
-/** \brief Declare a class used in validating states. Such a class
-    definition is needed for any use of a kinematic planner */
-class myStateValidityChecker : public base::StateValidityChecker
-{
-public:
-
-    myStateValidityChecker(base::SpaceInformation *si, const std::vector< std::vector<int> > &grid) :
-        base::StateValidityChecker(si), grid_(grid)
-    {
-    }
-
-    virtual bool isValid(const base::State *state) const
-    {
-        /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
-        return grid_[x][y] == 0; // 0 means valid state
-    }
-
-protected:
-
-    std::vector< std::vector<int> > grid_;
-
-};
-
-class mySpace : public base::RealVectorStateSpace
-{
-public:
-
-    mySpace() : base::RealVectorStateSpace(2)
-    {
-    }
-
-    virtual double distance(const base::State *state1, const base::State *state2) const
-    {
-        /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
-
-        int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
-
-        return abs(x1 - x2) + abs(y1 - y2);
-    }
-};
-
-/** \brief Space information */
-base::SpaceInformationPtr mySpaceInformation(Environment2D &env)
-{
-    base::RealVectorStateSpace *sSpace = new mySpace();
-
-    base::RealVectorBounds sbounds(2);
-
-    // dimension 0 (x) spans between [0, width)
-    // dimension 1 (y) spans between [0, height)
-    // since sampling is continuous and we round down, we allow values until just under the max limit
-    // the resolution is 1.0 since we check cells only
-
-    sbounds.low[0] = 0.0;
-    sbounds.high[0] = (double)env.width - 0.000000001;
-
-    sbounds.low[1] = 0.0;
-    sbounds.high[1] = (double)env.height - 0.000000001;
-
-    sSpace->setBounds(sbounds);
-
-    base::StateSpacePtr sSpacePtr(sSpace);
-
-    base::SpaceInformationPtr si(new base::SpaceInformation(sSpacePtr));
-    si->setStateValidityCheckingResolution(0.016);
-
-    si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityChecker(si.get(), env.grid)));
-
-    si->setup();
-
-    return si;
-}
 
 TEST(GAIK, Simple)
 {
     /* load environment */
-    Environment2D env;
-
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
-    path = path / "env1.txt";
-    loadEnvironment(path.string().c_str(), env);
-    printEnvironment(std::cout, env);
+    Environment2D env = loadTest("env1.txt");
 
     if (env.width * env.height == 0)
     {
@@ -161,7 +70,6 @@ TEST(GAIK, Simple)
     base::ScopedState<base::RealVectorStateSpace> found(si);
     double time = 0.0;
 
-    /* start counting time */
     const int N = 100;
     for (int i = 0 ; i < N ; ++i)
     {

@@ -35,92 +35,13 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
-#include <boost/bind.hpp>
-#include <libgen.h>
+#include "2dmapSetup.h"
+
 #include <iostream>
-
-#include "ompl/base/GoalState.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/geometric/SimpleSetup.h"
-
-#include "resources/config.h"
-#include "resources/environment2D.h"
-#include "commonheaders/PlannerTest.h"
 
 using namespace ompl;
 
 static const double SOLUTION_TIME = 2.0;
-
-bool isValid(const std::vector< std::vector<int> > *grid, const base::State *state)
-{
-    const base::CompoundState *cstate = state->as<base::CompoundState>();
-
-    /* planning is done in a continuous space, but our collision space representation is discrete */
-    int x = (int)(cstate->as<base::RealVectorStateSpace::StateType>(0)->values[0]);
-    int y = (int)(cstate->as<base::RealVectorStateSpace::StateType>(1)->values[0]);
-    return (*grid)[x][y] == 0; // 0 means valid state
-}
-
-class mySpace1 : public base::RealVectorStateSpace
-{
-public:
-
-    mySpace1() : base::RealVectorStateSpace(1)
-    {
-    }
-
-    virtual double distance(const base::State *state1, const base::State *state2) const
-    {
-        int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
-
-        return abs(x1 - x2);
-    }
-};
-
-class mySetup
-{
-public:
-
-    mySetup(Environment2D &env) : setup(base::StateSpacePtr(new base::CompoundStateSpace()))
-    {
-        base::RealVectorBounds bounds(1);
-        bounds.low[0] = 0.0;
-        bounds.high[0] = (double)env.width - 0.000000001;
-        mySpace1 *m1 = new mySpace1();
-        m1->setBounds(bounds);
-
-        bounds.high[0] = (double)env.height - 0.000000001;
-        mySpace1 *m2 = new mySpace1();
-        m2->setBounds(bounds);
-
-        setup.getStateSpace()->as<base::CompoundStateSpace>()->addSubSpace(base::StateSpacePtr(m1), 1.0);
-        setup.getStateSpace()->as<base::CompoundStateSpace>()->addSubSpace(base::StateSpacePtr(m2), 1.0);
-
-        setup.setStateValidityChecker(boost::bind(&isValid, &env.grid, _1));
-
-        base::ScopedState<base::CompoundStateSpace> state(setup.getSpaceInformation());
-        state->as<base::RealVectorStateSpace::StateType>(0)->values[0] = env.start.first;
-        state->as<base::RealVectorStateSpace::StateType>(1)->values[0] = env.start.second;
-
-        base::ScopedState<base::CompoundStateSpace> gstate(setup.getSpaceInformation());
-        gstate->as<base::RealVectorStateSpace::StateType>(0)->values[0] = env.goal.first;
-        gstate->as<base::RealVectorStateSpace::StateType>(1)->values[0] = env.goal.second;
-
-        setup.setStartAndGoalStates(state, gstate);
-    }
-
-    geometric::SimpleSetup* operator->(void)
-    {
-        return &setup;
-    }
-
-private:
-
-    geometric::SimpleSetup setup;
-};
-
 
 /** A base class for testing planners */
 class TestPlanner
@@ -138,7 +59,7 @@ public:
     {
         bool result = true;
 
-        mySetup setup(env);
+        mySetup1 setup(env);
 
         /* start counting time */
         ompl::time::point startTime = ompl::time::now();
@@ -230,14 +151,6 @@ public:
         }
     }
 
-    void simpleTest(void)
-    {
-        mySetup s(env);
-        s->setup();
-        PlannerTest pt(s->getPlanner());
-        pt.test();
-    }
-
 protected:
 
     PlanTest(void)
@@ -247,10 +160,7 @@ protected:
 
     void SetUp(void)
     {
-        /* load environment */
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
-        path = path / "env1.txt";
-        loadEnvironment(path.string().c_str(), env);
+        env = loadTest("env1.txt");
 
         if (env.width * env.height == 0)
         {
@@ -273,45 +183,12 @@ TEST_F(PlanTest, SimpleSetup)
     double avgruntime = 0.0;
     double avglength  = 0.0;
 
-    simpleTest();
-
     TestPlanner p;
     runPlanTest(&p, &success, &avgruntime, &avglength);
 
     EXPECT_TRUE(success >= 99.0);
     EXPECT_TRUE(avgruntime < 0.2);
     EXPECT_TRUE(avglength < 70.0);
-}
-
-TEST(ScopedStateTest, Simple)
-{
-    base::StateSpacePtr m(new base::RealVectorStateSpace(2));
-
-    base::ScopedState<base::RealVectorStateSpace> s1(m);
-    s1->values[0] = 1.0;
-    s1->values[1] = 2.0;
-
-    base::ScopedState<base::RealVectorStateSpace> s2 = s1;
-    EXPECT_TRUE(s2->values[1] == s1->values[1]);
-
-    base::ScopedState<> s3(m);
-    s3 = s1;
-    base::ScopedState<> s4 = s3;
-    EXPECT_TRUE(s4 == s3);
-    EXPECT_TRUE(s4 == s1);
-
-    base::ScopedState<base::RealVectorStateSpace> s5 = s2;
-    EXPECT_TRUE(s5 == s1);
-
-    s1->values[1] = 4.0;
-
-    EXPECT_TRUE(s5 != s1);
-
-    base::ScopedState<base::RealVectorStateSpace> s6(s5);
-    EXPECT_TRUE(s6 != s1);
-    s1 = s5;
-    s5 = s1;
-    EXPECT_TRUE(s6 == s1);
 }
 
 int main(int argc, char **argv)
