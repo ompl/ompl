@@ -40,61 +40,65 @@
 namespace ompl
 {
 
-    /** \brief Encapsulate basic tests for planners. This class
-        should be used for every planner included with ompl, to
-        ensure basic functionality works. */
-    class PlannerTest
+    namespace base
     {
-    public:
 
-        /** \brief Construct a testing setup for planner \e planner */
-        PlannerTest(const base::PlannerPtr &planner) : planner_(planner)
+        /** \brief Encapsulate basic tests for planners. This class
+            should be used for every planner included with ompl, to
+            ensure basic functionality works. */
+        class PlannerTest
         {
-        }
+        public:
 
-        ~PlannerTest(void)
-        {
-        }
+            /** \brief Construct a testing setup for planner \e planner */
+            PlannerTest(const PlannerPtr &planner) : planner_(planner)
+            {
+            }
 
-        /** \brief Test that solve() and clear() work as expected */
-        void testSolveAndClear(void)
-        {
-            planner_->clear();
+            ~PlannerTest(void)
+            {
+            }
 
-            bool solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
+            /** \brief Test that solve() and clear() work as expected */
+            void testSolveAndClear(void)
+            {
+                planner_->clear();
 
-            planner_->clear();
+                bool solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
 
-            solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
+                planner_->clear();
 
-            solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
+                solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
 
-            planner_->clear();
+                solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
 
-            planner_->solve(base::PlannerAlwaysTerminatingCondition());
-            planner_->solve(0.001);
-            planner_->solve(0.01);
-            solved = planner_->solve(0.1);
-            if (!solved)
-                solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
-            planner_->clear();
-            planner_->clear();
-            planner_->clear();
-        }
+                planner_->clear();
 
-        /** \brief Call all tests for the planner */
-        void test(void)
-        {
-            testSolveAndClear();
-        }
+                planner_->solve(PlannerAlwaysTerminatingCondition());
+                planner_->solve(0.001);
+                planner_->solve(0.01);
+                solved = planner_->solve(0.1);
+                if (!solved)
+                    solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
+                planner_->clear();
+                planner_->clear();
+                planner_->clear();
+            }
 
-    private:
+            /** \brief Call all tests for the planner */
+            void test(void)
+            {
+                testSolveAndClear();
+            }
 
-        base::PlannerPtr planner_;
+        private:
 
-    };
+            PlannerPtr planner_;
+
+        };
+    }
 }

@@ -45,8 +45,8 @@
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/control/planners/kpiece/KPIECE1.h"
 
-#include "resources/config.h"
-#include "resources/environment2D.h"
+#include "../../resources/config.h"
+#include "../../resources/environment2D.h"
 
 using namespace ompl;
 

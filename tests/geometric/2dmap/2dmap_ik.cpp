@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "2dmapSetup.h"
+#include "2DmapSetup.h"
 #include <iostream>
 
 #include "ompl/geometric/ik/GAIK.h"
@@ -46,7 +46,10 @@ using namespace ompl;
 TEST(GAIK, Simple)
 {
     /* load environment */
-    Environment2D env = loadTest("env1.txt");
+    Environment2D env;
+    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    path = path / "env1.txt";
+    loadEnvironment(path.string().c_str(), env);
 
     if (env.width * env.height == 0)
     {
@@ -55,7 +58,7 @@ TEST(GAIK, Simple)
     }
 
     /* instantiate space information */
-    base::SpaceInformationPtr si = mySpaceInformation(env);
+    base::SpaceInformationPtr si = geometric::spaceInformation2DMap(env);
 
     /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
     base::GoalState goal(si);

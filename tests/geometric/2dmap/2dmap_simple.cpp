@@ -35,8 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "2dmapSetup.h"
-
+#include "2DmapSetup1.h"
 #include <iostream>
 
 using namespace ompl;
@@ -59,13 +58,13 @@ public:
     {
         bool result = true;
 
-        mySetup1 setup(env);
+        geometric::SimpleSetup2DMap1 setup(env);
 
         /* start counting time */
         ompl::time::point startTime = ompl::time::now();
 
         /* call the planner to solve the problem */
-        if (setup->solve(SOLUTION_TIME))
+        if (setup.solve(SOLUTION_TIME))
         {
             ompl::time::duration elapsed = ompl::time::now() - startTime;
             if (time)
@@ -73,12 +72,12 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            geometric::PathGeometric &path = setup->getSolutionPath();
+            geometric::PathGeometric &path = setup.getSolutionPath();
 
             /* make the solution more smooth */
 
             startTime = ompl::time::now();
-            setup->getPathSimplifier()->reduceVertices(path);
+            setup.getPathSimplifier()->reduceVertices(path);
             elapsed = ompl::time::now() - startTime;
 
             if (time)
@@ -160,7 +159,9 @@ protected:
 
     void SetUp(void)
     {
-        env = loadTest("env1.txt");
+        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        path = path / "env1.txt";
+        loadEnvironment(path.string().c_str(), env);
 
         if (env.width * env.height == 0)
         {
@@ -177,7 +178,7 @@ protected:
     bool          verbose;
 };
 
-TEST_F(PlanTest, SimpleSetup)
+TEST_F(PlanTest, Simple)
 {
     double success    = 0.0;
     double avgruntime = 0.0;

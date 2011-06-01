@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 
-#include "2dmapSetup.h"
+#include "2DmapSetup.h"
 #include <iostream>
 
 #include "ompl/base/spaces/RealVectorStateProjections.h"
@@ -53,7 +53,7 @@
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/BasicPRM.h"
 
-#include "commonheaders/PlannerTest.h"
+#include "../../base/PlannerTest.h"
 
 using namespace ompl;
 
@@ -76,10 +76,10 @@ public:
         bool result = true;
 
         /* instantiate space information */
-        base::SpaceInformationPtr si = mySpaceInformation(env);
+        base::SpaceInformationPtr si = geometric::spaceInformation2DMap(env);
 
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef = myProblemDefinition(si, env);
+        base::ProblemDefinitionPtr pdef = geometric::problemDefinition2DMap(si, env);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -369,9 +369,9 @@ public:
 
     void simpleTest(void)
     {
-        mySetup1 s(env);
-        s->setup();
-        PlannerTest pt(s->getPlanner());
+        geometric::SimpleSetup2DMap s(env);
+        s.setup();
+        base::PlannerTest pt(s.getPlanner());
         pt.test();
     }
 
@@ -407,7 +407,9 @@ protected:
 
     void SetUp(void)
     {
-        env = loadTest("env1.txt");
+        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        path = path / "env1.txt";
+        loadEnvironment(path.string().c_str(), env);
 
         if (env.width * env.height == 0)
         {
