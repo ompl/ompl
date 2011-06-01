@@ -1,0 +1,39 @@
+/**
+\page developers Developers
+
+The main OMPL development is at Rice University, but many others have contributed to OMPL as well, as can be seen below. Click \ref thirdparty "here" for a detailed description of the third-party contributions. \ref contrib "Learn more about contributing to OMPL."
+
+\section dev_rice Rice University
+
+- Kostas Bekris
+- Bryant Gipson
+- Devin Grady
+- Lydia Kavraki
+- Matt Maly
+- Mark Moll
+- Erion Plaku
+- Ioan Sucan
+.
+
+\section dev_wg Willow Garage
+
+- Sachin Chitta
+- Gil Jones
+.
+
+\section dev_mit MIT
+
+- Sertac Karaman
+- Alejandro Perez
+.
+
+\section dev_reno University of Nevada at Reno
+
+- Kostas Bekris
+- Andrew Dobson
+- Andrew Kimmel
+- Athanasios Krontiris
+- James Marble
+.
+
+*/
