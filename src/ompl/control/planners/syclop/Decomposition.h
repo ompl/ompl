@@ -55,9 +55,16 @@ namespace ompl {
 			}
 		}
 
+		Region& operator[](const int rid) {
+			return regions[rid];
+		}
+
 		/* Returns the ID of the decomposition region containing the state s.
 		 * Most often, this is obtained by projecting s into the workspace and finding the appropriate region. */
 		virtual int locateRegion(const base::State *s) = 0;
+
+		/* Stores the neighboring regions of region into the vector neighbors. */
+		virtual void getNeighbors(const int rid, std::vector<int>& neighbors) = 0;
 
 		protected:
 		/* Returns true iff regions r and s are physically adjacent in this decomposition. */

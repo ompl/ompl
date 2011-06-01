@@ -124,8 +124,15 @@ int main(void) {
 	std::cerr << "goal state located in region " << goalRegion << std::endl;
 
 	//createGraphs();
+	ompl::RNG randGen;
+	std::vector<int> neighbors;
+	for (int i = 0; i < 4; ++i) {
+		neighbors.clear();
+		int rid = randGen.uniformInt(0, 15);
+		grid.getNeighbors(rid, neighbors);
+	}
 
-	//TODO: Incorporate boost::graph in decomposition/syclop, using areNeighbors() to determine edges.
+	//TODO: Now getNeighbors() is defined in decomposition. Implement boost::graph in syclop to follow from it.
 	
 	return 0;
 }

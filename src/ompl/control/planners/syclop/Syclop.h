@@ -1,6 +1,11 @@
 #ifndef SYCLOP_H
 #define SYCLOP_H
 
+#define BOOST_NO_HASH
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/graph/adjacency_list.hpp>
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 

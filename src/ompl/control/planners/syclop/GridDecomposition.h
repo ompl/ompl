@@ -1,6 +1,7 @@
 #ifndef GRIDDECOMPOSITION_H
 #define GRIDDECOMPOSITION_H
 
+#include <cstdlib>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
@@ -28,6 +29,16 @@ namespace ompl {
 		 * dimension as the grid. */
 		virtual int locateRegion(const base::State *s) = 0;
 
+		/* This implementation requires time linear with the number of regions.
+		 * We can do constant time if we know the dimension offline (oopsmp-syclop has cases for 2 and 3),
+		 * but can we beat linear time with arbitrary dimension? */
+		virtual void getNeighbors(const int rid, std::vector<int>& neighbors) {
+			for (int s = 0; s < getNumRegions(); ++s) {
+				if (areNeighbors(rid, s))
+					neighbors.push_back(s);
+			}
+		}
+
 		protected:
 		/* Using datastructures/grid may not even be necessary. */
 		Grid<Region*> grid;
@@ -46,12 +57,14 @@ namespace ompl {
 		}
 
 		virtual bool areNeighbors(int r, int s) {
+			if (r == s)
+				return false;
 			std::vector<int> rc;
 			std::vector<int> sc;
 			regionToCoord(r, rc);
 			regionToCoord(s, sc);
 
-			std::cerr << "Region " << r << " is coord (";
+			/*std::cerr << "Region " << r << " is coord (";
 			for (int i = 0; i < dimension-1; ++i)
 				std::cerr << rc[i] << ",";
 			std::cerr << rc[dimension-1] << ")" << std::endl;
@@ -59,7 +72,12 @@ namespace ompl {
 			std::cerr << "Region " << s << " is coord (";
 			for (int i = 0; i < dimension-1; ++i)
 				std::cerr << sc[i] << ",";
-			std::cerr << sc[dimension-1] << ")" << std::endl;
+			std::cerr << sc[dimension-1] << ")" << std::endl;*/
+
+			for (int i = 0; i < dimension; ++i) {
+				if (abs(rc[i]-sc[i]) > 1)
+					return false;
+			}
 			return true;
 		}
 
