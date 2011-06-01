@@ -49,7 +49,7 @@ endif()
 ##    or they are added to the list of OMPL_LINK_LIBRARIES
 #
 #endif()
-
+add_subdirectory(contrib/sample_contrib)
 
 #############################################
 # Build and install the library             #
