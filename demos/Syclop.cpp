@@ -6,6 +6,7 @@
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
 #include <ompl/util/RandomNumbers.h>
+#define BOOST_NO_HASH
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graphviz.hpp>
