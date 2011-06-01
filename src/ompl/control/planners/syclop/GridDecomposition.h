@@ -10,8 +10,8 @@ namespace ompl {
 	class GridDecomposition : public Decomposition {
 
 		public:
-		/* For now, we are assuming a 2-dimensional N-by-N grid decomposition. This will change. */
-		GridDecomposition(const int len, const base::RealVectorBounds &b) : Decomposition(len*len, b), grid(2), length(len) {
+		/* In some areas of this class, we are assuming a 2-dimensional grid. This will change. */
+		GridDecomposition(const int len, const int dim, const base::RealVectorBounds &b) : Decomposition(len*len, b), grid(2), length(len), dimension(dim) {
 			buildGrid(len);
 		}
 
@@ -45,6 +45,24 @@ namespace ompl {
 			return region;
 		}
 
+		virtual bool areNeighbors(int r, int s) {
+			std::vector<int> rc;
+			std::vector<int> sc;
+			regionToCoord(r, rc);
+			regionToCoord(s, sc);
+
+			std::cerr << "Region " << r << " is coord (";
+			for (int i = 0; i < dimension-1; ++i)
+				std::cerr << rc[i] << ",";
+			std::cerr << rc[dimension-1] << ")" << std::endl;
+
+			std::cerr << "Region " << s << " is coord (";
+			for (int i = 0; i < dimension-1; ++i)
+				std::cerr << sc[i] << ",";
+			std::cerr << sc[dimension-1] << ")" << std::endl;
+			return true;
+		}
+
 		private:
 		void buildGrid(const int n) {
 			Grid<Region*>::Coord coord(2);
@@ -66,7 +84,19 @@ namespace ompl {
 				regions[i].volume = vol;
 		}
 
+		/* Convert a region ID to a grid coordinate, which is a vector of length equivalent to the dimension of the grid. */
+		void regionToCoord(int rid, std::vector<int>& coord) {
+			//TODO: Should we ensure that 0 <= rid < getNumRegions()?
+			coord.resize(dimension);
+			for (int i = dimension-1; i >= 0; --i) {
+				int remainder = rid % length;
+				coord[i] = remainder;
+				rid /= length;
+			}
+		}
+
 		const int length;
+		const int dimension;
 	};
 }
 

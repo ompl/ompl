@@ -18,7 +18,7 @@ namespace ob = ompl::base;
 
 class TestDecomposition : public ompl::GridDecomposition {
 	public:
-	TestDecomposition(const int length, ob::RealVectorBounds &bounds) : ompl::GridDecomposition(length, bounds) {
+	TestDecomposition(const int length, ob::RealVectorBounds &bounds) : ompl::GridDecomposition(length, 2, bounds) {
 	}
 	virtual ~TestDecomposition() {
 	}
@@ -123,7 +123,9 @@ int main(void) {
 	int goalRegion = grid.locateRegion(goal.get());
 	std::cerr << "goal state located in region " << goalRegion << std::endl;
 
-	createGraphs();
+	//createGraphs();
+
+	//TODO: Incorporate boost::graph in decomposition/syclop, using areNeighbors() to determine edges.
 	
 	return 0;
 }

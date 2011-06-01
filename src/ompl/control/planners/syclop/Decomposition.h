@@ -4,6 +4,11 @@
 #include <iostream>
 #include <set>
 #include <vector>
+#define BOOST_NO_HASH
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/graph/adjacency_list.hpp>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 
@@ -55,6 +60,9 @@ namespace ompl {
 		virtual int locateRegion(const base::State *s) = 0;
 
 		protected:
+		/* Returns true iff regions r and s are physically adjacent in this decomposition. */
+		virtual bool areNeighbors(int r, int s) = 0;
+
 		std::vector<Region> regions;
 		const base::RealVectorBounds &bounds;
 	};
