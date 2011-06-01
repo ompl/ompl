@@ -35,14 +35,11 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
-#include <libgen.h>
+
+#include "2dmapSetup.h"
 #include <iostream>
 
-#include "ompl/geometric/PathSimplifier.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/RealVectorStateProjections.h"
-#include "ompl/base/GoalState.h"
 
 #include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
 #include "ompl/geometric/planners/kpiece/BKPIECE1.h"
@@ -56,90 +53,11 @@
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/BasicPRM.h"
 
-#include "../../resources/config.h"
-#include "../../resources/environment2D.h"
+#include "commonheaders/PlannerTest.h"
 
 using namespace ompl;
 
 static const double SOLUTION_TIME = 1.0;
-
-/** \brief Declare a class used in validating states. Such a class
-    definition is needed for any use of a kinematic planner */
-class myStateValidityChecker : public base::StateValidityChecker
-{
-public:
-
-    myStateValidityChecker(base::SpaceInformation *si, const std::vector< std::vector<int> > &grid) :
-        base::StateValidityChecker(si), grid_(grid)
-    {
-    }
-
-    virtual bool isValid(const base::State *state) const
-    {
-        /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
-        return grid_[x][y] == 0; // 0 means valid state
-    }
-
-protected:
-
-    std::vector< std::vector<int> > grid_;
-
-};
-
-class mySpace : public base::RealVectorStateSpace
-{
-public:
-
-    mySpace() : base::RealVectorStateSpace(2)
-    {
-    }
-
-    virtual double distance(const base::State *state1, const base::State *state2) const
-    {
-        /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
-
-        int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
-
-        return abs(x1 - x2) + abs(y1 - y2);
-    }
-};
-
-/** \brief Space information */
-base::SpaceInformationPtr mySpaceInformation(Environment2D &env)
-{
-    base::RealVectorStateSpace *sSpace = new mySpace();
-
-    base::RealVectorBounds sbounds(2);
-
-    // dimension 0 (x) spans between [0, width)
-    // dimension 1 (y) spans between [0, height)
-    // since sampling is continuous and we round down, we allow values until just under the max limit
-    // the resolution is 1.0 since we check cells only
-
-    sbounds.low[0] = 0.0;
-    sbounds.high[0] = (double)env.width - 0.000000001;
-
-    sbounds.low[1] = 0.0;
-    sbounds.high[1] = (double)env.height - 0.000000001;
-
-    sSpace->setBounds(sbounds);
-
-    base::StateSpacePtr sSpacePtr(sSpace);
-
-    base::SpaceInformationPtr si(new base::SpaceInformation(sSpacePtr));
-    si->setStateValidityCheckingResolution(0.016);
-
-    si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityChecker(si.get(), env.grid)));
-
-    si->setup();
-
-    return si;
-}
 
 /** \brief A base class for testing planners */
 class TestPlanner
@@ -161,27 +79,12 @@ public:
         base::SpaceInformationPtr si = mySpaceInformation(env);
 
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+        base::ProblemDefinitionPtr pdef = myProblemDefinition(si, env);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
         planner->setProblemDefinition(pdef);
         planner->setup();
-
-        /* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
-        base::ScopedState<base::RealVectorStateSpace> state(si);
-        state->values[0] = env.start.first;
-        state->values[1] = env.start.second;
-        pdef->addStartState(state);
-
-        /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-        base::GoalState *goal = new base::GoalState(si);
-        base::ScopedState<base::RealVectorStateSpace> gstate(si);
-        gstate->values[0] = env.goal.first;
-        gstate->values[1] = env.goal.second;
-        goal->setState(gstate);
-        goal->setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
-        pdef->setGoal(base::GoalPtr(goal));
 
         /* start counting time */
         ompl::time::point startTime = ompl::time::now();
@@ -195,7 +98,7 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(goal->getSolutionPath().get());
+            geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getGoal()->getSolutionPath().get());
 
 
             /* make the solution more smooth */
@@ -464,6 +367,14 @@ class PlanTest : public testing::Test
 {
 public:
 
+    void simpleTest(void)
+    {
+        mySetup1 s(env);
+        s->setup();
+        PlannerTest pt(s->getPlanner());
+        pt.test();
+    }
+
     void runPlanTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
     {
         double time   = 0.0;
@@ -496,10 +407,7 @@ protected:
 
     void SetUp(void)
     {
-        /* load environment */
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
-        path = path / "env1.txt";
-        loadEnvironment(path.string().c_str(), env);
+        env = loadTest("env1.txt");
 
         if (env.width * env.height == 0)
         {
@@ -522,6 +430,8 @@ TEST_F(PlanTest, geometric_RRT)
     double avgruntime = 0.0;
     double avglength  = 0.0;
 
+    simpleTest();
+
     TestPlanner *p = new RRTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
@@ -536,6 +446,8 @@ TEST_F(PlanTest, geometric_RRTConnect)
     double success    = 0.0;
     double avgruntime = 0.0;
     double avglength  = 0.0;
+
+    simpleTest();
 
     TestPlanner *p = new RRTConnectTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
@@ -552,6 +464,8 @@ TEST_F(PlanTest, geometric_pRRT)
     double avgruntime = 0.0;
     double avglength  = 0.0;
 
+    simpleTest();
+
     TestPlanner *p = new pRRTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
@@ -566,6 +480,8 @@ TEST_F(PlanTest, geometric_SBL)
     double success    = 0.0;
     double avgruntime = 0.0;
     double avglength  = 0.0;
+
+    simpleTest();
 
     TestPlanner *p = new SBLTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
@@ -583,6 +499,8 @@ TEST_F(PlanTest, geometric_pSBL)
     double avgruntime = 0.0;
     double avglength  = 0.0;
 
+    simpleTest();
+
     TestPlanner *p = new pSBLTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
@@ -599,6 +517,8 @@ TEST_F(PlanTest, geometric_KPIECE1)
     double avgruntime = 0.0;
     double avglength  = 0.0;
 
+    simpleTest();
+
     TestPlanner *p = new KPIECE1Test();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
@@ -613,6 +533,8 @@ TEST_F(PlanTest, geometric_LBKPIECE1)
     double success    = 0.0;
     double avgruntime = 0.0;
     double avglength  = 0.0;
+
+    simpleTest();
 
     TestPlanner *p = new LBKPIECE1Test();
     runPlanTest(p, &success, &avgruntime, &avglength);
@@ -629,6 +551,8 @@ TEST_F(PlanTest, geometric_BKPIECE1)
     double avgruntime = 0.0;
     double avglength  = 0.0;
 
+    simpleTest();
+
     TestPlanner *p = new BKPIECE1Test();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
@@ -643,6 +567,8 @@ TEST_F(PlanTest, geometric_EST)
     double success    = 0.0;
     double avgruntime = 0.0;
     double avglength  = 0.0;
+
+    simpleTest();
 
     TestPlanner *p = new ESTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
@@ -659,6 +585,8 @@ TEST_F(PlanTest, geometric_LazyRRT)
     double avgruntime = 0.0;
     double avglength  = 0.0;
 
+    simpleTest();
+
     TestPlanner *p = new LazyRRTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
@@ -673,6 +601,8 @@ TEST_F(PlanTest, geometric_BasicPRM)
     double success    = 0.0;
     double avgruntime = 0.0;
     double avglength  = 0.0;
+
+    simpleTest();
 
     TestPlanner *p = new BasicPRMTest();
     runPlanTest(p, &success, &avgruntime, &avglength);

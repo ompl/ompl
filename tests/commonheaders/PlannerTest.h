@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -35,58 +35,66 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "2dmapSetup.h"
-#include <iostream>
+#include "ompl/base/Planner.h"
 
-#include "ompl/geometric/ik/GAIK.h"
-#include "ompl/util/Time.h"
-
-using namespace ompl;
-
-TEST(GAIK, Simple)
+namespace ompl
 {
-    /* load environment */
-    Environment2D env = loadTest("env1.txt");
 
-    if (env.width * env.height == 0)
+    /** \brief Encapsulate basic tests for planners. This class
+        should be used for every planner included with ompl, to
+        ensure basic functionality works. */
+    class PlannerTest
     {
-        std::cerr << "The environment has a 0 dimension. Cannot continue" << std::endl;
-        FAIL();
-    }
+    public:
 
-    /* instantiate space information */
-    base::SpaceInformationPtr si = mySpaceInformation(env);
+        /** \brief Construct a testing setup for planner \e planner */
+        PlannerTest(const base::PlannerPtr &planner) : planner_(planner)
+        {
+        }
 
-    /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-    base::GoalState goal(si);
-    base::ScopedState<base::RealVectorStateSpace> gstate(si);
-    gstate->values[0] = env.goal.first;
-    gstate->values[1] = env.goal.second;
-    goal.setState(gstate);
-    goal.setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
+        ~PlannerTest(void)
+        {
+        }
 
-    geometric::GAIK gaik(si);
-    gaik.setRange(5.0);
-    base::ScopedState<base::RealVectorStateSpace> found(si);
-    double time = 0.0;
+        /** \brief Test that solve() and clear() work as expected */
+        void testSolveAndClear(void)
+        {
+            planner_->clear();
 
-    const int N = 100;
-    for (int i = 0 ; i < N ; ++i)
-    {
-        ompl::time::point startTime = ompl::time::now();
-        bool solved = gaik.solve(1.0, goal, found.get());
-        ompl::time::duration elapsed = ompl::time::now() - startTime;
-        time += ompl::time::seconds(elapsed);
-        EXPECT_TRUE(solved);
-        EXPECT_TRUE(si->distance(found.get(), gstate.get()) < 1e-3);
-    }
-    time = time / (double)N;
-    EXPECT_TRUE(time < 0.01);
-}
+            bool solved = planner_->solve(base::PlannerNonTerminatingCondition());
+            EXPECT_TRUE(solved);
 
+            planner_->clear();
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+            solved = planner_->solve(base::PlannerNonTerminatingCondition());
+            EXPECT_TRUE(solved);
+
+            solved = planner_->solve(base::PlannerNonTerminatingCondition());
+            EXPECT_TRUE(solved);
+
+            planner_->clear();
+
+            planner_->solve(base::PlannerAlwaysTerminatingCondition());
+            planner_->solve(0.001);
+            planner_->solve(0.01);
+            solved = planner_->solve(0.1);
+            if (!solved)
+                solved = planner_->solve(base::PlannerNonTerminatingCondition());
+            EXPECT_TRUE(solved);
+            planner_->clear();
+            planner_->clear();
+            planner_->clear();
+        }
+
+        /** \brief Call all tests for the planner */
+        void test(void)
+        {
+            testSolveAndClear();
+        }
+
+    private:
+
+        base::PlannerPtr planner_;
+
+    };
 }

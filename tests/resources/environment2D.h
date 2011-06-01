@@ -60,7 +60,7 @@ struct Environment2D
     int                             height;
     std::vector< std::vector<int> > grid;
 
-    Environment2D& operator=(Environment2D &other)
+    Environment2D& operator=(const Environment2D &other)
     {
         start = other.start;
         goal = other.goal;

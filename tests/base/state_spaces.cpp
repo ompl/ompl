@@ -51,6 +51,8 @@
 
 #include <boost/math/constants/constants.hpp>
 
+#include "commonheaders/StateSpaceTest.h"
+
 using namespace ompl;
 
 const double PI = boost::math::constants::pi<double>();
@@ -59,73 +61,6 @@ bool isValid(const base::State *)
 {
     return true;
 }
-
-class StateSpaceTest
-{
-public:
-
-    StateSpaceTest(const base::StateSpacePtr &m, int N = 100, double EPS = std::numeric_limits<double>::epsilon() * 10.0) : space_(m), N_(N), EPS_(EPS)
-    {
-    }
-
-    ~StateSpaceTest(void)
-    {
-    }
-
-    void testDistance(void)
-    {
-        base::ScopedState<> s1(space_);
-        base::ScopedState<> s2(space_);
-
-        for (int i = 0 ; i < N_ ; ++i)
-        {
-            s1.random();
-            EXPECT_NEAR(s1.distance(s1), 0.0, EPS_);
-            s2.random();
-            if (s1 != s2)
-                EXPECT_TRUE(s1.distance(s2) > 0.0);
-        }
-    }
-
-    void testInterpolation(void)
-    {
-        base::ScopedState<> s1(space_);
-        base::ScopedState<> s2(space_);
-        base::ScopedState<> s3(space_);
-
-        for (int i = 0 ; i < N_ ; ++i)
-        {
-            s1.random(); s2.random(); s3.random();
-
-            space_->interpolate(s1.get(), s2.get(), 0.0, s3.get());
-            EXPECT_NEAR(s1.distance(s3), 0.0, EPS_);
-
-            space_->interpolate(s1.get(), s2.get(), 1.0, s3.get());
-            EXPECT_NEAR(s2.distance(s3), 0.0, EPS_);
-
-            space_->interpolate(s1.get(), s2.get(), 0.5, s3.get());
-            EXPECT_NEAR(s1.distance(s3) + s3.distance(s2), s1.distance(s2), EPS_);
-
-            space_->interpolate(s3.get(), s2.get(), 0.5, s3.get());
-            space_->interpolate(s1.get(), s2.get(), 0.75, s2.get());
-            EXPECT_NEAR(s2.distance(s3), 0.0, EPS_);
-        }
-    }
-
-    void test(void)
-    {
-        testDistance();
-        testInterpolation();
-    }
-
-private:
-
-    base::StateSpacePtr        space_;
-    RNG                           rng_;
-
-    int                           N_;
-    double                        EPS_;
-};
 
 TEST(SO2, Simple)
 {
