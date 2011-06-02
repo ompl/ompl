@@ -1,7 +1,7 @@
 /** 
 \page contrib External Contributions
 
-We welcome external contributions. We want to make the process of contributing code as easy as possible. To this end we came up with the following guidelines:
+We welcome external contributions. If you would like us to list your contribution in our \ref thirdparty "page", please \ref contact "contact us". If you would like to include your code in OMPL, please read on. We want to make the process of contributing code as easy as possible. To this end we came up with the following guidelines:
 
 -# Contributions are each stored in a separate directory in ompl/src/ompl/contrib. The contributors can choose a descriptive name for their directory such as their group name or the name of their algorithm.
 -# Within the contribution’s directory there are the following files / directories:

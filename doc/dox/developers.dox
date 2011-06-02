@@ -1,39 +1,17 @@
 /**
 \page developers Developers
 
-The main OMPL development is at Rice University, but many others have contributed to OMPL as well, as can be seen below. Click \ref thirdparty "here" for a detailed description of the third-party contributions. \ref contrib "Learn more about contributing to OMPL."
+OMPL is developed and maintained by the <a href="http://www.kavrakilab.org/">Physical and Biological Computing Group</a> at Rice University, led by <a href="http://www.cs.rice.edu/~kavraki/">Dr. Lydia Kavraki</a>. The development is coordinated by <a href="http://www.cs.rice.edu/~mmoll/">Dr. Mark Moll</a> and  <a href="http://www.cs.rice.edu/~kavraki/">Dr. Lydia Kavraki</a>, but many others have contributed to OMPL as well, as can be seen below:
 
-\section dev_rice Rice University
 
-- Kostas Bekris
-- Bryant Gipson
-- Devin Grady
-- Lydia Kavraki
-- Matt Maly
-- Mark Moll
-- Erion Plaku
-- Ioan Sucan
+  - <a href="http://www.cs.rice.edu/~mmoll/">Mark Moll</a>, Rice University
+  - <a href="http://ioan.sucan.info">Ioan Șucan</a>, Rice University
+  - Matt Maly, Rice University
+  - <a href="http://people.csail.mit.edu/aperez/www/">Alejandro Perez</a>, MIT
+  - <a href="http://www.cse.unr.edu/robotics/pracsys/marble">James Marble</a>, University of Nevada, Reno
 .
 
-\section dev_wg Willow Garage
+Click \ref thirdparty "here" for a detailed description of the third-party contributions.
 
-- Sachin Chitta
-- Gil Jones
-.
-
-\section dev_mit MIT
-
-- Sertac Karaman
-- Alejandro Perez
-.
-
-\section dev_reno University of Nevada at Reno
-
-- Kostas Bekris
-- Andrew Dobson
-- Andrew Kimmel
-- Athanasios Krontiris
-- James Marble
-.
 
 */

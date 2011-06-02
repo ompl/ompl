@@ -1,20 +1,21 @@
 /**
 \page contact Contact Us
 
-\section email_us Send an email
-Email ompl-users@lists.sourceforge.net to write to the OMPL discussion
+\section mailing_list Mailing Lists
+ - Email ompl-users@lists.sourceforge.net to write to the OMPL discussion
 mailing list. You can subscribe to the list and see an archive of
 previous messages <a
-href="https://lists.sourceforge.net/lists/listinfo/ompl-users">here</a>. 
-Email ompl-devel@lists.sourceforge.net to contact the developers.
-<br/>
+href="https://lists.sourceforge.net/lists/listinfo/ompl-users"><strong>here</strong></a>. 
 Please also
-check the <a href="FAQ.html">FAQ</a> and the <a
+check the <a href="FAQ.html"><strong>FAQ</strong></a> and the <a
 href="http://sourceforge.net/mailarchive/forum.php?forum_name=ompl-users">mailing
 list archive</a> to see if your question has already been answered.
 
-\section bugs Report a bug
-To report a bug, please click <a href="http://sourceforge.net/tracker/?group_id=340426&atid=1425335">here</a>.
+ - Email ompl-devel@lists.sourceforge.net to contact the developers.
+<br/>
+
+\section bugs Reporting Bugs
+To report a bug, please click <a href="http://sourceforge.net/tracker/?group_id=340426&atid=1425335"><strong>here</strong></a>.
 
 
 */

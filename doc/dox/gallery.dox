@@ -1,7 +1,6 @@
 /**
 \page gallery Gallery
 
-
 \section gallery_pr2manipulation Manipulation Planning
 
    An example of using OMPL on the PR2 from <a href="http://www.willowgarage.com/">Willow Garage</a>. The robot is asked to move the glass on the left to a position 50cm towards the right, avoiding collisions and without spilling the content of the glass. This demo is using the <a href="http://www.ros.org/wiki/ompl">OMPL ROS package</a>.
