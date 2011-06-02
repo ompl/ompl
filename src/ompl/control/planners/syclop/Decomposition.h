@@ -21,6 +21,10 @@ namespace ompl {
 	class Decomposition {
 		public:
 		/* Each decomposition region is a set of states. */
+		/* A region class like this might not even be needed here.
+			What if we only use integers to represent regions in decomposition classes,
+			with conversion to std::vector<double> coordinates whenever needed?
+			Then define the region class in Syclop.h, which nicely divorces a decomposition from the syclop planner. */
 		class Region {
 			public:
 			std::set<base::State*> states;
