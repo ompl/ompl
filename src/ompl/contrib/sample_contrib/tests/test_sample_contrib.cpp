@@ -33,6 +33,12 @@
 *********************************************************************/
 
 #include <gtest/gtest.h>
+
+// The following header file is useful for testing planners.
+// See ../../../../../tests/geometric/2dmap.cpp for example usage.
+// You could copy that file and modify it for your planner.
+#include "../../../../../tests/base/PlannerTest.h"
+
 #include "../src/SampleContrib.h"
 
 using namespace ompl;
