@@ -483,8 +483,7 @@ th {text-align:center;}
 pre, code, tt {font:1em monospace;line-height:1.5;}
 body {font-size:13px;}
 a.anchor, a.el {text-decoration:none;color:#119;}
-h1, .title {font-size:2em;color:#119;font-weight:bold
-;}
+h1, .title {font-size:2em;color:#119;font-weight:bold;margin:0px;margin-bottom:.5em;}
 div.headertitle {padding:0px;}
 div.header {background-image:none;background-color:transparent;border:none;}
 h2 {font-size:1.75em;margin-top:1.5em;color:#119;}

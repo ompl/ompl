@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Your Name */
+
 #include <gtest/gtest.h>
 
 // The following header file is useful for testing planners.

@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Your Name */
+
 #ifndef OMPL_CONTRIB_SAMPLECONTRIB_
 #define OMPL_CONTRIB_SAMPLECONTRIB_
 

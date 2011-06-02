@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Your Name */
+
 #include "SampleContrib.h"
 
 ompl::geometric::SampleContrib::SampleContrib()
