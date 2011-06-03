@@ -15,7 +15,7 @@ namespace ompl {
 
 			protected:
 			virtual void initializeTree(const base::State *s);
-			virtual void selectAndExtend(int region, std::set<const base::State *s> newStates);
+			virtual void selectAndExtend(int region, std::set<const base::State*> newStates);
 		};
 	}
 }

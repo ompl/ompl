@@ -82,7 +82,6 @@ void ompl::control::Syclop::initRegion(Region& r) {
 	r.volume = 1.0;
 	r.percentValidCells = 1.0;
 	r.freeVolume = 1.0;
-	r.needUpdate = false;
 }
 
 void ompl::control::Syclop::setupRegionEstimates(void) {
@@ -182,4 +181,15 @@ void ompl::control::Syclop::computeLead(std::vector<Region*>& lead) {
 
 int ompl::control::Syclop::selectRegion(const std::set<int>& regions) {
 	return -1;
+}
+
+void ompl::control::Syclop::computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) {
+	avail.clear();
+	for (int i = lead.size()-1; i >= 0; --i) {
+		if (!lead[i]->states.empty()) {
+			avail.insert(lead[i]);
+			if (rng.uniform01() >= PROB_KEEP_ADDING_TO_AVAIL)
+				break;
+		}
+	}
 }

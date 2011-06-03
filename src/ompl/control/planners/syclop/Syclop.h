@@ -27,8 +27,8 @@ namespace ompl {
 			protected:
 
 			struct Region {
+				std::set<base::State*> states;
 				int index;
-				//std::set<base::State*> states;
 				int numSelections;
 				double volume;
 				double freeVolume;
@@ -36,7 +36,6 @@ namespace ompl {
 				double weight;
 				double alpha;
 				std::set<int> covGridCells;
-				bool needUpdate; //maybe unnecessary
 			};
 
 			struct Adjacency {
@@ -55,6 +54,7 @@ namespace ompl {
 			static const int NUM_FREEVOL_SAMPLES = 10000;
 			static const double PROB_SHORTEST_PATH = 1.0; //0.95
 			static const int COVGRID_LENGTH = 8;
+			static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
 
 			/* Initialize edge between regions r and s. */
 			virtual void initEdge(Adjacency& a, Region* r, Region* s);
@@ -67,7 +67,7 @@ namespace ompl {
 			virtual void setupRegionEstimates(void);
 
 			/* Given that State s has been added to the tree and belongs in Region r,
-				update r's coverage estimate if needed. */const base::PlannerTerminationCondition &ptc);
+				update r's coverage estimate if needed. */
 			virtual void updateCoverageEstimate(Region& r, const base::State *s);
 
 			/* Given that an edge has been added to the tree, leading to the new state s,
@@ -83,14 +83,12 @@ namespace ompl {
 
 			virtual int selectRegion(const std::set<int>& regions);
 
-			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) {
-				
-			}
+			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail);
 
 			/* Initialize a tree rooted at start state s. */
 			virtual void initializeTree(const base::State *s) = 0;
 			/* Select a vertex v from region, extend tree from v, add any new states encountered to newStates. */
-			virtual void selectAndExtend(int region, std::set<const base::State *s> newStates) = 0;
+			virtual void selectAndExtend(int region, std::set<const base::State*> newStates) = 0;
 
 			class CoverageGrid : public GridDecomposition {
 				public:
