@@ -2,6 +2,10 @@
 
 \page changelog Changelog
 
+\section june_3_2011 June 3, 2011
+    - Added notion of probability of success for goals
+    - Added initial version of RRTstar contribution
+
 \section may_20_2011 May 20, 2011
     - Generalized planner termination conditions. The user can now call terminate() at any time to signal a planner it should stop its computation
 
