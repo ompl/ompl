@@ -34,6 +34,14 @@ class TestDecomposition : public ompl::GridDecomposition {
 		coord[1] = ws->getY();
 		return GridDecomposition::locateRegion(coord);
 	}
+
+	virtual void stateToCoord(const ob::State *s, std::vector<double>& coord) {
+		const ob::CompoundState *cs = s->as<ob::CompoundState>();
+		const ob::SE2StateSpace::StateType *ws = cs->as<ob::SE2StateSpace::StateType>(0);
+		coord.resize(2);
+		coord[0] = ws->getX();
+		coord[1] = ws->getY();
+	}
 };
 
 struct NodeEstimate {
@@ -100,19 +108,20 @@ void createGraphs(void) {
 bool isStateValid(const ob::State *s) {
 	const ob::CompoundStateSpace::StateType *cs = s->as<ob::CompoundStateSpace::StateType>();
 	const ob::SE2StateSpace::StateType *se = cs->as<ob::SE2StateSpace::StateType>(0);
-	double y = se->getY();
-	if (y > 0.5)
-		y -= 0.5;
-	else if (y < -0.5)
-		y += 0.5;
-	return fabs(y) < 0.25;
+	const double x = se->getX();
+	const double y = se->getY();
+	if (x < -0.5 && y < 0.5)
+		return false;
+	if (x > 0.5 && fabs(y) < 0.5)
+		return false;
+	return true;
 }
 
 int main(void) {
 	ompl::base::RealVectorBounds bounds(2);
 	bounds.setLow(-1);
 	bounds.setHigh(1);
-	TestDecomposition grid(4, bounds);
+	TestDecomposition grid(2, bounds);
 	ob::RealVectorBounds cbounds(1);
 	cbounds.setLow(-1);
 	cbounds.setHigh(1);
@@ -148,6 +157,7 @@ int main(void) {
 	//createGraphs();
 	oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, controlSpace));
 	si->setStateValidityChecker(boost::bind(&isStateValid, _1));
+	si->setup();
 	oc::SyclopRRT planner(si, grid);
 	planner.setup();
 	

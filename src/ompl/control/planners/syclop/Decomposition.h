@@ -53,6 +53,10 @@ namespace ompl {
 			return regions.size();
 		}
 
+		virtual const base::RealVectorBounds& getBounds() const {
+			return bounds;
+		}
+
 		virtual double getRegionVolume(const int rid) const = 0;
 
 		virtual void print() const {
@@ -68,6 +72,9 @@ namespace ompl {
 		/* Returns the ID of the decomposition region containing the state s.
 		 * Most often, this is obtained by projecting s into the workspace and finding the appropriate region. */
 		virtual int locateRegion(const base::State *s) = 0;
+
+		/* An alternate approach to the above method. */
+		virtual void stateToCoord(const base::State *s, std::vector<double>& coord) = 0;
 
 		/* Stores the neighboring regions of region into the vector neighbors. */
 		virtual void getNeighbors(const int rid, std::vector<int>& neighbors) = 0;

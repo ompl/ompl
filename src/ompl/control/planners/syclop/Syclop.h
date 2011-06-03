@@ -8,6 +8,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
+#include "ompl/control/planners/syclop/GridDecomposition.h"
 
 namespace ompl {
 	namespace control {
@@ -15,7 +16,7 @@ namespace ompl {
 			public:
 
 			/* Does the ordering of an initializer list determine the order of initializations, or is that up to the compiler? */
-			Syclop(const SpaceInformationPtr &si, Decomposition &d) : base::Planner(si, "Syclop"), decomp(d), graph(decomp.getNumRegions()) {
+			Syclop(const SpaceInformationPtr &si, Decomposition &d) : base::Planner(si, "Syclop"), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d) {
 			}
 
 			virtual ~Syclop() {
@@ -25,11 +26,14 @@ namespace ompl {
 				base::Planner::setup();
 				buildGraph();
 				//TODO: locate start and goal states
-				startRegion = 3;
-				goalRegion = 12;
+				startRegion = 1;
+				goalRegion = 2;
 				setupRegionEstimates();
 				updateRegionEstimates();
 				updateEdgeEstimates();
+
+				printRegions();
+				printEdges();
 
 				std::vector<Region*> lead;
 				computeLead(lead);
@@ -39,19 +43,46 @@ namespace ompl {
 				std::cerr << std::endl;
 			}
 
+			void printRegions(void) {
+				for (int i = 0; i < decomp.getNumRegions(); ++i) {
+					Region& r = graph[boost::vertex(i, graph)];
+					std::cout << "Region " << r.index << ": ";
+					std::cout << "nselects=" << r.numSelections << ",";
+					std::cout << "vol=" << r.volume << ",";
+					std::cout << "freeVol=" << r.freeVolume << ",";
+					std::cout << "pcentValid=" << r.percentValidCells << ",";
+					std::cout << "numCells=" << r.covGridCells.size() << ",";
+					std::cout << "weight=" << r.weight << ",";
+					std::cout << "alpha=" << r.alpha << "";
+					std::cout << std::endl;
+				}
+			}
+
+			void printEdges(void) {
+				EdgeIter ei, end;
+				VertexIndexMap index = get(boost::vertex_index, graph);
+				for (boost::tie(ei,end) = boost::edges(graph); ei != end; ++ei) {
+					const Adjacency& a = graph[*ei];
+					std::cout << "Edge (" << index[boost::source(*ei, graph)] << "," << index[boost::target(*ei, graph)] << "): ";
+					std::cout << "numCells=" << a.cells.size() << ",";
+					std::cout << "nselects=" << a.numSelections << ",";
+					std::cout << "cost=" << a.cost << std::endl;
+				}
+			}
+
 			protected:			
 
 			struct Region {
-				//int index;
+				int index;
 				//std::set<base::State*> states;
 				int numSelections;
 				double volume;
 				double freeVolume;
-				int numCells;
 				double percentValidCells;
 				double weight;
 				double alpha;
-				bool needUpdate;
+				std::set<int> covGridCells;
+				bool needUpdate; //maybe unnecessary
 			};
 
 			struct Adjacency {
@@ -67,8 +98,9 @@ namespace ompl {
 			typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
 			typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
-			static const int NUM_FREEVOL_SAMPLES = 5000;
+			static const int NUM_FREEVOL_SAMPLES = 10000;
 			static const double PROB_SHORTEST_PATH = 1.0; //0.95
+			static const int COVGRID_LENGTH = 8;
 
 			/* Initialize edge between regions r and s. */
 			virtual void initEdge(Adjacency& a, Region* r, Region* s) {
@@ -84,8 +116,6 @@ namespace ompl {
 					Adjacency& a = graph[*ei];
 					a.cost = (1 + a.numSelections*a.numSelections) / (1 + a.cells.size());
 					a.cost *= a.regions.first->alpha * a.regions.second->alpha;
-					std::cerr << "Edge (" << index[boost::source(*ei, graph)] << "," << index[boost::target(*ei, graph)] << ") ";
-					std::cerr << "has cost " << a.cost << std::endl;
 				}
 			}
 
@@ -94,7 +124,6 @@ namespace ompl {
 				r.numSelections = 0;
 				r.volume = 1.0;
 				r.percentValidCells = 1.0;
-				r.numCells = 0;
 				r.freeVolume = 1.0;
 				r.needUpdate = false;
 			}
@@ -120,17 +149,22 @@ namespace ompl {
 						r.volume = decomp.getRegionVolume(i);
 						r.percentValidCells = ((double) numValid[i]) / numTotal[i];
 						r.freeVolume = r.percentValidCells * r.volume;
-						std::cerr << "Region " << &r << " has free volume " << r.freeVolume << std::endl;
 				}
+			}
+
+			/* Given that State s has been added to the tree and belongs in Region r,
+				update r's coverage estimate if needed. */
+			virtual void updateCoverageEstimate(Region& r, base::State *s) {
+				const int covCell = covGrid.locateRegion(s);
+				r.covGridCells.insert(covCell);
 			}
 
 			virtual void updateRegionEstimates() {
 				for (int i = 0; i < decomp.getNumRegions(); ++i) {
 					Region& r = graph[boost::vertex(i, graph)];
 					const double f = r.freeVolume*r.freeVolume*r.freeVolume*r.freeVolume;
-					r.alpha = 1 / ((1 + r.numCells) * f);
-					r.weight = f / ((1 + r.numCells)*(1 + r.numSelections*r.numSelections));
-					std::cerr << "Region " << i << " has alpha " << r.alpha << " and weight " << r.weight << std::endl;
+					r.alpha = 1 / ((1 + r.covGridCells.size()) * f);
+					r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
 				}
 			}
 
@@ -146,6 +180,7 @@ namespace ompl {
 				for (boost::tie(vi,vend) = boost::vertices(graph); vi != vend; ++vi) {
 					/* Initialize this vertex's Region object. */
 					initRegion(graph[*vi]);
+					graph[*vi].index = index[*vi];
 
 					/* Create an edge between this vertex and each of its neighboring regions in the decomposition,
 						and initialize the edge's Adjacency object. */
@@ -191,10 +226,33 @@ namespace ompl {
 			}
 
 			/* Finding available regions depends on the tree of the low-level planner. */
-			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) = 0;			
+			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) = 0;
+
+			class CoverageGrid : public GridDecomposition {
+				public:
+				CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d) {
+				}
+
+				virtual ~CoverageGrid() {
+				}
+
+				virtual void stateToCoord(const base::State *s, std::vector<double>& coord) {
+					decomp.stateToCoord(s,coord);
+				}
+
+				virtual int locateRegion(const base::State *s) {
+					std::vector<double> coord;
+					stateToCoord(s, coord);
+					return GridDecomposition::locateRegion(coord);
+				}
+
+				protected:
+				Decomposition& decomp;
+			};
 
 			Decomposition &decomp;
 			RegionGraph graph;
+			CoverageGrid covGrid;
 			RNG rng;
 			int startRegion;
 			int goalRegion;
