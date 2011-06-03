@@ -87,7 +87,7 @@ namespace ompl {
 
 			struct Adjacency {
 				std::pair<Region*,Region*> regions; //unnecessary; just pull source() and target() from edge descriptor
-				std::vector<int> cells;
+				std::set<int> covGridCells;
 				int numSelections;
 				double cost;
 			};
@@ -154,9 +154,16 @@ namespace ompl {
 
 			/* Given that State s has been added to the tree and belongs in Region r,
 				update r's coverage estimate if needed. */
-			virtual void updateCoverageEstimate(Region& r, base::State *s) {
+			virtual void updateCoverageEstimate(Region& r, const base::State *s) {
 				const int covCell = covGrid.locateRegion(s);
 				r.covGridCells.insert(covCell);
+			}
+
+			/* Given that an edge has been added to the tree, leading to the new state s,
+				update the corresponding edge's connection estimates. */
+			virtual void updateConnectionEstimate(Adjacency& a, const base::State *s) {
+				const int covCell = covGrid.locateRegion(s);
+				a.covGridCells.insert(covCell);
 			}
 
 			virtual void updateRegionEstimates() {
