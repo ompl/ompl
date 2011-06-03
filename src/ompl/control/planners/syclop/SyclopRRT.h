@@ -14,6 +14,18 @@ namespace ompl {
 
 			virtual ~SyclopRRT() {
 			}
+
+			virtual void setup(void) {
+				Syclop::setup();
+			}
+
+			virtual bool solve(const base::PlannerTerminationCondition &ptc) {
+				return false;
+			}
+
+			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) {
+
+			}
 		};
 	}
 }

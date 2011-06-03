@@ -5,16 +5,19 @@
 #include <ompl/base/State.h>
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
+#include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/util/RandomNumbers.h>
 #define BOOST_NO_HASH
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <cmath>
 #include <iostream>
 #include <vector>
 
 namespace ob = ompl::base;
+namespace oc = ompl::control;
 
 class TestDecomposition : public ompl::GridDecomposition {
 	public:
@@ -94,17 +97,36 @@ void createGraphs(void) {
 	}
 }
 
+bool isStateValid(const ob::State *s) {
+	const ob::CompoundStateSpace::StateType *cs = s->as<ob::CompoundStateSpace::StateType>();
+	const ob::SE2StateSpace::StateType *se = cs->as<ob::SE2StateSpace::StateType>(0);
+	double y = se->getY();
+	if (y > 0.5)
+		y -= 0.5;
+	else if (y < -0.5)
+		y += 0.5;
+	return fabs(y) < 0.25;
+}
+
 int main(void) {
 	ompl::base::RealVectorBounds bounds(2);
 	bounds.setLow(-1);
 	bounds.setHigh(1);
 	TestDecomposition grid(4, bounds);
+	ob::RealVectorBounds cbounds(1);
+	cbounds.setLow(-1);
+	cbounds.setHigh(1);
 
 	ob::StateSpacePtr manifold(new ob::CompoundStateSpace());
 	ob::StateSpacePtr locSpace(new ob::SE2StateSpace());
+	locSpace->as<ob::SE2StateSpace>()->setBounds(bounds);
 	ob::StateSpacePtr velSpace(new ob::RealVectorStateSpace(1));
+	velSpace->as<ob::RealVectorStateSpace>()->setBounds(cbounds);
 	manifold->as<ob::CompoundStateSpace>()->addSubSpace(locSpace, 0.8);
 	manifold->as<ob::CompoundStateSpace>()->addSubSpace(velSpace, 0.2);
+
+	oc::ControlSpacePtr controlSpace(new oc::RealVectorControlSpace(manifold, 1));
+	controlSpace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
 	ob::ScopedState<ob::CompoundStateSpace> init(manifold);
 	ob::SE2StateSpace::StateType *se = init->as<ob::SE2StateSpace::StateType>(0);
@@ -124,15 +146,10 @@ int main(void) {
 	std::cerr << "goal state located in region " << goalRegion << std::endl;
 
 	//createGraphs();
-	ompl::RNG randGen;
-	std::vector<int> neighbors;
-	for (int i = 0; i < 4; ++i) {
-		neighbors.clear();
-		int rid = randGen.uniformInt(0, 15);
-		grid.getNeighbors(rid, neighbors);
-	}
-
-	//TODO: Now getNeighbors() is defined in decomposition. Implement boost::graph in syclop to follow from it.
+	oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, controlSpace));
+	si->setStateValidityChecker(boost::bind(&isStateValid, _1));
+	oc::SyclopRRT planner(si, grid);
+	planner.setup();
 	
 	return 0;
 }

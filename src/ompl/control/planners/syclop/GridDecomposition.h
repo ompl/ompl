@@ -14,6 +14,9 @@ namespace ompl {
 		/* In some areas of this class, we are assuming a 2-dimensional grid. This will change. */
 		GridDecomposition(const int len, const int dim, const base::RealVectorBounds &b) : Decomposition(len*len, b), grid(2), length(len), dimension(dim) {
 			buildGrid(len);
+			cellVolume = 1.0;
+			for (int i = 0; i < dim; ++i)
+				cellVolume *= (b.high[i] - b.low[i]) / len;
 		}
 
 		virtual ~GridDecomposition() {
@@ -22,6 +25,10 @@ namespace ompl {
 		virtual void print() const {
 			Decomposition::print();
 			grid.status();
+		}
+
+		virtual double getRegionVolume(const int rid) const {
+			return cellVolume;
 		}
 
 		/* Projecting a state into whatever space on which this decomposition is defined is a problem-specific issue.
@@ -115,6 +122,7 @@ namespace ompl {
 
 		const int length;
 		const int dimension;
+		double cellVolume;
 	};
 }
 

@@ -53,6 +53,8 @@ namespace ompl {
 			return regions.size();
 		}
 
+		virtual double getRegionVolume(const int rid) const = 0;
+
 		virtual void print() const {
 			for (unsigned int i = 0; i < regions.size(); ++i) {
 				std::cout << "Region " << i << " consists of " << regions[i].states.size() << " states." << std::endl;
