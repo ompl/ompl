@@ -200,6 +200,18 @@ namespace ompl
                 return approximate_;
             }
 
+            /** \brief Get the probability of success associated to the solution that this goal contains */
+            double getSuccessProbability(void) const
+            {
+                return prob_;
+            }
+
+            /** \brief Set the probability of success for the found solution */
+            void setSuccessProbability(double prob)
+            {
+                prob_ = prob;
+            }
+
             /** \brief Print information about the goal */
             virtual void print(std::ostream &out = std::cout) const
             {
@@ -223,6 +235,8 @@ namespace ompl
             /** \brief True if goal was not achieved, but an approximate solution was found */
             bool                     approximate_;
 
+            /** \brief Probability of success for the found solution (if taking some form of uncertainty into account). By default, this is 1. */
+            double                   prob_;
         };
 
     }

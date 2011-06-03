@@ -2,3 +2,5 @@
 * Merge files for tests for util/ & tests for datastructures/.
 * Expose ODE extension through Python bindings.
 * Make PlannerData use BGL
+* Add a getType() for goal structure and remove getType() for planners
+* Make planners have a getTraits() function that tells whether the planner can give approximate solutions, can do optimization of paths, can report probabilities, and what type of goals it can handle.
