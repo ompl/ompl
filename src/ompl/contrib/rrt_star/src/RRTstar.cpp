@@ -68,6 +68,7 @@ void ompl::geometric::RRTstar::clear(void)
 
 bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
+    checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
