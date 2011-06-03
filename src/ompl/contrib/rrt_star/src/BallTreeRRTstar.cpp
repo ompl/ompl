@@ -71,7 +71,6 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
     motions_.resize(0);
-    lowerBound_ = std::numeric_limits<double>::infinity();
 
     if (!goal)
     {
@@ -108,8 +107,10 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
     std::vector<double>  dists;
     std::vector<int>     valid;
     long unsigned int    rewireTest = 0;
-    int iter = 0;
-    bool rejected;
+    int                  iter = 0;
+    bool                 rejected;
+    double               lowerBound = std::numeric_limits<double>::infinity();
+    
     std::pair<base::State*,double> lastValid(tstate, 0.0);
 
     while (ptc() == false)
@@ -320,9 +321,9 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                 if (solved)
                 {
                     approxdif = dist;
-                    if (solCheck[i]->cost < lowerBound_)
+                    if (solCheck[i]->cost < lowerBound)
                     {
-                       lowerBound_ = solCheck[i]->cost;
+                       lowerBound = solCheck[i]->cost;
                        solution = solCheck[i];
                     }
                 }

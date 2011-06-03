@@ -70,9 +70,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 {
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-
-    lowerBound_ = std::numeric_limits<double>::infinity();
-
+    
     if (!goal)
     {
         msg_.error("Goal undefined");
@@ -106,8 +104,9 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     std::vector<double>  dists;
     std::vector<int>     valid;
     long unsigned int    rewireTest = 0;
-    int iter = 0;
-
+    int                  iter = 0;
+    double               lowerBound = std::numeric_limits<double>::infinity();
+    
     while (ptc() == false)
     {
 
@@ -261,9 +260,9 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                 if (solved)
                 {
                     approxdif = dist;
-                    if (solCheck[i]->cost < lowerBound_)
+                    if (solCheck[i]->cost < lowerBound)
                     {
-                       lowerBound_ = solCheck[i]->cost;
+                       lowerBound = solCheck[i]->cost;
                        solution = solCheck[i];
                     }
                 }

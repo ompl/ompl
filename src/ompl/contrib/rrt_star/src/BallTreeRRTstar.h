@@ -91,7 +91,6 @@ namespace ompl
                 ballRadiusConst_ = 1.0;
                 rO_ = std::numeric_limits<double>::infinity();
                 delayCC_ = true;
-                lowerBound_ = std::numeric_limits<double>::infinity();
             }
 
             virtual ~BallTreeRRTstar(void)
@@ -316,14 +315,11 @@ namespace ompl
             /** \brief Maximum radius the planner uses to fine near neighbors and rewire */
             double                                         ballRadiusMax_;
 
-            /** \brief Lenght of the current best solution, infinite if no solution has been found */
-            double                                            lowerBound_;
-
             /** \brief Option to delay and reduce collision checking within iterations */
-            bool                                            delayCC_;
+            bool                                           delayCC_;
 
             /** \brief Initial radius of volumes assigned to new vertices in the tree */
-            double                                           rO_;
+            double                                         rO_;
         };
 
     }
