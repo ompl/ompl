@@ -202,8 +202,8 @@ namespace ompl
             {
                 for (unsigned int i = 0 ; i < motions_.size() ; ++i)
                 {
-                     if ( (si_->distance(motions_[i]->state, state) <= motions_[i]->volRadius))
-                             return true;
+                    if ((si_->distance(motions_[i]->state, state) <= motions_[i]->volRadius))
+                        return true;
                 }
                 return false;
             }
@@ -243,12 +243,12 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL), cost(0.0), volRadius(std::numeric_limits<double>::infinity())
+                Motion(double rO) : state(NULL), parent(NULL), cost(0.0), volRadius(rO)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), cost(0.0), volRadius(std::numeric_limits<double>::infinity())
+                Motion(const base::SpaceInformationPtr &si, double rO) : state(si->allocState()), parent(NULL), cost(0.0), volRadius(rO)
 
                 {
                 }
@@ -267,7 +267,7 @@ namespace ompl
                 double             cost;
 
                 /** \brief The radius of the volume  associated to this motion */
-                double                    volRadius;
+                double             volRadius;
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -292,7 +292,7 @@ namespace ompl
             }
 
             /** \brief State sampler */
-            base::StateSamplerPtr                  sampler_;
+            base::StateSamplerPtr                          sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;

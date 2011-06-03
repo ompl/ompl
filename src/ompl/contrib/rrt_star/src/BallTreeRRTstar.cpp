@@ -60,6 +60,7 @@ void ompl::geometric::BallTreeRRTstar::clear(void)
 {
     Planner::clear();
     sampler_.reset();
+    motions_.clear();
     freeMemory();
     if (nn_)
         nn_->clear();
@@ -70,15 +71,15 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    motions_.resize(0);
-
     if (!goal)
     {
         msg_.error("Goal undefined");
-        return false; }
+        return false;
+    }
+
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        Motion *motion = new Motion(si_, rO_);
         si_->copyState(motion->state, st);
         addMotion(motion);
     }
@@ -97,7 +98,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
     double  approxdif = std::numeric_limits<double>::infinity();
-    Motion *rmotion   = new Motion(si_);
+    Motion *rmotion   = new Motion(si_, rO_);
     Motion *toTrim    = NULL;
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
@@ -110,7 +111,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
     int                  iter = 0;
     bool                 rejected;
     double               lowerBound = std::numeric_limits<double>::infinity();
-    
+
     std::pair<base::State*,double> lastValid(tstate, 0.0);
 
     while (ptc() == false)
@@ -168,7 +169,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
         {
             /* create a motion */
             double distN = si_->distance(dstate, nmotion->state);
-            Motion *motion = new Motion(si_);
+            Motion *motion = new Motion(si_, rO_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
             motion->cost = nmotion->cost + distN;
@@ -392,7 +393,8 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
 
 void ompl::geometric::BallTreeRRTstar::freeMemory(void)
 {
-    if (nn_) {
+    if (nn_)
+    {
         std::vector<Motion*> motions;
         nn_->list(motions);
         for (unsigned int i = 0 ; i < motions.size() ; ++i)

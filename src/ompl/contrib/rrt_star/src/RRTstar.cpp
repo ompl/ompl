@@ -70,7 +70,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 {
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-    
+
     if (!goal)
     {
         msg_.error("Goal undefined");
@@ -106,7 +106,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     long unsigned int    rewireTest = 0;
     int                  iter = 0;
     double               lowerBound = std::numeric_limits<double>::infinity();
-    
+
     while (ptc() == false)
     {
 

@@ -252,7 +252,7 @@ namespace ompl
             }
 
             /** \brief State sampler */
-            base::StateSamplerPtr                  sampler_;
+            base::StateSamplerPtr                          sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
