@@ -45,6 +45,9 @@
 
         virtual bool solve(const base::PlannerTerminationCondition &ptc)
         {
+            // make sure the planner is configured correctly
+            checkValidity();
+
             // get problem definition from pdef_
             // get input states with pis_
             // call routines from si_
