@@ -12,8 +12,10 @@ namespace ompl {
 			SyclopRRT(const SpaceInformationPtr &si, Decomposition &d);
 			virtual ~SyclopRRT();
 			virtual void setup(void);
-			virtual bool solve(const base::PlannerTerminationCondition &ptc);
-			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail);
+
+			protected:
+			virtual void initializeTree(const base::State *s);
+			virtual void selectAndExtend(int region, std::set<const base::State *s> newStates);
 		};
 	}
 }

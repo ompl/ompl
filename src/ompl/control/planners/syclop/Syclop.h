@@ -19,6 +19,8 @@ namespace ompl {
 			Syclop(const SpaceInformationPtr &si, Decomposition &d);
 			virtual ~Syclop();
 			virtual void setup(void);
+			virtual bool solve(const base::PlannerTerminationCondition &ptc);			
+
 			void printRegions(void);
 			void printEdges(void);
 
@@ -65,7 +67,7 @@ namespace ompl {
 			virtual void setupRegionEstimates(void);
 
 			/* Given that State s has been added to the tree and belongs in Region r,
-				update r's coverage estimate if needed. */
+				update r's coverage estimate if needed. */const base::PlannerTerminationCondition &ptc);
 			virtual void updateCoverageEstimate(Region& r, const base::State *s);
 
 			/* Given that an edge has been added to the tree, leading to the new state s,
@@ -81,8 +83,14 @@ namespace ompl {
 
 			virtual int selectRegion(const std::set<int>& regions);
 
-			/* Finding available regions depends on the tree of the low-level planner. */
-			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) = 0;
+			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) {
+				
+			}
+
+			/* Initialize a tree rooted at start state s. */
+			virtual void initializeTree(const base::State *s) = 0;
+			/* Select a vertex v from region, extend tree from v, add any new states encountered to newStates. */
+			virtual void selectAndExtend(int region, std::set<const base::State *s> newStates) = 0;
 
 			class CoverageGrid : public GridDecomposition {
 				public:

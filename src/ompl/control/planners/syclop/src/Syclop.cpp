@@ -30,6 +30,10 @@ void ompl::control::Syclop::setup(void)
 	std::cerr << std::endl;
 }
 
+bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc) {
+	return false;
+}
+
 void ompl::control::Syclop::printRegions(void) {
 	for (int i = 0; i < decomp.getNumRegions(); ++i) {
 		Region& r = graph[boost::vertex(i, graph)];
@@ -173,6 +177,7 @@ void ompl::control::Syclop::computeLead(std::vector<Region*>& lead) {
 			region = parents[region];
 		}
 	}
+	//TODO Implement random DFS, in case of 1-PROB_SHORTEST_PATH
 }
 
 int ompl::control::Syclop::selectRegion(const std::set<int>& regions) {
