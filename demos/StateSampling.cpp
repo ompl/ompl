@@ -47,6 +47,9 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
+/// @cond IGNORE
+
+
 // This is a problem-specific sampler that automatically generates valid
 // states; it doesn't need to call SpaceInformation::isValid. This is an
 // example of constrained sampling. If you can explicitly describe the set valid
@@ -98,6 +101,8 @@ public:
 protected:
     ompl::RNG rng_;
 };
+
+/// @endcond
 
 // this function is needed, even when we can write a sampler like the one
 // above, because we need to check path segments for validity
