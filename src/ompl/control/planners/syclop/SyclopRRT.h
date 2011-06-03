@@ -9,23 +9,11 @@ namespace ompl {
 	namespace control {
 		class SyclopRRT : public Syclop {
 			public:
-			SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) : Syclop(si,d) {
-			}
-
-			virtual ~SyclopRRT() {
-			}
-
-			virtual void setup(void) {
-				Syclop::setup();
-			}
-
-			virtual bool solve(const base::PlannerTerminationCondition &ptc) {
-				return false;
-			}
-
-			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail) {
-
-			}
+			SyclopRRT(const SpaceInformationPtr &si, Decomposition &d);
+			virtual ~SyclopRRT();
+			virtual void setup(void);
+			virtual bool solve(const base::PlannerTerminationCondition &ptc);
+			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail);
 		};
 	}
 }

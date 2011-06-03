@@ -12,7 +12,7 @@
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 
-namespace ompl {
+namespace ompl { namespace control {
 	/* A decomposition is going to be Syclop-specific, for now.
 	 * I could consider moving this class within the Syclop base class, but in the future,
 	 * decompositions are going to be used in LTL and hybrid system approaches.
@@ -43,31 +43,19 @@ namespace ompl {
 		};
 
 		/* A decomposition consists of a fixed number of regions and fixed bounds. */
-		Decomposition(const int numRegions, const base::RealVectorBounds &b) : regions(numRegions), bounds(b) {
-		}
+		Decomposition(const int numRegions, const base::RealVectorBounds &b);
 
-		virtual ~Decomposition() {
-		}
+		virtual ~Decomposition();
 
-		virtual int getNumRegions() const {
-			return regions.size();
-		}
+		virtual int getNumRegions() const;
 
-		virtual const base::RealVectorBounds& getBounds() const {
-			return bounds;
-		}
+		virtual const base::RealVectorBounds& getBounds() const;
 
 		virtual double getRegionVolume(const int rid) const = 0;
 
-		virtual void print() const {
-			for (unsigned int i = 0; i < regions.size(); ++i) {
-				std::cout << "Region " << i << " consists of " << regions[i].states.size() << " states." << std::endl;
-			}
-		}
+		virtual void print() const;
 
-		Region& operator[](const int rid) {
-			return regions[rid];
-		}
+		//Region& operator[](const int rid);
 
 		/* Returns the ID of the decomposition region containing the state s.
 		 * Most often, this is obtained by projecting s into the workspace and finding the appropriate region. */
@@ -86,6 +74,6 @@ namespace ompl {
 		std::vector<Region> regions;
 		const base::RealVectorBounds &bounds;
 	};
-}
+} }
 
 #endif
