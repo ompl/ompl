@@ -82,7 +82,7 @@ namespace ompl
             /** \brief Constructor */
             KPIECE1(const SpaceInformationPtr &si) : base::Planner(si, "KPIECE1")
             {
-                type_ = base::PLAN_TO_GOAL_ANY;
+                specs_.approximateSolutions = true;
 
                 siC_ = si.get();
                 goalBias_ = 0.05;

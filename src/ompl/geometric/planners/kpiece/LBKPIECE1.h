@@ -87,7 +87,7 @@ namespace ompl
                                                              dStart_(boost::bind(&LBKPIECE1::freeMotion, this, _1)),
                                                              dGoal_(boost::bind(&LBKPIECE1::freeMotion, this, _1))
             {
-                type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
+                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 
                 minValidPathFraction_ = 0.5;
                 maxDistance_ = 0.0;

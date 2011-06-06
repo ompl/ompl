@@ -40,6 +40,7 @@
 
 ompl::base::GoalRegion::GoalRegion(const SpaceInformationPtr &si) : Goal(si), threshold_(std::numeric_limits<double>::epsilon())
 {
+    type_ = GOAL_REGION;
 }
 
 bool ompl::base::GoalRegion::isSatisfied(const State *st) const

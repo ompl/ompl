@@ -41,15 +41,15 @@
 #include <boost/thread.hpp>
 
 ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
-    si_(si), pis_(this), name_(name), type_(PLAN_UNKNOWN), setup_(false), msg_(name)
+    si_(si), pis_(this), name_(name), setup_(false), msg_(name)
 {
     if (!si_)
         throw Exception(name_, "Invalid space information instance for planner");
 }
 
-ompl::base::PlannerType ompl::base::Planner::getType(void) const
+const ompl::base::PlannerSpecs& ompl::base::Planner::getSpecs(void) const
 {
-    return type_;
+    return specs_;
 }
 
 const std::string& ompl::base::Planner::getName(void) const

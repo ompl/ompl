@@ -92,7 +92,8 @@ namespace ompl
             pSBL(const base::SpaceInformationPtr &si) : base::Planner(si, "pSBL"),
                                                         samplerArray_(si)
             {
-                type_ = base::PLAN_TO_GOAL_STATE;
+                specs_.recognizedGoal = base::GOAL_STATE;
+                specs_.multithreaded = true;
                 maxDistance_ = 0.0;
                 setThreadCount(2);
             }

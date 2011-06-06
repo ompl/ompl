@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,45 +34,35 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_SAMPLEABLE_REGION_
-#define OMPL_BASE_GOAL_SAMPLEABLE_REGION_
-
-#include "ompl/base/GoalRegion.h"
+#ifndef OMPL_BASE_GOAL_TYPES_
+#define OMPL_BASE_GOAL_TYPES_
 
 namespace ompl
 {
-
     namespace base
     {
 
-        /** \brief Abstract definition of a goal region that can be sampled */
-        class GoalSampleableRegion : public GoalRegion
-        {
-        public:
-
-            /** \brief Create a goal region that can be sampled */
-            GoalSampleableRegion(const SpaceInformationPtr &si) : GoalRegion(si)
+        /** \brief The type of goal */
+        enum GoalType
             {
-                type_ = GOAL_SAMPLEABLE_REGION;
-            }
+                /** \brief This bit is set if casting to generic goal regions (ompl::base::Goal) is possible. This bit shold always be set */
+                GOAL_ANY               = 1,
 
-            virtual ~GoalSampleableRegion(void)
-            {
-            }
+                /** \brief This bit is set if casting to goal regions (ompl::base::GoalRegion) is possible */
+                GOAL_REGION            = GOAL_ANY + 2,
 
-            /** \brief Sample a state in the goal region */
-            virtual void sampleGoal(State *st) const = 0;
+                /** \brief This bit is set if casting to sampleable goal regions (ompl::base::GoalSampleableRegion) is possible */
+                GOAL_SAMPLEABLE_REGION = GOAL_REGION + 4,
 
-            /** \brief Return the maximum number of samples that can be asked for before repeating */
-            virtual unsigned int maxSampleCount(void) const = 0;
+                /** \brief This bit is set if casting to goal state (ompl::base::GoalState) is possible */
+                GOAL_STATE             = GOAL_SAMPLEABLE_REGION + 8,
 
-            /** \brief Return true of maxSampleCount() > 0, since in this case samples can certainly be produced */
-            virtual bool canSample(void) const
-            {
-                return maxSampleCount() > 0;
-            }
-        };
+                /** \brief This bit is set if casting to goal states (ompl::base::GoalStates) is possible */
+                GOAL_STATES            = GOAL_SAMPLEABLE_REGION + 16,
 
+                /** \brief This bit is set if casting to goal states (ompl::base::GoalLazySamples) is possible */
+                GOAL_LAZY_SAMPLES      = GOAL_STATES + 32
+            };
     }
 }
 

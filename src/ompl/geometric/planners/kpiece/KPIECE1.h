@@ -81,7 +81,7 @@ namespace ompl
             KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
                                                            disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
             {
-                type_ = base::PLAN_TO_GOAL_ANY;
+                specs_.approximateSolutions = true;
 
                 goalBias_ = 0.05;
                 badScoreFactor_ = 0.5;
