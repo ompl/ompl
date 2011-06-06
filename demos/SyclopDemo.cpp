@@ -7,6 +7,7 @@
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
+#include <ompl/datastructures/PDF.h>
 #include <ompl/util/RandomNumbers.h>
 #define BOOST_NO_HASH
 #include <boost/graph/dijkstra_shortest_paths.hpp>
@@ -161,6 +162,13 @@ int main(void) {
 	si->setup();
 	oc::SyclopRRT planner(si, grid);
 	planner.setup();
+
+	ompl::PDF<int> p;
+	ompl::RNG rand;
+	p.add(0, 50);
+	p.add(1, 25);
+	p.add(2, 15);
+	p.add(3, 10);
 	
 	return 0;
 }
