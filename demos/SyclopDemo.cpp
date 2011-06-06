@@ -3,6 +3,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/State.h>
+#include <ompl/control/planners/syclop/Syclop.h>
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
@@ -19,9 +20,9 @@
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
-class TestDecomposition : public ompl::GridDecomposition {
+class TestDecomposition : public oc::GridDecomposition {
 	public:
-	TestDecomposition(const int length, ob::RealVectorBounds &bounds) : ompl::GridDecomposition(length, 2, bounds) {
+	TestDecomposition(const int length, ob::RealVectorBounds &bounds) : oc::GridDecomposition(length, 2, bounds) {
 	}
 	virtual ~TestDecomposition() {
 	}
@@ -32,7 +33,7 @@ class TestDecomposition : public ompl::GridDecomposition {
 		std::vector<double> coord(2);
 		coord[0] = ws->getX();
 		coord[1] = ws->getY();
-		return GridDecomposition::locateRegion(coord);
+		return oc::GridDecomposition::locateRegion(coord);
 	}
 
 	virtual void stateToCoord(const ob::State *s, std::vector<double>& coord) {
