@@ -71,11 +71,23 @@ namespace ompl
 			return index;
 		}
 
-		/* The value r must be between 0 and 1. */
 		_T sample(double r) const
 		{
-			//TODO throw exception if tree is empty
-			return data[0];
+			//TODO throw exception if tree is empty or if r is not between 0 and 1
+			std::size_t row = tree.size() - 1;
+			std::size_t node = 0;
+			r *= tree[row][0];
+			while (row != 0)
+			{
+				--row;
+				node <<= 1;
+				if (r > tree[row][node])
+				{
+					r -= tree[row][node];
+					++node;
+				}
+			}
+			return data[node];
 		}
 
 		void printTree(std::ostream& out = std::cout) const
@@ -95,8 +107,8 @@ namespace ompl
 
 		protected:
 
-		std::vector<_T> data;
 		//data[i] has weight tree[0][i]
+		std::vector<_T> data;
 		std::vector<std::vector<double > > tree;
 	};
 }
