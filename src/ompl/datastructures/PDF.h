@@ -65,8 +65,7 @@ namespace ompl
 				}
 			}
 			//If we've made it here, then we need to add a new head to the tree.
-			const std::size_t lastRow = tree.size() - 1;
-			std::vector<double> head(1, tree[lastRow][0] + tree[lastRow][1]);
+			std::vector<double> head(1, tree.back()[0] + tree.back()[1]);
 			tree.push_back(head);
 			return index;
 		}
@@ -75,8 +74,8 @@ namespace ompl
 		{
 			//TODO throw exception if tree is empty or if r is not between 0 and 1
 			std::size_t row = tree.size() - 1;
+			r *= tree[row].front();
 			std::size_t node = 0;
-			r *= tree[row][0];
 			while (row != 0)
 			{
 				--row;
