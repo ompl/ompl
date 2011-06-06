@@ -1,6 +1,8 @@
 #ifndef OMPL_DATASTRUCTURES_PDF_
 #define OMPL_DATASTRUCTURES_PDF_
 
+#include <iostream>
+#include <ostream>
 #include <vector>
 
 namespace ompl
@@ -10,125 +12,92 @@ namespace ompl
 	{
 		public:
 
-		PDF(void) : root(NULL), normalization(0.0)
+		PDF(void)
 		{
+		}
+
+		PDF(const std::vector<_T>& d, const std::vector<double>& weights)
+		{
+			//TODO throw exception if d.size() != weights.size()
+
+			//n elements of data require at most (log2(n)+2) rows in tree
+			std::size_t pow = 2;
+			std::size_t lg = 0;
+			while (pow <= d.size())
+			{
+				++lg;
+				pow <<= 1;
+			}
+			data.reserve(d.size());
+			tree.reserve(lg + 2);
+			for (std::size_t i = 0; i < d.size(); ++i)
+				add(d[i], weights[i]);
 		}
 
 		virtual ~PDF(void)
 		{
-			if (root != NULL)
-				clearTree(root);
 		}
 
-		virtual void add(const _T d, const double w)
+		std::size_t add(const _T d, const double w)
 		{
-			Node* n = new Node(data.size(), w);
 			data.push_back(d);
-			normalization += w;
-			if (root == NULL)
-				root = n;
-			else if (root->isLeaf())
+			if (data.size() == 1)
 			{
-				Node* parent = new Node(-1, w + root->weight);
-				parent->left = root;
-				parent->right = n;
-				root = parent;
+				std::vector<double> r(1, w);
+				tree.push_back(r);
+				return 0;
 			}
-			else
+			const std::size_t index = data.size() - 1;
+			tree[0].push_back(w);
+			for (std::size_t i = 1; i < tree.size(); ++i)
 			{
-				Node* sibling = root;
-				Node* parent = NULL;
-				while (!sibling->isLeaf())
-				{
-					sibling->weight += w;
-					parent = sibling;
-					if (sibling->left->weight <= sibling->right->weight)
-						sibling = sibling->left;
-					else
-						sibling = sibling->right;
-				}
-				Node* newParent = new Node(-1, w + sibling->weight);
-				newParent->left = sibling;
-				newParent->right = n;
-				if (parent->left == sibling)
-					parent->left = newParent;
+				if (tree[i-1].size() % 2 == 1)
+					tree[i].push_back(w);
 				else
-					parent->right = newParent;
+				{
+					while (i < tree.size())
+					{
+						const std::size_t last = tree[i].size() - 1;
+						tree[i][last] += w;
+						++i;
+					}
+					return index;
+				}
 			}
-			printTree(root);
+			//If we've made it here, then we need to add a new head to the tree.
+			const std::size_t lastRow = tree.size() - 1;
+			std::vector<double> head(1, tree[lastRow][0] + tree[lastRow][1]);
+			tree.push_back(head);
+			return index;
 		}
 
 		/* The value r must be between 0 and 1. */
-		virtual _T sample(double r) const
+		_T sample(double r) const
 		{
 			//TODO throw exception if tree is empty
-			r *= normalization;
-			Node* current = root;
-			while (!current->isLeaf())
+			return data[0];
+		}
+
+		void printTree(std::ostream& out = std::cout) const
+		{
+			if (tree.empty())
+				return;
+			for (std::size_t j = 0; j < tree[0].size(); ++j)
+				out << "(" << data[j] << "," << tree[0][j] << ") ";
+			out << std::endl;
+			for (std::size_t i = 1; i < tree.size(); ++i)
 			{
-				if (r < current->left->weight)
-					current = current->left;
-				else
-				{					
-					r -= current->left->weight;
-					current = current->right;
-				}
+				for (std::size_t j = 0; j < tree[i].size(); ++j)
+					out << tree[i][j] << " ";
+				out << std::endl;
 			}
-			return data[current->dataIndex];
 		}
 
 		protected:
 
-		struct Node
-		{
-			Node* left;
-			Node* right;
-			//If this is a leaf node, dataIndex contains index into data vector
-			int dataIndex;			
-			double weight;
-
-			Node(const int index, const double w) : left(NULL), right(NULL), dataIndex(index), weight(w)
-			{
-			}
-
-			Node(void) : Node(-1, 0.0)
-			{
-			}
-
-			inline bool isLeaf()
-			{
-				return (left == NULL && right == NULL);		
-			}
-		};
-
-		void clearTree(Node* n)
-		{
-			if (!n->isLeaf())
-			{
-				clearTree(n->left);	
-				clearTree(n->right);
-			}
-			delete n;
-		}
-
-		void printTree(Node* n, const int level = 0)
-		{
-			for (int i = 0; i < level; ++i)
-				std::cout << " ";
-			std::cout << n->weight;
-			if (n->isLeaf())
-				std::cout << " " << n->dataIndex << std::endl;
-			else
-			{
-				std::cout << std::endl;
-				printTree(n->left, level+2);
-				printTree(n->right, level+2);
-			}
-		}
-
-		Node* root;
-		double normalization;
 		std::vector<_T> data;
+		//data[i] has weight tree[0][i]
+		std::vector<std::vector<double > > tree;
 	};
 }
 
