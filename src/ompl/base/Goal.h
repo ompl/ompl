@@ -41,6 +41,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/Path.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/base/GoalTypes.h"
 #include <iostream>
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
@@ -87,6 +88,18 @@ namespace ompl
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Goal*>));
 
                 return static_cast<const T*>(this);
+            }
+
+            /** \brief Return the goal type */
+            GoalType getType(void) const
+            {
+                return type_;
+            }
+
+            /** \brief Check if this goal can be cast to a particular goal type */
+            bool hasType(GoalType type) const
+            {
+                return (type_ & type) == type;
             }
 
             /** \brief Get the space information this goal is for */
@@ -219,6 +232,9 @@ namespace ompl
             }
 
         protected:
+
+            /** \brief Goal type */
+            GoalType                 type_;
 
             /** \brief The space information for this goal */
             SpaceInformationPtr      si_;

@@ -67,7 +67,7 @@ namespace ompl
             /** \brief Constructor */
             RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
             {
-                type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
+                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
                 maxDistance_ = 0.0;
             }
 

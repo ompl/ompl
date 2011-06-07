@@ -72,7 +72,7 @@ namespace ompl
             /** \brief Constructor */
             RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
             {
-                type_ = base::PLAN_TO_GOAL_ANY;
+                specs_.approximateSolutions = true;
 
                 goalBias_ = 0.05;
                 maxDistance_ = 0.0;

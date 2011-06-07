@@ -48,7 +48,7 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
         throw Exception("Unable to allocate default planner for unspecified goal definition");
 
     // if we can sample the goal region, use a bi-directional planner
-    if (dynamic_cast<const base::GoalSampleableRegion*>(goal.get()))
+    if (goal->hasType(base::GOAL_SAMPLEABLE_REGION))
     {
         // if we have a default projection
         if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())

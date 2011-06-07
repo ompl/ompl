@@ -306,7 +306,11 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             try
             {
                 RunProperties run;
-                run["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
+                bool exact_solve = solved;
+                if (solved)
+                    if (gsetup_ ? gsetup_->getGoal()->isApproximate() : csetup_->getGoal()->isApproximate())
+                        exact_solve = false; // do not report approximate solutions as 'solved'
+                run["solved BOOLEAN"] = boost::lexical_cast<std::string>(exact_solve);
                 run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
                 run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
                 if (gsetup_)

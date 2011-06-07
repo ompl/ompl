@@ -41,6 +41,7 @@
 ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart, double minDist) :
     GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL), lastStateAdded_(false), minDist_(minDist)
 {
+    type_ = GOAL_LAZY_SAMPLES;
     if (autoStart)
         startSampling();
 }
