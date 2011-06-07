@@ -22,7 +22,7 @@ add_subdirectory(contrib/sample_contrib)
 \code
 $ hg clone http://ompl.hg.sourceforge.net:8000/hgroot/ompl/ompl
 \endcode
-       Contributors can then add their files in the appropriate places, and send us a “pull” request.
+       Contributors should then create their own branch, add their files in the appropriate places, and either send us a “pull” request (if the repository is accesible to us) or email us a bundle (see http://www.selenic.com/mercurial/hg.1.html#bundle).
        - tar balls / zip files / etc.: contributors just email us their files and we put them in the appropriate place.
        .
 -# In the unlikely event that the submitted code is of poor quality, we will try to suggest the changes necessary to include the contribution in OMPL. If the contributors cannot do this themselves, we reserve the right to reject the contribution.
