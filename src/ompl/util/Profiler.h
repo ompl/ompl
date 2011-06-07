@@ -263,7 +263,7 @@ namespace ompl
         {
         public:
 
-            BeginBlock(const std::string &, Profiler *dummy = NULL)
+            BeginBlock(const std::string &, Profiler * = NULL)
             {
             }
 
@@ -274,7 +274,7 @@ namespace ompl
 
         static Profiler* Instance(void);
 
-        Profiler(bool dummy1 = true, bool dummy2 = true)
+        Profiler(bool = true, bool = true)
         {
         }
 
