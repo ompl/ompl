@@ -34,7 +34,7 @@ namespace ompl
                 add(d[i], weights[i]);
         }
 
-        virtual ~PDF(void)
+        ~PDF(void)
         {
         }
 
@@ -175,7 +175,7 @@ namespace ompl
             out << std::endl;
         }
 
-        protected:
+        private:
 
         std::vector<_T> data;
         std::vector<std::vector<double > > tree;
