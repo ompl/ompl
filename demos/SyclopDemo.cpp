@@ -21,7 +21,7 @@
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
-class TestDecomposition : public oc::GridDecomposition {//
+class TestDecomposition : public oc::GridDecomposition {
     public:
     TestDecomposition(const int length, ob::RealVectorBounds &bounds) : oc::GridDecomposition(length, 2, bounds) {
     }

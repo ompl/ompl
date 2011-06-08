@@ -5,7 +5,7 @@
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-namespace ompl {//
+namespace ompl {
     namespace control {
         class SyclopRRT : public Syclop {
             public:

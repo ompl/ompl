@@ -1,4 +1,4 @@
-#include "ompl/control/planners/syclop/SyclopRRT.h"//
+#include "ompl/control/planners/syclop/SyclopRRT.h"
 
 ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) : Syclop(si,d) {
 }

@@ -1,4 +1,4 @@
-#include "ompl/control/planners/syclop/Decomposition.h"//
+#include "ompl/control/planners/syclop/Decomposition.h"
 
 ompl::control::Decomposition::Decomposition(const int numRegions, const ompl::base::RealVectorBounds &b) : regions(numRegions), bounds(b) {
 }

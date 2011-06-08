@@ -7,7 +7,7 @@
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/datastructures/Grid.h"
 
-namespace ompl { namespace control {//
+namespace ompl { namespace control {
     class GridDecomposition : public Decomposition {
 
         public:

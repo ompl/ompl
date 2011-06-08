@@ -12,7 +12,7 @@
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 
-namespace ompl { namespace control {//
+namespace ompl { namespace control {
     /* A decomposition is going to be Syclop-specific, for now.
      * I could consider moving this class within the Syclop base class, but in the future,
      * decompositions are going to be used in LTL and hybrid system approaches.

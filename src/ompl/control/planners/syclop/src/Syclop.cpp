@@ -1,4 +1,4 @@
-#include "ompl/control/planners/syclop/Syclop.h"//
+#include "ompl/control/planners/syclop/Syclop.h"
 
 ompl::control::Syclop::Syclop(const SpaceInformationPtr &si, Decomposition &d) :
     ompl::base::Planner(si, "Syclop"), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)

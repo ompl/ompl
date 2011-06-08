@@ -1,4 +1,4 @@
-#include "ompl/control/planners/syclop/GridDecomposition.h"//
+#include "ompl/control/planners/syclop/GridDecomposition.h"
 
 ompl::control::GridDecomposition::GridDecomposition(const int len, const int dim, const base::RealVectorBounds &b) :
     Decomposition(len*len, b), grid(2), length(len), dimension(dim) {
