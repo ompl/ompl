@@ -38,8 +38,9 @@ namespace ompl
 		{
 		}
 
-		std::size_t add(const _T d, const double w)
+		std::size_t add(const _T& d, const double w)
 		{
+			//TODO throw exception if w isn't positive?
 			data.push_back(d);
 			if (data.size() == 1)
 			{
@@ -69,7 +70,7 @@ namespace ompl
 			return index;
 		}
 
-		_T sample(double r) const
+		const _T& sample(double r) const
 		{
 			//TODO throw exception if tree is empty or if r is not between 0 and 1
 			std::size_t row = tree.size() - 1;
@@ -93,9 +94,8 @@ namespace ompl
 			//TODO throw exception if index<0 or index>data.size()-1
 			if (data.size() == 1)
 			{
-				data.pop_back();
-				tree.front().pop_back();
-				tree.pop_back();
+				data.clear();
+				tree.clear();
 				return;
 			}
 
@@ -111,14 +111,14 @@ namespace ompl
 				weight = tree.front().back();
 			else
 			{
-				const double weightChange = tree.front()[index] - tree.front().back();
+				weight = tree.front()[index];
+				const double weightChange = weight - tree.front().back();
 				std::size_t parent = index >> 1;
 				for (std::size_t row = 1; row < tree.size(); ++row)
 				{
 					tree[row][parent] += weightChange;
 					parent >>= 1;
 				}
-				weight = tree.front()[index];
 			}
 
 			/* Now that the element to remove is at the edge of the tree,
@@ -143,6 +143,22 @@ namespace ompl
 			tree.pop_back();
 		}
 
+		void clear(void)
+		{
+			data.clear();
+			tree.clear();
+		}
+
+		std::size_t size(void) const
+		{
+			return data.size();
+		}
+
+		bool empty(void) const
+		{
+			return data.empty();
+		}
+
 		void printTree(std::ostream& out = std::cout) const
 		{
 			if (tree.empty())
@@ -161,7 +177,6 @@ namespace ompl
 
 		protected:
 
-		//data[i] has weight tree[0][i]
 		std::vector<_T> data;
 		std::vector<std::vector<double > > tree;
 	};
