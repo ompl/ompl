@@ -1,7 +1,7 @@
 #ifndef OMPL_DATASTRUCTURES_PDF_
 #define OMPL_DATASTRUCTURES_PDF_
 
-#include <iostream>
+#include "ompl/util/Exception.h"
 #include <ostream>
 #include <vector>
 
@@ -18,7 +18,8 @@ namespace ompl
 
         PDF(const std::vector<_T>& d, const std::vector<double>& weights)
         {
-            //TODO throw exception if d.size() != weights.size()
+            if (d.size() != weights.size())
+                throw Exception("Data vector and weight vector must be of equal length");
 
             //n elements of data require at most (log2(n)+2) rows in tree
             std::size_t pow = 2;
@@ -40,7 +41,8 @@ namespace ompl
 
         std::size_t add(const _T& d, const double w)
         {
-            //TODO throw exception if w isn't positive?
+            if (d <= 0)
+                throw Exception("Weight argument must be a positive value");
             data.push_back(d);
             if (data.size() == 1)
             {
@@ -72,7 +74,10 @@ namespace ompl
 
         const _T& sample(double r) const
         {
-            //TODO throw exception if tree is empty or if r is not between 0 and 1
+            if (data.empty())
+                throw Exception("Cannot sample from an empty PDF");
+            if (r < 0 || r > 1)
+                throw Exception("Sampling value must be between 0 and 1");
             std::size_t row = tree.size() - 1;
             r *= tree[row].front();
             std::size_t node = 0;
@@ -91,7 +96,7 @@ namespace ompl
 
         void remove(std::size_t index)
         {
-            //TODO throw exception if index<0 or index>data.size()-1
+            //TODO instead of indices, we will use Element references
             if (data.size() == 1)
             {
                 data.clear();
