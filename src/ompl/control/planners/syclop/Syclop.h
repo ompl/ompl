@@ -10,9 +10,12 @@
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-namespace ompl {
-    namespace control {
-        class Syclop : public base::Planner {
+namespace ompl
+{
+    namespace control
+    {
+        class Syclop : public base::Planner
+        {
 
             public:
 
@@ -26,7 +29,8 @@ namespace ompl {
 
             protected:
 
-            struct Region {
+            struct Region
+            {
                 std::set<base::State*> states;
                 int index;
                 int numSelections;
@@ -38,7 +42,8 @@ namespace ompl {
                 std::set<int> covGridCells;
             };
 
-            struct Adjacency {
+            struct Adjacency
+            {
                 std::pair<Region*,Region*> regions; //unnecessary; just pull source() and target() from edge descriptor
                 std::set<int> covGridCells;
                 int numSelections;
@@ -90,19 +95,24 @@ namespace ompl {
             /* Select a vertex v from region, extend tree from v, add any new states encountered to newStates. */
             virtual void selectAndExtend(int region, std::set<const base::State*> newStates) = 0;
 
-            class CoverageGrid : public GridDecomposition {
+            class CoverageGrid : public GridDecomposition
+            {
                 public:
-                CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d) {
+                CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d)
+                {
                 }
 
-                virtual ~CoverageGrid() {
+                virtual ~CoverageGrid()
+                {
                 }
 
-                virtual void stateToCoord(const base::State *s, std::vector<double>& coord) {
+                virtual void stateToCoord(const base::State *s, std::vector<double>& coord)
+                {
                     decomp.stateToCoord(s,coord);
                 }
 
-                virtual int locateRegion(const base::State *s) {
+                virtual int locateRegion(const base::State *s)
+                {
                     std::vector<double> coord;
                     stateToCoord(s, coord);
                     return GridDecomposition::locateRegion(coord);
