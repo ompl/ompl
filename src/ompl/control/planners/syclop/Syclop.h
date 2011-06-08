@@ -10,116 +10,116 @@
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-namespace ompl {
-	namespace control {
-		class Syclop : public base::Planner {
+namespace ompl {//
+    namespace control {
+        class Syclop : public base::Planner {
 
-			public:
+            public:
 
-			Syclop(const SpaceInformationPtr &si, Decomposition &d);
-			virtual ~Syclop();
-			virtual void setup(void);
-			virtual bool solve(const base::PlannerTerminationCondition &ptc);			
+            Syclop(const SpaceInformationPtr &si, Decomposition &d);
+            virtual ~Syclop();
+            virtual void setup(void);
+            virtual bool solve(const base::PlannerTerminationCondition &ptc);
 
-			void printRegions(void);
-			void printEdges(void);
+            void printRegions(void);
+            void printEdges(void);
 
-			protected:
+            protected:
 
-			struct Region {
-				std::set<base::State*> states;
-				int index;
-				int numSelections;
-				double volume;
-				double freeVolume;
-				double percentValidCells;
-				double weight;
-				double alpha;
-				std::set<int> covGridCells;
-			};
+            struct Region {
+                std::set<base::State*> states;
+                int index;
+                int numSelections;
+                double volume;
+                double freeVolume;
+                double percentValidCells;
+                double weight;
+                double alpha;
+                std::set<int> covGridCells;
+            };
 
-			struct Adjacency {
-				std::pair<Region*,Region*> regions; //unnecessary; just pull source() and target() from edge descriptor
-				std::set<int> covGridCells;
-				int numSelections;
-				double cost;
-			};
+            struct Adjacency {
+                std::pair<Region*,Region*> regions; //unnecessary; just pull source() and target() from edge descriptor
+                std::set<int> covGridCells;
+                int numSelections;
+                double cost;
+            };
 
-			//TODO Consider vertex/edge storage options other than vecS.
-			typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Region, Adjacency> RegionGraph;
-			typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
-			typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
-			typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
+            //TODO Consider vertex/edge storage options other than vecS.
+            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Region, Adjacency> RegionGraph;
+            typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
+            typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
+            typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
-			static const int NUM_FREEVOL_SAMPLES = 10000;
-			static const double PROB_SHORTEST_PATH = 1.0; //0.95
-			static const int COVGRID_LENGTH = 8;
-			static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
+            static const int NUM_FREEVOL_SAMPLES = 10000;
+            static const double PROB_SHORTEST_PATH = 1.0; //0.95
+            static const int COVGRID_LENGTH = 8;
+            static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
 
-			/* Initialize edge between regions r and s. */
-			virtual void initEdge(Adjacency& a, Region* r, Region* s);
+            /* Initialize edge between regions r and s. */
+            virtual void initEdge(Adjacency& a, Region* r, Region* s);
 
-			virtual void updateEdgeEstimates(void);
+            virtual void updateEdgeEstimates(void);
 
-			// TODO: Consider moving this into Region constructor.
-			virtual void initRegion(Region& r);
+            // TODO: Consider moving this into Region constructor.
+            virtual void initRegion(Region& r);
 
-			virtual void setupRegionEstimates(void);
+            virtual void setupRegionEstimates(void);
 
-			/* Given that State s has been added to the tree and belongs in Region r,
-				update r's coverage estimate if needed. */
-			virtual void updateCoverageEstimate(Region& r, const base::State *s);
+            /* Given that State s has been added to the tree and belongs in Region r,
+                update r's coverage estimate if needed. */
+            virtual void updateCoverageEstimate(Region& r, const base::State *s);
 
-			/* Given that an edge has been added to the tree, leading to the new state s,
-				update the corresponding edge's connection estimates. */
-			virtual void updateConnectionEstimate(Adjacency& a, const base::State *s);
+            /* Given that an edge has been added to the tree, leading to the new state s,
+                update the corresponding edge's connection estimates. */
+            virtual void updateConnectionEstimate(Adjacency& a, const base::State *s);
 
-			virtual void updateRegionEstimates(void);
+            virtual void updateRegionEstimates(void);
 
-			/* Sets up RegionGraph from decomposition. */
-			virtual void buildGraph(void);
+            /* Sets up RegionGraph from decomposition. */
+            virtual void buildGraph(void);
 
-			virtual void computeLead(std::vector<Region*>& lead);
+            virtual void computeLead(std::vector<Region*>& lead);
 
-			virtual int selectRegion(const std::set<int>& regions);
+            virtual int selectRegion(const std::set<int>& regions);
 
-			virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail);
+            virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail);
 
-			/* Initialize a tree rooted at start state s. */
-			virtual void initializeTree(const base::State *s) = 0;
-			/* Select a vertex v from region, extend tree from v, add any new states encountered to newStates. */
-			virtual void selectAndExtend(int region, std::set<const base::State*> newStates) = 0;
+            /* Initialize a tree rooted at start state s. */
+            virtual void initializeTree(const base::State *s) = 0;
+            /* Select a vertex v from region, extend tree from v, add any new states encountered to newStates. */
+            virtual void selectAndExtend(int region, std::set<const base::State*> newStates) = 0;
 
-			class CoverageGrid : public GridDecomposition {
-				public:
-				CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d) {
-				}
+            class CoverageGrid : public GridDecomposition {
+                public:
+                CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d) {
+                }
 
-				virtual ~CoverageGrid() {
-				}
+                virtual ~CoverageGrid() {
+                }
 
-				virtual void stateToCoord(const base::State *s, std::vector<double>& coord) {
-					decomp.stateToCoord(s,coord);
-				}
+                virtual void stateToCoord(const base::State *s, std::vector<double>& coord) {
+                    decomp.stateToCoord(s,coord);
+                }
 
-				virtual int locateRegion(const base::State *s) {
-					std::vector<double> coord;
-					stateToCoord(s, coord);
-					return GridDecomposition::locateRegion(coord);
-				}
+                virtual int locateRegion(const base::State *s) {
+                    std::vector<double> coord;
+                    stateToCoord(s, coord);
+                    return GridDecomposition::locateRegion(coord);
+                }
 
-				protected:
-				Decomposition& decomp;
-			};
+                protected:
+                Decomposition& decomp;
+            };
 
-			Decomposition &decomp;
-			RegionGraph graph;
-			CoverageGrid covGrid;
-			RNG rng;
-			int startRegion;
-			int goalRegion;
-		};
-	}
+            Decomposition &decomp;
+            RegionGraph graph;
+            CoverageGrid covGrid;
+            RNG rng;
+            int startRegion;
+            int goalRegion;
+        };
+    }
 }
 
 #endif

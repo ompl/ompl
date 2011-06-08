@@ -1,4 +1,4 @@
-#include "ompl/control/planners/syclop/SyclopRRT.h"
+#include "ompl/control/planners/syclop/SyclopRRT.h"//
 
 ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) : Syclop(si,d) {
 }
@@ -7,7 +7,7 @@ ompl::control::SyclopRRT::~SyclopRRT(void) {
 }
 
 void ompl::control::SyclopRRT::setup(void) {
-	Syclop::setup();
+    Syclop::setup();
 }
 
 void ompl::control::SyclopRRT::initializeTree(const base::State *s) {

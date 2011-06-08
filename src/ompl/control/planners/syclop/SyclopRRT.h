@@ -5,19 +5,19 @@
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-namespace ompl {
-	namespace control {
-		class SyclopRRT : public Syclop {
-			public:
-			SyclopRRT(const SpaceInformationPtr &si, Decomposition &d);
-			virtual ~SyclopRRT();
-			virtual void setup(void);
+namespace ompl {//
+    namespace control {
+        class SyclopRRT : public Syclop {
+            public:
+            SyclopRRT(const SpaceInformationPtr &si, Decomposition &d);
+            virtual ~SyclopRRT();
+            virtual void setup(void);
 
-			protected:
-			virtual void initializeTree(const base::State *s);
-			virtual void selectAndExtend(int region, std::set<const base::State*> newStates);
-		};
-	}
+            protected:
+            virtual void initializeTree(const base::State *s);
+            virtual void selectAndExtend(int region, std::set<const base::State*> newStates);
+        };
+    }
 }
 
 #endif
