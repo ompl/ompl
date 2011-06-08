@@ -54,6 +54,7 @@ namespace ompl
             /** \brief Create a goal representation that is in fact a state  */
             GoalState(const SpaceInformationPtr &si) : GoalSampleableRegion(si), state(NULL)
             {
+                type_ = GOAL_STATE;
             }
 
             virtual ~GoalState(void);

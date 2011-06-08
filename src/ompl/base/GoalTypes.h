@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,62 +34,36 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
-#include "2DmapSetup.h"
-#include <iostream>
+#ifndef OMPL_BASE_GOAL_TYPES_
+#define OMPL_BASE_GOAL_TYPES_
 
-#include "ompl/geometric/ik/GAIK.h"
-#include "ompl/util/Time.h"
-
-using namespace ompl;
-
-TEST(GAIK, Simple)
+namespace ompl
 {
-    /* load environment */
-    Environment2D env;
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
-    path = path / "env1.txt";
-    loadEnvironment(path.string().c_str(), env);
-
-    if (env.width * env.height == 0)
+    namespace base
     {
-        std::cerr << "The environment has a 0 dimension. Cannot continue" << std::endl;
-        FAIL();
+
+        /** \brief The type of goal */
+        enum GoalType
+            {
+                /** \brief This bit is set if casting to generic goal regions (ompl::base::Goal) is possible. This bit shold always be set */
+                GOAL_ANY               = 1,
+
+                /** \brief This bit is set if casting to goal regions (ompl::base::GoalRegion) is possible */
+                GOAL_REGION            = GOAL_ANY + 2,
+
+                /** \brief This bit is set if casting to sampleable goal regions (ompl::base::GoalSampleableRegion) is possible */
+                GOAL_SAMPLEABLE_REGION = GOAL_REGION + 4,
+
+                /** \brief This bit is set if casting to goal state (ompl::base::GoalState) is possible */
+                GOAL_STATE             = GOAL_SAMPLEABLE_REGION + 8,
+
+                /** \brief This bit is set if casting to goal states (ompl::base::GoalStates) is possible */
+                GOAL_STATES            = GOAL_SAMPLEABLE_REGION + 16,
+
+                /** \brief This bit is set if casting to goal states (ompl::base::GoalLazySamples) is possible */
+                GOAL_LAZY_SAMPLES      = GOAL_STATES + 32
+            };
     }
-
-    /* instantiate space information */
-    base::SpaceInformationPtr si = geometric::spaceInformation2DMap(env);
-
-    /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-    base::GoalState goal(si);
-    base::ScopedState<base::RealVectorStateSpace> gstate(si);
-    gstate->values[0] = env.goal.first;
-    gstate->values[1] = env.goal.second;
-    goal.setState(gstate);
-    goal.setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
-
-    geometric::GAIK gaik(si);
-    gaik.setRange(5.0);
-    base::ScopedState<base::RealVectorStateSpace> found(si);
-    double time = 0.0;
-
-    const int N = 100;
-    for (int i = 0 ; i < N ; ++i)
-    {
-        ompl::time::point startTime = ompl::time::now();
-        bool solved = gaik.solve(1.0, goal, found.get());
-        ompl::time::duration elapsed = ompl::time::now() - startTime;
-        time += ompl::time::seconds(elapsed);
-        EXPECT_TRUE(solved);
-        EXPECT_TRUE(si->distance(found.get(), gstate.get()) < 1e-3);
-    }
-    time = time / (double)N;
-    EXPECT_TRUE(time < 0.01);
 }
 
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+#endif

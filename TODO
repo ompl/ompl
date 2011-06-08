@@ -1,4 +1,3 @@
-* Reorganize tests to be more general
 * Merge files for tests for util/ & tests for datastructures/.
 * Expose ODE extension through Python bindings.
 * Make PlannerData use BGL

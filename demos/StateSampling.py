@@ -50,6 +50,7 @@ except:
 from time import sleep
 from math import fabs
 
+## @cond IGNORE
 
 # This is a problem-specific sampler that automatically generates valid
 # states; it doesn't need to call SpaceInformation::isValid. This is an
@@ -91,6 +92,8 @@ class MyValidStateSampler(ob.ValidStateSampler):
             state[1] = self.rng_.uniformReal(-1,1)
         state[2] = z
         return True
+
+## @endcond
 
 # This function is needed, even when we can write a sampler like the one
 # above, because we need to check path segments for validity

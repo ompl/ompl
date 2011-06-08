@@ -32,69 +32,89 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Matt Maly */
 
 #include <gtest/gtest.h>
-#include "ompl/base/Planner.h"
+#include "ompl/datastructures/PDF.h"
 
-namespace ompl
+TEST(PDF, Simple)
 {
+    ompl::PDF<int> p;
+    EXPECT_TRUE(p.empty());
+    p.add(0, 1.0);
+    EXPECT_EQ(0, p.sample(0.5));
+    EXPECT_EQ(1, p.size());
+    EXPECT_FALSE(p.empty());
+    p.add(1, 0.0);
+    p.add(2, 0.0);
+    p.add(3, 0.0);
+    EXPECT_EQ(0, p.sample(0.5));
+    EXPECT_EQ(4, p.size());
 
-    /** \brief Encapsulate basic tests for planners. This class
-        should be used for every planner included with ompl, to
-        ensure basic functionality works. */
-    class PlannerTest
-    {
-    public:
+    p.clear();
+    p.add(0, 25);
+    // 25
+    EXPECT_EQ(0, p.sample(1.0));
 
-        /** \brief Construct a testing setup for planner \e planner */
-        PlannerTest(const base::PlannerPtr &planner) : planner_(planner)
-        {
-        }
+    p.add(1, 50);
+    // 25 50
+    EXPECT_EQ(0, p.sample(0.3));
+    EXPECT_EQ(1, p.sample(0.5));
 
-        ~PlannerTest(void)
-        {
-        }
+    p.add(2, 15);
+    // 25 50 15
+    EXPECT_EQ(0, p.sample(0.25));
+    EXPECT_EQ(1, p.sample(0.5));
+    EXPECT_EQ(2, p.sample(0.85));
 
-        /** \brief Test that solve() and clear() work as expected */
-        void testSolveAndClear(void)
-        {
-            planner_->clear();
+    p.add(3, 10);
+    // 25 50 15 10
+    EXPECT_EQ(0, p.sample(0.1));
+    EXPECT_EQ(1, p.sample(0.7));
+    EXPECT_EQ(2, p.sample(0.8));
+    EXPECT_EQ(3, p.sample(0.95));
 
-            bool solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
+    p.add(4, 6);
+    p.add(5, 30);
+    p.add(6, 1);
+    // 25 50 15 10 6 30 1
 
-            planner_->clear();
+    p.remove(6);
+    // 25 50 15 10 6 30
+    EXPECT_EQ(5, p.sample(0.95));
+    EXPECT_EQ(0, p.sample(0.05));
 
-            solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
+    p.remove(4);
+    // 25 50 15 10 30
+    EXPECT_EQ(5, p.size());
+    EXPECT_EQ(5, p.sample(0.8));
+    EXPECT_EQ(1, p.sample(0.2));
 
-            solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
+    p.remove(0);
+    // 30 50 15 10
+    EXPECT_EQ(5, p.sample(0.25));
+    EXPECT_EQ(1, p.sample(0.4));
+    EXPECT_EQ(2, p.sample(0.85));
+    EXPECT_EQ(3, p.sample(0.95));
 
-            planner_->clear();
+    p.remove(1);
+    // 30 10 15
+    EXPECT_EQ(2, p.sample(0.75));
 
-            planner_->solve(base::PlannerAlwaysTerminatingCondition());
-            planner_->solve(0.001);
-            planner_->solve(0.01);
-            solved = planner_->solve(0.1);
-            if (!solved)
-                solved = planner_->solve(base::PlannerNonTerminatingCondition());
-            EXPECT_TRUE(solved);
-            planner_->clear();
-            planner_->clear();
-            planner_->clear();
-        }
+    p.remove(1);
+    p.remove(0);
+    // 15
+    EXPECT_EQ(2, p.sample(1.0));
 
-        /** \brief Call all tests for the planner */
-        void test(void)
-        {
-            testSolveAndClear();
-        }
+    p.remove(0);
+    EXPECT_EQ(0, p.size());
+    EXPECT_TRUE(p.empty());
 
-    private:
+    p.clear();
+}
 
-        base::PlannerPtr planner_;
-
-    };
+int main(int argc, char** argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

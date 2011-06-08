@@ -73,7 +73,8 @@ namespace ompl
             pRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "pRRT"),
                                                         samplerArray_(si)
             {
-                type_ = base::PLAN_TO_GOAL_ANY;
+                specs_.approximateSolutions = true;
+                specs_.multithreaded = true;
 
                 setThreadCount(2);
                 goalBias_ = 0.05;

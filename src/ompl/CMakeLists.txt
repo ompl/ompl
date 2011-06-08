@@ -37,18 +37,9 @@ if (OMPL_EXTENSION_ODE)
 endif()
 
 #############################################
-# Add enabled contribs to the source code   #
+# Add enabled contributed source code       #
 #############################################
-
-## replace XXX by the identifier of the contributor
-#if (OMPL_CONTRIB_XXX)
-#    file(GLOB_RECURSE OMPL_XXX_CONTRIB_SOURCE_CODE contrib/XXX/src/*.cpp)
-#    set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_XXX_CONTRIB_SOURCE_CODE})
-#
-##    if additional libraries need to be linked, they are added to manifest.xml for ROS
-##    or they are added to the list of OMPL_LINK_LIBRARIES
-#
-#endif()
+add_subdirectory(contrib/sample_contrib)
 
 
 #############################################

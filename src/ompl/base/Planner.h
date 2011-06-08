@@ -55,30 +55,6 @@ namespace ompl
     namespace base
     {
 
-        /** \brief Different planners may be able to handle only specific types of goal regions. For instance, the most
-            general goal representation is not suitable for bi-directional planners. Planners set their type to specify
-            which type of goal regions they can handle.*/
-        enum PlannerType
-            {
-                /** \brief This value should not be set */
-                PLAN_UNKNOWN        = 0,
-
-                /** \brief This bit is set if planning to goal states (ompl::base::GoalState) is possible */
-                PLAN_TO_GOAL_STATE  = 1,
-
-                /** \brief This bit is set if planning to goal states (ompl::base::GoalStates) is possible */
-                PLAN_TO_GOAL_STATES  = 2,
-
-                /** \brief This bit is set if planning to sampleable goal regions (ompl::base::GoalSampleableRegion) is possible */
-                PLAN_TO_GOAL_SAMPLEABLE_REGION = 4 | PLAN_TO_GOAL_STATES | PLAN_TO_GOAL_STATE,
-
-                /** \brief This bit is set if planning to goal regions (ompl::base::GoalRegion) is possible */
-                PLAN_TO_GOAL_REGION = 8 | PLAN_TO_GOAL_SAMPLEABLE_REGION,
-
-                /** \brief This bit is set if planning to generic goal regions (ompl::base::Goal) is possible */
-                PLAN_TO_GOAL_ANY    = 32768 | PLAN_TO_GOAL_REGION
-            };
-
         /** \brief Forward declaration of ompl::base::Planner */
         ClassForward(Planner);
 
@@ -213,6 +189,31 @@ namespace ompl
             const SpaceInformation     *si_;
         };
 
+        /** \brief Properties that planners may have */
+        struct PlannerSpecs
+        {
+            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false),
+                                 optimizingPaths(false), estimatingProbabilities(false)
+            {
+            }
+
+            /** \brief The type of goal specification the planner can use */
+            GoalType recognizedGoal;
+
+            /** \brief Flag indicating whether multiple threads are used in the computation of the planner */
+            bool     multithreaded;
+
+            /** \brief Flag indicating whether the planner is able to compute approximate solutions */
+            bool     approximateSolutions;
+
+            /** \brief Flag indicating whether the planner attempts to optimize the path and reduce its length until the
+                maximum path length specified by the goal representation is satisfied */
+            bool     optimizingPaths;
+
+            /** \brief Flag indicating whether probabilities of success are computed by the planner */
+            bool     estimatingProbabilities;
+        };
+
         /** \brief Base class for a planner */
         class Planner : private boost::noncopyable
         {
@@ -304,10 +305,8 @@ namespace ompl
             /** \brief Set the name of the planner */
             void setName(const std::string &name);
 
-            /** \brief Return the type of the motion planner. This is useful if
-                the planner wants to advertise what type of problems it
-                can solve */
-            PlannerType getType(void) const;
+            /** \brief Return the specifications (capabilities of this planner) */
+            const PlannerSpecs& getSpecs(void) const;
 
             /** \brief Perform extra configuration steps, if
                 needed. This call will also issue a call to
@@ -338,8 +337,8 @@ namespace ompl
             /** \brief The name of this planner */
             std::string          name_;
 
-            /** \brief The planner type: defines the type of goals this planner can handle */
-            PlannerType          type_;
+            /** \brief The specifications of the planner (its capabilities) */
+            PlannerSpecs         specs_;
 
             /** \brief Flag indicating whether setup() has been called */
             bool                 setup_;

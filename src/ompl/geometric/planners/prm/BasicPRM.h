@@ -82,7 +82,7 @@ namespace ompl
             /** \brief Constructor */
             BasicPRM(const base::SpaceInformationPtr &si) : base::Planner(si, "BasicPRM")
             {
-                type_ = base::PLAN_TO_GOAL_SAMPLEABLE_REGION;
+                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 
                 maxNearestNeighbors_ = 10;
                 componentCount_ = 0;

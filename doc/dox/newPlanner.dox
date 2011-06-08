@@ -45,6 +45,9 @@
 
         virtual bool solve(const base::PlannerTerminationCondition &ptc)
         {
+            // make sure the planner is configured correctly
+            checkValidity();
+
             // get problem definition from pdef_
             // get input states with pis_
             // call routines from si_
@@ -72,4 +75,18 @@
         };
       }
       \endcode
+
+    Testing a newly added planner:
+    - Basic test to ensure that the functionality of
+      ompl::base::Planner::clear() and ompl::base::Planner::solve() is
+      correct:
+      \code
+      // create a planning context such that planner->solve() can be called and expected to find a solution
+      base::PlannerPtr planner;    
+      // create a testing scenario for the planner
+      PlannerTest pt(planner);
+      pt.test();
+      \endcode
+    - Use the ompl::Benchmark class to evaluate performance
+
 */

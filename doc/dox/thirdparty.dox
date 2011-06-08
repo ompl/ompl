@@ -1,0 +1,15 @@
+/** 
+\page thirdparty Third-Party Contributions
+
+
+
+This page includes a list of extensions to OMPL provided by the community. You can also submit \ref contrib "your own contribution".
+
+\section ompl_ros_interface ROS Interface to OMPL
+
+The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> ROS package wraps OMPL such that motion planners can be easily set up for your robot. Most configuration is automated, however you will have to specify the parts of the robot for which you want to create a motion planner.
+
+\section SampleContrib
+
+Short description from README.txt is copied here. For more details click \ref sample_contrib "here".
+*/

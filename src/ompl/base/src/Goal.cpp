@@ -37,8 +37,9 @@
 #include "ompl/base/Goal.h"
 #include <limits>
 
-ompl::base::Goal::Goal(const SpaceInformationPtr &si) : si_(si), maximumPathLength_(std::numeric_limits<double>::max()),
-                                                        difference_(-1.0), approximate_(false)
+ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
+    type_(GOAL_ANY), si_(si), maximumPathLength_(std::numeric_limits<double>::max()),
+    difference_(-1.0), approximate_(false), prob_(1.0)
 {
 }
 

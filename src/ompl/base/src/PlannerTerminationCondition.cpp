@@ -54,12 +54,12 @@ namespace ompl
 {
     static bool alwaysFalse(void)
     {
-	return false;
+        return false;
     }
-    
+
     static bool alwaysTrue(void)
     {
-	return true;
+        return true;
     }
 }
 /// @endcond

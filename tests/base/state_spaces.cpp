@@ -51,7 +51,7 @@
 
 #include <boost/math/constants/constants.hpp>
 
-#include "commonheaders/StateSpaceTest.h"
+#include "StateSpaceTest.h"
 
 using namespace ompl;
 

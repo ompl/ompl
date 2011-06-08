@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_SAMPLEABLE_REGION_
-#define OMPL_BASE_GOAL_SAMPLEABLE_REGION_
-
-#include "ompl/base/GoalRegion.h"
+#include <gtest/gtest.h>
+#include "ompl/base/Planner.h"
 
 namespace ompl
 {
@@ -45,35 +43,62 @@ namespace ompl
     namespace base
     {
 
-        /** \brief Abstract definition of a goal region that can be sampled */
-        class GoalSampleableRegion : public GoalRegion
+        /** \brief Encapsulate basic tests for planners. This class
+            should be used for every planner included with ompl, to
+            ensure basic functionality works. */
+        class PlannerTest
         {
         public:
 
-            /** \brief Create a goal region that can be sampled */
-            GoalSampleableRegion(const SpaceInformationPtr &si) : GoalRegion(si)
-            {
-                type_ = GOAL_SAMPLEABLE_REGION;
-            }
-
-            virtual ~GoalSampleableRegion(void)
+            /** \brief Construct a testing setup for planner \e planner */
+            PlannerTest(const PlannerPtr &planner) : planner_(planner)
             {
             }
 
-            /** \brief Sample a state in the goal region */
-            virtual void sampleGoal(State *st) const = 0;
-
-            /** \brief Return the maximum number of samples that can be asked for before repeating */
-            virtual unsigned int maxSampleCount(void) const = 0;
-
-            /** \brief Return true of maxSampleCount() > 0, since in this case samples can certainly be produced */
-            virtual bool canSample(void) const
+            ~PlannerTest(void)
             {
-                return maxSampleCount() > 0;
             }
+
+            /** \brief Test that solve() and clear() work as expected */
+            void testSolveAndClear(void)
+            {
+                planner_->clear();
+
+                bool solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
+
+                planner_->clear();
+
+                solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
+
+                solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
+
+                planner_->clear();
+
+                planner_->solve(PlannerAlwaysTerminatingCondition());
+                planner_->solve(0.001);
+                planner_->solve(0.01);
+                solved = planner_->solve(0.1);
+                if (!solved)
+                    solved = planner_->solve(PlannerNonTerminatingCondition());
+                EXPECT_TRUE(solved);
+                planner_->clear();
+                planner_->clear();
+                planner_->clear();
+            }
+
+            /** \brief Call all tests for the planner */
+            void test(void)
+            {
+                testSolveAndClear();
+            }
+
+        private:
+
+            PlannerPtr planner_;
+
         };
-
     }
 }
-
-#endif
