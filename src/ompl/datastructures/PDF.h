@@ -48,7 +48,7 @@ namespace ompl
 				return 0;
 			}
 			const std::size_t index = data.size() - 1;
-			tree[0].push_back(w);
+			tree.front().push_back(w);
 			for (std::size_t i = 1; i < tree.size(); ++i)
 			{
 				if (tree[i-1].size() % 2 == 1)
@@ -57,8 +57,7 @@ namespace ompl
 				{
 					while (i < tree.size())
 					{
-						const std::size_t last = tree[i].size() - 1;
-						tree[i][last] += w;
+						tree[i].back() += w;
 						++i;
 					}
 					return index;
@@ -89,6 +88,61 @@ namespace ompl
 			return data[node];
 		}
 
+		void remove(std::size_t index)
+		{
+			//TODO throw exception if index<0 or index>data.size()-1
+			if (data.size() == 1)
+			{
+				data.pop_back();
+				tree.front().pop_back();
+				tree.pop_back();
+				return;
+			}
+
+			std::swap(data[index], data.back());
+			std::swap(tree.front()[index], tree.front().back());
+
+			double weight;
+			/* If index and back() are siblings in the tree, then
+			 * we don't need to make an extra pass over the tree.
+			 * The amount by which we change the values at the edge
+			 * of the tree is different in this case. */
+			if (index+1 == data.size()-1 && index%2 == 0)
+				weight = tree.front().back();
+			else
+			{
+				const double weightChange = tree.front()[index] - tree.front().back();
+				std::size_t parent = index >> 1;
+				for (std::size_t row = 1; row < tree.size(); ++row)
+				{
+					tree[row][parent] += weightChange;
+					parent >>= 1;
+				}
+				weight = tree.front()[index];
+			}
+
+			/* Now that the element to remove is at the edge of the tree,
+			 * pop it off and update the corresponding weights. */
+			data.pop_back();
+			tree.front().pop_back();
+			for (std::size_t i = 1; i < tree.size() && tree[i-1].size() > 1; ++i)
+			{
+				if (tree[i-1].size() % 2 == 0)
+					tree[i].pop_back();
+				else
+				{
+					while (i < tree.size())
+					{
+						tree[i].back() -= weight;
+						++i;
+					}
+					return;
+				}
+			}
+			//If we've made it here, then we need to remove a redundant head from the tree.
+			tree.pop_back();
+		}
+
 		void printTree(std::ostream& out = std::cout) const
 		{
 			if (tree.empty())
@@ -102,6 +156,7 @@ namespace ompl
 					out << tree[i][j] << " ";
 				out << std::endl;
 			}
+			out << std::endl;
 		}
 
 		protected:
