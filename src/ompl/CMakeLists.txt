@@ -40,7 +40,7 @@ endif()
 # Add enabled contributed source code       #
 #############################################
 add_subdirectory(contrib/sample_contrib)
-
+add_subdirectory(contrib/rrt_star)
 
 #############################################
 # Build and install the library             #
