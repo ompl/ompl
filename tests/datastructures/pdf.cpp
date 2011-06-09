@@ -39,9 +39,10 @@
 
 TEST(PDF, Simple)
 {
+    typedef ompl::PDF<int>::Element Element;
     ompl::PDF<int> p;
     EXPECT_TRUE(p.empty());
-    p.add(0, 1.0);
+    Element& e = p.add(0, 1.0);
     EXPECT_EQ(0, p.sample(0.5));
     EXPECT_EQ(1, p.size());
     EXPECT_FALSE(p.empty());
@@ -52,61 +53,61 @@ TEST(PDF, Simple)
     EXPECT_EQ(4, p.size());
 
     p.clear();
-    p.add(0, 25);
+    Element& e25 = p.add(0, 25);
     // 25
     EXPECT_EQ(0, p.sample(1.0));
 
-    p.add(1, 50);
+    Element& e50 = p.add(1, 50);
     // 25 50
     EXPECT_EQ(0, p.sample(0.3));
     EXPECT_EQ(1, p.sample(0.5));
 
-    p.add(2, 15);
+    Element& e15 = p.add(2, 15);
     // 25 50 15
     EXPECT_EQ(0, p.sample(0.25));
     EXPECT_EQ(1, p.sample(0.5));
     EXPECT_EQ(2, p.sample(0.85));
 
-    p.add(3, 10);
+    Element& e10 = p.add(3, 10);
     // 25 50 15 10
     EXPECT_EQ(0, p.sample(0.1));
     EXPECT_EQ(1, p.sample(0.7));
     EXPECT_EQ(2, p.sample(0.8));
     EXPECT_EQ(3, p.sample(0.95));
 
-    p.add(4, 6);
-    p.add(5, 30);
-    p.add(6, 1);
+    Element& e6 = p.add(4, 6);
+    Element& e30 = p.add(5, 30);
+    Element& e1 = p.add(6, 1);
     // 25 50 15 10 6 30 1
 
-    p.remove(6);
+    p.remove(e1);
     // 25 50 15 10 6 30
     EXPECT_EQ(5, p.sample(0.95));
     EXPECT_EQ(0, p.sample(0.05));
 
-    p.remove(4);
+    p.remove(e6);
     // 25 50 15 10 30
     EXPECT_EQ(5, p.size());
     EXPECT_EQ(5, p.sample(0.8));
     EXPECT_EQ(1, p.sample(0.2));
 
-    p.remove(0);
+    p.remove(e25);
     // 30 50 15 10
     EXPECT_EQ(5, p.sample(0.25));
     EXPECT_EQ(1, p.sample(0.4));
     EXPECT_EQ(2, p.sample(0.85));
     EXPECT_EQ(3, p.sample(0.95));
 
-    p.remove(1);
+    p.remove(e50);
     // 30 10 15
     EXPECT_EQ(2, p.sample(0.75));
 
-    p.remove(1);
-    p.remove(0);
+    p.remove(e10);
+    p.remove(e30);
     // 15
     EXPECT_EQ(2, p.sample(1.0));
 
-    p.remove(0);
+    p.remove(e15);
     EXPECT_EQ(0, p.size());
     EXPECT_TRUE(p.empty());
 

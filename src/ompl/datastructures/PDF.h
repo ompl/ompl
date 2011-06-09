@@ -48,6 +48,18 @@ namespace ompl
     {
         public:
 
+        class Element
+        {
+            friend class PDF;
+            public:
+            Element(const _T& d, const std::size_t i) : data(d), index(i)
+            {
+            }
+            _T data;
+            private:
+            std::size_t index;
+        };
+
         PDF(void)
         {
         }
@@ -73,20 +85,21 @@ namespace ompl
 
         ~PDF(void)
         {
+            clear();
         }
 
-        std::size_t add(const _T& d, const double w)
+        Element& add(const _T& d, const double w)
         {
-            if (d <= 0)
-                throw Exception("Weight argument must be a positive value");
-            data.push_back(d);
+            if (w < 0)
+                throw Exception("Weight argument must be a nonnegative value");
+            Element* elem = new Element(d, data.size());
+            data.push_back(elem);
             if (data.size() == 1)
             {
                 std::vector<double> r(1, w);
                 tree.push_back(r);
-                return 0;
+                return *elem;
             }
-            const std::size_t index = data.size() - 1;
             tree.front().push_back(w);
             for (std::size_t i = 1; i < tree.size(); ++i)
             {
@@ -99,13 +112,13 @@ namespace ompl
                         tree[i].back() += w;
                         ++i;
                     }
-                    return index;
+                    return *elem;
                 }
             }
             //If we've made it here, then we need to add a new head to the tree.
             std::vector<double> head(1, tree.back()[0] + tree.back()[1]);
             tree.push_back(head);
-            return index;
+            return *elem;
         }
 
         const _T& sample(double r) const
@@ -127,20 +140,24 @@ namespace ompl
                     ++node;
                 }
             }
-            return data[node];
+            return data[node]->data;
         }
 
-        void remove(std::size_t index)
+        void remove(Element& elem)
         {
             //TODO instead of indices, we will use Element references
             if (data.size() == 1)
             {
+                delete data.front();
                 data.clear();
                 tree.clear();
                 return;
             }
 
+            const std::size_t index = elem.index;
+            delete data[index];
             std::swap(data[index], data.back());
+            data[index]->index = index;
             std::swap(tree.front()[index], tree.front().back());
 
             double weight;
@@ -148,7 +165,7 @@ namespace ompl
              * we don't need to make an extra pass over the tree.
              * The amount by which we change the values at the edge
              * of the tree is different in this case. */
-            if (index+1 == data.size()-1 && index%2 == 0)
+            if (index+2 == data.size() && index%2 == 0)
                 weight = tree.front().back();
             else
             {
@@ -186,6 +203,8 @@ namespace ompl
 
         void clear(void)
         {
+            for (typename std::vector<Element*>::iterator e = data.begin(); e != data.end(); ++e)
+                delete *e;
             data.clear();
             tree.clear();
         }
@@ -205,7 +224,7 @@ namespace ompl
             if (tree.empty())
                 return;
             for (std::size_t j = 0; j < tree[0].size(); ++j)
-                out << "(" << data[j] << "," << tree[0][j] << ") ";
+                out << "(" << data[j]->data << "," << tree[0][j] << ") ";
             out << std::endl;
             for (std::size_t i = 1; i < tree.size(); ++i)
             {
@@ -218,7 +237,7 @@ namespace ompl
 
         private:
 
-        std::vector<_T> data;
+        std::vector<Element*> data;
         std::vector<std::vector<double > > tree;
     };
 }
