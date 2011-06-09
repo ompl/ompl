@@ -34,7 +34,7 @@
 
 /* Author: Your Name */
 
-#include "SampleContrib.h"
+#include "ompl/contrib/rrt_star/SampleContrib.h"
 
 ompl::geometric::SampleContrib::SampleContrib()
 {

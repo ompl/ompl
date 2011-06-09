@@ -42,7 +42,7 @@
 #include "../../../../../tests/base/PlannerTest.h"
 #include "../../../../../tests/geometric/2dmap/2DmapSetup.h"
 
-#include "../src/RRTstar.h"
+#include "../RRTstar.h"
 
 using namespace ompl;
 

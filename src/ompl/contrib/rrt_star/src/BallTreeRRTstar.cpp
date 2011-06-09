@@ -34,7 +34,7 @@
 
 /* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
 
-#include "ompl/contrib/rrt_star/src/BallTreeRRTstar.h"
+#include "ompl/contrib/rrt_star/BallTreeRRTstar.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include <algorithm>

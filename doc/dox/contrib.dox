@@ -5,7 +5,8 @@ We welcome external contributions. If you would like us to list your contributio
 
 -# Contributions are each stored in a separate directory in \c ompl/src/ompl/contrib. The contributors can choose a descriptive name for their directory such as their group name or the name of their algorithm. We have created a sample contribution directory in \c ompl/src/ompl/contrib/sample_contrib that you can use for your contribution. Below, we will describe the expected structure of a contribution's directory in more detail.
 -# Within the contribution’s directory there are the following files / directories:
-       - src [required], a directory that contains all source code.
+       - \b CMakeLists.txx [required], a file that tells the CMake program how to build your code. Use the one in the sample_contrib directory as a template.
+       - src [required], a directory that contains C++ implementation files. The corresponding header files should be inside the sample_contrib directory itself.
        - tests [required], a directory that contains testing code that demonstrates that essential bits of code are running correctly
        - README.txt [required], a high-level description of the functionality of the contribution(s). This can include primary citations.
        - doc [optional], additional documentation, ideally in doxygen format (analogous to the high-level OMPL documentation). Images or (short) videos are also welcome.
