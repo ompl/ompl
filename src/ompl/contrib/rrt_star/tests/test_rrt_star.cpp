@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Your Institution nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,9 +34,36 @@
 
 /* Author: Your Name */
 
-#include "SampleContrib.h"
+#include <gtest/gtest.h>
 
-ompl::geometric::SampleContrib::SampleContrib()
+// The following header file is useful for testing planners.
+// See ../../../../../tests/geometric/2dmap.cpp for example usage.
+// You could copy that file and modify it for your planner.
+#include "../../../../../tests/base/PlannerTest.h"
+#include "../../../../../tests/geometric/2dmap/2DmapSetup.h"
+
+#include "../src/RRTstar.h"
+
+using namespace ompl;
+
+
+TEST(rrt_star, Basic)
 {
-    // do nothing
+    geometric::SimpleSetup2DMap s("env1.txt");
+    s.setPlanner(base::PlannerPtr(new geometric::RRTstar(s.getSpaceInformation())));
+    s.setup();
+    base::PlannerTest pt(s.getPlanner());
+    pt.test();
+}
+
+TEST(rrt_star, More)
+{
+    // other tests, if you want
+}
+
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

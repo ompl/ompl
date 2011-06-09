@@ -1,0 +1,8 @@
+/**
+\page sample_contrib RRT* and Ball Tree RRT* algorithms.
+
+This contribution implements the RRT* algorithm and the Ball Tree RRT* algorithm. For more information on RRT* and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
+
+
+*/
+
