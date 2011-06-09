@@ -145,7 +145,6 @@ namespace ompl
 
         void remove(Element& elem)
         {
-            //TODO instead of indices, we will use Element references
             if (data.size() == 1)
             {
                 delete data.front();
