@@ -64,7 +64,7 @@ namespace ompl
            how to set the maximally allowed path length to reach the goal.
            If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
            found, the algorithm terminates before the elapsed time. The algorithm continues to refine
-	   solutions for the amount of time specified when the maximally allowed path length is set to 0.0.
+           solutions for the amount of time specified when the maximally allowed path length is set to 0.0.
 
            @par External documentation
            S. Karaman and E. Frazzoli, Sampling-based
@@ -81,7 +81,8 @@ namespace ompl
 
             RRTstar(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTstar")
             {
-                type_ = base::PLAN_TO_GOAL_ANY;
+                specs_.approximateSolutions = true;
+                specs_.optimizingPaths = true;
 
                 goalBias_ = 0.05;
                 maxDistance_ = 0.0;
