@@ -14,6 +14,7 @@
 ../src/ompl/base/GoalSampleableRegion.h
 ../src/ompl/base/GoalState.h
 ../src/ompl/base/GoalStates.h
+../src/ompl/base/GoalLazySamples.h
 ../src/ompl/base/DiscreteMotionValidator.h
 ../src/ompl/base/PlannerData.h
 ../src/ompl/base/Planner.h
@@ -27,6 +28,7 @@
 ../src/ompl/base/spaces/SE2StateSpace.h
 ../src/ompl/base/spaces/SE3StateSpace.h
 ../src/ompl/base/samplers/GaussianValidStateSampler.h
+../src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
 ../src/ompl/base/samplers/ObstacleBasedValidStateSampler.h
 ../src/ompl/base/samplers/UniformValidStateSampler.h
 ompl_py_util.h
