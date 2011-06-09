@@ -63,7 +63,8 @@ namespace ompl
            we are operating on. See ompl::base::Goal::setMaximumPathLength() for
            how to set the maximally allowed path length to reach the goal.
            If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
-           found, the algorithm terminates before the elapsed time.
+           found, the algorithm terminates before the elapsed time. The algorithm continues to refine
+	   solutions for the amount of time specified when the maximally allowed path length is set to 0.0.
 
            @par External documentation
            S. Karaman and E. Frazzoli, Sampling-based
