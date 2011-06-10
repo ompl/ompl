@@ -52,11 +52,11 @@ namespace ompl
         {
             friend class PDF;
             public:
+            _T data;
+            private:
             Element(const _T& d, const std::size_t i) : data(d), index(i)
             {
             }
-            _T data;
-            private:
             std::size_t index;
         };
 
