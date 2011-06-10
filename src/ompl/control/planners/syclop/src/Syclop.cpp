@@ -1,4 +1,6 @@
 #include "ompl/control/planners/syclop/Syclop.h"
+#include "ompl/base/GoalState.h"
+#include "ompl/base/ProblemDefinition.h"
 
 ompl::control::Syclop::Syclop(const SpaceInformationPtr &si, Decomposition &d) :
     ompl::base::Planner(si, "Syclop"), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)
@@ -14,8 +16,11 @@ void ompl::control::Syclop::setup(void)
     base::Planner::setup();
     buildGraph();
     //TODO: locate start and goal states
-    startRegion = 1;
-    goalRegion = 2;
+    const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
+    startRegion = decomp.locateRegion(pdef->getStartState(0));
+    goalRegion = decomp.locateRegion(pdef->getGoal()->as<base::GoalState>()->state);
+    std::cout << "start is " << startRegion << std::endl;
+    std::cout << "goal is " << goalRegion << std::endl;
     setupRegionEstimates();
     updateRegionEstimates();
     updateEdgeEstimates();
@@ -202,7 +207,7 @@ void ompl::control::Syclop::computeLead(std::vector<Region*>& lead)
     //TODO Implement random DFS, in case of 1-PROB_SHORTEST_PATH
 }
 
-int ompl::control::Syclop::selectRegion(const std::set<int>& regions)
+int ompl::control::Syclop::selectRegion(const std::set<int>& avail)
 {
     return -1;
 }
@@ -216,7 +221,7 @@ void ompl::control::Syclop::computeAvailableRegions(const std::vector<Region*>& 
         {
             avail.insert(lead[i]);
             if (rng.uniform01() >= PROB_KEEP_ADDING_TO_AVAIL)
-                break;
+                return;
         }
     }
 }
