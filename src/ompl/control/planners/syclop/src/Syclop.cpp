@@ -17,8 +17,14 @@ void ompl::control::Syclop::setup(void)
     buildGraph();
     //TODO: locate start and goal states
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
-    startRegion = decomp.locateRegion(pdef->getStartState(0));
-    goalRegion = decomp.locateRegion(pdef->getGoal()->as<base::GoalState>()->state);
+    const base::State *start = pdef->getStartState(0);
+    //Here we are temporarily assuming that the goal is of type GoalState
+    const base::State *goal = pdef->getGoal()->as<base::GoalState>()->state;
+    startRegion = decomp.locateRegion(start);
+    goalRegion = decomp.locateRegion(goal);
+    graph[boost::vertex(startRegion,graph)].states.insert(start);
+    graph[boost::vertex(goalRegion,graph)].states.insert(goal);
+
     std::cout << "start is " << startRegion << std::endl;
     std::cout << "goal is " << goalRegion << std::endl;
     setupRegionEstimates();
