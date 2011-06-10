@@ -17,7 +17,7 @@ Authors: Alejandro Perez, Sertac Karaman, Emilio Frazzoli
 
 <ul>
 <li>
-\ref gRRTstar "RRT*" (optimal \ref gRRT "RRT") is an asymptotically-optimal incremental sampling-based motion planning algorithm. RRT* algorithm is guaranteed to converge to an optimal solution, while its running time is guaranteed to be a constant factor of the running time of the RRT". For more information on \ref gRRTstar "RRT*" and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
+\ref gRRTstar "RRT*" (optimal \ref gRRT "RRT") is an asymptotically-optimal incremental sampling-based motion planning algorithm. RRT* algorithm is guaranteed to converge to an optimal solution, while its running time is guaranteed to be a constant factor of the running time of the RRT. For more information on RRT* and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
 </li>
 
 <li>
