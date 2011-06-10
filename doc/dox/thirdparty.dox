@@ -7,9 +7,22 @@ This page includes a list of extensions to OMPL provided by the community. You c
 
 \section ompl_ros_interface ROS Interface to OMPL
 
+Authors: Sachin Chitta
+
 The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> ROS package wraps OMPL such that motion planners can be easily set up for your robot. Most configuration is automated, however you will have to specify the parts of the robot for which you want to create a motion planner.
 
-\section SampleContrib
+\section mit_contrib MIT Contribution
 
-Short description from README.txt is copied here. For more details click \ref sample_contrib "here".
+Authors: Alejandro Perez, Sertac Karaman, Emilio Frazzoli
+
+<ul>
+<li>
+\ref gRRTstar "RRT*" (optimal \ref gRRT "RRT") is an asymptotically-optimal incremental sampling-based motion planning algorithm. RRT* algorithm is guaranteed to converge to an optimal solution, while its running time is guaranteed to be a constant factor of the running time of the RRT. For more information on RRT* and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
+</li>
+
+<li>
+\ref gBallTreeRRTstar "Ball Tree RRT*" is an implementation of RRT* that incorporates Ball Trees to approximate connected regions of free space with volumes in configuration space instead of points. Every vertex added to the tree has an initial volume of an infinite radius associated with it. This radius is gradually reduced as collisions are found. All samples within any of the existing volumes are discarded. However, discarded samples are collision checked. If a collision is found, the nearest volume is trimmed at the collision point. Information from all collision checking procedures within iterations is also used to trim volumes accordingly.
+</li>
+</ul>
+
 */

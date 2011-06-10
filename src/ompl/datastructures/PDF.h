@@ -1,7 +1,43 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2011, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Matt Maly */
+
 #ifndef OMPL_DATASTRUCTURES_PDF_
 #define OMPL_DATASTRUCTURES_PDF_
 
-#include <iostream>
+#include "ompl/util/Exception.h"
 #include <ostream>
 #include <vector>
 
@@ -12,13 +48,26 @@ namespace ompl
     {
         public:
 
+        class Element
+        {
+            friend class PDF;
+            public:
+            Element(const _T& d, const std::size_t i) : data(d), index(i)
+            {
+            }
+            _T data;
+            private:
+            std::size_t index;
+        };
+
         PDF(void)
         {
         }
 
         PDF(const std::vector<_T>& d, const std::vector<double>& weights)
         {
-            //TODO throw exception if d.size() != weights.size()
+            if (d.size() != weights.size())
+                throw Exception("Data vector and weight vector must be of equal length");
 
             //n elements of data require at most (log2(n)+2) rows in tree
             std::size_t pow = 2;
@@ -36,19 +85,21 @@ namespace ompl
 
         ~PDF(void)
         {
+            clear();
         }
 
-        std::size_t add(const _T& d, const double w)
+        Element& add(const _T& d, const double w)
         {
-            //TODO throw exception if w isn't positive?
-            data.push_back(d);
+            if (w < 0)
+                throw Exception("Weight argument must be a nonnegative value");
+            Element* elem = new Element(d, data.size());
+            data.push_back(elem);
             if (data.size() == 1)
             {
                 std::vector<double> r(1, w);
                 tree.push_back(r);
-                return 0;
+                return *elem;
             }
-            const std::size_t index = data.size() - 1;
             tree.front().push_back(w);
             for (std::size_t i = 1; i < tree.size(); ++i)
             {
@@ -61,18 +112,21 @@ namespace ompl
                         tree[i].back() += w;
                         ++i;
                     }
-                    return index;
+                    return *elem;
                 }
             }
             //If we've made it here, then we need to add a new head to the tree.
             std::vector<double> head(1, tree.back()[0] + tree.back()[1]);
             tree.push_back(head);
-            return index;
+            return *elem;
         }
 
         const _T& sample(double r) const
         {
-            //TODO throw exception if tree is empty or if r is not between 0 and 1
+            if (data.empty())
+                throw Exception("Cannot sample from an empty PDF");
+            if (r < 0 || r > 1)
+                throw Exception("Sampling value must be between 0 and 1");
             std::size_t row = tree.size() - 1;
             r *= tree[row].front();
             std::size_t node = 0;
@@ -86,20 +140,23 @@ namespace ompl
                     ++node;
                 }
             }
-            return data[node];
+            return data[node]->data;
         }
 
-        void remove(std::size_t index)
+        void remove(Element& elem)
         {
-            //TODO throw exception if index<0 or index>data.size()-1
             if (data.size() == 1)
             {
+                delete data.front();
                 data.clear();
                 tree.clear();
                 return;
             }
 
+            const std::size_t index = elem.index;
+            delete data[index];
             std::swap(data[index], data.back());
+            data[index]->index = index;
             std::swap(tree.front()[index], tree.front().back());
 
             double weight;
@@ -107,7 +164,7 @@ namespace ompl
              * we don't need to make an extra pass over the tree.
              * The amount by which we change the values at the edge
              * of the tree is different in this case. */
-            if (index+1 == data.size()-1 && index%2 == 0)
+            if (index+2 == data.size() && index%2 == 0)
                 weight = tree.front().back();
             else
             {
@@ -145,6 +202,8 @@ namespace ompl
 
         void clear(void)
         {
+            for (typename std::vector<Element*>::iterator e = data.begin(); e != data.end(); ++e)
+                delete *e;
             data.clear();
             tree.clear();
         }
@@ -164,7 +223,7 @@ namespace ompl
             if (tree.empty())
                 return;
             for (std::size_t j = 0; j < tree[0].size(); ++j)
-                out << "(" << data[j] << "," << tree[0][j] << ") ";
+                out << "(" << data[j]->data << "," << tree[0][j] << ") ";
             out << std::endl;
             for (std::size_t i = 1; i < tree.size(); ++i)
             {
@@ -177,7 +236,7 @@ namespace ompl
 
         private:
 
-        std::vector<_T> data;
+        std::vector<Element*> data;
         std::vector<std::vector<double > > tree;
     };
 }

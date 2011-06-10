@@ -227,6 +227,35 @@ class ompl_base_generator_t(code_generator_t):
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationConditionFn const &', 'double']).exclude()
+        self.ompl_ns.class_('GoalLazySamples').add_declaration_code("""
+        struct GoalLazySamplesConstructorPyWrapper
+        {
+            GoalLazySamplesConstructorPyWrapper( bp::object callable ) : callable_( callable ) {}
+
+            bool operator()(const ompl::base::GoalLazySamples* gls, ompl::base::State* s) const
+            {
+                PyGILState_STATE gstate = PyGILState_Ensure();
+                std::cerr<<"."<<std::endl;
+                bool ret = bp::extract<bool>(callable_(bp::ptr(gls), bp::ptr(s)));
+                PyGILState_Release( gstate );
+                return ret;
+            }
+
+            bp::object callable_;
+        };
+
+        static boost::shared_ptr<GoalLazySamples_wrapper> 
+        GoalLazySamples_constructorWrapper(const ompl::base::SpaceInformationPtr& si, 
+            bp::object samplerFunc, bool autoStart, double epsilon)
+        {
+            std::cerr<<"x"<<std::endl;
+            return boost::shared_ptr<GoalLazySamples_wrapper>(new GoalLazySamples_wrapper(si,
+                ompl::base::GoalSamplingFn(GoalLazySamplesConstructorPyWrapper(samplerFunc)), 
+                autoStart, epsilon));
+        }
+        """)
+        self.ompl_ns.class_('GoalLazySamples').add_registration_code(
+            'def("__init__", bp::make_constructor(GoalLazySamples_constructorWrapper))')
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):

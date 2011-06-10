@@ -73,3 +73,5 @@ a.download, a.download:hover, a.download:visited {
     margin: 10px;
     line-height: 200%;
 }
+div.gray, div.gray a { color: #bbb; font-weight: normal; }
+

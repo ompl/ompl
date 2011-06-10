@@ -164,7 +164,6 @@ class code_generator_t(object):
             (reg, wrapper) = self.replacement[decl.name]
         cls.add_registration_code(reg)
         cls.add_declaration_code(wrapper % cls.decl_string)
-        #cls.add_wrapper_code(wrapper)
 
     def replace_member_functions(self, decls):
         """Utility function to replace multiple declarations."""
