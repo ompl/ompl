@@ -1,9 +1,8 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
 ompl::control::GridDecomposition::GridDecomposition(const int len, const int dim, const base::RealVectorBounds &b) :
-    Decomposition(len*len, b), grid(2), length(len), dimension(dim)
+    Decomposition(len*len, b), length(len), dimension(dim)
 {
-    buildGrid(len);
     cellVolume = 1.0;
     for (int i = 0; i < dim; ++i)
         cellVolume *= (b.high[i] - b.low[i]) / len;
@@ -11,12 +10,6 @@ ompl::control::GridDecomposition::GridDecomposition(const int len, const int dim
 
 ompl::control::GridDecomposition::~GridDecomposition()
 {
-}
-
-void ompl::control::GridDecomposition::print() const
-{
-    Decomposition::print();
-    grid.status();
 }
 
 double ompl::control::GridDecomposition::getRegionVolume(const int rid) const
@@ -63,28 +56,6 @@ bool ompl::control::GridDecomposition::areNeighbors(int r, int s)
             return false;
     }
     return true;
-}
-
-void ompl::control::GridDecomposition::buildGrid(const int n)
-{
-    Grid<Region*>::Coord coord(2);
-    for (int i = 0; i < n; ++i)
-    {
-        coord[0] = i;
-        for (int j = 0; j < n; ++j)
-        {
-            coord[1] = j;
-            Grid<Region*>::Cell *cell = grid.createCell(coord);
-            cell->data = &regions[i*n + j];
-            grid.add(cell);
-        }
-    }
-    const int dim = 2;
-    double vol = 1;
-    for (int d = 0; d < dim; ++d)
-        vol *= (bounds.high[d]-bounds.low[d])/length;
-    for (int i = 0; i < n*n; ++i)
-        regions[i].volume = vol;
 }
 
 void ompl::control::GridDecomposition::regionToCoord(int rid, std::vector<int>& coord)

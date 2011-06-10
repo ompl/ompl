@@ -20,8 +20,6 @@ namespace ompl
 
             virtual ~GridDecomposition();
 
-            virtual void print() const;
-
             virtual double getRegionVolume(const int rid) const;
 
             /* Projecting a state into whatever space on which this decomposition is defined is a problem-specific issue.
@@ -35,17 +33,14 @@ namespace ompl
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors);
 
             protected:
-            /* Using datastructures/grid may not even be necessary. */
-            Grid<Region*> grid;
 
-           /* Locate the region in the grid containing the point determined by coord. Since
-            * we are assuming a 2-dimensional grid, coord.size() will be 2 for now. */
+            /* Locate the region in the grid containing the point determined by coord. Since
+             * we are assuming a 2-dimensional grid, coord.size() will be 2 for now. */
             virtual int locateRegion(const std::vector<double> coord);
 
             virtual bool areNeighbors(int r, int s);
 
             private:
-            void buildGrid(const int n);
 
             /* Convert a region ID to a grid coordinate, which is a vector of length equivalent
              * to the dimension of the grid. */
