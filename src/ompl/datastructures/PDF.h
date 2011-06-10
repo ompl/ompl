@@ -143,6 +143,21 @@ namespace ompl
             return data[node]->data;
         }
 
+        void update(Element& elem, const double w)
+        {
+            std::size_t index = elem.index;
+            if (index >= data.size())
+                throw Exception("Element to update is not in PDF");
+            const double weightChange = w - tree.front()[index];
+            tree.front()[index] = w;
+            index >>= 1;
+            for (std::size_t row = 1; row < tree.size(); ++row)
+            {
+                tree[row][index] += weightChange;
+                index >>= 1;
+            }
+        }
+
         void remove(Element& elem)
         {
             if (data.size() == 1)
