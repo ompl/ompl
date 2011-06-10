@@ -44,13 +44,13 @@ TEST(PDF, Simple)
     EXPECT_TRUE(p.empty());
     Element& e = p.add(0, 1.0);
     EXPECT_EQ(0, p.sample(0.5));
-    EXPECT_EQ(1, p.size());
+    EXPECT_EQ(1u, p.size());
     EXPECT_FALSE(p.empty());
     p.add(1, 0.0);
     p.add(2, 0.0);
     p.add(3, 0.0);
     EXPECT_EQ(0, p.sample(0.5));
-    EXPECT_EQ(4, p.size());
+    EXPECT_EQ(4u, p.size());
 
     p.clear();
     Element& e25 = p.add(0, 25);
@@ -92,7 +92,7 @@ TEST(PDF, Simple)
 
     p.remove(e6);
     // 25 50 15 10 4
-    EXPECT_EQ(5, p.size());
+    EXPECT_EQ(5u, p.size());
     EXPECT_EQ(3, p.sample(0.96));
     EXPECT_EQ(1, p.sample(0.3));
 
@@ -117,7 +117,7 @@ TEST(PDF, Simple)
     EXPECT_EQ(2, p.sample(1.0));
 
     p.remove(e15);
-    EXPECT_EQ(0, p.size());
+    EXPECT_EQ(0u, p.size());
     EXPECT_TRUE(p.empty());
 
     p.clear();
