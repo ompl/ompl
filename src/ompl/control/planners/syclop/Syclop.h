@@ -32,7 +32,7 @@ namespace ompl
 
             struct Region
             {
-                std::set<base::State*> states;
+                std::set<const base::State*> states;
                 int index;
                 int numSelections;
                 double volume;

@@ -24,6 +24,7 @@ void ompl::control::Syclop::setup(void)
     goalRegion = decomp.locateRegion(goal);
     graph[boost::vertex(startRegion,graph)].states.insert(start);
     graph[boost::vertex(goalRegion,graph)].states.insert(goal);
+    initializeTree(start);
 
     std::cout << "start is " << startRegion << std::endl;
     std::cout << "goal is " << goalRegion << std::endl;
@@ -33,8 +34,7 @@ void ompl::control::Syclop::setup(void)
     printRegions();
     printEdges();
 
-    std::vector<Region*> lead;
-    computeLead(lead);
+    computeLead();
     std::cerr << "Lead: ";
     for (int i = 0; i < lead.size(); ++i)
         std::cerr << lead[i] << " ";
@@ -43,6 +43,12 @@ void ompl::control::Syclop::setup(void)
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
 {
+    while (!ptc())
+    {
+        computeLead();
+        computeAvailableRegions();
+        
+    }
     return false;
 }
 
@@ -207,7 +213,7 @@ void ompl::control::Syclop::computeLead(void)
         region = goalRegion;
         for (int i = leadLength-1; i >= 0; --i)
         {
-            lead[i] = &graph[boost::vertex(region, graph)];
+            lead[i] = region;
             region = parents[region];
         }
     }
@@ -225,10 +231,11 @@ void ompl::control::Syclop::computeAvailableRegions(void)
     availDist.clear();
     for (int i = lead.size()-1; i >= 0; --i)
     {
-        if (!lead[i]->states.empty())
+        Region& r = graph[boost::vertex(i,graph)];
+        if (r.states.empty())
         {
             avail.insert(lead[i]);
-            availDist.add(lead[i], graph[boost::vertex(lead[i],graph)].weight);
+            availDist.add(lead[i], r.weight);
             if (rng.uniform01() >= PROB_KEEP_ADDING_TO_AVAIL)
                 return;
         }
