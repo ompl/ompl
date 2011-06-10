@@ -52,11 +52,11 @@ namespace ompl
         {
             friend class PDF;
             public:
+            _T data;
+            private:
             Element(const _T& d, const std::size_t i) : data(d), index(i)
             {
             }
-            _T data;
-            private:
             std::size_t index;
         };
 
@@ -141,6 +141,21 @@ namespace ompl
                 }
             }
             return data[node]->data;
+        }
+
+        void update(Element& elem, const double w)
+        {
+            std::size_t index = elem.index;
+            if (index >= data.size())
+                throw Exception("Element to update is not in PDF");
+            const double weightChange = w - tree.front()[index];
+            tree.front()[index] = w;
+            index >>= 1;
+            for (std::size_t row = 1; row < tree.size(); ++row)
+            {
+                tree[row][index] += weightChange;
+                index >>= 1;
+            }
         }
 
         void remove(Element& elem)
