@@ -182,8 +182,9 @@ void ompl::control::Syclop::buildGraph(void)
     }
 }
 
-void ompl::control::Syclop::computeLead(std::vector<Region*>& lead)
+void ompl::control::Syclop::computeLead(void)
 {
+    lead.clear();
     if (rng.uniform01() < PROB_SHORTEST_PATH)
     {
         std::vector<RegionGraph::vertex_descriptor> parents(decomp.getNumRegions());
@@ -213,19 +214,21 @@ void ompl::control::Syclop::computeLead(std::vector<Region*>& lead)
     //TODO Implement random DFS, in case of 1-PROB_SHORTEST_PATH
 }
 
-int ompl::control::Syclop::selectRegion(const std::set<int>& avail)
+int ompl::control::Syclop::selectRegion(void)
 {
-    return -1;
+    return availDist.sample(rng.uniform01());
 }
 
-void ompl::control::Syclop::computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail)
+void ompl::control::Syclop::computeAvailableRegions(void)
 {
     avail.clear();
+    availDist.clear();
     for (int i = lead.size()-1; i >= 0; --i)
     {
         if (!lead[i]->states.empty())
         {
             avail.insert(lead[i]);
+            availDist.add(lead[i], graph[boost::vertex(lead[i],graph)].weight);
             if (rng.uniform01() >= PROB_KEEP_ADDING_TO_AVAIL)
                 return;
         }

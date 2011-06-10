@@ -9,6 +9,7 @@
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
+#include "ompl/datastructures/PDF.h"
 
 namespace ompl
 {
@@ -84,11 +85,11 @@ namespace ompl
             /* Sets up RegionGraph from decomposition. */
             virtual void buildGraph(void);
 
-            virtual void computeLead(std::vector<Region*>& lead);
+            virtual void computeLead(void);
 
-            virtual int selectRegion(const std::set<int>& regions);
+            virtual int selectRegion(void);
 
-            virtual void computeAvailableRegions(const std::vector<Region*>& lead, std::set<Region*>& avail);
+            virtual void computeAvailableRegions(void);
 
             /* Initialize a tree rooted at start state s. */
             virtual void initializeTree(const base::State *s) = 0;
@@ -128,6 +129,9 @@ namespace ompl
             RNG rng;
             int startRegion;
             int goalRegion;
+            std::vector<int> lead;
+            std::set<int> avail;
+            PDF<int> availDist;
         };
     }
 }
