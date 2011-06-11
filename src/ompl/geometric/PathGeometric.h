@@ -133,7 +133,7 @@ namespace ompl
                 states is copied over, for the corresponding
                 components. If \e over is from the same state space as this path,
                 and \e startIndex is 0, this function's result will be the same
-                as with operator= */
+                as with operator=() */
             void overlay(const PathGeometric &over, unsigned int startIndex = 0);
 
             /** \brief Append \e path at the end of this path.
