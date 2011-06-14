@@ -245,6 +245,9 @@ namespace ompl
 
             /** @} */
 
+            /** @name Debugging tools
+                @{ */
+
             /** \brief Print a state to a stream */
             virtual void printState(const State *state, std::ostream &out) const;
 
@@ -254,15 +257,21 @@ namespace ompl
             /** \brief Print the list of registered projections. This function is also called by printSettings() */
             virtual void printProjections(std::ostream &out) const;
 
+            /** \brief Perform sanity checks for this manifold. Throws an exception if failures are found.
+                \note This checks if distances are always positive, whether the integration works as expected. */
+            virtual void sanityChecks(void) const;
+
+            /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
+            static void diagram(std::ostream &out);
+
+            /** @} */
+
             /** \brief Perform final setup steps. This function is
                 automatically called by the SpaceInformation. If any
                 default projections are to be registered, this call
                 will set them. It is safe to call this function
                 multiple times. */
             virtual void setup(void);
-
-            /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
-            static void diagram(std::ostream &out);
 
         protected:
 

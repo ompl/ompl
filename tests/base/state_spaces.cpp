@@ -66,6 +66,7 @@ TEST(SO2, Simple)
 {
     base::StateSpacePtr m(new base::SO2StateSpace());
     m->setup();
+    m->sanityChecks();
 
     StateSpaceTest mt(m, 1000, 1e-15);
     mt.test();
@@ -143,6 +144,7 @@ TEST(SO3, Simple)
 {
     base::StateSpacePtr m(new base::SO3StateSpace());
     m->setup();
+    m->sanityChecks();
 
     StateSpaceTest mt(m, 1000, 1e-12);
     mt.test();
@@ -217,6 +219,7 @@ TEST(RealVector, Simple)
     rm.setBounds(bounds3);
     rm.setDimensionName(2, "testDim");
     m->setup();
+    m->sanityChecks();
 
     StateSpaceTest mt(m, 1000, 1e-12);
     mt.test();
@@ -265,6 +268,7 @@ TEST(Time, Simple)
 {
     base::StateSpacePtr t(new base::TimeStateSpace());
     t->setup();
+    t->sanityChecks();
 
     StateSpaceTest mt(t, 1000, 1e-12);
     mt.test();
