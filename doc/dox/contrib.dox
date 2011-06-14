@@ -12,6 +12,7 @@ We welcome external contributions. If you would like us to list your contributio
        - doc [optional], additional documentation, ideally in doxygen format (analogous to the high-level OMPL documentation). Images or (short) videos are also welcome.
        .
 All source code files must have a BSD license at the top of each file plus the names of the authors. Also, the code should contain doxygen-style documentation, so that the API documentation can be automatically generated and included in the OMPL web site.
+Finally, the code should be formatted according to the \ref styleGuide "OMPL style guide".
 -# We will add a description to the \ref thirdparty "contributions page" (accessible from the “Community” menu at the top of the page) based on the content of the contribution's README.txt. It will include a proper acknowledgements of the authors. There will also be a link to the more detailed documentation generated from the files in the doc directory.
 -# We will add the appropriate CMake code to \c ompl/src/ompl/CMakeLists to compile the code in a contribution’s src directory. Most likely, all that is required is the addition of just one line:
 \code

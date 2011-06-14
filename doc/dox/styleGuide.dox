@@ -35,6 +35,7 @@ For example, the header and implementation files in which ompl::RNG is defined a
 - Function names should begin with a lower-case letter and should begin each subsequent word with a capital letter, and there should be no underscores between words.
 - Functions accepting no parameters should have void in place of a parameter list.
 - Class names should begin each word with a capital letter, again with no underscores.
+- Scoping directives (public, protected, private) should be at the same level of indentation as the class declaration.
 - Class member variable names should begin with a lower-case letter and should begin each subsequent word with a capital letter. They should end with a single underscore.
 - If a class member function can be marked const, then it should be marked const.
 - Names of constants and static variables should be in all capital letters, with an underscore between each word.
@@ -44,7 +45,7 @@ For example, consider the following source code, which follows the above guideli
 \code
 class SampleObject
 {
-    public:
+public:
     SampleObject(void) : objectTag_(NUM_INSTANCES++)
     {
     }
@@ -56,7 +57,7 @@ class SampleObject
 
     static int NUM_INSTANCES;
 
-    private:
+private:
     const int objectTag_;
 };
 int SampleObject::NUM_INSTANCES = 0;
