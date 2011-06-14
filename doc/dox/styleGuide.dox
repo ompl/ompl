@@ -1,0 +1,67 @@
+/**
+\page styleGuide OMPL Style Guide
+
+This document provides a brief overview of OMPL coding standards.
+It is meant to assist developers who are contributing code to OMPL.
+<br>
+
+\section Spacing
+- Each source block should be indented by 4 space characters. No tab characters should appear in source code.
+- Each enclosing brace should reside on its own line, but braces can be omitted if the enclosed block consists of exactly one line.
+.
+
+The following is an example of correctly-spaced code.
+\code
+for (unsigned int i = 0; i < 50; ++i)
+{
+    if (i % 2 == 0)
+        std::cout << i << " ";
+}
+\endcode
+
+\section filenamesAndMacros Filenames & Macros
+- Source filenames should begin each word with a capital letter, and there should be no underscores between words.
+- Header files should use the .h extension, and implementation files should use the .cpp extension.
+- Each implementation file should reside in a src/ directory, immediately below the directory containing the corresponding header file.
+- Include guards in header files should be of the form OMPL_PATH_FILENAME_, where the words in the filename are separated by underscores.
+.
+
+For example, the header and implementation files in which ompl::RNG is defined are ompl/util/RandomNumbers.h and ompl/util/src/RandomNumbers.cpp, respectively. The header file begins with the include guard
+\code
+#ifndef OMPL_UTIL_RANDOM_NUMBERS_
+\endcode
+
+\section functionsAndClasses Functions & Classes
+- Function names should begin with a lower-case letter and should begin each subsequent word with a capital letter, and there should be no underscores between words.
+- Functions accepting no parameters should have void in place of a parameter list.
+- Class names should begin each word with a capital letter, again with no underscores.
+- Class member variable names should begin with a lower-case letter and should begin each subsequent word with a capital letter. They should end with a single underscore.
+- If a class member function can be marked const, then it should be marked const.
+- Names of constants and static variables should be in all capital letters, with an underscore between each word.
+.
+
+For example, consider the following source code, which follows the above guidelines.
+\code
+class SampleObject
+{
+    public:
+    SampleObject(void) : objectTag_(NUM_INSTANCES++)
+    {
+    }
+
+    int getObjectTag(void) const
+    {
+        return objectTag_;
+    }
+
+    static int NUM_INSTANCES;
+
+    private:
+    const int objectTag_;
+};
+int SampleObject::NUM_INSTANCES = 0;
+\endcode
+
+
+
+*/
