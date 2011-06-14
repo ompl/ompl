@@ -41,7 +41,7 @@
 // You could copy that file and modify it for your planner.
 #include "../../../../../tests/base/PlannerTest.h"
 
-#include "../src/SampleContrib.h"
+#include "../SampleContrib.h"
 
 using namespace ompl;
 

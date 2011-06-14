@@ -92,6 +92,7 @@ const std::string& ompl::base::StateSpace::getName(void) const
 void ompl::base::StateSpace::setName(const std::string &name)
 {
     name_ = name;
+    msg_.setPrefix(name_);
 }
 
 void ompl::base::StateSpace::registerProjections(void)
@@ -301,6 +302,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
         freeState(s3);
     }
 
+    msg_.inform("Sanity checks passed");
 }
 
 bool ompl::base::StateSpace::hasDefaultProjection(void) const
