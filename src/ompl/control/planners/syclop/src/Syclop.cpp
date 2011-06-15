@@ -112,8 +112,6 @@ void ompl::control::Syclop::printEdges(void)
 
 void ompl::control::Syclop::initEdge(Adjacency& a, Region* r, Region* s)
 {
-    a.regions.first = r;
-    a.regions.second = s;
     a.numSelections = 0;
 }
 
@@ -125,7 +123,7 @@ void ompl::control::Syclop::updateEdgeEstimates(void)
     {
         Adjacency& a = graph[*ei];
         a.cost = (1 + a.numSelections*a.numSelections) / (1 + a.covGridCells.size());
-        a.cost *= a.regions.first->alpha * a.regions.second->alpha;
+        a.cost *= graph[boost::source(*ei, graph)].alpha * graph[boost::target(*ei, graph)].alpha;
     }
 }
 

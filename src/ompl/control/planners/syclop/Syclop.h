@@ -45,10 +45,18 @@ namespace ompl
 
             struct Adjacency
             {
-                std::pair<Region*,Region*> regions; //unnecessary; just pull source() and target() from edge descriptor
                 std::set<int> covGridCells;
                 int numSelections;
                 double cost;
+            };
+
+            class Motion
+            {
+            public:
+                const base::State* state;
+                Control* control;
+                std::size_t steps;
+                Motion* parent;
             };
 
             //TODO Consider vertex/edge storage options other than vecS.
