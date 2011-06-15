@@ -61,6 +61,9 @@ namespace ompl
             static const double PROB_SHORTEST_PATH = 1.0; //0.95
             static const int COVGRID_LENGTH = 8;
             static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
+            static const int NUM_AVAIL_EXPLORATIONS = 100;
+            static const int NUM_TREE_SELECTIONS = 50;
+            static const double PROB_ABANDON_LEAD_EARLY = 0.25;
 
             /* Initialize edge between regions r and s. */
             virtual void initEdge(Adjacency& a, Region* r, Region* s);
@@ -74,11 +77,11 @@ namespace ompl
 
             /* Given that State s has been added to the tree and belongs in Region r,
                 update r's coverage estimate if needed. */
-            virtual void updateCoverageEstimate(Region& r, const base::State *s);
+            virtual bool updateCoverageEstimate(Region& r, const base::State *s);
 
             /* Given that an edge has been added to the tree, leading to the new state s,
                 update the corresponding edge's connection estimates. */
-            virtual void updateConnectionEstimate(Adjacency& a, const base::State *s);
+            virtual bool updateConnectionEstimate(Adjacency& a, const base::State *s);
 
             virtual void updateRegionEstimates(void);
 

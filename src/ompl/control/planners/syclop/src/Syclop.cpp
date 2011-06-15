@@ -43,11 +43,38 @@ void ompl::control::Syclop::setup(void)
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
 {
+    std::set<const base::State*> newStates;
     while (!ptc())
     {
         computeLead();
         computeAvailableRegions();
-        
+        for (int i = 0; i < NUM_AVAIL_EXPLORATIONS; ++i)
+        {
+            const int region = selectRegion();
+            bool improved = true;
+            for (int j = 0; j < NUM_TREE_SELECTIONS; ++j)
+            {
+                newStates.clear();
+                selectAndExtend(region, newStates);
+                for (std::set<const base::State*>::const_iterator s = newStates.begin(); s != newStates.end(); ++s)
+                {
+                    const base::State* state = *s;
+                    //TODO extract Goal from pdef in setup() instead of requesting it each time
+                    if (getProblemDefinition()->getGoal()->isSatisfied(state))
+                    {
+                        //TODO add solution path into Goal
+                        return true;
+                    }
+                    const int newRegion = decomp.locateRegion(state);
+                    avail.insert(newRegion);
+                    improved &= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);
+                    /* TODO change low level planner selectAndExtend() method to accept a set of Motion*.
+                        use state and state->parent to get Adjacency&, then call improved &= updateConnections(a). */
+                }
+            }
+            if (!improved && rng.uniform01() < PROB_ABANDON_LEAD_EARLY)
+                break;
+        }
     }
     return false;
 }
@@ -137,16 +164,22 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     }
 }
 
-void ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State *s)
+bool ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State *s)
 {
     const int covCell = covGrid.locateRegion(s);
+    if (r.covGridCells.count(covCell) == 1)
+        return false;
     r.covGridCells.insert(covCell);
+    return true;
 }
 
-void ompl::control::Syclop::updateConnectionEstimate(Adjacency& a, const base::State *s)
+bool ompl::control::Syclop::updateConnectionEstimate(Adjacency& a, const base::State *s)
 {
     const int covCell = covGrid.locateRegion(s);
+    if (a.covGridCells.count(covCell) == 1)
+        return false;
     a.covGridCells.insert(covCell);
+    return true;
 }
 
 void ompl::control::Syclop::updateRegionEstimates(void)
