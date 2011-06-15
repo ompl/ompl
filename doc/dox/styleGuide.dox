@@ -10,7 +10,7 @@ It is meant to assist developers who are contributing code to OMPL.
 - Each enclosing brace should reside on its own line, but braces can be omitted if the enclosed block consists of exactly one line.
 .
 
-The following is an example of desireable code spacing.
+The following is an example of desirable code spacing.
 \code
 for (unsigned int i = 0 ; i < 50 ; ++i)
 {
