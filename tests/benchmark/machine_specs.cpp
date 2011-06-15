@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "ompl/util/Memory.h"
+#include "ompl/benchmark/MachineSpecs.h"
 #include <cstring>
 #include <cstdlib>
 
@@ -44,14 +44,14 @@ using namespace ompl;
 /* Just test we get some random values */
 TEST(Memory, Simple)
 {
-    MemUsage_t start = getProcessMemoryUsage();
+    machine::MemUsage_t start = machine::getProcessMemoryUsage();
 
     const unsigned int mb = 39;
-    MemUsage_t size = mb * 1024 * 1024 / sizeof(char);
+    machine::MemUsage_t size = mb * 1024 * 1024 / sizeof(char);
     char *data = (char*)malloc(size);
     memset(data, 0, size);
 
-    MemUsage_t u = getProcessMemoryUsage() - start;
+    machine::MemUsage_t u = machine::getProcessMemoryUsage() - start;
 
     int allocated_MB = (size/1024)/1024;
     int used_MB =  (u/1024)/1024;
