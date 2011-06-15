@@ -96,7 +96,6 @@ int main(void)
     se->setX(0.65);
     se->setY(-0.7);
 
-    //createGraphs();
     oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, controlSpace));
     si->setStateValidityChecker(boost::bind(&isStateValid, _1));
     si->setup();

@@ -232,7 +232,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
     for (int i = lead.size()-1; i >= 0; --i)
     {
         Region& r = graph[boost::vertex(i,graph)];
-        if (r.states.empty())
+        if (!r.states.empty())
         {
             avail.insert(lead[i]);
             availDist.add(lead[i], r.weight);
