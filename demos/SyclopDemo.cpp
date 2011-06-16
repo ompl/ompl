@@ -63,38 +63,48 @@ bool isStateValid(const ob::State *s)
     return true;
 }
 
+void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
+{
+    const ob::SE2StateSpace::StateType* location = start->as<ob::SE2StateSpace::StateType>();
+    const oc::RealVectorControlSpace::ControlType* ctrl = control->as<oc::RealVectorControlSpace::ControlType>();
+
+    const double x = location->getX();
+    const double y = location->getY();
+    const double angle = location->getYaw();
+    const double velocity = (*ctrl)[0];
+    const double steerVelocity = (*ctrl)[1];
+
+    ob::SE2StateSpace::StateType* newLocation = result->as<ob::SE2StateSpace::StateType>();
+    newLocation->setXY(x + velocity*duration*cos(angle), y + velocity*duration*sin(angle));
+    newLocation->setYaw(angle + duration*steerVelocity);
+}
+
 int main(void)
 {
     ompl::base::RealVectorBounds bounds(2);
     bounds.setLow(-1);
     bounds.setHigh(1);
     TestDecomposition grid(2, bounds);
-    ob::RealVectorBounds cbounds(1);
-    cbounds.setLow(-1);
-    cbounds.setHigh(1);
+    ob::RealVectorBounds cbounds(2);
+    cbounds.setLow(-2);
+    cbounds.setHigh(2);
 
-    ob::StateSpacePtr manifold(new ob::CompoundStateSpace());
-    ob::StateSpacePtr locSpace(new ob::SE2StateSpace());
-    locSpace->as<ob::SE2StateSpace>()->setBounds(bounds);
-    ob::StateSpacePtr velSpace(new ob::RealVectorStateSpace(1));
-    velSpace->as<ob::RealVectorStateSpace>()->setBounds(cbounds);
-    manifold->as<ob::CompoundStateSpace>()->addSubSpace(locSpace, 0.8);
-    manifold->as<ob::CompoundStateSpace>()->addSubSpace(velSpace, 0.2);
+    ob::StateSpacePtr manifold(new ob::SE2StateSpace());
+    manifold->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    oc::ControlSpacePtr controlSpace(new oc::RealVectorControlSpace(manifold, 1));
+    //controlSpace : forward acceleration & steer velocity
+    oc::ControlSpacePtr controlSpace(new oc::RealVectorControlSpace(manifold, 2));
     controlSpace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
+    controlSpace->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
 
-    ob::ScopedState<ob::CompoundStateSpace> init(manifold);
-    ob::SE2StateSpace::StateType *se = init->as<ob::SE2StateSpace::StateType>(0);
-    se->setX(-0.75);
-    se->setY(0.8);
-    se->setYaw(0);
-    init->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 0;
+    ob::ScopedState<ob::SE2StateSpace> init(manifold);
+    init->setX(-0.75);
+    init->setY(0.8);
+    init->setYaw(0);
 
-    ob::ScopedState<ob::CompoundStateSpace> goal(init);
-    se = goal->as<ob::SE2StateSpace::StateType>(0);
-    se->setX(0.65);
-    se->setY(-0.7);
+    ob::ScopedState<ob::SE2StateSpace> goal(init);
+    goal->setX(0.65);
+    goal->setY(-0.7);
 
     oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, controlSpace));
     si->setStateValidityChecker(boost::bind(&isStateValid, _1));
