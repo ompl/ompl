@@ -106,6 +106,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
     return false;
 }
 
+bool ompl::control::Syclop::solve(double solveTime)
+{
+    return ompl::base::Planner::solve(solveTime);
+}
+
 void ompl::control::Syclop::printRegions(void)
 {
     for (int i = 0; i < decomp.getNumRegions(); ++i)

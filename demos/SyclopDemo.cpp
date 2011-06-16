@@ -105,6 +105,7 @@ int main(void)
     oc::SyclopRRT planner(si, grid);
     planner.setProblemDefinition(pdef);
     planner.setup();
+    planner.solve(1.0);
 
     return 0;
 }
