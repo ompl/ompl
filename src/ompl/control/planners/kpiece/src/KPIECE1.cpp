@@ -273,7 +273,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
         /* set the solution path */
         PathControl *path = new PathControl(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
         {
             path->states.push_back(si_->cloneState(mpath[i]->state));
             if (mpath[i]->parent)
@@ -309,6 +309,7 @@ bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
     // with 0 values for the score. This is where we fix the problem
     if (scell->data->score < std::numeric_limits<double>::epsilon())
     {
+        msg_.debug("Numerical precision limit reached. Resetting costs.");
         std::vector<CellData*> content;
         content.reserve(tree_.grid.size());
         tree_.grid.getContent(content);
