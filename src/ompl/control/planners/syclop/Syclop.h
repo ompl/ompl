@@ -24,6 +24,7 @@ namespace ompl
             Syclop(const SpaceInformationPtr &si, Decomposition &d);
             virtual ~Syclop();
             virtual void setup(void);
+            virtual void clear(void);
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 
             void printRegions(void);
@@ -63,7 +64,7 @@ namespace ompl
                 ~Motion(void)
                 {
                 }
-                const base::State* state;
+                base::State* state;
                 Control* control;
                 std::size_t steps;
                 Motion* parent;

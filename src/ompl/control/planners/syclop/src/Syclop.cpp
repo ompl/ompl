@@ -40,6 +40,15 @@ void ompl::control::Syclop::setup(void)
     std::cerr << std::endl;
 }
 
+void ompl::control::Syclop::clear(void)
+{
+    base::Planner::clear();
+    regionsToEdge.clear();
+    lead.clear();
+    avail.clear();
+    availDist.clear();
+}
+
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
 {
     std::set<Motion*> newMotions;
