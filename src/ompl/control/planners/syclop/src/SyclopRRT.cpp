@@ -1,3 +1,4 @@
+#include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 
@@ -51,7 +52,33 @@ void ompl::control::SyclopRRT::initializeTree(const base::State *s)
 
 void ompl::control::SyclopRRT::selectAndExtend(int region, std::set<Motion*> newMotions)
 {
+    base::Goal* goal = getProblemDefinition()->getGoal().get();
+    base::GoalSampleableRegion* goalSample = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    Motion* rmotion = new Motion(siC_);
+    base::State* rstate = rmotion->state;
+    Control* rctrl = rmotion->control;
+    base::State* newState = si_->allocState();
 
+    if (goalSample && rng.uniform01() < goalBias_ && goalSample->canSample())
+        goalSample->sampleGoal(rstate);
+    else
+        sampler_->sampleUniform(rstate);
+
+    Motion* nmotion = nn_->nearest(rmotion);
+    controlSampler_->sampleNext(rctrl, nmotion->control, nmotion->state);
+    unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+    duration = siC_->propagateWhileValid(nmotion->state, rctrl, duration, newState);
+
+    if (duration >= siC_->getMinControlDuration())
+    {
+        Motion* motion = new Motion(siC_);
+        si_->copyState(motion->state, newState);
+        siC_->copyControl(motion->control, rctrl);
+        motion->steps = duration;
+        motion->parent = nmotion;
+        nn_->add(motion);
+        newMotions.insert(motion);
+    }
 }
 
 void ompl::control::SyclopRRT::freeMemory(void)
