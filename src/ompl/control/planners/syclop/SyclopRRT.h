@@ -49,7 +49,6 @@ namespace ompl
                 return si_->distance(a->state, b->state);
             }
 
-            const SpaceInformation* siC_;
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;

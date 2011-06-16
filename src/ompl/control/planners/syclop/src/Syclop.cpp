@@ -2,8 +2,8 @@
 #include "ompl/base/GoalState.h"
 #include "ompl/base/ProblemDefinition.h"
 
-ompl::control::Syclop::Syclop(const SpaceInformationPtr &si, Decomposition &d) :
-    ompl::base::Planner(si, "Syclop"), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)
+ompl::control::Syclop::Syclop(const SpaceInformationPtr &si, Decomposition &d) : ompl::base::Planner(si, "Syclop"),
+    siC_(si.get()), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)
 {
 }
 
@@ -71,7 +71,25 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
                     const base::State* state = motion->state;
                     if (goal->isSatisfied(state))
                     {
-                        //TODO add solution path into Goal
+                        std::vector<const Motion*> mpath;
+                        const Motion* solution = motion;
+                        while (solution != NULL)
+                        {
+                            mpath.push_back(solution);
+                            solution = solution->parent;
+                        }
+                        PathControl* path = new PathControl(si_);
+                        for (int i = mpath.size()-1; i >= 0; --i)
+                        {
+                            path->states.push_back(si_->cloneState(mpath[i]->state));
+                            if (mpath[i]->parent)
+                            {
+                                path->controls.push_back(siC_->cloneControl(mpath[i]->control));
+                                path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
+                            }
+                        }
+                        //TODO include approximate solution
+                        goal->setSolutionPath(base::PathPtr(path), false);
                         return true;
                     }
                     const int oldRegion = decomp.locateRegion(motion->parent->state);

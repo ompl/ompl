@@ -145,6 +145,7 @@ namespace ompl
                 Decomposition& decomp;
             };
 
+            const SpaceInformation* siC_;
             Decomposition &decomp;
             RegionGraph graph;
             //instead of a map, consider holding Adjacency& in Motion object

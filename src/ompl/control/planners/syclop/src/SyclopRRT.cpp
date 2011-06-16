@@ -2,7 +2,7 @@
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 
-ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) : Syclop(si,d), siC_(si.get()),
+ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) : Syclop(si,d),
     sampler_(si_->allocStateSampler()), controlSampler_(siC_->allocControlSampler()), goalBias_(0.05)
 {
 }
@@ -79,6 +79,13 @@ void ompl::control::SyclopRRT::selectAndExtend(int region, std::set<Motion*> new
         nn_->add(motion);
         newMotions.insert(motion);
     }
+
+    if (rmotion->state)
+        si_->freeState(rmotion->state);
+    if (rmotion->control)
+        siC_->freeControl(rmotion->control);
+    delete rmotion;
+    si_->freeState(newState);
 }
 
 void ompl::control::SyclopRRT::freeMemory(void)
