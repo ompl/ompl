@@ -15,7 +15,6 @@ void ompl::control::Syclop::setup(void)
 {
     base::Planner::setup();
     buildGraph();
-    //TODO: locate start and goal states
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
     const base::State *start = pdef->getStartState(0);
     //Here we are temporarily assuming that the goal is of type GoalState
@@ -43,7 +42,8 @@ void ompl::control::Syclop::setup(void)
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
 {
-    std::set<const base::State*> newStates;
+    std::set<Motion*> newMotions;
+    base::Goal* goal = getProblemDefinition()->getGoal().get();
     while (!ptc())
     {
         computeLead();
@@ -54,13 +54,13 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
             bool improved = true;
             for (int j = 0; j < NUM_TREE_SELECTIONS; ++j)
             {
-                newStates.clear();
-                selectAndExtend(region, newStates);
-                for (std::set<const base::State*>::const_iterator s = newStates.begin(); s != newStates.end(); ++s)
+                newMotions.clear();
+                selectAndExtend(region, newMotions);
+                for (std::set<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
                 {
-                    const base::State* state = *s;
-                    //TODO extract Goal from pdef in setup() instead of requesting it each time
-                    if (getProblemDefinition()->getGoal()->isSatisfied(state))
+                    const Motion* motion = *m;
+                    const base::State* state = motion->state;
+                    if (goal->isSatisfied(state))
                     {
                         //TODO add solution path into Goal
                         return true;

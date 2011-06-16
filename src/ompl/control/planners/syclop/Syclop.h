@@ -53,6 +53,15 @@ namespace ompl
             class Motion
             {
             public:
+                Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
+                {
+                }
+                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
+                {
+                }
+                ~Motion(void)
+                {
+                }
                 const base::State* state;
                 Control* control;
                 std::size_t steps;
@@ -104,8 +113,8 @@ namespace ompl
 
             /* Initialize a tree rooted at start state s. */
             virtual void initializeTree(const base::State *s) = 0;
-            /* Select a vertex v from region, extend tree from v, add any new states encountered to newStates. */
-            virtual void selectAndExtend(int region, std::set<const base::State*> newStates) = 0;
+            /* Select a vertex v from region, extend tree from v, add any new motions created to newMotions. */
+            virtual void selectAndExtend(int region, std::set<Motion*> newMotions) = 0;
 
             class CoverageGrid : public GridDecomposition
             {
