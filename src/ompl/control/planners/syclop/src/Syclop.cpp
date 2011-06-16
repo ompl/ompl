@@ -65,11 +65,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
                         //TODO add solution path into Goal
                         return true;
                     }
+                    const int oldRegion = decomp.locateRegion(motion->parent->state);
                     const int newRegion = decomp.locateRegion(state);
                     avail.insert(newRegion);
                     improved &= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);
-                    /* TODO change low level planner selectAndExtend() method to accept a set of Motion*.
-                        use state and state->parent to get Adjacency&, then call improved &= updateConnections(a). */
+                    improved &= updateConnectionEstimate(graph[boost::vertex(oldRegion,graph)], graph[boost::vertex(newRegion,graph)], state);
                 }
             }
             if (!improved && rng.uniform01() < PROB_ABANDON_LEAD_EARLY)
@@ -110,9 +110,12 @@ void ompl::control::Syclop::printEdges(void)
     }
 }
 
-void ompl::control::Syclop::initEdge(Adjacency& a, Region* r, Region* s)
+void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
 {
-    a.numSelections = 0;
+    adj.numSelections = 0;
+    std::pair<int,int> regions(r->index, s->index);
+    std::pair<std::pair<int,int>,Adjacency&> mapping(regions, adj);
+    regionsToEdge.insert(mapping);
 }
 
 void ompl::control::Syclop::updateEdgeEstimates(void)
@@ -171,12 +174,14 @@ bool ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State 
     return true;
 }
 
-bool ompl::control::Syclop::updateConnectionEstimate(Adjacency& a, const base::State *s)
+bool ompl::control::Syclop::updateConnectionEstimate(const Region& c, const Region& d, const base::State *s)
 {
+    const std::pair<int,int> regions(c.index, d.index);
+    Adjacency& adj = regionsToEdge.find(regions)->second;
     const int covCell = covGrid.locateRegion(s);
-    if (a.covGridCells.count(covCell) == 1)
+    if (adj.covGridCells.count(covCell) == 1)
         return false;
-    a.covGridCells.insert(covCell);
+    adj.covGridCells.insert(covCell);
     return true;
 }
 

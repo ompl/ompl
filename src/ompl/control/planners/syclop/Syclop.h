@@ -10,6 +10,7 @@
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/datastructures/PDF.h"
+#include <map>
 
 namespace ompl
 {
@@ -98,7 +99,7 @@ namespace ompl
 
             /* Given that an edge has been added to the tree, leading to the new state s,
                 update the corresponding edge's connection estimates. */
-            virtual bool updateConnectionEstimate(Adjacency& a, const base::State *s);
+            virtual bool updateConnectionEstimate(const Region& c, const Region& d, const base::State *s);
 
             virtual void updateRegionEstimates(void);
 
@@ -145,6 +146,8 @@ namespace ompl
 
             Decomposition &decomp;
             RegionGraph graph;
+            //instead of a map, consider holding Adjacency& in Motion object
+            std::map<std::pair<int,int>, Adjacency&> regionsToEdge;
             CoverageGrid covGrid;
             RNG rng;
             int startRegion;
