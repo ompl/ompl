@@ -92,6 +92,44 @@ void ompl::control::KPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
+bool ompl::control::KPIECE1::CloseSamples::consider(Grid::Cell *cell, Motion *motion, double distance)
+{
+    if (samples.size() < maxSize)
+    {
+        CloseSample cs(cell, motion, distance);
+        samples.insert(cs);
+        return true;
+    }
+    if (samples.rbegin()->distance > distance)
+    {
+        samples.erase(--samples.end());
+        CloseSample cs(cell, motion, distance);
+        samples.insert(cs);
+        return true;
+    }
+
+    return false;
+}
+
+bool ompl::control::KPIECE1::CloseSamples::selectMotion(Motion* &smotion, Grid::Cell* &scell)
+{
+    if (samples.size() > 0)
+    {
+        scell = samples.begin()->cell;
+        smotion = samples.begin()->motion;
+        // average the highest & lowest distances and multiply by 0.9(09)
+        double d = (samples.begin()->distance + samples.rbegin()->distance) / 2.2;
+        samples.erase(samples.begin());
+        if (samples.rbegin()->distance < d)
+        {
+            CloseSample cs(scell, smotion, d);
+            samples.insert(cs);
+        }
+        return true;
+    }
+    return false;
+}
+
 unsigned int ompl::control::KPIECE1::findNextMotion(const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int count)
 {
     for (unsigned int i = index + 1 ; i < count ; ++i)
@@ -145,16 +183,8 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     for (unsigned int i = 0 ; i < states.size() ; ++i)
         states[i] = si_->allocState();
 
-    // coordinates of the goal state and the best state seen so far
-    Grid::Coord best_coord, better_coord;
-    bool haveBestCoord = false;
-    bool haveBetterCoord = false;
-    if (goal_s && goal_s->canSample())
-    {
-        goal_s->sampleGoal(states[0]);
-        projectionEvaluator_->computeCoordinates(states[0], best_coord);
-        haveBestCoord = true;
-    }
+    // samples that were found to be the best, so far
+    CloseSamples closeSamples(nCloseSamples_);
 
     while (ptc() == false)
     {
@@ -164,15 +194,9 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
         Motion     *existing = NULL;
         Grid::Cell *ecell = NULL;
 
-        if (rng_.uniform01() < goalBias_)
+        if (closeSamples.canSample() && rng_.uniform01() < goalBias_)
         {
-            if (haveBestCoord)
-                ecell = tree_.grid.getCell(best_coord);
-            if (!ecell && haveBetterCoord)
-                ecell = tree_.grid.getCell(better_coord);
-            if (ecell)
-                existing = ecell->data->motions[rng_.halfNormalInt(0, ecell->data->motions.size() - 1)];
-            else
+            if (!closeSamples.selectMotion(existing, ecell))
                 selectMotion(existing, ecell);
         }
         else
@@ -220,7 +244,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
                     double dist = 0.0;
                     bool solved = goal->isSatisfied(motion->state, &dist);
-                    addMotion(motion, dist);
+                    Grid::Cell *toCell = addMotion(motion, dist);
 
                     if (solved)
                     {
@@ -232,9 +256,9 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
                     {
                         approxdif = dist;
                         approxsol = motion;
-                        better_coord = coords[nextIndex];
-                        haveBetterCoord = true;
                     }
+
+                    closeSamples.consider(toCell, motion, dist);
 
                     // new parent will be the newly created motion
                     existing = motion;
@@ -328,12 +352,11 @@ bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
         return false;
 }
 
-unsigned int ompl::control::KPIECE1::addMotion(Motion *motion, double dist)
+ompl::control::KPIECE1::Grid::Cell* ompl::control::KPIECE1::addMotion(Motion *motion, double dist)
 {
     Grid::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
     Grid::Cell* cell = tree_.grid.getCell(coord);
-    unsigned int created = 0;
     if (cell)
     {
         cell->data->motions.push_back(motion);
@@ -350,19 +373,26 @@ unsigned int ompl::control::KPIECE1::addMotion(Motion *motion, double dist)
         cell->data->selections = 1;
         cell->data->score = (1.0 + log((double)(tree_.iteration))) / (1e-3 + dist);
         tree_.grid.add(cell);
-        created = 1;
     }
     tree_.size++;
-    return created;
+    return cell;
 }
 
 void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<CellData*> cdata;
-    tree_.grid.getContent(cdata);
-    for (unsigned int i = 0 ; i < cdata.size() ; ++i)
-        for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
-            data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
+    Grid::CellArray cells;
+    tree_.grid.getCells(cells);
+
+    for (unsigned int i = 0 ; i < cells.size() ; ++i)
+        for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
+        {
+            data.recordEdge(cells[i]->data->motions[j]->parent ? cells[i]->data->motions[j]->parent->state : NULL,
+                            cells[i]->data->motions[j]->state);
+            if (cells[i]->border)
+                data.tagState(cells[i]->data->motions[j]->state, 2);
+            else
+                data.tagState(cells[i]->data->motions[j]->state, 1);
+        }
 }

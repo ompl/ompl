@@ -111,7 +111,7 @@ namespace ompl
         ~Profiler(void)
         {
             if (printOnDestroy_ && !data_.empty())
-                status();
+                console();
         }
 
         /** \brief Start counting time */
@@ -180,6 +180,17 @@ namespace ompl
             events. Optionally, computation done by different threads
             can be printed separately. */
         void status(std::ostream &out = std::cout, bool merge = true);
+
+        /** \brief Print the status of the profiled code chunks and
+            events to the console (using msg::Console) */
+        static void Console(void)
+        {
+            Instance()->console();
+        }
+
+        /** \brief Print the status of the profiled code chunks and
+            events to the console (using msg::Console) */
+        void console(void);
 
     private:
 
@@ -337,6 +348,15 @@ namespace ompl
         void status(std::ostream & = std::cout, bool = true)
         {
         }
+
+        static void Console(void)
+        {
+        }
+
+        void console(void)
+        {
+        }
+
     };
 }
 

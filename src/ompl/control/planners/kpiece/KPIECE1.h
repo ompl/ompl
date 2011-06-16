@@ -41,6 +41,7 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/GridB.h"
 #include <vector>
+#include <set>
 
 namespace ompl
 {
@@ -85,9 +86,10 @@ namespace ompl
                 specs_.approximateSolutions = true;
 
                 siC_ = si.get();
+                nCloseSamples_ = 30;
                 goalBias_ = 0.05;
-                selectBorderFraction_ = 0.7;
-                badScoreFactor_ = 0.3;
+                selectBorderFraction_ = 0.8;
+                badScoreFactor_ = 0.45;
                 goodScoreFactor_ = 0.9;
                 tree_.grid.onCellUpdate(computeImportance, NULL);
             }
@@ -190,10 +192,8 @@ namespace ompl
         protected:
 
             /** \brief Representation of a motion for this algorithm */
-            class Motion
+            struct Motion
             {
-            public:
-
                 Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
                 {
                 }
@@ -218,7 +218,6 @@ namespace ompl
 
                 /** \brief The parent motion in the exploration tree */
                 Motion            *parent;
-
             };
 
             /** \brief The data held by a cell in the grid of motions */
@@ -269,6 +268,66 @@ namespace ompl
             /** \brief The datatype for the maintained grid datastructure */
             typedef GridB<CellData*, OrderCellsByImportance> Grid;
 
+            /** \brief Information about a known good sample (closer to the goal than others) */
+            struct CloseSample
+            {
+                /** \brief Constructor fully initializes the content of this structure */
+                CloseSample(Grid::Cell *c, Motion *m, double d) : cell(c), motion(m), distance(d)
+                {
+                }
+
+                /** \brief The cell of the motion that is close to the goal */
+                Grid::Cell *cell;
+
+                /** \brief The motion that is close to the goal */
+                Motion     *motion;
+
+                /** \brief The distance to the goal. This value is increased over time, as the number of selections for this sample increases */
+                double      distance;
+
+                /** \brief Sort samples in accordance to their distance to the goal */
+                bool operator<(const CloseSample &other) const
+                {
+                    return distance < other.distance;
+                }
+            };
+
+            /** \brief Bounded set of good samples */
+            struct CloseSamples
+            {
+                /** \brief Construct an object to maintain a set of at most \e size samples */
+                CloseSamples(unsigned int size) : maxSize(size == 0 ? 1 : size)
+                {
+                }
+
+                /** \brief Evaluate whether motion \e motion, part of
+                    cell \e cell is good enough to be part of the set
+                    of samples closest to the goal, given its distance
+                    to the goal is \e distance. If so, add it to the
+                    set and return true. Otherwise, return false.*/
+                bool consider(Grid::Cell *cell, Motion *motion, double distance);
+
+                /** \brief Select the top sample (closest to the goal)
+                    and update its position in the set subsequently
+                    (pretend the distance to the goal is
+                    larger). Returns true if the sample selection is
+                    successful. */
+                bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
+
+                /** \brief Return true if samples can be selected from this set */
+                bool canSample(void) const
+                {
+                    return samples.size() > 0;
+                }
+
+                /** \brief Maximum number of samples to maintain */
+                unsigned int          maxSize;
+
+                /** \brief The maintained samples */
+                std::set<CloseSample> samples;
+            };
+
+
             /** \brief The data defining a tree of motions for this algorithm */
             struct TreeData
             {
@@ -314,7 +373,7 @@ namespace ompl
                 from the state of the motion being added. The function
                 Returns the number of cells created to accommodate the
                 new motion (0 or 1). */
-            unsigned int addMotion(Motion* motion, double dist);
+                Grid::Cell* addMotion(Motion* motion, double dist);
 
             /** \brief Select a motion and the cell it is part of from
                 the grid of motions. This is where preference is given
@@ -350,6 +409,7 @@ namespace ompl
                 multiplied by this factor. */
             double                        badScoreFactor_;
 
+            unsigned int                  nCloseSamples_;
 
             /** \brief The fraction of time to focus exploration on
                 the border of the grid. */

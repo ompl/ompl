@@ -45,8 +45,10 @@ ompl::Profiler* ompl::Profiler::Instance(void)
 
 #if ENABLE_PROFILING
 
+#include "ompl/util/Console.h"
 #include <vector>
 #include <algorithm>
+#include <sstream>
 
 void ompl::Profiler::start(void)
 {
@@ -139,6 +141,16 @@ void ompl::Profiler::status(std::ostream &out, bool merge)
     lock_.unlock();
 }
 
+void ompl::Profiler::console(void)
+{
+    static msg::Interface msg("Profiler");
+
+    std::stringstream ss;
+    ss << std::endl;
+    status(ss, true);
+    msg.inform(ss.str());
+}
+
 namespace ompl
 {
 
@@ -206,10 +218,16 @@ void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
         double tS = time::seconds(d.shortest);
         double tL = time::seconds(d.longest);
         out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
-            << tS << "s --> " << tL << " s], " << d.parts << " parts" << std::endl;
+            << tS << "s --> " << tL << " s], " << d.parts << " parts";
+        if (d.parts > 0)
+            out << ", " << d.total / d.parts << " on average";
+        out << std::endl;
         unaccounted -= time[i].value;
     }
-    out << "Unaccounted time : " << unaccounted << " (" << (100.0 * unaccounted / total) << " %)" << std::endl;
+    out << "Unaccounted time : " << unaccounted;
+    if (total > 0.0)
+        out << " (" << (100.0 * unaccounted / total) << " %)";
+    out << std::endl;
 
     out << std::endl;
 }
