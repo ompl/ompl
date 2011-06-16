@@ -34,9 +34,10 @@
 
 /* Author: The Internet */
 
-#include "ompl/util/Memory.h"
+#include "ompl/benchmark/MachineSpecs.h"
 #include "ompl/util/Console.h"
 
+/// @cond IGNORE
 
 #if defined _WIN32
 
@@ -44,8 +45,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <psapi.h>
+#include <winsock2.h>
 
-ompl::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 {
     HANDLE hProcess;
     PROCESS_MEMORY_COUNTERS pmc;
@@ -55,7 +57,7 @@ ompl::MemUsage_t getProcessMemoryUsageAux(void)
                              false,
                              GetCurrentProcessId() );
 
-    ompl::MemUsage_t result = 0;
+    ompl::machine::MemUsage_t result = 0;
 
     if (NULL != hProcess)
     {
@@ -79,7 +81,7 @@ ompl::MemUsage_t getProcessMemoryUsageAux(void)
 #include <cstring>
 #include <unistd.h>
 
-ompl::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 {
 
     task_basic_info         info;
@@ -103,9 +105,8 @@ ompl::MemUsage_t getProcessMemoryUsageAux(void)
 #include <ios>
 #include <iostream>
 #include <fstream>
-#include <string>
 
-ompl::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 {
    using std::ios_base;
    using std::ifstream;
@@ -135,7 +136,7 @@ ompl::MemUsage_t getProcessMemoryUsageAux(void)
                    >> utime >> stime >> cutime >> cstime >> priority >> nice
                    >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
 
-       unsigned long long page_size = sysconf(_SC_PAGE_SIZE);
+       ompl::machine::MemUsage_t page_size = sysconf(_SC_PAGE_SIZE);
        return rss * page_size;
    }
    return 0;
@@ -143,7 +144,7 @@ ompl::MemUsage_t getProcessMemoryUsageAux(void)
 
 #else
 // if we have no idea what to do, we return 0
-ompl::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 {
     return 0;
 }
@@ -151,7 +152,7 @@ ompl::MemUsage_t getProcessMemoryUsageAux(void)
 #endif // apple
 #endif // windows
 
-ompl::MemUsage_t ompl::getProcessMemoryUsage(void)
+ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
 {
     MemUsage_t result = getProcessMemoryUsageAux();
     if (result == 0)
@@ -161,3 +162,15 @@ ompl::MemUsage_t ompl::getProcessMemoryUsage(void)
     }
     return result;
 }
+
+std::string ompl::machine::getHostname(void)
+{
+    char buffer[1024];
+    int len = gethostname(buffer, sizeof(buffer));
+    if (len != 0)
+        return std::string();
+    else
+        return std::string(buffer);
+}
+
+/// @endcond

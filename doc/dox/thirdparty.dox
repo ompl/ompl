@@ -3,17 +3,17 @@
 
 
 
-This page includes a list of extensions to OMPL provided by the community. You can also submit \ref contrib "your own contribution".
+This page includes a list of extensions to OMPL provided by the community. The contributed code can be found under the \c ompl/src/ompl/contrib directory in the OMPL source code. The contributed code has been written and tested by their respective authors listed below. Please read the \ref contrib "directions on writing your own contribution".
 
 \section ompl_ros_interface ROS Interface to OMPL
 
-Authors: Sachin Chitta
+\subsection ompl_ros_author Authors: Sachin Chitta and E. Gil Jones
 
-The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> ROS package wraps OMPL such that motion planners can be easily set up for your robot. Most configuration is automated, however you will have to specify the parts of the robot for which you want to create a motion planner.
+The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> ROS package wraps OMPL such that motion planners can be easily set up for your robot. Most configuration is automated. However, you will have to specify the parts of the robot for which you want to create a motion planner.
 
 \section mit_contrib MIT Contribution
 
-Authors: Alejandro Perez, Sertac Karaman, Emilio Frazzoli
+\subsection mit_contrib_authors Authors: Alejandro Perez, Sertac Karaman, Emilio Frazzoli, and Seth Teller
 
 <ul>
 <li>

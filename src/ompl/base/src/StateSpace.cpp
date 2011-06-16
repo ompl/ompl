@@ -66,6 +66,8 @@ ompl::base::StateSpace::StateSpace(void)
     lock.unlock();
 
     name_ = "Space" + boost::lexical_cast<std::string>(m);
+    msg_.setPrefix(name_);
+
     boost::mutex::scoped_lock smLock(STATE_SPACE_LIST_LOCK);
     STATE_SPACE_LIST.push_back(this);
 
@@ -92,6 +94,7 @@ const std::string& ompl::base::StateSpace::getName(void) const
 void ompl::base::StateSpace::setName(const std::string &name)
 {
     name_ = name;
+    msg_.setPrefix(name_);
 }
 
 void ompl::base::StateSpace::registerProjections(void)
@@ -233,6 +236,75 @@ void ompl::base::StateSpace::diagram(std::ostream &out)
             }
     }
     out << '}' << std::endl;
+}
+
+void ompl::base::StateSpace::sanityChecks(void) const
+{
+    static const int N_TESTS = 1000;
+    static const double EPS  = std::numeric_limits<float>::epsilon(); // we want to allow for reduced accuracy in computation
+    static const double ZERO = std::numeric_limits<double>::epsilon();
+
+    // Test that distances are always positive
+    {
+        State *s1 = allocState();
+        State *s2 = allocState();
+        StateSamplerPtr ss = allocStateSampler();
+
+        for (int i = 0 ; i < N_TESTS ; ++i)
+        {
+            ss->sampleUniform(s1);
+            if (distance(s1, s1) > EPS)
+                throw Exception("Distance from a state to itself should be 0");
+            ss->sampleUniform(s2);
+            if (!equalStates(s1, s2))
+                if (distance(s1, s2) < ZERO)
+                    throw Exception("Distance between different states should be above 0");
+        }
+
+        freeState(s1);
+        freeState(s2);
+    }
+
+
+    // Test that interpolation works as expected and also test triangle inequality
+    {
+        State *s1 = allocState();
+        State *s2 = allocState();
+        State *s3 = allocState();
+        StateSamplerPtr ss = allocStateSampler();
+
+        for (int i = 0 ; i < N_TESTS ; ++i)
+        {
+            ss->sampleUniform(s1);
+            ss->sampleUniform(s2);
+            ss->sampleUniform(s3);
+
+            interpolate(s1, s2, 0.0, s3);
+            if (distance(s1, s3) > EPS)
+                throw Exception("Interpolation from a state at time 0 should be not change the original state");
+
+            interpolate(s1, s2, 1.0, s3);
+            if (distance(s2, s3) > EPS)
+                throw Exception("Interpolation to a state at time 1 should be the same as the final state");
+
+            interpolate(s1, s2, 0.5, s3);
+            double diff = distance(s1, s3) + distance(s3, s2) - distance(s1, s2);
+            if (fabs(diff) > EPS)
+                throw Exception("Interpolation to midpoint state does not lead to distances that satisfy the triangle inequality (" +
+                                boost::lexical_cast<std::string>(diff) + " difference)");
+
+            interpolate(s3, s2, 0.5, s3);
+            interpolate(s1, s2, 0.75, s2);
+
+            if (distance(s2, s3) > EPS)
+                throw Exception("Continued interpolation does not work as expected");
+        }
+        freeState(s1);
+        freeState(s2);
+        freeState(s3);
+    }
+
+    msg_.inform("Sanity checks passed");
 }
 
 bool ompl::base::StateSpace::hasDefaultProjection(void) const

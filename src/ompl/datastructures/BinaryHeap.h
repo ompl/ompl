@@ -62,6 +62,8 @@ namespace ompl
         {
             friend class BinaryHeap;
         private:
+            Element(void) { }
+            ~Element(void) { }
             /** \brief The location of the data in the heap's storage */
             unsigned int position;
         public:

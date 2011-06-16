@@ -13,7 +13,7 @@ if(OMPL_BUILD_TESTS)
 
     # Test utilities
     add_ompl_test(test_random util/random/random.cpp)
-    add_ompl_test(test_memory util/memory/memory.cpp)
+    add_ompl_test(test_machine_specs benchmark/machine_specs.cpp)
 
     # Test base code
     add_ompl_test(test_state_operations base/state_operations.cpp)

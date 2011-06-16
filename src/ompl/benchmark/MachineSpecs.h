@@ -34,17 +34,27 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_UTIL_MEMORY_
-#define OMPL_UTIL_MEMORY_
+#ifndef OMPL_BENCHMARK_MACHINE_SPECS_
+#define OMPL_BENCHMARK_MACHINE_SPECS_
+
+#include <string>
 
 namespace ompl
 {
 
-    /** \brief Amount of memory used, in bytes */
-    typedef unsigned long long MemUsage_t;
+    /** \brief This namespace contains routines that read specifications of the machine in use */
+    namespace machine
+    {
 
-    /** \brief Get the amount of memory the current process is using. This should work on major platforms (Windows, Mac OS, Linux) */
-    MemUsage_t getProcessMemoryUsage(void);
+        /** \brief Amount of memory used, in bytes */
+        typedef unsigned long long MemUsage_t;
+
+        /** \brief Get the amount of memory the current process is using. This should work on major platforms (Windows, Mac OS, Linux) */
+        MemUsage_t getProcessMemoryUsage(void);
+
+        /** \brief Get the hostname of the machine in use */
+        std::string getHostname(void);
+    }
 }
 
 #endif

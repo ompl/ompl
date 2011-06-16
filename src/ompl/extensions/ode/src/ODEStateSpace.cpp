@@ -118,14 +118,12 @@ void ompl::control::ODEStateSpace::copyState(base::State *destination, const bas
 
 namespace ompl
 {
-
     /// @cond IGNORE
     struct CallbackParam
     {
         const control::ODEEnvironment *env;
         bool                           collision;
     };
-    /// @endcond
 
     static void nearCallback(void *data, dGeomID o1, dGeomID o2)
     {
@@ -155,6 +153,7 @@ namespace ompl
             }
         }
     }
+    /// @endcond
 }
 
 bool ompl::control::ODEStateSpace::evaluateCollision(const base::State *state) const

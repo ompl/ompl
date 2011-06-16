@@ -2,8 +2,8 @@
 \page acknowledgements Acknowledgements
 
       This project is supported in part by NSF CCLI grant #0920721 and a generous gift from <a href="http://www.willowgarage.com">Willow Garage</a>. The code is based on an older version of OMPL written by <a href="http://ioan.sucan.info">Ioan Șucan</a> while at Willow Garage. This project has also benefited from a number of other efforts:
-  - Previous efforts by the Kavraki lab to develop a motion planning software package. The Object-Oriented System for Motion Planning (OOPSMP) in particular provided significant inspiration in the design of OMPL. We are indebted to all other Kavraki lab members, past and present, for providing code, inspiration, and feedback.
-  - Development of a \ref ompl_ros_interface "ROS inteface to OMPL", by <a href="http://www.willowgarage.com/pages/people/sachin-chitta-research-scientist">Dr. Sachin Chitta</a> and <a href="http://www.willowgarage.com/pages/people/e-gil-jones">Dr. Gil Jones</a>.
+  - Previous efforts by the Kavraki lab to develop a motion planning software package. The Object-Oriented System for Motion Planning (OOPSMP) in particular provided significant inspiration in the design of OMPL. We are indebted to all other Kavraki lab members, past and present, for providing code, inspiration, and feedback. Previous work by Erion Plaku, Kostas Bekris, and Andrew Ladd in particular has been influential in the design of OMPL.
+  - Development of a \ref ompl_ros_interface "ROS interface to OMPL", by <a href="http://www.willowgarage.com/pages/people/sachin-chitta-research-scientist">Dr. Sachin Chitta</a> and <a href="http://www.willowgarage.com/pages/people/e-gil-jones">Dr. Gil Jones</a>.
 
 
 */

@@ -85,6 +85,7 @@ namespace ompl
             double *values;
         };
 
+
         /** \brief A projection matrix -- it allows multiplication of
             real vectors by a specified matrix. The matrix can also be
             randomly generated. */
@@ -239,7 +240,7 @@ namespace ompl
         protected:
 
             /** \brief The state space this projection operates on */
-            const StateSpace *space_;
+            const StateSpace    *space_;
 
             /** \brief The size of a cell, in every dimension of the
                 projected space, in the implicitly defined integer

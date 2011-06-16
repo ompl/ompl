@@ -35,32 +35,12 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/benchmark/Benchmark.h"
+#include "ompl/benchmark/MachineSpecs.h"
 #include "ompl/util/Time.h"
-#include "ompl/util/Memory.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
 #include <fstream>
 #include <sstream>
-
-#if defined _WIN32
-#  include <winsock2.h>
-#else
-#  include <unistd.h>
-#endif
-
-namespace ompl
-{
-
-    static std::string getHostname(void)
-    {
-        char buffer[1024];
-        int len = gethostname(buffer, sizeof(buffer));
-        if (len != 0)
-            return std::string();
-        else
-            return std::string(buffer);
-    }
-}
 
 std::string ompl::Benchmark::getResultsFilename(void) const
 {
@@ -175,17 +155,19 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     return true;
 }
 
+/// @cond IGNORE
 namespace ompl
 {
 
-    static bool terminationCondition(MemUsage_t maxMem, const time::point &endTime)
+    static bool terminationCondition(machine::MemUsage_t maxMem, const time::point &endTime)
     {
-        if (time::now() < endTime && getProcessMemoryUsage() < maxMem)
+        if (time::now() < endTime && machine::getProcessMemoryUsage() < maxMem)
             return false;
         return true;
     }
 
 }
+/// @endcond
 
 void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress)
 {
@@ -211,7 +193,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     exp_.totalDuration = 0.0;
     exp_.maxTime = maxTime;
     exp_.maxMem = maxMem;
-    exp_.host = getHostname();
+    exp_.host = machine::getHostname();
     exp_.seed = RNG::getSeed();
 
     exp_.startTime = time::now();
@@ -250,7 +232,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         progress.reset(new boost::progress_display(100, std::cout));
     }
 
-    MemUsage_t memStart = getProcessMemoryUsage();
+    machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
 
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
@@ -286,7 +268,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             try
             {
                 solved = planners_[i]->solve(boost::bind(&terminationCondition,
-                                                         memStart + (MemUsage_t)(maxMem * 1024 * 1024),
+                                                         memStart + (machine::MemUsage_t)(maxMem * 1024 * 1024),
                                                          time::now() + time::seconds(maxTime)), 0.1);
             }
             catch(std::runtime_error &e)
@@ -296,7 +278,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             }
 
             double timeUsed = time::seconds(time::now() - timeStart);
-            MemUsage_t memUsed = getProcessMemoryUsage();
+            machine::MemUsage_t memUsed = machine::getProcessMemoryUsage();
             if (memStart < memUsed)
                 memUsed -= memStart;
             else
