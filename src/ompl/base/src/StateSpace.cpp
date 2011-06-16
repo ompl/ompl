@@ -66,6 +66,8 @@ ompl::base::StateSpace::StateSpace(void)
     lock.unlock();
 
     name_ = "Space" + boost::lexical_cast<std::string>(m);
+    msg_.setPrefix(name_);
+
     boost::mutex::scoped_lock smLock(STATE_SPACE_LIST_LOCK);
     STATE_SPACE_LIST.push_back(this);
 
