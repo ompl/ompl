@@ -32,8 +32,7 @@ class TestDecomposition : public oc::GridDecomposition
 
     virtual int locateRegion(const ob::State *s)
     {
-        const ob::CompoundState *cs = s->as<ob::CompoundState>();
-        const ob::SE2StateSpace::StateType *ws = cs->as<ob::SE2StateSpace::StateType>(0);
+        const ob::SE2StateSpace::StateType *ws = s->as<ob::SE2StateSpace::StateType>();
         std::vector<double> coord(2);
         coord[0] = ws->getX();
         coord[1] = ws->getY();
@@ -42,8 +41,7 @@ class TestDecomposition : public oc::GridDecomposition
 
     virtual void stateToCoord(const ob::State *s, std::vector<double>& coord)
     {
-        const ob::CompoundState *cs = s->as<ob::CompoundState>();
-        const ob::SE2StateSpace::StateType *ws = cs->as<ob::SE2StateSpace::StateType>(0);
+        const ob::SE2StateSpace::StateType *ws = s->as<ob::SE2StateSpace::StateType>();
         coord.resize(2);
         coord[0] = ws->getX();
         coord[1] = ws->getY();
@@ -52,8 +50,7 @@ class TestDecomposition : public oc::GridDecomposition
 
 bool isStateValid(const ob::State *s)
 {
-    const ob::CompoundStateSpace::StateType *cs = s->as<ob::CompoundStateSpace::StateType>();
-    const ob::SE2StateSpace::StateType *se = cs->as<ob::SE2StateSpace::StateType>(0);
+    const ob::SE2StateSpace::StateType *se = s->as<ob::SE2StateSpace::StateType>();
     const double x = se->getX();
     const double y = se->getY();
     if (x < -0.5 && y < 0.5)
@@ -115,7 +112,10 @@ int main(void)
     oc::SyclopRRT planner(si, grid);
     planner.setProblemDefinition(pdef);
     planner.setup();
-    planner.solve(1.0);
+    if (planner.solve(1.0))
+        std::cout << "solved" << std::endl;
+    else
+        std::cout << "unsolved" << std::endl;
 
     return 0;
 }

@@ -32,12 +32,6 @@ void ompl::control::Syclop::setup(void)
     updateEdgeEstimates();
     printRegions();
     printEdges();
-
-    computeLead();
-    std::cerr << "Lead: ";
-    for (int i = 0; i < lead.size(); ++i)
-        std::cerr << lead[i] << " ";
-    std::cerr << std::endl;
 }
 
 void ompl::control::Syclop::clear(void)
@@ -286,6 +280,10 @@ void ompl::control::Syclop::computeLead(void)
         }
     }
     //TODO Implement random DFS, in case of 1-PROB_SHORTEST_PATH
+    std::cerr << "Computed lead: ";
+    for (int i = 0; i < lead.size(); ++i)
+        std::cerr << lead[i] << " ";
+    std::cerr << std::endl;
 }
 
 int ompl::control::Syclop::selectRegion(void)
