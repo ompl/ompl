@@ -41,7 +41,7 @@ namespace ompl
 
             protected:
             virtual void initializeTree(const base::State *s);
-            virtual void selectAndExtend(int region, std::set<Motion*> newMotions);
+            virtual void selectAndExtend(Region& region, std::set<Motion*> newMotions);
             void freeMemory(void);
 
             double distanceFunction(const Motion* a, const Motion* b) const

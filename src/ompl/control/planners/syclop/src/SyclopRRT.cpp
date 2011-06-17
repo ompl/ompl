@@ -50,21 +50,17 @@ void ompl::control::SyclopRRT::initializeTree(const base::State *s)
     nn_->add(motion);
 }
 
-void ompl::control::SyclopRRT::selectAndExtend(int region, std::set<Motion*> newMotions)
+void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*> newMotions)
 {
-    base::Goal* goal = getProblemDefinition()->getGoal().get();
-    base::GoalSampleableRegion* goalSample = dynamic_cast<base::GoalSampleableRegion*>(goal);
-    Motion* rmotion = new Motion(siC_);
-    base::State* rstate = rmotion->state;
-    Control* rctrl = rmotion->control;
+    base::State* sourceState = region.states[rng.uniformInt(0,region.states.size()-1)];
+    //TODO consider having Regions store Motions instead of States. for now, cheat a bit to get the Motion from the State
+    Motion source;
+    source.state = sourceState;
+    Motion* nmotion = nn_->nearest(&source);
+
     base::State* newState = si_->allocState();
+    Control* rctrl = siC_->allocControl();
 
-    if (goalSample && rng.uniform01() < goalBias_ && goalSample->canSample())
-        goalSample->sampleGoal(rstate);
-    else
-        sampler_->sampleUniform(rstate);
-
-    Motion* nmotion = nn_->nearest(rmotion);
     controlSampler_->sampleNext(rctrl, nmotion->control, nmotion->state);
     unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
     duration = siC_->propagateWhileValid(nmotion->state, rctrl, duration, newState);
@@ -80,12 +76,8 @@ void ompl::control::SyclopRRT::selectAndExtend(int region, std::set<Motion*> new
         newMotions.insert(motion);
     }
 
-    if (rmotion->state)
-        si_->freeState(rmotion->state);
-    if (rmotion->control)
-        siC_->freeControl(rmotion->control);
-    delete rmotion;
     si_->freeState(newState);
+    siC_->freeControl(rctrl);
 }
 
 void ompl::control::SyclopRRT::freeMemory(void)

@@ -16,13 +16,13 @@ void ompl::control::Syclop::setup(void)
     base::Planner::setup();
     buildGraph();
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
-    const base::State *start = pdef->getStartState(0);
+    base::State *start = pdef->getStartState(0);
     //Here we are temporarily assuming that the goal is of type GoalState
-    const base::State *goal = pdef->getGoal()->as<base::GoalState>()->state;
+    base::State *goal = pdef->getGoal()->as<base::GoalState>()->state;
     startRegion = decomp.locateRegion(start);
     goalRegion = decomp.locateRegion(goal);
-    graph[boost::vertex(startRegion,graph)].states.insert(start);
-    graph[boost::vertex(goalRegion,graph)].states.insert(goal);
+    graph[boost::vertex(startRegion,graph)].states.push_back(start);
+    graph[boost::vertex(goalRegion,graph)].states.push_back(goal);
     initializeTree(start);
 
     std::cout << "start is " << startRegion << std::endl;
@@ -58,11 +58,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
             for (int j = 0; j < NUM_TREE_SELECTIONS; ++j)
             {
                 newMotions.clear();
-                selectAndExtend(region, newMotions);
+                selectAndExtend(graph[boost::vertex(region,graph)], newMotions);
                 for (std::set<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
                 {
-                    const Motion* motion = *m;
-                    const base::State* state = motion->state;
+                    Motion* motion = *m;
+                    base::State* state = motion->state;
                     if (goal->isSatisfied(state))
                     {
                         std::vector<const Motion*> mpath;
@@ -88,9 +88,18 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
                     }
                     const int oldRegion = decomp.locateRegion(motion->parent->state);
                     const int newRegion = decomp.locateRegion(state);
-                    avail.insert(newRegion);
+                    graph[boost::vertex(newRegion,graph)].states.push_back(state);
+                    if (newRegion != oldRegion)
+                    {
+                        avail.insert(newRegion);
+                        Adjacency& adj = regionsToEdge.find(std::pair<int,int>(oldRegion,newRegion))->second;
+                        adj.empty = false;
+                        ++adj.numSelections;
+                        improved &= updateConnectionEstimate(graph[boost::vertex(oldRegion,graph)], graph[boost::vertex(newRegion,graph)], state);
+                    }
                     improved &= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);
-                    improved &= updateConnectionEstimate(graph[boost::vertex(oldRegion,graph)], graph[boost::vertex(newRegion,graph)], state);
+                    updateRegionEstimates();
+                    updateEdgeEstimates();
                 }
             }
             if (!improved && rng.uniform01() < PROB_ABANDON_LEAD_EARLY)
@@ -138,10 +147,13 @@ void ompl::control::Syclop::printEdges(void)
 
 void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
 {
+    adj.empty = true;
+    adj.numLeadInclusions = 0;
     adj.numSelections = 0;
     std::pair<int,int> regions(r->index, s->index);
     std::pair<std::pair<int,int>,Adjacency&> mapping(regions, adj);
     regionsToEdge.insert(mapping);
+    std::cout << "inserted (" << r->index << "," << s->index << ")" << std::endl;
 }
 
 void ompl::control::Syclop::updateEdgeEstimates(void)
@@ -151,8 +163,11 @@ void ompl::control::Syclop::updateEdgeEstimates(void)
     for (boost::tie(ei,end) = boost::edges(graph); ei != end; ++ei)
     {
         Adjacency& a = graph[*ei];
-        a.cost = (1 + a.numSelections*a.numSelections) / (1 + a.covGridCells.size());
-        a.cost *= graph[boost::source(*ei, graph)].alpha * graph[boost::target(*ei, graph)].alpha;
+        const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
+        a.cost = (1 + nsel*nsel) / (1 + a.covGridCells.size());
+        const Region& source = graph[boost::source(*ei,graph)];
+        const Region& target = graph[boost::target(*ei,graph)];
+        a.cost *= source.alpha * target.alpha;
     }
 }
 
@@ -230,12 +245,14 @@ void ompl::control::Syclop::buildGraph(void)
     VertexIndexMap index = get(boost::vertex_index, graph);
     VertexIter vi, vend;
     std::vector<int> neighbors;
-    //Iterate over all vertices.
+    //Initialize indices before all else
     for (boost::tie(vi,vend) = boost::vertices(graph); vi != vend; ++vi)
     {
-        /* Initialize this vertex's Region object. */
         initRegion(graph[*vi]);
         graph[*vi].index = index[*vi];
+    }
+    for (boost::tie(vi,vend) = boost::vertices(graph); vi != vend; ++vi)
+    {
         /* Create an edge between this vertex and each of its neighboring regions in the decomposition,
             and initialize the edge's Adjacency object. */
         decomp.getNeighbors(index[*vi], neighbors);
@@ -280,6 +297,18 @@ void ompl::control::Syclop::computeLead(void)
         }
     }
     //TODO Implement random DFS, in case of 1-PROB_SHORTEST_PATH
+    for (std::size_t i = 0; i < lead.size()-1; ++i)
+    {
+        std::cout << "calling regions to edge(" << lead[i] << "," << lead[i+1] << ")" << std::endl;
+        Adjacency& adj = regionsToEdge.find(std::pair<int,int>(lead[i],lead[i+1]))->second;
+        std::cout << "checking for empty" << std::endl;
+        if (adj.empty)
+        {
+            std::cout << "yes empty" << std::endl;
+            ++adj.numLeadInclusions;
+        }
+        std::cout << "loop body end" << std::endl;
+    }
     std::cerr << "Computed lead: ";
     for (int i = 0; i < lead.size(); ++i)
         std::cerr << lead[i] << " ";
@@ -288,6 +317,9 @@ void ompl::control::Syclop::computeLead(void)
 
 int ompl::control::Syclop::selectRegion(void)
 {
+    const int index = availDist.sample(rng.uniform01());
+    Region& region = graph[boost::vertex(index,graph)];
+    ++region.numSelections;
     return availDist.sample(rng.uniform01());
 }
 
