@@ -142,8 +142,7 @@ unsigned int ompl::control::KPIECE1::findNextMotion(const std::vector<Grid::Coor
 bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                       *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion     *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
 
     if (!goal)
     {
