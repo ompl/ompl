@@ -220,7 +220,7 @@ void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
         out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
             << tS << "s --> " << tL << " s], " << d.parts << " parts";
         if (d.parts > 0)
-            out << ", " << d.total / d.parts << " on average";
+            out << ", " << (time::seconds(d.total) / (double)d.parts) << " s on average";
         out << std::endl;
         unaccounted -= time[i].value;
     }
