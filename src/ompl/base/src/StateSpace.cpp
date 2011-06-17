@@ -216,7 +216,7 @@ bool ompl::base::StateSpace::includes(const StateSpacePtr &other) const
     return StateSpaceIncludes(this, other.get());
 }
 
-void ompl::base::StateSpace::diagram(std::ostream &out)
+void ompl::base::StateSpace::Diagram(std::ostream &out)
 {
     boost::mutex::scoped_lock smLock(STATE_SPACE_LIST_LOCK);
     out << "digraph StateSpaces {" << std::endl;
@@ -257,8 +257,14 @@ void ompl::base::StateSpace::sanityChecks(void) const
                 throw Exception("Distance from a state to itself should be 0");
             ss->sampleUniform(s2);
             if (!equalStates(s1, s2))
-                if (distance(s1, s2) < ZERO)
+            {
+                double d12 = distance(s1, s2);
+                if (d12 < ZERO)
                     throw Exception("Distance between different states should be above 0");
+                double d21 = distance(s2, s1);
+                if (fabs(d12 - d21) > EPS)
+                    throw Exception("The distance function should be symmetric");
+            }
         }
 
         freeState(s1);
