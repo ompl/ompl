@@ -92,6 +92,8 @@ namespace ompl
                 ballRadiusConst_ = 1.0;
                 rO_ = std::numeric_limits<double>::infinity();
                 delayCC_ = true;
+		terminate_ = true;
+
             }
 
             virtual ~BallTreeRRTstar(void)
@@ -235,6 +237,21 @@ namespace ompl
                 return delayCC_;
             }
 
+	    /** \brief Option that specifies if the planner will terminate
+	         upon finding a solution or will continue to refine the 
+	         solution until the time limit is reached. Set true to
+	         terminate when a solution is found */
+            void setTerminate(bool terminate)
+            {
+                terminate_ = terminate;
+            }
+
+            /** \brief Get the state of the termination option */
+            bool getTerminate(void) const
+            {
+                return terminate_;
+            }
+
             virtual void setup(void);
 
         protected:
@@ -310,10 +327,10 @@ namespace ompl
             /** \brief The random number generator */
             RNG                                            rng_;
 
-            /** \brief Shrink rate of radius the planner uses to fine near neighbors and rewire */
+            /** \brief Shrink rate of radius the planner uses to find near neighbors and rewire */
             double                                         ballRadiusConst_;
 
-            /** \brief Maximum radius the planner uses to fine near neighbors and rewire */
+            /** \brief Maximum radius the planner uses to find near neighbors and rewire */
             double                                         ballRadiusMax_;
 
             /** \brief Option to delay and reduce collision checking within iterations */
@@ -321,6 +338,10 @@ namespace ompl
 
             /** \brief Initial radius of volumes assigned to new vertices in the tree */
             double                                         rO_;
+
+	    /** \brief Option to terminate planning when a solution is found */
+	    bool 					   terminate_;
+
         };
 
     }

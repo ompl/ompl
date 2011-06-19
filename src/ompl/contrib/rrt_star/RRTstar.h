@@ -63,8 +63,7 @@ namespace ompl
            we are operating on. See ompl::base::Goal::setMaximumPathLength() for
            how to set the maximally allowed path length to reach the goal.
            If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
-           found, the algorithm terminates before the elapsed time. The algorithm continues to refine
-           solutions for the amount of time specified when the maximally allowed path length is set to 0.0.
+           found, the algorithm terminates before the elapsed time.
 
            @par External documentation
            S. Karaman and E. Frazzoli, Sampling-based
@@ -89,6 +88,8 @@ namespace ompl
                 ballRadiusMax_ = 0.0;
                 ballRadiusConst_ = 1.0;
                 delayCC_ = true;
+		terminate_ = true;
+
             }
 
             virtual ~RRTstar(void)
@@ -205,6 +206,21 @@ namespace ompl
                 return delayCC_;
             }
 
+	    /** \brief Option that specifies if the planner will terminate
+	         upon finding a solution or will continue to refine the 
+	         solution until the time limit is reached. Set true to
+	         terminate when a solution is found */
+            void setTerminate(bool terminate)
+            {
+                terminate_ = terminate;
+            }
+
+            /** \brief Get the state of the termination option */
+            bool getTerminate(void) const
+            {
+                return terminate_;
+            }
+
             virtual void setup(void);
 
         protected:
@@ -268,14 +284,17 @@ namespace ompl
             /** \brief The random number generator */
             RNG                                            rng_;
 
-            /** \brief Shrink rate of radius the planner uses to fine near neighbors and rewire */
+            /** \brief Shrink rate of radius the planner uses to find near neighbors and rewire */
             double                                         ballRadiusConst_;
 
-            /** \brief Maximum radius the planner uses to fine near neighbors and rewire */
+            /** \brief Maximum radius the planner uses to find near neighbors and rewire */
             double                                         ballRadiusMax_;
 
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
+
+	    /** \brief Option to terminate planning when a solution is found */
+	    bool 					   terminate_;
         };
 
     }

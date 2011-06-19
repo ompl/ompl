@@ -50,6 +50,7 @@ void ompl::geometric::BallTreeRRTstar::setup(void)
     ballRadiusConst_ = maxDistance_ * sqrt(si_->getStateSpace()->getDimension());
 
     delayCC_ = true;
+    terminate_ = true;
 
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
@@ -315,7 +316,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                     }
                 }
 
-            /* check if  we found a solution */
+	    /* check if  we found a solution */
             for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
             {
                 double dist = 0.0;
@@ -323,11 +324,22 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                 if (solved)
                 {
                     approxdif = dist;
-                    if (solCheck[i]->cost < lowerBound)
-                    {
-                       lowerBound = solCheck[i]->cost;
-                       solution = solCheck[i];
-                    }
+
+		    if(!terminate_)
+		    {
+			if (solCheck[i]->cost < lowerBound)
+			{
+		            lowerBound = solCheck[i]->cost;
+			    solution = solCheck[i];
+			}
+
+		    }
+		    else
+		    {
+			solution = solCheck[i];
+		        break;
+		    }
+
                 }
                 if (dist < approxdif)
                 {
@@ -336,9 +348,9 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                 }
             }
 
-            /* terminate if a solution was found */
-            if (solution != NULL)
-                break;
+	    /* terminate if a solution was found */
+	    if (solution != NULL && terminate_)
+		    break;
         }
         else
         {
@@ -350,11 +362,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
         }
     }
 
-    if (solution == NULL && approxsol != NULL && goal->isSatisfied(approxsol->state, &approxdif))
-        solution = approxsol;
-
     bool approximate = false;
-
     if (solution == NULL)
     {
         solution = approxsol;
