@@ -8,9 +8,8 @@
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 - Read about the \ref availablePlanners "available planners" and the \ref availableStateSpaces "available state spaces".
 - If interested in using Python, make sure to read \ref python "the documentation for the python bindings".
-- Check the \ref FAQ "answers to Frequently Asked Questions".
 - Get more information about \ref education "using OMPL for educational purposes".
-- \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
+- Take a look at \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
 .
 
 \section tutorials Tutorials
