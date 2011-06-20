@@ -17,7 +17,8 @@ void ompl::control::Syclop::setup(void)
     buildGraph();
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
     base::State *start = pdef->getStartState(0);
-    //Here we are temporarily assuming that the goal is of type GoalState
+    /* Here we are temporarily assuming that the goal is of type GoalState.
+     * This is to find a Region corresponding to the goal. */
     base::State *goal = pdef->getGoal()->as<base::GoalState>()->state;
     startRegion = decomp.locateRegion(start);
     goalRegion = decomp.locateRegion(goal);
@@ -153,7 +154,6 @@ void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
     std::pair<int,int> regions(r->index, s->index);
     std::pair<std::pair<int,int>,Adjacency&> mapping(regions, adj);
     regionsToEdge.insert(mapping);
-    std::cout << "inserted (" << r->index << "," << s->index << ")" << std::endl;
 }
 
 void ompl::control::Syclop::updateEdgeEstimates(void)
@@ -299,15 +299,11 @@ void ompl::control::Syclop::computeLead(void)
     //TODO Implement random DFS, in case of 1-PROB_SHORTEST_PATH
     for (std::size_t i = 0; i < lead.size()-1; ++i)
     {
-        std::cout << "calling regions to edge(" << lead[i] << "," << lead[i+1] << ")" << std::endl;
         Adjacency& adj = regionsToEdge.find(std::pair<int,int>(lead[i],lead[i+1]))->second;
-        std::cout << "checking for empty" << std::endl;
         if (adj.empty)
         {
-            std::cout << "yes empty" << std::endl;
             ++adj.numLeadInclusions;
         }
-        std::cout << "loop body end" << std::endl;
     }
     std::cerr << "Computed lead: ";
     for (int i = 0; i < lead.size(); ++i)
@@ -329,7 +325,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
     availDist.clear();
     for (int i = lead.size()-1; i >= 0; --i)
     {
-        Region& r = graph[boost::vertex(i,graph)];
+        Region& r = graph[boost::vertex(lead[i],graph)];
         if (!r.states.empty())
         {
             avail.insert(lead[i]);
