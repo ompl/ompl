@@ -33,9 +33,27 @@ namespace ompl
 
             protected:
 
+            class Motion
+            {
+            public:
+                Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
+                {
+                }
+                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
+                {
+                }
+                ~Motion(void)
+                {
+                }
+                base::State* state;
+                Control* control;
+                std::size_t steps;
+                Motion* parent;
+            };
+
             struct Region
             {
-                std::vector<base::State*> states;
+                std::vector<Motion*> motions;
                 int index;
                 int numSelections;
                 double volume;
@@ -55,24 +73,6 @@ namespace ompl
                 double cost;
             };
 
-            class Motion
-            {
-            public:
-                Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
-                {
-                }
-                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
-                {
-                }
-                ~Motion(void)
-                {
-                }
-                base::State* state;
-                Control* control;
-                std::size_t steps;
-                Motion* parent;
-            };
-
             //TODO Consider vertex/edge storage options other than vecS.
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Region, Adjacency> RegionGraph;
             typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
@@ -81,10 +81,10 @@ namespace ompl
 
             static const int NUM_FREEVOL_SAMPLES = 10000;
             static const double PROB_SHORTEST_PATH = 1.0; //0.95
-            static const int COVGRID_LENGTH = 8;
+            static const int COVGRID_LENGTH = 27;
             static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
-            static const int NUM_AVAIL_EXPLORATIONS = 100;
-            static const int NUM_TREE_SELECTIONS = 50;
+            static const int NUM_AVAIL_EXPLORATIONS = 2; //100;
+            static const int NUM_TREE_SELECTIONS = 3; //50;
             static const double PROB_ABANDON_LEAD_EARLY = 0.25;
 
             /* Initialize edge between regions r and s. */
@@ -116,8 +116,8 @@ namespace ompl
 
             virtual void computeAvailableRegions(void);
 
-            /* Initialize a tree rooted at start state s. */
-            virtual void initializeTree(const base::State *s) = 0;
+            /* Initialize a tree rooted at start state s; return the Motion corresponding to s. */
+            virtual Motion* initializeTree(const base::State *s) = 0;
             /* Select a vertex v from region, extend tree from v, add any new motions created to newMotions. */
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
 

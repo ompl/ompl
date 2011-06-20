@@ -22,9 +22,9 @@ void ompl::control::Syclop::setup(void)
     base::State *goal = pdef->getGoal()->as<base::GoalState>()->state;
     startRegion = decomp.locateRegion(start);
     goalRegion = decomp.locateRegion(goal);
-    graph[boost::vertex(startRegion,graph)].states.push_back(start);
-    graph[boost::vertex(goalRegion,graph)].states.push_back(goal);
-    initializeTree(start);
+    Motion* startMotion = initializeTree(start);
+    graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
+    updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 
     std::cout << "start is " << startRegion << std::endl;
     std::cout << "goal is " << goalRegion << std::endl;
@@ -50,16 +50,21 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
     base::Goal* goal = getProblemDefinition()->getGoal().get();
     while (!ptc())
     {
+        std::cout << "computing new lead" << std::endl;
         computeLead();
         computeAvailableRegions();
         for (int i = 0; i < NUM_AVAIL_EXPLORATIONS; ++i)
         {
+            std::cout << "exploration " << i+1 << " of " << NUM_AVAIL_EXPLORATIONS << std::endl;
             const int region = selectRegion();
             bool improved = false;
             for (int j = 0; j < NUM_TREE_SELECTIONS; ++j)
             {
+                std::cout << "tree selection " << j+1 << " of " << NUM_TREE_SELECTIONS << std::endl;
                 newMotions.clear();
                 selectAndExtend(graph[boost::vertex(region,graph)], newMotions);
+                if (!newMotions.empty())
+                    std::cout << "planner returned " << newMotions.size() << " new motions" << std::endl;
                 for (std::set<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
                 {
                     Motion* motion = *m;
@@ -90,7 +95,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
                     const int oldRegion = decomp.locateRegion(motion->parent->state);
                     const int newRegion = decomp.locateRegion(state);
                     std::cout << "created motion from region " << oldRegion << " to region " << newRegion << std::endl;
-                    graph[boost::vertex(newRegion,graph)].states.push_back(state);
+                    graph[boost::vertex(newRegion,graph)].motions.push_back(motion);
                     if (newRegion != oldRegion)
                     {
                         avail.insert(newRegion);
@@ -130,6 +135,7 @@ void ompl::control::Syclop::printRegions(void)
     {
         Region& r = graph[boost::vertex(i, graph)];
         std::cout << "Region " << r.index << ": ";
+        std::cout << "numMotions=" << r.motions.size() << ",";
         std::cout << "nselects=" << r.numSelections << ",";
         std::cout << "vol=" << r.volume << ",";
         std::cout << "freeVol=" << r.freeVolume << ",";
@@ -314,10 +320,10 @@ void ompl::control::Syclop::computeLead(void)
             ++adj.numLeadInclusions;
         }
     }
-    std::cerr << "Computed lead: ";
+    std::cout << "Computed lead: ";
     for (int i = 0; i < lead.size(); ++i)
-        std::cerr << lead[i] << " ";
-    std::cerr << std::endl;
+        std::cout << lead[i] << " ";
+    std::cout << std::endl;
 }
 
 int ompl::control::Syclop::selectRegion(void)
@@ -337,7 +343,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
     for (int i = lead.size()-1; i >= 0; --i)
     {
         Region& r = graph[boost::vertex(lead[i],graph)];
-        if (!r.states.empty())
+        if (!r.motions.empty())
         {
             std::cout << lead[i] << " ";
             avail.insert(lead[i]);

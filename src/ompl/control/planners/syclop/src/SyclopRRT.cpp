@@ -42,21 +42,19 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const
         data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
 }
 
-void ompl::control::SyclopRRT::initializeTree(const base::State *s)
+ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const base::State *s)
 {
     Motion* motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
     nn_->add(motion);
+    return motion;
 }
 
 void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
 {
-    base::State* sourceState = region.states[rng.uniformInt(0,region.states.size()-1)];
-    //TODO consider having Regions store Motions instead of States. for now, cheat a bit to get the Motion from the State
-    Motion source;
-    source.state = sourceState;
-    Motion* nmotion = nn_->nearest(&source);
+    std::cout << "selectAndExtend called from region " << region.index << std::endl;
+    Motion* nmotion = region.motions[rng.uniformInt(0,region.motions.size()-1)];
 
     base::State* newState = si_->allocState();
     Control* rctrl = siC_->allocControl();

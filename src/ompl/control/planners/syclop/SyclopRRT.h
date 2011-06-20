@@ -40,7 +40,7 @@ namespace ompl
             }
 
             protected:
-            virtual void initializeTree(const base::State *s);
+            virtual Syclop::Motion* initializeTree(const base::State *s);
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions);
             void freeMemory(void);
 
