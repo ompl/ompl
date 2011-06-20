@@ -296,7 +296,7 @@ namespace ompl
             struct CloseSamples
             {
                 /** \brief Construct an object to maintain a set of at most \e size samples */
-                CloseSamples(unsigned int size) : maxSize(size == 0 ? 1 : size)
+                CloseSamples(unsigned int size) : maxSize(size)
                 {
                 }
 
