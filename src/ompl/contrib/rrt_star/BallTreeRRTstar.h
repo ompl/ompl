@@ -92,7 +92,7 @@ namespace ompl
                 ballRadiusConst_ = 1.0;
                 rO_ = std::numeric_limits<double>::infinity();
                 delayCC_ = true;
-		terminate_ = true;
+                terminate_ = true;
 
             }
 
@@ -237,10 +237,10 @@ namespace ompl
                 return delayCC_;
             }
 
-	    /** \brief Option that specifies if the planner will terminate
-	         upon finding a solution or will continue to refine the 
-	         solution until the time limit is reached. Set true to
-	         terminate when a solution is found */
+            /** \brief Option that specifies if the planner will terminate
+                 upon finding a solution or will continue to refine the
+                 solution until the time limit is reached. Set true to
+                 terminate when a solution is found */
             void setTerminate(bool terminate)
             {
                 terminate_ = terminate;
@@ -339,8 +339,8 @@ namespace ompl
             /** \brief Initial radius of volumes assigned to new vertices in the tree */
             double                                         rO_;
 
-	    /** \brief Option to terminate planning when a solution is found */
-	    bool 					   terminate_;
+            /** \brief Option to terminate planning when a solution is found */
+            bool                                            terminate_;
 
         };
 

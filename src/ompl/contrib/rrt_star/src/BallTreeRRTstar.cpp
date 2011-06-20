@@ -316,7 +316,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                     }
                 }
 
-	    /* check if  we found a solution */
+            /* check if  we found a solution */
             for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
             {
                 double dist = 0.0;
@@ -325,20 +325,20 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                 {
                     approxdif = dist;
 
-		    if(!terminate_)
-		    {
-			if (solCheck[i]->cost < lowerBound)
-			{
-		            lowerBound = solCheck[i]->cost;
-			    solution = solCheck[i];
-			}
+                    if(!terminate_)
+                    {
+                        if (solCheck[i]->cost < lowerBound)
+                        {
+                            lowerBound = solCheck[i]->cost;
+                            solution = solCheck[i];
+                        }
 
-		    }
-		    else
-		    {
-			solution = solCheck[i];
-		        break;
-		    }
+                    }
+                    else
+                    {
+                        solution = solCheck[i];
+                        break;
+                    }
 
                 }
                 if (dist < approxdif)
@@ -348,9 +348,9 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                 }
             }
 
-	    /* terminate if a solution was found */
-	    if (solution != NULL && terminate_)
-		    break;
+            /* terminate if a solution was found */
+            if (solution != NULL && terminate_)
+                    break;
         }
         else
         {

@@ -263,20 +263,20 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                 {
                     approxdif = dist;
 
-		    if(!terminate_)
-		    {
-			if (solCheck[i]->cost < lowerBound)
-			{
-		            lowerBound = solCheck[i]->cost;
-			    solution = solCheck[i];
-			}
+                    if(!terminate_)
+                    {
+                        if (solCheck[i]->cost < lowerBound)
+                        {
+                            lowerBound = solCheck[i]->cost;
+                            solution = solCheck[i];
+                        }
 
-		    }
-		    else
-		    {
-			solution = solCheck[i];
-		        break;
-		    }
+                    }
+                    else
+                    {
+                        solution = solCheck[i];
+                        break;
+                    }
 
                 }
                 if (dist < approxdif)
@@ -286,9 +286,9 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                 }
             }
 
-	    /* terminate if a solution was found */
-	    if (solution != NULL && terminate_)
-		    break;
+            /* terminate if a solution was found */
+            if (solution != NULL && terminate_)
+                    break;
         }
     }
 
