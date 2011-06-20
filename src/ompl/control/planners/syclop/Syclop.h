@@ -119,7 +119,7 @@ namespace ompl
             /* Initialize a tree rooted at start state s. */
             virtual void initializeTree(const base::State *s) = 0;
             /* Select a vertex v from region, extend tree from v, add any new motions created to newMotions. */
-            virtual void selectAndExtend(Region& region, std::set<Motion*> newMotions) = 0;
+            virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
 
             class CoverageGrid : public GridDecomposition
             {

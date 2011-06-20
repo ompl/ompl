@@ -50,7 +50,7 @@ void ompl::control::SyclopRRT::initializeTree(const base::State *s)
     nn_->add(motion);
 }
 
-void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*> newMotions)
+void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
 {
     base::State* sourceState = region.states[rng.uniformInt(0,region.states.size()-1)];
     //TODO consider having Regions store Motions instead of States. for now, cheat a bit to get the Motion from the State
