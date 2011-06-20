@@ -22,16 +22,13 @@ double ompl::control::GridDecomposition::getRegionVolume(const int rid) const
  * but can we beat linear time with arbitrary dimension? */
 void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<int>& neighbors)
 {
-    std::cout << "neighbors of " << rid << ":" << std::endl;
     for (int s = 0; s < getNumRegions(); ++s)
     {
         if (areNeighbors(rid, s))
         {
             neighbors.push_back(s);
-            std::cout << s << std::endl;
         }
     }
-    std::cout << "done" << std::endl;
 }
 
 int ompl::control::GridDecomposition::locateRegion(const std::vector<double> coord)
