@@ -309,8 +309,6 @@ void ompl::base::StateSpace::sanityChecks(void) const
         freeState(s2);
         freeState(s3);
     }
-
-    msg_.inform("Sanity checks passed");
 }
 
 bool ompl::base::StateSpace::hasDefaultProjection(void) const

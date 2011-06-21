@@ -367,6 +367,24 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
 {
     out << "Properties of the state space '" << stateSpace_->getName() << "'" << std::endl;
     out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;
-    out << "  - probability of valid states: " << probabilityOfValidState(magic::TEST_STATE_COUNT) << std::endl;
-    out << "  - average length of a valid motion: " << averageValidMotionLength(magic::TEST_STATE_COUNT) << std::endl;
+    if (isSetup())
+    {
+        bool result = true;
+        try
+        {
+            stateSpace_->sanityChecks();
+        }
+        catch(Exception &e)
+        {
+            result = false;
+            out << std::endl << "  - SANITY CHECKS FOR STATE SPACE ***DID NOT PASS*** (" << e.what() << ")" << std::endl << std::endl;
+            msg_.error(e.what());
+        }
+        if (result)
+            out << "  - sanity checks for state space passed" << std::endl;
+        out << "  - probability of valid states: " << probabilityOfValidState(magic::TEST_STATE_COUNT) << std::endl;
+        out << "  - average length of a valid motion: " << averageValidMotionLength(magic::TEST_STATE_COUNT) << std::endl;
+    }
+    else
+        out << "Call setup() before to get more information" << std::endl;
 }

@@ -157,6 +157,10 @@ void planWithSimpleSetup(void)
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal);
 
+    // this call is optional, but we put it in to get more output information
+    ss.setup();
+    ss.print();
+
     // attempt to solve the problem within one second of planning time
     bool solved = ss.solve(1.0);
 
