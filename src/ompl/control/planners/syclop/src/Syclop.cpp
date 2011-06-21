@@ -1,6 +1,7 @@
 #include "ompl/control/planners/syclop/Syclop.h"
 #include "ompl/base/GoalState.h"
 #include "ompl/base/ProblemDefinition.h"
+#include <stack>
 
 ompl::control::Syclop::Syclop(const SpaceInformationPtr &si, Decomposition &d) : ompl::base::Planner(si, "Syclop"),
     siC_(si.get()), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)
@@ -284,9 +285,12 @@ void ompl::control::Syclop::buildGraph(void)
 
 void ompl::control::Syclop::computeLead(void)
 {
+    /* For now, this function assumes that a path exists in the decomposition
+     * from startRegion to goalRegion. */
     lead.clear();
     if (rng.uniform01() < PROB_SHORTEST_PATH)
     {
+        std::cout << "Dijkstra's algorithm ";
         std::vector<RegionGraph::vertex_descriptor> parents(decomp.getNumRegions());
         std::vector<double> distances(decomp.getNumRegions());
         boost::dijkstra_shortest_paths(graph, boost::vertex(startRegion, graph),
@@ -311,16 +315,63 @@ void ompl::control::Syclop::computeLead(void)
             region = parents[region];
         }
     }
-    //TODO Implement random DFS, in case of 1-PROB_SHORTEST_PATH
+    else
+    {
+        std::cout << "random-DFS ";
+        VertexIndexMap index = get(boost::vertex_index, graph);
+        std::stack<int> nodesToProcess;
+        std::vector<int> parents(decomp.getNumRegions(), -1);
+        parents[startRegion] = startRegion;
+        nodesToProcess.push(startRegion);
+        bool goalFound = false;
+        while (!goalFound && !nodesToProcess.empty())
+        {
+            const int v = nodesToProcess.top();
+            nodesToProcess.pop();
+            std::vector<int> neighbors;
+            boost::graph_traits<RegionGraph>::adjacency_iterator ai, aend;
+            for (boost::tie(ai,aend) = adjacent_vertices(boost::vertex(v,graph),graph); ai != aend; ++ai)
+            {
+                if (parents[index[*ai]] < 0)
+                {
+                    neighbors.push_back(index[*ai]);
+                    parents[index[*ai]] = v;
+                }
+            }
+            for (std::size_t i = 0; i < neighbors.size(); ++i)
+            {
+                const int choice = rng.uniformInt(i, neighbors.size()-1);
+                if (neighbors[choice] == goalRegion)
+                {
+                    int region = goalRegion;
+                    int leadLength = 1;
+                    while (region != startRegion)
+                    {
+                        region = parents[region];
+                        ++leadLength;
+                    }
+                    lead.resize(leadLength);
+                    region = goalRegion;
+                    for (int j = leadLength-1; j >= 0; --j)
+                    {
+                        lead[j] = region;
+                        region = parents[region];
+                    }
+                    goalFound = true;
+                    break;
+                }
+                nodesToProcess.push(neighbors[choice]);
+                std::swap(neighbors[i], neighbors[choice]);
+            }
+        }
+    }
     for (std::size_t i = 0; i < lead.size()-1; ++i)
     {
         Adjacency& adj = regionsToEdge.find(std::pair<int,int>(lead[i],lead[i+1]))->second;
         if (adj.empty)
-        {
             ++adj.numLeadInclusions;
-        }
     }
-    std::cout << "Computed lead: ";
+    std::cout << "computed lead: ";
     for (int i = 0; i < lead.size(); ++i)
         std::cout << lead[i] << " ";
     std::cout << std::endl;
