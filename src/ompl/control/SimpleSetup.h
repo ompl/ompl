@@ -222,13 +222,7 @@ namespace ompl
             virtual void clear(void);
 
             /** \brief Print information about the current setup */
-            virtual void print(std::ostream &out = std::cout) const
-            {
-                if (si_)
-                    si_->printSettings(out);
-                if (pdef_)
-                    pdef_->print(out);
-            }
+            virtual void print(std::ostream &out = std::cout) const;
 
             /** \brief This method will create the necessary classes
                 for planning. The solve() method will call this

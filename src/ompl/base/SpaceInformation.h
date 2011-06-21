@@ -51,6 +51,7 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
+#include <utility>
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -356,6 +357,9 @@ namespace ompl
 
             /** \brief Print information about the current instance of the state space */
             virtual void printSettings(std::ostream &out = std::cout) const;
+
+            /** \brief Print properties of the current instance of the state space */
+            virtual void printProperties(std::ostream &out = std::cout) const;
 
             /** \brief Perform additional setup tasks (run once,
                 before use). If state validity checking resolution has

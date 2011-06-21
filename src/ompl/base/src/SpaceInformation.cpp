@@ -38,6 +38,7 @@
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/MagicConstants.h"
 #include <queue>
 #include <cassert>
 
@@ -354,11 +355,18 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
 
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
-    out << "State space settings:" << std::endl;
+    out << "Settings for the state space '" << stateSpace_->getName() << "'" << std::endl;
     out << "  - dimension: " << stateSpace_->getDimension() << std::endl;
-    out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;
     out << "  - state validity check resolution: " << (getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
     out << "  - valid segment count factor: " << stateSpace_->getValidSegmentCountFactor() << std::endl;
     out << "  - state space:" << std::endl;
     stateSpace_->printSettings(out);
+}
+
+void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
+{
+    out << "Properties of the state space '" << stateSpace_->getName() << "'" << std::endl;
+    out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;
+    out << "  - probability of valid states: " << probabilityOfValidState(magic::TEST_STATE_COUNT) << std::endl;
+    out << "  - average length of a valid motion: " << averageValidMotionLength(magic::TEST_STATE_COUNT) << std::endl;
 }

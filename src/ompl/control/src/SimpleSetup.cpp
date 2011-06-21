@@ -131,3 +131,14 @@ ompl::base::PlannerData ompl::control::SimpleSetup::getPlannerData(void) const
         planner_->getPlannerData(pd);
     return pd;
 }
+
+void ompl::control::SimpleSetup::print(std::ostream &out) const
+{
+    if (si_)
+    {
+        si_->printSettings(out);
+        si_->printProperties(out);
+    }
+    if (pdef_)
+        pdef_->print(out);
+}
