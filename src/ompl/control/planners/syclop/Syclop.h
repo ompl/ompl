@@ -74,7 +74,7 @@ namespace ompl
             };
 
             //TODO Consider vertex/edge storage options other than vecS.
-            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Region, Adjacency> RegionGraph;
+            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
             typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
