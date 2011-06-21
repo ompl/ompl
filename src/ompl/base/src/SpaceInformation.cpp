@@ -330,10 +330,11 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
     lastValid.first = NULL;
 
     double d = 0.0;
-
+    unsigned int count = 0;
     for (unsigned int i = 0 ; i < attempts ; ++i)
         if (uvss->sample(s1))
         {
+            ++count;
             ss->sampleUniform(s2);
             if (checkMotion(s1, s2, lastValid))
                 d += distance(s1, s2);
@@ -344,7 +345,11 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
     freeState(s2);
     freeState(s1);
     delete uvss;
-    return d / (double)attempts;
+
+    if (count > 0)
+        return d / (double)count;
+    else
+        return 0.0;
 }
 
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
