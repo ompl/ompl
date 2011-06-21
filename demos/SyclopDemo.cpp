@@ -23,7 +23,7 @@ namespace oc = ompl::control;
 class TestDecomposition : public oc::GridDecomposition
 {
     public:
-    TestDecomposition(const int length, ob::RealVectorBounds &bounds) : oc::GridDecomposition(length, 2, bounds)
+    TestDecomposition(const int length, const ob::RealVectorBounds &bounds) : oc::GridDecomposition(length, 2, bounds)
     {
     }
     virtual ~TestDecomposition()
@@ -48,16 +48,18 @@ class TestDecomposition : public oc::GridDecomposition
     }
 };
 
-bool isStateValid(const ob::State *s)
+bool isStateValid(const oc::SpaceInformation* si, const ob::State *s)
 {
     const ob::SE2StateSpace::StateType *se = s->as<ob::SE2StateSpace::StateType>();
     const double x = se->getX();
     const double y = se->getY();
-    if (x < -0.5 && y < 0.5)
+    if (x < -2.0 && y < -2.0)
         return false;
-    if (x > 0.5 && fabs(y) < 0.5)
+    if (x > 0 && x < 1 && y > 0)
         return false;
-    return true;
+    if (x > 2.5 && fabs(y) < 1.5)
+        return false;
+    return si->satisfiesBounds(s);
 }
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
@@ -79,9 +81,9 @@ void propagate(const ob::State *start, const oc::Control *control, const double 
 int main(void)
 {
     ompl::base::RealVectorBounds bounds(2);
-    bounds.setLow(-1);
-    bounds.setHigh(1);
-    TestDecomposition grid(2, bounds);
+    bounds.setLow(-3);
+    bounds.setHigh(3);
+    TestDecomposition grid(3, bounds);
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-2);
     cbounds.setHigh(2);
@@ -89,22 +91,22 @@ int main(void)
     ob::StateSpacePtr manifold(new ob::SE2StateSpace());
     manifold->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    //controlSpace : forward acceleration & steer velocity
+    //controlSpace : forward velocity & steer velocity
     oc::ControlSpacePtr controlSpace(new oc::RealVectorControlSpace(manifold, 2));
     controlSpace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
     controlSpace->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
 
     ob::ScopedState<ob::SE2StateSpace> init(manifold);
-    init->setX(-0.75);
-    init->setY(0.8);
+    init->setX(-2.0);
+    init->setY(2.0);
     init->setYaw(0);
 
     ob::ScopedState<ob::SE2StateSpace> goal(init);
-    goal->setX(0.65);
-    goal->setY(-0.7);
+    goal->setX(2.0);
+    goal->setY(-2.0);
 
     oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, controlSpace));
-    si->setStateValidityChecker(boost::bind(&isStateValid, _1));
+    si->setStateValidityChecker(boost::bind(&isStateValid, si.get(), _1));
     si->setup();
 
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
@@ -112,10 +114,10 @@ int main(void)
     oc::SyclopRRT planner(si, grid);
     planner.setProblemDefinition(pdef);
     planner.setup();
-    if (planner.solve(1.0))
-        std::cout << "solved" << std::endl;
+    if (planner.solve(90.0))
+        std::cerr << "solved" << std::endl;
     else
-        std::cout << "unsolved" << std::endl;
+        std::cerr << "unsolved" << std::endl;
 
     return 0;
 }
