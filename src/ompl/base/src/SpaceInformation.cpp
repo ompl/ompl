@@ -295,6 +295,58 @@ ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSa
         return ValidStateSamplerPtr(new UniformValidStateSampler(this));
 }
 
+double ompl::base::SpaceInformation::probabilityOfValidState(unsigned int attempts) const
+{
+    unsigned int valid = 0;
+    unsigned int invalid = 0;
+
+    StateSamplerPtr ss = allocStateSampler();
+    State *s = allocState();
+
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+    {
+        ss->sampleUniform(s);
+        if (isValid(s))
+            ++valid;
+        else
+            ++invalid;
+    }
+
+    freeState(s);
+
+    return (double)valid / (double)(valid + invalid);
+}
+
+double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attempts) const
+{
+    StateSamplerPtr ss = allocStateSampler();
+    UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
+    uvss->setNrAttempts(attempts);
+
+    State *s1 = allocState();
+    State *s2 = allocState();
+
+    std::pair<State*, double> lastValid;
+    lastValid.first = NULL;
+
+    double d = 0.0;
+
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+        if (uvss->sample(s1))
+        {
+            ss->sampleUniform(s2);
+            if (checkMotion(s1, s2, lastValid))
+                d += distance(s1, s2);
+            else
+                d += distance(s1, s2) * lastValid.second;
+        }
+
+    freeState(s2);
+    freeState(s1);
+    delete uvss;
+    return d / (double)attempts;
+}
+
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "State space settings:" << std::endl;
