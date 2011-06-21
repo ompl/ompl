@@ -165,12 +165,16 @@ ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
 
 std::string ompl::machine::getHostname(void)
 {
-    char buffer[1024];
+    static const int BUF_SIZE = 1024;
+    char buffer[BUF_SIZE];
     int len = gethostname(buffer, sizeof(buffer));
     if (len != 0)
         return std::string();
     else
+    {
+        buffer[BUF_SIZE - 1] = '\0';
         return std::string(buffer);
+    }
 }
 
 /// @endcond

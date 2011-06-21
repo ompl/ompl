@@ -34,6 +34,7 @@
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/MagicConstants.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <numeric>
@@ -240,7 +241,6 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
 
 void ompl::base::StateSpace::sanityChecks(void) const
 {
-    static const int N_TESTS = 1000;
     static const double EPS  = std::numeric_limits<float>::epsilon(); // we want to allow for reduced accuracy in computation
     static const double ZERO = std::numeric_limits<double>::epsilon();
 
@@ -250,7 +250,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
         State *s2 = allocState();
         StateSamplerPtr ss = allocStateSampler();
 
-        for (int i = 0 ; i < N_TESTS ; ++i)
+        for (unsigned int i = 0 ; i < magic::TEST_STATE_COUNT ; ++i)
         {
             ss->sampleUniform(s1);
             if (distance(s1, s1) > EPS)
@@ -279,7 +279,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
         State *s3 = allocState();
         StateSamplerPtr ss = allocStateSampler();
 
-        for (int i = 0 ; i < N_TESTS ; ++i)
+        for (unsigned int i = 0 ; i < magic::TEST_STATE_COUNT ; ++i)
         {
             ss->sampleUniform(s1);
             ss->sampleUniform(s2);

@@ -62,13 +62,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            ValidStateSampler(const SpaceInformation *si) : si_(si), attempts_(10), name_("not set")
-            {
-            }
+            ValidStateSampler(const SpaceInformation *si);
 
-            virtual ~ValidStateSampler(void)
-            {
-            }
+            virtual ~ValidStateSampler(void);
 
             /** \brief Get the name of the sampler */
             const std::string& getName(void) const

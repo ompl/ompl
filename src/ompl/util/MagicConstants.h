@@ -82,6 +82,13 @@ namespace ompl
             attempts */
         static const unsigned int VALID_SAMPLE_ATTEMPTS = 100;
 
+
+        /** \brief When multiple states need to be generated as part
+            of the computation of various information (usually through
+            stochastic processes), this parameter controls how many
+            samples are generated. */
+        static const unsigned int TEST_STATE_COUNT = 1000;
+
     }
 }
 
