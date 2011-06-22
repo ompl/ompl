@@ -4,7 +4,6 @@
 #include "ompl/control/planners/syclop/Syclop.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
-#include "ompl/datastructures/NearestNeighbors.h"
 
 namespace ompl
 {
@@ -33,25 +32,14 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            template<template<typename T> class NN>
-            void setNearestNeighbors(void)
-            {
-                nn_.reset(new NN<Motion*>());
-            }
-
             protected:
             virtual Syclop::Motion* initializeTree(const base::State *s);
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions);
             void freeMemory(void);
 
-            double distanceFunction(const Motion* a, const Motion* b) const
-            {
-                return si_->distance(a->state, b->state);
-            }
-
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::vector<Motion*> motions;
             double goalBias_;
         };
     }
