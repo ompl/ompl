@@ -86,7 +86,8 @@ function IsInjected($str)
   <link rel="stylesheet" href="../css/print.css" type="text/css" media="print">
 <!-- define some style elements-->
 <style>
-.err { color: red; }
+.err { color: #f00; }
+textarea { resize: none; }
 </style>	
 <!-- a helper script for vaidating the form-->
 <script language="JavaScript" src="../js/gen_validatorv31.js" type="text/javascript"></script>	
@@ -106,7 +107,7 @@ action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" class="span-11 last">
 <div class="span-5"><input type="text" name="name" value='<?php echo htmlentities($name) ?>' class="span-5 last"></div>
 <div class="push-1 span-5 last"><input type="text" name="email" value='<?php echo htmlentities($visitor_email) ?>' class="span-5 last"></div>
 <label for='message' class="span-11 last">Message:</label>
-<textarea name="message" rows=20 cols=20 class="span-11 last"><?php echo htmlentities($user_message) ?></textarea>
+<textarea name="message" rows=18 cols=20 class="span-11 last"><?php echo htmlentities($user_message) ?></textarea>
 <img src="captcha_code_file.php?rand=<?php echo rand(); ?>" id='captchaimg' ><br>
 <div class="span-11 last"><label for='message'>Enter the code above here :</label></div>
 <div class="span-11 last"><input id="6_letters_code" name="6_letters_code" type="text" class="span-5"></div>

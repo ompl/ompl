@@ -15,7 +15,7 @@ To report a bug, please click <a href="http://sourceforge.net/tracker/?group_id=
 
 \htmlonly</div><div class="span-11 last">
 <h2>Contact form</h2>
-<iframe src="php/html-contact-form.php" width="100%" height="500"></iframe></div>
+<iframe src="php/html-contact-form.php" width="100%" height="540"></iframe></div>
 \endhtmlonly
 
 */
