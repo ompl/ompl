@@ -10,7 +10,7 @@
 - If interested in using Python, make sure to read \ref python "the documentation for the python bindings".
 - Check the \ref FAQ "answers to Frequently Asked Questions".
 - Get more information about \ref education "using OMPL for educational purposes".
-- \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
+- Take a look at \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
 - Read the \ref styleGuide "OMPL style guide" for contributions.
 .
 

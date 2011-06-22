@@ -75,7 +75,12 @@ namespace ompl
                 EXPECT_NEAR(s1.distance(s1), 0.0, eps_);
                 s2.random();
                 if (s1 != s2)
-                    EXPECT_TRUE(s1.distance(s2) > 0.0);
+                {
+                    double d12 = s1.distance(s2);
+                    EXPECT_TRUE(d12 > 0.0);
+                    double d21 = s2.distance(s1);
+                    EXPECT_NEAR(d12, d21, eps_);
+                }
             }
         }
 

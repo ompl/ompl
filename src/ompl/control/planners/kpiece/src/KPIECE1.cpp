@@ -94,15 +94,20 @@ void ompl::control::KPIECE1::freeMotion(Motion *motion)
 
 bool ompl::control::KPIECE1::CloseSamples::consider(Grid::Cell *cell, Motion *motion, double distance)
 {
-    if (samples.size() < maxSize)
+    if (samples.empty())
     {
         CloseSample cs(cell, motion, distance);
         samples.insert(cs);
         return true;
     }
+    // if the sample we're considering is closer to the goal than the worst sample in the
+    // set of close samples, we include it
     if (samples.rbegin()->distance > distance)
     {
-        samples.erase(--samples.end());
+        // if the inclusion would go above the maximum allowed size,
+        // remove the last element
+        if (samples.size() >= maxSize)
+            samples.erase(--samples.end());
         CloseSample cs(cell, motion, distance);
         samples.insert(cs);
         return true;
@@ -117,14 +122,11 @@ bool ompl::control::KPIECE1::CloseSamples::selectMotion(Motion* &smotion, Grid::
     {
         scell = samples.begin()->cell;
         smotion = samples.begin()->motion;
-        // average the highest & lowest distances and multiply by 0.9(09)
-        double d = (samples.begin()->distance + samples.rbegin()->distance) / 2.2;
+        // average the highest & lowest distances and multiply by 1.1
+        // (make the distance appear artificially longer)
+        double d = (samples.begin()->distance + samples.rbegin()->distance) * 0.55;
         samples.erase(samples.begin());
-        if (samples.rbegin()->distance < d)
-        {
-            CloseSample cs(scell, smotion, d);
-            samples.insert(cs);
-        }
+        consider(scell, smotion, d);
         return true;
     }
     return false;
@@ -142,8 +144,7 @@ unsigned int ompl::control::KPIECE1::findNextMotion(const std::vector<Grid::Coor
 bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                       *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion     *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
 
     if (!goal)
     {

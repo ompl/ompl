@@ -2,6 +2,16 @@
 
 \page changelog Changelog
 
+\section june_15_2011 June 15, 2011
+    - Improvements to control::KPIECE1, so that it considers goal biasing more appropriately
+    - Move code for extracting machine properties from util/ to benchmark/
+    - Add sanity checks for state manifolds
+
+\section june_8_2011 June 8, 2011
+    - Added representation of probability density functions (PDF)
+    - Added getType() for Goal and replaced getType() for planners by getSpecs()
+    - Documentation fixes
+
 \section june_3_2011 June 3, 2011
     - Added notion of probability of success for goals
     - Added initial version of RRTstar contribution

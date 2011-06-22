@@ -38,6 +38,7 @@
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/MagicConstants.h"
 #include <queue>
 #include <cassert>
 
@@ -295,13 +296,95 @@ ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSa
         return ValidStateSamplerPtr(new UniformValidStateSampler(this));
 }
 
+double ompl::base::SpaceInformation::probabilityOfValidState(unsigned int attempts) const
+{
+    unsigned int valid = 0;
+    unsigned int invalid = 0;
+
+    StateSamplerPtr ss = allocStateSampler();
+    State *s = allocState();
+
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+    {
+        ss->sampleUniform(s);
+        if (isValid(s))
+            ++valid;
+        else
+            ++invalid;
+    }
+
+    freeState(s);
+
+    return (double)valid / (double)(valid + invalid);
+}
+
+double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attempts) const
+{
+    StateSamplerPtr ss = allocStateSampler();
+    UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
+    uvss->setNrAttempts(attempts);
+
+    State *s1 = allocState();
+    State *s2 = allocState();
+
+    std::pair<State*, double> lastValid;
+    lastValid.first = NULL;
+
+    double d = 0.0;
+    unsigned int count = 0;
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+        if (uvss->sample(s1))
+        {
+            ++count;
+            ss->sampleUniform(s2);
+            if (checkMotion(s1, s2, lastValid))
+                d += distance(s1, s2);
+            else
+                d += distance(s1, s2) * lastValid.second;
+        }
+
+    freeState(s2);
+    freeState(s1);
+    delete uvss;
+
+    if (count > 0)
+        return d / (double)count;
+    else
+        return 0.0;
+}
+
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
-    out << "State space settings:" << std::endl;
+    out << "Settings for the state space '" << stateSpace_->getName() << "'" << std::endl;
     out << "  - dimension: " << stateSpace_->getDimension() << std::endl;
-    out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;
     out << "  - state validity check resolution: " << (getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
     out << "  - valid segment count factor: " << stateSpace_->getValidSegmentCountFactor() << std::endl;
     out << "  - state space:" << std::endl;
     stateSpace_->printSettings(out);
+}
+
+void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
+{
+    out << "Properties of the state space '" << stateSpace_->getName() << "'" << std::endl;
+    out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;
+    if (isSetup())
+    {
+        bool result = true;
+        try
+        {
+            stateSpace_->sanityChecks();
+        }
+        catch(Exception &e)
+        {
+            result = false;
+            out << std::endl << "  - SANITY CHECKS FOR STATE SPACE ***DID NOT PASS*** (" << e.what() << ")" << std::endl << std::endl;
+            msg_.error(e.what());
+        }
+        if (result)
+            out << "  - sanity checks for state space passed" << std::endl;
+        out << "  - probability of valid states: " << probabilityOfValidState(magic::TEST_STATE_COUNT) << std::endl;
+        out << "  - average length of a valid motion: " << averageValidMotionLength(magic::TEST_STATE_COUNT) << std::endl;
+    }
+    else
+        out << "Call setup() before to get more information" << std::endl;
 }

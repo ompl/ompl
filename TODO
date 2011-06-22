@@ -1,3 +1,5 @@
 * Merge files for tests for util/ & tests for datastructures/.
 * Expose ODE extension through Python bindings.
 * Make PlannerData use BGL
+* Make projections use ublas (boost)
+* Start another 'concept' for ompl -- something that has algorithms for the analysis of spaces to plan in: Identify good lengths of path segments, good discretizations of control sets, automatic setting of parameters (projection cell sizes?), identification of good random projections

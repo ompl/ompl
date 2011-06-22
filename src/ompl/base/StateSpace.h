@@ -131,22 +131,30 @@ namespace ompl
             /** @name Functionality specific to state spaces (to be implemented by derived state spaces)
                 @{ */
 
-            /** \brief Get the dimension of the space */
+            /** \brief Get the dimension of the space (not the dimension of the surrounding ambient space) */
             virtual unsigned int getDimension(void) const = 0;
 
-            /** \brief Get the maximum value a call to distance() can return */
+            /** \brief Get the maximum value a call to distance() can return (or an upper bound).
+                For unbounded state spaces, this function can return infinity.
+
+                \note Tight upper bounds are preferred because the value of the extent is used in
+                the automatic computation of parameters for planning. If the bounds are less tight,
+                the automatically computed parameters will be less useful.*/
             virtual double getMaximumExtent(void) const = 0;
 
-            /** \brief Bring the state within the bounds of the state space */
+            /** \brief Bring the state within the bounds of the state space. For unbounded spaces this
+                function can be a no-op. */
             virtual void enforceBounds(State *state) const = 0;
 
-            /** \brief Check if a state is inside the bounding box */
+            /** \brief Check if a state is inside the bounding box. For unbounded spaces this function
+                can always return true. */
             virtual bool satisfiesBounds(const State *state) const = 0;
 
             /** \brief Copy a state to another. The memory of source and destination should NOT overlap. */
             virtual void copyState(State *destination, const State *source) const = 0;
 
-            /** \brief Computes distance to between two states. This value will always be between 0 and getMaximumExtent() */
+            /** \brief Computes distance to between two states. This function satisfies the properties of a
+                metric and its return value will always be between 0 and getMaximumExtent() */
             virtual double distance(const State *state1, const State *state2) const = 0;
 
             /** \brief Many states contain a number of double values. This function provides a means to get the
@@ -262,7 +270,7 @@ namespace ompl
             virtual void sanityChecks(void) const;
 
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
-            static void diagram(std::ostream &out);
+            static void Diagram(std::ostream &out);
 
             /** @} */
 

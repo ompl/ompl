@@ -105,6 +105,7 @@ void ompl::msg::Interface::setPrefix(const std::string &prefix)
     char buf##_chr[size];                                                \
     vsnprintf(buf##_chr, sizeof(buf##_chr), m, __ap);                        \
     va_end(__ap);                                                        \
+    buf##_chr[size - 1] = '\0';                                                \
     std::string buf(buf##_chr)
 
 void ompl::msg::Interface::debug(const std::string &text) const

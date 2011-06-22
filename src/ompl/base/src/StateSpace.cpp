@@ -34,6 +34,7 @@
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/MagicConstants.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <numeric>
@@ -216,7 +217,7 @@ bool ompl::base::StateSpace::includes(const StateSpacePtr &other) const
     return StateSpaceIncludes(this, other.get());
 }
 
-void ompl::base::StateSpace::diagram(std::ostream &out)
+void ompl::base::StateSpace::Diagram(std::ostream &out)
 {
     boost::mutex::scoped_lock smLock(STATE_SPACE_LIST_LOCK);
     out << "digraph StateSpaces {" << std::endl;
@@ -240,7 +241,6 @@ void ompl::base::StateSpace::diagram(std::ostream &out)
 
 void ompl::base::StateSpace::sanityChecks(void) const
 {
-    static const int N_TESTS = 1000;
     static const double EPS  = std::numeric_limits<float>::epsilon(); // we want to allow for reduced accuracy in computation
     static const double ZERO = std::numeric_limits<double>::epsilon();
 
@@ -250,15 +250,21 @@ void ompl::base::StateSpace::sanityChecks(void) const
         State *s2 = allocState();
         StateSamplerPtr ss = allocStateSampler();
 
-        for (int i = 0 ; i < N_TESTS ; ++i)
+        for (unsigned int i = 0 ; i < magic::TEST_STATE_COUNT ; ++i)
         {
             ss->sampleUniform(s1);
             if (distance(s1, s1) > EPS)
                 throw Exception("Distance from a state to itself should be 0");
             ss->sampleUniform(s2);
             if (!equalStates(s1, s2))
-                if (distance(s1, s2) < ZERO)
+            {
+                double d12 = distance(s1, s2);
+                if (d12 < ZERO)
                     throw Exception("Distance between different states should be above 0");
+                double d21 = distance(s2, s1);
+                if (fabs(d12 - d21) > EPS)
+                    throw Exception("The distance function should be symmetric");
+            }
         }
 
         freeState(s1);
@@ -273,7 +279,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
         State *s3 = allocState();
         StateSamplerPtr ss = allocStateSampler();
 
-        for (int i = 0 ; i < N_TESTS ; ++i)
+        for (unsigned int i = 0 ; i < magic::TEST_STATE_COUNT ; ++i)
         {
             ss->sampleUniform(s1);
             ss->sampleUniform(s2);
@@ -303,8 +309,6 @@ void ompl::base::StateSpace::sanityChecks(void) const
         freeState(s2);
         freeState(s3);
     }
-
-    msg_.inform("Sanity checks passed");
 }
 
 bool ompl::base::StateSpace::hasDefaultProjection(void) const
@@ -323,7 +327,7 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateSpace::getDefaultProjection(
         return getProjection(DEFAULT_PROJECTION_NAME);
     else
     {
-        msg_.error("No default projection is set");
+        msg_.error("No default projection is set. Perhaps setup() needs to be called");
         return ProjectionEvaluatorPtr();
     }
 }
