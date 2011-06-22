@@ -4,7 +4,7 @@
 
 ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) :
     Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
-    controlSampler_(siC_->allocControlSampler()), goalBias_(0.05)
+    controlSampler_(siC_->allocControlSampler())
 {
 }
 

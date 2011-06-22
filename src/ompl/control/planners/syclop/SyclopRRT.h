@@ -40,7 +40,6 @@ namespace ompl
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
             std::vector<Motion*> motions;
-            double goalBias_;
         };
     }
 }
