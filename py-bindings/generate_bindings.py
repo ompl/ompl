@@ -66,6 +66,16 @@ class ompl_base_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        # A C++ call like "foo.printProperties(std::cout)" will be replaced with
+        # something more pythonesque: "print foo.properties()"
+        default_replacement['printProperties'] = ('def("properties", &__printProperties)', """
+        std::string __printProperties(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printProperties(s);
+            return s.str();
+        }
+        """)
         # A C++ call like "foo.printProjections(std::cout)" will be replaced with
         # something more pythonesque: "print foo.projections()"
         replacement['printProjections'] = ('def("projections", &__printProjections)', """
@@ -211,6 +221,8 @@ class ompl_base_generator_t(code_generator_t):
             'virtual void print(std::ostream&) const {}')
         # make settings printable
         self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
+        # make properties printable
+        self.replace_member_functions(self.ompl_ns.member_functions('printProperties'))
         # make states printable
         self.replace_member_functions(self.ompl_ns.member_functions('printState'))
         # make list of available projections printable
