@@ -2,8 +2,9 @@
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 
-ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) : Syclop(si,d),
-    sampler_(si_->allocStateSampler()), controlSampler_(siC_->allocControlSampler()), goalBias_(0.05)
+ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) :
+    Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
+    controlSampler_(siC_->allocControlSampler()), goalBias_(0.05)
 {
 }
 

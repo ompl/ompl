@@ -21,7 +21,7 @@ namespace ompl
 
             public:
 
-            Syclop(const SpaceInformationPtr &si, Decomposition &d);
+            Syclop(const SpaceInformationPtr &si, Decomposition &d, const std::string& name);
             virtual ~Syclop();
             virtual void setup(void);
             virtual void clear(void);
