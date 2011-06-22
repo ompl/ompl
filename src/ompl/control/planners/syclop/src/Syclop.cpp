@@ -372,7 +372,7 @@ void ompl::control::Syclop::computeLead(void)
             ++adj.numLeadInclusions;
     }
     std::cout << "computed lead: ";
-    for (int i = 0; i < lead.size(); ++i)
+    for (std::size_t i = 0; i < lead.size(); ++i)
         std::cout << lead[i] << " ";
     std::cout << std::endl;
 }
