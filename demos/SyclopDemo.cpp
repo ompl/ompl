@@ -8,6 +8,7 @@
 #include <ompl/control/planners/syclop/GridDecomposition.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/util/RandomNumbers.h>
+#include <ompl/util/Time.h>
 #define BOOST_NO_HASH
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -107,17 +108,24 @@ int main(void)
 
     oc::SpaceInformationPtr si(new oc::SpaceInformation(manifold, controlSpace));
     si->setStateValidityChecker(boost::bind(&isStateValid, si.get(), _1));
+    si->setMinMaxControlDuration(1, 10);
+    si->setPropagationStepSize(0.1);
     si->setup();
+
+    oc::SyclopRRT planner(si, grid);
 
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
     pdef->setStartAndGoalStates(init, goal, 0.05);
-    oc::SyclopRRT planner(si, grid);
     planner.setProblemDefinition(pdef);
     planner.setup();
-    if (planner.solve(90.0))
-        std::cerr << "solved" << std::endl;
-    else
-        std::cerr << "unsolved" << std::endl;
+
+    ompl::time::point startTime = ompl::time::now();
+    bool solved = planner.solve(90.0);
+    double duration = ompl::time::seconds(ompl::time::now()-startTime);
+    ob::PlannerData pdata;
+    planner.getPlannerData(pdata);
+    std::cerr << planner.getName() << " " << solved << " ";
+    std::cerr << duration << " " << pdata.states.size() << std::endl;
 
     return 0;
 }
