@@ -20,16 +20,6 @@ namespace ompl
             virtual void setup(void);
             virtual void clear(void);
 
-            void setGoalBias(double goalBias)
-            {
-                goalBias_ = goalBias;
-            }
-
-            double getGoalBias(void) const
-            {
-                return goalBias_;
-            }
-
             virtual void getPlannerData(base::PlannerData &data) const;
 
             protected:
