@@ -10,7 +10,7 @@ configure_file("${VERSION_DIR}/config.h.in" "${VERSION_DIR}/config.h")
 # recursively find all *.cpp files that     #
 # correspond to the basic ompl library      #
 #############################################
-file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp benchmark/*.cpp)
+file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp tools/*.cpp)
 
 
 

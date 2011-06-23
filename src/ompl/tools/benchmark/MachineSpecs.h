@@ -34,58 +34,27 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/samplers/GaussianValidStateSampler.h"
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/tools/config/MagicConstants.h"
+#ifndef OMPL_TOOLS_BENCHMARK_MACHINE_SPECS_
+#define OMPL_TOOLS_BENCHMARK_MACHINE_SPECS_
 
-ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocStateSampler()), stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
-{
-    name_ = "gaussian";
-}
+#include <string>
 
-bool ompl::base::GaussianValidStateSampler::sample(State *state)
+namespace ompl
 {
-    bool result = false;
-    unsigned int attempts = 0;
-    State *temp = si_->allocState();
-    do
+
+    /** \brief This namespace contains routines that read specifications of the machine in use */
+    namespace machine
     {
-        sampler_->sampleUniform(state);
-        bool v1 = si_->isValid(state);
-        sampler_->sampleGaussian(temp, state, stddev_);
-        bool v2 = si_->isValid(temp);
-        if (v1 != v2)
-        {
-            if (v2)
-                si_->copyState(state, temp);
-            result = true;
-        }
-        ++attempts;
-    } while (!result && attempts < attempts_);
-    si_->freeState(temp);
-    return result;
+
+        /** \brief Amount of memory used, in bytes */
+        typedef unsigned long long MemUsage_t;
+
+        /** \brief Get the amount of memory the current process is using. This should work on major platforms (Windows, Mac OS, Linux) */
+        MemUsage_t getProcessMemoryUsage(void);
+
+        /** \brief Get the hostname of the machine in use */
+        std::string getHostname(void);
+    }
 }
 
-bool ompl::base::GaussianValidStateSampler::sampleNear(State *state, const State *near, const double distance)
-{
-    bool result = false;
-    unsigned int attempts = 0;
-    State *temp = si_->allocState();
-    do
-    {
-        sampler_->sampleUniformNear(state, near, distance);
-        bool v1 = si_->isValid(state);
-        sampler_->sampleGaussian(temp, state, distance);
-        bool v2 = si_->isValid(temp);
-        if (v1 != v2)
-        {
-            if (v2)
-                si_->copyState(state, temp);
-            result = true;
-        }
-        ++attempts;
-    } while (!result && attempts < attempts_);
-    si_->freeState(temp);
-    return result;
-}
+#endif

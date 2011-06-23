@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include "ompl/benchmark/MachineSpecs.h"
+#include "ompl/tools/benchmark/MachineSpecs.h"
 #include <cstring>
 #include <cstdlib>
 

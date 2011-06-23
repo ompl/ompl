@@ -38,7 +38,7 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include "ompl/datastructures/Grid.h"
 #include <cmath>
 #include <cstring>

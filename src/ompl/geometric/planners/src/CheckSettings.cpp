@@ -37,17 +37,13 @@
 #include "ompl/geometric/planners/CheckSettings.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 
 void ompl::geometric::checkMotionLength(const base::Planner *planner, double &length)
 {
-    if (length < std::numeric_limits<double>::epsilon())
-    {
-        length = planner->getSpaceInformation()->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-        msg::Interface msg(planner->getName());
-        msg.inform("Maximum motion extension distance is assumed to be %f", length);
-    }
+    SelfConfig sc(planner->getSpaceInformation(), planner->getName());
+    sc.configurePlannerRange(length);
 }
 
 void ompl::geometric::checkProjectionEvaluator(const base::Planner *planner, base::ProjectionEvaluatorPtr &proj)

@@ -34,7 +34,7 @@
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <numeric>

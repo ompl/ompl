@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/benchmark/Benchmark.h"
-#include "ompl/benchmark/MachineSpecs.h"
+#include "ompl/tools/benchmark/Benchmark.h"
+#include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Time.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>

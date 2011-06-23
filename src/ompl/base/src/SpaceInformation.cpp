@@ -38,7 +38,7 @@
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <queue>
 #include <cassert>
 

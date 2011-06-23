@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/spaces/SE2StateSpace.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <cstring>
 
 ompl::base::State* ompl::base::SE2StateSpace::allocState(void) const

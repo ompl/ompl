@@ -34,7 +34,7 @@
 
 /* Author: The Internet */
 
-#include "ompl/benchmark/MachineSpecs.h"
+#include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Console.h"
 
 /// @cond IGNORE

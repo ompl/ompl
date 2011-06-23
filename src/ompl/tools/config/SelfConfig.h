@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,38 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BENCHMARK_MACHINE_SPECS_
-#define OMPL_BENCHMARK_MACHINE_SPECS_
+#ifndef OMPL_TOOLS_SELF_CONFIG_
+#define OMPL_TOOLS_SELF_CONFIG_
 
+#include "ompl/config.h"
+#include "ompl/base/SpaceInformation.h"
+#include <iostream>
 #include <string>
 
 namespace ompl
 {
 
-    /** \brief This namespace contains routines that read specifications of the machine in use */
-    namespace machine
+    class SelfConfig
     {
+    public:
 
-        /** \brief Amount of memory used, in bytes */
-        typedef unsigned long long MemUsage_t;
+        SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
+	
+        double getProbabilityOfValidState(void) const;
+        double getAverageValidMotionLength(void) const;
+        void configureValidStateSamplingAttempts(unsigned int &attempts) const;
+        void configurePlannerRange(double &range) const;
+	void print(std::ostream &out = std::cout) const;	
+	
+    private:
+	
+	/// @cond IGNORE
+        class SelfConfigImpl;
 
-        /** \brief Get the amount of memory the current process is using. This should work on major platforms (Windows, Mac OS, Linux) */
-        MemUsage_t getProcessMemoryUsage(void);
-
-        /** \brief Get the hostname of the machine in use */
-        std::string getHostname(void);
-    }
+        mutable SelfConfigImpl *impl_;
+	std::string             context_;
+	/// @endcond
+    };
 }
 
 #endif
