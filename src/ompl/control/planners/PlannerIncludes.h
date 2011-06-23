@@ -41,6 +41,5 @@
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/PathControl.h"
 #include "ompl/util/RandomNumbers.h"
-#include "ompl/control/planners/CheckSettings.h"
 
 #endif

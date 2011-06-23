@@ -36,6 +36,7 @@
 
 #include "ompl/control/planners/kpiece/KPIECE1.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include "ompl/util/Exception.h"
 #include <limits>
 #include <cassert>
@@ -43,7 +44,8 @@
 void ompl::control::KPIECE1::setup(void)
 {
     Planner::setup();
-    checkProjectionEvaluator(this, projectionEvaluator_);
+    SelfConfig sc(si_, getName());
+    sc.configureProjectionEvaluator(projectionEvaluator_);
 
     if (badScoreFactor_ < std::numeric_limits<double>::epsilon() || badScoreFactor_ > 1.0)
         throw Exception("Bad cell score factor must be in the range (0,1]");

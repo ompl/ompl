@@ -36,7 +36,7 @@
 
 #include "ompl/base/spaces/RealVectorStateProjections.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <cstring>
 
 /// @cond IGNORE

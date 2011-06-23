@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BENCHMARK_BENCHMARK_
-#define OMPL_BENCHMARK_BENCHMARK_
+#ifndef OMPL_TOOLS_BENCHMARK_BENCHMARK_
+#define OMPL_TOOLS_BENCHMARK_BENCHMARK_
 
 #include "ompl/geometric/SimpleSetup.h"
 #include "ompl/control/SimpleSetup.h"

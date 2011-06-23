@@ -37,13 +37,15 @@
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread/thread.hpp>
 #include <limits>
 
 void ompl::geometric::pRRT::setup(void)
 {
     Planner::setup();
-    checkMotionLength(this, maxDistance_);
+    SelfConfig sc(si_, getName());
+    sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
