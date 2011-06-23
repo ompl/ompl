@@ -151,8 +151,8 @@ namespace ompl
             const SpaceInformation* siC_;
             Decomposition &decomp;
             RegionGraph graph;
-            //instead of a map, consider holding Adjacency& in Motion object
-            std::map<std::pair<int,int>, Adjacency&> regionsToEdge;
+            //instead of a map, consider holding Adjacency* in Motion object
+            std::map<std::pair<int,int>, Adjacency*> regionsToEdge;
             CoverageGrid covGrid;
             RNG rng;
             int startRegion;
