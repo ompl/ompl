@@ -17,12 +17,14 @@ void ompl::control::Syclop::setup(void)
     base::Planner::setup();
     buildGraph();
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
+    /* TODO: Handle multiple start states. */
     base::State *start = pdef->getStartState(0);
-    /* Here we are temporarily assuming that the goal is of type GoalState.
-     * This is to find a Region corresponding to the goal. */
-    base::State *goal = pdef->getGoal()->as<base::GoalState>()->state;
     startRegion = decomp.locateRegion(start);
+    /* Here we are assuming that we have a GoalSampleableRegion. */
+    base::State* goal = si_->allocState();
+    pdef->getGoal()->as<base::GoalSampleableRegion>()->sampleGoal(goal);
     goalRegion = decomp.locateRegion(goal);
+    si_->freeState(goal);
     Motion* startMotion = initializeTree(start);
     graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
@@ -132,7 +134,7 @@ bool ompl::control::Syclop::solve(double solveTime)
 
 void ompl::control::Syclop::printRegions(void)
 {
-    for (int i = 0; i < decomp.getNumRegions(); ++i)
+    /*for (int i = 0; i < decomp.getNumRegions(); ++i)
     {
         Region& r = graph[boost::vertex(i, graph)];
         std::cout << "Region " << r.index << ": ";
@@ -145,12 +147,12 @@ void ompl::control::Syclop::printRegions(void)
         std::cout << "weight=" << r.weight << ",";
         std::cout << "alpha=" << r.alpha << "";
         std::cout << std::endl;
-    }
+    }*/
 }
 
 void ompl::control::Syclop::printEdges(void)
 {
-    EdgeIter ei, end;
+    /*EdgeIter ei, end;
     VertexIndexMap index = get(boost::vertex_index, graph);
     for (boost::tie(ei,end) = boost::edges(graph); ei != end; ++ei)
     {
@@ -159,7 +161,7 @@ void ompl::control::Syclop::printEdges(void)
         std::cout << "numCells=" << a.covGridCells.size() << ",";
         std::cout << "nselects=" << a.numSelections << ",";
         std::cout << "cost=" << a.cost << std::endl;
-    }
+    }*/
 }
 
 void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
@@ -199,10 +201,9 @@ void ompl::control::Syclop::setupRegionEstimates(void)
 {
     std::vector<int> numTotal(decomp.getNumRegions(), 0);
     std::vector<int> numValid(decomp.getNumRegions(), 0);
-    base::SpaceInformationPtr si = getSpaceInformation();
-    base::StateValidityCheckerPtr checker = si->getStateValidityChecker();
-    base::StateSamplerPtr sampler = si->allocStateSampler();
-    base::State *s = si->allocState();
+    base::StateValidityCheckerPtr checker = si_->getStateValidityChecker();
+    base::StateSamplerPtr sampler = si_->allocStateSampler();
+    base::State *s = si_->allocState();
     for (int i = 0; i < NUM_FREEVOL_SAMPLES; ++i)
     {
         sampler->sampleUniform(s);
@@ -211,7 +212,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
             ++numValid[rid];
         ++numTotal[rid];
     }
-    si->freeState(s);
+    si_->freeState(s);
 
     for (int i = 0; i < decomp.getNumRegions(); ++i)
     {

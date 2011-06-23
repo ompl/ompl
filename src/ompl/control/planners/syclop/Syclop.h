@@ -81,7 +81,7 @@ namespace ompl
 
             static const int NUM_FREEVOL_SAMPLES = 10000;
             static const double PROB_SHORTEST_PATH = 0.95; //0.95
-            static const int COVGRID_LENGTH = 27;
+            static const int COVGRID_LENGTH = 81;
             static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
             static const int NUM_AVAIL_EXPLORATIONS = 100; //100
             static const int NUM_TREE_SELECTIONS = 50; //50
