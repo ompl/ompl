@@ -3,6 +3,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/State.h>
+#include <ompl/control/planners/rrt/RRT.h>
 #include <ompl/control/planners/syclop/Syclop.h>
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
@@ -112,19 +113,20 @@ int main(void)
     si->setPropagationStepSize(0.1);
     si->setup();
 
-    oc::SyclopRRT planner(si, grid);
+    ob::PlannerPtr planner(new oc::RRT(si));
+    //ob::PlannerPtr planner(new oc::SyclopRRT(si,grid));
 
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
     pdef->setStartAndGoalStates(init, goal, 0.05);
-    planner.setProblemDefinition(pdef);
-    planner.setup();
+    planner->setProblemDefinition(pdef);
+    planner->setup();
 
     ompl::time::point startTime = ompl::time::now();
-    bool solved = planner.solve(90.0);
+    bool solved = planner->solve(120.0);
     double duration = ompl::time::seconds(ompl::time::now()-startTime);
     ob::PlannerData pdata;
-    planner.getPlannerData(pdata);
-    std::cerr << planner.getName() << " " << solved << " ";
+    planner->getPlannerData(pdata);
+    std::cerr << planner->getName() << " " << solved << " ";
     std::cerr << duration << " " << pdata.states.size() << std::endl;
 
     return 0;
