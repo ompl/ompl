@@ -50,84 +50,86 @@ namespace ompl
 
     class SelfConfig::SelfConfigImpl
     {
-	friend class SelfConfig;
-	
-    public:
-	
-	SelfConfigImpl(const base::SpaceInformationPtr &si) :
-	    si_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
-	{
-	}
-	
-	double getProbabilityOfValidState(void)
-	{
-	    checkSetup();
-	    if (probabilityOfValidState_ < 0.0)
-		probabilityOfValidState_ = si_->probabilityOfValidState(magic::TEST_STATE_COUNT);
-	    return probabilityOfValidState_;
-	}
-	
-	double getAverageValidMotionLength(void)
-	{
-	    checkSetup();
-	    if (averageValidMotionLength_ < 0.0)
-		averageValidMotionLength_ = si_->averageValidMotionLength(magic::TEST_STATE_COUNT);	    
-	    return averageValidMotionLength_;
-	}
+        friend class SelfConfig;
 
-	void configureValidStateSamplingAttempts(unsigned int &attempts)
-	{
-	    static const double log_of_0_9 = -0.105360516;
-	    if (attempts == 0)
-	    {
-		double p = 1.0 - getProbabilityOfValidState();
-		if (p > 0.0)
-		    attempts = std::min((unsigned int)std::max((int)ceil(log_of_0_9 / log(p)), 1),
-					magic::MAX_VALID_SAMPLE_ATTEMPTS);
-		else
-		    attempts = 1;
-		msg_.debug("Number of attempts made at sampling a valid state in space %s is computed to be %u",
-			   si_->getStateSpace()->getName().c_str(), attempts);
-	    }
-	}
-	
-	void configurePlannerRange(double &range)
-	{
-	    if (range < std::numeric_limits<double>::epsilon())
-	    {
-		range = getAverageValidMotionLength() / 2.0;
-		double b = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-		if (range < std::numeric_limits<double>::epsilon())
-		    range = b;
-		else
-		    range = std::min(range, b);
-		msg_.debug("Planner range detected to be %lf", range);
-	    }
-	}
-	
-	void print(std::ostream &out)
-	{
-	    out << "Configuration parameters for space '" << si_->getStateSpace()->getName() << "'" << std::endl;
-	}
-	
+    public:
+
+        SelfConfigImpl(const base::SpaceInformationPtr &si) :
+            si_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
+        {
+        }
+
+        double getProbabilityOfValidState(void)
+        {
+            checkSetup();
+            if (probabilityOfValidState_ < 0.0)
+                probabilityOfValidState_ = si_->probabilityOfValidState(magic::TEST_STATE_COUNT);
+            return probabilityOfValidState_;
+        }
+
+        double getAverageValidMotionLength(void)
+        {
+            checkSetup();
+            if (averageValidMotionLength_ < 0.0)
+                averageValidMotionLength_ = si_->averageValidMotionLength(magic::TEST_STATE_COUNT);
+            return averageValidMotionLength_;
+        }
+
+        void configureValidStateSamplingAttempts(unsigned int &attempts)
+        {
+            static const double log_of_0_9 = -0.105360516;
+            if (attempts == 0)
+            {
+                double p = 1.0 - getProbabilityOfValidState();
+                if (p > 0.0)
+                    attempts = std::min((unsigned int)std::max((int)ceil(log_of_0_9 / log(p)), 1),
+                                        magic::MAX_VALID_SAMPLE_ATTEMPTS);
+                else
+                    attempts = 1;
+                msg_.debug("Number of attempts made at sampling a valid state in space %s is computed to be %u",
+                           si_->getStateSpace()->getName().c_str(), attempts);
+            }
+        }
+
+        void configurePlannerRange(double &range)
+        {
+            if (range < std::numeric_limits<double>::epsilon())
+            {
+                range = getAverageValidMotionLength() / 2.0;
+                double b = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+                if (range < std::numeric_limits<double>::epsilon())
+                    range = b;
+                else
+                    range = std::min(range, b);
+                msg_.debug("Planner range detected to be %lf", range);
+            }
+        }
+
+        void print(std::ostream &out)
+        {
+            out << "Configuration parameters for space '" << si_->getStateSpace()->getName() << "'" << std::endl;
+            out << "   - probability of a valid state is " << probabilityOfValidState_ << std::endl;
+            out << "   - average length of a valid motion is " << averageValidMotionLength_ << std::endl;
+        }
+
     private:
-	
-	void checkSetup(void)
-	{
-	    if (!si_->isSetup())
-	    {
-		si_->setup();
-		probabilityOfValidState_ = -1.0;
-		averageValidMotionLength_ = -1.0;
-	    }
-	}
+
+        void checkSetup(void)
+        {
+            if (!si_->isSetup())
+            {
+                si_->setup();
+                probabilityOfValidState_ = -1.0;
+                averageValidMotionLength_ = -1.0;
+            }
+        }
 
         base::SpaceInformationPtr si_;
         double                    probabilityOfValidState_;
-        double                    averageValidMotionLength_;	
-		
-	boost::mutex              lock_;
-	msg::Interface            msg_;
+        double                    averageValidMotionLength_;
+
+        boost::mutex              lock_;
+        msg::Interface            msg_;
     };
 }
 
@@ -144,20 +146,20 @@ ompl::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::str
     ConfigMap::const_iterator it = SMAP.find(si.get());
 
     if (it != SMAP.end())
-	impl_ = it->second.get();
+        impl_ = it->second.get();
     else
     {
-	impl_ = new SelfConfigImpl(si);
-	SMAP[si.get()].reset(impl_);
+        impl_ = new SelfConfigImpl(si);
+        SMAP[si.get()].reset(impl_);
     }
 }
 
 /* ------------------------------------------------------------------------ */
 
-#define SET_CONTEXT						\
-    boost::mutex::scoped_lock iLock(impl_->lock_);		\
+#define SET_CONTEXT                                                \
+    boost::mutex::scoped_lock iLock(impl_->lock_);                \
     impl_->msg_.setPrefix(context_)
-    
+
 double ompl::SelfConfig::getProbabilityOfValidState(void) const
 {
     SET_CONTEXT;

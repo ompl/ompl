@@ -50,21 +50,21 @@ namespace ompl
     public:
 
         SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
-	
+
         double getProbabilityOfValidState(void) const;
         double getAverageValidMotionLength(void) const;
         void configureValidStateSamplingAttempts(unsigned int &attempts) const;
         void configurePlannerRange(double &range) const;
-	void print(std::ostream &out = std::cout) const;	
-	
+        void print(std::ostream &out = std::cout) const;
+
     private:
-	
-	/// @cond IGNORE
+
+        /// @cond IGNORE
         class SelfConfigImpl;
 
         mutable SelfConfigImpl *impl_;
-	std::string             context_;
-	/// @endcond
+        std::string             context_;
+        /// @endcond
     };
 }
 
