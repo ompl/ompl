@@ -102,7 +102,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
                     if (newRegion != oldRegion)
                     {
                         avail.insert(newRegion);
-                        Adjacency& adj = regionsToEdge.find(std::pair<int,int>(oldRegion,newRegion))->second;
+                        Adjacency& adj = *regionsToEdge.find(std::pair<int,int>(oldRegion,newRegion))->second;
                         adj.empty = false;
                         ++adj.numSelections;
                         improved |= updateConnectionEstimate(graph[boost::vertex(oldRegion,graph)], graph[boost::vertex(newRegion,graph)], state);
@@ -170,7 +170,7 @@ void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
     adj.numLeadInclusions = 0;
     adj.numSelections = 0;
     std::pair<int,int> regions(r->index, s->index);
-    std::pair<std::pair<int,int>,Adjacency&> mapping(regions, adj);
+    std::pair<std::pair<int,int>,Adjacency*> mapping(regions, &adj);
     regionsToEdge.insert(mapping);
 }
 
@@ -235,7 +235,7 @@ bool ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State 
 bool ompl::control::Syclop::updateConnectionEstimate(const Region& c, const Region& d, const base::State *s)
 {
     const std::pair<int,int> regions(c.index, d.index);
-    Adjacency& adj = regionsToEdge.find(regions)->second;
+    Adjacency& adj = *regionsToEdge.find(regions)->second;
     const int covCell = covGrid.locateRegion(s);
     if (adj.covGridCells.count(covCell) == 1)
         return false;
@@ -368,7 +368,7 @@ void ompl::control::Syclop::computeLead(void)
     }
     for (std::size_t i = 0; i < lead.size()-1; ++i)
     {
-        Adjacency& adj = regionsToEdge.find(std::pair<int,int>(lead[i],lead[i+1]))->second;
+        Adjacency& adj = *regionsToEdge.find(std::pair<int,int>(lead[i],lead[i+1]))->second;
         if (adj.empty)
             ++adj.numLeadInclusions;
     }
