@@ -67,6 +67,9 @@ namespace ompl
                 /** \brief ompl::base::TimeStateSpace */
                 STATE_SPACE_TIME        =  6,
 
+                /** \brief ompl::base::DiscreteStateSpace */
+                STATE_SPACE_DISCRETE    =  7,
+
                 /** \brief Number of state space types; To add new types,
                     use values that are larger than the count*/
                 STATE_SPACE_TYPE_COUNT
