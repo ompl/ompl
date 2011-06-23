@@ -89,6 +89,8 @@ namespace ompl
             {
             }
 
+            virtual bool isDiscrete(void) const;
+
             virtual unsigned int getDimension(void) const;
 
             virtual double getMaximumExtent(void) const;

@@ -105,6 +105,14 @@ namespace ompl
             /** \brief Check if the state space is compound */
             virtual bool isCompound(void) const;
 
+            /** \brief Check if the set of states is discrete
+
+                \note In fact, because of limited numerical precision,
+                the representation of all spaces is discrete; this
+                function returns true if the corresponding
+                mathematical object is a discrete one. */
+            virtual bool isDiscrete(void) const;
+
             /** \brief Get the name of the state space */
             const std::string& getName(void) const;
 

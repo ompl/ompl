@@ -69,6 +69,7 @@ TEST(Discrete, Simple)
     base::StateSpacePtr d(new base::DiscreteStateSpace(0, 2));
     base::DiscreteStateSpace &dm = *d->as<base::DiscreteStateSpace>();
     d->setup();
+    d->sanityChecks();
 
     EXPECT_EQ(d->getDimension(), 1);
     EXPECT_EQ(d->getMaximumExtent(), 2);

@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Elizabeth Fudge, Ioan Sucan */
+/* Author: Elizabeth Fudge */
 
 #include "ompl/base/spaces/DiscreteStateSpace.h"
 #include "ompl/util/Exception.h"
@@ -60,6 +60,11 @@ void ompl::base::DiscreteStateSampler::sampleGaussian(State *state, const State 
     state->as<DiscreteStateSpace::StateType>()->value =
         (int)floor(rng_.gaussian(mean->as<DiscreteStateSpace::StateType>()->value, stdDev) + 0.5);
     space_->enforceBounds(state);
+}
+
+bool ompl::base::DiscreteStateSpace::isDiscrete(void) const
+{
+    return true;
 }
 
 unsigned int ompl::base::DiscreteStateSpace::getDimension(void) const
