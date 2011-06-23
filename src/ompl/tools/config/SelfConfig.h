@@ -53,6 +53,8 @@ namespace ompl
 
         double getProbabilityOfValidState(void) const;
         double getAverageValidMotionLength(void) const;
+
+        void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj) const;
         void configureValidStateSamplingAttempts(unsigned int &attempts) const;
         void configurePlannerRange(double &range) const;
         void print(std::ostream &out = std::cout) const;

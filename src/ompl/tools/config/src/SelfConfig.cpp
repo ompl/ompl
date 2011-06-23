@@ -105,6 +105,19 @@ namespace ompl
             }
         }
 
+        void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
+        {
+            checkSetup();
+            if (!proj)
+            {
+                msg_.inform("Attempting to use default projection.");
+                proj = si_->getStateSpace()->getDefaultProjection();
+            }
+            if (!proj)
+                throw Exception(msg_.getPrefix(), "No projection evaluator specified");
+            proj->setup();
+        }
+
         void print(std::ostream &out)
         {
             out << "Configuration parameters for space '" << si_->getStateSpace()->getName() << "'" << std::endl;
@@ -170,6 +183,12 @@ double ompl::SelfConfig::getAverageValidMotionLength(void) const
 {
     SET_CONTEXT;
     return impl_->getAverageValidMotionLength();
+}
+
+void ompl::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj) const
+{
+    SET_CONTEXT;
+    return impl_->configureProjectionEvaluator(proj);
 }
 
 void ompl::SelfConfig::configureValidStateSamplingAttempts(unsigned int &attempts) const

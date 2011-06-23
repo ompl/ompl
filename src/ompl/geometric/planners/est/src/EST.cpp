@@ -36,14 +36,16 @@
 
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
 
 void ompl::geometric::EST::setup(void)
 {
     Planner::setup();
-    checkProjectionEvaluator(this, projectionEvaluator_);
-    checkMotionLength(this, maxDistance_);
+    SelfConfig sc(si_, getName());
+    sc.configureProjectionEvaluator(projectionEvaluator_);
+    sc.configurePlannerRange(maxDistance_);
 
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
 }

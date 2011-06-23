@@ -36,13 +36,15 @@
 
 #include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
 void ompl::geometric::LBKPIECE1::setup(void)
 {
     Planner::setup();
-    checkProjectionEvaluator(this, projectionEvaluator_);
-    checkMotionLength(this, maxDistance_);
+    SelfConfig sc(si_, getName());
+    sc.configureProjectionEvaluator(projectionEvaluator_);
+    sc.configurePlannerRange(maxDistance_);
 
     if (minValidPathFraction_ < std::numeric_limits<double>::epsilon() || minValidPathFraction_ > 1.0)
         throw Exception("The minimum valid path fraction must be in the range (0,1]");
