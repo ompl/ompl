@@ -57,12 +57,26 @@ namespace ompl
             console is prefixed by \e context */
         SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
 
-        double getProbabilityOfValidState(void) const;
-        double getAverageValidMotionLength(void) const;
+        /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::probabilityOfValidState())*/
+        double getProbabilityOfValidState(void);
 
-        void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj) const;
-        void configureValidStateSamplingAttempts(unsigned int &attempts) const;
-        void configurePlannerRange(double &range) const;
+        /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::averageValidMotionLength())*/
+        double getAverageValidMotionLength(void);
+
+        /** \brief If \e proj is undefined, it is set to the default
+            projection reported by base::StateSpace::getDefaultProjection().
+            If no default projection is available either, an exception is thrown. */
+        void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj);
+
+        /** \brief Instances of base::ValidStateSampler need a number of attempts to be specified -- the maximum number of times
+            a new sample is selected and checked to be valid. This function computes a number of \e attempts such that the probability
+            of obtaining a valid sample is 90\% */
+        void configureValidStateSamplingAttempts(unsigned int &attempts);
+
+        /** \brief Compute what a good length for motion segments is */
+        void configurePlannerRange(double &range);
+
+        /** \brief Print the computed configuration parameters */
         void print(std::ostream &out = std::cout) const;
 
     private:
@@ -70,8 +84,8 @@ namespace ompl
         /// @cond IGNORE
         class SelfConfigImpl;
 
-        mutable SelfConfigImpl *impl_;
-        std::string             context_;
+        SelfConfigImpl *impl_;
+        std::string     context_;
         /// @endcond
     };
 }

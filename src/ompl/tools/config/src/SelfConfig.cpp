@@ -118,7 +118,7 @@ namespace ompl
             proj->setup();
         }
 
-        void print(std::ostream &out)
+        void print(std::ostream &out) const
         {
             out << "Configuration parameters for space '" << si_->getStateSpace()->getName() << "'" << std::endl;
             out << "   - probability of a valid state is " << probabilityOfValidState_ << std::endl;
@@ -173,31 +173,31 @@ ompl::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::str
     boost::mutex::scoped_lock iLock(impl_->lock_);                \
     impl_->msg_.setPrefix(context_)
 
-double ompl::SelfConfig::getProbabilityOfValidState(void) const
+double ompl::SelfConfig::getProbabilityOfValidState(void)
 {
     SET_CONTEXT;
     return impl_->getProbabilityOfValidState();
 }
 
-double ompl::SelfConfig::getAverageValidMotionLength(void) const
+double ompl::SelfConfig::getAverageValidMotionLength(void)
 {
     SET_CONTEXT;
     return impl_->getAverageValidMotionLength();
 }
 
-void ompl::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj) const
+void ompl::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
 {
     SET_CONTEXT;
     return impl_->configureProjectionEvaluator(proj);
 }
 
-void ompl::SelfConfig::configureValidStateSamplingAttempts(unsigned int &attempts) const
+void ompl::SelfConfig::configureValidStateSamplingAttempts(unsigned int &attempts)
 {
     SET_CONTEXT;
     impl_->configureValidStateSamplingAttempts(attempts);
 }
 
-void ompl::SelfConfig::configurePlannerRange(double &range) const
+void ompl::SelfConfig::configurePlannerRange(double &range)
 {
     SET_CONTEXT;
     impl_->configurePlannerRange(range);
