@@ -45,10 +45,16 @@
 namespace ompl
 {
 
+    /** \brief This class contains methods that automatically
+        configure various parameters for motion planning. If expensive
+        computation is performed, the results are cached. */
     class SelfConfig
     {
     public:
 
+        /** \brief Construct an instance that can configure the space
+            encapsulated by \e si. Any information printed to the
+            console is prefixed by \e context */
         SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
 
         double getProbabilityOfValidState(void) const;
