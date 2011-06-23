@@ -2,6 +2,9 @@
 
 \page changelog Changelog
 
+\section june_22_2011 June 22, 2011
+    - Added representation of a discrete state space
+
 \section june_15_2011 June 15, 2011
     - Improvements to control::KPIECE1, so that it considers goal biasing more appropriately
     - Move code for extracting machine properties from util/ to benchmark/
