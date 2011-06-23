@@ -37,7 +37,7 @@
 #include "ompl/base/spaces/DiscreteStateSpace.h"
 #include "ompl/util/Exception.h"
 #include <limits>
-#include <cmath>
+#include <cstdlib>
 
 void ompl::base::DiscreteStateSampler::sampleUniform(State *state)
 {
@@ -98,7 +98,7 @@ void ompl::base::DiscreteStateSpace::copyState(State *destination, const State *
 
 double ompl::base::DiscreteStateSpace::distance(const State *state1, const State *state2) const
 {
-    return fabs(state1->as<StateType>()->value - state2->as<StateType>()->value);
+    return abs(state1->as<StateType>()->value - state2->as<StateType>()->value);
 }
 
 bool ompl::base::DiscreteStateSpace::equalStates(const State *state1, const State *state2) const
