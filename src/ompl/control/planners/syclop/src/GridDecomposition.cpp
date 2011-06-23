@@ -31,7 +31,7 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
     }
 }
 
-int ompl::control::GridDecomposition::locateRegion(const std::vector<double> coord)
+int ompl::control::GridDecomposition::locateRegion(const std::vector<double>& coord)
 {
     int region = 0;
     int factor = 1;

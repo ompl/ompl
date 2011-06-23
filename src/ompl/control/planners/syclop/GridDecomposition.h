@@ -36,7 +36,7 @@ namespace ompl
 
             /* Locate the region in the grid containing the point determined by coord. Since
              * we are assuming a 2-dimensional grid, coord.size() will be 2 for now. */
-            virtual int locateRegion(const std::vector<double> coord);
+            virtual int locateRegion(const std::vector<double>& coord);
 
             virtual bool areNeighbors(int r, int s);
 
