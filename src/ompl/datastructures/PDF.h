@@ -43,15 +43,18 @@
 
 namespace ompl
 {
+    /** \brief A container that supports probabilistic sampling over weighted data. */
     template <typename _T>
     class PDF
     {
     public:
 
+        /** \brief A class that will hold data contained in the PDF. */
         class Element
         {
             friend class PDF;
         public:
+            /** \brief The data contained in this Element. */
             _T data_;
         private:
             Element(const _T& d, const std::size_t i) : data_(d), index_(i)
@@ -60,10 +63,12 @@ namespace ompl
             std::size_t index_;
         };
 
+        /** \brief Constructs an empty PDF. */
         PDF(void)
         {
         }
 
+        /** \brief Constructs a PDF containing a given vector of data with given weights. */
         PDF(const std::vector<_T>& d, const std::vector<double>& weights)
         {
             if (d.size() != weights.size())
@@ -76,11 +81,13 @@ namespace ompl
                 add(d[i], weights[i]);
         }
 
+        /** \brief Destructor. Clears allocated memory. */
         ~PDF(void)
         {
             clear();
         }
 
+        /** \brief Adds a piece of data with a given weight to the PDF. Returns a corresponding Element, which can be used to subsequently update or remove the data from the PDF. */
         Element& add(const _T& d, const double w)
         {
             if (w < 0)
@@ -114,6 +121,8 @@ namespace ompl
             return *elem;
         }
 
+        /** \brief Returns a piece of data from the PDF according to the input sampling value,
+which must be between 0 and 1. */
         const _T& sample(double r) const
         {
             if (data_.empty())
@@ -136,6 +145,7 @@ namespace ompl
             return data_[node]->data_;
         }
 
+        /** \brief Updates the data in the given Element with a new weight value. */
         void update(Element& elem, const double w)
         {
             std::size_t index = elem.index_;
@@ -151,6 +161,7 @@ namespace ompl
             }
         }
 
+        /** \brief Removes the data in the given Element from the PDF. After calling this function, the Element object should no longer be used. */
         void remove(Element& elem)
         {
             if (data_.size() == 1)
@@ -208,6 +219,7 @@ namespace ompl
             tree_.pop_back();
         }
 
+        /** \brief Clears the PDF. */
         void clear(void)
         {
             for (typename std::vector<Element*>::iterator e = data_.begin(); e != data_.end(); ++e)
@@ -216,16 +228,19 @@ namespace ompl
             tree_.clear();
         }
 
+        /** \brief Returns the number of elements in the PDF. */
         std::size_t size(void) const
         {
             return data_.size();
         }
 
+        /** \brief Returns whether the PDF contains no data. */
         bool empty(void) const
         {
             return data_.empty();
         }
 
+        /** \brief Prints the PDF tree to a given output stream. Used for debugging purposes. */
         void printTree(std::ostream& out = std::cout) const
         {
             if (tree_.empty())
