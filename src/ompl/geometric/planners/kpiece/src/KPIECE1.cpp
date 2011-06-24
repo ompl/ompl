@@ -77,12 +77,6 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     base::Goal                   *goal = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    if (!goal)
-    {
-        msg_.error("Goal undefined");
-        return false;
-    }
-
     Discretization<Motion>::Coord xcoord;
 
     while (const base::State *st = pis_.nextStart())
