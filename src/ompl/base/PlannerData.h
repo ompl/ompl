@@ -72,7 +72,7 @@ namespace ompl
             void tagState(const State *s, int tag);
 
             /** \brief Clear any stored data */
-            void clear(void);
+            virtual void clear(void);
 
             /** \brief Print this data to a stream */
             virtual void print(std::ostream &out = std::cout) const;

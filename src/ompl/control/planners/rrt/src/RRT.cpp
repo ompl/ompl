@@ -208,13 +208,14 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
+
+    std::vector<Motion*> motions;
+    if (nn_)
+        nn_->list(motions);
+
     if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
     {
         double delta = siC_->getPropagationStepSize();
-
-        std::vector<Motion*> motions;
-        if (nn_)
-            nn_->list(motions);
 
         for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {
@@ -223,6 +224,14 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
                 cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
             else
                 cpd->recordEdge(NULL, m->state, NULL, 0.);
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        {
+            const Motion* m = motions[i];
+            data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
         }
     }
 }

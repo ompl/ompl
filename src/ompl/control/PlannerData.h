@@ -64,13 +64,13 @@ namespace ompl
             int recordEdge(const base::State *s1, const base::State *s2, const Control* c, double duration);
 
             /** \brief Clear any stored data */
-            void clear(void);
+            virtual void clear(void);
 
             /** \brief For each i, controls[i] contains the controls[i][j]
                 that are needed to take the system from state[i] to state[j] */
             std::vector< std::vector< const Control* > > controls;
 
-            /** \brief controlDurations[i][j] contains the duration that 
+            /** \brief controlDurations[i][j] contains the duration that
                 controls[i][j] needs to be applied to take the system
                 from state[i] to state[j] */
             std::vector< std::vector< double > >         controlDurations;
