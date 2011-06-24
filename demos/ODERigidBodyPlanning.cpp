@@ -201,7 +201,7 @@ public:
     virtual double distance(const ob::State *s1, const ob::State *s2) const
     {
         const double *p1 = s1->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
-        const double *p2 = s1->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
+        const double *p2 = s2->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
         double dx = fabs(p1[0] - p2[0]);
         double dy = fabs(p1[1] - p2[1]);
         double dz = fabs(p1[2] - p2[2]);
