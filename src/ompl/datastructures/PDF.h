@@ -46,18 +46,18 @@ namespace ompl
     template <typename _T>
     class PDF
     {
-        public:
+    public:
 
         class Element
         {
             friend class PDF;
-            public:
-            _T data;
-            private:
-            Element(const _T& d, const std::size_t i) : data(d), index(i)
+        public:
+            _T data_;
+        private:
+            Element(const _T& d, const std::size_t i) : data_(d), index_(i)
             {
             }
-            std::size_t index;
+            std::size_t index_;
         };
 
         PDF(void)
@@ -77,8 +77,8 @@ namespace ompl
                 ++lg;
                 pow <<= 1;
             }
-            data.reserve(d.size());
-            tree.reserve(lg + 2);
+            data_.reserve(d.size());
+            tree_.reserve(lg + 2);
             for (std::size_t i = 0; i < d.size(); ++i)
                 add(d[i], weights[i]);
         }
@@ -92,167 +92,167 @@ namespace ompl
         {
             if (w < 0)
                 throw Exception("Weight argument must be a nonnegative value");
-            Element* elem = new Element(d, data.size());
-            data.push_back(elem);
-            if (data.size() == 1)
+            Element* elem = new Element(d, data_.size());
+            data_.push_back(elem);
+            if (data_.size() == 1)
             {
                 std::vector<double> r(1, w);
-                tree.push_back(r);
+                tree_.push_back(r);
                 return *elem;
             }
-            tree.front().push_back(w);
-            for (std::size_t i = 1; i < tree.size(); ++i)
+            tree_.front().push_back(w);
+            for (std::size_t i = 1; i < tree_.size(); ++i)
             {
-                if (tree[i-1].size() % 2 == 1)
-                    tree[i].push_back(w);
+                if (tree_[i-1].size() % 2 == 1)
+                    tree_[i].push_back(w);
                 else
                 {
-                    while (i < tree.size())
+                    while (i < tree_.size())
                     {
-                        tree[i].back() += w;
+                        tree_[i].back() += w;
                         ++i;
                     }
                     return *elem;
                 }
             }
             //If we've made it here, then we need to add a new head to the tree.
-            std::vector<double> head(1, tree.back()[0] + tree.back()[1]);
-            tree.push_back(head);
+            std::vector<double> head(1, tree_.back()[0] + tree_.back()[1]);
+            tree_.push_back(head);
             return *elem;
         }
 
         const _T& sample(double r) const
         {
-            if (data.empty())
+            if (data_.empty())
                 throw Exception("Cannot sample from an empty PDF");
             if (r < 0 || r > 1)
                 throw Exception("Sampling value must be between 0 and 1");
-            std::size_t row = tree.size() - 1;
-            r *= tree[row].front();
+            std::size_t row = tree_.size() - 1;
+            r *= tree_[row].front();
             std::size_t node = 0;
             while (row != 0)
             {
                 --row;
                 node <<= 1;
-                if (r > tree[row][node])
+                if (r > tree_[row][node])
                 {
-                    r -= tree[row][node];
+                    r -= tree_[row][node];
                     ++node;
                 }
             }
-            return data[node]->data;
+            return data_[node]->data_;
         }
 
         void update(Element& elem, const double w)
         {
-            std::size_t index = elem.index;
-            if (index >= data.size())
+            std::size_t index = elem.index_;
+            if (index >= data_.size())
                 throw Exception("Element to update is not in PDF");
-            const double weightChange = w - tree.front()[index];
-            tree.front()[index] = w;
+            const double weightChange = w - tree_.front()[index];
+            tree_.front()[index] = w;
             index >>= 1;
-            for (std::size_t row = 1; row < tree.size(); ++row)
+            for (std::size_t row = 1; row < tree_.size(); ++row)
             {
-                tree[row][index] += weightChange;
+                tree_[row][index] += weightChange;
                 index >>= 1;
             }
         }
 
         void remove(Element& elem)
         {
-            if (data.size() == 1)
+            if (data_.size() == 1)
             {
-                delete data.front();
-                data.clear();
-                tree.clear();
+                delete data_.front();
+                data_.clear();
+                tree_.clear();
                 return;
             }
 
-            const std::size_t index = elem.index;
-            delete data[index];
-            std::swap(data[index], data.back());
-            data[index]->index = index;
-            std::swap(tree.front()[index], tree.front().back());
+            const std::size_t index = elem.index_;
+            delete data_[index];
+            std::swap(data_[index], data_.back());
+            data_[index]->index_ = index;
+            std::swap(tree_.front()[index], tree_.front().back());
 
             double weight;
             /* If index and back() are siblings in the tree, then
              * we don't need to make an extra pass over the tree.
              * The amount by which we change the values at the edge
              * of the tree is different in this case. */
-            if (index+2 == data.size() && index%2 == 0)
-                weight = tree.front().back();
+            if (index+2 == data_.size() && index%2 == 0)
+                weight = tree_.front().back();
             else
             {
-                weight = tree.front()[index];
-                const double weightChange = weight - tree.front().back();
+                weight = tree_.front()[index];
+                const double weightChange = weight - tree_.front().back();
                 std::size_t parent = index >> 1;
-                for (std::size_t row = 1; row < tree.size(); ++row)
+                for (std::size_t row = 1; row < tree_.size(); ++row)
                 {
-                    tree[row][parent] += weightChange;
+                    tree_[row][parent] += weightChange;
                     parent >>= 1;
                 }
             }
 
             /* Now that the element to remove is at the edge of the tree,
              * pop it off and update the corresponding weights. */
-            data.pop_back();
-            tree.front().pop_back();
-            for (std::size_t i = 1; i < tree.size() && tree[i-1].size() > 1; ++i)
+            data_.pop_back();
+            tree_.front().pop_back();
+            for (std::size_t i = 1; i < tree_.size() && tree_[i-1].size() > 1; ++i)
             {
-                if (tree[i-1].size() % 2 == 0)
-                    tree[i].pop_back();
+                if (tree_[i-1].size() % 2 == 0)
+                    tree_[i].pop_back();
                 else
                 {
-                    while (i < tree.size())
+                    while (i < tree_.size())
                     {
-                        tree[i].back() -= weight;
+                        tree_[i].back() -= weight;
                         ++i;
                     }
                     return;
                 }
             }
             //If we've made it here, then we need to remove a redundant head from the tree.
-            tree.pop_back();
+            tree_.pop_back();
         }
 
         void clear(void)
         {
-            for (typename std::vector<Element*>::iterator e = data.begin(); e != data.end(); ++e)
+            for (typename std::vector<Element*>::iterator e = data_.begin(); e != data_.end(); ++e)
                 delete *e;
-            data.clear();
-            tree.clear();
+            data_.clear();
+            tree_.clear();
         }
 
         std::size_t size(void) const
         {
-            return data.size();
+            return data_.size();
         }
 
         bool empty(void) const
         {
-            return data.empty();
+            return data_.empty();
         }
 
         void printTree(std::ostream& out = std::cout) const
         {
-            if (tree.empty())
+            if (tree_.empty())
                 return;
-            for (std::size_t j = 0; j < tree[0].size(); ++j)
-                out << "(" << data[j]->data << "," << tree[0][j] << ") ";
+            for (std::size_t j = 0; j < tree_[0].size(); ++j)
+                out << "(" << data_[j]->data << "," << tree_[0][j] << ") ";
             out << std::endl;
-            for (std::size_t i = 1; i < tree.size(); ++i)
+            for (std::size_t i = 1; i < tree_.size(); ++i)
             {
-                for (std::size_t j = 0; j < tree[i].size(); ++j)
-                    out << tree[i][j] << " ";
+                for (std::size_t j = 0; j < tree_[i].size(); ++j)
+                    out << tree_[i][j] << " ";
                 out << std::endl;
             }
             out << std::endl;
         }
 
-        private:
+    private:
 
-        std::vector<Element*> data;
-        std::vector<std::vector<double > > tree;
+        std::vector<Element*> data_;
+        std::vector<std::vector<double > > tree_;
     };
 }
 
