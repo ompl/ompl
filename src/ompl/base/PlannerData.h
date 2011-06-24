@@ -63,8 +63,10 @@ namespace ompl
             /** \brief Record an edge between two states. This
                 function is called by planners to fill \e states, \e
                 stateIndex and \e edges. If the same state/edge is
-                seen multiple times, it is added only once. */
-            void recordEdge(const State *s1, const State *s2);
+                seen multiple times, it is added only once.
+                \return index of s1 in state array when an edge is added,
+                -1 otherwise. */
+            int recordEdge(const State *s1, const State *s2);
 
             /** \brief Assign a tag to a state */
             void tagState(const State *s, int tag);

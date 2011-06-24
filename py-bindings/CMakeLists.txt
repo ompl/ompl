@@ -19,8 +19,8 @@ if (OMPL_BUILD_PYBINDINGS)
 
         add_dependencies(update_base_bindings update_util_bindings)
         add_dependencies(update_geometric_bindings update_base_bindings)
-        add_dependencies(update_control_bindings update_geometric_bindings)
-        add_dependencies(update_control_bindings update_base_bindings)
+        # add_dependencies(update_control_bindings update_geometric_bindings)
+        # add_dependencies(update_control_bindings update_base_bindings)
 
     endif(PY_OMPL_GENERATE)
 

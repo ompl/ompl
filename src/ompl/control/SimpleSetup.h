@@ -39,6 +39,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/control/SpaceInformation.h"
+#include "ompl/control/PlannerData.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/control/PathControl.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -127,7 +128,7 @@ namespace ompl
             PathControl& getSolutionPath(void) const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
-            base::PlannerData getPlannerData(void) const;
+            control::PlannerData getPlannerData(void) const;
 
             /** \brief Set the state validity checker to use */
             void setStateValidityChecker(const base::StateValidityCheckerPtr &svc)

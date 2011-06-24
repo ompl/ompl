@@ -384,18 +384,22 @@ ompl::control::KPIECE1::Grid::Cell* ompl::control::KPIECE1::addMotion(Motion *mo
 void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
+    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
+    {
+        double delta = siC_->getPropagationStepSize();
 
-    Grid::CellArray cells;
-    tree_.grid.getCells(cells);
+        Grid::CellArray cells;
+        tree_.grid.getCells(cells);
 
-    for (unsigned int i = 0 ; i < cells.size() ; ++i)
-        for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
+        for (unsigned int i = 0 ; i < cells.size() ; ++i)
+            for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
         {
-            data.recordEdge(cells[i]->data->motions[j]->parent ? cells[i]->data->motions[j]->parent->state : NULL,
-                            cells[i]->data->motions[j]->state);
-            if (cells[i]->border)
-                data.tagState(cells[i]->data->motions[j]->state, 2);
+            const Motion* m = cells[i]->data->motions[j];
+            if (m->parent)
+                cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
             else
-                data.tagState(cells[i]->data->motions[j]->state, 1);
+                cpd->recordEdge(NULL, m->state, NULL, 0.);
+            cpd->tagState(m->state, cells[i]->border ? 2 : 1);
         }
+    }
 }

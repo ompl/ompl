@@ -74,6 +74,14 @@ namespace ompl
         DeclareStateType(SE3);
         DeclareStateType(Discrete);
     }
+
+    namespace control
+    {
+        inline int dummyVecVecInt()
+        {
+            return sizeof(std::vector<std::vector<int> >);
+        }
+    }
 }
 
 #endif

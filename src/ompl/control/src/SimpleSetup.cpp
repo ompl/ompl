@@ -124,9 +124,9 @@ ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) co
     throw Exception("No solution path");
 }
 
-ompl::base::PlannerData ompl::control::SimpleSetup::getPlannerData(void) const
+ompl::control::PlannerData ompl::control::SimpleSetup::getPlannerData(void) const
 {
-    base::PlannerData pd;
+    control::PlannerData pd;
     if (planner_)
         planner_->getPlannerData(pd);
     return pd;

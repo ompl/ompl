@@ -5,5 +5,7 @@
 ../src/ompl/control/PathControl.h
 ../src/ompl/control/SimpleSetup.h
 ../src/ompl/control/spaces/RealVectorControlSpace.h
+../src/ompl/control/PlannerData.h
 ../src/ompl/control/planners/kpiece/KPIECE1.h
 ../src/ompl/control/planners/rrt/RRT.h
+ompl_py_util.h

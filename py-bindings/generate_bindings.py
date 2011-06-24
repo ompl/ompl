@@ -159,6 +159,7 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
         self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
+        self.std_ns.class_('map< std::string, boost::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
         self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
         self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
@@ -343,8 +344,11 @@ class ompl_control_generator_t(code_generator_t):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
         self.std_ns.class_('vector< int >').rename('vectorInt')
+        self.std_ns.class_('vector< std::vector< int > >').rename('vectorVectorInt')
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
+        self.std_ns.class_('vector< std::vector< double > >').rename('vecVecDouble')
+        self.std_ns.class_('vector< std::vector< ompl::control::Control const* > >').rename('vecVecConstControlPtr')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force ControlSpace::allocState to be exported.
@@ -385,6 +389,7 @@ class ompl_control_generator_t(code_generator_t):
         # do this for all classes that exist with the same name in another namespace
         for cls in ['SimpleSetup', 'KPIECE1', 'RRT']:
             self.ompl_ns.class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
+        self.ompl_ns.namespace('control').class_('PlannerData').include()
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
