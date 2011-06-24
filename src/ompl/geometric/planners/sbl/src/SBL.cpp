@@ -36,14 +36,16 @@
 
 #include "ompl/geometric/planners/sbl/SBL.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
 
 void ompl::geometric::SBL::setup(void)
 {
     Planner::setup();
-    checkProjectionEvaluator(this, projectionEvaluator_);
-    checkMotionLength(this, maxDistance_);
+    SelfConfig sc(si_, getName());
+    sc.configureProjectionEvaluator(projectionEvaluator_);
+    sc.configurePlannerRange(maxDistance_);
 
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());

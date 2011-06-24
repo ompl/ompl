@@ -41,32 +41,32 @@
 #include <cstdio>
 #include <cstdarg>
 
-static ompl::msg::OutputHandlerSTD _defaultOutputHandler;
-static ompl::msg::OutputHandler   *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&_defaultOutputHandler);
+static ompl::msg::OutputHandlerSTD DEFAULT_OUTPUT_HANDLER;
+static ompl::msg::OutputHandler   *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&DEFAULT_OUTPUT_HANDLER);
 static ompl::msg::OutputHandler   *PREVIOUS_OH = OUTPUT_HANDLER;
-static boost::mutex                _lock; // it is likely the outputhandler does some I/O, so we serialize it
+static boost::mutex                LOCK; // it is likely the outputhandler does some I/O, so we serialize it
 
 void ompl::msg::noOutputHandler(void)
 {
-    _lock.lock();
+    LOCK.lock();
     PREVIOUS_OH = OUTPUT_HANDLER;
     OUTPUT_HANDLER = NULL;
-    _lock.unlock();
+    LOCK.unlock();
 }
 
 void ompl::msg::restorePreviousOutputHandler(void)
 {
-    _lock.lock();
+    LOCK.lock();
     std::swap(PREVIOUS_OH, OUTPUT_HANDLER);
-    _lock.unlock();
+    LOCK.unlock();
 }
 
 void ompl::msg::useOutputHandler(OutputHandler *oh)
 {
-    _lock.lock();
+    LOCK.lock();
     PREVIOUS_OH = OUTPUT_HANDLER;
     OUTPUT_HANDLER = oh;
-    _lock.unlock();
+    LOCK.unlock();
 }
 
 ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
@@ -112,9 +112,9 @@ void ompl::msg::Interface::debug(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-        _lock.lock();
+        LOCK.lock();
         OUTPUT_HANDLER->debug(prefix_ + text);
-        _lock.unlock();
+        LOCK.unlock();
     }
 }
 
@@ -128,9 +128,9 @@ void ompl::msg::Interface::inform(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-        _lock.lock();
+        LOCK.lock();
         OUTPUT_HANDLER->inform(prefix_ + text);
-        _lock.unlock();
+        LOCK.unlock();
     }
 }
 
@@ -144,9 +144,9 @@ void ompl::msg::Interface::warn(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-        _lock.lock();
+        LOCK.lock();
         OUTPUT_HANDLER->warn(prefix_ + text);
-        _lock.unlock();
+        LOCK.unlock();
     }
 }
 
@@ -160,9 +160,9 @@ void ompl::msg::Interface::error(const std::string &text) const
 {
     if (OUTPUT_HANDLER)
     {
-        _lock.lock();
+        LOCK.lock();
         OUTPUT_HANDLER->error(prefix_ + text);
-        _lock.unlock();
+        LOCK.unlock();
     }
 }
 

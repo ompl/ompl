@@ -36,7 +36,7 @@
 
 #include "ompl/base/spaces/TimeStateSpace.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <limits>
 
 void ompl::base::TimeStateSampler::sampleUniform(State *state)

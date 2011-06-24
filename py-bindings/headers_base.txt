@@ -27,6 +27,7 @@
 ../src/ompl/base/spaces/SO3StateSpace.h
 ../src/ompl/base/spaces/SE2StateSpace.h
 ../src/ompl/base/spaces/SE3StateSpace.h
+../src/ompl/base/spaces/DiscreteStateSpace.h
 ../src/ompl/base/samplers/GaussianValidStateSampler.h
 ../src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
 ../src/ompl/base/samplers/ObstacleBasedValidStateSampler.h

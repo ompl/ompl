@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
 
 void ompl::base::SO2StateSampler::sampleUniform(State *state)

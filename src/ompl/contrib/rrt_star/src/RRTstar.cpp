@@ -37,15 +37,16 @@
 #include "ompl/contrib/rrt_star/RRTstar.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
 #include <limits>
 #include <map>
-#include <stdio.h>
 
 void ompl::geometric::RRTstar::setup(void)
 {
     Planner::setup();
-    checkMotionLength(this, maxDistance_);
+    SelfConfig sc(si_, getName());
+    sc.configurePlannerRange(maxDistance_);
 
     ballRadiusMax_ = si_->getMaximumExtent();
     ballRadiusConst_ = maxDistance_ * sqrt(si_->getStateSpace()->getDimension());

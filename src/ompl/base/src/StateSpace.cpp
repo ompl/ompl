@@ -34,7 +34,7 @@
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <numeric>
@@ -273,6 +273,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
 
 
     // Test that interpolation works as expected and also test triangle inequality
+    if (!isDiscrete())
     {
         State *s1 = allocState();
         State *s2 = allocState();
@@ -363,6 +364,11 @@ void ompl::base::StateSpace::registerProjection(const std::string &name, const P
 }
 
 bool ompl::base::StateSpace::isCompound(void) const
+{
+    return false;
+}
+
+bool ompl::base::StateSpace::isDiscrete(void) const
 {
     return false;
 }

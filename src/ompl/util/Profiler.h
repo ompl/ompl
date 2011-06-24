@@ -59,6 +59,7 @@
 #include <string>
 #include <iostream>
 #include <boost/thread.hpp>
+#include <boost/noncopyable.hpp>
 
 #include "ompl/util/Time.h"
 
@@ -71,7 +72,7 @@ namespace ompl
         time spent in various bits of code (sub-function granularity)
         or count how many times certain pieces of code are executed.*/
 
-    class Profiler
+    class Profiler : private boost::noncopyable
     {
     public:
 
@@ -80,24 +81,24 @@ namespace ompl
         {
         public:
 
-            BeginBlock(const std::string &name, Profiler *prof = Profiler::Instance()) : name_(name), prof_(prof)
+            BeginBlock(const std::string &name, Profiler &prof = Profiler::Instance()) : name_(name), prof_(prof)
             {
-                prof->begin(name);
+                prof_.begin(name);
             }
 
             ~BeginBlock(void)
             {
-                prof_->end(name_);
+                prof_.end(name_);
             }
 
         private:
 
             std::string  name_;
-            Profiler    *prof_;
+            Profiler    &prof_;
         };
 
         /** \brief Return an instance of the class */
-        static Profiler* Instance(void);
+        static Profiler& Instance(void);
 
         /** \brief Constructor. It is allowed to separately instantiate this
             class (not only as a singleton) */
@@ -117,19 +118,19 @@ namespace ompl
         /** \brief Start counting time */
         static void Start(void)
         {
-            Instance()->start();
+            Instance().start();
         }
 
         /** \brief Stop counting time */
         static void Stop(void)
         {
-            Instance()->stop();
+            Instance().stop();
         }
 
         /** \brief Clear counted time and events */
         static void Clear(void)
         {
-            Instance()->clear();
+            Instance().clear();
         }
 
         /** \brief Start counting time */
@@ -144,7 +145,7 @@ namespace ompl
         /** \brief Count a specific event for a number of times */
         static void Event(const std::string& name, const unsigned int times = 1)
         {
-            Instance()->event(name, times);
+            Instance().event(name, times);
         }
 
         /** \brief Count a specific event for a number of times */
@@ -153,13 +154,13 @@ namespace ompl
         /** \brief Begin counting time for a specific chunk of code */
         static void Begin(const std::string &name)
         {
-            Instance()->begin(name);
+            Instance().begin(name);
         }
 
         /** \brief Stop counting time for a specific chunk of code */
         static void End(const std::string &name)
         {
-            Instance()->end(name);
+            Instance().end(name);
         }
 
         /** \brief Begin counting time for a specific chunk of code */
@@ -173,7 +174,7 @@ namespace ompl
             can be printed separately. */
         static void Status(std::ostream &out = std::cout, bool merge = true)
         {
-            Instance()->status(out, merge);
+            Instance().status(out, merge);
         }
 
         /** \brief Print the status of the profiled code chunks and
@@ -185,7 +186,7 @@ namespace ompl
             events to the console (using msg::Console) */
         static void Console(void)
         {
-            Instance()->console();
+            Instance().console();
         }
 
         /** \brief Print the status of the profiled code chunks and
@@ -274,7 +275,7 @@ namespace ompl
         {
         public:
 
-            BeginBlock(const std::string &, Profiler * = NULL)
+            BeginBlock(const std::string &, Profiler & = Profiler::Instance())
             {
             }
 
@@ -283,7 +284,7 @@ namespace ompl
             }
         };
 
-        static Profiler* Instance(void);
+        static Profiler& Instance(void);
 
         Profiler(bool = true, bool = true)
         {

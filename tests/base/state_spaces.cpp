@@ -48,6 +48,7 @@
 #include "ompl/base/spaces/SO3StateSpace.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
+#include "ompl/base/spaces/DiscreteStateSpace.h"
 
 #include <boost/math/constants/constants.hpp>
 
@@ -60,6 +61,31 @@ const double PI = boost::math::constants::pi<double>();
 bool isValid(const base::State *)
 {
     return true;
+}
+
+
+TEST(Discrete, Simple)
+{
+    base::StateSpacePtr d(new base::DiscreteStateSpace(0, 2));
+    base::DiscreteStateSpace &dm = *d->as<base::DiscreteStateSpace>();
+    d->setup();
+    d->sanityChecks();
+
+    EXPECT_EQ(d->getDimension(), 1);
+    EXPECT_EQ(d->getMaximumExtent(), 2);
+    EXPECT_EQ(dm.getStateCount(), 3);
+    base::ScopedState<base::DiscreteStateSpace> s1(d);
+    base::ScopedState<base::DiscreteStateSpace> s2(d);
+    base::ScopedState<base::DiscreteStateSpace> s3(d);
+    s1->value = 0;
+    s2->value = 2;
+    s3->value = 0;
+    EXPECT_EQ(s1, s3);
+    EXPECT_EQ(s2->value, 2);
+    d->interpolate(s1.get(), s2.get(), 0.3, s3.get());
+    EXPECT_EQ(s3->value, 1);
+    d->interpolate(s1.get(), s2.get(), 0.2, s3.get());
+    EXPECT_EQ(s3->value, 0);
 }
 
 TEST(SO2, Simple)

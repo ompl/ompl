@@ -16,7 +16,7 @@
 
     The following code snippet shows you how to do this. We will start with some initial code that you have probably already used:
     \code
-    #include "ompl/benchmark/Benchmark.h"
+    #include "ompl/tools/benchmark/Benchmark.h"
 
     // A function that matches the ompl::base::PlannerAllocator type.
     // It will be used later to allocate an instance of EST

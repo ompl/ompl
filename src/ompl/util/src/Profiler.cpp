@@ -37,10 +37,10 @@
 
 #include "ompl/util/Profiler.h"
 
-ompl::Profiler* ompl::Profiler::Instance(void)
+ompl::Profiler& ompl::Profiler::Instance(void)
 {
     static Profiler p(true, true);
-    return &p;
+    return p;
 }
 
 #if ENABLE_PROFILING

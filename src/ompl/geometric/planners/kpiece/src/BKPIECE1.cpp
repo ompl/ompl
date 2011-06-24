@@ -36,13 +36,15 @@
 
 #include "ompl/geometric/planners/kpiece/BKPIECE1.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
 void ompl::geometric::BKPIECE1::setup(void)
 {
     Planner::setup();
-    checkProjectionEvaluator(this, projectionEvaluator_);
-    checkMotionLength(this, maxDistance_);
+    SelfConfig sc(si_, getName());
+    sc.configureProjectionEvaluator(projectionEvaluator_);
+    sc.configurePlannerRange(maxDistance_);
 
     if (badScoreFactor_ < std::numeric_limits<double>::epsilon() || badScoreFactor_ > 1.0)
         throw Exception("Bad cell score factor must be in the range (0,1]");

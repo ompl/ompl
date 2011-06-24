@@ -41,6 +41,7 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
+#include "ompl/base/spaces/DiscreteStateSpace.h"
 
 #define DeclareStateType(T) \
     inline int __dummy##T() \
@@ -71,6 +72,7 @@ namespace ompl
         DeclareStateType(SO3);
         DeclareStateType(SE2);
         DeclareStateType(SE3);
+        DeclareStateType(Discrete);
     }
 }
 

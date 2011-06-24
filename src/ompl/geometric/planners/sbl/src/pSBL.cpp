@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/planners/sbl/pSBL.h"
 #include "ompl/base/GoalState.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread.hpp>
 #include <limits>
 #include <cassert>
@@ -43,8 +44,9 @@
 void ompl::geometric::pSBL::setup(void)
 {
     Planner::setup();
-    checkProjectionEvaluator(this, projectionEvaluator_);
-    checkMotionLength(this, maxDistance_);
+    SelfConfig sc(si_, getName());
+    sc.configureProjectionEvaluator(projectionEvaluator_);
+    sc.configurePlannerRange(maxDistance_);
 
     tStart_.grid.setDimension(projectionEvaluator_->getDimension());
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());

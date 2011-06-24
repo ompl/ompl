@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/PathSimplifier.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <algorithm>
 #include <limits>
 #include <cstdlib>
@@ -192,7 +192,7 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
     reduceVertices(path);
     collapseCloseVertices(path);
     smoothBSpline(path, 5, path.length()/100.0);
-    const std::pair<bool, bool> &p = path.checkAndRepair(magic::VALID_SAMPLE_ATTEMPTS);
+    const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
     if (!p.second)
         msg_.warn("Solution path may slightly touch on an invalid region of the state space");
     else

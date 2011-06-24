@@ -35,10 +35,10 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/ValidStateSampler.h"
-#include "ompl/util/MagicConstants.h"
+#include "ompl/tools/config/MagicConstants.h"
 
 ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si) :
-    si_(si), attempts_(magic::VALID_SAMPLE_ATTEMPTS), name_("not set")
+    si_(si), attempts_(magic::MAX_VALID_SAMPLE_ATTEMPTS), name_("not set")
 {
 }
 

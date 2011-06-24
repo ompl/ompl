@@ -80,7 +80,7 @@ namespace ompl
         /** \brief When multiple attempts are needed to generate valid
             samples, this value defines the default number of
             attempts */
-        static const unsigned int VALID_SAMPLE_ATTEMPTS = 100;
+        static const unsigned int MAX_VALID_SAMPLE_ATTEMPTS = 100;
 
 
         /** \brief When multiple states need to be generated as part

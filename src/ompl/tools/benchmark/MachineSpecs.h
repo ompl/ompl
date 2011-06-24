@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BENCHMARK_MACHINE_SPECS_
-#define OMPL_BENCHMARK_MACHINE_SPECS_
+#ifndef OMPL_TOOLS_BENCHMARK_MACHINE_SPECS_
+#define OMPL_TOOLS_BENCHMARK_MACHINE_SPECS_
 
 #include <string>
 
