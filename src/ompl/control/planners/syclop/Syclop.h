@@ -26,7 +26,6 @@ namespace ompl
             virtual void setup(void);
             virtual void clear(void);
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
-            virtual bool solve(double solveTime);
 
             void printRegions(void);
             void printEdges(void);
