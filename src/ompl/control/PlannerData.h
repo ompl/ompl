@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,50 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll */
 
-#ifndef OMPL_CONTROL_PLANNERS_PLANNER_INCLUDES_
-#define OMPL_CONTROL_PLANNERS_PLANNER_INCLUDES_
+#ifndef OMPL_CONTROL_PLANNER_DATA_
+#define OMPL_CONTROL_PLANNER_DATA_
 
-#include "ompl/base/Planner.h"
-#include "ompl/control/SpaceInformation.h"
-#include "ompl/control/PathControl.h"
-#include "ompl/control/PlannerData.h"
-#include "ompl/util/RandomNumbers.h"
+#include "ompl/base/PlannerData.h"
+#include "ompl/control/Control.h"
+
+namespace ompl
+{
+    namespace control
+    {
+
+        /** \brief Datatype holding data a planner can expose for debug purposes. */
+        class PlannerData : public base::PlannerData
+        {
+        public:
+            PlannerData(void) : base::PlannerData()
+            {
+            }
+
+            virtual ~PlannerData(void)
+            {
+            }
+
+            /** \brief Record an edge between two states. This
+                function is called by planners to fill \e states, \e
+                stateIndex and \e edges. If the same state/edge is
+                seen multiple times, it is added only once. */
+            int recordEdge(const base::State *s1, const base::State *s2, const Control* c, double duration);
+
+            /** \brief Clear any stored data */
+            void clear(void);
+
+            /** \brief For each i, controls[i] contains the controls[i][j]
+                that are needed to take the system from state[i] to state[j] */
+            std::vector< std::vector< const Control* > > controls;
+
+            /** \brief controlDurations[i][j] contains the duration that 
+                controls[i][j] needs to be applied to take the system
+                from state[i] to state[j] */
+            std::vector< std::vector< double > >         controlDurations;
+        };
+    }
+}
 
 #endif

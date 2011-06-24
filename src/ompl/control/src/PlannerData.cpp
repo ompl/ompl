@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,30 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll */
 
-#ifndef OMPL_CONTROL_PLANNERS_PLANNER_INCLUDES_
-#define OMPL_CONTROL_PLANNERS_PLANNER_INCLUDES_
-
-#include "ompl/base/Planner.h"
-#include "ompl/control/SpaceInformation.h"
-#include "ompl/control/PathControl.h"
 #include "ompl/control/PlannerData.h"
-#include "ompl/util/RandomNumbers.h"
 
-#endif
+void ompl::control::PlannerData::clear(void)
+{
+    base::PlannerData::clear();
+    controls.clear();
+    controlDurations.clear();
+}
+
+int ompl::control::PlannerData::recordEdge(const base::State *s1, const base::State *s2, 
+    const Control* c, double duration)
+{
+    int i = base::PlannerData::recordEdge(s1,s2);
+    if (i!=-1)
+    {
+        if (i >= (int) controls.size())
+        {
+            controls.resize(i+1);
+            controlDurations.resize(i+1);
+        }
+        controls[i].push_back(c);
+        controlDurations[i].push_back(duration);
+    }
+    return i;
+}
