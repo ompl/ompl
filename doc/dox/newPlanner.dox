@@ -26,53 +26,85 @@
       \code
       #include "ompl/base/Planner.h"
 
+      // often useful headers:
+      #include "ompl/util/RandomNumbers.h"
+      #include "ompl/tools/config/SelfConfig.h"
+
       namespace ompl
       {
-            class myNewPlanner : public base::Planner
-        {
-        public:
+	  class myNewPlanner : public base::Planner
+	  {
+	  public:
+	      
+	      myNewPlanner(const base::SpaceInformationPtr &si) : base::Planner(si, "the planner's name")
+	      {
+		  // the specifications of this planner (ompl::base::PlannerSpecs)
+		  specs_.approximateSolutions = ...;
+		  specs_.recognizedGoal = ...;
+		  ...
+	      }
+	      
+	      virtual ~myNewPlanner(void)
+	      {
+		  // free any allocated memory
+	      }
+	      
+	      virtual bool solve(const base::PlannerTerminationCondition &ptc)
+	      {
+		  // make sure the planner is configured correctly; this makes sure there 
+		  // are input states and a goal is specified
+		  checkValidity();
+		  
+		  // get problem definition from pdef_
+		  base::Goal *goal = pdef_->getGoal().get();
 
-        myNewPlanner(const base::SpaceInformationPtr &si) : base::Planner(si, "the planner's name")
-        {
-            // the type of goals this planner can handle
-            type_ = base::PLAN_TO_GOAL_REGION;
-        }
+		  // get input states with pis_
+		  while (const base::State *st = pis_.nextStart())
+		  {
+		      // use start states
+		      // usually, copies of st should be made
+		  }
 
-        virtual ~myNewPlanner(void)
-        {
-            // free any allocated memory
-        }
+		  // if needed, sample states from the goal region (and wait until a state is sampled)
+		  const base::State *st = pis_.nextGoal(ptc);
+		  // or sample a new goal state only if available:
+		  const base::State *st = pis_.nextGoal();
 
-        virtual bool solve(const base::PlannerTerminationCondition &ptc)
-        {
-            // make sure the planner is configured correctly
-            checkValidity();
+		  // call routines from si_ as needed
+		  // periodically check if ptc() returns true.
+		  // if it does, terminate planning.
+		  // use msg_ to output messages.
 
-            // get problem definition from pdef_
-            // get input states with pis_
-            // call routines from si_
+		  // compute a valid motion plan and set it in the goal
+		  pdef_->getGoal()->setSolutionPath(...);
+		  
+		  return pdef_->getGoal()->isAchieved();
+	      }
+	      
+	      virtual void clear(void)
+	      {
+		  Planner::clear();
+		  // clear the data structures
+	      }
 
-            // periodically check if ptc() returns true.
-            // if it does, terminate planning
+	      // optionally, if additional setup/configuration is needed, the setup() method can be implemented
+	      virtual void setup(void)
+	      {
+		  Planner::setup();
 
-            // compute a valid motion plan
-            // set it with pdef_->getGoal()->setSolutionPath()
-
-            return pdef_->getGoal()->isAchieved();
-        }
-
-        virtual void clear(void)
-        {
-            // clear the data structures
-        }
-
-        virtual void getPlannerData(PlannerData &data) const
-        {
-            // fill data with the states and edges that were created
-            // in the exploration data structure
-        }
-
-        };
+		  // perhaps attempt some auto-configuration
+		  SelfConfig sc(si_, getName());
+		  sc.configure...
+	      }
+	      
+	      virtual void getPlannerData(base::PlannerData &data) const
+	      {
+		  // fill data with the states and edges that were created
+		  // in the exploration data structure
+		  // perhaps also fill control::PlannerData
+	      }
+	      
+	  };
       }
       \endcode
 
