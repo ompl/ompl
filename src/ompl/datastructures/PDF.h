@@ -68,17 +68,10 @@ namespace ompl
         {
             if (d.size() != weights.size())
                 throw Exception("Data vector and weight vector must be of equal length");
-
-            //n elements of data require at most (log2(n)+2) rows in tree
-            std::size_t pow = 2;
-            std::size_t lg = 0;
-            while (pow <= d.size())
-            {
-                ++lg;
-                pow <<= 1;
-            }
-            data_.reserve(d.size());
-            tree_.reserve(lg + 2);
+            //by default, reserve space for 512 elements
+            data_.reserve(512u);
+            //n elements require at most log2(n)+2 rows of the tree
+            tree_.reserve(11u);
             for (std::size_t i = 0; i < d.size(); ++i)
                 add(d[i], weights[i]);
         }
