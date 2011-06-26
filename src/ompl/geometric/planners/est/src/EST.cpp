@@ -78,12 +78,6 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
     base::Goal                   *goal = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    if (!goal)
-    {
-        msg_.error("Goal undefined");
-        return false;
-    }
-
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(si_);

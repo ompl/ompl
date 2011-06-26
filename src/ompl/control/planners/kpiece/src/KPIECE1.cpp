@@ -148,12 +148,6 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
 
-    if (!goal)
-    {
-        msg_.error("Goal undefined");
-        return false;
-    }
-
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(siC_);

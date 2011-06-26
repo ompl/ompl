@@ -43,7 +43,7 @@ void ompl::control::PlannerData::clear(void)
     controlDurations.clear();
 }
 
-int ompl::control::PlannerData::recordEdge(const base::State *s1, const base::State *s2, 
+int ompl::control::PlannerData::recordEdge(const base::State *s1, const base::State *s2,
     const Control* c, double duration)
 {
     int i = base::PlannerData::recordEdge(s1,s2);
