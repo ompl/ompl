@@ -36,6 +36,7 @@
 
 #include <gtest/gtest.h>
 #include "ompl/util/RandomNumbers.h"
+#include <cmath>
 #include <vector>
 
 using namespace ompl;
@@ -88,6 +89,14 @@ TEST(Random, ValidRangeInts)
         EXPECT_TRUE(c[i] > V/N/3);
 }
 
+static const double NUM_INT_SAMPLES = 1000000;
+static const double NUM_REAL_SAMPLES = 1000000;
+/* The following widening factor is multiplied by the standard error of the mean
+ * in errUniformInt() and errUniformReal() to obtain a reasonable range to pass to EXPECT_NEAR().
+ * For one million samples, a widening factor of 2.0 seems to be sufficient.
+ * If the number of samples is increased, then this widening factor can be decreased. */
+static const double STDERR_WIDENING_FACTOR = 2.0;
+
 static double avgIntsN(int s, int l, const int N)
 {
     RNG r;
@@ -99,21 +108,27 @@ static double avgIntsN(int s, int l, const int N)
 
 static double avgInts(int s, int l)
 {
-    return avgIntsN(s, l, 1000000);
+    return avgIntsN(s, l, NUM_INT_SAMPLES);
 }
 
-
+static double errUniformInt(int s, int l)
+{
+    const int length = l-s+1;
+    //standard error of mean for discrete uniform distribution over {s,s+1,...,l}
+    const double stdErr = sqrt((length*length-1)/(12.0*NUM_INT_SAMPLES));
+    return stdErr * STDERR_WIDENING_FACTOR;
+}
 
 TEST(Random, AvgInts)
 {
-    EXPECT_NEAR(avgInts(0, 1), 0.5, 0.01);
-    EXPECT_NEAR(avgInts(0, 10), 5.0, 0.01);
-    EXPECT_NEAR(avgInts(-1, 1), 0.0, 0.01);
-    EXPECT_NEAR(avgInts(-1, 0), -0.5, 0.01);
-    EXPECT_NEAR(avgInts(-2, 4), 1.0, 0.01);
-    EXPECT_NEAR(avgInts(2, 4), 3.0, 0.01);
-    EXPECT_NEAR(avgInts(-6, -2), -4.0, 0.01);
-    EXPECT_NEAR(avgIntsN(0, 0, 1000), 0.0, 1e-5);
+    EXPECT_NEAR(avgInts(0, 1), 0.5, errUniformInt(0,1));
+    EXPECT_NEAR(avgInts(0, 10), 5.0, errUniformInt(0,10));
+    EXPECT_NEAR(avgInts(-1, 1), 0.0, errUniformInt(-1,1));
+    EXPECT_NEAR(avgInts(-1, 0), -0.5, errUniformInt(-1,0));
+    EXPECT_NEAR(avgInts(-2, 4), 1.0, errUniformInt(-2,4));
+    EXPECT_NEAR(avgInts(2, 4), 3.0, errUniformInt(2,4));
+    EXPECT_NEAR(avgInts(-6, -2), -4.0, errUniformInt(-6,-2));
+    EXPECT_NEAR(avgIntsN(0, 0, 1000), 0.0, errUniformInt(0,0));
 }
 
 static double avgRealsN(double s, double l, const int N)
@@ -127,20 +142,27 @@ static double avgRealsN(double s, double l, const int N)
 
 static double avgReals(double s, double l)
 {
-    return avgRealsN(s, l, 1000000);
+    return avgRealsN(s, l, NUM_REAL_SAMPLES);
+}
+
+static double errUniformReal(double s, double l)
+{
+    //standard error of mean for continuous uniform distribution over real interval [s,l].
+    const double stdErr = (l-s)*sqrt(1.0/(12.0*NUM_REAL_SAMPLES));
+    return stdErr * STDERR_WIDENING_FACTOR;
 }
 
 TEST(Random, AvgReals)
 {
-    EXPECT_NEAR(avgReals(-0.1, 0.3), 0.1, 0.001);
-    EXPECT_NEAR(avgReals(0, 1), 0.5, 0.01);
-    EXPECT_NEAR(avgReals(0, 10), 5.0, 0.01);
-    EXPECT_NEAR(avgReals(-1, 1), 0.0, 0.01);
-    EXPECT_NEAR(avgReals(-1, 0), -0.5, 0.01);
-    EXPECT_NEAR(avgReals(-2, 4), 1.0, 0.01);
-    EXPECT_NEAR(avgReals(2, 4), 3.0, 0.01);
-    EXPECT_NEAR(avgReals(-6, -2), -4.0, 0.01);
-    EXPECT_NEAR(avgRealsN(0, 0, 1000), 0.0, 1e-5);
+    EXPECT_NEAR(avgReals(-0.1, 0.3), 0.1, errUniformReal(-0.1,0.3));
+    EXPECT_NEAR(avgReals(0, 1), 0.5, errUniformReal(0,1));
+    EXPECT_NEAR(avgReals(0, 10), 5.0, errUniformReal(0,10));
+    EXPECT_NEAR(avgReals(-1, 1), 0.0, errUniformReal(-1,1));
+    EXPECT_NEAR(avgReals(-1, 0), -0.5, errUniformReal(-1,0));
+    EXPECT_NEAR(avgReals(-2, 4), 1.0, errUniformReal(-2,4));
+    EXPECT_NEAR(avgReals(2, 4), 3.0, errUniformReal(2,4));
+    EXPECT_NEAR(avgReals(-6, -2), -4.0, errUniformReal(-6,-2));
+    EXPECT_NEAR(avgRealsN(0, 0, 1000), 0.0, errUniformReal(0,0));
 }
 
 static double avgNormalRealsN(double mean, double stddev, const int N)
@@ -154,12 +176,18 @@ static double avgNormalRealsN(double mean, double stddev, const int N)
 
 static double avgNormalReals(double m, double s)
 {
-    return avgNormalRealsN(m, s, 1000000);
+    return avgNormalRealsN(m, s, NUM_REAL_SAMPLES);
+}
+
+static double errNormal(double stddev)
+{
+    //standard error of mean for gaussian with given stddev
+    return stddev / sqrt(NUM_REAL_SAMPLES);
 }
 
 TEST(Random, NormalReals)
 {
-    EXPECT_NEAR(avgNormalReals(10.0, 1.0), 10.0, 0.01);
+    EXPECT_NEAR(avgNormalReals(10.0, 1.0), 10.0, errNormal(1.0));
 }
 
 int main(int argc, char **argv)
