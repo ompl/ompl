@@ -77,6 +77,10 @@ namespace ompl
 
         void configureValidStateSamplingAttempts(unsigned int &attempts)
         {
+            if (attempts == 0)
+                attempts = magic::MAX_VALID_SAMPLE_ATTEMPTS;
+
+            /*
             static const double log_of_0_9 = -0.105360516;
             if (attempts == 0)
             {
@@ -89,10 +93,18 @@ namespace ompl
                 msg_.debug("Number of attempts made at sampling a valid state in space %s is computed to be %u",
                            si_->getStateSpace()->getName().c_str(), attempts);
             }
+            */
         }
 
         void configurePlannerRange(double &range)
         {
+            if (range < std::numeric_limits<double>::epsilon())
+            {
+                range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+                msg_.debug("Planner range detected to be %lf", range);
+            }
+
+            /*
             if (range < std::numeric_limits<double>::epsilon())
             {
                 range = getAverageValidMotionLength() / 2.0;
@@ -103,6 +115,7 @@ namespace ompl
                     range = std::min(range, b);
                 msg_.debug("Planner range detected to be %lf", range);
             }
+            */
         }
 
         void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
