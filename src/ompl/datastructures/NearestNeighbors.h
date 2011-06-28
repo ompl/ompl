@@ -77,20 +77,20 @@ namespace ompl
         virtual void clear(void) = 0;
 
         /** \brief Add an element to the datastructure */
-        virtual void add(_T &data) = 0;
+        virtual void add(const _T &data) = 0;
 
         /** \brief Add a vector of points */
-        virtual void add(std::vector<_T> &data)
+        virtual void add(const std::vector<_T> &data)
         {
-            for (typename std::vector<_T>::iterator elt = data.begin() ; elt != data.end() ; ++elt)
+            for (typename std::vector<_T>::const_iterator elt = data.begin() ; elt != data.end() ; ++elt)
                 add(*elt);
         }
 
         /** \brief Remove an element from the datastructure */
-        virtual bool remove(_T &data) = 0;
+        virtual bool remove(const _T &data) = 0;
 
         /** \brief Get the nearest neighbor of a point */
-        virtual _T nearest(const _T &data) const = 0;
+        virtual const _T& nearest(const _T &data) const = 0;
 
         /** \brief Get the k-nearest neighbors of a point */
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const = 0;

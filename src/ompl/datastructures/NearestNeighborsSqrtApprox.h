@@ -72,19 +72,19 @@ namespace ompl
             offset_ = 0;
         }
 
-        virtual void add(_T &data)
+        virtual void add(const _T &data)
         {
             NearestNeighborsLinear<_T>::add(data);
             updateCheckCount();
         }
 
-        virtual void add(std::vector<_T> &data)
+        virtual void add(const std::vector<_T> &data)
         {
             NearestNeighborsLinear<_T>::add(data);
             updateCheckCount();
         }
 
-        virtual bool remove(_T &data)
+        virtual bool remove(const _T &data)
         {
             bool result = NearestNeighborsLinear<_T>::remove(data);
             if (result)
@@ -92,7 +92,7 @@ namespace ompl
             return result;
         }
 
-        virtual _T nearest(const _T &data) const
+        virtual const _T& nearest(const _T &data) const
         {
             const std::size_t n = NearestNeighborsLinear<_T>::data_.size();
             std::size_t pos = n;
