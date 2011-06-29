@@ -159,8 +159,17 @@ class DemoControlSpace : public oc::RealVectorControlSpace
 {
 public:
 
-    DemoControlSpace(const ob::StateSpacePtr &stateSpace) : oc::RealVectorControlSpace(stateSpace, 2),
-                                                                     integrator_(stateSpace.get(), 0.0)
+    DemoControlSpace(const ob::StateSpacePtr &stateSpace) : oc::RealVectorControlSpace(stateSpace, 2)
+    {
+    }
+};
+
+class DemoStatePropagator : public oc::StatePropagator
+{
+public:
+
+    DemoStatePropagator(const oc::SpaceInformationPtr &si) : oc::StatePropagator(si),
+                                                             integrator_(si->getStateSpace().get(), 0.0)
     {
     }
 
@@ -180,8 +189,8 @@ public:
     }
 
     EulerIntegrator<KinematicCarModel> integrator_;
-
 };
+
 /// @endcond
 
 void planWithSimpleSetup(void)
@@ -212,6 +221,9 @@ void planWithSimpleSetup(void)
     /// set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, ss.getSpaceInformation().get(), _1));
 
+    /// set the propagation routine for this space
+    ss.setStatePropagator(oc::StatePropagatorPtr(new DemoStatePropagator(ss.getSpaceInformation())));
+
     /// create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);
     start->setX(-0.5);
@@ -229,7 +241,7 @@ void planWithSimpleSetup(void)
 
     /// we want to have a reasonable value for the propagation step size
     ss.setup();
-    cspace->as<DemoControlSpace>()->setIntegrationTimeStep(ss.getSpaceInformation()->getPropagationStepSize());
+    static_cast<DemoStatePropagator*>(ss.getStatePropagator().get())->setIntegrationTimeStep(ss.getSpaceInformation()->getPropagationStepSize());
 
     /// attempt to solve the problem within one second of planning time
     bool solved = ss.solve(10.0);
@@ -247,7 +259,7 @@ void planWithSimpleSetup(void)
 
 int main(int, char **)
 {
-    std::cout << "ompl version: " << OMPL_VERSION << std::endl;
+    std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     planWithSimpleSetup();
 

@@ -177,7 +177,7 @@ void planWithSimpleSetup(void)
 
 int main(int, char **)
 {
-    std::cout << "ompl version: " << OMPL_VERSION << std::endl;
+    std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     plan();
 

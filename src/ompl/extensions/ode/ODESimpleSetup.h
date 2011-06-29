@@ -39,6 +39,7 @@
 
 #include "ompl/control/SimpleSetup.h"
 #include "ompl/extensions/ode/ODEStateValidityChecker.h"
+#include "ompl/extensions/ode/ODEStatePropagator.h"
 #include "ompl/extensions/ode/ODEControlSpace.h"
 
 namespace ompl

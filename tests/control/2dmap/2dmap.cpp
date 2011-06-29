@@ -111,11 +111,11 @@ public:
     }
 };
 
-class myControlSpace : public control::RealVectorControlSpace
+class myStatePropagator : public control::StatePropagator
 {
 public:
 
-    myControlSpace(const base::StateSpacePtr &m) : control::RealVectorControlSpace(m, 2)
+    myStatePropagator(const control::SpaceInformationPtr &si) : control::StatePropagator(si)
     {
     }
 
@@ -128,11 +128,8 @@ public:
 
         result->as<base::RealVectorStateSpace::StateType>()->values[2] = control->as<control::RealVectorControlSpace::ControlType>()->values[0];
         result->as<base::RealVectorStateSpace::StateType>()->values[3] = control->as<control::RealVectorControlSpace::ControlType>()->values[1];
-        stateSpace_->enforceBounds(result);
+        si_->getStateSpace()->enforceBounds(result);
     }
-
-    base::StateValidityChecker *SVC;
-
 };
 
 
@@ -163,7 +160,7 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
 
     base::StateSpacePtr sManPtr(sMan);
 
-    myControlSpace *cMan = new myControlSpace(sManPtr);
+    control::RealVectorControlSpace *cMan = new control::RealVectorControlSpace(sManPtr, 2);
     base::RealVectorBounds cbounds(2);
 
     cbounds.low[0] = -MAX_VELOCITY;
@@ -177,7 +174,7 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     si->setPropagationStepSize(0.25);
 
     si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityChecker(si.get(), env.grid)));
-    cMan->SVC = si->getStateValidityChecker().get();
+    si->setStatePropagator(control::StatePropagatorPtr(new myStatePropagator(si)));
 
     si->setup();
 

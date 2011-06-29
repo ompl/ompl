@@ -44,7 +44,6 @@
 #include "ompl/util/ClassForward.h"
 #include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/function.hpp>
 #include <iostream>
 #include <vector>
 
@@ -59,9 +58,6 @@ namespace ompl
 
         /** \class ompl::control::ControlSpacePtr
             \brief A boost shared pointer wrapper for ompl::control::ControlSpace */
-
-        /** \brief A function that achieves state propagation.*/
-        typedef boost::function4<void, const base::State*, const Control*, const double, base::State*> StatePropagationFn;
 
         /** \brief A control space representing the space of applicable controls */
         class ControlSpace : private boost::noncopyable
@@ -126,32 +122,6 @@ namespace ompl
             /** \brief Allocate a control sampler */
             virtual ControlSamplerPtr allocControlSampler(void) const = 0;
 
-            /** \brief Propagate from a state, given a control, for some specified amount of time (the amount of time can
-                also be negative, if canPropagateBackward() returns true)
-                \param state the state to start propagating from
-                \param control the control to apply
-                \param duration the duration for which the control is applied
-                \param result the state the system is brought to
-
-                \note This function is <b>not used for integration</b>
-                internally. If integrating a system of differential
-                equations is needed, this should be implemented inside
-                the propagate() function.
-
-                \note The pointer to the starting state and the result
-                state may be the same.
-            */
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
-
-            /** \brief Some systems can only propagate forward in time (i.e., the duration argument for the propagate()
-                function is always positive). If this is the case, this function should return false. Planners that need
-                backward propagation (negative durations) will call this function to check. If backward propagation is
-                possible, this function should return true (this is the default). */
-            virtual bool canPropagateBackward(void) const;
-
-            /** \brief Set the function that performs state propagation */
-            void setPropagationFunction(const StatePropagationFn &fn);
-
             /** \brief Many controls contain a number of double values. This function provides a means to get the
                 memory address of a double value from a control \e control located at position \e index. The first double value
                 is returned for \e index = 0. If \e index is too large (does not point to any double values in the control),
@@ -171,9 +141,6 @@ namespace ompl
 
             /** \brief The state space controls can be applied to */
             base::StateSpacePtr    stateSpace_;
-
-            /** \brief Function that can perform state propagation */
-            StatePropagationFn     statePropagation_;
 
         private:
 
@@ -233,10 +200,6 @@ namespace ompl
             virtual void nullControl(Control *control) const;
 
             virtual ControlSamplerPtr allocControlSampler(void) const;
-
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
-
-            virtual bool canPropagateBackward(void) const;
 
             virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
 

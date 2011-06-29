@@ -100,6 +100,11 @@ namespace ompl
                 return si_->getStateValidityChecker();
             }
 
+            const StatePropagatorPtr& getStatePropagator(void) const
+            {
+                return si_->getStatePropagator();
+            }
+
             /** \brief Get the current goal definition */
             const base::GoalPtr& getGoal(void) const
             {
@@ -140,6 +145,18 @@ namespace ompl
             void setStateValidityChecker(const base::StateValidityCheckerFn &svc)
             {
                 si_->setStateValidityChecker(svc);
+            }
+
+            /** \brief Set the function that performs state propagation */
+            void setStatePropagator(const StatePropagatorFn &sp)
+            {
+                si_->setStatePropagator(sp);
+            }
+
+            /** \brief Set the instance of StatePropagator to perform state propagation */
+            void setStatePropagator(const StatePropagatorPtr &sp)
+            {
+                si_->setStatePropagator(sp);
             }
 
             /** \brief Set the start and goal states to use. */

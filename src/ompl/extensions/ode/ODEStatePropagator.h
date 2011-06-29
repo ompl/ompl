@@ -34,33 +34,62 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_STATE_VALIDITY_CHECKER_
-#define OMPL_EXTENSION_ODE_STATE_VALIDITY_CHECKER_
+#ifndef OMPL_EXTENSION_ODE_STATE_PROPAGATOR_
+#define OMPL_EXTENSION_ODE_STATE_PROPAGATOR_
 
-#include "ompl/extensions/ode/ODEStateSpace.h"
 #include "ompl/control/SpaceInformation.h"
+#include "ompl/extensions/ode/ODEEnvironment.h"
 
 namespace ompl
 {
+
     namespace control
     {
 
-        /** \brief The simplest state validity checker: all states are valid */
-        class ODEStateValidityChecker : public base::StateValidityChecker
+        /** \brief State propagation with ODE. Only forward
+            propagation is possible.
+
+            At every propagation step, controls are applied using
+            ODEEnvironment::applyControl(), contacts are computed by
+            calling \b dSpaceCollide() on the spaces in
+            ODEEnvironment::collisionSpaces_ and then \b
+            dWorldQuickStep() is called. If the \e state argument of
+            propagate() does not have its
+            ODEStateSpace::StateType::collision field set, it is
+            set based on the information returned by contact
+            computation. Certain collisions (contacts) are allowed, as
+            indicated by ODEEnvironment::isValidCollision(). */
+        class ODEStatePropagator : public StatePropagator
         {
         public:
 
-            /** \brief Constructor */
-            ODEStateValidityChecker(const SpaceInformationPtr &si);
+            /** \brief Construct a representation of ODE state propagator.
+                If \e si->getStateSpace() does not cast to an
+                ODEStateSpace, an exception is thrown. */
+            ODEStatePropagator(const SpaceInformationPtr &si);
 
-            /** \brief A state is considered valid if it is within bounds and not in collision */
-            virtual bool isValid(const base::State *state) const;
+            virtual ~ODEStatePropagator(void)
+            {
+            }
+
+            /** \brief Get the ODE environment this state propagator operates on */
+            const ODEEnvironmentPtr& getEnvironment(void) const
+            {
+                return env_;
+            }
+
+            virtual bool canPropagateBackward(void) const;
+
+            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 
         protected:
 
-            /** \brief The corresponding ODE state space */
-            ODEStateSpace *osm_;
+            /** \brief The ODE environment this state propagator operates on */
+            ODEEnvironmentPtr env_;
+
         };
     }
+
 }
+
 #endif
