@@ -90,7 +90,7 @@ namespace ompl
         virtual bool remove(const _T &data) = 0;
 
         /** \brief Get the nearest neighbor of a point */
-        virtual const _T& nearest(const _T &data) const = 0;
+        virtual _T nearest(const _T &data) const = 0;
 
         /** \brief Get the k-nearest neighbors of a point */
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const = 0;

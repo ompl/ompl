@@ -92,7 +92,7 @@ namespace ompl
             return result;
         }
 
-        virtual const _T& nearest(const _T &data) const
+        virtual _T nearest(const _T &data) const
         {
             const std::size_t n = NearestNeighborsLinear<_T>::data_.size();
             std::size_t pos = n;

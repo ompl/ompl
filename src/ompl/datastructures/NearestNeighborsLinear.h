@@ -93,7 +93,7 @@ namespace ompl
             return false;
         }
 
-        virtual const _T& nearest(const _T &data) const
+        virtual _T nearest(const _T &data) const
         {
             const std::size_t sz = data_.size();
             std::size_t pos = sz;
