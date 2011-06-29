@@ -222,7 +222,7 @@ namespace ompl
 
 
 
-
+/*
 void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const State*> &states)
 {
     setup();
@@ -295,6 +295,7 @@ void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const S
     // make sure all flags are set correctly
     setCellSizes(cellSizes_);
 }
+*/
 
 void ompl::base::ProjectionEvaluator::inferCellSizes(void)
 {
