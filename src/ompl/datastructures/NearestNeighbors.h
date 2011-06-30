@@ -62,7 +62,7 @@ namespace ompl
         }
 
         /** \brief Set the distance function to use */
-        void setDistanceFunction(const DistanceFunction &distFun)
+        virtual void setDistanceFunction(const DistanceFunction &distFun)
         {
             distFun_ = distFun;
         }
