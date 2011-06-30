@@ -187,7 +187,7 @@ namespace ompl
                         (child->distToPivot_ > child->maxRadius_ + dist ||
                         child->distToPivot_ < child->minRadius_ - dist))
                         break;
-                    child->nearestK(*this, data, k, nbh_queue);
+                    child->nearestK(*this, data, k + removed.size(), nbh_queue);
                 }
                 postprocessNearest(nbh_queue, nbh);
             }
