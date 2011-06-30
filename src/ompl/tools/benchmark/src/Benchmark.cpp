@@ -261,6 +261,20 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
             }
 
+            // execute pre-run event, if set
+            try
+            {
+                if (gsetup_ && preRunG_)
+                    preRunG_(*gsetup_, planners_[i]);
+                else
+                    if (csetup_ && preRunC_)
+                        preRunC_(*csetup_, planners_[i]);
+            }
+            catch(std::runtime_error &e)
+            {
+                std::cerr << "There was an error executing the pre-run event: " << e.what() << std::endl;
+            }
+
             time::point timeStart = time::now();
 
             bool solved = false;
@@ -356,6 +370,20 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
                     run[it->first] = it->second;
+
+                // execute post-run event, if set
+                try
+                {
+                    if (gsetup_ && postRunG_)
+                        postRunG_(*gsetup_, planners_[i], run);
+                    else
+                        if (csetup_ && postRunC_)
+                            postRunC_(*csetup_, planners_[i], run);
+                }
+                catch(std::runtime_error &e)
+                {
+                    std::cerr << "There was an error in the execution of the post-run event: " << e.what() << std::endl;
+                }
 
                 exp_.planners[i].runs.push_back(run);
             }

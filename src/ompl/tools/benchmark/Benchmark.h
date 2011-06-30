@@ -57,7 +57,6 @@ namespace ompl
             Status(void)
             {
                 running = false;
-                activePlanner = "";
                 activeRun = 0;
                 progressPercentage = 0.0;
             }
@@ -78,6 +77,18 @@ namespace ompl
         /** \brief The data collected from a run of a planner is
             stored as key-value pairs. */
         typedef std::map<std::string, std::string> RunProperties;
+
+        /** \brief Signature of function that can be called before a planner execution is started, in the geometric case */
+        typedef boost::function2<void, geometric::SimpleSetup&, const base::PlannerPtr&> GPreSetupEvent;
+
+        /** \brief Signature of function that can be called before a planner execution is started, in the control case */
+        typedef boost::function2<void, control::SimpleSetup&,   const base::PlannerPtr&> CPreSetupEvent;
+
+        /** \brief Signature of function that can be called after a planner execution is completed, in the control case */
+        typedef boost::function3<void, geometric::SimpleSetup&, const base::PlannerPtr&, RunProperties&> GPostSetupEvent;
+
+        /** \brief Signature of function that can be called after a planner execution is completed, in the control case */
+        typedef boost::function3<void, control::SimpleSetup&,   const base::PlannerPtr&, RunProperties&> CPostSetupEvent;
 
         /** \brief The data collected after running a planner multiple times */
         struct PlannerExperiment
@@ -177,6 +188,30 @@ namespace ompl
             planners_.clear();
         }
 
+        /// Set the event to be called before the run of a geometric planner
+        void setPreRunEvent(const GPreSetupEvent &event)
+        {
+            preRunG_ = event;
+        }
+
+        /// Set the event to be called before the run of a control planner
+        void setPreRunEvent(const CPreSetupEvent &event)
+        {
+            preRunC_ = event;
+        }
+
+        /// Set the event to be called after the run of a geometric planner
+        void setPostRunEvent(const GPostSetupEvent &event)
+        {
+            postRunG_ = event;
+        }
+
+        /// Set the event to be called after the run of a control planner
+        void setPostRunEvent(const CPostSetupEvent &event)
+        {
+            postRunC_ = event;
+        }
+
         /** \brief Benchmark the added planners on the defined problem. Repeated calls clear previously gathered data.
             \param maxTime the maximum amount of time a planner is allowed to run (seconds)
             \param maxMem the maximum amount of memory a planner is allowed to use (MB)
@@ -237,6 +272,18 @@ namespace ompl
 
         /// The current status of this benchmarking instance
         Status                        status_;
+
+        /// Event to be called before the run of a geometric planner
+        GPreSetupEvent                preRunG_;
+
+        /// Event to be called before the run of a control planner
+        CPreSetupEvent                preRunC_;
+
+        /// Event to be called after the run of a geometric planner
+        GPostSetupEvent               postRunG_;
+
+        /// Event to be called after the run of a control planner
+        CPostSetupEvent               postRunC_;
 
         /// Interface for console output
         msg::Interface                msg_;
