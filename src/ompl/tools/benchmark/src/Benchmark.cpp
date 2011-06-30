@@ -264,11 +264,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             // execute pre-run event, if set
             try
             {
-                if (gsetup_ && preRunG_)
-                    preRunG_(*gsetup_, planners_[i]);
-                else
-                    if (csetup_ && preRunC_)
-                        preRunC_(*csetup_, planners_[i]);
+                if (preRun_)
+                    preRun_(planners_[i]);
             }
             catch(std::runtime_error &e)
             {
@@ -374,11 +371,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 // execute post-run event, if set
                 try
                 {
-                    if (gsetup_ && postRunG_)
-                        postRunG_(*gsetup_, planners_[i], run);
-                    else
-                        if (csetup_ && postRunC_)
-                            postRunC_(*csetup_, planners_[i], run);
+                    if (postRun_)
+                        postRun_(planners_[i], run);
                 }
                 catch(std::runtime_error &e)
                 {
