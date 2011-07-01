@@ -79,53 +79,43 @@ namespace ompl
             \param dists a 2-dimensional array such that dists[i][j] is the distance
                 between data[i] and data[center[j]]
         */
-        //const std::vector<bool>&
         void kcenters(const std::vector<_T>& data, unsigned int k,
             std::vector<unsigned int>& centers, std::vector<std::vector<double> >& dists)
         {
-            // array that indicates for each data element whether it's a center
-            //static std::vector<bool> isCenter;
             // array containing the minimum distance between each data point
             // and the centers computed so far
             std::vector<double> minDist(data.size(), std::numeric_limits<double>::infinity());
-            unsigned int i, j, ind;
 
-            //isCenter.clear();
-            //isCenter.resize(data.size(), false);
             centers.clear();
             centers.reserve(k);
             dists.resize(data.size(), std::vector<double>(k));
             // first center is picked randomly
             centers.push_back(rng_.uniformInt(0, data.size() - 1));
-            //isCenter[centers[0]] = true;
-            for (i=1; i<k; ++i)
+            for (unsigned i=1; i<k; ++i)
             {
+                unsigned ind;
                 const _T& center = data[centers[i - 1]];
                 double maxDist = -std::numeric_limits<double>::infinity();
-                for (j=0; j<data.size(); ++j)
+                for (unsigned j=0; j<data.size(); ++j)
                 {
                     if ((dists[j][i-1] = distFun_(data[j], center)) < minDist[j])
                         minDist[j] = dists[j][i - 1];
                     // the j-th center is the one furthest away from center 0,..,j-1
-                    // (if there are many elements with distance 0 from each other
-                    // it is possible that we need to pick two or more centers that
-                    // have distance 0 to each other)
-                    if (minDist[j] > maxDist) // && !isCenter[j])
+                    if (minDist[j] > maxDist)
                     {
                         ind = j;
                         maxDist = minDist[j];
                     }
-                    // no more centers available
                 }
-                if (maxDist==0.) break;
+                // no more centers available
+                if (maxDist < std::numeric_limits<double>::epsilon()) break;
                 centers.push_back(ind);
-                //isCenter[centers[i]] = true;
             }
+
             const _T& center = data[centers.back()];
-            i = centers.size() - 1;
+            unsigned i = centers.size() - 1;
             for (unsigned j = 0; j < data.size(); ++j)
                 dists[j][i] = distFun_(data[j], center);
-            //return isCenter;
         }
 
     protected:
