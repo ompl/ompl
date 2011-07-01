@@ -56,7 +56,7 @@ def isStateValid(spaceInformation, state):
     # satisfied
     return spaceInformation.satisfiesBounds(state)
 
-def propagate(cspace, start, control, duration, state):
+def propagate(start, control, duration, state):
     state.setX( start.getX() + control[0] * duration * cos(start.getYaw()) )
     state.setY( start.getY() + control[0] * duration * sin(start.getYaw()) )
     state.setYaw(start.getYaw() + control[1] * duration)
@@ -80,12 +80,10 @@ def plan():
     cbounds.setHigh(.3)
     cspace.setBounds(cbounds)
 
-    # set the state propagation routine
-    cspace.setPropagationFunction(propagate)
-
     # define a simple setup class
     ss = oc.SimpleSetup(cspace)
     ss.setStateValidityChecker(isStateValid)
+    ss.setStatePropagatorFn(propagate)
 
     # create a start state
     start = ob.State(space)

@@ -1,6 +1,7 @@
 ../src/ompl/control/Control.h
 ../src/ompl/control/ControlSampler.h
 ../src/ompl/control/ControlSpace.h
+../src/ompl/control/StatePropagator.h
 ../src/ompl/control/SpaceInformation.h
 ../src/ompl/control/PathControl.h
 ../src/ompl/control/SimpleSetup.h

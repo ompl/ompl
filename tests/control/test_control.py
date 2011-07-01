@@ -79,9 +79,9 @@ def isValid(grid, spaceinformation, state):
         return False
     return grid[x][y] == 0 # 0 means valid state
 
-class myStateSpace(ob.RealVectorStateSpace):
+class MyStateSpace(ob.RealVectorStateSpace):
     def __init__(self):
-        super(myStateSpace, self).__init__(4)
+        super(MyStateSpace, self).__init__(4)
 
     def distance(self, state1, state2):
         x1 = int(state1[0])
@@ -90,9 +90,9 @@ class myStateSpace(ob.RealVectorStateSpace):
         y2 = int(state2[1])
         return fabs(x1-x2) + fabs(y1-y2)
 
-class myControlSpace(oc.RealVectorControlSpace):
-    def __init__(self, statespace):
-        super(myControlSpace, self).__init__(statespace, 2)
+class MyStatePropagator(oc.StatePropagator):
+    def __init__(self, spaceInformation):
+        super(MyStatePropagator, self).__init__(spaceInformation)
 
     def propagate(self, state, control, duration, result):
         result[0] = state[0] + duration*control[0]
@@ -105,7 +105,7 @@ class TestPlanner(object):
     def execute(self, env, time, pathLength, show = False):
         result = True
 
-        sSpace = myStateSpace()
+        sSpace = MyStateSpace()
         sbounds = ob.RealVectorBounds(4)
         # dimension 0 (x) spans between [0, width)
         # dimension 1 (y) spans between [0, height)
@@ -120,7 +120,7 @@ class TestPlanner(object):
             MAX_VELOCITY, MAX_VELOCITY])
         sSpace.setBounds(sbounds)
 
-        cSpace = myControlSpace(sSpace)
+        cSpace = oc.RealVectorControlSpace(sSpace, 2)
         cbounds = ob.RealVectorBounds(2)
         cbounds.low[0] = -MAX_VELOCITY
         cbounds.high[0] = MAX_VELOCITY
@@ -131,6 +131,8 @@ class TestPlanner(object):
         ss = oc.SimpleSetup(cSpace)
         isValidFn = partial(isValid, env.grid)
         ss.setStateValidityChecker(isValidFn)
+        propagator = MyStatePropagator(ss.getSpaceInformation())
+        ss.setStatePropagator(propagator)
 
         planner = self.newplanner(ss.getSpaceInformation())
         ss.setPlanner(planner)
