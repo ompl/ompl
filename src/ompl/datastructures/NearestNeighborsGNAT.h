@@ -42,7 +42,6 @@
 #include "ompl/util/Exception.h"
 #include <queue>
 #include <algorithm>
-#include <boost/range/algorithm_ext/iota.hpp>
 
 namespace ompl
 {
@@ -432,7 +431,9 @@ namespace ompl
                     Node* child;
                     std::vector<double> distToPivot(children_.size());
                     std::vector<int> permutation(children_.size());
-                    boost::range::iota(permutation, 0);
+
+                    for (unsigned int i=0; i<permutation.size(); ++i)
+                        permutation[i] = i;
                     std::random_shuffle(permutation.begin(), permutation.end());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
@@ -482,7 +483,9 @@ namespace ompl
                     Node* child;
                     std::vector<double> distToPivot(children_.size());
                     std::vector<int> permutation(children_.size());
-                    boost::range::iota(permutation, 0);
+
+                    for (unsigned int i=0; i<permutation.size(); ++i)
+                        permutation[i] = i;
                     std::random_shuffle(permutation.begin(), permutation.end());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
