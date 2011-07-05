@@ -60,7 +60,7 @@ namespace ompl
     protected:
         // internally, we use a priority queue for nearest neighbors, paired
         // with their distance to the query point
-        typedef std::pair<_T,double> DataDist;
+        typedef std::pair<const _T*,double> DataDist;
         struct DataDistCompare
         {
             bool operator()(const DataDist& d0, const DataDist& d1)
@@ -137,41 +137,61 @@ namespace ompl
             }
             size_ += data.size();
         }
+        /** \brief Rebuild the internal data structure */
+        void rebuildDataStructure()
+        {
+            typename std::vector<_T>::iterator it;
+            std::vector<_T> lst;
+
+            list(lst);
+            while (removed_.size() > 0)
+            {
+                for (it = lst.begin(); it != lst.end(); it++)
+                    if (*it == *removed_.back())
+                    break;
+                assert(it != lst.end());
+                lst.erase(it);
+                removed_.pop_back();
+            }
+            delete tree_;
+            tree_ = NULL;
+            size_ = 0;
+            add(lst);
+        }
         virtual bool remove(const _T &data)
         {
             if (!tree_) return false;
-            if (tree_->find(data))
+
+            NearQueue nbhQueue;
+            typename std::vector<_T>::iterator n, r;
+            unsigned num_found, num_alread_removed = 0;
+            _T elt;
+
+            // find all elements that are the same as data
+            nearestRInternal(data, std::numeric_limits<double>::epsilon(), nbhQueue);
+            while (nbhQueue.size()>0)
             {
-                removed_.push_back(data);
-                // if capacity of removed elements has been reached, we rebuild
-                // the entire GNAT
-                if (removed_.size()==removed_.capacity())
+                unsigned int i;
+                const _T* elt = nbhQueue.top().first;
+                for (i=0; i<removed_.size(); ++i)
+                    if (removed_[i] == elt)
+                        break;
+                if (i==removed_.size())
                 {
-                    std::vector<_T> lst;
-                    typename std::vector<_T>::iterator it;
-
-                    list(lst);
-                    while (removed_.size() > 0)
-                    {
-                        for (it = lst.begin(); it != lst.end(); it++)
-                            if (*it == removed_.back())
-                                break;
-                        assert(it != lst.end());
-                        lst.erase(it);
-                        removed_.pop_back();
-                    }
-                    delete tree_;
-                    tree_ = NULL;
-                    size_ = 0;
-                    add(lst);
+                    // done: we found an element that is not already in removed_.
+                    removed_.push_back(elt);
+                    break;
                 }
-                else
-                    size_--;
-                return true;
+                nbhQueue.pop();
             }
-            return false;
+            // if capacity of removed elements has been reached, we rebuild
+            // the entire GNAT
+            if (removed_.size()==removed_.capacity())
+                rebuildDataStructure();
+            else
+                size_--;
+            return true;
         }
-
         virtual _T nearest(const _T &data) const
         {
             if (tree_)
@@ -186,30 +206,11 @@ namespace ompl
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
         {
             nbh.clear();
-
             if (k == 0) return;
-
             if (tree_)
             {
-                double dist;
                 NearQueue nbhQueue;
-                NodeQueue nodeQueue;
-                NodeDist nodeDist;
-
-                tree_->insertNeighborK(nbhQueue, k, tree_->pivot_,
-                    NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
-                tree_->nearestK(*this, data, k + removed_.size(), nbhQueue, nodeQueue);
-                while (nodeQueue.size() > 0)
-                {
-                    dist = nbhQueue.top().second; // note the difference with nearestR
-                    nodeDist = nodeQueue.top();
-                    nodeQueue.pop();
-                    if (nbhQueue.size() == k &&
-                        (nodeDist.second > nodeDist.first->maxRadius_ + dist ||
-                         nodeDist.second < nodeDist.first->minRadius_ - dist))
-                        break;
-                    nodeDist.first->nearestK(*this, data, k + removed_.size(), nbhQueue, nodeQueue);
-                }
+                nearestKInternal(data, k, nbhQueue);
                 postprocessNearest(nbhQueue, nbh, k);
             }
         }
@@ -217,26 +218,10 @@ namespace ompl
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
         {
             nbh.clear();
-
             if (tree_)
             {
-                double dist = radius; // note the difference with nearestK
                 NearQueue nbhQueue;
-                NodeQueue nodeQueue;
-                NodeDist nodeDist;
-
-                tree_->insertNeighborR(nbhQueue, radius, tree_->pivot_,
-                    NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
-                tree_->nearestR(*this, data, radius, nbhQueue, nodeQueue);
-                while (nodeQueue.size() > 0)
-                {
-                    nodeDist = nodeQueue.top();
-                    nodeQueue.pop();
-                    if (nodeDist.second > nodeDist.first->maxRadius_ + dist ||
-                        nodeDist.second < nodeDist.first->minRadius_ - dist)
-                        break;
-                    nodeDist.first->nearestR(*this, data, radius, nbhQueue, nodeQueue);
-                }
+                nearestRInternal(data, radius, nbhQueue);
                 postprocessNearest(nbhQueue, nbh);
             }
         }
@@ -262,20 +247,60 @@ namespace ompl
     protected:
         typedef NearestNeighborsGNAT<_T> GNAT;
 
+        void nearestKInternal(const _T &data, std::size_t k, NearQueue& nbhQueue) const
+        {
+            double dist;
+            NodeDist nodeDist;
+            NodeQueue nodeQueue;
+
+            tree_->insertNeighborK(nbhQueue, k, tree_->pivot_,
+                NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
+            tree_->nearestK(*this, data, k + removed_.size(), nbhQueue, nodeQueue);
+            while (nodeQueue.size() > 0)
+            {
+                dist = nbhQueue.top().second; // note the difference with nearestRInternal
+                nodeDist = nodeQueue.top();
+                nodeQueue.pop();
+                if (nbhQueue.size() == k &&
+                    (nodeDist.second > nodeDist.first->maxRadius_ + dist ||
+                     nodeDist.second < nodeDist.first->minRadius_ - dist))
+                    break;
+                nodeDist.first->nearestK(*this, data, k + removed_.size(), nbhQueue, nodeQueue);
+            }
+        }
+        void nearestRInternal(const _T &data, double radius, NearQueue& nbhQueue) const
+        {
+            double dist = radius; // note the difference with nearestKInternal
+            NodeQueue nodeQueue;
+            NodeDist nodeDist;
+
+            tree_->insertNeighborR(nbhQueue, radius, tree_->pivot_,
+                NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
+            tree_->nearestR(*this, data, radius, nbhQueue, nodeQueue);
+            while (nodeQueue.size() > 0)
+            {
+                nodeDist = nodeQueue.top();
+                nodeQueue.pop();
+                if (nodeDist.second > nodeDist.first->maxRadius_ + dist ||
+                    nodeDist.second < nodeDist.first->minRadius_ - dist)
+                    break;
+                nodeDist.first->nearestR(*this, data, radius, nbhQueue, nodeQueue);
+            }
+        }
         void postprocessNearest(NearQueue& nbhQueue, std::vector<_T> &nbh,
-            unsigned int k=std::numeric_limits<unsigned int>::infinity()) const
+            unsigned int k=std::numeric_limits<unsigned int>::max()) const
         {
             if (removed_.size()>0)
             {
                 while (nbhQueue.size()>0 && nbh.size()<k)
                 {
                     unsigned int i;
-                    const _T& elt = nbhQueue.top().first;
+                    const _T* elt = nbhQueue.top().first;
                     for (i=0; i<removed_.size(); ++i)
                         if (removed_[i] == elt)
                             break;
                     if (i==removed_.size())
-                        nbh.push_back(elt);
+                        nbh.push_back(*elt);
                     nbhQueue.pop();
                 }
             }
@@ -284,7 +309,7 @@ namespace ompl
                 typename std::vector<_T>::reverse_iterator it;
                 nbh.resize(nbhQueue.size());
                 for (it=nbh.rbegin(); it!=nbh.rend(); it++, nbhQueue.pop())
-                    *it = nbhQueue.top().first;
+                    *it = *nbhQueue.top().first;
             }
         }
 
@@ -311,7 +336,10 @@ namespace ompl
                 {
                     data_.push_back(data);
                     if (needToSplit(gnat))
-                        split(gnat);
+                        if (gnat.removed_.size() > 0)
+                            gnat.rebuildDataStructure();
+                        else
+                            split(gnat);
                 }
                 else
                 {
@@ -397,27 +425,14 @@ namespace ompl
                         children_[i]->split(gnat);
             }
 
-            bool find(const _T& data) const
-            {
-                if (pivot_ == data)
-                    return true;
-                for (unsigned int i=0; i<data_.size(); ++i)
-                    if (data_[i] == data)
-                        return true;
-                for (unsigned int i=0; i<children_.size(); ++i)
-                    if (children_[i]->find(data))
-                        return true;
-                return false;
-            }
-
             void insertNeighborK(NearQueue& nbh, std::size_t k, const _T& data, double dist) const
             {
                 if (nbh.size() < k)
-                    nbh.push(std::make_pair(data, dist));
+                    nbh.push(std::make_pair(&data, dist));
                 else if (dist < nbh.top().second)
                 {
                     nbh.pop();
-                    nbh.push(std::make_pair(data, dist));
+                    nbh.push(std::make_pair(&data, dist));
                 }
             }
 
@@ -469,7 +484,7 @@ namespace ompl
             void insertNeighborR(NearQueue& nbh, double r, const _T& data, double dist) const
             {
                 if (dist < r)
-                    nbh.push(std::make_pair(data, dist));
+                    nbh.push(std::make_pair(&data, dist));
             }
 
             void nearestR(const GNAT& gnat, const _T &data, double r, NearQueue& nbh, NodeQueue& nodeQueue) const
@@ -570,7 +585,7 @@ namespace ompl
         GreedyKCenters<_T> pivotSelector_;
 
         /** \brief Cache of removed elements */
-        std::vector<_T> removed_;
+        std::vector<const _T*> removed_;
 
     };
 
