@@ -148,7 +148,7 @@ namespace ompl
             {
                 for (it = lst.begin(); it != lst.end(); it++)
                     if (*it == *removed_.back())
-                    break;
+                        break;
                 assert(it != lst.end());
                 lst.erase(it);
                 removed_.pop_back();
@@ -163,12 +163,10 @@ namespace ompl
             if (!tree_) return false;
 
             NearQueue nbhQueue;
-            typename std::vector<_T>::iterator n, r;
-            unsigned num_found, num_alread_removed = 0;
-            _T elt;
-
             // find all elements that are the same as data
             nearestRInternal(data, std::numeric_limits<double>::epsilon(), nbhQueue);
+            if (nbhQueue.size()==0)
+                return false;
             while (nbhQueue.size()>0)
             {
                 unsigned int i;
