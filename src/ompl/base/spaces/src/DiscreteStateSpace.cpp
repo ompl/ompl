@@ -150,7 +150,7 @@ void ompl::base::DiscreteStateSpace::registerProjections(void)
 
         virtual void project(const State *state, EuclideanProjection &projection) const
         {
-            projection.values[0] = state->as<DiscreteStateSpace::StateType>()->value;
+            projection(0) = state->as<DiscreteStateSpace::StateType>()->value;
         }
     };
 

@@ -160,7 +160,6 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
         self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
         self.std_ns.class_('map< std::string, boost::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
-        self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
         self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
         self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
         self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
@@ -213,8 +212,14 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
-        # add array indexing to the EuclideanProjection
-        self.add_array_access(self.ompl_ns.class_('EuclideanProjection'))
+        # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to EuclideanProjection
+        cls = self.mb.namespace('boost').namespace('numeric').namespace('ublas').class_(
+            'vector<double, boost::numeric::ublas::unbounded_array<double, std::allocator<double> > >')
+        cls.include()
+        cls.rename('EuclideanProjection')
+        cls.member_functions().exclude()
+        cls.operators().exclude()
+        self.add_array_access(cls,'double')
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         # handle special case (abstract base class with pure virtual method)

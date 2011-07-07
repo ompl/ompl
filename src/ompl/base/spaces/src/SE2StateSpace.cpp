@@ -75,7 +75,7 @@ void ompl::base::SE2StateSpace::registerProjections(void)
 
         virtual void project(const State *state, EuclideanProjection &projection) const
         {
-            memcpy(projection.values, state->as<SE2StateSpace::StateType>()->as<RealVectorStateSpace::StateType>(0)->values, 2 * sizeof(double));
+            memcpy(&projection(0), state->as<SE2StateSpace::StateType>()->as<RealVectorStateSpace::StateType>(0)->values, 2 * sizeof(double));
         }
     };
 
