@@ -214,7 +214,7 @@ void ompl::msg::OutputHandlerFile::error(const std::string &text)
 {
     if (file_)
     {
-        fprintf(file_, "Error:   %s", text.c_str());
+        fprintf(file_, "Error:   %s\n", text.c_str());
         fflush(file_);
     }
 }
@@ -223,7 +223,7 @@ void ompl::msg::OutputHandlerFile::warn(const std::string &text)
 {
     if (file_)
     {
-        fprintf(file_, "Warning: %s", text.c_str());
+        fprintf(file_, "Warning: %s\n", text.c_str());
         fflush(file_);
     }
 }
@@ -232,7 +232,7 @@ void ompl::msg::OutputHandlerFile::inform(const std::string &text)
 {
     if (file_)
     {
-        fprintf(file_, "Info:    %s", text.c_str());
+        fprintf(file_, "Info:    %s\n", text.c_str());
         fflush(file_);
     }
 }
@@ -241,7 +241,7 @@ void ompl::msg::OutputHandlerFile::debug(const std::string &text)
 {
     if (file_)
     {
-        fprintf(file_, "Debug:   %s", text.c_str());
+        fprintf(file_, "Debug:   %s\n", text.c_str());
         fflush(file_);
     }
 }
