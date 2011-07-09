@@ -334,13 +334,13 @@ namespace ompl
                 {
                     data_.push_back(data);
                     if (needToSplit(gnat))
-		    {
-			if (gnat.removed_.size() > 0)
+                    {
+                        if (gnat.removed_.size() > 0)
                             gnat.rebuildDataStructure();
                         else
                             split(gnat);
-		    }
-		}
+                    }
+                }
                 else
                 {
                     double minDist = std::numeric_limits<double>::infinity();
