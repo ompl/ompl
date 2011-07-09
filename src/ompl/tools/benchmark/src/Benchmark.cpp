@@ -72,12 +72,12 @@ namespace ompl
         {
         }
 
-        void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const time::duration &maxDuration)
+        void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
         {
-            boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, maxDuration));
+            boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
 
-            // allow 10% more time than originally specified, in order to detect planner termination
-            if (!t.timed_join(maxDuration * 1.1))
+            // allow 25% more time than originally specified, in order to detect planner termination
+            if (!t.timed_join(time::seconds(maxTime * 1.25)))
             {
                 crashed_ = true;
 
@@ -333,8 +333,6 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
     machine::MemUsage_t maxMemBytes = (machine::MemUsage_t)(maxMem * 1024 * 1024);
 
-    time::duration maxTimeDuration = time::seconds(maxTime);
-
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
         status_.activePlanner = exp_.planners[i].name;
@@ -395,7 +393,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             }
 
             RunPlanner rp(this);
-            rp.run(planners_[i], memStart, maxMemBytes, maxTimeDuration);
+            rp.run(planners_[i], memStart, maxMemBytes, maxTime);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results
