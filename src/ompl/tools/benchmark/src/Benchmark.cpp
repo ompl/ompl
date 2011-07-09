@@ -42,10 +42,22 @@
 #include <fstream>
 #include <sstream>
 
-std::string ompl::Benchmark::getResultsFilename(void) const
+/// @cond IGNORE
+namespace ompl
 {
-    return "ompl_" + exp_.host + "_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
+    /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
+    static std::string getResultsFilename(const Benchmark::CompleteExperiment &exp)
+    {
+        return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".log";
+    }
+
+    /** \brief Propose a name for a file in which console output should be saved, based on the date and hostname of the experiment */
+    static std::string getConsoleFilename(const Benchmark::CompleteExperiment &exp)
+    {
+        return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".console";
+    }
 }
+/// @endcond
 
 bool ompl::Benchmark::saveResultsToFile(const char *filename) const
 {
@@ -60,7 +72,7 @@ bool ompl::Benchmark::saveResultsToFile(const char *filename) const
     else
     {
         // try to save to a different file, if we can
-        if (getResultsFilename() != std::string(filename))
+        if (getResultsFilename(exp_) != std::string(filename))
             result = saveResultsToFile();
 
         msg_.error("Unable to write results to '%s'", filename);
@@ -70,7 +82,7 @@ bool ompl::Benchmark::saveResultsToFile(const char *filename) const
 
 bool ompl::Benchmark::saveResultsToFile(void) const
 {
-    std::string filename = getResultsFilename();
+    std::string filename = getResultsFilename(exp_);
     return saveResultsToFile(filename.c_str());
 }
 
@@ -198,6 +210,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 
     exp_.startTime = time::now();
 
+    msg_.inform("Configuring planners ...");
+
     // clear previous experimental data
     exp_.planners.clear();
     exp_.planners.resize(planners_.size());
@@ -213,6 +227,9 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         exp_.planners[i].name = (gsetup_ ? "geometric_" : "control_") + planners_[i]->getName();
     }
 
+    msg_.inform("Done configuring planners.");
+    msg_.inform("Saving planner setup information ...");
+
     std::stringstream setupInfo;
     if (gsetup_)
         gsetup_->print(setupInfo);
@@ -220,10 +237,13 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         csetup_->print(setupInfo);
     exp_.setupInfo = setupInfo.str();
 
-    msg_.inform("Beginning benchmark");
+    msg_.inform("Done saving information");
 
+    msg_.inform("Beginning benchmark");
     msg::OutputHandler *oh = msg::getOutputHandler();
-    msg::noOutputHandler();
+    msg::OutputHandlerFile ohf(getConsoleFilename(exp_).c_str());
+    msg::useOutputHandler(&ohf);
+    msg_.inform("Beginning benchmark");
 
     boost::shared_ptr<boost::progress_display> progress;
     if (displayProgress)
@@ -248,17 +268,30 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 while (status_.progressPercentage > progress->count())
                     ++(*progress);
 
+            msg_.inform("Preparing for run %d of %s", status_.activeRun, status_.activePlanner.c_str());
+
             // make sure all planning data structures are cleared
-            planners_[i]->clear();
-            if (gsetup_)
+            try
             {
-                gsetup_->getGoal()->clearSolutionPath();
-                gsetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+                planners_[i]->clear();
+                if (gsetup_)
+                {
+                    gsetup_->getGoal()->clearSolutionPath();
+                    gsetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+                }
+                else
+                {
+                    csetup_->getGoal()->clearSolutionPath();
+                    csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+                }
             }
-            else
+            catch(std::runtime_error &e)
             {
-                csetup_->getGoal()->clearSolutionPath();
-                csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+                std::stringstream es;
+                es << "There was an error while preparing for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
             }
 
             // execute pre-run event, if set
@@ -269,7 +302,11 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             }
             catch(std::runtime_error &e)
             {
-                std::cerr << "There was an error executing the pre-run event: " << e.what() << std::endl;
+                std::stringstream es;
+                es << "There was an error executing the pre-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
             }
 
             time::point timeStart = time::now();
@@ -278,14 +315,19 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 
             try
             {
-                solved = planners_[i]->solve(boost::bind(&terminationCondition,
-                                                         memStart + (machine::MemUsage_t)(maxMem * 1024 * 1024),
-                                                         time::now() + time::seconds(maxTime)), 0.1);
+                base::PlannerTerminationConditionFn ptc =
+                    boost::bind(&terminationCondition,
+                                memStart + (machine::MemUsage_t)(maxMem * 1024 * 1024),
+                                time::now() + time::seconds(maxTime));
+                solved = planners_[i]->solve(ptc, 0.1);
             }
             catch(std::runtime_error &e)
             {
-                std::cerr << std::endl << "There was an error executing planner " << status_.activePlanner <<  ", run = " << j << std::endl;
-                std::cerr << "*** " << e.what() << std::endl;
+                std::stringstream es;
+                es << "There was an error executing planner " << status_.activePlanner <<  ", run = " << status_.activeRun << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
             }
 
             double timeUsed = time::seconds(time::now() - timeStart);
@@ -376,15 +418,22 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 }
                 catch(std::runtime_error &e)
                 {
-                    std::cerr << "There was an error in the execution of the post-run event: " << e.what() << std::endl;
+                    std::stringstream es;
+                    es << "There was an error in the execution of the post-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                    es << "*** " << e.what() << std::endl;
+                    std::cerr << es.str();
+                    msg_.error(es.str());
                 }
 
                 exp_.planners[i].runs.push_back(run);
             }
             catch(std::runtime_error &e)
             {
-                std::cerr << std::endl << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << j << std::endl;
-                std::cerr << "*** " << e.what() << std::endl;
+                std::stringstream es;
+                es << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << status_.activePlanner << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
             }
         }
     }
@@ -399,7 +448,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     }
 
     exp_.totalDuration = time::seconds(time::now() - exp_.startTime);
-    msg::useOutputHandler(oh);
 
+    msg_.inform("Benchmark complete");
+    msg::useOutputHandler(oh);
     msg_.inform("Benchmark complete");
 }

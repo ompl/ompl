@@ -237,9 +237,6 @@ namespace ompl
 
     protected:
 
-        /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
-        std::string getResultsFilename(void) const;
-
         /** \brief The instance of the problem to benchmark (if geometric planning) */
         geometric::SimpleSetup       *gsetup_;
 
