@@ -195,3 +195,53 @@ void ompl::msg::OutputHandlerSTD::debug(const std::string &text)
     std::cout << "Debug:   " << text << std::endl;
     std::cout.flush();
 }
+
+ompl::msg::OutputHandlerFile::OutputHandlerFile(const char *filename) : OutputHandler()
+{
+    file_ = fopen(filename, "a");
+    if (!file_)
+        std::cerr << "Unable to open log file: '" << filename << "'" << std::endl;
+}
+
+ompl::msg::OutputHandlerFile::~OutputHandlerFile(void)
+{
+    if (file_)
+        if (fclose(file_) != 0)
+            std::cerr << "Error closing logfile" << std::endl;
+}
+
+void ompl::msg::OutputHandlerFile::error(const std::string &text)
+{
+    if (file_)
+    {
+        fprintf(file_, "Error:   %s", text.c_str());
+        fflush(file_);
+    }
+}
+
+void ompl::msg::OutputHandlerFile::warn(const std::string &text)
+{
+    if (file_)
+    {
+        fprintf(file_, "Warning: %s", text.c_str());
+        fflush(file_);
+    }
+}
+
+void ompl::msg::OutputHandlerFile::inform(const std::string &text)
+{
+    if (file_)
+    {
+        fprintf(file_, "Info:    %s", text.c_str());
+        fflush(file_);
+    }
+}
+
+void ompl::msg::OutputHandlerFile::debug(const std::string &text)
+{
+    if (file_)
+    {
+        fprintf(file_, "Debug:   %s", text.c_str());
+        fflush(file_);
+    }
+}
