@@ -36,6 +36,9 @@
 
 #include <gtest/gtest.h>
 #include "ompl/datastructures/PDF.h"
+#include "ompl/util/RandomNumbers.h"
+#include <cmath>
+#include <vector>
 
 TEST(PDF, Simple)
 {
@@ -121,6 +124,55 @@ TEST(PDF, Simple)
     EXPECT_TRUE(p.empty());
 
     p.clear();
+}
+
+TEST(PDF, Statistical)
+{
+    const std::size_t NUM_SAMPLES = 5000000;
+    /* The following widening factor is multiplied by the standard error of the mean
+     * to obtain a reasonable range to pass to EXPECT_NEAR(). For five million samples,
+     * a widening factor of 2.5 seems sufficient. If the number of samples is increased,
+     * then this widening factor can be decreased. */
+    const double STDERR_WIDENING_FACTOR = 2.5;
+
+    std::vector<std::pair<int,double> > values;
+    values.push_back(std::pair<int,double>(0, 30.0));
+    values.push_back(std::pair<int,double>(1, 10.0));
+    values.push_back(std::pair<int,double>(2, 25.0));
+    values.push_back(std::pair<int,double>(3, 15.0));
+    values.push_back(std::pair<int,double>(4, 20.0));
+
+    ompl::PDF<int> p;
+    double mean = 0.0;
+    double sumWeights = 0.0;
+    /* Calculate weighted mean of discrete uniform distribution as we add elements to PDF. */
+    for (std::vector<std::pair<int,double> >::const_iterator i = values.begin(); i != values.end(); ++i)
+    {
+        const std::pair<int,double>& elem = *i;
+        p.add(elem.first, elem.second);
+        mean += elem.first*elem.second;
+        sumWeights += elem.second;
+    }
+    mean /= sumWeights;
+
+    /* Calculate weighted variance of discrete uniform distribution, which is defined as
+     * sum(w[i]*(x[i]-mean)^2)/sumWeights. */
+    double variance = 0.0;
+    for (std::vector<std::pair<int,double> >::const_iterator i = values.begin(); i != values.end(); ++i)
+    {
+        const std::pair<int,double>& elem = *i;
+        variance += elem.second*(elem.first-mean)*(elem.first-mean);
+    }
+    variance /= sumWeights;
+    const double stderr = sqrt(variance/NUM_SAMPLES);
+
+    double sampleMean = 0.0;
+    ompl::RNG rand;
+    for (std::size_t i = 0; i < NUM_SAMPLES; ++i)
+        sampleMean += p.sample(rand.uniform01());
+    sampleMean /= NUM_SAMPLES;
+
+    EXPECT_NEAR(sampleMean, mean, STDERR_WIDENING_FACTOR*stderr);
 }
 
 int main(int argc, char** argv)
