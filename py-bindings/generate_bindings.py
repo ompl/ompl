@@ -159,6 +159,7 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
         self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
+        self.std_ns.class_('map< std::string, boost::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< std::valarray<double> >').rename('vectorValarrayDouble')
         self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
         self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
@@ -247,7 +248,7 @@ class ompl_base_generator_t(code_generator_t):
         # struct GoalLazySamplesConstructorPyWrapper
         # {
         #     GoalLazySamplesConstructorPyWrapper( bp::object callable ) : callable_( callable ) {}
-        # 
+        #
         #     bool operator()(const ompl::base::GoalLazySamples* gls, ompl::base::State* s) const
         #     {
         #         PyGILState_STATE gstate = PyGILState_Ensure();
@@ -256,17 +257,17 @@ class ompl_base_generator_t(code_generator_t):
         #         PyGILState_Release( gstate );
         #         return ret;
         #     }
-        # 
+        #
         #     bp::object callable_;
         # };
-        # 
-        # static boost::shared_ptr<GoalLazySamples_wrapper> 
-        # GoalLazySamples_constructorWrapper(const ompl::base::SpaceInformationPtr& si, 
+        #
+        # static boost::shared_ptr<GoalLazySamples_wrapper>
+        # GoalLazySamples_constructorWrapper(const ompl::base::SpaceInformationPtr& si,
         #     bp::object samplerFunc, bool autoStart, double epsilon)
         # {
         #     std::cerr<<"x"<<std::endl;
         #     return boost::shared_ptr<GoalLazySamples_wrapper>(new GoalLazySamples_wrapper(si,
-        #         ompl::base::GoalSamplingFn(GoalLazySamplesConstructorPyWrapper(samplerFunc)), 
+        #         ompl::base::GoalSamplingFn(GoalLazySamplesConstructorPyWrapper(samplerFunc)),
         #         autoStart, epsilon));
         # }
         # """)
@@ -314,26 +315,25 @@ class ompl_control_generator_t(code_generator_t):
         """)
         # add a wrapper for the setPropagationFunction. This wrapper deals correctly
         # with C-style pointers.
-        replacement['setPropagationFunction'] = ('def("setPropagationFunction", &setPropagationFunctionWrapper)', """
-        struct PropagatePyWrapper
+        replacement['setStatePropagator'] = ('def("setStatePropagatorFn", &setStatePropagatorWrapper)', """
+        struct StatePropagatorPyWrapper
         {
-            PropagatePyWrapper( bp::object callable ) : callable_( callable ) {}
+            StatePropagatorPyWrapper( bp::object callable ) : callable_( callable ) {}
 
-            void operator()(const ompl::control::ControlSpace* cspace, const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
+            void operator()(const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
             {
                 PyGILState_STATE gstate = PyGILState_Ensure();
-                callable_(bp::ptr(cspace), bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
+                callable_(bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
                 PyGILState_Release( gstate );
             }
 
             bp::object callable_;
         };
 
-        void setPropagationFunctionWrapper(%s* obj, bp::object function)
+        void setStatePropagatorWrapper(%s* obj, bp::object function)
         {
-            obj->setPropagationFunction( boost::bind(
-            boost::function<void (const ompl::control::ControlSpace*, const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)>(PropagatePyWrapper(function)),
-                obj, _1, _2, _3, _4));
+            obj->setStatePropagator(boost::bind(
+            ::ompl::control::StatePropagatorFn(StatePropagatorPyWrapper(function)),  _1, _2, _3, _4));
         }
         """)
 
@@ -343,8 +343,11 @@ class ompl_control_generator_t(code_generator_t):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
         self.std_ns.class_('vector< int >').rename('vectorInt')
+        self.std_ns.class_('vector< std::vector< int > >').rename('vectorVectorInt')
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
+        self.std_ns.class_('vector< std::vector< double > >').rename('vecVecDouble')
+        self.std_ns.class_('vector< std::vector< ompl::control::Control const* > >').rename('vecVecConstControlPtr')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force ControlSpace::allocState to be exported.
@@ -372,9 +375,9 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.namespace('control').class_(
             'SimpleSetup').member_functions('setStateValidityChecker',
             arg_types=['::ompl::base::StateValidityCheckerFn const &']))
-        # add wrapper code for setPropagationFunction
-        self.replace_member_functions(self.ompl_ns.namespace('control').class_(
-            'ControlSpace').member_functions('setPropagationFunction'))
+        # add wrapper code for setStatePropagator
+        self.replace_member_functions(self.ompl_ns.namespace('control').member_functions(
+            'setStatePropagator', arg_types=['::ompl::control::StatePropagatorFn const &']))
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
@@ -385,6 +388,7 @@ class ompl_control_generator_t(code_generator_t):
         # do this for all classes that exist with the same name in another namespace
         for cls in ['SimpleSetup', 'KPIECE1', 'RRT']:
             self.ompl_ns.class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
+        self.ompl_ns.namespace('control').class_('PlannerData').include()
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The

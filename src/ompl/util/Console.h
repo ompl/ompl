@@ -151,13 +151,37 @@ namespace ompl
 
             virtual void debug(const std::string &text);
 
+        };
+
+        /** \brief Implementation of OutputHandler that saves messages in a file. */
+        class OutputHandlerFile : public OutputHandler
+        {
+        public:
+
+            /** \brief The name of the file in which to save the message data */
+            OutputHandlerFile(const char *filename);
+
+            virtual ~OutputHandlerFile(void);
+
+            virtual void error(const std::string &text);
+
+            virtual void warn(const std::string &text);
+
+            virtual void inform(const std::string &text);
+
+            virtual void debug(const std::string &text);
+
+        private:
+
+            /** \brief The file to save to */
+            FILE *file_;
 
         };
 
-        /** \brief This function instructs ompl that no messages should be outputted. */
+        /** \brief This function instructs ompl that no messages should be outputted. Equivalent to setOutputHandler(NULL) */
         void noOutputHandler(void);
 
-        /** \brief Restore the output handler that was previously in use */
+        /** \brief Restore the output handler that was previously in use (if any) */
         void restorePreviousOutputHandler(void);
 
         /** \brief Specify the instance of the OutputHandler to use. By default, this is OutputHandlerSTD */

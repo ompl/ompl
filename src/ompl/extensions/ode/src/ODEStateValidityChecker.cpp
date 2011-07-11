@@ -37,13 +37,6 @@
 #include "ompl/extensions/ode/ODEStateValidityChecker.h"
 #include "ompl/util/Exception.h"
 
-ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(base::SpaceInformation* si) : base::StateValidityChecker(si)
-{
-    if (!dynamic_cast<ODEStateSpace*>(si->getStateSpace().get()))
-        throw Exception("Cannot create state validity checking for ODE without ODE state space");
-    osm_ = si->getStateSpace()->as<ODEStateSpace>();
-}
-
 ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(const SpaceInformationPtr &si) : base::StateValidityChecker(si)
 {
     if (!dynamic_cast<ODEStateSpace*>(si->getStateSpace().get()))

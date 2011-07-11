@@ -106,14 +106,14 @@ void plan(void)
 
     cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
-    // set the state propagation routine
-    cspace->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
-
     // construct an instance of  space information from this control space
     oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
 
     // set state validity checking for this space
     si->setStateValidityChecker(boost::bind(&isStateValid, si.get(),  _1));
+
+    // set the state propagation routine
+    si->setStatePropagator(boost::bind(&propagate, _1, _2, _3, _4));
 
     // create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);
@@ -132,7 +132,7 @@ void plan(void)
     pdef->setStartAndGoalStates(start, goal, 0.1);
 
     // create a planner for the defined space
-    ob::PlannerPtr planner(new oc::KPIECE1(si));
+    ob::PlannerPtr planner(new oc::RRT(si));
 
     // set the problem we are trying to solve for the planner
     planner->setProblemDefinition(pdef);
@@ -187,11 +187,11 @@ void planWithSimpleSetup(void)
 
     cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
-    // set the state propagation routine
-    cspace->setPropagationFunction(boost::bind(&propagate, _1, _2, _3, _4));
-
     // define a simple setup class
     oc::SimpleSetup ss(cspace);
+
+    // set the state propagation routine
+    ss.setStatePropagator(boost::bind(&propagate, _1, _2, _3, _4));
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, ss.getSpaceInformation().get(), _1));
@@ -228,7 +228,7 @@ void planWithSimpleSetup(void)
 
 int main(int, char **)
 {
-    std::cout << "ompl version: " << OMPL_VERSION << std::endl;
+    std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     plan();
 

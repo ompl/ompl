@@ -11,6 +11,7 @@
     - Configure the benchmark problem using ompl::geometric::SimpleSetup or ompl::control::SimpleSetup
     - Create a ompl::Benchmark object that takes the problem as input
     - Add one or more planners to the benchmark
+    - Optionally add events to be called before and/or after the execution of a planner
     - Run the benchmark problem a specified number of times, subject to specified time and memory limits
     .
 
@@ -62,7 +63,36 @@
     // This will generate a file of the form ompl_host_time.log
     b.saveResultsToFile();
     \endcode
+    Adding callbacks for before and after the execution of a run is also possible:
+    \code
+    // Assume these functions are defined
+    void optionalPreRunEvent(const base::PlannerPtr &planner)
+    {
+       // do whatever configuration we want to the planner,
+       // including changing of problem definition (input states)
+       // via planner->getProblemDefinition()
+    }
+    
+    void optionalPostRunEvent(const base::PlannerPtr &planner, Benchmark::RunProperties &run)
+    {
+       // do any cleanup, or set values for upcoming run (or upcoming call to the pre-run event).
 
+       // adding elements to the set of collected run properties is also possible;
+       // (the added data will be recorded in the log file)
+
+       run["some extra property name INTEGER"] = "some value";
+       // The format of added data is string key, string value pairs, 
+       // with the convention that the last word in string key is one of
+       // REAL, INTEGER, BOOLEAN, STRING. (this will be the type of the field 
+       // when the log file is processed and saved as a database).
+       // The values are always converted to string.
+    }
+
+    // After the Benchmark class is defined, the events can be optionally registered:
+    b.setPreRunEvent(boost::bind(&optionalPreRunEvent, _1));
+    b.setPostRunEvent(boost::bind(&optionalPostRunEvent, _1, _2));
+    \endcode
+    
     \section benchmark_log Processing the benchmarking log file
 
     Once the C++ code computing the results has been executed, a log

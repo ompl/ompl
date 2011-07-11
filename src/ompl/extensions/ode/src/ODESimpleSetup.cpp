@@ -62,6 +62,7 @@ void ompl::control::ODESimpleSetup::useEnvParams(void)
     si_->setPropagationStepSize(getStateSpace()->as<ODEStateSpace>()->getEnvironment()->stepSize_);
     si_->setMinMaxControlDuration(getStateSpace()->as<ODEStateSpace>()->getEnvironment()->minControlSteps_,
                                   getStateSpace()->as<ODEStateSpace>()->getEnvironment()->maxControlSteps_);
+    si_->setStatePropagator(StatePropagatorPtr(new ODEStatePropagator(si_)));
 }
 
 ompl::base::ScopedState<ompl::control::ODEStateSpace> ompl::control::ODESimpleSetup::getCurrentState(void) const

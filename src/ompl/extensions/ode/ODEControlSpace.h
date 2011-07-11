@@ -47,19 +47,7 @@ namespace ompl
     {
 
         /** \brief Representation of controls applied in ODE
-            environments. This is an array of double values.  Only
-            forward propagation is possible.
-
-            At every propagation step, controls are applied using
-            ODEEnvironment::applyControl(), contacts are computed by
-            calling \b dSpaceCollide() on the spaces in
-            ODEEnvironment::collisionSpaces_ and then \b
-            dWorldQuickStep() is called. If the \e state argument of
-            propagate() does not have its
-            ODEStateSpace::StateType::collision field set, it is
-            set based on the information returned by contact
-            computation. Certain collisions (contacts) are allowed, as
-            indicated by ODEEnvironment::isValidCollision(). */
+            environments. This is an array of double values. */
         class ODEControlSpace : public RealVectorControlSpace
         {
         public:
@@ -78,13 +66,6 @@ namespace ompl
             {
                 return stateSpace_->as<ODEStateSpace>()->getEnvironment();
             }
-
-            virtual bool canPropagateBackward(void) const
-            {
-                return false;
-            }
-
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 
         };
     }

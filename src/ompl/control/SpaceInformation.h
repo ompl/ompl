@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/control/ControlSpace.h"
 #include "ompl/control/ControlSampler.h"
+#include "ompl/control/StatePropagator.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
 
@@ -56,6 +57,10 @@ namespace ompl
 
         /** \class ompl::control::SpaceInformationPtr
             \brief A boost shared pointer wrapper for ompl::control::SpaceInformation */
+
+
+        /** \brief A function that achieves state propagation.*/
+        typedef boost::function4<void, const base::State*, const Control*, const double, base::State*> StatePropagatorFn;
 
         /** \brief Space information containing necessary information for planning with controls. setup() needs to be called before use. */
         class SpaceInformation : public base::SpaceInformation
@@ -142,19 +147,6 @@ namespace ompl
                 return controlSpace_->allocControlSampler();
             }
 
-            /** \brief When controls are applied to states, they are applied for a time duration that is an integer
-                multiple of the stepSize, within the bounds specified by setMinMaxControlDuration() */
-            void setPropagationStepSize(double stepSize)
-            {
-                stepSize_ = stepSize;
-            }
-
-            /** \brief Propagation is performed at integer multiples of a specified step size. This function returns the value of this step size. */
-            double getPropagationStepSize(void) const
-            {
-                return stepSize_;
-            }
-
             /** \brief Set the minimum and maximum number of steps a control is propagated for */
             void setMinMaxControlDuration(unsigned int minSteps, unsigned int maxSteps)
             {
@@ -175,6 +167,35 @@ namespace ompl
             }
             /** @} */
 
+            /** @name Configuration of the state propagator
+                @{ */
+
+            /** \brief Get the instance of StatePropagator that performs state propagation */
+            const StatePropagatorPtr& getStatePropagator(void) const
+            {
+                return statePropagator_;
+            }
+
+            /** \brief Set the function that performs state propagation */
+            void setStatePropagator(const StatePropagatorFn &fn);
+
+            /** \brief Set the instance of StatePropagator to perform state propagation */
+            void setStatePropagator(const StatePropagatorPtr &sp);
+
+            /** \brief When controls are applied to states, they are applied for a time duration that is an integer
+                multiple of the stepSize, within the bounds specified by setMinMaxControlDuration() */
+            void setPropagationStepSize(double stepSize)
+            {
+                stepSize_ = stepSize;
+            }
+
+            /** \brief Propagation is performed at integer multiples of a specified step size. This function returns the value of this step size. */
+            double getPropagationStepSize(void) const
+            {
+                return stepSize_;
+            }
+            /** @} */
+
             /** @name Primitives for propagating the model of the system
                 @{ */
 
@@ -183,26 +204,32 @@ namespace ompl
                 \param control the control to apply
                 \param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
                 \param result the state at the end of the propagation */
-            void propagate(const base::State *state, const Control* control, unsigned int steps, base::State *result) const;
+            void propagate(const base::State *state, const Control* control, int steps, base::State *result) const;
+
+            /** \brief Some systems can only propagate forward in time (i.e., the \e steps argument for the propagate()
+                function is always positive). If this is the case, this function will return false. Planners that need
+                backward propagation (negative \e steps) will call this function to check. If backward propagation is
+                possible, this function will return true (this is the default). */
+            bool canPropagateBackward(void) const;
 
             /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
                 Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is
                 equal to the \e steps argument. If a collision is found after the first step, the return value is 0 and \e result = \e state.
                 \param state the state to start at
                 \param control the control to apply
-                \param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
+                \param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
                 \param result the state at the end of the propagation or the last valid state if a collision is found */
-            unsigned int propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, base::State *result) const;
+            unsigned int propagateWhileValid(const base::State *state, const Control* control, int steps, base::State *result) const;
 
             /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
                 \param state the state to start at
                 \param control the control to apply
-                \param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
+                \param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
                 \param result the set of states along the propagated motion
                 \param alloc flag indicating whether memory for the states in \e result should be allocated
 
                 \note Start state \e state is not included in \e result */
-            void propagate(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
+            void propagate(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const;
 
             /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
                 Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is
@@ -212,11 +239,11 @@ namespace ompl
 
                 \param state the state to start at
                 \param control the control to apply
-                \param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
+                \param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
                 \param result the set of states along the propagated motion (only valid states included)
                 \param alloc flag indicating whether memory for the states in \e result should be allocated
             */
-            unsigned int propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const;
+            unsigned int propagateWhileValid(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const;
 
             /** @} */
 
@@ -229,7 +256,10 @@ namespace ompl
         protected:
 
             /** \brief The control space describing the space of controls applicable to states in the state space */
-            ControlSpacePtr controlSpace_;
+            ControlSpacePtr    controlSpace_;
+
+            /** \brief The state propagator used to model the motion of the system being planned for */
+            StatePropagatorPtr statePropagator_;
 
             /** \brief The minimum number of steps to apply a control for */
             unsigned int       minSteps_;

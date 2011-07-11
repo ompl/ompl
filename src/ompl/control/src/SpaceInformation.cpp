@@ -43,6 +43,8 @@
 void ompl::control::SpaceInformation::setup(void)
 {
     base::SpaceInformation::setup();
+    if (!statePropagator_)
+        throw Exception("State propagator not defined");
     if (minSteps_ > maxSteps_)
         throw Exception("The minimum number of steps cannot be larger than the maximum number of steps");
     if (minSteps_ == 0 && maxSteps_ == 0)
@@ -67,7 +69,41 @@ void ompl::control::SpaceInformation::setup(void)
         throw Exception("The dimension of the control space we plan in must be > 0");
 }
 
-void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, unsigned int steps, base::State *result) const
+void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn &fn)
+{
+    class BoostFnStatePropagator : public StatePropagator
+    {
+    public:
+
+        BoostFnStatePropagator(SpaceInformation *si, const StatePropagatorFn &fn) : StatePropagator(si), fn_(fn)
+        {
+        }
+
+        virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+        {
+            fn_(state, control, duration, result);
+        }
+
+    protected:
+
+        StatePropagatorFn fn_;
+
+    };
+
+    setStatePropagator(StatePropagatorPtr(dynamic_cast<StatePropagator*>(new BoostFnStatePropagator(this, fn))));
+}
+
+void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorPtr &sp)
+{
+    statePropagator_ = sp;
+}
+
+bool ompl::control::SpaceInformation::canPropagateBackward(void) const
+{
+    return statePropagator_->canPropagateBackward();
+}
+
+void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, int steps, base::State *result) const
 {
     if (steps == 0)
     {
@@ -76,13 +112,16 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     }
     else
     {
-        controlSpace_->propagate(state, control, stepSize_, result);
-        for (unsigned int i = 1 ; i < steps ; ++i)
-            controlSpace_->propagate(result, control, stepSize_, result);
+        double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
+        steps = abs(steps);
+
+        statePropagator_->propagate(state, control, signedStepSize, result);
+        for (int i = 1 ; i < steps ; ++i)
+            statePropagator_->propagate(result, control, signedStepSize, result);
     }
 }
 
-unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, base::State *result) const
+unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, int steps, base::State *result) const
 {
     if (steps == 0)
     {
@@ -91,8 +130,11 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
         return 0;
     }
 
+    double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
+    steps = abs(steps);
+
     // perform the first step of propagation
-    controlSpace_->propagate(state, control, stepSize_, result);
+    statePropagator_->propagate(state, control, signedStepSize, result);
 
     // if we found a valid state after one step, we can go on
     if (isValid(result))
@@ -103,9 +145,9 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
         unsigned int r = steps;
 
         // for the remaining number of steps
-        for (unsigned int i = 1 ; i < steps ; ++i)
+        for (int i = 1 ; i < steps ; ++i)
         {
-            controlSpace_->propagate(temp1, control, stepSize_, temp2);
+            statePropagator_->propagate(temp1, control, signedStepSize, temp2);
             if (isValid(temp2))
                 std::swap(temp1, temp2);
             else
@@ -136,8 +178,11 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
     }
 }
 
-void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const
+void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const
 {
+    double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
+    steps = abs(steps);
+
     if (alloc)
     {
         result.resize(steps);
@@ -148,51 +193,54 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     {
         if (result.empty())
             return;
-        steps = std::min(steps, (unsigned int)result.size());
+        steps = std::min(steps, (int)result.size());
     }
 
-    unsigned int st = 0;
+    int st = 0;
 
     if (st < steps)
     {
-        controlSpace_->propagate(state, control, stepSize_, result[st]);
+        statePropagator_->propagate(state, control, signedStepSize, result[st]);
         ++st;
 
         while (st < steps)
         {
-            controlSpace_->propagate(result[st-1], control, stepSize_, result[st]);
+            statePropagator_->propagate(result[st-1], control, signedStepSize, result[st]);
             ++st;
         }
     }
 }
 
-unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, unsigned int steps, std::vector<base::State*> &result, bool alloc) const
+unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const
 {
+    double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
+    steps = abs(steps);
+
     if (alloc)
         result.resize(steps);
     else
     {
         if (result.empty())
             return 0;
-        steps = std::min(steps, (unsigned int)result.size());
+        steps = std::min(steps, (int)result.size());
     }
 
-    unsigned int st = 0;
+    int st = 0;
 
     if (st < steps)
     {
         if (alloc)
             result[st] = allocState();
-        controlSpace_->propagate(state, control, stepSize_, result[st]);
+        statePropagator_->propagate(state, control, signedStepSize, result[st]);
 
         if (isValid(result[st]))
         {
-                 ++st;
+            ++st;
             while (st < steps)
             {
                 if (alloc)
                     result[st] = allocState();
-                controlSpace_->propagate(result[st-1], control, stepSize_, result[st]);
+                statePropagator_->propagate(result[st-1], control, signedStepSize, result[st]);
 
                 if (!isValid(result[st]))
                 {
@@ -225,6 +273,7 @@ void ompl::control::SpaceInformation::printSettings(std::ostream &out) const
     base::SpaceInformation::printSettings(out);
     out << "  - control space:" << std::endl;
     controlSpace_->printSettings(out);
+    out << "  - can propagate backward: " << (canPropagateBackward() ? "yes" : "no") << std::endl;
     out << "  - propagation step size: " << stepSize_ << std::endl;
     out << "  - propagation duration: [" << minSteps_ << ", " << maxSteps_ << "]" << std::endl;
 }

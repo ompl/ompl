@@ -3,3 +3,5 @@
 * Make PlannerData use BGL
 * Make projections use ublas (boost)
 * Start another 'concept' for ompl -- something that has algorithms for the analysis of spaces to plan in: Identify good lengths of path segments, good discretizations of control sets, automatic setting of parameters (projection cell sizes?), identification of good random projections
+* Move propagation routines outside the control space, as a separate class; register that class with control::SpaceInformation
+

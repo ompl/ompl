@@ -148,12 +148,6 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
 
-    if (!goal)
-    {
-        msg_.error("Goal undefined");
-        return false;
-    }
-
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(siC_);
@@ -388,14 +382,29 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     Grid::CellArray cells;
     tree_.grid.getCells(cells);
 
-    for (unsigned int i = 0 ; i < cells.size() ; ++i)
-        for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
-        {
-            data.recordEdge(cells[i]->data->motions[j]->parent ? cells[i]->data->motions[j]->parent->state : NULL,
-                            cells[i]->data->motions[j]->state);
-            if (cells[i]->border)
-                data.tagState(cells[i]->data->motions[j]->state, 2);
-            else
-                data.tagState(cells[i]->data->motions[j]->state, 1);
-        }
+    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
+    {
+        double delta = siC_->getPropagationStepSize();
+
+        for (unsigned int i = 0 ; i < cells.size() ; ++i)
+            for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
+            {
+                const Motion* m = cells[i]->data->motions[j];
+                if (m->parent)
+                    cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
+                else
+                    cpd->recordEdge(NULL, m->state, NULL, 0.);
+                cpd->tagState(m->state, cells[i]->border ? 2 : 1);
+            }
+    }
+    else
+    {
+        for (unsigned int i = 0 ; i < cells.size() ; ++i)
+            for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
+            {
+                const Motion* m = cells[i]->data->motions[j];
+                data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
+                data.tagState(m->state, cells[i]->border ? 2 : 1);
+            }
+    }
 }

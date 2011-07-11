@@ -70,18 +70,18 @@ namespace ompl
             data_.clear();
         }
 
-        virtual void add(_T &data)
+        virtual void add(const _T &data)
         {
             data_.push_back(data);
         }
 
-        virtual void add(std::vector<_T> &data)
+        virtual void add(const std::vector<_T> &data)
         {
             data_.reserve(data_.size() + data.size());
             data_.insert(data_.end(), data.begin(), data.end());
         }
 
-        virtual bool remove(_T &data)
+        virtual bool remove(const _T &data)
         {
             if (!data_.empty())
                 for (int i = data_.size() - 1 ; i >= 0 ; --i)
@@ -119,12 +119,12 @@ namespace ompl
             if (nbh.size() > k)
             {
                 std::partial_sort(nbh.begin(), nbh.begin() + k, nbh.end(),
-                                  MySort(data, NearestNeighbors<_T>::distFun_));
+                                  ElemSort(data, NearestNeighbors<_T>::distFun_));
                 nbh.resize(k);
             }
             else
             {
-                std::sort(nbh.begin(), nbh.end(), MySort(data, NearestNeighbors<_T>::distFun_));
+                std::sort(nbh.begin(), nbh.end(), ElemSort(data, NearestNeighbors<_T>::distFun_));
             }
         }
 
@@ -134,7 +134,7 @@ namespace ompl
             for (std::size_t i = 0 ; i < data_.size() ; ++i)
                 if (NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
                     nbh.push_back(data_[i]);
-            std::sort(nbh.begin(), nbh.end(), MySort(data, NearestNeighbors<_T>::distFun_));
+            std::sort(nbh.begin(), nbh.end(), ElemSort(data, NearestNeighbors<_T>::distFun_));
         }
 
         virtual std::size_t size(void) const
@@ -154,9 +154,9 @@ namespace ompl
 
     private:
 
-        struct MySort
+        struct ElemSort
         {
-            MySort(const _T &e, const typename NearestNeighbors<_T>::DistanceFunction &df) : e_(e), df_(df)
+            ElemSort(const _T &e, const typename NearestNeighbors<_T>::DistanceFunction &df) : e_(e), df_(df)
             {
             }
 

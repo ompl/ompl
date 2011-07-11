@@ -57,7 +57,6 @@ namespace ompl
             Status(void)
             {
                 running = false;
-                activePlanner = "";
                 activeRun = 0;
                 progressPercentage = 0.0;
             }
@@ -78,6 +77,12 @@ namespace ompl
         /** \brief The data collected from a run of a planner is
             stored as key-value pairs. */
         typedef std::map<std::string, std::string> RunProperties;
+
+        /** \brief Signature of function that can be called before a planner execution is started */
+        typedef boost::function1<void, const base::PlannerPtr&> PreSetupEvent;
+
+        /** \brief Signature of function that can be called after a planner execution is completed */
+        typedef boost::function2<void, const base::PlannerPtr&, RunProperties&> PostSetupEvent;
 
         /** \brief The data collected after running a planner multiple times */
         struct PlannerExperiment
@@ -177,6 +182,18 @@ namespace ompl
             planners_.clear();
         }
 
+        /// Set the event to be called before the run of a planner
+        void setPreRunEvent(const PreSetupEvent &event)
+        {
+            preRun_ = event;
+        }
+
+        /// Set the event to be called after the run of a planner
+        void setPostRunEvent(const PostSetupEvent &event)
+        {
+            postRun_ = event;
+        }
+
         /** \brief Benchmark the added planners on the defined problem. Repeated calls clear previously gathered data.
             \param maxTime the maximum amount of time a planner is allowed to run (seconds)
             \param maxMem the maximum amount of memory a planner is allowed to use (MB)
@@ -220,9 +237,6 @@ namespace ompl
 
     protected:
 
-        /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
-        std::string getResultsFilename(void) const;
-
         /** \brief The instance of the problem to benchmark (if geometric planning) */
         geometric::SimpleSetup       *gsetup_;
 
@@ -237,6 +251,12 @@ namespace ompl
 
         /// The current status of this benchmarking instance
         Status                        status_;
+
+        /// Event to be called before the run of a planner
+        PreSetupEvent                 preRun_;
+
+        /// Event to be called after the run of a planner
+        PostSetupEvent                postRun_;
 
         /// Interface for console output
         msg::Interface                msg_;

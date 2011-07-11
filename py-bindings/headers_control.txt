@@ -1,9 +1,12 @@
 ../src/ompl/control/Control.h
 ../src/ompl/control/ControlSampler.h
 ../src/ompl/control/ControlSpace.h
+../src/ompl/control/StatePropagator.h
 ../src/ompl/control/SpaceInformation.h
 ../src/ompl/control/PathControl.h
 ../src/ompl/control/SimpleSetup.h
 ../src/ompl/control/spaces/RealVectorControlSpace.h
+../src/ompl/control/PlannerData.h
 ../src/ompl/control/planners/kpiece/KPIECE1.h
 ../src/ompl/control/planners/rrt/RRT.h
+ompl_py_util.h

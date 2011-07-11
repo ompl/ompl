@@ -42,10 +42,114 @@
 #include <fstream>
 #include <sstream>
 
-std::string ompl::Benchmark::getResultsFilename(void) const
+/// @cond IGNORE
+namespace ompl
 {
-    return "ompl_" + exp_.host + "_" + boost::posix_time::to_iso_extended_string(exp_.startTime) + ".log";
+    /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
+    static std::string getResultsFilename(const Benchmark::CompleteExperiment &exp)
+    {
+        return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".log";
+    }
+
+    /** \brief Propose a name for a file in which console output should be saved, based on the date and hostname of the experiment */
+    static std::string getConsoleFilename(const Benchmark::CompleteExperiment &exp)
+    {
+        return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".console";
+    }
+
+    static bool terminationCondition(const machine::MemUsage_t maxMem, const time::point &endTime)
+    {
+        if (time::now() < endTime && machine::getProcessMemoryUsage() < maxMem)
+            return false;
+        return true;
+    }
+
+    class RunPlanner
+    {
+    public:
+
+        RunPlanner(const Benchmark *benchmark) : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false)
+        {
+        }
+
+        void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
+        {
+            boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
+
+            // allow 25% more time than originally specified, in order to detect planner termination
+            if (!t.timed_join(time::seconds(maxTime * 1.25)))
+            {
+                crashed_ = true;
+
+                std::stringstream es;
+                es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
+                   << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
+
+                t.interrupt();
+                t.join();
+
+                std::string m = "Planning thread cancelled";
+                std::cerr << m << std::endl;
+                msg_.error(m);
+            }
+
+            if (memStart < memUsed_)
+                memUsed_ -= memStart;
+            else
+                memUsed_ = 0;
+        }
+
+        double getTimeUsed(void) const
+        {
+            return timeUsed_;
+        }
+
+        machine::MemUsage_t getMemUsed(void) const
+        {
+            return memUsed_;
+        }
+
+        bool crashed(void) const
+        {
+            return crashed_;
+        }
+
+    private:
+
+        void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration)
+        {
+            time::point timeStart = time::now();
+
+            try
+            {
+                base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                planner->solve(ptc, 0.1);
+            }
+            catch(std::runtime_error &e)
+            {
+                std::stringstream es;
+                es << "There was an error executing planner " << benchmark_->getStatus().activePlanner <<  ", run = " << benchmark_->getStatus().activeRun << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
+            }
+
+            timeUsed_ = time::seconds(time::now() - timeStart);
+            memUsed_ = machine::getProcessMemoryUsage();
+        }
+
+        const Benchmark    *benchmark_;
+        double              timeUsed_;
+        machine::MemUsage_t memUsed_;
+        bool                crashed_;
+
+        msg::Interface      msg_;
+    };
+
 }
+/// @endcond
 
 bool ompl::Benchmark::saveResultsToFile(const char *filename) const
 {
@@ -60,7 +164,7 @@ bool ompl::Benchmark::saveResultsToFile(const char *filename) const
     else
     {
         // try to save to a different file, if we can
-        if (getResultsFilename() != std::string(filename))
+        if (getResultsFilename(exp_) != std::string(filename))
             result = saveResultsToFile();
 
         msg_.error("Unable to write results to '%s'", filename);
@@ -70,7 +174,7 @@ bool ompl::Benchmark::saveResultsToFile(const char *filename) const
 
 bool ompl::Benchmark::saveResultsToFile(void) const
 {
-    std::string filename = getResultsFilename();
+    std::string filename = getResultsFilename(exp_);
     return saveResultsToFile(filename.c_str());
 }
 
@@ -155,20 +259,6 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     return true;
 }
 
-/// @cond IGNORE
-namespace ompl
-{
-
-    static bool terminationCondition(machine::MemUsage_t maxMem, const time::point &endTime)
-    {
-        if (time::now() < endTime && machine::getProcessMemoryUsage() < maxMem)
-            return false;
-        return true;
-    }
-
-}
-/// @endcond
-
 void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress)
 {
     // sanity checks
@@ -198,6 +288,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 
     exp_.startTime = time::now();
 
+    msg_.inform("Configuring planners ...");
+
     // clear previous experimental data
     exp_.planners.clear();
     exp_.planners.resize(planners_.size());
@@ -213,6 +305,9 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         exp_.planners[i].name = (gsetup_ ? "geometric_" : "control_") + planners_[i]->getName();
     }
 
+    msg_.inform("Done configuring planners.");
+    msg_.inform("Saving planner setup information ...");
+
     std::stringstream setupInfo;
     if (gsetup_)
         gsetup_->print(setupInfo);
@@ -220,10 +315,13 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         csetup_->print(setupInfo);
     exp_.setupInfo = setupInfo.str();
 
-    msg_.inform("Beginning benchmark");
+    msg_.inform("Done saving information");
 
+    msg_.inform("Beginning benchmark");
     msg::OutputHandler *oh = msg::getOutputHandler();
-    msg::noOutputHandler();
+    msg::OutputHandlerFile ohf(getConsoleFilename(exp_).c_str());
+    msg::useOutputHandler(&ohf);
+    msg_.inform("Beginning benchmark");
 
     boost::shared_ptr<boost::progress_display> progress;
     if (displayProgress)
@@ -233,6 +331,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     }
 
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
+    machine::MemUsage_t maxMemBytes = (machine::MemUsage_t)(maxMem * 1024 * 1024);
 
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
@@ -248,59 +347,71 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 while (status_.progressPercentage > progress->count())
                     ++(*progress);
 
+            msg_.inform("Preparing for run %d of %s", status_.activeRun, status_.activePlanner.c_str());
+
             // make sure all planning data structures are cleared
-            planners_[i]->clear();
-            if (gsetup_)
-            {
-                gsetup_->getGoal()->clearSolutionPath();
-                gsetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
-            }
-            else
-            {
-                csetup_->getGoal()->clearSolutionPath();
-                csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
-            }
-
-            time::point timeStart = time::now();
-
-            bool solved = false;
-
             try
             {
-                solved = planners_[i]->solve(boost::bind(&terminationCondition,
-                                                         memStart + (machine::MemUsage_t)(maxMem * 1024 * 1024),
-                                                         time::now() + time::seconds(maxTime)), 0.1);
+                planners_[i]->clear();
+                if (gsetup_)
+                {
+                    gsetup_->getGoal()->clearSolutionPath();
+                    gsetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+                }
+                else
+                {
+                    csetup_->getGoal()->clearSolutionPath();
+                    csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+                }
             }
             catch(std::runtime_error &e)
             {
-                std::cerr << std::endl << "There was an error executing planner " << status_.activePlanner <<  ", run = " << j << std::endl;
-                std::cerr << "*** " << e.what() << std::endl;
+                std::stringstream es;
+                es << "There was an error while preparing for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
             }
 
-            double timeUsed = time::seconds(time::now() - timeStart);
-            machine::MemUsage_t memUsed = machine::getProcessMemoryUsage();
-            if (memStart < memUsed)
-                memUsed -= memStart;
-            else
-                memUsed = 0;
+            // execute pre-run event, if set
+            try
+            {
+                if (preRun_)
+                {
+                    msg_.inform("Executing pre-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                    preRun_(planners_[i]);
+                    msg_.inform("Completed execution of pre-run event");
+                }
+            }
+            catch(std::runtime_error &e)
+            {
+                std::stringstream es;
+                es << "There was an error executing the pre-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
+            }
+
+            RunPlanner rp(this);
+            rp.run(planners_[i], memStart, maxMemBytes, maxTime);
+            bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results
             try
             {
                 RunProperties run;
-                bool exact_solve = solved;
-                if (solved)
-                    if (gsetup_ ? gsetup_->getGoal()->isApproximate() : csetup_->getGoal()->isApproximate())
-                        exact_solve = false; // do not report approximate solutions as 'solved'
-                run["solved BOOLEAN"] = boost::lexical_cast<std::string>(exact_solve);
-                run["time REAL"] = boost::lexical_cast<std::string>(timeUsed);
-                run["memory REAL"] = boost::lexical_cast<std::string>((double)memUsed / (1024.0 * 1024.0));
+
+                run["crashed BOOLEAN"] = boost::lexical_cast<std::string>(rp.crashed());
+                run["time REAL"] = boost::lexical_cast<std::string>(rp.getTimeUsed());
+                run["memory REAL"] = boost::lexical_cast<std::string>((double)rp.getMemUsed() / (1024.0 * 1024.0));
                 if (gsetup_)
                 {
+                    run["solved BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->haveExactSolutionPath());
                     run["valid segment fraction REAL"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
                 else
                 {
+                    run["solved BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->haveExactSolutionPath());
                     run["valid segment fraction REAL"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
 
@@ -322,9 +433,9 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
 
                         // simplify solution
-                        timeStart = time::now();
+                        time::point timeStart = time::now();
                         gsetup_->simplifySolution();
-                        timeUsed = time::seconds(time::now() - timeStart);
+                        double timeUsed = time::seconds(time::now() - timeStart);
                         run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
                         run["simplified solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
                         run["simplified solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
@@ -357,12 +468,34 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
                     run[it->first] = it->second;
 
+                // execute post-run event, if set
+                try
+                {
+                    if (postRun_)
+                    {
+                        msg_.inform("Executing post-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                        postRun_(planners_[i], run);
+                        msg_.inform("Completed execution of post-run event");
+                    }
+                }
+                catch(std::runtime_error &e)
+                {
+                    std::stringstream es;
+                    es << "There was an error in the execution of the post-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                    es << "*** " << e.what() << std::endl;
+                    std::cerr << es.str();
+                    msg_.error(es.str());
+                }
+
                 exp_.planners[i].runs.push_back(run);
             }
             catch(std::runtime_error &e)
             {
-                std::cerr << std::endl << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << j << std::endl;
-                std::cerr << "*** " << e.what() << std::endl;
+                std::stringstream es;
+                es << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << status_.activePlanner << std::endl;
+                es << "*** " << e.what() << std::endl;
+                std::cerr << es.str();
+                msg_.error(es.str());
             }
         }
     }
@@ -377,7 +510,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     }
 
     exp_.totalDuration = time::seconds(time::now() - exp_.startTime);
-    msg::useOutputHandler(oh);
 
+    msg_.inform("Benchmark complete");
+    msg::useOutputHandler(oh);
     msg_.inform("Benchmark complete");
 }

@@ -39,6 +39,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/control/SpaceInformation.h"
+#include "ompl/control/PlannerData.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/control/PathControl.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -99,6 +100,11 @@ namespace ompl
                 return si_->getStateValidityChecker();
             }
 
+            const StatePropagatorPtr& getStatePropagator(void) const
+            {
+                return si_->getStatePropagator();
+            }
+
             /** \brief Get the current goal definition */
             const base::GoalPtr& getGoal(void) const
             {
@@ -127,7 +133,7 @@ namespace ompl
             PathControl& getSolutionPath(void) const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
-            base::PlannerData getPlannerData(void) const;
+            control::PlannerData getPlannerData(void) const;
 
             /** \brief Set the state validity checker to use */
             void setStateValidityChecker(const base::StateValidityCheckerPtr &svc)
@@ -139,6 +145,18 @@ namespace ompl
             void setStateValidityChecker(const base::StateValidityCheckerFn &svc)
             {
                 si_->setStateValidityChecker(svc);
+            }
+
+            /** \brief Set the function that performs state propagation */
+            void setStatePropagator(const StatePropagatorFn &sp)
+            {
+                si_->setStatePropagator(sp);
+            }
+
+            /** \brief Set the instance of StatePropagator to perform state propagation */
+            void setStatePropagator(const StatePropagatorPtr &sp)
+            {
+                si_->setStatePropagator(sp);
             }
 
             /** \brief Set the start and goal states to use. */
@@ -201,11 +219,6 @@ namespace ompl
                 planner_.reset();
                 configured_ = false;
             }
-
-            /** \brief Use the exploration data structure of the
-                planner to compute the cell sizes of the
-                projection evaluator. */
-            void updateProjectionCellSizes(void);
 
             /** \brief Run the planner for a specified amount of time (default is 1 second) */
             virtual bool solve(double time = 1.0);

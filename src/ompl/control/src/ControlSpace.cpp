@@ -60,11 +60,6 @@ void ompl::control::ControlSpace::setup(void)
 {
 }
 
-bool ompl::control::ControlSpace::canPropagateBackward(void) const
-{
-    return true;
-}
-
 double* ompl::control::ControlSpace::getValueAddressAtIndex(Control *control, const unsigned int index) const
 {
     return NULL;
@@ -78,19 +73,6 @@ void ompl::control::ControlSpace::printControl(const Control *control, std::ostr
 void ompl::control::ControlSpace::printSettings(std::ostream &out) const
 {
     out << "ControlSpace '" << getName() << "' instance: " << this << std::endl;
-}
-
-void ompl::control::ControlSpace::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
-{
-    if (statePropagation_)
-        statePropagation_(state, control, duration, result);
-    else
-        throw Exception("State propagation routine is not set for control space. Either set this routine or provide a different implementation in an inherited class.");
-}
-
-void ompl::control::ControlSpace::setPropagationFunction(const StatePropagationFn &fn)
-{
-    statePropagation_ = fn;
 }
 
 void ompl::control::CompoundControlSpace::addSubSpace(const ControlSpacePtr &component)
@@ -182,31 +164,9 @@ ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocContr
     return ControlSamplerPtr(ss);
 }
 
-void ompl::control::CompoundControlSpace::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
-{
-    if (statePropagation_)
-        statePropagation_(state, control, duration, result);
-    else
-    {
-        const base::CompoundState *cstate = static_cast<const base::CompoundState*>(state);
-        const CompoundControl *ccontrol = static_cast<const CompoundControl*>(control);
-        base::CompoundState *cresult = static_cast<base::CompoundState*>(result);
-        for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-            components_[i]->propagate(cstate->components[i], ccontrol->components[i], duration, cresult->components[i]);
-    }
-}
-
 void ompl::control::CompoundControlSpace::lock(void)
 {
     locked_ = true;
-}
-
-bool ompl::control::CompoundControlSpace::canPropagateBackward(void) const
-{
-    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-        if (!components_[i]->canPropagateBackward())
-            return false;
-    return true;
 }
 
 double* ompl::control::CompoundControlSpace::getValueAddressAtIndex(Control *control, const unsigned int index) const

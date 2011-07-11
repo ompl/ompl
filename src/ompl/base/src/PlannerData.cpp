@@ -64,7 +64,7 @@ void ompl::base::PlannerData::tagState(const State *s, int tag)
     }
 }
 
-void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
+int ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
 {
     if (s1 == NULL || s2 == NULL)
     {
@@ -81,6 +81,7 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
                 edges.resize(states.size());
             }
         }
+        return -1;
     }
     else
     {
@@ -128,7 +129,12 @@ void ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
         }
 
         if (newEdge)
+        {
             edges[p1].push_back(p2);
+            return p1;
+        }
+        else
+            return -1;
     }
 }
 

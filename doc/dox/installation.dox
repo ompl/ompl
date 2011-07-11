@@ -5,7 +5,7 @@ To compile OMPL the following two packages are required:
 - <a href="http://www.boost.org">Boost</a> (recommended version 1.42 or higher) and
 - <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher).
 .
-For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to regenerate the python bindings (which would be necessary if you change the C++ API), then you need to install <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
+For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to generate the python bindings, then you need to install <a href="http://sourceforge.net/projects/pygccxml/">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
 Below are installation instructions for <a href="#install_linuxosx">Linux, OS X</a>, and <a href="#install_windows">Windows</a>.
 <br>
@@ -80,7 +80,7 @@ cd build/Release
 cmake -DCMAKE_BUILD_TYPE=Release ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
 \endcode
 If you want a debug version of ompl, change "Release" to "Debug" above.
-- If Python bindings are to be generated, type <tt>make update_bindings</tt>. <b>Note:</b> <tt>make update_bindings</tt> is <i>never</i> run automatically. If you change any of the OMPL header files, you need to type <tt>make update_bindings</tt> again for the changes to be reflected in the Python modules. The command <tt>make</tt> needs to be executed <b>after</b> every call to <tt>make update_bindings</tt>.
+- If Python bindings are to be generated, type <tt>make update_bindings</tt>. (If this does not work and you are sure you have Py++ installed, you may have to run \c cmake again.) <b>Note:</b> <tt>make update_bindings</tt> is <i>never</i> run automatically. If you change any of the OMPL header files, you need to type <tt>make update_bindings</tt> again for the changes to be reflected in the Python modules. The command <tt>make</tt> needs to be executed <b>after</b> every call to <tt>make update_bindings</tt>.
 - Compile OMPL by typing \c make.
 - Optionally, run the test programs by typing <tt>make test</tt>.
 - Optionally, generate documentation by typing <tt>make doc</tt>.

@@ -80,12 +80,6 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
     base::Goal                   *goal = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    if (!goal)
-    {
-        msg_.error("Goal undefined");
-        return false;
-    }
-
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(siC_);
@@ -213,6 +207,25 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
+    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
+    {
+        double delta = siC_->getPropagationStepSize();
+
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        {
+            const Motion* m = motions[i];
+            if (m->parent)
+                cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
+            else
+                cpd->recordEdge(NULL, m->state, NULL, 0.);
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        {
+            const Motion* m = motions[i];
+            data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
+        }
+    }
 }
