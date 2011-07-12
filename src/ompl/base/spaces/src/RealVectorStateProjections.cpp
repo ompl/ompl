@@ -125,12 +125,12 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes(void)
 
 unsigned int ompl::base::RealVectorLinearProjectionEvaluator::getDimension(void) const
 {
-    return projection_.mat.size();
+    return projection_.mat.size1();
 }
 
 void ompl::base::RealVectorLinearProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
 {
-    projection_.project(state->as<RealVectorStateSpace::StateType>()->values, projection.values);
+    projection_.project(state->as<RealVectorStateSpace::StateType>()->values, projection);
 }
 
 unsigned int ompl::base::RealVectorOrthogonalProjectionEvaluator::getDimension(void) const
@@ -141,7 +141,7 @@ unsigned int ompl::base::RealVectorOrthogonalProjectionEvaluator::getDimension(v
 void ompl::base::RealVectorOrthogonalProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
 {
     for (unsigned int i = 0 ; i < components_.size() ; ++i)
-        projection.values[i] = state->as<RealVectorStateSpace::StateType>()->values[components_[i]];
+        projection(i) = state->as<RealVectorStateSpace::StateType>()->values[components_[i]];
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpace *space, const std::vector<double> &cellSizes) :
@@ -191,5 +191,5 @@ unsigned int ompl::base::RealVectorIdentityProjectionEvaluator::getDimension(voi
 
 void ompl::base::RealVectorIdentityProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
 {
-    memcpy(projection.values, state->as<RealVectorStateSpace::StateType>()->values, copySize_);
+    memcpy(&projection(0), state->as<RealVectorStateSpace::StateType>()->values, copySize_);
 }

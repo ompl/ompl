@@ -44,6 +44,7 @@
 #include <valarray>
 #include <iostream>
 #include <boost/noncopyable.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace ompl
 {
@@ -55,35 +56,7 @@ namespace ompl
         typedef std::vector<int> ProjectionCoordinates;
 
         /** \brief The datatype for state projections. This class contains a real vector. */
-        class EuclideanProjection
-        {
-        public:
-
-            /** \brief Allocate a projection of dimension n */
-            EuclideanProjection(unsigned int n) : values(new double[n])
-            {
-            }
-
-            ~EuclideanProjection(void)
-            {
-                delete[] values;
-            }
-
-            /** \brief Access operator (constant) */
-            double operator[](unsigned int i) const
-            {
-                return values[i];
-            }
-
-            /** \brief Access operator */
-            double& operator[](unsigned int i)
-            {
-                return values[i];
-            }
-
-            /** \brief The values of the R<sup>n</sup> vector that makes up the projection */
-            double *values;
-        };
+        typedef boost::numeric::ublas::vector<double> EuclideanProjection;
 
 
         /** \brief A projection matrix -- it allows multiplication of
@@ -94,7 +67,7 @@ namespace ompl
         public:
 
             /** \brief Datatype for projection matrices */
-            typedef std::vector< std::valarray<double> > Matrix;
+            typedef boost::numeric::ublas::matrix<double> Matrix;
 
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements
@@ -130,7 +103,7 @@ namespace ompl
             void computeRandom(const unsigned int from, const unsigned int to);
 
             /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
-            void project(const double *from, double *to) const;
+            void project(const double *from, EuclideanProjection& to) const;
 
             /** \brief Print the contained projection matrix to a stram */
             void print(std::ostream &out = std::cout) const;

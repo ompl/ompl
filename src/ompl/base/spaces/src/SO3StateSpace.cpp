@@ -226,9 +226,9 @@ void ompl::base::SO3StateSpace::registerProjections(void)
 
         virtual void project(const State *state, EuclideanProjection &projection) const
         {
-            projection.values[0] = state->as<SO3StateSpace::StateType>()->x;
-            projection.values[1] = state->as<SO3StateSpace::StateType>()->y;
-            projection.values[2] = state->as<SO3StateSpace::StateType>()->z;
+            projection(0) = state->as<SO3StateSpace::StateType>()->x;
+            projection(1) = state->as<SO3StateSpace::StateType>()->y;
+            projection(2) = state->as<SO3StateSpace::StateType>()->z;
         }
     };
 
