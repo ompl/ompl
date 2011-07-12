@@ -113,6 +113,9 @@ namespace ompl
                 mathematical object is a discrete one. */
             virtual bool isDiscrete(void) const;
 
+            /** \brief Check if this is a hybrid state space (i.e., both discrete and continuous components exist)*/
+            virtual bool isHybrid(void) const;
+
             /** \brief Get the name of the state space */
             const std::string& getName(void) const;
 
@@ -360,6 +363,8 @@ namespace ompl
             }
 
             virtual bool isCompound(void) const;
+
+            virtual bool isHybrid(void) const;
 
             /** @name Management of contained subspaces
                 @{ */
