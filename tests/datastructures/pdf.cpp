@@ -45,7 +45,7 @@ TEST(PDF, Simple)
     typedef ompl::PDF<int>::Element Element;
     ompl::PDF<int> p;
     EXPECT_TRUE(p.empty());
-    Element& e = p.add(0, 1.0);
+    p.add(0, 1.0);
     EXPECT_EQ(0, p.sample(0.5));
     EXPECT_EQ(1u, p.size());
     EXPECT_FALSE(p.empty());

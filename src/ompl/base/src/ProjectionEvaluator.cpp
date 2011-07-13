@@ -154,7 +154,7 @@ namespace ompl
             for (unsigned int i = 0 ; i < dim ; ++i)
                 coord[i] = (int)floor(projection(i)/cellSizes[i]);
         }
-
+        /*
         static Grid<int> constructGrid(unsigned int dim, const std::vector<ProjectionCoordinates> &coord)
         {
             Grid<int> g(dim);
@@ -205,7 +205,7 @@ namespace ompl
             cellSizes[bestD] *= factor;
             return bestD;
         }
-
+        */
     }
 }
 /// @endcond
