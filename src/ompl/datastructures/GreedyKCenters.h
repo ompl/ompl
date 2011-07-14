@@ -123,7 +123,7 @@ namespace ompl
         DistanceFunction distFun_;
 
         /** Random number generator used to select first center */
-        RNG rng_;
+        RNG              rng_;
     };
 }
 
