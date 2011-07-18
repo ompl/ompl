@@ -163,7 +163,7 @@ void ompl::base::TimeStateSpace::registerProjections(void)
 
         virtual void project(const State *state, EuclideanProjection &projection) const
         {
-            projection.values[0] = state->as<TimeStateSpace::StateType>()->position;
+            projection(0) = state->as<TimeStateSpace::StateType>()->position;
         }
     };
 

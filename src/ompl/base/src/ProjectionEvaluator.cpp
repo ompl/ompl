@@ -34,12 +34,16 @@
 
 /* Author: Ioan Sucan */
 
+// We need this to create a temporary uBLAS vector from a C-style array without copying data
+#define BOOST_UBLAS_SHALLOW_ARRAY_ADAPTOR
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/datastructures/Grid.h"
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -48,39 +52,28 @@ static const double DIMENSION_UPDATE_FACTOR = 1.2;
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
-    RNG rng;
+    using namespace boost::numeric::ublas;
 
-    Matrix projection(to);
+    RNG rng;
+    Matrix projection(to, from);
+
     for (unsigned int i = 0 ; i < to ; ++i)
     {
-        projection[i].resize(from);
         for (unsigned int j = 0 ; j < from ; ++j)
-            projection[i][j] = rng.gaussian01();
+            projection(i, j) = rng.gaussian01();
     }
 
     for (unsigned int i = 1 ; i < to ; ++i)
     {
-        std::valarray<double> &row = projection[i];
+        matrix_row<Matrix> row(projection, i);
         for (unsigned int j = 0 ; j < i ; ++j)
         {
-            std::valarray<double> &prevRow = projection[j];
+            matrix_row<Matrix> prevRow(projection, j);
             // subtract projection
-            row -= (row * prevRow).sum() * prevRow;
+            row -= inner_prod(row, prevRow) * prevRow;
         }
         // normalize
-        row /= sqrt((row * row).sum());
-    }
-
-    // if we need to apply scaling, do so
-    if (scale.size() == from)
-    {
-        for (unsigned int i = 0 ; i < to ; ++i)
-            for (unsigned int j = 0 ; j < from ; ++j)
-            {
-                if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
-                    throw Exception("Scaling factor must be non-zero");
-                projection[i][j] /= scale[i];
-            }
+        row /= norm_2(row);
     }
 
     return projection;
@@ -88,12 +81,20 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to)
 {
-    return ComputeRandom(from, to, std::vector<double>());
+    return ComputeRandom(from, to);
 }
 
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
-    mat = ComputeRandom(from, to, scale);
+    mat = ComputeRandom(from, to);
+
+    assert(scale.size() == from);
+    for (unsigned int i = 0 ; i < from ; ++i)
+    {
+        if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
+            throw Exception("Scaling factor must be non-zero");
+        boost::numeric::ublas::column(mat, i) /= scale[i];
+    }
 }
 
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to)
@@ -101,29 +102,18 @@ void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const 
     mat = ComputeRandom(from, to);
 }
 
-void ompl::base::ProjectionMatrix::project(const double *from, double *to) const
+void ompl::base::ProjectionMatrix::project(const double *from, EuclideanProjection& to) const
 {
-    for (unsigned int i = 0 ; i < mat.size() ; ++i)
-    {
-        const std::valarray<double> &vec = mat[i];
-        const unsigned int dim = vec.size();
-        double *pos = to + i;
-        *pos = 0.0;
-        for (unsigned int j = 0 ; j < dim ; ++j)
-            *pos += from[j] * vec[j];
-    }
+    using namespace boost::numeric::ublas;
+    // create a temporary uBLAS vector from a C-style array without copying data
+    shallow_array_adaptor<const double> tmp1(mat.size2(), from);
+    vector<double, shallow_array_adaptor<const double> > tmp2(mat.size2(), tmp1);
+    to = prod(mat, tmp2);
 }
 
 void ompl::base::ProjectionMatrix::print(std::ostream &out) const
 {
-    for (unsigned int i = 0 ; i < mat.size() ; ++i)
-    {
-        const std::valarray<double> &vec = mat[i];
-        const unsigned int dim = vec.size();
-        for (unsigned int j = 0 ; j < dim ; ++j)
-            out << vec[j] << " ";
-        out << std::endl;
-    }
+    out << mat << std::endl;
 }
 
 bool ompl::base::ProjectionEvaluator::userConfigured(void) const
@@ -162,9 +152,9 @@ namespace ompl
             const std::size_t dim = cellSizes.size();
             coord.resize(dim);
             for (unsigned int i = 0 ; i < dim ; ++i)
-                coord[i] = (int)floor(projection.values[i]/cellSizes[i]);
+                coord[i] = (int)floor(projection(i)/cellSizes[i]);
         }
-
+        /*
         static Grid<int> constructGrid(unsigned int dim, const std::vector<ProjectionCoordinates> &coord)
         {
             Grid<int> g(dim);
@@ -215,7 +205,7 @@ namespace ompl
             cellSizes[bestD] *= factor;
             return bestD;
         }
-
+        */
     }
 }
 /// @endcond
@@ -316,10 +306,10 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             project(s, proj);
             for (unsigned int j = 0 ; j < dim ; ++j)
             {
-                if (low[j] > proj.values[j])
-                    low[j] = proj.values[j];
-                if (high[j] < proj.values[j])
-                    high[j] = proj.values[j];
+                if (low[j] > proj[j])
+                    low[j] = proj[j];
+                if (high[j] < proj[j])
+                    high[j] = proj[j];
             }
         }
 
@@ -380,14 +370,5 @@ void ompl::base::ProjectionEvaluator::printSettings(std::ostream &out) const
 
 void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection &projection, std::ostream &out) const
 {
-    unsigned int d = getDimension();
-    if (d > 0)
-    {
-        --d;
-        for (unsigned int i = 0 ; i < d ; ++i)
-            out << projection.values[i] << ' ';
-        out << projection.values[d] << std::endl;
-    }
-    else
-        out << "NULL" << std::endl;
+    out << projection << std::endl;
 }

@@ -164,7 +164,7 @@ void ompl::base::SO2StateSpace::registerProjections(void)
 
         virtual void project(const State *state, EuclideanProjection &projection) const
         {
-            projection.values[0] = state->as<SO2StateSpace::StateType>()->value;
+            projection(0) = state->as<SO2StateSpace::StateType>()->value;
         }
     };
 

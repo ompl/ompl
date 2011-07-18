@@ -314,8 +314,8 @@ public:
 
     virtual void project(const base::State *state, base::EuclideanProjection &projection) const
     {
-        projection.values[0] = state->as<base::RealVectorStateSpace::StateType>()->values[0];
-        projection.values[1] = state->as<base::RealVectorStateSpace::StateType>()->values[1];
+        projection(0) = state->as<base::RealVectorStateSpace::StateType>()->values[0];
+        projection(1) = state->as<base::RealVectorStateSpace::StateType>()->values[1];
     }
 };
 

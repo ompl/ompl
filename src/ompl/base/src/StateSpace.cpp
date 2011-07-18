@@ -273,7 +273,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
 
 
     // Test that interpolation works as expected and also test triangle inequality
-    if (!isDiscrete())
+    if (!isDiscrete() && !isHybrid())
     {
         State *s1 = allocState();
         State *s2 = allocState();
@@ -373,6 +373,11 @@ bool ompl::base::StateSpace::isDiscrete(void) const
     return false;
 }
 
+bool ompl::base::StateSpace::isHybrid(void) const
+{
+    return false;
+}
+
 void ompl::base::StateSpace::setValidSegmentCountFactor(unsigned int factor)
 {
     if (factor < 1)
@@ -431,6 +436,22 @@ void ompl::base::CompoundStateSpace::addSubSpace(const StateSpacePtr &component,
 bool ompl::base::CompoundStateSpace::isCompound(void) const
 {
     return true;
+}
+
+bool ompl::base::CompoundStateSpace::isHybrid(void) const
+{
+    bool c = false;
+    bool d = false;
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+    {
+        if (components_[i]->isHybrid())
+            return true;
+        if (components_[i]->isDiscrete())
+            d = true;
+        else
+            c = true;
+    }
+    return c && d;
 }
 
 unsigned int ompl::base::CompoundStateSpace::getSubSpaceCount(void) const
