@@ -176,6 +176,20 @@ namespace ompl
                 optionally be returned as well. */
             bool isTrivial(unsigned int *startIndex = NULL, double *distance = NULL) const;
 
+            /** \brief Check if a straight line path is valid. If it
+                is, return an instance of a path that represents the
+                straight line.
+
+                \note When planning under geometric constraints, this
+                works only if the goal region can be sampled. If the
+                goal region cannot be sampled, this call is equivalent
+                to calling isTrivial()
+
+                \note When planning under differential constraints,
+                the system is propagated forward in time using the
+                null control. */
+            PathPtr isStraightLinePathValid(void) const;
+
             /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automatically
               * find a nearby state that is valid so motion planning can be performed. This function enables this behaviour.
               * The allowed distance for both start and goal states is specified. The number of attempts

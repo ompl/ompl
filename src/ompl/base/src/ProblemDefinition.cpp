@@ -37,7 +37,8 @@
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/GoalState.h"
 #include "ompl/base/GoalStates.h"
-
+#include "ompl/control/SpaceInformation.h"
+#include "ompl/control/PathControl.h"
 #include <sstream>
 
 void ompl::base::ProblemDefinition::setStartAndGoalStates(const State *start, const State *goal, const double threshold)
@@ -104,7 +105,6 @@ bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double di
     return result;
 }
 
-
 bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, double distGoal, unsigned int attempts)
 {
     bool result = true;
@@ -148,6 +148,105 @@ void ompl::base::ProblemDefinition::getInputStates(std::vector<const State*> &st
     if (goals)
         for (unsigned int i = 0 ; i < goals->states.size() ; ++i)
             states.push_back(goals->states[i]);
+}
+
+ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid(void) const
+{
+    PathPtr path;
+    if (control::SpaceInformationPtr sic = boost::dynamic_pointer_cast<control::SpaceInformation, SpaceInformation>(si_))
+    {
+        unsigned int startIndex;
+        if (isTrivial(&startIndex, NULL))
+        {
+            control::PathControl *pc = new control::PathControl(sic);
+            pc->states.push_back(sic->cloneState(startStates_[startIndex]));
+            pc->states.push_back(sic->cloneState(startStates_[startIndex]));
+            pc->controls.push_back(sic->allocControl());
+            sic->nullControl(pc->controls.back());
+            pc->controlDurations.push_back(0);
+            path.reset(pc);
+        }
+        else
+        {
+            control::Control *nc = sic->allocControl();
+            State *result1 = sic->allocState();
+            State *result2 = sic->allocState();
+            sic->nullControl(nc);
+
+            for (unsigned int k = 0 ; k < startStates_.size() && !path ; ++k)
+            {
+                const State *start = startStates_[k];
+                if (start && si_->isValid(start) && si_->satisfiesBounds(start))
+                {
+                    sic->copyState(result1, start);
+                    for (unsigned int i = 0 ; i < sic->getMaxControlDuration() && !path ; ++i)
+                        if (sic->propagateWhileValid(result1, nc, 1, result2))
+                        {
+                            if (goal_->isSatisfied(result2))
+                            {
+                                control::PathControl *pc = new control::PathControl(sic);
+                                pc->states.push_back(sic->cloneState(start));
+                                pc->states.push_back(sic->cloneState(result2));
+                                pc->controls.push_back(sic->cloneControl(nc));
+                                pc->controlDurations.push_back(i + 1);
+                                path.reset(pc);
+                                break;
+                            }
+                            std::swap(result1, result2);
+                        }
+                }
+            }
+            sic->freeState(result1);
+            sic->freeState(result2);
+            sic->freeControl(nc);
+        }
+    }
+    else
+    {
+        std::vector<const State*> states;
+        GoalState *goal = dynamic_cast<GoalState*>(goal_.get());
+        if (goal)
+            if (si_->isValid(goal->state) && si_->satisfiesBounds(goal->state))
+                states.push_back(goal->state);
+        GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
+        if (goals)
+            for (unsigned int i = 0 ; i < goals->states.size() ; ++i)
+                if (si_->isValid(goals->states[i]) && si_->satisfiesBounds(goals->states[i]))
+                    states.push_back(goals->states[i]);
+
+        if (states.empty())
+        {
+            unsigned int startIndex;
+            if (isTrivial(&startIndex))
+            {
+                geometric::PathGeometric *pg = new geometric::PathGeometric(si_);
+                pg->states.push_back(si_->cloneState(startStates_[startIndex]));
+                pg->states.push_back(si_->cloneState(startStates_[startIndex]));
+                path.reset(pg);
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0 ; i < startStates_.size() && !path ; ++i)
+            {
+                const State *start = startStates_[i];
+                if (start && si_->isValid(start) && si_->satisfiesBounds(start))
+                {
+                    for (unsigned int j = 0 ; j < states.size() && !path ; ++j)
+                        if (si_->checkMotion(start, states[j]))
+                        {
+                            geometric::PathGeometric *pg = new geometric::PathGeometric(si_);
+                            pg->states.push_back(si_->cloneState(start));
+                            pg->states.push_back(si_->cloneState(states[j]));
+                            path.reset(pg);
+                            break;
+                        }
+                }
+            }
+        }
+    }
+
+    return path;
 }
 
 bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *distance) const
