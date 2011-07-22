@@ -52,7 +52,6 @@ void ompl::geometric::RRTstar::setup(void)
     ballRadiusConst_ = maxDistance_ * sqrt(si_->getStateSpace()->getDimension());
 
     delayCC_ = true;
-    terminate_ = true;
 
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
@@ -96,9 +95,11 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Starting with %u states", nn_->size());
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    Motion *solution     = NULL;
+    Motion *approxsol    = NULL;
+    double  approxdif    = std::numeric_limits<double>::infinity();
+    bool    approxsolved = false;
+
     Motion *rmotion   = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
@@ -107,14 +108,9 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     std::vector<double>  dists;
     std::vector<int>     valid;
     long unsigned int    rewireTest = 0;
-    int                  iter = 0;
-    double               lowerBound = std::numeric_limits<double>::infinity();
 
     while (ptc() == false)
     {
-
-        iter++;
-
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
@@ -158,76 +154,77 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
             if(delayCC_)
             {
-                    // calculate all costs and distances
-                    for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                // calculate all costs and distances
+                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                     if (nbh[i] != nmotion)
                     {
                         double c = nbh[i]->cost + si_->distance(nbh[i]->state, dstate);
                         nbh[i]->cost = c;
                     }
 
-                    // sort the nodes
-                    std::sort(nbh.begin(), nbh.end(), compareMotion);
+                // sort the nodes
+                std::sort(nbh.begin(), nbh.end(), compareMotion);
 
-                    for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                     if (nbh[i] != nmotion)
                     {
-                       dists[i] = si_->distance(nbh[i]->state, dstate);
-                       nbh[i]->cost -= dists[i];
+                        dists[i] = si_->distance(nbh[i]->state, dstate);
+                        nbh[i]->cost -= dists[i];
                     }
 
-                    // collision check until a valid motion is found
-                    for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                // collision check until a valid motion is found
+                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                     if (nbh[i] != nmotion)
                     {
 
-                       dists[i] = si_->distance(nbh[i]->state, dstate);
-                       double c = nbh[i]->cost + dists[i];
-                       if (c < motion->cost)
-                       {
-                         if (si_->checkMotion(nbh[i]->state, dstate))
-                         {
-                                  motion->cost = c;
-                                  motion->parent = nbh[i];
-                                  valid[i] = 1;
-                                  break;
-                         }
-                         else
-                                  valid[i] = -1;
-                       }
+                        dists[i] = si_->distance(nbh[i]->state, dstate);
+                        double c = nbh[i]->cost + dists[i];
+                        if (c < motion->cost)
+                        {
+                            if (si_->checkMotion(nbh[i]->state, dstate))
+                            {
+                                motion->cost = c;
+                                motion->parent = nbh[i];
+                                valid[i] = 1;
+                                break;
+                            }
+                            else
+                                valid[i] = -1;
+                        }
                     }
                     else
                     {
-                            valid[i] = 1;
-                            dists[i] = distN;
-                            break;
+                        valid[i] = 1;
+                        dists[i] = distN;
+                        break;
                     }
 
             }
-            else{
-                    /* find which one we connect the new state to*/
-                    for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+            else
+            {
+                /* find which one we connect the new state to*/
+                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                     if (nbh[i] != nmotion)
                     {
 
-                       dists[i] = si_->distance(nbh[i]->state, dstate);
-                       double c = nbh[i]->cost + dists[i];
-                       if (c < motion->cost)
-                       {
-                         if (si_->checkMotion(nbh[i]->state, dstate))
-                         {
-                                  motion->cost = c;
-                                  motion->parent = nbh[i];
-                                  valid[i] = 1;
-                         }
-                         else
-                                  valid[i] = -1;
-                       }
+                        dists[i] = si_->distance(nbh[i]->state, dstate);
+                        double c = nbh[i]->cost + dists[i];
+                        if (c < motion->cost)
+                        {
+                            if (si_->checkMotion(nbh[i]->state, dstate))
+                            {
+                                motion->cost = c;
+                                motion->parent = nbh[i];
+                                valid[i] = 1;
+                            }
+                            else
+                                valid[i] = -1;
+                        }
                     }
                     else
                     {
-                            valid[i] = 1;
-                            dists[i] = distN;
+                        valid[i] = 1;
+                        dists[i] = distN;
                     }
 
             }
@@ -259,37 +256,45 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
             for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
             {
                 double dist = 0.0;
-                bool solved = goal->isSatisfied(solCheck[i]->state, solCheck[i]->cost, &dist);
+                bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
+                bool sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+
                 if (solved)
                 {
-                    approxdif = dist;
-
-                    if(!terminate_)
-                    {
-                        if (solCheck[i]->cost < lowerBound)
-                        {
-                            lowerBound = solCheck[i]->cost;
-                            solution = solCheck[i];
-                        }
-
-                    }
-                    else
+                    if (sufficientlyShort)
                     {
                         solution = solCheck[i];
                         break;
                     }
-
+                    else
+                    {
+                        if (approxsolved)
+                        {
+                            if (dist < approxdif)
+                            {
+                                approxdif = dist;
+                                approxsol = solCheck[i];
+                            }
+                        }
+                        else
+                        {
+                            approxsolved = true;
+                            approxdif = dist;
+                            approxsol = solCheck[i];
+                        }
+                    }
                 }
-                if (dist < approxdif)
-                {
-                    approxdif = dist;
-                    approxsol = solCheck[i];
-                }
+                else
+                    if (!approxsolved && dist < approxdif)
+                    {
+                        approxdif = dist;
+                        approxsol = solCheck[i];
+                    }
             }
 
             /* terminate if a solution was found */
-            if (solution != NULL && terminate_)
-                    break;
+            if (solution != NULL)
+                break;
         }
     }
 
@@ -312,7 +317,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
         goal->setDifference(approxdif);
         goal->setSolutionPath(base::PathPtr(path), approximate);
@@ -333,7 +338,8 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
 void ompl::geometric::RRTstar::freeMemory(void)
 {
-    if (nn_) {
+    if (nn_)
+    {
         std::vector<Motion*> motions;
         nn_->list(motions);
         for (unsigned int i = 0 ; i < motions.size() ; ++i)
