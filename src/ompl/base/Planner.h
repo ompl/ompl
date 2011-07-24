@@ -109,6 +109,11 @@ namespace ompl
             /** \brief Clear all stored information. */
             void clear(void);
 
+            /** \brief Forget how many states were returned by
+                nextStart() and nextGoal() and return all states
+                again */
+            void restart(void);
+
             /** \brief Set the space information and problem
                 definition this class operates on, based on the
                 available planner instance. Returns true if changes
