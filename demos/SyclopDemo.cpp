@@ -16,6 +16,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -55,7 +56,7 @@ class TestDecomposition : public oc::GridDecomposition
 
 bool isStateValid(const oc::SpaceInformation* si, const ob::State *s)
 {
-    const ob::CompoundState *cs = s->as<ob::CompoundState>();
+    /*const ob::CompoundState *cs = s->as<ob::CompoundState>();
     const ob::SE2StateSpace::StateType *se = cs->as<ob::SE2StateSpace::StateType>(0);
     const double x = se->getX();
     const double y = se->getY();
@@ -64,7 +65,7 @@ bool isStateValid(const oc::SpaceInformation* si, const ob::State *s)
     if (x > 0 && x < 1 && y > 0)
         return false;
     if (x > 2.5 && fabs(y) < 1.5)
-        return false;
+        return false;*/
     return si->satisfiesBounds(s);
 }
 
@@ -79,34 +80,31 @@ public:
     {
         const ob::CompoundStateSpace::StateType* cs = state->as<ob::CompoundStateSpace::StateType>();
         const ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
-        const ob::RealVectorStateSpace::StateType* vels = cs->as<ob::RealVectorStateSpace::StateType>(1);
+        const ob::RealVectorStateSpace::StateType* vel = cs->as<ob::RealVectorStateSpace::StateType>(1);
         const oc::RealVectorControlSpace::ControlType* ctrl = control->as<oc::RealVectorControlSpace::ControlType>();
 
         const double x = location->getX();
         const double y = location->getY();
         const double angle = location->getYaw();
-        const double velocity = (*vels)[0];
-        const double steerVelocity = (*vels)[1];
+        const double velocity = (*vel)[0];
         const double accel = (*ctrl)[0];
-        const double steerAccel = (*ctrl)[1];
+        const double steerVelocity = (*ctrl)[1];
 
-        dstate.resize(5);
+        dstate.resize(4);
         dstate[0] = velocity*cos(angle);
         dstate[1] = velocity*sin(angle);
         dstate[2] = velocity*tan(steerVelocity)/carLength_;
         dstate[3] = accel;
-        dstate[4] = steerAccel;
     }
 
     void update(ob::State* state, const std::valarray<double>& stateChange) const
     {
         ob::CompoundStateSpace::StateType* cs = state->as<ob::CompoundStateSpace::StateType>();
         ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
-        ob::RealVectorStateSpace::StateType* vels = cs->as<ob::RealVectorStateSpace::StateType>(1);
+        ob::RealVectorStateSpace::StateType* vel = cs->as<ob::RealVectorStateSpace::StateType>(1);
         location->setXY(location->getX()+stateChange[0], location->getY()+stateChange[1]);
         location->setYaw(location->getYaw() + stateChange[2]);
-        (*vels)[0] += stateChange[3];
-        (*vels)[1] += stateChange[4];
+        (*vel)[0] += stateChange[3];
     }
 
 private:
@@ -174,23 +172,20 @@ private:
 class ConvexGoalRegion : public ob::GoalSampleableRegion
 {
 public:
-    ConvexGoalRegion(const ob::SpaceInformationPtr& si) : ob::GoalSampleableRegion(si), bounds_(5)
+    ConvexGoalRegion(const ob::SpaceInformationPtr& si) : ob::GoalSampleableRegion(si), bounds_(4)
     {
         //x coordinate
         bounds_.setLow(0,1.95);
-        bounds_.setHigh(0,2.0);
+        bounds_.setHigh(0,2.05);
         //y coordinate
-        bounds_.setLow(1, -2.0);
-        bounds_.setHigh(1, -2.05);
+        bounds_.setLow(1, -2.05);
+        bounds_.setHigh(1, -1.95);
         //steer angle
         bounds_.setLow(2, -1.57);
         bounds_.setHigh(2, 1.57);
         //forward velocity
-        bounds_.setLow(3, -0.05);
-        bounds_.setHigh(3, 0.05);
-        //steer velocity
-	    bounds_.setLow(4, -0.2);
-        bounds_.setHigh(4, 0.2);
+        bounds_.setLow(3, -0.1);
+        bounds_.setHigh(3, 0.1);
     }
 
     virtual bool isSatisfied(const ob::State* state) const
@@ -203,13 +198,12 @@ public:
     {
         const ob::CompoundStateSpace::StateType* cs = state->as<ob::CompoundStateSpace::StateType>();
         const ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
-        const ob::RealVectorStateSpace::StateType* vels = cs->as<ob::RealVectorStateSpace::StateType>(1);
+        const ob::RealVectorStateSpace::StateType* vel = cs->as<ob::RealVectorStateSpace::StateType>(1);
         std::valarray<double> stateVals(2);
         stateVals[0] = location->getX();
         stateVals[1] = location->getY();
         /*stateVals[2] = location->getYaw();
-        stateVals[3] = (*vels)[0];
-        stateVals[4] = (*vels)[1];*/
+        stateVals[3] = (*vel)[0];*/
 
         double sq_distance = 0.0;
         bool satisfied = true;
@@ -234,13 +228,12 @@ public:
     {
         ob::CompoundStateSpace::StateType* cs = state->as<ob::CompoundStateSpace::StateType>();
         ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
-        ob::RealVectorStateSpace::StateType* vels = cs->as<ob::RealVectorStateSpace::StateType>(1);
+        ob::RealVectorStateSpace::StateType* vel = cs->as<ob::RealVectorStateSpace::StateType>(1);
         ompl::RNG rng;
         location->setXY(rng.uniformReal(bounds_.low[0], bounds_.high[0]),
             rng.uniformReal(bounds_.low[1], bounds_.high[1]));
         location->setYaw(rng.uniformReal(bounds_.low[2], bounds_.high[2]));
-        (*vels)[0] = rng.uniformReal(bounds_.low[3], bounds_.high[3]);
-        (*vels)[1] = rng.uniformReal(bounds_.low[4], bounds_.high[4]);
+        (*vel)[0] = rng.uniformReal(bounds_.low[3], bounds_.high[3]);
     }
 
     virtual unsigned int maxSampleCount(void) const
@@ -257,22 +250,22 @@ int main(void)
     ompl::base::RealVectorBounds bounds(2);
     bounds.setLow(-3);
     bounds.setHigh(3);
-    TestDecomposition grid(27, bounds);
-    ob::RealVectorBounds vbounds(2);
+    TestDecomposition grid(64, bounds);
+    ob::RealVectorBounds vbounds(1);
     vbounds.setLow(-0.1);
     vbounds.setHigh(0.1);
     ob::RealVectorBounds cbounds(2);
-    cbounds.setLow(-0.05);
-    cbounds.setHigh(0.05);
+    cbounds.setLow(-0.5);
+    cbounds.setHigh(0.5);
 
     //stateSpace : location, forward velocity, steer velocity
     ob::StateSpacePtr locationSpace(new ob::SE2StateSpace());
     locationSpace->as<ob::SE2StateSpace>()->setBounds(bounds);
-    ob::StateSpacePtr velSpace(new ob::RealVectorStateSpace(2));
+    ob::StateSpacePtr velSpace(new ob::RealVectorStateSpace(1));
     velSpace->as<ob::RealVectorStateSpace>()->setBounds(vbounds);
     ob::StateSpacePtr stateSpace(new ob::CompoundStateSpace());
     stateSpace->as<ob::CompoundStateSpace>()->addSubSpace(locationSpace, 1.0);
-    stateSpace->as<ob::CompoundStateSpace>()->addSubSpace(velSpace, 1.0);
+    stateSpace->as<ob::CompoundStateSpace>()->addSubSpace(velSpace, 0.5);
 
     //controlSpace : forward accel & steer accel
     oc::ControlSpacePtr controlSpace(new CarControlSpace(stateSpace, 0.01));
@@ -281,17 +274,17 @@ int main(void)
     ob::ScopedState<> init(stateSpace);
     ob::CompoundState* cs = init->as<ob::CompoundState>();
     ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
-    ob::RealVectorStateSpace::StateType* vels = cs->as<ob::RealVectorStateSpace::StateType>(1);
+    ob::RealVectorStateSpace::StateType* vel = cs->as<ob::RealVectorStateSpace::StateType>(1);
     location->setX(-2.0);
     location->setY(2.0);
-    location->setYaw(0.0);
-    (*vels)[0] = 0.0;
-    (*vels)[1] = 0.0;
+    location->setYaw(-boost::math::constants::pi<double>()/2.0);
+    (*vel)[0] = 0.0;
 
     oc::SpaceInformationPtr si(new oc::SpaceInformation(stateSpace, controlSpace));
     si->setStateValidityChecker(boost::bind(&isStateValid, si.get(), _1));
     si->setMinMaxControlDuration(1, 10);
-    si->setPropagationStepSize(0.5);
+    si->setStatePropagator(boost::bind(&CarControlSpace::propagate, controlSpace->as<CarControlSpace>(), _1, _2, _3, _4));
+    si->setPropagationStepSize(0.10);
     si->setup();
 
     //ob::PlannerPtr planner(new oc::RRT(si));
@@ -304,12 +297,31 @@ int main(void)
     planner->setup();
 
     ompl::time::point startTime = ompl::time::now();
-    bool solved = planner->solve(120.0);
+    bool solved = planner->solve(600.0);
     double duration = ompl::time::seconds(ompl::time::now()-startTime);
     ob::PlannerData pdata;
     planner->getPlannerData(pdata);
     std::cerr << planner->getName() << " " << solved << " ";
     std::cerr << duration << " " << pdata.states.size() << std::endl;
+    for (std::size_t i = 0; i < pdata.states.size(); ++i)
+    {
+        const ob::CompoundState* cs = pdata.states[i]->as<ob::CompoundState>();
+        const ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
+        std::cerr << i << " " << location->getX() << " " << location->getY() << " " << location->getYaw() << std::endl;
+    }
+
+    /*ompl::RNG rng;
+    for (int i = 0; i < 1000000; ++i)
+    {
+        ob::State* s = si->allocState();
+        ob::CompoundState* cs = s->as<ob::CompoundState>();
+        ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
+        location->setXY(rng.uniform01()*6.0 - 3, rng.uniform01()*6.0 - 3);
+        if (!isStateValid(si.get(), s))
+        {
+            std::cerr << location->getX() << " " << location->getY() << std::endl;
+        }
+    }*/
 
     return 0;
 }

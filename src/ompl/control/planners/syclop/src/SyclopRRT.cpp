@@ -1,6 +1,7 @@
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include "ompl/base/spaces/SE2StateSpace.h"
 
 ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) :
     Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
@@ -54,6 +55,13 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
     controlSampler_->sampleNext(rctrl, nmotion->control, nmotion->state);
     unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
     duration = siC_->propagateWhileValid(nmotion->state, rctrl, duration, newState);
+
+    base::CompoundState* cs = newState->as<base::CompoundState>();
+    base::SE2StateSpace::StateType* location = cs->as<base::SE2StateSpace::StateType>(0);
+    if (location->getX() >= 1.95 && location->getX() <= 2.05 && location->getY() >= -2.05 && location->getY() <= -1.95)
+    {
+        std::cerr << "syclopRRT generated a satisfying state at (" << location->getX() << "," << location->getY() << ")" << std::endl;
+    }
 
     if (duration >= siC_->getMinControlDuration())
     {

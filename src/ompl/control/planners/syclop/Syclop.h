@@ -78,7 +78,7 @@ namespace ompl
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
-            static const int NUM_FREEVOL_SAMPLES = 10000;
+            static const int NUM_FREEVOL_SAMPLES = 100000;
             static const double PROB_SHORTEST_PATH = 0.95; //0.95
             static const int COVGRID_LENGTH = 81;
             static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
@@ -119,6 +119,8 @@ namespace ompl
             virtual Motion* initializeTree(const base::State *s) = 0;
             /* Select a vertex v from region, extend tree from v, add any new motions created to newMotions. */
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
+
+            void dijkstra(std::vector<int>& parents, std::vector<double>& dist);
 
             class CoverageGrid : public GridDecomposition
             {
