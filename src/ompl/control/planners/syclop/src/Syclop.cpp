@@ -5,22 +5,13 @@
 #include <stack>
 #include <boost/math/special_functions/fpclassify.hpp>
 
-ompl::control::Syclop::Syclop(const SpaceInformationPtr &si, Decomposition &d, const std::string& name) : ompl::base::Planner(si, name),
-    siC_(si.get()), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)
-{
-}
-
-ompl::control::Syclop::~Syclop()
-{
-}
-
 void ompl::control::Syclop::setup(void)
 {
     base::Planner::setup();
     buildGraph();
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
     /* TODO: Handle multiple start states. */
-    base::State *start = pdef->getStartState(0);
+    base::State* start = pdef->getStartState(0);
     startRegion = decomp.locateRegion(start);
     /* Here we are assuming that we have a GoalSampleableRegion. */
     base::State* goal = si_->allocState();
@@ -47,7 +38,7 @@ void ompl::control::Syclop::clear(void)
     availDist.clear();
 }
 
-bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
+bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 {
     std::set<Motion*> newMotions;
     base::Goal* goal = getProblemDefinition()->getGoal().get();
@@ -192,7 +183,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     std::vector<int> numValid(decomp.getNumRegions(), 0);
     base::StateValidityCheckerPtr checker = si_->getStateValidityChecker();
     base::StateSamplerPtr sampler = si_->allocStateSampler();
-    base::State *s = si_->allocState();
+    base::State* s = si_->allocState();
     /* TODO TRO2009 paper says that 5000 samples are generated in each region,
      * but the TRO2009 code generates 100000 samples over the entire state space.
      * We take the latter approach, for now. */
@@ -430,10 +421,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
             avail.insert(lead[i]);
             availDist.add(lead[i], r.weight);
             if (rng.uniform01() >= PROB_KEEP_ADDING_TO_AVAIL)
-            {
                 break;
-                //return;
-            }
         }
     }
 }

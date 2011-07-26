@@ -3,22 +3,6 @@
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 
-ompl::control::SyclopRRT::SyclopRRT(const SpaceInformationPtr &si, Decomposition &d) :
-    Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
-    controlSampler_(siC_->allocControlSampler())
-{
-}
-
-ompl::control::SyclopRRT::~SyclopRRT(void)
-{
-    freeMemory();
-}
-
-void ompl::control::SyclopRRT::setup(void)
-{
-    Syclop::setup();
-}
-
 void ompl::control::SyclopRRT::clear(void)
 {
     Syclop::clear();
@@ -28,14 +12,14 @@ void ompl::control::SyclopRRT::clear(void)
     motions.clear();
 }
 
-void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const
+void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
 {
     Planner::getPlannerData(data);
     for (std::size_t i = 0 ; i < motions.size() ; ++i)
         data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
 }
 
-ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const base::State *s)
+ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const base::State* s)
 {
     Motion* motion = new Motion(siC_);
     si_->copyState(motion->state, s);
@@ -57,10 +41,6 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
 
     base::CompoundState* cs = newState->as<base::CompoundState>();
     base::SE2StateSpace::StateType* location = cs->as<base::SE2StateSpace::StateType>(0);
-    if (location->getX() >= 1.95 && location->getX() <= 2.05 && location->getY() >= -2.05 && location->getY() <= -1.95)
-    {
-        //std::cerr << "syclopRRT generated a satisfying state at (" << location->getX() << "," << location->getY() << ")" << std::endl;
-    }
 
     if (duration >= siC_->getMinControlDuration())
     {

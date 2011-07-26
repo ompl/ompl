@@ -14,16 +14,28 @@ namespace ompl
             which are called by Syclop::solve(). ...for now, just rewrite some RRT code. */
         class SyclopRRT : public Syclop
         {
-            public:
-            SyclopRRT(const SpaceInformationPtr &si, Decomposition &d);
-            virtual ~SyclopRRT(void);
-            virtual void setup(void);
+        public:
+            SyclopRRT(const SpaceInformationPtr& si, Decomposition& d) : Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
+                controlSampler_(siC_->allocControlSampler())
+            {
+            }
+
+            virtual ~SyclopRRT(void)
+            {
+                freeMemory();
+            }
+
+            virtual void setup(void)
+            {
+                Syclop::setup();
+            }
+
             virtual void clear(void);
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            virtual void getPlannerData(base::PlannerData& data) const;
 
-            protected:
-            virtual Syclop::Motion* initializeTree(const base::State *s);
+        protected:
+            virtual Syclop::Motion* initializeTree(const base::State* s);
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions);
             void freeMemory(void);
 

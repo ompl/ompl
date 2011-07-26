@@ -1,20 +1,11 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-ompl::control::GridDecomposition::GridDecomposition(const int len, const int dim, const base::RealVectorBounds &b) :
+ompl::control::GridDecomposition::GridDecomposition(const int len, const int dim, const base::RealVectorBounds& b) :
     Decomposition(len*len, b), length(len), dimension(dim)
 {
     cellVolume = 1.0;
     for (int i = 0; i < dim; ++i)
         cellVolume *= (b.high[i] - b.low[i]) / len;
-}
-
-ompl::control::GridDecomposition::~GridDecomposition()
-{
-}
-
-double ompl::control::GridDecomposition::getRegionVolume(const int rid) const
-{
-    return cellVolume;
 }
 
 /* This implementation requires time linear with the number of regions.
@@ -25,9 +16,7 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
     for (int s = 0; s < getNumRegions(); ++s)
     {
         if (areNeighbors(rid, s))
-        {
             neighbors.push_back(s);
-        }
     }
 }
 

@@ -23,30 +23,39 @@ namespace ompl
 
         class Decomposition
         {
-            public:
+        public:
 
             /* A decomposition consists of a fixed number of regions and fixed bounds. */
-            Decomposition(const int n, const base::RealVectorBounds &b);
+            Decomposition(const int n, const base::RealVectorBounds& b) : numRegions(n), bounds(b)
+            {
+            }
 
-            virtual ~Decomposition();
+            virtual ~Decomposition()
+            {
+            }
 
-            virtual int getNumRegions() const;
+            virtual int getNumRegions() const
+            {
+                return numRegions;
+            }
 
-            virtual const base::RealVectorBounds& getBounds() const;
+            virtual const base::RealVectorBounds& getBounds() const
+            {
+                return bounds;
+            }
 
             virtual double getRegionVolume(const int rid) const = 0;
-
             /* Returns the ID of the decomposition region containing the state s.
              * Most often, this is obtained by projecting s into the workspace and finding the appropriate region. */
-            virtual int locateRegion(const base::State *s) = 0;
+            virtual int locateRegion(const base::State* s) = 0;
 
             /* An alternate approach to the above method. */
-            virtual void stateToCoord(const base::State *s, std::vector<double>& coord) = 0;
+            virtual void stateToCoord(const base::State* s, std::vector<double>& coord) = 0;
 
             /* Stores the neighboring regions of region into the vector neighbors. */
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) = 0;
 
-            protected:
+        protected:
             /* Returns true iff regions r and s are physically adjacent in this decomposition. */
             virtual bool areNeighbors(int r, int s) = 0;
 
