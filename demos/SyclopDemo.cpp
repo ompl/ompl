@@ -56,7 +56,7 @@ class TestDecomposition : public oc::GridDecomposition
 
 bool isStateValid(const oc::SpaceInformation* si, const ob::State *s)
 {
-    /*const ob::CompoundState *cs = s->as<ob::CompoundState>();
+    const ob::CompoundState *cs = s->as<ob::CompoundState>();
     const ob::SE2StateSpace::StateType *se = cs->as<ob::SE2StateSpace::StateType>(0);
     const double x = se->getX();
     const double y = se->getY();
@@ -65,7 +65,7 @@ bool isStateValid(const oc::SpaceInformation* si, const ob::State *s)
     if (x > 0 && x < 1 && y > 0)
         return false;
     if (x > 2.5 && fabs(y) < 1.5)
-        return false;*/
+        return false;
     return si->satisfiesBounds(s);
 }
 

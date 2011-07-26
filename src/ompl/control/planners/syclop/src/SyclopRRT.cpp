@@ -46,7 +46,6 @@ ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const ba
 
 void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
 {
-    std::cout << "selectAndExtend called from region " << region.index << std::endl;
     Motion* nmotion = region.motions[rng.uniformInt(0,region.motions.size()-1)];
 
     base::State* newState = si_->allocState();
@@ -60,7 +59,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
     base::SE2StateSpace::StateType* location = cs->as<base::SE2StateSpace::StateType>(0);
     if (location->getX() >= 1.95 && location->getX() <= 2.05 && location->getY() >= -2.05 && location->getY() <= -1.95)
     {
-        std::cerr << "syclopRRT generated a satisfying state at (" << location->getX() << "," << location->getY() << ")" << std::endl;
+        //std::cerr << "syclopRRT generated a satisfying state at (" << location->getX() << "," << location->getY() << ")" << std::endl;
     }
 
     if (duration >= siC_->getMinControlDuration())

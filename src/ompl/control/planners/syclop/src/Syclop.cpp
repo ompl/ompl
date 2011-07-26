@@ -31,8 +31,6 @@ void ompl::control::Syclop::setup(void)
     graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 
-    std::cout << "start is " << startRegion << std::endl;
-    std::cout << "goal is " << goalRegion << std::endl;
     setupRegionEstimates();
     updateRegionEstimates();
     updateEdgeEstimates();
@@ -55,21 +53,16 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
     base::Goal* goal = getProblemDefinition()->getGoal().get();
     while (!ptc())
     {
-        std::cout << "computing new lead" << std::endl;
         computeLead();
         computeAvailableRegions();
         for (int i = 0; i < NUM_AVAIL_EXPLORATIONS; ++i)
         {
-            std::cout << "exploration " << i+1 << " of " << NUM_AVAIL_EXPLORATIONS << std::endl;
             const int region = selectRegion();
             bool improved = false;
             for (int j = 0; j < NUM_TREE_SELECTIONS; ++j)
             {
-                std::cout << "tree selection " << j+1 << " of " << NUM_TREE_SELECTIONS << std::endl;
                 newMotions.clear();
                 selectAndExtend(graph[boost::vertex(region,graph)], newMotions);
-                if (!newMotions.empty())
-                    std::cout << "planner returned " << newMotions.size() << " new motions" << std::endl;
                 for (std::set<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
                 {
                     Motion* motion = *m;
@@ -99,36 +92,30 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
                     }
                     const int oldRegion = decomp.locateRegion(motion->parent->state);
                     const int newRegion = decomp.locateRegion(state);
-                    std::cout << "created motion from region " << oldRegion << " to region " << newRegion << std::endl;
                     graph[boost::vertex(newRegion,graph)].motions.push_back(motion);
-                    std::cout << "pushed motion to newRegion vector" << std::endl;
                     if (newRegion != oldRegion)
                     {
                         avail.insert(newRegion);
-                        std::cout << "dereferencing adjacency" << std::endl;
-                        //TODO If the tree crosses an entire region, it creates a motion between non-neighboring regions. No corresponding adjacency object exists, which causes a seg fault.
-                        Adjacency& adj = *regionsToEdge.find(std::pair<int,int>(oldRegion,newRegion))->second;
-                        adj.empty = false;
-                        ++adj.numSelections;
-                        std::cout << "done" << std::endl;
-                        improved |= updateConnectionEstimate(graph[boost::vertex(oldRegion,graph)], graph[boost::vertex(newRegion,graph)], state);
+                        /* If the tree crosses an entire region and creates an edge (u,v) for which Proj(u) and Proj(v) are non-neighboring regions,
+                            then we do not update connection estimates. This is because Syclop's shortest-path lead computation only considers neighboring regions. */
+                        std::map<std::pair<int,int>, Adjacency*>::iterator i = regionsToEdge.find(std::pair<int,int>(oldRegion,newRegion));
+                        if (i != regionsToEdge.end())
+                        {
+                            Adjacency& adj = *regionsToEdge.find(std::pair<int,int>(oldRegion,newRegion))->second;
+                            adj.empty = false;
+                            ++adj.numSelections;
+                            improved |= updateConnectionEstimate(graph[boost::vertex(oldRegion,graph)], graph[boost::vertex(newRegion,graph)], state);
+                        }
                     }
                     improved |= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);
-                    if (!improved)
-                        std::cout << "no improvement to connections or coverage, yet" << std::endl;
-                    std::cout << "updating estimates" << std::endl;
                     updateRegionEstimates();
                     updateEdgeEstimates();
-                    std::cout << "updated estimates" << std::endl;
                     printRegions();
                     printEdges();
                 }
             }
             if (!improved && rng.uniform01() < PROB_ABANDON_LEAD_EARLY)
-            {
-                std::cout << "abandoning lead early" << std::endl;
                 break;
-            }
         }
     }
     return false;
@@ -188,11 +175,6 @@ void ompl::control::Syclop::updateEdgeEstimates(void)
         const Region& source = graph[boost::source(*ei,graph)];
         const Region& target = graph[boost::target(*ei,graph)];
         a.cost *= source.alpha * target.alpha;
-        if (boost::math::isnan<double>(a.cost))
-        {
-            std::cout << "a.cost=" << a.cost << ",alpha[" << source.index << "]=" << source.alpha;
-            std::cout << ",alpha[" << target.index << "]=" << target.alpha << std::endl;
-        }
     }
 }
 
@@ -211,7 +193,9 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     base::StateValidityCheckerPtr checker = si_->getStateValidityChecker();
     base::StateSamplerPtr sampler = si_->allocStateSampler();
     base::State *s = si_->allocState();
-    //TODO Check NUM_FREEVOL_SAMPLES in each region, not total.
+    /* TODO TRO2009 paper says that 5000 samples are generated in each region,
+     * but the TRO2009 code generates 100000 samples over the entire state space.
+     * We take the latter approach, for now. */
     for (int i = 0; i < NUM_FREEVOL_SAMPLES; ++i)
     {
         sampler->sampleUniform(s);
@@ -371,7 +355,6 @@ void ompl::control::Syclop::computeLead(void)
     }
     else
     {
-        std::cout << "random-DFS" << std::endl;
         VertexIndexMap index = get(boost::vertex_index, graph);
         std::stack<int> nodesToProcess;
         std::vector<int> parents(decomp.getNumRegions(), -1);
@@ -425,10 +408,6 @@ void ompl::control::Syclop::computeLead(void)
         if (adj.empty)
             ++adj.numLeadInclusions;
     }
-    std::cout << "computed lead: ";
-    for (std::size_t i = 0; i < lead.size(); ++i)
-        std::cout << lead[i] << " ";
-    std::cout << std::endl;
 }
 
 int ompl::control::Syclop::selectRegion(void)
@@ -436,7 +415,6 @@ int ompl::control::Syclop::selectRegion(void)
     const int index = availDist.sample(rng.uniform01());
     Region& region = graph[boost::vertex(index,graph)];
     ++region.numSelections;
-    std::cout << "selecting region " << index << std::endl;
     return index;
 }
 
@@ -444,13 +422,11 @@ void ompl::control::Syclop::computeAvailableRegions(void)
 {
     avail.clear();
     availDist.clear();
-    std::cout << "computed avail: ";
     for (int i = lead.size()-1; i >= 0; --i)
     {
         Region& r = graph[boost::vertex(lead[i],graph)];
         if (!r.motions.empty())
         {
-            std::cout << lead[i] << " ";
             avail.insert(lead[i]);
             availDist.add(lead[i], r.weight);
             if (rng.uniform01() >= PROB_KEEP_ADDING_TO_AVAIL)
@@ -460,5 +436,4 @@ void ompl::control::Syclop::computeAvailableRegions(void)
             }
         }
     }
-    std::cout << std::endl;
 }
