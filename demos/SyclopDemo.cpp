@@ -9,6 +9,7 @@
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
+#include <ompl/util/Profiler.h>
 #include <ompl/util/RandomNumbers.h>
 #include <ompl/util/Time.h>
 #define BOOST_NO_HASH
@@ -297,18 +298,22 @@ int main(void)
     planner->setup();
 
     ompl::time::point startTime = ompl::time::now();
-    bool solved = planner->solve(600.0);
+    ompl::Profiler::Start();
+    bool solved = planner->solve(120.0);
+    ompl::Profiler::Stop();
     double duration = ompl::time::seconds(ompl::time::now()-startTime);
     ob::PlannerData pdata;
     planner->getPlannerData(pdata);
     std::cerr << planner->getName() << " " << solved << " ";
     std::cerr << duration << " " << pdata.states.size() << std::endl;
-    for (std::size_t i = 0; i < pdata.states.size(); ++i)
+    std::cerr << std::endl;
+    ompl::Profiler::Console();
+    /*for (std::size_t i = 0; i < pdata.states.size(); ++i)
     {
         const ob::CompoundState* cs = pdata.states[i]->as<ob::CompoundState>();
         const ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
         std::cerr << i << " " << location->getX() << " " << location->getY() << " " << location->getYaw() << std::endl;
-    }
+    }*/
 
     /*ompl::RNG rng;
     for (int i = 0; i < 1000000; ++i)

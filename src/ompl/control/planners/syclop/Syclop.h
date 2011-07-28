@@ -41,7 +41,7 @@ namespace ompl
             static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
             static const int NUM_AVAIL_EXPLORATIONS = 100; //100
             static const int NUM_TREE_SELECTIONS = 50; //50
-            static const double PROB_ABANDON_LEAD_EARLY = 0.25;
+            static const double PROB_ABANDON_LEAD_EARLY = 0.25; //0.05
 
             struct Motion
             {
