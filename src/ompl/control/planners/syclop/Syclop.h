@@ -119,7 +119,6 @@ namespace ompl
 
             /* Initialize edge between regions r and s. */
             void initEdge(Adjacency& a, Region* r, Region* s);
-            void updateEdgeEstimates(void);
             // TODO: Consider moving this into Region constructor.
             void initRegion(Region& r);
             void setupRegionEstimates(void);
@@ -131,7 +130,6 @@ namespace ompl
             bool updateConnectionEstimate(const Region& c, const Region& d, const base::State* s);
             void updateEdge(Adjacency& a);
             void updateRegion(Region& r);
-            void updateRegionEstimates(void);
             /* Sets up RegionGraph from decomposition. */
             void buildGraph(void);
             void computeLead(void);

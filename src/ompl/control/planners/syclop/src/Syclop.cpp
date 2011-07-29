@@ -21,11 +21,9 @@ void ompl::control::Syclop::setup(void)
     si_->freeState(goal);
     Motion* startMotion = initializeTree(start);
     graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
-    updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 
     setupRegionEstimates();
-    updateRegionEstimates();
-    updateEdgeEstimates();
+    updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
     printRegions();
     printEdges();
 }
@@ -106,14 +104,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                             improved |= updateConnectionEstimate(graph[boost::vertex(oldRegion,graph)], graph[boost::vertex(newRegion,graph)], state);
                         }
                     }
-                    improved |= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);                    
-                    ompl::Profiler::Begin("updateRegionEstimates");
-                    //updateRegionEstimates();
-                    ompl::Profiler::End("updateRegionEstimates");
-
-                    ompl::Profiler::Begin("updateEdgeEstimates");
-                    //updateEdgeEstimates();
-                    ompl::Profiler::End("updateEdgeEstimates");
+                    improved |= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);
                     printRegions();
                     printEdges();
                 }
@@ -151,8 +142,8 @@ void ompl::control::Syclop::printEdges(void)
     {
         const Adjacency& a = graph[*ei];
         std::cout << "Edge (" << index[boost::source(*ei, graph)] << "," << index[boost::target(*ei, graph)] << "): ";
-       // std::cout << "numCells=" << a.covGridCells.size() << ",";
-       // std::cout << "nselects=" << a.numSelections << ",";
+        std::cout << "numCells=" << a.covGridCells.size() << ",";
+        std::cout << "nselects=" << a.numSelections << ",";
         std::cout << "cost=" << a.cost << std::endl;
     }*/
 }
@@ -164,49 +155,10 @@ void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
     adj.numSelections = 0;
     adj.source = r;
     adj.target = s;
+    updateEdge(adj);
     std::pair<int,int> regions(r->index, s->index);
     std::pair<std::pair<int,int>,Adjacency*> mapping(regions, &adj);
     regionsToEdge.insert(mapping);
-}
-
-void ompl::control::Syclop::updateEdgeEstimates(void)
-{
-    /*EdgeIter ei, end; TODO : 50% of runtime is spent in this block. 25% of runtime is spent in dereferencing graph[*ei].
-    VertexIndexMap index = get(boost::vertex_index, graph);
-    for (boost::tie(ei,end) = boost::edges(graph); ei != end; ++ei)
-    {
-        ompl::Profiler::Begin("dereference adjacency");
-        Adjacency& a = graph[*ei];
-        ompl::Profiler::End("dereference adjacency");
-        const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
-        a.cost = (1 + nsel*nsel) / (1 + a.covGridCells.size());
-        const Region& source = graph[boost::source(*ei,graph)];
-        const Region& target = graph[boost::target(*ei,graph)];
-        a.cost *= source.alpha * target.alpha;
-    }*/
-
-    std::vector<int> neighbors;
-    for (int r = 0; r < decomp.getNumRegions(); ++r)
-    {
-//        ompl::Profiler::Begin("findSource");
-        const Region& source = graph[boost::vertex(r,graph)];
-//        ompl::Profiler::End("findSource");
-//        ompl::Profiler::Begin("findNeighbors");
-        decomp.getNeighbors(r, neighbors);
-//        ompl::Profiler::End("findNeighbors");
-        for (std::vector<int>::const_iterator i = neighbors.begin(); i != neighbors.end(); ++i)
-        {
-            const int neighbor = *i;
-            ompl::Profiler::Begin("derefAdjacency");
-            Adjacency& a = *regionsToEdge.find(std::pair<int,int>(r, neighbor))->second;
-            ompl::Profiler::End("derefAdjacency");
-            const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
-            a.cost = (1 + nsel*nsel) / (1 + a.covGridCells.size());
-            const Region& target = graph[boost::vertex(neighbor,graph)];
-            a.cost *= source.alpha * target.alpha;
-        }
-        neighbors.clear();
-    }
 }
 
 void ompl::control::Syclop::updateEdge(Adjacency& a)
@@ -248,6 +200,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
         r.volume = decomp.getRegionVolume(i);
         r.percentValidCells = ((double) numValid[i]) / numTotal[i];
         r.freeVolume = r.percentValidCells * r.volume;
+        updateRegion(r);
     }
 }
 
@@ -278,17 +231,6 @@ void ompl::control::Syclop::updateRegion(Region& r)
     const double f = r.freeVolume*r.freeVolume*r.freeVolume*r.freeVolume;
     r.alpha = 1 / ((1 + r.covGridCells.size()) * f);
     r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
-}
-
-void ompl::control::Syclop::updateRegionEstimates(void)
-{
-    for (int i = 0; i < decomp.getNumRegions(); ++i)
-    {
-        Region& r = graph[boost::vertex(i, graph)];
-        const double f = r.freeVolume*r.freeVolume*r.freeVolume*r.freeVolume;
-        r.alpha = 1 / ((1 + r.covGridCells.size()) * f);
-        r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
-    }
 }
 
 void ompl::control::Syclop::buildGraph(void)
@@ -450,7 +392,10 @@ void ompl::control::Syclop::computeLead(void)
     {
         Adjacency& adj = *regionsToEdge.find(std::pair<int,int>(lead[i],lead[i+1]))->second;
         if (adj.empty)
+        {
             ++adj.numLeadInclusions;
+            updateEdge(adj);
+        }
     }
 }
 
