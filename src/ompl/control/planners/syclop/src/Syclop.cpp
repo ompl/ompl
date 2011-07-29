@@ -43,13 +43,8 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     base::Goal* goal = getProblemDefinition()->getGoal().get();
     while (!ptc())
     {
-        ompl::Profiler::Begin("lead");
         computeLead();
-        ompl::Profiler::End("lead");
-
-        ompl::Profiler::Begin("avail");
         computeAvailableRegions();
-        ompl::Profiler::End("avail");
         for (int i = 0; i < NUM_AVAIL_EXPLORATIONS; ++i)
         {
             const int region = selectRegion();
@@ -57,9 +52,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
             for (int j = 0; j < NUM_TREE_SELECTIONS; ++j)
             {
                 newMotions.clear();
-                ompl::Profiler::Begin("selectAndExtend");
                 selectAndExtend(graph[boost::vertex(region,graph)], newMotions);
-                ompl::Profiler::End("selectAndExtend");
                 for (std::set<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
                 {
                     Motion* motion = *m;

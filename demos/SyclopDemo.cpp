@@ -248,6 +248,7 @@ private:
 
 int main(void)
 {
+    ompl::msg::noOutputHandler();
     ompl::base::RealVectorBounds bounds(2);
     bounds.setLow(-3);
     bounds.setHigh(3);
@@ -288,8 +289,8 @@ int main(void)
     si->setPropagationStepSize(0.10);
     si->setup();
 
-    //ob::PlannerPtr planner(new oc::RRT(si));
-    ob::PlannerPtr planner(new oc::SyclopRRT(si,grid));
+    ob::PlannerPtr planner(new oc::RRT(si));
+    //ob::PlannerPtr planner(new oc::SyclopRRT(si,grid));
 
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
     pdef->addStartState(init);
@@ -298,9 +299,9 @@ int main(void)
     planner->setup();
 
     ompl::time::point startTime = ompl::time::now();
-    ompl::Profiler::Start();
-    bool solved = planner->solve(120.0);
-    ompl::Profiler::Stop();
+    bool solved = planner->solve(600.0);
+    if (pdef->getGoal()->isApproximate())
+        solved = false;
     double duration = ompl::time::seconds(ompl::time::now()-startTime);
     ob::PlannerData pdata;
     planner->getPlannerData(pdata);
