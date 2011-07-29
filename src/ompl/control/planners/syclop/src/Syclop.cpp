@@ -108,11 +108,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                     }
                     improved |= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);                    
                     ompl::Profiler::Begin("updateRegionEstimates");
-                    updateRegionEstimates();
+                    //updateRegionEstimates();
                     ompl::Profiler::End("updateRegionEstimates");
 
                     ompl::Profiler::Begin("updateEdgeEstimates");
-                    updateEdgeEstimates();
+                    //updateEdgeEstimates();
                     ompl::Profiler::End("updateEdgeEstimates");
                     printRegions();
                     printEdges();
@@ -162,6 +162,8 @@ void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
     adj.empty = true;
     adj.numLeadInclusions = 0;
     adj.numSelections = 0;
+    adj.source = r;
+    adj.target = s;
     std::pair<int,int> regions(r->index, s->index);
     std::pair<std::pair<int,int>,Adjacency*> mapping(regions, &adj);
     regionsToEdge.insert(mapping);
@@ -207,6 +209,13 @@ void ompl::control::Syclop::updateEdgeEstimates(void)
     }
 }
 
+void ompl::control::Syclop::updateEdge(Adjacency& a)
+{
+    const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
+    a.cost = (1 + nsel*nsel) / (1 + a.covGridCells.size());
+    a.cost *= a.source->alpha * a.target->alpha;
+}
+
 void ompl::control::Syclop::initRegion(Region& r)
 {
     r.numSelections = 0;
@@ -248,6 +257,7 @@ bool ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State 
     if (r.covGridCells.count(covCell) == 1)
         return false;
     r.covGridCells.insert(covCell);
+    updateRegion(r);
     return true;
 }
 
@@ -259,7 +269,15 @@ bool ompl::control::Syclop::updateConnectionEstimate(const Region& c, const Regi
     if (adj.covGridCells.count(covCell) == 1)
         return false;
     adj.covGridCells.insert(covCell);
+    updateEdge(adj);
     return true;
+}
+
+void ompl::control::Syclop::updateRegion(Region& r)
+{
+    const double f = r.freeVolume*r.freeVolume*r.freeVolume*r.freeVolume;
+    r.alpha = 1 / ((1 + r.covGridCells.size()) * f);
+    r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
 }
 
 void ompl::control::Syclop::updateRegionEstimates(void)
@@ -441,6 +459,7 @@ int ompl::control::Syclop::selectRegion(void)
     const int index = availDist.sample(rng.uniform01());
     Region& region = graph[boost::vertex(index,graph)];
     ++region.numSelections;
+    updateRegion(region);
     return index;
 }
 

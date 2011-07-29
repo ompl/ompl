@@ -80,6 +80,8 @@ namespace ompl
                 int numLeadInclusions;
                 int numSelections;
                 double cost;
+                Region* source;
+                Region* target;
             };
 
             class CoverageGrid : public GridDecomposition
@@ -127,6 +129,8 @@ namespace ompl
             /* Given that an edge has been added to the tree, leading to the new state s,
                 update the corresponding edge's connection estimates. */
             bool updateConnectionEstimate(const Region& c, const Region& d, const base::State* s);
+            void updateEdge(Adjacency& a);
+            void updateRegion(Region& r);
             void updateRegionEstimates(void);
             /* Sets up RegionGraph from decomposition. */
             void buildGraph(void);

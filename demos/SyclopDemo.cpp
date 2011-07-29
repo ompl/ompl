@@ -306,8 +306,6 @@ int main(void)
     planner->getPlannerData(pdata);
     std::cerr << planner->getName() << " " << solved << " ";
     std::cerr << duration << " " << pdata.states.size() << std::endl;
-    std::cerr << std::endl;
-    ompl::Profiler::Console();
     /*for (std::size_t i = 0; i < pdata.states.size(); ++i)
     {
         const ob::CompoundState* cs = pdata.states[i]->as<ob::CompoundState>();
