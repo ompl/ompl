@@ -304,7 +304,7 @@ void ompl::control::Syclop::computeLead(void)
     lead.clear();
     if (rng.uniform01() < PROB_SHORTEST_PATH)
     {
-        /*std::vector<RegionGraph::vertex_descriptor> parents(decomp.getNumRegions());
+        std::vector<RegionGraph::vertex_descriptor> parents(decomp.getNumRegions());
         std::vector<double> distances(decomp.getNumRegions());
         boost::dijkstra_shortest_paths(graph, boost::vertex(startRegion, graph),
             boost::weight_map(get(&Adjacency::cost, graph)).distance_map(
@@ -312,10 +312,10 @@ void ompl::control::Syclop::computeLead(void)
             )).predecessor_map(
                 boost::make_iterator_property_map(parents.begin(), get(boost::vertex_index, graph))
             )
-        );*/
-        std::vector<int> parents(decomp.getNumRegions(), -1);
+        );
+        /*std::vector<int> parents(decomp.getNumRegions(), -1);
         std::vector<double> dist(decomp.getNumRegions(), std::numeric_limits<double>::infinity());
-        dijkstra(parents, dist);
+        dijkstra(parents, dist);*/
         int region = goalRegion;
         int leadLength = 1;
 
