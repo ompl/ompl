@@ -84,8 +84,10 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
     }
 }
 
-int ompl::control::GridDecomposition::locateRegion(const std::vector<double>& coord)
+int ompl::control::GridDecomposition::locateRegion(const base::State* s)
 {
+    std::valarray<double> coord(dimension);
+    project(s, coord);
     int region = 0;
     int factor = 1;
     for (int i = dimension-1; i >= 0; --i)

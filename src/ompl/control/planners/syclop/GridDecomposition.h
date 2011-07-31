@@ -2,6 +2,7 @@
 #define GRIDDECOMPOSITION_H
 
 #include <cstdlib>
+#include <valarray>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
@@ -31,16 +32,9 @@ namespace ompl
              * but can we beat linear time with arbitrary dimension? */
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors);
 
-            /* Projecting a state into whatever space on which this decomposition is defined is a problem-specific issue.
-             * Implementations of this function can call the protected overloaded version, which takes a coordinate with
-             * the same dimension as the grid. */
-            virtual int locateRegion(const base::State* s) = 0;
+            virtual int locateRegion(const base::State* s);
 
         protected:
-            /* Locate the region in the grid containing the point determined by coord. Since
-             * we are assuming a 2-dimensional grid, coord.size() will be 2 for now. */
-            virtual int locateRegion(const std::vector<double>& coord);
-
             virtual bool areNeighbors(int r, int s);
 
         private:

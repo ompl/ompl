@@ -35,20 +35,10 @@ class TestDecomposition : public oc::GridDecomposition
     {
     }
 
-    virtual int locateRegion(const ob::State *s)
+    virtual void project(const ob::State* s, std::valarray<double>& coord) const
     {
         const ob::CompoundState* cs = s->as<ob::CompoundState>();
-        const ob::SE2StateSpace::StateType *ws = cs->as<ob::SE2StateSpace::StateType>(0);
-        std::vector<double> coord(2);
-        coord[0] = ws->getX();
-        coord[1] = ws->getY();
-        return oc::GridDecomposition::locateRegion(coord);
-    }
-
-    virtual void stateToCoord(const ob::State *s, std::vector<double>& coord)
-    {
-        const ob::CompoundState* cs = s->as<ob::CompoundState>();
-        const ob::SE2StateSpace::StateType *ws = cs->as<ob::SE2StateSpace::StateType>(0);
+        const ob::SE2StateSpace::StateType* ws = cs->as<ob::SE2StateSpace::StateType>(0);
         coord.resize(2);
         coord[0] = ws->getX();
         coord[1] = ws->getY();
@@ -289,8 +279,8 @@ int main(void)
     si->setPropagationStepSize(0.10);
     si->setup();
 
-    ob::PlannerPtr planner(new oc::RRT(si));
-    //ob::PlannerPtr planner(new oc::SyclopRRT(si,grid));
+    //ob::PlannerPtr planner(new oc::RRT(si));
+    ob::PlannerPtr planner(new oc::SyclopRRT(si,grid));
 
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
     pdef->addStartState(init);
@@ -299,7 +289,7 @@ int main(void)
     planner->setup();
 
     ompl::time::point startTime = ompl::time::now();
-    bool solved = planner->solve(600.0);
+    bool solved = planner->solve(300.0);
     if (pdef->getGoal()->isApproximate())
         solved = false;
     double duration = ompl::time::seconds(ompl::time::now()-startTime);

@@ -95,16 +95,9 @@ namespace ompl
                 {
                 }
 
-                virtual void stateToCoord(const base::State* s, std::vector<double>& coord)
+                virtual void project(const base::State* s, std::valarray<double>& coord) const
                 {
-                    decomp.stateToCoord(s,coord);
-                }
-
-                virtual int locateRegion(const base::State* s)
-                {
-                    std::vector<double> coord;
-                    stateToCoord(s, coord);
-                    return GridDecomposition::locateRegion(coord);
+                    decomp.project(s, coord);
                 }
 
             protected:
