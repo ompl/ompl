@@ -138,26 +138,6 @@ namespace ompl
                 Region* target;
             };
 
-            class CoverageGrid : public GridDecomposition
-            {
-            public:
-                CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d)
-                {
-                }
-
-                virtual ~CoverageGrid()
-                {
-                }
-
-                virtual void project(const base::State* s, std::valarray<double>& coord) const
-                {
-                    decomp.project(s, coord);
-                }
-
-            protected:
-                Decomposition& decomp;
-            };
-
             //TODO Consider vertex/edge storage options other than vecS.
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
             typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
@@ -195,13 +175,35 @@ namespace ompl
             RegionGraph graph;
             //instead of a map, consider holding Adjacency* in Motion object
             std::map<std::pair<int,int>, Adjacency*> regionsToEdge;
-            CoverageGrid covGrid;
             RNG rng;
             int startRegion;
             int goalRegion;
             std::vector<int> lead;
             std::set<int> avail;
             PDF<int> availDist;
+
+        private:
+            class CoverageGrid : public GridDecomposition
+            {
+            public:
+                CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d)
+                {
+                }
+
+                virtual ~CoverageGrid()
+                {
+                }
+
+                virtual void project(const base::State* s, std::valarray<double>& coord) const
+                {
+                    decomp.project(s, coord);
+                }
+
+            protected:
+                Decomposition& decomp;
+            };
+
+            CoverageGrid covGrid;
         };
     }
 }
