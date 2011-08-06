@@ -96,15 +96,16 @@ namespace ompl
             static const int NUM_TREE_SELECTIONS = 50; //50
             static const double PROB_ABANDON_LEAD_EARLY = 0.25; //0.05
 
-            struct Motion
+            class Motion
             {
+            public:
                 Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
                 {
                 }
                 Motion(const SpaceInformation* si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
                 {
                 }
-                ~Motion(void)
+                virtual ~Motion(void)
                 {
                 }
                 base::State* state;
