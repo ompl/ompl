@@ -46,7 +46,7 @@ ompl::control::GridDecomposition::GridDecomposition(const int len, const int dim
 /* This implementation requires time linear with the number of regions.
  * We can do constant time if we know the dimension offline (oopsmp-syclop has cases for 2 and 3),
  * but can we beat linear time with arbitrary dimension? */
-void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<int>& neighbors)
+void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<int>& neighbors) const
 {
     if (dimension == 1)
     {
@@ -120,7 +120,7 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
     }
 }
 
-int ompl::control::GridDecomposition::locateRegion(const base::State* s)
+int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
 {
     std::valarray<double> coord(dimension);
     project(s, coord);
@@ -135,7 +135,7 @@ int ompl::control::GridDecomposition::locateRegion(const base::State* s)
     return region;
 }
 
-bool ompl::control::GridDecomposition::areNeighbors(int r, int s)
+bool ompl::control::GridDecomposition::areNeighbors(int r, int s) const
 {
     if (r == s)
         return false;
@@ -151,7 +151,7 @@ bool ompl::control::GridDecomposition::areNeighbors(int r, int s)
     return true;
 }
 
-void ompl::control::GridDecomposition::regionToCoord(int rid, std::vector<int>& coord)
+void ompl::control::GridDecomposition::regionToCoord(int rid, std::vector<int>& coord) const
 {
     coord.resize(dimension);
     for (int i = dimension-1; i >= 0; --i)

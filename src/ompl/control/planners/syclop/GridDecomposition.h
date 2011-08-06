@@ -66,17 +66,17 @@ namespace ompl
             /* This implementation requires time linear with the number of regions.
              * We can do constant time if we know the dimension offline (oopsmp-syclop has cases for 2 and 3),
              * but can we beat linear time with arbitrary dimension? */
-            virtual void getNeighbors(const int rid, std::vector<int>& neighbors);
+            virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const;
 
-            virtual int locateRegion(const base::State* s);
+            virtual int locateRegion(const base::State* s) const;
 
         protected:
-            virtual bool areNeighbors(int r, int s);
+            virtual bool areNeighbors(int r, int s) const;
 
         private:
             /* Convert a region ID to a grid coordinate, which is a vector of length equivalent
              * to the dimension of the grid. */
-            void regionToCoord(int rid, std::vector<int>& coord);
+            void regionToCoord(int rid, std::vector<int>& coord) const;
 
             const int length;
             const int dimension;
