@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,17 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, James D. Marble */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_BASIC_PRM_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_BASIC_PRM_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/pending/disjoint_sets.hpp>
+#include <boost/function.hpp>
 #include <utility>
 #include <vector>
 #include <map>
@@ -58,11 +62,8 @@ namespace ompl
            milestones are valid states in the state space. Near-by
            milestones are connected by valid motions. Finding a motion
            plan that connects two given states is reduced to a
-           discrete search (this implementation uses Dijskstra) in the
+           discrete search (this implementation uses A*) in the
            roadmap.
-           The construction process for the roadmap includes an
-           expansion strategy. This expansion strategy is not included
-           in this implementation, hence the name BasicPRM.
 
            @par External documentation
            L.E. Kavraki, P.Švestka, J.-C. Latombe, and M.H. Overmars,
@@ -79,16 +80,56 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor */
-            BasicPRM(const base::SpaceInformationPtr &si) : base::Planner(si, "BasicPRM")
-            {
-                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+            struct vertex_state_t {
+                typedef boost::vertex_property_tag kind;
+            };
 
-                maxNearestNeighbors_ = 10;
-                componentCount_ = 0;
-                lastStart_ = NULL;
-                lastGoal_ = NULL;
-            }
+            /**
+             @brief The underlying roadmap graph.
+             
+             @par Any BGL graph representation could be used here. Because we
+             expect the roadmap to be sparse (m<n^2), an adjacency_list is more
+             appropriate than an adjacency_matrix.
+             
+             @par Obviously, a ompl::base::State* vertex property is required.
+             The incremental connected components algorithm requires
+             vertex_predecessor_t and vertex_rank_t properties.             
+             If boost::vecS is not used for vertex storage, then there must also
+             be a boost:vertex_index_t property manually added.
+             
+             @par Edges should be undirected and have a weight property.
+             */
+            typedef boost::adjacency_list <
+                boost::vecS, boost::vecS, boost::undirectedS,
+                boost::property < vertex_state_t, base::State*,
+                boost::property < boost::vertex_predecessor_t, unsigned long int,
+                boost::property < boost::vertex_rank_t, unsigned long int > > >,
+                boost::property < boost::edge_weight_t, double,
+                boost::property < boost::edge_index_t, unsigned int> >
+            > Graph;
+
+            typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+            typedef boost::graph_traits<Graph>::edge_descriptor Edge;
+
+            /** @brief A function returning the milestones that should be
+             * attempted to connect to
+             *
+             * @note Can't use the prefered boost::function syntax here because
+             * the Python bindings don't like it.
+             */
+            typedef boost::function1<std::vector<Vertex>&, const Vertex>
+                ConnectionStrategy;
+
+            /** @brief A function that can reject connections.
+             
+             This is called after previous connections from the neighbor list
+             have been added to the roadmap.
+             */
+            typedef boost::function2<bool, const Vertex&, const Vertex&> ConnectionFilter;
+            
+            /** \brief Constructor */
+            BasicPRM(const base::SpaceInformationPtr &si,
+                    const std::string& name = "BasicPRM");
 
             virtual ~BasicPRM(void)
             {
@@ -100,17 +141,15 @@ namespace ompl
             /** \brief Set the maximum number of neighbors for which a
                 connection to will be attempted when a new milestone
                 is added */
-            void setMaxNearestNeighbors(unsigned int maxNearestNeighbors)
+            void setConnectionStrategy(const ConnectionStrategy& connectionStrategy)
             {
-                maxNearestNeighbors_ = maxNearestNeighbors;
+                connectionStrategy_ = connectionStrategy;
             }
 
-            /** \brief Get the maximum number of neighbors for which a
-                connection will be attempted when a new milestone is
-                added */
-            unsigned int getMaxNearestNeighbors(void) const
+            /** \brief Set the function that can reject a milestone connection */
+            void setConnectionFilter(const ConnectionFilter& connectionFilter)
             {
-                return maxNearestNeighbors_;
+                connectionFilter_ = connectionFilter;
             }
 
             virtual void getPlannerData(base::PlannerData &data) const;
@@ -133,104 +172,99 @@ namespace ompl
             template<template<typename T> class NN>
             void setNearestNeighbors(void)
             {
-                nn_.reset(new NN<Milestone*>());
+                nn_.reset(new NN<base::State*>());
             }
 
             virtual void setup(void);
 
+            const Graph& getGraph() const
+            {
+                return g_;
+            }
+            
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            double distanceFunction(const Vertex a, const Vertex b) const
+            {
+                return si_->distance(state_[a], state_[b]);
+            }
+            
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            unsigned int numMilestones() const
+            {
+                return boost::num_vertices(g_);
+            }
+
+            boost::shared_ptr< NearestNeighbors<Vertex> > getNearestNeighbors()
+            {
+                return nn_;
+            }
+
         protected:
 
-
-            /** \brief Representation of a milestone */
-            class Milestone
-            {
-            public:
-
-                Milestone(void) : state(NULL), index(0)
-                {
-                }
-
-                /** \brief Automatically allocate memory for a milestone's state */
-                Milestone(const base::SpaceInformationPtr &si) : state(si->allocState()), index(0)
-                {
-                }
-
-                ~Milestone(void)
-                {
-                }
-
-                /** \brief The state corresponding to the milestone */
-                base::State            *state;
-
-                /** \brief The index of this milestone in the array of milestones (BasicPRM::milestones_) */
-                unsigned int            index;
-
-                /** \brief The id of the connected component this milestone is part of */
-                unsigned long           component;
-
-                /** \brief The array of milestones that can be connected to with valid paths */
-                std::vector<Milestone*> adjacent;
-
-                /** \brief The cost of the edges indicated by \e adjacent */
-                std::vector<double>     costs;
-            };
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
 
-            /** \brief Get the list of nearest neighbors (\e nbh) for a given milestone (\e milestone) */
-            virtual void nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh);
-
             /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
-            Milestone* addMilestone(base::State *state);
+            Vertex addMilestone(base::State *state);
 
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
-            void uniteComponents(Milestone *m1, Milestone *m2);
+            void uniteComponents(Vertex m1, Vertex m2);
 
             /** \brief Randomly sample the state space, add and connect milestones in the roadmap. Stop this process when the termination condition \e ptc returns true or when any of the \e start milestones are in the same connected component as any of the \e goal milestones. Use \e workState as temporary memory. */
-            void growRoadmap(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, const base::PlannerTerminationCondition &ptc, base::State *workState);
+            void growRoadmap(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, const base::PlannerTerminationCondition &ptc, base::State *workState);
 
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If \e endpoints is not null, that pair is recorded. */
-            bool haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal, std::pair<Milestone*, Milestone*> *endpoints = NULL);
+            bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, std::pair<Vertex, Vertex> *endpoints = NULL);
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            void constructSolution(const Milestone* start, const Milestone* goal);
-
-            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
-            double distanceFunction(const Milestone* a, const Milestone* b) const
-            {
-                return si_->distance(a->state, b->state);
-            }
+            void constructSolution(const Vertex start, const Vertex goal);
 
             /** \brief Sampler user for generating valid samples in the state space */
-            base::ValidStateSamplerPtr                        sampler_;
+            base::ValidStateSamplerPtr                        sampler_;            
 
             /** \brief Nearest neighbors data structure */
-            boost::shared_ptr< NearestNeighbors<Milestone*> > nn_;
+            boost::shared_ptr< NearestNeighbors<Vertex> > nn_;
 
-             /** \brief Array of available milestones */
-            std::vector<Milestone*>                           milestones_;
+            /** \brief Connectivity graph */
+            Graph g_;
 
             /** \brief Array of start milestones */
-            std::vector<Milestone*>                           startM_;
+            std::vector<Vertex>                           startM_;
 
             /** \brief Array of goal milestones */
-            std::vector<Milestone*>                           goalM_;
+            std::vector<Vertex>                           goalM_;
 
             /** \brief constructSolution() will set this variable to be the milestone used as the start. This is useful if multiple solution paths are to be generated. */
-            const Milestone                                  *lastStart_;
+            Vertex                                        lastStart_;
 
             /** \brief constructSolution() will set this variable to be the milestone used as the goal. This is useful if multiple solution paths are to be generated. */
-            const Milestone                                  *lastGoal_;
+            Vertex                                        lastGoal_;
 
-            /** \brief Maximum number of nearest neighbors to attempt to connect new milestones to */
-            unsigned int                                      maxNearestNeighbors_;
+            /** \brief Access to the internal base::state at each Vertex */
+            boost::property_map<Graph, vertex_state_t>::type state_;
 
-            /** \brief Number of elements in each component */
-            std::map<unsigned long, unsigned long>            componentSizes_;
+            /** \brief Access to the weights of each Edge */
+            boost::property_map<Graph, boost::edge_weight_t>::type weight_;
 
-            /** \brief The number of components that have been used at a point in time. There is no component with id larger than this value, but it is not necessary for all components with smaller id to exist (they could have been merged) */
-            unsigned long                                     componentCount_;
+            /** \brief Access to the indices of each Edge */
+            typedef boost::property_map<Graph, boost::edge_index_t>::type EdgeIdMap;
+            EdgeIdMap edge_id_;
+            
+            /** \brief Data structure that maintains the connected components */
+            boost::disjoint_sets<
+                boost::property_map<Graph, boost::vertex_rank_t>::type,
+                boost::property_map<Graph, boost::vertex_predecessor_t>::type > 
+                    disjoint_sets_;
+            
+            /** \brief Maximum unique id number used so for for edges */
+            unsigned int                                      max_edge_id_;
+
+            /** \brief Function that returns the milestones to attempt connections with */
+            ConnectionStrategy                              connectionStrategy_;
+
+            /** \brief Function that can reject a milestone connection */
+            ConnectionFilter                                connectionFilter_;
 
             /** \brief Random number generator */
             RNG                                               rng_;

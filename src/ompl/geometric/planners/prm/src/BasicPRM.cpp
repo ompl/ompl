@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2011, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,23 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, James D. Marble */
 
 #include "ompl/geometric/planners/prm/BasicPRM.h"
+#include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include <boost/lambda/bind.hpp>
+#include <boost/graph/astar_search.hpp>
+#include <boost/graph/incremental_components.hpp>
+#include <boost/property_map/vector_property_map.hpp>
+#include <boost/foreach.hpp>
 #include <algorithm>
 #include <queue>
 #include <limits>
+
+#define foreach BOOST_FOREACH
+#define foreach_reverse BOOST_REVERSE_FOREACH
 
 /** \brief Maximum number of sampling attempts to find a valid state,
     without checking whether the allowed time elapsed. This value
@@ -47,11 +56,29 @@
 static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
 
+ompl::geometric::BasicPRM::BasicPRM(const base::SpaceInformationPtr &si,
+                                  const std::string& name) :
+    base::Planner(si, name),
+    state_(boost::get(vertex_state_t(), g_)),
+    weight_(boost::get(boost::edge_weight, g_)),
+    edge_id_(boost::get(boost::edge_index, g_)),
+    disjoint_sets_(boost::get(boost::vertex_rank, g_),
+                   boost::get(boost::vertex_predecessor, g_)),
+    max_edge_id_(0)
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+    nn_.reset(new NearestNeighborsLinear<Vertex>());
+    connectionStrategy_ = KStrategy<Vertex>(10, nn_);
+    connectionFilter_ = boost::lambda::constant(true);
+    lastStart_ = g_.null_vertex();
+    lastGoal_ = g_.null_vertex();
+}
+
 void ompl::geometric::BasicPRM::setup(void)
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(new NearestNeighborsSqrtApprox<Milestone*>());
+        nn_.reset(new NearestNeighborsSqrtApprox<Vertex>());
     nn_->setDistanceFunction(boost::bind(&BasicPRM::distanceFunction, this, _1, _2));
 }
 
@@ -69,23 +96,18 @@ void ompl::geometric::BasicPRM::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
-    milestones_.clear();
     startM_.clear();
     goalM_.clear();
-    componentCount_ = 0;
-    componentSizes_.clear();
-    lastStart_ = NULL;
-    lastGoal_ = NULL;
+    lastStart_ = g_.null_vertex();
+    lastGoal_ = g_.null_vertex();
 }
 
 void ompl::geometric::BasicPRM::freeMemory(void)
 {
-    for (unsigned int i = 0 ; i < milestones_.size() ; ++i)
-    {
-        if (milestones_[i]->state)
-            si_->freeState(milestones_[i]->state);
-        delete milestones_[i];
-    }
+    foreach (Vertex v, boost::vertices(g_))
+        si_->freeState(state_[v]);
+    g_.clear();
+    max_edge_id_ = 0;
 }
 
 void ompl::geometric::BasicPRM::growRoadmap(double growTime)
@@ -112,10 +134,10 @@ void ompl::geometric::BasicPRM::growRoadmap(double growTime)
     si_->freeState(workState);
 }
 
-void ompl::geometric::BasicPRM::growRoadmap(const std::vector<Milestone*> &start,
-                                            const std::vector<Milestone*> &goal,
-                                            const base::PlannerTerminationCondition &ptc,
-                                            base::State *workState)
+void ompl::geometric::BasicPRM::growRoadmap(const std::vector<Vertex> &start,
+                                           const std::vector<Vertex> &goal,
+                                           const base::PlannerTerminationCondition &ptc,
+                                           base::State *workState)
 {
     while (ptc() == false)
     {
@@ -140,21 +162,24 @@ void ompl::geometric::BasicPRM::growRoadmap(const std::vector<Milestone*> &start
     }
 }
 
-bool ompl::geometric::BasicPRM::haveSolution(const std::vector<Milestone*> &start, const std::vector<Milestone*> &goal,
-                                             std::pair<Milestone*, Milestone*> *endpoints)
+bool ompl::geometric::BasicPRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, std::pair<Vertex, Vertex> *endpoints)
 {
     base::Goal *g = pdef_->getGoal().get();
-    for (unsigned int i = 0 ; i < goal.size() ; ++i)
-        for (unsigned int j = 0 ; j < start.size() ; ++j)
-            if (goal[i]->component == start[j]->component && g->isStartGoalPairValid(goal[i]->state, start[j]->state))
+    foreach (Vertex start, starts)
+        foreach (Vertex goal, goals)
+        {
+ 
+            if (boost::same_component(start, goal, disjoint_sets_) &&
+                g->isStartGoalPairValid(state_[goal], state_[start]))
             {
                 if (endpoints)
                 {
-                    endpoints->first = start[j];
-                    endpoints->second = goal[i];
+                    endpoints->first = start;
+                    endpoints->second = goal;
                 }
                 return true;
             }
+        }
     return false;
 }
 
@@ -169,7 +194,7 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
         return false;
     }
 
-    unsigned int nrStartStates = milestones_.size();
+    unsigned int nrStartStates = boost::num_vertices(g_);
 
     // add the valid start states as milestones
     while (const base::State *st = pis_.nextStart())
@@ -193,7 +218,7 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
     msg_.inform("Starting with %u states", nrStartStates);
 
     base::State *xstate = si_->allocState();
-    std::pair<Milestone*, Milestone*> solEndpoints;
+    std::pair<Vertex, Vertex> solEndpoints;
 
     while (ptc() == false)
     {
@@ -235,74 +260,44 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
     }
     si_->freeState(xstate);
 
-    msg_.inform("Created %u states", milestones_.size() - nrStartStates);
+    msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     return goal->isAchieved();
 }
 
-void ompl::geometric::BasicPRM::nearestNeighbors(Milestone *milestone, std::vector<Milestone*> &nbh)
+ompl::geometric::BasicPRM::Vertex ompl::geometric::BasicPRM::addMilestone(base::State *state)
 {
-    nn_->nearestK(milestone, maxNearestNeighbors_, nbh);
-}
+    Vertex m = boost::add_vertex(g_);
+    state_[m] = state;
+    
+    // Initialize to its own (dis)connected component.
+    disjoint_sets_.make_set(m);
 
-ompl::geometric::BasicPRM::Milestone* ompl::geometric::BasicPRM::addMilestone(base::State *state)
-{
-    Milestone *m = new Milestone();
-    m->state = state;
-    m->component = componentCount_;
-    componentSizes_[m->component] = 1;
+    // Which milestones will we attempt to connect to?
+    if (!connectionStrategy_)
+        throw Exception(name_, "No connection strategy!");
+    
+    const std::vector<Vertex>& neighbors = connectionStrategy_(m);
 
-    // connect to nearest neighbors
-    std::vector<Milestone*> nbh;
-    nearestNeighbors(m, nbh);
-
-    for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-        if (si_->checkMotion(m->state, nbh[i]->state))
+    foreach (Vertex n, neighbors)
+        if ((boost::same_component(m, n, disjoint_sets_)
+             || connectionFilter_(m, n))
+                && si_->checkMotion(state_[m], state_[n]))
         {
-            m->adjacent.push_back(nbh[i]);
-            nbh[i]->adjacent.push_back(m);
-            m->costs.push_back(si_->distance(m->state, nbh[i]->state));
-            nbh[i]->costs.push_back(m->costs.back());
-            uniteComponents(m, nbh[i]);
+            const double weight = distanceFunction(m, n);
+            const unsigned int id = max_edge_id_++;
+            const Graph::edge_property_type properties(weight, id);
+            boost::add_edge(m, n, properties, g_);
+            uniteComponents(n, m);
         }
 
-    // if the new milestone was not absorbed in an existing component,
-    // increase the number of components
-    if (m->component == componentCount_)
-        componentCount_++;
-    m->index = milestones_.size();
-    milestones_.push_back(m);
     nn_->add(m);
     return m;
 }
 
-void ompl::geometric::BasicPRM::uniteComponents(Milestone *m1, Milestone *m2)
+void ompl::geometric::BasicPRM::uniteComponents(Vertex m1, Vertex m2)
 {
-    if (m1->component == m2->component)
-        return;
-
-    if (componentSizes_[m1->component] > componentSizes_[m2->component])
-        std::swap(m1, m2);
-
-    const unsigned long c = m2->component;
-    componentSizes_[c] += componentSizes_[m1->component];
-    componentSizes_.erase(m1->component);
-
-    std::queue<Milestone*> q;
-    q.push(m1);
-
-    while (!q.empty())
-    {
-        Milestone *m = q.front();
-        q.pop();
-        if (m->component != c)
-        {
-            m->component = c;
-            for (unsigned int i = 0 ; i < m->adjacent.size() ; ++i)
-                if (m->adjacent[i]->component != c)
-                    q.push(m->adjacent[i]);
-        }
-    }
+    disjoint_sets_.union_set(m1, m2);
 }
 
 void ompl::geometric::BasicPRM::reconstructLastSolution(void)
@@ -313,64 +308,38 @@ void ompl::geometric::BasicPRM::reconstructLastSolution(void)
         msg_.warn("There is no solution to reconstruct");
 }
 
-void ompl::geometric::BasicPRM::constructSolution(const Milestone* start, const Milestone* goal)
+void ompl::geometric::BasicPRM::constructSolution(const Vertex start, const Vertex goal)
 {
-    const unsigned int N = milestones_.size();
-    std::vector<double> dist(N, std::numeric_limits<double>::infinity());
-    std::vector<int>    prev(N, -1);
-    std::vector<int>    seen(N, 0);
+    PathGeometric *p = new PathGeometric(si_);
 
-    dist[goal->index] = 0.0;
-    for (unsigned int i = 0 ; i < N ; ++i)
-    {
-        double minDist = std::numeric_limits<double>::infinity();
-        int index = -1;
-        for (unsigned int j = 0 ; j < N ; ++j)
-            if (seen[j] == 0 && dist[j] < minDist)
-            {
-                minDist = dist[j];
-                index = j;
-            }
-        if (index < 0)
-            break;
-        seen[index] = 1;
+    boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
 
-        for (unsigned int j = 0 ; j < milestones_[index]->adjacent.size() ; ++j)
-        {
-            const unsigned int idx = milestones_[index]->adjacent[j]->index;
-            double altDist = dist[index] + milestones_[index]->costs[j];
-            if (altDist < dist[idx])
-            {
-                dist[idx] = altDist;
-                prev[idx] = index;
-            }
-        }
-    }
-    if (prev[start->index] >= 0)
-    {
-        PathGeometric *p = new PathGeometric(si_);
-        int pos = start->index;
-        do
-        {
-            p->states.push_back(si_->cloneState(milestones_[pos]->state));
-            pos = prev[pos];
-        } while (pos >= 0);
-        pdef_->getGoal()->setSolutionPath(base::PathPtr(p));
-        lastStart_ = start;
-        lastGoal_ = goal;
-    }
+    boost::astar_search(g_, start,
+            boost::bind(&BasicPRM::distanceFunction, this, _1, goal),
+            boost::predecessor_map(prev));
+
+    if (prev[goal] == goal)
+        throw Exception(name_, "Could not find solution path");
     else
-        throw Exception(name_, "Internal error in computing shortest path");
+        for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
+            p->states.push_back(si_->cloneState(state_[pos]));
+    p->states.push_back(si_->cloneState(state_[start]));
+    p->reverse();
+
+    pdef_->getGoal()->setSolutionPath(base::PathPtr(p));
+
+    lastStart_ = start;
+    lastGoal_ = goal;
 }
 
 void ompl::geometric::BasicPRM::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    for (unsigned int i = 0 ; i < milestones_.size() ; ++i)
-        for (unsigned int j = 0 ; j < milestones_[i]->adjacent.size() ; ++j)
-        {
-            data.recordEdge(milestones_[i]->state, milestones_[i]->adjacent[j]->state);
-            data.tagState(milestones_[i]->state, milestones_[i]->component);
-        }
+    foreach(const Edge e, boost::edges(g_))
+    {
+        const Vertex v1 = boost::source(e, g_);
+        const Vertex v2 = boost::target(e, g_);
+        data.recordEdge(state_[v1], state_[v2]);
+    }
 }
