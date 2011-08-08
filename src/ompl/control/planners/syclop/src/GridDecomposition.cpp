@@ -80,7 +80,7 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
     }
     else if (dimension == 3)
     {
-        //TODO below is copied from oopsmp
+        //TODO FINISH (below is copied from oopsmp)
         static const int offset[] = {
             -1,  0, 0,
         	+1,  0, 0,
@@ -135,7 +135,7 @@ int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
     return region;
 }
 
-bool ompl::control::GridDecomposition::areNeighbors(int r, int s) const
+bool ompl::control::GridDecomposition::areNeighbors(const int r, const int s) const
 {
     if (r == s)
         return false;

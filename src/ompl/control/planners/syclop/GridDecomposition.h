@@ -51,7 +51,6 @@ namespace ompl
         class GridDecomposition : public Decomposition
         {
         public:
-            /* In some areas of this class, we are assuming a 2-dimensional grid. This will change. */
             GridDecomposition(const int len, const int dim, const base::RealVectorBounds& b);
 
             virtual ~GridDecomposition()
@@ -70,13 +69,12 @@ namespace ompl
 
             virtual int locateRegion(const base::State* s) const;
 
-        protected:
-            virtual bool areNeighbors(int r, int s) const;
-
         private:
             /* Convert a region ID to a grid coordinate, which is a vector of length equivalent
              * to the dimension of the grid. */
             void regionToCoord(int rid, std::vector<int>& coord) const;
+            /* Returns true iff regions r and s are adjacent in the grid. */
+            bool areNeighbors(const int r, const int s) const;
 
             const int length;
             const int dimension;

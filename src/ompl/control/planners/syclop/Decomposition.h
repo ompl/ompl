@@ -89,8 +89,6 @@ namespace ompl
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const = 0;
 
         protected:
-            /* Returns true iff regions r and s are physically adjacent in this decomposition. */
-            virtual bool areNeighbors(int r, int s) const = 0;
 
             const int numRegions;
             const base::RealVectorBounds &bounds;
