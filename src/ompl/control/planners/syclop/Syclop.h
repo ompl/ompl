@@ -74,8 +74,8 @@ namespace ompl
             /** \brief Constructor. Requires a Decomposition,
                 which Syclop uses to create high-level guides. */
 
-            Syclop(const SpaceInformationPtr& si, Decomposition& d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)
+            Syclop(const SpaceInformationPtr& si, Decomposition* d, const std::string& name) : ompl::base::Planner(si, name),
+                siC_(si.get()), decomp(*d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, *d)
             {
             }
             virtual ~Syclop()
@@ -173,7 +173,7 @@ namespace ompl
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
 
             const SpaceInformation* siC_;
-            Decomposition &decomp;
+            Decomposition& decomp;
             RegionGraph graph;
             //instead of a map, consider holding Adjacency* in Motion object
             std::map<std::pair<int,int>, Adjacency*> regionsToEdge;

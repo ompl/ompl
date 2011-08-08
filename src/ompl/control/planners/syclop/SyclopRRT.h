@@ -51,7 +51,7 @@ namespace ompl
         class SyclopRRT : public Syclop
         {
         public:
-            SyclopRRT(const SpaceInformationPtr& si, Decomposition& d) : Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
+            SyclopRRT(const SpaceInformationPtr& si, Decomposition* d) : Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
                 controlSampler_(siC_->allocControlSampler())
             {
             }

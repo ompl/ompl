@@ -280,7 +280,7 @@ int main(void)
     si->setup();
 
     //ob::PlannerPtr planner(new oc::RRT(si));
-    ob::PlannerPtr planner(new oc::SyclopRRT(si,grid));
+    ob::PlannerPtr planner(new oc::SyclopRRT(si,&grid));
 
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
     pdef->addStartState(init);
