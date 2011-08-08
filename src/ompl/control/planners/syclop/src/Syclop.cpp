@@ -41,6 +41,10 @@
 #include <limits>
 #include <stack>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/construct.hpp>
+#include <boost/lambda/if.hpp>
 
 void ompl::control::Syclop::setup(void)
 {
@@ -59,6 +63,7 @@ void ompl::control::Syclop::setup(void)
     graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
 
     setupRegionEstimates();
+    setupEdgeEstimates();
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
     printRegions();
     printEdges();
@@ -145,6 +150,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     return false;
 }
 
+inline void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
+{
+    edgeCostFactors.push_back(factor);
+}
+
 void ompl::control::Syclop::printRegions(void)
 {
     /*for (int i = 0; i < decomp.getNumRegions(); ++i)
@@ -192,9 +202,15 @@ void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
 
 void ompl::control::Syclop::updateEdge(Adjacency& a)
 {
-    const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
-    a.cost = (1 + nsel*nsel) / (1 + a.covGridCells.size());
-    a.cost *= a.source->alpha * a.target->alpha;
+    /*const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
+    a.cost = (1 + nsel*nsel) / (1 + a.covGridCells.size()*a.covGridCells.size());
+    a.cost *= a.source->alpha * a.target->alpha;*/
+    a.cost = 1.0;
+    for (std::vector<EdgeCostFactorFn>::const_iterator i = edgeCostFactors.begin(); i != edgeCostFactors.end(); ++i)
+    {
+        const EdgeCostFactorFn& factor = *i;
+        a.cost *= factor(a.source->index, a.target->index);
+    }
 }
 
 void ompl::control::Syclop::initRegion(Region& r)
@@ -231,6 +247,65 @@ void ompl::control::Syclop::setupRegionEstimates(void)
         r.freeVolume = r.percentValidCells * r.volume;
         updateRegion(r);
     }
+}
+
+void ompl::control::Syclop::setupEdgeEstimates(void)
+{
+    typedef std::map<std::pair<int,int>,Adjacency*> AdjacencyMap;
+    AdjacencyMap::iterator (AdjacencyMap::*find)(const std::pair<int,int>&) = &AdjacencyMap::find;
+    boost::function2<Adjacency*, const int&, const int&> edge = boost::lambda::bind(
+        &AdjacencyMap::value_type::second,
+        *boost::lambda::bind(
+            find,
+            boost::ref(regionsToEdge),
+            boost::lambda::bind(boost::lambda::constructor<std::pair<int,int> >(), boost::lambda::_1, boost::lambda::_2)
+        )
+    );
+
+    //alpha estimate from source region
+    edgeCostFactors.push_back(boost::lambda::bind(
+        &Region::alpha,
+        *boost::lambda::bind(
+            &Adjacency::source,
+            *boost::lambda::bind(edge, boost::lambda::_1, boost::lambda::_2)
+        )
+    ));
+    //alpha estimate from target region
+    edgeCostFactors.push_back(boost::lambda::bind(
+        &Region::alpha,
+        *boost::lambda::bind(
+            &Adjacency::target,
+            *boost::lambda::bind(edge, boost::lambda::_1, boost::lambda::_2)
+        )
+    ));
+
+    boost::function1<double, Adjacency*> nsel = boost::lambda::if_then_else_return(
+        boost::lambda::bind(&Adjacency::empty, *boost::lambda::_1),
+        boost::lambda::bind(&Adjacency::numLeadInclusions, *boost::lambda::_1),
+        boost::lambda::bind(&Adjacency::numSelections, *boost::lambda::_1)
+    );
+
+    //1 + sel(i,j)^2
+    edgeCostFactors.push_back(
+        1.0 + boost::lambda::bind(
+            nsel,
+            boost::lambda::bind(edge, boost::lambda::_1, boost::lambda::_2)
+        )*boost::lambda::bind(
+            nsel,
+            boost::lambda::bind(edge, boost::lambda::_1, boost::lambda::_2)
+        )
+    );
+
+    boost::function1<double, Adjacency*> conn = boost::lambda::bind(
+        &std::set<int>::size,
+        boost::lambda::bind(&Adjacency::covGridCells, boost::lambda::_1)
+    );
+
+    //1 + conn(i,j)^2
+    edgeCostFactors.push_back(
+        1.0 / (1.0 + boost::lambda::bind(conn, boost::lambda::bind(edge, boost::lambda::_1, boost::lambda::_2))*
+            boost::lambda::bind(conn, boost::lambda::bind(edge, boost::lambda::_1, boost::lambda::_2)))
+    );
 }
 
 bool ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State *s)

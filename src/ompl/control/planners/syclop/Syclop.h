@@ -73,6 +73,7 @@ namespace ompl
         public: //TODO documentation, triangular decomposition, fit syntax to style guide
             /** \brief Constructor. Requires a Decomposition,
                 which Syclop uses to create high-level guides. */
+
             Syclop(const SpaceInformationPtr& si, Decomposition& d, const std::string& name) : ompl::base::Planner(si, name),
                 siC_(si.get()), decomp(d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, d)
             {
@@ -83,6 +84,9 @@ namespace ompl
             virtual void setup(void);
             virtual void clear(void);
             virtual bool solve(const base::PlannerTerminationCondition& ptc);
+
+            typedef boost::function2<double, int, int> EdgeCostFactorFn;
+            void addEdgeCostFactor(const EdgeCostFactorFn& factor);
 
             void printRegions(void);
             void printEdges(void);
@@ -149,6 +153,7 @@ namespace ompl
             // TODO: Consider moving this into Region constructor.
             void initRegion(Region& r);
             void setupRegionEstimates(void);
+            void setupEdgeEstimates(void);
             /* Given that State s has been added to the tree and belongs in Region r,
                 update r's coverage estimate if needed. */
             bool updateCoverageEstimate(Region& r, const base::State* s);
@@ -181,6 +186,7 @@ namespace ompl
             std::vector<int> lead;
             std::set<int> avail;
             PDF<int> availDist;
+            std::vector<EdgeCostFactorFn> edgeCostFactors;
 
         private:
             class CoverageGrid : public GridDecomposition
