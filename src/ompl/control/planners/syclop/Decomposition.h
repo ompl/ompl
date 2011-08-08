@@ -47,6 +47,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
+#include "ompl/util/Console.h"
+#include "ompl/util/Exception.h"
 
 namespace ompl
 {
@@ -57,8 +59,12 @@ namespace ompl
         public:
 
             /* A decomposition consists of a fixed number of regions and fixed bounds. */
-            Decomposition(const int n, const base::RealVectorBounds& b) : numRegions(n), bounds(b)
+            Decomposition(const int n, const std::size_t dim, const base::RealVectorBounds& b) : numRegions(n), dimension(dim), bounds(b)
             {
+                if (dim > b.low.size())
+                    throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
+                else if (dim < b.low.size())
+                    msg_.warn("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
             }
 
             virtual ~Decomposition()
@@ -91,7 +97,9 @@ namespace ompl
         protected:
 
             const int numRegions;
-            const base::RealVectorBounds &bounds;
+            const std::size_t dimension;
+            const base::RealVectorBounds bounds;
+            msg::Interface msg_;
         };
     }
 }

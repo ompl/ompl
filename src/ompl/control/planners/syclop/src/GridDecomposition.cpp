@@ -36,10 +36,10 @@
 
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-ompl::control::GridDecomposition::GridDecomposition(const int len, const int dim, const base::RealVectorBounds& b) :
-    Decomposition(len*len, b), length(len), dimension(dim), cellVolume(1.0)
+ompl::control::GridDecomposition::GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b) :
+    Decomposition(len*len, dim, b), length(len), cellVolume(1.0)
 {
-    for (int i = 0; i < dim; ++i)
+    for (std::size_t i = 0; i < dim; ++i)
         cellVolume *= (b.high[i] - b.low[i]) / len;
 }
 
@@ -143,7 +143,7 @@ bool ompl::control::GridDecomposition::areNeighbors(const int r, const int s) co
     std::vector<int> sc(dimension);
     regionToCoord(r, rc);
     regionToCoord(s, sc);
-    for (int i = 0; i < dimension; ++i)
+    for (std::size_t i = 0; i < dimension; ++i)
     {
         if (abs(rc[i]-sc[i]) > 1)
             return false;

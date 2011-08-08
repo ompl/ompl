@@ -51,7 +51,7 @@ namespace ompl
         class GridDecomposition : public Decomposition
         {
         public:
-            GridDecomposition(const int len, const int dim, const base::RealVectorBounds& b);
+            GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b);
 
             virtual ~GridDecomposition()
             {
@@ -77,7 +77,6 @@ namespace ompl
             bool areNeighbors(const int r, const int s) const;
 
             const int length;
-            const int dimension;
             double cellVolume;
         };
     }
