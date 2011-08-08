@@ -250,7 +250,7 @@ int main(void)
     cbounds.setLow(-0.5);
     cbounds.setHigh(0.5);
 
-    //stateSpace : location, forward velocity, steer velocity
+    //stateSpace : SE(2) state, forward velocity
     ob::StateSpacePtr locationSpace(new ob::SE2StateSpace());
     locationSpace->as<ob::SE2StateSpace>()->setBounds(bounds);
     ob::StateSpacePtr velSpace(new ob::RealVectorStateSpace(1));
@@ -259,7 +259,7 @@ int main(void)
     stateSpace->as<ob::CompoundStateSpace>()->addSubSpace(locationSpace, 1.0);
     stateSpace->as<ob::CompoundStateSpace>()->addSubSpace(velSpace, 0.5);
 
-    //controlSpace : forward accel & steer accel
+    //controlSpace : forward accel & steer velocity
     oc::ControlSpacePtr controlSpace(new CarControlSpace(stateSpace, 0.01));
     controlSpace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 

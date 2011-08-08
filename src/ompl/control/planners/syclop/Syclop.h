@@ -88,9 +88,6 @@ namespace ompl
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
 
-            void printRegions(void);
-            void printEdges(void);
-
         protected:
             static const int NUM_FREEVOL_SAMPLES = 100000;
             static const double PROB_SHORTEST_PATH = 0.95; //0.95
