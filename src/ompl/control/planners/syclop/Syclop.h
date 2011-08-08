@@ -84,9 +84,6 @@ namespace ompl
             virtual void clear(void);
             virtual bool solve(const base::PlannerTerminationCondition& ptc);
 
-            void printRegions(void);
-            void printEdges(void);
-
         protected:
             static const int NUM_FREEVOL_SAMPLES = 100000;
             static const double PROB_SHORTEST_PATH = 0.95; //0.95

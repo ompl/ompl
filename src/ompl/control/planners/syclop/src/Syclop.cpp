@@ -60,8 +60,6 @@ void ompl::control::Syclop::setup(void)
 
     setupRegionEstimates();
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
-    printRegions();
-    printEdges();
 }
 
 void ompl::control::Syclop::clear(void)
@@ -134,8 +132,6 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                         }
                     }
                     improved |= updateCoverageEstimate(graph[boost::vertex(newRegion, graph)], state);
-                    printRegions();
-                    printEdges();
                 }
             }
             if (!improved && rng.uniform01() < PROB_ABANDON_LEAD_EARLY)
@@ -143,38 +139,6 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         }
     }
     return false;
-}
-
-void ompl::control::Syclop::printRegions(void)
-{
-    /*for (int i = 0; i < decomp.getNumRegions(); ++i)
-    {
-        Region& r = graph[boost::vertex(i, graph)];
-        std::cout << "Region " << r.index << ": ";
-        std::cout << "numMotions=" << r.motions.size() << ",";
-        std::cout << "nselects=" << r.numSelections << ",";
-        std::cout << "vol=" << r.volume << ",";
-        std::cout << "freeVol=" << r.freeVolume << ",";
-        std::cout << "pcentValid=" << r.percentValidCells << ",";
-        std::cout << "numCells=" << r.covGridCells.size() << ",";
-        std::cout << "weight=" << r.weight << ",";
-        std::cout << "alpha=" << r.alpha << "";
-        std::cout << std::endl;
-    }*/
-}
-
-void ompl::control::Syclop::printEdges(void)
-{
-    /*EdgeIter ei, end;
-    VertexIndexMap index = get(boost::vertex_index, graph);
-    for (boost::tie(ei,end) = boost::edges(graph); ei != end; ++ei)
-    {
-        const Adjacency& a = graph[*ei];
-        std::cout << "Edge (" << index[boost::source(*ei, graph)] << "," << index[boost::target(*ei, graph)] << "): ";
-        std::cout << "numCells=" << a.covGridCells.size() << ",";
-        std::cout << "nselects=" << a.numSelections << ",";
-        std::cout << "cost=" << a.cost << std::endl;
-    }*/
 }
 
 void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
