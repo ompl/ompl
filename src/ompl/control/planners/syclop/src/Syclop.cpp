@@ -271,47 +271,6 @@ void ompl::control::Syclop::buildGraph(void)
     }
 }
 
-void ompl::control::Syclop::dijkstra(std::vector<int>& parents, std::vector<double>& dist)
-{    
-    VertexIndexMap index = get(boost::vertex_index, graph);
-    //std::vector<double> dist(decomp.getNumRegions(), std::numeric_limits<double>::infinity());
-    std::vector<int> Q;
-    std::vector<bool> finished(decomp.getNumRegions(), false);
-    for (int i = 0; i < decomp.getNumRegions(); ++i)
-        Q.push_back(i);
-    dist[startRegion] = 0;
-    while (!Q.empty())
-    {
-        std::size_t minIndex = 0;
-        for (std::size_t i = 1; i < Q.size(); ++i)
-        {
-            if (dist[Q[i]] < dist[Q[minIndex]])
-                minIndex = i;
-        }
-        int u = Q[minIndex];
-        Q.erase(Q.begin()+minIndex);
-        finished[u] = true;
-        if (dist[u] == std::numeric_limits<double>::infinity())
-            break;
-        boost::graph_traits<RegionGraph>::adjacency_iterator ai, aend;
-        for (boost::tie(ai,aend) = adjacent_vertices(boost::vertex(u,graph),graph); ai != aend; ++ai)
-        {
-            if (finished[index[*ai]] == false)
-            {
-                const std::pair<int,int> regions(u, index[*ai]);
-                Adjacency& adj = *regionsToEdge.find(regions)->second;
-                const double alt = dist[u] + adj.cost;
-
-                if (alt < dist[index[*ai]])
-                {
-                    dist[index[*ai]] = alt;
-                    parents[index[*ai]] = u;
-                }
-            }
-        }
-    }
-}
-
 void ompl::control::Syclop::computeLead(void)
 {
     /* For now, this function assumes that a path exists in the decomposition

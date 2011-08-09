@@ -164,8 +164,6 @@ namespace ompl
             void computeLead(void);
             int selectRegion(void);
             void computeAvailableRegions(void);
-            // temporary replacement for boost::dijkstra
-            void dijkstra(std::vector<int>& parents, std::vector<double>& dist);
 
             /* Initialize a tree rooted at start state s; return the Motion corresponding to s. */
             virtual Motion* initializeTree(const base::State* s) = 0;
