@@ -161,11 +161,18 @@ namespace ompl
 
             /** \brief Set the maximum length allowed for a solution
                 path. This value is checked only in the version of
-                isSatisfied() that takes the path length as
-                argument */
+                isSatisfied() that takes the path length as argument
+                or by isPathLengthSatisfied(). The default maximal
+                path length is infinity. */
             void setMaximumPathLength(double maximumPathLength)
             {
                 maximumPathLength_ = maximumPathLength;
+            }
+
+            /** \brief Check if \e pathLength is smaller than the value returned by getMaximumPathLength() */
+            bool isPathLengthSatisfied(double pathLength) const
+            {
+                return pathLength <= maximumPathLength_;
             }
 
             /** \brief Return the found solution path.

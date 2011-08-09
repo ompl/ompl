@@ -97,7 +97,8 @@ namespace ompl
 
         virtual ~NearestNeighborsGNAT(void)
         {
-            delete tree_;
+            if (tree_)
+                delete tree_;
         }
 
         /** \brief Set the distance function to use */
@@ -109,8 +110,13 @@ namespace ompl
 
         virtual void clear(void)
         {
-            if (tree_) delete tree_;
-            tree_ = NULL;
+            if (tree_)
+            {
+                delete tree_;
+                tree_ = NULL;
+            }
+            size_ = 0;
+            removed_.clear();
         }
 
         virtual void add(const _T &data)
@@ -153,9 +159,7 @@ namespace ompl
                 lst.erase(it);
                 removed_.pop_back();
             }
-            delete tree_;
-            tree_ = NULL;
-            size_ = 0;
+            clear();
             add(lst);
         }
         virtual bool remove(const _T &data)
@@ -573,16 +577,16 @@ namespace ompl
 
 
         /** \brief The data elements stored in this structure */
-        Node* tree_;
+        Node                  *tree_;
 
-        unsigned int degree_;
-        unsigned int minDegree_;
-        unsigned int maxDegree_;
-        unsigned int maxNumPtsPerLeaf_;
-        std::size_t size_;
+        unsigned int           degree_;
+        unsigned int           minDegree_;
+        unsigned int           maxDegree_;
+        unsigned int           maxNumPtsPerLeaf_;
+        std::size_t            size_;
 
         /** \brief The data structure used to split data into subtrees */
-        GreedyKCenters<_T> pivotSelector_;
+        GreedyKCenters<_T>     pivotSelector_;
 
         /** \brief Cache of removed elements */
         std::vector<const _T*> removed_;

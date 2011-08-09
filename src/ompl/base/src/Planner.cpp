@@ -144,6 +144,12 @@ void ompl::base::PlannerInputStates::clear(void)
     si_ = NULL;
 }
 
+void ompl::base::PlannerInputStates::restart(void)
+{
+    addedStartStates_ = 0;
+    sampledGoalsCount_ = 0;
+}
+
 bool ompl::base::PlannerInputStates::update(void)
 {
     if (!planner_)

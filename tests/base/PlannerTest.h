@@ -87,7 +87,8 @@ namespace ompl
                 planner_->clear();
                 planner_->clear();
                 planner_->clear();
-            }
+		planner_->getProblemDefinition()->isStraightLinePathValid();
+	    }
 
             /** \brief Call all tests for the planner */
             void test(void)
