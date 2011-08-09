@@ -61,7 +61,6 @@ void ompl::control::Syclop::setup(void)
     si_->freeState(goal);
     Motion* startMotion = initializeTree(start);
     graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
-
     setupRegionEstimates();
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 }
@@ -73,6 +72,8 @@ void ompl::control::Syclop::clear(void)
     lead.clear();
     avail.clear();
     availDist.clear();
+    graph.clear();
+    edgeCostFactors.clear();
 }
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
@@ -243,17 +244,17 @@ void ompl::control::Syclop::updateRegion(Region& r)
 void ompl::control::Syclop::buildGraph(void)
 {
     /* The below code builds a boost::graph corresponding to the decomposition.
-        It creates Region and Adjacency property objects for each vertex and edge.
-        TODO: Correctly initialize the fields for each Region and Adjacency object. */
+        It creates Region and Adjacency property objects for each vertex and edge. */
     VertexIndexMap index = get(boost::vertex_index, graph);
-    VertexIter vi, vend;
     std::vector<int> neighbors;
-    //Initialize indices before all else
-    for (boost::tie(vi,vend) = boost::vertices(graph); vi != vend; ++vi)
+    for (int i = 0; i < decomp.getNumRegions(); ++i)
     {
-        initRegion(graph[*vi]);
-        graph[*vi].index = index[*vi];
+        const RegionGraph::vertex_descriptor v = boost::add_vertex(graph);
+        Region& r = graph[boost::vertex(v,graph)];
+        initRegion(r);
+        r.index = index[v];
     }
+    VertexIter vi, vend;
     for (boost::tie(vi,vend) = boost::vertices(graph); vi != vend; ++vi)
     {
         /* Create an edge between this vertex and each of its neighboring regions in the decomposition,

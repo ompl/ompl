@@ -75,7 +75,7 @@ namespace ompl
                 which Syclop uses to create high-level guides. */
 
             Syclop(const SpaceInformationPtr& si, Decomposition* d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp(*d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, *d)
+                siC_(si.get()), decomp(*d), covGrid(COVGRID_LENGTH, 2, *d)
             {
             }
             virtual ~Syclop()

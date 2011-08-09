@@ -51,8 +51,7 @@ namespace ompl
         class SyclopRRT : public Syclop
         {
         public:
-            SyclopRRT(const SpaceInformationPtr& si, Decomposition* d) : Syclop(si,d,"SyclopRRT"), sampler_(si_->allocStateSampler()),
-                controlSampler_(siC_->allocControlSampler())
+            SyclopRRT(const SpaceInformationPtr& si, Decomposition* d) : Syclop(si,d,"SyclopRRT")
             {
             }
 
@@ -61,10 +60,7 @@ namespace ompl
                 freeMemory();
             }
 
-            virtual void setup(void)
-            {
-                Syclop::setup();
-            }
+            virtual void setup(void);
 
             virtual void clear(void);
 

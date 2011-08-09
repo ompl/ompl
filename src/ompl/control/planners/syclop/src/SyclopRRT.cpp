@@ -39,6 +39,13 @@
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 
+void ompl::control::SyclopRRT::setup(void)
+{
+    Syclop::setup();
+    sampler_ = si_->allocStateSampler();
+    controlSampler_ = siC_->allocControlSampler();
+}
+
 void ompl::control::SyclopRRT::clear(void)
 {
     Syclop::clear();
