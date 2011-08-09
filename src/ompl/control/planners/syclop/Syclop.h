@@ -75,7 +75,7 @@ namespace ompl
                 which Syclop uses to create high-level guides. */
 
             Syclop(const SpaceInformationPtr& si, Decomposition* d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp(*d), graph(decomp.getNumRegions()), covGrid(COVGRID_LENGTH, 2, *d)
+                siC_(si.get()), decomp(*d), covGrid(COVGRID_LENGTH, 2, *d)
             {
             }
             virtual ~Syclop()
@@ -164,8 +164,6 @@ namespace ompl
             void computeLead(void);
             int selectRegion(void);
             void computeAvailableRegions(void);
-            // temporary replacement for boost::dijkstra
-            void dijkstra(std::vector<int>& parents, std::vector<double>& dist);
 
             /* Initialize a tree rooted at start state s; return the Motion corresponding to s. */
             virtual Motion* initializeTree(const base::State* s) = 0;

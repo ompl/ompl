@@ -42,7 +42,6 @@
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
-#include "ompl/datastructures/Grid.h"
 
 namespace ompl
 {
