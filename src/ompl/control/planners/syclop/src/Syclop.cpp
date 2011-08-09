@@ -75,15 +75,19 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 {
     std::set<Motion*> newMotions;
     base::Goal* goal = getProblemDefinition()->getGoal().get();
-    while (!ptc())
+    Motion* solution = NULL;
+    Motion* approxSoln = NULL;
+    double goalDist = std::numeric_limits<double>::infinity();
+    bool solved = false;
+    while (!ptc() && !solved)
     {
         computeLead();
         computeAvailableRegions();
-        for (int i = 0; i < NUM_AVAIL_EXPLORATIONS; ++i)
+        for (int i = 0; i < NUM_AVAIL_EXPLORATIONS && !solved; ++i)
         {
             const int region = selectRegion();
             bool improved = false;
-            for (int j = 0; j < NUM_TREE_SELECTIONS; ++j)
+            for (int j = 0; j < NUM_TREE_SELECTIONS && !solved; ++j)
             {
                 newMotions.clear();
                 selectAndExtend(graph[boost::vertex(region,graph)], newMotions);
@@ -91,28 +95,18 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                 {
                     Motion* motion = *m;
                     base::State* state = motion->state;
-                    if (goal->isSatisfied(state))
+                    double distance;
+                    solved = goal->isSatisfied(state, &distance);
+                    if (solved)
                     {
-                        std::vector<const Motion*> mpath;
-                        const Motion* solution = motion;
-                        while (solution != NULL)
-                        {
-                            mpath.push_back(solution);
-                            solution = solution->parent;
-                        }
-                        PathControl* path = new PathControl(si_);
-                        for (int i = mpath.size()-1; i >= 0; --i)
-                        {
-                            path->states.push_back(si_->cloneState(mpath[i]->state));
-                            if (mpath[i]->parent)
-                            {
-                                path->controls.push_back(siC_->cloneControl(mpath[i]->control));
-                                path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
-                            }
-                        }
-                        //TODO include approximate solution
-                        goal->setSolutionPath(base::PathPtr(path), false);
-                        return true;
+                        goalDist = distance;
+                        solution = motion;
+                        break;
+                    }
+                    else if (distance < goalDist)
+                    {
+                        goalDist = distance;
+                        approxSoln = motion;
                     }
                     const int oldRegion = decomp.locateRegion(motion->parent->state);
                     const int newRegion = decomp.locateRegion(state);
@@ -138,7 +132,39 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                 break;
         }
     }
-    return false;
+
+    bool approximate = false;
+    if (solution == NULL)
+    {
+        solution = approxSoln;
+        approximate = true;
+    }
+
+    if (solution != NULL)
+    {
+        std::vector<const Motion*> mpath;
+        while (solution != NULL)
+        {
+            mpath.push_back(solution);
+            solution = solution->parent;
+        }
+        PathControl* path = new PathControl(si_);
+        for (int i = mpath.size()-1; i >= 0; --i)
+        {
+            path->states.push_back(si_->cloneState(mpath[i]->state));
+            if (mpath[i]->parent)
+            {
+                path->controls.push_back(siC_->cloneControl(mpath[i]->control));
+                path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
+            }
+        }
+        goal->setDifference(goalDist);
+        goal->setSolutionPath(base::PathPtr(path), approximate);
+
+        if (approximate)
+            msg_.warn("Found approximate solution");
+    }
+    return goal->isAchieved();
 }
 
 inline void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
