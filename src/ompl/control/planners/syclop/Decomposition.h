@@ -37,14 +37,6 @@
 #ifndef OMPL_CONTROL_PLANNERS_SYCLOP_DECOMPOSITION_
 #define OMPL_CONTROL_PLANNERS_SYCLOP_DECOMPOSITION_
 
-#include <iostream>
-#include <set>
-#include <vector>
-#define BOOST_NO_HASH
-#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/adjacency_list.hpp>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 #include "ompl/util/Console.h"

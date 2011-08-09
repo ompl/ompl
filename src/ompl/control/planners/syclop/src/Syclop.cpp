@@ -37,14 +37,9 @@
 #include "ompl/control/planners/syclop/Syclop.h"
 #include "ompl/base/GoalState.h"
 #include "ompl/base/ProblemDefinition.h"
-#include "ompl/util/Profiler.h"
 #include <limits>
 #include <stack>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/lambda/bind.hpp>
-#include <boost/lambda/construct.hpp>
-#include <boost/lambda/if.hpp>
 
 void ompl::control::Syclop::setup(void)
 {

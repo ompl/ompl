@@ -36,8 +36,6 @@
 
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/control/planners/syclop/SyclopRRT.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
-#include "ompl/base/spaces/SE2StateSpace.h"
 
 void ompl::control::SyclopRRT::setup(void)
 {
