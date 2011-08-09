@@ -82,9 +82,6 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
     unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
     duration = siC_->propagateWhileValid(nmotion->state, rctrl, duration, newState);
 
-    base::CompoundState* cs = newState->as<base::CompoundState>();
-    base::SE2StateSpace::StateType* location = cs->as<base::SE2StateSpace::StateType>(0);
-
     if (duration >= siC_->getMinControlDuration())
     {
         Motion* motion = new Motion(siC_);
