@@ -246,7 +246,7 @@ which must be between 0 and 1. */
             if (tree_.empty())
                 return;
             for (std::size_t j = 0; j < tree_[0].size(); ++j)
-                out << "(" << data_[j]->data << "," << tree_[0][j] << ") ";
+                out << "(" << data_[j]->data_ << "," << tree_[0][j] << ") ";
             out << std::endl;
             for (std::size_t i = 1; i < tree_.size(); ++i)
             {
@@ -259,7 +259,7 @@ which must be between 0 and 1. */
 
     private:
 
-        std::vector<Element*> data_;
+        std::vector<Element*>              data_;
         std::vector<std::vector<double > > tree_;
     };
 }
