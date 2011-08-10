@@ -37,6 +37,7 @@
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/Time.h"
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
 #include <utility>
 
 void ompl::base::PlannerTerminationCondition::terminate(bool flag)
@@ -49,26 +50,11 @@ bool ompl::base::PlannerTerminationCondition::eval(void) const
     return fn_();
 }
 
-/// @cond IGNORE
-namespace ompl
-{
-    static bool alwaysFalse(void)
-    {
-        return false;
-    }
-
-    static bool alwaysTrue(void)
-    {
-        return true;
-    }
-}
-/// @endcond
-
-ompl::base::PlannerNonTerminatingCondition::PlannerNonTerminatingCondition(void) : PlannerTerminationCondition(boost::bind(&alwaysFalse))
+ompl::base::PlannerNonTerminatingCondition::PlannerNonTerminatingCondition(void) : PlannerTerminationCondition(boost::lambda::constant(false))
 {
 }
 
-ompl::base::PlannerAlwaysTerminatingCondition::PlannerAlwaysTerminatingCondition(void) : PlannerTerminationCondition(boost::bind(&alwaysTrue))
+ompl::base::PlannerAlwaysTerminatingCondition::PlannerAlwaysTerminatingCondition(void) : PlannerTerminationCondition(boost::lambda::constant(true))
 {
 }
 

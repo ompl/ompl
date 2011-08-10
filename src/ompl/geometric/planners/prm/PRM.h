@@ -84,6 +84,14 @@ namespace ompl
                 typedef boost::vertex_property_tag kind;
             };
 
+            struct vertex_total_connection_attempts_t {
+                typedef boost::vertex_property_tag kind;
+            };
+
+            struct vertex_successful_connection_attempts_t {
+                typedef boost::vertex_property_tag kind;
+            };
+
             /**
              @brief The underlying roadmap graph.
 
@@ -102,8 +110,10 @@ namespace ompl
             typedef boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
+                boost::property < vertex_total_connection_attempts_t, unsigned int,
+                boost::property < vertex_successful_connection_attempts_t, unsigned int,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
-                boost::property < boost::vertex_rank_t, unsigned long int > > >,
+                boost::property < boost::vertex_rank_t, unsigned long int > > > > >,
                 boost::property < boost::edge_weight_t, double,
                 boost::property < boost::edge_index_t, unsigned int> >
             > Graph;
@@ -214,6 +224,11 @@ namespace ompl
             /** \brief Randomly sample the state space, add and connect milestones in the roadmap. Stop this process when the termination condition \e ptc returns true or when any of the \e start milestones are in the same connected component as any of the \e goal milestones. Use \e workState as temporary memory. */
             void growRoadmap(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, const base::PlannerTerminationCondition &ptc, base::State *workState);
 
+            /** \brief Attempt to connect disjoint components in the
+                roadmap using random bounding motions (the PRM
+                expansion step) */
+            void expandRoadmap(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, const base::PlannerTerminationCondition &ptc, std::vector<base::State*> &workStates);
+
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If \e endpoints is not null, that pair is recorded. */
             bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, std::pair<Vertex, Vertex> *endpoints = NULL);
 
@@ -222,6 +237,9 @@ namespace ompl
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                             sampler_;
+
+            /** \brief Sampler user for generating random in the state space */
+            base::StateSamplerPtr                                  simpleSampler_;
 
             /** \brief Nearest neighbors data structure */
             RoadmapNeighbors                                       nn_;
@@ -237,6 +255,14 @@ namespace ompl
 
             /** \brief Access to the internal base::state at each Vertex */
             boost::property_map<Graph, vertex_state_t>::type       stateProperty_;
+
+            /** \brief Access to the number of total connection attempts for a vertex */
+            boost::property_map<Graph,
+                vertex_total_connection_attempts_t>::type          totalConnectionAttemptsProperty_;
+
+            /** \brief Access to the number of successful connection attempts for a vertex */
+            boost::property_map<Graph,
+                vertex_successful_connection_attempts_t>::type     successfulConnectionAttemptsProperty_;
 
             /** \brief Access to the weights of each Edge */
             boost::property_map<Graph, boost::edge_weight_t>::type weightProperty_;
