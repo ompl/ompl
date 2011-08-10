@@ -59,7 +59,7 @@ void ompl::control::Syclop::clear(void)
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 {
     checkValidity();
-    if (graph[boost::vertex(startRegion,graph)].motions.size() == 0)
+    if (!graphReady)
         initGraph();
     std::set<Motion*> newMotions;
     base::Goal* goal = getProblemDefinition()->getGoal().get();
@@ -227,6 +227,7 @@ void ompl::control::Syclop::setupEdgeEstimates(void)
         adj.empty = true;
         adj.numLeadInclusions = 0;
         adj.numSelections = 0;
+        updateEdge(adj);
     }
 }
 
@@ -310,6 +311,7 @@ void ompl::control::Syclop::initGraph(void)
     setupRegionEstimates();
     setupEdgeEstimates();
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
+    graphReady = true;
 }
 
 void ompl::control::Syclop::clearGraphDetails(void)
@@ -320,6 +322,7 @@ void ompl::control::Syclop::clearGraphDetails(void)
     EdgeIter ei, eend;
     for (boost::tie(ei,eend) = boost::edges(graph); ei != eend; ++ei)
         graph[*ei].clear();
+    graphReady = false;
 }
 
 void ompl::control::Syclop::computeLead(void)
