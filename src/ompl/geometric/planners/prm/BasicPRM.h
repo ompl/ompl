@@ -86,17 +86,17 @@ namespace ompl
 
             /**
              @brief The underlying roadmap graph.
-             
+
              @par Any BGL graph representation could be used here. Because we
              expect the roadmap to be sparse (m<n^2), an adjacency_list is more
              appropriate than an adjacency_matrix.
-             
+
              @par Obviously, a ompl::base::State* vertex property is required.
              The incremental connected components algorithm requires
-             vertex_predecessor_t and vertex_rank_t properties.             
+             vertex_predecessor_t and vertex_rank_t properties.
              If boost::vecS is not used for vertex storage, then there must also
              be a boost:vertex_index_t property manually added.
-             
+
              @par Edges should be undirected and have a weight property.
              */
             typedef boost::adjacency_list <
@@ -109,7 +109,9 @@ namespace ompl
             > Graph;
 
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-            typedef boost::graph_traits<Graph>::edge_descriptor Edge;
+            typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
+
+            typedef boost::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
 
             /** @brief A function returning the milestones that should be
              * attempted to connect to
@@ -121,15 +123,14 @@ namespace ompl
                 ConnectionStrategy;
 
             /** @brief A function that can reject connections.
-             
+
              This is called after previous connections from the neighbor list
              have been added to the roadmap.
              */
             typedef boost::function2<bool, const Vertex&, const Vertex&> ConnectionFilter;
-            
+
             /** \brief Constructor */
-            BasicPRM(const base::SpaceInformationPtr &si,
-                    const std::string& name = "BasicPRM");
+            BasicPRM(const base::SpaceInformationPtr &si);
 
             virtual ~BasicPRM(void)
             {
@@ -161,11 +162,6 @@ namespace ompl
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief If the user desires to recompute the previously
-                obtained solution, this function allows this
-                functionality */
-            virtual void reconstructLastSolution(void);
-
             virtual void clear(void);
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -177,30 +173,29 @@ namespace ompl
 
             virtual void setup(void);
 
-            const Graph& getGraph() const
+            const Graph& getRoadmap(void) const
             {
                 return g_;
             }
-            
+
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
             double distanceFunction(const Vertex a, const Vertex b) const
             {
-                return si_->distance(state_[a], state_[b]);
+                return si_->distance(stateProperty_[a], stateProperty_[b]);
             }
-            
+
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
-            unsigned int numMilestones() const
+            unsigned int milestoneCount(void) const
             {
                 return boost::num_vertices(g_);
             }
 
-            boost::shared_ptr< NearestNeighbors<Vertex> > getNearestNeighbors()
+            const RoadmapNeighbors& getNearestNeighbors(void)
             {
                 return nn_;
             }
 
         protected:
-
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
@@ -221,53 +216,46 @@ namespace ompl
             void constructSolution(const Vertex start, const Vertex goal);
 
             /** \brief Sampler user for generating valid samples in the state space */
-            base::ValidStateSamplerPtr                        sampler_;            
+            base::ValidStateSamplerPtr                             sampler_;
 
             /** \brief Nearest neighbors data structure */
-            boost::shared_ptr< NearestNeighbors<Vertex> > nn_;
+            RoadmapNeighbors                                       nn_;
 
             /** \brief Connectivity graph */
             Graph g_;
 
             /** \brief Array of start milestones */
-            std::vector<Vertex>                           startM_;
+            std::vector<Vertex>                                    startM_;
 
             /** \brief Array of goal milestones */
-            std::vector<Vertex>                           goalM_;
-
-            /** \brief constructSolution() will set this variable to be the milestone used as the start. This is useful if multiple solution paths are to be generated. */
-            Vertex                                        lastStart_;
-
-            /** \brief constructSolution() will set this variable to be the milestone used as the goal. This is useful if multiple solution paths are to be generated. */
-            Vertex                                        lastGoal_;
+            std::vector<Vertex>                                    goalM_;
 
             /** \brief Access to the internal base::state at each Vertex */
-            boost::property_map<Graph, vertex_state_t>::type state_;
+            boost::property_map<Graph, vertex_state_t>::type       stateProperty_;
 
             /** \brief Access to the weights of each Edge */
-            boost::property_map<Graph, boost::edge_weight_t>::type weight_;
+            boost::property_map<Graph, boost::edge_weight_t>::type weightProperty_;
 
             /** \brief Access to the indices of each Edge */
-            typedef boost::property_map<Graph, boost::edge_index_t>::type EdgeIdMap;
-            EdgeIdMap edge_id_;
-            
+            boost::property_map<Graph, boost::edge_index_t>::type  edgeIDProperty_;
+
             /** \brief Data structure that maintains the connected components */
             boost::disjoint_sets<
                 boost::property_map<Graph, boost::vertex_rank_t>::type,
-                boost::property_map<Graph, boost::vertex_predecessor_t>::type > 
-                    disjoint_sets_;
-            
+                boost::property_map<Graph, boost::vertex_predecessor_t>::type >
+                                                                   disjointSets_;
+
             /** \brief Maximum unique id number used so for for edges */
-            unsigned int                                      max_edge_id_;
+            unsigned int                                           maxEdgeID_;
 
             /** \brief Function that returns the milestones to attempt connections with */
-            ConnectionStrategy                              connectionStrategy_;
+            ConnectionStrategy                                     connectionStrategy_;
 
             /** \brief Function that can reject a milestone connection */
-            ConnectionFilter                                connectionFilter_;
+            ConnectionFilter                                       connectionFilter_;
 
             /** \brief Random number generator */
-            RNG                                               rng_;
+            RNG                                                    rng_;
         };
 
     }

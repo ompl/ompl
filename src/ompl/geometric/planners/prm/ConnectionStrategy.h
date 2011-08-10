@@ -34,14 +34,14 @@
 
 /* Author: James D. Marble */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_CONNECTION_STRATEGY_
-#define OMPL_GEOMETRIC_PLANNERS_CONNECTION_STRATEGY_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_CONNECTION_STRATEGY_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_CONNECTION_STRATEGY_
 
-#include "ompl/base/Planner.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
-#include <algorithm>
+#include <boost/math/constants/constants.hpp>
+#include <vector>
 
 namespace ompl
 {
@@ -57,13 +57,22 @@ namespace ompl
         {
         public:
 
+            /** \brief Constructor takes the maximum number of nearest neighbors to return (\e k) and the
+                nearest neighbors datastruture to use (\e nn) */
             KStrategy(const unsigned int k,
-                      boost::shared_ptr< NearestNeighbors<Milestone> > nn) :
-            k_(k), nn_(nn)
+                      const boost::shared_ptr< NearestNeighbors<Milestone> > &nn) :
+                k_(k), nn_(nn)
             {
                 neighbors_.reserve(k_);
             }
 
+            virtual ~KStrategy(void)
+            {
+            }
+
+            /** \brief Given a milestone \e m, find the nearest
+                neighbors attempts of connection should be made to,
+                according to the connection strategy */
             std::vector<Milestone>& operator()(const Milestone& m)
             {
                 nn_->nearestK(m, k_, neighbors_);
@@ -73,13 +82,13 @@ namespace ompl
         protected:
 
             /** \brief Maximum number of nearest neighbors to attempt to connect new milestones to */
-            unsigned int k_;
+            unsigned int                                     k_;
 
             /** \brief Nearest neighbors data structure */
             boost::shared_ptr< NearestNeighbors<Milestone> > nn_;
 
             /** \brief Scratch space for storing k-nearest neighbors */
-            std::vector<Milestone> neighbors_;
+            std::vector<Milestone>                           neighbors_;
         };
 
         /**
@@ -96,15 +105,19 @@ namespace ompl
         {
         public:
 
+            /** \brief Constructor takes a function that retunrs the
+                maximum number of nearest neighbors to return at a
+                particular time (\e n) and the nearest neighbors
+                datastruture to use (\e nn) */
             KStarStrategy(const boost::function<unsigned int()>& n,
-                          boost::shared_ptr< NearestNeighbors<Milestone> > nn) :
-            KStrategy<Milestone>(n(), nn), n_(n)
+                          const boost::shared_ptr< NearestNeighbors<Milestone> > &nn) :
+                KStrategy<Milestone>(n(), nn), n_(n)
             {
             }
 
             std::vector<Milestone>& operator()(const Milestone& m)
             {
-                KStrategy<Milestone>::k_ = ceil(2 * M_E * log((double)n_()));
+                KStrategy<Milestone>::k_ = ceil(2.0 * boost::math::constants::euler<double>() * log((double)n_()));
                 return static_cast<KStrategy<Milestone>&>(*this)(m);
             }
 
@@ -114,7 +127,7 @@ namespace ompl
             const boost::function<unsigned int()> n_;
 
         };
-     
+
     }
 
 }

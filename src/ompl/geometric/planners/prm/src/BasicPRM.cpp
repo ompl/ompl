@@ -37,15 +37,12 @@
 #include "ompl/geometric/planners/prm/BasicPRM.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
-#include <algorithm>
-#include <queue>
-#include <limits>
 
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
@@ -56,29 +53,25 @@
 static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
 
-ompl::geometric::BasicPRM::BasicPRM(const base::SpaceInformationPtr &si,
-                                  const std::string& name) :
-    base::Planner(si, name),
-    state_(boost::get(vertex_state_t(), g_)),
-    weight_(boost::get(boost::edge_weight, g_)),
-    edge_id_(boost::get(boost::edge_index, g_)),
-    disjoint_sets_(boost::get(boost::vertex_rank, g_),
-                   boost::get(boost::vertex_predecessor, g_)),
-    max_edge_id_(0)
+ompl::geometric::BasicPRM::BasicPRM(const base::SpaceInformationPtr &si) :
+    base::Planner(si, "PRM"),
+    stateProperty_(boost::get(vertex_state_t(), g_)),
+    weightProperty_(boost::get(boost::edge_weight, g_)),
+    edgeIDProperty_(boost::get(boost::edge_index, g_)),
+    disjointSets_(boost::get(boost::vertex_rank, g_),
+                  boost::get(boost::vertex_predecessor, g_)),
+    maxEdgeID_(0)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
-    nn_.reset(new NearestNeighborsLinear<Vertex>());
     connectionStrategy_ = KStrategy<Vertex>(10, nn_);
     connectionFilter_ = boost::lambda::constant(true);
-    lastStart_ = g_.null_vertex();
-    lastGoal_ = g_.null_vertex();
 }
 
 void ompl::geometric::BasicPRM::setup(void)
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(new NearestNeighborsSqrtApprox<Vertex>());
+        nn_.reset(new NearestNeighborsGNAT<Vertex>());
     nn_->setDistanceFunction(boost::bind(&BasicPRM::distanceFunction, this, _1, _2));
 }
 
@@ -98,16 +91,14 @@ void ompl::geometric::BasicPRM::clear(void)
         nn_->clear();
     startM_.clear();
     goalM_.clear();
-    lastStart_ = g_.null_vertex();
-    lastGoal_ = g_.null_vertex();
+    maxEdgeID_ = 0;
 }
 
 void ompl::geometric::BasicPRM::freeMemory(void)
 {
     foreach (Vertex v, boost::vertices(g_))
-        si_->freeState(state_[v]);
+        si_->freeState(stateProperty_[v]);
     g_.clear();
-    max_edge_id_ = 0;
 }
 
 void ompl::geometric::BasicPRM::growRoadmap(double growTime)
@@ -135,9 +126,9 @@ void ompl::geometric::BasicPRM::growRoadmap(double growTime)
 }
 
 void ompl::geometric::BasicPRM::growRoadmap(const std::vector<Vertex> &start,
-                                           const std::vector<Vertex> &goal,
-                                           const base::PlannerTerminationCondition &ptc,
-                                           base::State *workState)
+                                            const std::vector<Vertex> &goal,
+                                            const base::PlannerTerminationCondition &ptc,
+                                            base::State *workState)
 {
     while (ptc() == false)
     {
@@ -168,9 +159,9 @@ bool ompl::geometric::BasicPRM::haveSolution(const std::vector<Vertex> &starts, 
     foreach (Vertex start, starts)
         foreach (Vertex goal, goals)
         {
- 
-            if (boost::same_component(start, goal, disjoint_sets_) &&
-                g->isStartGoalPairValid(state_[goal], state_[start]))
+
+            if (boost::same_component(start, goal, disjointSets_) &&
+                g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
                 if (endpoints)
                 {
@@ -268,24 +259,24 @@ bool ompl::geometric::BasicPRM::solve(const base::PlannerTerminationCondition &p
 ompl::geometric::BasicPRM::Vertex ompl::geometric::BasicPRM::addMilestone(base::State *state)
 {
     Vertex m = boost::add_vertex(g_);
-    state_[m] = state;
-    
+    stateProperty_[m] = state;
+
     // Initialize to its own (dis)connected component.
-    disjoint_sets_.make_set(m);
+    disjointSets_.make_set(m);
 
     // Which milestones will we attempt to connect to?
     if (!connectionStrategy_)
         throw Exception(name_, "No connection strategy!");
-    
+
     const std::vector<Vertex>& neighbors = connectionStrategy_(m);
 
     foreach (Vertex n, neighbors)
-        if ((boost::same_component(m, n, disjoint_sets_)
+        if ((boost::same_component(m, n, disjointSets_)
              || connectionFilter_(m, n))
-                && si_->checkMotion(state_[m], state_[n]))
+                && si_->checkMotion(stateProperty_[m], stateProperty_[n]))
         {
             const double weight = distanceFunction(m, n);
-            const unsigned int id = max_edge_id_++;
+            const unsigned int id = maxEdgeID_++;
             const Graph::edge_property_type properties(weight, id);
             boost::add_edge(m, n, properties, g_);
             uniteComponents(n, m);
@@ -297,15 +288,7 @@ ompl::geometric::BasicPRM::Vertex ompl::geometric::BasicPRM::addMilestone(base::
 
 void ompl::geometric::BasicPRM::uniteComponents(Vertex m1, Vertex m2)
 {
-    disjoint_sets_.union_set(m1, m2);
-}
-
-void ompl::geometric::BasicPRM::reconstructLastSolution(void)
-{
-    if (lastStart_ && lastGoal_)
-        constructSolution(lastStart_, lastGoal_);
-    else
-        msg_.warn("There is no solution to reconstruct");
+    disjointSets_.union_set(m1, m2);
 }
 
 void ompl::geometric::BasicPRM::constructSolution(const Vertex start, const Vertex goal)
@@ -322,14 +305,11 @@ void ompl::geometric::BasicPRM::constructSolution(const Vertex start, const Vert
         throw Exception(name_, "Could not find solution path");
     else
         for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
-            p->states.push_back(si_->cloneState(state_[pos]));
-    p->states.push_back(si_->cloneState(state_[start]));
+            p->states.push_back(si_->cloneState(stateProperty_[pos]));
+    p->states.push_back(si_->cloneState(stateProperty_[start]));
     p->reverse();
 
     pdef_->getGoal()->setSolutionPath(base::PathPtr(p));
-
-    lastStart_ = start;
-    lastGoal_ = goal;
 }
 
 void ompl::geometric::BasicPRM::getPlannerData(base::PlannerData &data) const
@@ -340,6 +320,6 @@ void ompl::geometric::BasicPRM::getPlannerData(base::PlannerData &data) const
     {
         const Vertex v1 = boost::source(e, g_);
         const Vertex v2 = boost::target(e, g_);
-        data.recordEdge(state_[v1], state_[v2]);
+        data.recordEdge(stateProperty_[v1], stateProperty_[v2]);
     }
 }
