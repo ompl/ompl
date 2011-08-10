@@ -45,34 +45,24 @@ void ompl::control::Syclop::setup(void)
 {
     base::Planner::setup();
     buildGraph();
-    const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
-    /* TODO: Handle multiple start states. */
-    base::State* start = pdef->getStartState(0);
-    startRegion = decomp.locateRegion(start);
-    /* Here we are assuming that we have a GoalSampleableRegion. */
-    base::State* goal = si_->allocState();
-    pdef->getGoal()->as<base::GoalSampleableRegion>()->sampleGoal(goal);
-    goalRegion = decomp.locateRegion(goal);
-    si_->freeState(goal);
-    Motion* startMotion = initializeTree(start);
-    graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
-    setupRegionEstimates();
-    updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 }
 
 void ompl::control::Syclop::clear(void)
 {
     base::Planner::clear();
-    regionsToEdge.clear();
     lead.clear();
     avail.clear();
     availDist.clear();
+    regionsToEdge.clear();
     graph.clear();
-    edgeCostFactors.clear();
+    buildGraph();
 }
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 {
+    checkValidity();
+    if (graph[boost::vertex(startRegion,graph)].motions.size() == 0)
+        initGraph();
     std::set<Motion*> newMotions;
     base::Goal* goal = getProblemDefinition()->getGoal().get();
     Motion* solution = NULL;
@@ -165,6 +155,23 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
             msg_.warn("Found approximate solution");
     }
     return goal->isAchieved();
+}
+
+void ompl::control::Syclop::initGraph(void)
+{
+    const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
+    /* TODO: Handle multiple start states. */
+    base::State* start = pdef->getStartState(0);
+    startRegion = decomp.locateRegion(start);
+    /* Here we are assuming that we have a GoalSampleableRegion. */
+    base::State* goal = si_->allocState();
+    pdef->getGoal()->as<base::GoalSampleableRegion>()->sampleGoal(goal);
+    goalRegion = decomp.locateRegion(goal);
+    si_->freeState(goal);
+    Motion* startMotion = initializeTree(start);
+    graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
+    setupRegionEstimates();
+    updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 }
 
 inline void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
@@ -308,9 +315,6 @@ void ompl::control::Syclop::computeLead(void)
                 boost::make_iterator_property_map(parents.begin(), get(boost::vertex_index, graph))
             )
         );
-        /*std::vector<int> parents(decomp.getNumRegions(), -1);
-        std::vector<double> dist(decomp.getNumRegions(), std::numeric_limits<double>::infinity());
-        dijkstra(parents, dist);*/
         int region = goalRegion;
         int leadLength = 1;
 

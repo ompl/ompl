@@ -161,6 +161,7 @@ namespace ompl
             void updateRegion(Region& r);
             /* Sets up RegionGraph from decomposition. */
             void buildGraph(void);
+            void initGraph(void);
             void computeLead(void);
             int selectRegion(void);
             void computeAvailableRegions(void);

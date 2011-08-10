@@ -47,8 +47,6 @@ void ompl::control::SyclopRRT::setup(void)
 void ompl::control::SyclopRRT::clear(void)
 {
     Syclop::clear();
-    sampler_.reset();
-    controlSampler_.reset();
     freeMemory();
     motions.clear();
 }
