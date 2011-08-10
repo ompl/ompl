@@ -61,9 +61,7 @@ namespace ompl
             }
 
             virtual void setup(void);
-
             virtual void clear(void);
-
             virtual void getPlannerData(base::PlannerData& data) const;
 
         protected:

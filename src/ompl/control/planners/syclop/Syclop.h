@@ -73,6 +73,7 @@ namespace ompl
         public: //TODO documentation, triangular decomposition, fit syntax to style guide
             /** \brief Constructor. Requires a Decomposition,
                 which Syclop uses to create high-level guides. */
+            typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
             Syclop(const SpaceInformationPtr& si, Decomposition* d, const std::string& name) : ompl::base::Planner(si, name),
                 siC_(si.get()), decomp(*d), covGrid(COVGRID_LENGTH, 2, *d)
@@ -84,8 +85,6 @@ namespace ompl
             virtual void setup(void);
             virtual void clear(void);
             virtual bool solve(const base::PlannerTerminationCondition& ptc);
-
-            typedef boost::function2<double, int, int> EdgeCostFactorFn;
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
             void clearEdgeCostFactors(void);
 
@@ -155,24 +154,26 @@ namespace ompl
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
-            /* Initialize edge between regions r and s. */
-            void initEdge(Adjacency& a, Region* r, Region* s);
-            // TODO: Consider moving this into Region constructor.
             void initRegion(Region& r);
             void setupRegionEstimates(void);
+            void updateRegion(Region& r);
+
+            void initEdge(Adjacency& a, Region* r, Region* s);
             void setupEdgeEstimates(void);
+            void updateEdge(Adjacency& a);
+
             /* Given that State s has been added to the tree and belongs in Region r,
                 update r's coverage estimate if needed. */
             bool updateCoverageEstimate(Region& r, const base::State* s);
             /* Given that an edge has been added to the tree, leading to the new state s,
                 update the corresponding edge's connection estimates. */
             bool updateConnectionEstimate(const Region& c, const Region& d, const base::State* s);
-            void updateEdge(Adjacency& a);
-            void updateRegion(Region& r);
+
             /* Sets up RegionGraph from decomposition. */
             void buildGraph(void);
             void initGraph(void);
             void clearGraphDetails(void);
+
             void computeLead(void);
             int selectRegion(void);
             void computeAvailableRegions(void);
@@ -185,7 +186,6 @@ namespace ompl
             const SpaceInformation* siC_;
             Decomposition& decomp;
             RegionGraph graph;
-            //instead of a map, consider holding Adjacency* in Motion object
             std::map<std::pair<int,int>, Adjacency*> regionsToEdge;
             RNG rng;
             int startRegion;
