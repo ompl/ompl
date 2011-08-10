@@ -51,7 +51,7 @@
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/est/EST.h"
-#include "ompl/geometric/planners/prm/BasicPRM.h"
+#include "ompl/geometric/planners/prm/PRM.h"
 
 #include "../../base/PlannerTest.h"
 
@@ -351,13 +351,13 @@ protected:
 
 };
 
-class BasicPRMTest : public TestPlanner
+class PRMTest : public TestPlanner
 {
 protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::BasicPRM *prm = new geometric::BasicPRM(si);
+        geometric::PRM *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
     }
 
@@ -598,7 +598,7 @@ TEST_F(PlanTest, geometric_LazyRRT)
     EXPECT_TRUE(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_BasicPRM)
+TEST_F(PlanTest, geometric_PRM)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -606,7 +606,7 @@ TEST_F(PlanTest, geometric_BasicPRM)
 
     simpleTest();
 
-    TestPlanner *p = new BasicPRMTest();
+    TestPlanner *p = new PRMTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

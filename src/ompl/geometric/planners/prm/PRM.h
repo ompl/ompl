@@ -54,7 +54,7 @@ namespace ompl
     {
 
         /**
-           @anchor gBasicPRM
+           @anchor gPRM
 
            @par Short description
            PRM is a planner that constructs a roadmap of milestones
@@ -76,7 +76,7 @@ namespace ompl
         */
 
         /** \brief Probabilistic RoadMap planner */
-        class BasicPRM : public base::Planner
+        class PRM : public base::Planner
         {
         public:
 
@@ -130,9 +130,9 @@ namespace ompl
             typedef boost::function2<bool, const Vertex&, const Vertex&> ConnectionFilter;
 
             /** \brief Constructor */
-            BasicPRM(const base::SpaceInformationPtr &si);
+            PRM(const base::SpaceInformationPtr &si);
 
-            virtual ~BasicPRM(void)
+            virtual ~PRM(void)
             {
                 freeMemory();
             }
@@ -159,6 +159,11 @@ namespace ompl
                 improved for a specified amount of time. The solve()
                 method will also improve the roadmap, as needed.*/
             virtual void growRoadmap(double growTime);
+
+            /** \brief Attempt to connect disjoint components in the
+                roadmap using random bounding motions (the PRM
+                expansion step) */
+            virtual void expandRoadmap(double expandTime);
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 

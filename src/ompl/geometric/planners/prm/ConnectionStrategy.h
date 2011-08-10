@@ -70,6 +70,12 @@ namespace ompl
             {
             }
 
+            /** \brief Set the nearest neighbors datastructure to use */
+            void setNearestNeighbors(const boost::shared_ptr< NearestNeighbors<Milestone> > &nn)
+            {
+                nn_ = nn;
+            }
+
             /** \brief Given a milestone \e m, find the nearest
                 neighbors attempts of connection should be made to,
                 according to the connection strategy */
