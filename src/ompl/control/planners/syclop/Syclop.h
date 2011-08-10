@@ -117,6 +117,11 @@ namespace ompl
 
             struct Region
             {
+                void clear(void)
+                {
+                    motions.clear();
+                    covGridCells.clear();
+                }
                 std::vector<Motion*> motions;
                 int index;
                 int numSelections;
@@ -130,6 +135,10 @@ namespace ompl
 
             struct Adjacency
             {
+                void clear(void)
+                {
+                    covGridCells.clear();
+                }
                 std::set<int> covGridCells;
                 bool empty;
                 int numLeadInclusions;
@@ -162,6 +171,7 @@ namespace ompl
             /* Sets up RegionGraph from decomposition. */
             void buildGraph(void);
             void initGraph(void);
+            void clearGraphDetails(void);
             void computeLead(void);
             int selectRegion(void);
             void computeAvailableRegions(void);

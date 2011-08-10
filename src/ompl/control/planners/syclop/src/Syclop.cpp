@@ -53,9 +53,7 @@ void ompl::control::Syclop::clear(void)
     lead.clear();
     avail.clear();
     availDist.clear();
-    regionsToEdge.clear();
-    graph.clear();
-    buildGraph();
+    clearGraphDetails();
 }
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
@@ -171,6 +169,7 @@ void ompl::control::Syclop::initGraph(void)
     Motion* startMotion = initializeTree(start);
     graph[boost::vertex(startRegion,graph)].motions.push_back(startMotion);
     setupRegionEstimates();
+    setupEdgeEstimates();
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 }
 
@@ -181,9 +180,6 @@ inline void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& fac
 
 void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
 {
-    adj.empty = true;
-    adj.numLeadInclusions = 0;
-    adj.numSelections = 0;
     adj.source = r;
     adj.target = s;
     updateEdge(adj);
@@ -201,6 +197,18 @@ void ompl::control::Syclop::updateEdge(Adjacency& a)
     {
         const EdgeCostFactorFn& factor = *i;
         a.cost *= factor(a.source->index, a.target->index);
+    }
+}
+
+void ompl::control::Syclop::setupEdgeEstimates(void)
+{
+    EdgeIter ei, eend;
+    for (boost::tie(ei,eend) = boost::edges(graph); ei != eend; ++ei)
+    {
+        Adjacency& adj = graph[*ei];
+        adj.empty = true;
+        adj.numLeadInclusions = 0;
+        adj.numSelections = 0;
     }
 }
 
@@ -297,6 +305,16 @@ void ompl::control::Syclop::buildGraph(void)
         }
         neighbors.clear();
     }
+}
+
+void ompl::control::Syclop::clearGraphDetails(void)
+{
+    VertexIter vi, vend;
+    for (boost::tie(vi,vend) = boost::vertices(graph); vi != vend; ++vi)
+        graph[*vi].clear();
+    EdgeIter ei, eend;
+    for (boost::tie(ei,eend) = boost::edges(graph); ei != eend; ++ei)
+        graph[*ei].clear();
 }
 
 void ompl::control::Syclop::computeLead(void)
