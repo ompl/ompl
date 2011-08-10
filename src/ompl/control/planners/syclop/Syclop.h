@@ -87,6 +87,7 @@ namespace ompl
 
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
+            void clearEdgeCostFactors(void);
 
         protected:
             static const int NUM_FREEVOL_SAMPLES = 100000;

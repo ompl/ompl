@@ -173,9 +173,14 @@ void ompl::control::Syclop::initGraph(void)
     updateCoverageEstimate(graph[boost::vertex(startRegion,graph)], start);
 }
 
-inline void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
+void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
 {
     edgeCostFactors.push_back(factor);
+}
+
+void ompl::control::Syclop::clearEdgeCostFactors(void)
+{
+    edgeCostFactors.clear();
 }
 
 void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
