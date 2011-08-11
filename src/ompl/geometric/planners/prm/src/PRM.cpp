@@ -85,7 +85,7 @@ void ompl::geometric::PRM::setup(void)
     if (!connectionStrategy_)
     {
         if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&PRM::milestoneCount, this), nn_); // FIXME
+            connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&PRM::milestoneCount, this), nn_, si_->getStateDimension());
         else
             connectionStrategy_ = KStrategy<Vertex>(DEFAULT_NEAREST_NEIGHBORS, nn_);
     }

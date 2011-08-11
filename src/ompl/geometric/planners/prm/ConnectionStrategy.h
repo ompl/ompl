@@ -76,8 +76,8 @@ namespace ompl
                 nn_ = nn;
             }
 
-            /** \brief Given a milestone \e m, find the nearest
-                neighbors attempts of connection should be made to,
+            /** \brief Given a milestone \e m, find the number of nearest
+                neighbors connection attempts that should be made from it,
                 according to the connection strategy */
             std::vector<Milestone>& operator()(const Milestone& m)
             {
@@ -98,39 +98,62 @@ namespace ompl
         };
 
         /**
-         * Make the minimal number of connections required to ensure
+         * \brief Make the minimal number of connections required to ensure
          * asymptotic optimality.
+         *
+         * This connection strategy attempts to connect a milestone to its
+         * k-nearest neighbors where k is a function of the number of milestones
+         * that have already been added to the roadmap (n).
+         *
+         * k(n) = kPRMConstant * log(n)
+         *
+         * where
+         *
+         * kPRMConstant > kStarPRMConstant = e(1 + 1/d)
+         *
+         * and d is the number of dimensions in the state space. Note that
+         * kPRMConstant = 2e is a valid choice for any problem instance and so,
+         * if d is not provided, this value is used.
+         *
+         * The user must provide a function that returns the value of n.
          *
          * @par External documentation
          * S. Karaman and E. Frazzoli
-         * Incremental Sampling-based Algorithms for Optimal Motion Planning,
-         * <em>Int. Journal of Robotics Research</em> (Submitted 2010)
+         * Sampling-based algorithms for optimal motion planning,
+         * <em>Int. Journal of Robotics Research</em> Volume 30, Number 7, June 2010
          */
         template <class Milestone>
         class KStarStrategy : public KStrategy<Milestone>
         {
         public:
 
-            /** \brief Constructor takes a function that retunrs the
-                maximum number of nearest neighbors to return at a
-                particular time (\e n) and the nearest neighbors
-                datastruture to use (\e nn) */
+            /**
+             * \brief Constructor
+             *
+             * \param n a function that returns the number of milestones that have already been added to the roadmap
+             * \param nn the nearest neighbors datastruture to use
+             * \param d the dimensionality of the state space.
+             * The default is 1, which will make kPRMConstant=2e which
+             * is valid for all problem instances.
+             */
             KStarStrategy(const boost::function<unsigned int()>& n,
-                          const boost::shared_ptr< NearestNeighbors<Milestone> > &nn) :
-                KStrategy<Milestone>(n(), nn), n_(n)
+                          const boost::shared_ptr< NearestNeighbors<Milestone> > &nn,
+                          const unsigned int d = 1) :
+                KStrategy<Milestone>(n(), nn), n_(n), kPRMConstant_(1.0 + 1.0/(double)d)
             {
             }
 
             std::vector<Milestone>& operator()(const Milestone& m)
             {
-                KStrategy<Milestone>::k_ = ceil(2.0 * boost::math::constants::euler<double>() * log((double)n_()));
+                KStrategy<Milestone>::k_ = ceil(kPRMConstant_ * boost::math::constants::euler<double>() * log((double)n_()));
                 return static_cast<KStrategy<Milestone>&>(*this)(m);
             }
 
         protected:
 
-            /** \brief Function returning the number of milestones added so far */
+            /** \brief Function returning the number of milestones added to the roadmap so far */
             const boost::function<unsigned int()> n_;
+            const double kPRMConstant_;
 
         };
 
