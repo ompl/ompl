@@ -59,7 +59,7 @@ namespace ompl
            guaranteed to converge to an optimal solution, while its
            running time is guaranteed to be a constant factor of the
            running time of the \ref gRRT "RRT". The notion of optimality is with
-           respect to the distance function defined on the manifold
+           respect to the distance function defined on the state space
            we are operating on. See ompl::base::Goal::setMaximumPathLength() for
            how to set the maximally allowed path length to reach the goal.
            If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is

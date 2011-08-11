@@ -276,7 +276,7 @@ namespace ompl
             /** \brief Print the list of registered projections. This function is also called by printSettings() */
             virtual void printProjections(std::ostream &out) const;
 
-            /** \brief Perform sanity checks for this manifold. Throws an exception if failures are found.
+            /** \brief Perform sanity checks for this state space. Throws an exception if failures are found.
                 \note This checks if distances are always positive, whether the integration works as expected. */
             virtual void sanityChecks(void) const;
 

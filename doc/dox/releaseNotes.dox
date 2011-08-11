@@ -1,6 +1,23 @@
 /**
 \page releaseNotes Release Notes
 
+\section release_0_9_4 OMPL 0.9.4 (XXX, 2011)
+- Renamed StateManifold to StateSpace and ControlManifold to ControlSpace
+- Added RRTstar contribution
+- Added GNAT nearest neighbors datastructure
+- Added representation of a discrete state space (DiscreteStateSpace)
+- Added representation of probability density functions (PDF)
+- Replaced the implementation of BasicPRM with PRM. Thanks to James Marble, the new implementation uses BGL.
+- Added isStraightLinePathValid() to PlannerDefinition
+- Using boost ublas for real vector projections
+- Add sanity checks for state spaces
+- Benchmarked planners are now run in a separate thread (and termination conditions are evaluated separately, to detect crashes)
+- Added getType() for Goal and replaced getType() for planners by getSpecs()
+- Generalized planner termination conditions. The user can now call terminate() at any time to signal a planner it should stop its computation
+- Improvements to control::KPIECE1, so that it considers goal biasing more appropriately
+- Move code for extracting machine properties from util/ to benchmark/
+- Documentation fixes
+
 \section release_0_9_3 OMPL 0.9.3 (May 2, 2011)
 - Added path smoothing with splines
 - Added a bi-directional implementation of KPIECE (BKPIECE)
