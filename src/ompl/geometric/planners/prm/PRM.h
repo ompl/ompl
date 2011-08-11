@@ -149,16 +149,38 @@ namespace ompl
 
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
-            /** \brief Set the maximum number of neighbors for which a
-                connection to will be attempted when a new milestone
-                is added */
+            /** \brief Set the connection strategy function that specifies the
+             milestones that connection attempts will be make to for a
+             given milestone.
+
+             \par The behavior and performance of PRM can be changed drastically
+             by varying the number and properties if the milestones that are
+             connected to each other.
+
+             \param pdef A function that takes a milestone as an argument and
+             returns a collection of other milestones to which a connection
+             attempt must be made. The default connection strategy is to connect
+             a milestone's 10 closest neighbors.
+             */
             void setConnectionStrategy(const ConnectionStrategy& connectionStrategy)
             {
                 connectionStrategy_ = connectionStrategy;
                 userSetConnectionStrategy_ = true;
             }
 
-            /** \brief Set the function that can reject a milestone connection */
+            /** \brief Set the function that can reject a milestone connection.
+
+             \par The given function is called immediately before a connection
+             is checked for collision and added to the roadmap. Other neighbors
+             may have already been connected before this function is called.
+             This allows certain heuristics that use the structure of the
+             roadmap (like connected components or useful cycles) to be
+             implemented by changing this function.
+
+             \param connectionFilter A function that takes the new milestone,
+             a neighboring milestone and returns whether a connection should be
+             attempted.
+             */
             void setConnectionFilter(const ConnectionFilter& connectionFilter)
             {
                 connectionFilter_ = connectionFilter;
