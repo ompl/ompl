@@ -165,7 +165,7 @@
     - <a href="../images/cubicles.pdf">The “cubicles” problem with default settings</a>
     - <a href="../images/Twistycool.pdf">The “Twistycool” problem with default settings</a>
     .
-    The plots show comparisons between ompl::geometric::RRTConnect, ompl::geometric::RRT, ompl::geometric::LazyRRT, ompl::geometric::LBKPIECE1, ompl::geometric::KPIECE1, ompl::geometric::SBL, ompl::geometric::EST, and ompl::geometric::BasicPRM.
+    The plots show comparisons between ompl::geometric::RRTConnect, ompl::geometric::RRT, ompl::geometric::LazyRRT, ompl::geometric::LBKPIECE1, ompl::geometric::KPIECE1, ompl::geometric::SBL, ompl::geometric::EST, and ompl::geometric::PRM.
     Each planner is run 500 times with a 10 second time limit for the cubicles problem for each sampling strategy, while for the Twistycool problem each planner is run 50 times with a 90 second time limit.
 
     For integer and real-valued measurements the script will compute <a href="http://en.wikipedia.org/wiki/Box_plot">box plots</a>. For example, here is the plot for the real-valued attribute <strong>time</strong> for the cubicles environment:
