@@ -153,7 +153,7 @@ namespace ompl
 
             /** \brief Function returning the number of milestones added to the roadmap so far */
             const boost::function<unsigned int()> n_;
-            const double kPRMConstant_;
+            const double                          kPRMConstant_;
 
         };
 
