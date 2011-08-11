@@ -58,8 +58,9 @@ static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 10;
 
 static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
 
-ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si) :
+ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy) :
     base::Planner(si, "PRM"),
+    starStrategy_(starStrategy),
     stateProperty_(boost::get(vertex_state_t(), g_)),
     totalConnectionAttemptsProperty_(boost::get(vertex_total_connection_attempts_t(), g_)),
     successfulConnectionAttemptsProperty_(boost::get(vertex_successful_connection_attempts_t(), g_)),
@@ -71,6 +72,8 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si) :
     userSetConnectionStrategy_(false)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+    specs_.approximateSolutions = true;
+    specs_.optimizingPaths = true;
 }
 
 void ompl::geometric::PRM::setup(void)
@@ -80,7 +83,12 @@ void ompl::geometric::PRM::setup(void)
         nn_.reset(new NearestNeighborsGNAT<Vertex>());
     nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
     if (!connectionStrategy_)
-        connectionStrategy_ = KStrategy<Vertex>(DEFAULT_NEAREST_NEIGHBORS, nn_);
+    {
+        if (starStrategy_)
+            connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&PRM::milestoneCount, this), nn_); // FIXME
+        else
+            connectionStrategy_ = KStrategy<Vertex>(DEFAULT_NEAREST_NEIGHBORS, nn_);
+    }
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
 }
@@ -258,12 +266,34 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
             if (boost::same_component(start, goal, disjointSets_) &&
                 g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
-                if (endpoints)
+                bool sol = true;
+
+                // if there is a maximum path length we wish to accept, we need to check the solution length
+                if (g->getMaximumPathLength() < std::numeric_limits<double>::infinity())
                 {
-                    endpoints->first = start;
-                    endpoints->second = goal;
+                    base::PathPtr p = constructSolution(start, goal);
+                    double pl = p->length();
+                    if (pl > g->getMaximumPathLength())
+                    {
+                        sol = false;
+                        // record approximate solution
+                        if (approxlen_ < 0.0 || approxlen_ > pl)
+                        {
+                            approxsol_ = p;
+                            approxlen_ = pl;
+                        }
+                    }
                 }
-                return true;
+
+                if (sol)
+                {
+                    if (endpoints)
+                    {
+                        endpoints->first = start;
+                        endpoints->second = goal;
+                    }
+                    return true;
+                }
             }
         }
     return false;
@@ -303,6 +333,9 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     if (!simpleSampler_)
         simpleSampler_ = si_->allocStateSampler();
 
+    approxsol_.reset();
+    approxlen_ = -1.0;
+
     msg_.inform("Starting with %u states", nrStartStates);
 
     std::vector<base::State*> xstates(MAX_RANDOM_BOUNCE_STEPS);
@@ -328,7 +361,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
         // if there already is a solution, construct it
         if (haveSolution(startM_, goalM_, &solEndpoints))
         {
-            constructSolution(solEndpoints.first, solEndpoints.second);
+            goal->setSolutionPath(constructSolution(solEndpoints.first, solEndpoints.second));
             break;
         }
         // othewise, spend some time building a roadmap
@@ -350,7 +383,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
             // if a solution has been found, construct it
             if (haveSolution(startM_, goalM_, &solEndpoints))
             {
-                constructSolution(solEndpoints.first, solEndpoints.second);
+                goal->setSolutionPath(constructSolution(solEndpoints.first, solEndpoints.second));
                 break;
             }
         }
@@ -358,6 +391,13 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     si_->freeStates(xstates);
 
     msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
+
+    if (!goal->getSolutionPath() && approxsol_)
+    {
+        goal->setSolutionPath(approxsol_, true);
+        // the solution is exact, but not as short as we'd like it to be
+        goal->setDifference(0.0);
+    }
 
     return goal->isAchieved();
 }
@@ -404,7 +444,7 @@ void ompl::geometric::PRM::uniteComponents(Vertex m1, Vertex m2)
     disjointSets_.union_set(m1, m2);
 }
 
-void ompl::geometric::PRM::constructSolution(const Vertex start, const Vertex goal)
+ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, const Vertex goal)
 {
     PathGeometric *p = new PathGeometric(si_);
 
@@ -422,7 +462,7 @@ void ompl::geometric::PRM::constructSolution(const Vertex start, const Vertex go
     p->states.push_back(si_->cloneState(stateProperty_[start]));
     p->reverse();
 
-    pdef_->getGoal()->setSolutionPath(base::PathPtr(p));
+    return base::PathPtr(p);
 }
 
 void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const

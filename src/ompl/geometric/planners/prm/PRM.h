@@ -140,7 +140,7 @@ namespace ompl
             typedef boost::function2<bool, const Vertex&, const Vertex&> ConnectionFilter;
 
             /** \brief Constructor */
-            PRM(const base::SpaceInformationPtr &si);
+            PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
             virtual ~PRM(void)
             {
@@ -238,7 +238,10 @@ namespace ompl
             bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, std::pair<Vertex, Vertex> *endpoints = NULL);
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            void constructSolution(const Vertex start, const Vertex goal);
+            base::PathPtr constructSolution(const Vertex start, const Vertex goal);
+
+            /** \brief Flag indicating whether the default strategy is the Star trategy or not */
+            bool                                                   starStrategy_;
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                             sampler_;
@@ -250,13 +253,19 @@ namespace ompl
             RoadmapNeighbors                                       nn_;
 
             /** \brief Connectivity graph */
-            Graph g_;
+            Graph                                                  g_;
 
             /** \brief Array of start milestones */
             std::vector<Vertex>                                    startM_;
 
             /** \brief Array of goal milestones */
             std::vector<Vertex>                                    goalM_;
+
+            /** \brief Storage for approximate solutions */
+            base::PathPtr                                          approxsol_;
+
+            /** \brief The length of the approximate solution */
+            double                                                 approxlen_;
 
             /** \brief Access to the internal base::state at each Vertex */
             boost::property_map<Graph, vertex_state_t>::type       stateProperty_;
