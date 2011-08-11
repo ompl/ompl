@@ -337,12 +337,12 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
             // call growRoadmap() 4 times for 0.1 seconds, for every call of expandRoadmap() for 0.2 seconds
             if (steps < 4)
             {
-                growRoadmap(startM_, goalM_, ptc + base::timedPlannerTerminationCondition(0.1), xstates[0]);
+                growRoadmap(startM_, goalM_, base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(0.1)), xstates[0]);
                 steps++;
             }
             else
             {
-                expandRoadmap(startM_, goalM_, ptc + base::timedPlannerTerminationCondition(0.2), xstates);
+                expandRoadmap(startM_, goalM_, base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(0.2)), xstates);
                 steps = 0;
             }
 

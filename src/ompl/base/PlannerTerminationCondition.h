@@ -97,20 +97,6 @@ namespace ompl
             bool                          terminate_;
         };
 
-        /** \brief Simple termination condition that always returns false. The termination condition will never be met */
-        class PlannerNonTerminatingCondition : public PlannerTerminationCondition
-        {
-        public:
-            PlannerNonTerminatingCondition(void);
-        };
-
-        /** \brief Simple termination condition that always returns true. The termination condition will always be met */
-        class PlannerAlwaysTerminatingCondition : public PlannerTerminationCondition
-        {
-        public:
-            PlannerAlwaysTerminatingCondition(void);
-        };
-
         /** \brief Termination condition with lazy evaluation. This is
             just as a regular termination condition, except the
             condition is actually evaluated by computeEval() and the
@@ -124,12 +110,6 @@ namespace ompl
         class PlannerThreadedTerminationCondition : public PlannerTerminationCondition
         {
         public:
-
-            /** \brief Construct a termination condition that is
-                evaluated every \e period seconds. An implementation
-                of computeEval() other than the default needs to be
-                provided */
-            PlannerThreadedTerminationCondition(double period);
 
             /** \brief Construct a termination condition that is
                 evaluated every \e period seconds. The evaluation of
@@ -153,7 +133,7 @@ namespace ompl
         protected:
 
             /** \brief Evaluate the termination condition. By default this is a call to fn_() from the base class */
-            virtual bool computeEval(void);
+            bool computeEval(void);
 
             /** \brief Start the thread evaluating termination conditions if not already started */
             void startEvalThread(void);
@@ -174,53 +154,36 @@ namespace ompl
             double         period_;
         };
 
+        /** \brief Simple termination condition that always returns false. The termination condition will never be met */
+        class PlannerNonTerminatingCondition : public PlannerTerminationCondition
+        {
+        public:
+            PlannerNonTerminatingCondition(void);
+        };
+
+        /** \brief Simple termination condition that always returns true. The termination condition will always be met */
+        class PlannerAlwaysTerminatingCondition : public PlannerTerminationCondition
+        {
+        public:
+            PlannerAlwaysTerminatingCondition(void);
+        };
+
         /** \brief Combine two termination conditions into one. If either termination condition returns true, this one will return true as well. */
         class PlannerOrTerminationCondition : public PlannerTerminationCondition
         {
         public:
-            PlannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2) :
-                PlannerTerminationCondition(), c1_(c1), c2_(c2)
-            {
-            }
-
-            /** \brief Evaluate the termination conditions for c1_ and c2_ */
-            virtual bool eval(void) const;
-
-        private:
-
-            PlannerTerminationCondition c1_;
-            PlannerTerminationCondition c2_;
+            PlannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2);
         };
 
         /** \brief Combine two termination conditions into one. Both termination conditions need to return true for this one to return true. */
         class PlannerAndTerminationCondition : public PlannerTerminationCondition
         {
         public:
-            PlannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2) :
-                PlannerTerminationCondition(), c1_(c1), c2_(c2)
-            {
-            }
-
-            /** \brief Evaluate the termination conditions for c1_ and c2_ */
-            virtual bool eval(void) const;
-
-        private:
-
-            PlannerTerminationCondition c1_;
-            PlannerTerminationCondition c2_;
+            PlannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2);
         };
 
-
-        /** \brief Combine two termination conditions into one. If either termination condition returns true, the constructed one will return true as well. */
-        PlannerTerminationCondition operator+(const PlannerTerminationCondition &a, const PlannerTerminationCondition &b);
-
-        /** \brief Combine two termination conditions into one. Both termination conditions need to return true for the construced one to return true. */
-        PlannerTerminationCondition operator*(const PlannerTerminationCondition &a, const PlannerTerminationCondition &b);
-
-        /** \brief Return a planner termination condition that becomes true after a specified number of seconds (\e duration) */
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration);
     }
-
 }
 
 #endif
