@@ -67,7 +67,8 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si) :
     edgeIDProperty_(boost::get(boost::edge_index, g_)),
     disjointSets_(boost::get(boost::vertex_rank, g_),
                   boost::get(boost::vertex_predecessor, g_)),
-    maxEdgeID_(0)
+    maxEdgeID_(0),
+    userSetConnectionStrategy_(false)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 }

@@ -155,6 +155,7 @@ namespace ompl
             void setConnectionStrategy(const ConnectionStrategy& connectionStrategy)
             {
                 connectionStrategy_ = connectionStrategy;
+                userSetConnectionStrategy_ = true;
             }
 
             /** \brief Set the function that can reject a milestone connection */
@@ -183,7 +184,11 @@ namespace ompl
             template<template<typename T> class NN>
             void setNearestNeighbors(void)
             {
-                nn_.reset(new NN<base::State*>());
+                nn_.reset(new NN<Vertex>());
+                if (!userSetConnectionStrategy_)
+                    connectionStrategy_.clear();
+                if (isSetup())
+                    setup();
             }
 
             virtual void setup(void);
@@ -284,6 +289,9 @@ namespace ompl
 
             /** \brief Function that can reject a milestone connection */
             ConnectionFilter                                       connectionFilter_;
+
+            /** \brief Flag indicating whether the employed connection strategy was set by the user (or defaults are assumed) */
+            bool                                                   userSetConnectionStrategy_;
 
             /** \brief Random number generator */
             RNG                                                    rng_;
