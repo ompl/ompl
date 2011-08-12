@@ -42,6 +42,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/unordered_map.hpp>
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
@@ -191,7 +192,7 @@ namespace ompl
             const SpaceInformation* siC_;
             Decomposition& decomp_;
             RegionGraph graph_;
-            std::map<std::pair<int,int>, Adjacency*> regionsToEdge_;
+            boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
             RNG rng_;
             int startRegion_;
             int goalRegion_;
