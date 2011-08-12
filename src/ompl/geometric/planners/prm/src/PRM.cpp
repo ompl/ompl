@@ -48,15 +48,25 @@
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
 
-/** \brief Maximum number of sampling attempts to find a valid state,
-    without checking whether the allowed time elapsed. This value
-    should not really be changed. */
-static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
+namespace ompl
+{
+    namespace magic
+    {
 
+        /** \brief Maximum number of sampling attempts to find a valid state,
+            without checking whether the allowed time elapsed. This value
+            should not really be changed. */
+        static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
-static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 10;
+        /** \brief The number of steps to take for a random bounce
+            motion generated as part of the expansion step of PRM. */
+        static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 5;
 
-static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
+        /** \brief The number of nearest neighbors to consider by
+            default in the construction of the PRM roadmap */
+        static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
+    }
+}
 
 ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy) :
     base::Planner(si, "PRM"),
@@ -87,7 +97,7 @@ void ompl::geometric::PRM::setup(void)
         if (starStrategy_)
             connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&PRM::milestoneCount, this), nn_, si_->getStateDimension());
         else
-            connectionStrategy_ = KStrategy<Vertex>(DEFAULT_NEAREST_NEIGHBORS, nn_);
+            connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS, nn_);
     }
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
@@ -126,7 +136,7 @@ void ompl::geometric::PRM::expandRoadmap(double expandTime)
         simpleSampler_ = si_->allocStateSampler();
 
     std::vector<Vertex> empty;
-    std::vector<base::State*> states(MAX_RANDOM_BOUNCE_STEPS);
+    std::vector<base::State*> states(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(states);
     expandRoadmap(empty, empty, base::timedPlannerTerminationCondition(expandTime), states);
     si_->freeStates(states);
@@ -219,7 +229,7 @@ void ompl::geometric::PRM::growRoadmap(double growTime)
             {
                 found = sampler_->sample(workState);
                 attempts++;
-            } while (attempts < FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
+            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
         }
         // add it as a milestone
         if (found)
@@ -244,7 +254,7 @@ void ompl::geometric::PRM::growRoadmap(const std::vector<Vertex> &start,
             {
                 found = sampler_->sample(workState);
                 attempts++;
-            } while (attempts < FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
+            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
         }
         // add it as a milestone
         if (found)
@@ -338,7 +348,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Starting with %u states", nrStartStates);
 
-    std::vector<base::State*> xstates(MAX_RANDOM_BOUNCE_STEPS);
+    std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
     std::pair<Vertex, Vertex> solEndpoints;
     unsigned int steps = 0;
