@@ -39,7 +39,6 @@
 #include "ompl/base/ProblemDefinition.h"
 #include <limits>
 #include <stack>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 void ompl::control::Syclop::setup(void)
 {

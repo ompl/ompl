@@ -37,7 +37,6 @@
 #ifndef OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOP_
 #define OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOP_
 
-#define BOOST_NO_HASH
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graphviz.hpp>
