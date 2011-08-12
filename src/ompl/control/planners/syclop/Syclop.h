@@ -76,7 +76,7 @@ namespace ompl
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
             Syclop(const SpaceInformationPtr& si, Decomposition* d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp(*d), graphReady(false), covGrid(COVGRID_LENGTH, 2, *d)
+                siC_(si.get()), decomp_(*d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, *d)
             {
             }
             virtual ~Syclop()
@@ -189,17 +189,17 @@ namespace ompl
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
 
             const SpaceInformation* siC_;
-            Decomposition& decomp;
-            RegionGraph graph;
-            std::map<std::pair<int,int>, Adjacency*> regionsToEdge;
-            RNG rng;
-            int startRegion;
-            int goalRegion;
-            std::vector<int> lead;
-            std::set<int> avail;
-            PDF<int> availDist;
-            std::vector<EdgeCostFactorFn> edgeCostFactors;
-            bool graphReady;
+            Decomposition& decomp_;
+            RegionGraph graph_;
+            std::map<std::pair<int,int>, Adjacency*> regionsToEdge_;
+            RNG rng_;
+            int startRegion_;
+            int goalRegion_;
+            std::vector<int> lead_;
+            std::set<int> avail_;
+            PDF<int> availDist_;
+            std::vector<EdgeCostFactorFn> edgeCostFactors_;
+            bool graphReady_;
 
         private:
             class CoverageGrid : public GridDecomposition
@@ -222,7 +222,7 @@ namespace ompl
                 Decomposition& decomp;
             };
 
-            CoverageGrid covGrid;
+            CoverageGrid covGrid_;
         };
     }
 }

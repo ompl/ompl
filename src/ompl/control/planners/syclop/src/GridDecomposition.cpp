@@ -37,10 +37,10 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
 ompl::control::GridDecomposition::GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b) :
-    Decomposition(len*len, dim, b), length(len), cellVolume(1.0)
+    Decomposition(len*len, dim, b), length_(len), cellVolume_(1.0)
 {
     for (std::size_t i = 0; i < dim; ++i)
-        cellVolume *= (b.high[i] - b.low[i]) / len;
+        cellVolume_ *= (b.high[i] - b.low[i]) / len;
 }
 
 /* This implementation requires time linear with the number of regions.
@@ -48,14 +48,14 @@ ompl::control::GridDecomposition::GridDecomposition(const int len, const std::si
  * but can we beat linear time with arbitrary dimension? */
 void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<int>& neighbors) const
 {
-    if (dimension == 1)
+    if (dimension_ == 1)
     {
         if (rid > 0)
             neighbors.push_back(rid-1);
-        if (rid < length-1)
+        if (rid < length_-1)
             neighbors.push_back(rid+1);
     }
-    else if (dimension == 2)
+    else if (dimension_ == 2)
     {
         static const int offset[] = {
             -1, -1,
@@ -74,11 +74,11 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
         {
             nc[0] = coord[0] + offset[i];
             nc[1] = coord[1] + offset[i+1];
-            if (nc[0] >= 0 && nc[0] < length && nc[1] >= 0 && nc[1] < length)
-                neighbors.push_back(nc[0]*length + nc[1]);
+            if (nc[0] >= 0 && nc[0] < length_ && nc[1] >= 0 && nc[1] < length_)
+                neighbors.push_back(nc[0]*length_ + nc[1]);
         }
     }
-    else if (dimension == 3)
+    else if (dimension_ == 3)
     {
         //TODO FINISH (below is copied from oopsmp)
         static const int offset[] = {
@@ -122,15 +122,15 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
 
 int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
 {
-    std::valarray<double> coord(dimension);
+    std::valarray<double> coord(dimension_);
     project(s, coord);
     int region = 0;
     int factor = 1;
-    for (int i = dimension-1; i >= 0; --i)
+    for (int i = dimension_-1; i >= 0; --i)
     {
-        const int index = (int) (length*(coord[i]-bounds.low[i])/(bounds.high[i]-bounds.low[i]));
+        const int index = (int) (length_*(coord[i]-bounds_.low[i])/(bounds_.high[i]-bounds_.low[i]));
         region += factor*index;
-        factor *= length;
+        factor *= length_;
     }
     return region;
 }
@@ -139,11 +139,11 @@ bool ompl::control::GridDecomposition::areNeighbors(const int r, const int s) co
 {
     if (r == s)
         return false;
-    std::vector<int> rc(dimension);
-    std::vector<int> sc(dimension);
+    std::vector<int> rc(dimension_);
+    std::vector<int> sc(dimension_);
     regionToCoord(r, rc);
     regionToCoord(s, sc);
-    for (std::size_t i = 0; i < dimension; ++i)
+    for (std::size_t i = 0; i < dimension_; ++i)
     {
         if (abs(rc[i]-sc[i]) > 1)
             return false;
@@ -153,11 +153,11 @@ bool ompl::control::GridDecomposition::areNeighbors(const int r, const int s) co
 
 void ompl::control::GridDecomposition::regionToCoord(int rid, std::vector<int>& coord) const
 {
-    coord.resize(dimension);
-    for (int i = dimension-1; i >= 0; --i)
+    coord.resize(dimension_);
+    for (int i = dimension_-1; i >= 0; --i)
     {
-        int remainder = rid % length;
+        int remainder = rid % length_;
         coord[i] = remainder;
-        rid /= length;
+        rid /= length_;
     }
 }

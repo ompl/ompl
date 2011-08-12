@@ -58,7 +58,7 @@ namespace ompl
 
             virtual double getRegionVolume(const int rid) const
             {
-                return cellVolume;
+                return cellVolume_;
             }
 
             /* This implementation requires time linear with the number of regions.
@@ -75,8 +75,8 @@ namespace ompl
             /* Returns true iff regions r and s are adjacent in the grid. */
             bool areNeighbors(const int r, const int s) const;
 
-            const int length;
-            double cellVolume;
+            const int length_;
+            double cellVolume_;
         };
     }
 }

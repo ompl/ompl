@@ -71,7 +71,7 @@ namespace ompl
 
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
-            std::vector<Motion*> motions;
+            std::vector<Motion*> motions_;
         };
     }
 }

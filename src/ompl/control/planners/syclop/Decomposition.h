@@ -51,7 +51,7 @@ namespace ompl
         public:
 
             /* A decomposition consists of a fixed number of regions and fixed bounds. */
-            Decomposition(const int n, const std::size_t dim, const base::RealVectorBounds& b) : numRegions(n), dimension(dim), bounds(b)
+            Decomposition(const int n, const std::size_t dim, const base::RealVectorBounds& b) : numRegions_(n), dimension_(dim), bounds_(b)
             {
                 if (dim > b.low.size())
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
@@ -65,12 +65,12 @@ namespace ompl
 
             virtual int getNumRegions() const
             {
-                return numRegions;
+                return numRegions_;
             }
 
             virtual const base::RealVectorBounds& getBounds() const
             {
-                return bounds;
+                return bounds_;
             }
 
             virtual double getRegionVolume(const int rid) const = 0;
@@ -88,9 +88,9 @@ namespace ompl
 
         protected:
 
-            const int numRegions;
-            const std::size_t dimension;
-            const base::RealVectorBounds bounds;
+            const int numRegions_;
+            const std::size_t dimension_;
+            const base::RealVectorBounds bounds_;
             msg::Interface msg_;
         };
     }

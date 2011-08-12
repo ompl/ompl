@@ -48,14 +48,14 @@ void ompl::control::SyclopRRT::clear(void)
 {
     Syclop::clear();
     freeMemory();
-    motions.clear();
+    motions_.clear();
 }
 
 void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
 {
     Planner::getPlannerData(data);
-    for (std::size_t i = 0 ; i < motions.size() ; ++i)
-        data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
+    for (std::size_t i = 0 ; i < motions_.size() ; ++i)
+        data.recordEdge(motions_[i]->parent ? motions_[i]->parent->state : NULL, motions_[i]->state);
 }
 
 ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const base::State* s)
@@ -63,13 +63,13 @@ ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const ba
     Motion* motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
-    motions.push_back(motion);
+    motions_.push_back(motion);
     return motion;
 }
 
 void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
 {
-    Motion* nmotion = region.motions[rng.uniformInt(0,region.motions.size()-1)];
+    Motion* nmotion = region.motions[rng_.uniformInt(0,region.motions.size()-1)];
 
     base::State* newState = si_->allocState();
     Control* rctrl = siC_->allocControl();
@@ -85,7 +85,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
         siC_->copyControl(motion->control, rctrl);
         motion->steps = duration;
         motion->parent = nmotion;
-        motions.push_back(motion);
+        motions_.push_back(motion);
         newMotions.insert(motion);
     }
 
@@ -95,12 +95,12 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
 
 void ompl::control::SyclopRRT::freeMemory(void)
 {
-    for (std::size_t i = 0 ; i < motions.size() ; ++i)
+    for (std::size_t i = 0 ; i < motions_.size() ; ++i)
     {
-        if (motions[i]->state)
-            si_->freeState(motions[i]->state);
-        if (motions[i]->control)
-            siC_->freeControl(motions[i]->control);
-        delete motions[i];
+        if (motions_[i]->state)
+            si_->freeState(motions_[i]->state);
+        if (motions_[i]->control)
+            siC_->freeControl(motions_[i]->control);
+        delete motions_[i];
     }
 }
