@@ -51,7 +51,7 @@
 
     // For planners that we want to configure in specific ways,
     // the ompl::base::PlannerAllocator should be used:
-    b.addPlanner(boost::bind(&myConfiguredPlanner, _1));
+    b.addPlannerAllocator(boost::bind(&myConfiguredPlanner, _1));
     // etc.
 
     // Now we can benchmark: 5 second time limit for each plan computation,
