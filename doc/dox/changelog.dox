@@ -17,6 +17,9 @@
 \section jul_5_2011 July 5, 2011
     - Added GNAT nearest neighbors datastructure
 
+\section jun_29_2011 June 29, 2011
+    - Moved state propagation functionality from ControlSpace to a separate StatePropagator class
+
 \section june_22_2011 June 22, 2011
     - Added representation of a discrete state space
 

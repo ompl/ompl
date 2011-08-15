@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, James D. Marble */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_BASIC_PRM_
-#define OMPL_GEOMETRIC_PLANNERS_PRM_BASIC_PRM_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"

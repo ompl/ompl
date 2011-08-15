@@ -8,6 +8,7 @@
 - Added representation of a discrete state space (DiscreteStateSpace)
 - Added representation of probability density functions (PDF)
 - Replaced the implementation of BasicPRM with PRM. Thanks to James Marble, the new implementation uses BGL.
+- Moved state propagation functionality from ControlSpace to a separate StatePropagator class
 - Added isStraightLinePathValid() to PlannerDefinition
 - Using boost ublas for real vector projections
 - Add sanity checks for state spaces
