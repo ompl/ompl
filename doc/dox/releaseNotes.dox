@@ -1,7 +1,7 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_9_4 OMPL 0.9.4 (XXX, 2011)
+\section release_0_9_4 OMPL 0.9.4 (August 16, 2011)
 - Renamed StateManifold to StateSpace and ControlManifold to ControlSpace
 - Added RRTstar contribution
 - Added GNAT nearest neighbors datastructure
