@@ -136,7 +136,7 @@ namespace ompl
              * The default is 1, which will make kPRMConstant=2e which
              * is valid for all problem instances.
              */
-            KStarStrategy(const boost::function<unsigned int()>& n,
+            KStarStrategy(const boost::function0<unsigned int>& n,
                           const boost::shared_ptr< NearestNeighbors<Milestone> > &nn,
                           const unsigned int d = 1) :
                 KStrategy<Milestone>(n(), nn), n_(n), kPRMConstant_(1.0 + 1.0/(double)d)
@@ -152,7 +152,7 @@ namespace ompl
         protected:
 
             /** \brief Function returning the number of milestones added to the roadmap so far */
-            const boost::function<unsigned int()> n_;
+            const boost::function0<unsigned int>  n_;
             const double                          kPRMConstant_;
 
         };
