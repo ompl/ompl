@@ -13,4 +13,6 @@
 ../src/ompl/geometric/planners/rrt/LazyRRT.h
 ../src/ompl/geometric/planners/sbl/SBL.h
 ../src/ompl/geometric/planners/sbl/pSBL.h
+../src/ompl/datastructures/NearestNeighbors.h
+../src/ompl/datastructures/NearestNeighborsLinear.h
 ompl_py_geometric.h

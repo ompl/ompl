@@ -51,7 +51,7 @@ namespace ompl
         {
             NearestNeighborsLinear<PRM::Vertex> nn;
             boost::shared_ptr<NearestNeighbors<PRM::Vertex> > nnPtr(&nn);
-            return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) + sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1));
+            return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) + sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1)) + sizeof(nn);
         }
     }
 }

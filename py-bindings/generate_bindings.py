@@ -492,6 +492,10 @@ class ompl_geometric_generator_t(code_generator_t):
             def("checkValidity",&::ompl::base::Planner::checkValidity,
                 &%s_wrapper::default_checkValidity )""" % planner)
 
+        # needed to able to set connection strategy for PRM
+        self.ompl_ns.class_('NearestNeighbors<unsigned long>').include()
+        self.ompl_ns.class_('NearestNeighbors<unsigned long>').rename('NearestNeighbors')
+        self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
         self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
         self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
 
