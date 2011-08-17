@@ -36,14 +36,14 @@
 
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include <limits>
 
 void ompl::control::RRT::setup(void)
 {
     base::Planner::setup();
     if (!nn_)
-        nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
+        nn_.reset(new NearestNeighborsGNAT<Motion*>());
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 }
 
