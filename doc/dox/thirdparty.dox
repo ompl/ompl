@@ -25,4 +25,13 @@ The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> 
 </li>
 </ul>
 
+
+\section unr_contrib University of Nevada at Reno Contribution
+
+\subsection unr_contrib_authors Authors: James Marble
+
+Generalized the implementation of PRM so that different variations
+can be created by passing connection strategies and filters. Provided
+such functions for PRM and PRM*.
+
 */

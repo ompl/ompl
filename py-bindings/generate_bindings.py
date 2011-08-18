@@ -498,6 +498,7 @@ class ompl_geometric_generator_t(code_generator_t):
         self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
         self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
         self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
+        self.std_ns.class_('vector< unsigned long >').rename('vectorULong')
 
 
 class ompl_util_generator_t(code_generator_t):
