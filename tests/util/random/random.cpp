@@ -89,13 +89,12 @@ TEST(Random, ValidRangeInts)
         EXPECT_TRUE(c[i] > V/N/3);
 }
 
-static const double NUM_INT_SAMPLES = 1000000;
-static const double NUM_REAL_SAMPLES = 5000000;
+static const double NUM_INT_SAMPLES =  1000000;
+static const double NUM_REAL_SAMPLES = 1000000;
 /* The following widening factor is multiplied by the standard error of the mean
  * in errUniformInt() and errUniformReal() to obtain a reasonable range to pass to EXPECT_NEAR().
- * For one million samples, a widening factor of 2.0 seems to be sufficient.
- * If the number of samples is increased, then this widening factor can be decreased. */
-static const double STDERR_WIDENING_FACTOR = 2.0;
+ * 4 sigma events should only happen "twice a lifetime" on average, so this should be lienient enough. */
+static const double STDERR_WIDENING_FACTOR = 4.0; 
 
 static double avgIntsN(int s, int l, const int N)
 {
