@@ -71,7 +71,7 @@ namespace ompl
             }
         };
 
-        /** \brief Define a state validity checking function that assumes a compound manifold structure for the 2DMap environment */
+        /** \brief Define a state validity checking function that assumes a compound state space for the 2DMap environment */
         static bool isValidFn2DMap1(const std::vector< std::vector<int> > *grid, const base::State *state)
         {
             const base::CompoundState *cstate = state->as<base::CompoundState>();

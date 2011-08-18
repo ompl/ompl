@@ -36,7 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/RRT.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 
@@ -56,7 +56,7 @@ void ompl::geometric::RRT::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
+        nn_.reset(new NearestNeighborsGNAT<Motion*>());
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 }
 

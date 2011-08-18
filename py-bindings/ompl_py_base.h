@@ -34,10 +34,9 @@
 
 /* Author: Mark Moll */
 
-#ifndef PY_BINDINGS_OMPL_PY_UTIL_
-#define PY_BINDINGS_OMPL_PY_UTIL_
+#ifndef PY_BINDINGS_OMPL_PY_BASE_
+#define PY_BINDINGS_OMPL_PY_BASE_
 
-#include <valarray>
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
@@ -50,16 +49,6 @@
         sizeof(ompl::base::T##StateSpace::StateType); \
     }
 
-namespace std
-{
-    inline bool operator==(const std::valarray<double>& a, const std::valarray<double>& b)
-    {
-        if (a.size()!=b.size()) return false;
-        for (unsigned int i=0; i<a.size(); ++i)
-            if (a[i]!=b[i]) return false;
-        return true;
-    }
-}
 
 namespace ompl
 {
@@ -73,14 +62,6 @@ namespace ompl
         DeclareStateType(SE2);
         DeclareStateType(SE3);
         DeclareStateType(Discrete);
-    }
-
-    namespace control
-    {
-        inline int dummyVecVecInt()
-        {
-            return sizeof(std::vector<std::vector<int> >);
-        }
     }
 }
 

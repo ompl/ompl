@@ -32,4 +32,4 @@
 ../src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
 ../src/ompl/base/samplers/ObstacleBasedValidStateSampler.h
 ../src/ompl/base/samplers/UniformValidStateSampler.h
-ompl_py_util.h
+ompl_py_base.h

@@ -160,7 +160,7 @@ void ompl::base::DiscreteStateSpace::registerProjections(void)
 void ompl::base::DiscreteStateSpace::setup(void)
 {
     if (lowerBound_ > upperBound_)
-        throw Exception("Lower bound cannot be larger than upper bound for a discrete manifold");
+        throw Exception("Lower bound cannot be larger than upper bound for a discrete space");
     StateSpace::setup();
 }
 

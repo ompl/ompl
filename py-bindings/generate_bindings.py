@@ -449,15 +449,16 @@ class ompl_geometric_generator_t(code_generator_t):
         # rename STL vectors of certain types
         self.std_ns.class_('vector< int >').rename('vectorInt')
         self.std_ns.class_('vector< double >').rename('vectorDouble')
-        self.std_ns.class_('vector< ompl::geometric::BasicPRM::Milestone* >').rename('vectorBasicPRMMileStonePtr')
 
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         self.ompl_ns.member_functions('freeGridMotions').exclude()
-        self.ompl_ns.class_('BasicPRM').member_functions('haveSolution').exclude()
-        self.ompl_ns.class_('BasicPRM').member_functions('growRoadmap',
+        self.ompl_ns.class_('PRM').member_functions('haveSolution').exclude()
+        self.ompl_ns.class_('PRM').member_functions('growRoadmap',
+                function=declarations.access_type_matcher_t('protected')).exclude()
+        self.ompl_ns.class_('PRM').member_functions('expandRoadmap',
                 function=declarations.access_type_matcher_t('protected')).exclude()
         # don't export some internal data structure
         self.ompl_ns.classes('OrderCellsByImportance').exclude()
@@ -481,15 +482,22 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'BasicPRM', 'LazyRRT', 'pRRT', 'RRT', 'RRTConnect', 'pSBL', 'SBL']:
-            if planner!='BasicPRM':
-                # BasicPRM overrides setProblemDefinition, so we don't need to add this code
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'pRRT', 'RRT', 'RRTConnect', 'pSBL', 'SBL']:
+            if planner!='PRM':
+                # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""
                 def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
                     &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
             self.ompl_ns.class_(planner).add_registration_code("""
             def("checkValidity",&::ompl::base::Planner::checkValidity,
                 &%s_wrapper::default_checkValidity )""" % planner)
+
+        # needed to able to set connection strategy for PRM
+        self.ompl_ns.class_('NearestNeighbors<unsigned long>').include()
+        self.ompl_ns.class_('NearestNeighbors<unsigned long>').rename('NearestNeighbors')
+        self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
+        self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
+        self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
 
 
 class ompl_util_generator_t(code_generator_t):

@@ -90,7 +90,7 @@ TEST(Random, ValidRangeInts)
 }
 
 static const double NUM_INT_SAMPLES = 1000000;
-static const double NUM_REAL_SAMPLES = 1000000;
+static const double NUM_REAL_SAMPLES = 5000000;
 /* The following widening factor is multiplied by the standard error of the mean
  * in errUniformInt() and errUniformReal() to obtain a reasonable range to pass to EXPECT_NEAR().
  * For one million samples, a widening factor of 2.0 seems to be sufficient.
@@ -182,7 +182,7 @@ static double avgNormalReals(double m, double s)
 static double errNormal(double stddev)
 {
     //standard error of mean for gaussian with given stddev
-    return stddev / sqrt(NUM_REAL_SAMPLES);
+    return STDERR_WIDENING_FACTOR * stddev / sqrt(NUM_REAL_SAMPLES);
 }
 
 TEST(Random, NormalReals)

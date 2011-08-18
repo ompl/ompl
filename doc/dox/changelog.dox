@@ -2,13 +2,31 @@
 
 \page changelog Changelog
 
+\section aug_10_2011 August 10, 2011
+    - Replaced the implementation of BasicPRM with PRM. Thanks to James Marble, the new implementation uses BGL.
+
+\section jul_21_2011 July 21, 2011
+    - Added isStraightLinePathValid() to PlannerDefinition
+
+\section jul_12_2011 July 12, 2011
+    - Using boost ublas for real vector projections
+
+\section jul_9_2011 July 9, 2011
+    - Benchmarked planners are now run in a separate thread (and termination conditions are evaluated separately, to detect crashes)
+
+\section jul_5_2011 July 5, 2011
+    - Added GNAT nearest neighbors datastructure
+
+\section jun_29_2011 June 29, 2011
+    - Moved state propagation functionality from ControlSpace to a separate StatePropagator class
+
 \section june_22_2011 June 22, 2011
     - Added representation of a discrete state space
 
 \section june_15_2011 June 15, 2011
     - Improvements to control::KPIECE1, so that it considers goal biasing more appropriately
     - Move code for extracting machine properties from util/ to benchmark/
-    - Add sanity checks for state manifolds
+    - Add sanity checks for state spaces
 
 \section june_8_2011 June 8, 2011
     - Added representation of probability density functions (PDF)

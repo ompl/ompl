@@ -71,9 +71,9 @@ TEST(Discrete, Simple)
     d->setup();
     d->sanityChecks();
 
-    EXPECT_EQ(d->getDimension(), 1);
+    EXPECT_EQ(d->getDimension(), 1u);
     EXPECT_EQ(d->getMaximumExtent(), 2);
-    EXPECT_EQ(dm.getStateCount(), 3);
+    EXPECT_EQ(dm.getStateCount(), 3u);
     base::ScopedState<base::DiscreteStateSpace> s1(d);
     base::ScopedState<base::DiscreteStateSpace> s2(d);
     base::ScopedState<base::DiscreteStateSpace> s3(d);

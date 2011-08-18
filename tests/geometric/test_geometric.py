@@ -260,9 +260,9 @@ class ESTTest(TestPlanner):
         planner.setProjectionEvaluator(proj)
         return planner
 
-class BasicPRMTest(TestPlanner):
+class PRMTest(TestPlanner):
     def newplanner(self, si):
-        planner = og.BasicPRM(si)
+        planner = og.PRM(si)
         return planner
 
 class PlanTest(unittest.TestCase):
@@ -360,8 +360,8 @@ class PlanTest(unittest.TestCase):
         self.assertTrue(avgruntime < 0.1)
         self.assertTrue(avglength < 100.0)
 
-    def testGeometric_BasicPRM(self):
-        planner = BasicPRMTest()
+    def testGeometric_PRM(self):
+        planner = PRMTest()
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 2.0)

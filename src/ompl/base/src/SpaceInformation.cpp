@@ -113,7 +113,6 @@ unsigned int ompl::base::SpaceInformation::randomBounceMotion(const StateSampler
 
     const State *prev = start;
     std::pair<State*, double> lastValid;
-
     unsigned int j = 0;
     for (unsigned int i = 0 ; i < steps ; ++i)
     {
@@ -122,6 +121,7 @@ unsigned int ompl::base::SpaceInformation::randomBounceMotion(const StateSampler
         if (checkMotion(prev, states[j], lastValid) || lastValid.second > std::numeric_limits<double>::epsilon())
             prev = states[j++];
     }
+
     return j;
 }
 

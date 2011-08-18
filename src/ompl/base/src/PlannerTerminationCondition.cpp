@@ -37,6 +37,7 @@
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/Time.h"
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
 #include <utility>
 
 void ompl::base::PlannerTerminationCondition::terminate(bool flag)
@@ -49,26 +50,45 @@ bool ompl::base::PlannerTerminationCondition::eval(void) const
     return fn_();
 }
 
+ompl::base::PlannerNonTerminatingCondition::PlannerNonTerminatingCondition(void) : PlannerTerminationCondition(boost::lambda::constant(false))
+{
+}
+
+ompl::base::PlannerAlwaysTerminatingCondition::PlannerAlwaysTerminatingCondition(void) : PlannerTerminationCondition(boost::lambda::constant(true))
+{
+}
+
 /// @cond IGNORE
 namespace ompl
 {
-    static bool alwaysFalse(void)
+    namespace base
     {
-        return false;
-    }
+        static bool plannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
+        {
+            return c1() || c2();
+        }
 
-    static bool alwaysTrue(void)
-    {
-        return true;
+        static bool plannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
+        {
+            return c1() && c2();
+        }
+
+        // return true if a certain point in time has passed
+        static bool timePassed(const time::point &endTime)
+        {
+            return time::now() > endTime;
+        }
     }
 }
 /// @endcond
 
-ompl::base::PlannerNonTerminatingCondition::PlannerNonTerminatingCondition(void) : PlannerTerminationCondition(boost::bind(&alwaysFalse))
+ompl::base::PlannerOrTerminationCondition::PlannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2) :
+    PlannerTerminationCondition(boost::bind(&plannerOrTerminationCondition, boost::cref(c1), boost::cref(c2)))
 {
 }
 
-ompl::base::PlannerAlwaysTerminatingCondition::PlannerAlwaysTerminatingCondition(void) : PlannerTerminationCondition(boost::bind(&alwaysTrue))
+ompl::base::PlannerAndTerminationCondition::PlannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2) :
+    PlannerTerminationCondition(boost::bind(&plannerAndTerminationCondition, boost::cref(c1), boost::cref(c2)))
 {
 }
 
@@ -108,16 +128,10 @@ bool ompl::base::PlannerThreadedTerminationCondition::computeEval(void)
     return fn_();
 }
 
-ompl::base::PlannerThreadedTerminationCondition::PlannerThreadedTerminationCondition(double period) :
-    PlannerTerminationCondition(), thread_(NULL), evalValue_(terminate_), period_(period)
-{
-    startEvalThread(); // this is a bit risky, but it seems to work
-}
-
 ompl::base::PlannerThreadedTerminationCondition::PlannerThreadedTerminationCondition(const PlannerTerminationConditionFn &fn, double period) :
     PlannerTerminationCondition(fn), thread_(NULL), evalValue_(terminate_), period_(period)
 {
-    startEvalThread(); // this is a bit risky, but it seems to work
+    startEvalThread();
 }
 
 ompl::base::PlannerThreadedTerminationCondition::~PlannerThreadedTerminationCondition(void)
@@ -138,41 +152,7 @@ void ompl::base::PlannerThreadedTerminationCondition::periodicEval(void)
     } while (!(*this)());
 }
 
-bool ompl::base::PlannerAndTerminationCondition::eval(void) const
-{
-    return c1_() && c2_();
-}
-
-bool ompl::base::PlannerOrTerminationCondition::eval(void) const
-{
-    return c1_() || c2_();
-}
-
-ompl::base::PlannerTerminationCondition ompl::base::operator*(const PlannerTerminationCondition &a, const PlannerTerminationCondition &b)
-{
-    return PlannerAndTerminationCondition(a, b);
-}
-
-ompl::base::PlannerTerminationCondition ompl::base::operator+(const PlannerTerminationCondition &a, const PlannerTerminationCondition &b)
-{
-    return PlannerOrTerminationCondition(a, b);
-}
-
-/// @cond IGNORE
-namespace ompl
-{
-    // return true if a certain point in time has passed
-    static bool timePassed(const time::point &endTime)
-    {
-        return time::now() > endTime;
-    }
-}
-/// @endcond
-
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration)
 {
-    if (duration < 1.0)
-        return PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(duration)));
-    else
-        return PlannerThreadedTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(duration)), std::min(duration / 100.0, 0.1));
+    return PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(duration)));
 }

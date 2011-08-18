@@ -53,15 +53,20 @@ double intDistance(int i, int j)
     return fabs(i-j);
 }
 
-void intTest(NearestNeighbors<int>& proximity)
+void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
 {
     RNG rng;
     int i, j, n = 200, s;
-    std::vector<int> states(n), nghbr;
+    std::vector<int> states(n), nghbr, nghbrGroundTruth;
+    NearestNeighborsLinear<int> proximityLinear;
+
     proximity.setDistanceFunction(intDistance);
+    proximityLinear.setDistanceFunction(intDistance);
     for (i=0; i<n; ++i)
         states[i] = rng.uniformInt(0,20);
     proximity.add(states);
+    if (!approximate)
+        proximityLinear.add(states);
 
     EXPECT_EQ((int)proximity.size(), n);
 
@@ -76,14 +81,32 @@ void intTest(NearestNeighbors<int>& proximity)
         proximity.nearestK(states[i], 10, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(), 10u);
+        if (!approximate)
+        {
+            proximityLinear.nearestK(states[i], nghbr.size(), nghbrGroundTruth);
+            for (unsigned int k=0; k<nghbr.size(); ++k)
+                EXPECT_EQ(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
+        }
 
         proximity.nearestR(states[i], std::numeric_limits<double>::infinity(), nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(),proximity.size());
+        if (!approximate)
+        {
+            proximityLinear.nearestR(states[i], std::numeric_limits<double>::infinity(), nghbrGroundTruth);
+            for (unsigned int k=0; k<nghbr.size(); ++k)
+                EXPECT_EQ(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
+        }
 
         proximity.nearestK(states[i], 2*n, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ((int) nghbr.size(), n);
+        if (!approximate)
+        {
+            proximityLinear.nearestK(states[i], 2*n, nghbrGroundTruth);
+            for (unsigned int k=0; k<nghbr.size(); ++k)
+                EXPECT_EQ(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
+        }
 
     }
     EXPECT_GE(j, 10);
@@ -103,14 +126,16 @@ void intTest(NearestNeighbors<int>& proximity)
     }
 }
 
-void stateTest(NearestNeighbors<base::State*>& proximity)
+void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false)
 {
     int i, j, n = 500;
     base::SE3StateSpace SE3;
     base::StateSamplerPtr sampler;
     base::RealVectorBounds b(3);
-    std::vector<base::State*> states(n), nghbr(10);
+    std::vector<base::State*> states(n), nghbr, nghbrGroundTruth;
+    NearestNeighborsLinear<base::State*> proximityLinear;
     base::State* s;
+    double eps = std::numeric_limits<double>::epsilon();
 
     b.setLow(0);
     b.setHigh(1);
@@ -118,6 +143,7 @@ void stateTest(NearestNeighbors<base::State*>& proximity)
     sampler = SE3.allocStateSampler();
 
     proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateSpace>, &SE3, _1, _2));
+    proximityLinear.setDistanceFunction(boost::bind(&distance<base::SE3StateSpace>, &SE3, _1, _2));
 
     for(i=0; i<n; ++i)
     {
@@ -125,6 +151,7 @@ void stateTest(NearestNeighbors<base::State*>& proximity)
         sampler->sampleUniform(states[i]);
     }
     proximity.add(states);
+    proximityLinear.add(states);
 
     EXPECT_EQ((int)proximity.size(), n);
 
@@ -140,14 +167,32 @@ void stateTest(NearestNeighbors<base::State*>& proximity)
         proximity.nearestK(states[i], 10, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(), 10u);
+        if (!approximate)
+        {
+            proximityLinear.nearestK(states[i], nghbr.size(), nghbrGroundTruth);
+            for (unsigned int k=0; k<nghbr.size(); ++k)
+                EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
+        }
 
         proximity.nearestR(states[i], std::numeric_limits<double>::infinity(), nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ(nghbr.size(),proximity.size());
+        if (!approximate)
+        {
+            proximityLinear.nearestR(states[i], nghbr.size(), nghbrGroundTruth);
+            for (unsigned int k=0; k<nghbr.size(); ++k)
+                EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
+        }
 
         proximity.nearestK(states[i], 2*n, nghbr);
         EXPECT_EQ(nghbr[0], states[i]);
         EXPECT_EQ((int) nghbr.size(), n);
+        if (!approximate)
+        {
+            proximityLinear.nearestK(states[i], nghbr.size(), nghbrGroundTruth);
+            for (unsigned int k=0; k<nghbr.size(); ++k)
+                EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
+        }
     }
     EXPECT_GE(j, 10);
 
@@ -170,25 +215,25 @@ void stateTest(NearestNeighbors<base::State*>& proximity)
 TEST(NearestNeighbors, IntLinear)
 {
     NearestNeighborsLinear<int> proximity;
-    intTest(proximity);
+    intTest(proximity, true);
 }
 
 TEST(NearestNeighbors, StateLinear)
 {
     NearestNeighborsLinear<base::State*> proximity;
-    stateTest(proximity);
+    stateTest(proximity, true);
 }
 
 TEST(NearestNeighbors, IntSqrtApprox)
 {
     NearestNeighborsSqrtApprox<int> proximity;
-    intTest(proximity);
+    intTest(proximity, true);
 }
 
 TEST(NearestNeighbors, StateSqrtApprox)
 {
     NearestNeighborsSqrtApprox<base::State*> proximity;
-    stateTest(proximity);
+    stateTest(proximity, true);
 }
 
 TEST(NearestNeighbors, IntGNAT)
