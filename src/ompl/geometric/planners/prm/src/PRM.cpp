@@ -105,6 +105,8 @@ void ompl::geometric::PRM::setup(void)
 
 void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
 {
+    if (!setup_)
+        setup();
     connectionStrategy_ = KStrategy<Vertex>(k, nn_);
 }
 
