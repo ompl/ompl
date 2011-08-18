@@ -44,6 +44,7 @@ void ompl::control::Syclop::setup(void)
 {
     base::Planner::setup();
     buildGraph();
+    addEdgeCostFactor(boost::bind(&ompl::control::Syclop::defaultEdgeCost, this, _1, _2));
 }
 
 void ompl::control::Syclop::clear(void)
@@ -229,9 +230,7 @@ void ompl::control::Syclop::setupEdgeEstimates(void)
 
 void ompl::control::Syclop::updateEdge(Adjacency& a)
 {
-    const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
-    a.cost = (1 + nsel*nsel) / (1 + a.covGridCells.size()*a.covGridCells.size());
-    a.cost *= a.source->alpha * a.target->alpha;
+    a.cost = 1.0;
     for (std::vector<EdgeCostFactorFn>::const_iterator i = edgeCostFactors_.begin(); i != edgeCostFactors_.end(); ++i)
     {
         const EdgeCostFactorFn& factor = *i;
@@ -436,4 +435,14 @@ void ompl::control::Syclop::computeAvailableRegions(void)
                 break;
         }
     }
+}
+
+double ompl::control::Syclop::defaultEdgeCost(int r, int s)
+{
+    Adjacency& a = *regionsToEdge_[std::pair<int,int>(r,s)];
+    double factor = 1;
+    const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
+    factor = (1 + nsel*nsel) / (1 + a.covGridCells.size()*a.covGridCells.size());
+    factor *= a.source->alpha * a.target->alpha;
+    return factor;
 }

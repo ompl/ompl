@@ -222,6 +222,8 @@ namespace ompl
                 Decomposition& decomp;
             };
 
+            double defaultEdgeCost(int r, int s);
+
             CoverageGrid covGrid_;
         };
     }
