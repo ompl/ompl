@@ -51,7 +51,7 @@ namespace ompl
         class SyclopRRT : public Syclop
         {
         public:
-            SyclopRRT(const SpaceInformationPtr& si, Decomposition* d) : Syclop(si,d,"SyclopRRT")
+            SyclopRRT(const SpaceInformationPtr& si, DecompositionPtr& d) : Syclop(si,d,"SyclopRRT")
             {
             }
 

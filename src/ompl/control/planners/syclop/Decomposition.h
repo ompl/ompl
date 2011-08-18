@@ -41,11 +41,14 @@
 #include "ompl/base/State.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/ClassForward.h"
 
 namespace ompl
 {
     namespace control
     {
+        ClassForward(Decomposition);
+
         class Decomposition
         {
         public:

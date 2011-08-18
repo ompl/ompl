@@ -95,8 +95,8 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                         goalDist = distance;
                         approxSoln = motion;
                     }
-                    const int oldRegion = decomp_.locateRegion(motion->parent->state);
-                    const int newRegion = decomp_.locateRegion(state);
+                    const int oldRegion = decomp_->locateRegion(motion->parent->state);
+                    const int newRegion = decomp_->locateRegion(state);
                     graph_[boost::vertex(newRegion,graph_)].motions.push_back(motion);
                     if (newRegion != oldRegion)
                     {
@@ -173,8 +173,8 @@ void ompl::control::Syclop::initRegion(Region& r)
 
 void ompl::control::Syclop::setupRegionEstimates(void)
 {
-    std::vector<int> numTotal(decomp_.getNumRegions(), 0);
-    std::vector<int> numValid(decomp_.getNumRegions(), 0);
+    std::vector<int> numTotal(decomp_->getNumRegions(), 0);
+    std::vector<int> numValid(decomp_->getNumRegions(), 0);
     base::StateValidityCheckerPtr checker = si_->getStateValidityChecker();
     base::StateSamplerPtr sampler = si_->allocStateSampler();
     base::State* s = si_->allocState();
@@ -182,17 +182,17 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     for (int i = 0; i < NUM_FREEVOL_SAMPLES; ++i)
     {
         sampler->sampleUniform(s);
-        int rid = decomp_.locateRegion(s);
+        int rid = decomp_->locateRegion(s);
         if (checker->isValid(s))
             ++numValid[rid];
         ++numTotal[rid];
     }
     si_->freeState(s);
 
-    for (int i = 0; i < decomp_.getNumRegions(); ++i)
+    for (int i = 0; i < decomp_->getNumRegions(); ++i)
     {
         Region& r = graph_[boost::vertex(i, graph_)];
-        r.volume = decomp_.getRegionVolume(i);
+        r.volume = decomp_->getRegionVolume(i);
         r.percentValidCells = ((double) numValid[i]) / numTotal[i];
         r.freeVolume = r.percentValidCells * r.volume;
         updateRegion(r);
@@ -266,7 +266,7 @@ void ompl::control::Syclop::buildGraph(void)
         It creates Region and Adjacency property objects for each vertex and edge. */
     VertexIndexMap index = get(boost::vertex_index, graph_);
     std::vector<int> neighbors;
-    for (int i = 0; i < decomp_.getNumRegions(); ++i)
+    for (int i = 0; i < decomp_->getNumRegions(); ++i)
     {
         const RegionGraph::vertex_descriptor v = boost::add_vertex(graph_);
         Region& r = graph_[boost::vertex(v,graph_)];
@@ -278,7 +278,7 @@ void ompl::control::Syclop::buildGraph(void)
     {
         /* Create an edge between this vertex and each of its neighboring regions in the decomp_osition,
             and initialize the edge's Adjacency object. */
-        decomp_.getNeighbors(index[*vi], neighbors);
+        decomp_->getNeighbors(index[*vi], neighbors);
         for (std::vector<int>::const_iterator j = neighbors.begin(); j != neighbors.end(); ++j)
         {
             RegionGraph::edge_descriptor edge;
@@ -295,11 +295,11 @@ void ompl::control::Syclop::initGraph(void)
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
     /* TODO: Handle multiple start states. */
     base::State* start = pdef->getStartState(0);
-    startRegion_ = decomp_.locateRegion(start);
+    startRegion_ = decomp_->locateRegion(start);
     /* Here we are assuming that we have a GoalSampleableRegion. */
     base::State* goal = si_->allocState();
     pdef->getGoal()->as<base::GoalSampleableRegion>()->sampleGoal(goal);
-    goalRegion_ = decomp_.locateRegion(goal);
+    goalRegion_ = decomp_->locateRegion(goal);
     si_->freeState(goal);
     Motion* startMotion = initializeTree(start);
     graph_[boost::vertex(startRegion_,graph_)].motions.push_back(startMotion);
@@ -327,8 +327,8 @@ void ompl::control::Syclop::computeLead(void)
     lead_.clear();
     if (rng_.uniform01() < PROB_SHORTEST_PATH)
     {
-        std::vector<RegionGraph::vertex_descriptor> parents(decomp_.getNumRegions());
-        std::vector<double> distances(decomp_.getNumRegions());
+        std::vector<RegionGraph::vertex_descriptor> parents(decomp_->getNumRegions());
+        std::vector<double> distances(decomp_->getNumRegions());
         boost::dijkstra_shortest_paths(graph_, boost::vertex(startRegion_, graph_),
             boost::weight_map(get(&Adjacency::cost, graph_)).distance_map(
                 boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, graph_)
@@ -356,7 +356,7 @@ void ompl::control::Syclop::computeLead(void)
     {
         VertexIndexMap index = get(boost::vertex_index, graph_);
         std::stack<int> nodesToProcess;
-        std::vector<int> parents(decomp_.getNumRegions(), -1);
+        std::vector<int> parents(decomp_->getNumRegions(), -1);
         parents[startRegion_] = startRegion_;
         nodesToProcess.push(startRegion_);
         bool goalFound = false;

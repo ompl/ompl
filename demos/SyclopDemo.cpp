@@ -9,14 +9,8 @@
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
-#include <ompl/util/Profiler.h>
 #include <ompl/util/RandomNumbers.h>
 #include <ompl/util/Time.h>
-#define BOOST_NO_HASH
-#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/adjacency_list.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <cmath>
 #include <iostream>
@@ -28,7 +22,7 @@ namespace oc = ompl::control;
 class TestDecomposition : public oc::GridDecomposition
 {
     public:
-    TestDecomposition(const int length, const ob::RealVectorBounds &bounds) : oc::GridDecomposition(length, 2, bounds)
+    TestDecomposition(const int length, ob::RealVectorBounds &bounds) : oc::GridDecomposition(length, 2, offsetBounds(bounds))
     {
     }
     virtual ~TestDecomposition()
@@ -190,11 +184,11 @@ public:
         const ob::CompoundStateSpace::StateType* cs = state->as<ob::CompoundStateSpace::StateType>();
         const ob::SE2StateSpace::StateType* location = cs->as<ob::SE2StateSpace::StateType>(0);
         const ob::RealVectorStateSpace::StateType* vel = cs->as<ob::RealVectorStateSpace::StateType>(1);
-        std::valarray<double> stateVals(2);
+        std::valarray<double> stateVals(4);
         stateVals[0] = location->getX();
         stateVals[1] = location->getY();
-        /*stateVals[2] = location->getYaw();
-        stateVals[3] = (*vel)[0];*/
+        stateVals[2] = location->getYaw();
+        stateVals[3] = (*vel)[0];
 
         double sq_distance = 0.0;
         bool satisfied = true;
@@ -242,7 +236,6 @@ int main(void)
     ompl::base::RealVectorBounds bounds(2);
     bounds.setLow(-3);
     bounds.setHigh(3);
-    TestDecomposition grid(64, bounds);
     ob::RealVectorBounds vbounds(1);
     vbounds.setLow(-0.1);
     vbounds.setHigh(0.1);
@@ -279,8 +272,10 @@ int main(void)
     si->setPropagationStepSize(0.10);
     si->setup();
 
+    oc::DecompositionPtr grid(new TestDecomposition(64, bounds));
+
     //ob::PlannerPtr planner(new oc::RRT(si));
-    ob::PlannerPtr planner(new oc::SyclopRRT(si,&grid));
+    ob::PlannerPtr planner(new oc::SyclopRRT(si,grid));
 
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
     pdef->addStartState(init);
@@ -289,14 +284,14 @@ int main(void)
     planner->setup();
 
     ompl::time::point startTime = ompl::time::now();
-    bool solved = planner->solve(300.0);
+    bool solved = planner->solve(30.0);
     if (pdef->getGoal()->isApproximate())
         solved = false;
     double duration = ompl::time::seconds(ompl::time::now()-startTime);
     ob::PlannerData pdata;
     planner->getPlannerData(pdata);
-    std::cerr << planner->getName() << " " << solved << " ";
-    std::cerr << duration << " " << pdata.states.size() << std::endl;
+    std::cout << planner->getName() << " " << solved << " ";
+    std::cout << duration << " " << pdata.states.size() << std::endl;
     /*for (std::size_t i = 0; i < pdata.states.size(); ++i)
     {
         const ob::CompoundState* cs = pdata.states[i]->as<ob::CompoundState>();

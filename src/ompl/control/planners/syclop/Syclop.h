@@ -75,8 +75,8 @@ namespace ompl
                 which Syclop uses to create high-level guides. */
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
-            Syclop(const SpaceInformationPtr& si, Decomposition* d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp_(*d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, *d)
+            Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& name) : ompl::base::Planner(si, name),
+                siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, *d)
             {
             }
             virtual ~Syclop()
@@ -189,7 +189,7 @@ namespace ompl
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
 
             const SpaceInformation* siC_;
-            Decomposition& decomp_;
+            DecompositionPtr decomp_;
             RegionGraph graph_;
             boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
             RNG rng_;
