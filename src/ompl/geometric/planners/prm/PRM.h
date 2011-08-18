@@ -167,6 +167,10 @@ namespace ompl
                 connectionStrategy_ = connectionStrategy;
                 userSetConnectionStrategy_ = true;
             }
+            /** \brief Convenience function that sets the connection strategy to the
+             default one with k nearest neighbors.
+             */
+            void setMaxNearestNeighbors(unsigned int k);
 
             /** \brief Set the function that can reject a milestone connection.
 
