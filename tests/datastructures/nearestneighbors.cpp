@@ -34,6 +34,8 @@
 
 /* Author: Mark Moll */
 
+#include <algorithm>
+#include <boost/unordered_set.hpp>
 #include <gtest/gtest.h>
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
@@ -128,7 +130,7 @@ void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
 
 void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false)
 {
-    int i, j, n = 500;
+    int i, j, n = 200;
     base::SE3StateSpace SE3;
     base::StateSamplerPtr sampler;
     base::RealVectorBounds b(3);
@@ -211,6 +213,129 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
     }
 }
 
+void randomAccessPatternIntTest(NearestNeighbors<int>& proximity)
+{
+    RNG rng;
+    int i, j, k, m = 200, n = 10;
+    unsigned int p;
+    std::vector<int> nghbr, nghbrGroundTruth, lst, lstGroundTruth;
+    NearestNeighborsLinear<int> proximityLinear;
+    boost::unordered_multiset<int> states;
+    boost::unordered_multiset<int>::iterator it;
+    int s;
+    double eps = std::numeric_limits<double>::epsilon(), r;
+
+    proximity.setDistanceFunction(intDistance);
+    proximityLinear.setDistanceFunction(intDistance);
+
+    for (i=0; i<m; ++i)
+    {
+        for (j=0; j<n; ++j)
+        {
+            s = rng.uniformInt(0,20);
+            proximity.add(s);
+            proximityLinear.add(s);
+            states.insert(s);
+        }
+
+        for (j=0; j<n; ++j)
+        {
+            s = rng.uniformInt(0,20);
+
+            k = rng.uniformInt(1, 20);
+            proximityLinear.nearestK(s, k, nghbrGroundTruth);
+            proximity.nearestK(s, k, nghbr);
+            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            for (p=0; p<nghbr.size(); ++p)
+                EXPECT_NEAR(intDistance(s, nghbrGroundTruth[p]), intDistance(s, nghbr[p]), eps);
+
+            r = rng.uniformReal(0, 3);
+            proximityLinear.nearestR(s, r, nghbrGroundTruth);
+            proximity.nearestR(s, r, nghbr);
+            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            for (p=0; p<nghbr.size(); ++p)
+                EXPECT_NEAR(intDistance(s, nghbrGroundTruth[p]), intDistance(s, nghbr[p]), eps);
+        }
+
+        for (it=states.begin(); it!=states.end(); it++)
+        {
+            if (rng.uniform01()<.5)
+            {
+                assert(proximityLinear.remove(*it));
+                assert(proximity.remove(*it));
+                states.erase(it);
+            }
+        }
+    }
+}
+
+void randomAccessPatternStateTest(NearestNeighbors<base::State*>& proximity)
+{
+    RNG rng;
+    int i, j, k, m = 200, n = 10;
+    unsigned int p;
+    base::SE3StateSpace SE3;
+    base::StateSamplerPtr sampler;
+    base::RealVectorBounds b(3);
+    std::vector<base::State*> nghbr, nghbrGroundTruth;
+    NearestNeighborsLinear<base::State*> proximityLinear;
+    boost::unordered_set<base::State*> states;
+    boost::unordered_set<base::State*>::iterator it;
+    base::State* s;
+    double eps = std::numeric_limits<double>::epsilon(), r;
+
+    b.setLow(0);
+    b.setHigh(1);
+    SE3.setBounds(b);
+    sampler = SE3.allocStateSampler();
+
+    proximity.setDistanceFunction(boost::bind(&distance<base::SE3StateSpace>, &SE3, _1, _2));
+    proximityLinear.setDistanceFunction(boost::bind(&distance<base::SE3StateSpace>, &SE3, _1, _2));
+
+    for (i=0; i<m; ++i)
+    {
+        for (j=0; j<n; ++j)
+        {
+            s = SE3.allocState();
+            sampler->sampleUniform(s);
+            proximity.add(s);
+            proximityLinear.add(s);
+            states.insert(s);
+        }
+
+        for (j=0; j<n; ++j)
+        {
+            s = SE3.allocState();
+            sampler->sampleUniform(s);
+
+            k = rng.uniformInt(1, 20);
+            proximityLinear.nearestK(s, k, nghbrGroundTruth);
+            proximity.nearestK(s, k, nghbr);
+            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            for (p=0; p<nghbr.size(); ++p)
+                EXPECT_NEAR(distance(&SE3, s, nghbrGroundTruth[p]), distance(&SE3, s, nghbr[p]), eps);
+
+            r = rng.uniformReal(0, 3);
+            proximityLinear.nearestR(s, r, nghbrGroundTruth);
+            proximity.nearestR(s, r, nghbr);
+            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            for (p=0; p<nghbr.size(); ++p)
+                EXPECT_NEAR(distance(&SE3, s, nghbrGroundTruth[p]), distance(&SE3, s, nghbr[p]), eps);
+
+            SE3.freeState(s);
+        }
+
+        for (it=states.begin(); it!=states.end(); it++)
+        {
+            if (rng.uniform01()<.5)
+            {
+                proximityLinear.remove(*it);
+                proximity.remove(*it);
+                states.erase(it);
+            }
+        }
+    }
+}
 
 TEST(NearestNeighbors, IntLinear)
 {
@@ -248,6 +373,17 @@ TEST(NearestNeighbors, StateGNAT)
     stateTest(proximity);
 }
 
+TEST(NearestNeighbors, RandomAccessPatternIntGNAT)
+{
+    NearestNeighborsGNAT<int> proximity(4,2,6,5);
+    randomAccessPatternIntTest(proximity);
+}
+
+TEST(NearestNeighbors, RandomAccessPatternStateGNAT)
+{
+    NearestNeighborsGNAT<base::State*> proximity(4,2,6,5);
+    randomAccessPatternStateTest(proximity);
+}
 
 int main(int argc, char **argv)
 {
