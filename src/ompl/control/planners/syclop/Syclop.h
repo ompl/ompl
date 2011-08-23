@@ -88,6 +88,9 @@ namespace ompl
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
             void clearEdgeCostFactors(void);
 
+            /// read-only access to the most recently computed lead.
+            std::vector<int> getLead();
+
         protected:
             static const int NUM_FREEVOL_SAMPLES = 100000;
             static const double PROB_SHORTEST_PATH = 0.95; //0.95

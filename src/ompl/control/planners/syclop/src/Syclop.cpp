@@ -154,6 +154,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     return goal->isAchieved();
 }
 
+std::vector<int> ompl::control::Syclop::getLead()
+{
+    return lead_;
+}
+
 void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
 {
     edgeCostFactors_.push_back(factor);
