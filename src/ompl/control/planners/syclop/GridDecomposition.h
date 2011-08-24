@@ -68,7 +68,7 @@ namespace ompl
 
             virtual int locateRegion(const base::State* s) const;
 
-        private:
+        protected:
             /* Convert a region ID to a grid coordinate, which is a vector of length equivalent
              * to the dimension of the grid. */
             void regionToCoord(int rid, std::vector<int>& coord) const;
