@@ -76,7 +76,7 @@ namespace ompl
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
             Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, *d)
+                siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, d)
             {
                 specs_.approximateSolutions = true;
             }
@@ -218,7 +218,7 @@ namespace ompl
             class CoverageGrid : public GridDecomposition
             {
             public:
-                CoverageGrid(const int len, const int dim, Decomposition& d) : GridDecomposition(len,dim,d.getBounds()), decomp(d)
+                CoverageGrid(const int len, const int dim, DecompositionPtr& d) : GridDecomposition(len,dim,d->getBounds()), decomp(d)
                 {
                 }
 
@@ -228,11 +228,11 @@ namespace ompl
 
                 virtual void project(const base::State* s, std::valarray<double>& coord) const
                 {
-                    decomp.project(s, coord);
+                    decomp->project(s, coord);
                 }
 
             protected:
-                Decomposition& decomp;
+                DecompositionPtr& decomp;
             };
 
             double defaultEdgeCost(int r, int s);
