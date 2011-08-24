@@ -103,6 +103,13 @@ void ompl::geometric::PRM::setup(void)
         connectionFilter_ = boost::lambda::constant(true);
 }
 
+void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
+{
+    if (!setup_)
+        setup();
+    connectionStrategy_ = KStrategy<Vertex>(k, nn_);
+}
+
 void ompl::geometric::PRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
 {
     Planner::setProblemDefinition(pdef);

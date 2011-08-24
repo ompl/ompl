@@ -36,7 +36,7 @@
 
 #include "ompl/contrib/rrt_star/RRTstar.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
 #include <limits>
@@ -54,7 +54,7 @@ void ompl::geometric::RRTstar::setup(void)
     delayCC_ = true;
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
+        nn_.reset(new NearestNeighborsGNAT<Motion*>());
     nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
 }
 

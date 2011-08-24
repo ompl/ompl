@@ -145,7 +145,8 @@ namespace ompl
 
             std::vector<Milestone>& operator()(const Milestone& m)
             {
-                KStrategy<Milestone>::k_ = ceil(kPRMConstant_ * boost::math::constants::euler<double>() * log((double)n_()));
+                KStrategy<Milestone>::k_ = static_cast<unsigned int>(
+                    ceil(kPRMConstant_ * boost::math::constants::euler<double>() * log((double)n_())));
                 return static_cast<KStrategy<Milestone>&>(*this)(m);
             }
 
