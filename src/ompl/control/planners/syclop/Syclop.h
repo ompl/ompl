@@ -78,6 +78,7 @@ namespace ompl
             Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& name) : ompl::base::Planner(si, name),
                 siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, *d)
             {
+                specs_.approximateSolutions = true;
             }
             virtual ~Syclop()
             {
@@ -124,6 +125,9 @@ namespace ompl
                 Region(void)
                 {
                 }
+                virtual ~Region(void)
+                {
+                }
                 void clear(void)
                 {
                     motions.clear();
@@ -143,6 +147,12 @@ namespace ompl
             class Adjacency
             {
             public:
+                Adjacency(void)
+                {
+                }
+                virtual ~Adjacency(void)
+                {
+                }
                 void clear(void)
                 {
                     covGridCells.clear();
