@@ -104,9 +104,9 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                         avail_.insert(newRegion);
                         /* If the tree crosses an entire region and creates an edge (u,v) for which Proj(u) and Proj(v) are non-neighboring regions,
                             then we do not update connection estimates. This is because Syclop's shortest-path lead computation only considers neighboring regions. */
-                        Adjacency* adj = regionsToEdge_[std::pair<int,int>(oldRegion,newRegion)];
-                        if (adj != NULL)
+                        if (regionsToEdge_.count(std::pair<int,int>(oldRegion, newRegion)) > 0)
                         {
+                            Adjacency* adj = regionsToEdge_[std::pair<int,int>(oldRegion,newRegion)];
                             adj->empty = false;
                             ++adj->numSelections;
                             improved |= updateConnectionEstimate(graph_[boost::vertex(oldRegion,graph_)], graph_[boost::vertex(newRegion,graph_)], state);
