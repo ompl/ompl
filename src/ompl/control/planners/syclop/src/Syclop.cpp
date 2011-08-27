@@ -331,7 +331,13 @@ void ompl::control::Syclop::computeLead(void)
     /* For now, this function assumes that a path exists in the decomposition
      * from startRegion to goalRegion. */
     lead_.clear();
-    if (rng_.uniform01() < PROB_SHORTEST_PATH)
+    if (startRegion_ == goalRegion_)
+    {
+        lead_.push_back(startRegion_);
+        return;
+    }
+
+    else if (rng_.uniform01() < PROB_SHORTEST_PATH)
     {
         std::vector<RegionGraph::vertex_descriptor> parents(decomp_->getNumRegions());
         std::vector<double> distances(decomp_->getNumRegions());

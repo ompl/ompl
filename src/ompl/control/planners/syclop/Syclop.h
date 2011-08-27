@@ -76,7 +76,7 @@ namespace ompl
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
             Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, d)
+                siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, decomp_)
             {
                 specs_.approximateSolutions = true;
             }
