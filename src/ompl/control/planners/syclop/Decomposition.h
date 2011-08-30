@@ -42,6 +42,7 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/ClassForward.h"
+#include <valarray>
 
 namespace ompl
 {
@@ -69,6 +70,11 @@ namespace ompl
             virtual int getNumRegions() const
             {
                 return numRegions_;
+            }
+
+            virtual std::size_t getDimension() const
+            {
+                return dimension_;
             }
 
             virtual const base::RealVectorBounds& getBounds() const

@@ -45,9 +45,6 @@ namespace ompl
 {
     namespace control
     {
-        /* TODO could syclopRRT inherit from both Syclop and RRT, to use some of RRT's helper and setup methods?
-            I imagine SyclopRRT would override solve() to call Syclop::solve(). It would provide initializeTree() and selectAndExtend(),
-            which are called by Syclop::solve(). ...for now, just rewrite some RRT code. */
         class SyclopRRT : public Syclop
         {
         public:
