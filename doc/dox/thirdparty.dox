@@ -18,7 +18,7 @@ The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> 
 <ul>
 <li>
 \ref gRRTstar "RRT*" (optimal \ref gRRT "RRT") is an asymptotically-optimal incremental sampling-based motion planning algorithm. RRT* algorithm is guaranteed to converge to an optimal solution, while its running time is guaranteed to be a constant factor of the running time of the RRT. The RRT* algorithm was introduced and analyzed in:
-- S. Karaman and E. Frazzoli, <em>Sampling-based algorithms for optimal motion planning</em> Int. Journal of Robotics Research, 2011. To appear. Also available at http://arxiv.org/abs/1105.1186.
+- S. Karaman and E. Frazzoli, <em>Sampling-based algorithms for optimal motion planning</em> Int. Journal of Robotics Research, 2011. To appear. Also available at <a hef="http://arxiv.org/abs/1105.1186">http://arxiv.org/abs/1105.1186</a>.
 .
 For more information on RRT* and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
 </li>
