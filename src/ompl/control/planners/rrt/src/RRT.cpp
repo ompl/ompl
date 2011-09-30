@@ -121,9 +121,9 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
 
-        /* sample a random control */
-        controlSampler_->sampleNext(rctrl, nmotion->control, nmotion->state);
-        unsigned int cd = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+        /* sample a random control that attempts to go towards the random state, and also sample a control duration */
+        unsigned int cd = controlSampler_->sampleTo(rctrl, siC_->getMinControlDuration(), siC_->getMaxControlDuration(),
+                                                    nmotion->control, nmotion->state, rmotion->state);
         cd = siC_->propagateWhileValid(nmotion->state, rctrl, cd, xstate);
 
         if (cd >= siC_->getMinControlDuration())

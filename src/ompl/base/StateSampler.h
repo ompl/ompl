@@ -82,7 +82,7 @@ namespace ompl
         protected:
 
             /** \brief The state space this sampler samples */
-            const StateSpace *space_;
+            const StateSpace     *space_;
 
             /** \brief An instance of a random number generator */
             RNG                  rng_;
@@ -123,12 +123,12 @@ namespace ompl
             std::vector<StateSamplerPtr> samplers_;
 
             /** \brief The weight of each sampler (used when sampling near a state) */
-            std::vector<double>                  weightImportance_;
+            std::vector<double>          weightImportance_;
 
         private:
 
             /** \brief The number of samplers that are composed */
-            unsigned int                         samplerCount_;
+            unsigned int                samplerCount_;
 
         };
 
