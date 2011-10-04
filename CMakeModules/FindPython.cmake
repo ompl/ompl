@@ -36,6 +36,15 @@ if (NOT PYTHON_EXEC)
         DOC "Location of python executable to use")
 endif(NOT PYTHON_EXEC)
 
+# if Python is still not found, return
+if (NOT PYTHON_EXEC)
+    # dummy function
+    function(find_python_module module)
+        return()
+    endfunction(find_python_module)
+    return()
+endif()
+
 # On OS X the python executable might be symlinked to the "real" location
 # of the python executable. The header files and libraries are found relative
 # to that path.

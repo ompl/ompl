@@ -16,7 +16,7 @@ set(CPACK_SOURCE_IGNORE_FILES
     ".so$"
     ".dylib$"
     ".md5$"
-    "/blueprint/"
+    "/blueprint"
     ".DS_Store"
     "mkwebdocs.sh"
     "/html/"
