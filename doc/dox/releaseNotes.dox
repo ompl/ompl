@@ -1,7 +1,7 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_9_5 OMPL.app 0.9.5 (October 4, 2011)
+\section release_0_9_5 OMPL 0.9.5 (October 4, 2011)
 - Added control sampler functions that allow specifying an intended direction of propagation
 - Removed pre-generated Python binding code. It turns out that they are dependent on the particular Boost version.
 - Bug fixes
