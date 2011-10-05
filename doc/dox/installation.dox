@@ -49,19 +49,18 @@ This is it. You are done. Demo programs can be found in \c /opt/local/share/ompl
 - If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, and CMake. Optionally, you can also install the Open Dynamics Engine, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
 \code
 sudo port selfupdate
-sudo port install boost +python26 \; install cmake ode py26-pyplusplus-devel
+sudo port install boost +python27 \; install cmake ode py27-pyplusplus-devel
 \endcode
-If you omit the \c +python26 part, Boost.Python will not be installed, and the Python bindings for OMPL cannot be compiled.
-- It is <b>very</b> important that you use the same installed version of Python for all dependencies and OMPL.app. If you are using MacPorts, then you <b>must</b> use the MacPorts version of python 2.6 (most likely installed in <tt>/opt/local/bin</tt>). To make this version the default python version, make sure <tt>/opt/local/bin</tt> appears before <tt>/usr/bin</tt> in your PATH. You can add a line like this to your <tt>${HOME}/.bash_profile</tt>:
+If you omit the \c +python27 part, Boost.Python will not be installed, and the Python bindings for OMPL cannot be compiled.
+- It is <b>very</b> important that you use the same installed version of Python for all dependencies and OMPL.app. If you are using MacPorts, then you <b>must</b> use the MacPorts version of python 2.7 (most likely installed in <tt>/opt/local/bin</tt>). To make this version the default python version, make sure <tt>/opt/local/bin</tt> appears before <tt>/usr/bin</tt> in your PATH. You can add a line like this to your <tt>${HOME}/.bash_profile</tt>:
 \code
 export PATH=/opt/local/bin:/opt/local/sbin:$PATH
 \endcode
-Next, execute the following commands:
+Next, execute the following command:
 \code
-sudo port install python_select
-sudo python_select python26
+sudo port select python python27
 \endcode
-You can check if the MacPorts-installed python 2.6 is the default one by typing the following command:
+You can check if the MacPorts-installed python 2.7 is the default one by typing the following command:
 \code
 ls -l `which python`
 \endcode
