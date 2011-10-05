@@ -39,6 +39,19 @@
 #include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
+ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange);
+}
+
+ompl::geometric::RRTConnect::~RRTConnect(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::RRTConnect::setup(void)
 {
     Planner::setup();

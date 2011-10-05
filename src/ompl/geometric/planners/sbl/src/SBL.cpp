@@ -40,6 +40,19 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(si, "SBL")
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange);
+}
+
+ompl::geometric::SBL::~SBL(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::SBL::setup(void)
 {
     Planner::setup();

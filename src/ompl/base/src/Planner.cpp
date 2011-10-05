@@ -84,6 +84,38 @@ const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates
     return pis_;
 }
 
+bool ompl::base::Planner::setParam(const std::string &key, const std::string &value)
+{
+    std::map<std::string, PlannerParamPtr>::const_iterator it = params_.find(key);
+    if (it != params_.end())
+        return it->second->setValue(value);
+    else
+    {
+        msg_.error("Parameter '" + key + "' is not set for this planner");
+        return false;
+    }
+}
+
+bool ompl::base::Planner::setParams(const std::map<std::string, std::string> &kv)
+{
+    bool result = true;
+    for (std::map<std::string, std::string>::const_iterator it = kv.begin() ; it != kv.end() ; ++it)
+    {
+        bool r = setParam(it->first, it->second);
+        result = result && r;
+    }
+    return result;
+}
+
+void ompl::base::Planner::getParamNames(std::vector<std::string> &params) const
+{
+    params.clear();
+    params.reserve(params_.size());
+    for (std::map<std::string, PlannerParamPtr>::const_iterator it = params_.begin() ; it != params_.end() ; ++it)
+        params.push_back(it->first);
+    std::sort(params.begin(), params.end());
+}
+
 void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())
@@ -143,6 +175,21 @@ bool ompl::base::Planner::solve(double solveTime)
         return solve(PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(solveTime))));
     else
         return solve(PlannerThreadedTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(solveTime)), std::min(solveTime / 100.0, 0.1)));
+}
+
+void ompl::base::Planner::printProperties(std::ostream &out) const
+{
+    out << "Planner " + getName() << " is aware of the following parameters:" << std::endl;
+    std::vector<std::string> params;
+    getParamNames(params);
+
+    for (unsigned int i = 0 ; i < params.size() ; ++i)
+        out << "   " << params[i] << std::endl;
+
+    out << "Planner " + getName() + " specs:" << std::endl;
+    out << "Multithreaded:                 " << (getSpecs().multithreaded ? "Yes" : "No") << std::endl;
+    out << "Reports approximate solutions: " << (getSpecs().approximateSolutions ? "Yes" : "No") << std::endl;
+    out << "Can optimize solutions:        " << (getSpecs().optimizingPaths ? "Yes" : "No") << std::endl;
 }
 
 void ompl::base::PlannerInputStates::clear(void)

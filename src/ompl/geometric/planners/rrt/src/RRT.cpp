@@ -40,6 +40,22 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
+{
+    specs_.approximateSolutions = true;
+
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange);
+    Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
+}
+
+ompl::geometric::RRT::~RRT(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::RRT::clear(void)
 {
     Planner::clear();

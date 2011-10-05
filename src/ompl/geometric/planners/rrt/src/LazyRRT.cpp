@@ -40,6 +40,20 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
+ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT")
+{
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange);
+    Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias);
+}
+
+ompl::geometric::LazyRRT::~LazyRRT(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::LazyRRT::setup(void)
 {
     Planner::setup();

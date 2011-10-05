@@ -39,6 +39,24 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
+ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1"),
+                                                                             dStart_(boost::bind(&LBKPIECE1::freeMotion, this, _1)),
+                                                                             dGoal_(boost::bind(&LBKPIECE1::freeMotion, this, _1))
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+
+    minValidPathFraction_ = 0.5;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange);
+    Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction);
+    Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction, &LBKPIECE1::getMinValidPathFraction);
+}
+
+ ompl::geometric::LBKPIECE1::~LBKPIECE1(void)
+{
+}
+
 void ompl::geometric::LBKPIECE1::setup(void)
 {
     Planner::setup();

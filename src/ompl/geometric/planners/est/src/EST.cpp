@@ -40,6 +40,21 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(si, "EST")
+{
+    specs_.approximateSolutions = true;
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
+    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
+}
+
+ompl::geometric::EST::~EST(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::EST::setup(void)
 {
     Planner::setup();

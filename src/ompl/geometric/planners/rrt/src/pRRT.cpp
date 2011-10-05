@@ -41,6 +41,26 @@
 #include <boost/thread/thread.hpp>
 #include <limits>
 
+ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "pRRT"),
+                                                                  samplerArray_(si)
+{
+    specs_.approximateSolutions = true;
+    specs_.multithreaded = true;
+
+    setThreadCount(2);
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &pRRT::setRange, &pRRT::getRange);
+    Planner::declareParam<double>("goal_bias", this, &pRRT::setGoalBias, &pRRT::getGoalBias);
+    Planner::declareParam<unsigned int>("thread_count", this, &pRRT::setThreadCount, &pRRT::getThreadCount);
+}
+
+ompl::geometric::pRRT::~pRRT(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::pRRT::setup(void)
 {
     Planner::setup();

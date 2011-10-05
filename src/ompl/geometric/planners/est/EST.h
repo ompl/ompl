@@ -77,17 +77,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            EST(const base::SpaceInformationPtr &si) : base::Planner(si, "EST")
-            {
-                specs_.approximateSolutions = true;
-                goalBias_ = 0.05;
-                maxDistance_ = 0.0;
-            }
+            EST(const base::SpaceInformationPtr &si);
 
-            virtual ~EST(void)
-            {
-                freeMemory();
-            }
+            virtual ~EST(void);
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 

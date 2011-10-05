@@ -41,6 +41,23 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::pSBL::pSBL(const base::SpaceInformationPtr &si) : base::Planner(si, "pSBL"),
+                                                                   samplerArray_(si)
+{
+    specs_.recognizedGoal = base::GOAL_STATE;
+    specs_.multithreaded = true;
+    maxDistance_ = 0.0;
+    setThreadCount(2);
+
+    Planner::declareParam<double>("range", this, &pSBL::setRange, &pSBL::getRange);
+    Planner::declareParam<unsigned int>("thread_count", this, &pSBL::setThreadCount, &pSBL::getThreadCount);
+}
+
+ompl::geometric::pSBL::~pSBL(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::pSBL::setup(void)
 {
     Planner::setup();

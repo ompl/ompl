@@ -142,10 +142,7 @@ namespace ompl
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
-            virtual ~PRM(void)
-            {
-                freeMemory();
-            }
+            virtual ~PRM(void);
 
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 

@@ -83,16 +83,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT")
-            {
-                goalBias_ = 0.05;
-                maxDistance_ = 0.0;
-            }
+            LazyRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~LazyRRT(void)
-            {
-                freeMemory();
-            }
+            virtual ~LazyRRT(void);
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

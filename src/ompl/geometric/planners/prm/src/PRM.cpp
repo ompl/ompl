@@ -84,6 +84,13 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
+
+    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors);
+}
+
+ompl::geometric::PRM::~PRM(void)
+{
+    freeMemory();
 }
 
 void ompl::geometric::PRM::setup(void)

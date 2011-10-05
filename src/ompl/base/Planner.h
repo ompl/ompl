@@ -47,7 +47,9 @@
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/lexical_cast.hpp>
 #include <string>
+#include <map>
 
 namespace ompl
 {
@@ -197,8 +199,7 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false),
-                                 optimizingPaths(false), estimatingProbabilities(false)
+            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false)
             {
             }
 
@@ -214,9 +215,6 @@ namespace ompl
             /** \brief Flag indicating whether the planner attempts to optimize the path and reduce its length until the
                 maximum path length specified by the goal representation is satisfied */
             bool     optimizingPaths;
-
-            /** \brief Flag indicating whether probabilities of success are computed by the planner */
-            bool     estimatingProbabilities;
         };
 
         /** \brief Base class for a planner */
@@ -313,6 +311,27 @@ namespace ompl
             /** \brief Return the specifications (capabilities of this planner) */
             const PlannerSpecs& getSpecs(void) const;
 
+            /** \brief Planning algorithms typically have parameters
+                that can be set externally. While each planner will
+                have getter and setter functions specifically for
+                those parameters, this function allows setting
+                parameters generically, for any planner, by specifying
+                the parameter name \e key and its value \e value (both
+                as string). This makes it easy to automatically
+                configure planners using external sources (e.g., a
+                configuration file). The function returns true if the
+                parameter was parsed successfully and false
+                otherwise. */
+            bool setParam(const std::string &key, const std::string &value);
+
+            /** \brief Set a list of key-value pairs as parameters for
+                the planner. Return true if all parameters were set
+                successfully. This function simply calls setParam() multiple times */
+            bool setParams(const std::map<std::string, std::string> &kv);
+
+            /** \brief List the names of the parameters this planner is aware of */
+            void getParamNames(std::vector<std::string> &params) const;
+
             /** \brief Perform extra configuration steps, if
                 needed. This call will also issue a call to
                 ompl::base::SpaceInformation::setup() if needed. This
@@ -328,28 +347,131 @@ namespace ompl
             /** \brief Check if setup() was called for this planner */
             bool isSetup(void) const;
 
+            /** \brief Print information about the motion planner */
+            virtual void printProperties(std::ostream &out) const;
+
+            class PlannerParam
+            {
+            public:
+
+                PlannerParam(const Planner *planner, const std::string &name) : planner_(planner), name_(name), msg_(planner ? planner->getName() : "")
+                {
+                }
+
+                virtual ~PlannerParam(void)
+                {
+                }
+
+                const std::string& getName(void) const
+                {
+                    return name_;
+                }
+
+                virtual bool setValue(const std::string &value) = 0;
+
+                template<typename V>
+                bool setValue(const V& value)
+                {
+                    return setValue(boost::lexical_cast<std::string>(value));
+                }
+
+                virtual std::string getValue(void) const = 0;
+
+            protected:
+
+                const Planner *planner_;
+                std::string    name_;
+                msg::Interface msg_;
+            };
+
+            typedef boost::shared_ptr<PlannerParam> PlannerParamPtr;
+
         protected:
 
+            template<typename T>
+            class PlannerParamT : public PlannerParam
+            {
+            public:
+
+                typedef boost::function<void(T)> SetterFn;
+                typedef boost::function<T()>     GetterFn;
+
+                PlannerParamT(const Planner *planner, const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
+                    PlannerParam(planner, name), setter_(setter), getter_(getter)
+                {
+                }
+
+                virtual ~PlannerParamT(void)
+                {
+                }
+
+                virtual bool setValue(const std::string &value)
+                {
+                    bool result = true;
+                    try
+                    {
+                        setter_(boost::lexical_cast<T>(value));
+                    }
+                    catch (boost::bad_lexical_cast &)
+                    {
+                        result = false;
+                        msg_.warn("Invalid value format for parameter '" + name_ + "': " + value);
+                    }
+
+                    if (getter_)
+                        msg_.debug("The value of parameter '" + name_ + "' is now: " + boost::lexical_cast<std::string>(getter_()));
+
+                    return result;
+                }
+
+                virtual std::string getValue(void) const
+                {
+                    if (getter_)
+                        return boost::lexical_cast<std::string>(getter_());
+                    else
+                        return "";
+                }
+
+            protected:
+
+                SetterFn setter_;
+                GetterFn getter_;
+            };
+
+            template<typename T, typename PlannerType, typename SetterType, typename GetterType>
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter)
+            {
+                params_[name].reset(new PlannerParamT<T>(this, name, boost::bind(setter, planner, _1), boost::bind(getter, planner)));
+            }
+
+            template<typename T, typename PlannerType, typename SetterType>
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter)
+            {
+                params_[name].reset(new PlannerParamT<T>(this, name, boost::bind(setter, planner, _1)));
+            }
+
             /** \brief The space information for which planning is done */
-            SpaceInformationPtr  si_;
+            SpaceInformationPtr                    si_;
 
             /** \brief The user set problem definition */
-            ProblemDefinitionPtr pdef_;
+            ProblemDefinitionPtr                   pdef_;
 
             /** \brief Utility class to extract valid input states  */
-            PlannerInputStates   pis_;
+            PlannerInputStates                     pis_;
 
             /** \brief The name of this planner */
-            std::string          name_;
+            std::string                            name_;
 
             /** \brief The specifications of the planner (its capabilities) */
-            PlannerSpecs         specs_;
+            PlannerSpecs                           specs_;
+
+            std::map<std::string, PlannerParamPtr> params_;
 
             /** \brief Flag indicating whether setup() has been called */
-            bool                 setup_;
+            bool                                   setup_;
 
             /** \brief Console interface */
-            msg::Interface       msg_;
+            msg::Interface                         msg_;
         };
 
         /** \brief Definition of a function that can allocate a planner */

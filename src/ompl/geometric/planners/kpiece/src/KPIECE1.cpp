@@ -40,6 +40,27 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
+                                                                         disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
+{
+    specs_.approximateSolutions = true;
+
+    goalBias_ = 0.05;
+    badScoreFactor_ = 0.5;
+    goodScoreFactor_ = 0.9;
+    minValidPathFraction_ = 0.2;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange);
+    Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
+    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
+    Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
+}
+
+ompl::geometric::KPIECE1::~KPIECE1(void)
+{
+}
+
 void ompl::geometric::KPIECE1::setup(void)
 {
     Planner::setup();

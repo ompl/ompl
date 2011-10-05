@@ -126,6 +126,8 @@ void ompl::control::SimpleSetup::print(std::ostream &out) const
         si_->printSettings(out);
         si_->printProperties(out);
     }
+    if (planner_)
+        planner_->printProperties(out);
     if (pdef_)
         pdef_->print(out);
 }
