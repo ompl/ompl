@@ -116,6 +116,11 @@ void ompl::base::Planner::getParamNames(std::vector<std::string> &params) const
     std::sort(params.begin(), params.end());
 }
 
+const std::map<std::string, ompl::base::Planner::PlannerParamPtr>& ompl::base::Planner::getParams(void) const
+{
+    return params_;
+}
+
 void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())

@@ -41,6 +41,27 @@
 #include <limits>
 #include <cassert>
 
+ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(si, "KPIECE1")
+{
+    specs_.approximateSolutions = true;
+
+    siC_ = si.get();
+    nCloseSamples_ = 30;
+    goalBias_ = 0.05;
+    selectBorderFraction_ = 0.8;
+    badScoreFactor_ = 0.45;
+    goodScoreFactor_ = 0.9;
+    tree_.grid.onCellUpdate(computeImportance, NULL);
+
+    Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
+    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
+}
+
+ompl::control::KPIECE1::~KPIECE1(void)
+{
+    freeMemory();
+}
+
 void ompl::control::KPIECE1::setup(void)
 {
     Planner::setup();

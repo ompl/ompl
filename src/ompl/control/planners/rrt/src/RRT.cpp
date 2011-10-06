@@ -39,6 +39,21 @@
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include <limits>
 
+ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT")
+{
+    specs_.approximateSolutions = true;
+    siC_ = si.get();
+
+    goalBias_ = 0.05;
+
+    Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
+}
+
+ompl::control::RRT::~RRT(void)
+{
+    freeMemory();
+}
+
 void ompl::control::RRT::setup(void)
 {
     base::Planner::setup();

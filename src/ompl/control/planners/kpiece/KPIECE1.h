@@ -81,23 +81,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            KPIECE1(const SpaceInformationPtr &si) : base::Planner(si, "KPIECE1")
-            {
-                specs_.approximateSolutions = true;
+            KPIECE1(const SpaceInformationPtr &si);
 
-                siC_ = si.get();
-                nCloseSamples_ = 30;
-                goalBias_ = 0.05;
-                selectBorderFraction_ = 0.8;
-                badScoreFactor_ = 0.45;
-                goodScoreFactor_ = 0.9;
-                tree_.grid.onCellUpdate(computeImportance, NULL);
-            }
-
-            virtual ~KPIECE1(void)
-            {
-                freeMemory();
-            }
+            virtual ~KPIECE1(void);
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 

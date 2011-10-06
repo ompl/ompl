@@ -223,6 +223,9 @@ namespace ompl
 
         public:
 
+            /** \brief Forward declaration of ompl::base::PlannerParam */
+            ClassForward(PlannerParam);
+
             /** \brief Constructor */
             Planner(const SpaceInformationPtr &si, const std::string &name);
 
@@ -332,6 +335,9 @@ namespace ompl
             /** \brief List the names of the parameters this planner is aware of */
             void getParamNames(std::vector<std::string> &params) const;
 
+            /** \brief Get the parameters this planner is aware of */
+            const std::map<std::string, PlannerParamPtr>& getParams(void) const;
+
             /** \brief Perform extra configuration steps, if
                 needed. This call will also issue a call to
                 ompl::base::SpaceInformation::setup() if needed. This
@@ -350,10 +356,16 @@ namespace ompl
             /** \brief Print information about the motion planner */
             virtual void printProperties(std::ostream &out) const;
 
+            /** \brief Motion planning algorithms often employ
+                parameters to guide their exploration process. (e.g.,
+                goal biasing). Motion planners use this class to
+                declare what the parameters are, in a generic way, so
+                that they can be set externally. */
             class PlannerParam
             {
             public:
 
+                /** \brief The constructor of a parameter takes the name of the parameter (\e name) and the planner (\e planner) it is for */
                 PlannerParam(const Planner *planner, const std::string &name) : planner_(planner), name_(name), msg_(planner ? planner->getName() : "")
                 {
                 }
@@ -362,40 +374,56 @@ namespace ompl
                 {
                 }
 
+                /** \brief Get the name of the parameter */
                 const std::string& getName(void) const
                 {
                     return name_;
                 }
 
+                /** \brief Set the value of the parameter. The value is taken in as a string, but converted to the type of that parameter. */
                 virtual bool setValue(const std::string &value) = 0;
 
+                /** \brief Helper function that allows setting the value of a parameter from any type (a conversion to string is used internally) */
                 template<typename V>
                 bool setValue(const V& value)
                 {
                     return setValue(boost::lexical_cast<std::string>(value));
                 }
 
+                /** \brief Retrieve the value of the parameter, as a string. */
                 virtual std::string getValue(void) const = 0;
 
             protected:
 
+                /** \brief The planner this parameter is for */
                 const Planner *planner_;
+
+                /** \brief The name of the parameter */
                 std::string    name_;
+
+                /** \brief Interface for publishing console messages */
                 msg::Interface msg_;
             };
 
-            typedef boost::shared_ptr<PlannerParam> PlannerParamPtr;
-
         protected:
 
+            /** \brief This is a helper class that instantiates
+                planner parameters of different types. */
             template<typename T>
             class PlannerParamT : public PlannerParam
             {
             public:
 
+                /** \brief The type for the 'setter' function for this planner parameter */
                 typedef boost::function<void(T)> SetterFn;
+
+                /** \brief The type for the 'getter' function for this planner parameter */
                 typedef boost::function<T()>     GetterFn;
 
+                /** \brief An explicit instantiation of a planner
+                    parameter requires the \e setter function and optionally the \e
+                    getter function, in addition to the \e planner and
+                    the parameter \e name. */
                 PlannerParamT(const Planner *planner, const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
                     PlannerParam(planner, name), setter_(setter), getter_(getter)
                 {
@@ -434,16 +462,21 @@ namespace ompl
 
             protected:
 
+                /** \brief The setter function for this parameter */
                 SetterFn setter_;
+
+                /** \brief The getter function for this parameter */
                 GetterFn getter_;
             };
 
+            /** \brief This function declares a parameter for this planner instance, and specifies the setter and getter functions. */
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter)
             {
                 params_[name].reset(new PlannerParamT<T>(this, name, boost::bind(setter, planner, _1), boost::bind(getter, planner)));
             }
 
+            /** \brief This function declares a parameter for this planner instance, and specifies the setter function. */
             template<typename T, typename PlannerType, typename SetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter)
             {
@@ -465,6 +498,7 @@ namespace ompl
             /** \brief The specifications of the planner (its capabilities) */
             PlannerSpecs                           specs_;
 
+            /** \brief A map from parameter names to parameter instances for this planner. This field is populated by the declareParam() function */
             std::map<std::string, PlannerParamPtr> params_;
 
             /** \brief Flag indicating whether setup() has been called */
