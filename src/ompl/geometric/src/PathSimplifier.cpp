@@ -141,7 +141,7 @@ void ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
 
     if (maxEmptySteps == 0)
         maxEmptySteps = path.states.size();
-    
+
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
 
     std::vector<double> dists(path.states.size(), 0.0);
@@ -189,11 +189,11 @@ void ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
             if (p1 - dists[pos1] < threshold)
                 index1 = pos1;
         }
-	
+
         if (pos0 == pos1 || index0 == pos1 || index1 == pos0 ||
             pos0 + 1 == index1 || pos1 + 1 == index0 ||
             (index0 >=0 && index1 >= 0 && abs(index0 - index1) < 2))
-	    continue;
+            continue;
 
         if (index0 >= 0)
             s0 = path.states[index0];
