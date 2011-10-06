@@ -123,12 +123,168 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 
         if (si->checkMotion(path.states[p1], path.states[p2]))
         {
-            for (int i = p1 + 1 ; i < p2 ; ++i)
-                si->freeState(path.states[i]);
+            for (int j = p1 + 1 ; j < p2 ; ++j)
+                si->freeState(path.states[j]);
             path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
             nochange = 0;
         }
     }
+}
+
+void ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
+{
+    if (path.states.size() < 3)
+        return;
+
+    if (maxSteps == 0)
+        maxSteps = path.states.size();
+
+    if (maxEmptySteps == 0)
+        maxEmptySteps = path.states.size();
+
+    const base::SpaceInformationPtr &si = path.getSpaceInformation();
+
+    std::vector<double> dists(path.states.size(), 0.0);
+    for (unsigned int i = 1 ; i < dists.size() ; ++i)
+        dists[i] = dists[i - 1] + si->distance(path.states[i-1], path.states[i]);
+    double threshold = dists.back() * snapToVertex;
+    double rd = rangeRatio * dists.back();
+
+    base::State *temp0 = si->allocState();
+    base::State *temp1 = si->allocState();
+
+    unsigned int nochange = 0;
+    for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
+    {
+        base::State *s0 = NULL;
+        int index0 = -1;
+        double t0 = 0.0;
+        double p0 = rng_.uniformReal(0.0, dists.back());
+        std::vector<double>::iterator pit = std::lower_bound(dists.begin(), dists.end(), p0);
+        int pos0 = pit == dists.end() ? dists.size() - 1 : pit - dists.begin();
+        std::cout << "sampled p0 = " << p0 << ", got pos0 = " << pos0 << " dists[pos0] = " << dists[pos0] << std::endl;
+
+        if (pos0 == 0 || dists[pos0] - p0 < threshold)
+            index0 = pos0;
+        else
+        {
+            while (pos0 > 0 && p0 > dists[pos0])
+                --pos0;
+            if (p0 - dists[pos0] < threshold)
+                index0 = pos0;
+        }
+
+        base::State *s1 = NULL;
+        int index1 = -1;
+        double t1 = 0.0;
+        double p1 = rng_.uniformReal(std::max(0.0, p0 - rd), std::min(p0 + rd, dists.back()));
+        pit = std::lower_bound(dists.begin(), dists.end(), p1);
+        int pos1 = pit == dists.end() ? dists.size() - 1 : pit - dists.begin();
+        std::cout << "sampled p1 = " << p1 << ", got pos1 = " << pos1 << " dists[pos1] = " << dists[pos1] << std::endl;
+
+        if (pos1 == 0 || dists[pos1] - p1 < threshold)
+            index1 = pos1;
+        else
+        {
+            while (pos1 > 0 && p1 > dists[pos1])
+                --pos1;
+            if (p1 - dists[pos1] < threshold)
+                index1 = pos1;
+        }
+
+        if (pos0 == pos1 || index0 == pos1 || index1 == pos0 ||
+            pos0 + 1 == index1 || pos1 + 1 == index0 ||
+            (index0 >=0 && index1 >= 0 && abs(index0 - index1) < 2))
+            continue;
+
+        if (index0 >= 0)
+            s0 = path.states[index0];
+        else
+        {
+            t0 = (p0 - dists[pos0]) / (dists[pos0 + 1] - dists[pos0]);
+            std::cout << "interpolating at t0 = " << t0 << std::endl;
+            si->getStateSpace()->interpolate(path.states[pos0], path.states[pos0 + 1], t0, temp0);
+            s0 = temp0;
+        }
+
+        if (index1 >= 0)
+            s1 = path.states[index1];
+        else
+        {
+            t1 = (p1 - dists[pos1]) / (dists[pos1 + 1] - dists[pos1]);
+            std::cout << "interpolating at t1 = " << t1 << std::endl;
+            si->getStateSpace()->interpolate(path.states[pos1], path.states[pos1 + 1], t1, temp1);
+            s1 = temp1;
+        }
+
+        if (si->checkMotion(s0, s1))
+        {
+            if (pos0 > pos1)
+            {
+                std::swap(pos0, pos1);
+                std::swap(index0, index1);
+                std::swap(s0, s1);
+                std::swap(t0, t1);
+            }
+
+            if (index0 < 0 && index1 < 0)
+            {
+                if (pos0 + 1 == pos1)
+                {
+                    std::cout << "case X X a\n";
+                    si->copyState(path.states[pos1], s0);
+                    path.states.insert(path.states.begin() + pos1 + 1, si->cloneState(s1));
+                }
+                else
+                {
+                    std::cout << "case X X b\n";
+                    for (unsigned int j = pos0 + 2 ; j < pos1 ; ++j)
+                        si->freeState(path.states[j]);
+                    si->copyState(path.states[pos0 + 1], s0);
+                    si->copyState(path.states[pos1], s1);
+                    path.states.erase(path.states.begin() + pos0 + 2, path.states.begin() + pos1);
+                }
+            }
+            else
+                if (index0 >= 0 && index1 >= 0)
+                {
+                    std::cout << "case 0 0\n";
+                    for (unsigned int j = index0 + 1 ; j < index1 ; ++j)
+                        si->freeState(path.states[j]);
+                    path.states.erase(path.states.begin() + index0 + 1, path.states.begin() + index1);
+                }
+                else
+                    if (index0 < 0 && index1 >= 0)
+                    {
+                        std::cout << "case X 0\n";
+                        for (unsigned int j = pos0 + 2 ; j < index1 ; ++j)
+                            si->freeState(path.states[j]);
+                        si->copyState(path.states[pos0 + 1], s0);
+                        path.states.erase(path.states.begin() + pos0 + 2, path.states.begin() + index1);
+                    }
+                    else
+                        if (index0 >= 0 && index1 < 0)
+                        {
+                            std::cout << "case 0 X\n";
+                            for (unsigned int j = index0 + 1 ; j < pos1 ; ++j)
+                                si->freeState(path.states[j]);
+                            si->copyState(path.states[pos1], s1);
+                            path.states.erase(path.states.begin() + index0 + 1, path.states.begin() + pos1);
+                        }
+
+            // fix the helper variables
+            dists.resize(path.states.size(), 0.0);
+            for (unsigned int j = pos0 + 1 ; j < dists.size() ; ++j)
+                dists[j] = dists[j - 1] + si->distance(path.states[j-1], path.states[j]);
+            threshold = dists.back() * snapToVertex;
+            rd = rangeRatio * dists.back();
+
+            nochange = 0;
+        }
+    }
+
+    si->freeState(temp1);
+    si->freeState(temp0);
 }
 
 void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps)

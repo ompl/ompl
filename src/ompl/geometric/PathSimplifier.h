@@ -78,9 +78,9 @@ namespace ompl
                 it while keeping the path valid. This is an iterative
                 process that attempts to do "short-cutting" on the
                 path.  Connection is attempted between non-consecutive
-                states along the path. If the connection is successful,
-                the path is shortened by removing the in-between
-                states.
+                way-points on the path. If the connection is
+                successful, the path is shortened by removing the
+                in-between way-points.
 
                 \param path the path to reduce vertices from
 
@@ -103,7 +103,49 @@ namespace ompl
                 the total number of states (between 0 and 1).
 
             */
-            void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.2);
+            void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33);
+
+            /** \brief Given a path, attempt to shorten it while
+                maintaining its validity. This is an iterative process
+                that attempts to do "short-cutting" on the path.
+                Connection is attempted between random points along
+                the path segments. Unlike the reduceVertices()
+                function, this function does not sample only vertices
+                produced by the planner, but intermediate points on
+                the path. If the connection is successful, the path is
+                shortened by removing the in-between states (and new
+                vertices are created when needed).
+
+                \param path the path to reduce vertices from
+
+                \param maxSteps the maximum number of attempts to
+                "short-cut" the path.  If this value is set to 0 (the
+                default), the number of attempts made is equal to the
+                number of states in \e path.
+
+                \param maxEmptySteps not all iterations of this function
+                produce a simplification. If an iteration does not
+                produce a simplification, it is called an empty
+                step. \e maxEmptySteps denotes the maximum number of
+                consecutive empty steps before the simplification
+                process terminates. If this value is set to 0 (the
+                default), the number of attempts made is equal to the
+                number of states in \e path.
+
+                \param rangeRatio the maximum distance between states
+                a connection is attempted, as a fraction relative to
+                the total number of states (between 0 and 1).
+
+                \param snapToVertex While sampling random points on
+                the path, sometimes the points may be close to
+                vertices on the original path (way-points).  This
+                function will then "snap to the near vertex", if the
+                distance is less than \e snapToVertex fraction of the
+                total path length. This should usually be a small
+                value (e.g., one percent of the total path length:
+                0.01)
+            */
+            void shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33, double snapToVertex = 0.01);
 
             /** \brief Given a path, attempt to remove vertices from
                 it while keeping the path valid. This is an iterative
