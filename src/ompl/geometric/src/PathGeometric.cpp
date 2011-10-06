@@ -82,7 +82,7 @@ double ompl::geometric::PathGeometric::length(void) const
     return L;
 }
 
-double ompl::geometric::PathGeometric::clearance(void) const
+double ompl::geometric::PathGeometric::clearance (void) const
 {
     double c = 0.0;
     for (unsigned int i = 0 ; i < states.size() ; ++i)
@@ -102,12 +102,25 @@ double ompl::geometric::PathGeometric::smoothness(void) const
         double a = si_->distance(states[0], states[1]);
         for (unsigned int i = 2 ; i < states.size() ; ++i)
         {
+            // view the path as a sequence of segments, and look at the triangles it forms:
+            //          s1
+            //          /\          s4
+            //      a  /  \ b       |
+            //        /    \        |
+            //       /......\_______|
+            //     s0    c   s2     s3
+            //
+            // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
             double b = si_->distance(states[i-1], states[i]);
             double c = si_->distance(states[i-2], states[i]);
             double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+
             if (acosValue > -1.0 && acosValue < 1.0)
             {
+                // the smoothness is actually the outside angle of the one we compute
                 double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+
+                // and we normalize by the length of the segments
                 double k = 2.0 * angle / (a + b);
                 s += k * k;
             }
