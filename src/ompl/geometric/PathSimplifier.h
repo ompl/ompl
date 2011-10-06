@@ -143,9 +143,9 @@ namespace ompl
                 distance is less than \e snapToVertex fraction of the
                 total path length. This should usually be a small
                 value (e.g., one percent of the total path length:
-                0.01)
+                0.01; the default is half a percent)
             */
-            void shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33, double snapToVertex = 0.01);
+            void shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to remove vertices from
                 it while keeping the path valid. This is an iterative
