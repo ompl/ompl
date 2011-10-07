@@ -83,13 +83,6 @@ namespace ompl
                 return copy;
             }
 
-            bool isAchieved(void)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                bool result = !solutions_.empty();
-                return result;
-            }
-
             bool isApproximate(void)
             {
                 boost::mutex::scoped_lock slock(lock_);
@@ -141,7 +134,12 @@ ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
 
 bool ompl::base::Goal::isAchieved(void) const
 {
-    return solutions_->isAchieved();
+    return solutions_->getSolutionCount() > 0;
+}
+
+std::size_t ompl::base::Goal::getSolutionCount(void) const
+{
+    return solutions_->getSolutionCount();
 }
 
 ompl::base::PathPtr ompl::base::Goal::getSolutionPath(void) const

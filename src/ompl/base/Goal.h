@@ -219,6 +219,9 @@ namespace ompl
             */
             void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0) const;
 
+            /** \brief Get the number of solutions already found */
+            std::size_t getSolutionCount(void) const;
+
             /** \brief Get all the solution paths available for this goal */
             std::vector<PlannerSolution> getSolutions(void) const;
 
