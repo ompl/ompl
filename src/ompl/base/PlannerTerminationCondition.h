@@ -174,7 +174,8 @@ namespace ompl
             PlannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2);
         };
 
-        PlannerTerminationCondition timedPlannerTerminationCondition(double duration);
+        PlannerTerminationCondition         timedPlannerTerminationCondition(double duration);
+        PlannerThreadedTerminationCondition timedPlannerTerminationCondition(double duration, double interval);
     }
 }
 

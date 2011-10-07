@@ -163,23 +163,12 @@ bool ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double
     return solve(PlannerThreadedTerminationCondition(ptc, checkInterval));
 }
 
-/// @cond IGNORE
-namespace ompl
-{
-    // return true if a certain point in time has passed
-    static bool timePassed(const time::point &endTime)
-    {
-        return time::now() > endTime;
-    }
-}
-/// @endcond
-
 bool ompl::base::Planner::solve(double solveTime)
 {
     if (solveTime < 1.0)
-        return solve(PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(solveTime))));
+        return solve(timedPlannerTerminationCondition(solveTime));
     else
-        return solve(PlannerThreadedTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(solveTime)), std::min(solveTime / 100.0, 0.1)));
+        return solve(timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)));
 }
 
 void ompl::base::Planner::printProperties(std::ostream &out) const

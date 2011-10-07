@@ -147,3 +147,8 @@ ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondi
 {
     return PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(duration)));
 }
+
+ompl::base::PlannerThreadedTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration, double interval)
+{
+    return PlannerThreadedTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(duration)), interval);
+}
