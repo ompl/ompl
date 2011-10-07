@@ -153,11 +153,11 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
             motion->parent = existing;
 
             double dist = 0.0;
-            bool solved = goal->isSatisfied(motion->state, &dist);
+            bool solv = goal->isSatisfied(motion->state, &dist);
             projectionEvaluator_->computeCoordinates(motion->state, xcoord);
             disc_.addMotion(motion, xcoord, dist);
 
-            if (solved)
+            if (solv)
             {
                 approxdif = dist;
                 solution = motion;
@@ -176,6 +176,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
         disc_.updateCell(ecell);
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -198,6 +199,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        solved = true;
     }
 
     si_->freeState(xstate);
@@ -205,7 +207,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     msg_.inform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
                 disc_.getGrid().countInternal(), disc_.getGrid().countExternal());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const

@@ -210,6 +210,7 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
         delete th[i];
     }
 
+    bool solved = false;
     bool approximate = false;
     if (sol.solution == NULL)
     {
@@ -233,11 +234,12 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
             path->states.push_back(si_->cloneState(mpath[i]->state));
 
         goal->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
+        solved = true;
     }
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::pRRT::getPlannerData(base::PlannerData &data) const

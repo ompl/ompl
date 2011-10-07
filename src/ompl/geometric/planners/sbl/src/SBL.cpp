@@ -118,6 +118,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
     base::State *xstate = si_->allocState();
 
     bool      startTree = true;
+    bool         solved = false;
 
     while (ptc() == false)
     {
@@ -165,6 +166,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
                 path->states.push_back(si_->cloneState(solution[i]->state));
 
             goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+            solved = true;
             break;
         }
     }
@@ -174,7 +176,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
                  tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)

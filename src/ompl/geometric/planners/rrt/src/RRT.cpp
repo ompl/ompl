@@ -152,8 +152,8 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
             nn_->add(motion);
             double dist = 0.0;
-            bool solved = goal->isSatisfied(motion->state, &dist);
-            if (solved)
+            bool sat = goal->isSatisfied(motion->state, &dist);
+            if (sat)
             {
                 approxdif = dist;
                 solution = motion;
@@ -167,6 +167,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
         }
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -189,6 +190,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        solved = true;
     }
 
     si_->freeState(xstate);
@@ -198,7 +200,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const

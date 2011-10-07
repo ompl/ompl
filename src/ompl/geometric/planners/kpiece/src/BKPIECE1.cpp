@@ -119,6 +119,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
     bool      startTree = true;
+    bool         solved = false;
 
     while (ptc() == false)
     {
@@ -204,6 +205,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                             path->states.push_back(si_->cloneState(mpath2[i]->state));
 
                         goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                        solved = true;
                         break;
                     }
                 }
@@ -223,7 +225,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::BKPIECE1::freeMotion(Motion *motion)

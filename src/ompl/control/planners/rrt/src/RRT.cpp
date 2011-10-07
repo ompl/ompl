@@ -152,8 +152,8 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
             nn_->add(motion);
             double dist = 0.0;
-            bool solved = goal->isSatisfied(motion->state, &dist);
-            if (solved)
+            bool solv = goal->isSatisfied(motion->state, &dist);
+            if (solv)
             {
                 approxdif = dist;
                 solution = motion;
@@ -167,6 +167,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
         }
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -195,7 +196,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
                 path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
             }
         }
-
+        solved = true;
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }
 
@@ -208,7 +209,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::control::RRT::getPlannerData(base::PlannerData &data) const

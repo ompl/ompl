@@ -182,7 +182,8 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
     Motion   *rmotion   = new Motion(si_);
     base::State *rstate = rmotion->state;
-    bool   startTree    = true;
+    bool startTree      = true;
+    bool solved         = false;
 
     while (ptc() == false)
     {
@@ -260,6 +261,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
                     path->states.push_back(si_->cloneState(mpath2[i]->state));
 
                 goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                solved = true;
                 break;
             }
         }
@@ -271,7 +273,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
     msg_.inform("Created %u states (%u start + %u goal)", tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const

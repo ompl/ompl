@@ -159,6 +159,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
         }
     }
 
+    bool solved = false;
     if (solution != NULL)
     {
         /* construct the solution path */
@@ -188,6 +189,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
             path->states.push_back(si_->cloneState(mpath[i]->state));
 
         goal->addSolutionPath(base::PathPtr(path), false, distsol);
+        solved = true;
     }
 
     si_->freeState(xstate);
@@ -196,7 +198,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::LazyRRT::removeMotion(Motion *motion)

@@ -245,7 +245,7 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
              tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
-    return goal->isAchieved();
+    return sol.found;
 }
 
 bool ompl::geometric::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)

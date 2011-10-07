@@ -153,6 +153,7 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
         }
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -175,13 +176,14 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        solved = true;
     }
 
     si_->freeState(xstate);
 
     msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion(void)

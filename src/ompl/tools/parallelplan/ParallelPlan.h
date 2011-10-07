@@ -54,7 +54,8 @@ namespace ompl
         public:
 
             /** \brief Create an instance for a specified space information */
-            ParallelPlan(const base::ProblemDefinitionPtr &pdef) : pdef_(pdef), minSolCount_(2), maxSolCount_(5), msg_("ParallelPlan")
+            ParallelPlan(const base::ProblemDefinitionPtr &pdef) :
+                pdef_(pdef), hybridize_(false), minSolCount_(2), maxSolCount_(5), msg_("ParallelPlan")
             {
             }
 

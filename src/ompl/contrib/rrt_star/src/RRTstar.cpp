@@ -321,6 +321,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
         }
     }
 
+    bool addedSolution = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -343,6 +344,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        addedSolution = true;
     }
 
     si_->freeState(xstate);
@@ -352,7 +354,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
-    return goal->isAchieved();
+    return addedSolution;
 }
 
 void ompl::geometric::RRTstar::freeMemory(void)

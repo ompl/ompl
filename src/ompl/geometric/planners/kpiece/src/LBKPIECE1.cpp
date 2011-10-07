@@ -113,6 +113,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 
     base::State *xstate = si_->allocState();
     bool      startTree = true;
+    bool         solved = false;
 
     while (ptc() == false)
     {
@@ -201,6 +202,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
                         path->states.push_back(si_->cloneState(mpath2[i]->state));
 
                     goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                    solved = true;
                     break;
                 }
             }
@@ -214,7 +216,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp)

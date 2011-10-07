@@ -420,10 +420,13 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (!addedSolution && approxsol_)
+    {
         // the solution is exact, but not as short as we'd like it to be
         goal->addSolutionPath(approxsol_, true, 0.0);
+        addedSolution = true;
+    }
 
-    return goal->isAchieved();
+    return addedSolution;
 }
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)

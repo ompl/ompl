@@ -48,6 +48,7 @@ bool ompl::geometric::ParallelPlan::solve(const base::PlannerTerminationConditio
         pdef_->getSpaceInformation()->setup();
     pdef_->getGoal()->clearSolutionPaths();
 
+    time::point start = time::now();
     std::vector<boost::thread*> threads(planners_.size());
     if (hybridize_)
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
@@ -68,13 +69,18 @@ bool ompl::geometric::ParallelPlan::solve(const base::PlannerTerminationConditio
         // pdef_->getGoal()->addSolutionPath(...);
     }
 
+    msg_.inform("Solution found in %f seconds", time::seconds(time::now() - start));
+
     return pdef_->getGoal()->isAchieved();
 }
 
 void ompl::geometric::ParallelPlan::solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc)
 {
     if (planner->solve(*ptc))
+    {
         ptc->terminate();
+        msg_.debug("Solution found by " + planner->getName());
+    }
 }
 
 void ompl::geometric::ParallelPlan::solveMore(base::Planner *planner, const base::PlannerTerminationCondition *ptc)
