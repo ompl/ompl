@@ -83,7 +83,7 @@ namespace ompl
             }
 
             /** \brief Notify that the condition for termination should become true, regardless of what eval() returns */
-            virtual void terminate(bool flag);
+            virtual void terminate(void) const;
 
             /** \brief The implementation of some termination condition. By default, this just calls \e fn_() */
             virtual bool eval(void) const;
@@ -94,7 +94,7 @@ namespace ompl
             PlannerTerminationConditionFn fn_;
 
             /** \brief Flag indicating whether the user has externally requested that the condition for termination should become true */
-            bool                          terminate_;
+            mutable bool                  terminate_;
         };
 
         /** \brief Termination condition with lazy evaluation. This is
@@ -118,14 +118,6 @@ namespace ompl
             PlannerThreadedTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
 
             virtual ~PlannerThreadedTerminationCondition(void);
-
-            /** \brief Notify that the condition for termination
-                should become true, regardless of what eval()
-                returns. Furthermore, if \e flag is true and the
-                thread evaluating the termination condition is active,
-                the thread is terminated. The tread will be restarted
-                if \e flag = false is passed. */
-            virtual void terminate(bool flag);
 
             /** \brief Simply return the cached value for the termination condition (evalValue_) */
             virtual bool eval(void) const;

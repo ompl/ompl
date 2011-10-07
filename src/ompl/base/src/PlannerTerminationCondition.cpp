@@ -40,9 +40,9 @@
 #include <boost/lambda/bind.hpp>
 #include <utility>
 
-void ompl::base::PlannerTerminationCondition::terminate(bool flag)
+void ompl::base::PlannerTerminationCondition::terminate(void) const
 {
-    terminate_ = flag;
+    terminate_ = true;
 }
 
 bool ompl::base::PlannerTerminationCondition::eval(void) const
@@ -95,15 +95,6 @@ ompl::base::PlannerAndTerminationCondition::PlannerAndTerminationCondition(const
 bool ompl::base::PlannerThreadedTerminationCondition::eval(void) const
 {
     return evalValue_;
-}
-
-void ompl::base::PlannerThreadedTerminationCondition::terminate(bool flag)
-{
-    PlannerTerminationCondition::terminate(flag);
-    if (terminate_)
-        stopEvalThread();
-    else
-        startEvalThread();
 }
 
 void ompl::base::PlannerThreadedTerminationCondition::startEvalThread(void)
