@@ -203,8 +203,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                         for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                             path->states.push_back(si_->cloneState(mpath2[i]->state));
 
-                        goal->setDifference(0.0);
-                        goal->setSolutionPath(base::PathPtr(path));
+                        goal->addSolutionPath(base::PathPtr(path), false, 0.0);
                         break;
                     }
                 }

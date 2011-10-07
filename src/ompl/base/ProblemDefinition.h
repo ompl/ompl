@@ -78,6 +78,12 @@ namespace ompl
                 clearStartStates();
             }
 
+            /** \brief Get the space information this problem definition is for */
+            const SpaceInformationPtr& getSpaceInformation(void) const
+            {
+                return si_;
+            }
+
             /** \brief Add a start state. The state is copied. */
             void addStartState(const State *state)
             {

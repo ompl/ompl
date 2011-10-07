@@ -259,8 +259,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
                 for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                     path->states.push_back(si_->cloneState(mpath2[i]->state));
 
-                goal->setDifference(0.0);
-                goal->setSolutionPath(base::PathPtr(path));
+                goal->addSolutionPath(base::PathPtr(path), false, 0.0);
                 break;
             }
         }

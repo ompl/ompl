@@ -103,7 +103,7 @@ void ompl::geometric::SimpleSetup::clear(void)
     if (planner_)
         planner_->clear();
     if (pdef_ && pdef_->getGoal())
-        pdef_->getGoal()->clearSolutionPath();
+        pdef_->getGoal()->clearSolutionPaths();
 }
 
 bool ompl::geometric::SimpleSetup::solve(double time)

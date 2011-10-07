@@ -172,13 +172,9 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }
 
     si_->freeState(xstate);

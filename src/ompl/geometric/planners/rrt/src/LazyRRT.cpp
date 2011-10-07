@@ -187,9 +187,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
 
-        goal->setDifference(distsol);
-        goal->setSolutionPath(base::PathPtr(path));
-
+        goal->addSolutionPath(base::PathPtr(path), false, distsol);
     }
 
     si_->freeState(xstate);

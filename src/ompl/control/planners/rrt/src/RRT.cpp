@@ -195,11 +195,8 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
                 path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
             }
         }
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
 
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }
 
     if (rmotion->state)

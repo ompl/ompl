@@ -325,11 +325,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
             }
         }
 
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }
 
     siC_->freeControl(rctrl);

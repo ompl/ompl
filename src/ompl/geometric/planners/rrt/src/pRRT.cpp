@@ -232,11 +232,7 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
 
-        goal->setDifference(sol.approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
     }
 
     msg_.inform("Created %u states", nn_->size());
