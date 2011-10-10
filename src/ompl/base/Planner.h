@@ -443,11 +443,11 @@ namespace ompl
                     catch (boost::bad_lexical_cast &)
                     {
                         result = false;
-                        msg_.warn("Invalid value format for parameter '" + name_ + "': " + value);
+                        msg_.warn("Invalid value format for parameter '" + name_ + "': '" + value + "'");
                     }
 
                     if (getter_)
-                        msg_.debug("The value of parameter '" + name_ + "' is now: " + boost::lexical_cast<std::string>(getter_()));
+                        msg_.debug("The value of parameter '" + name_ + "' is now: '" + boost::lexical_cast<std::string>(getter_()) + "'");
 
                     return result;
                 }
