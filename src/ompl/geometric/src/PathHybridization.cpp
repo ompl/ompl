@@ -37,6 +37,15 @@
 #include "ompl/geometric/PathHybridization.h"
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
+namespace ompl
+{
+    namespace magic
+    {
+        /** \brief The fraction of the path length to consider as gap cost when aligning paths to be hybridized. */
+        static const double GAP_COST_FRACTION = 0.05;
+    }
+}
+
 ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformationPtr &si) :
     si_(si), stateProperty_(boost::get(vertex_state_t(), g_))
 {
@@ -147,7 +156,7 @@ void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp)
     {
         const PathGeometric *q = static_cast<const PathGeometric*>(it->path_.get());
         std::vector<int> indexP, indexQ;
-        matchPaths(*p, *q, (pi.length_ + it->length_) / 40.0, indexP, indexQ);
+        matchPaths(*p, *q, (pi.length_ + it->length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
         int lastP = -1;
         int lastQ = -1;
@@ -212,8 +221,6 @@ std::size_t ompl::geometric::PathHybridization::pathCount(void) const
 void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, const PathGeometric &q, double gapCost,
                                                     std::vector<int> &indexP, std::vector<int> &indexQ) const
 {
-    const base::StateSpace *ss = p.getSpaceInformation()->getStateSpace().get();
-
     std::vector<std::vector<double> > C(p.states.size());
     std::vector<std::vector<char> >   T(p.states.size());
 
@@ -225,7 +232,7 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
         {
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
-            double match = ss->distance(p.states[i], q.states[j]) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
+            double match = si_->distance(p.states[i], q.states[j]) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
             double up    = gapCost + (i > 0 ? C[i - 1][j] : 0.0);
             double left  = gapCost + (j > 0 ? C[i][j - 1] : 0.0);
             if (match <= up && match <= left)

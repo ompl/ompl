@@ -72,22 +72,35 @@ namespace ompl
         /** \brief Clear the set of planners to be benchmarked */
         void clearPlanners(void);
 
-        /** \brief Enable or disable hybridization of solution paths (using ompl::geometric::PathHybridization) */
-        void setHybridization(bool flag);
+        /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
+            If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
+            If \e hybridize is true, all planners are executed until termination and the obtained solution paths are hybridized. */
+        bool solve(double solveTime, bool hybridize = true);
 
-        /** \brief Call Planner::solve() for all planners, in parallel */
-        bool solve(double solveTime);
+        /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc becomes true.
+            If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
+            If \e hybridize is true, all planners are executed until termination and the obtained solution paths are hybridized. */
+        bool solve(const base::PlannerTerminationCondition &ptc, bool hybridize = true);
 
-        /** \brief Call Planner::solve() for all planners, in parallel */
-        bool solve(const base::PlannerTerminationCondition &ptc);
+        /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
+            If \e hybridize is false, when \e minSolCount solutions are found, the rest of the planners are stopped as well.
+            If \e hybridize is true, all planners are executed until termination or until \e maxSolCount solutions were obtained.
+            While \e hybridize is true, if \e minSolCount or more solutions are available, they are hybridized. */
+        bool solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
+
+        /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc becomes true.
+            If \e hybridize is false, when \e minSolCount solutions are found, the rest of the planners are stopped as well.
+            If \e hybridize is true, all planners are executed until termination or until \e maxSolCount solutions were obtained.
+            While \e hybridize is true, if \e minSolCount or more solutions are available, they are hybridized. */
+        bool solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
 
     protected:
 
         /** \brief Run the planner and call ompl::base::PlannerTerminationCondition::terminate() for the other planners once a first solution is found */
-        void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc);
+        void solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc);
 
         /** \brief Run the planner and collect the solutions. This function is only called if hybridize_ is true. */
-        void solveMore(base::Planner *planner, const base::PlannerTerminationCondition *ptc);
+        void solveMore(base::Planner *planner, std::size_t minSolCount, std::size_t maxSolCount, const base::PlannerTerminationCondition *ptc);
 
         /** \brief The space information this path simplifier uses */
         base::ProblemDefinitionPtr      pdef_;
@@ -95,18 +108,10 @@ namespace ompl
         /** \brief The set of planners to be used */
         std::vector<base::PlannerPtr>   planners_;
 
-        /** \brief Flag indicating whether path hybridization is enabled */
-        bool                            hybridize_;
-
-        /** \brief Minimum number of solutions to find before attempting path hybridization */
-        std::size_t                     minSolCount_;
-
-        /** \brief Maximum number of solutions to find before stopping the hybridization */
-        std::size_t                     maxSolCount_;
-
         /** \brief The instance of the class that performs path hybridization */
         geometric::PathHybridizationPtr phybrid_;
 
+        /** \brief Lock for phybrid_ */
         boost::mutex                    phlock_;
 
         /** \brief Interface for console output */
