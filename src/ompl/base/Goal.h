@@ -69,7 +69,7 @@ namespace ompl
             /** \brief Return true if two solutions are the same */
             bool operator==(const PlannerSolution& p)
             {
-                return index_ == p.index_ && path_ == p.path_ && 
+                return index_ == p.index_ && path_ == p.path_ &&
                     approximate_ == p.approximate_ && difference_ == p.difference_;
             }
 
