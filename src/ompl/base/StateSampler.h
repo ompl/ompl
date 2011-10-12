@@ -41,6 +41,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/ClassForward.h"
 #include <vector>
+#include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -132,6 +133,8 @@ namespace ompl
 
         };
 
+        /** \brief Definition of a function that can allocate a state sampler */
+        typedef boost::function1<StateSamplerPtr, const StateSpace*> StateSamplerAllocator;
     }
 }
 

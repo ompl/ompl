@@ -97,8 +97,8 @@ namespace ompl
             void print(std::ostream &out = std::cout) const;
 
         private:
-	    
-	    /// @cond IGNORE
+
+            /// @cond IGNORE
             struct vertex_state_t {
                 typedef boost::vertex_property_tag kind;
             };
@@ -136,7 +136,7 @@ namespace ompl
                 double                           length_;
                 std::vector<Vertex>              vertices_;
             };
-	    /// @endcond
+            /// @endcond
 
             void attemptNewEdge(const PathInfo &p, const PathInfo &q, int indexP, int indexQ);
 

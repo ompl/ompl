@@ -48,8 +48,8 @@ namespace ompl
     ClassForward(ParallelPlan);
 
     /** \class ompl::ParallelPlanPtr
-	\brief A boost shared pointer wrapper for ompl::ParallelPlan */
-    
+        \brief A boost shared pointer wrapper for ompl::ParallelPlan */
+
     /// @cond IGNORE
     namespace geometric
     {
@@ -58,9 +58,9 @@ namespace ompl
     /// @endcond
 
     /** \brief This is a utility that allows executing multiple
-	planners in parallel, until one or more find a
-	solution. Optionally, the results are automatically
-	hybridized using ompl::geometric::PathHybridization. */
+        planners in parallel, until one or more find a
+        solution. Optionally, the results are automatically
+        hybridized using ompl::geometric::PathHybridization. */
     class ParallelPlan
     {
     public:

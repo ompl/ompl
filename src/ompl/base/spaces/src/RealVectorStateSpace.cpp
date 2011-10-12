@@ -244,7 +244,7 @@ void ompl::base::RealVectorStateSpace::interpolate(const State *from, const Stat
         rstate->values[i] = rfrom->values[i] + (rto->values[i] - rfrom->values[i]) * t;
 }
 
-ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocDefaultStateSampler(void) const
 {
     return StateSamplerPtr(new RealVectorStateSampler(this));
 }
