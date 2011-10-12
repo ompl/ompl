@@ -49,7 +49,7 @@ namespace ompl
         {
         public:
 
-            /** \brief COnstructor */
+            /** \brief Constructor */
             TimeStateSampler(const StateSpace *space) : StateSampler(space)
             {
             }
