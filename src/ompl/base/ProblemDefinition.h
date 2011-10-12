@@ -56,8 +56,10 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProblemDefinition */
         ClassForward(ProblemDefinition);
+        /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
             \brief A boost shared pointer wrapper for ompl::base::ProblemDefinition */

@@ -49,10 +49,14 @@ namespace ompl
     namespace control
     {
 
+        /// @cond IGNORE
         ClassForward(ControlSpace);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::ControlSampler */
         ClassForward(ControlSampler);
+        /// @endcond
 
         /** \class ompl::control::ControlSamplerPtr
             \brief A boost shared pointer wrapper for ompl::control::ControlSampler */

@@ -50,8 +50,10 @@ namespace ompl
     namespace geometric
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathSimplifier */
         ClassForward(PathSimplifier);
+        /// @endcond
 
         /** \class ompl::geometric::PathSimplifierPtr
             \brief A boost shared pointer wrapper for ompl::geometric::PathSimplifier */

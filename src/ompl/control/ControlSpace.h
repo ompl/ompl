@@ -53,8 +53,10 @@ namespace ompl
     namespace control
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::ControlSpace */
         ClassForward(ControlSpace);
+        /// @endcond
 
         /** \class ompl::control::ControlSpacePtr
             \brief A boost shared pointer wrapper for ompl::control::ControlSpace */

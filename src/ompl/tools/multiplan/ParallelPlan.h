@@ -44,8 +44,10 @@
 namespace ompl
 {
 
+    /// @cond IGNORE
     /** \brief Forward declaration of ompl::ParallelPlan */
     ClassForward(ParallelPlan);
+    /// @endcond
 
     /** \class ompl::ParallelPlanPtr
         \brief A boost shared pointer wrapper for ompl::ParallelPlan */

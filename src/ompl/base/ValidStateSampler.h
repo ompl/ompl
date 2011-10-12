@@ -48,10 +48,14 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         ClassForward(SpaceInformation);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ValidStateSampler */
         ClassForward(ValidStateSampler);
+        /// @endcond
 
         /** \class ompl::base::ValidStateSamplerPtr
             \brief A boost shared pointer wrapper for ompl::base::ValidStateSampler */

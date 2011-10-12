@@ -57,8 +57,10 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Planner */
         ClassForward(Planner);
+        /// @endcond
 
         /** \class ompl::base::PlannerPtr
             \brief A boost shared pointer wrapper for ompl::base::Planner */
@@ -223,8 +225,10 @@ namespace ompl
 
         public:
 
+            /// @cond IGNORE
             /** \brief Forward declaration of ompl::base::PlannerParam */
             ClassForward(PlannerParam);
+            /// @endcond
 
             /** \brief Constructor */
             Planner(const SpaceInformationPtr &si, const std::string &name);

@@ -47,10 +47,14 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         ClassForward(SpaceInformation);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Path */
         ClassForward(Path);
+        /// @endcond
 
         /** \class ompl::base::PathPtr
             \brief A boost shared pointer wrapper for ompl::base::Path */

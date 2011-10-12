@@ -55,8 +55,10 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSpace */
         ClassForward(StateSpace);
+        /// @endcond
 
         /** \class ompl::base::StateSpacePtr
             \brief A boost shared pointer wrapper for ompl::base::StateSpace */

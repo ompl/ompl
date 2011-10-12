@@ -49,10 +49,14 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         ClassForward(StateSpace);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSampler */
         ClassForward(StateSampler);
+        /// @endcond
 
         /** \class ompl::base::StateSamplerPtr
             \brief A boost shared pointer wrapper for ompl::base::StateSampler */
