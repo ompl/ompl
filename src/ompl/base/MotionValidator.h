@@ -46,11 +46,14 @@ namespace ompl
 
     namespace base
     {
-
+        /// @cond IGNORE
         ClassForward(SpaceInformation);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::MotionValidator */
         ClassForward(MotionValidator);
+        /// @endcond
 
         /** \class ompl::base::MotionValidatorPtr
             \brief A boost shared pointer wrapper for ompl::base::MotionValidator */

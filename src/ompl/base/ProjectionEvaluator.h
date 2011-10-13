@@ -112,10 +112,14 @@ namespace ompl
             Matrix mat;
         };
 
+        /// @cond IGNORE
         ClassForward(StateSpace);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProjectionEvaluator */
         ClassForward(ProjectionEvaluator);
+        /// @endcond
 
         /** \class ompl::base::ProjectionEvaluatorPtr
             \brief A boost shared pointer wrapper for ompl::base::ProjectionEvaluator */

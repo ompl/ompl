@@ -49,8 +49,10 @@ namespace ompl
     namespace geometric
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathHybridization */
         ClassForward(PathHybridization);
+        /// @endcond
 
         /** \class ompl::geometric::PathHybridizationPtr
             \brief A boost shared pointer wrapper for ompl::geometric::PathHybridization */

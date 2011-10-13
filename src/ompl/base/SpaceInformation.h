@@ -66,9 +66,10 @@ namespace ompl
         (dynamic) */
     namespace base
     {
-
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::SpaceInformation */
         ClassForward(SpaceInformation);
+        /// @endcond
 
         /** \class ompl::base::SpaceInformationPtr
             \brief A boost shared pointer wrapper for ompl::base::SpaceInformation */

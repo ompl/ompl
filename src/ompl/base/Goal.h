@@ -51,9 +51,10 @@ namespace ompl
 {
     namespace base
     {
-
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Goal */
         ClassForward(Goal);
+        /// @endcond
 
         /** \class ompl::base::GoalPtr
             \brief A boost shared pointer wrapper for ompl::base::Goal */
