@@ -81,7 +81,8 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
     {
         ScopedState<> s(si_);
         while (!terminateSamplingThread_ && samplerFunc_(this, s.get()))
-            addStateIfDifferent(s.get(), minDist_);
+            if (si_->satisfiesBounds(s.get()) && si_->isValid(s.get()))
+                addStateIfDifferent(s.get(), minDist_);
     }
     terminateSamplingThread_ = true;
 }
@@ -93,7 +94,7 @@ bool ompl::base::GoalLazySamples::isSampling(void) const
 
 bool ompl::base::GoalLazySamples::canSample(void) const
 {
-    return maxSampleCount() > 0 || (terminateSamplingThread_ == false && samplingThread_ != NULL);
+    return maxSampleCount() > 0 || isSampling();
 }
 
 void ompl::base::GoalLazySamples::clear(void)

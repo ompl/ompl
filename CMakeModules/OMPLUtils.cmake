@@ -21,7 +21,9 @@ if(OMPL_IN_ROS)
     endmacro(add_ompl_python_test)
 
 else(OMPL_IN_ROS)
-    include_directories(${GTEST_INCLUDE_DIRS})
+    if(GTEST_FOUND)
+        include_directories(${GTEST_INCLUDE_DIRS})
+    endif()
 
     macro(add_ompl_test test_name)
         add_executable(${ARGV})
