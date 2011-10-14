@@ -235,6 +235,9 @@ namespace ompl
             /** \brief Set the sampler allocator to use */
             void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
 
+            /** \brief Clear the state sampler allocator (reset to default) */
+            void clearStateSampleAllocator(void);
+
             /** \brief Allocate a state that can store a point in the described space */
             virtual State* allocState(void) const = 0;
 

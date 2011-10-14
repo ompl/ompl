@@ -383,6 +383,11 @@ void ompl::base::StateSpace::setStateSamplerAllocator(const StateSamplerAllocato
     ssa_ = ssa;
 }
 
+void ompl::base::StateSpace::clearStateSampleAllocator(void)
+{
+    ssa_ = StateSamplerAllocator();
+}
+
 ompl::base::StateSamplerPtr ompl::base::StateSpace::allocStateSampler(void) const
 {
     if (ssa_)
