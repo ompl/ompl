@@ -46,34 +46,57 @@
 namespace ompl
 {
 
+    /** \brief Tool that provides fast access to elements of a state by name, if they are representable as doubles */
     class StateAddress
     {
     public:
 
+        /** \brief Representation of the address of a value in a state */
         struct Location
         {
+            /** \brief In a complex state space there may be multiple
+                compound state spaces that make up an even larger
+                compound space.  This array indicates the sequence of
+                indices of the subspaces that need to be followed to
+                get to the component of the state that is of interest. */
             std::vector<std::size_t> chain;
+
+            /** \brief The space that is reached if the chain above is followed on the state space */
             const base::StateSpace  *space;
+
+            /** \brief The index of the value to be accessed, within the space above */
             std::size_t              index;
         };
 
+        /** \brief Compute the mapping between names and addresses for \e space. Calls setStateSpace() */
         StateAddress(const base::StateSpacePtr &space);
 
+        /** \brief Empty constructor */
         StateAddress(void);
 
         ~StateAddress(void);
 
+        /** \brief Change the space that addresses are computed
+            for. Names of state spaces and of individual dimensions
+            (e.g., ompl::base::RealVectorStateSpace) are considered. */
         void setStateSpace(const base::StateSpacePtr &space);
 
+        /** \brief The space for which the addresses are maintained */
         const base::StateSpacePtr& getStateSpace(void) const
         {
             return space_;
         }
 
+        /** \brief Get the value of \e state at address \e loc */
         double* getValueAddressAtLocation(const Location &loc, base::State *state) const;
+
+        /** \brief Get the value of \e state at address \e loc */
         const double* getValueAddressAtLocation(const Location &loc, const base::State *state) const;
 
+        /** \brief Get the value of \e state at the component named \e name */
         double* getValueAddressAtName(const std::string &name, base::State *state) const;
+
+        /** \brief Get the value of \e state at the component named \e name */
         const double* getValueAddressAtName(const std::string &name, const base::State *state) const;
 
     private:
