@@ -77,6 +77,14 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
         row /= norm_2(row);
     }
 
+    assert(scale.size() == from || scale.size() == 0);
+    if (scale.size() == from)
+        for (unsigned int i = 0 ; i < from ; ++i)
+        {
+            if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
+                throw Exception("Scaling factor must be non-zero");
+            boost::numeric::ublas::column(projection, i) /= scale[i];
+        }
     return projection;
 }
 
@@ -87,15 +95,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
-    mat = ComputeRandom(from, to);
-
-    assert(scale.size() == from);
-    for (unsigned int i = 0 ; i < from ; ++i)
-    {
-        if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
-            throw Exception("Scaling factor must be non-zero");
-        boost::numeric::ublas::column(mat, i) /= scale[i];
-    }
+    mat = ComputeRandom(from, to, scale);
 }
 
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to)
