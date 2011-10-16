@@ -108,8 +108,11 @@ namespace ompl
             with a bias towards \e r_max. The function is implemented on top of halfNormalReal() */
         int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
 
-        /** \brief Uniform random unit quaternion sampling. The returned value has the order (x,y,z,w) */
+        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w) */
         void   quaternion(double value[4]);
+
+        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range [-pi, pi). The computed value has the order (roll, pitch, yaw) */
+        void   eulerRPY(double value[3]);
 
         /** \brief Set the seed for random number generation. Use this
             function to ensure the same sequence of random numbers is
