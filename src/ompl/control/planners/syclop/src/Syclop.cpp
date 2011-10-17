@@ -170,6 +170,11 @@ void ompl::control::Syclop::clearEdgeCostFactors(void)
     edgeCostFactors_.clear();
 }
 
+ompl::control::Syclop::Region& ompl::control::Syclop::getRegionFromIndex(const int rid)
+{
+    return graph_[boost::vertex(rid, graph_)];
+}
+
 void ompl::control::Syclop::initRegion(Region& r)
 {
     r.numSelections = 0;

@@ -49,7 +49,7 @@ namespace ompl
         class SyclopRRT : public Syclop
         {
         public:
-            SyclopRRT(const SpaceInformationPtr& si, DecompositionPtr& d) : Syclop(si,d,"SyclopRRT")
+            SyclopRRT(const SpaceInformationPtr& si, DecompositionPtr& d) : Syclop(si,d,"SyclopRRT"), regionalNN_(true)
             {
             }
 
@@ -61,6 +61,11 @@ namespace ompl
             virtual void setup(void);
             virtual void clear(void);
             virtual void getPlannerData(base::PlannerData& data) const;
+
+            void setRegionalNearestNeighbors(bool enabled)
+            {
+                regionalNN_ = enabled;
+            }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
@@ -83,6 +88,7 @@ namespace ompl
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            bool regionalNN_;
         };
     }
 }

@@ -99,7 +99,41 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
     Motion* rmotion = new Motion(siC_);
     base::StateSamplerPtr sampler(si_->allocStateSampler());
     decomp_->sampleFromRegion(region.index, sampler, rmotion->state);
-    Motion* nmotion = nn_->nearest(rmotion);
+
+    Motion* nmotion;
+    if (regionalNN_)
+    {
+        /* Instead of querying the nearest neighbors datastructure over the entire tree of motions,
+         * here we perform a linear search over all motions in the selected region and its neighbors. */
+        std::vector<int> searchRegions;
+        decomp_->getNeighbors(region.index, searchRegions);
+        searchRegions.push_back(region.index);
+
+        std::set<Motion*> motions;
+        for (std::vector<int>::const_iterator i = searchRegions.begin(); i != searchRegions.end(); ++i)
+        {
+            const std::vector<Motion*>& regionMotions = getRegionFromIndex(*i).motions;
+            motions.insert(regionMotions.begin(), regionMotions.end());
+        }
+
+        std::set<Motion*>::const_iterator i = motions.begin();
+        nmotion = *i;
+        double minDistance = distanceFunction(rmotion, nmotion);
+        ++i;
+        while (i != motions.end())
+        {
+            Motion* m = *i;
+            const double dist = distanceFunction(rmotion, m);
+            if (dist < minDistance)
+            {
+                nmotion = m;
+                minDistance = dist;
+            }
+            ++i;
+        }
+    }
+    else
+        nmotion = nn_->nearest(rmotion);
 
     base::State* newState = si_->allocState();
 

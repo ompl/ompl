@@ -172,6 +172,7 @@ namespace ompl
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
+            Region& getRegionFromIndex(const int rid);
             void initRegion(Region& r);
             void setupRegionEstimates(void);
             void updateRegion(Region& r);
