@@ -161,3 +161,18 @@ void ompl::control::GridDecomposition::regionToCoord(int rid, std::vector<int>& 
         rid /= length_;
     }
 }
+
+ompl::base::RealVectorBounds ompl::control::GridDecomposition::getRegionBounds(const int rid) const
+{
+    //todo store this in region obj so it's only computed once (computed lazily)
+    ompl::base::RealVectorBounds regionBounds(dimension_);
+    std::vector<int> rc(dimension_);
+    regionToCoord(rid, rc);
+    for (std::size_t i = 0; i < dimension_; ++i)
+    {
+        const double length = (bounds_.high[i] - bounds_.low[i]) / length_;
+        regionBounds.low[i] = bounds_.low[i] + length*rc[i];
+        regionBounds.high[i] = regionBounds.low[i] + length;
+    }
+    return regionBounds;
+}

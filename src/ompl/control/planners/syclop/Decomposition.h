@@ -38,6 +38,7 @@
 #define OMPL_CONTROL_PLANNERS_SYCLOP_DECOMPOSITION_
 
 #include "ompl/base/spaces/RealVectorBounds.h"
+#include "ompl/base/StateSampler.h"
 #include "ompl/base/State.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
@@ -94,6 +95,9 @@ namespace ompl
 
             /* Stores the neighboring regions of region into the vector neighbors. */
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const = 0;
+
+            virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const = 0;
+            virtual base::RealVectorBounds getRegionBounds(const int rid) const = 0;
 
         protected:
 

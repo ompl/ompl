@@ -34,26 +34,25 @@
 
 /* Author: Matt Maly */
 
-#ifndef OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOPRRT_
-#define OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOPRRT_
+#ifndef OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOPEST_
+#define OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOPEST_
 
 #include "ompl/control/planners/syclop/Syclop.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
-#include "ompl/datastructures/NearestNeighbors.h"
 
 namespace ompl
 {
     namespace control
     {
-        class SyclopRRT : public Syclop
+        class SyclopEST : public Syclop
         {
         public:
-            SyclopRRT(const SpaceInformationPtr& si, DecompositionPtr& d) : Syclop(si,d,"SyclopRRT")
+            SyclopEST(const SpaceInformationPtr& si, DecompositionPtr& d) : Syclop(si,d,"SyclopRRT")
             {
             }
 
-            virtual ~SyclopRRT(void)
+            virtual ~SyclopEST(void)
             {
                 freeMemory();
             }
@@ -62,27 +61,14 @@ namespace ompl
             virtual void clear(void);
             virtual void getPlannerData(base::PlannerData& data) const;
 
-            /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
-            void setNearestNeighbors(void)
-            {
-                nn_.reset(new NN<Motion*>());
-            }
-
         protected:
             virtual Syclop::Motion* initializeTree(const base::State* s);
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions);
             void freeMemory(void);
 
-            /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
-            {
-                return si_->distance(a->state, b->state);
-            }
-
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::vector<Motion*> motions_;
         };
     }
 }

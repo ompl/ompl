@@ -267,7 +267,7 @@ bool ompl::control::Syclop::updateConnectionEstimate(const Region& c, const Regi
 
 void ompl::control::Syclop::buildGraph(void)
 {
-    /* The below code builds a boost::graph corresponding to the decomp_osition.
+    /* The below code builds a boost::graph corresponding to the decomposition.
         It creates Region and Adjacency property objects for each vertex and edge. */
     VertexIndexMap index = get(boost::vertex_index, graph_);
     std::vector<int> neighbors;
@@ -281,7 +281,7 @@ void ompl::control::Syclop::buildGraph(void)
     VertexIter vi, vend;
     for (boost::tie(vi,vend) = boost::vertices(graph_); vi != vend; ++vi)
     {
-        /* Create an edge between this vertex and each of its neighboring regions in the decomp_osition,
+        /* Create an edge between this vertex and each of its neighboring regions in the decomposition,
             and initialize the edge's Adjacency object. */
         decomp_->getNeighbors(index[*vi], neighbors);
         for (std::vector<int>::const_iterator j = neighbors.begin(); j != neighbors.end(); ++j)

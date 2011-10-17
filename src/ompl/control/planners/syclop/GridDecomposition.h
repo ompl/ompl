@@ -68,6 +68,8 @@ namespace ompl
 
             virtual int locateRegion(const base::State* s) const;
 
+            virtual base::RealVectorBounds getRegionBounds(const int rid) const;
+
         protected:
             /* Convert a region ID to a grid coordinate, which is a vector of length equivalent
              * to the dimension of the grid. */

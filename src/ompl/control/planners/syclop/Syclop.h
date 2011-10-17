@@ -231,6 +231,10 @@ namespace ompl
                     decomp->project(s, coord);
                 }
 
+                virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const
+                {
+                }
+
             protected:
                 DecompositionPtr& decomp;
             };

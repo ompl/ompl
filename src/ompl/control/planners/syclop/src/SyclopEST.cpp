@@ -34,39 +34,31 @@
 
 /* Author: Matt Maly */
 
-#include "ompl/control/planners/syclop/SyclopRRT.h"
+#include "ompl/control/planners/syclop/SyclopEST.h"
 #include "ompl/base/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 
-void ompl::control::SyclopRRT::setup(void)
+void ompl::control::SyclopEST::setup(void)
 {
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocControlSampler();
-    if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
-    nn_->setDistanceFunction(boost::bind(&SyclopRRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::control::SyclopRRT::clear(void)
+void ompl::control::SyclopEST::clear(void)
 {
     Syclop::clear();
     freeMemory();
-    if (nn_)
-        nn_->clear();
+    motions_.clear();
 }
 
-void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
+void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
 {
     Planner::getPlannerData(data);
-    std::vector<Motion*> motions;
-    if (nn_)
-        nn_->list(motions);
     if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
     {
         const double delta = siC_->getPropagationStepSize();
 
-        for (std::vector<Motion*>::const_iterator i = motions.begin(); i != motions.end(); ++i)
+        for (std::vector<Motion*>::const_iterator i = motions_.begin(); i != motions_.end(); ++i)
         {
             const Motion* m = *i;
             if (m->parent)
@@ -77,7 +69,7 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
     }
     else
     {
-        for (std::vector<Motion*>::const_iterator i = motions.begin(); i != motions.end(); ++i)
+        for (std::vector<Motion*>::const_iterator i = motions_.begin(); i != motions_.end(); ++i)
         {
             const Motion* m = *i;
             data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
@@ -85,59 +77,49 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
     }
 }
 
-ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const base::State* s)
+ompl::control::Syclop::Motion* ompl::control::SyclopEST::initializeTree(const base::State* s)
 {
     Motion* motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
-    nn_->add(motion);
+    motions_.push_back(motion);
     return motion;
 }
 
-void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
+void ompl::control::SyclopEST::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
 {
-    Motion* rmotion = new Motion(siC_);
-    base::StateSamplerPtr sampler(si_->allocStateSampler());
-    decomp_->sampleFromRegion(region.index, sampler, rmotion->state);
-    Motion* nmotion = nn_->nearest(rmotion);
-
+    Motion* treeMotion = region.motions[rng_.uniformInt(0, region.motions.size()-1)];
+    Control* rctrl = siC_->allocControl();
     base::State* newState = si_->allocState();
 
-    controlSampler_->sampleNext(rmotion->control, nmotion->control, nmotion->state);
+    controlSampler_->sample(rctrl, treeMotion->state);
     unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
-    duration = siC_->propagateWhileValid(nmotion->state, rmotion->control, duration, newState);
+    duration = siC_->propagateWhileValid(treeMotion->state, rctrl, duration, newState);
 
     if (duration >= siC_->getMinControlDuration())
     {
         Motion* motion = new Motion(siC_);
         si_->copyState(motion->state, newState);
-        siC_->copyControl(motion->control, rmotion->control);
+        siC_->copyControl(motion->control, rctrl);
         motion->steps = duration;
-        motion->parent = nmotion;
-        nn_->add(motion);
+        motion->parent = treeMotion;
+        motions_.push_back(motion);
         newMotions.insert(motion);
     }
 
-    si_->freeState(rmotion->state);
-    siC_->freeControl(rmotion->control);
-    delete rmotion;
+    siC_->freeControl(rctrl);
     si_->freeState(newState);
 }
 
-void ompl::control::SyclopRRT::freeMemory(void)
+void ompl::control::SyclopEST::freeMemory(void)
 {
-    if (nn_)
+    for (std::vector<Motion*>::iterator i = motions_.begin(); i != motions_.end(); ++i)
     {
-        std::vector<Motion*> motions;
-        nn_->list(motions);
-        for (std::vector<Motion*>::iterator i = motions.begin(); i != motions.end(); ++i)
-        {
-            Motion* m = *i;
-            if (m->state)
-                si_->freeState(m->state);
-            if (m->control)
-                siC_->freeControl(m->control);
-            delete m;
-        }
+        Motion* m = *i;
+        if (m->state)
+            si_->freeState(m->state);
+        if (m->control)
+            siC_->freeControl(m->control);
+        delete m;
     }
 }
