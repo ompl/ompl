@@ -144,8 +144,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                 path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
             }
         }
-        goal->setDifference(goalDist);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
+        goal->addSolutionPath(base::PathPtr(path), approximate, goalDist);
 
         if (approximate)
             msg_.warn("Found approximate solution");
