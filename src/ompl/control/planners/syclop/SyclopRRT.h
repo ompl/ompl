@@ -46,6 +46,7 @@ namespace ompl
 {
     namespace control
     {
+        /** \brief SyclopRRT is Syclop with RRT as its low-level tree planner. */
         class SyclopRRT : public Syclop
         {
         public:
@@ -62,6 +63,12 @@ namespace ompl
             virtual void clear(void);
             virtual void getPlannerData(base::PlannerData& data) const;
 
+            /** \brief If regionalNearestNeighbors is enabled, then when computing the closest Motion to a generated state
+                in a given Region, SyclopRRT will perform a linear search over the current Region and its neighbors instead of
+                querying a NearestNeighbors datastructure over the whole tree.
+                This approach is enabled by default, and should be disabled if there exist Regions of the Decomposition that
+                will be extremely densely populated with states - in such cases, querying a global NearestNeighbors datastructure will
+                probably be faster. */
             void setRegionalNearestNeighbors(bool enabled)
             {
                 regionalNN_ = enabled;
@@ -77,6 +84,8 @@ namespace ompl
         protected:
             virtual Syclop::Motion* initializeTree(const base::State* s);
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions);
+
+            /** \brief Free the memory allocated by this planner. */
             void freeMemory(void);
 
             /** \brief Compute distance between motions (actually distance between contained states) */

@@ -53,11 +53,13 @@ namespace ompl
     namespace control
     {
         /**
-           @anchor Syclop
+           @anchor cSyclop
 
            @par Short description
            Syclop is a multi-layered planner that guides a low-level sampling-based tree planner
            through a sequence of sequence of workspace regions from start to goal.
+           Syclop is defined as an abstract base class whose pure virtual methods are defined
+           by the chosen low-level sampling-based tree planner.
 
            @par External documentation
            E. Plaku, L.E. Kavraki, and M.Y. Vardi,
@@ -67,14 +69,19 @@ namespace ompl
         */
 
         /** \brief Synergistic Combination of Layers of Planning.
-            This is a base class which requires a low-level planner. */
+            Syclop is defined as an abstract base class whose pure virtual methods are defined
+            by the chosen low-level sampling-based tree planner.
+        */
         class Syclop : public base::Planner
         {
-        public: //TODO documentation, triangular decomposition, fit syntax to style guide
-            /** \brief Constructor. Requires a Decomposition,
-                which Syclop uses to create high-level guides. */
+        public:
+            /** \brief Each edge weight between two adjacent regions in the Decomposition is defined
+                as a product of edge cost factors. By default, for adjacent regions R and S, Syclop uses the edge cost factor
+                alpha(R) * alpha(S) * (1 + nsel(R,S)^2) / (1 + cov(R,S)^2). Additional edge cost factors can be added
+                with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
+            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level guides. */
             Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& name) : ompl::base::Planner(si, name),
                 siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, decomp_)
             {
@@ -85,11 +92,15 @@ namespace ompl
             }
             virtual void setup(void);
             virtual void clear(void);
+
+            /** \brief Continues solving until a solution is found or a given planner termination condition is met.
+                Returns true if solution was found. */
             virtual bool solve(const base::PlannerTerminationCondition& ptc);
+
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
             void clearEdgeCostFactors(void);
 
-            /// read-only access to the most recently computed lead.
+            /** \brief Returns a copy of the most recently-computed high-level lead. */
             std::vector<int> getLead();
 
         protected:
@@ -101,24 +112,34 @@ namespace ompl
             static const int NUM_TREE_SELECTIONS = 50; //50
             static const double PROB_ABANDON_LEAD_EARLY = 0.25; //0.05
 
+            /** \brief Representation of a motion
+
+                A motion contains pointers to its state, its parent motion, and the control
+                that was applied to get from its parent to its state. */
             class Motion
             {
             public:
                 Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
                 {
                 }
+                /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation* si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
                 {
                 }
                 virtual ~Motion(void)
                 {
                 }
+                /** \brief The state contained by the motion */
                 base::State* state;
+                /** \brief The control contained by the motion */
                 Control* control;
+                /** \brief The number of steps for which the control is applied */
                 std::size_t steps;
+                /** \brief The parent motion in the tree */
                 Motion* parent;
             };
 
+            /** \brief Representation of a region in the Decomposition assigned to Syclop. */
             class Region
             {
             public:
@@ -128,6 +149,7 @@ namespace ompl
                 virtual ~Region(void)
                 {
                 }
+                /** \brief Clears motions and coverage information from this region. */
                 void clear(void)
                 {
                     motions.clear();
@@ -144,6 +166,8 @@ namespace ompl
                 std::set<int> covGridCells;
             };
 
+            /** \brief Representation of an adjacency (or edge) between two regions
+                in the Decomposition assigned to Syclop. */
             class Adjacency
             {
             public:
@@ -153,6 +177,7 @@ namespace ompl
                 virtual ~Adjacency(void)
                 {
                 }
+                /** \brief Clears coverage information from this adjacency. */
                 void clear(void)
                 {
                     covGridCells.clear();
@@ -166,40 +191,65 @@ namespace ompl
                 Region* target;
             };
 
-            //TODO Consider vertex/edge storage options other than vecS.
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
             typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
+            /** \brief Returns a reference to the Region object with the given index. Assumes such an object exists. */
             Region& getRegionFromIndex(const int rid);
+
+            /** \brief Initializes default values for a given Region. */
             void initRegion(Region& r);
+
+            /** \brief Computes volume estimates for a given Region. */
             void setupRegionEstimates(void);
+
+            /** \brief Recomputes coverage and selection estimates for a given Region. */
             void updateRegion(Region& r);
 
-            void initEdge(Adjacency& a, Region* r, Region* s);
+            /** \brief Initializes a given Adjacency between a source Region and a destination Region. */
+            void initEdge(Adjacency& a, Region* source, Region* target);
+
+            /** \brief Initializes default values for each Adjacency. */
             void setupEdgeEstimates(void);
+
+            /** \brief Updates the edge cost for a given Adjacency according to Syclop's list of edge cost factors. */
             void updateEdge(Adjacency& a);
 
-            /* Given that State s has been added to the tree and belongs in Region r,
-                update r's coverage estimate if needed. */
+            /** \brief Given that a State s has been added to the tree,
+                update the coverage estimate (if needed) for its corresponding Region. */
             bool updateCoverageEstimate(Region& r, const base::State* s);
-            /* Given that an edge has been added to the tree, leading to the new state s,
-                update the corresponding edge's connection estimates. */
+
+            /** \brief Given that an edge has been added to the tree of motions from a state in Region c to
+                the State s in Region d, update the corresponding Adjacency's cost and connection estimates. */
             bool updateConnectionEstimate(const Region& c, const Region& d, const base::State* s);
 
-            /* Sets up RegionGraph from decomposition. */
+            /** \brief Build a RegionGraph according to the Decomposition assigned to Syclop,
+                creating Region and Adjacency objects for each node and edge. */
             void buildGraph(void);
+
+            /** \brief Initialize default values for Region and Adjacency objects in the RegionGraph.
+                Initialize the low-level tree with the start state from the problem definition. */
             void initGraph(void);
+
+            /** \brief Clear all Region and Adjacency objects in the graph. */
             void clearGraphDetails(void);
 
+            /** \brief Computes a lead, which is a sequence of adjacent Regions from start to goal in the Decomposition. */
             void computeLead(void);
+
+            /** \brief Select a Region in which to promote expansion of the low-level tree. */
             int selectRegion(void);
+
+            /** \brief Compute the set of Regions available for selection. */
             void computeAvailableRegions(void);
 
-            /* Initialize a tree rooted at start state s; return the Motion corresponding to s. */
+            /** \brief Initialize the low-level tree rooted at State s, and return the Motion corresponding to s. */
             virtual Motion* initializeTree(const base::State* s) = 0;
-            /* Select a vertex v from region, extend tree from v, add any new motions created to newMotions. */
+
+            /** \brief Select a Motion from the given Region, extend the tree from the Motion.
+                Add any new motions created to newMotions. */
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
 
             const SpaceInformation* siC_;
@@ -216,6 +266,8 @@ namespace ompl
             bool graphReady_;
 
         private:
+            /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
+                The CoverageGrid should have finer resolution than the Decomposition. */
             class CoverageGrid : public GridDecomposition
             {
             public:
@@ -227,11 +279,14 @@ namespace ompl
                 {
                 }
 
+                /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
+                    it uses the Decomposition's projection function. */
                 virtual void project(const base::State* s, std::valarray<double>& coord) const
                 {
                     decomp->project(s, coord);
                 }
 
+                /** \brief Syclop will not sample from the CoverageGrid. */
                 virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const
                 {
                 }
@@ -240,6 +295,7 @@ namespace ompl
                 DecompositionPtr& decomp;
             };
 
+            /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
 
             CoverageGrid covGrid_;

@@ -47,9 +47,11 @@ namespace ompl
 {
     namespace control
     {
+        /** \brief A GridDecomposition is a Decomposition implemented using a grid. */
         class GridDecomposition : public Decomposition
         {
         public:
+            /** \brief Constructor. Creates a GridDecomposition as a hypercube with a given dimension, side length, and bounds. */
             GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b);
 
             virtual ~GridDecomposition()
@@ -61,9 +63,6 @@ namespace ompl
                 return cellVolume_;
             }
 
-            /* This implementation requires time linear with the number of regions.
-             * We can do constant time if we know the dimension offline (oopsmp-syclop has cases for 2 and 3),
-             * but can we beat linear time with arbitrary dimension? */
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const;
 
             virtual int locateRegion(const base::State* s) const;
@@ -71,10 +70,10 @@ namespace ompl
             virtual base::RealVectorBounds getRegionBounds(const int rid) const;
 
         protected:
-            /* Convert a region ID to a grid coordinate, which is a vector of length equivalent
-             * to the dimension of the grid. */
+            /** \brief Converts a given region to a coordinate in the grid. */
             void regionToCoord(int rid, std::vector<int>& coord) const;
-            /* Returns true iff regions r and s are adjacent in the grid. */
+
+            /** \brief Returns true iff two given regions are adjacent in the grid. */
             bool areNeighbors(const int r, const int s) const;
 
             const int length_;

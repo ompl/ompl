@@ -51,11 +51,12 @@ namespace ompl
     {
         ClassForward(Decomposition);
 
+        /** \brief A Decomposition is a partition of a bounded Euclidean space into a fixed number of regions which are denoted by integers. */
         class Decomposition
         {
         public:
 
-            /* A decomposition consists of a fixed number of regions and fixed bounds. */
+            /** \brief Constructor. Creates a Decomposition with a given number of regions, a given dimension, and a given set of bounds. */
             Decomposition(const int n, const std::size_t dim, const base::RealVectorBounds& b) : numRegions_(n), dimension_(dim), bounds_(b)
             {
                 if (dim > b.low.size())
@@ -68,35 +69,41 @@ namespace ompl
             {
             }
 
+            /** \brief Returns the number of regions in this Decomposition. */
             virtual int getNumRegions() const
             {
                 return numRegions_;
             }
 
+            /** \brief Returns the dimension of this Decomposition. */
             virtual std::size_t getDimension() const
             {
                 return dimension_;
             }
 
+            /** \brief Returns the bounds of this Decompositon. */
             virtual const base::RealVectorBounds& getBounds() const
             {
                 return bounds_;
             }
 
+            /** \brief Returns the volume of a given region in this Decomposition. */
             virtual double getRegionVolume(const int rid) const = 0;
 
-            /* Returns the ID of the decomposition region containing the state s.
-             * Most often, this is obtained by projecting s into the workspace and finding the appropriate region. */
+            /** \brief Returns the index of the region containing a given State.
+             * Most often, this is obtained by first calling project(). */
             virtual int locateRegion(const base::State* s) const = 0;
 
-            /* Project the state to a vector in R^k, where k is the dimension of this Decomposition.
-               TODO Consider using the projection code used by KPIECE. */
+            /** \brief Project a given State to a set of coordinates in R^k, where k is the dimension of this Decomposition. */
             virtual void project(const base::State* s, std::valarray<double>& coord) const = 0;
 
-            /* Stores the neighboring regions of region into the vector neighbors. */
+            /** \brief Stores a given region's neighbors into a given vector. */
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const = 0;
 
+            /** \brief Samples a State from a given region using a given StateSampler. */
             virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const = 0;
+
+            /** \brief Returns the bounds of a given region in this Decomposition. */
             virtual base::RealVectorBounds getRegionBounds(const int rid) const = 0;
 
         protected:

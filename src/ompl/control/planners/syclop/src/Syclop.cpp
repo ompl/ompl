@@ -218,12 +218,12 @@ void ompl::control::Syclop::updateRegion(Region& r)
     r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
 }
 
-void ompl::control::Syclop::initEdge(Adjacency& adj, Region* r, Region* s)
+void ompl::control::Syclop::initEdge(Adjacency& adj, Region* source, Region* target)
 {
-    adj.source = r;
-    adj.target = s;
+    adj.source = source;
+    adj.target = target;
     updateEdge(adj);
-    regionsToEdge_[std::pair<int,int>(r->index, s->index)] = &adj;
+    regionsToEdge_[std::pair<int,int>(source->index, target->index)] = &adj;
 }
 
 void ompl::control::Syclop::setupEdgeEstimates(void)
@@ -272,8 +272,6 @@ bool ompl::control::Syclop::updateConnectionEstimate(const Region& c, const Regi
 
 void ompl::control::Syclop::buildGraph(void)
 {
-    /* The below code builds a boost::graph corresponding to the decomposition.
-        It creates Region and Adjacency property objects for each vertex and edge. */
     VertexIndexMap index = get(boost::vertex_index, graph_);
     std::vector<int> neighbors;
     for (int i = 0; i < decomp_->getNumRegions(); ++i)
@@ -332,8 +330,6 @@ void ompl::control::Syclop::clearGraphDetails(void)
 
 void ompl::control::Syclop::computeLead(void)
 {
-    /* For now, this function assumes that a path exists in the decomposition
-     * from startRegion to goalRegion. */
     lead_.clear();
     if (startRegion_ == goalRegion_)
     {
@@ -456,7 +452,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
 
 double ompl::control::Syclop::defaultEdgeCost(int r, int s)
 {
-    Adjacency& a = *regionsToEdge_[std::pair<int,int>(r,s)];
+    const Adjacency& a = *regionsToEdge_[std::pair<int,int>(r,s)];
     double factor = 1;
     const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
     factor = (1 + nsel*nsel) / (1 + a.covGridCells.size()*a.covGridCells.size());
