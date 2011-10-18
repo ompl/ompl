@@ -71,11 +71,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     {
         computeLead();
         computeAvailableRegions();
-        for (int i = 0; i < NUM_AVAIL_EXPLORATIONS && !solved; ++i)
+        for (int i = 0; i < numAvailExplorations && !solved; ++i)
         {
             const int region = selectRegion();
             bool improved = false;
-            for (int j = 0; j < NUM_TREE_SELECTIONS && !solved; ++j)
+            for (int j = 0; j < numTreeSelections && !solved; ++j)
             {
                 newMotions.clear();
                 selectAndExtend(graph_[boost::vertex(region,graph_)], newMotions);
@@ -114,7 +114,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                     improved |= updateCoverageEstimate(graph_[boost::vertex(newRegion, graph_)], state);
                 }
             }
-            if (!improved && rng_.uniform01() < PROB_ABANDON_LEAD_EARLY)
+            if (!improved && rng_.uniform01() < probAbandonLeadEarly)
                 break;
         }
     }
@@ -190,7 +190,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     base::StateSamplerPtr sampler = si_->allocStateSampler();
     base::State* s = si_->allocState();
 
-    for (int i = 0; i < NUM_FREEVOL_SAMPLES; ++i)
+    for (int i = 0; i < numFreeVolSamples; ++i)
     {
         sampler->sampleUniform(s);
         int rid = decomp_->locateRegion(s);
@@ -336,7 +336,7 @@ void ompl::control::Syclop::computeLead(void)
         return;
     }
 
-    else if (rng_.uniform01() < PROB_SHORTEST_PATH)
+    else if (rng_.uniform01() < probShortestPath)
     {
         std::vector<RegionGraph::vertex_descriptor> parents(decomp_->getNumRegions());
         std::vector<double> distances(decomp_->getNumRegions());
@@ -443,7 +443,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
         {
             avail_.insert(lead_[i]);
             availDist_.add(lead_[i], r.weight);
-            if (rng_.uniform01() >= PROB_KEEP_ADDING_TO_AVAIL)
+            if (rng_.uniform01() >= probKeepAddingToAvail)
                 break;
         }
     }

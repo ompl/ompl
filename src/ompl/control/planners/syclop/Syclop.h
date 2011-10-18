@@ -81,12 +81,6 @@ namespace ompl
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
-            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level guides. */
-            Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& name) : ompl::base::Planner(si, name),
-                siC_(si.get()), decomp_(d), graphReady_(false), covGrid_(COVGRID_LENGTH, 2, decomp_)
-            {
-                specs_.approximateSolutions = true;
-            }
             virtual ~Syclop()
             {
             }
@@ -97,20 +91,39 @@ namespace ompl
                 Returns true if solution was found. */
             virtual bool solve(const base::PlannerTerminationCondition& ptc);
 
+            /** \brief Adds an edge cost factor to be used for edge weights between adjacent regions. */
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
+            /** \brief Clears all edge cost factors, making all edge weights equivalent to 1. */
             void clearEdgeCostFactors(void);
 
             /** \brief Returns a copy of the most recently-computed high-level lead. */
             std::vector<int> getLead();
 
+            /** \brief The number of states to sample to estimate free volume in the Decomposition. */
+            int numFreeVolSamples;
+            /** \brief The probability that a lead will be computed as a shortest-path instead of a random-DFS. */
+            double probShortestPath;
+            /** \brief The probability that the set of available regions will be augmented. */
+            double probKeepAddingToAvail;
+            /** \brief The number of times a new region will be chosen and promoted for expansion from a given lead. */
+            int numAvailExplorations;
+            /** \brief The number of calls to selectAndExtend() in the low-level tree planner for a given lead and region. */
+            int numTreeSelections;
+            /** \brief The probability that a lead will be abandoned early, before a new region is chosen for expansion. */
+            double probAbandonLeadEarly;
+
         protected:
-            static const int NUM_FREEVOL_SAMPLES = 100000;
-            static const double PROB_SHORTEST_PATH = 0.95; //0.95
-            static const int COVGRID_LENGTH = 512;
-            static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95; //0.875
-            static const int NUM_AVAIL_EXPLORATIONS = 100; //100
-            static const int NUM_TREE_SELECTIONS = 50; //50
-            static const double PROB_ABANDON_LEAD_EARLY = 0.25; //0.05
+            /** \brief Contains default values for Syclop parameters. */
+            struct Defaults
+            {
+                static const int NUM_FREEVOL_SAMPLES = 100000;
+                static const double PROB_SHORTEST_PATH = 0.95;
+                static const int COVGRID_LENGTH = 512;
+                static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95;
+                static const int NUM_AVAIL_EXPLORATIONS = 100;
+                static const int NUM_TREE_SELECTIONS = 50;
+                static const double PROB_ABANDON_LEAD_EARLY = 0.25;
+            };
 
             /** \brief Representation of a motion
 
@@ -190,6 +203,22 @@ namespace ompl
                 Region* source;
                 Region* target;
             };
+
+            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level guides. */
+            Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
+                numFreeVolSamples(Defaults::NUM_FREEVOL_SAMPLES),
+                probShortestPath(Defaults::PROB_SHORTEST_PATH),
+                probKeepAddingToAvail(Defaults::PROB_KEEP_ADDING_TO_AVAIL),
+                numAvailExplorations(Defaults::NUM_AVAIL_EXPLORATIONS),
+                numTreeSelections(Defaults::NUM_TREE_SELECTIONS),
+                probAbandonLeadEarly(Defaults::PROB_ABANDON_LEAD_EARLY),
+                siC_(si.get()),
+                decomp_(d),
+                covGrid_(Defaults::COVGRID_LENGTH, 2, decomp_),
+                graphReady_(false)
+            {
+                specs_.approximateSolutions = true;
+            }
 
             /** \brief Returns a reference to the Region object with the given index. Assumes such an object exists. */
             Region& getRegionFromIndex(const int rid);
@@ -295,9 +324,9 @@ namespace ompl
             /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
 
-            bool graphReady_;
             CoverageGrid covGrid_;
             RegionGraph graph_;
+            bool graphReady_;
             boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
         };
     }
