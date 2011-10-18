@@ -191,13 +191,60 @@ namespace ompl
                 Region* target;
             };
 
+            /** \brief Returns a reference to the Region object with the given index. Assumes such an object exists. */
+            Region& getRegionFromIndex(const int rid);
+
+            /** \brief Initialize the low-level tree rooted at State s, and return the Motion corresponding to s. */
+            virtual Motion* initializeTree(const base::State* s) = 0;
+
+            /** \brief Select a Motion from the given Region, extend the tree from the Motion.
+                Add any new motions created to newMotions. */
+            virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
+
+            const SpaceInformation* siC_;
+            DecompositionPtr decomp_;
+            RNG rng_;
+            int startRegion_;
+            int goalRegion_;
+            std::vector<int> lead_;
+            std::set<int> avail_;
+            PDF<int> availDist_;
+            std::vector<EdgeCostFactorFn> edgeCostFactors_;
+
+        private:
+            /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
+                The CoverageGrid should have finer resolution than the Decomposition. */
+            class CoverageGrid : public GridDecomposition
+            {
+            public:
+                CoverageGrid(const int len, const int dim, DecompositionPtr& d) : GridDecomposition(len,dim,d->getBounds()), decomp(d)
+                {
+                }
+
+                virtual ~CoverageGrid()
+                {
+                }
+
+                /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
+                    it uses the Decomposition's projection function. */
+                virtual void project(const base::State* s, std::valarray<double>& coord) const
+                {
+                    decomp->project(s, coord);
+                }
+
+                /** \brief Syclop will not sample from the CoverageGrid. */
+                virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const
+                {
+                }
+
+            protected:
+                DecompositionPtr& decomp;
+            };
+
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
             typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
-
-            /** \brief Returns a reference to the Region object with the given index. Assumes such an object exists. */
-            Region& getRegionFromIndex(const int rid);
 
             /** \brief Initializes default values for a given Region. */
             void initRegion(Region& r);
@@ -245,60 +292,13 @@ namespace ompl
             /** \brief Compute the set of Regions available for selection. */
             void computeAvailableRegions(void);
 
-            /** \brief Initialize the low-level tree rooted at State s, and return the Motion corresponding to s. */
-            virtual Motion* initializeTree(const base::State* s) = 0;
-
-            /** \brief Select a Motion from the given Region, extend the tree from the Motion.
-                Add any new motions created to newMotions. */
-            virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
-
-            const SpaceInformation* siC_;
-            DecompositionPtr decomp_;
-            RegionGraph graph_;
-            boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
-            RNG rng_;
-            int startRegion_;
-            int goalRegion_;
-            std::vector<int> lead_;
-            std::set<int> avail_;
-            PDF<int> availDist_;
-            std::vector<EdgeCostFactorFn> edgeCostFactors_;
-            bool graphReady_;
-
-        private:
-            /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
-                The CoverageGrid should have finer resolution than the Decomposition. */
-            class CoverageGrid : public GridDecomposition
-            {
-            public:
-                CoverageGrid(const int len, const int dim, DecompositionPtr& d) : GridDecomposition(len,dim,d->getBounds()), decomp(d)
-                {
-                }
-
-                virtual ~CoverageGrid()
-                {
-                }
-
-                /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
-                    it uses the Decomposition's projection function. */
-                virtual void project(const base::State* s, std::valarray<double>& coord) const
-                {
-                    decomp->project(s, coord);
-                }
-
-                /** \brief Syclop will not sample from the CoverageGrid. */
-                virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const
-                {
-                }
-
-            protected:
-                DecompositionPtr& decomp;
-            };
-
             /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
 
+            bool graphReady_;
             CoverageGrid covGrid_;
+            RegionGraph graph_;
+            boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
         };
     }
 }
