@@ -49,10 +49,14 @@ namespace ompl
     namespace control
     {
 
+        /// @cond IGNORE
         ClassForward(ControlSpace);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::ControlSampler */
         ClassForward(ControlSampler);
+        /// @endcond
 
         /** \class ompl::control::ControlSamplerPtr
             \brief A boost shared pointer wrapper for ompl::control::ControlSampler */
@@ -81,17 +85,14 @@ namespace ompl
             virtual void sample(Control *control) = 0;
 
             /** \brief Sample a control, given it is applied to a
-                specific state. The default implementation calls the
+                specific state (\e state). The default implementation calls the
                 previous definition of sample(). Providing a different
                 implementation of this function is useful if, for
                 example, the sampling of controls depends on the state
                 of the system. When attempting to sample controls that
                 keep a system stable, for example, knowing the state
                 at which the control is applied is important. */
-            virtual void sample(Control *control, const base::State * /* state */)
-            {
-                sample(control);
-            }
+            virtual void sample(Control *control, const base::State *state);
 
             /** \brief Sample a control, given the previously applied
                 control. The default implementation calls the first
@@ -100,26 +101,57 @@ namespace ompl
                 desirable. For example, switching from maximum
                 acceleration to maximum deceleration is not desirable
                 when driving a car. */
-            virtual void sampleNext(Control *control, const Control * /* previous */)
-            {
-                sample(control);
-            }
+            virtual void sampleNext(Control *control, const Control *previous);
 
             /** \brief Sample a control, given the previously applied
                 control and that it is applied to a specific
                 state. The default implementation calls the first
-                definition of sample(). This is the function planners
-                typically call. If implementations that require
-                information about the state or about the previous
-                control are provided, this function should be
-                reimplemented as well, to call those
-                functions. Providing an implementation that takes into
-                account both the previous control and the state is
-                also possible. */
-            virtual void sampleNext(Control *control, const Control * /* previous */, const base::State * /* state */)
-            {
-                sample(control);
-            }
+                definition of sample(), even if other implementations
+                of the sampleNext() shown above are provided. Often
+                this function needs to be overridden as it is the
+                function planners typically call.  */
+            virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
+
+            /** \brief Sample a control given that it will be applied
+                to state \e state and the intention is to reach state
+                \e target. This is useful for some algorithms that
+                have a notion of direction in their exploration (e.g.,
+                \cRRT). By default, this function calls the first definition of sample().  */
+            virtual void sampleTo(Control *control, const base::State *source, const base::State *target);
+
+            /** \brief Sample a control given that it will be applied
+                to state \e state and the intention is to reach state
+                \e target. Also take into account the fact that the
+                previously applied control is \e previous. This is
+                useful for some algorithms that have a notion of
+                direction in their exploration (e.g., \cRRT). By
+                default, this function calls the first definition of
+                sample().  */
+            virtual void sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target);
+
+            /** \brief Sample a control given that it will be applied
+                to state \e state and the intention is to reach state
+                \e target. This is useful for some algorithms that
+                have a notion of direction in their exploration (e.g.,
+                \cRRT). Furthermore, return the duration for which
+                this control should be applied. By default, this
+                function calls the first definition of sample() and
+                returns the value of sampleStepCount(\e minSteps, \e
+                maxSteps).  */
+            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target);
+
+            /** \brief Sample a control given that it will be applied
+                to state \e state and the intention is to reach state
+                \e target. Also take into account the fact that the
+                previously applied control is \e previous. This is
+                useful for some algorithms that have a notion of
+                direction in their exploration (e.g.,
+                \cRRT). Furthermore, return the duration for which
+                this control should be applied. By default, this
+                function calls the first definition of sample() and
+                returns the value of sampleStepCount(\e minSteps, \e
+                maxSteps).  */
+            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target);
 
             /** \brief Sample a number of steps to execute a control for */
             virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
@@ -127,7 +159,7 @@ namespace ompl
         protected:
 
             /** \brief The control space this sampler operates on */
-            const ControlSpace *space_;
+            const ControlSpace    *space_;
 
             /** \brief Instance of random number generator */
             RNG                    rng_;
@@ -158,6 +190,10 @@ namespace ompl
             virtual void sample(Control *control, const base::State *state);
             virtual void sampleNext(Control *control, const Control *previous);
             virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
+            virtual void sampleTo(Control *control, const base::State *source, const base::State *target);
+            virtual void sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target);
+            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target);
+            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target);
 
         protected:
 

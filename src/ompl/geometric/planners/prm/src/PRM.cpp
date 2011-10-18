@@ -84,6 +84,13 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
+
+    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors);
+}
+
+ompl::geometric::PRM::~PRM(void)
+{
+    freeMemory();
 }
 
 void ompl::geometric::PRM::setup(void)
@@ -359,6 +366,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     si_->allocStates(xstates);
     std::pair<Vertex, Vertex> solEndpoints;
     unsigned int steps = 0;
+    bool addedSolution = false;
 
     while (ptc() == false)
     {
@@ -378,7 +386,8 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
         // if there already is a solution, construct it
         if (haveSolution(startM_, goalM_, &solEndpoints))
         {
-            goal->setSolutionPath(constructSolution(solEndpoints.first, solEndpoints.second));
+            goal->addSolutionPath(constructSolution(solEndpoints.first, solEndpoints.second));
+            addedSolution = true;
             break;
         }
         // othewise, spend some time building a roadmap
@@ -400,7 +409,8 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
             // if a solution has been found, construct it
             if (haveSolution(startM_, goalM_, &solEndpoints))
             {
-                goal->setSolutionPath(constructSolution(solEndpoints.first, solEndpoints.second));
+                goal->addSolutionPath(constructSolution(solEndpoints.first, solEndpoints.second));
+                addedSolution = true;
                 break;
             }
         }
@@ -409,14 +419,14 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
-    if (!goal->getSolutionPath() && approxsol_)
+    if (!addedSolution && approxsol_)
     {
-        goal->setSolutionPath(approxsol_, true);
         // the solution is exact, but not as short as we'd like it to be
-        goal->setDifference(0.0);
+        goal->addSolutionPath(approxsol_, true, 0.0);
+        addedSolution = true;
     }
 
-    return goal->isAchieved();
+    return addedSolution;
 }
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)

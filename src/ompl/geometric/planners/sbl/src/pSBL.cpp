@@ -41,6 +41,23 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::pSBL::pSBL(const base::SpaceInformationPtr &si) : base::Planner(si, "pSBL"),
+                                                                   samplerArray_(si)
+{
+    specs_.recognizedGoal = base::GOAL_STATE;
+    specs_.multithreaded = true;
+    maxDistance_ = 0.0;
+    setThreadCount(2);
+
+    Planner::declareParam<double>("range", this, &pSBL::setRange, &pSBL::getRange);
+    Planner::declareParam<unsigned int>("thread_count", this, &pSBL::setThreadCount, &pSBL::getThreadCount);
+}
+
+ompl::geometric::pSBL::~pSBL(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::pSBL::setup(void)
 {
     Planner::setup();
@@ -153,8 +170,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
                 PathGeometric *path = new PathGeometric(si_);
                 for (unsigned int i = 0 ; i < solution.size() ; ++i)
                     path->states.push_back(si_->cloneState(solution[i]->state));
-                goal->setDifference(0.0);
-                goal->setSolutionPath(base::PathPtr(path));
+                goal->addSolutionPath(base::PathPtr(path), false, 0.0);
             }
             sol->lock.unlock();
         }
@@ -229,7 +245,7 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
              tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
-    return goal->isAchieved();
+    return sol.found;
 }
 
 bool ompl::geometric::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)

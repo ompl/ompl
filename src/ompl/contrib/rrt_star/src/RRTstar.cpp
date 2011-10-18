@@ -42,6 +42,29 @@
 #include <limits>
 #include <map>
 
+ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTstar")
+{
+    specs_.approximateSolutions = true;
+    specs_.optimizingPaths = true;
+
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+    ballRadiusMax_ = 0.0;
+    ballRadiusConst_ = 1.0;
+    delayCC_ = true;
+
+    Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange);
+    Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias);
+    Planner::declareParam<double>("ball_radius_constant", this, &RRTstar::setBallRadiusConstant, &RRTstar::getBallRadiusConstant);
+    Planner::declareParam<double>("max_ball_radius", this, &RRTstar::setMaxBallRadius, &RRTstar::getMaxBallRadius);
+    Planner::declareParam<bool>("delay_cc", this, &RRTstar::setDelayCC, &RRTstar::getDelayCC);
+}
+
+ompl::geometric::RRTstar::~RRTstar(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::RRTstar::setup(void)
 {
     Planner::setup();
@@ -298,6 +321,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
         }
     }
 
+    bool addedSolution = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -319,11 +343,8 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        addedSolution = true;
     }
 
     si_->freeState(xstate);
@@ -333,7 +354,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
-    return goal->isAchieved();
+    return addedSolution;
 }
 
 void ompl::geometric::RRTstar::freeMemory(void)

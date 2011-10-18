@@ -11,17 +11,23 @@ This page includes a list of extensions to OMPL provided by the community. The c
 
 The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> ROS package wraps OMPL such that motion planners can be easily set up for your robot. Most configuration is automated. However, you will have to specify the parts of the robot for which you want to create a motion planner.
 
-\section mit_contrib MIT Contribution
+\section rrtstar_contrib RRT* and Extensions
 
-\subsection mit_contrib_authors Authors: Alejandro Perez, Sertac Karaman, Emilio Frazzoli, and Seth Teller
+\subsection rrtstar_contrib_authors Authors: Alejandro Perez and Sertac Karaman
 
 <ul>
 <li>
-\ref gRRTstar "RRT*" (optimal \ref gRRT "RRT") is an asymptotically-optimal incremental sampling-based motion planning algorithm. RRT* algorithm is guaranteed to converge to an optimal solution, while its running time is guaranteed to be a constant factor of the running time of the RRT. For more information on RRT* and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
+\ref gRRTstar "RRT*" (optimal \ref gRRT "RRT") is an asymptotically-optimal incremental sampling-based motion planning algorithm. RRT* algorithm is guaranteed to converge to an optimal solution, while its running time is guaranteed to be a constant factor of the running time of the RRT. The RRT* algorithm was introduced and analyzed in:
+- S. Karaman and E. Frazzoli, <em>Sampling-based algorithms for optimal motion planning</em> Int. Journal of Robotics Research, 2011. To appear. Also available at <a hef="http://arxiv.org/abs/1105.1186">http://arxiv.org/abs/1105.1186</a>.
+.
+For more information on RRT* and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
 </li>
 
 <li>
 \ref gBallTreeRRTstar "Ball Tree RRT*" is an implementation of RRT* that incorporates Ball Trees to approximate connected regions of free space with volumes in configuration space instead of points. Every vertex added to the tree has an initial volume of an infinite radius associated with it. This radius is gradually reduced as collisions are found. All samples within any of the existing volumes are discarded. However, discarded samples are collision checked. If a collision is found, the nearest volume is trimmed at the collision point. Information from all collision checking procedures within iterations is also used to trim volumes accordingly.
+The Ball Tree RRT* was introduced in:
+- A. Perez, S. Karaman, M. Walter, A. Shkolnik, E. Frazzoli, and S. Teller, <em>Asymptotically-optimal manipulation planning using incremental sampling-based algorithms,</em> in IEEE/RSJ Int. Conf. on Intelligent Robots and Systems (IROS), 2011.
+.
 </li>
 </ul>
 

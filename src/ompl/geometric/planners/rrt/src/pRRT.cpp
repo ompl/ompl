@@ -41,6 +41,26 @@
 #include <boost/thread/thread.hpp>
 #include <limits>
 
+ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "pRRT"),
+                                                                  samplerArray_(si)
+{
+    specs_.approximateSolutions = true;
+    specs_.multithreaded = true;
+
+    setThreadCount(2);
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &pRRT::setRange, &pRRT::getRange);
+    Planner::declareParam<double>("goal_bias", this, &pRRT::setGoalBias, &pRRT::getGoalBias);
+    Planner::declareParam<unsigned int>("thread_count", this, &pRRT::setThreadCount, &pRRT::getThreadCount);
+}
+
+ompl::geometric::pRRT::~pRRT(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::pRRT::setup(void)
 {
     Planner::setup();
@@ -190,6 +210,7 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
         delete th[i];
     }
 
+    bool solved = false;
     bool approximate = false;
     if (sol.solution == NULL)
     {
@@ -212,16 +233,13 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
 
-        goal->setDifference(sol.approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
+        solved = true;
     }
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::pRRT::getPlannerData(base::PlannerData &data) const

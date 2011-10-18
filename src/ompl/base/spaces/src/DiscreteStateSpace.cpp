@@ -112,7 +112,7 @@ void ompl::base::DiscreteStateSpace::interpolate(const State *from, const State 
                                                (to->as<StateType>()->value - from->as<StateType>()->value) * t + 0.5);
 }
 
-ompl::base::StateSamplerPtr ompl::base::DiscreteStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::DiscreteStateSpace::allocDefaultStateSampler(void) const
 {
     return StateSamplerPtr(new DiscreteStateSampler(this));
 }

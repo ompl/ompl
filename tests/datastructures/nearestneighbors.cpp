@@ -257,14 +257,16 @@ void randomAccessPatternIntTest(NearestNeighbors<int>& proximity)
                 EXPECT_NEAR(intDistance(s, nghbrGroundTruth[p]), intDistance(s, nghbr[p]), eps);
         }
 
-        for (it=states.begin(); it!=states.end(); it++)
+        for (it=states.begin(); it!=states.end();)
         {
             if (rng.uniform01()<.5)
             {
                 assert(proximityLinear.remove(*it));
                 assert(proximity.remove(*it));
-                states.erase(it);
+                it = states.erase(it);
             }
+            else
+                ++it;
         }
     }
 }
@@ -325,14 +327,16 @@ void randomAccessPatternStateTest(NearestNeighbors<base::State*>& proximity)
             SE3.freeState(s);
         }
 
-        for (it=states.begin(); it!=states.end(); it++)
+        for (it=states.begin(); it!=states.end();)
         {
             if (rng.uniform01()<.5)
             {
                 proximityLinear.remove(*it);
                 proximity.remove(*it);
-                states.erase(it);
+                it = states.erase(it);
             }
+            else
+                ++it;
         }
     }
 }

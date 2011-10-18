@@ -26,12 +26,14 @@ make
 sudo make install
 cd ..
 
-# get latest version of pygccxml, build & install needed packages
-svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml
-cd pygccxml/pygccxml_dev
+# get latest version of pygccxml and Py++, build & install needed packages
+svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pygccxml_dev
+cd pygccxml_dev
 python setup.py build
 sudo python setup.py install
-cd ../pyplusplus_dev
+cd ..
+svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pyplusplus_dev
+cd pyplusplus_dev
 python setup.py build
 sudo python setup.py install
 \endcode

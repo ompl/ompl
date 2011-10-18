@@ -135,6 +135,12 @@ namespace ompl
                 return lastStateAdded_;
             }
 
+            /** \brief The number of times the sampling function was called and it returned true */
+            unsigned int samplingAttemptsCount(void) const
+            {
+                return samplingAttempts_;
+            }
+
             /** \brief Add a state \e st if it further away that \e minDistance from previously added states. Return true if the state was added. */
             bool addStateIfDifferent(const State* st, double minDistance);
 
@@ -159,6 +165,9 @@ namespace ompl
 
             /** \brief Flag indicating whether the last state returned by the sampling function was added or not */
             bool                           lastStateAdded_;
+
+            /** \brief The number of times the sampling function was called and it returned true */
+            unsigned int                   samplingAttempts_;
 
             /** \brief Samples returned by the sampling thread are added to the list of states only if
                 they are at least minDist_ away from already added samples. */

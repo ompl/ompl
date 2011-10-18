@@ -122,7 +122,7 @@ void ompl::base::TimeStateSpace::interpolate(const State *from, const State *to,
         (to->as<StateType>()->position - from->as<StateType>()->position) * t;
 }
 
-ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler(void) const
 {
     return StateSamplerPtr(new TimeStateSampler(this));
 }

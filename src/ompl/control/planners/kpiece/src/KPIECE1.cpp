@@ -41,6 +41,27 @@
 #include <limits>
 #include <cassert>
 
+ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(si, "KPIECE1")
+{
+    specs_.approximateSolutions = true;
+
+    siC_ = si.get();
+    nCloseSamples_ = 30;
+    goalBias_ = 0.05;
+    selectBorderFraction_ = 0.8;
+    badScoreFactor_ = 0.45;
+    goodScoreFactor_ = 0.9;
+    tree_.grid.onCellUpdate(computeImportance, NULL);
+
+    Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
+    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
+}
+
+ompl::control::KPIECE1::~KPIECE1(void)
+{
+    freeMemory();
+}
+
 void ompl::control::KPIECE1::setup(void)
 {
     Planner::setup();
@@ -240,10 +261,10 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
                     motion->parent = existing;
 
                     double dist = 0.0;
-                    bool solved = goal->isSatisfied(motion->state, &dist);
+                    bool solv = goal->isSatisfied(motion->state, &dist);
                     Grid::Cell *toCell = addMotion(motion, dist);
 
-                    if (solved)
+                    if (solv)
                     {
                         approxdif = dist;
                         solution = motion;
@@ -275,6 +296,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
         tree_.grid.update(ecell);
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -304,11 +326,8 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
             }
         }
 
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        solved = true;
     }
 
     siC_->freeControl(rctrl);
@@ -318,7 +337,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u states in %u cells (%u internal + %u external)", tree_.size, tree_.grid.size(),
                  tree_.grid.countInternal(), tree_.grid.countExternal());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)

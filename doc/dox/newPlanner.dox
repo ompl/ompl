@@ -76,9 +76,9 @@
 		  // use msg_ to output messages.
 
 		  // compute a valid motion plan and set it in the goal
-		  pdef_->getGoal()->setSolutionPath(...);
+		  pdef_->getGoal()->addSolutionPath(...);
 		  
-		  return pdef_->getGoal()->isAchieved();
+		  return ...; // true if a solution path was added to the goal, false otherwise
 	      }
 	      
 	      virtual void clear(void)

@@ -75,7 +75,8 @@ namespace ompl
         /** \brief Make this collection aware of a set of state spaces */
         void collect(const std::vector<base::StateSpacePtr> &spaces);
 
-        /** \brief Get the state space whose name is \e name (if the collection is aware of this space; collect() must have been previously called on this space) */
+        /** \brief Get the state space whose name is \e name (if the collection is aware of this space; collect() must have been previously called on this space).
+            Throws an exception if the space is not found. */
         const base::StateSpacePtr& getSpace(const std::string &name) const;
 
         /** \brief Check if a particular space is in the collection */

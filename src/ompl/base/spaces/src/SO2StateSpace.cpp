@@ -126,7 +126,7 @@ void ompl::base::SO2StateSpace::interpolate(const State *from, const State *to, 
     }
 }
 
-ompl::base::StateSamplerPtr ompl::base::SO2StateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::SO2StateSpace::allocDefaultStateSampler(void) const
 {
     return StateSamplerPtr(new SO2StateSampler(this));
 }

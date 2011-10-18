@@ -39,6 +39,24 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
+ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1"),
+                                                                             dStart_(boost::bind(&LBKPIECE1::freeMotion, this, _1)),
+                                                                             dGoal_(boost::bind(&LBKPIECE1::freeMotion, this, _1))
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+
+    minValidPathFraction_ = 0.5;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange);
+    Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction);
+    Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction, &LBKPIECE1::getMinValidPathFraction);
+}
+
+ ompl::geometric::LBKPIECE1::~LBKPIECE1(void)
+{
+}
+
 void ompl::geometric::LBKPIECE1::setup(void)
 {
     Planner::setup();
@@ -95,6 +113,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 
     base::State *xstate = si_->allocState();
     bool      startTree = true;
+    bool         solved = false;
 
     while (ptc() == false)
     {
@@ -182,8 +201,8 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
                     for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                         path->states.push_back(si_->cloneState(mpath2[i]->state));
 
-                    goal->setDifference(0.0);
-                    goal->setSolutionPath(base::PathPtr(path));
+                    goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                    solved = true;
                     break;
                 }
             }
@@ -197,7 +216,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp)

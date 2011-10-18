@@ -94,7 +94,7 @@ static const double NUM_REAL_SAMPLES = 1000000;
 /* The following widening factor is multiplied by the standard error of the mean
  * in errUniformInt() and errUniformReal() to obtain a reasonable range to pass to EXPECT_NEAR().
  * 4 sigma events should only happen "twice a lifetime" on average, so this should be lienient enough. */
-static const double STDERR_WIDENING_FACTOR = 4.0; 
+static const double STDERR_WIDENING_FACTOR = 4.0;
 
 static double avgIntsN(int s, int l, const int N)
 {

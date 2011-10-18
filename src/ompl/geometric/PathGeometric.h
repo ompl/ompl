@@ -86,7 +86,7 @@ namespace ompl
                 path. */
             double smoothness(void) const;
 
-            /** \brief Compute the clearance of the end points along
+            /** \brief Compute the clearance of the way-points along
                 the path (no interpolation is performed). The clearance for the points is averaged. */
             double clearance(void) const;
 

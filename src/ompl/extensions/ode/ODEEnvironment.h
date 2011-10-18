@@ -55,8 +55,10 @@ namespace ompl
     namespace control
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::ODEEnvironment */
         ClassForward(ODEEnvironment);
+        /// @endcond
 
         /** \class ompl::control::ODEEnvironmentPtr
             \brief A boost shared pointer wrapper for ompl::control::ODEEnvironment */

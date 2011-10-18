@@ -78,21 +78,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
-                                                           disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
-            {
-                specs_.approximateSolutions = true;
+            KPIECE1(const base::SpaceInformationPtr &si);
 
-                goalBias_ = 0.05;
-                badScoreFactor_ = 0.5;
-                goodScoreFactor_ = 0.9;
-                minValidPathFraction_ = 0.2;
-                maxDistance_ = 0.0;
-            }
-
-            virtual ~KPIECE1(void)
-            {
-            }
+            virtual ~KPIECE1(void);
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 

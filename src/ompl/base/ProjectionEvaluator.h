@@ -112,10 +112,14 @@ namespace ompl
             Matrix mat;
         };
 
+        /// @cond IGNORE
         ClassForward(StateSpace);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProjectionEvaluator */
         ClassForward(ProjectionEvaluator);
+        /// @endcond
 
         /** \class ompl::base::ProjectionEvaluatorPtr
             \brief A boost shared pointer wrapper for ompl::base::ProjectionEvaluator */
@@ -157,7 +161,7 @@ namespace ompl
                 function, setup() will not call
                 defaultCellSizes() or inferCellSizes() any
                 more. */
-            void setCellSizes(const std::vector<double> &cellSizes);
+            virtual void setCellSizes(const std::vector<double> &cellSizes);
 
             /** \brief Return true if any user configuration has been done to this projection evaluator (setCellSizes() was called) */
             bool userConfigured(void) const;
@@ -226,6 +230,43 @@ namespace ompl
 
             /** \brief The console interface */
             msg::Interface       msg_;
+        };
+
+        /** \brief If the projection for a CompoundStateSpace is
+            supposed to be the same as the one for one of its included
+            subspaces, this class facilitates selecting a projection
+            of that subspace. */
+        class SubSpaceProjectionEvaluator : public ProjectionEvaluator
+        {
+        public:
+
+            /** \brief The constructor states that for space \e space,
+                the projection to use is the same as the component at
+                position \e index of space \e space. The actual
+                projection to use can be specified by \e projToUse. If
+                the projection is not specified, the default one for
+                the subspace at position \e index is used. */
+            SubSpaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse = ProjectionEvaluatorPtr());
+
+            virtual void setup(void);
+
+            virtual unsigned int getDimension(void) const;
+
+            virtual void project(const State *state, EuclideanProjection &projection) const;
+
+        protected:
+
+            /** \brief The index of the subspace from which to project */
+            unsigned int           index_;
+
+            /** \brief The projection to use. This is either the same
+                as \e specifiedProj_ or, if specifiedProj_ is not
+                initialized, it is the default projection for the
+                subspace at index \e index_ */
+            ProjectionEvaluatorPtr proj_;
+
+            /** \brief The projection that is optionally specified by the user in the constructor argument (\e projToUse) */
+            ProjectionEvaluatorPtr specifiedProj_;
         };
 
     }

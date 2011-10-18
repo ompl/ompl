@@ -66,9 +66,10 @@ namespace ompl
         (dynamic) */
     namespace base
     {
-
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::SpaceInformation */
         ClassForward(SpaceInformation);
+        /// @endcond
 
         /** \class ompl::base::SpaceInformationPtr
             \brief A boost shared pointer wrapper for ompl::base::SpaceInformation */
@@ -270,14 +271,12 @@ namespace ompl
                 allocated. */
             ValidStateSamplerPtr allocValidStateSampler(void) const;
 
-
             /** \brief Set the allocator to use for a valid state sampler. This replaces the default uniform valid state
                 sampler. This call can be made at any time, but it should not be changed while ompl::base::Planner::solve() is executing */
-            void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
-            {
-                vssa_ = vssa;
-                setup_ = false;
-            }
+            void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa);
+
+            /** \brief Clear the allocator used for the valid state sampler. This will revert to using the uniform valid state sampler (the default). */
+            void clearValidStateSamplerAllocator(void);
 
             /** @}*/
 

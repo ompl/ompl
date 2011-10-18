@@ -56,8 +56,10 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProblemDefinition */
         ClassForward(ProblemDefinition);
+        /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
             \brief A boost shared pointer wrapper for ompl::base::ProblemDefinition */
@@ -76,6 +78,12 @@ namespace ompl
             virtual ~ProblemDefinition(void)
             {
                 clearStartStates();
+            }
+
+            /** \brief Get the space information this problem definition is for */
+            const SpaceInformationPtr& getSpaceInformation(void) const
+            {
+                return si_;
             }
 
             /** \brief Add a start state. The state is copied. */

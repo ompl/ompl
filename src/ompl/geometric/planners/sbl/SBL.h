@@ -88,16 +88,9 @@ namespace ompl
         public:
 
             /** \brief The constructor needs the instance of the space information */
-            SBL(const base::SpaceInformationPtr &si) : base::Planner(si, "SBL")
-            {
-                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
-                maxDistance_ = 0.0;
-            }
+            SBL(const base::SpaceInformationPtr &si);
 
-            virtual ~SBL(void)
-            {
-                freeMemory();
-            }
+            virtual ~SBL(void);
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */

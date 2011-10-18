@@ -41,6 +41,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/ClassForward.h"
 #include <vector>
+#include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -48,10 +49,14 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         ClassForward(StateSpace);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSampler */
         ClassForward(StateSampler);
+        /// @endcond
 
         /** \class ompl::base::StateSamplerPtr
             \brief A boost shared pointer wrapper for ompl::base::StateSampler */
@@ -82,7 +87,7 @@ namespace ompl
         protected:
 
             /** \brief The state space this sampler samples */
-            const StateSpace *space_;
+            const StateSpace     *space_;
 
             /** \brief An instance of a random number generator */
             RNG                  rng_;
@@ -123,15 +128,17 @@ namespace ompl
             std::vector<StateSamplerPtr> samplers_;
 
             /** \brief The weight of each sampler (used when sampling near a state) */
-            std::vector<double>                  weightImportance_;
+            std::vector<double>          weightImportance_;
 
         private:
 
             /** \brief The number of samplers that are composed */
-            unsigned int                         samplerCount_;
+            unsigned int                samplerCount_;
 
         };
 
+        /** \brief Definition of a function that can allocate a state sampler */
+        typedef boost::function1<StateSamplerPtr, const StateSpace*> StateSamplerAllocator;
     }
 }
 

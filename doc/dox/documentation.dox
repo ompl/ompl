@@ -5,6 +5,7 @@
 
 - Follow the instructions to \ref download "download" and \ref installation "install" OMPL.
 - Read the \ref api_overview "API overview".
+- Familiarize yourself with the \ref boost "Boost structures" used throughout the OMPL API.
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 - Read about the \ref availablePlanners "available planners" and the \ref availableStateSpaces "available state spaces".
 - If interested in using Python, make sure to read \ref python "the documentation for the python bindings".

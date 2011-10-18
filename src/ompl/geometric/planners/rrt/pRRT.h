@@ -70,21 +70,9 @@ namespace ompl
         {
         public:
 
-            pRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "pRRT"),
-                                                        samplerArray_(si)
-            {
-                specs_.approximateSolutions = true;
-                specs_.multithreaded = true;
+            pRRT(const base::SpaceInformationPtr &si);
 
-                setThreadCount(2);
-                goalBias_ = 0.05;
-                maxDistance_ = 0.0;
-            }
-
-            virtual ~pRRT(void)
-            {
-                freeMemory();
-            }
+            virtual ~pRRT(void);
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

@@ -55,8 +55,10 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSpace */
         ClassForward(StateSpace);
+        /// @endcond
 
         /** \class ompl::base::StateSpacePtr
             \brief A boost shared pointer wrapper for ompl::base::StateSpace */
@@ -222,8 +224,19 @@ namespace ompl
                 @e from or @e to. */
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const = 0;
 
-            /** \brief Allocate an instance of a uniform state sampler for this space */
-            virtual StateSamplerPtr allocStateSampler(void) const = 0;
+            /** \brief Allocate an instance of the default uniform state sampler for this space */
+            virtual StateSamplerPtr allocDefaultStateSampler(void) const = 0;
+
+            /** \brief Allocate an instance of the uniform state sampler for this space. This sampler will be allocated with the
+                sampler allocator that was previously specified by setSamplerAllocator() or, if no sampler allocator was specified,
+                allocDefaultStateSampler() is called */
+            StateSamplerPtr allocStateSampler(void) const;
+
+            /** \brief Set the sampler allocator to use */
+            void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
+
+            /** \brief Clear the state sampler allocator (reset to default) */
+            void clearStateSampleAllocator(void);
 
             /** \brief Allocate a state that can store a point in the described space */
             virtual State* allocState(void) const = 0;
@@ -300,6 +313,9 @@ namespace ompl
             /** \brief A type assigned for this state space */
             int                                           type_;
 
+            /** \brief An optional state sampler allocator */
+            StateSamplerAllocator                         ssa_;
+
             /** \brief The extent of this space at the time setup() was called */
             double                                        maxExtent_;
 
@@ -312,11 +328,11 @@ namespace ompl
             /** \brief The factor to multiply the value returned by validSegmentCount() */
             unsigned int                                  longestValidSegmentCountFactor_;
 
-            /** \brief Interface used for console output */
-            msg::Interface                                msg_;
-
             /** \brief List of available projections */
             std::map<std::string, ProjectionEvaluatorPtr> projections_;
+
+            /** \brief Interface used for console output */
+            msg::Interface                                msg_;
 
         private:
 
@@ -443,7 +459,7 @@ namespace ompl
 
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            virtual StateSamplerPtr allocStateSampler(void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler(void) const;
 
             virtual State* allocState(void) const;
 

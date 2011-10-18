@@ -39,6 +39,26 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
+ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "BKPIECE1"),
+                                                                           dStart_(boost::bind(&BKPIECE1::freeMotion, this, _1)),
+                                                                           dGoal_(boost::bind(&BKPIECE1::freeMotion, this, _1))
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+
+    minValidPathFraction_ = 0.5;
+    badScoreFactor_ = 0.5;
+    goodScoreFactor_ = 0.9;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &BKPIECE1::setRange, &BKPIECE1::getRange);
+    Planner::declareParam<double>("border_fraction", this, &BKPIECE1::setBorderFraction, &BKPIECE1::getBorderFraction);
+    Planner::declareParam<double>("min_valid_path_fraction", this, &BKPIECE1::setMinValidPathFraction, &BKPIECE1::getMinValidPathFraction);
+}
+
+ompl::geometric::BKPIECE1::~BKPIECE1(void)
+{
+}
+
 void ompl::geometric::BKPIECE1::setup(void)
 {
     Planner::setup();
@@ -99,6 +119,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
     bool      startTree = true;
+    bool         solved = false;
 
     while (ptc() == false)
     {
@@ -183,8 +204,8 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                         for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                             path->states.push_back(si_->cloneState(mpath2[i]->state));
 
-                        goal->setDifference(0.0);
-                        goal->setSolutionPath(base::PathPtr(path));
+                        goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                        solved = true;
                         break;
                     }
                 }
@@ -204,7 +225,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::BKPIECE1::freeMotion(Motion *motion)
