@@ -78,6 +78,10 @@ namespace ompl
 
             const int length_;
             double cellVolume_;
+
+        private:
+            /** \brief Helper method to return len^dim in call to super-constructor. */
+            int numRegionsHelper(const int len, const std::size_t dim) const;
         };
     }
 }

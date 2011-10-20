@@ -37,7 +37,7 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
 ompl::control::GridDecomposition::GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b) :
-    Decomposition(len*len, dim, b), length_(len), cellVolume_(1.0)
+    Decomposition(numRegionsHelper(len,dim), dim, b), length_(len), cellVolume_(1.0)
 {
     for (std::size_t i = 0; i < dim; ++i)
         cellVolume_ *= (b.high[i] - b.low[i]) / len;
@@ -175,4 +175,12 @@ ompl::base::RealVectorBounds ompl::control::GridDecomposition::getRegionBounds(c
         regionBounds.high[i] = regionBounds.low[i] + length;
     }
     return regionBounds;
+}
+
+int ompl::control::GridDecomposition::numRegionsHelper(const int len, const std::size_t dim) const
+{
+    int numRegions = 1;
+    for (std::size_t i = 0; i < dim; ++i)
+        numRegions *= len;
+    return numRegions;
 }
