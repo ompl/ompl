@@ -52,7 +52,7 @@ namespace ompl
         public:
 
             /** \brief Create a goal representation that is in fact a state  */
-            GoalState(const SpaceInformationPtr &si) : GoalSampleableRegion(si), state(NULL)
+            GoalState(const SpaceInformationPtr &si) : GoalSampleableRegion(si), state_(NULL)
             {
                 type_ = GOAL_STATE;
             }
@@ -78,8 +78,13 @@ namespace ompl
             /** \brief Set the goal state */
             void setState(const ScopedState<> &st);
 
+            /** \brief Get the goal state */
+            const State* getState() const;
+
+        protected:
+
             /** \brief The goal state */
-            State *state;
+            State *state_;
         };
 
     }

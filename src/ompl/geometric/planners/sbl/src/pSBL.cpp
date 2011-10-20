@@ -207,10 +207,10 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
 
     if (tGoal_.size == 0)
     {
-        if (si_->satisfiesBounds(goal->state) && si_->isValid(goal->state))
+        if (si_->satisfiesBounds(goal->getState()) && si_->isValid(goal->getState()))
         {
             Motion *motion = new Motion(si_);
-            si_->copyState(motion->state, goal->state);
+            si_->copyState(motion->state, goal->getState());
             motion->valid = true;
             motion->root = motion->state;
             addMotion(tGoal_, motion);
