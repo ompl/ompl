@@ -204,7 +204,10 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     {
         Region& r = graph_[boost::vertex(i, graph_)];
         r.volume = decomp_->getRegionVolume(i);
-        r.percentValidCells = ((double) numValid[i]) / numTotal[i];
+        if (numTotal[i] == 0)
+            r.percentValidCells = 1.0;
+        else
+            r.percentValidCells = ((double) numValid[i]) / numTotal[i];
         r.freeVolume = r.percentValidCells * r.volume;
         updateRegion(r);
     }
