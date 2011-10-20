@@ -37,17 +37,15 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
 ompl::control::GridDecomposition::GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b) :
-    Decomposition(numRegionsHelper(len,dim), dim, b), length_(len), cellVolume_(1.0)
+    Decomposition(calcNumRegions(len,dim), dim, b), length_(len), cellVolume_(1.0)
 {
     for (std::size_t i = 0; i < dim; ++i)
         cellVolume_ *= (b.high[i] - b.low[i]) / len;
 }
 
-/* This implementation requires time linear with the number of regions.
- * We can do constant time if we know the dimension offline (oopsmp-syclop has cases for 2 and 3),
- * but can we beat linear time with arbitrary dimension? */
 void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<int>& neighbors) const
 {
+    //We efficiently compute neighbors for dim = 1, 2, or 3; for higher dimensions we use a general approach.
     if (dimension_ == 1)
     {
         if (rid > 0)
@@ -80,7 +78,6 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
     }
     else if (dimension_ == 3)
     {
-        //TODO FINISH (below is copied from oopsmp)
         static const int offset[] = {
             -1,  0, 0,
         	+1,  0, 0,
@@ -109,6 +106,17 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
         	0, 0, -1,
         	0, 0, +1
         };
+        std::vector<int> coord(3);
+        regionToCoord(rid, coord);
+        std::vector<int> nc(3);
+        for (std::size_t i = 0; i < 78; i += 3)
+        {
+            nc[0] = coord[0] + offset[i];
+            nc[1] = coord[1] + offset[i+1];
+            nc[2] = coord[2] + offset[i+2];
+            if (nc[0] >= 0 && nc[0] < length_ && nc[1] >= 0 && nc[1] < length_ && nc[2] >= 0 && nc[2] < length_)
+                neighbors.push_back(nc[0]*length_*length_ + nc[1]*length_ + nc[2]);
+        }
     }
     else
     {
@@ -177,7 +185,7 @@ ompl::base::RealVectorBounds ompl::control::GridDecomposition::getRegionBounds(c
     return regionBounds;
 }
 
-int ompl::control::GridDecomposition::numRegionsHelper(const int len, const std::size_t dim) const
+int ompl::control::GridDecomposition::calcNumRegions(const int len, const std::size_t dim) const
 {
     int numRegions = 1;
     for (std::size_t i = 0; i < dim; ++i)

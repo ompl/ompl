@@ -81,7 +81,7 @@ namespace ompl
 
         private:
             /** \brief Helper method to return len^dim in call to super-constructor. */
-            int numRegionsHelper(const int len, const std::size_t dim) const;
+            int calcNumRegions(const int len, const std::size_t dim) const;
         };
     }
 }
