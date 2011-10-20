@@ -300,10 +300,10 @@ void ompl::control::Syclop::buildGraph(void)
 void ompl::control::Syclop::initGraph(void)
 {
     const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
-    /* TODO: Handle multiple start states. */
+    // For now, we are only considering one start state.
     base::State* start = pdef->getStartState(0);
     startRegion_ = decomp_->locateRegion(start);
-    /* Here we are assuming that we have a GoalSampleableRegion. */
+    // Here we are assuming that we have a sampleable goal region.
     base::State* goal = si_->allocState();
     pdef->getGoal()->as<base::GoalSampleableRegion>()->sampleGoal(goal);
     goalRegion_ = decomp_->locateRegion(goal);
@@ -338,6 +338,7 @@ void ompl::control::Syclop::computeLead(void)
 
     else if (rng_.uniform01() < probShortestPath)
     {
+        //Run Dijkstra's algorithm over the decomposition graph from the start region to the goal region.
         std::vector<RegionGraph::vertex_descriptor> parents(decomp_->getNumRegions());
         std::vector<double> distances(decomp_->getNumRegions());
         boost::dijkstra_shortest_paths(graph_, boost::vertex(startRegion_, graph_),
@@ -365,6 +366,8 @@ void ompl::control::Syclop::computeLead(void)
     }
     else
     {
+        /* Run a random-DFS over the decomposition graph from the start region to the goal region.
+           There may be a way to do this using boost::depth_first_search. */
         VertexIndexMap index = get(boost::vertex_index, graph_);
         std::stack<int> nodesToProcess;
         std::vector<int> parents(decomp_->getNumRegions(), -1);
@@ -412,6 +415,8 @@ void ompl::control::Syclop::computeLead(void)
             }
         }
     }
+
+    //Now that we have a lead, update the edge weights.
     for (std::size_t i = 0; i < lead_.size()-1; ++i)
     {
         Adjacency& adj = *regionsToEdge_[std::pair<int,int>(lead_[i], lead_[i+1])];

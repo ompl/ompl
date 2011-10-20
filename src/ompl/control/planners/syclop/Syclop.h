@@ -68,16 +68,24 @@ namespace ompl
            <a href="http://kavrakilab.org/node/737">Abstract</a>
         */
 
-        /** \brief Synergistic Combination of Layers of Planning.
-            Syclop is defined as an abstract base class whose pure virtual methods are defined
-            by the chosen low-level sampling-based tree planner.
-        */
+        /** \brief Synergistic Combination of Layers of Planning. */
         class Syclop : public base::Planner
         {
         public:
             /** \brief Each edge weight between two adjacent regions in the Decomposition is defined
-                as a product of edge cost factors. By default, for adjacent regions R and S, Syclop uses the edge cost factor
-                alpha(R) * alpha(S) * (1 + nsel(R,S)^2) / (1 + cov(R,S)^2). Additional edge cost factors can be added
+                as a product of edge cost factors. By default, given adjacent regions \f$r\f$ and \f$s\f$, Syclop uses the sole edge cost factor
+                \f[
+                    \frac{1 + \mbox{sel}^2(r,s)}{1 + \mbox{conn}^2(r,s)} \alpha(r) \alpha(s),
+                \f]
+                where for any region \f$t\f$,
+                \f[
+                    \alpha(t) = \frac{1}{\left(1 + \mbox{cov}(t)\right) \mbox{freeVol}^4(t)},
+                \f]
+                \f$\mbox{sel}(r,s)\f$ is the number of times \f$r\f$ and \f$s\f$ have been part of a lead or selected for exploration,
+                \f$\mbox{conn}(r,s)\f$ estimates the progress made by the low-level planner in extending the tree from \f$r\f$ to \f$s\f$,
+                \f$\mbox{cov}(t)\f$ estimates the tree coverage of the region \f$t\f$, and \f$\mbox{freeVol}(t)\f$ estimates the free volume
+                of \f$t\f$.
+                Additional edge cost factors can be added
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
@@ -93,6 +101,7 @@ namespace ompl
 
             /** \brief Adds an edge cost factor to be used for edge weights between adjacent regions. */
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
+
             /** \brief Clears all edge cost factors, making all edge weights equivalent to 1. */
             void clearEdgeCostFactors(void);
 
@@ -101,14 +110,19 @@ namespace ompl
 
             /** \brief The number of states to sample to estimate free volume in the Decomposition. */
             int numFreeVolSamples;
+
             /** \brief The probability that a lead will be computed as a shortest-path instead of a random-DFS. */
             double probShortestPath;
+
             /** \brief The probability that the set of available regions will be augmented. */
             double probKeepAddingToAvail;
+
             /** \brief The number of times a new region will be chosen and promoted for expansion from a given lead. */
             int numAvailExplorations;
+
             /** \brief The number of calls to selectAndExtend() in the low-level tree planner for a given lead and region. */
             int numTreeSelections;
+
             /** \brief The probability that a lead will be abandoned early, before a new region is chosen for expansion. */
             double probAbandonLeadEarly;
 
@@ -204,7 +218,7 @@ namespace ompl
                 Region* target;
             };
 
-            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level guides. */
+            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
                 numFreeVolSamples(Defaults::NUM_FREEVOL_SAMPLES),
                 probShortestPath(Defaults::PROB_SHORTEST_PATH),
@@ -220,13 +234,13 @@ namespace ompl
                 specs_.approximateSolutions = true;
             }
 
-            /** \brief Returns a reference to the Region object with the given index. Assumes such an object exists. */
+            /** \brief Returns a reference to the Region object with the given index. Assumes the index is valid. */
             Region& getRegionFromIndex(const int rid);
 
             /** \brief Initialize the low-level tree rooted at State s, and return the Motion corresponding to s. */
             virtual Motion* initializeTree(const base::State* s) = 0;
 
-            /** \brief Select a Motion from the given Region, extend the tree from the Motion.
+            /** \brief Select a Motion from the given Region, and extend the tree from the Motion.
                 Add any new motions created to newMotions. */
             virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
 
@@ -235,10 +249,6 @@ namespace ompl
             RNG rng_;
             int startRegion_;
             int goalRegion_;
-            std::vector<int> lead_;
-            std::set<int> avail_;
-            PDF<int> availDist_;
-            std::vector<EdgeCostFactorFn> edgeCostFactors_;
 
         private:
             /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
@@ -324,6 +334,10 @@ namespace ompl
             /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
 
+            std::vector<int> lead_;
+            std::set<int> avail_;
+            PDF<int> availDist_;
+            std::vector<EdgeCostFactorFn> edgeCostFactors_;
             CoverageGrid covGrid_;
             RegionGraph graph_;
             bool graphReady_;
