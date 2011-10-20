@@ -228,7 +228,7 @@ namespace ompl
                 probAbandonLeadEarly(Defaults::PROB_ABANDON_LEAD_EARLY),
                 siC_(si.get()),
                 decomp_(d),
-                covGrid_(Defaults::COVGRID_LENGTH, 2, decomp_),
+                covGrid_(Defaults::COVGRID_LENGTH, decomp_),
                 graphReady_(false)
             {
                 specs_.approximateSolutions = true;
@@ -256,7 +256,7 @@ namespace ompl
             class CoverageGrid : public GridDecomposition
             {
             public:
-                CoverageGrid(const int len, const int dim, DecompositionPtr& d) : GridDecomposition(len,dim,d->getBounds()), decomp(d)
+                CoverageGrid(const int len, DecompositionPtr& d) : GridDecomposition(len, d->getDimension(), d->getBounds()), decomp(d)
                 {
                 }
 
