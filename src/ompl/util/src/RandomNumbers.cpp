@@ -78,13 +78,11 @@ static boost::uint32_t firstSeed(void)
 static boost::uint32_t nextSeed(void)
 {
     static boost::mutex rngMutex;
-    rngMutex.lock();
+    boost::mutex::scoped_lock slock(rngMutex);
     static boost::lagged_fibonacci607 sGen(firstSeed());
     static boost::uniform_int<>       sDist(1, 1000000000);
     static boost::variate_generator<boost::lagged_fibonacci607&, boost::uniform_int<> > s(sGen, sDist);
-    boost::uint32_t v = s();
-    rngMutex.unlock();
-    return v;
+    return s();
 }
 
 boost::uint32_t ompl::RNG::getSeed(void)
