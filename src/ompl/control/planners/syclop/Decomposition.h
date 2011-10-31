@@ -104,7 +104,7 @@ namespace ompl
             virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const = 0;
 
             /** \brief Returns the bounds of a given region in this Decomposition. */
-            virtual base::RealVectorBounds getRegionBounds(const int rid) const = 0;
+            virtual const base::RealVectorBounds& getRegionBounds(const int rid) = 0;
 
         protected:
 

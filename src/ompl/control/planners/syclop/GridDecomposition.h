@@ -39,6 +39,8 @@
 
 #include <cstdlib>
 #include <valarray>
+#include <boost/shared_ptr.hpp>
+#include <boost/unordered_map.hpp>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
@@ -67,7 +69,7 @@ namespace ompl
 
             virtual int locateRegion(const base::State* s) const;
 
-            virtual base::RealVectorBounds getRegionBounds(const int rid) const;
+            virtual const base::RealVectorBounds& getRegionBounds(const int rid);
 
         protected:
             /** \brief Converts a given region to a coordinate in the grid. */
@@ -78,6 +80,7 @@ namespace ompl
 
             const int length_;
             double cellVolume_;
+            boost::unordered_map<int, boost::shared_ptr<base::RealVectorBounds> > regToBounds_;
 
         private:
             /** \brief Helper method to return len^dim in call to super-constructor. */
