@@ -152,13 +152,6 @@ void ompl::RNG::quaternion(double value[4])
 void ompl::RNG::eulerRPY(double value[3])
 {
     value[0] = boost::math::constants::pi<double>() * (2.0 * uni_() - 1.0);
-    value[1] = acos(1.0 - 2.0 * uni_()) + boost::math::constants::pi<double>() / 2.0;
-    if (uni_() < 0.5)
-    {
-        if (value[1] < boost::math::constants::pi<double>())
-            value[1] += boost::math::constants::pi<double>();
-        else
-            value[1] -= boost::math::constants::pi<double>();
-    }
+    value[1] = acos(1.0 - 2.0 * uni_()) - boost::math::constants::pi<double>() / 2.0;
     value[2] = boost::math::constants::pi<double>() * (2.0 * uni_() - 1.0);
 }
