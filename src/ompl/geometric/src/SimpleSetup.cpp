@@ -85,7 +85,7 @@ void ompl::geometric::SimpleSetup::setup(void)
         {
             if (pa_)
                 planner_ = pa_(si_);
-            else
+            if (!planner_)
             {
                 msg_.inform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
