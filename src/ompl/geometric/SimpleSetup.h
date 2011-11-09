@@ -113,6 +113,12 @@ namespace ompl
                 return planner_;
             }
 
+            /** \brief Get the planner allocator */
+            const base::PlannerAllocator& getPlannerAllocator(void) const
+            {
+                return pa_;
+            }
+
             /** \brief Get the path simplifier */
             const PathSimplifierPtr& getPathSimplifier(void) const
             {

@@ -67,6 +67,11 @@ void ompl::ParallelPlan::clearPlanners(void)
     planners_.clear();
 }
 
+void ompl::ParallelPlan::clearHybridizationPaths(void)
+{
+    phybrid_->clear();
+}
+
 bool ompl::ParallelPlan::solve(double solveTime, bool hybridize)
 {
     return solve(solveTime, 1, planners_.size(), hybridize);
@@ -87,7 +92,6 @@ bool ompl::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std
 {
     if (!pdef_->getSpaceInformation()->isSetup())
         pdef_->getSpaceInformation()->setup();
-    pdef_->getGoal()->clearSolutionPaths();
 
     time::point start = time::now();
     std::vector<boost::thread*> threads(planners_.size());
@@ -136,12 +140,12 @@ void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCou
 {
     if (planner->solve(*ptc))
     {
-        const std::vector<base::PlannerSolution> &paths = pdef_->getGoal()->getSolutions();
-
         if (phybrid_->pathCount() >= maxSolCount)
             ptc->terminate();
 
         msg_.debug("Solution found by " + planner->getName());
+
+        const std::vector<base::PlannerSolution> &paths = pdef_->getGoal()->getSolutions();
 
         boost::mutex::scoped_lock slock(phlock_);
 
