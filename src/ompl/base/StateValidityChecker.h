@@ -107,6 +107,14 @@ namespace ompl
                 return 0.0;
             }
 
+            /** \brief Check if the continuous motion between states s1 and s2 is valid. */
+            /** \remarks Not implemented in the base class.  MUST be handled in derived class.*/
+            virtual bool isValid (const State *s1, const State *s2, double &collisionTime) const
+            {
+                collisionTime = 0;
+                return false;
+            }
+
             /** \brief Report the distance to the nearest invalid state when starting from \e state, and if available,
                 also set the gradient: the direction that moves away from the colliding state. \e gradientAvailable is set
                 to true if \e gradient is updated. */
