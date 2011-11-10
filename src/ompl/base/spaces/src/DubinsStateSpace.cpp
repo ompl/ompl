@@ -37,20 +37,12 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/util/Exception.h"
 #include <boost/math/constants/constants.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/bimap.hpp>
-#include <boost/bimap/list_of.hpp>
-#include <boost/bimap/set_of.hpp>
-#include <boost/bimap/unordered_set_of.hpp>
-#include <boost/function.hpp>
 
 #define DUBINS_EPS 1e-5
 
 using namespace ompl::base;
 
-namespace dubins
+namespace
 {
     const double twopi = 2. * boost::math::constants::pi<double>();
     inline double mod2pi(double x)
@@ -166,34 +158,8 @@ namespace dubins
         return DubinsStateSpace::DubinsPath();
     }
 
-    struct TripleDouble
+    DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
     {
-        TripleDouble(double d, double alpha, double beta) : tuple_(d, alpha, beta)
-        {
-        }
-        boost::tuple<double,double,double> tuple_;
-    };
-    struct TripleDoubleHash : public std::unary_function<TripleDouble, std::size_t>
-    {
-        std::size_t operator()(TripleDouble const& t) const
-        {
-            return hasher_(100.*t.tuple_.get<0>() + 10.*t.tuple_.get<1>() + t.tuple_.get<0>());
-        }
-
-        boost::hash<double> hasher_;
-    };
-    struct TripleDoubleEqual : public std::binary_function<TripleDouble, TripleDouble, bool>
-    {
-        bool operator()(TripleDouble const& t0, TripleDouble const& t1) const
-        {
-            return t0.tuple_.get<0>()==t1.tuple_.get<0>() &&
-                   t0.tuple_.get<1>()==t1.tuple_.get<1>() &&
-                   t0.tuple_.get<2>()==t1.tuple_.get<2>();
-        }
-    };
-    DubinsStateSpace::DubinsPath dubins(const TripleDouble t)
-    {
-        double d = t.tuple_.get<0>(), alpha = t.tuple_.get<1>(), beta = t.tuple_.get<2>();
         DubinsStateSpace::DubinsPath path(dubinsLSL(d, alpha, beta)), tmp(dubinsRSR(d, alpha, beta));
         double len, minLength = path.length();
 
@@ -228,64 +194,6 @@ namespace dubins
         }
         return path;
     }
-
-
-    // code taken from http://www.bottlenose.demon.co.uk/article/lru.htm
-    template <typename K, typename V>
-    class LRUCache
-    {
-    public:
-
-        typedef K key_type;
-        typedef V value_type;
-
-        typedef boost::bimaps::bimap<
-            boost::bimaps::unordered_set_of<key_type, TripleDoubleHash, TripleDoubleEqual>,
-            boost::bimaps::list_of<value_type>
-            > container_type;
-
-        // Constuctor specifies the cached function and
-        // the maximum number of records to be stored.
-        LRUCache(const boost::function<value_type(const key_type&)>& f, size_t c)
-            : fn_(f), capacity_(c)
-        {
-            assert(capacity_!=0);
-        }
-
-        // Obtain value of the cached function for k
-        value_type operator()(const key_type& k) {
-            // Attempt to find existing record
-            const typename container_type::left_iterator it =container_.left.find(k);
-            if (it==container_.left.end())
-            {
-                const value_type v=fn_(k);
-                insert(k,v);
-                return v;
-            }
-            else
-            {
-                container_.right.relocate(container_.right.end(), container_.project_right(it));
-                return it->second;
-            }
-        }
-
-    private:
-        void insert(const key_type& k,const value_type& v) {
-            assert(container_.size() <= capacity_);
-            if (container_.size() == capacity_)
-                // by purging the least-recently-used element
-                container_.right.erase(container_.right.begin());
-
-            // Create a new record from the key and the value
-            // bimap's list_view defaults to inserting this at
-            // the list tail (considered most-recently-used).
-            container_.insert(typename container_type::value_type(k,v));
-        }
-
-        const boost::function<value_type(const key_type&)> fn_;
-        const size_t capacity_;
-        container_type container_;
-    };
 }
 
 const ompl::base::DubinsStateSpace::DubinsPathSegmentType
@@ -376,14 +284,12 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
 
 ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1, const State *state2) const
 {
-    static ::dubins::LRUCache< ::dubins::TripleDouble, DubinsPath> cache(::dubins::dubins, cacheSize_);
     const StateType *s1 = static_cast<const StateType*>(state1);
     const StateType *s2 = static_cast<const StateType*>(state2);
     double x1 = s1->getX(), y1 = s1->getY(), th1 = s1->getYaw();
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, d = sqrt(dx*dx + dy*dy) / rho_, th = atan2(dy, dx);
-    double alpha = ::dubins::mod2pi(th1 - th), beta = ::dubins::mod2pi(th2 - th);
-    ::dubins::TripleDouble t(d,alpha,beta);
-    return cache(t);
+    double alpha = mod2pi(th1 - th), beta = mod2pi(th2 - th);
+    return ::dubins(d, alpha, beta);
 }
 
