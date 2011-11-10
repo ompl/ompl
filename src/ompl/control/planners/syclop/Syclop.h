@@ -132,7 +132,7 @@ namespace ompl
             {
                 static const int NUM_FREEVOL_SAMPLES = 100000;
                 static const double PROB_SHORTEST_PATH = 0.95;
-                static const int COVGRID_LENGTH = 512;
+                static const int COVGRID_LENGTH = 128;
                 static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95;
                 static const int NUM_AVAIL_EXPLORATIONS = 100;
                 static const int NUM_TREE_SELECTIONS = 50;
@@ -272,7 +272,7 @@ namespace ompl
                 }
 
                 /** \brief Syclop will not sample from the CoverageGrid. */
-                virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) const
+                virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s)
                 {
                 }
 
