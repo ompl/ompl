@@ -46,7 +46,7 @@ bool isStateValid(const ob::State *state)
     // cast the abstract state type to the type we expect
     const ob::DubinsStateSpace::StateType *se2state = state->as<ob::DubinsStateSpace::StateType>();
     double x=se2state->getX(), y=se2state->getY();
-    return x<6 || x>12 || (y>6 && y<12);
+    return x<5 || x>13 || (y>8.5 && y<9.5);
 }
 
 void plan(ob::StateSpacePtr space)
@@ -66,7 +66,7 @@ void plan(ob::StateSpacePtr space)
 
     // set the start and goal states
     start[0] = start[1] = 1.; start[2] = 0.;
-    goal[0] = goal[1] = 17; goal[2] = -.5 * boost::math::constants::pi<double>();
+    goal[0] = goal[1] = 17; goal[2] = -.99*boost::math::constants::pi<double>();
     ss.setStartAndGoalStates(start, goal);
 
     // this call is optional, but we put it in to get more output information
