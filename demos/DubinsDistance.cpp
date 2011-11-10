@@ -36,8 +36,66 @@
 
 #include <ompl/base/spaces/DubinsStateSpace.h>
 #include <ompl/base/ScopedState.h>
+#include <ompl/geometric/SimpleSetup.h>
 
 namespace ob = ompl::base;
+namespace og = ompl::geometric;
+
+bool isStateValid(const ob::State *state)
+{
+    // cast the abstract state type to the type we expect
+    const ob::DubinsStateSpace::StateType *se2state = state->as<ob::DubinsStateSpace::StateType>();
+    double x=se2state->getX(), y=se2state->getY();
+    return x<6 || x>12 || (y>6 && y<12);
+}
+
+void plan(ob::StateSpacePtr space)
+{
+    ob::ScopedState<> start(space), goal(space);
+    ob::RealVectorBounds bounds(2);
+    bounds.setLow(0);
+    bounds.setHigh(18);
+    space->as<ob::DubinsStateSpace>()->setBounds(bounds);
+
+    // define a simple setup class
+    og::SimpleSetup ss(space);
+
+    // set state validity checking for this space
+    ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
+
+
+    // set the start and goal states
+    start[0] = start[1] = 1.; start[2] = 0.;
+    goal[0] = goal[1] = 17; goal[2] = -.5 * boost::math::constants::pi<double>();
+    ss.setStartAndGoalStates(start, goal);
+
+    // this call is optional, but we put it in to get more output information
+    ss.setup();
+    ss.print();
+
+    // attempt to solve the problem within one second of planning time
+    bool solved = ss.solve(1.0);
+
+    if (solved)
+    {
+        std::cout << "Found solution:" << std::endl;
+        // We can't use regular simplify because it also tries to use spline interpolation,
+        // which doesn't work for Dubins curves.
+        //ss.simplifySolution();
+        og::PathGeometric path = ss.getSolutionPath();
+        og::PathSimplifierPtr ps = ss.getPathSimplifier();
+        ps->reduceVertices(path);
+        ps->collapseCloseVertices(path);
+        path.interpolate(100);
+        for (unsigned int i=0; i<path.states.size(); ++i)
+        {
+            const ob::DubinsStateSpace::StateType& s = *path.states[i]->as<ob::DubinsStateSpace::StateType>();
+            std::cout << s.getX() <<' '<< s.getY() << ' ' << s.getYaw() << std::endl;
+        }
+    }
+    else
+        std::cout << "No solution found" << std::endl;
+}
 
 int main(int argc, char* argv[])
 {
@@ -62,19 +120,35 @@ int main(int argc, char* argv[])
         {
             space->interpolate(from(), to(), (double)i/num_pts, s());
             reals = s.reals();
-            std::cout << reals[0] << ' ' << reals[1] << ' ' << reals[2] << std::endl;
+            std::cout << reals[0] << ' ' << reals[1] << ' ' << reals[2] << ' ' << std::endl;
         }
     }
-    else
-    // Otherwise, print the Dubins distance for (x,y,theta) for all points
-    // in a 3D grid in SE(2) over (-5,5] x (-5, 5] x (-pi,pi].
+    else if (argc == 2)
+    // if 1 dummy command line argument is given, print the Dubins distance
+    // for (x,y,theta) for all points in a 3D grid in SE(2) over
+    // (-5,5] x (-5, 5] x (-pi,pi].
+    //
+    // The output should be redirected to a file, say, distance.txt. This
+    // can then be read and plotted in Matlab like so:
+    //     x = reshape(load('distance.txt'),200,200,200);
+    //     for i=1:200,
+    //         contourf(squeeze(x(i,:,:)),30);
+    //         axis equal; axis tight; colorbar; pause;
+    //     end;
+    {
         for (unsigned int i=0; i<num_pts; ++i)
             for (unsigned int j=0; j<num_pts; ++j)
                 for (unsigned int k=0; k<num_pts; ++k)
                 {
-                    to[0] = 5. * (1. - 2. * (double)j/num_pts);
-                    to[1] = 5. * (1. - 2. * (double)i/num_pts);
+                    to[0] = 5. * (1. - 2. * (double)i/num_pts);
+                    to[1] = 5. * (1. - 2. * (double)j/num_pts);
                     to[2] = boost::math::constants::pi<double>() * (1. - 2. * (double)k/num_pts);
                     std::cout << space->distance(from(), to()) << '\n';
                 }
+    }
+    else
+    // otherwise, solve a simple planning problem
+    {
+        plan(space);
+    }
 }

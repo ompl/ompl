@@ -62,6 +62,7 @@ namespace ompl
         DeclareStateType(SE2);
         DeclareStateType(SE3);
         DeclareStateType(Discrete);
+        DeclareStateType(Dubins);
     }
 }
 

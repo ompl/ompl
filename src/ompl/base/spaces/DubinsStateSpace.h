@@ -58,7 +58,7 @@ namespace ompl
         public:
 
             /** \brief The Dubins path segment type */
-            enum DubinsPathSegmentType { DUBINS_LEFT, DUBINS_RIGHT, DUBINS_STRAIGHT };
+            enum DubinsPathSegmentType { DUBINS_LEFT=0, DUBINS_STRAIGHT=1, DUBINS_RIGHT=2 };
             /** \brief Dubins path types */
             static const DubinsPathSegmentType dubinsPathType[6][3];
             /** \brief Complete description of a Dubins path */
@@ -80,13 +80,6 @@ namespace ompl
                 {
                     return length_[0] + length_[1] + length_[2];
                 }
-                DubinsPath reverse()
-                {
-                    DubinsPath path(*this);
-                    std::swap(path.type_[0],   path.type_[2]);
-                    std::swap(path.length_[0], path.length_[2]);
-                    return path;
-                }
 
                 /** Path segment types */
                 DubinsPathSegmentType type_[3];
@@ -94,7 +87,8 @@ namespace ompl
                 double length_[3];
             };
 
-            DubinsStateSpace(double turningRadius = 1.0) : SE2StateSpace(), rho_(turningRadius)
+            DubinsStateSpace(double turningRadius = 1.0, unsigned int cacheSize = 1000)
+                : SE2StateSpace(), rho_(turningRadius), cacheSize_(cacheSize)
             {
             }
 
@@ -106,15 +100,11 @@ namespace ompl
             DubinsPath dubins(const State *state1, const State *state2) const;
 
         protected:
-            static DubinsPath dubinsLSL(double d, double alpha, double beta);
-            static DubinsPath dubinsRSR(double d, double alpha, double beta);
-            static DubinsPath dubinsRSL(double d, double alpha, double beta);
-            static DubinsPath dubinsLSR(double d, double alpha, double beta);
-            static DubinsPath dubinsRLR(double d, double alpha, double beta);
-            static DubinsPath dubinsLRL(double d, double alpha, double beta);
-
             /** \brief Turning radius */
             double rho_;
+
+            /** \brief Max. size of cache used to store DubinsPaths */
+            unsigned int cacheSize_;
         };
     }
 }
