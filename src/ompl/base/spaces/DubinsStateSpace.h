@@ -38,6 +38,7 @@
 #define OMPL_BASE_SPACES_DUBINS_STATE_SPACE_
 
 #include "ompl/base/spaces/SE2StateSpace.h"
+#include "ompl/base/MotionValidator.h"
 #include <boost/math/constants/constants.hpp>
 
 namespace ompl
@@ -67,6 +68,7 @@ namespace ompl
             public:
                 DubinsPath(const DubinsPathSegmentType* type = dubinsPathType[0],
                     double t=0., double p=std::numeric_limits<double>::max(), double q=0.)
+                    : reverse_(false)
                 {
                     memcpy(type_, type, 3*sizeof(DubinsPathSegmentType));
                     length_[0] = t;
@@ -76,7 +78,7 @@ namespace ompl
                     assert(p >= 0.);
                     assert(q >= 0.);
                 }
-                double length()
+                double length() const
                 {
                     return length_[0] + length_[1] + length_[2];
                 }
@@ -85,27 +87,60 @@ namespace ompl
                 DubinsPathSegmentType type_[3];
                 /** Path segment lengths */
                 double length_[3];
+                /** Whether the path should be followed "in reverse" */
+                bool reverse_;
             };
 
-            DubinsStateSpace(double turningRadius = 1.0, unsigned int cacheSize = 1000)
-                : SE2StateSpace(), rho_(turningRadius), cacheSize_(cacheSize)
+            DubinsStateSpace(double turningRadius = 1.0)
+                : SE2StateSpace(), rho_(turningRadius)
             {
             }
 
             virtual double distance(const State *state1, const State *state2) const;
 
-            virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
+            virtual void interpolate(const State *from, const State *to, const double t,
+                State *state) const;
+            virtual void interpolate(const State *from, const State *to, const double t,
+                bool& firstTime, DubinsPath& path, State *state) const;
 
             /** \brief Return the shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
             DubinsPath dubins(const State *state1, const State *state2) const;
 
         protected:
+            virtual void interpolate(const State *from, const DubinsPath& path, const double t,
+                State *state) const;
+
             /** \brief Turning radius */
             double rho_;
-
-            /** \brief Max. size of cache used to store DubinsPaths */
-            unsigned int cacheSize_;
         };
+
+        /** \brief A Dubins motion validator that only uses the state validity checker.
+            Motions are checked for validity at a specified resolution.
+
+            This motion validator is almost identical to the DiscreteMotionValidator
+            except that it remembers the optimal DubinsPath between different calls to
+            interpolate. */
+        class DubinsMotionValidator : public MotionValidator
+        {
+        public:
+            DubinsMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            {
+                defaultSettings();
+            }
+            DubinsMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
+            {
+                defaultSettings();
+            }
+            virtual ~DubinsMotionValidator(void)
+            {
+            }
+            virtual bool checkMotion(const State *s1, const State *s2) const;
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+        private:
+            DubinsStateSpace *stateSpace_;
+            void defaultSettings(void);
+        };
+
     }
 }
 

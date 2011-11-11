@@ -35,7 +35,9 @@
 /* Author: Mark Moll */
 
 #include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Exception.h"
+#include <queue>
 #include <boost/math/constants/constants.hpp>
 
 #define DUBINS_EPS 1e-5
@@ -214,30 +216,55 @@ double ompl::base::DubinsStateSpace::distance(const State *state1, const State *
 
 void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    if (t>=1.)
-    {
-        copyState(state, to);
-        return;
-    }
-    copyState(state, from);
-    if (t<=0.)
-        return;
+    bool firstTime = true;
+    DubinsPath path;
+    interpolate(from, to, t, firstTime, path, state);
+}
 
+void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t,
+    bool& firstTime, DubinsPath& path, State *state) const
+{
+    if (firstTime)
+    {
+        if (t>=1.)
+        {
+            copyState(state, to);
+            return;
+        }
+        copyState(state, from);
+        if (t<=0.)
+            return;
+
+        DubinsPath path1(dubins(from, to)), path2(dubins(to, from));
+        double len1 = path1.length(), len2 = path2.length();
+
+        if (len1 < len2)
+            path = path1;
+        else
+        {
+            path2.reverse_ = true;
+            path = path2;
+        }
+        firstTime = false;
+    }
+    interpolate(from, path, t, state);
+}
+
+void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPath& path, double t, State *state) const
+{
     StateType *s  = state->as<StateType>();
-    DubinsPath path1(dubins(from, to)), path2(dubins(to, from));
-    double len1 = path1.length(), len2 = path2.length(), seg, phi, v;
+    double seg = t * path.length(), phi, v;
 
     s->setXY(0., 0.);
     s->setYaw(from->as<StateType>()->getYaw());
-    if (len1 < len2)
+    if (!path.reverse_)
     {
-        seg = t * len1;
         for (unsigned int i=0; i<3 && seg>0; ++i)
         {
-            v = std::min(seg, path1.length_[i]);
+            v = std::min(seg, path.length_[i]);
             phi = s->getYaw();
             seg -= v;
-            switch(path1.type_[i])
+            switch(path.type_[i])
             {
                 case DUBINS_LEFT:
                     s->setXY(s->getX() + sin(phi+v) - sin(phi), s->getY() - cos(phi+v) + cos(phi));
@@ -255,13 +282,12 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
     }
     else
     {
-        seg = t * len2;
         for (unsigned int i=0; i<3 && seg>0; ++i)
         {
-            v = std::min(seg, path2.length_[2-i]);
+            v = std::min(seg, path.length_[2-i]);
             phi = s->getYaw();
             seg -= v;
-            switch(path2.type_[2-i])
+            switch(path.type_[2-i])
             {
                 case DUBINS_LEFT:
                     s->setXY(s->getX() + sin(phi-v) - sin(phi), s->getY() - cos(phi-v) + cos(phi));
@@ -293,3 +319,107 @@ ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(co
     return ::dubins(d, alpha, beta);
 }
 
+
+void ompl::base::DubinsMotionValidator::defaultSettings(void)
+{
+    stateSpace_ = dynamic_cast<DubinsStateSpace*>(si_->getStateSpace().get());
+    if (!stateSpace_)
+        throw Exception("No state space for motion validator");
+}
+
+bool ompl::base::DubinsMotionValidator::checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
+{
+    /* assume motion starts in a valid configuration so s1 is valid */
+
+    bool result = true, firstTime = true;
+    DubinsStateSpace::DubinsPath path;
+    int nd = stateSpace_->validSegmentCount(s1, s2);
+
+    if (nd > 1)
+    {
+        /* temporary storage for the checked state */
+        State *test = si_->allocState();
+
+        for (int j = 1 ; j < nd ; ++j)
+        {
+            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, firstTime, path, test);
+            if (!si_->isValid(test))
+            {
+                lastValid.second = (double)(j - 1) / (double)nd;
+                if (lastValid.first)
+                    stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
+                result = false;
+                break;
+            }
+        }
+        si_->freeState(test);
+    }
+
+    if (result)
+        if (!si_->isValid(s2))
+        {
+            lastValid.second = (double)(nd - 1) / (double)nd;
+            if (lastValid.first)
+                stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
+            result = false;
+        }
+
+    if (result)
+        valid_++;
+    else
+        invalid_++;
+
+    return result;
+}
+
+bool ompl::base::DubinsMotionValidator::checkMotion(const State *s1, const State *s2) const
+{
+    /* assume motion starts in a valid configuration so s1 is valid */
+    if (!si_->isValid(s2))
+        return false;
+
+    bool result = true, firstTime = true;
+    DubinsStateSpace::DubinsPath path;
+    int nd = stateSpace_->validSegmentCount(s1, s2);
+
+    /* initialize the queue of test positions */
+    std::queue< std::pair<int, int> > pos;
+    if (nd >= 2)
+    {
+        pos.push(std::make_pair(1, nd - 1));
+
+        /* temporary storage for the checked state */
+        State *test = si_->allocState();
+
+        /* repeatedly subdivide the path segment in the middle (and check the middle) */
+        while (!pos.empty())
+        {
+            std::pair<int, int> x = pos.front();
+
+            int mid = (x.first + x.second) / 2;
+            stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, firstTime, path, test);
+
+            if (!si_->isValid(test))
+            {
+                result = false;
+                break;
+            }
+
+            pos.pop();
+
+            if (x.first < mid)
+                pos.push(std::make_pair(x.first, mid - 1));
+            if (x.second > mid)
+                pos.push(std::make_pair(mid + 1, x.second));
+        }
+
+        si_->freeState(test);
+    }
+
+    if (result)
+        valid_++;
+    else
+        invalid_++;
+
+    return result;
+}

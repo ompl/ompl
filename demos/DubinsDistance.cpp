@@ -60,9 +60,12 @@ void plan(ob::StateSpacePtr space)
     // define a simple setup class
     og::SimpleSetup ss(space);
 
+    // use the special Dubins motion validator
+    ob::SpaceInformationPtr si(ss.getSpaceInformation());
+    si->setMotionValidator(ob::MotionValidatorPtr(new ob::DubinsMotionValidator(si)));
+
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
-
 
     // set the start and goal states
     start[0] = start[1] = 1.; start[2] = 0.;
