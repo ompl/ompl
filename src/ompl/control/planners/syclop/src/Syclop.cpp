@@ -61,7 +61,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     checkValidity();
     if (!graphReady_)
         initGraph();
-    std::set<Motion*> newMotions;
+    std::vector<Motion*> newMotions;
     base::Goal* goal = getProblemDefinition()->getGoal().get();
     Motion* solution = NULL;
     Motion* approxSoln = NULL;
@@ -79,7 +79,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
             {
                 newMotions.clear();
                 selectAndExtend(graph_[boost::vertex(region,graph_)], newMotions);
-                for (std::set<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
+                for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
                 {
                     Motion* motion = *m;
                     base::State* state = motion->state;
@@ -100,7 +100,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                     graph_[boost::vertex(newRegion,graph_)].motions.push_back(motion);
                     if (newRegion != region)
                     {
-                        avail_.insert(newRegion);
+                        avail_.push_back(newRegion);
                         /* If the tree crosses an entire region and creates an edge (u,v) for which Proj(u) and Proj(v) are non-neighboring regions,
                             then we do not update connection estimates. This is because Syclop's shortest-path lead computation only considers neighboring regions. */
                         if (regionsToEdge_.count(std::pair<int,int>(region, newRegion)) > 0)
@@ -449,7 +449,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
         Region& r = graph_[boost::vertex(lead_[i],graph_)];
         if (!r.motions.empty())
         {
-            avail_.insert(lead_[i]);
+            avail_.push_back(lead_[i]);
             availDist_.add(lead_[i], r.weight);
             if (rng_.uniform01() >= probKeepAddingToAvail)
                 break;

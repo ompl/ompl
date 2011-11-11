@@ -94,7 +94,7 @@ ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const ba
     return motion;
 }
 
-void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
+void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motion*>& newMotions)
 {
     Motion* rmotion = new Motion(siC_);
     base::StateSamplerPtr sampler(si_->allocStateSampler());
@@ -109,14 +109,14 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
         decomp_->getNeighbors(region.index, searchRegions);
         searchRegions.push_back(region.index);
 
-        std::set<Motion*> motions;
+        std::vector<Motion*> motions;
         for (std::vector<int>::const_iterator i = searchRegions.begin(); i != searchRegions.end(); ++i)
         {
             const std::vector<Motion*>& regionMotions = getRegionFromIndex(*i).motions;
-            motions.insert(regionMotions.begin(), regionMotions.end());
+            motions.insert(motions.end(), regionMotions.begin(), regionMotions.end());
         }
 
-        std::set<Motion*>::const_iterator i = motions.begin();
+        std::vector<Motion*>::const_iterator i = motions.begin();
         nmotion = *i;
         double minDistance = distanceFunction(rmotion, nmotion);
         ++i;
@@ -149,7 +149,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::set<Motion*>
         motion->steps = duration;
         motion->parent = nmotion;
         nn_->add(motion);
-        newMotions.insert(motion);
+        newMotions.push_back(motion);
     }
 
     si_->freeState(rmotion->state);

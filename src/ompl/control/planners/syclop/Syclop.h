@@ -47,6 +47,7 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/datastructures/PDF.h"
 #include <map>
+#include <vector>
 
 namespace ompl
 {
@@ -242,7 +243,7 @@ namespace ompl
 
             /** \brief Select a Motion from the given Region, and extend the tree from the Motion.
                 Add any new motions created to newMotions. */
-            virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions) = 0;
+            virtual void selectAndExtend(Region& region, std::vector<Motion*>& newMotions) = 0;
 
             const SpaceInformation* siC_;
             DecompositionPtr decomp_;
@@ -335,7 +336,7 @@ namespace ompl
             double defaultEdgeCost(int r, int s);
 
             std::vector<int> lead_;
-            std::set<int> avail_;
+            std::vector<int> avail_;
             PDF<int> availDist_;
             std::vector<EdgeCostFactorFn> edgeCostFactors_;
             CoverageGrid covGrid_;

@@ -35,6 +35,7 @@
 /* Author: Matt Maly */
 
 #include "ompl/control/planners/syclop/GridDecomposition.h"
+#include <cassert>
 
 ompl::control::GridDecomposition::GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b) :
     Decomposition(calcNumRegions(len,dim), dim, b), length_(len), cellVolume_(b.getVolume())
@@ -138,9 +139,25 @@ int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
     for (int i = dimension_-1; i >= 0; --i)
     {
         const int index = (int) (length_*(coord[i]-bounds_.low[i])/(bounds_.high[i]-bounds_.low[i]));
+/*//debug code
+//std::cout << "index = " << index << std::endl;
+assert((index >= -1) && (index <= length_));
+std::cout << "bounds in dim " << i << ": [" << bounds_.low[i] << ", " << bounds_.high[i] << "]" << std::endl;
+std::cout << "coord[" << i << "] = " << coord[i] << std::endl;
+if (index < 0 || index >= length_)
+    std::cout << "index=" << index << " in dimension " << i << " is out of bounds" << std::endl;
+else
+    std::cout << "index=" << index << " in dimension " << i << " is fine" << std::endl;
+//end
+*/
         region += factor*index;
         factor *= length_;
     }
+
+/*//debug
+if (region < 0 || region >= getNumRegions())
+    std::cout << "region " << region << " is out of bounds" << std::endl;
+//end*/
     return region;
 }
 

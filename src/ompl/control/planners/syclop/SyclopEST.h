@@ -64,7 +64,7 @@ namespace ompl
 
         protected:
             virtual Syclop::Motion* initializeTree(const base::State* s);
-            virtual void selectAndExtend(Region& region, std::set<Motion*>& newMotions);
+            virtual void selectAndExtend(Region& region, std::vector<Motion*>& newMotions);
 
             /** \brief Free the memory allocated by this planner. */
             void freeMemory(void);

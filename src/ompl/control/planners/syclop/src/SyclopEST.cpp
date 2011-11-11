@@ -86,7 +86,7 @@ ompl::control::Syclop::Motion* ompl::control::SyclopEST::initializeTree(const ba
     return motion;
 }
 
-void ompl::control::SyclopEST::selectAndExtend(Region& region, std::set<Motion*>& newMotions)
+void ompl::control::SyclopEST::selectAndExtend(Region& region, std::vector<Motion*>& newMotions)
 {
     Motion* treeMotion = region.motions[rng_.uniformInt(0, region.motions.size()-1)];
     Control* rctrl = siC_->allocControl();
@@ -104,7 +104,7 @@ void ompl::control::SyclopEST::selectAndExtend(Region& region, std::set<Motion*>
         motion->steps = duration;
         motion->parent = treeMotion;
         motions_.push_back(motion);
-        newMotions.insert(motion);
+        newMotions.push_back(motion);
     }
 
     siC_->freeControl(rctrl);
