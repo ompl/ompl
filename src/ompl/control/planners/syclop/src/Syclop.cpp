@@ -63,6 +63,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         initGraph();
     std::vector<Motion*> newMotions;
     base::Goal* goal = getProblemDefinition()->getGoal().get();
+    msg_.inform("Starting with %u states", numMotions_);
     Motion* solution = NULL;
     Motion* approxSoln = NULL;
     double goalDist = std::numeric_limits<double>::infinity();
@@ -98,6 +99,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                     }
                     const int newRegion = decomp_->locateRegion(state);
                     graph_[boost::vertex(newRegion,graph_)].motions.push_back(motion);
+                    ++numMotions_;
                     if (newRegion != region)
                     {
                         avail_.push_back(newRegion);
@@ -169,11 +171,6 @@ void ompl::control::Syclop::clearEdgeCostFactors(void)
     edgeCostFactors_.clear();
 }
 
-ompl::control::Syclop::Region& ompl::control::Syclop::getRegionFromIndex(const int rid)
-{
-    return graph_[boost::vertex(rid, graph_)];
-}
-
 void ompl::control::Syclop::initRegion(Region& r)
 {
     r.numSelections = 0;
@@ -209,6 +206,8 @@ void ompl::control::Syclop::setupRegionEstimates(void)
         else
             r.percentValidCells = ((double) numValid[i]) / numTotal[i];
         r.freeVolume = r.percentValidCells * r.volume;
+        if (r.freeVolume < std::numeric_limits<double>::epsilon())
+            r.freeVolume = std::numeric_limits<double>::epsilon();
         updateRegion(r);
     }
 }
@@ -313,6 +312,7 @@ void ompl::control::Syclop::initGraph(void)
     si_->freeState(goal);
     Motion* startMotion = initializeTree(start);
     graph_[boost::vertex(startRegion_,graph_)].motions.push_back(startMotion);
+    numMotions_ = 1;
     setupRegionEstimates();
     setupEdgeEstimates();
     updateCoverageEstimate(graph_[boost::vertex(startRegion_,graph_)], start);
@@ -341,30 +341,36 @@ void ompl::control::Syclop::computeLead(void)
 
     else if (rng_.uniform01() < probShortestPath)
     {
-        //Run Dijkstra's algorithm over the decomposition graph from the start region to the goal region.
         std::vector<RegionGraph::vertex_descriptor> parents(decomp_->getNumRegions());
         std::vector<double> distances(decomp_->getNumRegions());
-        boost::dijkstra_shortest_paths(graph_, boost::vertex(startRegion_, graph_),
-            boost::weight_map(get(&Adjacency::cost, graph_)).distance_map(
-                boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, graph_)
-            )).predecessor_map(
-                boost::make_iterator_property_map(parents.begin(), get(boost::vertex_index, graph_))
-            )
-        );
-        int region = goalRegion_;
-        int leadLength = 1;
 
-        while (region != startRegion_)
+        try
         {
-            region = parents[region];
-            ++leadLength;
+            boost::astar_search(graph_, boost::vertex(startRegion_, graph_), DecompositionHeuristic(this, getRegionFromIndex(goalRegion_)),
+                boost::weight_map(get(&Adjacency::cost, graph_)).distance_map(
+                    boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, graph_)
+                )).predecessor_map(
+                    boost::make_iterator_property_map(parents.begin(), get(boost::vertex_index, graph_))
+                ).visitor(GoalVisitor(goalRegion_))
+            );
         }
-        lead_.resize(leadLength);
-        region = goalRegion_;
-        for (int i = leadLength-1; i >= 0; --i)
+        catch (found_goal fg)
         {
-            lead_[i] = region;
-            region = parents[region];
+            int region = goalRegion_;
+            int leadLength = 1;
+
+            while (region != startRegion_)
+            {
+                region = parents[region];
+                ++leadLength;
+            }
+            lead_.resize(leadLength);
+            region = goalRegion_;
+            for (int i = leadLength-1; i >= 0; --i)
+            {
+                lead_[i] = region;
+                region = parents[region];
+            }
         }
     }
     else

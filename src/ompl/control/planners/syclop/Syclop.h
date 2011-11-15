@@ -37,6 +37,7 @@
 #ifndef OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOP_
 #define OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOP_
 
+#include <boost/graph/astar_search.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -230,13 +231,22 @@ namespace ompl
                 siC_(si.get()),
                 decomp_(d),
                 covGrid_(Defaults::COVGRID_LENGTH, decomp_),
-                graphReady_(false)
+                graphReady_(false),
+                numMotions_(0)
             {
                 specs_.approximateSolutions = true;
             }
 
             /** \brief Returns a reference to the Region object with the given index. Assumes the index is valid. */
-            Region& getRegionFromIndex(const int rid);
+            inline Region& getRegionFromIndex(const int rid)
+            {
+                return graph_[boost::vertex(rid,graph_)];
+            }
+
+            inline const Region& getRegionFromIndex(const int rid) const
+            {
+                return graph_[boost::vertex(rid,graph_)];
+            }
 
             /** \brief Initialize the low-level tree rooted at State s, and return the Motion corresponding to s. */
             virtual Motion* initializeTree(const base::State* s) = 0;
@@ -282,9 +292,46 @@ namespace ompl
             };
 
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
+            typedef boost::graph_traits<RegionGraph>::vertex_descriptor Vertex;
             typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
+
+            friend class DecompositionHeuristic;
+
+            class DecompositionHeuristic : public boost::astar_heuristic<RegionGraph, double>
+            {
+            public:
+                DecompositionHeuristic(const Syclop* s, const Region& goal) : syclop(s), goalRegion(goal)
+                {
+                }
+
+                double operator()(Vertex v)
+                {
+                    const Region& region = syclop->getRegionFromIndex(v);
+                    return region.weight*goalRegion.weight;
+                }
+            private:
+                const Syclop* syclop;
+                const Region& goalRegion;
+            };
+
+            struct found_goal {};
+
+            class GoalVisitor : public boost::default_astar_visitor
+            {
+            public:
+                GoalVisitor(const unsigned int goal) : goalRegion(goal)
+                {
+                }
+                void examine_vertex(Vertex v, const RegionGraph& g)
+                {
+                    if (v == goalRegion)
+                        throw found_goal();
+                }
+            private:
+                const unsigned int goalRegion;
+            };
 
             /** \brief Initializes default values for a given Region. */
             void initRegion(Region& r);
@@ -343,6 +390,7 @@ namespace ompl
             RegionGraph graph_;
             bool graphReady_;
             boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
+            unsigned int numMotions_;
         };
     }
 }
