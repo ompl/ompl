@@ -75,8 +75,15 @@ namespace ompl
             /** \brief Converts a given region to a coordinate in the grid. */
             void regionToCoord(int rid, std::vector<int>& coord) const;
 
-            /** \brief Returns true iff two given regions are adjacent in the grid. */
-            bool areNeighbors(const int r, const int s) const;
+            /** \brief Converts the given coordinate to the region in the grid. */
+            int coordToRegion (const std::vector<int> &coord) const;
+
+            /** \brief Computes the neighbors of the given region in a n-dimensional grid */
+            void computeGridNeighbors (int rid, std::vector <int> &neighbors) const;
+
+            /** Recursive subroutine for grid neighbor computation */
+            void computeGridNeighborsSub (const std::vector <int>&coord, std::vector <int> &neighbors,
+                                          unsigned int dim, std::vector <int> &candidate) const;
 
             const int length_;
             double cellVolume_;
