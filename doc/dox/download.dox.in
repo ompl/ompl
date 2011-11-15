@@ -13,7 +13,7 @@
 Alternatively, you can use the <a
 href="http://www.ros.org/wiki/ompl">version included in ROS</a>.
 
-\section download_hg Mercurial
+\section download_hg Source Code
 
 The latest source is available via Mercurial. For anonymous checkout use:
 \code
@@ -26,7 +26,8 @@ A <a href="http://www.ros.org">ROS</a> package providing the latest version of t
 $ svn co https://rice-ros-pkg.svn.sourceforge.net/svnroot/rice-ros-pkg/ompl ompl
 \endcode
 
-\n\par
+\section download_install Installing
+
 Click <a href="installation.html">here</a> for installation instructions.
 
 */
