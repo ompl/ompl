@@ -61,8 +61,15 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     checkValidity();
     if (!graphReady_)
         initGraph();
+
+    base::Goal* goal = pdef_->getGoal().get();
+    const base::GoalSampleableRegion *goalSampleable = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::State* goalState = si_->allocState();
+    goalSampleable->sampleGoal(goalState);
+    goalRegion_ = decomp_->locateRegion(goalState);
+    si_->freeState(goalState);
+
     std::vector<Motion*> newMotions;
-    base::Goal* goal = getProblemDefinition()->getGoal().get();
     msg_.inform("Starting with %u states", numMotions_);
     Motion* solution = NULL;
     Motion* approxSoln = NULL;
@@ -305,11 +312,6 @@ void ompl::control::Syclop::initGraph(void)
     // For now, we are only considering one start state.
     base::State* start = pdef->getStartState(0);
     startRegion_ = decomp_->locateRegion(start);
-    // Here we are assuming that we have a sampleable goal region.
-    base::State* goal = si_->allocState();
-    pdef->getGoal()->as<base::GoalSampleableRegion>()->sampleGoal(goal);
-    goalRegion_ = decomp_->locateRegion(goal);
-    si_->freeState(goal);
     Motion* startMotion = initializeTree(start);
     graph_[boost::vertex(startRegion_,graph_)].motions.push_back(startMotion);
     numMotions_ = 1;
