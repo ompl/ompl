@@ -68,12 +68,19 @@ namespace ompl
     {
     public:
 
-        RunPlanner(const Benchmark *benchmark) : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false)
+        RunPlanner(const Benchmark *benchmark, bool useThreads)
+            : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false), useThreads_(useThreads)
         {
         }
 
         void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
         {
+            if (!useThreads_)
+            {
+                runThread(planner, memStart + maxMem, time::seconds(maxTime));
+                return;
+            }
+
             boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
 
             // allow 25% more time than originally specified, in order to detect planner termination
@@ -144,7 +151,7 @@ namespace ompl
         double              timeUsed_;
         machine::MemUsage_t memUsed_;
         bool                crashed_;
-
+        bool                useThreads_;
         msg::Interface      msg_;
     };
 
@@ -259,7 +266,7 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     return true;
 }
 
-void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress)
+void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress, bool useThreads)
 {
     // sanity checks
     if (gsetup_)
@@ -392,7 +399,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 msg_.error(es.str());
             }
 
-            RunPlanner rp(this);
+            RunPlanner rp(this, useThreads);
             rp.run(planners_[i], memStart, maxMemBytes, maxTime);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 

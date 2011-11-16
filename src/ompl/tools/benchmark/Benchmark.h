@@ -95,6 +95,11 @@ namespace ompl
 
             /// Some common properties for all the runs
             RunProperties              common;
+
+            bool operator==(const PlannerExperiment& p) const
+            {
+                return name==p.name && runs==p.runs && common==p.common;
+            }
         };
 
         /** \brief This structure holds experimental data for a set of planners */
@@ -199,7 +204,8 @@ namespace ompl
             \param maxMem the maximum amount of memory a planner is allowed to use (MB)
             \param runCount the number of times to run each planner
             \param displayProgress flag indicating whether progress is to be displayed or not
-
+            \param useThreads flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
+            
             \note The values returned for memory consumption may
             be misleading. Memory allocators often free memory in
             a lazy fashion, so the returned values for memory
@@ -209,7 +215,7 @@ namespace ompl
             0. To get correct averages for memory usage, use \e
             runCount = 1 and run the process multiple times.
         */
-        virtual void benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress = false);
+        virtual void benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress = false, bool useThreads = true);
 
         /** \brief Get the status of the benchmarking code. This function can be called in a separate thread to check how much progress has been made */
         const Status& getStatus(void) const
