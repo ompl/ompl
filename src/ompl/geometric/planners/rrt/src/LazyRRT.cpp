@@ -40,6 +40,20 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
+ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT")
+{
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange);
+    Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias);
+}
+
+ompl::geometric::LazyRRT::~LazyRRT(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::LazyRRT::setup(void)
 {
     Planner::setup();
@@ -145,6 +159,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
         }
     }
 
+    bool solved = false;
     if (solution != NULL)
     {
         /* construct the solution path */
@@ -173,9 +188,8 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
 
-        goal->setDifference(distsol);
-        goal->setSolutionPath(base::PathPtr(path));
-
+        goal->addSolutionPath(base::PathPtr(path), false, distsol);
+        solved = true;
     }
 
     si_->freeState(xstate);
@@ -184,7 +198,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::LazyRRT::removeMotion(Motion *motion)

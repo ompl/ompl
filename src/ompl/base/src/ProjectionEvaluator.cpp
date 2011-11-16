@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,12 @@
 #include "ompl/datastructures/Grid.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cmath>
 #include <cstring>
 #include <limits>
 
-static const double DIMENSION_UPDATE_FACTOR = 1.2;
+// static const double DIMENSION_UPDATE_FACTOR = 1.2;
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
@@ -76,6 +77,14 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
         row /= norm_2(row);
     }
 
+    assert(scale.size() == from || scale.size() == 0);
+    if (scale.size() == from)
+        for (unsigned int i = 0 ; i < from ; ++i)
+        {
+            if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
+                throw Exception("Scaling factor must be non-zero");
+            boost::numeric::ublas::column(projection, i) /= scale[i];
+        }
     return projection;
 }
 
@@ -86,15 +95,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
-    mat = ComputeRandom(from, to);
-
-    assert(scale.size() == from);
-    for (unsigned int i = 0 ; i < from ; ++i)
-    {
-        if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
-            throw Exception("Scaling factor must be non-zero");
-        boost::numeric::ublas::column(mat, i) /= scale[i];
-    }
+    mat = ComputeRandom(from, to, scale);
 }
 
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to)
@@ -371,4 +372,36 @@ void ompl::base::ProjectionEvaluator::printSettings(std::ostream &out) const
 void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection &projection, std::ostream &out) const
 {
     out << projection << std::endl;
+}
+
+ompl::base::SubSpaceProjectionEvaluator::SubSpaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse) :
+    ProjectionEvaluator(space), index_(index), specifiedProj_(projToUse)
+{
+    if (!space_->isCompound())
+        throw Exception("Cannot construct a subspace projection evaluator for a space that is not compound");
+    if (space_->as<CompoundStateSpace>()->getSubSpaceCount() >= index_)
+        throw Exception("State space " + space_->getName() + " does not have a subspace at index " + boost::lexical_cast<std::string>(index_));
+}
+
+void ompl::base::SubSpaceProjectionEvaluator::setup(void)
+{
+    if (specifiedProj_)
+        proj_ = specifiedProj_;
+    else
+        proj_ = space_->as<CompoundStateSpace>()->getSubSpace(index_)->getDefaultProjection();
+    if (!proj_)
+        throw Exception("No projection specified for subspace at index " + boost::lexical_cast<std::string>(index_));
+
+    cellSizes_ = proj_->getCellSizes();
+    ProjectionEvaluator::setup();
+}
+
+unsigned int ompl::base::SubSpaceProjectionEvaluator::getDimension(void) const
+{
+    return proj_->getDimension();
+}
+
+void ompl::base::SubSpaceProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
+{
+    proj_->project(state->as<CompoundState>()->components[index_], projection);
 }

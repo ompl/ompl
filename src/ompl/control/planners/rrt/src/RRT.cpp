@@ -39,6 +39,21 @@
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include <limits>
 
+ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT")
+{
+    specs_.approximateSolutions = true;
+    siC_ = si.get();
+
+    goalBias_ = 0.05;
+
+    Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
+}
+
+ompl::control::RRT::~RRT(void)
+{
+    freeMemory();
+}
+
 void ompl::control::RRT::setup(void)
 {
     base::Planner::setup();
@@ -137,8 +152,8 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
             nn_->add(motion);
             double dist = 0.0;
-            bool solved = goal->isSatisfied(motion->state, &dist);
-            if (solved)
+            bool solv = goal->isSatisfied(motion->state, &dist);
+            if (solv)
             {
                 approxdif = dist;
                 solution = motion;
@@ -152,6 +167,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
         }
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -180,11 +196,8 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
                 path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
             }
         }
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        solved = true;
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }
 
     if (rmotion->state)
@@ -196,7 +209,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::control::RRT::getPlannerData(base::PlannerData &data) const

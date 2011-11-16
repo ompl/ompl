@@ -45,17 +45,52 @@
 #include <iostream>
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
+#include <vector>
 
 namespace ompl
 {
     namespace base
     {
-
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Goal */
         ClassForward(Goal);
+        /// @endcond
 
         /** \class ompl::base::GoalPtr
             \brief A boost shared pointer wrapper for ompl::base::Goal */
+
+        /** \brief Representation of a solution to a planning problem */
+        struct PlannerSolution
+        {
+            /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
+            PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0) :
+                index_(-1), path_(path), approximate_(approximate), difference_(difference)
+            {
+            }
+            /** \brief Return true if two solutions are the same */
+            bool operator==(const PlannerSolution& p)
+            {
+                return index_ == p.index_ && path_ == p.path_ &&
+                    approximate_ == p.approximate_ && difference_ == p.difference_;
+            }
+
+            /** \brief When multiple solutions are found, each is given a number starting at 0, so that the order in which the solutions was found can be retrieved. */
+            int     index_;
+
+            /** \brief Solution path */
+            PathPtr path_;
+
+            /** \brief True if goal was not achieved, but an approximate solution was found */
+            bool    approximate_;
+
+            /** \brief The achieved difference between the found solution and the desired goal */
+            double  difference_;
+        };
+
+        /// @cond IGNORE
+        ClassForward(PlannerSolutionSet);
+        /// @endcond
+
 
         /** \brief Abstract definition of goals. Will contain solutions, if found */
         class Goal : private boost::noncopyable
@@ -147,12 +182,6 @@ namespace ompl
                 return true;
             }
 
-            /** \brief Returns true if a solution path has been found (could be approximate) */
-            bool isAchieved(void) const
-            {
-                return path_;
-            }
-
             /** \brief Get the maximum length allowed for a solution path */
             double getMaximumPathLength(void) const
             {
@@ -175,77 +204,55 @@ namespace ompl
                 return pathLength <= maximumPathLength_;
             }
 
-            /** \brief Return the found solution path.
+            /** \brief Returns true if a solution path has been found (could be approximate) */
+            bool isAchieved(void) const;
 
-                This will need to be casted into the specialization
-                computed by the planner */
-            const PathPtr& getSolutionPath(void) const
-            {
-                return path_;
-            }
-
-            /** \brief Update the solution path. If a previous solution path exists, it is deleted. */
-            void setSolutionPath(const PathPtr &path, bool approximate = false)
-            {
-                path_ = path;
-                approximate_ = approximate;
-            }
-
-            /** \brief Forget the solution path. Memory is freed. */
-            void clearSolutionPath(void)
-            {
-                path_.reset();
-            }
-
-            /** \brief If a difference between the desired solution and the
-                solution found is computed by the planner, this functions
-                returns it */
-            double getDifference(void) const
-            {
-                return difference_;
-            }
-
-            /** \brief Set the difference between the found solution
-                path and the desired solution path */
-            void setDifference(double difference)
-            {
-                difference_ = difference;
-            }
-
-            /** \brief Return true if the found solution is
+            /** \brief Return true if the top found solution is
                 approximate (does not actually reach the desired goal,
                 but hopefully is closer to it) */
-            bool isApproximate(void) const
-            {
-                return approximate_;
-            }
+            bool isApproximate(void) const;
+
+            /** \brief Get the distance to the desired goal for the top solution. Return -1.0 if there are no solutions available. */
+            double getDifference(void) const;
+
+            /** \brief Return the top solution path, if one is found. The top path is the shortest one that was found, preference being given to solutions that are not approximate.
+
+                This will need to be casted into the specialization computed by the planner */
+            PathPtr getSolutionPath(void) const;
+
+            /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal.
+                If a solution does not reach the desired goal it is considered approximate.
+                Optionally, the distance between the desired goal and the one actually achieved is set by \e difference.
+            */
+            void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0) const;
+
+            /** \brief Get the number of solutions already found */
+            std::size_t getSolutionCount(void) const;
+
+            /** \brief Get all the solution paths available for this goal */
+            std::vector<PlannerSolution> getSolutions(void) const;
+
+            /** \brief Forget the solution paths (thread safe). Memory is freed. */
+            void clearSolutionPaths(void) const;
 
             /** \brief Print information about the goal */
-            virtual void print(std::ostream &out = std::cout) const
-            {
-                out << "Goal memory address " << this << std::endl;
-            }
+            virtual void print(std::ostream &out = std::cout) const;
 
         protected:
 
             /** \brief Goal type */
-            GoalType                 type_;
+            GoalType                     type_;
 
             /** \brief The space information for this goal */
-            SpaceInformationPtr      si_;
+            SpaceInformationPtr          si_;
 
             /** \brief The maximum length allowed for the solution path */
-            double                   maximumPathLength_;
+            double                       maximumPathLength_;
 
-            /** \brief Solution path, if found */
-            PathPtr                  path_;
+        private:
 
-            /** \brief The achieved difference between the found solution and the desired goal */
-            double                   difference_;
-
-            /** \brief True if goal was not achieved, but an approximate solution was found */
-            bool                     approximate_;
-
+            /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */
+            PlannerSolutionSetPtr        solutions_;
         };
 
     }

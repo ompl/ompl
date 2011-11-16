@@ -40,6 +40,21 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(si, "EST")
+{
+    specs_.approximateSolutions = true;
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
+    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
+}
+
+ompl::geometric::EST::~EST(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::EST::setup(void)
 {
     Planner::setup();
@@ -138,6 +153,7 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
         }
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -157,20 +173,17 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        solved = true;
     }
 
     si_->freeState(xstate);
 
     msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion(void)

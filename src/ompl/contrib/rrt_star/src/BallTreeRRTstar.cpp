@@ -42,6 +42,31 @@
 #include <limits>
 #include <map>
 
+ompl::geometric::BallTreeRRTstar::BallTreeRRTstar(const base::SpaceInformationPtr &si) : base::Planner(si, "BallTreeRRTstar")
+{
+    specs_.approximateSolutions = true;
+    specs_.optimizingPaths = true;
+
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+    ballRadiusMax_ = 0.0;
+    ballRadiusConst_ = 1.0;
+    rO_ = std::numeric_limits<double>::infinity();
+    delayCC_ = true;
+
+    Planner::declareParam<double>("range", this, &BallTreeRRTstar::setRange, &BallTreeRRTstar::getRange);
+    Planner::declareParam<double>("goal_bias", this, &BallTreeRRTstar::setGoalBias, &BallTreeRRTstar::getGoalBias);
+    Planner::declareParam<double>("ball_radius_constant", this, &BallTreeRRTstar::setBallRadiusConstant, &BallTreeRRTstar::getBallRadiusConstant);
+    Planner::declareParam<double>("max_ball_radius", this, &BallTreeRRTstar::setMaxBallRadius, &BallTreeRRTstar::getMaxBallRadius);
+    Planner::declareParam<double>("initial_volume_radius", this, &BallTreeRRTstar::setInitialVolumeRadius, &BallTreeRRTstar::getInitialVolumeRadius);
+    Planner::declareParam<bool>("delay_cc", this, &BallTreeRRTstar::setDelayCC, &BallTreeRRTstar::getDelayCC);
+}
+
+ompl::geometric::BallTreeRRTstar::~BallTreeRRTstar(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::BallTreeRRTstar::setup(void)
 {
     Planner::setup();
@@ -369,6 +394,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
         }
     }
 
+    bool addedSolution = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -390,11 +416,8 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        addedSolution = true;
     }
 
     si_->freeState(xstate);
@@ -404,7 +427,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
 
     msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
-    return goal->isAchieved();
+    return addedSolution;
 }
 
 void ompl::geometric::BallTreeRRTstar::freeMemory(void)

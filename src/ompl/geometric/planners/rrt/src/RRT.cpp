@@ -40,6 +40,22 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
+{
+    specs_.approximateSolutions = true;
+
+    goalBias_ = 0.05;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange);
+    Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
+}
+
+ompl::geometric::RRT::~RRT(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::RRT::clear(void)
 {
     Planner::clear();
@@ -136,8 +152,8 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
             nn_->add(motion);
             double dist = 0.0;
-            bool solved = goal->isSatisfied(motion->state, &dist);
-            if (solved)
+            bool sat = goal->isSatisfied(motion->state, &dist);
+            if (sat)
             {
                 approxdif = dist;
                 solution = motion;
@@ -151,6 +167,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
         }
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -172,11 +189,8 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
         PathGeometric *path = new PathGeometric(si_);
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        solved = true;
     }
 
     si_->freeState(xstate);
@@ -186,7 +200,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const

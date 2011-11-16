@@ -161,10 +161,7 @@ namespace ompl
             return exp_.name;
         }
 
-        /** \brief Set the planner to use. If the planner is not
-            set, an attempt is made to use the planner
-            allocator. If no planner allocator is available
-            either, a default planner is set. */
+        /** \brief Add a planner to use. */
         void addPlanner(const base::PlannerPtr &planner)
         {
             if (planner && planner->getSpaceInformation().get() !=
@@ -173,9 +170,7 @@ namespace ompl
             planners_.push_back(planner);
         }
 
-        /** \brief Set the planner allocator to use. This is only
-            used if no planner has been set. This is optional -- a default
-            planner will be used if no planner is otherwise specified. */
+        /** \brief Add a planner allocator to use. */
         void addPlannerAllocator(const base::PlannerAllocator &pa)
         {
             planners_.push_back(pa(gsetup_ ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation()));

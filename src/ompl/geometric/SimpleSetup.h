@@ -51,6 +51,13 @@ namespace ompl
     namespace geometric
     {
 
+        /// @cond IGNORE
+        ClassForward(SimpleSetup);
+        /// @endcond
+
+        /** \class ompl::geometric::SimpleSetupPtr
+            \brief A boost shared pointer wrapper for ompl::geometric::SimpleSetup */
+
         /** \brief Create the set of classes typically needed to solve a
             geometric problem */
         class SimpleSetup
@@ -104,6 +111,12 @@ namespace ompl
             const base::PlannerPtr& getPlanner(void) const
             {
                 return planner_;
+            }
+
+            /** \brief Get the planner allocator */
+            const base::PlannerAllocator& getPlannerAllocator(void) const
+            {
+                return pa_;
             }
 
             /** \brief Get the path simplifier */

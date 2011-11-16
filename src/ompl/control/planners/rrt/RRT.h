@@ -71,18 +71,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT")
-            {
-                specs_.approximateSolutions = true;
-                siC_ = si.get();
+            RRT(const SpaceInformationPtr &si);
 
-                goalBias_ = 0.05;
-            }
-
-            virtual ~RRT(void)
-            {
-                freeMemory();
-            }
+            virtual ~RRT(void);
 
             /** \brief Continue solving for some amount of time. Return true if solution was found. */
             virtual bool solve(const base::PlannerTerminationCondition &ptc);

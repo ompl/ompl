@@ -70,18 +70,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
-            {
-                specs_.approximateSolutions = true;
+            RRT(const base::SpaceInformationPtr &si);
 
-                goalBias_ = 0.05;
-                maxDistance_ = 0.0;
-            }
-
-            virtual ~RRT(void)
-            {
-                freeMemory();
-            }
+            virtual ~RRT(void);
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

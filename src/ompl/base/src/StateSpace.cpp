@@ -378,6 +378,24 @@ bool ompl::base::StateSpace::isHybrid(void) const
     return false;
 }
 
+void ompl::base::StateSpace::setStateSamplerAllocator(const StateSamplerAllocator &ssa)
+{
+    ssa_ = ssa;
+}
+
+void ompl::base::StateSpace::clearStateSamplerAllocator(void)
+{
+    ssa_ = StateSamplerAllocator();
+}
+
+ompl::base::StateSamplerPtr ompl::base::StateSpace::allocStateSampler(void) const
+{
+    if (ssa_)
+        return ssa_(this);
+    else
+        return allocDefaultStateSampler();
+}
+
 void ompl::base::StateSpace::setValidSegmentCountFactor(unsigned int factor)
 {
     if (factor < 1)
@@ -625,7 +643,7 @@ void ompl::base::CompoundStateSpace::interpolate(const State *from, const State 
         components_[i]->interpolate(cfrom->components[i], cto->components[i], t, cstate->components[i]);
 }
 
-ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSampler(void) const
 {
     double totalWeight = std::accumulate(weights_.begin(), weights_.end(), 0.0);
     if (totalWeight < std::numeric_limits<double>::epsilon())

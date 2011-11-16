@@ -85,7 +85,7 @@ void ompl::geometric::SimpleSetup::setup(void)
         {
             if (pa_)
                 planner_ = pa_(si_);
-            else
+            if (!planner_)
             {
                 msg_.inform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
@@ -103,7 +103,7 @@ void ompl::geometric::SimpleSetup::clear(void)
     if (planner_)
         planner_->clear();
     if (pdef_ && pdef_->getGoal())
-        pdef_->getGoal()->clearSolutionPath();
+        pdef_->getGoal()->clearSolutionPaths();
 }
 
 bool ompl::geometric::SimpleSetup::solve(double time)
@@ -164,6 +164,8 @@ void ompl::geometric::SimpleSetup::print(std::ostream &out) const
         si_->printSettings(out);
         si_->printProperties(out);
     }
+    if (planner_)
+        planner_->printProperties(out);
     if (pdef_)
         pdef_->print(out);
 }

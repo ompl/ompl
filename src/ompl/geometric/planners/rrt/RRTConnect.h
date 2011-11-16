@@ -65,16 +65,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
-            {
-                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
-                maxDistance_ = 0.0;
-            }
+            RRTConnect(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTConnect(void)
-            {
-                freeMemory();
-            }
+            virtual ~RRTConnect(void);
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

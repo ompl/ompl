@@ -40,6 +40,27 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
+                                                                         disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
+{
+    specs_.approximateSolutions = true;
+
+    goalBias_ = 0.05;
+    badScoreFactor_ = 0.5;
+    goodScoreFactor_ = 0.9;
+    minValidPathFraction_ = 0.2;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange);
+    Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
+    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
+    Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
+}
+
+ompl::geometric::KPIECE1::~KPIECE1(void)
+{
+}
+
 void ompl::geometric::KPIECE1::setup(void)
 {
     Planner::setup();
@@ -132,11 +153,11 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
             motion->parent = existing;
 
             double dist = 0.0;
-            bool solved = goal->isSatisfied(motion->state, &dist);
+            bool solv = goal->isSatisfied(motion->state, &dist);
             projectionEvaluator_->computeCoordinates(motion->state, xcoord);
             disc_.addMotion(motion, xcoord, dist);
 
-            if (solved)
+            if (solv)
             {
                 approxdif = dist;
                 solution = motion;
@@ -155,6 +176,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
         disc_.updateCell(ecell);
     }
 
+    bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
@@ -176,11 +198,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
         PathGeometric *path = new PathGeometric(si_);
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->setDifference(approxdif);
-        goal->setSolutionPath(base::PathPtr(path), approximate);
-
-        if (approximate)
-            msg_.warn("Found approximate solution");
+        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        solved = true;
     }
 
     si_->freeState(xstate);
@@ -188,7 +207,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     msg_.inform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
                 disc_.getGrid().countInternal(), disc_.getGrid().countExternal());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const

@@ -49,7 +49,7 @@ namespace ompl
         {
         public:
 
-            /** \brief COnstructor */
+            /** \brief Constructor */
             TimeStateSampler(const StateSpace *space) : StateSampler(space)
             {
             }
@@ -133,7 +133,7 @@ namespace ompl
 
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            virtual StateSamplerPtr allocStateSampler(void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler(void) const;
 
             virtual State* allocState(void) const;
 

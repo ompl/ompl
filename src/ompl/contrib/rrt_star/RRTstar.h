@@ -78,22 +78,9 @@ namespace ompl
         {
         public:
 
-            RRTstar(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTstar")
-            {
-                specs_.approximateSolutions = true;
-                specs_.optimizingPaths = true;
+            RRTstar(const base::SpaceInformationPtr &si);
 
-                goalBias_ = 0.05;
-                maxDistance_ = 0.0;
-                ballRadiusMax_ = 0.0;
-                ballRadiusConst_ = 1.0;
-                delayCC_ = true;
-            }
-
-            virtual ~RRTstar(void)
-            {
-                freeMemory();
-            }
+            virtual ~RRTstar(void);
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

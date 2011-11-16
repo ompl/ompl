@@ -99,6 +99,18 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
 }
 
+void ompl::base::SpaceInformation::setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
+{
+    vssa_ = vssa;
+    setup_ = false;
+}
+
+void ompl::base::SpaceInformation::clearValidStateSamplerAllocator(void)
+{
+    vssa_ = ValidStateSamplerAllocator();
+    setup_ = false;
+}
+
 unsigned int ompl::base::SpaceInformation::randomBounceMotion(const StateSamplerPtr &sss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const
 {
     if (alloc)

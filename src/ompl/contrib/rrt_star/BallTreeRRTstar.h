@@ -81,23 +81,9 @@ namespace ompl
         {
         public:
 
-            BallTreeRRTstar(const base::SpaceInformationPtr &si) : base::Planner(si, "BallTreeRRTstar")
-            {
-                specs_.approximateSolutions = true;
-                specs_.optimizingPaths = true;
+            BallTreeRRTstar(const base::SpaceInformationPtr &si);
 
-                goalBias_ = 0.05;
-                maxDistance_ = 0.0;
-                ballRadiusMax_ = 0.0;
-                ballRadiusConst_ = 1.0;
-                rO_ = std::numeric_limits<double>::infinity();
-                delayCC_ = true;
-            }
-
-            virtual ~BallTreeRRTstar(void)
-            {
-                freeMemory();
-            }
+            virtual ~BallTreeRRTstar(void);
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

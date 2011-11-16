@@ -46,10 +46,14 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         ClassForward(SpaceInformation);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateValidityChecker */
         ClassForward(StateValidityChecker);
+        /// @endcond
 
         /** \class ompl::base::StateValidityCheckerPtr
             \brief A boost shared pointer wrapper for ompl::base::StateValidityChecker */

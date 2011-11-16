@@ -391,8 +391,8 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 
         # do this for all classes that exist with the same name in another namespace
-        for cls in ['SimpleSetup', 'KPIECE1', 'RRT']:
-            self.ompl_ns.class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
+        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'PlannerData', 'SpaceInformation']:
+            self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
         self.ompl_ns.namespace('control').class_('PlannerData').include()
 
         # Py++ seems to get confused by virtual methods declared in one module
@@ -493,13 +493,22 @@ class ompl_geometric_generator_t(code_generator_t):
                 &%s_wrapper::default_checkValidity )""" % planner)
 
         # needed to able to set connection strategy for PRM
-        self.ompl_ns.class_('NearestNeighbors<unsigned long>').include()
-        self.ompl_ns.class_('NearestNeighbors<unsigned long>').rename('NearestNeighbors')
-        self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
-        self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
-        self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
-        self.std_ns.class_('vector< unsigned long >').rename('vectorULong')
-
+        # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This can
+        # be equal to an unsigned long or unsigned int, depending on architecture (or version of boost?)
+        try:
+            self.ompl_ns.class_('NearestNeighbors<unsigned long>').include()
+            self.ompl_ns.class_('NearestNeighbors<unsigned long>').rename('NearestNeighbors')
+            self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
+            self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
+            self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
+            self.std_ns.class_('vector< unsigned long >').rename('vectorMilestone')
+        except:
+            self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
+            self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
+            self.ompl_ns.class_('NearestNeighborsLinear<unsigned int>').rename('NearestNeighborsLinear')
+            self.ompl_ns.class_('KStrategy<unsigned int>').rename('KStrategy')
+            self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
+            self.std_ns.class_('vector< unsigned int >').rename('vectorMilestone')
 
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):

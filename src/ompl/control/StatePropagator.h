@@ -46,10 +46,14 @@ namespace ompl
     namespace control
     {
 
+        /// @cond IGNORE
         ClassForward(SpaceInformation);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::StatePropagator */
         ClassForward(StatePropagator);
+        /// @endcond
 
         /** \class ompl::base::StatePropagatorPtr
             \brief A boost shared pointer wrapper for ompl::control::StatePropagator */

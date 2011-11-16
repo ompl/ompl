@@ -41,6 +41,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/ClassForward.h"
 #include <vector>
+#include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -48,10 +49,14 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
         ClassForward(StateSpace);
+        /// @endcond
 
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSampler */
         ClassForward(StateSampler);
+        /// @endcond
 
         /** \class ompl::base::StateSamplerPtr
             \brief A boost shared pointer wrapper for ompl::base::StateSampler */
@@ -132,6 +137,8 @@ namespace ompl
 
         };
 
+        /** \brief Definition of a function that can allocate a state sampler */
+        typedef boost::function1<StateSamplerPtr, const StateSpace*> StateSamplerAllocator;
     }
 }
 

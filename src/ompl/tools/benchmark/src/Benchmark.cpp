@@ -270,9 +270,15 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 {
     // sanity checks
     if (gsetup_)
-        gsetup_->setup();
+    {
+        if (!gsetup_->getSpaceInformation()->isSetup())
+            gsetup_->getSpaceInformation()->setup();
+    }
     else
-        csetup_->setup();
+    {
+        if (!csetup_->getSpaceInformation()->isSetup())
+            csetup_->getSpaceInformation()->setup();
+    }
 
     if (!(gsetup_ ? gsetup_->getGoal() : csetup_->getGoal()))
     {
@@ -362,12 +368,12 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 planners_[i]->clear();
                 if (gsetup_)
                 {
-                    gsetup_->getGoal()->clearSolutionPath();
+                    gsetup_->getGoal()->clearSolutionPaths();
                     gsetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
                 }
                 else
                 {
-                    csetup_->getGoal()->clearSolutionPath();
+                    csetup_->getGoal()->clearSolutionPaths();
                     csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
                 }
             }

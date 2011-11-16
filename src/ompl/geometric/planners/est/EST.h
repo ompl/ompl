@@ -67,7 +67,7 @@ namespace ompl
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
            <em>Intl. J. Computational Geometry and Applications</em>,
            vol. 9, no. 4-5, pp. 495–512, 1999. DOI: <a href="http://dx.doi.org/10.1142/S0218195999000285">10.1142/S0218195999000285</a><br>
-           <a href="http://motion.comp.nus.edu.sg/papers/ijcga96.pdf">[PDF]</a>
+           <a href="http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf">[PDF]</a>
 
         */
 
@@ -77,17 +77,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            EST(const base::SpaceInformationPtr &si) : base::Planner(si, "EST")
-            {
-                specs_.approximateSolutions = true;
-                goalBias_ = 0.05;
-                maxDistance_ = 0.0;
-            }
+            EST(const base::SpaceInformationPtr &si);
 
-            virtual ~EST(void)
-            {
-                freeMemory();
-            }
+            virtual ~EST(void);
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 

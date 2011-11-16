@@ -125,7 +125,7 @@ namespace ompl
                 tree_->add(*this, data);
             else
             {
-                tree_ = new Node(NULL, degree_, maxNumPtsPerLeaf_, data);
+                tree_ = new Node(degree_, maxNumPtsPerLeaf_, data);
                 size_ = 1;
             }
         }
@@ -137,7 +137,7 @@ namespace ompl
                 NearestNeighbors<_T>::add(data);
             else if (data.size()>0)
             {
-                tree_ = new Node(NULL, degree_, maxNumPtsPerLeaf_, data[0]);
+                tree_ = new Node(degree_, maxNumPtsPerLeaf_, data[0]);
                 for (unsigned int i=1; i<data.size(); ++i)
                     tree_->data_.push_back(data[i]);
                 if (tree_->needToSplit(*this))
@@ -188,7 +188,7 @@ namespace ompl
             {
                 NearQueue nbhQueue;
                 nearestKInternal(data, k, nbhQueue);
-                postprocessNearest(nbhQueue, nbh, k);
+                postprocessNearest(nbhQueue, nbh);
             }
         }
 
@@ -316,8 +316,7 @@ namespace ompl
                 nodeDist.first->nearestR(*this, data, radius, nbhQueue, nodeQueue);
             }
         }
-        void postprocessNearest(NearQueue& nbhQueue, std::vector<_T> &nbh,
-            unsigned int k=std::numeric_limits<unsigned int>::max()) const
+        void postprocessNearest(NearQueue& nbhQueue, std::vector<_T> &nbh) const
         {
             typename std::vector<_T>::reverse_iterator it;
             nbh.resize(nbhQueue.size());
@@ -328,7 +327,7 @@ namespace ompl
         class Node
         {
         public:
-            Node(const Node* parent, int degree, int capacity, const _T& pivot)
+            Node(int degree, int capacity, const _T& pivot)
                 : degree_(degree), pivot_(pivot),
                 minRadius_(std::numeric_limits<double>::infinity()),
                 maxRadius_(-minRadius_), minRange_(degree, minRadius_),
@@ -399,7 +398,7 @@ namespace ompl
                 children_.reserve(degree_);
                 gnat.pivotSelector_.kcenters(data_, degree_, pivots, dists);
                 for(unsigned int i=0; i<pivots.size(); i++)
-                    children_.push_back(new Node(this, degree_, gnat.maxNumPtsPerLeaf_, data_[pivots[i]]));
+                    children_.push_back(new Node(degree_, gnat.maxNumPtsPerLeaf_, data_[pivots[i]]));
                 degree_ = pivots.size(); // in case fewer than degree_ pivots were found
                 for (unsigned int j=0; j<data_.size(); ++j)
                 {

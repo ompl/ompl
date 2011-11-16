@@ -35,3 +35,8 @@ if (OMPL_BUILD_PYBINDINGS)
     endif()
 
 endif(OMPL_BUILD_PYBINDINGS)
+
+add_custom_target(clean_bindings
+    ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/bindings
+    COMMAND ${CMAKE_COMMAND} -E remove -f pyplusplus_{base,control,geometric,util}.{cache,log}
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR})

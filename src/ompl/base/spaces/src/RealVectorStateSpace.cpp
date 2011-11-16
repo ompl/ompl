@@ -154,7 +154,7 @@ const std::string& ompl::base::RealVectorStateSpace::getDimensionName(unsigned i
 int ompl::base::RealVectorStateSpace::getDimensionIndex(const std::string &name) const
 {
     std::map<std::string, unsigned int>::const_iterator it = dimensionIndex_.find(name);
-    return it != dimensionIndex_.end() ? it->second : -1;
+    return it != dimensionIndex_.end() ? (int)it->second : -1;
 }
 
 void ompl::base::RealVectorStateSpace::setDimensionName(unsigned int index, const std::string &name)
@@ -244,7 +244,7 @@ void ompl::base::RealVectorStateSpace::interpolate(const State *from, const Stat
         rstate->values[i] = rfrom->values[i] + (rto->values[i] - rfrom->values[i]) * t;
 }
 
-ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocDefaultStateSampler(void) const
 {
     return StateSamplerPtr(new RealVectorStateSampler(this));
 }

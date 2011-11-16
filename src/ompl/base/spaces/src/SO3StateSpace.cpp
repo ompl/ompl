@@ -186,7 +186,7 @@ void ompl::base::SO3StateSpace::interpolate(const State *from, const State *to, 
     }
 }
 
-ompl::base::StateSamplerPtr ompl::base::SO3StateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::SO3StateSpace::allocDefaultStateSampler(void) const
 {
     return StateSamplerPtr(new SO3StateSampler(this));
 }

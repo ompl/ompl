@@ -47,21 +47,21 @@ ompl::base::GoalStates::~GoalStates(void)
 void ompl::base::GoalStates::clear(void)
 {
     freeMemory();
-    states.clear();
+    states_.clear();
 }
 
 void ompl::base::GoalStates::freeMemory(void)
 {
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
-        si_->freeState(states[i]);
+    for (unsigned int i = 0 ; i < states_.size() ; ++i)
+        si_->freeState(states_[i]);
 }
 
 double ompl::base::GoalStates::distanceGoal(const State *st) const
 {
     double dist = std::numeric_limits<double>::infinity();
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    for (unsigned int i = 0 ; i < states_.size() ; ++i)
     {
-        double d = si_->distance(st, states[i]);
+        double d = si_->distance(st, states_[i]);
         if (d < dist)
             dist = d;
     }
@@ -70,33 +70,44 @@ double ompl::base::GoalStates::distanceGoal(const State *st) const
 
 void ompl::base::GoalStates::print(std::ostream &out) const
 {
-    out << states.size() << " goal states, threshold = " << threshold_ << ", memory address = " << this << std::endl;
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    out << states_.size() << " goal states, threshold = " << threshold_ << ", memory address = " << this << std::endl;
+    for (unsigned int i = 0 ; i < states_.size() ; ++i)
     {
-        si_->printState(states[i], out);
+        si_->printState(states_[i], out);
         out << std::endl;
     }
 }
 
 void ompl::base::GoalStates::sampleGoal(base::State *st) const
 {
-    if (states.empty())
+    if (states_.empty())
         throw Exception("There are no goals to sample");
-    si_->copyState(st, states[samplePosition]);
-    samplePosition = (samplePosition + 1) % states.size();
+    si_->copyState(st, states_[samplePosition_]);
+    samplePosition_ = (samplePosition_ + 1) % states_.size();
 }
 
 unsigned int ompl::base::GoalStates::maxSampleCount(void) const
 {
-    return states.size();
+    return states_.size();
 }
 
 void ompl::base::GoalStates::addState(const State* st)
 {
-    states.push_back(si_->cloneState(st));
+    states_.push_back(si_->cloneState(st));
 }
 
 void ompl::base::GoalStates::addState(const ScopedState<> &st)
 {
     addState(st.get());
+}
+
+const ompl::base::State* ompl::base::GoalStates::getState(unsigned int index) const
+{
+    assert(index < states_.size ());
+    return states_[index];
+}
+
+std::size_t ompl::base::GoalStates::getStateCount (void) const
+{
+    return states_.size ();
 }

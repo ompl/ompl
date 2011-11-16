@@ -40,6 +40,19 @@
 #include <limits>
 #include <cassert>
 
+ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(si, "SBL")
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+    maxDistance_ = 0.0;
+
+    Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange);
+}
+
+ompl::geometric::SBL::~SBL(void)
+{
+    freeMemory();
+}
+
 void ompl::geometric::SBL::setup(void)
 {
     Planner::setup();
@@ -105,6 +118,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
     base::State *xstate = si_->allocState();
 
     bool      startTree = true;
+    bool         solved = false;
 
     while (ptc() == false)
     {
@@ -151,8 +165,8 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
             for (unsigned int i = 0 ; i < solution.size() ; ++i)
                 path->states.push_back(si_->cloneState(solution[i]->state));
 
-            goal->setDifference(0.0);
-            goal->setSolutionPath(base::PathPtr(path));
+            goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+            solved = true;
             break;
         }
     }
@@ -162,7 +176,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
                  tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
-    return goal->isAchieved();
+    return solved;
 }
 
 bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)

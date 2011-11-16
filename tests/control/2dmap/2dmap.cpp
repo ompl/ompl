@@ -226,7 +226,7 @@ public:
         goal->setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
         pdef->setGoal(base::GoalPtr(goal));
 
-	planner->getProblemDefinition()->isStraightLinePathValid();
+        planner->getProblemDefinition()->isStraightLinePathValid();
 
         /* start counting time */
         ompl::time::point startTime = ompl::time::now();

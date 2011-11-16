@@ -89,19 +89,9 @@ namespace ompl
         {
         public:
 
-            pSBL(const base::SpaceInformationPtr &si) : base::Planner(si, "pSBL"),
-                                                        samplerArray_(si)
-            {
-                specs_.recognizedGoal = base::GOAL_STATE;
-                specs_.multithreaded = true;
-                maxDistance_ = 0.0;
-                setThreadCount(2);
-            }
+            pSBL(const base::SpaceInformationPtr &si);
 
-            virtual ~pSBL(void)
-            {
-                freeMemory();
-            }
+            virtual ~pSBL(void);
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */

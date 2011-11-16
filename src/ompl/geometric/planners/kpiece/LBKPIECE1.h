@@ -83,19 +83,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1"),
-                                                             dStart_(boost::bind(&LBKPIECE1::freeMotion, this, _1)),
-                                                             dGoal_(boost::bind(&LBKPIECE1::freeMotion, this, _1))
-            {
-                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+            LBKPIECE1(const base::SpaceInformationPtr &si);
 
-                minValidPathFraction_ = 0.5;
-                maxDistance_ = 0.0;
-            }
-
-            virtual ~LBKPIECE1(void)
-            {
-            }
+            virtual ~LBKPIECE1(void);
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */

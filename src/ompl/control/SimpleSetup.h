@@ -51,6 +51,12 @@ namespace ompl
 
     namespace control
     {
+        /// @cond IGNORE
+        ClassForward(SimpleSetup);
+        /// @endcond
+
+        /** \class ompl::control::SimpleSetupPtr
+            \brief A boost shared pointer wrapper for ompl::control::SimpleSetup */
 
         /** \brief Create the set of classes typically needed to solve a
             control problem */
@@ -115,6 +121,12 @@ namespace ompl
             const base::PlannerPtr& getPlanner(void) const
             {
                 return planner_;
+            }
+
+            /** \brief Get the planner allocator */
+            const base::PlannerAllocator& getPlannerAllocator(void) const
+            {
+                return pa_;
             }
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */

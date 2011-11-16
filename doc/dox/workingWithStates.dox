@@ -79,7 +79,7 @@ ompl::base::State *abstractState = space->allocState();
 
 
 // this will copy the content of abstractState to state and
-// cast it internall as  ompl::base::SE2StateSpace::StateType
+// cast it internally as ompl::base::SE2StateSpace::StateType
 state = abstractState;
 
 // restore state to it's original value

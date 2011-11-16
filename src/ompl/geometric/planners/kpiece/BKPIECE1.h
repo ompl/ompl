@@ -82,21 +82,9 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            BKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "BKPIECE1"),
-                                                            dStart_(boost::bind(&BKPIECE1::freeMotion, this, _1)),
-                                                            dGoal_(boost::bind(&BKPIECE1::freeMotion, this, _1))
-            {
-                specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+            BKPIECE1(const base::SpaceInformationPtr &si);
 
-                minValidPathFraction_ = 0.5;
-                badScoreFactor_ = 0.5;
-                goodScoreFactor_ = 0.9;
-                maxDistance_ = 0.0;
-            }
-
-            virtual ~BKPIECE1(void)
-            {
-            }
+            virtual ~BKPIECE1(void);
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */
