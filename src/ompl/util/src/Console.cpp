@@ -43,11 +43,6 @@
 
 /// @cond IGNORE
 
-// If we are using OMPL in conjunction with other libraries, it is possible those libs end up calling functions
-// for configuring the console output before constructors of static vars are called for OMPL. This is why we do
-// not rely on the constructors for statics being called here. Instead, we use the getDOH() routine,
-// which allocates the objects when needed.
-
 struct DefaultOutputHandler
 {
     DefaultOutputHandler(void)
@@ -62,36 +57,26 @@ struct DefaultOutputHandler
     boost::mutex                lock_; // it is likely the outputhandler does some I/O, so we serialize it
 };
 
-static DefaultOutputHandler *DOH = NULL;
-
-// automatically destruct the static instance above
-struct DefaultOutputHandlerDestructor
+// we use this function because we want to handle static initialization correctly
+// however, the first run of this function is not thread safe, due to the use of a static
+// variable inside the function. For this reason, we ensure the first call happens during
+// static initialization using a proxy class
+static inline DefaultOutputHandler* getDOH(void)
 {
-    ~DefaultOutputHandlerDestructor(void)
+    static DefaultOutputHandler DOH;
+    return &DOH;
+}
+
+struct DOH_Proxy
+{
+    DOH_Proxy(void)
     {
-        if (DOH)
-        {
-            delete DOH;
-            DOH = NULL;
-        }
+        getDOH();
     }
 };
 
-static DefaultOutputHandlerDestructor DOHD;
+static DOH_Proxy call_getDOH_once;
 
-static inline DefaultOutputHandler* getDOH(void)
-{
-    if (DOH)
-        return DOH;
-    else
-    {
-        static boost::mutex alloc;
-        boost::mutex::scoped_lock slock(alloc);
-        if (DOH == NULL)
-            DOH = new DefaultOutputHandler();
-    }
-    return DOH;
-}
 
 #define USE_DOH                                                                \
     DefaultOutputHandler *doh = getDOH();                                \
