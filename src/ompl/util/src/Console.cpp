@@ -61,7 +61,7 @@ struct DefaultOutputHandler
 // however, the first run of this function is not thread safe, due to the use of a static
 // variable inside the function. For this reason, we ensure the first call happens during
 // static initialization using a proxy class
-static inline DefaultOutputHandler* getDOH(void)
+static DefaultOutputHandler* getDOH(void)
 {
     static DefaultOutputHandler DOH;
     return &DOH;
@@ -76,7 +76,6 @@ struct DOH_Proxy
 };
 
 static DOH_Proxy call_getDOH_once;
-
 
 #define USE_DOH                                                                \
     DefaultOutputHandler *doh = getDOH();                                \
