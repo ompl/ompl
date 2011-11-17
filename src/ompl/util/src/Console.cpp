@@ -41,37 +41,87 @@
 #include <cstdio>
 #include <cstdarg>
 
-static ompl::msg::OutputHandlerSTD DEFAULT_OUTPUT_HANDLER;
-static ompl::msg::OutputHandler   *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&DEFAULT_OUTPUT_HANDLER);
-static ompl::msg::OutputHandler   *PREVIOUS_OH = OUTPUT_HANDLER;
-static boost::mutex                LOCK; // it is likely the outputhandler does some I/O, so we serialize it
+/// @cond IGNORE
+
+// If we are using OMPL in conjunction with other libraries, it is possible those libs end up calling functions
+// for configuring the console output before constructors of static vars are called for OMPL. This is why we do
+// not rely on the constructors for statics being called here. Instead, we use the getDOH() routine,
+// which allocates the objects when needed.
+
+struct DefaultOutputHandler
+{
+    DefaultOutputHandler(void)
+    {
+        output_handler_ = static_cast<ompl::msg::OutputHandler*>(&std_output_handler_);
+        previous_output_handler_ = output_handler_;
+    }
+
+    ompl::msg::OutputHandlerSTD std_output_handler_;
+    ompl::msg::OutputHandler   *output_handler_;
+    ompl::msg::OutputHandler   *previous_output_handler_;
+    boost::mutex                lock_; // it is likely the outputhandler does some I/O, so we serialize it
+};
+
+static DefaultOutputHandler *DOH = NULL;
+
+// automatically destruct the static instance above
+struct DefaultOutputHandlerDestructor
+{
+    ~DefaultOutputHandlerDestructor(void)
+    {
+        if (DOH)
+        {
+            delete DOH;
+            DOH = NULL;
+        }
+    }
+};
+
+static DefaultOutputHandlerDestructor DOHD;
+
+static inline DefaultOutputHandler* getDOH(void)
+{
+    if (DOH)
+        return DOH;
+    else
+    {
+        static boost::mutex alloc;
+        boost::mutex::scoped_lock slock(alloc);
+        if (DOH == NULL)
+            DOH = new DefaultOutputHandler();
+    }
+    return DOH;
+}
+
+#define USE_DOH                                                                \
+    DefaultOutputHandler *doh = getDOH();                                \
+    boost::mutex::scoped_lock slock(doh->lock_)
+
+/// @endcond
 
 void ompl::msg::noOutputHandler(void)
 {
-    LOCK.lock();
-    PREVIOUS_OH = OUTPUT_HANDLER;
-    OUTPUT_HANDLER = NULL;
-    LOCK.unlock();
+    USE_DOH;
+    doh->previous_output_handler_ = doh->output_handler_;
+    doh->output_handler_ = NULL;
 }
 
 void ompl::msg::restorePreviousOutputHandler(void)
 {
-    LOCK.lock();
-    std::swap(PREVIOUS_OH, OUTPUT_HANDLER);
-    LOCK.unlock();
+    USE_DOH;
+    std::swap(doh->previous_output_handler_, doh->output_handler_);
 }
 
 void ompl::msg::useOutputHandler(OutputHandler *oh)
 {
-    LOCK.lock();
-    PREVIOUS_OH = OUTPUT_HANDLER;
-    OUTPUT_HANDLER = oh;
-    LOCK.unlock();
+    USE_DOH;
+    doh->previous_output_handler_ = doh->output_handler_;
+    doh->output_handler_ = oh;
 }
 
 ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
 {
-    return OUTPUT_HANDLER;
+    return getDOH()->output_handler_;
 }
 
 ompl::msg::Interface::Interface(const std::string &prefix)
@@ -95,6 +145,8 @@ void ompl::msg::Interface::setPrefix(const std::string &prefix)
         prefix_ += ": ";
 }
 
+/// @cond IGNORE
+
 // the maximum buffer size to use when printing a message
 #define MAX_BUFFER_SIZE 1024
 
@@ -108,14 +160,16 @@ void ompl::msg::Interface::setPrefix(const std::string &prefix)
     buf##_chr[size - 1] = '\0';                                                \
     std::string buf(buf##_chr)
 
+#define CALL_DOH(fn, arg)                                                \
+    USE_DOH;                                                                \
+    if (doh->output_handler_)                                                \
+        doh->output_handler_->fn(arg)
+
+/// @endcond
+
 void ompl::msg::Interface::debug(const std::string &text) const
 {
-    if (OUTPUT_HANDLER)
-    {
-        LOCK.lock();
-        OUTPUT_HANDLER->debug(prefix_ + text);
-        LOCK.unlock();
-    }
+    CALL_DOH(debug, prefix_ + text);
 }
 
 void ompl::msg::Interface::debug(const char *msg, ...) const
@@ -126,12 +180,7 @@ void ompl::msg::Interface::debug(const char *msg, ...) const
 
 void ompl::msg::Interface::inform(const std::string &text) const
 {
-    if (OUTPUT_HANDLER)
-    {
-        LOCK.lock();
-        OUTPUT_HANDLER->inform(prefix_ + text);
-        LOCK.unlock();
-    }
+    CALL_DOH(inform, prefix_ + text);
 }
 
 void ompl::msg::Interface::inform(const char *msg, ...) const
@@ -142,12 +191,7 @@ void ompl::msg::Interface::inform(const char *msg, ...) const
 
 void ompl::msg::Interface::warn(const std::string &text) const
 {
-    if (OUTPUT_HANDLER)
-    {
-        LOCK.lock();
-        OUTPUT_HANDLER->warn(prefix_ + text);
-        LOCK.unlock();
-    }
+    CALL_DOH(warn, prefix_ + text);
 }
 
 void ompl::msg::Interface::warn(const char *msg, ...) const
@@ -158,12 +202,7 @@ void ompl::msg::Interface::warn(const char *msg, ...) const
 
 void ompl::msg::Interface::error(const std::string &text) const
 {
-    if (OUTPUT_HANDLER)
-    {
-        LOCK.lock();
-        OUTPUT_HANDLER->error(prefix_ + text);
-        LOCK.unlock();
-    }
+    CALL_DOH(error, prefix_ + text);
 }
 
 void ompl::msg::Interface::error(const char *msg, ...) const

@@ -200,7 +200,7 @@ namespace ompl
             \param runCount the number of times to run each planner
             \param displayProgress flag indicating whether progress is to be displayed or not
             \param useThreads flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
-            
+
             \note The values returned for memory consumption may
             be misleading. Memory allocators often free memory in
             a lazy fashion, so the returned values for memory
