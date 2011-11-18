@@ -204,10 +204,14 @@ void ompl::control::GridDecomposition::regionToCoord(int rid, std::vector<int>& 
 int ompl::control::GridDecomposition::coordToRegion (const std::vector <int> &coord) const
 {
     int region = 0;
-
     for (size_t i = 0; i < coord.size (); i++)
     {
-        region += (coord[i] * pow (length_, (coord.size () - i) -1));
+        // Computing length_^(dimension of coord -1)
+        int multiplicand = 1;
+        for (size_t j = 1; j < coord.size () - i; j++)
+            multiplicand *= length_;
+
+        region += (coord[i] * multiplicand);
     }
     return region;
 }
