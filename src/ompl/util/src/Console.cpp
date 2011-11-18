@@ -67,16 +67,6 @@ static DefaultOutputHandler* getDOH(void)
     return &DOH;
 }
 
-struct DOH_Proxy
-{
-    DOH_Proxy(void)
-    {
-        getDOH();
-    }
-};
-
-static DOH_Proxy call_getDOH_once;
-
 #define USE_DOH                                                                \
     DefaultOutputHandler *doh = getDOH();                                \
     boost::mutex::scoped_lock slock(doh->lock_)
