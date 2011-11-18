@@ -47,7 +47,10 @@ namespace ompl
     {
 
         /** \brief An SE(2) state space where distance is measured by the
-            length of Dubins curves.
+            length of Dubins curves. Note that this Dubins distance is \b not
+            a proper distance metric, so the state space sanity checks will
+            fail. Nearest neighbor methods that rely on distance() being a
+            metric will not always return the true nearest neighbors.
 
             The notation and solutions are taken from:
             A.M. Shkel and V. Lumelsky, “Classification of the Dubins set,”

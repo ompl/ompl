@@ -40,7 +40,7 @@
 #include <queue>
 #include <boost/math/constants/constants.hpp>
 
-#define DUBINS_EPS 1e-5
+#define DUBINS_EPS 1e-6
 
 using namespace ompl::base;
 
@@ -162,6 +162,9 @@ namespace
 
     DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
     {
+        if (d<DUBINS_EPS && fabs(alpha-beta)<DUBINS_EPS)
+            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[0], 0, d, 0);
+
         DubinsStateSpace::DubinsPath path(dubinsLSL(d, alpha, beta)), tmp(dubinsRSR(d, alpha, beta));
         double len, minLength = path.length();
 
