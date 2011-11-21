@@ -62,49 +62,54 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     if (!graphReady_)
         initGraph();
 
+    // For now, we are only considering one start state.
+    const int startRegion = decomp_->locateRegion (pdef_->getStartState(0));
     base::Goal* goal = pdef_->getGoal().get();
-    const base::GoalSampleableRegion *goalSampleable = dynamic_cast<base::GoalSampleableRegion*>(goal);
+
+    // Extracting goal region
+    const base::GoalSampleableRegion *goalSampleable = dynamic_cast<const base::GoalSampleableRegion*>(goal);
     base::State* goalState = si_->allocState();
     goalSampleable->sampleGoal(goalState);
-    goalRegion_ = decomp_->locateRegion(goalState);
+    const int goalRegion = decomp_->locateRegion(goalState);
     si_->freeState(goalState);
 
-    std::vector<Motion*> newMotions;
     msg_.inform("Starting with %u states", numMotions_);
-    Motion* solution = NULL;
-    Motion* approxSoln = NULL;
+
+    std::vector<Motion*> newMotions;
+    const Motion* solution = NULL;
     double goalDist = std::numeric_limits<double>::infinity();
     bool solved = false;
     while (!ptc() && !solved)
     {
-        computeLead();
+        computeLead(startRegion, goalRegion);
         computeAvailableRegions();
-        for (int i = 0; i < numAvailExplorations && !solved; ++i)
+        for (int i = 0; i < numRegionExpansions_ && !solved; ++i)
         {
             const int region = selectRegion();
             bool improved = false;
-            for (int j = 0; j < numTreeSelections && !solved; ++j)
+            for (int j = 0; j < numTreeSelections_ && !solved; ++j)
             {
                 newMotions.clear();
                 selectAndExtend(graph_[boost::vertex(region,graph_)], newMotions);
                 for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
                 {
                     Motion* motion = *m;
-                    base::State* state = motion->state;
                     double distance;
-                    solved = goal->isSatisfied(state, &distance);
+                    solved = goal->isSatisfied(motion->state, &distance);
                     if (solved)
                     {
                         goalDist = distance;
                         solution = motion;
                         break;
                     }
-                    else if (distance < goalDist)
+
+                    // Check for approximate (best-so-far) solution
+                    if (distance < goalDist)
                     {
                         goalDist = distance;
-                        approxSoln = motion;
+                        solution = motion;
                     }
-                    const int newRegion = decomp_->locateRegion(state);
+                    const int newRegion = decomp_->locateRegion(motion->state);
                     graph_[boost::vertex(newRegion,graph_)].motions.push_back(motion);
                     ++numMotions_;
                     if (newRegion != region)
@@ -117,22 +122,15 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                             Adjacency* adj = regionsToEdge_[std::pair<int,int>(region,newRegion)];
                             adj->empty = false;
                             ++adj->numSelections;
-                            improved |= updateConnectionEstimate(graph_[boost::vertex(region,graph_)], graph_[boost::vertex(newRegion,graph_)], state);
+                            improved |= updateConnectionEstimate(graph_[boost::vertex(region,graph_)], graph_[boost::vertex(newRegion,graph_)], motion->state);
                         }
                     }
-                    improved |= updateCoverageEstimate(graph_[boost::vertex(newRegion, graph_)], state);
+                    improved |= updateCoverageEstimate(graph_[boost::vertex(newRegion, graph_)], motion->state);
                 }
             }
-            if (!improved && rng_.uniform01() < probAbandonLeadEarly)
+            if (!improved && rng_.uniform01() < probAbandonLeadEarly_)
                 break;
         }
-    }
-
-    bool approximate = false;
-    if (solution == NULL)
-    {
-        solution = approxSoln;
-        approximate = true;
     }
 
     if (solution != NULL)
@@ -153,19 +151,12 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                 path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
             }
         }
-        goal->addSolutionPath(base::PathPtr(path), approximate, goalDist);
+        goal->addSolutionPath(base::PathPtr(path), solved, goalDist);
 
-        if (approximate)
+        if (!solved)
             msg_.warn("Found approximate solution");
     }
     return goal->isAchieved();
-}
-
-std::vector<int> ompl::control::Syclop::getLead()
-{
-    std::vector<int> ret;
-    ret.assign(lead_.begin(), lead_.end());
-    return ret;
 }
 
 void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
@@ -194,7 +185,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     base::StateSamplerPtr sampler = si_->allocStateSampler();
     base::State* s = si_->allocState();
 
-    for (int i = 0; i < numFreeVolSamples; ++i)
+    for (int i = 0; i < numFreeVolSamples_; ++i)
     {
         sampler->sampleUniform(s);
         int rid = decomp_->locateRegion(s);
@@ -226,7 +217,7 @@ void ompl::control::Syclop::updateRegion(Region& r)
     r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
 }
 
-void ompl::control::Syclop::initEdge(Adjacency& adj, Region* source, Region* target)
+void ompl::control::Syclop::initEdge(Adjacency& adj, const Region* source, const Region* target)
 {
     adj.source = source;
     adj.target = target;
@@ -308,16 +299,14 @@ void ompl::control::Syclop::buildGraph(void)
 
 void ompl::control::Syclop::initGraph(void)
 {
-    const base::ProblemDefinitionPtr& pdef = getProblemDefinition();
-    // For now, we are only considering one start state.
-    base::State* start = pdef->getStartState(0);
-    startRegion_ = decomp_->locateRegion(start);
+    base::State* start = getProblemDefinition()->getStartState(0);
+    int startRegion = decomp_->locateRegion(start);
     Motion* startMotion = initializeTree(start);
-    graph_[boost::vertex(startRegion_,graph_)].motions.push_back(startMotion);
+    graph_[boost::vertex(startRegion,graph_)].motions.push_back(startMotion);
     numMotions_ = 1;
     setupRegionEstimates();
     setupEdgeEstimates();
-    updateCoverageEstimate(graph_[boost::vertex(startRegion_,graph_)], start);
+    updateCoverageEstimate(graph_[boost::vertex(startRegion,graph_)], start);
     graphReady_ = true;
 }
 
@@ -332,42 +321,42 @@ void ompl::control::Syclop::clearGraphDetails(void)
     graphReady_ = false;
 }
 
-void ompl::control::Syclop::computeLead(void)
+void ompl::control::Syclop::computeLead(int startRegion, int goalRegion)
 {
     lead_.clear();
-    if (startRegion_ == goalRegion_)
+    if (startRegion == goalRegion)
     {
-        lead_.push_back(startRegion_);
+        lead_.push_back(startRegion);
         return;
     }
 
-    else if (rng_.uniform01() < probShortestPath)
+    else if (rng_.uniform01() < probShortestPath_)
     {
         std::vector<RegionGraph::vertex_descriptor> parents(decomp_->getNumRegions());
         std::vector<double> distances(decomp_->getNumRegions());
 
         try
         {
-            boost::astar_search(graph_, boost::vertex(startRegion_, graph_), DecompositionHeuristic(this, getRegionFromIndex(goalRegion_)),
+            boost::astar_search(graph_, boost::vertex(startRegion, graph_), DecompositionHeuristic(this, getRegionFromIndex(goalRegion)),
                 boost::weight_map(get(&Adjacency::cost, graph_)).distance_map(
                     boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, graph_)
                 )).predecessor_map(
                     boost::make_iterator_property_map(parents.begin(), get(boost::vertex_index, graph_))
-                ).visitor(GoalVisitor(goalRegion_))
+                ).visitor(GoalVisitor(goalRegion))
             );
         }
         catch (found_goal fg)
         {
-            int region = goalRegion_;
+            int region = goalRegion;
             int leadLength = 1;
 
-            while (region != startRegion_)
+            while (region != startRegion)
             {
                 region = parents[region];
                 ++leadLength;
             }
             lead_.resize(leadLength);
-            region = goalRegion_;
+            region = goalRegion;
             for (int i = leadLength-1; i >= 0; --i)
             {
                 lead_[i] = region;
@@ -382,8 +371,8 @@ void ompl::control::Syclop::computeLead(void)
         VertexIndexMap index = get(boost::vertex_index, graph_);
         std::stack<int> nodesToProcess;
         std::vector<int> parents(decomp_->getNumRegions(), -1);
-        parents[startRegion_] = startRegion_;
-        nodesToProcess.push(startRegion_);
+        parents[startRegion] = startRegion;
+        nodesToProcess.push(startRegion);
         bool goalFound = false;
         while (!goalFound && !nodesToProcess.empty())
         {
@@ -402,17 +391,17 @@ void ompl::control::Syclop::computeLead(void)
             for (std::size_t i = 0; i < neighbors.size(); ++i)
             {
                 const int choice = rng_.uniformInt(i, neighbors.size()-1);
-                if (neighbors[choice] == goalRegion_)
+                if (neighbors[choice] == goalRegion)
                 {
-                    int region = goalRegion_;
+                    int region = goalRegion;
                     int leadLength = 1;
-                    while (region != startRegion_)
+                    while (region != startRegion)
                     {
                         region = parents[region];
                         ++leadLength;
                     }
                     lead_.resize(leadLength);
-                    region = goalRegion_;
+                    region = goalRegion;
                     for (int j = leadLength-1; j >= 0; --j)
                     {
                         lead_[j] = region;
@@ -459,7 +448,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
         {
             avail_.push_back(lead_[i]);
             availDist_.add(lead_[i], r.weight);
-            if (rng_.uniform01() >= probKeepAddingToAvail)
+            if (rng_.uniform01() >= probKeepAddingToAvail_)
                 break;
         }
     }

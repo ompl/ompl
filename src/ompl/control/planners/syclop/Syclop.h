@@ -68,6 +68,14 @@ namespace ompl
            Motion Planning with Dynamics by a Synergistic Combination of Layers of Planning,
            in <em>IEEE Transactions on Robotics</em>, 2010.<br>
            <a href="http://kavrakilab.org/node/737">Abstract</a>
+
+           @par Planner parameters
+           - free_volume_samples: Number of states to sample when estimating free volume in the decomposition.
+           - num_region_expansions: Number of times a new region will be chosen and expanded from a single lead.
+           - num_tree_expansions: Number of times the tree is expanded in a specific decomposition region.
+           - prob_abandon_lead_early: Probability that a lead will be abandoned early.
+           - prob_add_available_regions: Probability that the set of available regions will be updated after each lead computation.
+           - prob_shortest_path_lead: Probability that a lead will be computed as the shortest-path instead of random.
         */
 
         /** \brief Synergistic Combination of Layers of Planning. */
@@ -91,10 +99,36 @@ namespace ompl
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
+            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
+            Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
+                numFreeVolSamples_(Defaults::NUM_FREEVOL_SAMPLES),
+                probShortestPath_(Defaults::PROB_SHORTEST_PATH),
+                probKeepAddingToAvail_(Defaults::PROB_KEEP_ADDING_TO_AVAIL),
+                numRegionExpansions_(Defaults::NUM_REGION_EXPANSIONS),
+                numTreeSelections_(Defaults::NUM_TREE_SELECTIONS),
+                probAbandonLeadEarly_(Defaults::PROB_ABANDON_LEAD_EARLY),
+                siC_(si.get()),
+                decomp_(d),
+                covGrid_(Defaults::COVGRID_LENGTH, decomp_),
+                graphReady_(false),
+                numMotions_(0)
+            {
+                specs_.approximateSolutions = true;
+
+                Planner::declareParam<int>   ("free_volume_samples", this, &Syclop::setNumFreeVolumeSamples, &Syclop::getNumFreeVolumeSamples);
+                Planner::declareParam<int>   ("num_region_expansions", this, &Syclop::setNumRegionExpansions, &Syclop::getNumRegionExpansions);
+                Planner::declareParam<int>   ("num_tree_expansions", this, &Syclop::setNumTreeExpansions, &Syclop::getNumTreeExpansions);
+                Planner::declareParam<double>("prob_abandon_lead_early", this, &Syclop::setProbAbandonLeadEarly, &Syclop::getProbAbandonLeadEarly);
+                Planner::declareParam<double>("prob_add_available_regions", this, &Syclop::setProbAddingToAvailableRegions, &Syclop::getProbAddingToAvailableRegions);
+                Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead, &Syclop::getProbShortestPathLead);
+            }
+
             virtual ~Syclop()
             {
             }
+
             virtual void setup(void);
+
             virtual void clear(void);
 
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
@@ -107,40 +141,108 @@ namespace ompl
             /** \brief Clears all edge cost factors, making all edge weights equivalent to 1. */
             void clearEdgeCostFactors(void);
 
-            /** \brief Returns a copy of the most recently-computed high-level lead. */
-            std::vector<int> getLead();
+            /// @name Tunable parameters
+            /// @{
+            
+            /// \brief Get the number of states to sample when estimating free volume in the Decomposition.
+            int getNumFreeVolumeSamples (void) const
+            {
+                return numFreeVolSamples_;
+            }
 
-            /** \brief The number of states to sample to estimate free volume in the Decomposition. */
-            int numFreeVolSamples;
+            /// \brief Set the number of states to sample when estimating free
+            ///  volume in the Decomposition.
+            void setNumFreeVolumeSamples (int numSamples)
+            {
+                numFreeVolSamples_ = numSamples;
+            }
 
-            /** \brief The probability that a lead will be computed as a shortest-path instead of a random-DFS. */
-            double probShortestPath;
+            /// \brief Get the probability [0,1] that a lead will be computed as
+            ///  a shortest-path instead of a random-DFS.
+            double getProbShortestPathLead (void) const
+            {
+                return probShortestPath_;
+            }
 
-            /** \brief The probability that the set of available regions will be augmented. */
-            double probKeepAddingToAvail;
+            /// \brief Set the probability [0,1] that a lead will be computed as
+            ///  a shortest-path instead of a random-DFS.
+            void setProbShortestPathLead (double probability)
+            {
+                probShortestPath_ = probability;
+            }
 
-            /** \brief The number of times a new region will be chosen and promoted for expansion from a given lead. */
-            int numAvailExplorations;
+            /// \brief Get the probability [0,1] that the set of available
+            ///  regions will be augmented.
+            double getProbAddingToAvailableRegions (void) const
+            {
+                return probKeepAddingToAvail_;
+            }
 
-            /** \brief The number of calls to selectAndExtend() in the low-level tree planner for a given lead and region. */
-            int numTreeSelections;
+            /// \brief Set the probability [0,1] that the set of available
+            ///  regions will be augmented.
+            void setProbAddingToAvailableRegions (double probability)
+            {
+                probKeepAddingToAvail_ = probability;
+            }
 
-            /** \brief The probability that a lead will be abandoned early, before a new region is chosen for expansion. */
-            double probAbandonLeadEarly;
+            /// \brief Get the number of times a new region will be chosen and
+            ///  promoted for expansion from a given lead.
+            int getNumRegionExpansions (void) const
+            {
+                return numRegionExpansions_;
+            }
 
-        protected:
+            /// \brief Set the number of times a new region will be chosen and
+            ///  promoted for expansion from a given lead.
+            void setNumRegionExpansions (int regionExpansions)
+            {
+                numRegionExpansions_ = regionExpansions;
+            }
+
+            /// \brief Get the number of calls to selectAndExtend() in the
+            ///  low-level tree planner for a given lead and region.
+            int getNumTreeExpansions (void) const
+            {
+                return numTreeSelections_;
+            }
+
+            /// \brief Set the number of calls to selectAndExtend() in the
+            ///  low-level tree planner for a given lead and region.
+            void setNumTreeExpansions (int treeExpansions)
+            {
+                numTreeSelections_ = treeExpansions;
+            }
+
+            /// \brief Get the probability [0,1] that a lead will be abandoned
+            ///  early, before a new region is chosen for expansion.
+            double getProbAbandonLeadEarly (void) const
+            {
+                return probAbandonLeadEarly_;
+            }
+
+            /// \brief The probability that a lead will be abandoned early,
+            ///  before a new region is chosen for expansion.
+            void setProbAbandonLeadEarly (double probability)
+            {
+                probAbandonLeadEarly_ = probability;
+            }
+            /// @}
+
             /** \brief Contains default values for Syclop parameters. */
             struct Defaults
             {
-                static const int NUM_FREEVOL_SAMPLES = 100000;
-                static const double PROB_SHORTEST_PATH = 0.95;
-                static const int COVGRID_LENGTH = 128;
-                static const double PROB_KEEP_ADDING_TO_AVAIL = 0.95;
-                static const int NUM_AVAIL_EXPLORATIONS = 100;
-                static const int NUM_TREE_SELECTIONS = 50;
-                static const double PROB_ABANDON_LEAD_EARLY = 0.25;
+                static const int    NUM_FREEVOL_SAMPLES         = 100000;
+                static const int    COVGRID_LENGTH              = 128;
+                static const int    NUM_REGION_EXPANSIONS       = 100;
+                static const int    NUM_TREE_SELECTIONS         = 50;
+                static const double PROB_ABANDON_LEAD_EARLY     = 0.25;
+                static const double PROB_KEEP_ADDING_TO_AVAIL   = 0.95;
+                static const double PROB_SHORTEST_PATH          = 0.95;
             };
 
+        protected:
+
+            #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
             /** \brief Representation of a motion
 
                 A motion contains pointers to its state, its parent motion, and the control
@@ -148,11 +250,11 @@ namespace ompl
             class Motion
             {
             public:
-                Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
+                Motion(void) : state(NULL), control(NULL), parent(NULL), steps(0)
                 {
                 }
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation* si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
+                Motion(const SpaceInformation* si) : state(si->allocState()), control(si->allocControl()), parent(NULL), steps(0)
                 {
                 }
                 virtual ~Motion(void)
@@ -162,12 +264,14 @@ namespace ompl
                 base::State* state;
                 /** \brief The control contained by the motion */
                 Control* control;
-                /** \brief The number of steps for which the control is applied */
-                std::size_t steps;
                 /** \brief The parent motion in the tree */
-                Motion* parent;
+                const Motion* parent;
+                /** \brief The number of steps for which the control is applied */
+                int steps;
             };
+            #pragma pack (pop)  // Restoring default byte alignment
 
+            #pragma pack(push, 4) // push default byte alignment to stack and align the following structure to 4 byte boundary
             /** \brief Representation of a region in the Decomposition assigned to Syclop. */
             class Region
             {
@@ -184,17 +288,20 @@ namespace ompl
                     motions.clear();
                     covGridCells.clear();
                 }
+
+                std::set<int> covGridCells;
                 std::vector<Motion*> motions;
-                int index;
-                int numSelections;
                 double volume;
                 double freeVolume;
                 double percentValidCells;
                 double weight;
                 double alpha;
-                std::set<int> covGridCells;
+                int index;
+                int numSelections;
             };
+            #pragma pack (pop)  // Restoring default byte alignment
 
+            #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
             /** \brief Representation of an adjacency (or edge) between two regions
                 in the Decomposition assigned to Syclop. */
             class Adjacency
@@ -212,41 +319,14 @@ namespace ompl
                     covGridCells.clear();
                 }
                 std::set<int> covGridCells;
-                bool empty;
+                const Region* source;
+                const Region* target;
+                double cost;
                 int numLeadInclusions;
                 int numSelections;
-                double cost;
-                Region* source;
-                Region* target;
+                bool empty;
             };
-
-            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
-            Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
-                numFreeVolSamples(Defaults::NUM_FREEVOL_SAMPLES),
-                probShortestPath(Defaults::PROB_SHORTEST_PATH),
-                probKeepAddingToAvail(Defaults::PROB_KEEP_ADDING_TO_AVAIL),
-                numAvailExplorations(Defaults::NUM_AVAIL_EXPLORATIONS),
-                numTreeSelections(Defaults::NUM_TREE_SELECTIONS),
-                probAbandonLeadEarly(Defaults::PROB_ABANDON_LEAD_EARLY),
-                siC_(si.get()),
-                decomp_(d),
-                covGrid_(Defaults::COVGRID_LENGTH, decomp_),
-                graphReady_(false),
-                numMotions_(0)
-            {
-                specs_.approximateSolutions = true;
-            }
-
-            /** \brief Returns a reference to the Region object with the given index. Assumes the index is valid. */
-            inline Region& getRegionFromIndex(const int rid)
-            {
-                return graph_[boost::vertex(rid,graph_)];
-            }
-
-            inline const Region& getRegionFromIndex(const int rid) const
-            {
-                return graph_[boost::vertex(rid,graph_)];
-            }
+            #pragma pack (pop) // Restoring default byte alignment
 
             /** \brief Initialize the low-level tree rooted at State s, and return the Motion corresponding to s. */
             virtual Motion* initializeTree(const base::State* s) = 0;
@@ -255,11 +335,38 @@ namespace ompl
                 Add any new motions created to newMotions. */
             virtual void selectAndExtend(Region& region, std::vector<Motion*>& newMotions) = 0;
 
+            /** \brief Returns a reference to the Region object with the given index. Assumes the index is valid. */
+            inline const Region& getRegionFromIndex(const int rid) const
+            {
+                return graph_[boost::vertex(rid,graph_)];
+            }
+
+            /** \brief The number of states to sample to estimate free volume in the Decomposition. */
+            int numFreeVolSamples_;
+
+            /** \brief The probability that a lead will be computed as a shortest-path instead of a random-DFS. */
+            double probShortestPath_;
+
+            /** \brief The probability that the set of available regions will be augmented. */
+            double probKeepAddingToAvail_;
+
+            /** \brief The number of times a new region will be chosen and promoted for expansion from a given lead. */
+            int numRegionExpansions_;
+
+            /** \brief The number of calls to selectAndExtend() in the low-level tree planner for a given lead and region. */
+            int numTreeSelections_;
+
+            /** \brief The probability that a lead will be abandoned early, before a new region is chosen for expansion. */
+            double probAbandonLeadEarly_;
+
+            /** \brief Handle to the control::SpaceInformation object */
             const SpaceInformation* siC_;
+
+            /** \brief The high level decomposition used to focus tree expansion */
             DecompositionPtr decomp_;
+
+            /** \brief Random number generator */
             RNG rng_;
-            int startRegion_;
-            int goalRegion_;
 
         private:
             /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
@@ -297,6 +404,7 @@ namespace ompl
             typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
             typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
+            /// @cond IGNORE
             friend class DecompositionHeuristic;
 
             class DecompositionHeuristic : public boost::astar_heuristic<RegionGraph, double>
@@ -332,6 +440,7 @@ namespace ompl
             private:
                 const unsigned int goalRegion;
             };
+            /// @endcond
 
             /** \brief Initializes default values for a given Region. */
             void initRegion(Region& r);
@@ -343,7 +452,7 @@ namespace ompl
             void updateRegion(Region& r);
 
             /** \brief Initializes a given Adjacency between a source Region and a destination Region. */
-            void initEdge(Adjacency& a, Region* source, Region* target);
+            void initEdge(Adjacency& a, const Region* source, const Region* target);
 
             /** \brief Initializes default values for each Adjacency. */
             void setupEdgeEstimates(void);
@@ -371,7 +480,7 @@ namespace ompl
             void clearGraphDetails(void);
 
             /** \brief Computes a lead, which is a sequence of adjacent Regions from start to goal in the Decomposition. */
-            void computeLead(void);
+            void computeLead(int startRegion, int goalRegion);
 
             /** \brief Select a Region in which to promote expansion of the low-level tree. */
             int selectRegion(void);
