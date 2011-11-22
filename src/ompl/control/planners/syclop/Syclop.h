@@ -492,7 +492,6 @@ namespace ompl
             double defaultEdgeCost(int r, int s);
 
             std::vector<int> lead_;
-            std::vector<int> avail_;
             PDF<int> availDist_;
             std::vector<EdgeCostFactorFn> edgeCostFactors_;
             CoverageGrid covGrid_;
