@@ -39,6 +39,7 @@
 #include "ompl/base/ProblemDefinition.h"
 #include <limits>
 #include <stack>
+#include <algorithm>
 
 void ompl::control::Syclop::setup(void)
 {
@@ -112,9 +113,14 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                     const int newRegion = decomp_->locateRegion(motion->state);
                     graph_[boost::vertex(newRegion,graph_)].motions.push_back(motion);
                     ++numMotions_;
+                    improved |= updateCoverageEstimate(graph_[boost::vertex(newRegion, graph_)], motion->state);
                     if (newRegion != region)
                     {
-                        avail_.push_back(newRegion);
+                        if (std::find(avail_.begin(), avail_.end(), newRegion) == avail_.end())
+                        {
+                            avail_.push_back(newRegion);
+                            availDist_.add(newRegion, graph_[boost::vertex(newRegion,graph_)].weight);
+                        }
                         /* If the tree crosses an entire region and creates an edge (u,v) for which Proj(u) and Proj(v) are non-neighboring regions,
                             then we do not update connection estimates. This is because Syclop's shortest-path lead computation only considers neighboring regions. */
                         if (regionsToEdge_.count(std::pair<int,int>(region, newRegion)) > 0)
@@ -125,7 +131,6 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                             improved |= updateConnectionEstimate(graph_[boost::vertex(region,graph_)], graph_[boost::vertex(newRegion,graph_)], motion->state);
                         }
                     }
-                    improved |= updateCoverageEstimate(graph_[boost::vertex(newRegion, graph_)], motion->state);
                 }
             }
             if (!improved && rng_.uniform01() < probAbandonLeadEarly_)
