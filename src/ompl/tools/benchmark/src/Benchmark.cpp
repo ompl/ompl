@@ -326,6 +326,9 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         gsetup_->print(setupInfo);
     else
         csetup_->print(setupInfo);
+    setupInfo << std::endl << "Planner properties:" << std::endl;
+    for (unsigned int i = 0 ; i < planners_.size() ; ++i)
+        planners_[i]->printProperties(setupInfo);
     exp_.setupInfo = setupInfo.str();
 
     msg_.inform("Done saving information");
@@ -339,7 +342,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     boost::shared_ptr<boost::progress_display> progress;
     if (displayProgress)
     {
-        std::cout << "Running experiment " << exp_.name << std::endl;
+        std::cout << "Running experiment " << exp_.name << "." << std::endl;
+        std::cout << "Each planner will be executed " << runCount << " times for at most " << maxTime << " seconds. Memory is limited at " << maxMem << "MB." << std::endl;
         progress.reset(new boost::progress_display(100, std::cout));
     }
 
