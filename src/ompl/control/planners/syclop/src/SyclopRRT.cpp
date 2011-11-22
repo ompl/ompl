@@ -43,9 +43,14 @@ void ompl::control::SyclopRRT::setup(void)
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocControlSampler();
-    if (!nn_)
+
+    // Create a default GNAT nearest neighbors structure if the user doesn't want
+    // the default regionalNN check from the discretization
+    if (!nn_ && !regionalNN_)
+    {
         nn_.reset(new NearestNeighborsGNAT<Motion*>());
-    nn_->setDistanceFunction(boost::bind(&SyclopRRT::distanceFunction, this, _1, _2));
+        nn_->setDistanceFunction(boost::bind(&SyclopRRT::distanceFunction, this, _1, _2));
+    }
 }
 
 void ompl::control::SyclopRRT::clear(void)
@@ -90,7 +95,9 @@ ompl::control::Syclop::Motion* ompl::control::SyclopRRT::initializeTree(const ba
     Motion* motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
-    nn_->add(motion);
+
+    if (nn_)
+        nn_->add(motion);
     return motion;
 }
 
@@ -133,7 +140,10 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
         }
     }
     else
+    {
+        assert (nn_);
         nmotion = nn_->nearest(rmotion);
+    }
 
     base::State* newState = si_->allocState();
 
@@ -148,8 +158,9 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
         siC_->copyControl(motion->control, rmotion->control);
         motion->steps = duration;
         motion->parent = nmotion;
-        nn_->add(motion);
         newMotions.push_back(motion);
+        if (nn_)
+            nn_->add(motion);
     }
 
     si_->freeState(rmotion->state);

@@ -78,6 +78,7 @@ namespace ompl
             template<template<typename T> class NN>
             void setNearestNeighbors(void)
             {
+                regionalNN_ = false;
                 nn_.reset(new NN<Motion*>());
             }
 
