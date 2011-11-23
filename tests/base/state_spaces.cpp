@@ -35,8 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
-#include <libgen.h>
 #include <iostream>
 
 #include "ompl/base/ScopedState.h"
