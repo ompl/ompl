@@ -202,7 +202,7 @@ def plot_statistics(dbname, fname):
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("SELECT name FROM sqlite_master WHERE type='table'")
     table_names = [ str(t[0]) for t in c.fetchall() ]
-    planner_names = [ t for t in table_names if t.startswith('planner_') ]
+    planner_names = [ t for t in table_names if t.startswith('planner_') and t != 'planner_configs' ]
     attributes = []
     types = {}
     experiments = []
