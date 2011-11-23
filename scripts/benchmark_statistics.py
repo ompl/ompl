@@ -55,7 +55,7 @@ def read_benchmark_log(dbname, filenames):
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("""CREATE TABLE IF NOT EXISTS experiments
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
     c.execute("""CREATE TABLE IF NOT EXISTS planners
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
@@ -73,10 +73,11 @@ def read_benchmark_log(dbname, filenames):
         rseed = int(logfile.readline().split()[0])
         timelimit = float(logfile.readline().split()[0])
         memorylimit = float(logfile.readline().split()[0])
+        nrruns = float(logfile.readline().split()[0])
         totaltime = float(logfile.readline().split()[0])
 
-        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?)',
-              (None, expname, totaltime, timelimit, memorylimit, hostname, date, rseed, expsetup) )
+        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?)',
+              (None, expname, totaltime, timelimit, memorylimit, nrruns, hostname, date, rseed, expsetup) )
         c.execute('SELECT last_insert_rowid()')
         experiment_id = c.fetchone()[0]
         num_planners = int(logfile.readline().split()[0])

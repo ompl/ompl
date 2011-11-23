@@ -117,6 +117,9 @@ namespace ompl
             /// The maximum allowed memory for planner computation during the experiment (MB)
             double                         maxMem;
 
+            /// The number of runs to execute for each planner
+            unsigned int                   runCount;
+
             /// The point in time when the experiment was started
             time::point                    startTime;
 
