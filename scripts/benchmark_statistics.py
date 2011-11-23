@@ -56,7 +56,7 @@ def read_benchmark_log(dbname, filenames):
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("""CREATE TABLE IF NOT EXISTS experiments
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS planners
+    c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
         print "Processing " + filename
@@ -93,10 +93,10 @@ def read_benchmark_log(dbname, filenames):
                 settings = settings + logfile.readline()
 
             # find planner id
-            c.execute("SELECT id FROM planners WHERE (name=? AND settings=?)", (planner_name, settings,))
+            c.execute("SELECT id FROM planner_configs WHERE (name=? AND settings=?)", (planner_name, settings,))
             p = c.fetchone()
             if p==None:
-                c.execute("INSERT INTO planners VALUES (?,?,?)", (None, planner_name, settings,))
+                c.execute("INSERT INTO planner_configs VALUES (?,?,?)", (None, planner_name, settings,))
                 c.execute('SELECT last_insert_rowid()')
                 planner_id = c.fetchone()[0]
             else:
@@ -123,7 +123,7 @@ def read_benchmark_log(dbname, filenames):
             for k, v in properties.iteritems():
                 table_columns = table_columns + ', ' + k + ' ' + v
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
-            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planners(id) ON DELETE CASCADE"
+            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE"
 
             planner_table = 'planner_%s' % planner_name
             c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table, table_columns))
@@ -271,7 +271,7 @@ def save_as_mysql(dbname, mysqldump):
     c.execute("SELECT name FROM sqlite_master WHERE type='table'")
     table_names = [ str(t[0]) for t in c.fetchall() ]
     c.close()
-    last = ['experiments', 'planners']
+    last = ['experiments', 'planner_configs']
     for table in table_names:
         if table.startswith("sqlite"):
             continue
