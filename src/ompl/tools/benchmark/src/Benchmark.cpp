@@ -328,7 +328,10 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         csetup_->print(setupInfo);
     setupInfo << std::endl << "Planner properties:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
+    {
         planners_[i]->printProperties(setupInfo);
+        planners_[i]->getParams(exp_.planners[i].common);
+    }
     exp_.setupInfo = setupInfo.str();
 
     msg_.inform("Done saving information");
