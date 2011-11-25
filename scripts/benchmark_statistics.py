@@ -57,7 +57,7 @@ def read_benchmark_log(dbname, filenames):
     c.execute("""CREATE TABLE IF NOT EXISTS experiments
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
     c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
         print "Processing " + filename
         logfile = open(filename,'r')
@@ -93,7 +93,7 @@ def read_benchmark_log(dbname, filenames):
                 settings = settings + logfile.readline()
 
             # find planner id
-            c.execute("SELECT id FROM planner_configs WHERE (name=? AND settings=?)", (planner_name, settings,))
+            c.execute("SELECT id FROM planner_configs WHERE (planner_name=? AND settings=?)", (planner_name, settings,))
             p = c.fetchone()
             if p==None:
                 c.execute("INSERT INTO planner_configs VALUES (?,?,?)", (None, planner_name, settings,))
