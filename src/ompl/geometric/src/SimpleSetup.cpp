@@ -94,6 +94,10 @@ void ompl::geometric::SimpleSetup::setup(void)
         planner_->setProblemDefinition(pdef_);
         if (!planner_->isSetup())
             planner_->setup();
+
+        params_.clear();
+        params_.include(si_->params());
+        params_.include(planner_->params());
         configured_ = true;
     }
 }
@@ -161,11 +165,14 @@ void ompl::geometric::SimpleSetup::print(std::ostream &out) const
 {
     if (si_)
     {
-        si_->printSettings(out);
         si_->printProperties(out);
+        si_->printSettings(out);
     }
     if (planner_)
+    {
         planner_->printProperties(out);
+        planner_->printSettings(out);
+    }
     if (pdef_)
         pdef_->print(out);
 }

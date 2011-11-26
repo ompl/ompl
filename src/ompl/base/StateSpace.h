@@ -41,6 +41,7 @@
 #include "ompl/base/StateSpaceTypes.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ProjectionEvaluator.h"
+#include "ompl/base/GenericParam.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/concept_check.hpp>
@@ -138,6 +139,18 @@ namespace ompl
             /** \brief Return true if \e other is a space that is either included (perhaps equal, perhaps a subspace)
                 in this one, or all of its subspaces are included in this one. */
             bool covers(const StateSpacePtr &other) const;
+
+            /** \brief Get the parameters for this space */
+            ParamSet& params(void)
+            {
+                return params_;
+            }
+
+            /** \brief Get the parameters for this space */
+            const ParamSet& params(void) const
+            {
+                return params_;
+            }
 
             /** @} */
 
@@ -301,8 +314,11 @@ namespace ompl
             /** \brief Perform final setup steps. This function is
                 automatically called by the SpaceInformation. If any
                 default projections are to be registered, this call
-                will set them. It is safe to call this function
-                multiple times. */
+                will set them and call their setup() functions. It is
+                safe to call this function multiple times. At a
+                subsequent call, projections that have been previously
+                user configured are not re-instantiated, but their
+                setup() method is still called. */
             virtual void setup(void);
 
         protected:
@@ -330,6 +346,9 @@ namespace ompl
 
             /** \brief List of available projections */
             std::map<std::string, ProjectionEvaluatorPtr> projections_;
+
+            /** \brief The set of parameters for this space */
+            ParamSet                                      params_;
 
             /** \brief Interface used for console output */
             msg::Interface                                msg_;

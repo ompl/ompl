@@ -37,6 +37,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
 #include <numeric>
 #include <limits>
 #include <queue>
@@ -85,6 +86,14 @@ ompl::base::StateSpace::StateSpace(void)
     type_ = STATE_SPACE_UNKNOWN;
 
     maxExtent_ = std::numeric_limits<double>::infinity();
+
+    params_.declareParam<double>("longest_valid_segment_fraction", msg_,
+                                 boost::bind(&StateSpace::setLongestValidSegmentFraction, this, _1),
+                                 boost::bind(&StateSpace::getLongestValidSegmentFraction, this));
+
+    params_.declareParam<unsigned int>("valid_segment_count_factor", msg_,
+                                       boost::bind(&StateSpace::setValidSegmentCountFactor, this, _1),
+                                       boost::bind(&StateSpace::getValidSegmentCountFactor, this));
 
     AllocatedSpaces &as = getAllocatedSpaces();
     boost::mutex::scoped_lock smLock(as.lock_);

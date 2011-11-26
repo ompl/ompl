@@ -44,6 +44,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -116,6 +117,20 @@ void ompl::base::ProjectionMatrix::print(std::ostream &out) const
     out << mat << std::endl;
 }
 
+ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space) : space_(space), defaultCellSizes_(true), cellSizesWereInferred_(false)
+{
+    params_.declareParam<double>("factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+}
+
+ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space) : space_(space.get()), defaultCellSizes_(true), cellSizesWereInferred_(false)
+{
+    params_.declareParam<double>("factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+}
+
+ompl::base::ProjectionEvaluator::~ProjectionEvaluator(void)
+{
+}
+
 bool ompl::base::ProjectionEvaluator::userConfigured(void) const
 {
     return !defaultCellSizes_ && !cellSizesWereInferred_;
@@ -127,6 +142,29 @@ void ompl::base::ProjectionEvaluator::setCellSizes(const std::vector<double> &ce
     cellSizesWereInferred_ = false;
     cellSizes_ = cellSizes;
     checkCellSizes();
+}
+
+void ompl::base::ProjectionEvaluator::setCellSizes(unsigned int dim, double cellSize)
+{
+    if (cellSizes_.size() >= dim)
+        msg_.error("Dimension %u is not defined for projection evaluator", dim);
+    else
+    {
+        std::vector<double> c = cellSizes_;
+        c[dim] = cellSize;
+        setCellSizes(c);
+    }
+}
+
+void ompl::base::ProjectionEvaluator::mulCellSizes(double factor)
+{
+    if (cellSizes_.size() == getDimension())
+    {
+        std::vector<double> c(cellSizes_.size());
+        for (std::size_t i = 0 ; i < cellSizes_.size() ; ++i)
+            c[i] = cellSizes_[i] * factor;
+        setCellSizes(c);
+    }
 }
 
 void ompl::base::ProjectionEvaluator::checkCellSizes(void) const
@@ -338,6 +376,10 @@ void ompl::base::ProjectionEvaluator::setup(void)
         inferCellSizes();
 
     checkCellSizes();
+
+    unsigned int dim = getDimension();
+    for (unsigned int i = 0 ; i < dim ; ++i)
+        params_.declareParam<double>("cellsize." + boost::lexical_cast<std::string>(i), boost::bind(&ProjectionEvaluator::setCellSizes, this, i, _1));
 }
 
 void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const

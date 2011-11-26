@@ -47,6 +47,7 @@ ompl::base::SpaceInformation::SpaceInformation(const StateSpacePtr &space) :
 {
     if (!stateSpace_)
         throw Exception("Invalid space definition");
+    params_.include(stateSpace_->params());
 }
 
 void ompl::base::SpaceInformation::setup(void)
@@ -63,6 +64,12 @@ void ompl::base::SpaceInformation::setup(void)
     stateSpace_->setup();
     if (stateSpace_->getDimension() <= 0)
         throw Exception("The dimension of the state space we plan in must be > 0");
+
+    params_.clear();
+    params_.include(stateSpace_->params());
+    const std::map<std::string, ProjectionEvaluatorPtr> &prj = stateSpace_->getRegisteredProjections();
+    for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
+        params_.include(it->second->params(), it->first);
 
     setup_ = true;
 }
@@ -368,16 +375,18 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "Settings for the state space '" << stateSpace_->getName() << "'" << std::endl;
-    out << "  - dimension: " << stateSpace_->getDimension() << std::endl;
     out << "  - state validity check resolution: " << (getStateValidityCheckingResolution() * 100.0) << '%' << std::endl;
     out << "  - valid segment count factor: " << stateSpace_->getValidSegmentCountFactor() << std::endl;
     out << "  - state space:" << std::endl;
     stateSpace_->printSettings(out);
+    out << std::endl << "Declared parameters:" << std::endl;
+    params_.print(out);
 }
 
 void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
 {
     out << "Properties of the state space '" << stateSpace_->getName() << "'" << std::endl;
+    out << "  - dimension: " << stateSpace_->getDimension() << std::endl;
     out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;
     if (isSetup())
     {

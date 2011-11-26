@@ -332,7 +332,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
         planners_[i]->printProperties(setupInfo);
-        planners_[i]->getParams(exp_.planners[i].common);
+        planners_[i]->params().getParams(exp_.planners[i].common);
     }
     exp_.setupInfo = setupInfo.str();
 
