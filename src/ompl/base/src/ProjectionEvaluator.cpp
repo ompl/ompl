@@ -119,12 +119,12 @@ void ompl::base::ProjectionMatrix::print(std::ostream &out) const
 
 ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space) : space_(space), defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+    params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
 }
 
 ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space) : space_(space.get()), defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+    params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
 }
 
 ompl::base::ProjectionEvaluator::~ProjectionEvaluator(void)
@@ -154,6 +154,14 @@ void ompl::base::ProjectionEvaluator::setCellSizes(unsigned int dim, double cell
         c[dim] = cellSize;
         setCellSizes(c);
     }
+}
+
+double ompl::base::ProjectionEvaluator::getCellSizes(unsigned int dim) const
+{
+    if (cellSizes_.size() < dim)
+        return cellSizes_[dim];
+    msg_.error("Dimension %u is not defined for projection evaluator", dim);
+    return 0.0;
 }
 
 void ompl::base::ProjectionEvaluator::mulCellSizes(double factor)
@@ -379,7 +387,9 @@ void ompl::base::ProjectionEvaluator::setup(void)
 
     unsigned int dim = getDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
-        params_.declareParam<double>("cellsize." + boost::lexical_cast<std::string>(i), boost::bind(&ProjectionEvaluator::setCellSizes, this, i, _1));
+        params_.declareParam<double>("cellsize." + boost::lexical_cast<std::string>(i),
+                                     boost::bind(&ProjectionEvaluator::setCellSizes, this, i, _1),
+                                     boost::bind(&ProjectionEvaluator::getCellSizes, this, i));
 }
 
 void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const

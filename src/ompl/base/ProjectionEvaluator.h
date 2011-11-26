@@ -177,6 +177,9 @@ namespace ompl
                 return cellSizes_;
             }
 
+            /** \brief Get the size of a particular dimension of a grid cell  */
+            double getCellSizes(unsigned int dim) const;
+
             /** \brief Check if cell dimensions match projection dimension */
             void checkCellSizes(void) const;
 
