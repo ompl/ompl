@@ -41,7 +41,6 @@
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/tools/config/MagicConstants.h"
-#include "ompl/datastructures/Grid.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/lexical_cast.hpp>
@@ -90,7 +89,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to)
 {
-    return ComputeRandom(from, to);
+    return ComputeRandom(from, to, std::vector<double>());
 }
 
 void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
