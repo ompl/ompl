@@ -158,7 +158,7 @@ void ompl::base::ProjectionEvaluator::setCellSizes(unsigned int dim, double cell
 
 double ompl::base::ProjectionEvaluator::getCellSizes(unsigned int dim) const
 {
-    if (cellSizes_.size() < dim)
+    if (cellSizes_.size() > dim)
         return cellSizes_[dim];
     msg_.error("Dimension %u is not defined for projection evaluator", dim);
     return 0.0;
