@@ -374,15 +374,10 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
             msg_.error(es.str());
         }
         if (gsetup_)
-        {
             gsetup_->setup();
-            gsetup_->params().getParams(exp_.planners[i].common);
-        }
         else
-        {
             csetup_->setup();
-            csetup_->params().getParams(exp_.planners[i].common);
-        }
+        planners_[i]->params().getParams(exp_.planners[i].common);
 
         // run the planner
         for (unsigned int j = 0 ; j < runCount ; ++j)
