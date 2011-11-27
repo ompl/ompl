@@ -378,6 +378,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         else
             csetup_->setup();
         planners_[i]->params().getParams(exp_.planners[i].common);
+	planners_[i]->getSpaceInformation()->params().getParams(exp_.planners[i].common);
 
         // run the planner
         for (unsigned int j = 0 ; j < runCount ; ++j)
