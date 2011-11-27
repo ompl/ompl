@@ -158,7 +158,8 @@ namespace ompl
 
                 if (getter_)
                     msg_->debug("The value of parameter '" + name_ + "' is now: '" + getValue() + "'");
-
+		else
+		    msg_->debug("The value of parameter '" + name_ + "' was set to: '" + value + "'");
                 return result;
             }
 
