@@ -90,7 +90,7 @@ def read_benchmark_log(dbname, filenames):
             num_common = int(logfile.readline().split()[0])
             settings = ""
             for j in range(num_common):
-                settings = settings + logfile.readline()
+                settings = settings + logfile.readline() + ';'
 
             # find planner id
             c.execute("SELECT id FROM planner_configs WHERE (planner_name=? AND settings=?)", (planner_name, settings,))
