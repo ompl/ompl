@@ -101,6 +101,16 @@ void ompl::base::ParamSet::include(const ParamSet &other, const std::string &pre
             params_[prefix + "." + it->first] = it->second;
 }
 
+void ompl::base::ParamSet::add(const GenericParamPtr &param)
+{
+    params_[param->getName()] = param;
+}
+
+void ompl::base::ParamSet::remove(const std::string &name)
+{
+    params_.erase(name);
+}
+
 void ompl::base::ParamSet::clear(void)
 {
     params_.clear();

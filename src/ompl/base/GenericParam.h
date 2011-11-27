@@ -158,8 +158,8 @@ namespace ompl
 
                 if (getter_)
                     msg_->debug("The value of parameter '" + name_ + "' is now: '" + getValue() + "'");
-		else
-		    msg_->debug("The value of parameter '" + name_ + "' was set to: '" + value + "'");
+                else
+                    msg_->debug("The value of parameter '" + name_ + "' was set to: '" + value + "'");
                 return result;
             }
 
@@ -208,6 +208,12 @@ namespace ompl
             {
                 params_[name].reset(new SpecificParam<T>(name, setter, getter));
             }
+
+            /** \brief Add a parameter to the set */
+            void add(const GenericParamPtr &param);
+
+            /** \brief Remove a parameter from the set */
+            void remove(const std::string &name);
 
             /** \brief Include the params of a different ParamSet into this one. Optionally include a prefix for each of the parameters */
             void include(const ParamSet &other, const std::string &prefix = "");

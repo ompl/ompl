@@ -67,9 +67,6 @@ void ompl::base::SpaceInformation::setup(void)
 
     params_.clear();
     params_.include(stateSpace_->params());
-    const std::map<std::string, ProjectionEvaluatorPtr> &prj = stateSpace_->getRegisteredProjections();
-    for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = prj.begin() ; it != prj.end() ; ++it)
-        params_.include(it->second->params(), it->first);
 
     setup_ = true;
 }

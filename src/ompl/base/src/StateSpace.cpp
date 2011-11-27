@@ -142,8 +142,21 @@ void ompl::base::StateSpace::setup(void)
                     projections_[it->first] = it->second;
         }
 
+    // remove previously set parameters for projections
+    const std::map<std::string, GenericParamPtr> &p = params_.getParams();
+    for (std::map<std::string, GenericParamPtr>::const_iterator it = p.begin() ; it != p.end() ; ++it)
+        if (it->first.substr(0, 11) == "projection.")
+            params_.remove(it->first);
+
+    // setup projections and add their parameters
     for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.begin() ; it != projections_.end() ; ++it)
+    {
         it->second->setup();
+        if (it->first == DEFAULT_PROJECTION_NAME)
+            params_.include(it->second->params(), "projection");
+        else
+            params_.include(it->second->params(), "projection." + it->first);
+    }
 }
 
 double* ompl::base::StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
