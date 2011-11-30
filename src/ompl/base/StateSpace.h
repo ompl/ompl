@@ -227,8 +227,8 @@ namespace ompl
             /** \brief Allocate an instance of the default uniform state sampler for this space */
             virtual StateSamplerPtr allocDefaultStateSampler(void) const = 0;
 
-            /** \brief Allocate an instance of the uniform state sampler for this space. This sampler will be allocated with the
-                sampler allocator that was previously specified by setSamplerAllocator() or, if no sampler allocator was specified,
+            /** \brief Allocate an instance of the state sampler for this space. This sampler will be allocated with the
+                sampler allocator that was previously specified by setStateSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultStateSampler() is called */
             StateSamplerPtr allocStateSampler(void) const;
 
@@ -236,7 +236,7 @@ namespace ompl
             void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
 
             /** \brief Clear the state sampler allocator (reset to default) */
-            void clearStateSampleAllocator(void);
+            void clearStateSamplerAllocator(void);
 
             /** \brief Allocate a state that can store a point in the described space */
             virtual State* allocState(void) const = 0;

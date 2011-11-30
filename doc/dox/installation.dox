@@ -78,12 +78,12 @@ mkdir -p build/Release
 cd build/Release
 cmake -DCMAKE_BUILD_TYPE=Release ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
 \endcode
-If you want a debug version of ompl, change "Release" to "Debug" above.
-- If Python bindings are to be generated, type <tt>make update_bindings</tt>. (If this does not work and you are sure you have Py++ installed, you may have to run \c cmake again.) <b>Note:</b> <tt>make update_bindings</tt> is <i>never</i> run automatically. If you change any of the OMPL header files, you need to type <tt>make update_bindings</tt> again for the changes to be reflected in the Python modules. The command <tt>make</tt> needs to be executed <b>after</b> every call to <tt>make update_bindings</tt>.
+If you want a debug version of ompl, change "Release" to "Debug" above. The CMAKE_INSTALL_PREFIX variable is set to \c /usr/local by default.
+- If Python bindings are to be generated, type <tt>make update_bindings</tt>. (If this does not work and you are sure you have Py++ installed, you may have to run \c cmake again.) <b>Note:</b> <tt>make update_bindings</tt> is <i>never</i> run automatically. If you change any of the OMPL header files, you need to type <tt>make update_bindings</tt> again for the changes to be reflected in the Python modules. The command <tt>make</tt> needs to be executed <b>after</b> every call to <tt>make update_bindings</tt>. See also the \ref updating_python_bindings "more detailed documentation on generating python bindings".
 - Compile OMPL by typing \c make.
 - Optionally, run the test programs by typing <tt>make test</tt>.
 - Optionally, generate documentation by typing <tt>make doc</tt>.
-- If you need to install the library, you can type <tt>make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed.
+- If you need to install the library, you can type <tt>sudo make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed (e.g., $HOME/lib/python2.7/site-packages).
 .
 
 \section install_windows Installation on Windows

@@ -482,6 +482,7 @@ table, td, th {vertical-align:top;padding:2px;}
 th {text-align:center;}
 pre, code, tt {font:1em monospace;line-height:1.5;}
 body {font-size:13px;}
+a { font-weight:bold }
 a.anchor, a.el {text-decoration:none;color:#119;}
 h1, .title {font-size:2em;color:#119;font-weight:bold;margin:0px;margin-bottom:.2em;}
 div.headertitle {padding:0px;}

@@ -60,6 +60,24 @@ void ompl::control::ControlSpace::setup(void)
 {
 }
 
+ompl::control::ControlSamplerPtr ompl::control::ControlSpace::allocControlSampler(void) const
+{
+    if (csa_)
+        return csa_(this);
+    else
+        return allocDefaultControlSampler();
+}
+
+void ompl::control::ControlSpace::setControlSamplerAllocator(const ControlSamplerAllocator &csa)
+{
+    csa_ = csa;
+}
+
+void ompl::control::ControlSpace::clearControlSamplerAllocator(void)
+{
+    csa_ = ControlSamplerAllocator();
+}
+
 double* ompl::control::ControlSpace::getValueAddressAtIndex(Control *control, const unsigned int index) const
 {
     return NULL;
@@ -156,7 +174,7 @@ void ompl::control::CompoundControlSpace::nullControl(Control *control) const
         components_[i]->nullControl(ccontrol->components[i]);
 }
 
-ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocControlSampler(void) const
+ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocDefaultControlSampler(void) const
 {
     CompoundControlSampler *ss = new CompoundControlSampler(this);
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)

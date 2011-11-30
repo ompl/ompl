@@ -406,3 +406,61 @@ void ompl::geometric::PathGeometric::append(const PathGeometric &path)
     else
         overlay(path, states.size());
 }
+
+void ompl::geometric::PathGeometric::keepAfter(const base::State *state)
+{
+    int index = getClosestIndex(state);
+    if (index > 0)
+    {
+        if ((std::size_t)(index + 1) < states.size())
+        {
+            double b = si_->distance(state, states[index-1]);
+            double a = si_->distance(state, states[index+1]);
+            if (b > a)
+                ++index;
+        }
+        for (int i = 0 ; i < index ; ++i)
+            si_->freeState(states[i]);
+        states.erase(states.begin(), states.begin() + index);
+    }
+}
+
+void ompl::geometric::PathGeometric::keepBefore(const base::State *state)
+{
+    int index = getClosestIndex(state);
+    if (index >= 0)
+    {
+        if (index > 0 && (std::size_t)(index + 1) < states.size())
+        {
+            double b = si_->distance(state, states[index-1]);
+            double a = si_->distance(state, states[index+1]);
+            if (b < a)
+                --index;
+        }
+        if ((std::size_t)(index + 1) < states.size())
+        {
+            for (std::size_t i = index + 1 ; i < states.size() ; ++i)
+                si_->freeState(states[i]);
+            states.resize(index + 1);
+        }
+    }
+}
+
+int ompl::geometric::PathGeometric::getClosestIndex(const base::State *state) const
+{
+    if (states.empty())
+        return -1;
+
+    int index = 0;
+    double min_d = si_->distance(states[0], state);
+    for (std::size_t i = 1 ; i < states.size() ; ++i)
+    {
+        double d = si_->distance(states[i], state);
+        if (d < min_d)
+        {
+            min_d = d;
+            index = i;
+        }
+    }
+    return index;
+}

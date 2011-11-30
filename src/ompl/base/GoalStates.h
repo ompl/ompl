@@ -85,6 +85,9 @@ namespace ompl
             /** \brief Return a pointer to the indexth state in the state list */
             const State* getState(unsigned int index) const;
 
+            /** \brief Return the number of valid goal states */
+            std::size_t getStateCount (void) const;
+
         protected:
 
             /** \brief The goal states. Only ones that are valid are considered by the motion planner. */

@@ -121,6 +121,12 @@ const std::map<std::string, ompl::base::Planner::PlannerParamPtr>& ompl::base::P
     return params_;
 }
 
+void ompl::base::Planner::getParams(std::map<std::string, std::string> &params) const
+{
+    for (std::map<std::string, PlannerParamPtr>::const_iterator it = params_.begin() ; it != params_.end() ; ++it)
+        params[it->first] = it->second->getValue();
+}
+
 void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())

@@ -123,6 +123,12 @@ namespace ompl
                 return planner_;
             }
 
+            /** \brief Get the planner allocator */
+            const base::PlannerAllocator& getPlannerAllocator(void) const
+            {
+                return pa_;
+            }
+
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
             bool haveExactSolutionPath(void) const
             {

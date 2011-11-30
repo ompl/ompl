@@ -106,3 +106,8 @@ const ompl::base::State* ompl::base::GoalStates::getState(unsigned int index) co
     assert(index < states_.size ());
     return states_[index];
 }
+
+std::size_t ompl::base::GoalStates::getStateCount (void) const
+{
+    return states_.size ();
+}

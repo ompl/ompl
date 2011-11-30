@@ -121,8 +121,19 @@ namespace ompl
             /** \brief Make the control have no effect if it were to be applied to a state for any amount of time. */
             virtual void nullControl(Control *control) const = 0;
 
-            /** \brief Allocate a control sampler */
-            virtual ControlSamplerPtr allocControlSampler(void) const = 0;
+            /** \brief Allocate the default control sampler */
+            virtual ControlSamplerPtr allocDefaultControlSampler(void) const = 0;
+
+            /** \brief Allocate an instance of the control sampler for this space. This sampler will be allocated with the
+                sampler allocator that was previously specified by setControlSamplerAllocator() or, if no sampler allocator was specified,
+                allocDefaultControlSampler() is called */
+            ControlSamplerPtr allocControlSampler(void) const;
+
+            /** \brief Set the sampler allocator to use */
+            void setControlSamplerAllocator(const ControlSamplerAllocator &csa);
+
+            /** \brief Clear the control sampler allocator (reset to default) */
+            void clearControlSamplerAllocator(void);
 
             /** \brief Many controls contain a number of double values. This function provides a means to get the
                 memory address of a double value from a control \e control located at position \e index. The first double value
@@ -142,12 +153,15 @@ namespace ompl
         protected:
 
             /** \brief The state space controls can be applied to */
-            base::StateSpacePtr    stateSpace_;
+            base::StateSpacePtr     stateSpace_;
+
+            /** \brief An optional control sampler allocator */
+            ControlSamplerAllocator csa_;
 
         private:
 
             /** \brief The name of this control space */
-            std::string            name_;
+            std::string             name_;
         };
 
         /** \brief A control space to allow the composition of control spaces */
@@ -201,7 +215,7 @@ namespace ompl
 
             virtual void nullControl(Control *control) const;
 
-            virtual ControlSamplerPtr allocControlSampler(void) const;
+            virtual ControlSamplerPtr allocDefaultControlSampler(void) const;
 
             virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
 

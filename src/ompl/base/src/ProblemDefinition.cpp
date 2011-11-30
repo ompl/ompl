@@ -126,7 +126,7 @@ bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, doub
     GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
     if (goals)
     {
-        for (unsigned int i = 0; i < goals->maxSampleCount(); ++i)
+        for (unsigned int i = 0; i < goals->getStateCount(); ++i)
             if (!fixInvalidInputState(const_cast<State*>(goals->getState(i)), distGoal, false, attempts))
                 result = false;
     }
@@ -146,7 +146,7 @@ void ompl::base::ProblemDefinition::getInputStates(std::vector<const State*> &st
 
     GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
     if (goals)
-        for (unsigned int i = 0; i < goals->maxSampleCount(); ++i)
+        for (unsigned int i = 0; i < goals->getStateCount(); ++i)
             states.push_back (goals->getState(i));
 }
 
@@ -210,7 +210,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid(void)
                 states.push_back(goal->getState());
         GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
         if (goals)
-            for (unsigned int i = 0; i < goals->maxSampleCount(); ++i)
+            for (unsigned int i = 0; i < goals->getStateCount(); ++i)
                 if (si_->isValid(goals->getState(i)) && si_->satisfiesBounds(goals->getState(i)))
                     states.push_back (goals->getState(i));
 

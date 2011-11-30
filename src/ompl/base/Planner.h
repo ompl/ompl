@@ -342,6 +342,9 @@ namespace ompl
             /** \brief Get the parameters this planner is aware of */
             const std::map<std::string, PlannerParamPtr>& getParams(void) const;
 
+            /** \brief Get the parameters this planner is aware of */
+            void getParams(std::map<std::string, std::string> &params) const;
+
             /** \brief Perform extra configuration steps, if
                 needed. This call will also issue a call to
                 ompl::base::SpaceInformation::setup() if needed. This
@@ -391,7 +394,15 @@ namespace ompl
                 template<typename V>
                 bool setValue(const V& value)
                 {
-                    return setValue(boost::lexical_cast<std::string>(value));
+                    try
+                    {
+                        const std::string &vs = boost::lexical_cast<std::string>(value);
+                        return setValue(vs);
+                    }
+                    catch (boost::bad_lexical_cast &)
+                    {
+                    }
+                    return false;
                 }
 
                 /** \brief Retrieve the value of the parameter, as a string. */
@@ -451,7 +462,7 @@ namespace ompl
                     }
 
                     if (getter_)
-                        msg_.debug("The value of parameter '" + name_ + "' is now: '" + boost::lexical_cast<std::string>(getter_()) + "'");
+                        msg_.debug("The value of parameter '" + name_ + "' is now: '" + getValue() + "'");
 
                     return result;
                 }
@@ -459,7 +470,14 @@ namespace ompl
                 virtual std::string getValue(void) const
                 {
                     if (getter_)
-                        return boost::lexical_cast<std::string>(getter_());
+                        try
+                        {
+                            return boost::lexical_cast<std::string>(getter_());
+                        }
+                        catch (boost::bad_lexical_cast &)
+                        {
+                            return "";
+                        }
                     else
                         return "";
                 }

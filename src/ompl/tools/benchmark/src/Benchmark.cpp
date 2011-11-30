@@ -68,12 +68,19 @@ namespace ompl
     {
     public:
 
-        RunPlanner(const Benchmark *benchmark) : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false)
+        RunPlanner(const Benchmark *benchmark, bool useThreads)
+            : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false), useThreads_(useThreads)
         {
         }
 
         void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
         {
+            if (!useThreads_)
+            {
+                runThread(planner, memStart + maxMem, time::seconds(maxTime));
+                return;
+            }
+
             boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
 
             // allow 25% more time than originally specified, in order to detect planner termination
@@ -144,7 +151,7 @@ namespace ompl
         double              timeUsed_;
         machine::MemUsage_t memUsed_;
         bool                crashed_;
-
+        bool                useThreads_;
         msg::Interface      msg_;
     };
 
@@ -200,6 +207,7 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     out << exp_.seed << " is the random seed" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
     out << exp_.maxMem << " MB per run" << std::endl;
+    out << exp_.runCount << " runs per planner" << std::endl;
     out << exp_.totalDuration << " seconds spent to collect the data" << std::endl;
     out << exp_.planners.size() << " planners" << std::endl;
 
@@ -259,7 +267,7 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     return true;
 }
 
-void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress)
+void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress, bool useThreads)
 {
     // sanity checks
     if (gsetup_)
@@ -289,6 +297,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     exp_.totalDuration = 0.0;
     exp_.maxTime = maxTime;
     exp_.maxMem = maxMem;
+    exp_.runCount = runCount;
     exp_.host = machine::getHostname();
     exp_.seed = RNG::getSeed();
 
@@ -319,6 +328,12 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         gsetup_->print(setupInfo);
     else
         csetup_->print(setupInfo);
+    setupInfo << std::endl << "Planner properties:" << std::endl;
+    for (unsigned int i = 0 ; i < planners_.size() ; ++i)
+    {
+        planners_[i]->printProperties(setupInfo);
+        planners_[i]->getParams(exp_.planners[i].common);
+    }
     exp_.setupInfo = setupInfo.str();
 
     msg_.inform("Done saving information");
@@ -332,7 +347,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     boost::shared_ptr<boost::progress_display> progress;
     if (displayProgress)
     {
-        std::cout << "Running experiment " << exp_.name << std::endl;
+        std::cout << "Running experiment " << exp_.name << "." << std::endl;
+        std::cout << "Each planner will be executed " << runCount << " times for at most " << maxTime << " seconds. Memory is limited at " << maxMem << "MB." << std::endl;
         progress.reset(new boost::progress_display(100, std::cout));
     }
 
@@ -398,7 +414,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 msg_.error(es.str());
             }
 
-            RunPlanner rp(this);
+            RunPlanner rp(this, useThreads);
             rp.run(planners_[i], memStart, maxMemBytes, maxTime);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 

@@ -29,6 +29,10 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 For more details, see \ref documentation "the documentation".
 
 \htmlonly<div></div>\endhtmlonly
+The OMPL library is used within <a href="http://www.ros.org">ROS</a>. The ROS interface to OMPL is described <a href="http://www.ros.org/wiki/ompl_ros_interface">here</a>, while a tutorial on using OMPL within ROS is available <a href="http://kavrakilab.org/OMPLtutorial">here</a>.
+
+
+\htmlonly<div></div>\endhtmlonly
 For examples uses of OMPL, see \ref gallery "our gallery page".
 
 */
