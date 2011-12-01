@@ -231,6 +231,9 @@ namespace ompl
                 otherwise. */
             bool setParam(const std::string &key, const std::string &value);
 
+            /** \brief Get the value of a particular. Return false if no value was set */
+            bool getParam(const std::string &key, std::string &value) const;
+
             /** \brief Set a list of key-value pairs as parameters for
                 the planner. Return true if all parameters were set
                 successfully. This function simply calls setParam() multiple times */
@@ -247,6 +250,9 @@ namespace ompl
 
             /** \brief Get the map from parameter names to parameter descriptions */
             const std::map<std::string, GenericParamPtr>& getParams(void) const;
+
+            /** \brief Get the parameter that corresponds to a specified name. An empty shared ptr is returned if the parameter does not exist */
+            const GenericParamPtr& getParam(const std::string &key) const;
 
             /** \brief Get the number of parameters maintained by this instance */
             std::size_t size(void) const

@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/GenericParam.h"
-#include <algorithm>
 
 bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &value)
 {
@@ -61,13 +60,23 @@ bool ompl::base::ParamSet::setParams(const std::map<std::string, std::string> &k
     return result;
 }
 
+bool ompl::base::ParamSet::getParam(const std::string &key, std::string &value) const
+{
+    std::map<std::string, GenericParamPtr>::const_iterator it = params_.find(key);
+    if (it != params_.end())
+    {
+        value = it->second->getValue();
+        return true;
+    }
+    return false;
+}
+
 void ompl::base::ParamSet::getParamNames(std::vector<std::string> &params) const
 {
     params.clear();
     params.reserve(params_.size());
     for (std::map<std::string, GenericParamPtr>::const_iterator it = params_.begin() ; it != params_.end() ; ++it)
         params.push_back(it->first);
-    std::sort(params.begin(), params.end());
 }
 
 void ompl::base::ParamSet::getParamValues(std::vector<std::string> &vals) const
@@ -82,6 +91,16 @@ void ompl::base::ParamSet::getParamValues(std::vector<std::string> &vals) const
 const std::map<std::string, ompl::base::GenericParamPtr>& ompl::base::ParamSet::getParams(void) const
 {
     return params_;
+}
+
+const ompl::base::GenericParamPtr& ompl::base::ParamSet::getParam(const std::string &key) const
+{
+    static GenericParamPtr empty;
+    std::map<std::string, GenericParamPtr>::const_iterator it = params_.find(key);
+    if (it != params_.end())
+        return it->second;
+    else
+        return empty;
 }
 
 void ompl::base::ParamSet::getParams(std::map<std::string, std::string> &params) const
