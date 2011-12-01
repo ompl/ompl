@@ -284,7 +284,7 @@ def save_as_mysql(dbname, mysqldump):
     for line in conn.iterdump():
         process = False
         for nope in ('BEGIN TRANSACTION','COMMIT',
-            'sqlite_sequence','CREATE UNIQUE INDEX'):
+            'sqlite_sequence','CREATE UNIQUE INDEX', 'CREATE VIEW'):
             if nope in line: break
         else:
             process = True
@@ -313,12 +313,51 @@ def save_as_mysql(dbname, mysqldump):
         mysqldump.write(line)
     mysqldump.close()
 
+def compute_views(dbname):
+    conn = sqlite3.connect(dbname)
+    c = conn.cursor()
+    c.execute('PRAGMA FOREIGN_KEYS = ON')
+
+    # best configuration per problem, for each planner
+    c.execute('SELECT DISTINCT planner_name FROM planner_configs')
+    planners = [p[0] for p in c.fetchall() if not p[0] == None]
+    c.execute('SELECT DISTINCT name FROM experiments')
+    exps = [e[0] for e in c.fetchall() if not e[0] == None]
+    for p in planners:
+        # the table name for this planner
+        tname = 'planner_' + p
+        for enm in exps:
+            # select all runs, in all configurations, for a particular problem and a particular planner
+            s0 = 'SELECT * FROM %s INNER JOIN experiments ON %s.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
+            # select the highest solve rate and shortest average runtime for each planner configuration
+            s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
+            c.execute(s1)
+            best = c.fetchone()
+            if not best == None:
+                if not best[0] == None:
+                    bp = 'best_' + enm + '_' + p
+                    print "Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0])
+                    c.execute('DROP VIEW IF EXISTS %s' % bp)
+                    c.execute('CREATE VIEW IF NOT EXISTS %s AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
+
+        c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+        best = c.fetchone()
+        if not best == None:
+            if not best[0] == None:
+                bp = 'best_' + p
+                print "Best overall plannner configuration for planner " + p + " on is " + str(best[0])
+                c.execute('DROP VIEW IF EXISTS %s' % bp)
+                c.execute('CREATE VIEW IF NOT EXISTS %s AS SELECT * FROM %s WHERE plannerid = %s' % (bp, tname, best[0]))
+    conn.commit()
+    c.close()
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
     parser = OptionParser(usage)
     parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
         help="Filename of benchmark database [default: %default]")
+    parser.add_option("-v", "--view", action="store_true", dest="view", default=False,
+        help="Compute the views for best planner configurations")
     parser.add_option("-p", "--plot", dest="plot", default=None,
         help="Create a PDF of plots")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
@@ -327,6 +366,9 @@ if __name__ == "__main__":
 
     if len(args)>0:
         read_benchmark_log(options.dbname, args)
+
+    if options.view:
+        compute_views(options.dbname)
 
     if options.plot:
         plot_statistics(options.dbname, options.plot)
