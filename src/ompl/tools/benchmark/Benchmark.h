@@ -185,6 +185,12 @@ namespace ompl
             planners_.clear();
         }
 
+        /// Set the event to be called before any runs of a particular planner (when the planner is switched)
+        void setPlannerSwitchEvent(const PreSetupEvent &event)
+        {
+            plannerSwitch_ = event;
+        }
+
         /// Set the event to be called before the run of a planner
         void setPreRunEvent(const PreSetupEvent &event)
         {
@@ -255,6 +261,9 @@ namespace ompl
 
         /// The current status of this benchmarking instance
         Status                        status_;
+
+        /// Event to be called when the evaluated planner is switched
+        PreSetupEvent                 plannerSwitch_;
 
         /// Event to be called before the run of a planner
         PreSetupEvent                 preRun_;

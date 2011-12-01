@@ -330,10 +330,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         csetup_->print(setupInfo);
     setupInfo << std::endl << "Planner properties:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
-    {
         planners_[i]->printProperties(setupInfo);
-        planners_[i]->getParams(exp_.planners[i].common);
-    }
     exp_.setupInfo = setupInfo.str();
 
     msg_.inform("Done saving information");
@@ -358,6 +355,30 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
         status_.activePlanner = exp_.planners[i].name;
+        // execute planner switch event, if set
+        try
+        {
+            if (plannerSwitch_)
+            {
+                msg_.inform("Executing planner-switch event for planner %s ...", status_.activePlanner.c_str());
+                plannerSwitch_(planners_[i]);
+                msg_.inform("Completed execution of planner-switch event");
+            }
+        }
+        catch(std::runtime_error &e)
+        {
+            std::stringstream es;
+            es << "There was an error executing the planner-switch event for planner " << status_.activePlanner << std::endl;
+            es << "*** " << e.what() << std::endl;
+            std::cerr << es.str();
+            msg_.error(es.str());
+        }
+        if (gsetup_)
+            gsetup_->setup();
+        else
+            csetup_->setup();
+        planners_[i]->params().getParams(exp_.planners[i].common);
+        planners_[i]->getSpaceInformation()->params().getParams(exp_.planners[i].common);
 
         // run the planner
         for (unsigned int j = 0 ; j < runCount ; ++j)

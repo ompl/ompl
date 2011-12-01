@@ -254,6 +254,18 @@ namespace ompl
                 function automatically. */
             virtual void setup(void);
 
+            /** \brief Get the  parameters for this planning context */
+            base::ParamSet& params(void)
+            {
+                return params_;
+            }
+
+            /** \brief Get the  parameters for this planning context */
+            const base::ParamSet& params(void) const
+            {
+                return params_;
+            }
+
         protected:
 
             /// The created space information
@@ -279,6 +291,9 @@ namespace ompl
 
             /// The amount of time the last path simplification step took
             double                        simplifyTime_;
+
+            /// The parameters that describe the planning context
+            base::ParamSet                params_;
 
             /// Interface for console output
             msg::Interface                msg_;
