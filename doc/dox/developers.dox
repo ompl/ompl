@@ -1,12 +1,12 @@
 /**
 \page developers Developers
 
-OMPL is developed and maintained by the <a href="http://www.kavrakilab.org/">Physical and Biological Computing Group</a> at Rice University, led by <a href="http://www.cs.rice.edu/~kavraki/">Dr. Lydia Kavraki</a>. The development is coordinated by <a href="http://www.cs.rice.edu/~mmoll/">Dr. Mark Moll</a> and  <a href="http://www.cs.rice.edu/~kavraki/">Dr. Lydia Kavraki</a>, but many others have contributed to OMPL as well, as can be seen below.
+OMPL is developed and maintained by the <a href="http://www.kavrakilab.org/">Physical and Biological Computing Group</a> at Rice University, led by <a href="http://www.cs.rice.edu/~kavraki/">Dr. Lydia Kavraki</a>. The development is coordinated by <a href="http://www.cs.rice.edu/~mmoll/">Dr. Mark Moll</a>, <a href="http://www.cs.rice.edu/~kavraki/">Dr. Lydia Kavraki</a> (Rice) and <a href="http://ioan.sucan.ro">Ioan Șucan</a> (Willow Garage) but many others have contributed to OMPL as well, as can be seen below.
 
 \par
 Core developers:
   - <a href="http://www.cs.rice.edu/~mmoll/">Mark Moll</a>, Rice University
-  - <a href="http://ioan.sucan.info">Ioan Șucan</a>, Rice University
+  - <a href="http://ioan.sucan.ro">Ioan Șucan</a>, Willow Garage (formerly Rice University)
   - <a href="http://kavrakilab.org/profiles/mmaly">Matt Maly</a>, Rice University
 
 \par
