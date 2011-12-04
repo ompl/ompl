@@ -85,10 +85,10 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
     si->freeState(temp2);
 }
 
-void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
+bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
 {
     if (path.states.size() < 3)
-        return;
+        return false;
 
     if (maxSteps == 0)
         maxSteps = path.states.size();
@@ -96,6 +96,7 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
     if (maxEmptySteps == 0)
         maxEmptySteps = path.states.size();
 
+    bool result = false;
     unsigned int nochange = 0;
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
 
@@ -127,14 +128,16 @@ void ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
                 si->freeState(path.states[j]);
             path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
             nochange = 0;
+            result = true;
         }
     }
+    return result;
 }
 
-void ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
+bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
 {
     if (path.states.size() < 3)
-        return;
+        return false;
 
     if (maxSteps == 0)
         maxSteps = path.states.size();
@@ -152,7 +155,7 @@ void ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
 
     base::State *temp0 = si->allocState();
     base::State *temp1 = si->allocState();
-
+    bool result = false;
     unsigned int nochange = 0;
     for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
     {
@@ -269,18 +272,20 @@ void ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
                 dists[j] = dists[j - 1] + si->distance(path.states[j-1], path.states[j]);
             threshold = dists.back() * snapToVertex;
             rd = rangeRatio * dists.back();
+            result = true;
             nochange = 0;
         }
     }
 
     si->freeState(temp1);
     si->freeState(temp0);
+    return result;
 }
 
-void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps)
+bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps)
 {
     if (path.states.size() < 3)
-        return;
+        return false;
 
     if (maxSteps == 0)
         maxSteps = path.states.size();
@@ -296,8 +301,8 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
         for (unsigned int j = i + 2 ; j < path.states.size() ; ++j)
             distances[std::make_pair(path.states[i], path.states[j])] = si->distance(path.states[i], path.states[j]);
 
+    bool result = false;
     unsigned int nochange = 0;
-
     for (unsigned int s = 0 ; s < maxSteps && nochange < maxEmptySteps ; ++s, ++nochange)
     {
         // find closest pair of points
@@ -323,6 +328,7 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
                 for (int i = p1 + 1 ; i < p2 ; ++i)
                     si->freeState(path.states[i]);
                 path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
+                result = true;
                 nochange = 0;
             }
             else
@@ -331,13 +337,62 @@ void ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
         else
             break;
     }
+    return result;
 }
 
 void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
     collapseCloseVertices(path);
-    smoothBSpline(path, 5, path.length()/100.0);
+    smoothBSpline(path, 4, path.length()/100.0);
+    const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
+    if (!p.second)
+        msg_.warn("Solution path may slightly touch on an invalid region of the state space");
+    else
+        if (!p.first)
+            msg_.debug("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+}
+
+void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime)
+{
+    simplify(path, base::timedPlannerTerminationCondition(maxTime));
+}
+
+void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc)
+{
+    if (path.states.size() < 3)
+        return;
+
+    // try a randomized step of connecting vertices
+    bool tryMore = false;
+    if (ptc() == false)
+        tryMore = reduceVertices(path);
+
+    // try to collapse close-by vertices
+    if (ptc() == false)
+        collapseCloseVertices(path);
+
+    // try to reduce verices some more, if there is any point in doing so
+    int times = 0;
+    while (tryMore && ptc() == false && ++times <= 5)
+        tryMore = reduceVertices(path);
+
+    // run a more complex short-cut algorithm : allow splitting path segments
+    if (ptc() == false)
+        tryMore = shortcutPath(path);
+    else
+        tryMore = false;
+
+    // run the short-cut algorithm some more, if it makes a difference
+    times = 0;
+    while (tryMore && ptc() == false && ++times <= 5)
+        tryMore = shortcutPath(path);
+
+    // smooth the path
+    if (ptc() == false)
+        smoothBSpline(path, 3, path.length()/100.0);
+
+    // we always run this
     const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
     if (!p.second)
         msg_.warn("Solution path may slightly touch on an invalid region of the state space");

@@ -123,7 +123,7 @@ bool ompl::geometric::SimpleSetup::solve(double time)
     return result;
 }
 
-void ompl::geometric::SimpleSetup::simplifySolution(void)
+void ompl::geometric::SimpleSetup::simplifySolution(double duration)
 {
     if (pdef_ && pdef_->getGoal())
     {
@@ -131,7 +131,10 @@ void ompl::geometric::SimpleSetup::simplifySolution(void)
         if (p)
         {
             time::point start = time::now();
-            psk_->simplifyMax(static_cast<PathGeometric&>(*p));
+            if (duration < std::numeric_limits<double>::epsilon())
+                psk_->simplifyMax(static_cast<PathGeometric&>(*p));
+            else
+                psk_->simplify(static_cast<PathGeometric&>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
             msg_.inform("Path simplification took %f seconds", simplifyTime_);
         }
