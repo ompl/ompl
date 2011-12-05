@@ -374,6 +374,18 @@ namespace ompl
             /** \brief Print properties of the current instance of the state space */
             virtual void printProperties(std::ostream &out = std::cout) const;
 
+            /** \brief Get the combined parameters for the classes that the space information manages */
+            ParamSet& params(void)
+            {
+                return params_;
+            }
+
+            /** \brief Get the combined parameters for the classes that the space information manages */
+            const ParamSet& params(void) const
+            {
+                return params_;
+            }
+
             /** \brief Perform additional setup tasks (run once,
                 before use). If state validity checking resolution has
                 not been set, estimateMaxResolution() is called to
@@ -399,6 +411,9 @@ namespace ompl
 
             /** \brief The optional valid state sampler allocator */
             ValidStateSamplerAllocator vssa_;
+
+            /** \brief Combined parameters for the contained classes */
+            ParamSet                   params_;
 
             /** \brief The console interface */
             msg::Interface             msg_;

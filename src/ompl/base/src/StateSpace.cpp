@@ -37,6 +37,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
 #include <numeric>
 #include <limits>
 #include <queue>
@@ -86,6 +87,14 @@ ompl::base::StateSpace::StateSpace(void)
 
     maxExtent_ = std::numeric_limits<double>::infinity();
 
+    params_.declareParam<double>("longest_valid_segment_fraction", msg_,
+                                 boost::bind(&StateSpace::setLongestValidSegmentFraction, this, _1),
+                                 boost::bind(&StateSpace::getLongestValidSegmentFraction, this));
+
+    params_.declareParam<unsigned int>("valid_segment_count_factor", msg_,
+                                       boost::bind(&StateSpace::setValidSegmentCountFactor, this, _1),
+                                       boost::bind(&StateSpace::getValidSegmentCountFactor, this));
+
     AllocatedSpaces &as = getAllocatedSpaces();
     boost::mutex::scoped_lock smLock(as.lock_);
     as.list_.push_back(this);
@@ -133,8 +142,21 @@ void ompl::base::StateSpace::setup(void)
                     projections_[it->first] = it->second;
         }
 
+    // remove previously set parameters for projections
+    const std::map<std::string, GenericParamPtr> &p = params_.getParams();
+    for (std::map<std::string, GenericParamPtr>::const_iterator it = p.begin() ; it != p.end() ; ++it)
+        if (it->first.substr(0, 11) == "projection.")
+            params_.remove(it->first);
+
+    // setup projections and add their parameters
     for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.begin() ; it != projections_.end() ; ++it)
+    {
         it->second->setup();
+        if (it->first == DEFAULT_PROJECTION_NAME)
+            params_.include(it->second->params(), "projection");
+        else
+            params_.include(it->second->params(), "projection." + it->first);
+    }
 }
 
 double* ompl::base::StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
