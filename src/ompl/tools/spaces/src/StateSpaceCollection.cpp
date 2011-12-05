@@ -55,7 +55,7 @@ void ompl::StateSpaceCollection::collect(const std::vector<base::StateSpacePtr> 
 
 void ompl::StateSpaceCollection::collect(const base::StateSpacePtr &space)
 {
-    if (haveSpace(space))
+    if (!space || haveSpace(space))
         return;
 
     msg_.debug("Became aware of space '%s'", space->getName().c_str());
@@ -83,7 +83,9 @@ bool ompl::StateSpaceCollection::haveSpace(const std::string &name) const
 
 bool ompl::StateSpaceCollection::haveSpace(const base::StateSpacePtr &space) const
 {
-    return haveSpace(space->getName());
+    if (space)
+        return haveSpace(space->getName());
+    return false;
 }
 
 const ompl::base::StateSpacePtr& ompl::StateSpaceCollection::combine(const std::vector<base::StateSpacePtr> &components)
