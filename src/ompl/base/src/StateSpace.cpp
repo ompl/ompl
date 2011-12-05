@@ -250,6 +250,14 @@ bool ompl::base::StateSpace::includes(const StateSpacePtr &other) const
     return StateSpaceIncludes(this, other.get());
 }
 
+void ompl::base::StateSpace::List(std::ostream &out)
+{
+    AllocatedSpaces &as = getAllocatedSpaces();
+    boost::mutex::scoped_lock smLock(as.lock_);
+    for (std::list<StateSpace*>::iterator it = as.list_.begin() ; it != as.list_.end(); ++it)
+        out << "@ " << *it << ": " << (*it)->getName() << std::endl;
+}
+
 void ompl::base::StateSpace::Diagram(std::ostream &out)
 {
     AllocatedSpaces &as = getAllocatedSpaces();

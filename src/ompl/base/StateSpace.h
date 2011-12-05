@@ -309,6 +309,9 @@ namespace ompl
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
             static void Diagram(std::ostream &out);
 
+            /** \brief Print the list of available state space instances */
+            static void List(std::ostream &out);
+
             /** @} */
 
             /** \brief Perform final setup steps. This function is
