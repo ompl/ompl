@@ -76,7 +76,7 @@ void ompl::geometric::EST::clear(void)
 
 void ompl::geometric::EST::freeMemory(void)
 {
-    for (Grid<MotionSet>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
+    for (Grid<MotionInfo>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
     {
         for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
         {
@@ -194,20 +194,20 @@ ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion(void)
 
 void ompl::geometric::EST::addMotion(Motion *motion)
 {
-    Grid<MotionSet>::Coord coord;
+    Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
     GridCell* cell = tree_.grid.getCell(coord);
     if (cell)
     {
         cell->data.push_back(motion);
-        pdf_.update(cellToElem_[cell], 1.0/cell->data.size());
+        pdf_.update(cell->data.elem_, 1.0/cell->data.size());
     }
     else
     {
         cell = tree_.grid.createCell(coord);
         cell->data.push_back(motion);
         tree_.grid.add(cell);
-        cellToElem_[cell] = pdf_.add(cell, 1.0);
+        cell->data.elem_ = pdf_.add(cell, 1.0);
     }
     tree_.size++;
 }
@@ -216,7 +216,7 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<MotionSet> motions;
+    std::vector<MotionInfo> motions;
     tree_.grid.getContent(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)

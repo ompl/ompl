@@ -172,14 +172,41 @@ namespace ompl
                 Motion            *parent;
             };
 
-            /** \brief An array of motions */
-            typedef std::vector<Motion*>  MotionSet;
+            struct MotionInfo;
 
             /** \brief A grid cell */
-            typedef Grid<MotionSet>::Cell GridCell;
+            typedef Grid<MotionInfo>::Cell GridCell;
 
             /** \brief A PDF of grid cells */
             typedef PDF<GridCell*>        CellPDF;
+
+            /** \brief A struct containing an array of motions and a corresponding PDF element */
+            struct MotionInfo
+            {
+                Motion* operator[](unsigned int i)
+                {
+                    return motions_[i];
+                }
+                const Motion* operator[](unsigned int i) const
+                {
+                    return motions_[i];
+                }
+                void push_back(Motion* m)
+                {
+                    motions_.push_back(m);
+                }
+                unsigned int size(void) const
+                {
+                    return motions_.size();
+                }
+                bool empty(void) const
+                {
+                    return motions_.empty();
+                }
+                std::vector<Motion*> motions_;
+                CellPDF::Element*    elem_;
+            };
+
 
             /** \brief The data contained by a tree of exploration */
             struct TreeData
@@ -189,7 +216,7 @@ namespace ompl
                 }
 
                 /** \brief A grid where each cell contains an array of motions */
-                Grid<MotionSet> grid;
+                Grid<MotionInfo> grid;
 
                 /** \brief The total number of motions in the grid */
                 unsigned int    size;
@@ -224,9 +251,6 @@ namespace ompl
 
             /** \brief The PDF used for selecting a cell from which to sample a motion */
             CellPDF                      pdf_;
-
-            /** \brief A map from each grid cell to its corresponding element in the PDF */
-            boost::unordered_map<GridCell*, CellPDF::Element*> cellToElem_;
         };
 
     }
