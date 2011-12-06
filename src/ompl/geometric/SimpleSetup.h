@@ -66,12 +66,7 @@ namespace ompl
 
             /** \brief Constructor needs the state space used for planning. */
             explicit
-            SimpleSetup(const base::StateSpacePtr &space) : configured_(false), planTime_(0.0), simplifyTime_(0.0), msg_("SimpleSetup")
-            {
-                si_.reset(new base::SpaceInformation(space));
-                pdef_.reset(new base::ProblemDefinition(si_));
-                psk_.reset(new PathSimplifier(si_));
-            }
+            SimpleSetup(const base::StateSpacePtr &space);
 
             virtual ~SimpleSetup(void)
             {

@@ -72,6 +72,15 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
     return planner;
 }
 
+ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
+    configured_(false), planTime_(0.0), simplifyTime_(0.0), msg_("SimpleSetup")
+{
+    si_.reset(new base::SpaceInformation(space));
+    pdef_.reset(new base::ProblemDefinition(si_));
+    psk_.reset(new PathSimplifier(si_));
+    params_.include(si_->params());
+}
+
 void ompl::geometric::SimpleSetup::setup(void)
 {
     if (!configured_)
