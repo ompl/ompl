@@ -49,11 +49,14 @@ bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &v
     }
 }
 
-bool ompl::base::ParamSet::setParams(const std::map<std::string, std::string> &kv)
+bool ompl::base::ParamSet::setParams(const std::map<std::string, std::string> &kv, bool ignoreUnknown)
 {
     bool result = true;
     for (std::map<std::string, std::string>::const_iterator it = kv.begin() ; it != kv.end() ; ++it)
     {
+        if (ignoreUnknown)
+            if (!hasParam(it->first))
+                continue;
         bool r = setParam(it->first, it->second);
         result = result && r;
     }
@@ -107,6 +110,11 @@ void ompl::base::ParamSet::getParams(std::map<std::string, std::string> &params)
 {
     for (std::map<std::string, GenericParamPtr>::const_iterator it = params_.begin() ; it != params_.end() ; ++it)
         params[it->first] = it->second->getValue();
+}
+
+bool ompl::base::ParamSet::hasParam(const std::string &key) const
+{
+    return params_.find(key) != params_.end();
 }
 
 void ompl::base::ParamSet::include(const ParamSet &other, const std::string &prefix)
