@@ -83,15 +83,15 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     {
         computeLead(startRegion, goalRegion);
         computeAvailableRegions();
-        for (int i = 0; i < numRegionExpansions_ && !solved; ++i)
+        for (int i = 0; i < numRegionExpansions_ && !solved && !ptc(); ++i)
         {
             const int region = selectRegion();
             bool improved = false;
-            for (int j = 0; j < numTreeSelections_ && !solved; ++j)
+            for (int j = 0; j < numTreeSelections_ && !solved && !ptc(); ++j)
             {
                 newMotions.clear();
                 selectAndExtend(graph_[boost::vertex(region,graph_)], newMotions);
-                for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end(); ++m)
+                for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end() && !ptc(); ++m)
                 {
                     Motion* motion = *m;
                     double distance;
