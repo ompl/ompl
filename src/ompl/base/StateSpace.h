@@ -449,6 +449,12 @@ namespace ompl
                 as components. */
             bool isLocked(void) const;
 
+            /** \brief Lock this state space. This means no further
+                spaces can be added as components.  This function can
+                be for instance called from the constructor of a
+                state space that inherits from CompoundStateSpace to
+                prevent the user to add further components. */
+            void lock(void);
             /** @} */
 
             /** @name Functionality specific to the state space
@@ -496,13 +502,6 @@ namespace ompl
             virtual void printSettings(std::ostream &out) const;
 
             virtual void setup(void);
-
-            /** \brief Lock this state space. This means no further
-                spaces can be added as components.  This function can
-                be for instance called from the constructor of a
-                state space that inherits from CompoundStateSpace to
-                prevent the user to add further components. */
-            void lock(void);
 
         protected:
 
