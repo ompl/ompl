@@ -40,6 +40,8 @@
 #include "ompl/datastructures/Grid.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/ProjectionEvaluator.h"
+#include "ompl/datastructures/PDF.h"
+#include <boost/unordered_map.hpp>
 #include <vector>
 
 namespace ompl
@@ -171,7 +173,13 @@ namespace ompl
             };
 
             /** \brief An array of motions */
-            typedef std::vector<Motion*> MotionSet;
+            typedef std::vector<Motion*>  MotionSet;
+
+            /** \brief A grid cell */
+            typedef Grid<MotionSet>::Cell GridCell;
+
+            /** \brief A PDF of grid cells */
+            typedef PDF<GridCell*>        CellPDF;
 
             /** \brief The data contained by a tree of exploration */
             struct TreeData
@@ -213,6 +221,12 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                          rng_;
+
+            /** \brief The PDF used for selecting a cell from which to sample a motion */
+            CellPDF                      pdf_;
+
+            /** \brief A map from each grid cell to its corresponding element in the PDF */
+            boost::unordered_map<GridCell*, CellPDF::Element*> cellToElem_;
         };
 
     }

@@ -188,20 +188,7 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 
 ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion(void)
 {
-    double sum  = 0.0;
-    Grid<MotionSet>::Cell* cell = NULL;
-    double prob = rng_.uniform01() * (tree_.grid.size() - 1);
-    for (Grid<MotionSet>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
-    {
-        sum += (double)(tree_.size - it->second->data.size()) / (double)tree_.size;
-        if (prob < sum)
-        {
-            cell = it->second;
-            break;
-        }
-    }
-    if (!cell && tree_.grid.size() > 0)
-        cell = tree_.grid.begin()->second;
+    GridCell* cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;
 }
 
@@ -209,14 +196,18 @@ void ompl::geometric::EST::addMotion(Motion *motion)
 {
     Grid<MotionSet>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
-    Grid<MotionSet>::Cell* cell = tree_.grid.getCell(coord);
+    GridCell* cell = tree_.grid.getCell(coord);
     if (cell)
+    {
         cell->data.push_back(motion);
+        pdf_.update(cellToElem_[cell], 1.0/cell->data.size());
+    }
     else
     {
         cell = tree_.grid.createCell(coord);
         cell->data.push_back(motion);
         tree_.grid.add(cell);
+        cellToElem_[cell] = pdf_.add(cell, 1.0);
     }
     tree_.size++;
 }
