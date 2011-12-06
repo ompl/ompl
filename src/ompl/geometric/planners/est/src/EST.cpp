@@ -72,6 +72,7 @@ void ompl::geometric::EST::clear(void)
     freeMemory();
     tree_.grid.clear();
     tree_.size = 0;
+    pdf_.clear();
 }
 
 void ompl::geometric::EST::freeMemory(void)
