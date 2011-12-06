@@ -88,7 +88,7 @@ namespace ompl
         }
 
         /** \brief Adds a piece of data with a given weight to the PDF. Returns a corresponding Element, which can be used to subsequently update or remove the data from the PDF. */
-        Element& add(const _T& d, const double w)
+        Element* add(const _T& d, const double w)
         {
             if (w < 0)
                 throw Exception("Weight argument must be a nonnegative value");
@@ -98,7 +98,7 @@ namespace ompl
             {
                 std::vector<double> r(1, w);
                 tree_.push_back(r);
-                return *elem;
+                return elem;
             }
             tree_.front().push_back(w);
             for (std::size_t i = 1; i < tree_.size(); ++i)
@@ -112,13 +112,13 @@ namespace ompl
                         tree_[i].back() += w;
                         ++i;
                     }
-                    return *elem;
+                    return elem;
                 }
             }
             //If we've made it here, then we need to add a new head to the tree.
             std::vector<double> head(1, tree_.back()[0] + tree_.back()[1]);
             tree_.push_back(head);
-            return *elem;
+            return elem;
         }
 
         /** \brief Returns a piece of data from the PDF according to the input sampling value,
@@ -146,9 +146,9 @@ which must be between 0 and 1. */
         }
 
         /** \brief Updates the data in the given Element with a new weight value. */
-        void update(Element& elem, const double w)
+        void update(Element* elem, const double w)
         {
-            std::size_t index = elem.index_;
+            std::size_t index = elem->index_;
             if (index >= data_.size())
                 throw Exception("Element to update is not in PDF");
             const double weightChange = w - tree_.front()[index];
@@ -162,7 +162,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Removes the data in the given Element from the PDF. After calling this function, the Element object should no longer be used. */
-        void remove(Element& elem)
+        void remove(Element* elem)
         {
             if (data_.size() == 1)
             {
@@ -172,7 +172,7 @@ which must be between 0 and 1. */
                 return;
             }
 
-            const std::size_t index = elem.index_;
+            const std::size_t index = elem->index_;
             delete data_[index];
             std::swap(data_[index], data_.back());
             data_[index]->index_ = index;

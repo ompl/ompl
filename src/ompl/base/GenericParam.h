@@ -236,8 +236,10 @@ namespace ompl
 
             /** \brief Set a list of key-value pairs as parameters for
                 the planner. Return true if all parameters were set
-                successfully. This function simply calls setParam() multiple times */
-            bool setParams(const std::map<std::string, std::string> &kv);
+                successfully. This function simply calls setParam() multiple times.
+                If \e ignoreUnknown is true, then no attempt is made to set unknown
+                parameters (and thus no errors are reported) */
+            bool setParams(const std::map<std::string, std::string> &kv, bool ignoreUnknown = false);
 
             /** \brief Get the known parameter as a map from names to values cast as string */
             void getParams(std::map<std::string, std::string> &params) const;
@@ -253,6 +255,9 @@ namespace ompl
 
             /** \brief Get the parameter that corresponds to a specified name. An empty shared ptr is returned if the parameter does not exist */
             const GenericParamPtr& getParam(const std::string &key) const;
+
+            /** \brief Check whether this set of parameters includes the parameter named \e key */
+            bool hasParam(const std::string &key) const;
 
             /** \brief Get the number of parameters maintained by this instance */
             std::size_t size(void) const

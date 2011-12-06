@@ -76,7 +76,7 @@ void ompl::geometric::EST::clear(void)
 
 void ompl::geometric::EST::freeMemory(void)
 {
-    for (Grid<MotionSet>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
+    for (Grid<MotionInfo>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
     {
         for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
         {
@@ -188,35 +188,26 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 
 ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion(void)
 {
-    double sum  = 0.0;
-    Grid<MotionSet>::Cell* cell = NULL;
-    double prob = rng_.uniform01() * (tree_.grid.size() - 1);
-    for (Grid<MotionSet>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
-    {
-        sum += (double)(tree_.size - it->second->data.size()) / (double)tree_.size;
-        if (prob < sum)
-        {
-            cell = it->second;
-            break;
-        }
-    }
-    if (!cell && tree_.grid.size() > 0)
-        cell = tree_.grid.begin()->second;
+    GridCell* cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;
 }
 
 void ompl::geometric::EST::addMotion(Motion *motion)
 {
-    Grid<MotionSet>::Coord coord;
+    Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
-    Grid<MotionSet>::Cell* cell = tree_.grid.getCell(coord);
+    GridCell* cell = tree_.grid.getCell(coord);
     if (cell)
+    {
         cell->data.push_back(motion);
+        pdf_.update(cell->data.elem_, 1.0/cell->data.size());
+    }
     else
     {
         cell = tree_.grid.createCell(coord);
         cell->data.push_back(motion);
         tree_.grid.add(cell);
+        cell->data.elem_ = pdf_.add(cell, 1.0);
     }
     tree_.size++;
 }
@@ -225,7 +216,7 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<MotionSet> motions;
+    std::vector<MotionInfo> motions;
     tree_.grid.getContent(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
