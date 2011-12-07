@@ -90,7 +90,7 @@ bool ompl::control::RealVectorControlSpace::equalControls(const Control *control
     return true;
 }
 
-ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocControlSampler(void) const
+ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocDefaultControlSampler(void) const
 {
     return ControlSamplerPtr(new RealVectorControlUniformSampler(this));
 }

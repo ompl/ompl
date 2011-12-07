@@ -53,6 +53,14 @@ ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goa
     return planner;
 }
 
+ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
+    configured_(false), planTime_(0.0), msg_("SimpleSetup")
+{
+    si_.reset(new SpaceInformation(space->getStateSpace(), space));
+    pdef_.reset(new base::ProblemDefinition(si_));
+    params_.include(si_->params());
+}
+
 void ompl::control::SimpleSetup::setup(void)
 {
     if (!configured_)
@@ -66,7 +74,7 @@ void ompl::control::SimpleSetup::setup(void)
         {
             if (pa_)
                 planner_ = pa_(si_);
-            else
+            if (!planner_)
             {
                 msg_.inform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
@@ -75,6 +83,10 @@ void ompl::control::SimpleSetup::setup(void)
         planner_->setProblemDefinition(pdef_);
         if (!planner_->isSetup())
             planner_->setup();
+
+        params_.clear();
+        params_.include(si_->params());
+        params_.include(planner_->params());
         configured_ = true;
     }
 }
@@ -123,11 +135,14 @@ void ompl::control::SimpleSetup::print(std::ostream &out) const
 {
     if (si_)
     {
-        si_->printSettings(out);
         si_->printProperties(out);
+        si_->printSettings(out);
     }
     if (planner_)
+    {
         planner_->printProperties(out);
+        planner_->printSettings(out);
+    }
     if (pdef_)
         pdef_->print(out);
 }

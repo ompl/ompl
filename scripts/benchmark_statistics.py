@@ -55,9 +55,9 @@ def read_benchmark_log(dbname, filenames):
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("""CREATE TABLE IF NOT EXISTS experiments
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS planners
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512) NOT NULL, settings TEXT)""")
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
         print "Processing " + filename
         logfile = open(filename,'r')
@@ -73,10 +73,11 @@ def read_benchmark_log(dbname, filenames):
         rseed = int(logfile.readline().split()[0])
         timelimit = float(logfile.readline().split()[0])
         memorylimit = float(logfile.readline().split()[0])
+        nrruns = float(logfile.readline().split()[0])
         totaltime = float(logfile.readline().split()[0])
 
-        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?)',
-              (None, expname, totaltime, timelimit, memorylimit, hostname, date, rseed, expsetup) )
+        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?)',
+              (None, expname, totaltime, timelimit, memorylimit, nrruns, hostname, date, rseed, expsetup) )
         c.execute('SELECT last_insert_rowid()')
         experiment_id = c.fetchone()[0]
         num_planners = int(logfile.readline().split()[0])
@@ -89,13 +90,13 @@ def read_benchmark_log(dbname, filenames):
             num_common = int(logfile.readline().split()[0])
             settings = ""
             for j in range(num_common):
-                settings = settings + logfile.readline()
+                settings = settings + logfile.readline() + ';'
 
             # find planner id
-            c.execute("SELECT id FROM planners WHERE (name=? AND settings=?)", (planner_name, settings,))
+            c.execute("SELECT id FROM planner_configs WHERE (planner_name=? AND settings=?)", (planner_name, settings,))
             p = c.fetchone()
             if p==None:
-                c.execute("INSERT INTO planners VALUES (?,?,?)", (None, planner_name, settings,))
+                c.execute("INSERT INTO planner_configs VALUES (?,?,?)", (None, planner_name, settings,))
                 c.execute('SELECT last_insert_rowid()')
                 planner_id = c.fetchone()[0]
             else:
@@ -122,7 +123,7 @@ def read_benchmark_log(dbname, filenames):
             for k, v in properties.iteritems():
                 table_columns = table_columns + ', ' + k + ' ' + v
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
-            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planners(id) ON DELETE CASCADE"
+            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE"
 
             planner_table = 'planner_%s' % planner_name
             c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table, table_columns))
@@ -201,7 +202,7 @@ def plot_statistics(dbname, fname):
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("SELECT name FROM sqlite_master WHERE type='table'")
     table_names = [ str(t[0]) for t in c.fetchall() ]
-    planner_names = [ t for t in table_names if t.startswith('planner_') ]
+    planner_names = [ t for t in table_names if t.startswith('planner_') and t != 'planner_configs' ]
     attributes = []
     types = {}
     experiments = []
@@ -270,7 +271,7 @@ def save_as_mysql(dbname, mysqldump):
     c.execute("SELECT name FROM sqlite_master WHERE type='table'")
     table_names = [ str(t[0]) for t in c.fetchall() ]
     c.close()
-    last = ['experiments', 'planners']
+    last = ['experiments', 'planner_configs']
     for table in table_names:
         if table.startswith("sqlite"):
             continue
@@ -283,7 +284,7 @@ def save_as_mysql(dbname, mysqldump):
     for line in conn.iterdump():
         process = False
         for nope in ('BEGIN TRANSACTION','COMMIT',
-            'sqlite_sequence','CREATE UNIQUE INDEX'):
+            'sqlite_sequence','CREATE UNIQUE INDEX', 'CREATE VIEW'):
             if nope in line: break
         else:
             process = True
@@ -312,12 +313,51 @@ def save_as_mysql(dbname, mysqldump):
         mysqldump.write(line)
     mysqldump.close()
 
+def compute_views(dbname):
+    conn = sqlite3.connect(dbname)
+    c = conn.cursor()
+    c.execute('PRAGMA FOREIGN_KEYS = ON')
+
+    # best configuration per problem, for each planner
+    c.execute('SELECT DISTINCT planner_name FROM planner_configs')
+    planners = [p[0] for p in c.fetchall() if not p[0] == None]
+    c.execute('SELECT DISTINCT name FROM experiments')
+    exps = [e[0] for e in c.fetchall() if not e[0] == None]
+    for p in planners:
+        # the table name for this planner
+        tname = 'planner_' + p
+        for enm in exps:
+            # select all runs, in all configurations, for a particular problem and a particular planner
+            s0 = 'SELECT * FROM %s INNER JOIN experiments ON %s.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
+            # select the highest solve rate and shortest average runtime for each planner configuration
+            s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
+            c.execute(s1)
+            best = c.fetchone()
+            if not best == None:
+                if not best[0] == None:
+                    bp = 'best_' + enm + '_' + p
+                    print "Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0])
+                    c.execute('DROP VIEW IF EXISTS %s' % bp)
+                    c.execute('CREATE VIEW IF NOT EXISTS %s AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
+
+        c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+        best = c.fetchone()
+        if not best == None:
+            if not best[0] == None:
+                bp = 'best_' + p
+                print "Best overall plannner configuration for planner " + p + " on is " + str(best[0])
+                c.execute('DROP VIEW IF EXISTS %s' % bp)
+                c.execute('CREATE VIEW IF NOT EXISTS %s AS SELECT * FROM %s WHERE plannerid = %s' % (bp, tname, best[0]))
+    conn.commit()
+    c.close()
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
     parser = OptionParser(usage)
     parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
         help="Filename of benchmark database [default: %default]")
+    parser.add_option("-v", "--view", action="store_true", dest="view", default=False,
+        help="Compute the views for best planner configurations")
     parser.add_option("-p", "--plot", dest="plot", default=None,
         help="Create a PDF of plots")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
@@ -326,6 +366,9 @@ if __name__ == "__main__":
 
     if len(args)>0:
         read_benchmark_log(options.dbname, args)
+
+    if options.view:
+        compute_views(options.dbname)
 
     if options.plot:
         plot_statistics(options.dbname, options.plot)

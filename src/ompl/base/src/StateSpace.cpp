@@ -37,6 +37,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
 #include <numeric>
 #include <limits>
 #include <queue>
@@ -50,8 +51,17 @@ namespace ompl
 {
     namespace base
     {
-        static std::list<StateSpace*> STATE_SPACE_LIST;
-        static boost::mutex           STATE_SPACE_LIST_LOCK;
+        struct AllocatedSpaces
+        {
+            std::list<StateSpace*> list_;
+            boost::mutex           lock_;
+        };
+
+        static AllocatedSpaces& getAllocatedSpaces(void)
+        {
+            static AllocatedSpaces as;
+            return as;
+        }
     }
 }
 /// @endcond
@@ -69,9 +79,6 @@ ompl::base::StateSpace::StateSpace(void)
     name_ = "Space" + boost::lexical_cast<std::string>(m);
     msg_.setPrefix(name_);
 
-    boost::mutex::scoped_lock smLock(STATE_SPACE_LIST_LOCK);
-    STATE_SPACE_LIST.push_back(this);
-
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
     longestValidSegmentCountFactor_ = 1;
@@ -79,12 +86,25 @@ ompl::base::StateSpace::StateSpace(void)
     type_ = STATE_SPACE_UNKNOWN;
 
     maxExtent_ = std::numeric_limits<double>::infinity();
+
+    params_.declareParam<double>("longest_valid_segment_fraction", msg_,
+                                 boost::bind(&StateSpace::setLongestValidSegmentFraction, this, _1),
+                                 boost::bind(&StateSpace::getLongestValidSegmentFraction, this));
+
+    params_.declareParam<unsigned int>("valid_segment_count_factor", msg_,
+                                       boost::bind(&StateSpace::setValidSegmentCountFactor, this, _1),
+                                       boost::bind(&StateSpace::getValidSegmentCountFactor, this));
+
+    AllocatedSpaces &as = getAllocatedSpaces();
+    boost::mutex::scoped_lock smLock(as.lock_);
+    as.list_.push_back(this);
 }
 
 ompl::base::StateSpace::~StateSpace(void)
 {
-    boost::mutex::scoped_lock smLock(STATE_SPACE_LIST_LOCK);
-    STATE_SPACE_LIST.remove(this);
+    AllocatedSpaces &as = getAllocatedSpaces();
+    boost::mutex::scoped_lock smLock(as.lock_);
+    as.list_.remove(this);
 }
 
 const std::string& ompl::base::StateSpace::getName(void) const
@@ -122,8 +142,22 @@ void ompl::base::StateSpace::setup(void)
                     projections_[it->first] = it->second;
         }
 
+    // remove previously set parameters for projections
+    std::vector<std::string> pnames;
+    params_.getParamNames(pnames);
+    for (std::vector<std::string>::const_iterator it = pnames.begin() ; it != pnames.end() ; ++it)
+        if (it->substr(0, 11) == "projection.")
+            params_.remove(*it);
+
+    // setup projections and add their parameters
     for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.begin() ; it != projections_.end() ; ++it)
+    {
         it->second->setup();
+        if (it->first == DEFAULT_PROJECTION_NAME)
+            params_.include(it->second->params(), "projection");
+        else
+            params_.include(it->second->params(), "projection." + it->first);
+    }
 }
 
 double* ompl::base::StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
@@ -217,14 +251,23 @@ bool ompl::base::StateSpace::includes(const StateSpacePtr &other) const
     return StateSpaceIncludes(this, other.get());
 }
 
+void ompl::base::StateSpace::List(std::ostream &out)
+{
+    AllocatedSpaces &as = getAllocatedSpaces();
+    boost::mutex::scoped_lock smLock(as.lock_);
+    for (std::list<StateSpace*>::iterator it = as.list_.begin() ; it != as.list_.end(); ++it)
+        out << "@ " << *it << ": " << (*it)->getName() << std::endl;
+}
+
 void ompl::base::StateSpace::Diagram(std::ostream &out)
 {
-    boost::mutex::scoped_lock smLock(STATE_SPACE_LIST_LOCK);
+    AllocatedSpaces &as = getAllocatedSpaces();
+    boost::mutex::scoped_lock smLock(as.lock_);
     out << "digraph StateSpaces {" << std::endl;
-    for (std::list<StateSpace*>::iterator it = STATE_SPACE_LIST.begin() ; it != STATE_SPACE_LIST.end(); ++it)
+    for (std::list<StateSpace*>::iterator it = as.list_.begin() ; it != as.list_.end(); ++it)
     {
         out << '"' << (*it)->getName() << '"' << std::endl;
-        for (std::list<StateSpace*>::iterator jt = STATE_SPACE_LIST.begin() ; jt != STATE_SPACE_LIST.end(); ++jt)
+        for (std::list<StateSpace*>::iterator jt = as.list_.begin() ; jt != as.list_.end(); ++jt)
             if (it != jt)
             {
                 if ((*it)->isCompound() && (*it)->as<CompoundStateSpace>()->hasSubSpace((*jt)->getName()))

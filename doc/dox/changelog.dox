@@ -2,6 +2,33 @@
 
 \page changelog Changelog
 
+\section dec_2_2011 December 2, 2011
+    - Added support for setting generic parameters for various classes in OMPL
+
+\section nov_18_2011 November 18, 2011
+    - Fixed issues with static variables for console
+
+\section nov_3_2011 November 3, 2011
+    - Added RPY sampling to the RNG class
+
+\section oct_21_2011 October 21, 2011
+    - Make some public members protected for GoalState and GoalStates
+
+\section oct_14_2011 October 14, 2011
+    - Added the StateAddress class to allow faster indexing in states using state space names
+
+\section oct_10_2011 October 10, 2011
+    - Added implementation of path hybridization
+
+\section oct_6_2011 October 6, 2011
+    - Added a more advanced path shortcutting method
+
+\section sep_30_2011 September 30 2011
+    - Added control sampler functions that allow specifying an intended direction of propagation
+
+\section aug_19_2011 August 19 2011
+    - Added setMaxNearestNeighbors() to PRM
+
 \section aug_10_2011 August 10, 2011
     - Replaced the implementation of BasicPRM with PRM. Thanks to James Marble, the new implementation uses BGL.
 

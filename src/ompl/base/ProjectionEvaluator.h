@@ -40,6 +40,8 @@
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
+#include "ompl/base/GenericParam.h"
+
 #include <vector>
 #include <valarray>
 #include <iostream>
@@ -135,18 +137,12 @@ namespace ompl
         public:
 
             /** \brief Construct a projection evaluator for a specific state space */
-            ProjectionEvaluator(const StateSpace *space) : space_(space), defaultCellSizes_(true), cellSizesWereInferred_(false)
-            {
-            }
+            ProjectionEvaluator(const StateSpace *space);
 
             /** \brief Construct a projection evaluator for a specific state space */
-            ProjectionEvaluator(const StateSpacePtr &space) : space_(space.get()), defaultCellSizes_(true), cellSizesWereInferred_(false)
-            {
-            }
+            ProjectionEvaluator(const StateSpacePtr &space);
 
-            virtual ~ProjectionEvaluator(void)
-            {
-            }
+            virtual ~ProjectionEvaluator(void);
 
             /** \brief Return the dimension of the projection defined by this evaluator */
             virtual unsigned int getDimension(void) const = 0;
@@ -163,6 +159,15 @@ namespace ompl
                 more. */
             virtual void setCellSizes(const std::vector<double> &cellSizes);
 
+            /** \brief Set the cell sizes to \e cellSize for a particular dimension \e dim. This function simply calls getCellSizes(),
+                modifies the desired dimension and then calls setCellSizes(). This is done intentionally to enforce a call to setCellSizes(). */
+            void setCellSizes(unsigned int dim, double cellSize);
+
+            /** \brief Multiply the cell sizes in each dimension by a specified factor \e factor. This function does nothing
+                if cell sizes have not been set. If cell sizes have been set (irrespective of source; e.g., user, default or inferred),
+                this function will then call setCellSizes(), so the source of the cell sizes will be considered to be the user. */
+            void mulCellSizes(double factor);
+
             /** \brief Return true if any user configuration has been done to this projection evaluator (setCellSizes() was called) */
             bool userConfigured(void) const;
 
@@ -171,6 +176,9 @@ namespace ompl
             {
                 return cellSizes_;
             }
+
+            /** \brief Get the size of a particular dimension of a grid cell  */
+            double getCellSizes(unsigned int dim) const;
 
             /** \brief Check if cell dimensions match projection dimension */
             void checkCellSizes(void) const;
@@ -202,6 +210,18 @@ namespace ompl
                 computeCoordinates(projection, coord);
             }
 
+            /** \brief Get the parameters for this projection */
+            ParamSet& params(void)
+            {
+                return params_;
+            }
+
+            /** \brief Get the parameters for this projection */
+            const ParamSet& params(void) const
+            {
+                return params_;
+            }
+
             /** \brief Print settings about this projection */
             virtual void printSettings(std::ostream &out = std::cout) const;
 
@@ -227,6 +247,9 @@ namespace ompl
             /** \brief Flag indicating whether projection cell sizes
                 were automatically inferred. */
             bool                 cellSizesWereInferred_;
+
+            /** \brief The set of parameters for this projection */
+            ParamSet             params_;
 
             /** \brief The console interface */
             msg::Interface       msg_;

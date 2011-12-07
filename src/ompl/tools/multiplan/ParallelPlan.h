@@ -78,6 +78,9 @@ namespace ompl
         /** \brief Add a planner allocator to use. */
         void addPlannerAllocator(const base::PlannerAllocator &pa);
 
+        /** \brief Clear the set of paths recorded for hybrididzation */
+        void clearHybridizationPaths(void);
+
         /** \brief Clear the set of planners to be benchmarked */
         void clearPlanners(void);
 

@@ -39,6 +39,7 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/geometric/PathGeometric.h"
+#include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Console.h"
@@ -82,7 +83,8 @@ namespace ompl
                 path.  Connection is attempted between non-consecutive
                 way-points on the path. If the connection is
                 successful, the path is shortened by removing the
-                in-between way-points.
+                in-between way-points. This function returns true if
+                changes were made to the path.
 
                 \param path the path to reduce vertices from
 
@@ -105,7 +107,7 @@ namespace ompl
                 the total number of states (between 0 and 1).
 
             */
-            void reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33);
+            bool reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33);
 
             /** \brief Given a path, attempt to shorten it while
                 maintaining its validity. This is an iterative process
@@ -116,7 +118,8 @@ namespace ompl
                 produced by the planner, but intermediate points on
                 the path. If the connection is successful, the path is
                 shortened by removing the in-between states (and new
-                vertices are created when needed).
+                vertices are created when needed). This function returns
+                true if changes were made to the path.
 
                 \param path the path to reduce vertices from
 
@@ -147,7 +150,7 @@ namespace ompl
                 value (e.g., one percent of the total path length:
                 0.01; the default is half a percent)
             */
-            void shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33, double snapToVertex = 0.005);
+            bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to remove vertices from
                 it while keeping the path valid. This is an iterative
@@ -155,7 +158,8 @@ namespace ompl
                 path.  Connection is attempted between non-consecutive
                 states that are close along the path. If the
                 connection is successful, the path is shortened by
-                removing the in-between states.
+                removing the in-between states. This function returns
+                true if changes were made to the path.
 
                 \param path the path to reduce vertices from
 
@@ -173,7 +177,7 @@ namespace ompl
                 consecutive empty steps before the simplification
                 process terminates.
             */
-            void collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0);
+            bool collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0);
 
             /** \brief Given a path, attempt to smooth it (the
                 validity of the path is maintained).
@@ -188,10 +192,16 @@ namespace ompl
                 \note This function may significantly increase the number of states along the solution path. */
             void smoothBSpline(PathGeometric &path, unsigned int maxSteps = 5, double minChange = std::numeric_limits<double>::epsilon());
 
-            /** \brief Given a path, attempt to remove vertices from
-                it while keeping the path valid.  Then, try to smooth
-                the path.  */
-            virtual void simplifyMax(PathGeometric &path);
+            /** \brief Given a path, attempt to remove vertices from it while keeping the path valid.  Then, try to smooth
+                the path. This function always applies the same set of default operations to the path, with the intention of
+                simplifying it. */
+            void simplifyMax(PathGeometric &path);
+
+            /** \brief Run simplification algorithms on the path for at most \e maxTime seconds */
+            void simplify(PathGeometric &path, double maxTime);
+
+            /** \brief Run simplification algorithms on the path as long as the termination condition does not become true */
+            void simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc);
 
         protected:
 

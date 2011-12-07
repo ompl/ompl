@@ -66,11 +66,7 @@ namespace ompl
 
             /** \brief Constructor needs the control space used for planning. */
             explicit
-            SimpleSetup(const ControlSpacePtr &space) : configured_(false), planTime_(0.0), msg_("SimpleSetup")
-            {
-                si_.reset(new SpaceInformation(space->getStateSpace(), space));
-                pdef_.reset(new base::ProblemDefinition(si_));
-            }
+            SimpleSetup(const ControlSpacePtr &space);
 
             virtual ~SimpleSetup(void)
             {
@@ -121,6 +117,12 @@ namespace ompl
             const base::PlannerPtr& getPlanner(void) const
             {
                 return planner_;
+            }
+
+            /** \brief Get the planner allocator */
+            const base::PlannerAllocator& getPlannerAllocator(void) const
+            {
+                return pa_;
             }
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
@@ -248,6 +250,18 @@ namespace ompl
                 function automatically. */
             virtual void setup(void);
 
+            /** \brief Get the  parameters for this planning context */
+            base::ParamSet& params(void)
+            {
+                return params_;
+            }
+
+            /** \brief Get the  parameters for this planning context */
+            const base::ParamSet& params(void) const
+            {
+                return params_;
+            }
+
         protected:
 
             /// The created space information
@@ -267,6 +281,9 @@ namespace ompl
 
             /// The amount of time the last planning step took
             double                        planTime_;
+
+            /// The parameters that describe the planning context
+            base::ParamSet                params_;
 
             /// Interface for console output
             msg::Interface                msg_;

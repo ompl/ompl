@@ -41,6 +41,7 @@
 #include "ompl/base/StateSpaceTypes.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ProjectionEvaluator.h"
+#include "ompl/base/GenericParam.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/concept_check.hpp>
@@ -139,6 +140,18 @@ namespace ompl
                 in this one, or all of its subspaces are included in this one. */
             bool covers(const StateSpacePtr &other) const;
 
+            /** \brief Get the parameters for this space */
+            ParamSet& params(void)
+            {
+                return params_;
+            }
+
+            /** \brief Get the parameters for this space */
+            const ParamSet& params(void) const
+            {
+                return params_;
+            }
+
             /** @} */
 
             /** @name Functionality specific to state spaces (to be implemented by derived state spaces)
@@ -227,8 +240,8 @@ namespace ompl
             /** \brief Allocate an instance of the default uniform state sampler for this space */
             virtual StateSamplerPtr allocDefaultStateSampler(void) const = 0;
 
-            /** \brief Allocate an instance of the uniform state sampler for this space. This sampler will be allocated with the
-                sampler allocator that was previously specified by setSamplerAllocator() or, if no sampler allocator was specified,
+            /** \brief Allocate an instance of the state sampler for this space. This sampler will be allocated with the
+                sampler allocator that was previously specified by setStateSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultStateSampler() is called */
             StateSamplerPtr allocStateSampler(void) const;
 
@@ -296,13 +309,19 @@ namespace ompl
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
             static void Diagram(std::ostream &out);
 
+            /** \brief Print the list of available state space instances */
+            static void List(std::ostream &out);
+
             /** @} */
 
             /** \brief Perform final setup steps. This function is
                 automatically called by the SpaceInformation. If any
                 default projections are to be registered, this call
-                will set them. It is safe to call this function
-                multiple times. */
+                will set them and call their setup() functions. It is
+                safe to call this function multiple times. At a
+                subsequent call, projections that have been previously
+                user configured are not re-instantiated, but their
+                setup() method is still called. */
             virtual void setup(void);
 
         protected:
@@ -330,6 +349,9 @@ namespace ompl
 
             /** \brief List of available projections */
             std::map<std::string, ProjectionEvaluatorPtr> projections_;
+
+            /** \brief The set of parameters for this space */
+            ParamSet                                      params_;
 
             /** \brief Interface used for console output */
             msg::Interface                                msg_;
@@ -427,6 +449,12 @@ namespace ompl
                 as components. */
             bool isLocked(void) const;
 
+            /** \brief Lock this state space. This means no further
+                spaces can be added as components.  This function can
+                be for instance called from the constructor of a
+                state space that inherits from CompoundStateSpace to
+                prevent the user to add further components. */
+            void lock(void);
             /** @} */
 
             /** @name Functionality specific to the state space
@@ -474,13 +502,6 @@ namespace ompl
             virtual void printSettings(std::ostream &out) const;
 
             virtual void setup(void);
-
-            /** \brief Lock this state space. This means no further
-                spaces can be added as components.  This function can
-                be for instance called from the constructor of a
-                state space that inherits from CompoundStateSpace to
-                prevent the user to add further components. */
-            void lock(void);
 
         protected:
 

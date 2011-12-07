@@ -72,6 +72,15 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
     return planner;
 }
 
+ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
+    configured_(false), planTime_(0.0), simplifyTime_(0.0), msg_("SimpleSetup")
+{
+    si_.reset(new base::SpaceInformation(space));
+    pdef_.reset(new base::ProblemDefinition(si_));
+    psk_.reset(new PathSimplifier(si_));
+    params_.include(si_->params());
+}
+
 void ompl::geometric::SimpleSetup::setup(void)
 {
     if (!configured_)
@@ -85,7 +94,7 @@ void ompl::geometric::SimpleSetup::setup(void)
         {
             if (pa_)
                 planner_ = pa_(si_);
-            else
+            if (!planner_)
             {
                 msg_.inform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
@@ -94,6 +103,10 @@ void ompl::geometric::SimpleSetup::setup(void)
         planner_->setProblemDefinition(pdef_);
         if (!planner_->isSetup())
             planner_->setup();
+
+        params_.clear();
+        params_.include(si_->params());
+        params_.include(planner_->params());
         configured_ = true;
     }
 }
@@ -119,7 +132,7 @@ bool ompl::geometric::SimpleSetup::solve(double time)
     return result;
 }
 
-void ompl::geometric::SimpleSetup::simplifySolution(void)
+void ompl::geometric::SimpleSetup::simplifySolution(double duration)
 {
     if (pdef_ && pdef_->getGoal())
     {
@@ -127,7 +140,10 @@ void ompl::geometric::SimpleSetup::simplifySolution(void)
         if (p)
         {
             time::point start = time::now();
-            psk_->simplifyMax(static_cast<PathGeometric&>(*p));
+            if (duration < std::numeric_limits<double>::epsilon())
+                psk_->simplifyMax(static_cast<PathGeometric&>(*p));
+            else
+                psk_->simplify(static_cast<PathGeometric&>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
             msg_.inform("Path simplification took %f seconds", simplifyTime_);
         }
@@ -161,11 +177,14 @@ void ompl::geometric::SimpleSetup::print(std::ostream &out) const
 {
     if (si_)
     {
-        si_->printSettings(out);
         si_->printProperties(out);
+        si_->printSettings(out);
     }
     if (planner_)
+    {
         planner_->printProperties(out);
+        planner_->printSettings(out);
+    }
     if (pdef_)
         pdef_->print(out);
 }

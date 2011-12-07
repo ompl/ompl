@@ -113,7 +113,7 @@ namespace ompl
 
             virtual bool equalControls(const Control *control1, const Control *control2) const;
 
-            virtual ControlSamplerPtr allocControlSampler(void) const;
+            virtual ControlSamplerPtr allocDefaultControlSampler(void) const;
 
             virtual Control* allocControl(void) const;
 

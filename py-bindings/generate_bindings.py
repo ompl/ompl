@@ -518,6 +518,48 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
             self.std_ns.class_('vector< unsigned int >').rename('vectorMilestone')
 
+class ompl_tools_generator_t(code_generator_t):
+    def __init__(self):
+        replacement = default_replacement
+        replacement['::ompl::Benchmark::benchmark'] = ('def("benchmark", &benchmarkWrapper)', """
+        void benchmarkWrapper(%s* obj, double maxTime, double maxMem, unsigned int runCount, bool displayProgress = false)
+        {
+            obj->benchmark(maxTime, maxMem, runCount, displayProgress, false);
+        }
+        """)
+
+        code_generator_t.__init__(self, 'tools',
+            ['bindings/base', 'bindings/geometric', 'bindings/control'], replacement)
+    def filter_declarations(self):
+        code_generator_t.filter_declarations(self)
+        # rename STL vectors/maps of certain types
+        self.std_ns.class_('vector< bool >').rename('vectorBool')
+        self.std_ns.class_('vector< ompl::Benchmark::PlannerExperiment >').rename('vectorPlannerExperiment')
+        self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
+
+        # make objects printable that have a print function
+        self.replace_member_functions(self.ompl_ns.member_functions('print'))
+
+        benchmark_cls = self.ompl_ns.class_('Benchmark')
+        self.replace_member_function(benchmark_cls.member_function('benchmark'))
+        # next five statements take care of weird error in default value for name argument in constructor
+        benchmark_cls.constructors().exclude()
+        benchmark_cls.add_registration_code(
+            'def(bp::init< ompl::geometric::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
+        benchmark_cls.add_wrapper_code(
+            """Benchmark_wrapper(::ompl::geometric::SimpleSetup & setup, const ::std::string & name=std::string() )
+        : ompl::Benchmark( boost::ref(setup), name )
+          , bp::wrapper< ompl::Benchmark >(){}""")
+        benchmark_cls.add_registration_code(
+            'def(bp::init< ompl::control::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
+        benchmark_cls.add_wrapper_code(
+            """Benchmark_wrapper(::ompl::control::SimpleSetup & setup, const ::std::string & name=std::string() )
+          : ompl::Benchmark( boost::ref(setup), name )
+            , bp::wrapper< ompl::Benchmark >(){}""")
+        # don't want to export iostream
+        benchmark_cls.member_function('saveResultsToStream').exclude()
+
+
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
         code_generator_t.__init__(self, 'util')

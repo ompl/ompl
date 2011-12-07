@@ -155,6 +155,15 @@ namespace ompl
             /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
             bool randomValid(unsigned int attempts);
 
+            /** \brief Keep the part of the path that is after \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
+            void keepAfter(const base::State *state);
+
+            /** \brief Keep the part of the path that is before \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
+            void keepBefore(const base::State *state);
+
+            /** \brief Get the index of the way-point along the path that is closest to \e state. Returns -1 for an empty path. */
+            int getClosestIndex(const base::State *state) const;
+
             /** \brief The list of states that make up the path */
             std::vector<base::State*> states;
 
