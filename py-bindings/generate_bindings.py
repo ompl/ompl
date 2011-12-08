@@ -391,7 +391,7 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 
         # do this for all classes that exist with the same name in another namespace
-        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'PlannerData', 'SpaceInformation']:
+        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'PlannerData', 'SpaceInformation']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
         self.ompl_ns.namespace('control').class_('PlannerData').include()
 
@@ -404,7 +404,7 @@ class ompl_control_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['KPIECE1', 'RRT']:
+        for planner in ['KPIECE1', 'RRT', 'EST']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
                     &Control%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
