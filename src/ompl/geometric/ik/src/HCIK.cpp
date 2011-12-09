@@ -36,6 +36,19 @@
 
 #include "ompl/geometric/ik/HCIK.h"
 
+namespace ompl
+{
+    namespace magic
+    {
+
+        /** \brief Maximum number of consecutive failures to allow
+            before giving up on improving a state. A failure consists
+            of being unable to sample a state that is closer to the
+            specified goal region.*/
+        static const unsigned int MAX_HCIK_NO_UPDATE_STEPS = 10;
+    }
+}
+
 bool ompl::geometric::HCIK::tryToImprove(const base::GoalRegion &goal, base::State *state, double nearDistance, double *betterGoalDistance) const
 {
     double tempDistance;
@@ -53,7 +66,7 @@ bool ompl::geometric::HCIK::tryToImprove(const base::GoalRegion &goal, base::Sta
     base::State *test = si_->allocState();
     unsigned int noUpdateSteps = 0;
 
-    for (unsigned int i = 0 ; noUpdateSteps < 10 && i < maxImproveSteps_ ; ++i)
+    for (unsigned int i = 0 ; noUpdateSteps < magic::MAX_HCIK_NO_UPDATE_STEPS && i < maxImproveSteps_ ; ++i)
     {
         bool update = false;
         ss->sampleUniformNear(test, state, nearDistance);
