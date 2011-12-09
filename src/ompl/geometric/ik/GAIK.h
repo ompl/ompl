@@ -195,6 +195,7 @@ namespace ompl
             unsigned int                                 poolSize_;
             unsigned int                                 poolMutation_;
             unsigned int                                 poolRandom_;
+            unsigned int                                 generations_;
             bool                                         checkValidity_;
             bool                                         tryImprove_;
 

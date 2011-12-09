@@ -78,7 +78,16 @@ public:
 bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::GoalRegion *region, const ob::GoalLazySamples *gls, ob::State *result)
 {
     og::GAIK g(si);
-    bool cont = g.solve(1.0, *region, result);
+
+    // we can use a larger time duration for solve(), but we want to demo the ability
+    // of GAIK to continue from where it left off
+    bool cont = false;
+    for (int i = 0 ; i < 100 ; ++i)
+        if (g.solve(0.05, *region, result))
+        {
+            cont = true;
+            break;
+        }
 
     if (cont)
     {

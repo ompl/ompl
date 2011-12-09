@@ -42,7 +42,7 @@
 #include <limits>
 
 ompl::geometric::GAIK::GAIK(const base::SpaceInformationPtr &si) : hcik_(si), si_(si), poolSize_(100), poolMutation_(20), poolRandom_(30),
-                                                                   tryImprove_(false), maxDistance_(0.0), msg_("GAIK")
+                                                                   generations_(0), tryImprove_(false), maxDistance_(0.0), msg_("GAIK")
 {
     hcik_.setMaxImproveSteps(3);
     setValidityCheck(true);
@@ -80,6 +80,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 
     if (pool_.empty())
     {
+        generations_ = 1;
         pool_.resize(maxPoolSize);
         // add hint states
         unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
@@ -182,12 +183,11 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     }
 
     // run the genetic algorithm
-    unsigned int generations = 1;
     unsigned int mutationsSize = poolSize_ + poolMutation_;
 
     while (!solved && time::now() < endTime)
     {
-        generations++;
+        generations_++;
         std::sort(pool_.begin(), pool_.end(), gs);
 
         // add mutations
@@ -226,7 +226,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 
 
     // fill in solution, if found
-    msg_.inform("Ran for %u generations", generations);
+    msg_.inform("Ran for %u generations", generations_);
 
     if (solved)
     {
@@ -285,6 +285,7 @@ void ompl::geometric::GAIK::tryToImprove(const base::GoalRegion &goal, base::Sta
 
 void ompl::geometric::GAIK::clear(void)
 {
+    generations_ = 0;
     pool_.clear();
     sampler_.reset();
 }
