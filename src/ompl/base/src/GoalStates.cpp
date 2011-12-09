@@ -103,11 +103,17 @@ void ompl::base::GoalStates::addState(const ScopedState<> &st)
 
 const ompl::base::State* ompl::base::GoalStates::getState(unsigned int index) const
 {
-    assert(index < states_.size ());
+    if (index < states_.size())
+        throw Exception("Index out of range");
     return states_[index];
 }
 
-std::size_t ompl::base::GoalStates::getStateCount (void) const
+std::size_t ompl::base::GoalStates::getStateCount(void) const
 {
-    return states_.size ();
+    return states_.size();
+}
+
+bool ompl::base::GoalStates::hasStates(void) const
+{
+    return !states_.empty();
 }
