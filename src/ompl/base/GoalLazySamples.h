@@ -134,12 +134,6 @@ namespace ompl
                 return minDist_;
             }
 
-            /** \brief Return true if the last state returned by the sampling function was added. Return false otherwise. */
-            bool wasLastStateAdded(void) const
-            {
-                return lastStateAdded_;
-            }
-
             /** \brief The number of times the sampling function was called and it returned true */
             unsigned int samplingAttemptsCount(void) const
             {
@@ -170,9 +164,6 @@ namespace ompl
 
             /** \brief Additional thread for sampling goal states */
             boost::thread                 *samplingThread_;
-
-            /** \brief Flag indicating whether the last state returned by the sampling function was added or not */
-            bool                           lastStateAdded_;
 
             /** \brief The number of times the sampling function was called and it returned true */
             unsigned int                   samplingAttempts_;
