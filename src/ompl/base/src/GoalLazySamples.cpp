@@ -118,6 +118,11 @@ void ompl::base::GoalLazySamples::sampleGoal(base::State *st) const
     GoalStates::sampleGoal(st);
 }
 
+void ompl::base::GoalLazySamples::setNewStateCallback(const NewStateCallbackFn &callback)
+{
+    callback_ = callback;
+}
+
 void ompl::base::GoalLazySamples::addState(const State* st)
 {
     boost::mutex::scoped_lock slock(lock_);
@@ -126,13 +131,22 @@ void ompl::base::GoalLazySamples::addState(const State* st)
 
 bool ompl::base::GoalLazySamples::addStateIfDifferent(const State* st, double minDistance)
 {
-    boost::mutex::scoped_lock slock(lock_);
-    if (GoalStates::distanceGoal(st) > minDistance)
+    const base::State *newState = NULL;
     {
-        GoalStates::addState(st);
-        lastStateAdded_ = true;
+        boost::mutex::scoped_lock slock(lock_);
+        if (GoalStates::distanceGoal(st) > minDistance)
+        {
+            GoalStates::addState(st);
+            lastStateAdded_ = true;
+            if (callback_)
+                newState = states_.back();
+        }
+        else
+            lastStateAdded_ = false;
     }
-    else
-        lastStateAdded_ = false;
+
+    // the lock is released at this; if needed, issue a call to the callback
+    if (newState)
+        callback_(newState);
     return lastStateAdded_;
 }
