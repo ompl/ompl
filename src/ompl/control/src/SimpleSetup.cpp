@@ -53,6 +53,14 @@ ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goa
     return planner;
 }
 
+ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
+    configured_(false), planTime_(0.0), msg_("SimpleSetup")
+{
+    si_.reset(new SpaceInformation(space->getStateSpace(), space));
+    pdef_.reset(new base::ProblemDefinition(si_));
+    params_.include(si_->params());
+}
+
 void ompl::control::SimpleSetup::setup(void)
 {
     if (!configured_)

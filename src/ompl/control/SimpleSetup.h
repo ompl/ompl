@@ -66,11 +66,7 @@ namespace ompl
 
             /** \brief Constructor needs the control space used for planning. */
             explicit
-            SimpleSetup(const ControlSpacePtr &space) : configured_(false), planTime_(0.0), msg_("SimpleSetup")
-            {
-                si_.reset(new SpaceInformation(space->getStateSpace(), space));
-                pdef_.reset(new base::ProblemDefinition(si_));
-            }
+            SimpleSetup(const ControlSpacePtr &space);
 
             virtual ~SimpleSetup(void)
             {
