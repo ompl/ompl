@@ -37,6 +37,7 @@
 #include "ompl/base/GoalStates.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Exception.h"
+#include <boost/lexical_cast.hpp>
 #include <limits>
 
 ompl::base::GoalStates::~GoalStates(void)
@@ -103,8 +104,9 @@ void ompl::base::GoalStates::addState(const ScopedState<> &st)
 
 const ompl::base::State* ompl::base::GoalStates::getState(unsigned int index) const
 {
-    if (index < states_.size())
-        throw Exception("Index out of range");
+    if (index >= states_.size())
+        throw Exception("Index " + boost::lexical_cast<std::string>(index) + " out of range. Only " +
+                        boost::lexical_cast<std::string>(states_.size()) + " states are available");
     return states_[index];
 }
 
