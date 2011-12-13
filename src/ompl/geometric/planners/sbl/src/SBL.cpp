@@ -349,9 +349,11 @@ void ompl::geometric::SBL::clear(void)
 
     tStart_.grid.clear();
     tStart_.size = 0;
+    tStart_.pdf.clear();
 
     tGoal_.grid.clear();
     tGoal_.size = 0;
+    tGoal_.pdf.clear();
 }
 
 void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
