@@ -4,6 +4,7 @@
 ../src/ompl/geometric/planners/prm/PRM.h
 ../src/ompl/geometric/planners/prm/ConnectionStrategy.h
 ../src/ompl/geometric/planners/est/EST.h
+../src/ompl/geometric/planners/gnat/GNAT.h
 ../src/ompl/geometric/planners/kpiece/KPIECE1.h
 ../src/ompl/geometric/planners/kpiece/BKPIECE1.h
 ../src/ompl/geometric/planners/kpiece/LBKPIECE1.h
