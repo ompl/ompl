@@ -40,13 +40,14 @@
 #include <queue>
 #include <boost/math/constants/constants.hpp>
 
-#define DUBINS_EPS 1e-6
 
 using namespace ompl::base;
 
 namespace
 {
     const double twopi = 2. * boost::math::constants::pi<double>();
+    const double DUBINS_EPS = 1e-6;
+
     inline double mod2pi(double x)
     {
         return x - twopi * floor(x / twopi);
@@ -236,10 +237,12 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
             copyState(state, to);
             return;
         }
-        copyState(state, from);
         if (t<=0.)
+        {
+            copyState(state, from);
             return;
-
+        }
+        
         path = dubins(from, to);
         if (isSymmetric_)
         {
@@ -257,7 +260,7 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
 
 void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPath& path, double t, State *state) const
 {
-    StateType *s  = state->as<StateType>();
+    StateType *s  = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;
 
     s->setXY(0., 0.);
@@ -308,9 +311,11 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPa
             }
         }
     }
-    s->setX(s->getX() * rho_ + from->as<StateType>()->getX());
-    s->setY(s->getY() * rho_ + from->as<StateType>()->getY());
+    state->as<StateType>()->setX(s->getX() * rho_ + from->as<StateType>()->getX());
+    state->as<StateType>()->setY(s->getY() * rho_ + from->as<StateType>()->getY());
     getSubSpace(1)->enforceBounds(s->as<SO2StateSpace::StateType>(1));
+    state->as<StateType>()->setYaw(s->getYaw());
+    freeState(s);
 }
 
 ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1, const State *state2) const
