@@ -192,8 +192,9 @@ void ompl::geometric::GNAT::addMotion(Motion *motion)
 
 ompl::geometric::GNAT::Motion* ompl::geometric::GNAT::selectMotion(void)
 {
-  double borderFraction_ = 0.9;
-	return _nng->sample().getMotion();
+  double borderFraction_ = 0.05;
+	//return _nng->sample(rng_.uniform01() < borderFraction_).getMotion();
+	return _nng->sample(0.0).getMotion();
 }
 void ompl::geometric::GNAT::getPlannerData(base::PlannerData &data) const
 {
