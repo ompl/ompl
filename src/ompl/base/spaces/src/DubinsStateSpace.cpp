@@ -213,8 +213,10 @@ ompl::base::DubinsStateSpace::dubinsPathType[6][3] = {
 
 double ompl::base::DubinsStateSpace::distance(const State *state1, const State *state2) const
 {
-    return rho_ * std::min(DubinsPath(dubins(state1, state2)).length(),
-        DubinsPath(dubins(state2, state1)).length());
+    if (isSymmetric_)
+        return rho_ * std::min(dubins(state1, state2).length(), dubins(state2, state1).length());
+    else
+        return rho_ * dubins(state1, state2).length();
 }
 
 void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
@@ -238,15 +240,15 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
         if (t<=0.)
             return;
 
-        DubinsPath path1(dubins(from, to)), path2(dubins(to, from));
-        double len1 = path1.length(), len2 = path2.length();
-
-        if (len1 < len2)
-            path = path1;
-        else
+        path = dubins(from, to);
+        if (isSymmetric_)
         {
-            path2.reverse_ = true;
-            path = path2;
+            DubinsPath path2(dubins(to, from));
+            if (path2.length() < path.length())
+            {
+                path2.reverse_ = true;
+                path = path2;
+            }
         }
         firstTime = false;
     }

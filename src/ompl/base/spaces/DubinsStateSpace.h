@@ -94,8 +94,8 @@ namespace ompl
                 bool reverse_;
             };
 
-            DubinsStateSpace(double turningRadius = 1.0)
-                : SE2StateSpace(), rho_(turningRadius)
+            DubinsStateSpace(double turningRadius = 1.0, bool isSymmetric = false)
+                : SE2StateSpace(), rho_(turningRadius), isSymmetric_(isSymmetric)
             {
             }
 
@@ -115,6 +115,15 @@ namespace ompl
 
             /** \brief Turning radius */
             double rho_;
+
+            /** \brief Whether the distance is "symmetrized"
+
+                If true the distance from state s1 to state s2 is the same as the
+                distance from s2 to s1. This is done by taking the \b minimum
+                length of the Dubins curves that connect s1 to s2 and s2 to s1. If
+                isSymmetric_ is true, then the distance no longer satisfies the
+                triangle inequality. */
+            bool isSymmetric_;
         };
 
         /** \brief A Dubins motion validator that only uses the state validity checker.
