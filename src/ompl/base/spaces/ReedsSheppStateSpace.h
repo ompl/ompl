@@ -47,11 +47,19 @@ namespace ompl
     {
 
         /** \brief An SE(2) state space where distance is measured by the
-            length of ReedsShepp curves.
+            length of Reeds-Shepp curves.
 
             The notation and solutions are taken from:
-            J.A. Reeds and L.A. Shepp, “Optimal paths for a car that goes both forwards and backwards,”
-            Pacific Journal of Mathematics, 145(2):367–393, 1990.
+            J.A. Reeds and L.A. Shepp, “Optimal paths for a car that goes both
+            forwards and backwards,” Pacific Journal of Mathematics,
+            145(2):367–393, 1990.
+            
+            This implementation explicitly computes all 48 Reeds-Shepp curves
+            and returns the shortest valid solution. This can be improved by
+            using the configuration space partition described in:
+            P. Souères and J.-P. Laumond, “Shortest paths synthesis for a
+            car-like robot,” IEEE Trans. on Automatic Control, 41(5):672–688,
+            May 1996.
             */
         class ReedsSheppStateSpace : public SE2StateSpace
         {
@@ -90,7 +98,7 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 bool& firstTime, ReedsSheppPath& path, State *state) const;
 
-            /** \brief Return the shortest ReedsShepp path from SE(2) state state1 to SE(2) state state2 */
+            /** \brief Return the shortest Reeds-Shepp path from SE(2) state state1 to SE(2) state state2 */
             ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
 
         protected:
@@ -101,7 +109,7 @@ namespace ompl
             double rho_;
         };
 
-        /** \brief A ReedsShepp motion validator that only uses the state validity checker.
+        /** \brief A Reeds-Shepp motion validator that only uses the state validity checker.
             Motions are checked for validity at a specified resolution.
 
             This motion validator is almost identical to the DiscreteMotionValidator

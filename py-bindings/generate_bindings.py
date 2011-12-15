@@ -166,7 +166,8 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename('vectorPlannerSolution')
         self.std_ns.class_('map< std::string, std::string>').rename('mapStringToString')
-        self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::Planner::PlannerParam> >').rename('mapStringToPlannerParamPtr')
+        self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
+        self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force StateSpace::allocState to be exported.
@@ -189,7 +190,7 @@ class ompl_base_generator_t(code_generator_t):
         # add array access to double components of state
         self.add_array_access(bstate,'double')
         # loop over all predefined state spaces
-        for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3', 'Discrete', 'Dubins']:
+        for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3', 'Discrete', 'Time', 'Dubins', 'ReedsShepp']:
             # create a python type for each of their corresponding state types
             state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
             state.rename(stype+'State')
@@ -199,7 +200,7 @@ class ompl_base_generator_t(code_generator_t):
                 'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
             # mark the space statetype as 'internal' to emphasize that it
             # shouldn't typically be used by a regular python user
-            if stype!='Dubins':
+            if stype!='Dubins' and stype!='ReedsShepp':
                 self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                     stype + 'StateInternal')
             # add a constructor that allows, e.g., an State to be constructed from a SE3State
@@ -208,9 +209,11 @@ class ompl_base_generator_t(code_generator_t):
             # add array access to double components of state
             self.add_array_access(state,'double')
         # I don't know how to export a C-style array of an enum type
-        self.ompl_ns.enumeration('DubinsPathSegmentType').exclude()
-        self.ompl_ns.class_('DubinsPath').exclude()
-        self.ompl_ns.class_('DubinsStateSpace').member_function('dubins').exclude()
+        for stype in ['Dubins', 'ReedsShepp']:
+            self.ompl_ns.enumeration(stype + 'PathSegmentType').exclude()
+            self.ompl_ns.class_(stype + 'Path').exclude()
+            self.ompl_ns.class_(stype + 'StateSpace').member_function(
+                stype[0].lower()+stype[1:]).exclude()
         # don't this utility function
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         # don't expose double*

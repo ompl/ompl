@@ -62,10 +62,10 @@ namespace
                 v -= twopi;
         return v;
     }
-    inline void polar(double x, double y, double& r, double& th)
+    inline void polar(double x, double y, double& r, double& theta)
     {
         r = sqrt(x*x + y*y);
-        th = atan2(y, x);
+        theta = atan2(y, x);
     }
     inline void tauOmega(double u, double v, double xi, double eta, double phi, double& tau, double& omega)
     {
@@ -509,8 +509,6 @@ namespace
                 ReedsSheppStateSpace::reedsSheppPathType[17], -t, .5*pi, -u, .5*pi, -v);        
             Lmin = L;
         }
-        std::cerr.precision(20);
-        std::cerr<<x<<' '<<y<<' '<<phi<<std::endl;
     }
 
     ReedsSheppStateSpace::ReedsSheppPath reedsShepp(double x, double y, double phi, bool check)
@@ -551,37 +549,8 @@ ompl::base::ReedsSheppStateSpace::ReedsSheppPath::ReedsSheppPath(const ReedsShep
     double t, double u, double v, double w, double x)
 {
     memcpy(type_, type, 5*sizeof(ReedsSheppPathSegmentType));
-    if (type==reedsSheppPathType[0] || type==reedsSheppPathType[1] 
-        || type==reedsSheppPathType[12] || type==reedsSheppPathType[13]
-        || type==reedsSheppPathType[14] || type==reedsSheppPathType[15])
-    {
-        length_[0] = t; length_[1] = u; length_[2] = v; length_[3] = length_[4] = 0.;
-        totalLength_ = fabs(t) + fabs(u) + fabs(v);
-    }
-    else if (type==reedsSheppPathType[2] || type==reedsSheppPathType[3])
-    {
-        length_[0] = t; length_[1] = u; length_[2] = v; length_[3] = w; length_[4] = 0.;
-        totalLength_ = fabs(t) + fabs(u) + fabs(v) + fabs(w);
-    }
-    else if (type==reedsSheppPathType[4] || type==reedsSheppPathType[5]
-        || type==reedsSheppPathType[8] || type==reedsSheppPathType[9])
-    {
-        length_[0] = t; length_[1] = u; length_[2] = v; length_[3] = w; length_[4] = 0.;
-        totalLength_ = fabs(t) + fabs(u) + fabs(v) + fabs(w);
-    }
-    else if (type==reedsSheppPathType[6] || type==reedsSheppPathType[7]
-        || type==reedsSheppPathType[10] || type==reedsSheppPathType[11])
-    {
-        length_[0] = t; length_[1] = u; length_[2] = v; length_[3] = w; length_[4] = 0.;
-        totalLength_ = fabs(t) + fabs(u) + fabs(v) + fabs(w); 
-    }
-    else if (type==reedsSheppPathType[16] || type==reedsSheppPathType[17])
-    {
-        length_[0] = t; length_[1] = u; length_[2] = v; length_[3] = w; length_[4] = x;
-        totalLength_ = fabs(t) + fabs(u) + fabs(v) + fabs(w) + fabs(x);
-    }
-    else
-        throw Exception("Illegal Reeds-Shepp path type");
+    length_[0] = t; length_[1] = u; length_[2] = v; length_[3] = w; length_[4] = x;
+    totalLength_ = fabs(t) + fabs(u) + fabs(v) + fabs(w) + fabs(x);
 }
 
 
