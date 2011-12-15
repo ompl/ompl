@@ -573,12 +573,14 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Stat
     {
         if (t>=1.)
         {
-            copyState(state, to);
+	    if (to != state)
+		copyState(state, to);
             return;
         }
         if (t<=0.)
         {
-            copyState(state, from);
+	    if (from != state)
+		copyState(state, from);
             return;
         }
         path = reedsShepp(from, to);
