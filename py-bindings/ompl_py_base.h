@@ -41,6 +41,10 @@
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/spaces/DiscreteStateSpace.h"
+#include "ompl/base/spaces/TimeStateSpace.h"
+#include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/Goal.h"
 
 #define DeclareStateType(T) \
     inline int __dummy##T() \
@@ -62,6 +66,15 @@ namespace ompl
         DeclareStateType(SE2);
         DeclareStateType(SE3);
         DeclareStateType(Discrete);
+        DeclareStateType(Time);
+        DeclareStateType(Dubins);
+        DeclareStateType(ReedsShepp);
+
+        inline int dummyVectorPlannerSolution()
+        {
+            return sizeof(std::vector<ompl::base::PlannerSolution>);
+        }
+
     }
 }
 
