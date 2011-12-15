@@ -375,10 +375,10 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           minRadius_(std::numeric_limits<double>::infinity()),
           maxRadius_(-minRadius_), minRange_(degree, minRadius_),
           maxRange_(degree, maxRadius_),
-          _maxActivity(2.0),
           _previousObservedRadius(0.0),
-          _deltaRadius(0.0),
           _activity(-100.0),
+          _deltaRadius(0.0),
+          _maxActivity(2.0),
           _totalChildNodes(0),
           _maxObservedRadius(0.0)
       {
@@ -423,7 +423,6 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 
         const _T& sample(GNAT& gnat, double borderFraction = 0.0, size_t total = 1)
         {
-          bool sampleBorder = 0.5 < borderFraction;
           doubleVect distribution;
           double c = 2.0;
           double d = 1.0;
@@ -439,24 +438,15 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           {
             distribution.clear();
             ompl::Profiler::Begin("GNAT - Child Distribution");
-            if(!sampleBorder) distribution.push_back(M_PI*powf(radius/std::max(gnat.tree_->_maxObservedRadius,1.0),c)*powf(1.0 - (double)t/(double)total,d)*1.0/double(t));
-            else distribution.push_back(0.0);
+            distribution.push_back(M_PI*powf(radius/std::max(gnat.tree_->_maxObservedRadius,1.0),c)*powf(1.0 - (double)t/(double)total,d)*1.0/double(t));
             for(unsigned int i=0; i<children_.size(); ++i)
             {
               size_t N = children_[i]->totalChildren() + 1;
-              if(!sampleBorder)
-              {
                 double radius = children_[i]->maxRadius_;
                 if(radius<=0.0) radius = children_[i]->_maxObservedRadius;
                 if(radius<=0.0) radius = boundingRadius(gnat,children_[i]->pivot_,true);
                 distribution.push_back(M_PI*powf(radius/std::max(gnat.tree_->_maxObservedRadius,1.0),c)*powf(1.0 - (double)N/(double)total,d));
                 //std::cout<<"<"<<N<<"|"<<distribution.back()<<"|"<<children_[i]->maxRadius_<<">,";
-              }
-              else
-              {
-                //distribution.push_back(a*d*V/(double)N);
-                exit(0);
-              }
             }
             ompl::Profiler::End("GNAT - Child Distribution");
             ompl::Profiler::Begin("GNAT - Calculate Distribution");
