@@ -55,6 +55,7 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
 	goalBias_ = 0.05;
 	specs_.approximateSolutions = true;
 	maxDistance_ = 0.0;
+  _borderFraction = 0.0;
 
   Planner::declareParam<double>("range", this, &GNAT::setRange, &GNAT::getRange);
   Planner::declareParam<double>("goal_bias", this, &GNAT::setGoalBias, &GNAT::getGoalBias);
@@ -192,9 +193,7 @@ void ompl::geometric::GNAT::addMotion(Motion *motion)
 
 ompl::geometric::GNAT::Motion* ompl::geometric::GNAT::selectMotion(void)
 {
-  double borderFraction_ = 0.05;
-	//return _nng->sample(rng_.uniform01() < borderFraction_).getMotion();
-	return _nng->sample(0.0).getMotion();
+	return _nng->sample(rng_.uniform01() < _borderFraction).getMotion();
 }
 void ompl::geometric::GNAT::getPlannerData(base::PlannerData &data) const
 {

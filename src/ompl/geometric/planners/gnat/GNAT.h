@@ -151,6 +151,22 @@ namespace ompl
             {
                 return maxDistance_;
             }
+            /** \brief Set the fraction of time for focusing on the
+                border (between 0 and 1). This is the minimum fraction
+                used to select cells that are exterior (minimum
+                because if 95% of cells are on the border, they will
+                be selected with 95% chance, even if this fraction is
+                set to 90%)*/
+            void setBorderFraction(double bp)
+            {
+                _borderFraction = bp;
+            }
+            /** \brief Get the fraction of time to focus exploration
+                on boundary */
+            double getBorderFraction(void) const
+            {
+                return _borderFraction;
+            }
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state.  */
@@ -272,6 +288,8 @@ namespace ompl
 
             /** \brief The maximum length of a motion to be added to a tree */
             double                       maxDistance_;
+
+            double                       _borderFraction;
 
             /** \brief The random number generator */
             RNG                          rng_;
