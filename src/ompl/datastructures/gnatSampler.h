@@ -48,9 +48,6 @@
 #include <queue>
 #include <algorithm>
 
-#ifndef doubleVect
-typedef std::vector<double> doubleVect;
-#endif
 namespace ompl
 {
 
@@ -423,7 +420,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 
         const _T& sample(GNAT& gnat, double borderFraction = 0.0, size_t total = 1)
         {
-          doubleVect distribution;
+          std::vector<double> distribution;
           double c = 2.0;
           double d = 1.0;
           size_t t = totalChildren() + 1;
