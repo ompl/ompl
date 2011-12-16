@@ -375,12 +375,12 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           minRadius_(std::numeric_limits<double>::infinity()),
           maxRadius_(-minRadius_), minRange_(degree, minRadius_),
           maxRange_(degree, maxRadius_),
-          _previousObservedRadius(0.0),
-          _activity(-100.0),
-          _deltaRadius(0.0),
-          _maxActivity(2.0),
           _totalChildNodes(0),
-          _maxObservedRadius(0.0)
+          _maxObservedRadius(0.0),
+          _previousObservedRadius(0.0),
+          _deltaRadius(0.0),
+          _activity(-100.0),
+          _maxActivity(2.0)
       {
         // The "+1" is needed because we add an element before we check whether to split
         data_.reserve(capacity+1);
@@ -406,9 +406,9 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
         double getSamplingProbability(GNAT &gnat)
         {
           double N = double(totalChildren() + 1);
-          double d = (1.0 + 2.0*_deltaRadius);
+          double d = powf(2.0,1.0 + _deltaRadius);
           double a = powf(gnat._dataLeaves.size(),_activity);
-          double c = 2.0;
+          double c = 3.0;
           double V = M_PI*powf(nodeRadius(gnat),c);
           return(a*d*V/(double)N);
         }
@@ -510,15 +510,11 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
             _previousObservedRadius = _maxObservedRadius;
             _maxObservedRadius = r;
             _deltaRadius = _maxObservedRadius - _previousObservedRadius;
-            if(_activity < 0.0)
-              _activity = 1.0;
-            else
-              _activity += 1.0;
+            _activity = 1.0;
           }
           else
           {
-            if(_activity > 1) _activity = 0;
-            else _activity = _activity - 1;
+            _activity = _activity - 1;
             if(_activity<-_maxObservedRadius)
               gnat.removeLeaf(this);
           }
