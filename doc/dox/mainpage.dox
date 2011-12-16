@@ -26,6 +26,7 @@ more information.
 OMPL is intended to be efficient, thread safe, easy to use, easily extensible
 and freely available (visit this project on <a
 href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
+Please read the <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> for a brief background on sampling-based motion planning, and an overview of OMPL.
 For more details, see \ref documentation "the documentation".
 
 \htmlonly<div></div>\endhtmlonly

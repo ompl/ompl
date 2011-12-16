@@ -1,4 +1,5 @@
 ../src/ompl/util/ClassForward.h
+../src/ompl/base/GenericParam.h
 ../src/ompl/base/State.h
 ../src/ompl/base/StateSampler.h
 ../src/ompl/base/ValidStateSampler.h
@@ -28,6 +29,9 @@
 ../src/ompl/base/spaces/SE2StateSpace.h
 ../src/ompl/base/spaces/SE3StateSpace.h
 ../src/ompl/base/spaces/DiscreteStateSpace.h
+../src/ompl/base/spaces/TimeStateSpace.h
+../src/ompl/base/spaces/DubinsStateSpace.h
+../src/ompl/base/spaces/ReedsSheppStateSpace.h
 ../src/ompl/base/samplers/GaussianValidStateSampler.h
 ../src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
 ../src/ompl/base/samplers/ObstacleBasedValidStateSampler.h
