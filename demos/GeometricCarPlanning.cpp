@@ -51,15 +51,13 @@ namespace po = boost::program_options;
 
 bool isStateValidEasy(const ob::SpaceInformation *si, const ob::State *state)
 {
-    const ob::DubinsStateSpace::StateType *s = state->as<ob::DubinsStateSpace::StateType>();
+    const ob::SE2StateSpace::StateType *s = state->as<ob::SE2StateSpace::StateType>();
     double x=s->getX(), y=s->getY();
     return si->satisfiesBounds(s) && (x<5 || x>13 || (y>8.5 && y<9.5));
 }
 
 bool isStateValidHard(const ob::SpaceInformation *si, const ob::State *state)
 {
-    const ob::DubinsStateSpace::StateType *s = state->as<ob::DubinsStateSpace::StateType>();
-    double x=s->getX(), y=s->getY();
     return si->satisfiesBounds(state);
 }
 
@@ -75,7 +73,7 @@ void plan(ob::StateSpacePtr space, bool easy)
         bounds.high[0] = 6;
         bounds.high[1] = .6;
     }
-    space->as<ob::DubinsStateSpace>()->setBounds(bounds);
+    space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
@@ -109,8 +107,8 @@ void plan(ob::StateSpacePtr space, bool easy)
     ss.setup();
     ss.print();
 
-    // attempt to solve the problem within one second of planning time
-    bool solved = ss.solve(100.0);
+    // attempt to solve the problem within 30 seconds of planning time
+    bool solved = ss.solve(30.0);
 
     if (solved)
     {
@@ -160,7 +158,7 @@ void printTrajectory(ob::StateSpacePtr space, const std::vector<double>& pt)
 void printDistanceGrid(ob::StateSpacePtr space)
 {
     // print the distance for (x,y,theta) for all points in a 3D grid in SE(2)
-    // over (-5,5] x (-5, 5] x (-pi,pi].
+    // over [-5,5) x [-5, 5) x [-pi,pi).
     //
     // The output should be redirected to a file, say, distance.txt. This
     // can then be read and plotted in Matlab like so:
@@ -177,9 +175,9 @@ void printDistanceGrid(ob::StateSpacePtr space)
         for (unsigned int j=0; j<num_pts; ++j)
             for (unsigned int k=0; k<num_pts; ++k)
             {
-                to[0] = 5. * (1. - 2. * (double)i/num_pts);
-                to[1] = 5. * (1. - 2. * (double)j/num_pts);
-                to[2] = boost::math::constants::pi<double>() * (1. - 2. * (double)k/num_pts);
+                to[0] = 5. * (2. * (double)i/num_pts - 1.);
+                to[1] = 5. * (2. * (double)j/num_pts - 1.);
+                to[2] = boost::math::constants::pi<double>() * (2. * (double)k/num_pts - 1.);
                 std::cout << space->distance(from(), to()) << '\n';
             }
 
