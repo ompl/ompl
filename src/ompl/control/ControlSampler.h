@@ -43,6 +43,7 @@
 #include "ompl/util/ClassForward.h"
 #include <vector>
 #include <boost/function.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace ompl
 {
@@ -66,7 +67,7 @@ namespace ompl
             from this class. Planners should call the versions of
             sample() and sampleNext() with most arguments, whenever
             this information is available. */
-        class ControlSampler
+        class ControlSampler : private boost::noncopyable
         {
         public:
 
@@ -112,47 +113,6 @@ namespace ompl
                 function planners typically call.  */
             virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
 
-            /** \brief Sample a control given that it will be applied
-                to state \e state and the intention is to reach state
-                \e target. This is useful for some algorithms that
-                have a notion of direction in their exploration (e.g.,
-                \cRRT). By default, this function calls the first definition of sample().  */
-            virtual void sampleTo(Control *control, const base::State *source, const base::State *target);
-
-            /** \brief Sample a control given that it will be applied
-                to state \e state and the intention is to reach state
-                \e target. Also take into account the fact that the
-                previously applied control is \e previous. This is
-                useful for some algorithms that have a notion of
-                direction in their exploration (e.g., \cRRT). By
-                default, this function calls the first definition of
-                sample().  */
-            virtual void sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target);
-
-            /** \brief Sample a control given that it will be applied
-                to state \e state and the intention is to reach state
-                \e target. This is useful for some algorithms that
-                have a notion of direction in their exploration (e.g.,
-                \cRRT). Furthermore, return the duration for which
-                this control should be applied. By default, this
-                function calls the first definition of sample() and
-                returns the value of sampleStepCount(\e minSteps, \e
-                maxSteps).  */
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target);
-
-            /** \brief Sample a control given that it will be applied
-                to state \e state and the intention is to reach state
-                \e target. Also take into account the fact that the
-                previously applied control is \e previous. This is
-                useful for some algorithms that have a notion of
-                direction in their exploration (e.g.,
-                \cRRT). Furthermore, return the duration for which
-                this control should be applied. By default, this
-                function calls the first definition of sample() and
-                returns the value of sampleStepCount(\e minSteps, \e
-                maxSteps).  */
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target);
-
             /** \brief Sample a number of steps to execute a control for */
             virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
 
@@ -190,10 +150,6 @@ namespace ompl
             virtual void sample(Control *control, const base::State *state);
             virtual void sampleNext(Control *control, const Control *previous);
             virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
-            virtual void sampleTo(Control *control, const base::State *source, const base::State *target);
-            virtual void sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target);
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target);
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target);
 
         protected:
 

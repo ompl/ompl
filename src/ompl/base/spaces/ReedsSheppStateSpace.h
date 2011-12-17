@@ -53,7 +53,7 @@ namespace ompl
             J.A. Reeds and L.A. Shepp, “Optimal paths for a car that goes both
             forwards and backwards,” Pacific Journal of Mathematics,
             145(2):367–393, 1990.
-            
+
             This implementation explicitly computes all 48 Reeds-Shepp curves
             and returns the shortest valid solution. This can be improved by
             using the configuration space partition described in:
@@ -73,8 +73,8 @@ namespace ompl
             class ReedsSheppPath
             {
             public:
-                ReedsSheppPath(const ReedsSheppPathSegmentType* type=reedsSheppPathType[0], 
-                    double t=std::numeric_limits<double>::max(), double u=0., double v=0., 
+                ReedsSheppPath(const ReedsSheppPathSegmentType* type=reedsSheppPathType[0],
+                    double t=std::numeric_limits<double>::max(), double u=0., double v=0.,
                     double w=0., double x=0.);
                 double length() const { return totalLength_; }
 

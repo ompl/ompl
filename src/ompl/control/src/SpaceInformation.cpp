@@ -69,6 +69,26 @@ void ompl::control::SpaceInformation::setup(void)
         throw Exception("The dimension of the control space we plan in must be > 0");
 }
 
+ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocDirectedControlSampler(void) const
+{
+    if (dcsa_)
+        return dcsa_(this);
+    else
+        return DirectedControlSamplerPtr(new DirectedControlSampler(this));
+}
+
+void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)
+{
+    dcsa_ = dcsa;
+    setup_ = false;
+}
+
+void ompl::control::SpaceInformation::clearDirectedSamplerAllocator(void)
+{
+    dcsa_ = DirectedControlSamplerAllocator();
+    setup_ = false;
+}
+
 void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn &fn)
 {
     class BoostFnStatePropagator : public StatePropagator

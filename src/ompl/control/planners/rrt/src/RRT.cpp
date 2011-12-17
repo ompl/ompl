@@ -112,7 +112,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
     if (!controlSampler_)
-        controlSampler_ = siC_->allocControlSampler();
+        controlSampler_ = siC_->allocDirectedControlSampler();
 
     msg_.inform("Starting with %u states", nn_->size());
 
