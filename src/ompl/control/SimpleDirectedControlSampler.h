@@ -34,67 +34,56 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_CONTROL_DIRECTED_CONTROL_SAMPLER_
-#define OMPL_CONTROL_DIRECTED_CONTROL_SAMPLER_
+#ifndef OMPL_CONTROL_SIMPLE_DIRECTED_CONTROL_SAMPLER_
+#define OMPL_CONTROL_SIMPLE_DIRECTED_CONTROL_SAMPLER_
 
-#include "ompl/base/State.h"
-#include "ompl/control/Control.h"
-#include "ompl/util/ClassForward.h"
-#include <boost/function.hpp>
-#include <boost/noncopyable.hpp>
+#include "ompl/control/DirectedControlSampler.h"
+#include "ompl/control/ControlSampler.h"
 
 namespace ompl
 {
     namespace control
     {
 
-        /// @cond IGNORE
-        ClassForward(SpaceInformation); 
-	ClassForward(DirectedControlSampler);
-        /// @endcond
-
-        /** \class ompl::control::DirectedControlSamplerPtr
-            \brief A boost shared pointer wrapper for ompl::control::DirectedControlSampler */
-
-        /** \brief Abstract definition of a directed control sampler. Motion
-            planners that need to sample controls that take the system to a desired direction will call functions
-            from this class. Planners should call the versions of sampleTo() with most arguments, whenever this information is available.
-            If no direction information is available, the use of a ControlSampler is perhaps more appropriate. */
-        class DirectedControlSampler : private boost::noncopyable
+        /** \brief Implementation of a simple directed control
+            sampler. This is a basic implementation that does not
+            actually take direction into account and builds upon ControlSampler. */
+        class SimpleDirectedControlSampler : public DirectedControlSampler
         {
         public:
 
             /** \brief Constructor takes the state space to construct samples for as argument */
-            DirectedControlSampler(const SpaceInformation *si) : si_(si)
-            {
-            }
+            SimpleDirectedControlSampler(const SpaceInformation *si);
 
-            virtual ~DirectedControlSampler(void)
-            {
-            }
+            virtual ~SimpleDirectedControlSampler(void);
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
                 \e target. This is useful for some algorithms that
                 have a notion of direction in their exploration (e.g.,
-                \cRRT). */
-            virtual void sampleTo(Control *control, const base::State *source, const base::State *target) = 0;
+                \cRRT). By default, this function calls the second definition of ControlSampler::sample().  */
+            virtual void sampleTo(Control *control, const base::State *source, const base::State *target);
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
                 \e target. Also take into account the fact that the
                 previously applied control is \e previous. This is
                 useful for some algorithms that have a notion of
-                direction in their exploration (e.g., \cRRT) */
-            virtual void sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target) = 0;
+                direction in their exploration (e.g., \cRRT). By
+                default, this function calls the second definition of
+                ControlSampler::sampleNext().  */
+            virtual void sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target);
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
                 \e target. This is useful for some algorithms that
                 have a notion of direction in their exploration (e.g.,
                 \cRRT). Furthermore, return the duration for which
-                this control should be applied. */
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target) = 0;
+                this control should be applied. By default, this
+                function calls the second definition of ControlSampler::sample() and
+                returns the value of ControlSampler::sampleStepCount(\e minSteps, \e
+                maxSteps).  */
+            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target);
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
@@ -103,18 +92,19 @@ namespace ompl
                 useful for some algorithms that have a notion of
                 direction in their exploration (e.g.,
                 \cRRT). Furthermore, return the duration for which
-                this control should be applied. */
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target) = 0;
+                this control should be applied. By default, this
+                function calls the second definition of ControlSampler::sampleNext() and
+                returns the value of ControlSampler::sampleStepCount(\e minSteps, \e
+                maxSteps).  */
+            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target);
 
         protected:
 
-            /** \brief The space information this sampler operates on */
-            const SpaceInformation *si_;
+            /** \brief An instance of the control sampler*/
+            ControlSamplerPtr       cs_;
 
         };
 
-        /** \brief Definition of a function that can allocate a directed control sampler */
-        typedef boost::function1<DirectedControlSamplerPtr, const SpaceInformation*> DirectedControlSamplerAllocator;
     }
 }
 

@@ -169,7 +169,7 @@ namespace ompl
                 return maxSteps_;
             }
 
-            /** \brief Allocate an instance of the DirectedControlSampler to use. This will be the default implementation of DirectedControlSampler unless
+            /** \brief Allocate an instance of the DirectedControlSampler to use. This will be the default (SimpleDirectedControlSampler) unless
                 setDirectedControlSamplerAllocator() was previously called. */
             DirectedControlSamplerPtr allocDirectedControlSampler(void) const;
 

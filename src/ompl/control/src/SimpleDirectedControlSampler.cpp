@@ -34,34 +34,34 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/control/DirectedControlSampler.h"
+#include "ompl/control/SimpleDirectedControlSampler.h"
 #include "ompl/control/SpaceInformation.h"
 
-ompl::control::DirectedControlSampler::DirectedControlSampler(const SpaceInformation *si) : si_(si), cs_(si_->allocControlSampler())
+ompl::control::SimpleDirectedControlSampler::SimpleDirectedControlSampler(const SpaceInformation *si) : DirectedControlSampler(si), cs_(si->allocControlSampler())
 {
 }
 
-ompl::control::DirectedControlSampler::~DirectedControlSampler(void)
+ompl::control::SimpleDirectedControlSampler::~SimpleDirectedControlSampler(void)
 {
 }
 
-void ompl::control::DirectedControlSampler::sampleTo(Control *control, const base::State *source, const base::State *target)
+void ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const base::State *source, const base::State *target)
 {
     cs_->sample(control, source);
 }
 
-void ompl::control::DirectedControlSampler::sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target)
+void ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target)
 {
     cs_->sampleNext(control, previous, source);
 }
 
-unsigned int ompl::control::DirectedControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target)
+unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target)
 {
     cs_->sample(control, source);
     return cs_->sampleStepCount(minSteps, maxSteps);
 }
 
-unsigned int ompl::control::DirectedControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target)
+unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target)
 {
     cs_->sampleNext(control, previous, source);
     return cs_->sampleStepCount(minSteps, maxSteps);

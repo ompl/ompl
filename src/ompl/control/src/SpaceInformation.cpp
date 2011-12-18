@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/SpaceInformation.h"
+#include "ompl/control/SimpleDirectedControlSampler.h"
 #include "ompl/util/Exception.h"
 #include <cassert>
 #include <utility>
@@ -74,7 +75,7 @@ ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocD
     if (dcsa_)
         return dcsa_(this);
     else
-        return DirectedControlSamplerPtr(new DirectedControlSampler(this));
+        return DirectedControlSamplerPtr(new SimpleDirectedControlSampler(this));
 }
 
 void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)
