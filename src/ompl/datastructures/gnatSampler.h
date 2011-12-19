@@ -95,6 +95,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 
 
 	public:
+    typedef std::map<Node*,double> nodeDistribution;
 		gnatSampler(unsigned int degree = 4, unsigned int minDegree = 2,
 				unsigned int maxDegree = 6, unsigned int maxNumPtsPerLeaf = 50,
 				unsigned int removedCacheSize = 50)
@@ -103,6 +104,10 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 			maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0), removedCacheSize_(removedCacheSize)
 	{
 	}
+    const nodeDistribution &getDataLeaves()
+    {
+      return _dataLeaves;
+    }
 
 		const _T& sample( double borderFraction = 0.0)
 		{
@@ -111,6 +116,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
         ompl::Profiler::Begin("Check border distribution");
         std::vector<Node*> r2 = rng_.discreteDistributionMap<Node*>(_dataLeaves,1);
         ompl::Profiler::End("Check border distribution");
+        //std::cout<<"Sampling with probability: "<<r2[0]->getSamplingProbability(*this,true)<<" "<<_dataLeaves[r2[0]]<<" "<<r2[0]->_activity<<" "<<r2[0]->data_.size()<<std::endl;
         return r2[0]->sample(*this);
       }
       else
@@ -177,6 +183,8 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
         {
           tree_->data_.push_back(data[i]);
           tree_->_totalChildNodes++;
+          addLeaf(tree_);
+          tree_->updateExpanding(*this,data[i]);
           double r = distFun_(data[i],tree_->pivot_);
           if(r>tree_->_maxObservedRadius) tree_->_maxObservedRadius = r;
         }
@@ -377,7 +385,11 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           _previousObservedRadius(0.0),
           _deltaRadius(0.0),
           _activity(-100.0),
-          _maxActivity(2.0)
+          _maxActivity(2.0),
+          _cachedBorderProbability(-1.0),
+          _cachedSamplingProbability(-1.0),
+          _cachedRadius(-1.0),
+          _cachedVolume(-1.0)
       {
         // The "+1" is needed because we add an element before we check whether to split
         data_.reserve(capacity+1);
@@ -390,6 +402,27 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
             delete children_[i];
         }
 
+        double approximateVolume(GNAT &gnat)
+        {
+          //if(_cachedVolume >= 0.0) return _cachedVolume;
+          double V = 0.0;
+          if(data_.size() || (!children_.size() && !data_.size()))
+          {
+            double c = 2.0;
+            double radius = nodeRadius(gnat);
+            //V = 4.0/3.0*M_PI*powf(radius,c);
+            V = M_PI*powf(radius,c);
+          }
+          else
+          {
+            V = 0.0;
+            for(size_t k=0; k<children_.size(); k++)
+              V+=children_[k]->approximateVolume(gnat);
+          }
+          _cachedVolume = V;
+          return V;
+        }
+
         double boundingRadius(GNAT &gnat, const _T&data, bool isPivot)
         {
           NearQueue nbh;
@@ -400,21 +433,49 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           else return 0.0;
         }
 
-        double getSamplingProbability(GNAT &gnat)
+        double getSamplingProbability(GNAT &gnat, bool border)
         {
+          /*
+          if(border)
+          {
+            if(_cachedBorderProbability >= 0.0) std::cout<<"Calculating cached: "<<_cachedBorderProbability<<std::endl;
+            if(_cachedBorderProbability >= 0.0) return _cachedBorderProbability;
+          }
+          else
+          {
+            if(_cachedSamplingProbability >= 0.0) return _cachedSamplingProbability;
+          }
+          */
           double N = double(totalChildren() + 1);
-          double d = powf(2.0,1.0 + _deltaRadius);
-          double a = powf(gnat._dataLeaves.size(),_activity);
-          double c = 3.0;
-          double V = M_PI*powf(nodeRadius(gnat),c);
-          return(a*d*V/(double)N);
+          double c = 2.0;
+          //double V = M_PI*powf(nodeRadius(gnat),c);
+          double V = approximateVolume(gnat);
+          double total = double(gnat.size());
+          if(border)
+          {
+            double a = powf(3.0,_activity);
+            double d = powf(2.0,1.0 + _deltaRadius);
+            //double p = a*d*V*(1.0-N/total);
+            double p = (a*d*V);
+            //std::cout<<"Calculating real: "<<p<<" "<<_activity<<" "<<data_.size()<<std::endl;
+            _cachedBorderProbability = p;
+            return p;
+          }
+          else
+          {
+            double p = V*(1.0-N/total);
+            _cachedSamplingProbability = p;
+            return p;
+          }
         }
 
         double nodeRadius(GNAT& gnat)
         {
+          //if(_cachedRadius >= 0.0) return _cachedRadius;
           double radius = maxRadius_;
           if(radius<=0.0) radius = _maxObservedRadius;
-          if(radius<=0.0) radius = boundingRadius(gnat,pivot_,true);
+          if(radius<=0.0) radius = boundingRadius(gnat,pivot_,true)/2.0;
+          _cachedRadius = radius;
           return radius;
         }
 
@@ -424,32 +485,22 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           double c = 2.0;
           double d = 1.0;
           size_t t = totalChildren() + 1;
-          if(total==1) total = t;
-          double radius = maxRadius_;
-          if(radius<=0.0)
-          {
-            radius = _maxObservedRadius;
-          }
 
           if(data_.size()==0)
           {
             distribution.clear();
             ompl::Profiler::Begin("GNAT - Child Distribution");
-            distribution.push_back(M_PI*powf(radius/std::max(gnat.tree_->_maxObservedRadius,1.0),c)*powf(1.0 - (double)t/(double)total,d)*1.0/double(t));
+            distribution.push_back(getSamplingProbability(gnat,false)*1.0/double(t));
             for(unsigned int i=0; i<children_.size(); ++i)
             {
-              size_t N = children_[i]->totalChildren() + 1;
-                double radius = children_[i]->maxRadius_;
-                if(radius<=0.0) radius = children_[i]->_maxObservedRadius;
-                if(radius<=0.0) radius = boundingRadius(gnat,children_[i]->pivot_,true);
-                distribution.push_back(M_PI*powf(radius/std::max(gnat.tree_->_maxObservedRadius,1.0),c)*powf(1.0 - (double)N/(double)total,d));
-                //std::cout<<"<"<<N<<"|"<<distribution.back()<<"|"<<children_[i]->maxRadius_<<">,";
+              distribution.push_back(children_[i]->getSamplingProbability(gnat,false));
+              //std::cout<<"<"<<N<<"|"<<distribution.back()<<"|"<<children_[i]->maxRadius_<<">,";
             }
             ompl::Profiler::End("GNAT - Child Distribution");
             ompl::Profiler::Begin("GNAT - Calculate Distribution");
             std::vector<size_t> r2 = gnat.rng_.discreteDistribution(distribution,1);
             ompl::Profiler::End("GNAT - Calculate Distribution");
-            if(r2[0] == 0) return pivot_;
+            if(r2[0] == 0) {if(data_.size()) std::cout<<"Sampling pivot"<<std::endl; return pivot_;}
             else return children_[r2[0]-1]->sample(gnat,borderFraction,total);
           }
           else
@@ -457,11 +508,11 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
             if(data_.size() == 0) return pivot_;
             distribution.clear();
             ompl::Profiler::Begin("GNAT - Data Distribution");
-            distribution.push_back(M_PI*powf(boundingRadius(gnat,pivot_,true)/std::max(gnat.tree_->_maxObservedRadius,1.0),c));
+            distribution.push_back(M_PI*powf(boundingRadius(gnat,pivot_,true),c));
             for(size_t k=0; k<data_.size(); k++)
             {
               double radius = boundingRadius(gnat,data_[k],false);
-              distribution.push_back(M_PI*powf(radius/std::max(gnat.tree_->_maxObservedRadius,1.0),c));
+              distribution.push_back(M_PI*powf(radius,c));
             }
             ompl::Profiler::End("GNAT - Data Distribution");
             ompl::Profiler::Begin("GNAT - Calculate Data Distribution");
@@ -497,24 +548,42 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           return _totalChildNodes;
         }
 
-        void add(GNAT& gnat, const _T& data)
+        void resetCachedValues()
         {
-          ompl::Profiler::Begin("GNAT - Add data");
-          _totalChildNodes++;
+          _cachedSamplingProbability = -1.0;
+          _cachedBorderProbability = -1.0;
+          _cachedRadius = -1.0;
+          _cachedVolume = -1.0;
+        }
+
+        void updateExpanding(GNAT &gnat, const _T&data)
+        {
           double r = gnat.distFun_(data,pivot_);
-          if(r>_maxObservedRadius) 
+          //std::cout<<"Ok, sampling here: "<<r<<" "<<nodeRadius(gnat)<<" "<<_activity<<std::endl;
+          if(r>_maxObservedRadius)
           {
+            //std::cout<<"So I guess this never happens..."<<std::endl;
             _previousObservedRadius = _maxObservedRadius;
             _maxObservedRadius = r;
             _deltaRadius = _maxObservedRadius - _previousObservedRadius;
             _activity = 1.0;
+            //std::cout<<_activity<<" "<<getSamplingProbability(gnat,true)<<std::endl;
           }
           else
           {
             _activity = _activity - 1;
-            if(_activity<-_maxObservedRadius)
-              gnat.removeLeaf(this);
+            //if(_activity<-_maxObservedRadius)
+            //gnat.removeLeaf(this);
           }
+
+        }
+
+        void add(GNAT& gnat, const _T& data)
+        {
+          resetCachedValues();
+          ompl::Profiler::Begin("GNAT - Add data");
+          _totalChildNodes++;
+          updateExpanding(gnat,data);
           if (children_.size()==0)
           {
             data_.push_back(data);
@@ -543,14 +612,26 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
             for (unsigned int i=0; i<children_.size(); ++i)
             {
               if (children_[i]->minRange_[minInd] > dist[i])
+              {
                 children_[i]->minRange_[minInd] = dist[i];
+                children_[i]->resetCachedValues();
+              }
               if (children_[i]->maxRange_[minInd] < dist[i])
+              {
                 children_[i]->maxRange_[minInd] = dist[i];
+                children_[i]->resetCachedValues();
+              }
             }
             if (minDist < children_[minInd]->minRadius_)
+            {
               children_[minInd]->minRadius_ = minDist;
+              children_[minInd]->resetCachedValues();
+            }
             if (minDist > children_[minInd]->maxRadius_)
+            {
               children_[minInd]->maxRadius_ = minDist;
+              children_[minInd]->resetCachedValues();
+            }
 
             children_[minInd]->add(gnat, data);
           }
@@ -574,9 +655,9 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           for(unsigned int i=0; i<pivots.size(); i++)
           {
             children_.push_back(new Node(degree_, gnat.maxNumPtsPerLeaf_, data_[pivots[i]]));
-            children_.back()->_activity = 0.0;
-            if(_activity > -_maxObservedRadius)
-              gnat.addLeaf(children_.back());
+            children_.back()->_activity = _activity;
+            //if(_activity > -_maxObservedRadius)
+            gnat.addLeaf(children_.back());
           }
           degree_ = pivots.size(); // in case fewer than degree_ pivots were found
           for (unsigned int j=0; j<data_.size(); ++j)
@@ -591,16 +672,30 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
               child->data_.push_back(data_[j]);
               child->_totalChildNodes++;
               if (dists[j][k] > child->maxRadius_)
+              {
                 child->maxRadius_ = dists[j][k];
+                child->resetCachedValues();
+              }
               if (dists[j][k] < child->minRadius_)
+              {
                 child->minRadius_ = dists[j][k];
+                child->resetCachedValues();
+              }
+              child->updateExpanding(gnat,data_[j]);
+              gnat.addLeaf(child);
             }
             for (unsigned int i=0; i<degree_; ++i)
             {
               if (children_[i]->minRange_[k] > dists[j][i])
+              {
                 children_[i]->minRange_[k] = dists[j][i];
+                children_[i]->resetCachedValues();
+              }
               if (children_[i]->maxRange_[k] < dists[j][i])
+              {
                 children_[i]->maxRange_[k] = dists[j][i];
+                children_[i]->resetCachedValues();
+              }
             }
           }
 
@@ -612,7 +707,10 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
                   gnat.minDegree_), gnat.maxDegree_);
             // singleton
             if (children_[i]->minRadius_ == std::numeric_limits<double>::infinity())
+            {
               children_[i]->minRadius_ = children_[i]->maxRadius_ = 0.;
+              children_[i]->resetCachedValues();
+            }
           }
           // this does more than clear(); it also sets capacity to 0 and frees the memory
           std::vector<_T> tmp;
@@ -621,7 +719,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           for (unsigned int i=0; i<degree_; ++i)
             if (children_[i]->needToSplit(gnat))
               children_[i]->split(gnat);
-          ompl::Profiler::Begin("GNAT - Split Node");
+          ompl::Profiler::End("GNAT - Split Node");
         }
 
         // return true iff data was added to nbh.
@@ -791,13 +889,14 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
         double _deltaRadius;
         double _activity;
         double _maxActivity;
+        double _cachedBorderProbability, _cachedSamplingProbability, _cachedRadius, _cachedVolume;
     };
 
-    std::map<Node*,double> _dataLeaves;
+    nodeDistribution _dataLeaves;
 
     void addLeaf(Node* a)
     {
-      _dataLeaves[a] = a->getSamplingProbability(*this);
+      _dataLeaves[a] = a->getSamplingProbability(*this,true);
     }
 
     void removeLeaf(Node *a)
@@ -807,6 +906,8 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
         _dataLeaves.erase(a);
       }
     }
+
+    
 
     /** \brief The data elements stored in this structure */
     Node                  *tree_;

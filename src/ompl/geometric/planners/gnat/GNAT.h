@@ -95,6 +95,7 @@ namespace ompl
 
             virtual void clear(void);
 
+            
             class compactState
 						{
 							public:
@@ -112,6 +113,11 @@ namespace ompl
 								base::SpaceInformationPtr _si;
 								base::ProjectionEvaluatorPtr _proj;
 						};
+            typedef boost::shared_ptr<gnatSampler<ompl::geometric::GNAT::compactState> > gnatSamplerType;
+            gnatSamplerType& getSampler()
+            {
+              return _nng;
+            }
 
 						static double defaultDistanceFunction(const ompl::geometric::GNAT::compactState &A, const ompl::geometric::GNAT::compactState &B);
 						static double defaultProjectionDistanceFunction(const ompl::geometric::GNAT::compactState &A, const ompl::geometric::GNAT::compactState &B);
