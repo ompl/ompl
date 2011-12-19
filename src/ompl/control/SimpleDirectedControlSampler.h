@@ -59,6 +59,18 @@ namespace ompl
 
             virtual ~SimpleDirectedControlSampler(void);
 
+            /** \brief Retrieve the number of controls to generate when finding the best control. */
+            unsigned int getNumControlSamples (void) const
+            {
+                return numControlSamples_;
+            }
+
+            /** \brief Set the number of controls to generate when finding the best control. */
+            void setNumControlSamples (unsigned int numSamples)
+            {
+                numControlSamples_ = numSamples;
+            }
+
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
                 \e target. This is useful for some algorithms that
