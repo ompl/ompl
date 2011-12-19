@@ -52,8 +52,10 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor takes the state space to construct samples for as argument */
-            SimpleDirectedControlSampler(const SpaceInformation *si);
+            /** \brief Constructor takes the state space to construct samples for as argument
+                Optionally, a \e k value can be given to indicate the number of controls to
+                try when directing a system toward a specific state.  Default value is 1. */
+            SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k = 1);
 
             virtual ~SimpleDirectedControlSampler(void);
 
@@ -100,8 +102,15 @@ namespace ompl
 
         protected:
 
+            /** \brief Samples \e numControlSamples_ controls, and returns the
+                control that brings the system the closest to \e target */
+            virtual unsigned int getBestControl (Control *control, unsigned int minDuration, unsigned int maxDuration, const base::State *source, const base::State *target, const Control *previous);
+
             /** \brief An instance of the control sampler*/
             ControlSamplerPtr       cs_;
+
+            /** \brief The number of controls to sample when finding the best control*/
+            unsigned int            numControlSamples_;
 
         };
 
