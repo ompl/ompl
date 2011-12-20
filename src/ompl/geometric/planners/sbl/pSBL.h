@@ -41,6 +41,7 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/base/StateSamplerArray.h"
 #include "ompl/datastructures/Grid.h"
+#include "ompl/datastructures/PDF.h"
 #include <boost/thread/mutex.hpp>
 #include <vector>
 
@@ -149,7 +150,13 @@ namespace ompl
         protected:
 
             class Motion;
-            typedef std::vector<Motion*> MotionSet;
+            struct MotionInfo;
+
+            /** \brief A grid cell */
+            typedef Grid<MotionInfo>::Cell GridCell;
+
+            /** \brief A PDF of grid cells */
+            typedef PDF<GridCell*>         CellPDF;
 
             class Motion
             {
@@ -167,12 +174,43 @@ namespace ompl
                 {
                 }
 
-                const base::State *root;
-                base::State       *state;
-                Motion            *parent;
-                bool               valid;
-                MotionSet          children;
-                boost::mutex       lock;
+                const base::State   *root;
+                base::State         *state;
+                Motion              *parent;
+                bool                 valid;
+                std::vector<Motion*> children;
+                boost::mutex         lock;
+            };
+
+            /** \brief A struct containing an array of motions and a corresponding PDF element */
+            struct MotionInfo
+            {
+                Motion* operator[](unsigned int i)
+                {
+                    return motions_[i];
+                }
+                std::vector<Motion*>::iterator begin (void)
+                {
+                    return motions_.begin ();
+                }
+                void erase (std::vector<Motion*>::iterator iter)
+                {
+                    motions_.erase (iter);
+                }
+                void push_back(Motion* m)
+                {
+                    motions_.push_back(m);
+                }
+                unsigned int size(void) const
+                {
+                    return motions_.size();
+                }
+                bool empty(void) const
+                {
+                    return motions_.empty();
+                }
+                std::vector<Motion*> motions_;
+                CellPDF::Element*    elem_;
             };
 
             struct TreeData
@@ -181,9 +219,10 @@ namespace ompl
                 {
                 }
 
-                Grid<MotionSet> grid;
-                unsigned int    size;
-                boost::mutex    lock;
+                Grid<MotionInfo> grid;
+                unsigned int     size;
+                CellPDF          pdf;
+                boost::mutex     lock;
             };
 
             struct SolutionInfo
@@ -213,7 +252,7 @@ namespace ompl
                 freeGridMotions(tGoal_.grid);
             }
 
-            void freeGridMotions(Grid<MotionSet> &grid);
+            void freeGridMotions(Grid<MotionInfo> &grid);
 
             void addMotion(TreeData &tree, Motion *motion);
             Motion* selectMotion(RNG &rng, TreeData &tree);

@@ -4,6 +4,7 @@
 \section gettingStarted Getting Started
 
 - Follow the instructions to \ref download "download" and \ref installation "install" OMPL.
+- Read the <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a>.
 - Read the \ref api_overview "API overview".
 - Familiarize yourself with the \ref boost "Boost structures" used throughout the OMPL API.
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".

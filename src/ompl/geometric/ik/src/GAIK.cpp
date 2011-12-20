@@ -37,15 +37,29 @@
 #include "ompl/geometric/ik/GAIK.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/Exception.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
 #include <limits>
+
+ompl::geometric::GAIK::GAIK(const base::SpaceInformationPtr &si) : hcik_(si), si_(si), poolSize_(100), poolMutation_(20), poolRandom_(30),
+                                                                   generations_(0), tryImprove_(false), maxDistance_(0.0), msg_("GAIK")
+{
+    hcik_.setMaxImproveSteps(3);
+    setValidityCheck(true);
+}
+
+ompl::geometric::GAIK::~GAIK(void)
+{
+    for (unsigned int i = 0 ; i < pool_.size() ; ++i)
+        si_->freeState(pool_[i].state);
+}
 
 bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal, base::State *result, const std::vector<base::State*> &hint)
 {
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
     {
-        maxDistance_ = si_->getMaximumExtent() / 5.0;
-        msg_.inform("The maximum distance for sampling around states is assumed to be %f", maxDistance_);
+        SelfConfig sc(si_, "GAIK");
+        sc.configurePlannerRange(maxDistance_);
     }
 
     if (poolSize_ < 1)
@@ -54,87 +68,136 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
         return false;
     }
 
-    time::point             endTime = time::now() + time::seconds(solveTime);
+    time::point    endTime = time::now() + time::seconds(solveTime);
 
-    unsigned int            maxPoolSize = poolSize_ + poolMutation_ + poolRandom_;
-    std::vector<Individual> pool(maxPoolSize);
-    IndividualSort          gs;
-    bool                    solved = false;
-    int                     solution = -1;
+    unsigned int   maxPoolSize = poolSize_ + poolMutation_ + poolRandom_;
+    IndividualSort gs;
+    bool           solved = false;
+    int            solution = -1;
 
-    base::StateSamplerPtr sampler = si_->allocStateSampler();
+    if (!sampler_)
+        sampler_ = si_->allocStateSampler();
 
-    // add hint states
-    unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
-    for (unsigned int i = 0 ; i < nh ; ++i)
+    if (pool_.empty())
     {
-        pool[i].state = si_->cloneState(hint[i]);
-        si_->enforceBounds(pool[i].state);
-        pool[i].valid = valid(pool[i].state);
-        if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
+        generations_ = 1;
+        pool_.resize(maxPoolSize);
+        // add hint states
+        unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
+        for (unsigned int i = 0 ; i < nh ; ++i)
         {
-            if (pool[i].valid)
+            pool_[i].state = si_->cloneState(hint[i]);
+            si_->enforceBounds(pool_[i].state);
+            pool_[i].valid = valid(pool_[i].state);
+            if (goal.isSatisfied(pool_[i].state, &(pool_[i].distance)))
             {
-                solved = true;
-                solution = i;
-            }
-        }
-    }
-
-    // add states near the hint states
-    unsigned int nh2 = nh * 2;
-    if (nh2 < maxPoolSize)
-    {
-        for (unsigned int i = nh ; i < nh2 ; ++i)
-        {
-            pool[i].state = si_->allocState();
-            sampler->sampleUniformNear(pool[i].state, pool[i % nh].state, maxDistance_);
-            pool[i].valid = valid(pool[i].state);
-            if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
-            {
-                if (pool[i].valid)
+                if (pool_[i].valid)
                 {
                     solved = true;
                     solution = i;
                 }
             }
         }
-        nh = nh2;
-    }
 
-    // add random states
-    for (unsigned int i = nh ; i < maxPoolSize ; ++i)
-    {
-        pool[i].state = si_->allocState();
-        sampler->sampleUniform(pool[i].state);
-        pool[i].valid = valid(pool[i].state);
-        if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
+        // add states near the hint states
+        unsigned int nh2 = nh * 2;
+        if (nh2 < maxPoolSize)
         {
-            if (pool[i].valid)
+            for (unsigned int i = nh ; i < nh2 ; ++i)
             {
-                solved = true;
-                solution = i;
+                pool_[i].state = si_->allocState();
+                sampler_->sampleUniformNear(pool_[i].state, pool_[i % nh].state, maxDistance_);
+                pool_[i].valid = valid(pool_[i].state);
+                if (goal.isSatisfied(pool_[i].state, &(pool_[i].distance)))
+                {
+                    if (pool_[i].valid)
+                    {
+                        solved = true;
+                        solution = i;
+                    }
+                }
+            }
+            nh = nh2;
+        }
+
+        // add random states
+        for (unsigned int i = nh ; i < maxPoolSize ; ++i)
+        {
+            pool_[i].state = si_->allocState();
+            sampler_->sampleUniform(pool_[i].state);
+            pool_[i].valid = valid(pool_[i].state);
+            if (goal.isSatisfied(pool_[i].state, &(pool_[i].distance)))
+            {
+                if (pool_[i].valid)
+                {
+                    solved = true;
+                    solution = i;
+                }
+            }
+        }
+    }
+    else
+    {
+        std::size_t initialSize = pool_.size();
+        // free extra memory if needed
+        for (std::size_t i = maxPoolSize ; i < initialSize ; ++i)
+            si_->freeState(pool_[i].state);
+        pool_.resize(maxPoolSize);
+        // alloc extra memory if needed
+        for (std::size_t i = initialSize ; i < pool_.size() ; ++i)
+            pool_[i].state = si_->allocState();
+
+        // add hint states at the bottom of the pool
+        unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
+        for (unsigned int i = 0 ; i < nh ; ++i)
+        {
+            std::size_t pi = maxPoolSize - i - 1;
+            si_->copyState(pool_[pi].state, hint[i]);
+            si_->enforceBounds(pool_[pi].state);
+            pool_[pi].valid = valid(pool_[pi].state);
+            if (goal.isSatisfied(pool_[pi].state, &(pool_[pi].distance)))
+            {
+                if (pool_[pi].valid)
+                {
+                    solved = true;
+                    solution = pi;
+                }
+            }
+        }
+
+        // add random states if needed
+        nh = maxPoolSize - nh;
+        for (std::size_t i = initialSize ; i < nh ; ++i)
+        {
+            sampler_->sampleUniform(pool_[i].state);
+            pool_[i].valid = valid(pool_[i].state);
+            if (goal.isSatisfied(pool_[i].state, &(pool_[i].distance)))
+            {
+                if (pool_[i].valid)
+                {
+                    solved = true;
+                    solution = i;
+                }
             }
         }
     }
 
     // run the genetic algorithm
-    unsigned int generations = 1;
     unsigned int mutationsSize = poolSize_ + poolMutation_;
 
     while (!solved && time::now() < endTime)
     {
-        generations++;
-        std::sort(pool.begin(), pool.end(), gs);
+        generations_++;
+        std::sort(pool_.begin(), pool_.end(), gs);
 
         // add mutations
         for (unsigned int i = poolSize_ ; i < mutationsSize ; ++i)
         {
-            sampler->sampleUniformNear(pool[i].state, pool[i % poolSize_].state, maxDistance_);
-            pool[i].valid = valid(pool[i].state);
-            if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
+            sampler_->sampleUniformNear(pool_[i].state, pool_[i % poolSize_].state, maxDistance_);
+            pool_[i].valid = valid(pool_[i].state);
+            if (goal.isSatisfied(pool_[i].state, &(pool_[i].distance)))
             {
-                if (pool[i].valid)
+                if (pool_[i].valid)
                 {
                     solved = true;
                     solution = i;
@@ -147,11 +210,11 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
         if (!solved)
             for (unsigned int i = mutationsSize ; i < maxPoolSize ; ++i)
             {
-                sampler->sampleUniform(pool[i].state);
-                pool[i].valid = valid(pool[i].state);
-                if (goal.isSatisfied(pool[i].state, &(pool[i].distance)))
+                sampler_->sampleUniform(pool_[i].state);
+                pool_[i].valid = valid(pool_[i].state);
+                if (goal.isSatisfied(pool_[i].state, &(pool_[i].distance)))
                 {
-                    if (pool[i].valid)
+                    if (pool_[i].valid)
                     {
                         solved = true;
                         solution = i;
@@ -163,53 +226,52 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 
 
     // fill in solution, if found
-    msg_.inform("Ran for %u generations", generations);
+    msg_.inform("Ran for %u generations", generations_);
 
     if (solved)
     {
         // set the solution
-        si_->copyState(result, pool[solution].state);
+        si_->copyState(result, pool_[solution].state);
 
         // try to improve the solution
-        tryToImprove(goal, result, pool[solution].distance);
+        if (tryImprove_)
+            tryToImprove(goal, result, pool_[solution].distance);
 
         // if improving the state made it invalid, revert
         if (!valid(result))
-            si_->copyState(result, pool[solution].state);
+            si_->copyState(result, pool_[solution].state);
     }
     else
-    {
-        /* one last attempt to find a solution */
-        std::sort(pool.begin(), pool.end(), gs);
-        for (unsigned int i = 0 ; i < 5 ; ++i)
+        if (tryImprove_)
         {
-            // get a valid state that is closer to the goal
-            if (pool[i].valid)
+            /* one last attempt to find a solution */
+            std::sort(pool_.begin(), pool_.end(), gs);
+            for (unsigned int i = 0 ; i < 5 ; ++i)
             {
-                // set the solution
-                si_->copyState(result, pool[i].state);
+                // get a valid state that is closer to the goal
+                if (pool_[i].valid)
+                {
+                    // set the solution
+                    si_->copyState(result, pool_[i].state);
 
-                // try to improve the state
-                tryToImprove(goal, result, pool[i].distance);
+                    // try to improve the state
+                    tryToImprove(goal, result, pool_[i].distance);
 
-                // if the improvement made the state no longer valid, revert to previous one
-                if (!valid(result))
-                    si_->copyState(result, pool[i].state);
-                else
-                    solved = goal.isSatisfied(result);
-                if (solved)
-                    break;
+                    // if the improvement made the state no longer valid, revert to previous one
+                    if (!valid(result))
+                        si_->copyState(result, pool_[i].state);
+                    else
+                        solved = goal.isSatisfied(result);
+                    if (solved)
+                        break;
+                }
             }
         }
-    }
-
-    for (unsigned int i = 0 ; i < maxPoolSize ; ++i)
-        si_->freeState(pool[i].state);
 
     return solved;
 }
 
-bool ompl::geometric::GAIK::tryToImprove(const base::GoalRegion &goal, base::State *state, double distance)
+void ompl::geometric::GAIK::tryToImprove(const base::GoalRegion &goal, base::State *state, double distance)
 {
     msg_.debug("Distance to goal before improvement: %g", distance);
     time::point start = time::now();
@@ -219,5 +281,11 @@ bool ompl::geometric::GAIK::tryToImprove(const base::GoalRegion &goal, base::Sta
     hcik_.tryToImprove(goal, state, dist / 10.0, &distance);
     msg_.debug("Improvement took  %u ms", (time::now() - start).total_milliseconds());
     msg_.debug("Distance to goal after improvement: %g", distance);
-    return true;
+}
+
+void ompl::geometric::GAIK::clear(void)
+{
+    generations_ = 0;
+    pool_.clear();
+    sampler_.reset();
 }

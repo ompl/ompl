@@ -39,7 +39,7 @@
 #include "ompl/util/Time.h"
 
 ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart, double minDist) :
-    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL), lastStateAdded_(false), samplingAttempts_(0), minDist_(minDist)
+    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(NULL), samplingAttempts_(0), minDist_(minDist)
 {
     type_ = GOAL_LAZY_SAMPLES;
     if (autoStart)
@@ -118,21 +118,52 @@ void ompl::base::GoalLazySamples::sampleGoal(base::State *st) const
     GoalStates::sampleGoal(st);
 }
 
+void ompl::base::GoalLazySamples::setNewStateCallback(const NewStateCallbackFn &callback)
+{
+    callback_ = callback;
+}
+
 void ompl::base::GoalLazySamples::addState(const State* st)
 {
     boost::mutex::scoped_lock slock(lock_);
     GoalStates::addState(st);
 }
 
-bool ompl::base::GoalLazySamples::addStateIfDifferent(const State* st, double minDistance)
+const ompl::base::State* ompl::base::GoalLazySamples::getState(unsigned int index) const
 {
     boost::mutex::scoped_lock slock(lock_);
-    if (GoalStates::distanceGoal(st) > minDistance)
+    return GoalStates::getState(index);
+}
+
+bool ompl::base::GoalLazySamples::hasStates(void) const
+{
+    boost::mutex::scoped_lock slock(lock_);
+    return GoalStates::hasStates();
+}
+
+std::size_t ompl::base::GoalLazySamples::getStateCount(void) const
+{
+    boost::mutex::scoped_lock slock(lock_);
+    return GoalStates::getStateCount();
+}
+
+bool ompl::base::GoalLazySamples::addStateIfDifferent(const State* st, double minDistance)
+{
+    const base::State *newState = NULL;
+    bool added = false;
     {
-        GoalStates::addState(st);
-        lastStateAdded_ = true;
+        boost::mutex::scoped_lock slock(lock_);
+        if (GoalStates::distanceGoal(st) > minDistance)
+        {
+            GoalStates::addState(st);
+            added = true;
+            if (callback_)
+                newState = states_.back();
+        }
     }
-    else
-        lastStateAdded_ = false;
-    return lastStateAdded_;
+
+    // the lock is released at this; if needed, issue a call to the callback
+    if (newState)
+        callback_(newState);
+    return added;
 }

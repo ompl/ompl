@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/control/ControlSpace.h"
 #include "ompl/control/ControlSampler.h"
+#include "ompl/control/DirectedControlSampler.h"
 #include "ompl/control/StatePropagator.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
@@ -167,6 +168,17 @@ namespace ompl
             {
                 return maxSteps_;
             }
+
+            /** \brief Allocate an instance of the DirectedControlSampler to use. This will be the default (SimpleDirectedControlSampler) unless
+                setDirectedControlSamplerAllocator() was previously called. */
+            DirectedControlSamplerPtr allocDirectedControlSampler(void) const;
+
+            /** \brief Set the allocator to use for the  DirectedControlSampler */
+            void setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa);
+
+            /** \brief Reset the DirectedControlSampler to be the default one */
+            void clearDirectedSamplerAllocator(void);
+
             /** @} */
 
             /** @name Configuration of the state propagator
@@ -258,19 +270,22 @@ namespace ompl
         protected:
 
             /** \brief The control space describing the space of controls applicable to states in the state space */
-            ControlSpacePtr    controlSpace_;
+            ControlSpacePtr                 controlSpace_;
 
             /** \brief The state propagator used to model the motion of the system being planned for */
-            StatePropagatorPtr statePropagator_;
+            StatePropagatorPtr              statePropagator_;
 
             /** \brief The minimum number of steps to apply a control for */
-            unsigned int       minSteps_;
+            unsigned int                    minSteps_;
 
             /** \brief The maximum number of steps to apply a control for */
-            unsigned int       maxSteps_;
+            unsigned int                    maxSteps_;
+
+            /** \brief Optional allocator for the DirectedControlSampler. If not specified, the default implementation is used */
+            DirectedControlSamplerAllocator dcsa_;
 
             /** \brief The actual duration of each step */
-            double             stepSize_;
+            double                          stepSize_;
 
         };
 

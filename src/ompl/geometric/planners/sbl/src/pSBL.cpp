@@ -79,22 +79,26 @@ void ompl::geometric::pSBL::clear(void)
 
     tStart_.grid.clear();
     tStart_.size = 0;
+    tStart_.pdf.clear();
 
     tGoal_.grid.clear();
     tGoal_.size = 0;
+    tGoal_.pdf.clear();
 
     removeList_.motions.clear();
 }
 
-void ompl::geometric::pSBL::freeGridMotions(Grid<MotionSet> &grid)
+void ompl::geometric::pSBL::freeGridMotions(Grid<MotionInfo> &grid)
 {
-    for (Grid<MotionSet>::iterator it = grid.begin(); it != grid.end() ; ++it)
+    for (Grid<MotionInfo>::iterator it = grid.begin(); it != grid.end() ; ++it)
+    {
         for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
         {
             if (it->second->data[i]->state)
                 si_->freeState(it->second->data[i]->state);
             delete it->second->data[i];
         }
+    }
 }
 
 void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
@@ -250,11 +254,11 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
 
 bool ompl::geometric::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)
 {
-    Grid<MotionSet>::Coord coord;
+    Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
 
     otherTree.lock.lock();
-    Grid<MotionSet>::Cell* cell = otherTree.grid.getCell(coord);
+    Grid<MotionInfo>::Cell* cell = otherTree.grid.getCell(coord);
 
     if (cell && !cell->data.empty())
     {
@@ -351,23 +355,10 @@ bool ompl::geometric::pSBL::isPathValid(TreeData &tree, Motion *motion)
 
 ompl::geometric::pSBL::Motion* ompl::geometric::pSBL::selectMotion(RNG &rng, TreeData &tree)
 {
-    double sum  = 0.0;
-    Grid<MotionSet>::Cell* cell = NULL;
-    tree.lock.lock();
-    double prob = rng.uniform01() * (tree.grid.size() - 1);
-    for (Grid<MotionSet>::iterator it = tree.grid.begin(); it != tree.grid.end() ; ++it)
-    {
-        sum += (double)(tree.size - it->second->data.size()) / (double)tree.size;
-        if (prob < sum)
-        {
-            cell = it->second;
-            break;
-        }
-    }
-    if (!cell && tree.grid.size() > 0)
-        cell = tree.grid.begin()->second;
-    ompl::geometric::pSBL::Motion* result = cell->data[rng.uniformInt(0, cell->data.size() - 1)];
-    tree.lock.unlock();
+    tree.lock.lock ();
+    GridCell* cell = tree.pdf.sample(rng.uniform01());
+    Motion* result = cell && !cell->data.empty() ? cell->data[rng.uniformInt(0, cell->data.size() - 1)] : NULL;
+    tree.lock.unlock ();
     return result;
 }
 
@@ -376,9 +367,9 @@ void ompl::geometric::pSBL::removeMotion(TreeData &tree, Motion *motion, std::ma
     /* remove from grid */
     seen[motion] = true;
 
-    Grid<MotionSet>::Coord coord;
+    Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
-    Grid<MotionSet>::Cell* cell = tree.grid.getCell(coord);
+    Grid<MotionInfo>::Cell* cell = tree.grid.getCell(coord);
     if (cell)
     {
         for (unsigned int i = 0 ; i < cell->data.size(); ++i)
@@ -392,6 +383,11 @@ void ompl::geometric::pSBL::removeMotion(TreeData &tree, Motion *motion, std::ma
         {
             tree.grid.remove(cell);
             tree.grid.destroyCell(cell);
+            tree.pdf.remove (cell->data.elem_);
+        }
+        else
+        {
+            tree.pdf.update(cell->data.elem_, 1.0/cell->data.size());
         }
     }
 
@@ -421,17 +417,21 @@ void ompl::geometric::pSBL::removeMotion(TreeData &tree, Motion *motion, std::ma
 
 void ompl::geometric::pSBL::addMotion(TreeData &tree, Motion *motion)
 {
-    Grid<MotionSet>::Coord coord;
+    Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
     tree.lock.lock();
-    Grid<MotionSet>::Cell* cell = tree.grid.getCell(coord);
+    Grid<MotionInfo>::Cell* cell = tree.grid.getCell(coord);
     if (cell)
+    {
         cell->data.push_back(motion);
+        tree.pdf.update(cell->data.elem_, 1.0/cell->data.size());
+    }
     else
     {
         cell = tree.grid.createCell(coord);
         cell->data.push_back(motion);
         tree.grid.add(cell);
+        cell->data.elem_ = tree.pdf.add(cell, 1.0);
     }
     tree.size++;
     tree.lock.unlock();
@@ -441,7 +441,7 @@ void ompl::geometric::pSBL::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<MotionSet> motions;
+    std::vector<MotionInfo> motions;
     tStart_.grid.getContent(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)

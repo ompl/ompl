@@ -77,16 +77,13 @@ namespace ompl
             virtual void clear(void);
 
             /** \brief Check if there are any states in this goal region */
-            bool hasStates(void) const
-            {
-                return !states_.empty();
-            }
+            virtual bool hasStates(void) const;
 
             /** \brief Return a pointer to the indexth state in the state list */
-            const State* getState(unsigned int index) const;
+            virtual const State* getState(unsigned int index) const;
 
             /** \brief Return the number of valid goal states */
-            std::size_t getStateCount (void) const;
+            virtual std::size_t getStateCount(void) const;
 
         protected:
 

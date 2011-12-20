@@ -40,6 +40,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/Grid.h"
+#include "ompl/datastructures/PDF.h"
 #include <vector>
 
 namespace ompl
@@ -138,10 +139,13 @@ namespace ompl
 
         protected:
 
-            class Motion;
+            struct MotionInfo;
 
-            /** \brief An array of motions */
-            typedef std::vector<Motion*> MotionSet;
+            /** \brief A grid cell */
+            typedef Grid<MotionInfo>::Cell GridCell;
+
+            /** \brief A PDF of grid cells */
+            typedef PDF<GridCell*>         CellPDF;
 
             /** \brief Representation of a motion */
             class Motion
@@ -158,24 +162,51 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
-                {
-                }
-
                 /** \brief The root of the tree this motion would get to, if we were to follow parent pointers */
-                const base::State *root;
+                const base::State   *root;
 
                 /** \brief The state this motion leads to */
-                base::State       *state;
+                base::State         *state;
 
                 /** \brief The parent motion -- it contains the state this motion originates at */
-                Motion            *parent;
+                Motion              *parent;
 
                 /** \brief Flag indicating whether this motion has been checked for validity. */
-                bool               valid;
+                bool                 valid;
 
                 /** \brief The set of motions descending from the current motion */
-                MotionSet          children;
+                std::vector<Motion*> children;
+            };
+
+            /** \brief A struct containing an array of motions and a corresponding PDF element */
+            struct MotionInfo
+            {
+                Motion* operator[](unsigned int i)
+                {
+                    return motions_[i];
+                }
+                std::vector<Motion*>::iterator begin (void)
+                {
+                    return motions_.begin ();
+                }
+                void erase (std::vector<Motion*>::iterator iter)
+                {
+                    motions_.erase (iter);
+                }
+                void push_back(Motion* m)
+                {
+                    motions_.push_back(m);
+                }
+                unsigned int size(void) const
+                {
+                    return motions_.size();
+                }
+                bool empty(void) const
+                {
+                    return motions_.empty();
+                }
+                std::vector<Motion*> motions_;
+                CellPDF::Element*    elem_;
             };
 
             /** \brief Representation of a search tree. Two instances will be used. One for start and one for goal */
@@ -186,10 +217,13 @@ namespace ompl
                 }
 
                 /** \brief The grid of motions corresponding to this tree */
-                Grid<MotionSet> grid;
+                Grid<MotionInfo> grid;
 
                 /** \brief The number of motions (in total) from the tree */
-                unsigned int    size;
+                unsigned int     size;
+
+                /** \brief The PDF used for selecting a cell from which to sample a motion */
+                CellPDF          pdf;
             };
 
             /** \brief Free the memory allocated by the planner */
@@ -200,7 +234,7 @@ namespace ompl
             }
 
             /** \brief Free the memory used by the motions contained in a grid */
-            void freeGridMotions(Grid<MotionSet> &grid);
+            void freeGridMotions(Grid<MotionInfo> &grid);
 
             /** \brief Add a motion to a tree */
             void addMotion(TreeData &tree, Motion *motion);
