@@ -389,6 +389,22 @@ class ompl_control_generator_t(code_generator_t):
         # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
+        # export pure virtual member functions, otherwise code doesn't compile
+        self.ompl_ns.class_('Syclop').add_wrapper_code("""
+        virtual ompl::control::Syclop::Motion* initializeTree(const ompl::base::State* s)
+        {
+            bp::override func_initializeTree = this->get_override("initializeTree");
+            return func_initializeTree(s);
+        }
+        virtual void selectAndExtend(ompl::control::Syclop::Region& region, std::vector<ompl::control::Syclop::Motion*>& newMotions)
+        {
+            bp::override func_selectAndExtend = this->get_override("selectAndExtend");
+            func_selectAndExtend(region, newMotions);
+        }""")
+        # omit ompl::control::Syclop::Defaults nested subclass, otherwise
+        # code doesn't compile (don't know why)
+        self.ompl_ns.class_('Defaults').exclude()
+
 
         # do this for all classes that exist with the same name in another namespace
         for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'PlannerData', 'SpaceInformation']:
