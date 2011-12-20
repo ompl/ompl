@@ -142,8 +142,7 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
         }
 
         // Extend a motion toward the state we just sampled
-        unsigned int duration = controlSampler_->sampleTo(rmotion->control, siC_->getMinControlDuration(),
-                                                          siC_->getMaxControlDuration(), existing->control,
+        unsigned int duration = controlSampler_->sampleTo(rmotion->control, existing->control,
                                                           existing->state, rmotion->state);
 
         // Propagate the system from the state selected for expansion using the control we
