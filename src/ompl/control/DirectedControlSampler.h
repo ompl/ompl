@@ -77,24 +77,9 @@ namespace ompl
                 to state \e state and the intention is to reach state
                 \e target. This is useful for some algorithms that
                 have a notion of direction in their exploration (e.g.,
-                \cRRT). */
-            virtual void sampleTo(Control *control, const base::State *source, const base::State *target) = 0;
-
-            /** \brief Sample a control given that it will be applied
-                to state \e state and the intention is to reach state
-                \e target. Also take into account the fact that the
-                previously applied control is \e previous. This is
-                useful for some algorithms that have a notion of
-                direction in their exploration (e.g., \cRRT) */
-            virtual void sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target) = 0;
-
-            /** \brief Sample a control given that it will be applied
-                to state \e state and the intention is to reach state
-                \e target. This is useful for some algorithms that
-                have a notion of direction in their exploration (e.g.,
                 \cRRT). Furthermore, return the duration for which
                 this control should be applied. */
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target) = 0;
+            virtual unsigned int sampleTo(Control *control, const base::State *source, const base::State *target) = 0;
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
@@ -104,7 +89,7 @@ namespace ompl
                 direction in their exploration (e.g.,
                 \cRRT). Furthermore, return the duration for which
                 this control should be applied. */
-            virtual unsigned int sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target) = 0;
+            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target) = 0;
 
         protected:
 
