@@ -37,7 +37,8 @@
 #include "ompl/control/SimpleDirectedControlSampler.h"
 #include "ompl/control/SpaceInformation.h"
 
-ompl::control::SimpleDirectedControlSampler::SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k) : DirectedControlSampler(si), cs_(si->allocControlSampler()), numControlSamples_(k)
+ompl::control::SimpleDirectedControlSampler::SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k) :
+    DirectedControlSampler(si), cs_(si->allocControlSampler()), numControlSamples_(k)
 {
 }
 
@@ -45,34 +46,26 @@ ompl::control::SimpleDirectedControlSampler::~SimpleDirectedControlSampler(void)
 {
 }
 
-void ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const base::State *source, const base::State *target)
+unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const base::State *source, const base::State *target)
 {
-    getBestControl (control, si_->getMinControlDuration(), si_->getMaxControlDuration(), source, target, NULL);
+    return getBestControl(control, source, target, NULL);
 }
 
-void ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target)
+unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target)
 {
-    getBestControl (control, si_->getMinControlDuration(), si_->getMaxControlDuration(), source, target, previous);
+    return getBestControl(control, source, target, previous);
 }
 
-unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const base::State *source, const base::State *target)
-{
-    return getBestControl (control, minSteps, maxSteps, source, target, NULL);
-}
-
-unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps, const Control *previous, const base::State *source, const base::State *target)
-{
-    return getBestControl (control, minSteps, maxSteps, source, target, previous);
-}
-
-unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl (Control *control, unsigned int minDuration, unsigned int maxDuration,
-                                                                          const base::State *source, const base::State *target, const Control *previous)
+unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl (Control *control, const base::State *source, const base::State *target, const Control *previous)
 {
     // Sample the first control
     if (previous)
         cs_->sampleNext(control, previous, source);
     else
         cs_->sample(control, source);
+
+    const double minDuration = si_->getMinControlDuration();
+    const double maxDuration = si_->getMaxControlDuration();
 
     unsigned int steps = cs_->sampleStepCount(minDuration, maxDuration);
 
