@@ -234,17 +234,17 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
     {
         if (t>=1.)
         {
-	    if (to != state)
-		copyState(state, to);
+            if (to != state)
+                copyState(state, to);
             return;
         }
         if (t<=0.)
         {
-	    if (from != state)
-		copyState(state, from);
+            if (from != state)
+                copyState(state, from);
             return;
         }
-        
+
         path = dubins(from, to);
         if (isSymmetric_)
         {
