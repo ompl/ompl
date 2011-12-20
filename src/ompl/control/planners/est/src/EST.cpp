@@ -117,16 +117,14 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
     if (!controlSampler_)
-        controlSampler_ = siC_->allocControlSampler();
+        controlSampler_ = siC_->allocDirectedControlSampler();
 
     msg_.inform("Starting with %u states", tree_.size);
 
-    Motion     *solution = NULL;
-    double       slndist = std::numeric_limits<double>::infinity();
-    Motion      *rmotion = new Motion(siC_);
-    base::State  *rstate = rmotion->state;
-    Control       *rctrl = rmotion->control;
-    bool          solved = false;
+    Motion *solution = NULL;
+    double   slndist = std::numeric_limits<double>::infinity();
+    Motion  *rmotion = new Motion(siC_);
+    bool      solved = false;
 
     while (!ptc())
     {
@@ -136,30 +134,29 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 
         // sample a random state (with goal biasing) near the state selected for expansion
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
-            goal_s->sampleGoal(rstate);
+            goal_s->sampleGoal(rmotion->state);
         else
         {
-            if (!sampler_->sampleNear(rstate, existing->state, maxDistance_))
+            if (!sampler_->sampleNear(rmotion->state, existing->state, maxDistance_))
                 continue;
         }
 
         // Extend a motion toward the state we just sampled
-        unsigned int duration = controlSampler_->sampleTo(rctrl, siC_->getMinControlDuration(),
-                                                          siC_->getMaxControlDuration(),
-                                                          existing->control, existing->state,
-                                                          rstate);
+        unsigned int duration = controlSampler_->sampleTo(rmotion->control, siC_->getMinControlDuration(),
+                                                          siC_->getMaxControlDuration(), existing->control,
+                                                          existing->state, rmotion->state);
 
-        // Propagate the system from the state selected for expansion using the control
-        // we just sampled for the given duration.  Save the resulting state into rstate.
-        duration = siC_->propagateWhileValid(existing->state, rctrl, duration, rstate);
+        // Propagate the system from the state selected for expansion using the control we
+        // just sampled for the given duration.  Save the resulting state into rmotion->state.
+        duration = siC_->propagateWhileValid(existing->state, rmotion->control, duration, rmotion->state);
 
         // If the system was propagated for a meaningful amount of time, save into the tree
         if (duration >= siC_->getMinControlDuration())
         {
             // create a motion to the resulting state
             Motion *motion = new Motion(siC_);
-            si_->copyState(motion->state, rstate);
-            siC_->copyControl(motion->control, rctrl);
+            si_->copyState(motion->state, rmotion->state);
+            siC_->copyControl(motion->control, rmotion->control);
             motion->steps = duration;
             motion->parent = existing;
 

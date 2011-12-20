@@ -96,7 +96,7 @@ namespace ompl
             }
 
             base::StateSamplerPtr sampler_;
-            ControlSamplerPtr controlSampler_;
+            DirectedControlSamplerPtr controlSampler_;
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
             bool regionalNN_;
         };

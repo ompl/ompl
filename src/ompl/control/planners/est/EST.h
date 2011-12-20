@@ -242,8 +242,8 @@ namespace ompl
             /** \brief Valid state sampler */
             base::ValidStateSamplerPtr   sampler_;
 
-            /** \brief Control sampler */
-            ControlSamplerPtr            controlSampler_;
+            /** \brief Directed control sampler */
+            DirectedControlSamplerPtr    controlSampler_;
 
             /** \brief The base::SpaceInformation cast as control::SpaceInformation, for convenience */
             const SpaceInformation       *siC_;

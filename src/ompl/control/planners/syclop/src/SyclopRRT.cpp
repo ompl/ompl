@@ -42,7 +42,7 @@ void ompl::control::SyclopRRT::setup(void)
 {
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
-    controlSampler_ = siC_->allocControlSampler();
+    controlSampler_ = siC_->allocDirectedControlSampler();
 
     // Create a default GNAT nearest neighbors structure if the user doesn't want
     // the default regionalNN check from the discretization
@@ -147,8 +147,8 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
 
     base::State* newState = si_->allocState();
 
-    controlSampler_->sampleNext(rmotion->control, nmotion->control, nmotion->state);
-    unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+    unsigned int duration = controlSampler_->sampleTo(rmotion->control, siC_->getMinControlDuration(), siC_->getMaxControlDuration(), nmotion->control, nmotion->state, rmotion->state);
+
     duration = siC_->propagateWhileValid(nmotion->state, rmotion->control, duration, newState);
 
     if (duration >= siC_->getMinControlDuration())
