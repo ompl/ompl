@@ -159,7 +159,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 
         ompl::Profiler::Begin("GNAT - rebuildDataStructure");
         //if(fabs(fmod(log2(N),2.0)) < 1e-8) 
-        if(tree_->_deltaRadius/std::max(0.01,tree_->_maxObservedRadius) > 0.10)
+        if(tree_->_deltaRadius/std::max(0.01,tree_->_maxObservedRadius) > 0.10 || fabs(fmod(log2(N),2.0)) < 1e-8)
         {
           //std::cout<<"Rebuilding tree: "<<tree_->_deltaRadius<<" "<<tree_->_maxObservedRadius<<std::endl;
           rebuildDataStructure();
