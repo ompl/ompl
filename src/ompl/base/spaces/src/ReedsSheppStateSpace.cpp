@@ -45,13 +45,13 @@ using namespace ompl::base;
 
 namespace
 {
-    // The comments, variable names, etc. use the nomenclature from the Reeds & Shepp paper. 
-    
+    // The comments, variable names, etc. use the nomenclature from the Reeds & Shepp paper.
+
     const double pi = boost::math::constants::pi<double>();
     const double twopi = 2. * pi;
     const double RS_EPS = 1e-5;
     const double ZERO = 10*std::numeric_limits<double>::epsilon();
-    
+
     inline double mod2pi(double x)
     {
         double v = fmod(x, twopi);
@@ -74,7 +74,7 @@ namespace
         tau = (t2<0) ? mod2pi(t1+pi) : mod2pi(t1);
         omega = mod2pi(tau - u + v - phi) ;
     }
-    
+
     // formula 8.1 in Reeds-Shepp paper
     inline bool LpSpLp(double x, double y, double phi, double& t, double& u, double& v)
     {
@@ -232,7 +232,7 @@ namespace
         if (LpRmL(-xb, -yb, phi, t, u, v) && Lmin > (L = t - u + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
-                ReedsSheppStateSpace::reedsSheppPathType[1], -v, -u, -t);        
+                ReedsSheppStateSpace::reedsSheppPathType[1], -v, -u, -t);
             Lmin = L;
         }
     }
@@ -352,7 +352,7 @@ namespace
             v = mod2pi(t + .5*pi - phi);
             assert(fabs(2*sin(t)-cos(t-v)-u*sin(t) - x) < RS_EPS);
             assert(fabs(-2*cos(t)-sin(t-v)+u*cos(t)+1 - y) < RS_EPS);
-            assert(fabs(mod2pi(t+pi/2-v-phi)) < RS_EPS);            
+            assert(fabs(mod2pi(t+pi/2-v-phi)) < RS_EPS);
             return t>=-ZERO && u<=ZERO && v<=ZERO;
         }
         return false;
@@ -384,7 +384,7 @@ namespace
                 ReedsSheppStateSpace::reedsSheppPathType[5], -t, .5*pi, -u, -v);
             Lmin = L;
         }
-        
+
         if (LpRmSmRm(x, y, phi, t, u, v) && Lmin > (L = t - u - v))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
@@ -433,7 +433,7 @@ namespace
         if (LpRmSmLm(-xb, -yb, phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
-                ReedsSheppStateSpace::reedsSheppPathType[7], -v, -u, .5*pi, -t);        
+                ReedsSheppStateSpace::reedsSheppPathType[7], -v, -u, .5*pi, -t);
             Lmin = L;
         }
 
@@ -458,7 +458,7 @@ namespace
         if (LpRmSmRm(-xb, -yb, phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
-                ReedsSheppStateSpace::reedsSheppPathType[11], -v, -u, .5*pi, -t);                
+                ReedsSheppStateSpace::reedsSheppPathType[11], -v, -u, .5*pi, -t);
             Lmin = L;
         }
     }
@@ -506,14 +506,14 @@ namespace
         if (LpRmSLmRp(-x, -y, phi, t, u, v) && Lmin > (L = t - u + v)) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
-                ReedsSheppStateSpace::reedsSheppPathType[17], -t, .5*pi, -u, .5*pi, -v);        
+                ReedsSheppStateSpace::reedsSheppPathType[17], -t, .5*pi, -u, .5*pi, -v);
             Lmin = L;
         }
     }
 
     ReedsSheppStateSpace::ReedsSheppPath reedsShepp(double x, double y, double phi, bool check)
     {
-        ReedsSheppStateSpace::ReedsSheppPath path;        
+        ReedsSheppStateSpace::ReedsSheppPath path;
         CSC(x, y, phi, path);
         CCC(x, y, phi, path);
         CCCC(x, y, phi, path);
@@ -545,7 +545,7 @@ ompl::base::ReedsSheppStateSpace::reedsSheppPathType[18][5] = {
     { RS_RIGHT, RS_LEFT, RS_STRAIGHT, RS_RIGHT, RS_LEFT }       // 17
 };
 
-ompl::base::ReedsSheppStateSpace::ReedsSheppPath::ReedsSheppPath(const ReedsSheppPathSegmentType* type, 
+ompl::base::ReedsSheppStateSpace::ReedsSheppPath::ReedsSheppPath(const ReedsSheppPathSegmentType* type,
     double t, double u, double v, double w, double x)
 {
     memcpy(type_, type, 5*sizeof(ReedsSheppPathSegmentType));
@@ -573,14 +573,14 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Stat
     {
         if (t>=1.)
         {
-	    if (to != state)
-		copyState(state, to);
+            if (to != state)
+                copyState(state, to);
             return;
         }
         if (t<=0.)
         {
-	    if (from != state)
-		copyState(state, from);
+            if (from != state)
+                copyState(state, from);
             return;
         }
         path = reedsShepp(from, to);

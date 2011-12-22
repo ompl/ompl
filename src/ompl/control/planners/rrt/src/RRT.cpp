@@ -112,7 +112,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
     if (!controlSampler_)
-        controlSampler_ = siC_->allocControlSampler();
+        controlSampler_ = siC_->allocDirectedControlSampler();
 
     msg_.inform("Starting with %u states", nn_->size());
 
@@ -137,8 +137,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
         Motion *nmotion = nn_->nearest(rmotion);
 
         /* sample a random control that attempts to go towards the random state, and also sample a control duration */
-        unsigned int cd = controlSampler_->sampleTo(rctrl, siC_->getMinControlDuration(), siC_->getMaxControlDuration(),
-                                                    nmotion->control, nmotion->state, rmotion->state);
+        unsigned int cd = controlSampler_->sampleTo(rctrl, nmotion->control, nmotion->state, rmotion->state);
         cd = siC_->propagateWhileValid(nmotion->state, rctrl, cd, xstate);
 
         if (cd >= siC_->getMinControlDuration())

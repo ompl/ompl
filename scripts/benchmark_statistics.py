@@ -366,6 +366,8 @@ if __name__ == "__main__":
 
     if len(args)>0:
         read_benchmark_log(options.dbname, args)
+        # If we update the database, we recompute the views as well
+        options.view = True
 
     if options.view:
         compute_views(options.dbname)

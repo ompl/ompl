@@ -52,31 +52,6 @@ void ompl::control::ControlSampler::sampleNext(Control *control, const Control *
     sample(control);
 }
 
-void ompl::control::ControlSampler::sampleTo(Control *control, const base::State *source, const base::State *target)
-{
-    sample(control);
-}
-
-void ompl::control::ControlSampler::sampleTo(Control *control, const Control * /* previous */,
-                                             const base::State * /* source */, const base::State * /* target */)
-{
-    sample(control);
-}
-
-unsigned int ompl::control::ControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps,
-                                                     const base::State * /* source */, const base::State * /* target */)
-{
-    sample(control);
-    return sampleStepCount(minSteps, maxSteps);
-}
-
-unsigned int ompl::control::ControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps,
-                                                     const Control * /* previous */, const base::State * /* source */, const base::State * /* target */)
-{
-    sample(control);
-    return sampleStepCount(minSteps, maxSteps);
-}
-
 unsigned int ompl::control::ControlSampler::sampleStepCount(unsigned int minSteps, unsigned int maxSteps)
 {
     return rng_.uniformInt(minSteps, maxSteps);
@@ -116,51 +91,4 @@ void ompl::control::CompoundControlSampler::sampleNext(Control *control, const C
     const Control * const *prev = static_cast<const CompoundControl*>(previous)->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
         samplers_[i]->sampleNext(comps[i], prev[i], state);
-}
-
-void ompl::control::CompoundControlSampler::sampleTo(Control *control, const base::State *source, const base::State *target)
-{
-    Control **comps = static_cast<CompoundControl*>(control)->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-        samplers_[i]->sampleTo(comps[i], source, target);
-}
-
-void ompl::control::CompoundControlSampler::sampleTo(Control *control, const Control *previous,
-                                                     const base::State *source, const base::State *target)
-{
-    Control **comps = static_cast<CompoundControl*>(control)->components;
-    const Control * const *prev = static_cast<const CompoundControl*>(previous)->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-        samplers_[i]->sampleTo(comps[i], prev[i], source, target);
-}
-
-unsigned int ompl::control::CompoundControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps,
-                                                             const base::State *source, const base::State *target)
-{
-    // find the control for each component, and the duration of the compound control is the minimum of durations of the components
-    Control **comps = static_cast<CompoundControl*>(control)->components;
-    unsigned int sc = 0;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-    {
-        unsigned int c = samplers_[i]->sampleTo(comps[i], minSteps, maxSteps, source, target);
-        if (i == 0 || sc > c)
-            sc = c;
-    }
-    return sc;
-}
-
-unsigned int ompl::control::CompoundControlSampler::sampleTo(Control *control, unsigned int minSteps, unsigned int maxSteps,
-                                                             const Control *previous, const base::State *source, const base::State *target)
-{
-    // find the control for each component, and the duration of the compound control is the minimum of durations of the components
-    Control **comps = static_cast<CompoundControl*>(control)->components;
-    const Control * const *prev = static_cast<const CompoundControl*>(previous)->components;
-    unsigned int sc = 0;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-    {
-        unsigned int c = samplers_[i]->sampleTo(comps[i], minSteps, maxSteps, prev[i], source, target);
-        if (i == 0 || sc > c)
-            sc = c;
-    }
-    return sc;
 }
