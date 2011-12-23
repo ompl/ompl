@@ -100,7 +100,7 @@ namespace ompl
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const = 0;
 
             /** \brief Samples a State from a given region using a given StateSampler. */
-            virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s) = 0;
+            virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s) = 0;
 
             /** \brief Returns the bounds of a given region in this Decomposition. */
             virtual const base::RealVectorBounds& getRegionBounds(const int rid) = 0;

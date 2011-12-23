@@ -64,7 +64,7 @@ public:
         coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
         coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
     }
-    virtual void sampleFromRegion(const int rid, ob::StateSamplerPtr& sampler, ob::State* s)
+    virtual void sampleFromRegion(const int rid, const ob::StateSamplerPtr& sampler, ob::State* s)
     {
         const ob::RealVectorBounds& regionBounds(getRegionBounds(rid));
         sampler->sampleUniform(s);

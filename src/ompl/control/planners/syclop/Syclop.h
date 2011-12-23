@@ -100,7 +100,7 @@ namespace ompl
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
-            Syclop(const SpaceInformationPtr& si, DecompositionPtr d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
+            Syclop(const SpaceInformationPtr& si, const DecompositionPtr &d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
                 numFreeVolSamples_(Defaults::NUM_FREEVOL_SAMPLES),
                 probShortestPath_(Defaults::PROB_SHORTEST_PATH),
                 probKeepAddingToAvail_(Defaults::PROB_KEEP_ADDING_TO_AVAIL),
@@ -267,7 +267,7 @@ namespace ompl
                 /** \brief The parent motion in the tree */
                 const Motion* parent;
                 /** \brief The number of steps for which the control is applied */
-                int steps;
+                unsigned int steps;
             };
             #pragma pack (pop)  // Restoring default byte alignment
 
@@ -297,7 +297,7 @@ namespace ompl
                 double weight;
                 double alpha;
                 int index;
-                int numSelections;
+                unsigned int numSelections;
             };
             #pragma pack (pop)  // Restoring default byte alignment
 
@@ -374,7 +374,7 @@ namespace ompl
             class CoverageGrid : public GridDecomposition
             {
             public:
-                CoverageGrid(const int len, DecompositionPtr& d) : GridDecomposition(len, d->getDimension(), d->getBounds()), decomp(d)
+                CoverageGrid(const int len, const DecompositionPtr& d) : GridDecomposition(len, d->getDimension(), d->getBounds()), decomp(d)
                 {
                 }
 
@@ -390,12 +390,12 @@ namespace ompl
                 }
 
                 /** \brief Syclop will not sample from the CoverageGrid. */
-                virtual void sampleFromRegion(const int rid, base::StateSamplerPtr& sampler, base::State* s)
+                virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s)
                 {
                 }
 
             protected:
-                DecompositionPtr& decomp;
+                const DecompositionPtr& decomp;
             };
 
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
