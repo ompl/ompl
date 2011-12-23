@@ -38,7 +38,6 @@
 #define OMPL_CONTROL_PLANNERS_SYCLOP_GRIDDECOMPOSITION_
 
 #include <cstdlib>
-#include <valarray>
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 #include "ompl/base/spaces/RealVectorBounds.h"

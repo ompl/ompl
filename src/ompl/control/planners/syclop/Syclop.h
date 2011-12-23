@@ -100,7 +100,7 @@ namespace ompl
             typedef boost::function2<double, int, int> EdgeCostFactorFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
-            Syclop(const SpaceInformationPtr& si, DecompositionPtr& d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
+            Syclop(const SpaceInformationPtr& si, DecompositionPtr d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
                 numFreeVolSamples_(Defaults::NUM_FREEVOL_SAMPLES),
                 probShortestPath_(Defaults::PROB_SHORTEST_PATH),
                 probKeepAddingToAvail_(Defaults::PROB_KEEP_ADDING_TO_AVAIL),
@@ -143,7 +143,7 @@ namespace ompl
 
             /// @name Tunable parameters
             /// @{
-            
+
             /// \brief Get the number of states to sample when estimating free volume in the Decomposition.
             int getNumFreeVolumeSamples (void) const
             {
@@ -384,7 +384,7 @@ namespace ompl
 
                 /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
                     it uses the Decomposition's projection function. */
-                virtual void project(const base::State* s, std::valarray<double>& coord) const
+                virtual void project(const base::State* s, std::vector<double>& coord) const
                 {
                     decomp->project(s, coord);
                 }

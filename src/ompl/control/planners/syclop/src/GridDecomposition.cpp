@@ -81,31 +81,31 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
     {
         static const int offset[] = {
             -1,  0, 0,
-        	+1,  0, 0,
-        	 0, -1, 0,
-        	 0, +1, 0,
-        	-1, -1, 0,
-        	-1, +1, 0,
-        	+1, -1, 0,
-        	+1, +1, 0,
-        	-1,  0, -1,
-        	+1,  0, -1,
-        	 0, -1, -1,
-        	 0, +1, -1,
-        	-1, -1, -1,
-        	-1, +1, -1,
-        	+1, -1, -1,
-        	+1, +1, -1,
-        	-1,  0, +1,
-        	+1,  0, +1,
-        	 0, -1, +1,
-        	 0, +1, +1,
-        	-1, -1, +1,
-        	-1, +1, +1,
-        	+1, -1, +1,
-        	+1, +1, +1,
-        	0, 0, -1,
-        	0, 0, +1
+            +1,  0, 0,
+             0, -1, 0,
+             0, +1, 0,
+            -1, -1, 0,
+            -1, +1, 0,
+            +1, -1, 0,
+            +1, +1, 0,
+            -1,  0, -1,
+            +1,  0, -1,
+             0, -1, -1,
+             0, +1, -1,
+            -1, -1, -1,
+            -1, +1, -1,
+            +1, -1, -1,
+            +1, +1, -1,
+            -1,  0, +1,
+            +1,  0, +1,
+             0, -1, +1,
+             0, +1, +1,
+            -1, -1, +1,
+            -1, +1, +1,
+            +1, -1, +1,
+            +1, +1, +1,
+            0, 0, -1,
+            0, 0, +1
         };
         std::vector<int> coord(3);
         regionToCoord(rid, coord);
@@ -127,7 +127,7 @@ void ompl::control::GridDecomposition::getNeighbors(const int rid, std::vector<i
 
 int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
 {
-    std::valarray<double> coord(dimension_);
+    std::vector<double> coord(dimension_);
     project(s, coord);
     int region = 0;
     int factor = 1;

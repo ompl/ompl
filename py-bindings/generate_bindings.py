@@ -214,7 +214,7 @@ class ompl_base_generator_t(code_generator_t):
             self.ompl_ns.class_(stype + 'Path').exclude()
             self.ompl_ns.class_(stype + 'StateSpace').member_function(
                 stype[0].lower()+stype[1:]).exclude()
-        # don't this utility function
+        # don't expose this utility function
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateSpace').class_(
@@ -416,9 +416,8 @@ class ompl_control_generator_t(code_generator_t):
         # code doesn't compile (don't know why)
         self.ompl_ns.class_('Defaults').exclude()
 
-
         # do this for all classes that exist with the same name in another namespace
-        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'PlannerData', 'SpaceInformation']:
+        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'PlannerData', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
         self.ompl_ns.namespace('control').class_('PlannerData').include()
 
@@ -431,7 +430,7 @@ class ompl_control_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['KPIECE1', 'RRT', 'EST']:
+        for planner in ['KPIECE1', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
                     &Control%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)

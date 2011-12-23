@@ -40,12 +40,44 @@
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/planners/est/EST.h>
+#include <ompl/control/planners/syclop/SyclopRRT.h>
+#include <ompl/control/planners/syclop/SyclopEST.h>
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
 #include <iostream>
 
 namespace ob = ompl::base;
 namespace oc = ompl::control;
+
+// a decomposition is only needed for SyclopRRT and SyclopEST
+class MyDecomposition : public oc::GridDecomposition
+{
+public:
+    MyDecomposition(const int length, const ob::RealVectorBounds& bounds)
+        : GridDecomposition(length, 2, bounds)
+    {
+    }
+    virtual void project(const ob::State* s, std::vector<double>& coord) const
+    {
+        coord.resize(2);
+        coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
+        coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
+    }
+    virtual void sampleFromRegion(const int rid, ob::StateSamplerPtr& sampler, ob::State* s)
+    {
+        const ob::RealVectorBounds& regionBounds(getRegionBounds(rid));
+        sampler->sampleUniform(s);
+        s->as<ob::SE2StateSpace::StateType>()->setX(
+            rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]));
+        s->as<ob::SE2StateSpace::StateType>()->setY(
+            rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]));
+    }
+
+private:
+    ompl::RNG rng_;
+};
+
 
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
@@ -132,7 +164,12 @@ void plan(void)
     pdef->setStartAndGoalStates(start, goal, 0.1);
 
     // create a planner for the defined space
-    ob::PlannerPtr planner(new oc::RRT(si));
+    //ob::PlannerPtr planner(new oc::RRT(si));
+    //ob::PlannerPtr planner(new oc::EST(si));
+    //ob::PlannerPtr planner(new oc::KPIECE1(si));
+    oc::DecompositionPtr decomp(new MyDecomposition(32, bounds));
+    ob::PlannerPtr planner(new oc::SyclopEST(si, decomp));
+    //ob::PlannerPtr planner(new oc::SyclopRRT(si, decomp));
 
     // set the problem we are trying to solve for the planner
     planner->setProblemDefinition(pdef);

@@ -43,7 +43,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/ClassForward.h"
-#include <valarray>
 
 namespace ompl
 {
@@ -95,7 +94,7 @@ namespace ompl
             virtual int locateRegion(const base::State* s) const = 0;
 
             /** \brief Project a given State to a set of coordinates in R^k, where k is the dimension of this Decomposition. */
-            virtual void project(const base::State* s, std::valarray<double>& coord) const = 0;
+            virtual void project(const base::State* s, std::vector<double>& coord) const = 0;
 
             /** \brief Stores a given region's neighbors into a given vector. */
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const = 0;

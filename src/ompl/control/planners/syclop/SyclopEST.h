@@ -49,7 +49,7 @@ namespace ompl
         class SyclopEST : public Syclop
         {
         public:
-            SyclopEST(const SpaceInformationPtr& si, DecompositionPtr& d) : Syclop(si,d,"SyclopEST")
+            SyclopEST(const SpaceInformationPtr& si, DecompositionPtr d) : Syclop(si,d,"SyclopEST")
             {
             }
 
