@@ -37,7 +37,7 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/SimpleSetup.h>
 
 #include <ompl/config.h>
@@ -112,7 +112,7 @@ bool isStateValid(const ob::State *state)
     // Let's pretend that the validity check is computationally relatively
     // expensive to emphasize the benefit of explicitly generating valid
     // samples
-    boost::this_thread::sleep(ompl::time::seconds(.001));
+    boost::this_thread::sleep(ompl::time::seconds(.0005));
     // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
@@ -171,9 +171,8 @@ void plan(int samplerIndex)
         // use my sampler
         ss.getSpaceInformation()->setValidStateSamplerAllocator(allocMyValidStateSampler);
 
-    // set the planner (optional)
     // create a planner for the defined space
-    ob::PlannerPtr planner(new og::RRTConnect(ss.getSpaceInformation()));
+    ob::PlannerPtr planner(new og::PRM(ss.getSpaceInformation()));
     ss.setPlanner(planner);
 
     // attempt to solve the problem within ten seconds of planning time
@@ -182,7 +181,6 @@ void plan(int samplerIndex)
     {
         std::cout << "Found solution:" << std::endl;
         // print the path to screen
-        ss.simplifySolution();
         ss.getSolutionPath().print(std::cout);
     }
     else

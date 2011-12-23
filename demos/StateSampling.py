@@ -37,6 +37,7 @@
 # Author: Mark Moll
 
 try:
+    from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
 except:
@@ -45,6 +46,7 @@ except:
     from os.path import basename, abspath, dirname, join
     import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
+    from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
 from time import sleep
@@ -59,16 +61,16 @@ from math import fabs
 # efficient than generating random samples from the entire state space and
 # checking for validity.
 class MyValidStateSampler(ob.ValidStateSampler):
-    def __init__(si):
+    def __init__(self, si):
         super(MyValidStateSampler, self).__init__(si)
         self.name_ = "my sampler"
-        self.rng_ = RNG()
+        self.rng_ = ou.RNG()
 
     # Generate a sample in the valid part of the R^3 state space.
-    # Valid states satisfy the following constraints: 
+    # Valid states satisfy the following constraints:
     # -1<= x,y,z <=1
     # if .25 <= z <= .5, then |x|>.8 and |y|>.8
-    def sample(state):
+    def sample(self, state):
         z = self.rng_.uniformReal(-1,1)
 
         if z>.25 and z<.5:
@@ -102,7 +104,7 @@ def isStateValid(spaceInformation, state):
     # expensive to emphasize the benefit of explicitly generating valid
     # samples
     sleep(.001)
-    # Valid states satisfy the following constraints: 
+    # Valid states satisfy the following constraints:
     # -1<= x,y,z <=1
     # if .25 <= z <= .5, then |x|>.8 and |y|>.8
     return not (fabs(state[0]<.8) and fabs(state[1]<.8) and
@@ -110,13 +112,13 @@ def isStateValid(spaceInformation, state):
 
 # return an obstacle-based sampler
 def allocOBValidStateSampler(si):
-    # we can perform any additional setup / configuration of a sampler here, 
+    # we can perform any additional setup / configuration of a sampler here,
     # but there is nothing to tweak in case of the ObstacleBasedValidStateSampler.
-    return ob.ValidStateSamplerPtr(ob.ObstacleBasedValidStateSampler(si))
+    return ob.ObstacleBasedValidStateSampler(si)
 
 # return an instance of my sampler
 def allocMyValidStateSampler(si):
-    return ob.ValidStateSamplerPtr(MyValidStateSampler(si))
+    return MyValidStateSampler(si)
 
 def plan(samplerIndex):
     # construct the state space we are planning in
@@ -157,9 +159,8 @@ def plan(samplerIndex):
         # use my sampler
         ss.getSpaceInformation().setValidStateSamplerAllocator(allocMyValidStateSampler)
 
-    # set the planner (optional)
     # create a planner for the defined space
-    planner = og.RRTConnect(ss.getSpaceInformation())
+    planner = og.PRM(ss.getSpaceInformation())
     ss.setPlanner(planner)
 
     # attempt to solve the problem within ten seconds of planning time
@@ -167,7 +168,6 @@ def plan(samplerIndex):
     if (solved):
         print "Found solution:"
         # print the path to screen
-        ss.simplifySolution()
         print ss.getSolutionPath()
     else:
         print "No solution found"
