@@ -101,8 +101,10 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 				unsigned int removedCacheSize = 50)
 			: ompl::NearestNeighbors<_T>(), tree_(NULL), degree_(degree),
 			minDegree_(std::min(degree,minDegree)), maxDegree_(std::max(maxDegree,degree)),
-			maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0), removedCacheSize_(removedCacheSize)
+			maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0), removedCacheSize_(removedCacheSize),
+      _rebuildRadius(0.1)
 	{
+    
 	}
     const nodeDistribution &getDataLeaves()
     {
@@ -150,6 +152,11 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
       _dataLeaves.clear();
     }
 
+    virtual void setRebuildRadius(double rebuildRadius)
+    {
+      _rebuildRadius;
+    }
+
     virtual void add(const _T &data)
     {
       if (tree_)
@@ -159,7 +166,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 
         ompl::Profiler::Begin("GNAT - rebuildDataStructure");
         //if(fabs(fmod(log2(N),2.0)) < 1e-8) 
-        if(tree_->_deltaRadius/std::max(0.01,tree_->_maxObservedRadius) > 0.10 || fabs(fmod(log2(N),2.0)) < 1e-8)
+        if(tree_->_deltaRadius/std::max(0.01,tree_->_maxObservedRadius) > _rebuildRadius || fabs(fmod(log2(N),2.0)) < 1e-8)
         {
           //std::cout<<"Rebuilding tree: "<<tree_->_deltaRadius<<" "<<tree_->_maxObservedRadius<<std::endl;
           rebuildDataStructure();
@@ -187,8 +194,6 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           tree_->_totalChildNodes++;
           addLeaf(tree_);
           tree_->updateExpanding(*this,data[i]);
-          double r = distFun_(data[i],tree_->pivot_);
-          if(r>tree_->_maxObservedRadius) tree_->_maxObservedRadius = r;
         }
         if (tree_->needToSplit(*this))
           tree_->split(*this);
@@ -570,6 +575,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           else
           {
             _activity = _activity - 1;
+            _deltaRadius = 0.0;
             if(_activity<-_maxObservedRadius)
               gnat.removeLeaf(this);
           }
@@ -913,6 +919,8 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
     /** \brief Cache of removed elements */
     boost::unordered_set<const _T*> removed_;
     RNG rng_;
+
+    double _rebuildRadius;
 
 };
 

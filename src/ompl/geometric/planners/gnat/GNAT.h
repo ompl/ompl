@@ -89,6 +89,7 @@ namespace ompl
 								unsigned int removedCacheSize = 50
 								);
             virtual ~GNAT(void);
+            virtual void setRebuildRadius(double radius);
             virtual void setup(void);
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
@@ -277,8 +278,11 @@ namespace ompl
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
-            /** \brief Add a motion to the exploration tree */
+            /** \brief Queues a motion to the to be added to the GNAT sampler. Solve calls flushMotions() before execution. */
             void addMotion(Motion *motion);
+
+            /** \brief Bulk insertion of pending states. */
+            void flushMotions() const;
 
             /** \brief Select a motion to continue the expansion of the tree from */
             Motion* selectMotion(void);
@@ -301,7 +305,8 @@ namespace ompl
             RNG                          rng_;
 
             /** \brief The PDF used for selecting a cell from which to sample a motion */
-            boost::shared_ptr<gnatSampler<ompl::geometric::GNAT::compactState> >           _nng;
+            mutable boost::shared_ptr<gnatSampler<ompl::geometric::GNAT::compactState> >           _nng;
+            mutable std::vector<ompl::geometric::GNAT::compactState> _insertionQueue;
         };
 
     }

@@ -66,6 +66,11 @@ ompl::geometric::GNAT::~GNAT(void)
     freeMemory();
 }
 
+void ompl::geometric::GNAT::setRebuildRadius(double radius)
+{
+  _nng->setRebuildRadius(radius);
+}
+
 void ompl::geometric::GNAT::setup(void)
 {
     Planner::setup();
@@ -100,16 +105,17 @@ bool ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
         addMotion(motion);
     }
 
-	if (_nng->size() == 0)
+    flushMotions();
+    if (_nng->size() == 0)
     {
-        msg_.error("There are no valid initial states!");
-        return false;
+      msg_.error("There are no valid initial states!");
+      return false;
     }
 
     if (!sampler_)
-        sampler_ = si_->allocValidStateSampler();
+      sampler_ = si_->allocValidStateSampler();
 
-	msg_.inform("Starting with %u states", _nng->size());
+    msg_.inform("Starting with %u states", _nng->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -118,108 +124,125 @@ bool ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
 
     while (ptc() == false)
     {
-        /* Decide on a state to expand from */
-        Motion *existing = selectMotion();
-        assert(existing);
+      /* Decide on a state to expand from */
+      Motion *existing = selectMotion();
+      assert(existing);
 
-        /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
-            goal_s->sampleGoal(xstate);
-        else
-            if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
-                continue;
+      /* sample random state (with goal biasing) */
+      if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        goal_s->sampleGoal(xstate);
+      else
+        if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
+          continue;
 
-        if (si_->checkMotion(existing->state, xstate))
+      if (si_->checkMotion(existing->state, xstate))
+      {
+        /* create a motion */
+        Motion *motion = new Motion(si_);
+        si_->copyState(motion->state, xstate);
+        motion->parent = existing;
+
+        addMotion(motion);
+        double dist = 0.0;
+        bool solved = goal->isSatisfied(motion->state, &dist);
+        if (solved)
         {
-            /* create a motion */
-            Motion *motion = new Motion(si_);
-            si_->copyState(motion->state, xstate);
-            motion->parent = existing;
-
-            addMotion(motion);
-            double dist = 0.0;
-            bool solved = goal->isSatisfied(motion->state, &dist);
-            if (solved)
-            {
-                approxdif = dist;
-                solution = motion;
-                break;
-            }
-            if (dist < approxdif)
-            {
-                approxdif = dist;
-                approxsol = motion;
-            }
+          approxdif = dist;
+          solution = motion;
+          break;
         }
+        if (dist < approxdif)
+        {
+          approxdif = dist;
+          approxsol = motion;
+        }
+      }
     }
 
     bool solved = false;
     bool approximate = false;
     if (solution == NULL)
     {
-        solution = approxsol;
-        approximate = true;
+      solution = approxsol;
+      approximate = true;
     }
 
     if (solution != NULL)
     {
-        /* construct the solution path */
-        std::vector<Motion*> mpath;
-        while (solution != NULL)
-        {
-            mpath.push_back(solution);
-            solution = solution->parent;
-        }
+      /* construct the solution path */
+      std::vector<Motion*> mpath;
+      while (solution != NULL)
+      {
+        mpath.push_back(solution);
+        solution = solution->parent;
+      }
 
-        /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
-        solved = true;
+      /* set the solution path */
+      PathGeometric *path = new PathGeometric(si_);
+      for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        path->states.push_back(si_->cloneState(mpath[i]->state));
+      goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+      solved = true;
     }
 
     si_->freeState(xstate);
 
-	msg_.inform("Created %u states", _nng->size());
+    msg_.inform("Created %u states", _nng->size());
 
     return solved;
 }
 
 void ompl::geometric::GNAT::addMotion(Motion *motion)
 {
-	_nng->add(ompl::geometric::GNAT::compactState(motion,si_,projectionEvaluator_));
+  //std::cout<<"Adding state "<<_insertionQueue.size()<<std::endl;
+  _insertionQueue.push_back(ompl::geometric::GNAT::compactState(motion,si_,projectionEvaluator_));
+  //_nng->add(ompl::geometric::GNAT::compactState(motion,si_,projectionEvaluator_));
+}
+
+void ompl::geometric::GNAT::flushMotions() const
+{
+  if(_insertionQueue.size())
+  {
+    //std::cout<<"Flushing states"<<std::endl;
+    if(_insertionQueue.size() == 1)
+      _nng->add(_insertionQueue.front());
+    else
+      _nng->add(_insertionQueue); 
+    _insertionQueue.clear();
+  }
 }
 
 ompl::geometric::GNAT::Motion* ompl::geometric::GNAT::selectMotion(void)
 {
-	return _nng->sample(rng_.uniform01() < _borderFraction).getMotion();
+  flushMotions();
+  return _nng->sample(rng_.uniform01() < _borderFraction).getMotion();
 }
 void ompl::geometric::GNAT::getPlannerData(base::PlannerData &data) const
 {
-	Planner::getPlannerData(data);
+  flushMotions();
+  Planner::getPlannerData(data);
 
-	std::vector<compactState> motions;
-	_nng->list(motions);
-	for (std::vector<compactState>::iterator it=motions.begin(); it!=motions.end(); it++)
-		data.recordEdge(it->getMotion()->parent ? it->getMotion()->parent->state : NULL, it->getMotion()->state);
+  std::vector<compactState> motions;
+  _nng->list(motions);
+  for (std::vector<compactState>::iterator it=motions.begin(); it!=motions.end(); it++)
+    data.recordEdge(it->getMotion()->parent ? it->getMotion()->parent->state : NULL, it->getMotion()->state);
 }
 
 double ompl::geometric::GNAT::defaultDistanceFunction(const ompl::geometric::GNAT::compactState &A, const ompl::geometric::GNAT::compactState &B)
 {
-	return A.distance(B);
+  return A.distance(B);
 }
 
 double ompl::geometric::GNAT::defaultProjectionDistanceFunction(const ompl::geometric::GNAT::compactState &A, const ompl::geometric::GNAT::compactState &B)
 {
-	base::ProjectionEvaluatorPtr p = A.getProjEv();
-	size_t N = p->getDimension();
-	ompl::base::EuclideanProjection eA(N), eB(N);
-	p->project(A.getMotion()->state,eA); p->project(B.getMotion()->state,eB);
-	double d = 0.0;
-	for(size_t k=0; k<eA.size(); k++)
-	{
-		d+= (eA[k] - eB[k])*(eA[k] - eB[k]);
-	}
-	return sqrt(d);
+  base::ProjectionEvaluatorPtr p = A.getProjEv();
+  size_t N = p->getDimension();
+  ompl::base::EuclideanProjection eA(N), eB(N);
+  p->project(A.getMotion()->state,eA); p->project(B.getMotion()->state,eB);
+  double d = 0.0;
+  for(size_t k=0; k<eA.size(); k++)
+  {
+    d+= (eA[k] - eB[k])*(eA[k] - eB[k]);
+  }
+  return sqrt(d);
 }
