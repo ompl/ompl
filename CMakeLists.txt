@@ -36,6 +36,7 @@ endif(OMPL_IN_ROS)
 
 include(OMPLVersion)
 include(OMPLUtils)
+include(UseBoost.ODEInt)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
