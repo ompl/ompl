@@ -39,6 +39,7 @@
 
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/base/GenericParam.h"
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 #include <string>
@@ -103,6 +104,18 @@ namespace ompl
                 return attempts_;
             }
 
+            /** \brief Get the parameters for the valid state sampler */
+            ParamSet& params(void)
+            {
+                return params_;
+            }
+
+            /** \brief Get the parameters for the valid state sampler */
+            const ParamSet& params(void) const
+            {
+                return params_;
+            }
+
         protected:
 
             /** \brief The state space this sampler samples */
@@ -113,6 +126,9 @@ namespace ompl
 
             /** \brief The name of the sampler */
             std::string             name_;
+
+            /** \brief The parameters for this instance of the valid state sampler */
+            ParamSet                params_;
         };
 
         /** \brief Definition of a function that can allocate a valid state sampler */
