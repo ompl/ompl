@@ -61,7 +61,7 @@ namespace ompl
 
             @par External documentation
 
-            B. Raveh, A. Enosh, and D. Halperin, 
+            B. Raveh, A. Enosh, and D. Halperin,
             A little more, a lot better: Improving path quality by a path-merging algorithm,
             <em>IEEE Trans. on Robotics</em>, vol. 27, pp. 365–371, Apr. 2011.
             DOI: <a href="http://dx.doi.org/10.1109/TRO.2010.2098622">10.1109/TRO.2010.2098622</a><br>
