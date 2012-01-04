@@ -116,7 +116,7 @@ bool isStateValid(const ob::State *state)
     // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
-    return !(fabs(pos[0]<.8) && fabs(pos[1]<.8) && pos[2]>.25 && pos[2]<.5);
+    return !(fabs(pos[0])<.8 && fabs(pos[1])<.8 && pos[2]>.25 && pos[2]<.5);
 }
 
 // return an obstacle-based sampler
