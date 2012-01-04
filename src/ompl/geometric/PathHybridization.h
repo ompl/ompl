@@ -60,9 +60,12 @@ namespace ompl
         /** \brief Given multiple geometric paths, attempt to combine them in order to obtain a shorter solution.
 
             @par External documentation
-            A Little More, a Lot Better: Improving Path Quality by a Path-Merging Algorithm
-            Barak Raveh, Angela Enosh, and Dan Halperin
-            IEEE TRANSACTIONS ON ROBOTICS, VOL. 27, NO. 2, APRIL 2011
+
+            B. Raveh, A. Enosh, and D. Halperin, 
+            A little more, a lot better: Improving path quality by a path-merging algorithm,
+            <em>IEEE Trans. on Robotics</em>, vol. 27, pp. 365–371, Apr. 2011.
+            DOI: <a href="http://dx.doi.org/10.1109/TRO.2010.2098622">10.1109/TRO.2010.2098622</a><br>
+            <a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5686946">[PDF]</a>
         */
         class PathHybridization
         {
