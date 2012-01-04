@@ -165,6 +165,19 @@ double* ompl::base::StateSpace::getValueAddressAtIndex(State *state, const unsig
     return NULL;
 }
 
+unsigned int ompl::base::StateSpace::getSerializationLength(void) const
+{
+    return 0;
+}
+
+void ompl::base::StateSpace::serialize(void *serialization, const State *state) const
+{
+}
+
+void ompl::base::StateSpace::deserialize(State *state, const void *serialization) const
+{
+}
+
 void ompl::base::StateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "State instance [" << state << ']' << std::endl;
@@ -634,6 +647,36 @@ void ompl::base::CompoundStateSpace::copyState(State *destination, const State *
     const CompoundState *csrc = static_cast<const CompoundState*>(source);
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         components_[i]->copyState(cdest->components[i], csrc->components[i]);
+}
+
+unsigned int ompl::base::CompoundStateSpace::getSerializationLength(void) const
+{
+    unsigned int l = 0;    
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	l += components_[i]->getSerializationLength();
+    return l;
+}
+
+void ompl::base::CompoundStateSpace::serialize(void *serialization, const State *state) const
+{    
+    const CompoundState *cstate = static_cast<const CompoundState*>(state);
+    unsigned int l = 0;
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+    {
+	components_[i]->serialize(reinterpret_cast<char*>(serialization) + l, cstate->components[i]);
+	l += components_[i]->getSerializationLength();
+    }
+}
+
+void ompl::base::CompoundStateSpace::deserialize(State *state, const void *serialization) const
+{
+    CompoundState *cstate = static_cast<CompoundState*>(state);
+    unsigned int l = 0;
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+    {
+	components_[i]->deserialize(cstate->components[i], reinterpret_cast<const char*>(serialization) + l);
+	l += components_[i]->getSerializationLength();
+    }
 }
 
 double ompl::base::CompoundStateSpace::distance(const State *state1, const State *state2) const
