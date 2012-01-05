@@ -74,7 +74,7 @@ void ompl::geometric::BallTreeRRTstar::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     ballRadiusMax_ = si_->getMaximumExtent();
-    ballRadiusConst_ = maxDistance_ * sqrt(si_->getStateSpace()->getDimension());
+    ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     delayCC_ = true;
 

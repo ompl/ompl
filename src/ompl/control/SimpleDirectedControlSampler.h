@@ -47,7 +47,16 @@ namespace ompl
 
         /** \brief Implementation of a simple directed control
             sampler. This is a basic implementation that does not
-            actually take direction into account and builds upon ControlSampler. */
+            actually take direction into account and builds upon ControlSampler.
+            Instead, a set of k random controls are sampled, and the control that
+            gets the system closest to the target state is returned.
+
+           @par External documentation
+           K-control sampling is first believed to be proposed in:
+
+           S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol. 20, pp. 378–400, May 2001. DOI: <a href="http://dx.doi.org/10.1177/02783640122067453">10.1177/02783640122067453</a><br>
+           <a href="http://ijr.sagepub.com/content/20/5/378.full.pdf">[PDF]</a>
+           <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>*/
         class SimpleDirectedControlSampler : public DirectedControlSampler
         {
         public:

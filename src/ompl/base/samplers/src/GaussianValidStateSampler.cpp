@@ -42,6 +42,9 @@ ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInfo
     ValidStateSampler(si), sampler_(si->allocStateSampler()), stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
 {
     name_ = "gaussian";
+    params_.declareParam<double>("standard_deviation",
+                                 boost::bind(&GaussianValidStateSampler::setStdDev, this, _1),
+                                 boost::bind(&GaussianValidStateSampler::getStdDev, this));
 }
 
 bool ompl::base::GaussianValidStateSampler::sample(State *state)

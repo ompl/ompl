@@ -40,7 +40,10 @@
 ompl::base::MaximizeClearanceValidStateSampler::MaximizeClearanceValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocStateSampler()), improveAttempts_(3), work_(si->allocState())
 {
-    name_ = "max_clear_uniform";
+    name_ = "max_clearance";
+    params_.declareParam<unsigned int>("nr_improve_attempts",
+                                       boost::bind(&MaximizeClearanceValidStateSampler::setNrImproveAttempts, this, _1),
+                                       boost::bind(&MaximizeClearanceValidStateSampler::getNrImproveAttempts, this));
 }
 
 ompl::base::MaximizeClearanceValidStateSampler::~MaximizeClearanceValidStateSampler(void)
