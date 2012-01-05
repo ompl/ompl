@@ -59,6 +59,11 @@ namespace ompl
 
             void clear(void);
 
+            std::size_t size(void) const
+            {
+                return states_.size();
+            }
+
             const std::vector<const State*>& getStates(void) const
             {
                 return states_;
