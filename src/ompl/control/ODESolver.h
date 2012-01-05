@@ -52,12 +52,13 @@ namespace ompl
     namespace control
     {
         /// \brief Abstract base class for an object that can solve ordinary differential
-        /// equations (ODE) of the type q' = f(q,u) using numerical approximation.  Classes
+        /// equations (ODE) of the type q' = f(q,u) using numerical integration.  Classes
         /// deriving from this must implement the solve method.  The user must supply
         /// the ODE to solve.
         class ODESolver
         {
         public:
+            /// \brief Portable data type for the state values
             typedef std::vector<double> StateType;
 
             /// \brief Callback function that defines the ODE.  Accepts
@@ -111,23 +112,17 @@ namespace ompl
             {
                 assert (ode_);
                 assert (duration > 0.0);
+                assert (space_);
 
-                if (!space_)
-                {
-                    msg_.error ("State space is not set!");
-                }
-                else
-                {
-                    // Convert the state to a data type that is usable by ODEInt
-                    StateType reals;
-                    getReals (reals, state);
+                // Convert the state values to a portable data type
+                StateType reals;
+                getReals (reals, state);
 
-                    // Solve the ODE using boost::numeric::odeint
-                    solve (reals, control, duration);
+                // Solve the ODE
+                solve (reals, control, duration);
 
-                    // Set the resulting state from the computed reals
-                    setReals (reals, result);
-                }
+                // Set the resulting state values from the computed solution
+                setReals (reals, result);
             }
 
         protected:
@@ -150,7 +145,7 @@ namespace ompl
             {
                 for (size_t i = 0; i < reals.size (); ++i)
                 {
-                    double *val = space_->getValueAddressAtIndex(const_cast<base::State *>(state), i);
+                    double *val = space_->getValueAddressAtIndex(state, i);
                     if (val)
                     {
                         *val = reals[i];
@@ -276,7 +271,7 @@ namespace ompl
 
         /// \brief Adaptive step size solver for ordinary differential equations of the type
         /// q' = f(q, u), where q is the current state of the system and u is a control applied
-        /// to the system.  The maximum error is bounded in this approach.
+        /// to the system.  The maximum integration error is bounded in this approach.
         /// Solver is the numerical integration method used to solve the equations, and must implement
         /// the error stepper concept from boost::numeric::odeint.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
