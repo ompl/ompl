@@ -38,25 +38,43 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
 
-ompl::base::StoredStatesSampler::StoredStatesSampler(const StateSpace *space, const std::vector<const State*> &states) :
-    StateSampler(space), states_(states)
+ompl::base::StoredStateSampler::StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states) :
+    StateSampler(space), states_(states), maxNearSamplesAttempts_(3)
 {
     if (states_.empty())
-	throw Exception("Empty set of states to sample from was specified");
+        throw Exception("Empty set of states to sample from was specified");
     maxStateIndex_ = states_.size() - 1;
 }
 
-void ompl::base::StoredStatesSampler::sampleUniform(State *state)
+void ompl::base::StoredStateSampler::sampleUniform(State *state)
 {
     space_->copyState(state, states_[rng_.uniformInt(0, maxStateIndex_)]);
 }
 
-void ompl::base::StoredStatesSampler::sampleUniformNear(State *state, const State *near, const double distance)
+void ompl::base::StoredStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    sampleUniform(state);
+    int index = rng_.uniformInt(0, maxStateIndex_);
+    double dist = space_->distance(near, states_[index]);
+    if (dist > distance)
+        for (unsigned int k = 1 ; k < maxNearSamplesAttempts_ ; ++k)
+        {
+            int x = rng_.uniformInt(0, maxStateIndex_);
+            double d = space_->distance(near, states_[x]);
+            if (d <= distance)
+            {
+                space_->copyState(state, states_[x]);
+                return;
+            }
+            if (d < dist)
+            {
+                dist = d;
+                index = x;
+            }
+        }
+    space_->copyState(state, states_[index]);
 }
 
-void ompl::base::StoredStatesSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+void ompl::base::StoredStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
-    sampleUniform(state);
+    sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
 }

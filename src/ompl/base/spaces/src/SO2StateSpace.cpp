@@ -103,7 +103,7 @@ void ompl::base::SO2StateSpace::serialize(void *serialization, const State *stat
 }
 
 void ompl::base::SO2StateSpace::deserialize(State *state, const void *serialization) const
-{    
+{
     memcpy(&state->as<StateType>()->value, serialization, sizeof(double));
 }
 

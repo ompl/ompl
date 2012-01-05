@@ -99,11 +99,11 @@ namespace ompl
 
             virtual bool satisfiesBounds(const State *state) const;
 
-	    virtual unsigned int getSerializationLength(void) const;
-	    
-	    virtual void serialize(void *serialization, const State *state) const;
-	    
-	    virtual void deserialize(State *state, const void *serialization) const;
+            virtual unsigned int getSerializationLength(void) const;
+
+            virtual void serialize(void *serialization, const State *state) const;
+
+            virtual void deserialize(State *state, const void *serialization) const;
 
             virtual void copyState(State *destination, const State *source) const;
 

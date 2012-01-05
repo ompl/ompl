@@ -115,7 +115,7 @@ void ompl::base::TimeStateSpace::serialize(void *serialization, const State *sta
 {
     memcpy(serialization, &state->as<StateType>()->position, sizeof(double));
 }
-	    
+
 void ompl::base::TimeStateSpace::deserialize(State *state, const void *serialization) const
 {
     memcpy(&state->as<StateType>()->position, serialization, sizeof(double));

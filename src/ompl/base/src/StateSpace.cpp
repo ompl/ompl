@@ -651,20 +651,20 @@ void ompl::base::CompoundStateSpace::copyState(State *destination, const State *
 
 unsigned int ompl::base::CompoundStateSpace::getSerializationLength(void) const
 {
-    unsigned int l = 0;    
+    unsigned int l = 0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	l += components_[i]->getSerializationLength();
+        l += components_[i]->getSerializationLength();
     return l;
 }
 
 void ompl::base::CompoundStateSpace::serialize(void *serialization, const State *state) const
-{    
+{
     const CompoundState *cstate = static_cast<const CompoundState*>(state);
     unsigned int l = 0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
     {
-	components_[i]->serialize(reinterpret_cast<char*>(serialization) + l, cstate->components[i]);
-	l += components_[i]->getSerializationLength();
+        components_[i]->serialize(reinterpret_cast<char*>(serialization) + l, cstate->components[i]);
+        l += components_[i]->getSerializationLength();
     }
 }
 
@@ -674,8 +674,8 @@ void ompl::base::CompoundStateSpace::deserialize(State *state, const void *seria
     unsigned int l = 0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
     {
-	components_[i]->deserialize(cstate->components[i], reinterpret_cast<const char*>(serialization) + l);
-	l += components_[i]->getSerializationLength();
+        components_[i]->deserialize(cstate->components[i], reinterpret_cast<const char*>(serialization) + l);
+        l += components_[i]->getSerializationLength();
     }
 }
 

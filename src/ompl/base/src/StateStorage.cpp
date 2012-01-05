@@ -35,6 +35,16 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/StateStorage.h"
+#include "ompl/base/StoredStateSampler.h"
+#include <boost/bind.hpp>
+#include <fstream>
+
+/// @cond IGNORE
+static ompl::base::StateSamplerPtr allocStoredStateSampler(const ompl::base::StateSpace *space, const std::vector<const ompl::base::State*> *states)
+{
+    return ompl::base::StateSamplerPtr(new ompl::base::StoredStateSampler(space, *states));
+}
+/// @endcond
 
 ompl::base::StateStorage::StateStorage(const StateSpacePtr &space) : space_(space)
 {
@@ -43,6 +53,11 @@ ompl::base::StateStorage::StateStorage(const StateSpacePtr &space) : space_(spac
 ompl::base::StateStorage::~StateStorage(void)
 {
     clear();
+}
+
+ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocator(void) const
+{
+    return boost::bind(&allocStoredStateSampler, _1, &states_);
 }
 
 void ompl::base::StateStorage::load(const char *filename)
@@ -57,29 +72,29 @@ void ompl::base::StateStorage::load(std::istream &in)
     clear();
     if (!in.good() || in.eof())
     {
-	msg_.warn("Unable to load states");
-	return;
+        msg_.warn("Unable to load states");
+        return;
     }
-    
+
     // get length of file
     in.seekg(0, std::ios::end);
     std::size_t length = in.tellg();
     in.seekg(0, std::ios::beg);
-    
+
     // load the file
     char *buffer = (char*)malloc(length);
     in.read(buffer, length);
-    
+
     unsigned int l = space_->getSerializationLength();
     std::size_t nstates = length / l;
     msg_.debug("Deserializing %u states", nstates);
     states_.reserve(nstates);
-    
+
     for (std::size_t i = 0 ; i < nstates ; ++i)
     {
-	State *s = space_->allocState();
-	space_->deserialize(s, buffer + i * l);
-	addState(s);
+        State *s = space_->allocState();
+        space_->deserialize(s, buffer + i * l);
+        addState(s);
     }
     free(buffer);
 }
@@ -95,8 +110,8 @@ void ompl::base::StateStorage::store(std::ostream &out)
 {
     if (!out.good())
     {
-	msg_.warn("Unable to store states");
-	return;
+        msg_.warn("Unable to store states");
+        return;
     }
 
     msg_.debug("Serializing %u states", (unsigned int)states_.size());
@@ -105,7 +120,7 @@ void ompl::base::StateStorage::store(std::ostream &out)
     std::size_t length = l * states_.size();
     char *buffer = (char*)malloc(length);
     for (std::size_t i = 0 ; i < states_.size() ; ++i)
-	space_->serialize(buffer + i * l, states_[i]);
+        space_->serialize(buffer + i * l, states_[i]);
     out.write(buffer, length);
     free(buffer);
 }
@@ -115,9 +130,27 @@ void ompl::base::StateStorage::addState(const State *state)
     states_.push_back(state);
 }
 
+void ompl::base::StateStorage::sample(unsigned int count)
+{
+    StateSamplerPtr ss = space_->allocStateSampler();
+    states_.reserve(states_.size() + count);
+    for (unsigned int i = 0 ; i < count ; ++i)
+    {
+        State *s = space_->allocState();
+        ss->sampleUniform(s);
+        addState(s);
+    }
+}
+
 void ompl::base::StateStorage::clear(void)
 {
     for (std::size_t i = 0 ; i < states_.size() ; ++i)
-	space_->freeState(const_cast<State*>(states_[i]));
+        space_->freeState(const_cast<State*>(states_[i]));
     states_.clear();
+}
+
+void ompl::base::StateStorage::print(std::ostream &out) const
+{
+    for (std::size_t i = 0 ; i < states_.size() ; ++i)
+        space_->printState(states_[i], out);
 }

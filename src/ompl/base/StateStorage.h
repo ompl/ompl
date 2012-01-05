@@ -35,39 +35,45 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/StateSpace.h"
-#include <fstream>
+#include <iostream>
 
 namespace ompl
 {
     namespace base
     {
-	
-	class StateStorage
-	{
-	public:
-	    StateStorage(const StateSpacePtr &space);
-	    ~StateStorage(void);
-	    
-	    void load(const char *filename);
-	    void load(std::istream &in);
-	    void store(const char *filename);
-	    void store(std::ostream &out);
-	    
-	    void addState(const State *state);
-	    
-	    void clear(void);
-	    
-	    const std::vector<const State*>& getStates(void) const
-	    {
-		return states_;
-	    }
-	    
-	private:
 
-	    StateSpacePtr             space_;
-	    std::vector<const State*> states_;
-	    msg::Interface            msg_;
-	};
-	
-    }    
+        /** \brief Manage loading and storing for a set of states of a specified state space */
+        class StateStorage
+        {
+        public:
+            StateStorage(const StateSpacePtr &space);
+            ~StateStorage(void);
+
+            void load(const char *filename);
+            void load(std::istream &in);
+            void store(const char *filename);
+            void store(std::ostream &out);
+
+            void addState(const State *state);
+            void sample(unsigned int count);
+
+            void clear(void);
+
+            const std::vector<const State*>& getStates(void) const
+            {
+                return states_;
+            }
+
+            StateSamplerAllocator getStateSamplerAllocator(void) const;
+
+            void print(std::ostream &out = std::cout) const;
+
+        private:
+
+            StateSpacePtr             space_;
+            std::vector<const State*> states_;
+            msg::Interface            msg_;
+        };
+
+    }
 }

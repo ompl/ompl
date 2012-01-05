@@ -41,25 +41,44 @@ namespace ompl
 {
     namespace base
     {
-	
+
         /** \brief State space sampler for discrete states */
-        class StoredStatesSampler : public StateSampler
+        class StoredStateSampler : public StateSampler
         {
         public:
 
             /** \brief Constructor */
-            StoredStatesSampler(const StateSpace *space, const std::vector<const State*> &states);
-	    
+            StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states);
+
             virtual void sampleUniform(State *state);
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
-	    
-	protected:
-	    
-	    const std::vector<const State*> &states_;
-	    
-	private:
-	    std::size_t                      maxStateIndex_;
-	};
-    }    
+
+            /** \brief When calling sampleUniformNear() or sampleGaussian(), multiple states are drawn uniformly
+                at random, in an attempt to satisfy the requested distance. This function returns the number of attempts. */
+            unsigned int getMaxNearSamplesAttempts(void) const
+            {
+                return maxNearSamplesAttempts_;
+            }
+
+            /** \brief When calling sampleUniformNear() or sampleGaussian(), multiple states are drawn uniformly
+                at random, in an attempt to satisfy the requested distance. This function sets the number of attempts. */
+            void setMaxNearSamplesAttempts(unsigned int maxNearSamplesAttempts)
+            {
+                if (maxNearSamplesAttempts > 0)
+                    maxNearSamplesAttempts_ = maxNearSamplesAttempts;
+            }
+
+        protected:
+
+            /** \brief The states to sample from */
+            const std::vector<const State*> &states_;
+
+            /** \brief When sampling near-by states, this number decides how many attempts are made to satisfy the desired distance */
+            unsigned int                     maxNearSamplesAttempts_;
+
+        private:
+            std::size_t                      maxStateIndex_;
+        };
+    }
 }
