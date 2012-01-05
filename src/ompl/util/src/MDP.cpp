@@ -52,7 +52,7 @@ void ompl::MDP::clear(void)
 }
 
 void ompl::MDP::clearPolicy(void)
-{ 
+{
     Pi_.clear();
     V_.clear();
     err_ = 0.0;
@@ -69,13 +69,13 @@ double ompl::MDP::getActionProbability(std::size_t from, std::size_t to, std::si
 {
     if (from < act_.size())
     {
-	PossibleActions::const_iterator it = act_[from].find(act);
-	if (it != act_[from].end())
-	{
-	    PossibleDestinations::const_iterator jt = it->second.find(to);
-	    if (jt != it->second.end())
-		return jt->second.first;
-	}
+        PossibleActions::const_iterator it = act_[from].find(act);
+        if (it != act_[from].end())
+        {
+            PossibleDestinations::const_iterator jt = it->second.find(to);
+            if (jt != it->second.end())
+                return jt->second.first;
+        }
     }
     return 0.0;
 }
@@ -84,13 +84,13 @@ double ompl::MDP::getActionReward(std::size_t from, std::size_t to, std::size_t 
 {
     if (from < act_.size())
     {
-	PossibleActions::const_iterator it = act_[from].find(act);
-	if (it != act_[from].end())
-	{
-	    PossibleDestinations::const_iterator jt = it->second.find(to);
-	    if (jt != it->second.end())
-		return jt->second.second;
-	}
+        PossibleActions::const_iterator it = act_[from].find(act);
+        if (it != act_[from].end())
+        {
+            PossibleDestinations::const_iterator jt = it->second.find(to);
+            if (jt != it->second.end())
+                return jt->second.second;
+        }
     }
     return 0.0;
 }
@@ -108,7 +108,7 @@ void ompl::MDP::setActionName(std::size_t act, const std::string &name)
 bool ompl::MDP::valueIteration(double tolerance, unsigned int maxSteps)
 {
     clearPolicy();
-    
+
     V_.resize(stateCount_, 0.0);
     Pi_.resize(stateCount_, -1);
 
@@ -149,16 +149,16 @@ void ompl::MDP::normalize(void)
 {
     for (std::size_t i = 0 ; i < act_.size() ; ++i)
     {
-	PossibleActions &a = act_[i];
+        PossibleActions &a = act_[i];
         for (PossibleActions::iterator it = a.begin() ; it != a.end() ; ++it)
         {
             double p = 0.0;
-	    PossibleDestinations &d = it->second;
+            PossibleDestinations &d = it->second;
             for (PossibleDestinations::iterator jt = d.begin() ; jt != d.end() ; ++jt)
                 p += jt->second.first;
             if (p > std::numeric_limits<double>::epsilon())
-		for (PossibleDestinations::iterator jt = d.begin() ; jt != d.end() ; ++jt)
-		    jt->second.first /= p;
+                for (PossibleDestinations::iterator jt = d.begin() ; jt != d.end() ; ++jt)
+                    jt->second.first /= p;
         }
     }
 }
@@ -175,12 +175,12 @@ bool ompl::MDP::check(void) const
             double p = 0.0;
             const PossibleDestinations &d = it->second;
             for (PossibleDestinations::const_iterator jt = d.begin() ; jt != d.end() ; ++jt)
-	    {
-		if (jt->second.first < 0.0)
-		    msg_.error("Negative probabiliy found from action %u from state %u: %lf", it->first, i, jt->second.first);
-		p += jt->second.first;
-	    }
-	    if (fabs(p - 1.0) > 1e-12)
+            {
+                if (jt->second.first < 0.0)
+                    msg_.error("Negative probabiliy found from action %u from state %u: %lf", it->first, i, jt->second.first);
+                p += jt->second.first;
+            }
+            if (fabs(p - 1.0) > 1e-12)
             {
                 valid = false;
                 msg_.error("Action %u from state %u has probabilities summing up to %lf instead of 1.0", it->first, i, p);
@@ -197,101 +197,101 @@ bool ompl::MDP::extractRewardingPath(std::size_t start, std::size_t goal, std::v
     a.clear();
     if (Pi_.empty() || V_.empty())
     {
-	msg_.error("MDP not solved");
-	return false;
+        msg_.error("MDP not solved");
+        return false;
     }
     else
     {
-	std::set<std::size_t> seen;
-	std::size_t st = start;
-	bool found = true;
-	while (found)
-	{
-	    s.push_back(st);
-	    if (st == goal)
-		break;
-	    if (seen.find(st) != seen.end())
-	    {
-		msg_.debug("Cycle found as part of MDP policy");		
-		return false;
-	    }
-	    seen.insert(st);
-	    
-	    std::size_t ac = Pi_[st];
-	    a.push_back(ac);
-	    
-	    PossibleActions::const_iterator it = act_[st].find(ac);
-	    if (it == act_[st].end())
-		throw Exception("Unknown error in extracting MDP path. Please file a ticket.");
-	    double maxR = -std::numeric_limits<double>::infinity();
-	    bool found = false;
-	    for (PossibleDestinations::const_iterator jt = it->second.begin() ; jt != it->second.end() ; ++jt)
-	    {
-		double r = jt->second.first * jt->second.second;
-		if (r > maxR)
-		{
-		    maxR = r;
-		    st = jt->first;
-		    found = true;
-		}
-	    }
-	    if (!found)
-	    {
-		msg_.error("No action to perform at state %u", st);
-		return false;
-	    }
-	}
-	return true;
+        std::set<std::size_t> seen;
+        std::size_t st = start;
+        bool found = true;
+        while (found)
+        {
+            s.push_back(st);
+            if (st == goal)
+                break;
+            if (seen.find(st) != seen.end())
+            {
+                msg_.debug("Cycle found as part of MDP policy");
+                return false;
+            }
+            seen.insert(st);
+
+            std::size_t ac = Pi_[st];
+            a.push_back(ac);
+
+            PossibleActions::const_iterator it = act_[st].find(ac);
+            if (it == act_[st].end())
+                throw Exception("Unknown error in extracting MDP path. Please file a ticket.");
+            double maxR = -std::numeric_limits<double>::infinity();
+            bool found = false;
+            for (PossibleDestinations::const_iterator jt = it->second.begin() ; jt != it->second.end() ; ++jt)
+            {
+                double r = jt->second.first * jt->second.second;
+                if (r > maxR)
+                {
+                    maxR = r;
+                    st = jt->first;
+                    found = true;
+                }
+            }
+            if (!found)
+            {
+                msg_.error("No action to perform at state %u", st);
+                return false;
+            }
+        }
+        return true;
     }
 }
 
 void ompl::MDP::printGraph(std::ostream &out) const
 {
     out << "digraph MDP {" << std::endl;
-    
+
     class NName
     {
     public:
-	
-	NName(const MDP &mdp) : mdp_(mdp)
-	{
-	}
-	
-	std::string operator()(std::size_t n)
-	{
-	    std::map<std::size_t, std::string>::const_iterator s_it = mdp_.stateNames_.find(n);
-	    std::string sName = s_it != mdp_.stateNames_.end() ? s_it->second : boost::lexical_cast<std::string>(n);
-	    
-	    if (mdp_.V_.size() > n && mdp_.Pi_.size() > n)
-	    {
-		std::map<std::size_t, std::string>::const_iterator a_it = mdp_.actionNames_.find(mdp_.Pi_[n]);
-		std::string aName = a_it != mdp_.actionNames_.end() ? a_it->second : boost::lexical_cast<std::string>(mdp_.Pi_[n]);
-		return "\"" + sName + ": " + aName + ", " + boost::lexical_cast<std::string>(mdp_.V_[n]) + "\"";
-	    }
-	    else
-		return "\"" + sName + "\"";
-	}
-	
+
+        NName(const MDP &mdp) : mdp_(mdp)
+        {
+        }
+
+        std::string operator()(std::size_t n)
+        {
+            std::map<std::size_t, std::string>::const_iterator s_it = mdp_.stateNames_.find(n);
+            std::string sName = s_it != mdp_.stateNames_.end() ? s_it->second : boost::lexical_cast<std::string>(n);
+
+            if (mdp_.V_.size() > n && mdp_.Pi_.size() > n)
+            {
+                std::map<std::size_t, std::string>::const_iterator a_it = mdp_.actionNames_.find(mdp_.Pi_[n]);
+                std::string aName = a_it != mdp_.actionNames_.end() ? a_it->second : boost::lexical_cast<std::string>(mdp_.Pi_[n]);
+                return "\"" + sName + ": " + aName + ", " + boost::lexical_cast<std::string>(mdp_.V_[n]) + "\"";
+            }
+            else
+                return "\"" + sName + "\"";
+        }
+
     private:
-	const MDP &mdp_;
+        const MDP &mdp_;
     };
-    
+
     NName nm(*this);
-    
+
     for (std::size_t i = 0 ; i < act_.size() ; ++i)
     {
         const PossibleActions &a = act_[i];
         for (PossibleActions::const_iterator it = a.begin() ; it != a.end() ; ++it)
         {
             const PossibleDestinations &d = it->second;
-	    std::map<std::size_t, std::string>::const_iterator a_it = actionNames_.find(it->first);
-	    std::string aName = a_it != actionNames_.end() ? a_it->second : boost::lexical_cast<std::string>(it->first);
+            std::map<std::size_t, std::string>::const_iterator a_it = actionNames_.find(it->first);
+            std::string aName = a_it != actionNames_.end() ? a_it->second : boost::lexical_cast<std::string>(it->first);
             for (PossibleDestinations::const_iterator jt = d.begin() ; jt != d.end() ; ++jt)
-	    {
-		out << nm(i) << " -> " << nm(jt->first) << " [label=\"" << aName    
-		    << "; " << jt->second.first << "; " << jt->second.second << "\"]" << std::endl;
-	    }
-	}
+            {
+                out << nm(i) << " -> " << nm(jt->first) << " [label=\"" << aName
+                    << "; " << jt->second.first << "; " << jt->second.second << "\"]" << std::endl;
+            }
+        }
     }
     out << "}" << std::endl;
 }
@@ -299,33 +299,33 @@ void ompl::MDP::printGraph(std::ostream &out) const
 void ompl::MDP::printSettings(std::ostream &out) const
 {
     out << "MDP with " << stateCount_ << " states and " << actionCount_ << " actions. Discount factor = " << discount_ << std::endl;
-    
+
     for (std::size_t i = 0 ; i < act_.size() ; ++i)
     {
         out << "  Actions from state " << i;
-	std::map<std::size_t, std::string>::const_iterator s_it = stateNames_.find(i);
-	if (s_it != stateNames_.end())
-	    out << "(" << s_it->second << ")";	
-	out << ":" << std::endl;
+        std::map<std::size_t, std::string>::const_iterator s_it = stateNames_.find(i);
+        if (s_it != stateNames_.end())
+            out << "(" << s_it->second << ")";
+        out << ":" << std::endl;
         const PossibleActions &a = act_[i];
         for (PossibleActions::const_iterator it = a.begin() ; it != a.end() ; ++it)
         {
             out << "    - action " << it->first;
-	    std::map<std::size_t, std::string>::const_iterator a_it = actionNames_.find(it->first);
-	    if (s_it != actionNames_.end())
-		out << "(" << a_it->second << ")";
-	    out << " can lead to:" << std::endl;
+            std::map<std::size_t, std::string>::const_iterator a_it = actionNames_.find(it->first);
+            if (s_it != actionNames_.end())
+                out << "(" << a_it->second << ")";
+            out << " can lead to:" << std::endl;
             const PossibleDestinations &d = it->second;
             for (PossibleDestinations::const_iterator jt = d.begin() ; jt != d.end() ; ++jt)
-	    {
-		out << "       state " << jt->first << " (";
-		s_it = stateNames_.find(jt->first);
-		if (s_it != stateNames_.end())
-		    out << s_it->second << ", ";	
-		out << "probability " << jt->second.first
+            {
+                out << "       state " << jt->first << " (";
+                s_it = stateNames_.find(jt->first);
+                if (s_it != stateNames_.end())
+                    out << s_it->second << ", ";
+                out << "probability " << jt->second.first
                     << ", reward " << jt->second.second << ")" << std::endl;
-	    }
-	}
+            }
+        }
     }
 
     out << "Values: ";

@@ -131,31 +131,31 @@ namespace ompl
             is equal to \e reward. */
         void addPossibleAction(std::size_t from, std::size_t to, std::size_t act,
                                double prob, double reward);
-	
-	/** \brief Get the probability associated to a particular action */
-	double getActionProbability(std::size_t from, std::size_t to, std::size_t act) const;
-	
-	/** \brief Get the reward associated to a particular action */
-	double getActionReward(std::size_t from, std::size_t to, std::size_t act) const;
-	
-	/** \brief Associate a string \e name to a state \e state. Useful for debug/display purposes */
-	void setStateName(std::size_t state, const std::string &name);
 
-	/** \brief Associate a string \e name to an action \e act. Useful for debug/display purposes */
-	void setActionName(std::size_t act, const std::string &name);
-	
+        /** \brief Get the probability associated to a particular action */
+        double getActionProbability(std::size_t from, std::size_t to, std::size_t act) const;
+
+        /** \brief Get the reward associated to a particular action */
+        double getActionReward(std::size_t from, std::size_t to, std::size_t act) const;
+
+        /** \brief Associate a string \e name to a state \e state. Useful for debug/display purposes */
+        void setStateName(std::size_t state, const std::string &name);
+
+        /** \brief Associate a string \e name to an action \e act. Useful for debug/display purposes */
+        void setActionName(std::size_t act, const std::string &name);
+
         /** \brief Remove all previously recorded transitions (as if addPossibleAction() was never called) */
         void clear(void);
 
-	/** \brief Clear the previously computed policy */
-	void clearPolicy(void);
-	
+        /** \brief Clear the previously computed policy */
+        void clearPolicy(void);
+
         /** \brief Sanity checks (make sure probabilities sum up to 1) */
         bool check(void) const;
 
         /** \brief Normalize probabilities so they sum up to 1 */
-	void normalize(void);
-	
+        void normalize(void);
+
         /** \brief Compute the expected rewards and the corresponding policy using value iteration. Return true if convergence was achieved. */
         bool valueIteration(double tolerance, unsigned int maxSteps);
 
@@ -164,9 +164,9 @@ namespace ompl
             is stored as a sequence of states \e s, which includes \e
             start and \e goal. \e a will contain the actions to be
             taken. It will always be true that \e a.size() = \e
-            s.size() - 1. 
+            s.size() - 1.
 
-	    \note This works only if there are no cycles on the optimal reward path */
+            \note This works only if there are no cycles on the optimal reward path */
         bool extractRewardingPath(std::size_t start, std::size_t goal, std::vector<std::size_t> &s, std::vector<std::size_t> &a) const;
 
         /** \brief Print the graph structure of this MDP (in graphviz dot format) to a stream */
@@ -187,9 +187,9 @@ namespace ompl
         std::size_t                        actionCount_;
         double                             discount_;
         std::vector<PossibleActions>       act_;
-	std::map<std::size_t, std::string> stateNames_;
-	std::map<std::size_t, std::string> actionNames_;
-	
+        std::map<std::size_t, std::string> stateNames_;
+        std::map<std::size_t, std::string> actionNames_;
+
         std::vector<double>                V_;
         std::vector<int>                   Pi_;
         double                             err_;
