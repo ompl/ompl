@@ -65,14 +65,14 @@ namespace ompl
             /// the current state, input control, current time, and output state.
             typedef boost::function4<void, const StateType &, const Control*, double, StateType &> ODE;
 
-            /// \brief Default constructor
-            ODESolver () : intStep_(1e-2), msg_("ODESolver")
-            {
-            }
+            /// \brief Definition of the optional user defined propagation function for the system defined by
+            /// the ODE.  This method is tasked with converting the base::State values to the proper input for
+            /// the solve method in the solver.
+            typedef boost::function4<void, const base::State*, const Control *, const double, base::State *> PropagateFunction;
 
             /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
-            /// an ODE to solve, and an optional integration step size - default is 0.01
-            ODESolver (const base::StateSpacePtr &space, const ODE &ode, double intStep = 1e-2) : space_(space), ode_(ode), intStep_(intStep), msg_("ODESolver")
+            /// an ODE to solve, and the integration step size.
+            ODESolver (const base::StateSpacePtr &space, const ODE &ode, double intStep) : space_(space), ode_(ode), intStep_(intStep), msg_("ODESolver")
             {
             }
 
@@ -99,20 +99,39 @@ namespace ompl
                 intStep_ = intStep;
             }
 
-            /// \brief Set the ompl::base::StateSpace that this ODESolver operates on
-            void setStateSpace (const base::StateSpacePtr &space)
+            /// \brief Set the propagate function for the ODESolver.  This method
+            /// replaces the default method propagateDefault.
+            void setPropagateFunction (const PropagateFunction &function)
             {
-                space_ = space;
+                propFunc_ = function;
             }
+
+            /// \brief Clear the propagate function for the ODESolver.  This reverts
+            /// the propagate functionality back to propagateDefault.
+            void clearPropagateFunction (void)
+            {
+                propFunc_ = NULL;
+            }
+
+            virtual void propagate (const base::State *state, const Control *control, const double duration, base::State *result)
+            {
+                if (propFunc_)
+                    propFunc_ (state, control, duration, result);
+                else
+                    propagateDefault (state, control, duration, result);
+            }
+
+        protected:
+
+            /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
+            virtual void solve (StateType &state, const Control* control, const double duration) = 0;
 
             /// \brief Propagate the system defined by the ODE starting at \e state
             /// given a \e control to apply for some positive \e duration.  The resulting
             /// state of the system is stored into \e result.
-            virtual void propagate (const base::State *state, const Control *control, const double duration, base::State *result)
+            virtual void propagateDefault (const base::State *state, const Control *control, const double duration, base::State *result)
             {
-                assert (ode_);
                 assert (duration > 0.0);
-                assert (space_);
 
                 // Convert the state values to a portable data type
                 StateType reals;
@@ -124,11 +143,6 @@ namespace ompl
                 // Set the resulting state values from the computed solution
                 setReals (reals, result);
             }
-
-        protected:
-
-            /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
-            virtual void solve (StateType &state, const Control* control, const double duration) = 0;
 
             /// \brief Get a container that holds all real values of the input state
             void getReals (StateType &reals, const base::State *state) const
@@ -154,16 +168,19 @@ namespace ompl
             }
 
             /// \brief The StateSpace that this ODESolver operates in.
-            base::StateSpacePtr  space_;
+            const base::StateSpacePtr  space_;
 
             /// \brief Definition of the ODE to find solutions for.
-            ODE                  ode_;
+            ODE                        ode_;
 
             /// \brief The size of the numerical integration step.  Should be small to minimize error.
-            double               intStep_;
+            double                     intStep_;
 
             /// \brief Interface used for reporting errors
-            msg::Interface       msg_;
+            msg::Interface             msg_;
+
+            /// \brief Optional user specified propagate function
+            PropagateFunction          propFunc_;
 
             /// Functor used by the boost::numeric::odeint stepper object
             struct ODEFunctor
@@ -187,19 +204,14 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations.  The default
         /// is a fourth order Runge-Kutta method.  This class wraps around the simple stepper
         /// concept from boost::numeric::odeint.
-        template <class Solver = boost::numeric::odeint::stepper_rk4<ODESolver::StateType> >
+        template <class Solver = boost::numeric::odeint::runge_kutta4<ODESolver::StateType> >
         class ODEBasicSolver : public ODESolver
         {
         public:
 
-            /// \brief Default constructor
-            ODEBasicSolver (void) : ODESolver()
-            {
-            }
-
             /// \brief Parameterized constructor.  Takes a reference to the StateSpace, 
             /// an ODE to solve, and an optional integration step size - default is 0.01
-            ODEBasicSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode, double intStep = 1e-2) : ODESolver(space, ode, intStep)
+            ODEBasicSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode = NULL, double intStep = 1e-2) : ODESolver(space, ode, intStep)
             {
             }
 
@@ -222,21 +234,17 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
         /// This class wraps around the error stepper concept from boost::numeric::odeint.
-        template <class Solver = boost::numeric::odeint::stepper_rk5_ck<ODESolver::StateType> >
+        template <class Solver = boost::numeric::odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
         class ODEErrorSolver : public ODESolver
         {
         public:
-            ODEErrorSolver (void) : ODESolver()
-            {
-            }
-
             /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
-            /// an ODE to solve, and an optional integration step size - default is 0.01
-            ODEErrorSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode, double intStep = 1e-2) : ODESolver(space, ode, intStep)
+            /// an ODE to solve, and the integration step size - default is 0.01
+            ODEErrorSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode = NULL, double intStep = 1e-2) : ODESolver(space, ode, intStep)
             {
             }
 
-            /// \brief Retrieves the last error values computed during integration
+            /// \brief Retrieves the error values from the most recent integration
             ODESolver::StateType getError (void)
             {
                 ODESolver::StateType error (error_.begin (), error_.end ());
@@ -275,17 +283,13 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations, and must implement
         /// the error stepper concept from boost::numeric::odeint.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
-        template <class Solver = boost::numeric::odeint::stepper_rk5_ck<ODESolver::StateType> >
+        template <class Solver = boost::numeric::odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
         class ODEAdaptiveSolver : public ODESolver
         {
         public:
-            ODEAdaptiveSolver (void) : ODESolver(), maxError_(1e-6), maxEpsilonError_(1e-7)
-            {
-            }
-
             /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
             /// an ODE to solve, and an optional integration step size - default is 0.01
-            ODEAdaptiveSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode, double intStep = 1e-2) : ODESolver(space, ode, intStep), maxError_(1e-6), maxEpsilonError_(1e-7)
+            ODEAdaptiveSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode = NULL, double intStep = 1e-2) : ODESolver(space, ode, intStep), maxError_(1e-6), maxEpsilonError_(1e-7)
             {
             }
 
@@ -301,13 +305,13 @@ namespace ompl
                 maxError_ = error;
             }
 
-            /// \brief Retrieve the maximum error allowed during one step of numerical integration
+            /// \brief Retrieve the error tolerance during one step of numerical integration (local truncation error)
             double getMaximumEpsilonError (void) const
             {
                 return maxEpsilonError_;
             }
 
-            /// \brief Set the maximum error allowed during one step of numerical integration
+            /// \brief Set the error tolerance during one step of numerical integration (local truncation error)
             void setMaximumEpsilonError (double error)
             {
                 maxEpsilonError_ = error;
@@ -323,8 +327,8 @@ namespace ompl
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 
-                boost::numeric::odeint::controlled_stepper_standard < Solver > adaptive_stepper (maxError_, maxEpsilonError_, 1.0, 1.0);
-                boost::numeric::odeint::integrate_adaptive (adaptive_stepper, odefunc, state, 0.0, duration, intStep_);
+                boost::numeric::odeint::controlled_runge_kutta< Solver > solver (boost::numeric::odeint::default_error_checker<double>(maxError_, maxEpsilonError_));
+                boost::numeric::odeint::integrate_adaptive (solver, odefunc, state, 0.0, duration, intStep_);
             }
 
             /// \brief The maximum error allowed when performing numerical integration
