@@ -92,6 +92,7 @@ bool ompl::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std
 {
     if (!pdef_->getSpaceInformation()->isSetup())
         pdef_->getSpaceInformation()->setup();
+    foundSolCount_ = 0;
 
     time::point start = time::now();
     std::vector<boost::thread*> threads(planners_.size());
@@ -130,7 +131,10 @@ void ompl::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCoun
     msg_.debug("Starting " + planner->getName());
     if (planner->solve(*ptc))
     {
-        if (pdef_->getGoal()->getSolutionCount() >= minSolCount)
+        foundSolCountLock_.lock();
+        unsigned int nrSol = ++foundSolCount_;
+        foundSolCountLock_.unlock();
+        if (nrSol >= minSolCount)
             ptc->terminate();
         msg_.debug("Solution found by " + planner->getName());
     }
@@ -140,7 +144,11 @@ void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCou
 {
     if (planner->solve(*ptc))
     {
-        if (phybrid_->pathCount() >= maxSolCount)
+        foundSolCountLock_.lock();
+        unsigned int nrSol = ++foundSolCount_;
+        foundSolCountLock_.unlock();
+
+        if (nrSol >= maxSolCount)
             ptc->terminate();
 
         msg_.debug("Solution found by " + planner->getName());

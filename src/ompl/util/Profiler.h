@@ -112,7 +112,7 @@ namespace ompl
         ~Profiler(void)
         {
             if (printOnDestroy_ && !data_.empty())
-                console();
+                status();
         }
 
         /** \brief Start counting time */

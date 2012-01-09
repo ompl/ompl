@@ -10,7 +10,9 @@
    - SO(3) (rotation in 3D, ompl::base::SO3StateSpace),
    - SE(2) (rotation and translation in the plane, ompl::base::SE2StateSpace),
    - SE(3) (rotation and translation in 3D, ompl::base::SE3StateSpace),
-   - Time  (representation of time, ompl::base::TimeStateSpace) and
+   - Time  (representation of time, ompl::base::TimeStateSpace),
+   - Dubins (representation of a Dubins car's state space, ompl::base::DubinsStateSpace),
+   - ReedsShepp (representation of a Reeds-Shepp car's state space, ompl::base::ReedsSheppStateSpace) and
    - ODE   (representation of ODE states, if the <a href="http://sourceforge.net/projects/opende/">Open Dynamics Engine</a> library is available, ompl::control::ODEStateSpace).
 .
 

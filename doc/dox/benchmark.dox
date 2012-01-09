@@ -4,6 +4,8 @@
     - \ref benchmark_log
     - \ref benchmark_sample_results
 
+    For more advanced benchmarks, please see <a href="http://plannerarena.org">plannerarena.org</a>.
+
     \section benchmark_code Writing Benchmarking Code
 
     Benchmarking a set of planners on a specified problem is a simple
