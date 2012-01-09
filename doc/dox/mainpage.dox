@@ -39,7 +39,7 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 - \ref download "Download" and \ref installation "install" OMPL.
 - Familiarize yourself with the \ref boost "Boost structures" used throughout OMPL.
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
-- \ref group__demos "Demos"
+- \ref demos
 - \ref tutorials
 - If interested in using Python, make sure to read \ref python "the documentation for the Python bindings".
 
