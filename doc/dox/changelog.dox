@@ -2,6 +2,9 @@
 
 \page changelog Changelog
 
+\section dec_6_2011 December 6, 2011
+    - Update EST, SBL and pSBL to use the PDF datastructure for representing 
+
 \section dec_2_2011 December 2, 2011
     - Added support for setting generic parameters for various classes in OMPL
 
