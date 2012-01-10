@@ -1194,5 +1194,26 @@ namespace ompl
             return StateSpacePtr(new CompoundStateSpace(components, weights));
         }
 
+        /// @cond IGNORE
+        void computeStateSpaceSignatureHelper(const StateSpacePtr &space, std::vector<int> &signature)
+        {
+            signature.push_back(space->getType());
+            signature.push_back(space->getDimension());
+
+            if (space->isCompound())
+            {
+                unsigned int c = space->as<CompoundStateSpace>()->getSubSpaceCount();
+                for (unsigned int i = 0 ; i < c ; ++i)
+                    computeStateSpaceSignatureHelper(space->as<CompoundStateSpace>()->getSubSpace(i), signature);
+            }
+        }
+        /// @endcond
+
+        void computeStateSpaceSignature(const StateSpacePtr &space, std::vector<int> &signature)
+        {
+            signature.clear();
+            computeStateSpaceSignatureHelper(space, signature);
+            signature.insert(signature.begin(), signature.size());
+        }
     }
 }
