@@ -33,9 +33,9 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 - If you are interested in the <a href="http://www.ros.org/wiki/ompl_ros_interface">ROS interface to OMPL</a>, please read the <a href="http://kavrakilab.org/OMPLtutorial">tutorial on using OMPL within ROS</a>.
 
 \htmlonly</div><div class="span-7 push-1">\endhtmlonly
-\section gettingStarted Getting started
+\section gettingStarted Getting Started
 
-- The <a href="OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
+- The <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
 - \ref download "Download" and \ref installation "install" OMPL.
 - Familiarize yourself with the \ref boost "Boost structures" used throughout OMPL.
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
