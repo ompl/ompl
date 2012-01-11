@@ -46,31 +46,53 @@ namespace ompl
         class StateStorage
         {
         public:
+
+            /** \brief The state space to store states for */
             StateStorage(const StateSpacePtr &space);
             ~StateStorage(void);
 
+            /** \brief Load a set of states from a specified file */
             void load(const char *filename);
+
+            /** \brief Load a set of states from a stream */
             void load(std::istream &in);
+
+            /** \brief Save a set of states to a file */
             void store(const char *filename);
+
+            /** \brief Save a set of states to a stream */
             void store(std::ostream &out);
 
+            /** \brief Add a state to the set of states maintained by
+                this storage structure. Ownership of the state is
+                assumed (i.e., the state will be freed when the
+                StateStorage instance goes out of scope) */
             void addState(const State *state);
+
+            /** \brief Generate \e count states uniformly at random and store them in this structure */
             void generateSamples(unsigned int count);
 
+            /** \brief Clear the stored states. This frees all the memory */
             void clear(void);
 
+            /** \brief Return the number of stored states */
             std::size_t size(void) const
             {
                 return states_.size();
             }
 
+            /** \brief Get the stored states */
             const std::vector<const State*>& getStates(void) const
             {
                 return states_;
             }
 
+            /** \brief Get a sampler allocator to a sampler that can
+                be specified for a StateSpace, such that all sampled
+                states are actually from this storage structure. */
             StateSamplerAllocator getStateSamplerAllocator(void) const;
 
+            /** \brief Output the set of states to a specified stream, in a human readable fashion */
             void print(std::ostream &out = std::cout) const;
 
         private:
