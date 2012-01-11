@@ -152,6 +152,10 @@ namespace ompl
                 return params_;
             }
 
+            /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
+                The first element of the signature is the number of integers that follow */
+            void computeSignature(std::vector<int> &signature) const;
+
             /** @} */
 
             /** @name Functionality specific to state spaces (to be implemented by derived state spaces)
@@ -195,6 +199,15 @@ namespace ompl
                 function is slow and is not intended for use in the
                 implementation of planners. */
             virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
+
+            /** \brief Get the number of chars in the serialization of a state in this space */
+            virtual unsigned int getSerializationLength(void) const;
+
+            /** \brief Write the binary representation of \e state to \e serialization */
+            virtual void serialize(void *serialization, const State *state) const;
+
+            /** \brief Read the binary representation of a state from \e serialization and write it to \e state */
+            virtual void deserialize(State *state, const void *serialization) const;
 
             /** \brief When performing discrete validation of motions,
                 the length of the longest segment that does not
@@ -469,6 +482,12 @@ namespace ompl
             virtual bool satisfiesBounds(const State *state) const;
 
             virtual void copyState(State *destination, const State *source) const;
+
+            virtual unsigned int getSerializationLength(void) const;
+
+            virtual void serialize(void *serialization, const State *state) const;
+
+            virtual void deserialize(State *state, const void *serialization) const;
 
             virtual double distance(const State *state1, const State *state2) const;
 

@@ -19,6 +19,7 @@ if(OMPL_BUILD_TESTS)
     # Test base code
     add_ompl_test(test_state_operations base/state_operations.cpp)
     add_ompl_test(test_state_spaces base/state_spaces.cpp)
+    add_ompl_test(test_state_storage base/state_storage.cpp)
 
     # Test kinematic motion planners on a 2D map
     add_ompl_test(test_2dmap_geometric geometric/2dmap/2dmap.cpp)
