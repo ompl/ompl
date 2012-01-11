@@ -79,5 +79,6 @@ bool ompl::OptimizePlan::solve(const base::PlannerTerminationCondition &ptc, uns
                 break;
         }
     }
+
     return result;
 }

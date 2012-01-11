@@ -1,45 +1,7 @@
 /**
-\page documentation Documentation
-
-\section gettingStarted Getting Started
-
-- Follow the instructions to \ref download "download" and \ref installation "install" OMPL.
-- Read the <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a>.
-- Read the \ref api_overview "API overview".
-- Familiarize yourself with the \ref boost "Boost structures" used throughout the OMPL API.
-- Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
-- Read about the \ref availablePlanners "available planners" and the \ref availableStateSpaces "available state spaces".
-- If interested in using Python, make sure to read \ref python "the documentation for the python bindings".
-- Get more information about \ref education "using OMPL for educational purposes".
-- Take a look at \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
-.
-
-\section tutorials Tutorials
-
-Below we include a number of tutorials we believe are useful for
-understanding how OMPL works, grouped by level of difficulty. Users
-are encouraged to look at the examples in @b demos/ as well.
-
-\par Beginner
-- \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
-- \ref stateValidation "Setting up state validity checking"
-- \ref workingWithStates "Working with states and state spaces"
-- \ref samplers "Using existing samplers and creating new ones"
-.
-
-\par Intermediate
-- \ref genericPlanning "Generic instructions for setting up a planning context"
-- \ref implementingStateSpaces "Implementing new state spaces"
-- \ref goalRepresentation "Representing goals"
-.
-
-\par Advanced
-- \ref benchmark "Benchmarking planners"
-- \ref newPlanner "Adding a new planner"
-- \ref projections "Setting up a projection"
-.
-
-\section demos Demos
+\defgroup demos Demos
+\ingroup demos
+@{
 
 - <a href="RigidBodyPlanning_8cpp_source.html"><strong>Rigid body planning</strong></a> <a href="RigidBodyPlanning_8py_source.html"><strong>[Python version]</strong></a>.
 This demo is essentially the same example described in the first tutorial. It illustrates how to use the main classes.
@@ -52,5 +14,10 @@ This example extends the previous example by showing how one can plan for system
 This demo shows off two neat features of OMPL: a genetic algorithm-based Inverse Kinematics solver and a lazy goal state sampler. In a separate thread goal states are computed by the IK solver. While solving a motion planning problem, the planning algorithms select a random goal state from the ones computed so far.
 - <a href="ODERigidBodyPlanning_8cpp_source.html"><strong>Rigid body planning using the Open Dynamics Engine (ODE). </strong></a>
 When ODE is installed, OMPL will compile an extension that makes is easier to use ODE for forward propagation of models of motion. In this example, a box is pushed around in the plane from a start position to a goal position.
+- <a href="GeometricCarPlanning_8cpp_source.html"><strong>Planning for Dubins and Reeds-Shepp cars. </strong></a>
+This demo illustrates the use of the ompl::base::DubinsStateSpace and ompl::base::ReedsSheppStateSpace. The demo can solve two simple planning problems, print trajectories from the origin to a user-specified state, or print a discretized distance field.
+.
+
+@}
 
 */

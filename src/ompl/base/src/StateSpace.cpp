@@ -731,12 +731,9 @@ void ompl::base::CompoundStateSpace::interpolate(const State *from, const State 
 
 ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSampler(void) const
 {
-    double totalWeight = std::accumulate(weights_.begin(), weights_.end(), 0.0);
-    if (totalWeight < std::numeric_limits<double>::epsilon())
-        totalWeight = 1.0;
     CompoundStateSampler *ss = new CompoundStateSampler(this);
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-        ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / totalWeight);
+        ss->addSampler(components_[i]->allocStateSampler(), weights_[i] * components_[i]->getMaximumExtent() / maxExtent_);
     return StateSamplerPtr(ss);
 }
 

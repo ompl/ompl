@@ -64,13 +64,26 @@ namespace ompl
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
             PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0) :
-                index_(-1), path_(path), approximate_(approximate), difference_(difference)
+                index_(-1), path_(path), length_(path->length()), approximate_(approximate), difference_(difference)
             {
             }
+
             /** \brief Return true if two solutions are the same */
-            bool operator==(const PlannerSolution& p)
+            bool operator==(const PlannerSolution& p) const
             {
                 return path_ == p.path_;
+            }
+
+            /** \brief Define a ranking for solutions */
+            bool operator<(const PlannerSolution &b) const
+            {
+                if (!approximate_ && b.approximate_)
+                    return true;
+                if (approximate_ && !b.approximate_)
+                    return false;
+                if (approximate_ && b.approximate_)
+                    return difference_ < b.difference_;
+                return length_ < b.length_;
             }
 
             /** \brief When multiple solutions are found, each is given a number starting at 0, so that the order in which the solutions was found can be retrieved. */
@@ -79,17 +92,15 @@ namespace ompl
             /** \brief Solution path */
             PathPtr path_;
 
+            /** \brief For efficiency reasons, keep the length of the path as well */
+            double  length_;
+
             /** \brief True if goal was not achieved, but an approximate solution was found */
             bool    approximate_;
 
             /** \brief The achieved difference between the found solution and the desired goal */
             double  difference_;
         };
-
-        /// @cond IGNORE
-        ClassForward(PlannerSolutionSet);
-        /// @endcond
-
 
         /** \brief Abstract definition of goals. Will contain solutions, if found */
         class Goal : private boost::noncopyable
@@ -249,6 +260,10 @@ namespace ompl
             double                       maximumPathLength_;
 
         private:
+
+            /// @cond IGNORE
+            ClassForward(PlannerSolutionSet);
+            /// @endcond
 
             /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */
             PlannerSolutionSetPtr        solutions_;
