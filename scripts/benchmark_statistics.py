@@ -330,7 +330,10 @@ def compute_views(dbname):
             # select all runs, in all configurations, for a particular problem and a particular planner
             s0 = 'SELECT * FROM %s INNER JOIN experiments ON %s.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
             # select the highest solve rate and shortest average runtime for each planner configuration
-            s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
+            if p.startswith("geometric"):
+                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
+            else:
+                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
             c.execute(s1)
             best = c.fetchone()
             if not best == None:
@@ -340,7 +343,10 @@ def compute_views(dbname):
                     c.execute('DROP VIEW IF EXISTS %s' % bp)
                     c.execute('CREATE VIEW IF NOT EXISTS %s AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
 
-        c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+        if p.startswith("geometric"):
+            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+        else:
+            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
         best = c.fetchone()
         if not best == None:
             if not best[0] == None:
