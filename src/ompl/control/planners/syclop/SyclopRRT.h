@@ -50,6 +50,7 @@ namespace ompl
         class SyclopRRT : public Syclop
         {
         public:
+            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             SyclopRRT(const SpaceInformationPtr& si, const DecompositionPtr &d) : Syclop(si,d,"SyclopRRT"), regionalNN_(false)
             {
             }

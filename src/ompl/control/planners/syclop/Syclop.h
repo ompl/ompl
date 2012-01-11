@@ -59,23 +59,15 @@ namespace ompl
 
            @par Short description
            Syclop is a multi-layered planner that guides a low-level sampling-based tree planner
-           through a sequence of sequence of workspace regions from start to goal.
+           through a sequence of sequence of discrete workspace regions from start to goal.
            Syclop is defined as an abstract base class whose pure virtual methods are defined
            by the chosen low-level sampling-based tree planner.
 
            @par External documentation
            E. Plaku, L.E. Kavraki, and M.Y. Vardi,
            Motion Planning with Dynamics by a Synergistic Combination of Layers of Planning,
-           in <em>IEEE Transactions on Robotics</em>, 2010.<br>
-           <a href="http://kavrakilab.org/node/737">Abstract</a>
-
-           @par Planner parameters
-           - free_volume_samples: Number of states to sample when estimating free volume in the decomposition.
-           - num_region_expansions: Number of times a new region will be chosen and expanded from a single lead.
-           - num_tree_expansions: Number of times the tree is expanded in a specific decomposition region.
-           - prob_abandon_lead_early: Probability that a lead will be abandoned early.
-           - prob_add_available_regions: Probability that the set of available regions will be updated after each lead computation.
-           - prob_shortest_path_lead: Probability that a lead will be computed as the shortest-path instead of random.
+           in <em>IEEE Transactions on Robotics</em>, 2010.
+           DOI: <a href="http://dx.doi.org/10.1109/TRO.2010.2047820">10.1109/TRO.2010.2047820</a><br>
         */
 
         /** \brief Synergistic Combination of Layers of Planning. */
@@ -127,6 +119,9 @@ namespace ompl
             {
             }
 
+            /// @name ompl::base::Planner Interface
+            /// @{
+
             virtual void setup(void);
 
             virtual void clear(void);
@@ -134,15 +129,16 @@ namespace ompl
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
                 Returns true if solution was found. */
             virtual bool solve(const base::PlannerTerminationCondition& ptc);
+            /// @}
+
+            /// @name Tunable parameters
+            /// @{
 
             /** \brief Adds an edge cost factor to be used for edge weights between adjacent regions. */
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
 
             /** \brief Clears all edge cost factors, making all edge weights equivalent to 1. */
             void clearEdgeCostFactors(void);
-
-            /// @name Tunable parameters
-            /// @{
 
             /// \brief Get the number of states to sample when estimating free volume in the Decomposition.
             int getNumFreeVolumeSamples (void) const

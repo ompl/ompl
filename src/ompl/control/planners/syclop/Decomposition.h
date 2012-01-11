@@ -80,7 +80,7 @@ namespace ompl
                 return dimension_;
             }
 
-            /** \brief Returns the bounds of this Decompositon. */
+            /** \brief Returns the bounds of this Decomposition. */
             virtual const base::RealVectorBounds& getBounds() const
             {
                 return bounds_;

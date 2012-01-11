@@ -49,6 +49,7 @@ namespace ompl
         class SyclopEST : public Syclop
         {
         public:
+            /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             SyclopEST(const SpaceInformationPtr& si, const DecompositionPtr &d) : Syclop(si,d,"SyclopEST")
             {
             }
