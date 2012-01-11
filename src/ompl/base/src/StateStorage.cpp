@@ -44,6 +44,8 @@ static ompl::base::StateSamplerPtr allocStoredStateSampler(const ompl::base::Sta
 {
     return ompl::base::StateSamplerPtr(new ompl::base::StoredStateSampler(space, *states));
 }
+
+static const boost::uint32_t OMPL_ARCHIVE_MARKER = 0x4C504D4F;
 /// @endcond
 
 ompl::base::StateStorage::StateStorage(const StateSpacePtr &space) : space_(space)
@@ -76,27 +78,82 @@ void ompl::base::StateStorage::load(std::istream &in)
         return;
     }
 
-    // get length of file
-    in.seekg(0, std::ios::end);
-    std::size_t length = in.tellg();
-    in.seekg(0, std::ios::beg);
+    // check marker
+    boost::uint32_t marker = 0;
+    in.read((char*)&marker, sizeof(uint32_t));
+    if (marker != OMPL_ARCHIVE_MARKER)
+    {
+        msg_.error("The stored data does not start with the correct header");
+        return;
+    }
+
+    // check state space signature
+    std::vector<int> sig;
+    space_->computeSignature(sig);
+
+    int signature_length = 0;
+    if (in.good())
+        in.read((char*)&signature_length, sizeof(int));
+    if (sig[0] != signature_length)
+    {
+        msg_.error("State space signatures do not match");
+        return;
+    }
+    for (int i = 0 ; in.good() && i < signature_length ; ++i)
+    {
+        int s = 0;
+        in.read((char*)&s, sizeof(int));
+        if (s != sig[i + 1])
+        {
+            msg_.error("State space signatures do not match");
+            return;
+        }
+    }
+    std::size_t state_count = 0;
+    std::size_t metadata_size = 0;
+    if (in.good())
+        in.read((char*)&state_count, sizeof(std::size_t));
+    else
+    {
+        msg_.error("Expected number of states. Incorrect file format");
+        return;
+    }
+    if (in.good())
+        in.read((char*)&metadata_size, sizeof(std::size_t));
+    else
+    {
+        msg_.error("Expected metadata size. Incorrect file format");
+        return;
+    }
+    if (state_count > 0 && !in.good())
+    {
+        msg_.error("Expected state data. Incorrect file format");
+        return;
+    }
 
     // load the file
-    char *buffer = (char*)malloc(length);
-    in.read(buffer, length);
-
     unsigned int l = space_->getSerializationLength();
-    std::size_t nstates = length / l;
-    msg_.debug("Deserializing %u states", nstates);
-    states_.reserve(nstates);
-
-    for (std::size_t i = 0 ; i < nstates ; ++i)
+    std::size_t length = state_count * (l + metadata_size);
+    char *buffer = length ? (char*)malloc(length) : NULL;
+    if (buffer)
     {
-        State *s = space_->allocState();
-        space_->deserialize(s, buffer + i * l);
-        addState(s);
+        in.read(buffer, length);
+        if (!in.fail())
+        {
+            msg_.debug("Deserializing %u states", state_count);
+            states_.reserve(state_count);
+
+            for (std::size_t i = 0 ; i < state_count ; ++i)
+            {
+                State *s = space_->allocState();
+                space_->deserialize(s, buffer + i * (l + metadata_size));
+                addState(s);
+            }
+        }
+        else
+            msg_.error("Unable to read state data. Incorrect file format");
+        free(buffer);
     }
-    free(buffer);
 }
 
 void ompl::base::StateStorage::store(const char *filename)
@@ -113,6 +170,26 @@ void ompl::base::StateStorage::store(std::ostream &out)
         msg_.warn("Unable to store states");
         return;
     }
+
+    // *************** begin write header information
+
+    // write archive marker
+    out.write((char*)&OMPL_ARCHIVE_MARKER, sizeof(boost::uint32_t));
+
+    // write state space signature
+    std::vector<int> sig;
+    space_->computeSignature(sig);
+    out.write((char*)&sig[0], sig.size() * sizeof(int));
+
+    // write out the number of states
+    std::size_t nr_states = states_.size();
+    out.write((char*)&nr_states, sizeof(std::size_t));
+
+    // write out the size of the metadata for each state (currently no metadata)
+    std::size_t metadata_size = 0;
+    out.write((char*)&metadata_size, sizeof(std::size_t));
+
+    // *************** end write header information
 
     msg_.debug("Serializing %u states", (unsigned int)states_.size());
 

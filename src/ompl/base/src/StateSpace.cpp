@@ -118,6 +118,35 @@ void ompl::base::StateSpace::setName(const std::string &name)
     msg_.setPrefix(name_);
 }
 
+/// @cond IGNORE
+namespace ompl
+{
+    namespace base
+    {
+        static void computeStateSpaceSignatureHelper(const StateSpace *space, std::vector<int> &signature)
+        {
+            signature.push_back(space->getType());
+            signature.push_back(space->getDimension());
+
+            if (space->isCompound())
+            {
+                unsigned int c = space->as<CompoundStateSpace>()->getSubSpaceCount();
+                for (unsigned int i = 0 ; i < c ; ++i)
+                    computeStateSpaceSignatureHelper(space->as<CompoundStateSpace>()->getSubSpace(i).get(), signature);
+            }
+        }
+    }
+}
+
+/// @endcond
+
+void ompl::base::StateSpace::computeSignature(std::vector<int> &signature) const
+{
+    signature.clear();
+    computeStateSpaceSignatureHelper(this, signature);
+    signature.insert(signature.begin(), signature.size());
+}
+
 void ompl::base::StateSpace::registerProjections(void)
 {
 }
@@ -1189,28 +1218,6 @@ namespace ompl
                 return components[0];
 
             return StateSpacePtr(new CompoundStateSpace(components, weights));
-        }
-
-        /// @cond IGNORE
-        void computeStateSpaceSignatureHelper(const StateSpacePtr &space, std::vector<int> &signature)
-        {
-            signature.push_back(space->getType());
-            signature.push_back(space->getDimension());
-
-            if (space->isCompound())
-            {
-                unsigned int c = space->as<CompoundStateSpace>()->getSubSpaceCount();
-                for (unsigned int i = 0 ; i < c ; ++i)
-                    computeStateSpaceSignatureHelper(space->as<CompoundStateSpace>()->getSubSpace(i), signature);
-            }
-        }
-        /// @endcond
-
-        void computeStateSpaceSignature(const StateSpacePtr &space, std::vector<int> &signature)
-        {
-            signature.clear();
-            computeStateSpaceSignatureHelper(space, signature);
-            signature.insert(signature.begin(), signature.size());
         }
     }
 }

@@ -152,6 +152,10 @@ namespace ompl
                 return params_;
             }
 
+            /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
+                The first element of the signature is the number of integers that follow */
+            void computeSignature(std::vector<int> &signature) const;
+
             /** @} */
 
             /** @name Functionality specific to state spaces (to be implemented by derived state spaces)
@@ -578,10 +582,6 @@ namespace ompl
             (some data copied), 2 (all data copied) */
         int copyStateData(const StateSpacePtr &destS, State *dest,
                           const StateSpacePtr &sourceS, const State *source);
-
-        /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
-            The first element of the signature is the number of integers that follow */
-        void computeStateSpaceSignature(const StateSpacePtr &space, std::vector<int> &signature);
     }
 }
 

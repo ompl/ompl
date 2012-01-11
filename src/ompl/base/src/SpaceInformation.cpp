@@ -385,7 +385,7 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
     out << "Properties of the state space '" << stateSpace_->getName() << "'" << std::endl;
     out << "  - signature: ";
     std::vector<int> sig;
-    computeStateSpaceSignature(stateSpace_, sig);
+    stateSpace_->computeSignature(sig);
     for (std::size_t i = 0 ; i < sig.size() ; ++i)
         out << sig[i] << " ";
     out << std::endl;
