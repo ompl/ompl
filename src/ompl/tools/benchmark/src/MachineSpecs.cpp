@@ -42,10 +42,10 @@
 #if defined _WIN32
 
 // Windows 2000 or newer
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <psapi.h>
-#include <winsock2.h>
 
 ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 {

@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,17 +34,51 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_CONFIG_
-#define OMPL_CONFIG_
+#include "ompl/tools/multiplan/OptimizePlan.h"
 
-/** \brief The ompl version */
-#define OMPL_VERSION "@OMPL_VERSION@"
+void ompl::OptimizePlan::addPlanner(const base::PlannerPtr &planner)
+{
+    if (planner && planner->getSpaceInformation().get() != getProblemDefinition()->getSpaceInformation().get())
+        throw Exception("Planner instance does not match space information");
+    planners_.push_back(planner);
+}
 
-#define OMPL_MAJOR_VERSION @OMPL_MAJOR_VERSION@
-#define OMPL_MINOR_VERSION @OMPL_MINOR_VERSION@
-#define OMPL_PATCH_VERSION @OMPL_PATCH_VERSION@
+void ompl::OptimizePlan::addPlannerAllocator(const base::PlannerAllocator &pa)
+{
+    planners_.push_back(pa(getProblemDefinition()->getSpaceInformation()));
+}
 
-/** \brief Specify whether the ODE extension is built */
-#cmakedefine01 OMPL_EXTENSION_ODE
+void ompl::OptimizePlan::clearPlanners(void)
+{
+    planners_.clear();
+}
 
-#endif
+bool ompl::OptimizePlan::solve(double solveTime, unsigned int nthreads)
+{
+    return solve(base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)), nthreads);
+}
+
+bool ompl::OptimizePlan::solve(const base::PlannerTerminationCondition &ptc, unsigned int nthreads)
+{
+    bool result = false;
+    unsigned int np = 0;
+    const base::GoalPtr &goal = getProblemDefinition()->getGoal();
+
+    while (ptc() == false)
+    {
+        pp_.clearPlanners();
+        for (unsigned int i = 0 ; i < nthreads ; ++i)
+        {
+            pp_.addPlanner(planners_[np]);
+            np = (np + 1) % planners_.size();
+        }
+        if (pp_.solve(ptc, true))
+        {
+            result = true;
+            if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
+                break;
+        }
+    }
+
+    return result;
+}
