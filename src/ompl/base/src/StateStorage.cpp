@@ -36,16 +36,23 @@
 
 #include "ompl/base/StateStorage.h"
 #include "ompl/base/StoredStateSampler.h"
+#include "ompl/util/Exception.h"
 #include <boost/bind.hpp>
 #include <fstream>
 
 /// @cond IGNORE
-static ompl::base::StateSamplerPtr allocStoredStateSampler(const ompl::base::StateSpace *space, const std::vector<const ompl::base::State*> *states)
+static ompl::base::StateSamplerPtr allocStoredStateSampler(const ompl::base::StateSpace *space,
+							   const std::vector<int> &expectedSignature,
+							   const std::vector<const ompl::base::State*> *states)
 {
+    std::vector<int> sig;
+    space->computeSignature(sig);
+    if (sig != expectedSignature)
+	throw ompl::Exception("Cannot allocate state sampler for a state space whose signature does not match that of the stored states");
     return ompl::base::StateSamplerPtr(new ompl::base::StoredStateSampler(space, *states));
 }
 
-static const boost::uint32_t OMPL_ARCHIVE_MARKER = 0x4C504D4F;
+static const boost::uint32_t OMPL_ARCHIVE_MARKER = 0x4C504D4F; // this spells OMPL
 /// @endcond
 
 ompl::base::StateStorage::StateStorage(const StateSpacePtr &space) : space_(space)
@@ -59,7 +66,9 @@ ompl::base::StateStorage::~StateStorage(void)
 
 ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocator(void) const
 {
-    return boost::bind(&allocStoredStateSampler, _1, &states_);
+    std::vector<int> sig;
+    space_->computeSignature(sig);
+    return boost::bind(&allocStoredStateSampler, _1, boost::cref(sig), &states_);
 }
 
 void ompl::base::StateStorage::load(const char *filename)
@@ -207,7 +216,7 @@ void ompl::base::StateStorage::addState(const State *state)
     states_.push_back(state);
 }
 
-void ompl::base::StateStorage::sample(unsigned int count)
+void ompl::base::StateStorage::generateSamples(unsigned int count)
 {
     StateSamplerPtr ss = space_->allocStateSampler();
     states_.reserve(states_.size() + count);

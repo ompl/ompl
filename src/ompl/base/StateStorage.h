@@ -55,7 +55,7 @@ namespace ompl
             void store(std::ostream &out);
 
             void addState(const State *state);
-            void sample(unsigned int count);
+            void generateSamples(unsigned int count);
 
             void clear(void);
 
