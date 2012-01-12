@@ -96,6 +96,26 @@ class ompl_base_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        # "StateSpace::Diagram(std::cout)" will be replaced with
+        # something more pythonesque: "print StateSpace.Diagram()"
+        replacement['::ompl::base::StateSpace::Diagram'] = ('def("Diagram", &DiagramWrapper)', """
+        std::string DiagramWrapper(%s* obj)
+        {
+            std::ostringstream s;
+            obj->Diagram(s);
+            return s.str();
+        }
+        """)
+        # "StateSpace::List(std::cout)" will be replaced with
+        # something more pythonesque: "print StateSpace.List()"
+        replacement['::ompl::base::StateSpace::List'] = ('def("List", &ListWrapper)', """
+        std::string ListWrapper(%s* obj)
+        {
+            std::ostringstream s;
+            obj->List(s);
+            return s.str();
+        }
+        """)
         # add a wrapper for the
         # ompl::base::SpaceInformation::setStateValidityChecker. This wrapper
         # makes a SpaceInformation reference accessible to the validity checker and
@@ -146,7 +166,7 @@ class ompl_base_generator_t(code_generator_t):
             ompl::base::ValidStateSamplerAllocator(SetValidStateSamplerPyWrapper(function)), _1));
         }
         """)
-        code_generator_t.__init__(self, 'base', None, replacement)
+        code_generator_t.__init__(self, 'base', ['bindings/util'], replacement)
 
     def filter_declarations(self):
         # force ProblemDefinition to be included, because it is used by other modules
@@ -155,17 +175,11 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('Path').include()
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
-        self.std_ns.class_('vector< int >').rename('vectorInt')
-        self.std_ns.class_('vector< double >').rename('vectorDouble')
-        self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
-        self.std_ns.class_('vector< std::string >').rename('vectorString')
-        self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
         self.std_ns.class_('map< std::string, boost::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
         self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
         self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename('vectorPlannerSolution')
-        self.std_ns.class_('map< std::string, std::string>').rename('mapStringToString')
         self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
         # don't export variables that need a wrapper
@@ -214,7 +228,7 @@ class ompl_base_generator_t(code_generator_t):
             self.ompl_ns.class_(stype + 'Path').exclude()
             self.ompl_ns.class_(stype + 'StateSpace').member_function(
                 stype[0].lower()+stype[1:]).exclude()
-        # don't this utility function
+        # don't expose this utility function
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateSpace').class_(
@@ -244,8 +258,12 @@ class ompl_base_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printState'))
         # make list of available projections printable
         self.replace_member_functions(self.ompl_ns.member_functions('printProjections'))
-        # make projections projections
+        # make projections printable
         self.replace_member_functions(self.ompl_ns.member_functions('printProjection'))
+        # make state space diagram printable
+        self.replace_member_function(self.ompl_ns.class_('StateSpace').member_function('Diagram'))
+        # make state space list printable
+        self.replace_member_function(self.ompl_ns.class_('StateSpace').member_function('List'))
         # add wrapper code for setStateValidityChecker
         self.replace_member_functions(self.ompl_ns.namespace('base').class_(
             'SpaceInformation').member_functions('setStateValidityChecker',
@@ -256,6 +274,15 @@ class ompl_base_generator_t(code_generator_t):
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationConditionFn const &', 'double']).exclude()
+        # rename SamplerSelectors
+        self.ompl_ns.class_('SamplerSelector< ompl::base::StateSampler >').rename('StateSamplerSelector')
+        self.ompl_ns.class_('SamplerSelector< ompl::base::ValidStateSampler >').rename('ValidStateSamplerSelector')
+        cls = self.ompl_ns.class_('StateStorage').member_functions('load')
+        for c in cls:
+            print c.decl_string
+        self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
+        self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
+
 
         # wrap the GoalLazySamples constructor so that we can pass a python
         # function that will be converted to a ompl::base::GoalSamplingFn.
@@ -353,17 +380,13 @@ class ompl_control_generator_t(code_generator_t):
         }
         """)
 
-        code_generator_t.__init__(self, 'control', ['bindings/base', 'bindings/geometric'], replacement)
+        code_generator_t.__init__(self, 'control', ['bindings/util', 'bindings/base', 'bindings/geometric'], replacement)
 
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
-        self.std_ns.class_('vector< int >').rename('vectorInt')
-        self.std_ns.class_('vector< std::vector< int > >').rename('vectorVectorInt')
-        self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
-        self.std_ns.class_('vector< std::vector< double > >').rename('vecVecDouble')
-        self.std_ns.class_('vector< std::vector< ompl::control::Control const* > >').rename('vecVecConstControlPtr')
+        self.std_ns.class_('vector< std::vector< ompl::control::Control const* > >').rename('vectorVectorConstControlPtr')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force ControlSpace::allocState to be exported.
@@ -453,14 +476,10 @@ class ompl_geometric_generator_t(code_generator_t):
                 obj->getSpaceInformation().get(), _1));
         }
         """)
-        code_generator_t.__init__(self, 'geometric', ['bindings/base'], replacement)
+        code_generator_t.__init__(self, 'geometric', ['bindings/util', 'bindings/base'], replacement)
 
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
-        # rename STL vectors of certain types
-        self.std_ns.class_('vector< int >').rename('vectorInt')
-        self.std_ns.class_('vector< double >').rename('vectorDouble')
-
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # make objects printable that have a print function
@@ -512,14 +531,12 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
-            self.std_ns.class_('vector< unsigned long >').rename('vectorMilestone')
         except:
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned int>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned int>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
-            self.std_ns.class_('vector< unsigned int >').rename('vectorMilestone')
 
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):
@@ -532,13 +549,11 @@ class ompl_tools_generator_t(code_generator_t):
         """)
 
         code_generator_t.__init__(self, 'tools',
-            ['bindings/base', 'bindings/geometric', 'bindings/control'], replacement)
+            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'], replacement)
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors/maps of certain types
-        self.std_ns.class_('vector< bool >').rename('vectorBool')
         self.std_ns.class_('vector< ompl::Benchmark::PlannerExperiment >').rename('vectorPlannerExperiment')
-        self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
 
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
@@ -565,7 +580,45 @@ class ompl_tools_generator_t(code_generator_t):
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
-        code_generator_t.__init__(self, 'util')
+        replacement = default_replacement
+        # A C++ call like "MDP::printGraph(std::cout)" will be replaced with
+        # something more pythonesque: "print MDP.graph()"
+        replacement['printGraph'] = ('def("graph", &__printGraph)', """
+        std::string __printGraph(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printGraph(s);
+            return s.str();
+        }
+        """)
+        code_generator_t.__init__(self, 'util', None, replacement)
+    def filter_declarations(self):
+        code_generator_t.filter_declarations(self)
+        # rename STL vectors of certain types
+        self.std_ns.class_('vector< unsigned long >').rename('vectorSizeT')
+        self.std_ns.class_('vector< bool >').include()
+        self.std_ns.class_('vector< bool >').rename('vectorBool')
+        self.std_ns.class_('vector< int >').rename('vectorInt')
+        self.std_ns.class_('vector< double >').rename('vectorDouble')
+        self.std_ns.class_('vector< unsigned int >').include()
+        self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
+        self.std_ns.class_('vector< std::string >').include()
+        self.std_ns.class_('vector< std::string >').rename('vectorString')
+        self.std_ns.class_('vector< std::vector<int> >').include()
+        self.std_ns.class_('vector< std::vector<int> >').rename('vectorVectorInt')
+        self.std_ns.class_('vector< std::vector<unsigned int> >').include()
+        self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
+        self.std_ns.class_('vector< std::vector<double> >').include()
+        self.std_ns.class_('vector< std::vector<double> >').rename('vectorVectorDouble')
+        self.std_ns.class_('vector< std::map<std::string, std::string > >').include()
+        self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
+        self.std_ns.class_('map<std::string, std::string >').include()
+        self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
+
+        # make settings printable
+        self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
+        self.replace_member_functions(self.ompl_ns.member_functions('printGraph'))
+
 
 
 if __name__ == '__main__':
