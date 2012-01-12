@@ -384,9 +384,9 @@ namespace ompl
 
         private:
 
-            StateSpacePtr         space_;
+            StateSpacePtr    space_;
             StateSamplerPtr  sampler_;
-            StateType               *state_;
+            StateType       *state_;
         };
 
         /** \addtogroup stateAndSpaceOperators Operators for States and State Spaces

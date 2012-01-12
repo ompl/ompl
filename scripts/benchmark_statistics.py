@@ -126,7 +126,7 @@ def read_benchmark_log(dbname, filenames):
             table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE"
 
             planner_table = 'planner_%s' % planner_name
-            c.execute("CREATE TABLE IF NOT EXISTS %s (%s)" %  (planner_table, table_columns))
+            c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" %  (planner_table, table_columns))
 
             # check if the table has all the needed columns; if not, add them
             c.execute('SELECT * FROM %s' % planner_table)
@@ -159,12 +159,12 @@ def plot_attribute(cur, planners, attribute, typename):
     nan_counts = []
     is_bool = True
     for planner in planners:
-        cur.execute('SELECT * FROM %s' % planner)
+        cur.execute('SELECT * FROM `%s`' % planner)
         attributes = [ t[0] for t in cur.description]
         if attribute in attributes:
-            cur.execute('SELECT %s FROM %s WHERE %s IS NOT NULL' % (attribute, planner, attribute))
+            cur.execute('SELECT %s FROM `%s` WHERE %s IS NOT NULL' % (attribute, planner, attribute))
             measurement = [ t[0] for t in cur.fetchall() ]
-            cur.execute('SELECT count(*) FROM %s WHERE %s IS NULL' % (planner, attribute))
+            cur.execute('SELECT count(*) FROM `%s` WHERE %s IS NULL' % (planner, attribute))
             nan_counts.append(cur.fetchone()[0])
             cur.execute('SELECT DISTINCT %s FROM %s' % (attribute, planner))
             is_bool = is_bool and set([t[0] for t in cur.fetchall() if not t[0]==None]).issubset(set([0,1]))
@@ -217,7 +217,7 @@ def plot_statistics(dbname, fname):
                 c.execute('SELECT typeof(%s) FROM %s WHERE %s IS NOT NULL LIMIT 1' % (a, p, a))
                 attributes.append(a)
                 types[a] = c.fetchone()[0]
-        c.execute('SELECT DISTINCT experimentid FROM %s' % p)
+        c.execute('SELECT DISTINCT experimentid FROM `%s`' % p)
         eid = [t[0] for t in c.fetchall() if not t[0]==None]
         for e in eid:
             if e not in experiments:
@@ -330,24 +330,30 @@ def compute_views(dbname):
             # select all runs, in all configurations, for a particular problem and a particular planner
             s0 = 'SELECT * FROM %s INNER JOIN experiments ON %s.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
             # select the highest solve rate and shortest average runtime for each planner configuration
-            s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
+            if p.startswith("geometric"):
+                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
+            else:
+                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
             c.execute(s1)
             best = c.fetchone()
             if not best == None:
                 if not best[0] == None:
                     bp = 'best_' + enm + '_' + p
                     print "Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0])
-                    c.execute('DROP VIEW IF EXISTS %s' % bp)
-                    c.execute('CREATE VIEW IF NOT EXISTS %s AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
+                    c.execute('DROP VIEW IF EXISTS `%s`' % bp)
+                    c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
 
-        c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+        if p.startswith("geometric"):
+            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+        else:
+            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
         best = c.fetchone()
         if not best == None:
             if not best[0] == None:
                 bp = 'best_' + p
                 print "Best overall plannner configuration for planner " + p + " on is " + str(best[0])
-                c.execute('DROP VIEW IF EXISTS %s' % bp)
-                c.execute('CREATE VIEW IF NOT EXISTS %s AS SELECT * FROM %s WHERE plannerid = %s' % (bp, tname, best[0]))
+                c.execute('DROP VIEW IF EXISTS `%s`' % bp)
+                c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM %s WHERE plannerid = %s' % (bp, tname, best[0]))
     conn.commit()
     c.close()
 

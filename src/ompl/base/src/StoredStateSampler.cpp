@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,51 +34,47 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/tools/multiplan/OptimizePlan.h"
+#include "ompl/base/StoredStateSampler.h"
+#include "ompl/base/StateSpace.h"
+#include "ompl/util/Exception.h"
 
-void ompl::OptimizePlan::addPlanner(const base::PlannerPtr &planner)
+ompl::base::StoredStateSampler::StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states) :
+    StateSampler(space), states_(states), maxNearSamplesAttempts_(3)
 {
-    if (planner && planner->getSpaceInformation().get() != getProblemDefinition()->getSpaceInformation().get())
-        throw Exception("Planner instance does not match space information");
-    planners_.push_back(planner);
+    if (states_.empty())
+        throw Exception("Empty set of states to sample from was specified");
+    maxStateIndex_ = states_.size() - 1;
 }
 
-void ompl::OptimizePlan::addPlannerAllocator(const base::PlannerAllocator &pa)
+void ompl::base::StoredStateSampler::sampleUniform(State *state)
 {
-    planners_.push_back(pa(getProblemDefinition()->getSpaceInformation()));
+    space_->copyState(state, states_[rng_.uniformInt(0, maxStateIndex_)]);
 }
 
-void ompl::OptimizePlan::clearPlanners(void)
+void ompl::base::StoredStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    planners_.clear();
-}
-
-bool ompl::OptimizePlan::solve(double solveTime, unsigned int nthreads)
-{
-    return solve(base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)), nthreads);
-}
-
-bool ompl::OptimizePlan::solve(const base::PlannerTerminationCondition &ptc, unsigned int nthreads)
-{
-    bool result = false;
-    unsigned int np = 0;
-    const base::GoalPtr &goal = getProblemDefinition()->getGoal();
-
-    while (ptc() == false)
-    {
-        pp_.clearPlanners();
-        for (unsigned int i = 0 ; i < nthreads ; ++i)
+    int index = rng_.uniformInt(0, maxStateIndex_);
+    double dist = space_->distance(near, states_[index]);
+    if (dist > distance)
+        for (unsigned int k = 1 ; k < maxNearSamplesAttempts_ ; ++k)
         {
-            pp_.addPlanner(planners_[np]);
-            np = (np + 1) % planners_.size();
+            int x = rng_.uniformInt(0, maxStateIndex_);
+            double d = space_->distance(near, states_[x]);
+            if (d <= distance)
+            {
+                space_->copyState(state, states_[x]);
+                return;
+            }
+            if (d < dist)
+            {
+                dist = d;
+                index = x;
+            }
         }
-        if (pp_.solve(ptc, true))
-        {
-            result = true;
-            if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
-                break;
-        }
-    }
+    space_->copyState(state, states_[index]);
+}
 
-    return result;
+void ompl::base::StoredStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+    sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
 }

@@ -46,18 +46,8 @@ namespace ompl
 {
     namespace base
     {
-        bool operator<(const PlannerSolution &a, const PlannerSolution &b)
-        {
-            if (!a.approximate_ && b.approximate_)
-                return true;
-            if (a.approximate_ && !b.approximate_)
-                return false;
-            if (a.approximate_ && b.approximate_)
-                return a.difference_ < b.difference_;
-            return a.path_->length() < b.path_->length();
-        }
 
-        class PlannerSolutionSet
+        class Goal::PlannerSolutionSet
         {
         public:
 

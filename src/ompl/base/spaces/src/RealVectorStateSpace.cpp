@@ -208,6 +208,21 @@ void ompl::base::RealVectorStateSpace::copyState(State *destination, const State
            static_cast<const StateType*>(source)->values, stateBytes_);
 }
 
+unsigned int ompl::base::RealVectorStateSpace::getSerializationLength(void) const
+{
+    return stateBytes_;
+}
+
+void ompl::base::RealVectorStateSpace::serialize(void *serialization, const State *state) const
+{
+    memcpy(serialization, state->as<StateType>()->values, stateBytes_);
+}
+
+void ompl::base::RealVectorStateSpace::deserialize(State *state, const void *serialization) const
+{
+    memcpy(state->as<StateType>()->values, serialization, stateBytes_);
+}
+
 double ompl::base::RealVectorStateSpace::distance(const State *state1, const State *state2) const
 {
     double dist = 0.0;

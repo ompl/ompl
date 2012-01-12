@@ -96,6 +96,21 @@ void ompl::base::DiscreteStateSpace::copyState(State *destination, const State *
     destination->as<StateType>()->value = source->as<StateType>()->value;
 }
 
+unsigned int ompl::base::DiscreteStateSpace::getSerializationLength(void) const
+{
+    return sizeof(int);
+}
+
+void ompl::base::DiscreteStateSpace::serialize(void *serialization, const State *state) const
+{
+    memcpy(serialization, &state->as<StateType>()->value, sizeof(int));
+}
+
+void ompl::base::DiscreteStateSpace::deserialize(State *state, const void *serialization) const
+{
+    memcpy(&state->as<StateType>()->value, serialization, sizeof(int));
+}
+
 double ompl::base::DiscreteStateSpace::distance(const State *state1, const State *state2) const
 {
     return abs(state1->as<StateType>()->value - state2->as<StateType>()->value);

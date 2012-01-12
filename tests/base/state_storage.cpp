@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,51 +34,50 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/tools/multiplan/OptimizePlan.h"
+#include <gtest/gtest.h>
+#include "ompl/base/StateStorage.h"
+#include "ompl/base/ScopedState.h"
+#include "ompl/base/spaces/SE3StateSpace.h"
+#include "ompl/base/spaces/SE2StateSpace.h"
 
-void ompl::OptimizePlan::addPlanner(const base::PlannerPtr &planner)
+using namespace ompl;
+
+TEST(StateStorage, Store)
 {
-    if (planner && planner->getSpaceInformation().get() != getProblemDefinition()->getSpaceInformation().get())
-        throw Exception("Planner instance does not match space information");
-    planners_.push_back(planner);
-}
-
-void ompl::OptimizePlan::addPlannerAllocator(const base::PlannerAllocator &pa)
-{
-    planners_.push_back(pa(getProblemDefinition()->getSpaceInformation()));
-}
-
-void ompl::OptimizePlan::clearPlanners(void)
-{
-    planners_.clear();
-}
-
-bool ompl::OptimizePlan::solve(double solveTime, unsigned int nthreads)
-{
-    return solve(base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)), nthreads);
-}
-
-bool ompl::OptimizePlan::solve(const base::PlannerTerminationCondition &ptc, unsigned int nthreads)
-{
-    bool result = false;
-    unsigned int np = 0;
-    const base::GoalPtr &goal = getProblemDefinition()->getGoal();
-
-    while (ptc() == false)
+    base::StateSpacePtr space(new base::SE3StateSpace());
+    base::RealVectorBounds bounds(3);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+    space->as<base::SE3StateSpace>()->setBounds(bounds);    
+    space->setup();
+    
+    base::StateStorage ss(space);
+    base::ScopedState<> s(space);
+    for (int i = 0 ; i < 1000 ; ++i)
     {
-        pp_.clearPlanners();
-        for (unsigned int i = 0 ; i < nthreads ; ++i)
-        {
-            pp_.addPlanner(planners_[np]);
-            np = (np + 1) % planners_.size();
-        }
-        if (pp_.solve(ptc, true))
-        {
-            result = true;
-            if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
-                break;
-        }
+	s.random();
+	base::State *x = space->allocState();
+	space->copyState(x, s.get());
+	ss.addState(x);
     }
+    ss.store("tmp_states");
+}
 
-    return result;
+TEST(StateStorage, Load)
+{
+    base::StateSpacePtr space(new base::SE3StateSpace());
+    base::RealVectorBounds bounds(3);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+    space->as<base::SE3StateSpace>()->setBounds(bounds);    
+    space->setup();
+    
+    base::StateStorage ss(space);
+    ss.load("tmp_states");
+}
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
