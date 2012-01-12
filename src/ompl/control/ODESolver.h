@@ -62,12 +62,13 @@ namespace ompl
             typedef std::vector<double> StateType;
 
             /// \brief Callback function that defines the ODE.  Accepts
-            /// the current state, input control, current time, and output state.
-            typedef boost::function4<void, const StateType &, const Control*, double, StateType &> ODE;
+            /// the current state, input control, and output state.
+            typedef boost::function3<void, const StateType &, const Control*, StateType &> ODE;
 
             /// \brief Definition of the optional user defined propagation function for the system defined by
             /// the ODE.  This method is tasked with converting the base::State values to the proper input for
-            /// the solve method in the solver.
+            /// the solve method in the solver, as well as translating the integrated values back to the
+            /// base::State type.
             typedef boost::function4<void, const base::State*, const Control *, const double, base::State *> PropagateFunction;
 
             /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
@@ -113,6 +114,9 @@ namespace ompl
                 propFunc_ = NULL;
             }
 
+            /// \brief Propagate the system defined by the ODE starting at \e state
+            /// given a \e control to apply for some positive \e duration.  The resulting
+            /// state of the system is stored into \e result.
             virtual void propagate (const base::State *state, const Control *control, const double duration, base::State *result)
             {
                 if (propFunc_)
@@ -182,20 +186,22 @@ namespace ompl
             /// \brief Optional user specified propagate function
             PropagateFunction          propFunc_;
 
-            /// Functor used by the boost::numeric::odeint stepper object
+            /// @cond IGNORE
+            // Functor used by the boost::numeric::odeint stepper object
             struct ODEFunctor
             {
                 ODEFunctor (const ODE &o, const Control* ctrl) : ode(o), control(ctrl) {}
 
                 // boost::numeric::odeint will callback to this method during integration to evaluate the system
-                void operator () (const StateType &current, StateType &output, double time)
+                void operator () (const StateType &current, StateType &output, double /*time*/)
                 {
-                    ode (current, control, time, output);
+                    ode (current, control, output);
                 }
 
                 ODE ode;
                 const Control* control;
             };
+            /// @endcond
         };
 
         /// \brief Basic solver for ordinary differential equations of the type q' = f(q, u),
