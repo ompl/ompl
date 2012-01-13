@@ -97,6 +97,14 @@ namespace ompl
 
         private:
 
+            struct Header
+            {
+                std::size_t state_count;
+                std::size_t metadata_size;
+            };
+
+            bool loadHeader(std::istream &in, Header &header);
+
             StateSpacePtr             space_;
             std::vector<const State*> states_;
             msg::Interface            msg_;

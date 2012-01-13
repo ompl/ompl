@@ -78,13 +78,12 @@ void ompl::base::StateStorage::load(const char *filename)
     in.close();
 }
 
-void ompl::base::StateStorage::load(std::istream &in)
+bool ompl::base::StateStorage::loadHeader(std::istream &in, Header &header)
 {
-    clear();
     if (!in.good() || in.eof())
     {
         msg_.warn("Unable to load states");
-        return;
+        return false;
     }
 
     // check marker
@@ -93,7 +92,7 @@ void ompl::base::StateStorage::load(std::istream &in)
     if (marker != OMPL_ARCHIVE_MARKER)
     {
         msg_.error("The stored data does not start with the correct header");
-        return;
+        return false;
     }
 
     // check state space signature
@@ -106,7 +105,7 @@ void ompl::base::StateStorage::load(std::istream &in)
     if (sig[0] != signature_length)
     {
         msg_.error("State space signatures do not match");
-        return;
+        return false;
     }
     for (int i = 0 ; in.good() && i < signature_length ; ++i)
     {
@@ -115,7 +114,7 @@ void ompl::base::StateStorage::load(std::istream &in)
         if (s != sig[i + 1])
         {
             msg_.error("State space signatures do not match");
-            return;
+            return false;
         }
     }
     std::size_t state_count = 0;
@@ -125,37 +124,48 @@ void ompl::base::StateStorage::load(std::istream &in)
     else
     {
         msg_.error("Expected number of states. Incorrect file format");
-        return;
+        return false;
     }
     if (in.good())
         in.read((char*)&metadata_size, sizeof(std::size_t));
     else
     {
         msg_.error("Expected metadata size. Incorrect file format");
-        return;
+        return false;
     }
     if (state_count > 0 && !in.good())
     {
         msg_.error("Expected state data. Incorrect file format");
-        return;
+        return false;
     }
+    header.state_count = state_count;
+    header.metadata_size = metadata_size;
+    return true;
+}
+
+void ompl::base::StateStorage::load(std::istream &in)
+{
+    clear();
+    Header header;
+    if (!loadHeader(in, header))
+        return;
 
     // load the file
     unsigned int l = space_->getSerializationLength();
-    std::size_t length = state_count * (l + metadata_size);
+    std::size_t length = header.state_count * (l + header.metadata_size);
     char *buffer = length ? (char*)malloc(length) : NULL;
     if (buffer)
     {
         in.read(buffer, length);
         if (!in.fail())
         {
-            msg_.debug("Deserializing %u states", state_count);
-            states_.reserve(state_count);
+            msg_.debug("Deserializing %u states", header.state_count);
+            states_.reserve(header.state_count);
 
-            for (std::size_t i = 0 ; i < state_count ; ++i)
+            for (std::size_t i = 0 ; i < header.state_count ; ++i)
             {
                 State *s = space_->allocState();
-                space_->deserialize(s, buffer + i * (l + metadata_size));
+                space_->deserialize(s, buffer + i * (l + header.metadata_size));
                 addState(s);
             }
         }
