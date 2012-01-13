@@ -77,16 +77,16 @@ namespace ompl
     public:
 
         /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope. */
-        class BeginBlock
+        class ScopedBlock
         {
         public:
 
-            BeginBlock(const std::string &name, Profiler &prof = Profiler::Instance()) : name_(name), prof_(prof)
+            ScopedBlock(const std::string &name, Profiler &prof = Profiler::Instance()) : name_(name), prof_(prof)
             {
                 prof_.begin(name);
             }
 
-            ~BeginBlock(void)
+            ~ScopedBlock(void)
             {
                 prof_.end(name_);
             }
@@ -94,6 +94,26 @@ namespace ompl
         private:
 
             std::string  name_;
+            Profiler    &prof_;
+        };
+
+        /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope. */
+        class ScopedStart
+        {
+        public:
+
+            ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof)
+            {
+                prof_.start();
+            }
+
+            ~ScopedStart(void)
+            {
+                prof_.stop();
+            }
+
+        private:
+
             Profiler    &prof_;
         };
 
@@ -150,6 +170,15 @@ namespace ompl
 
         /** \brief Count a specific event for a number of times */
         void event(const std::string &name, const unsigned int times = 1);
+
+        /** \brief Maintain the average of a specific value */
+        static void Average(const std::string& name, const double value)
+        {
+            Instance().average(name, value);
+        }
+
+        /** \brief Maintain the average of a specific value */
+        void average(const std::string &name, const double value);
 
         /** \brief Begin counting time for a specific chunk of code */
         static void Begin(const std::string &name)
@@ -236,11 +265,24 @@ namespace ompl
             }
         };
 
-        /** \brief Timing information to be maintained for each thread */
+        /** \brief Information maintained about averaged values */
+        struct AvgInfo
+        {
+            /** \brief The sum of the values to average */
+            double            total;
+
+            /** \brief Number of times a value was added to this structure */
+            unsigned long int parts;
+        };
+
+        /** \brief Information to be maintained for each thread */
         struct PerThread
         {
-            /** \brief The number of events */
+            /** \brief The stored events */
             std::map<std::string, unsigned long int> events;
+
+            /** \brief The stored averages */
+            std::map<std::string, AvgInfo>           avg;
 
             /** \brief The amount of time spent in various places */
             std::map<std::string, TimeInfo>          time;
@@ -271,15 +313,28 @@ namespace ompl
     {
     public:
 
-        class BeginBlock
+        class ScopedBlock
         {
         public:
 
-            BeginBlock(const std::string &, Profiler & = Profiler::Instance())
+            ScopedBlock(const std::string &, Profiler & = Profiler::Instance())
             {
             }
 
-            ~BeginBlock(void)
+            ~ScopedBlock(void)
+            {
+            }
+        };
+
+        class ScopedStart
+        {
+        public:
+
+            ScopedStart(Profiler & = Profiler::Instance())
+            {
+            }
+
+            ~ScopedStart(void)
             {
             }
         };
@@ -323,6 +378,14 @@ namespace ompl
         }
 
         void event(const std::string &, const unsigned int = 1)
+        {
+        }
+
+        static void Average(const std::string&, const double)
+        {
+        }
+
+        void average(const std::string &, const double)
         {
         }
 
