@@ -1,5 +1,4 @@
 ../src/ompl/util/Exception.h
 ../src/ompl/util/RandomNumbers.h
 ../src/ompl/util/Console.h
-../src/ompl/util/MDP.h
 ompl_py_util.h

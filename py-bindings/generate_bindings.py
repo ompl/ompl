@@ -581,16 +581,6 @@ class ompl_tools_generator_t(code_generator_t):
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
-        # A C++ call like "MDP::printGraph(std::cout)" will be replaced with
-        # something more pythonesque: "print MDP.graph()"
-        replacement['printGraph'] = ('def("graph", &__printGraph)', """
-        std::string __printGraph(%s* obj)
-        {
-            std::ostringstream s;
-            obj->printGraph(s);
-            return s.str();
-        }
-        """)
         code_generator_t.__init__(self, 'util', None, replacement)
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
