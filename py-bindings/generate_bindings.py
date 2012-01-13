@@ -605,10 +605,6 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('map<std::string, std::string >').include()
         self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
 
-        # make settings printable
-        self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
-        self.replace_member_functions(self.ompl_ns.member_functions('printGraph'))
-
 
 
 if __name__ == '__main__':

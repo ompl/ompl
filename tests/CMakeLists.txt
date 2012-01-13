@@ -13,7 +13,6 @@ if(OMPL_BUILD_TESTS)
 
     # Test utilities
     add_ompl_test(test_random util/random/random.cpp)
-    add_ompl_test(test_mdp util/mdp/mdp.cpp)
     add_ompl_test(test_machine_specs benchmark/machine_specs.cpp)
 
     # Test base code
