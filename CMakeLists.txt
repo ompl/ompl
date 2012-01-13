@@ -20,6 +20,13 @@ else(OMPL_IN_ROS)
     include(CompilerSettings)
     find_package(Boost COMPONENTS date_time thread filesystem system program_options REQUIRED)
     include_directories(${Boost_INCLUDE_DIR})
+
+    find_package(Boost COMPONENTS odeint QUIET)
+    if(NOT Boost_ODEINT_FOUND)
+        # Include bundled version of boost::odeint if it isn't installed natively
+        include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+    endif()
+
     if(MSVC)
         add_definitions(-DBOOST_ALL_NO_LIB)
     endif()
@@ -36,7 +43,6 @@ endif(OMPL_IN_ROS)
 
 include(OMPLVersion)
 include(OMPLUtils)
-include(UseBoost.ODEInt)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
