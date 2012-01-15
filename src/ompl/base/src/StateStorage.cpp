@@ -48,7 +48,17 @@ static ompl::base::StateSamplerPtr allocStoredStateSampler(const ompl::base::Sta
     std::vector<int> sig;
     space->computeSignature(sig);
     if (sig != expectedSignature)
-        throw ompl::Exception("Cannot allocate state sampler for a state space whose signature does not match that of the stored states");
+    {
+        std::stringstream ss;
+        ss << "Cannot allocate state sampler for a state space whose signature does not match that of the stored states. ";
+        ss << "Expected signature ";
+        for (std::size_t i = 0 ; i < expectedSignature.size() ; ++i)
+            ss << expectedSignature[i] << " ";
+        ss << "but space " << space->getName() << " has signature ";
+        for (std::size_t i = 0 ; i < sig.size() ; ++i)
+            ss << sig[i] << " ";
+        throw ompl::Exception(ss.str());
+    }
     return ompl::base::StateSamplerPtr(new ompl::base::StoredStateSampler(space, *states));
 }
 
@@ -68,7 +78,7 @@ ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAlloc
 {
     std::vector<int> sig;
     space_->computeSignature(sig);
-    return boost::bind(&allocStoredStateSampler, _1, boost::cref(sig), &states_);
+    return boost::bind(&allocStoredStateSampler, _1, sig, &states_);
 }
 
 void ompl::base::StateStorage::load(const char *filename)

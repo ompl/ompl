@@ -83,12 +83,12 @@ namespace ompl
 /// @endcond
 
 ompl::base::PlannerOrTerminationCondition::PlannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2) :
-    PlannerTerminationCondition(boost::bind(&plannerOrTerminationCondition, boost::cref(c1), boost::cref(c2)))
+    PlannerTerminationCondition(boost::bind(&plannerOrTerminationCondition, c1, c2))
 {
 }
 
 ompl::base::PlannerAndTerminationCondition::PlannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2) :
-    PlannerTerminationCondition(boost::bind(&plannerAndTerminationCondition, boost::cref(c1), boost::cref(c2)))
+    PlannerTerminationCondition(boost::bind(&plannerAndTerminationCondition, c1, c2))
 {
 }
 
