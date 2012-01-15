@@ -34,39 +34,27 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/ode/ODEEnvironment.h"
-#include <boost/lexical_cast.hpp>
+#include "ompl/extensions/opende/OpenDEControlSpace.h"
+#include "ompl/util/Exception.h"
+#include "ompl/util/Console.h"
 
-unsigned int ompl::control::ODEEnvironment::getMaxContacts(dGeomID geom1, dGeomID geom2) const
+/// @cond IGNORE
+namespace ompl
 {
-    return maxContacts_;
+    const control::OpenDEEnvironmentPtr& getOpenDEStateSpaceEnvironmentWithCheck(const base::StateSpacePtr &space)
+    {
+        if (!dynamic_cast<control::OpenDEStateSpace*>(space.get()))
+            throw Exception("OpenDE State Space needed for creating OpenDE Control Space");
+        return space->as<control::OpenDEStateSpace>()->getEnvironment();
+    }
 }
+/// @endcond
 
-bool ompl::control::ODEEnvironment::isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const
+ompl::control::OpenDEControlSpace::OpenDEControlSpace(const base::StateSpacePtr &stateSpace) :
+    RealVectorControlSpace(stateSpace, getOpenDEStateSpaceEnvironmentWithCheck(stateSpace)->getControlDimension())
 {
-    return false;
-}
-
-void ompl::control::ODEEnvironment::setupContact(dGeomID geom1, dGeomID geom2, dContact &contact) const
-{
-    contact.surface.mode = dContactBounce | dContactSoftCFM;
-    contact.surface.mu = 0.1;
-    contact.surface.mu2 = 0;
-    contact.surface.bounce = 0.01;
-    contact.surface.bounce_vel = 0.001;
-    contact.surface.soft_cfm = 0.01;
-}
-
-std::string ompl::control::ODEEnvironment::getGeomName(dGeomID geom) const
-{
-    std::map<dGeomID, std::string>::const_iterator it = geomNames_.find(geom);
-    if (it == geomNames_.end())
-        return boost::lexical_cast<std::string>(reinterpret_cast<unsigned long>(geom));
-    else
-        return it->second;
-}
-
-void ompl::control::ODEEnvironment::setGeomName(dGeomID geom, const std::string &name)
-{
-    geomNames_[geom] = name;
+    setName("OpenDE" + getName());
+    base::RealVectorBounds bounds(dimension_);
+    getEnvironment()->getControlBounds(bounds.low, bounds.high);
+    setBounds(bounds);
 }

@@ -34,76 +34,76 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/ode/ODESimpleSetup.h"
+#include "ompl/extensions/opende/OpenDESimpleSetup.h"
 #include "ompl/util/Exception.h"
 #include <boost/thread.hpp>
 
-ompl::control::ODESimpleSetup::ODESimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
+ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
 {
-    if (!dynamic_cast<ODEControlSpace*>(space.get()))
-        throw Exception("ODE Control Space needed for ODE Simple Setup");
+    if (!dynamic_cast<OpenDEControlSpace*>(space.get()))
+        throw Exception("OpenDE Control Space needed for OpenDE Simple Setup");
     useEnvParams();
 }
 
-ompl::control::ODESimpleSetup::ODESimpleSetup(const base::StateSpacePtr &space) :
-    SimpleSetup(ControlSpacePtr(new ODEControlSpace(space)))
-{
-    useEnvParams();
-}
-
-ompl::control::ODESimpleSetup::ODESimpleSetup(const ODEEnvironmentPtr &env) :
-    SimpleSetup(ControlSpacePtr(new ODEControlSpace(base::StateSpacePtr(new ODEStateSpace(env)))))
+ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const base::StateSpacePtr &space) :
+    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(space)))
 {
     useEnvParams();
 }
 
-void ompl::control::ODESimpleSetup::useEnvParams(void)
+ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const OpenDEEnvironmentPtr &env) :
+    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(base::StateSpacePtr(new OpenDEStateSpace(env)))))
 {
-    si_->setPropagationStepSize(getStateSpace()->as<ODEStateSpace>()->getEnvironment()->stepSize_);
-    si_->setMinMaxControlDuration(getStateSpace()->as<ODEStateSpace>()->getEnvironment()->minControlSteps_,
-                                  getStateSpace()->as<ODEStateSpace>()->getEnvironment()->maxControlSteps_);
-    si_->setStatePropagator(StatePropagatorPtr(new ODEStatePropagator(si_)));
+    useEnvParams();
 }
 
-ompl::base::ScopedState<ompl::control::ODEStateSpace> ompl::control::ODESimpleSetup::getCurrentState(void) const
+void ompl::control::OpenDESimpleSetup::useEnvParams(void)
 {
-    base::ScopedState<ODEStateSpace> current(getStateSpace());
-    getStateSpace()->as<ODEStateSpace>()->readState(current.get());
+    si_->setPropagationStepSize(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->stepSize_);
+    si_->setMinMaxControlDuration(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->minControlSteps_,
+                                  getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->maxControlSteps_);
+    si_->setStatePropagator(StatePropagatorPtr(new OpenDEStatePropagator(si_)));
+}
+
+ompl::base::ScopedState<ompl::control::OpenDEStateSpace> ompl::control::OpenDESimpleSetup::getCurrentState(void) const
+{
+    base::ScopedState<OpenDEStateSpace> current(getStateSpace());
+    getStateSpace()->as<OpenDEStateSpace>()->readState(current.get());
     return current;
 }
 
-void ompl::control::ODESimpleSetup::setCurrentState(const base::State *state)
+void ompl::control::OpenDESimpleSetup::setCurrentState(const base::State *state)
 {
-    getStateSpace()->as<ODEStateSpace>()->writeState(state);
+    getStateSpace()->as<OpenDEStateSpace>()->writeState(state);
 }
 
-void ompl::control::ODESimpleSetup::setCurrentState(const base::ScopedState<> &state)
+void ompl::control::OpenDESimpleSetup::setCurrentState(const base::ScopedState<> &state)
 {
-    getStateSpace()->as<ODEStateSpace>()->writeState(state.get());
+    getStateSpace()->as<OpenDEStateSpace>()->writeState(state.get());
 }
 
-void ompl::control::ODESimpleSetup::setup(void)
+void ompl::control::OpenDESimpleSetup::setup(void)
 {
     if (!si_->getStateValidityChecker())
     {
-        msg_.inform("Using default state validity checker for ODE");
-        si_->setStateValidityChecker(base::StateValidityCheckerPtr(new ODEStateValidityChecker(si_)));
+        msg_.inform("Using default state validity checker for OpenDE");
+        si_->setStateValidityChecker(base::StateValidityCheckerPtr(new OpenDEStateValidityChecker(si_)));
     }
     if (pdef_->getStartStateCount() == 0)
     {
-        msg_.inform("Using the initial state of ODE as the starting state for the planner");
+        msg_.inform("Using the initial state of OpenDE as the starting state for the planner");
         pdef_->addStartState(getCurrentState());
     }
     SimpleSetup::setup();
 }
 
-void ompl::control::ODESimpleSetup::playSolutionPath(double timeFactor) const
+void ompl::control::OpenDESimpleSetup::playSolutionPath(double timeFactor) const
 {
     if (haveSolutionPath())
         playPath(getGoal()->getSolutionPath(), timeFactor);
 }
 
-void ompl::control::ODESimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const
+void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const
 {
     bool ctl = false;
     if (dynamic_cast<PathControl*>(path.get()))
@@ -120,30 +120,30 @@ void ompl::control::ODESimpleSetup::playPath(const base::PathPtr &path, double t
         msg_.debug("Playing through %u states (%0.3f seconds)", (unsigned int)pg.states.size(),
                    timeFactor * si_->getPropagationStepSize() * (double)(pg.states.size() - 1));
         time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
-        getStateSpace()->as<ODEStateSpace>()->writeState(pg.states[0]);
+        getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.states[0]);
         for (unsigned int i = 1 ; i < pg.states.size() ; ++i)
         {
             boost::this_thread::sleep(d);
-            getStateSpace()->as<ODEStateSpace>()->writeState(pg.states[i]);
+            getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.states[i]);
         }
     }
 }
 
-ompl::base::PathPtr ompl::control::ODESimpleSetup::simulateControl(const double* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const double* control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
-    memcpy(c->as<ODEControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
+    memcpy(c->as<OpenDEControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
     base::PathPtr path = simulateControl(c, steps);
     si_->freeControl(c);
     return path;
 }
 
-ompl::base::PathPtr ompl::control::ODESimpleSetup::simulateControl(const Control* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control* control, unsigned int steps) const
 {
     PathControl *p(new PathControl(si_));
 
     base::State *s0 = si_->allocState();
-    getStateSpace()->as<ODEStateSpace>()->readState(s0);
+    getStateSpace()->as<OpenDEStateSpace>()->readState(s0);
     p->states.push_back(s0);
 
     base::State *s1 = si_->allocState();
@@ -155,7 +155,7 @@ ompl::base::PathPtr ompl::control::ODESimpleSetup::simulateControl(const Control
     return base::PathPtr(p);
 }
 
-ompl::base::PathPtr ompl::control::ODESimpleSetup::simulate(unsigned int steps) const
+ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulate(unsigned int steps) const
 {
     Control *c = si_->allocControl();
     si_->nullControl(c);

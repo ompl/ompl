@@ -34,17 +34,17 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/ode/ODEStateSpace.h"
+#include "ompl/extensions/opende/OpenDEStateSpace.h"
 #include "ompl/util/Console.h"
 #include <boost/lexical_cast.hpp>
 #include <limits>
 #include <queue>
 
-ompl::control::ODEStateSpace::ODEStateSpace(const ODEEnvironmentPtr &env,
+ompl::control::OpenDEStateSpace::OpenDEStateSpace(const OpenDEEnvironmentPtr &env,
                                                   double positionWeight, double linVelWeight, double angVelWeight, double orientationWeight) :
     base::CompoundStateSpace(), env_(env)
 {
-    setName("ODE" + getName());
+    setName("OpenDE" + getName());
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
     {
         std::string body = ":B" + boost::lexical_cast<std::string>(i);
@@ -65,7 +65,7 @@ ompl::control::ODEStateSpace::ODEStateSpace(const ODEEnvironmentPtr &env,
     setDefaultBounds();
 }
 
-void ompl::control::ODEStateSpace::setDefaultBounds(void)
+void ompl::control::OpenDEStateSpace::setDefaultBounds(void)
 {
     // limit all velocities to 1 m/s, 1 rad/s, respectively
     base::RealVectorBounds bounds1(3);
@@ -146,7 +146,7 @@ void ompl::control::ODEStateSpace::setDefaultBounds(void)
     }
 }
 
-void ompl::control::ODEStateSpace::copyState(base::State *destination, const base::State *source) const
+void ompl::control::OpenDEStateSpace::copyState(base::State *destination, const base::State *source) const
 {
     CompoundStateSpace::copyState(destination, source);
     destination->as<StateType>()->collision = source->as<StateType>()->collision;
@@ -157,7 +157,7 @@ namespace ompl
     /// @cond IGNORE
     struct CallbackParam
     {
-        const control::ODEEnvironment *env;
+        const control::OpenDEEnvironment *env;
         bool                           collision;
     };
 
@@ -192,7 +192,7 @@ namespace ompl
     /// @endcond
 }
 
-bool ompl::control::ODEStateSpace::evaluateCollision(const base::State *state) const
+bool ompl::control::OpenDEStateSpace::evaluateCollision(const base::State *state) const
 {
     if (state->as<StateType>()->collision & (1 << STATE_COLLISION_KNOWN_BIT))
         return state->as<StateType>()->collision & (1 << STATE_COLLISION_VALUE_BIT);
@@ -208,7 +208,7 @@ bool ompl::control::ODEStateSpace::evaluateCollision(const base::State *state) c
     return cp.collision;
 }
 
-bool ompl::control::ODEStateSpace::satisfiesBoundsExceptRotation(const StateType *state) const
+bool ompl::control::OpenDEStateSpace::satisfiesBoundsExceptRotation(const StateType *state) const
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         if (i % 4 != 3)
@@ -217,37 +217,37 @@ bool ompl::control::ODEStateSpace::satisfiesBoundsExceptRotation(const StateType
     return true;
 }
 
-void ompl::control::ODEStateSpace::setVolumeBounds(const base::RealVectorBounds &bounds)
+void ompl::control::OpenDEStateSpace::setVolumeBounds(const base::RealVectorBounds &bounds)
 {
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
         components_[i * 4]->as<base::RealVectorStateSpace>()->setBounds(bounds);
 }
 
-void ompl::control::ODEStateSpace::setLinearVelocityBounds(const base::RealVectorBounds &bounds)
+void ompl::control::OpenDEStateSpace::setLinearVelocityBounds(const base::RealVectorBounds &bounds)
 {
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
         components_[i * 4 + 1]->as<base::RealVectorStateSpace>()->setBounds(bounds);
 }
 
-void ompl::control::ODEStateSpace::setAngularVelocityBounds(const base::RealVectorBounds &bounds)
+void ompl::control::OpenDEStateSpace::setAngularVelocityBounds(const base::RealVectorBounds &bounds)
 {
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
         components_[i * 4 + 2]->as<base::RealVectorStateSpace>()->setBounds(bounds);
 }
 
-ompl::base::State* ompl::control::ODEStateSpace::allocState(void) const
+ompl::base::State* ompl::control::OpenDEStateSpace::allocState(void) const
 {
     StateType *state = new StateType();
     allocStateComponents(state);
     return state;
 }
 
-void ompl::control::ODEStateSpace::freeState(base::State *state) const
+void ompl::control::OpenDEStateSpace::freeState(base::State *state) const
 {
     CompoundStateSpace::freeState(state);
 }
 
-void ompl::control::ODEStateSpace::readState(base::State *state) const
+void ompl::control::OpenDEStateSpace::readState(base::State *state) const
 {
     StateType *s = state->as<StateType>();
     for (int i = (int)env_->stateBodies_.size() - 1 ; i >= 0 ; --i)
@@ -278,7 +278,7 @@ void ompl::control::ODEStateSpace::readState(base::State *state) const
     }
 }
 
-void ompl::control::ODEStateSpace::writeState(const base::State *state) const
+void ompl::control::OpenDEStateSpace::writeState(const base::State *state) const
 {
     const StateType *s = state->as<StateType>();
     for (int i = (int)env_->stateBodies_.size() - 1 ; i >= 0 ; --i)

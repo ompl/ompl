@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <ompl/extensions/ode/ODESimpleSetup.h>
+#include <ompl/extensions/opende/OpenDESimpleSetup.h>
 #include <ompl/base/GoalRegion.h>
 #include <ompl/config.h>
 #include <iostream>
@@ -46,11 +46,11 @@ namespace oc = ompl::control;
 
 /// @cond IGNORE
 
-class RigidBodyEnvironment : public oc::ODEEnvironment
+class RigidBodyEnvironment : public oc::OpenDEEnvironment
 {
 public:
 
-    RigidBodyEnvironment(void) : oc::ODEEnvironment()
+    RigidBodyEnvironment(void) : oc::OpenDEEnvironment()
     {
         createWorld();
     }
@@ -104,13 +104,13 @@ public:
 
 
     // OMPL does not require this function here; we implement it here
-    // for convenience. This function is only ODE code to create a
+    // for convenience. This function is only OpenDE code to create a
     // simulation environment. At the end of the function, there is a
     // call to setPlanningParameters(), which configures members of
     // the base class needed by planners.
     void createWorld(void);
 
-    // Clear all ODE objects
+    // Clear all OpenDE objects
     void destroyWorld(void);
 
     // Set parameters needed by the base class (such as the bodies
@@ -147,7 +147,7 @@ public:
 
     virtual double distanceGoal(const ob::State *st) const
     {
-        const double *pos = st->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
+        const double *pos = st->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         double dx = fabs(pos[0] - 30);
         double dy = fabs(pos[1] - 55);
         double dz = fabs(pos[2] - 35);
@@ -181,7 +181,7 @@ public:
 
     virtual void project(const ob::State *state, ob::EuclideanProjection &projection) const
     {
-        const double *pos = state->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
+        const double *pos = state->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         projection[0] = pos[0];
         projection[1] = pos[1];
         projection[2] = pos[2];
@@ -190,18 +190,18 @@ public:
 };
 
 // Define our own space, to include a distance function we want and register a default projection
-class RigidBodyStateSpace : public oc::ODEStateSpace
+class RigidBodyStateSpace : public oc::OpenDEStateSpace
 {
 public:
 
-    RigidBodyStateSpace(const oc::ODEEnvironmentPtr &env) : oc::ODEStateSpace(env)
+    RigidBodyStateSpace(const oc::OpenDEEnvironmentPtr &env) : oc::OpenDEStateSpace(env)
     {
     }
 
     virtual double distance(const ob::State *s1, const ob::State *s2) const
     {
-        const double *p1 = s1->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
-        const double *p2 = s2->as<oc::ODEStateSpace::StateType>()->getBodyPosition(0);
+        const double *p1 = s1->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
+        const double *p2 = s2->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         double dx = fabs(p1[0] - p2[0]);
         double dy = fabs(p1[1] - p2[1]);
         double dz = fabs(p1[2] - p2[2]);
@@ -219,18 +219,18 @@ public:
 
 int main(int, char **)
 {
-    // initialize ODE
+    // initialize OpenDE
     dInitODE2(0);
 
-    // create the ODE environment
-    oc::ODEEnvironmentPtr env(new RigidBodyEnvironment());
+    // create the OpenDE environment
+    oc::OpenDEEnvironmentPtr env(new RigidBodyEnvironment());
 
     // create the state space and the control space for planning
     RigidBodyStateSpace *stateSpace = new RigidBodyStateSpace(env);
     ob::StateSpacePtr stateSpacePtr = ob::StateSpacePtr(stateSpace);
 
-    // this will take care of setting a proper collision checker and the starting state for the planner as the initial ODE state
-    oc::ODESimpleSetup ss(stateSpacePtr);
+    // this will take care of setting a proper collision checker and the starting state for the planner as the initial OpenDE state
+    oc::OpenDESimpleSetup ss(stateSpacePtr);
 
     // set the goal we would like to reach
     ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));
@@ -279,7 +279,7 @@ int main(int, char **)
 
 void RigidBodyEnvironment::createWorld(void)
 {
-    // BEGIN SETTING UP AN ODE ENVIRONMENT
+    // BEGIN SETTING UP AN OPENDE ENVIRONMENT
     // ***********************************
 
     bodyWorld = dWorldCreate();
@@ -299,7 +299,7 @@ void RigidBodyEnvironment::createWorld(void)
     dGeomSetBody(boxGeom, boxBody);
 
     // *********************************
-    // END SETTING UP AN ODE ENVIRONMENT
+    // END SETTING UP AN OPENDE ENVIRONMENT
 
     setPlanningParameters();
 }

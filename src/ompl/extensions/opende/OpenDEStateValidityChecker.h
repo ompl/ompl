@@ -34,27 +34,33 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/ode/ODEControlSpace.h"
-#include "ompl/util/Exception.h"
-#include "ompl/util/Console.h"
+#ifndef OMPL_EXTENSION_OPENDE_STATE_VALIDITY_CHECKER_
+#define OMPL_EXTENSION_OPENDE_STATE_VALIDITY_CHECKER_
 
-/// @cond IGNORE
+#include "ompl/extensions/opende/OpenDEStateSpace.h"
+#include "ompl/control/SpaceInformation.h"
+
 namespace ompl
 {
-    const control::ODEEnvironmentPtr& getODEStateSpaceEnvironmentWithCheck(const base::StateSpacePtr &space)
+    namespace control
     {
-        if (!dynamic_cast<control::ODEStateSpace*>(space.get()))
-            throw Exception("ODE State Space needed for creating ODE Control Space");
-        return space->as<control::ODEStateSpace>()->getEnvironment();
+
+        /** \brief The simplest state validity checker: all states are valid */
+        class OpenDEStateValidityChecker : public base::StateValidityChecker
+        {
+        public:
+
+            /** \brief Constructor */
+            OpenDEStateValidityChecker(const SpaceInformationPtr &si);
+
+            /** \brief A state is considered valid if it is within bounds and not in collision */
+            virtual bool isValid(const base::State *state) const;
+
+        protected:
+
+            /** \brief The corresponding OpenDE state space */
+            OpenDEStateSpace *osm_;
+        };
     }
 }
-/// @endcond
-
-ompl::control::ODEControlSpace::ODEControlSpace(const base::StateSpacePtr &stateSpace) :
-    RealVectorControlSpace(stateSpace, getODEStateSpaceEnvironmentWithCheck(stateSpace)->getControlDimension())
-{
-    setName("ODE" + getName());
-    base::RealVectorBounds bounds(dimension_);
-    getEnvironment()->getControlBounds(bounds.low, bounds.high);
-    setBounds(bounds);
-}
+#endif

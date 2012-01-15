@@ -32,12 +32,12 @@ else(OMPL_IN_ROS)
     endif()
     enable_testing()
 
-    # ODE is only needed for ODE bindings
-    find_package(ODE QUIET)
-    set(OMPL_EXTENSION_ODE ${ODE_FOUND})
-    if (ODE_FOUND)
-        add_definitions(${ODE_DEFINITIONS})
-        include_directories(${ODE_INCLUDE_DIR})
+    # ODE is only needed for Open Dynamics Engine bindings
+    find_package(OpenDE QUIET)
+    set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
+    if (OPENDE_FOUND)
+        add_definitions(${OPENDE_DEFINITIONS})
+        include_directories(${OPENDE_INCLUDE_DIR})
     endif()
 endif(OMPL_IN_ROS)
 

@@ -34,37 +34,37 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_STATE_SPACE_
-#define OMPL_EXTENSION_ODE_STATE_SPACE_
+#ifndef OMPL_EXTENSION_OPENDE_STATE_SPACE_
+#define OMPL_EXTENSION_OPENDE_STATE_SPACE_
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/SO3StateSpace.h"
-#include "ompl/extensions/ode/ODEEnvironment.h"
+#include "ompl/extensions/opende/OpenDEEnvironment.h"
 
 namespace ompl
 {
     namespace control
     {
 
-        /** \brief State space representing ODE states */
-        class ODEStateSpace : public base::CompoundStateSpace
+        /** \brief State space representing OpenDE states */
+        class OpenDEStateSpace : public base::CompoundStateSpace
         {
         public:
 
             enum
                 {
-                    /** \brief Index of bit in StateType::collision indicating whether it is known if a state is in collision or not. Initially this is 0. The value of this bit is updated by ODEStateSpace::evaluateCollision() and ODEControlSpace::propagate(). */
+                    /** \brief Index of bit in StateType::collision indicating whether it is known if a state is in collision or not. Initially this is 0. The value of this bit is updated by OpenDEStateSpace::evaluateCollision() and OpenDEControlSpace::propagate(). */
                     STATE_COLLISION_KNOWN_BIT = 0,
-                    /** \brief Index of bit in StateType::collision indicating whether a state is in collision or not. Initially the value of this field is unspecified. The value gains meaning (1 or 0) when ODEStateSpace::STATE_COLLISION_KNOWN_BIT becomes 1. The value of this bit is updated by ODEStateSpace::evaluateCollision() and ODEControlSpace::propagate(). A value of 1 implies that there is no collision for which ODEEnvironment::isValidCollision() returns false. */
+                    /** \brief Index of bit in StateType::collision indicating whether a state is in collision or not. Initially the value of this field is unspecified. The value gains meaning (1 or 0) when OpenDEStateSpace::STATE_COLLISION_KNOWN_BIT becomes 1. The value of this bit is updated by OpenDEStateSpace::evaluateCollision() and OpenDEControlSpace::propagate(). A value of 1 implies that there is no collision for which OpenDEEnvironment::isValidCollision() returns false. */
                     STATE_COLLISION_VALUE_BIT = 1,
-                    /** \brief Index of bit in StateType::collision indicating whether it is known if a state is in valid or not. Initially this is 0. The value of this bit is updated by ODEStateValidityChecker::isValid(). This bit is only used if the ODEStateValidityChecker is used. */
+                    /** \brief Index of bit in StateType::collision indicating whether it is known if a state is in valid or not. Initially this is 0. The value of this bit is updated by OpenDEStateValidityChecker::isValid(). This bit is only used if the OpenDEStateValidityChecker is used. */
                     STATE_VALIDITY_KNOWN_BIT = 2,
-                    /** \brief Index of bit in StateType::collision indicating whether a state is valid or not. Initially the value of this field is unspecified. The value gains meaning (1 or 0) when ODEStateSpace::STATE_VALIDITY_KNOWN_BIT becomes 1. The value of this bit is updated by ODEEnvironment::isValid(). A value of 1 implies that a state is valid. This bit is only used if the ODEStateValidityChecker is used. */
+                    /** \brief Index of bit in StateType::collision indicating whether a state is valid or not. Initially the value of this field is unspecified. The value gains meaning (1 or 0) when OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT becomes 1. The value of this bit is updated by OpenDEEnvironment::isValid(). A value of 1 implies that a state is valid. This bit is only used if the OpenDEStateValidityChecker is used. */
                     STATE_VALIDITY_VALUE_BIT = 3,
                 };
 
-            /** \brief ODE State. This is a compound state that allows accessing the properties of the bodies the state space is constructed for. */
+            /** \brief OpenDE State. This is a compound state that allows accessing the properties of the bodies the state space is constructed for. */
             class StateType : public base::CompoundStateSpace::StateType
             {
             public:
@@ -122,15 +122,15 @@ namespace ompl
 
                 /** \brief Flag containing information about state validity.
 
-                    - BIT 0: (ODEStateSpace::STATE_COLLISION_KNOWN_BIT)
-                    - BIT 1: (ODEStateSpace::STATE_COLLISION_VALUE_BIT)
-                    - BIT 2: (ODEStateSpace::STATE_VALIDITY_KNOWN_BIT)
-                    - BIT 3: (ODEStateSpace::STATE_VALIDITY_VALUE_BIT) */
+                    - BIT 0: (OpenDEStateSpace::STATE_COLLISION_KNOWN_BIT)
+                    - BIT 1: (OpenDEStateSpace::STATE_COLLISION_VALUE_BIT)
+                    - BIT 2: (OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT)
+                    - BIT 3: (OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT) */
                 mutable int collision;
 
             };
 
-            /** \brief Construct a state space representing ODE states.
+            /** \brief Construct a state space representing OpenDE states.
 
                 This will be a compound state space with 4 components for
                 each body in \e env.stateBodies_. The 4 subspaces
@@ -145,16 +145,16 @@ namespace ompl
                 \param angVelWeight the weight to pass to CompoundStateSpace::addSubSpace() for angular velocity subspaces
                 \param orientationWeight the weight to pass to CompoundStateSpace::addSubSpace() for orientation subspaces
             */
-            ODEStateSpace(const ODEEnvironmentPtr &env,
+            OpenDEStateSpace(const OpenDEEnvironmentPtr &env,
                           double positionWeight = 1.0, double linVelWeight = 0.5,
                           double angVelWeight = 0.5, double orientationWeight = 1.0);
 
-            virtual ~ODEStateSpace(void)
+            virtual ~OpenDEStateSpace(void)
             {
             }
 
-            /** \brief Get the ODE environment this state space corresponds to */
-            const ODEEnvironmentPtr& getEnvironment(void) const
+            /** \brief Get the OpenDE environment this state space corresponds to */
+            const OpenDEEnvironmentPtr& getEnvironment(void) const
             {
                 return env_;
             }
@@ -181,11 +181,11 @@ namespace ompl
             /** \brief Set the bounds for each of the angular velocity subspaces */
             void setAngularVelocityBounds(const base::RealVectorBounds &bounds);
 
-            /** \brief Read the parameters of the ODE bodies and store
+            /** \brief Read the parameters of the OpenDE bodies and store
                 them in \e state. */
             virtual void readState(base::State *state) const;
 
-            /** \brief Set the parameters of the ODE bodies to be the
+            /** \brief Set the parameters of the OpenDE bodies to be the
                 ones read from \e state.  The code will technically work if
                 this function is called from multiple threads
                 simultaneously, but the results are unpredictable. */
@@ -204,14 +204,14 @@ namespace ompl
             virtual void freeState(base::State *state) const;
             virtual void copyState(base::State *destination, const base::State *source) const;
 
-            /** \brief Fill the ODEStateSpace::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state, if unspecified.
+            /** \brief Fill the OpenDEStateSpace::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state, if unspecified.
                 Return the value value of that bit. */
             virtual bool evaluateCollision(const base::State *source) const;
 
         protected:
 
-            /** \brief Representation of the ODE parameters OMPL needs to plan */
-            ODEEnvironmentPtr env_;
+            /** \brief Representation of the OpenDE parameters OMPL needs to plan */
+            OpenDEEnvironmentPtr env_;
         };
     }
 }

@@ -34,13 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_SIMPLE_SETUP_
-#define OMPL_EXTENSION_ODE_SIMPLE_SETUP_
+#ifndef OMPL_EXTENSION_OPENDE_SIMPLE_SETUP_
+#define OMPL_EXTENSION_OPENDE_SIMPLE_SETUP_
 
 #include "ompl/control/SimpleSetup.h"
-#include "ompl/extensions/ode/ODEStateValidityChecker.h"
-#include "ompl/extensions/ode/ODEStatePropagator.h"
-#include "ompl/extensions/ode/ODEControlSpace.h"
+#include "ompl/extensions/opende/OpenDEStateValidityChecker.h"
+#include "ompl/extensions/opende/OpenDEStatePropagator.h"
+#include "ompl/extensions/opende/OpenDEControlSpace.h"
 
 namespace ompl
 {
@@ -49,64 +49,64 @@ namespace ompl
     {
 
         /** \brief Create the set of classes typically needed to solve a
-            control problem when forward propagation is computed with ODE. */
-        class ODESimpleSetup : public SimpleSetup
+            control problem when forward propagation is computed with OpenDE. */
+        class OpenDESimpleSetup : public SimpleSetup
         {
         public:
 
             /** \brief Constructor needs the control space needed for planning. */
             explicit
-            ODESimpleSetup(const ControlSpacePtr &space);
+            OpenDESimpleSetup(const ControlSpacePtr &space);
 
-            /** \brief The control space is assumed to be ODEControlSpace. Constructor only needs the state space. */
+            /** \brief The control space is assumed to be OpenDEControlSpace. Constructor only needs the state space. */
             explicit
-            ODESimpleSetup(const base::StateSpacePtr &space);
+            OpenDESimpleSetup(const base::StateSpacePtr &space);
 
             /** \brief The control space is assumed to be
-                ODEControlSpace. The state space is assumed to
-                be ODEStateSpace. Constructor only needs the ODE
+                OpenDEControlSpace. The state space is assumed to
+                be OpenDEStateSpace. Constructor only needs the OpenDE
                 environment. */
             explicit
-            ODESimpleSetup(const ODEEnvironmentPtr &env);
+            OpenDESimpleSetup(const OpenDEEnvironmentPtr &env);
 
-            virtual ~ODESimpleSetup(void)
+            virtual ~OpenDESimpleSetup(void)
             {
             }
 
-            /** \brief Get the ODE environment associated to the state and control spaces */
-            const ODEEnvironmentPtr& getEnvironment(void) const
+            /** \brief Get the OpenDE environment associated to the state and control spaces */
+            const OpenDEEnvironmentPtr& getEnvironment(void) const
             {
-                return getStateSpace()->as<ODEStateSpace>()->getEnvironment();
+                return getStateSpace()->as<OpenDEStateSpace>()->getEnvironment();
             }
 
-            /** \brief Get the current ODE state (read parameters from ODE bodies) */
-            base::ScopedState<ODEStateSpace> getCurrentState(void) const;
+            /** \brief Get the current OpenDE state (read parameters from OpenDE bodies) */
+            base::ScopedState<OpenDEStateSpace> getCurrentState(void) const;
 
-            /** \brief Set the current ODE state (set parameters for ODE bodies) */
+            /** \brief Set the current OpenDE state (set parameters for OpenDE bodies) */
             void setCurrentState(const base::ScopedState<> &state);
 
-            /** \brief Set the current ODE state (set parameters for ODE bodies) */
+            /** \brief Set the current OpenDE state (set parameters for OpenDE bodies) */
             void setCurrentState(const base::State *state);
 
             /** \brief Set the bounds for the planning volume */
             void setVolumeBounds(const base::RealVectorBounds &bounds)
             {
-                getStateSpace()->as<ODEStateSpace>()->setVolumeBounds(bounds);
+                getStateSpace()->as<OpenDEStateSpace>()->setVolumeBounds(bounds);
             }
 
             /** \brief Set the bounds for the linear velocity */
             void setLinearVelocityBounds(const base::RealVectorBounds &bounds)
             {
-                getStateSpace()->as<ODEStateSpace>()->setLinearVelocityBounds(bounds);
+                getStateSpace()->as<OpenDEStateSpace>()->setLinearVelocityBounds(bounds);
             }
 
             /** \brief Set the bounds for the angular velocity */
             void setAngularVelocityBounds(const base::RealVectorBounds &bounds)
             {
-                getStateSpace()->as<ODEStateSpace>()->setAngularVelocityBounds(bounds);
+                getStateSpace()->as<OpenDEStateSpace>()->setAngularVelocityBounds(bounds);
             }
 
-            /** \brief Set the ODE world to the states that are
+            /** \brief Set the OpenDE world to the states that are
                 contained in a given path, sequentially. Using \e
                 timeFactor, the speed at which this sequence is
                 iterated through is altered. */
@@ -115,15 +115,15 @@ namespace ompl
             /** \brief Call playPath() on the solution path, if one is available */
             void playSolutionPath(double timeFactor = 1.0) const;
 
-            /** \brief Simulate the ODE environment forward for \e steps simulation steps, using the control \e control.
+            /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e control.
                 Construct a path representing this action. */
             base::PathPtr simulateControl(const double* control, unsigned int steps) const;
 
-            /** \brief Simulate the ODE environment forward for \e steps simulation steps, using the control \e control.
+            /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e control.
                 Construct a path representing this action. */
             base::PathPtr simulateControl(const Control* control, unsigned int steps) const;
 
-            /** \brief Simulate the ODE environment forward for \e
+            /** \brief Simulate the OpenDE environment forward for \e
                 steps simulation steps, using the null control
                 (ompl::control::ControlSpace::nullControl()).
                 Construct a path representing this action. */

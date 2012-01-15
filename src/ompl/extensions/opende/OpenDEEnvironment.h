@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_ENVIRONMENT_
-#define OMPL_EXTENSION_ODE_ENVIRONMENT_
+#ifndef OMPL_EXTENSION_OPENDE_ENVIRONMENT_
+#define OMPL_EXTENSION_OPENDE_ENVIRONMENT_
 
 #include "ompl/config.h"
-#if OMPL_EXTENSION_ODE == 0
-#  error ODE extension not built
+#if OMPL_EXTENSION_OPENDE == 0
+#  error OpenDE extension not built
 #endif
 
 #include "ompl/util/ClassForward.h"
@@ -56,19 +56,19 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        /** \brief Forward declaration of ompl::control::ODEEnvironment */
-        ClassForward(ODEEnvironment);
+        /** \brief Forward declaration of ompl::control::OpenDEEnvironment */
+        ClassForward(OpenDEEnvironment);
         /// @endcond
 
-        /** \class ompl::control::ODEEnvironmentPtr
-            \brief A boost shared pointer wrapper for ompl::control::ODEEnvironment */
+        /** \class ompl::control::OpenDEEnvironmentPtr
+            \brief A boost shared pointer wrapper for ompl::control::OpenDEEnvironment */
 
-        /** \brief This class contains the ODE constructs OMPL needs to know about when planning. */
-        class ODEEnvironment
+        /** \brief This class contains the OpenDE constructs OMPL needs to know about when planning. */
+        class OpenDEEnvironment
         {
         public:
 
-            /** \brief The ODE world where the simulation is performed */
+            /** \brief The OpenDE world where the simulation is performed */
             dWorldID              world_;
 
             /** \brief The set of spaces where contacts need to be evaluated before simulation takes place */
@@ -101,15 +101,15 @@ namespace ompl
             /** \brief The minimum number of times a control is applies in sequence */
             unsigned int          minControlSteps_;
 
-            /** \brief Lock to use when performing simulations in the world. (ODE simulations are NOT thread safe) */
+            /** \brief Lock to use when performing simulations in the world. (OpenDE simulations are NOT thread safe) */
             mutable boost::mutex  mutex_;
 
-            ODEEnvironment(void) : world_(NULL), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
+            OpenDEEnvironment(void) : world_(NULL), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
             {
                 contactGroup_ = dJointGroupCreate(0);
             }
 
-            virtual ~ODEEnvironment(void)
+            virtual ~OpenDEEnvironment(void)
             {
                 if (contactGroup_)
                     dJointGroupDestroy(contactGroup_);

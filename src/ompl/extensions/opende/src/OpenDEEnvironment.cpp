@@ -34,35 +34,39 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/ode/ODEStateValidityChecker.h"
-#include "ompl/util/Exception.h"
+#include "ompl/extensions/opende/OpenDEEnvironment.h"
+#include <boost/lexical_cast.hpp>
 
-ompl::control::ODEStateValidityChecker::ODEStateValidityChecker(const SpaceInformationPtr &si) : base::StateValidityChecker(si)
+unsigned int ompl::control::OpenDEEnvironment::getMaxContacts(dGeomID geom1, dGeomID geom2) const
 {
-    if (!dynamic_cast<ODEStateSpace*>(si->getStateSpace().get()))
-        throw Exception("Cannot create state validity checking for ODE without ODE state space");
-    osm_ = si->getStateSpace()->as<ODEStateSpace>();
+    return maxContacts_;
 }
 
-bool ompl::control::ODEStateValidityChecker::isValid(const base::State *state) const
+bool ompl::control::OpenDEEnvironment::isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const
 {
-    const ODEStateSpace::StateType *s = state->as<ODEStateSpace::StateType>();
+    return false;
+}
 
-    // if we know the value of the validity flag for this state, we return it
-    if (s->collision & (1 << ODEStateSpace::STATE_VALIDITY_KNOWN_BIT))
-        return s->collision & (1 << ODEStateSpace::STATE_VALIDITY_VALUE_BIT);
+void ompl::control::OpenDEEnvironment::setupContact(dGeomID geom1, dGeomID geom2, dContact &contact) const
+{
+    contact.surface.mode = dContactBounce | dContactSoftCFM;
+    contact.surface.mu = 0.1;
+    contact.surface.mu2 = 0;
+    contact.surface.bounce = 0.01;
+    contact.surface.bounce_vel = 0.001;
+    contact.surface.soft_cfm = 0.01;
+}
 
-    // if not, we compute it:
-    bool valid = false;
+std::string ompl::control::OpenDEEnvironment::getGeomName(dGeomID geom) const
+{
+    std::map<dGeomID, std::string>::const_iterator it = geomNames_.find(geom);
+    if (it == geomNames_.end())
+        return boost::lexical_cast<std::string>(reinterpret_cast<unsigned long>(geom));
+    else
+        return it->second;
+}
 
-    if (!osm_->evaluateCollision(state))
-        valid = osm_->satisfiesBoundsExceptRotation(s);
-
-    if (valid)
-        s->collision &= (1 << ODEStateSpace::STATE_VALIDITY_VALUE_BIT);
-
-    // mark the fact we know the value of the validity bit
-    s->collision &= (1 << ODEStateSpace::STATE_VALIDITY_KNOWN_BIT);
-
-    return valid;
+void ompl::control::OpenDEEnvironment::setGeomName(dGeomID geom, const std::string &name)
+{
+    geomNames_[geom] = name;
 }

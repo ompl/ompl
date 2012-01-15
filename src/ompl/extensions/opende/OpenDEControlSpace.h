@@ -34,11 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_STATE_PROPAGATOR_
-#define OMPL_EXTENSION_ODE_STATE_PROPAGATOR_
+#ifndef OMPL_EXTENSION_OPENDE_CONTROL_SPACE_
+#define OMPL_EXTENSION_OPENDE_CONTROL_SPACE_
 
-#include "ompl/control/SpaceInformation.h"
-#include "ompl/extensions/ode/ODEEnvironment.h"
+#include "ompl/control/spaces/RealVectorControlSpace.h"
+#include "ompl/extensions/opende/OpenDEStateSpace.h"
 
 namespace ompl
 {
@@ -46,50 +46,31 @@ namespace ompl
     namespace control
     {
 
-        /** \brief State propagation with ODE. Only forward
-            propagation is possible.
-
-            At every propagation step, controls are applied using
-            ODEEnvironment::applyControl(), contacts are computed by
-            calling \b dSpaceCollide() on the spaces in
-            ODEEnvironment::collisionSpaces_ and then \b
-            dWorldQuickStep() is called. If the \e state argument of
-            propagate() does not have its
-            ODEStateSpace::StateType::collision field set, it is
-            set based on the information returned by contact
-            computation. Certain collisions (contacts) are allowed, as
-            indicated by ODEEnvironment::isValidCollision(). */
-        class ODEStatePropagator : public StatePropagator
+        /** \brief Representation of controls applied in OpenDE
+            environments. This is an array of double values. */
+        class OpenDEControlSpace : public RealVectorControlSpace
         {
         public:
 
-            /** \brief Construct a representation of ODE state propagator.
-                If \e si->getStateSpace() does not cast to an
-                ODEStateSpace, an exception is thrown. */
-            ODEStatePropagator(const SpaceInformationPtr &si);
+            /** \brief Construct a representation of controls passed
+                to OpenDE. If \e stateSpace does not cast to an
+                OpenDEStateSpace, an exception is thrown. */
+            OpenDEControlSpace(const base::StateSpacePtr &stateSpace);
 
-            virtual ~ODEStatePropagator(void)
+            virtual ~OpenDEControlSpace(void)
             {
             }
 
-            /** \brief Get the ODE environment this state propagator operates on */
-            const ODEEnvironmentPtr& getEnvironment(void) const
+            /** \brief Get the OpenDE environment this state space corresponds to */
+            const OpenDEEnvironmentPtr& getEnvironment(void) const
             {
-                return env_;
+                return stateSpace_->as<OpenDEStateSpace>()->getEnvironment();
             }
-
-            virtual bool canPropagateBackward(void) const;
-
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
-
-        protected:
-
-            /** \brief The ODE environment this state propagator operates on */
-            ODEEnvironmentPtr env_;
 
         };
     }
 
 }
+
 
 #endif

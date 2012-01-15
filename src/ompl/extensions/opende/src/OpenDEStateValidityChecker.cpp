@@ -34,33 +34,35 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_EXTENSION_ODE_STATE_VALIDITY_CHECKER_
-#define OMPL_EXTENSION_ODE_STATE_VALIDITY_CHECKER_
+#include "ompl/extensions/opende/OpenDEStateValidityChecker.h"
+#include "ompl/util/Exception.h"
 
-#include "ompl/extensions/ode/ODEStateSpace.h"
-#include "ompl/control/SpaceInformation.h"
-
-namespace ompl
+ompl::control::OpenDEStateValidityChecker::OpenDEStateValidityChecker(const SpaceInformationPtr &si) : base::StateValidityChecker(si)
 {
-    namespace control
-    {
-
-        /** \brief The simplest state validity checker: all states are valid */
-        class ODEStateValidityChecker : public base::StateValidityChecker
-        {
-        public:
-
-            /** \brief Constructor */
-            ODEStateValidityChecker(const SpaceInformationPtr &si);
-
-            /** \brief A state is considered valid if it is within bounds and not in collision */
-            virtual bool isValid(const base::State *state) const;
-
-        protected:
-
-            /** \brief The corresponding ODE state space */
-            ODEStateSpace *osm_;
-        };
-    }
+    if (!dynamic_cast<OpenDEStateSpace*>(si->getStateSpace().get()))
+        throw Exception("Cannot create state validity checking for OpenDE without OpenDE state space");
+    osm_ = si->getStateSpace()->as<OpenDEStateSpace>();
 }
-#endif
+
+bool ompl::control::OpenDEStateValidityChecker::isValid(const base::State *state) const
+{
+    const OpenDEStateSpace::StateType *s = state->as<OpenDEStateSpace::StateType>();
+
+    // if we know the value of the validity flag for this state, we return it
+    if (s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT))
+        return s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT);
+
+    // if not, we compute it:
+    bool valid = false;
+
+    if (!osm_->evaluateCollision(state))
+        valid = osm_->satisfiesBoundsExceptRotation(s);
+
+    if (valid)
+        s->collision &= (1 << OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT);
+
+    // mark the fact we know the value of the validity bit
+    s->collision &= (1 << OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT);
+
+    return valid;
+}

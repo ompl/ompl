@@ -34,18 +34,18 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/ode/ODEStatePropagator.h"
-#include "ompl/extensions/ode/ODEStateSpace.h"
-#include "ompl/extensions/ode/ODEControlSpace.h"
+#include "ompl/extensions/opende/OpenDEStatePropagator.h"
+#include "ompl/extensions/opende/OpenDEStateSpace.h"
+#include "ompl/extensions/opende/OpenDEControlSpace.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 
-ompl::control::ODEStatePropagator::ODEStatePropagator(const SpaceInformationPtr &si) : StatePropagator(si)
+ompl::control::OpenDEStatePropagator::OpenDEStatePropagator(const SpaceInformationPtr &si) : StatePropagator(si)
 {
-    if (ODEStateSpace *oss = dynamic_cast<ODEStateSpace*>(si->getStateSpace().get()))
+    if (OpenDEStateSpace *oss = dynamic_cast<OpenDEStateSpace*>(si->getStateSpace().get()))
         env_ = oss->getEnvironment();
     else
-        throw Exception("ODE State Space needed for ODEStatePropagator");
+        throw Exception("OpenDE State Space needed for OpenDEStatePropagator");
 }
 
 /// @cond IGNORE
@@ -54,7 +54,7 @@ namespace ompl
 
     struct CallbackParam
     {
-        const control::ODEEnvironment *env;
+        const control::OpenDEEnvironment *env;
         bool                           collision;
     };
 
@@ -95,12 +95,12 @@ namespace ompl
 }
 /// @endcond
 
-void ompl::control::ODEStatePropagator::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
 {
     env_->mutex_.lock();
 
-    // place the ODE world at the start state
-    si_->getStateSpace()->as<ODEStateSpace>()->writeState(state);
+    // place the OpenDE world at the start state
+    si_->getStateSpace()->as<OpenDEStateSpace>()->writeState(state);
 
     // apply the controls
     env_->applyControl(control->as<RealVectorControlSpace::ControlType>()->values);
@@ -116,21 +116,21 @@ void ompl::control::ODEStatePropagator::propagate(const base::State *state, cons
     // remove created contacts
     dJointGroupEmpty(env_->contactGroup_);
 
-    // read the final state from the ODE world
-    si_->getStateSpace()->as<ODEStateSpace>()->readState(result);
+    // read the final state from the OpenDE world
+    si_->getStateSpace()->as<OpenDEStateSpace>()->readState(result);
 
     env_->mutex_.unlock();
 
     // update the collision flag for the start state, if needed
-    if (!(state->as<ODEStateSpace::StateType>()->collision & (1 << ODEStateSpace::STATE_COLLISION_KNOWN_BIT)))
+    if (!(state->as<OpenDEStateSpace::StateType>()->collision & (1 << OpenDEStateSpace::STATE_COLLISION_KNOWN_BIT)))
     {
         if (cp.collision)
-            state->as<ODEStateSpace::StateType>()->collision &= (1 << ODEStateSpace::STATE_COLLISION_VALUE_BIT);
-        state->as<ODEStateSpace::StateType>()->collision &= (1 << ODEStateSpace::STATE_COLLISION_KNOWN_BIT);
+            state->as<OpenDEStateSpace::StateType>()->collision &= (1 << OpenDEStateSpace::STATE_COLLISION_VALUE_BIT);
+        state->as<OpenDEStateSpace::StateType>()->collision &= (1 << OpenDEStateSpace::STATE_COLLISION_KNOWN_BIT);
     }
 }
 
-bool ompl::control::ODEStatePropagator::canPropagateBackward(void) const
+bool ompl::control::OpenDEStatePropagator::canPropagateBackward(void) const
 {
     return false;
 }
