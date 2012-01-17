@@ -129,21 +129,25 @@ bool ompl::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std
 void ompl::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc)
 {
     msg_.debug("Starting " + planner->getName());
+    time::point start = time::now();
     if (planner->solve(*ptc))
     {
+        double duration = time::seconds(time::now() - start);
         foundSolCountLock_.lock();
         unsigned int nrSol = ++foundSolCount_;
         foundSolCountLock_.unlock();
         if (nrSol >= minSolCount)
             ptc->terminate();
-        msg_.debug("Solution found by " + planner->getName());
+        msg_.debug("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
     }
 }
 
 void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCount, std::size_t maxSolCount, const base::PlannerTerminationCondition *ptc)
 {
+    time::point start = time::now();
     if (planner->solve(*ptc))
     {
+        double duration = time::seconds(time::now() - start);
         foundSolCountLock_.lock();
         unsigned int nrSol = ++foundSolCount_;
         foundSolCountLock_.unlock();
@@ -151,16 +155,19 @@ void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCou
         if (nrSol >= maxSolCount)
             ptc->terminate();
 
-        msg_.debug("Solution found by " + planner->getName());
+        msg_.debug("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
 
         const std::vector<base::PlannerSolution> &paths = pdef_->getGoal()->getSolutions();
 
         boost::mutex::scoped_lock slock(phlock_);
-
+        start = time::now();
         for (std::size_t i = 0 ; i < paths.size() ; ++i)
             phybrid_->recordPath(paths[i].path_);
 
         if (phybrid_->pathCount() >= minSolCount)
             phybrid_->computeHybridPath();
+
+        duration = time::seconds(time::now() - start);
+        msg_.debug("Spent %f seconds hybridizing solution paths", duration);
     }
 }
