@@ -146,6 +146,9 @@ namespace ompl
 
                 // Set the resulting state values from the computed solution
                 setReals (reals, result);
+
+                // Make sure that the resulting state satisfies state space bounds
+                space_->enforceBounds (result);
             }
 
             /// \brief Get a container that holds all real values of the input state
