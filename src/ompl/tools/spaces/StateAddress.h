@@ -101,7 +101,7 @@ namespace ompl
 
     private:
 
-        void storeLocation(Location &loc, const base::StateSpace *s);
+        void storeLocation(Location loc, const base::StateSpace *s);
 
         base::StateSpacePtr             space_;
         std::map<std::string, Location> locations_;

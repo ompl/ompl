@@ -57,11 +57,16 @@ void ompl::StateAddress::setStateSpace(const base::StateSpacePtr &space)
     storeLocation(loc, space.get());
 }
 
-void ompl::StateAddress::storeLocation(Location &loc, const base::StateSpace *s)
+void ompl::StateAddress::storeLocation(Location loc, const base::StateSpace *s)
 {
-    loc.index = 0;
-    loc.space = s;
-    locations_[s->getName()] = loc;
+    base::State *test = s->allocState();
+    if (s->getValueAddressAtIndex(test, 0) != NULL)
+    {
+        loc.index = 0;
+        loc.space = s;
+        locations_[s->getName()] = loc;
+    }
+    s->freeState(test);
 
     if (s->isCompound())
         for (unsigned int i = 0 ; i < s->as<base::CompoundStateSpace>()->getSubSpaceCount() ; ++i)
@@ -86,7 +91,7 @@ void ompl::StateAddress::storeLocation(Location &loc, const base::StateSpace *s)
 double* ompl::StateAddress::getValueAddressAtLocation(const Location &loc, base::State *state) const
 {
     std::size_t index = 0;
-    while (loc.chain.size() < index)
+    while (loc.chain.size() > index)
         state = state->as<base::CompoundState>()->components[loc.chain[index++]];
     return loc.space->getValueAddressAtIndex(state, loc.index);
 }
