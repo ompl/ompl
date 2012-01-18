@@ -136,6 +136,32 @@ namespace ompl
             std::string                    host;
         };
 
+        /** \brief Representation of a benchmark request */
+        struct Request
+        {
+            Request(void) : maxTime(5.0), maxMem(4096.0), runCount(100), displayProgress(true), saveConsoleOutput(true), useThreads(true)
+            {
+            }
+
+            /// \brief the maximum amount of time a planner is allowed to run (seconds); 5.0 by default
+            double       maxTime;
+
+            /// \brief the maximum amount of memory a planner is allowed to use (MB); 4096.0 by default
+            double       maxMem;
+
+            /// \brief the number of times to run each planner; 100 by default
+            unsigned int runCount;
+
+            /// \brief flag indicating whether progress is to be displayed or not; true by default
+            bool         displayProgress;
+
+            /// \brief flag indicating whether console output is saved (in an automatically generated filename); true by default
+            bool         saveConsoleOutput;
+
+            /// \brief flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
+            bool         useThreads;
+        };
+
         /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
         Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL), msg_("Benchmark")
         {
@@ -204,12 +230,7 @@ namespace ompl
         }
 
         /** \brief Benchmark the added planners on the defined problem. Repeated calls clear previously gathered data.
-            \param maxTime the maximum amount of time a planner is allowed to run (seconds)
-            \param maxMem the maximum amount of memory a planner is allowed to use (MB)
-            \param runCount the number of times to run each planner
-            \param displayProgress flag indicating whether progress is to be displayed or not
-            \param useThreads flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
-
+            \param req The parameters for the execution of the benchmark
             \note The values returned for memory consumption may
             be misleading. Memory allocators often free memory in
             a lazy fashion, so the returned values for memory
@@ -217,9 +238,9 @@ namespace ompl
             each run. Since not all the memory for the previous
             run was freed, the increase in usage may be close to
             0. To get correct averages for memory usage, use \e
-            runCount = 1 and run the process multiple times.
+            req.runCount = 1 and run the process multiple times.
         */
-        virtual void benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress = false, bool useThreads = true);
+        virtual void benchmark(const Request &req);
 
         /** \brief Get the status of the benchmarking code. This function can be called in a separate thread to check how much progress has been made */
         const Status& getStatus(void) const
