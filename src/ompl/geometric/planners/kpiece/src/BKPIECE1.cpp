@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Rice University,
+*  Copyright (c) 2011, Rice University,
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -46,12 +46,12 @@ ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base:
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 
     minValidPathFraction_ = 0.5;
-    badScoreFactor_ = 0.5;
-    goodScoreFactor_ = 0.9;
+    failedExpansionScoreFactor_ = 0.5;
     maxDistance_ = 0.0;
 
     Planner::declareParam<double>("range", this, &BKPIECE1::setRange, &BKPIECE1::getRange);
     Planner::declareParam<double>("border_fraction", this, &BKPIECE1::setBorderFraction, &BKPIECE1::getBorderFraction);
+    Planner::declareParam<double>("failed_expansion_score_factor", this, &BKPIECE1::setFailedExpansionCellScoreFactor, &BKPIECE1::getFailedExpansionCellScoreFactor);
     Planner::declareParam<double>("min_valid_path_fraction", this, &BKPIECE1::setMinValidPathFraction, &BKPIECE1::getMinValidPathFraction);
 }
 
@@ -66,10 +66,8 @@ void ompl::geometric::BKPIECE1::setup(void)
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 
-    if (badScoreFactor_ < std::numeric_limits<double>::epsilon() || badScoreFactor_ > 1.0)
-        throw Exception("Bad cell score factor must be in the range (0,1]");
-    if (goodScoreFactor_ < std::numeric_limits<double>::epsilon() || goodScoreFactor_ > 1.0)
-        throw Exception("Good cell score factor must be in the range (0,1]");
+    if (failedExpansionScoreFactor_ < std::numeric_limits<double>::epsilon() || failedExpansionScoreFactor_ > 1.0)
+        throw Exception("Failed expansion cell score factor must be in the range (0,1]");
     if (minValidPathFraction_ < std::numeric_limits<double>::epsilon() || minValidPathFraction_ > 1.0)
         throw Exception("The minimum valid path fraction must be in the range (0,1]");
 
@@ -209,13 +207,15 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                         break;
                     }
                 }
-
-                ecell->data->score *= goodScoreFactor_;
             }
             else
-                ecell->data->score *= badScoreFactor_;
+            {
+                ecell->data->score *= failedExpansionScoreFactor_;
+                disc.updateCell(ecell);
+            }
         }
-        disc.updateCell(ecell);
+        else
+            disc.updateCell(ecell);
     }
 
     si_->freeState(xstate);

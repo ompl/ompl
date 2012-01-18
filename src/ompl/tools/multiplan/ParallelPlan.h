@@ -61,8 +61,11 @@ namespace ompl
 
     /** \brief This is a utility that allows executing multiple
         planners in parallel, until one or more find a
-        solution. Optionally, the results are automatically
-        hybridized using ompl::geometric::PathHybridization. */
+        solution. Optionally, the results are automatically hybridized
+        using ompl::geometric::PathHybridization. Between calls to
+        solve(), the set of known solutions (maintained by
+        ompl::base::Goal) are not cleared, and neither is the
+        hybridization datastructure.*/
     class ParallelPlan
     {
     public:
@@ -81,8 +84,14 @@ namespace ompl
         /** \brief Clear the set of paths recorded for hybrididzation */
         void clearHybridizationPaths(void);
 
-        /** \brief Clear the set of planners to be benchmarked */
+        /** \brief Clear the set of planners to be executed */
         void clearPlanners(void);
+
+        /** \brief Get the problem definition used */
+        const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+        {
+            return pdef_;
+        }
 
         /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
             If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
@@ -95,15 +104,15 @@ namespace ompl
         bool solve(const base::PlannerTerminationCondition &ptc, bool hybridize = true);
 
         /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
-            If \e hybridize is false, when \e minSolCount solutions are found, the rest of the planners are stopped as well.
-            If \e hybridize is true, all planners are executed until termination or until \e maxSolCount solutions were obtained.
-            While \e hybridize is true, if \e minSolCount or more solutions are available, they are hybridized. */
+            If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions maintained by ompl::base::Goal), the rest of the planners are stopped as well.
+            If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new solutions were obtained.
+            While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized. */
         bool solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
 
         /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc becomes true.
-            If \e hybridize is false, when \e minSolCount solutions are found, the rest of the planners are stopped as well.
-            If \e hybridize is true, all planners are executed until termination or until \e maxSolCount solutions were obtained.
-            While \e hybridize is true, if \e minSolCount or more solutions are available, they are hybridized. */
+            If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions maintained by ompl::base::Goal), the rest of the planners are stopped as well.
+            If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new solutions were obtained.
+            While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized. */
         bool solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
 
     protected:
@@ -114,7 +123,7 @@ namespace ompl
         /** \brief Run the planner and collect the solutions. This function is only called if hybridize_ is true. */
         void solveMore(base::Planner *planner, std::size_t minSolCount, std::size_t maxSolCount, const base::PlannerTerminationCondition *ptc);
 
-        /** \brief The space information this path simplifier uses */
+        /** \brief The problem definition used */
         base::ProblemDefinitionPtr      pdef_;
 
         /** \brief The set of planners to be used */
@@ -128,6 +137,14 @@ namespace ompl
 
         /** \brief Interface for console output */
         msg::Interface                  msg_;
+
+    private:
+
+        /** \brief Number of solutions found during a particular run */
+        unsigned int                    foundSolCount_;
+
+        /** \brief Lock for phybrid_ */
+        boost::mutex                    foundSolCountLock_;
     };
 }
 

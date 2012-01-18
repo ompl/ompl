@@ -1,13 +1,7 @@
 /**
 \mainpage Introduction
 
-\htmlonly
-<div class="span-10"><img src="../images/mp.jpg" width="100%"></div>
-<div class="span-9"><a href="http://ompl.kavrakilab.org/gui.html"><img src="../images/gui_path-small.jpg"  width="100%"></a></div>
-<div class="span-3 last"><a href="http://www.ros.org/wiki/ompl"><img src="../images/pr2.jpg" width="100%"></a></div>
-<hr class="space">
-\endhtmlonly
-
+\htmlonly<div class="span-22 last"><div class="span-11">\endhtmlonly
 The Open Motion Planning Library (@b OMPL) consists of a set of
 sampling-based motion planning algorithms. The content of the
 library is limited to these algorithms, which means there is no
@@ -22,18 +16,42 @@ centered around OMPL.app. We are looking for educational partners
 to use and further develop the material. Please contact us for
 more information.
 
-\htmlonly<div></div>\endhtmlonly
 OMPL is intended to be efficient, thread safe, easy to use, easily extensible
 and freely available (visit this project on <a
 href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
-Please read the <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> for a brief background on sampling-based motion planning, and an overview of OMPL.
-For more details, see \ref documentation "the documentation".
-
-\htmlonly<div></div>\endhtmlonly
-The OMPL library is used within <a href="http://www.ros.org">ROS</a>. The ROS interface to OMPL is described <a href="http://www.ros.org/wiki/ompl_ros_interface">here</a>, while a tutorial on using OMPL within ROS is available <a href="http://kavrakilab.org/OMPLtutorial">here</a>.
+\htmlonly
+</div><div class="span-10 push-1 last"><img src="../images/mp.jpg" width="100%"></div></div>
+\endhtmlonly
 
 
-\htmlonly<div></div>\endhtmlonly
-For examples uses of OMPL, see \ref gallery "our gallery page".
+\htmlonly<div class="span-22 last"><div class="span-7">\endhtmlonly
+\section contents Contents of this library
+
+- OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See \ref availablePlanners for a complete list.
+- All these planners operate on very abstractly defined state spaces. Many commonly used state spaces are already implemented and listed \ref availableStateSpaces "here".
+- \ref api_overview "API overview"
+- If you are interested in the <a href="http://www.ros.org/wiki/ompl_ros_interface">ROS interface to OMPL</a>, please read the <a href="http://kavrakilab.org/OMPLtutorial">tutorial on using OMPL within ROS</a>.
+
+\htmlonly</div><div class="span-7 push-1">\endhtmlonly
+\section gettingStarted Getting Started
+
+- The <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
+- \ref download "Download" and \ref installation "install" OMPL.
+- Familiarize yourself with the \ref boost "Boost structures" used throughout OMPL.
+- Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
+- \ref demos
+- \ref tutorials
+- If interested in using Python, make sure to read \ref python "the documentation for the Python bindings".
+
+\htmlonly</div><div class="span-6 push-2 last">\endhtmlonly
+\section otherResources Other Resources
+
+- \ref education "OMPL for education"
+- \ref gallery "Gallery of example uses of OMPL".
+- \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
+
+\htmlonly
+</div></div>
+\endhtmlonly
 
 */

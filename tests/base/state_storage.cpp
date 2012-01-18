@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2012, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,18 +34,50 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/ValidStateSampler.h"
-#include "ompl/tools/config/MagicConstants.h"
-#include <boost/bind.hpp>
+#include <gtest/gtest.h>
+#include "ompl/base/StateStorage.h"
+#include "ompl/base/ScopedState.h"
+#include "ompl/base/spaces/SE3StateSpace.h"
+#include "ompl/base/spaces/SE2StateSpace.h"
 
-ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si) :
-    si_(si), attempts_(magic::MAX_VALID_SAMPLE_ATTEMPTS), name_("not set")
+using namespace ompl;
+
+TEST(StateStorage, Store)
 {
-    params_.declareParam<unsigned int>("nr_attempts",
-                                       boost::bind(&ValidStateSampler::setNrAttempts, this, _1),
-                                       boost::bind(&ValidStateSampler::getNrAttempts, this));
+    base::StateSpacePtr space(new base::SE3StateSpace());
+    base::RealVectorBounds bounds(3);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+    space->as<base::SE3StateSpace>()->setBounds(bounds);    
+    space->setup();
+    
+    base::StateStorage ss(space);
+    base::ScopedState<> s(space);
+    for (int i = 0 ; i < 1000 ; ++i)
+    {
+	s.random();
+	base::State *x = space->allocState();
+	space->copyState(x, s.get());
+	ss.addState(x);
+    }
+    ss.store("tmp_states");
 }
 
-ompl::base::ValidStateSampler::~ValidStateSampler(void)
+TEST(StateStorage, Load)
 {
+    base::StateSpacePtr space(new base::SE3StateSpace());
+    base::RealVectorBounds bounds(3);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+    space->as<base::SE3StateSpace>()->setBounds(bounds);    
+    space->setup();
+    
+    base::StateStorage ss(space);
+    ss.load("tmp_states");
+}
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

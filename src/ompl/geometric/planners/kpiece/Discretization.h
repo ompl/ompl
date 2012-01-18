@@ -46,6 +46,7 @@
 #include <cassert>
 #include <utility>
 #include <cstdlib>
+#include <cmath>
 
 namespace ompl
 {
@@ -170,12 +171,12 @@ namespace ompl
                 ++iteration_;
             }
 
-            std::size_t getMotionCount(void)
+            std::size_t getMotionCount(void) const
             {
                 return size_;
             }
 
-            std::size_t getCellCount(void)
+            std::size_t getCellCount(void) const
             {
                 return grid_.size();
             }

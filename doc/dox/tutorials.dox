@@ -1,10 +1,15 @@
 /**
 \page tutorials Tutorials
 
+Below we include a number of tutorials we believe are useful for
+understanding how OMPL works, grouped by level of difficulty. Users
+are encouraged to look at the \ref demos "demos" as well.
+
 \par Beginner
 - \ref geometricPlanningSE3 "Geometric planning for a rigid body in 3D"
 - \ref stateValidation "Setting up state validity checking"
-- \ref workingWithStates "Working with states"
+- \ref workingWithStates "Working with states and state spaces"
+- \ref samplers "Using existing samplers and creating new ones"
 .
 
 \par Intermediate
@@ -13,11 +18,10 @@
 - \ref goalRepresentation "Representing goals"
 .
 
-
 \par Advanced
-- \ref projections "Projections"
 - \ref benchmark "Benchmarking planners"
 - \ref newPlanner "Adding a new planner"
+- \ref projections "Setting up a projection"
 .
 
 */

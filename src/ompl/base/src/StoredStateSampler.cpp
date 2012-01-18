@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2012, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,18 +34,47 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/ValidStateSampler.h"
-#include "ompl/tools/config/MagicConstants.h"
-#include <boost/bind.hpp>
+#include "ompl/base/StoredStateSampler.h"
+#include "ompl/base/StateSpace.h"
+#include "ompl/util/Exception.h"
 
-ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si) :
-    si_(si), attempts_(magic::MAX_VALID_SAMPLE_ATTEMPTS), name_("not set")
+ompl::base::StoredStateSampler::StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states) :
+    StateSampler(space), states_(states), maxNearSamplesAttempts_(3)
 {
-    params_.declareParam<unsigned int>("nr_attempts",
-                                       boost::bind(&ValidStateSampler::setNrAttempts, this, _1),
-                                       boost::bind(&ValidStateSampler::getNrAttempts, this));
+    if (states_.empty())
+        throw Exception("Empty set of states to sample from was specified");
+    maxStateIndex_ = states_.size() - 1;
 }
 
-ompl::base::ValidStateSampler::~ValidStateSampler(void)
+void ompl::base::StoredStateSampler::sampleUniform(State *state)
 {
+    space_->copyState(state, states_[rng_.uniformInt(0, maxStateIndex_)]);
+}
+
+void ompl::base::StoredStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
+{
+    int index = rng_.uniformInt(0, maxStateIndex_);
+    double dist = space_->distance(near, states_[index]);
+    if (dist > distance)
+        for (unsigned int k = 1 ; k < maxNearSamplesAttempts_ ; ++k)
+        {
+            int x = rng_.uniformInt(0, maxStateIndex_);
+            double d = space_->distance(near, states_[x]);
+            if (d <= distance)
+            {
+                space_->copyState(state, states_[x]);
+                return;
+            }
+            if (d < dist)
+            {
+                dist = d;
+                index = x;
+            }
+        }
+    space_->copyState(state, states_[index]);
+}
+
+void ompl::base::StoredStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+    sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
 }

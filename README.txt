@@ -2,7 +2,7 @@ Visit http://ompl.kavrakilab.org/core/installation.html for
 detailed installation instructions.
 
 OMPL has the following required dependencies:
- * Boost (version 1.42 or higher)
+ * Boost (version 1.44 or higher)
  * CMake (version 2.8.2 or higher)
 
 The following dependencies are optional:

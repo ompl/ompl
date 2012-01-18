@@ -40,7 +40,7 @@
 ompl::base::ObstacleBasedValidStateSampler::ObstacleBasedValidStateSampler(const SpaceInformation *si) :
     ValidStateSampler(si), sampler_(si->allocStateSampler())
 {
-    name_ = "obstacle";
+    name_ = "obstacle_based";
 }
 
 bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)

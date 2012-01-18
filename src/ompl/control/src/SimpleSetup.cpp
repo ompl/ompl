@@ -123,6 +123,11 @@ ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) co
     throw Exception("No solution path");
 }
 
+bool ompl::control::SimpleSetup::haveExactSolutionPath(void) const
+{
+    return haveSolutionPath() && (!getGoal()->isApproximate() || getGoal()->getDifference() < std::numeric_limits<double>::epsilon());
+}
+
 ompl::control::PlannerData ompl::control::SimpleSetup::getPlannerData(void) const
 {
     control::PlannerData pd;

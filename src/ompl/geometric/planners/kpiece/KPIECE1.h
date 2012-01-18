@@ -158,29 +158,19 @@ namespace ompl
             }
 
             /** \brief When extending a motion from a cell, the
-                extension can be successful or it can fail.  If the
-                extension is successful, the score of the cell is
-                multiplied by \e good. If the extension fails, the
-                score of the cell is multiplied by \e bad. These
-                numbers should be in the range (0, 1]. */
-            void setCellScoreFactor(double good, double bad)
+                extension can be successful or it can fail. If the
+                extension fails, the score of the cell is multiplied
+                by \e factor. These number should be in the range (0, 1]. */
+            void setFailedExpansionCellScoreFactor(double factor)
             {
-                goodScoreFactor_ = good;
-                badScoreFactor_ = bad;
-            }
-
-            /** \brief Get the factor that is multiplied to a cell's
-                score if extending a motion from that cell succeeded. */
-            double getGoodCellScoreFactor(void) const
-            {
-                return goodScoreFactor_;
+                failedExpansionScoreFactor_ = factor;
             }
 
             /** \brief Get the factor that is multiplied to a cell's
                 score if extending a motion from that cell failed. */
-            double getBadCellScoreFactor(void) const
+            double getFailedExpansionCellScoreFactor(void) const
             {
-                return badScoreFactor_;
+                return failedExpansionScoreFactor_;
             }
 
             /** \brief Set the projection evaluator. This class is
@@ -249,14 +239,9 @@ namespace ompl
             base::ProjectionEvaluatorPtr               projectionEvaluator_;
 
             /** \brief When extending a motion from a cell, the
-                extension can be successful. If it is, the score of the
-                cell is multiplied by this factor. */
-            double                                     goodScoreFactor_;
-
-            /** \brief When extending a motion from a cell, the
                 extension can fail. If it is, the score of the cell is
                 multiplied by this factor. */
-            double                                     badScoreFactor_;
+            double                                     failedExpansionScoreFactor_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                     goalBias_;

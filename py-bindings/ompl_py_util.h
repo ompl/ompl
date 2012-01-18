@@ -32,20 +32,33 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll */
 
-#include "ompl/base/ValidStateSampler.h"
-#include "ompl/tools/config/MagicConstants.h"
-#include <boost/bind.hpp>
+#ifndef PY_BINDINGS_OMPL_PY_UTIL_
+#define PY_BINDINGS_OMPL_PY_UTIL_
 
-ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si) :
-    si_(si), attempts_(magic::MAX_VALID_SAMPLE_ATTEMPTS), name_("not set")
+#include <vector>
+#include <map>
+
+namespace ompl
 {
-    params_.declareParam<unsigned int>("nr_attempts",
-                                       boost::bind(&ValidStateSampler::setNrAttempts, this, _1),
-                                       boost::bind(&ValidStateSampler::getNrAttempts, this));
+    namespace util
+    {
+        inline int dummySTLContainerSize()
+        {
+            return sizeof(std::vector<std::size_t>) +
+                sizeof(std::vector<bool>) +
+                sizeof(std::vector<int>) +
+                sizeof(std::vector<double>) +
+                sizeof(std::vector<unsigned int>) +
+                sizeof(std::vector<std::string>) +
+                sizeof(std::vector< std::vector<int> >) +
+                sizeof(std::vector< std::vector<unsigned int> >) +
+                sizeof(std::vector< std::vector<double> >) +
+                sizeof(std::vector< std::map< std::string, std::string > >) +
+                sizeof(std::map< std::string, std::string >);
+        }
+    }
 }
 
-ompl::base::ValidStateSampler::~ValidStateSampler(void)
-{
-}
+#endif
