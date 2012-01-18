@@ -69,17 +69,18 @@ To use the ODESolver, a function describing the ODE of your system must
 be implemented.  This function must have the following signature:
 
 \code
-void ODE(const std::vector<double>& q, const ompl::control::Control* u, std::vector<double>& qdot)
+void ODE(const oc::ODESolver::StateType& q, const oc::Control* u, oc::ODESolver::StateType& qdot)
 \endcode
 
-This function takes a vector q that describes the current state of the system,
-a control u that defines the inputs applied to the system at state q, 
-and a vector qdot to store the output of the computation.  ODESolver utilizes 
-<a href="http://odeint.org">boost::numeric::odeint</a> to perform the numerical 
-integration, and it is necessary to translate the ompl::base::State values into 
-an iterable container of real values.  Therefore, values in the vector q directly 
-correspond to the real valued state parameters in the ompl::base::State.  This 
-data is analogous to the result of calling ompl::base::ScopedState::reals.
+This function takes a vector q (StateType is a std::vector) that describes the 
+current state of the system, a control u that defines the inputs applied to 
+the system at state q, and a vector qdot to store the output of the computation.
+ODESolver utilizes <a href="http://odeint.org">boost::numeric::odeint</a> to 
+perform the numerical integration, and it is necessary to translate the 
+ompl::base::State values into an iterable container of real values.  Therefore, 
+values in the vector q directly correspond to the real valued state parameters 
+in the ompl::base::State.  This data is analogous to the result of calling 
+ompl::base::ScopedState::reals.
 
 \subsection odedefinition Define the ODE
 Assume that you are planning for the simple car-like system described above.  The
@@ -92,7 +93,9 @@ Given these definitions, the ODE defined for the ODESolver then has the followin
 structure:
 
 \code
-void SimpleCarODE(const std::vector<double>& q, const ompl::control::Control* c, std::vector<double>& qdot)
+namespace oc = ompl::control;
+
+void SimpleCarODE(const oc::ODESolver::StateType& q, const oc::Control* c, oc::ODESolver::StateType& qdot)
 {
     // Retrieve control values.  Velocity is the first entry, steering angle is second.
     const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
@@ -167,6 +170,11 @@ The StatePropagator can then set to this new method:
 \code
 si->setStatePropagator(boost::bind(&propagate, _1, _2, _3, _4));
 \endcode
+
+The contraint enforcement example above is actually not necessary when using
+the ODESolver for the simplified car model.  The default propagate method
+in the ODESolver will call enforceBounds on the resulting state after integration,
+but more complex systems may require additional code after numerical integration.
 
 \subsection odesolvers Selecting an ODESolver
 There are three derived classes from ODESolver that use <a href="http://odeint.org">
