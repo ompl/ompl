@@ -328,7 +328,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         gsetup_->print(setupInfo);
     else
         csetup_->print(setupInfo);
-    setupInfo << std::endl << "Planner properties:" << std::endl;
+    setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->printProperties(setupInfo);
     exp_.setupInfo = setupInfo.str();
