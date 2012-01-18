@@ -379,7 +379,49 @@ class ompl_control_generator_t(code_generator_t):
             ::ompl::control::StatePropagatorFn(StatePropagatorPyWrapper(function)),  _1, _2, _3, _4));
         }
         """)
+        # add wrappers for two ODESolver methods
+        replacement['setPropagateFunction'] = ('def("setPropagateFunction", &setPropagateFunctionWrapper)', """
+        struct PropagateFunctionWrapper
+        {
+            PropagateFunctionWrapper( bp::object callable ) : callable_( callable ) {}
 
+            void operator()(const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
+            {
+                PyGILState_STATE gstate = PyGILState_Ensure();
+                callable_(bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
+                PyGILState_Release( gstate );
+            }
+
+            bp::object callable_;
+        };
+
+        void setPropagateFunctionWrapper(%s* obj, bp::object function)
+        {
+            obj->setPropagateFunction(boost::bind(
+            ::ompl::control::ODESolver::PropagateFunction(PropagateFunctionWrapper(function)),  _1, _2, _3, _4));
+        }
+        """)
+        replacement['setODE'] = ('def("setODE", &setODEWrapper)', """
+        struct ODEWrapper
+        {
+            ODEWrapper( bp::object callable ) : callable_( callable ) {}
+
+            void operator()(const ompl::control::ODESolver::StateType& state, const ompl::control::Control* control, ompl::control::ODESolver::StateType& dstate)
+            {
+                PyGILState_STATE gstate = PyGILState_Ensure();
+                callable_(state, bp::ptr(control), dstate);
+                PyGILState_Release( gstate );
+            }
+
+            bp::object callable_;
+        };
+
+        void setODEWrapper(%s* obj, bp::object function)
+        {
+            obj->setODE(boost::bind(
+            ::ompl::control::ODESolver::ODE(ODEWrapper(function)),  _1, _2, _3));
+        }
+        """)
         code_generator_t.__init__(self, 'control', ['bindings/util', 'bindings/base', 'bindings/geometric'], replacement)
 
     def filter_declarations(self):
@@ -417,6 +459,12 @@ class ompl_control_generator_t(code_generator_t):
         # add wrapper code for setStatePropagator
         self.replace_member_functions(self.ompl_ns.namespace('control').member_functions(
             'setStatePropagator', arg_types=['::ompl::control::StatePropagatorFn const &']))
+        self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function('setPropagateFunction'))
+        self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function('setODE'))
+        # export ODESolver-derived classes that use Boost.OdeInt
+        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
+        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
+        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
