@@ -16,6 +16,7 @@ are encouraged to look at the \ref demos "demos" as well.
 - \ref genericPlanning "Generic instructions for setting up a planning context"
 - \ref implementingStateSpaces "Implementing new state spaces"
 - \ref goalRepresentation "Representing goals"
+- \ref odeint "Using ODESolver for Planning with Controls"
 .
 
 \par Advanced

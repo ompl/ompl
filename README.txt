@@ -6,7 +6,7 @@ OMPL has the following required dependencies:
  * CMake (version 2.8.2 or higher)
 
 The following dependencies are optional:
- * ODE (needed to compile support for planning using ODE)
+ * ODE (needed to compile support for planning using the Open Dynamics Engine)
  * Google-test (needed to run the test programs)
  * Py++ (needed to generate Python bindings)
  * Doxygen (needed to create a local copy of the documentation at

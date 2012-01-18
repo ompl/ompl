@@ -1,4 +1,5 @@
 ../src/ompl/control/Control.h
+../src/ompl/control/ODESolver.h
 ../src/ompl/control/ControlSampler.h
 ../src/ompl/control/DirectedControlSampler.h
 ../src/ompl/control/SimpleDirectedControlSampler.h
