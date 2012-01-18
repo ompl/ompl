@@ -48,17 +48,17 @@ TEST(StateStorage, Store)
     base::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    space->as<base::SE3StateSpace>()->setBounds(bounds);    
+    space->as<base::SE3StateSpace>()->setBounds(bounds);
     space->setup();
-    
+
     base::StateStorage ss(space);
     base::ScopedState<> s(space);
     for (int i = 0 ; i < 1000 ; ++i)
     {
-	s.random();
-	base::State *x = space->allocState();
-	space->copyState(x, s.get());
-	ss.addState(x);
+        s.random();
+        base::State *x = space->allocState();
+        space->copyState(x, s.get());
+        ss.addState(x);
     }
     ss.store("tmp_states");
 }
@@ -69,9 +69,9 @@ TEST(StateStorage, Load)
     base::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    space->as<base::SE3StateSpace>()->setBounds(bounds);    
+    space->as<base::SE3StateSpace>()->setBounds(bounds);
     space->setup();
-    
+
     base::StateStorage ss(space);
     ss.load("tmp_states");
 }

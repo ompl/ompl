@@ -139,6 +139,12 @@ TEST(State, Scoped)
 
     sSE3_R = 0.5;
     EXPECT_EQ(sSE3_R[0], 0.5);
+
+    sSE3 << sSE3_R;
+    pSE3->setName("test");
+    EXPECT_EQ(sSE3["test"], 0.5);
+    sSE3["test"] = 0.1;
+    EXPECT_EQ(sSE3[0], 0.1);
 }
 
 TEST(State, ScopedRV)

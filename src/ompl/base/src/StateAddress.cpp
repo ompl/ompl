@@ -34,30 +34,30 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/tools/spaces/StateAddress.h"
+#include "ompl/base/StateAddress.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
-ompl::StateAddress::StateAddress(void)
+ompl::base::StateAddress::StateAddress(void)
 {
 }
 
-ompl::StateAddress::StateAddress(const base::StateSpacePtr &space)
+ompl::base::StateAddress::StateAddress(const base::StateSpacePtr &space)
 {
     setStateSpace(space);
 }
 
-ompl::StateAddress::~StateAddress(void)
+ompl::base::StateAddress::~StateAddress(void)
 {
 }
 
-void ompl::StateAddress::setStateSpace(const base::StateSpacePtr &space)
+void ompl::base::StateAddress::setStateSpace(const base::StateSpacePtr &space)
 {
     space_ = space;
     Location loc;
     storeLocation(loc, space.get());
 }
 
-void ompl::StateAddress::storeLocation(Location loc, const base::StateSpace *s)
+void ompl::base::StateAddress::storeLocation(Location loc, const base::StateSpace *s)
 {
     base::State *test = s->allocState();
     if (s->getValueAddressAtIndex(test, 0) != NULL)
@@ -88,7 +88,7 @@ void ompl::StateAddress::storeLocation(Location loc, const base::StateSpace *s)
             }
 }
 
-double* ompl::StateAddress::getValueAddressAtLocation(const Location &loc, base::State *state) const
+double* ompl::base::StateAddress::getValueAddressAtLocation(const Location &loc, base::State *state) const
 {
     std::size_t index = 0;
     while (loc.chain.size() > index)
@@ -96,12 +96,12 @@ double* ompl::StateAddress::getValueAddressAtLocation(const Location &loc, base:
     return loc.space->getValueAddressAtIndex(state, loc.index);
 }
 
-const double* ompl::StateAddress::getValueAddressAtLocation(const Location &loc, const base::State *state) const
+const double* ompl::base::StateAddress::getValueAddressAtLocation(const Location &loc, const base::State *state) const
 {
     return getValueAddressAtLocation(loc, const_cast<base::State*>(state));
 }
 
-double* ompl::StateAddress::getValueAddressAtName(const std::string &name, base::State *state) const
+double* ompl::base::StateAddress::getValueAddressAtName(const std::string &name, base::State *state) const
 {
     std::map<std::string, Location>::const_iterator it = locations_.find(name);
     if (it == locations_.end())
@@ -113,7 +113,7 @@ double* ompl::StateAddress::getValueAddressAtName(const std::string &name, base:
         return getValueAddressAtLocation(it->second, state);
 }
 
-const double* ompl::StateAddress::getValueAddressAtName(const std::string &name, const base::State *state) const
+const double* ompl::base::StateAddress::getValueAddressAtName(const std::string &name, const base::State *state) const
 {
     return getValueAddressAtName(name, const_cast<base::State*>(state));
 }

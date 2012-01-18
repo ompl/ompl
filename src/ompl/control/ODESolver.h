@@ -218,7 +218,7 @@ namespace ompl
         {
         public:
 
-            /// \brief Parameterized constructor.  Takes a reference to the StateSpace, 
+            /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
             /// an ODE to solve, and an optional integration step size - default is 0.01
             ODEBasicSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode = NULL, double intStep = 1e-2) : ODESolver(space, ode, intStep)
             {
