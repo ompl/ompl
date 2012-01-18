@@ -139,7 +139,12 @@ namespace ompl
         /** \brief Representation of a benchmark request */
         struct Request
         {
-            Request(void) : maxTime(5.0), maxMem(4096.0), runCount(100), displayProgress(true), saveConsoleOutput(true), useThreads(true)
+            Request(double maxTime = 5.0, double maxMem = 4096.0,
+                unsigned int runCount = 100, bool displayProgress = true,
+                bool saveConsoleOutput = true, bool useThreads = true)
+                : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
+                displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
+                useThreads(useThreads)
             {
             }
 
