@@ -200,6 +200,9 @@ namespace ompl
                 implementation of planners. */
             virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
 
+            /** \brief Const variant of the same function as above; */
+            const double* getValueAddressAtIndex(const State *state, const unsigned int index) const;
+
             /** \brief Get the number of chars in the serialization of a state in this space */
             virtual unsigned int getSerializationLength(void) const;
 
@@ -422,7 +425,7 @@ namespace ompl
 
             /** \brief Adds a new state space as part of the compound state space. For computing distances within the compound
                 state space, the weight of the component also needs to be specified. */
-	    void addSubSpace(const StateSpacePtr &component, double weight);
+            void addSubSpace(const StateSpacePtr &component, double weight);
 
             /** \brief Get the number of state spaces that make up the compound state space */
             unsigned int getSubSpaceCount(void) const;

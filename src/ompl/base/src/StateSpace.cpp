@@ -194,6 +194,12 @@ double* ompl::base::StateSpace::getValueAddressAtIndex(State *state, const unsig
     return NULL;
 }
 
+const double* ompl::base::StateSpace::getValueAddressAtIndex(const State *state, const unsigned int index) const
+{
+    double *val = getValueAddressAtIndex(const_cast<State*>(state), index); // this const-cast does not hurt, since the state is not modified
+    return val;
+}
+
 unsigned int ompl::base::StateSpace::getSerializationLength(void) const
 {
     return 0;
@@ -516,7 +522,7 @@ ompl::base::CompoundStateSpace::CompoundStateSpace(void) : StateSpace(), compone
 }
 
 ompl::base::CompoundStateSpace::CompoundStateSpace(const std::vector<StateSpacePtr> &components,
-						   const std::vector<double> &weights) : StateSpace(), componentCount_(0), locked_(false)
+                                                   const std::vector<double> &weights) : StateSpace(), componentCount_(0), locked_(false)
 {
     if (components.size() != weights.size())
         throw Exception("Number of component spaces and weights are not the same");
