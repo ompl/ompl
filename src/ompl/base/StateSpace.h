@@ -422,7 +422,7 @@ namespace ompl
 
             /** \brief Adds a new state space as part of the compound state space. For computing distances within the compound
                 state space, the weight of the component also needs to be specified. */
-            virtual void addSubSpace(const StateSpacePtr &component, double weight);
+	    void addSubSpace(const StateSpacePtr &component, double weight);
 
             /** \brief Get the number of state spaces that make up the compound state space */
             unsigned int getSubSpaceCount(void) const;
