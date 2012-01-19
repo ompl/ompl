@@ -2,7 +2,8 @@
 \page releaseNotes Release Notes
 
 \section release_0_9_6 OMPL 0.9.6 (XXX, 2012)
-  - Added a representation for an MDP (Markov Decision Process) and implementation of value iteration
+  - Minimum Boost version is now 1.44 
+  - Added state serialization, deserialization, state space signatures
   - Add the notion of DirectedControlSampler
   - Add OMPL Primer
   - Add state spaces for Dubins car and Reeds-Shepp curves

@@ -60,7 +60,12 @@
     // 100 MB maximum memory usage per plan computation, 50 runs for each planner
     // and true means that a text-mode progress bar should be displayed while
     // computation is running.
-    b.benchmark(5., 100., 50, true);
+    ompl::Benchmark::Request req;
+    req.maxTime = 5.0;
+    req.maxMem = 100.0;
+    req.runCount = 50;
+    req.displayProgress = true;
+    b.benchmark(req);
 
     // This will generate a file of the form ompl_host_time.log
     b.saveResultsToFile();

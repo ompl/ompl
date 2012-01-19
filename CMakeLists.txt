@@ -20,17 +20,24 @@ else(OMPL_IN_ROS)
     include(CompilerSettings)
     find_package(Boost COMPONENTS date_time thread filesystem system program_options REQUIRED)
     include_directories(${Boost_INCLUDE_DIR})
+
+    find_package(Boost COMPONENTS odeint QUIET)
+    if(NOT Boost_ODEINT_FOUND)
+        # Include bundled version of boost::odeint if it isn't installed natively
+        include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+    endif()
+
     if(MSVC)
         add_definitions(-DBOOST_ALL_NO_LIB)
     endif()
     enable_testing()
 
-    # ODE is only needed for ODE bindings
-    find_package(ODE QUIET)
-    set(OMPL_EXTENSION_ODE ${ODE_FOUND})
-    if (ODE_FOUND)
-        add_definitions(${ODE_DEFINITIONS})
-        include_directories(${ODE_INCLUDE_DIR})
+    # ODE is only needed for Open Dynamics Engine bindings
+    find_package(OpenDE QUIET)
+    set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
+    if (OPENDE_FOUND)
+        add_definitions(${OPENDE_DEFINITIONS})
+        include_directories(${OPENDE_INCLUDE_DIR})
     endif()
 endif(OMPL_IN_ROS)
 

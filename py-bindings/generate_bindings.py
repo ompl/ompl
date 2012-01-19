@@ -542,9 +542,11 @@ class ompl_tools_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
         replacement['::ompl::Benchmark::benchmark'] = ('def("benchmark", &benchmarkWrapper)', """
-        void benchmarkWrapper(%s* obj, double maxTime, double maxMem, unsigned int runCount, bool displayProgress = false)
+        void benchmarkWrapper(%s* obj, const ompl::Benchmark::Request& request)
         {
-            obj->benchmark(maxTime, maxMem, runCount, displayProgress, false);
+            ompl::Benchmark::Request req(request);
+            req.useThreads = false;
+            obj->benchmark(request);
         }
         """)
 
@@ -585,10 +587,13 @@ class ompl_util_generator_t(code_generator_t):
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
+        self.std_ns.class_('vector< unsigned long >').include()
         self.std_ns.class_('vector< unsigned long >').rename('vectorSizeT')
         self.std_ns.class_('vector< bool >').include()
         self.std_ns.class_('vector< bool >').rename('vectorBool')
+        self.std_ns.class_('vector< int >').include()
         self.std_ns.class_('vector< int >').rename('vectorInt')
+        self.std_ns.class_('vector< double >').include()
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< unsigned int >').include()
         self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
