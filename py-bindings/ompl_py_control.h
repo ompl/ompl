@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,52 +32,23 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll */
 
-#include <gtest/gtest.h>
-#include "ompl/base/StateStorage.h"
-#include "ompl/base/ScopedState.h"
-#include "ompl/base/spaces/SE3StateSpace.h"
-#include "ompl/base/spaces/SE2StateSpace.h"
+#ifndef PY_BINDINGS_OMPL_PY_CONTROL_
+#define PY_BINDINGS_OMPL_PY_CONTROL_
 
-using namespace ompl;
+#include "ompl/control/ODESolver.h"
 
-TEST(StateStorage, Store)
+
+namespace ompl
 {
-    base::StateSpacePtr space(new base::SE3StateSpace());
-    base::RealVectorBounds bounds(3);
-    bounds.setLow(-1);
-    bounds.setHigh(1);
-    space->as<base::SE3StateSpace>()->setBounds(bounds);
-    space->setup();
-
-    base::StateStorage ss(space);
-    base::ScopedState<> s(space);
-    for (int i = 0 ; i < 1000 ; ++i)
+    namespace control
     {
-        s.random();
-        base::State *x = space->allocState();
-        space->copyState(x, s.get());
-        ss.addState(x);
+        inline int dummyODESolverSize()
+        {
+            return sizeof(ODEBasicSolver<>) + sizeof(ODEErrorSolver<>) + sizeof(ODEAdaptiveSolver<>);
+        }
     }
-    ss.store("tmp_states");
 }
 
-TEST(StateStorage, Load)
-{
-    base::StateSpacePtr space(new base::SE3StateSpace());
-    base::RealVectorBounds bounds(3);
-    bounds.setLow(-1);
-    bounds.setHigh(1);
-    space->as<base::SE3StateSpace>()->setBounds(bounds);
-    space->setup();
-
-    base::StateStorage ss(space);
-    ss.load("tmp_states");
-}
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+#endif

@@ -326,11 +326,18 @@ def compute_views(dbname):
     for p in planners:
         # the table name for this planner
         tname = 'planner_' + p
+
+        # check if simplification time is available
+        has_simplification_time = False
+        c.execute('SELECT * FROM `%s` LIMIT 1' % tname)
+        if 'simplification_time' in [t[0] for t in c.description]:
+            has_simplification_time = True
+
         for enm in exps:
             # select all runs, in all configurations, for a particular problem and a particular planner
-            s0 = 'SELECT * FROM %s INNER JOIN experiments ON %s.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
+            s0 = 'SELECT * FROM `%s` INNER JOIN experiments ON %s.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
             # select the highest solve rate and shortest average runtime for each planner configuration
-            if p.startswith("geometric"):
+            if has_simplification_time:
                 s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
             else:
                 s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
@@ -343,7 +350,7 @@ def compute_views(dbname):
                     c.execute('DROP VIEW IF EXISTS `%s`' % bp)
                     c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
 
-        if p.startswith("geometric"):
+        if has_simplification_time:
             c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
         else:
             c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
