@@ -267,7 +267,7 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     return true;
 }
 
-void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runCount, bool displayProgress, bool useThreads)
+void ompl::Benchmark::benchmark(const Request &req)
 {
     // sanity checks
     if (gsetup_)
@@ -295,9 +295,9 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 
     status_.running = true;
     exp_.totalDuration = 0.0;
-    exp_.maxTime = maxTime;
-    exp_.maxMem = maxMem;
-    exp_.runCount = runCount;
+    exp_.maxTime = req.maxTime;
+    exp_.maxMem = req.maxMem;
+    exp_.runCount = req.runCount;
     exp_.host = machine::getHostname();
     exp_.seed = RNG::getSeed();
 
@@ -328,7 +328,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         gsetup_->print(setupInfo);
     else
         csetup_->print(setupInfo);
-    setupInfo << std::endl << "Planner properties:" << std::endl;
+    setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->printProperties(setupInfo);
     exp_.setupInfo = setupInfo.str();
@@ -337,20 +337,27 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 
     msg_.inform("Beginning benchmark");
     msg::OutputHandler *oh = msg::getOutputHandler();
-    msg::OutputHandlerFile ohf(getConsoleFilename(exp_).c_str());
-    msg::useOutputHandler(&ohf);
+    boost::scoped_ptr<msg::OutputHandlerFile> ohf;
+    if (req.saveConsoleOutput)
+    {
+        ohf.reset(new msg::OutputHandlerFile(getConsoleFilename(exp_).c_str()));
+        msg::useOutputHandler(ohf.get());
+    }
+    else
+        msg::noOutputHandler();
     msg_.inform("Beginning benchmark");
 
-    boost::shared_ptr<boost::progress_display> progress;
-    if (displayProgress)
+    boost::scoped_ptr<boost::progress_display> progress;
+    if (req.displayProgress)
     {
         std::cout << "Running experiment " << exp_.name << "." << std::endl;
-        std::cout << "Each planner will be executed " << runCount << " times for at most " << maxTime << " seconds. Memory is limited at " << maxMem << "MB." << std::endl;
+        std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime << " seconds. Memory is limited at "
+                  << req.maxMem << "MB." << std::endl;
         progress.reset(new boost::progress_display(100, std::cout));
     }
 
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
-    machine::MemUsage_t maxMemBytes = (machine::MemUsage_t)(maxMem * 1024 * 1024);
+    machine::MemUsage_t maxMemBytes = (machine::MemUsage_t)(req.maxMem * 1024 * 1024);
 
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
     {
@@ -381,12 +388,12 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
         planners_[i]->getSpaceInformation()->params().getParams(exp_.planners[i].common);
 
         // run the planner
-        for (unsigned int j = 0 ; j < runCount ; ++j)
+        for (unsigned int j = 0 ; j < req.runCount ; ++j)
         {
             status_.activeRun = j;
-            status_.progressPercentage = (double)(100 * (runCount * i + j)) / (double)(planners_.size() * runCount);
+            status_.progressPercentage = (double)(100 * (req.runCount * i + j)) / (double)(planners_.size() * req.runCount);
 
-            if (displayProgress)
+            if (req.displayProgress)
                 while (status_.progressPercentage > progress->count())
                     ++(*progress);
 
@@ -435,8 +442,8 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
                 msg_.error(es.str());
             }
 
-            RunPlanner rp(this, useThreads);
-            rp.run(planners_[i], memStart, maxMemBytes, maxTime);
+            RunPlanner rp(this, req.useThreads);
+            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results
@@ -545,7 +552,7 @@ void ompl::Benchmark::benchmark(double maxTime, double maxMem, unsigned int runC
 
     status_.running = false;
     status_.progressPercentage = 100.0;
-    if (displayProgress)
+    if (req.displayProgress)
     {
         while (status_.progressPercentage > progress->count())
             ++(*progress);

@@ -38,6 +38,7 @@
 #define OMPL_BASE_SCOPED_STATE_
 
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/StateAddress.h"
 #include <boost/concept_check.hpp>
 #include <iostream>
 
@@ -287,6 +288,28 @@ namespace ompl
                 return *val;
             }
 
+            /** \brief Access a double value from this state contains using its name. */
+            double& operator[](const std::string &name)
+            {
+                if (!addressMap_)
+                    addressMap_.reset(new StateAddress(space_));
+                double *val = addressMap_->getValueAddressAtName(name, state_);
+                if (!val)
+                    throw Exception("Name '" + name + "' not known");
+                return *val;
+            }
+
+            /** \brief Access a double value from this state contains using its name. */
+            double operator[](const std::string &name) const
+            {
+                if (!addressMap_)
+                    const_cast<ScopedState<T>*>(this)->addressMap_.reset(new StateAddress(space_));
+                const double *val = addressMap_->getValueAddressAtName(name, state_);
+                if (!val)
+                    throw Exception("Name '" + name + "' not known");
+                return *val;
+            }
+
             /** \brief Compute the distance to another state. */
             template<class O>
             double distance(const ScopedState<O> &other) const
@@ -384,9 +407,10 @@ namespace ompl
 
         private:
 
-            StateSpacePtr         space_;
-            StateSamplerPtr  sampler_;
-            StateType               *state_;
+            StateSpacePtr                   space_;
+            StateSamplerPtr                 sampler_;
+            boost::shared_ptr<StateAddress> addressMap_;
+            StateType                      *state_;
         };
 
         /** \addtogroup stateAndSpaceOperators Operators for States and State Spaces

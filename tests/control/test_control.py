@@ -112,9 +112,9 @@ class TestPlanner(object):
         # since sampling is continuous and we round down, we allow values until
         # just under the max limit
         # the resolution is 1.0 since we check cells only
-        sbounds.low = ob.vectorDouble()
+        sbounds.low = ou.vectorDouble()
         sbounds.low.extend([0.0, 0.0, -MAX_VELOCITY, -MAX_VELOCITY])
-        sbounds.high = ob.vectorDouble()
+        sbounds.high = ou.vectorDouble()
         sbounds.high.extend([float(env.width) - 0.000000001,
             float(env.height) - 0.000000001,
             MAX_VELOCITY, MAX_VELOCITY])
@@ -210,7 +210,7 @@ class MyProjectionEvaluator(ob.ProjectionEvaluator):
 class KPIECE1Test(TestPlanner):
     def newplanner(self, si):
         planner = oc.KPIECE1(si)
-        cdim = ob.vectorDouble()
+        cdim = ou.vectorDouble()
         cdim.extend([1, 1])
         ope = MyProjectionEvaluator(si.getStateSpace(), cdim)
         planner.setProjectionEvaluator(ope)

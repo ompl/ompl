@@ -18,6 +18,7 @@ set(CPACK_SOURCE_IGNORE_FILES
     ".md5$"
     "/blueprint"
     ".DS_Store"
+    ".tm_properties"
     "mkwebdocs.sh"
     "/html/"
     "/bindings/"

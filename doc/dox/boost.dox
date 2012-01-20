@@ -9,14 +9,14 @@ the Boost library used in OMPL.  This tutorial makes no attempt to
 fully educate the user on the usage and API of the Boost library, only to give 
 a high level overview of these components and why they were chosen for OMPL.
 For further detail on Boost, please consult the extensive 
-<a href="http://www.boost.org/doc/libs/1_42_0/">Boost documentation</a> 
+<a href="http://www.boost.org/doc/libs/1_44_0/">Boost documentation</a> 
 directly.
 
 \attention
-OMPL requires Boost <b>version 1.42</b> or greater.
+OMPL requires Boost <b>version 1.44</b> or greater.
 
 \section sharedPtr Shared Pointer (boost/shared_ptr.hpp)
-The <a href="http://www.boost.org/doc/libs/1_42_0/libs/smart_ptr/
+The <a href="http://www.boost.org/doc/libs/1_44_0/libs/smart_ptr/
 shared_ptr.htm">shared pointer from Boost</a> provides intelligent memory 
 management for dynamically allocated objects created with the <i>new</i> 
 command.  In short, the templated shared_ptr object will delete (free) the 
@@ -72,7 +72,7 @@ typedef boost::shared_ptr<Planner> PlannerPtr;
 \endcode
 
 \section function Function and Bind (boost/function.hpp and boost/bind.hpp)
-<a href="http://www.boost.org/doc/libs/1_42_0/doc/html/function.html">Boost's 
+<a href="http://www.boost.org/doc/libs/1_44_0/doc/html/function.html">Boost's 
 Function library</a> provides a templated wrapper for function pointers and 
 a generalized framework for <a href="http://en.wikipedia.org/wiki/Callback_
 (computer_programming)">callbacks</a>.  It is very easy to encapsulate a 
@@ -104,7 +104,7 @@ boost::function2<int, int, int> minFuncPtr (computeMin);
 \endcode
 
 In addition to improved readability and flexibility, we can also take advantage
-of the <a href="http://www.boost.org/doc/libs/1_42_0/libs/bind/bind.html">Bind 
+of the <a href="http://www.boost.org/doc/libs/1_44_0/libs/bind/bind.html">Bind 
 library</a> from Boost to create function pointers to class members 
 (not nearly as easy with standard C++ syntax), and fix one or more variables of 
 our function pointer.  In a more complex example, assume we have the class 
@@ -180,8 +180,8 @@ boundedMin function will be supplied when the function is called.  The
 zero is permanently bound to the function pointer as the third argument (the
 default value for "lowerBound").
 
-<a href="http://www.boost.org/doc/libs/1_42_0/doc/html/function.html">
-boost::function</a> and <a href="http://www.boost.org/doc/libs/1_42_0/libs/
+<a href="http://www.boost.org/doc/libs/1_44_0/doc/html/function.html">
+boost::function</a> and <a href="http://www.boost.org/doc/libs/1_44_0/libs/
 bind/bind.html">boost::bind</a> are used in OMPL whenever a callback function 
 is used to invoke methods on a global function or specific instance.  These 
 are used to improve readability of the code, as well as to simplify the use of
@@ -192,7 +192,7 @@ fault that would occur with a standard uninitialized C++ function pointer.
 
 \section nonCopyable NonCopyable (boost/noncopyable.hpp)
 Boost provides a base class called <a href="http://www.boost.org/doc/libs/
-1_42_0/libs/utility/utility.htm#Class_noncopyable">noncopyable</a> that classes
+1_44_0/libs/utility/utility.htm#Class_noncopyable">noncopyable</a> that classes
 can derive from in order to prevent them from being copied.  noncopyable has
 a private copy constructor and assignment operator.  Therefore, classes 
 deriving from noncopyable are prohibited from invoking these copy operations.
@@ -216,7 +216,7 @@ reentrant (in general, any function marked as <i>const</i> is thread-safe).
 However, since OMPL is not limited to a single operating system, the creation
 and management of threads poses a complication since operating systems are free
 to choose how a developer creates and manages threads.  Thankfully, Boost 
-provides a cross-platform <a href="http://www.boost.org/doc/libs/1_42_0/doc/
+provides a cross-platform <a href="http://www.boost.org/doc/libs/1_44_0/doc/
 html/thread.html">Threading library</a> to take care of the operating system
 specific code behind the scenes.  boost::thread provides classes for threads 
 and mutexes that allow for multi-threaded computing and synchronization.
@@ -254,7 +254,7 @@ ThreadStruct tStruct;
 boost::thread myThread (tStruct, 1, "Two", std::vector <double> ());
 \endcode
 
-By using <a href="http://www.boost.org/doc/libs/1_42_0/doc/html/thread.html">
+By using <a href="http://www.boost.org/doc/libs/1_44_0/doc/html/thread.html">
 Boost thread</a>, OMPL is able to remain operating system independent in
 multi-threaded applications, as long as the operating system employed by the
 user is supported by Boost.

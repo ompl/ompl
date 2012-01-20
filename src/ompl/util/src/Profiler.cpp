@@ -89,6 +89,15 @@ void ompl::Profiler::event(const std::string &name, const unsigned int times)
     lock_.unlock();
 }
 
+void ompl::Profiler::average(const std::string &name, const double value)
+{
+    lock_.lock();
+    AvgInfo &a = data_[boost::this_thread::get_id()].avg[name];
+    a.total += value;
+    a.parts++;
+    lock_.unlock();
+}
+
 void ompl::Profiler::begin(const std::string &name)
 {
     lock_.lock();
@@ -119,6 +128,11 @@ void ompl::Profiler::status(std::ostream &out, bool merge)
         {
             for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin() ; iev != it->second.events.end(); ++iev)
                 combined.events[iev->first] += iev->second;
+            for (std::map<std::string, AvgInfo>::const_iterator iavg = it->second.avg.begin() ; iavg != it->second.avg.end(); ++iavg)
+            {
+                combined.avg[iavg->first].total += iavg->second.total;
+                combined.avg[iavg->first].parts += iavg->second.parts;
+            }
             for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin() ; itm != it->second.time.end(); ++itm)
             {
                 TimeInfo &tc = combined.time[itm->first];
@@ -151,64 +165,79 @@ void ompl::Profiler::console(void)
     msg.inform(ss.str());
 }
 
+/// @cond IGNORE
 namespace ompl
 {
 
-    struct dEnv
+    struct dataIntVal
     {
         std::string       name;
         unsigned long int value;
     };
 
-    struct SortEnvByValue
+    struct SortIntByValue
     {
-        bool operator()(const dEnv &a, const dEnv &b) const
+        bool operator()(const dataIntVal &a, const dataIntVal &b) const
         {
             return a.value > b.value;
         }
     };
 
-    struct dTm
+    struct dataDoubleVal
     {
         std::string  name;
         double       value;
     };
 
-    struct SortTmByValue
+    struct SortDoubleByValue
     {
-        bool operator()(const dTm &a, const dTm &b) const
+        bool operator()(const dataDoubleVal &a, const dataDoubleVal &b) const
         {
             return a.value > b.value;
         }
     };
 }
+/// @endcond
 
 void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
 {
     double total = time::seconds(tinfo_.total);
 
-    std::vector<dEnv> events;
-
+    std::vector<dataIntVal> events;
     for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin() ; iev != data.events.end() ; ++iev)
     {
-        dEnv next = {iev->first, iev->second};
+        dataIntVal next = {iev->first, iev->second};
         events.push_back(next);
     }
-
-    std::sort(events.begin(), events.end(), SortEnvByValue());
-
+    std::sort(events.begin(), events.end(), SortIntByValue());
+    if (!events.empty())
+        out << "Events:" << std::endl;
     for (unsigned int i = 0 ; i < events.size() ; ++i)
         out << events[i].name << ": " << events[i].value << std::endl;
 
-    std::vector<dTm> time;
+    std::vector<dataDoubleVal> avg;
+    for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin() ; ia != data.avg.end() ; ++ia)
+    {
+        dataDoubleVal next = {ia->first, ia->second.total / (double)ia->second.parts};
+        avg.push_back(next);
+    }
+    std::sort(avg.begin(), avg.end(), SortDoubleByValue());
+    if (!avg.empty())
+        out << "Averages:" << std::endl;
+    for (unsigned int i = 0 ; i < avg.size() ; ++i)
+        out << avg[i].name << ": " << avg[i].value << std::endl;
+
+    std::vector<dataDoubleVal> time;
 
     for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin() ; itm != data.time.end() ; ++itm)
     {
-        dTm next = {itm->first, time::seconds(itm->second.total)};
+        dataDoubleVal next = {itm->first, time::seconds(itm->second.total)};
         time.push_back(next);
     }
 
-    std::sort(time.begin(), time.end(), SortTmByValue());
+    std::sort(time.begin(), time.end(), SortDoubleByValue());
+    if (!time.empty())
+        out << "Blocks of time:" << std::endl;
 
     double unaccounted = total;
     for (unsigned int i = 0 ; i < time.size() ; ++i)

@@ -37,15 +37,16 @@
 #ifndef PY_BINDINGS_OMPL_PY_CONTROL_
 #define PY_BINDINGS_OMPL_PY_CONTROL_
 
-#include <vector>
+#include "ompl/control/ODESolver.h"
+
 
 namespace ompl
 {
     namespace control
     {
-        inline int dummyVecVecInt()
+        inline int dummyODESolverSize()
         {
-            return sizeof(std::vector<std::vector<int> >);
+            return sizeof(ODEBasicSolver<>) + sizeof(ODEErrorSolver<>) + sizeof(ODEAdaptiveSolver<>);
         }
     }
 }
