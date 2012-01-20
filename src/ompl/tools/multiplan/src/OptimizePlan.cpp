@@ -57,6 +57,8 @@ void ompl::OptimizePlan::clearPlanners(void)
 bool ompl::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned int nthreads)
 {
     time::point end = time::now() + time::seconds(solveTime);
+    unsigned int nt = std::min(nthreads, (unsigned int)planners_.size());
+    msg_.debug("Using %u threads", nt);
 
     bool result = false;
     unsigned int np = 0;
@@ -65,7 +67,7 @@ bool ompl::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned i
     while (time::now() < end)
     {
         pp_.clearPlanners();
-        for (unsigned int i = 0 ; i < nthreads ; ++i)
+        for (unsigned int i = 0 ; i < nt ; ++i)
         {
             planners_[np]->clear();
             pp_.addPlanner(planners_[np]);
