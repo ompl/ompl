@@ -82,8 +82,9 @@ namespace ompl
                 return terminate_ || eval();
             }
 
-            /** \brief Notify that the condition for termination should become true, regardless of what eval() returns */
-            virtual void terminate(void) const;
+            /** \brief Notify that the condition for termination should become true, regardless of what eval() returns.
+                This function may be called while the condition is being evaluated by other threads. */
+            void terminate(void) const;
 
             /** \brief The implementation of some termination condition. By default, this just calls \e fn_() */
             virtual bool eval(void) const;
