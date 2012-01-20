@@ -189,8 +189,8 @@ void planWithSimpleSetup(void)
     //ss.setStatePropagator(oc::StatePropagatorPtr(new KinematicCarModel(ss.getSpaceInformation())));
 
     // Use the ODESolver to propagate the system
-    oc::ODEBasicSolver<> odeSolver(space, boost::bind(&KinematicCarODE, _1, _2, _3));
-    ss.setStatePropagator(boost::bind(&oc::ODEBasicSolver<>::propagate, &odeSolver, _1, _2, _3, _4));
+    oc::ODEBasicSolver<> odeSolver(ss.getSpaceInformation(), &KinematicCarODE);
+    ss.setStatePropagator(odeSolver.getStatePropagator());
 
     /// create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);

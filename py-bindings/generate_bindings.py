@@ -459,7 +459,6 @@ class ompl_control_generator_t(code_generator_t):
         # add wrapper code for setStatePropagator
         self.replace_member_functions(self.ompl_ns.namespace('control').member_functions(
             'setStatePropagator', arg_types=['::ompl::control::StatePropagatorFn const &']))
-        self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function('setPropagateFunction'))
         self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function('setODE'))
         # export ODESolver-derived classes that use Boost.OdeInt
         self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
