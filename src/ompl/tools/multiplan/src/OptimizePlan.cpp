@@ -63,7 +63,8 @@ bool ompl::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned i
     bool result = false;
     unsigned int np = 0;
     const base::GoalPtr &goal = getProblemDefinition()->getGoal();
-
+    pp_.clearHybridizationPaths();
+    
     while (time::now() < end)
     {
         pp_.clearPlanners();
