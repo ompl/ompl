@@ -135,6 +135,12 @@ int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
     for (int i = dimension_-1; i >= 0; --i)
     {
         index = (int) (length_*(coord[i]-bounds_.low[i])/(bounds_.high[i]-bounds_.low[i]));
+
+        // There is an edge case when the coordinate lies exactly on the upper bound where
+        // the region index will be out of bounds.  Ensure index lies within [0, length_)
+        if (index >= length_)
+            index = length_-1;
+
         region += factor*index;
         factor *= length_;
     }
