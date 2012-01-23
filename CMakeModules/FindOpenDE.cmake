@@ -52,7 +52,7 @@ endif()
 
 
 find_program(_OPENDE_CONFIG NAMES ode-config PATHS ${OPENDE_PATH} PATH_SUFFIXES bin)
-if (_ODE_CONFIG)
+if (_OPENDE_CONFIG)
 
   execute_process(COMMAND ${_OPENDE_CONFIG} --version OUTPUT_VARIABLE OPENDE_VERSION)
   # remove new line chars
