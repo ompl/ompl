@@ -38,9 +38,9 @@
 #define OMPL_CONTROL_ODESOLVER_
 
 #include "ompl/control/Control.h"
+#include "ompl/control/SpaceInformation.h"
 #include "ompl/control/StatePropagator.h"
 #include "ompl/util/Console.h"
-#include "ompl/base/StateSpace.h"
 
 #include <boost/numeric/odeint.hpp>
 #include <boost/function.hpp>
