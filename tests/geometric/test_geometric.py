@@ -69,7 +69,7 @@ class Environment(object):
             result = result + ''.join([self.char_mapping[c] for c in line]) + '\n'
         return result
 
-def isValid(grid, spaceinformation, state):
+def isValid(grid, state):
     # planning is done in a continuous space, but our collision space
     # representation is discrete
     x = int(state[0])
@@ -106,7 +106,7 @@ class mySpaceInformation(ob.SpaceInformation):
 
         self.sMan.setBounds(sbounds)
         self.setStateValidityCheckingResolution(0.5)
-        isValidFn = partial(isValid, env.grid)
+        isValidFn = ob.StateValidityCheckerFn(partial(isValid, env.grid))
         self.setStateValidityChecker(isValidFn)
         self.setup()
 

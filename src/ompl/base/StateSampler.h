@@ -138,7 +138,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a state sampler */
-        typedef boost::function1<StateSamplerPtr, const StateSpace*> StateSamplerAllocator;
+        typedef boost::function<StateSamplerPtr(const StateSpace*)> StateSamplerAllocator;
     }
 }
 

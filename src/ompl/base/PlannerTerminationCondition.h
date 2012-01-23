@@ -53,7 +53,7 @@ namespace ompl
             signaled to terminate its computation. Otherwise,
             computation continues while this function returns false,
             until a solution is found. */
-        typedef boost::function0<bool> PlannerTerminationConditionFn;
+        typedef boost::function<bool()> PlannerTerminationConditionFn;
 
         /** \brief Encapsulate a termination condition for a motion
             planner. Planners will call operator() to decide whether

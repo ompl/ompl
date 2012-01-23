@@ -64,11 +64,11 @@ namespace ompl
 
             /// \brief Callback function that defines the ODE.  Accepts
             /// the current state, input control, and output state.
-            typedef boost::function3<void, const StateType &, const Control*, StateType &> ODE;
+            typedef boost::function<void(const StateType &, const Control*, StateType &)> ODE;
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            typedef boost::function2<void, const Control*, base::State*> PostPropagationEvent;
+            typedef boost::function<void(const Control*, base::State*)> PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
@@ -100,7 +100,7 @@ namespace ompl
             }
 
             /// \brief Retrieve a StatePropagator object that solves the system of ordinary
-            /// differential equations defined by this ODESolver. 
+            /// differential equations defined by this ODESolver.
             /// An optional PostPropagationEvent can also be specified as a callback after
             /// numerical integration is finished for further operations on the resulting
             /// state. If enforceBounds is true, StateSpace::enforceBounds will be invoked on

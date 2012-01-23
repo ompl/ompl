@@ -132,7 +132,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a valid state sampler */
-        typedef boost::function1<ValidStateSamplerPtr, const SpaceInformation*> ValidStateSamplerAllocator;
+        typedef boost::function<ValidStateSamplerPtr(const SpaceInformation*)> ValidStateSamplerAllocator;
     }
 }
 

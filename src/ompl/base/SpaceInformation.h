@@ -77,7 +77,7 @@ namespace ompl
         /** \brief If no state validity checking class is specified
             (StateValidityChecker), a boost function can be specified
             instead */
-        typedef boost::function1<bool, const State*> StateValidityCheckerFn;
+        typedef boost::function<bool(const State*)> StateValidityCheckerFn;
 
 
         /** \brief The base class for space information. This contains

@@ -116,56 +116,6 @@ class ompl_base_generator_t(code_generator_t):
             return s.str();
         }
         """)
-        # add a wrapper for the
-        # ompl::base::SpaceInformation::setStateValidityChecker. This wrapper
-        # makes a SpaceInformation reference accessible to the validity checker and
-        # also deals correctly with C-style pointers.
-        replacement['setStateValidityChecker'] = ('def("setStateValidityChecker", &setStateValidityCheckerWrapper)', """
-        struct IsValidFunPyWrapper
-        {
-            IsValidFunPyWrapper( bp::object callable ) : callable_( callable ) {}
-
-            bool operator()(const ompl::base::SpaceInformation* si, const ompl::base::State* state)
-            {
-                PyGILState_STATE gstate = PyGILState_Ensure();
-                bool ret = bp::extract<bool>(callable_(bp::ptr(si), bp::ptr(state)));
-                PyGILState_Release( gstate );
-                return ret;
-            }
-
-            bp::object callable_;
-        };
-
-        void setStateValidityCheckerWrapper(%s* obj, bp::object function)
-        {
-            obj->setStateValidityChecker( boost::bind(
-            boost::function<bool (const ompl::base::SpaceInformation*, const ompl::base::State*)>(IsValidFunPyWrapper(function)),
-                obj, _1));
-        }
-        """)
-        # add a wrapper for the ompl::base::SpaceInformation::setValidStateSamplerAllocator.
-        replacement['setValidStateSamplerAllocator'] = ('def("setValidStateSamplerAllocator", &setValidStateSamplerAllocatorWrapper)', """
-        struct SetValidStateSamplerPyWrapper
-        {
-            SetValidStateSamplerPyWrapper( bp::object callable ) : callable_( callable ) {}
-
-            ompl::base::ValidStateSamplerPtr operator()(const ompl::base::SpaceInformation* si)
-            {
-                PyGILState_STATE gstate = PyGILState_Ensure();
-                ompl::base::ValidStateSamplerPtr ret = bp::extract<ompl::base::ValidStateSamplerPtr>(callable_(bp::ptr(si)));
-                PyGILState_Release( gstate );
-                return ret;
-            }
-
-            bp::object callable_;
-        };
-
-        void setValidStateSamplerAllocatorWrapper(%s* obj, bp::object function)
-        {
-            obj->setValidStateSamplerAllocator( boost::bind(
-            ompl::base::ValidStateSamplerAllocator(SetValidStateSamplerPyWrapper(function)), _1));
-        }
-        """)
         code_generator_t.__init__(self, 'base', ['bindings/util'], replacement)
 
     def filter_declarations(self):
@@ -238,7 +188,7 @@ class ompl_base_generator_t(code_generator_t):
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
         # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to EuclideanProjection
-        cls = self.mb.namespace('boost').namespace('numeric').namespace('ublas').class_(
+        cls = self.mb.namespace('ublas').class_(
             'vector<double, boost::numeric::ublas::unbounded_array<double, std::allocator<double> > >')
         cls.include()
         cls.rename('EuclideanProjection')
@@ -264,13 +214,22 @@ class ompl_base_generator_t(code_generator_t):
         self.replace_member_function(self.ompl_ns.class_('StateSpace').member_function('Diagram'))
         # make state space list printable
         self.replace_member_function(self.ompl_ns.class_('StateSpace').member_function('List'))
-        # add wrapper code for setStateValidityChecker
-        self.replace_member_functions(self.ompl_ns.namespace('base').class_(
-            'SpaceInformation').member_functions('setStateValidityChecker',
-            arg_types=['::ompl::base::StateValidityCheckerFn const &']))
-        # add wrapper code for setValidStateSamplerAllocator
-        self.replace_member_functions(self.ompl_ns.namespace('base').class_(
-                'SpaceInformation').member_functions('setValidStateSamplerAllocator'))
+        # add wrappers for boost::function types
+        self.add_boost_function('bool(const ompl::base::GoalLazySamples*, ompl::base::State*)',
+            'GoalSamplingFn', 'Goal sampling function')
+        self.add_boost_function('void(const ompl::base::State*)',
+            'NewStateCallbackFn', 'New state callback function')
+        self.add_boost_function('ompl::base::PlannerPtr(const ompl::base::SpaceInformationPtr&)',
+            'PlannerAllocator', 'Planner allocator')
+        self.add_boost_function('bool()',
+            'PlannerTerminationConditionFn','Planner termination condition function')
+        self.add_boost_function('bool(const ompl::base::State*)',
+            'StateValidityCheckerFn', 'State validity checker function')
+        self.add_boost_function('ompl::base::StateSamplerPtr(const ompl::base::StateSpace*)',
+            'StateSamplerAllocator', 'State sampler allocator')
+        self.add_boost_function('ompl::base::ValidStateSamplerPtr(ompl::base::SpaceInformation const*)',
+            'ValidStateSamplerAllocator', 'Valid state allocator function')
+
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationConditionFn const &', 'double']).exclude()
@@ -282,40 +241,6 @@ class ompl_base_generator_t(code_generator_t):
             print c.decl_string
         self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
         self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
-
-
-        # wrap the GoalLazySamples constructor so that we can pass a python
-        # function that will be converted to a ompl::base::GoalSamplingFn.
-        # THIS IS BROKEN. Uncomment the code below when the thread issues are fixed.
-        # self.ompl_ns.class_('GoalLazySamples').add_declaration_code("""
-        # struct GoalLazySamplesConstructorPyWrapper
-        # {
-        #     GoalLazySamplesConstructorPyWrapper( bp::object callable ) : callable_( callable ) {}
-        #
-        #     bool operator()(const ompl::base::GoalLazySamples* gls, ompl::base::State* s) const
-        #     {
-        #         PyGILState_STATE gstate = PyGILState_Ensure();
-        #         std::cerr<<"."<<std::endl;
-        #         bool ret = bp::extract<bool>(callable_(bp::ptr(gls), bp::ptr(s)));
-        #         PyGILState_Release( gstate );
-        #         return ret;
-        #     }
-        #
-        #     bp::object callable_;
-        # };
-        #
-        # static boost::shared_ptr<GoalLazySamples_wrapper>
-        # GoalLazySamples_constructorWrapper(const ompl::base::SpaceInformationPtr& si,
-        #     bp::object samplerFunc, bool autoStart, double epsilon)
-        # {
-        #     std::cerr<<"x"<<std::endl;
-        #     return boost::shared_ptr<GoalLazySamples_wrapper>(new GoalLazySamples_wrapper(si,
-        #         ompl::base::GoalSamplingFn(GoalLazySamplesConstructorPyWrapper(samplerFunc)),
-        #         autoStart, epsilon));
-        # }
-        # """)
-        # self.ompl_ns.class_('GoalLazySamples').add_registration_code(
-        #    'def("__init__", bp::make_constructor(GoalLazySamples_constructorWrapper))')
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
@@ -330,98 +255,6 @@ class ompl_control_generator_t(code_generator_t):
             return s.str();
         }
         """)
-        # add a wrapper for the setStateValidityChecker. This wrapper makes a
-        # SpaceInformation reference accessible to the validity checker and also deals
-        # correctly with C-style pointers.
-        replacement['::ompl::control::SimpleSetup::setStateValidityChecker'] = ('def("setStateValidityChecker", &setStateValidityCheckerWrapper)', """
-        struct IsValidFunPyWrapper
-        {
-            IsValidFunPyWrapper( bp::object callable ) : callable_( callable ) {}
-
-            bool operator()(const ompl::control::SpaceInformation* si, const ompl::base::State* state)
-            {
-                PyGILState_STATE gstate = PyGILState_Ensure();
-                bool ret = bp::extract<bool>(callable_(bp::ptr(si), bp::ptr(state)));
-                PyGILState_Release( gstate );
-                return ret;
-            }
-
-            bp::object callable_;
-        };
-
-        void setStateValidityCheckerWrapper(%s* obj, bp::object function)
-        {
-            obj->setStateValidityChecker( boost::bind(
-            boost::function<bool (const ompl::control::SpaceInformation*, const ompl::base::State*)>(IsValidFunPyWrapper(function)),
-                obj->getSpaceInformation().get(), _1));
-        }
-        """)
-        # add a wrapper for the setPropagationFunction. This wrapper deals correctly
-        # with C-style pointers.
-        replacement['setStatePropagator'] = ('def("setStatePropagatorFn", &setStatePropagatorWrapper)', """
-        struct StatePropagatorPyWrapper
-        {
-            StatePropagatorPyWrapper( bp::object callable ) : callable_( callable ) {}
-
-            void operator()(const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
-            {
-                PyGILState_STATE gstate = PyGILState_Ensure();
-                callable_(bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
-                PyGILState_Release( gstate );
-            }
-
-            bp::object callable_;
-        };
-
-        void setStatePropagatorWrapper(%s* obj, bp::object function)
-        {
-            obj->setStatePropagator(boost::bind(
-            ::ompl::control::StatePropagatorFn(StatePropagatorPyWrapper(function)),  _1, _2, _3, _4));
-        }
-        """)
-        # add wrappers for two ODESolver methods
-        replacement['setPropagateFunction'] = ('def("setPropagateFunction", &setPropagateFunctionWrapper)', """
-        struct PropagateFunctionWrapper
-        {
-            PropagateFunctionWrapper( bp::object callable ) : callable_( callable ) {}
-
-            void operator()(const ompl::base::State* start, const ompl::control::Control* control, const double duration, ompl::base::State* result)
-            {
-                PyGILState_STATE gstate = PyGILState_Ensure();
-                callable_(bp::ptr(start), bp::ptr(control), duration, bp::ptr(result));
-                PyGILState_Release( gstate );
-            }
-
-            bp::object callable_;
-        };
-
-        void setPropagateFunctionWrapper(%s* obj, bp::object function)
-        {
-            obj->setPropagateFunction(boost::bind(
-            ::ompl::control::ODESolver::PropagateFunction(PropagateFunctionWrapper(function)),  _1, _2, _3, _4));
-        }
-        """)
-        replacement['setODE'] = ('def("setODE", &setODEWrapper)', """
-        struct ODEWrapper
-        {
-            ODEWrapper( bp::object callable ) : callable_( callable ) {}
-
-            void operator()(const ompl::control::ODESolver::StateType& state, const ompl::control::Control* control, ompl::control::ODESolver::StateType& dstate)
-            {
-                PyGILState_STATE gstate = PyGILState_Ensure();
-                callable_(state, bp::ptr(control), dstate);
-                PyGILState_Release( gstate );
-            }
-
-            bp::object callable_;
-        };
-
-        void setODEWrapper(%s* obj, bp::object function)
-        {
-            obj->setODE(boost::bind(
-            ::ompl::control::ODESolver::ODE(ODEWrapper(function)),  _1, _2, _3));
-        }
-        """)
         code_generator_t.__init__(self, 'control', ['bindings/util', 'bindings/base', 'bindings/geometric'], replacement)
 
     def filter_declarations(self):
@@ -431,7 +264,7 @@ class ompl_control_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::vector< ompl::control::Control const* > >').rename('vectorVectorConstControlPtr')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
-        # force ControlSpace::allocState to be exported.
+        # force ControlSpace::allocControl to be exported.
         # (not sure why this is necessary)
         allocControlFn = self.ompl_ns.class_('ControlSpace').member_function('allocControl')
         allocControlFn.include()
@@ -452,14 +285,6 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
         # make controls printable
         self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
-        # add wrapper code for setStateValidityChecker
-        self.replace_member_functions(self.ompl_ns.namespace('control').class_(
-            'SimpleSetup').member_functions('setStateValidityChecker',
-            arg_types=['::ompl::base::StateValidityCheckerFn const &']))
-        # add wrapper code for setStatePropagator
-        self.replace_member_functions(self.ompl_ns.namespace('control').member_functions(
-            'setStatePropagator', arg_types=['::ompl::control::StatePropagatorFn const &']))
-        self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function('setODE'))
         # export ODESolver-derived classes that use Boost.OdeInt
         self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
         self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
@@ -470,6 +295,17 @@ class ompl_control_generator_t(code_generator_t):
         # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
+        # add wrappers for boost::function types
+        self.add_boost_function('ompl::control::ControlSamplerPtr(const ompl::control::ControlSpace*)',
+            'ControlSamplerAllocator', 'Control sampler allocator')
+        self.add_boost_function('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
+            'DirectedControlSamplerAllocator','Directed control sampler allocator')
+        self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+            'ODE','Ordindary differential equation')
+        self.add_boost_function('void(const ompl::control::Control*, ompl::base::State*)',
+            'PostPropagationEvent','Post-propagation event')
+        self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
+            'StatePropagatorFn','State propagator function')
 
         # do this for all classes that exist with the same name in another namespace
         for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'PlannerData', 'SpaceInformation']:
@@ -496,33 +332,6 @@ class ompl_control_generator_t(code_generator_t):
 class ompl_geometric_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
-        # add a wrapper for the
-        # ompl::geometric::SimpleSetup::setStateValidityChecker. This wrapper makes a
-        # SpaceInformation reference accessible to the validity checker and also deals
-        # correctly with C-style pointers.
-        replacement['::ompl::geometric::SimpleSetup::setStateValidityChecker'] = ('def("setStateValidityChecker", &setStateValidityCheckerWrapper)', """
-        struct IsValidFunPyWrapper
-        {
-            IsValidFunPyWrapper( bp::object callable ) : callable_( callable ) {}
-
-            bool operator()(const ompl::base::SpaceInformation* si, const ompl::base::State* state)
-            {
-                PyGILState_STATE gstate = PyGILState_Ensure();
-                bool ret = bp::extract<bool>(callable_(bp::ptr(si), bp::ptr(state)));
-                PyGILState_Release( gstate );
-                return ret;
-            }
-
-            bp::object callable_;
-        };
-
-        void setStateValidityCheckerWrapper(%s* obj, bp::object function)
-        {
-            obj->setStateValidityChecker( boost::bind(
-            boost::function<bool (const ompl::base::SpaceInformation*, const ompl::base::State*)>(IsValidFunPyWrapper(function)),
-                obj->getSpaceInformation().get(), _1));
-        }
-        """)
         code_generator_t.__init__(self, 'geometric', ['bindings/util', 'bindings/base'], replacement)
 
     def filter_declarations(self):
@@ -542,13 +351,16 @@ class ompl_geometric_generator_t(code_generator_t):
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
-        # add wrapper code for setStateValidityChecker
-        self.replace_member_functions(self.ompl_ns.namespace('geometric').class_(
-            'SimpleSetup').member_functions('setStateValidityChecker',
-            arg_types=['::ompl::base::StateValidityCheckerFn const &']))
         # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
+        # add wrappers for boost::function types
+        self.add_boost_function('unsigned int()',
+            'NumNeighborsFn', 'Number of neighbors function')
+        # self.add_boost_function('std::vector<ompl::geometric::PRM::Vertex>&(const ompl::geometric::PRM::Vertex)',
+        #     'ConnectionStrategy', 'Connection strategy')
+        self.add_boost_function('bool(const ompl::geometric::PRM::Vertex&, const ompl::geometric::PRM::Vertex&)',
+            'ConnectionFilter', 'Connection filter')
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -625,7 +437,8 @@ class ompl_tools_generator_t(code_generator_t):
             , bp::wrapper< ompl::Benchmark >(){}""")
         # don't want to export iostream
         benchmark_cls.member_function('saveResultsToStream').exclude()
-
+        # somehow the generated code for these methods is broken, so remove them
+        benchmark_cls.member_functions(lambda method: method.name.startswith('set') and method.name.endswith('Event')).exclude()
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
@@ -656,7 +469,6 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
         self.std_ns.class_('map<std::string, std::string >').include()
         self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
-
 
 
 if __name__ == '__main__':

@@ -37,6 +37,7 @@
 # Author: Mark Moll
 
 from math import sin, cos
+from functools import partial
 try:
     from ompl import base as ob
     from ompl import control as oc
@@ -82,8 +83,8 @@ def plan():
 
     # define a simple setup class
     ss = oc.SimpleSetup(cspace)
-    ss.setStateValidityChecker(isStateValid)
-    ss.setStatePropagatorFn(propagate)
+    ss.setStateValidityChecker(ob.StateValidityCheckerFn(partial(isStateValid, ss.getSpaceInformation())))
+    ss.setStatePropagator(oc.StatePropagatorFn(propagate))
 
     # create a start state
     start = ob.State(space)

@@ -45,6 +45,7 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/Goal.h"
+#include "py_boost_function.hpp"
 
 #define DeclareStateType(T) \
     inline int __dummy##T() \
