@@ -48,7 +48,7 @@ except:
     from ompl import base as ob
     from ompl import geometric as og
 
-def isStateValid(spaceInformation, state):
+def isStateValid(state):
     # Some arbitrary condition on the state (note that thanks to
     # dynamic type checking we can just call getX() and do not need
     # to convert state to an SE2State.)
@@ -65,7 +65,7 @@ def plan():
     # construct an instance of space information from this state space
     si = ob.SpaceInformation(space)
     # set state validity checking for this space
-    si.setStateValidityChecker(isStateValid)
+    si.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
     # create a random start state
     start = ob.State(space)
     start.random()
@@ -110,7 +110,7 @@ def planWithSimpleSetup():
 
     # create a simple setup object
     ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(isStateValid)
+    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 
     start = ob.State(space)
     # we can pick a random start state...

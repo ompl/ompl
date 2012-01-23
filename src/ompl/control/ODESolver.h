@@ -64,15 +64,15 @@ namespace ompl
 
             /// \brief Callback function that defines the ODE.  Accepts
             /// the current state, input control, and output state.
-            typedef boost::function3<void, const StateType &, const Control*, StateType &> ODE;
+            typedef boost::function<void(const StateType &, const Control*, StateType &)> ODE;
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            typedef boost::function2<void, const Control*, base::State*> PostPropagationEvent;
+            typedef boost::function<void(const Control*, base::State*)> PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si.get()), space_(si->getStateSpace().get()), ode_(ode), intStep_(intStep), msg_("ODESolver")
+            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), space_(si->getStateSpace()), ode_(ode), intStep_(intStep), msg_("ODESolver")
             {
             }
 
@@ -100,7 +100,7 @@ namespace ompl
             }
 
             /// \brief Retrieve a StatePropagator object that solves the system of ordinary
-            /// differential equations defined by this ODESolver. 
+            /// differential equations defined by this ODESolver.
             /// An optional PostPropagationEvent can also be specified as a callback after
             /// numerical integration is finished for further operations on the resulting
             /// state. If enforceBounds is true, StateSpace::enforceBounds will be invoked on
@@ -110,7 +110,7 @@ namespace ompl
                 class ODESolverStatePropagatorAndBoundsEnforcer : public StatePropagator
                 {
                     public:
-                        ODESolverStatePropagatorAndBoundsEnforcer (SpaceInformation* si, ODESolver *solver, const ODESolver::PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), space_(si->getStateSpace().get()), postEvent_(pe)
+                        ODESolverStatePropagatorAndBoundsEnforcer (const SpaceInformationPtr& si, ODESolver *solver, const ODESolver::PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), space_(si->getStateSpace()), postEvent_(pe)
                         {
                         }
 
@@ -130,14 +130,14 @@ namespace ompl
 
                     protected:
                         ODESolver *solver_;
-                        base::StateSpace *space_;
+                        base::StateSpacePtr space_;
                         ODESolver::PostPropagationEvent postEvent_;
                 };
 
                 class ODESolverStatePropagator : public StatePropagator
                 {
                     public:
-                        ODESolverStatePropagator (SpaceInformation* si, ODESolver *solver, const PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), postEvent_(pe)
+                        ODESolverStatePropagator (const SpaceInformationPtr& si, ODESolver *solver, const PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), postEvent_(pe)
                         {
                         }
 
@@ -193,10 +193,10 @@ namespace ompl
             }
 
             /// \brief The SpaceInformation that this ODESolver operates in.
-            SpaceInformation*             si_;
+            const SpaceInformationPtr     si_;
 
             /// \brief Reference to the state space the system operates in.
-            const base::StateSpace*       space_;
+            const base::StateSpacePtr     space_;
 
             /// \brief Definition of the ODE to find solutions for.
             ODE                           ode_;

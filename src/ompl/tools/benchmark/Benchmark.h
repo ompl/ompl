@@ -79,10 +79,10 @@ namespace ompl
         typedef std::map<std::string, std::string> RunProperties;
 
         /** \brief Signature of function that can be called before a planner execution is started */
-        typedef boost::function1<void, const base::PlannerPtr&> PreSetupEvent;
+        typedef boost::function<void(const base::PlannerPtr&)> PreSetupEvent;
 
         /** \brief Signature of function that can be called after a planner execution is completed */
-        typedef boost::function2<void, const base::PlannerPtr&, RunProperties&> PostSetupEvent;
+        typedef boost::function<void(const base::PlannerPtr&, RunProperties&)> PostSetupEvent;
 
         /** \brief The data collected after running a planner multiple times */
         struct PlannerExperiment

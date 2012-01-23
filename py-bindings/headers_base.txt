@@ -12,7 +12,6 @@
 ../src/ompl/base/MotionValidator.h
 ../src/ompl/base/SpaceInformation.h
 ../src/ompl/base/StateSamplerArray.h
-../src/ompl/base/StateAddress.h
 ../src/ompl/base/ScopedState.h
 ../src/ompl/base/Path.h
 ../src/ompl/base/GoalTypes.h

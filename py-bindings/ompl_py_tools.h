@@ -34,22 +34,9 @@
 
 /* Author: Mark Moll */
 
-#ifndef PY_BINDINGS_OMPL_PY_CONTROL_
-#define PY_BINDINGS_OMPL_PY_CONTROL_
+#ifndef PY_BINDINGS_OMPL_PY_TOOLS_
+#define PY_BINDINGS_OMPL_PY_TOOLS_
 
-#include "ompl/control/ODESolver.h"
 #include "py_boost_function.hpp"
-
-
-namespace ompl
-{
-    namespace control
-    {
-        inline int dummyODESolverSize()
-        {
-            return sizeof(ODEBasicSolver<>) + sizeof(ODEErrorSolver<>) + sizeof(ODEAdaptiveSolver<>);
-        }
-    }
-}
 
 #endif

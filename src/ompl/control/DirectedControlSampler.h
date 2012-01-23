@@ -99,7 +99,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a directed control sampler */
-        typedef boost::function1<DirectedControlSamplerPtr, const SpaceInformation*> DirectedControlSamplerAllocator;
+        typedef boost::function<DirectedControlSamplerPtr(const SpaceInformation*)> DirectedControlSamplerAllocator;
     }
 }
 

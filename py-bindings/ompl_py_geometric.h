@@ -40,6 +40,7 @@
 #include "ompl/datastructures/NearestNeighborsLinear.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/geometric/planners/prm/PRM.h"
+#include "py_boost_function.hpp"
 
 
 namespace ompl

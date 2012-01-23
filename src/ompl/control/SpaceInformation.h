@@ -63,7 +63,7 @@ namespace ompl
 
 
         /** \brief A function that achieves state propagation.*/
-        typedef boost::function4<void, const base::State*, const Control*, const double, base::State*> StatePropagatorFn;
+        typedef boost::function<void(const base::State*, const Control*, const double, base::State*)> StatePropagatorFn;
 
         /** \brief Space information containing necessary information for planning with controls. setup() needs to be called before use. */
         class SpaceInformation : public base::SpaceInformation
