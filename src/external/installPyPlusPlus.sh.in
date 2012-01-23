@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Make sure you have cvs and svn. e.g., for Ubuntu Linux: "sudo apt-get install cvs subversion"
+# On OS X cvs and svn are already installed.
+
+# create a location to store downloaded data
+mkdir -p @PROJECT_BINARY_DIR@/repos
+cd @PROJECT_BINARY_DIR@/repos
+
+# get latest version of gccxml, build & install it
+cvs -d :pserver:anoncvs@www.gccxml.org:/cvsroot/GCC_XML co gccxml
+cd gccxml
+cmake .
+make
+sudo make install
+cd ..
+
+# get latest version of pygccxml and Py++, build & install needed packages
+svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pygccxml_dev
+cd pygccxml_dev
+patch -p0 < @PATCH_GCCXCML_DIFF@
+python setup.py build
+sudo python setup.py install
+cd ..
+svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pyplusplus_dev
+cd pyplusplus_dev
+python setup.py build
+sudo python setup.py install
