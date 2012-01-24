@@ -102,6 +102,23 @@ namespace ompl
                 return static_cast<const T*>(this);
             }
 
+            /** \brief Representation of the address of a value in a state. This structure stores the indexing information needed to access elements of a state (no pointer values are stored) */
+            struct ValueLocation
+            {
+                /** \brief In a complex state space there may be multiple
+                    compound state spaces that make up an even larger
+                    compound space.  This array indicates the sequence of
+                    indices of the subspaces that need to be followed to
+                    get to the component of the state that is of interest. */
+                std::vector<std::size_t> chain;
+
+                /** \brief The space that is reached if the chain above is followed on the state space */
+                const base::StateSpace  *space;
+
+                /** \brief The index of the value to be accessed, within the space above */
+                std::size_t              index;
+            };
+
             /** @name Generic functionality for state spaces
                 @{ */
 
@@ -202,6 +219,26 @@ namespace ompl
 
             /** \brief Const variant of the same function as above; */
             const double* getValueAddressAtIndex(const State *state, const unsigned int index) const;
+
+            /** \brief Get the locations of values of type double contained in a state from this space. The order of the values is
+                consistent with getValueAddressAtIndex(). The setup() function must have been previously called. */
+            const std::vector<ValueLocation>& getValueLocations(void) const;
+
+            /** \brief Get the named locations of values of type double contained in a state from this space.
+                The setup() function must have been previously called. */
+            const std::map<std::string, ValueLocation>& getValueLocationsByName(void) const;
+
+            /** \brief Get a pointer to the double value in \e state that \e loc points to */
+            double* getValueAddressAtLocation(State *state, const ValueLocation &loc) const;
+
+            /** \brief Const variant of the same function as above; */
+            const double* getValueAddressAtLocation(const State *state, const ValueLocation &loc) const;
+
+            /** \brief Copy all the real values from a state \e source to the array \e reals */
+            void copyToReals(std::vector<double> &reals, const State *source) const;
+
+            /** \brief Copy the values from \e reals to the state \e destination */
+            void copyFromReals(State *destination, const std::vector<double> &reals) const;
 
             /** \brief Get the number of chars in the serialization of a state in this space */
             virtual unsigned int getSerializationLength(void) const;
@@ -342,6 +379,9 @@ namespace ompl
 
         protected:
 
+            /** \brief Recompute valueLocationsInOrder_ and valueLocationsByName_ */
+            void computeLocations(void);
+
             /** \brief The name used for the default projection */
             static const std::string DEFAULT_PROJECTION_NAME;
 
@@ -368,6 +408,14 @@ namespace ompl
 
             /** \brief The set of parameters for this space */
             ParamSet                                      params_;
+
+            /** \brief The value locations for all varliables of type double contained in a state;
+                The locations point to values in the same order as that returned by getValueAddressAtIndex() */
+            std::vector<ValueLocation>                    valueLocationsInOrder_;
+
+            /** \brief All the known value locations, by name. The names of state spaces access the first element of a state.
+                RealVectorStateSpace dimensions are used to access individual dimensions. */
+            std::map<std::string, ValueLocation>          valueLocationsByName_;
 
             /** \brief Interface used for console output */
             msg::Interface                                msg_;

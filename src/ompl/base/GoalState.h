@@ -82,7 +82,7 @@ namespace ompl
             const State* getState(void) const;
 
             /** \brief Get the goal state */
-	    State* getState(void);
+            State* getState(void);
 
         protected:
 

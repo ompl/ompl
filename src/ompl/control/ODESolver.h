@@ -72,7 +72,7 @@ namespace ompl
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), space_(si->getStateSpace()), ode_(ode), intStep_(intStep), msg_("ODESolver")
+            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), ode_(ode), intStep_(intStep), msg_("ODESolver")
             {
             }
 
@@ -116,10 +116,9 @@ namespace ompl
                         virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
                         {
                             ODESolver::StateType reals;
-
-                            solver_->getReals (reals, state);
+                            si_->getStateSpace()->copyToReals(reals, state);
                             solver_->solve (reals, control, duration);
-                            solver_->setReals (reals, result);
+                            si_->getStateSpace()->copyFromReals(result, reals);
 
                             if (postEvent_)
                                 postEvent_ (control, result);
@@ -138,34 +137,8 @@ namespace ompl
             /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
             virtual void solve (StateType &state, const Control* control, const double duration) const = 0;
 
-            /// \brief Get a container that holds all real values of the input state
-            void getReals (StateType &reals, const base::State *state) const
-            {
-                reals.clear ();
-
-                unsigned int index = 0;
-                while (double *val = space_->getValueAddressAtIndex(const_cast<base::State *>(state), index++))
-                    reals.push_back(*val);
-            }
-
-            /// \brief Sets the values of the state to those contained in the reals container.
-            void setReals (const StateType &reals, base::State *state) const
-            {
-                for (size_t i = 0; i < reals.size (); ++i)
-                {
-                    double *val = space_->getValueAddressAtIndex(state, i);
-                    if (val)
-                    {
-                        *val = reals[i];
-                    }
-                }
-            }
-
             /// \brief The SpaceInformation that this ODESolver operates in.
             const SpaceInformationPtr     si_;
-
-            /// \brief Reference to the state space the system operates in.
-            const base::StateSpacePtr     space_;
 
             /// \brief Definition of the ODE to find solutions for.
             ODE                           ode_;
@@ -219,7 +192,7 @@ namespace ompl
                 Solver solver;
                 ODESolver::ODEFunctor odefunc (ode_, control);
                 boost::numeric::odeint::integrate_const (solver, odefunc, state, 0.0, duration, intStep_);
-            }            
+            }
         };
 
         /// \brief Solver for ordinary differential equations of the type q' = f(q, u),
