@@ -379,9 +379,6 @@ namespace ompl
 
         protected:
 
-            /** \brief Recompute valueLocationsInOrder_ and valueLocationsByName_ */
-            void computeLocations(void);
-
             /** \brief The name used for the default projection */
             static const std::string DEFAULT_PROJECTION_NAME;
 
