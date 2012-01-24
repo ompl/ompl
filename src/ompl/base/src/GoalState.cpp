@@ -76,7 +76,12 @@ void ompl::base::GoalState::setState(const ScopedState<> &st)
     setState(st.get());
 }
 
-const ompl::base::State * ompl::base::GoalState::getState() const
+const ompl::base::State * ompl::base::GoalState::getState(void) const
+{
+    return state_;
+}
+
+ompl::base::State * ompl::base::GoalState::getState(void)
 {
     return state_;
 }

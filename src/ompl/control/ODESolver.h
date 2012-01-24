@@ -72,7 +72,7 @@ namespace ompl
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), space_(si->getStateSpace()), ode_(ode), intStep_(intStep), msg_("ODESolver")
+            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), ode_(ode), intStep_(intStep), msg_("ODESolver")
             {
             }
 
@@ -104,29 +104,28 @@ namespace ompl
             /// An optional PostPropagationEvent can also be specified as a callback after
             /// numerical integration is finished for further operations on the resulting
             /// state.
-            StatePropagatorPtr getStatePropagator (const PostPropagationEvent &postEvent = NULL)
+            StatePropagatorPtr getStatePropagator (const PostPropagationEvent &postEvent = NULL) const
             {
                 class ODESolverStatePropagator : public StatePropagator
                 {
                     public:
-                        ODESolverStatePropagator (const SpaceInformationPtr& si, ODESolver *solver, const PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), postEvent_(pe)
+                        ODESolverStatePropagator (const SpaceInformationPtr& si, const ODESolver *solver, const PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), postEvent_(pe)
                         {
                         }
 
                         virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
                         {
                             ODESolver::StateType reals;
-
-                            solver_->getReals (reals, state);
+                            si_->getStateSpace()->copyToReals(reals, state);
                             solver_->solve (reals, control, duration);
-                            solver_->setReals (reals, result);
+                            si_->getStateSpace()->copyFromReals(result, reals);
 
                             if (postEvent_)
                                 postEvent_ (control, result);
                         }
 
                     protected:
-                        ODESolver *solver_;
+                        const ODESolver *solver_;
                         ODESolver::PostPropagationEvent postEvent_;
                 };
 
@@ -136,36 +135,10 @@ namespace ompl
         protected:
 
             /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
-            virtual void solve (StateType &state, const Control* control, const double duration) = 0;
-
-            /// \brief Get a container that holds all real values of the input state
-            void getReals (StateType &reals, const base::State *state) const
-            {
-                reals.clear ();
-
-                unsigned int index = 0;
-                while (double *val = space_->getValueAddressAtIndex(const_cast<base::State *>(state), index++))
-                    reals.push_back(*val);
-            }
-
-            /// \brief Sets the values of the state to those contained in the reals container.
-            void setReals (const StateType &reals, base::State *state)
-            {
-                for (size_t i = 0; i < reals.size (); ++i)
-                {
-                    double *val = space_->getValueAddressAtIndex(state, i);
-                    if (val)
-                    {
-                        *val = reals[i];
-                    }
-                }
-            }
+            virtual void solve (StateType &state, const Control* control, const double duration) const = 0;
 
             /// \brief The SpaceInformation that this ODESolver operates in.
             const SpaceInformationPtr     si_;
-
-            /// \brief Reference to the state space the system operates in.
-            const base::StateSpacePtr     space_;
 
             /// \brief Definition of the ODE to find solutions for.
             ODE                           ode_;
@@ -214,14 +187,12 @@ namespace ompl
         protected:
 
             /// \brief Solve the ODE using boost::numeric::odeint.
-            virtual void solve (StateType &state, const Control* control, const double duration)
+            virtual void solve (StateType &state, const Control* control, const double duration) const
             {
+                Solver solver;
                 ODESolver::ODEFunctor odefunc (ode_, control);
-                boost::numeric::odeint::integrate_const (solver_, odefunc, state, 0.0, duration, intStep_);
+                boost::numeric::odeint::integrate_const (solver, odefunc, state, 0.0, duration, intStep_);
             }
-
-            /// \brief The numerical method used to compute a solution to the given ODE.
-            Solver solver_;
         };
 
         /// \brief Solver for ordinary differential equations of the type q' = f(q, u),
@@ -249,28 +220,26 @@ namespace ompl
 
         protected:
             /// \brief Solve the ODE using boost::numeric::odeint.  Save the resulting error values into error_.
-            virtual void solve (StateType &state, const Control* control, const double duration)
+            virtual void solve (StateType &state, const Control* control, const double duration) const
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 
                 if (error_.size () != state.size ())
                     error_.assign (state.size (), 0.0);
 
-                solver_.adjust_size (state);
+                Solver solver;
+                solver.adjust_size (state);
 
                 double time = 0.0;
                 while (time < duration)
                 {
-                    solver_.do_step (odefunc, state, time, intStep_, error_);
+                    solver.do_step (odefunc, state, time, intStep_, error_);
                     time += intStep_;
                 }
             }
 
-            /// \brief The numerical method used to compute a solution to the given ODE.
-            Solver solver_;
-
             /// \brief The error values calculated during numerical integration
-            ODESolver::StateType error_;
+            mutable ODESolver::StateType error_;
         };
 
         /// \brief Adaptive step size solver for ordinary differential equations of the type
@@ -319,7 +288,7 @@ namespace ompl
             /// of the system, a control to apply to the system, and the duration to
             /// apply the control.  The value of \e state will contain the final
             /// values for the system after integration.
-            virtual void solve (StateType &state, const Control* control, const double duration)
+            virtual void solve (StateType &state, const Control* control, const double duration) const
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 

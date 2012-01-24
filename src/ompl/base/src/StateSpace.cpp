@@ -35,6 +35,7 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
 #include "ompl/tools/config/MagicConstants.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/bind.hpp>
@@ -94,7 +95,6 @@ ompl::base::StateSpace::StateSpace(void)
     params_.declareParam<unsigned int>("valid_segment_count_factor", msg_,
                                        boost::bind(&StateSpace::setValidSegmentCountFactor, this, _1),
                                        boost::bind(&StateSpace::getValidSegmentCountFactor, this));
-
     AllocatedSpaces &as = getAllocatedSpaces();
     boost::mutex::scoped_lock smLock(as.lock_);
     as.list_.push_back(this);
@@ -135,9 +135,41 @@ namespace ompl
                     computeStateSpaceSignatureHelper(space->as<CompoundStateSpace>()->getSubSpace(i).get(), signature);
             }
         }
+
+        void computeLocationsHelper(const StateSpace *s, std::vector<StateSpace::ValueLocation> &locationsArray,
+                                    std::map<std::string, StateSpace::ValueLocation> &locationsMap, StateSpace::ValueLocation loc)
+        {
+            State *test = s->allocState();
+            if (s->getValueAddressAtIndex(test, 0) != NULL)
+            {
+                loc.index = 0;
+                loc.space = s;
+                locationsMap[s->getName()];
+                if (!s->isCompound()) // if the space is compound, we will find this value again in the first subspace
+                    locationsArray.push_back(loc);
+            }
+            s->freeState(test);
+
+            if (s->isCompound())
+                for (unsigned int i = 0 ; i < s->as<base::CompoundStateSpace>()->getSubSpaceCount() ; ++i)
+                {
+                    loc.chain.push_back(i);
+                    computeLocationsHelper(s->as<base::CompoundStateSpace>()->getSubSpace(i).get(), locationsArray, locationsMap, loc);
+                    loc.chain.pop_back();
+                }
+            else
+                if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
+                    for (unsigned int i = 0 ; i < s->getDimension() ; ++i)
+                    {
+                        const std::string &name = s->as<base::RealVectorStateSpace>()->getDimensionName(i);
+                        loc.index = i;
+                        if (!name.empty())
+                            locationsMap[name] = loc;
+                        locationsArray.push_back(loc);
+                    }
+        }
     }
 }
-
 /// @endcond
 
 void ompl::base::StateSpace::computeSignature(std::vector<int> &signature) const
@@ -158,6 +190,10 @@ void ompl::base::StateSpace::setup(void)
 
     if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
         throw Exception("The longest valid segment for state space " + getName() + " must be positive");
+
+    valueLocationsInOrder_.clear();
+    valueLocationsByName_.clear();
+    computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_, ValueLocation());
 
     // make sure we don't overwrite projections that have been configured by the user
     std::map<std::string, ProjectionEvaluatorPtr> oldProjections = projections_;
@@ -198,6 +234,46 @@ const double* ompl::base::StateSpace::getValueAddressAtIndex(const State *state,
 {
     double *val = getValueAddressAtIndex(const_cast<State*>(state), index); // this const-cast does not hurt, since the state is not modified
     return val;
+}
+
+const std::vector<ompl::base::StateSpace::ValueLocation>& ompl::base::StateSpace::getValueLocations(void) const
+{
+    return valueLocationsInOrder_;
+}
+
+const std::map<std::string, ompl::base::StateSpace::ValueLocation>& ompl::base::StateSpace::getValueLocationsByName(void) const
+{
+    return valueLocationsByName_;
+}
+
+void ompl::base::StateSpace::copyToReals(std::vector<double> &reals, const State *source) const
+{
+    reals.resize(valueLocationsInOrder_.size());
+    for (std::size_t i = 0 ; i < valueLocationsInOrder_.size() ; ++i)
+        reals[i] = *getValueAddressAtLocation(source, valueLocationsInOrder_[i]);
+}
+
+void ompl::base::StateSpace::copyFromReals(State *destination, const std::vector<double> &reals) const
+{
+    assert(reals.size() == valueLocationsInOrder_.size());
+    for (std::size_t i = 0 ; i < reals.size() ; ++i)
+        *getValueAddressAtLocation(destination, valueLocationsInOrder_[i]) = reals[i];
+}
+
+double* ompl::base::StateSpace::getValueAddressAtLocation(State *state, const ValueLocation &loc) const
+{
+    std::size_t index = 0;
+    while (loc.chain.size() > index)
+        state = state->as<CompoundState>()->components[loc.chain[index++]];
+    return loc.space->getValueAddressAtIndex(state, loc.index);
+}
+
+const double* ompl::base::StateSpace::getValueAddressAtLocation(const State *state, const ValueLocation &loc) const
+{
+    std::size_t index = 0;
+    while (loc.chain.size() > index)
+        state = state->as<CompoundState>()->components[loc.chain[index++]];
+    return loc.space->getValueAddressAtIndex(state, loc.index);
 }
 
 unsigned int ompl::base::StateSpace::getSerializationLength(void) const
