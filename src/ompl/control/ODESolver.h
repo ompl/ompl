@@ -103,37 +103,9 @@ namespace ompl
             /// differential equations defined by this ODESolver.
             /// An optional PostPropagationEvent can also be specified as a callback after
             /// numerical integration is finished for further operations on the resulting
-            /// state. If enforceBounds is true, StateSpace::enforceBounds will be invoked on
-            /// the resulting state.
-            StatePropagatorPtr getStatePropagator (const PostPropagationEvent &postEvent = NULL, bool enforceBounds = true)
+            /// state.
+            StatePropagatorPtr getStatePropagator (const PostPropagationEvent &postEvent = NULL)
             {
-                class ODESolverStatePropagatorAndBoundsEnforcer : public StatePropagator
-                {
-                    public:
-                        ODESolverStatePropagatorAndBoundsEnforcer (const SpaceInformationPtr& si, ODESolver *solver, const ODESolver::PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), space_(si->getStateSpace()), postEvent_(pe)
-                        {
-                        }
-
-                        virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
-                        {
-                            ODESolver::StateType reals;
-
-                            solver_->getReals (reals, state);
-                            solver_->solve (reals, control, duration);
-                            solver_->setReals (reals, result);
-
-                            space_->enforceBounds (result);
-
-                            if (postEvent_)
-                                postEvent_ (control, result);
-                        }
-
-                    protected:
-                        ODESolver *solver_;
-                        base::StateSpacePtr space_;
-                        ODESolver::PostPropagationEvent postEvent_;
-                };
-
                 class ODESolverStatePropagator : public StatePropagator
                 {
                     public:
@@ -158,10 +130,7 @@ namespace ompl
                         ODESolver::PostPropagationEvent postEvent_;
                 };
 
-                if (enforceBounds)
-                    return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagatorAndBoundsEnforcer(si_, this, postEvent)));
-                else
-                    return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(si_, this, postEvent)));
+                return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(si_, this, postEvent)));
             }
 
         protected:
