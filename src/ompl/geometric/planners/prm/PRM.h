@@ -129,7 +129,7 @@ namespace ompl
              * @note Can't use the prefered boost::function syntax here because
              * the Python bindings don't like it.
              */
-            typedef boost::function1<std::vector<Vertex>&, const Vertex>
+            typedef boost::function<std::vector<Vertex>&(const Vertex)>
                 ConnectionStrategy;
 
             /** @brief A function that can reject connections.
@@ -137,7 +137,7 @@ namespace ompl
              This is called after previous connections from the neighbor list
              have been added to the roadmap.
              */
-            typedef boost::function2<bool, const Vertex&, const Vertex&> ConnectionFilter;
+            typedef boost::function<bool(const Vertex&, const Vertex&)> ConnectionFilter;
 
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);

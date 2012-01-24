@@ -168,6 +168,6 @@ void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCou
             phybrid_->computeHybridPath();
 
         duration = time::seconds(time::now() - start);
-        msg_.debug("Spent %f seconds hybridizing solution paths", duration);
+        msg_.debug("Spent %f seconds hybridizing %u solution paths", duration, (unsigned int)phybrid_->pathCount());
     }
 }

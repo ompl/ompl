@@ -52,7 +52,7 @@ endif()
 
 
 find_program(_OPENDE_CONFIG NAMES ode-config PATHS ${OPENDE_PATH} PATH_SUFFIXES bin)
-if (_ODE_CONFIG)
+if (_OPENDE_CONFIG)
 
   execute_process(COMMAND ${_OPENDE_CONFIG} --version OUTPUT_VARIABLE OPENDE_VERSION)
   # remove new line chars
@@ -118,6 +118,6 @@ if (_OPENDE_DEBUG_OUTPUT)
   message(STATUS "-----------------------------------")
 endif()
 
-find_package_handle_standard_args(OPENDE DEFAULT_MSG OPENDE_LIBRARY OPENDE_INCLUDE_DIR)
+find_package_handle_standard_args(OpenDE DEFAULT_MSG OPENDE_LIBRARY OPENDE_INCLUDE_DIR)
 mark_as_advanced(_OPENDE_CONFIG _OPENDE_INCLUDE_H)
 mark_as_advanced(OPENDE_LIBRARY OPENDE_INCLUDE OPENDE_DEFINITIONS OPENDE_VERSION)

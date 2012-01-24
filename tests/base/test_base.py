@@ -43,7 +43,7 @@ import unittest
 from math import pi
 from ompl.base import *
 
-def isValid(spaceInformation, state):
+def isValid(state):
     return True
 
 class TestSO2(unittest.TestCase):
@@ -79,7 +79,7 @@ class TestSO3(unittest.TestCase):
         s2.random()
 
         si = SpaceInformation(m)
-        si.setStateValidityChecker(isValid)
+        si.setStateValidityChecker(StateValidityCheckerFn(isValid))
         si.setup()
 
         states = vectorState()

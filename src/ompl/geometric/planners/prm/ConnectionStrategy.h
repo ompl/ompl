@@ -126,7 +126,7 @@ namespace ompl
         class KStarStrategy : public KStrategy<Milestone>
         {
         public:
-
+            typedef boost::function<unsigned int()> NumNeighborsFn;
             /**
              * \brief Constructor
              *
@@ -136,7 +136,7 @@ namespace ompl
              * The default is 1, which will make kPRMConstant=2e which
              * is valid for all problem instances.
              */
-            KStarStrategy(const boost::function0<unsigned int>& n,
+            KStarStrategy(const NumNeighborsFn& n,
                           const boost::shared_ptr< NearestNeighbors<Milestone> > &nn,
                           const unsigned int d = 1) :
                 KStrategy<Milestone>(n(), nn), n_(n), kPRMConstant_(1.0 + 1.0/(double)d)
@@ -153,8 +153,8 @@ namespace ompl
         protected:
 
             /** \brief Function returning the number of milestones added to the roadmap so far */
-            const boost::function0<unsigned int>  n_;
-            const double                          kPRMConstant_;
+            const NumNeighborsFn  n_;
+            const double          kPRMConstant_;
 
         };
 

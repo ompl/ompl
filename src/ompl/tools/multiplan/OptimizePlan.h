@@ -44,6 +44,7 @@ namespace ompl
         to optimize solutions. */
     class OptimizePlan
     {
+    public:
         /** \brief Create an instance for a specified space information */
         OptimizePlan(const base::ProblemDefinitionPtr &pdef) : pp_(pdef)
         {
@@ -68,11 +69,9 @@ namespace ompl
             return pp_.getProblemDefinition();
         }
 
-        /** \brief Try to solve the specified problem within a \e solveTime seconds, using at most \e nthreads threads */
-        bool solve(double solveTime, unsigned int nthreads = 1);
-
-        /** \brief Try to solve the specified problem while \e ptc is false, using at most \e nthreads threads */
-        bool solve(const base::PlannerTerminationCondition &ptc, unsigned int nthreads = 1);
+        /** \brief Try to solve the specified problem within a \e solveTime seconds, using at most \e nthreads threads. If
+            more than \e maxSol solutions are generated, stop generating more. */
+        bool solve(double solveTime, unsigned int maxSol = 10, unsigned int nthreads = 1);
 
     protected:
 
@@ -82,6 +81,8 @@ namespace ompl
         /** \brief The set of planners to be used */
         std::vector<base::PlannerPtr>   planners_;
 
+        /** \brief Console output */
+        msg::Interface                  msg_;
     };
 
 }

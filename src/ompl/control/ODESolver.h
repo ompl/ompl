@@ -38,8 +38,9 @@
 #define OMPL_CONTROL_ODESOLVER_
 
 #include "ompl/control/Control.h"
+#include "ompl/control/SpaceInformation.h"
+#include "ompl/control/StatePropagator.h"
 #include "ompl/util/Console.h"
-#include "ompl/base/StateSpace.h"
 
 #include <boost/numeric/odeint.hpp>
 #include <boost/function.hpp>
@@ -63,17 +64,15 @@ namespace ompl
 
             /// \brief Callback function that defines the ODE.  Accepts
             /// the current state, input control, and output state.
-            typedef boost::function3<void, const StateType &, const Control*, StateType &> ODE;
+            typedef boost::function<void(const StateType &, const Control*, StateType &)> ODE;
 
-            /// \brief Definition of the optional user defined propagation function for the system defined by
-            /// the ODE.  This method is tasked with converting the base::State values to the proper input for
-            /// the solve method in the solver, as well as translating the integrated values back to the
-            /// base::State type.
-            typedef boost::function4<void, const base::State*, const Control *, const double, base::State *> PropagateFunction;
+            /// \brief Callback function to perform an event at the end of numerical
+            /// integration.  This functionality is optional.
+            typedef boost::function<void(const Control*, base::State*)> PostPropagationEvent;
 
-            /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
+            /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const base::StateSpacePtr &space, const ODE &ode, double intStep) : space_(space), ode_(ode), intStep_(intStep), msg_("ODESolver")
+            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), space_(si->getStateSpace()), ode_(ode), intStep_(intStep), msg_("ODESolver")
             {
             }
 
@@ -100,56 +99,44 @@ namespace ompl
                 intStep_ = intStep;
             }
 
-            /// \brief Set the propagate function for the ODESolver.  This method
-            /// replaces the default method propagateDefault.
-            void setPropagateFunction (const PropagateFunction &function)
+            /// \brief Retrieve a StatePropagator object that solves the system of ordinary
+            /// differential equations defined by this ODESolver.
+            /// An optional PostPropagationEvent can also be specified as a callback after
+            /// numerical integration is finished for further operations on the resulting
+            /// state.
+            StatePropagatorPtr getStatePropagator (const PostPropagationEvent &postEvent = NULL)
             {
-                propFunc_ = function;
-            }
+                class ODESolverStatePropagator : public StatePropagator
+                {
+                    public:
+                        ODESolverStatePropagator (const SpaceInformationPtr& si, ODESolver *solver, const PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), postEvent_(pe)
+                        {
+                        }
 
-            /// \brief Clear the propagate function for the ODESolver.  This reverts
-            /// the propagate functionality back to propagateDefault.
-            void clearPropagateFunction (void)
-            {
-                propFunc_ = NULL;
-            }
+                        virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
+                        {
+                            ODESolver::StateType reals;
 
-            /// \brief Propagate the system defined by the ODE starting at \e state
-            /// given a \e control to apply for some positive \e duration.  The resulting
-            /// state of the system is stored into \e result.
-            virtual void propagate (const base::State *state, const Control *control, const double duration, base::State *result)
-            {
-                if (propFunc_)
-                    propFunc_ (state, control, duration, result);
-                else
-                    propagateDefault (state, control, duration, result);
+                            solver_->getReals (reals, state);
+                            solver_->solve (reals, control, duration);
+                            solver_->setReals (reals, result);
+
+                            if (postEvent_)
+                                postEvent_ (control, result);
+                        }
+
+                    protected:
+                        ODESolver *solver_;
+                        ODESolver::PostPropagationEvent postEvent_;
+                };
+
+                return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(si_, this, postEvent)));
             }
 
         protected:
 
             /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
             virtual void solve (StateType &state, const Control* control, const double duration) = 0;
-
-            /// \brief Propagate the system defined by the ODE starting at \e state
-            /// given a \e control to apply for some positive \e duration.  The resulting
-            /// state of the system is stored into \e result.
-            virtual void propagateDefault (const base::State *state, const Control *control, const double duration, base::State *result)
-            {
-                assert (duration > 0.0);
-
-                // Convert the state values to a portable data type
-                StateType reals;
-                getReals (reals, state);
-
-                // Solve the ODE
-                solve (reals, control, duration);
-
-                // Set the resulting state values from the computed solution
-                setReals (reals, result);
-
-                // Make sure that the resulting state satisfies state space bounds
-                space_->enforceBounds (result);
-            }
 
             /// \brief Get a container that holds all real values of the input state
             void getReals (StateType &reals, const base::State *state) const
@@ -174,20 +161,20 @@ namespace ompl
                 }
             }
 
-            /// \brief The StateSpace that this ODESolver operates in.
-            const base::StateSpacePtr  space_;
+            /// \brief The SpaceInformation that this ODESolver operates in.
+            const SpaceInformationPtr     si_;
+
+            /// \brief Reference to the state space the system operates in.
+            const base::StateSpacePtr     space_;
 
             /// \brief Definition of the ODE to find solutions for.
-            ODE                        ode_;
+            ODE                           ode_;
 
             /// \brief The size of the numerical integration step.  Should be small to minimize error.
-            double                     intStep_;
+            double                        intStep_;
 
             /// \brief Interface used for reporting errors
-            msg::Interface             msg_;
-
-            /// \brief Optional user specified propagate function
-            PropagateFunction          propFunc_;
+            msg::Interface                msg_;
 
             /// @cond IGNORE
             // Functor used by the boost::numeric::odeint stepper object
@@ -218,9 +205,9 @@ namespace ompl
         {
         public:
 
-            /// \brief Parameterized constructor.  Takes a reference to the StateSpace, 
+            /// \brief Parameterized constructor.  Takes a reference to the SpaceInformation,
             /// an ODE to solve, and an optional integration step size - default is 0.01
-            ODEBasicSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode = NULL, double intStep = 1e-2) : ODESolver(space, ode, intStep)
+            ODEBasicSolver (const SpaceInformationPtr &si, const ODESolver::ODE &ode, double intStep = 1e-2) : ODESolver(si, ode, intStep)
             {
             }
 
@@ -247,9 +234,9 @@ namespace ompl
         class ODEErrorSolver : public ODESolver
         {
         public:
-            /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
+            /// \brief Parameterized constructor.  Takes a reference to the SpaceInformation,
             /// an ODE to solve, and the integration step size - default is 0.01
-            ODEErrorSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode = NULL, double intStep = 1e-2) : ODESolver(space, ode, intStep)
+            ODEErrorSolver (const SpaceInformationPtr &si, const ODESolver::ODE &ode, double intStep = 1e-2) : ODESolver(si, ode, intStep)
             {
             }
 
@@ -296,9 +283,9 @@ namespace ompl
         class ODEAdaptiveSolver : public ODESolver
         {
         public:
-            /// \brief Parameterized constructor.  Takes a reference to the StateSpace,
+            /// \brief Parameterized constructor.  Takes a reference to the SpaceInformation,
             /// an ODE to solve, and an optional integration step size - default is 0.01
-            ODEAdaptiveSolver (const base::StateSpacePtr &space, const ODESolver::ODE &ode = NULL, double intStep = 1e-2) : ODESolver(space, ode, intStep), maxError_(1e-6), maxEpsilonError_(1e-7)
+            ODEAdaptiveSolver (const SpaceInformationPtr &si, const ODESolver::ODE &ode, double intStep = 1e-2) : ODESolver(si, ode, intStep), maxError_(1e-6), maxEpsilonError_(1e-7)
             {
             }
 

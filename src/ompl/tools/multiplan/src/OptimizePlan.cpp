@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/tools/multiplan/OptimizePlan.h"
+#include "ompl/geometric/PathSimplifier.h"
 
 void ompl::OptimizePlan::addPlanner(const base::PlannerPtr &planner)
 {
@@ -53,30 +54,50 @@ void ompl::OptimizePlan::clearPlanners(void)
     planners_.clear();
 }
 
-bool ompl::OptimizePlan::solve(double solveTime, unsigned int nthreads)
+bool ompl::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned int nthreads)
 {
-    return solve(base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)), nthreads);
-}
+    time::point end = time::now() + time::seconds(solveTime);
+    unsigned int nt = std::min(nthreads, (unsigned int)planners_.size());
+    msg_.debug("Using %u threads", nt);
 
-bool ompl::OptimizePlan::solve(const base::PlannerTerminationCondition &ptc, unsigned int nthreads)
-{
     bool result = false;
     unsigned int np = 0;
     const base::GoalPtr &goal = getProblemDefinition()->getGoal();
-
-    while (ptc() == false)
+    pp_.clearHybridizationPaths();
+    
+    while (time::now() < end)
     {
         pp_.clearPlanners();
-        for (unsigned int i = 0 ; i < nthreads ; ++i)
+        for (unsigned int i = 0 ; i < nt ; ++i)
         {
+            planners_[np]->clear();
             pp_.addPlanner(planners_[np]);
             np = (np + 1) % planners_.size();
         }
-        if (pp_.solve(ptc, true))
+        if (pp_.solve(std::max(time::seconds(end - time::now()), 0.0), true))
         {
             result = true;
             if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
+            {
+                msg_.debug("Terminating early since solution path is shorted than the maximum path length");
                 break;
+            }
+            if (goal->getSolutionCount() >= maxSol)
+            {
+                msg_.debug("Terminating early since %u solutions were generated", maxSol);
+                break;
+            }
+        }
+    }
+
+    // if we have more time, and we have a geometric path, we try to simplify it
+    if (time::now() < end && result)
+    {
+        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(goal->getSolutionPath().get());
+        if (p)
+        {
+            geometric::PathSimplifier ps(getProblemDefinition()->getSpaceInformation());
+            ps.simplify(*p, std::max(time::seconds(end - time::now()), 0.0));
         }
     }
 

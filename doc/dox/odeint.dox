@@ -19,7 +19,7 @@ integration.
 \section theory A Bit of Theory
 Assume that you are planning for a simplified car-like system where the 
 velocity \f$v\f$ and steering angle \f$\phi\f$ can be directly controlled.  Let
-position of the car be described by (x,y,\f$\theta\f$).  Then the dynamics
+the position of the car be described by (x,y,\f$\theta\f$).  Then the dynamics
 of the system can be described by:
 
 \f$
@@ -42,7 +42,7 @@ of the system can be described by:
 
 This shows how a given state of the car model (x,y,\f$\theta\f$) will evolve
 over time with a single control (\f$v, \phi\f$).  Note that the equations
-above yield a delta (the differential) from the current state, i.e. they compute 
+above yield a delta (the differential) from the current state, i.e., they compute 
 the change in the state values rather than the new state itself.  Therefore, the 
 equations must be integrated to find the new state of the system after applying
 the control for a given amount of time.
@@ -119,62 +119,57 @@ void SimpleCarODE(const oc::ODESolver::StateType& q, const oc::Control* c, oc::O
 
 \subsection propagation A Basic Example
 When planning with the ODESolver, the user must instantiate the derived solver.  
-All of the solvers require a ompl::base::StateSpacePtr that the system operates 
+All of the solvers require a SpaceInformationPtr that the system operates 
 in to be supplied in the constructor.  This is used to extract the values of 
-ompl::base::State into a container for integration.  The ODE must also be given 
-to the solver.  The simplest solver is the ompl::control::ODEBasicSolver, which 
-uses fourth order <a href="http://mathworld.wolfram.com/Runge-KuttaMethod.html">
-Runge-Kutta</a> integration.  Given the car-like system and ODE described above,
-the solver can be instanted with the following code snippet:
-
-\code
-ompl::base::StateSpacePtr stateSpace(new ompl::base::SE2StateSpace());
-ompl::control::ODEBasicSolver<> odeSolver (stateSpace);
-odeSolver.setODE(boost::bind(&SimpleCarODE, _1, _2, _3));
-\endcode
-
-Control based planners also require a ompl::control::StatePropagator
-object that defines how the system moves given a specific control.  The ODE
-does exactly that, and the simplest implementation of the StatePropagator is
-the propagate method from the ODESolver that was just created:
+ompl::base::State into a container for integration via the StateSpace.  The ODE 
+itself must also be given to the solver.  The simplest solver is the 
+ompl::control::ODEBasicSolver, which uses fourth order 
+<a href="http://mathworld.wolfram.com/Runge-KuttaMethod.html">Runge-Kutta</a> 
+integration.  Given the car-like system and ODE described above, the solver can be 
+instanted with the following code snippet:
 
 \code
 // SpaceInformationPtr is defined as the variable si.
-si->setStatePropagator(boost::bind(&ODEBasicSolver<>::propagate, odeSolver, _1, _2, _3, _4));
+ompl::control::ODEBasicSolver<> odeSolver (si, &SimpleCarODE);
+\endcode
+
+Control based planners also require a ompl::control::StatePropagator
+object that defines how the system moves given a specific control.  The ODESolver
+provides a wrapper for this functionality via the getStatePropagator method:
+
+\code
+
+si->setStatePropagator(odeSolver.getStatePropagator());
 \endcode
 
 This is all that is needed for the planner to sample a control and propagate the
-system by solving the differential equations defined in the ode.  Note, however,
-that the ODE allows the state values to unboundedly change, and for some systems
+system by solving the differential equations defined in the ode.  In some systems,
+a post-numerical integration callback event is useful.  As an example, note that 
+the ODE allows the state values to unboundedly change, and for some systems
 this is not acceptable.  For the car-like system above, the orientation parameter
-\f$\theta\f$ is generally a value between 0 and \f$2\pi\f$.  The integration 
-process could have the value exceed these bounds.  Therefore, to enforce this and
-any other potential bounds on the state, a new propagate method can be written
-to use the odeSolver object to integrate, and then enforce any contraints on the
-state after integration is complete:
+\f$\theta\f$ is generally a value between 0 and \f$2\pi\f$, and integration 
+could have the value exceed these bounds.  In such a case, it is useful to define
+a post-integration event callback that is invoked after numerical integration
+is complete:
+
 
 \code
-void propagate(const base::State *from, const control::Control *ctrl, const double duration, base::State *result)
+void postPropagate(const control::Control *ctrl, base::State *result)
 {
-    // Propagate the car given the control.  Save the new state into result
-    odeSolver.propagate(from, ctrl, duration, result);
+    ompl::base::SO2StateSpace SO2;
 
     // Ensure that the car's resulting orientation lies between 0 and 2*pi.
     ompl::base::SE2StateSpace::StateType& s = *result->as<ompl::base::SE2StateSpace::StateType>();
-    stateSpace->as<ompl::base::CompoundStateSpace>()->getSubSpace(1)->enforceBounds(s[1]);
+    SO2.enforceBounds(s[1]);
 }
 \endcode
 
-The StatePropagator can then set to this new method:
+The StatePropagator can then be defined to take this new post-Integration
+function as an argument:
 
 \code
-si->setStatePropagator(boost::bind(&propagate, _1, _2, _3, _4));
+si->setStatePropagator(odeSolver.getStatePropagator(&postPropagate));
 \endcode
-
-The contraint enforcement example above is actually not necessary when using
-the ODESolver for the simplified car model.  The default propagate method
-in the ODESolver will call enforceBounds on the resulting state after integration,
-but more complex systems may require additional code after numerical integration.
 
 \subsection odesolvers Selecting an ODESolver
 There are three derived classes from ODESolver that use <a href="http://odeint.org">

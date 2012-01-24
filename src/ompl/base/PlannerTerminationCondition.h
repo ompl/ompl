@@ -53,7 +53,7 @@ namespace ompl
             signaled to terminate its computation. Otherwise,
             computation continues while this function returns false,
             until a solution is found. */
-        typedef boost::function0<bool> PlannerTerminationConditionFn;
+        typedef boost::function<bool()> PlannerTerminationConditionFn;
 
         /** \brief Encapsulate a termination condition for a motion
             planner. Planners will call operator() to decide whether
@@ -82,8 +82,9 @@ namespace ompl
                 return terminate_ || eval();
             }
 
-            /** \brief Notify that the condition for termination should become true, regardless of what eval() returns */
-            virtual void terminate(void) const;
+            /** \brief Notify that the condition for termination should become true, regardless of what eval() returns.
+                This function may be called while the condition is being evaluated by other threads. */
+            void terminate(void) const;
 
             /** \brief The implementation of some termination condition. By default, this just calls \e fn_() */
             virtual bool eval(void) const;

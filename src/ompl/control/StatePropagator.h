@@ -104,7 +104,7 @@ namespace ompl
 
         protected:
 
-            /** \brief The instance of space information this state validity checker operates on */
+            /** \brief The instance of space information this state propagator operates on */
             SpaceInformation *si_;
 
         };

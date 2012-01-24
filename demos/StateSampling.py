@@ -99,7 +99,7 @@ class MyValidStateSampler(ob.ValidStateSampler):
 
 # This function is needed, even when we can write a sampler like the one
 # above, because we need to check path segments for validity
-def isStateValid(spaceInformation, state):
+def isStateValid(state):
     # Let's pretend that the validity check is computationally relatively
     # expensive to emphasize the benefit of explicitly generating valid
     # samples
@@ -134,7 +134,7 @@ def plan(samplerIndex):
     ss = og.SimpleSetup(space)
 
     # set state validity checking for this space
-    ss.setStateValidityChecker(isStateValid)
+    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 
     # create a start state
     start = ob.State(space)
@@ -152,15 +152,16 @@ def plan(samplerIndex):
     ss.setStartAndGoalStates(start, goal)
 
     # set sampler (optional; the default is uniform sampling)
+    si = ss.getSpaceInformation()
     if samplerIndex==1:
         # use obstacle-based sampling
-        ss.getSpaceInformation().setValidStateSamplerAllocator(allocOBValidStateSampler)
+        si.setValidStateSamplerAllocator(ob.ValidStateSamplerAllocator(allocOBValidStateSampler))
     elif samplerIndex==2:
         # use my sampler
-        ss.getSpaceInformation().setValidStateSamplerAllocator(allocMyValidStateSampler)
+        si.setValidStateSamplerAllocator(ob.ValidStateSamplerAllocator(allocMyValidStateSampler))
 
     # create a planner for the defined space
-    planner = og.PRM(ss.getSpaceInformation())
+    planner = og.PRM(si)
     ss.setPlanner(planner)
 
     # attempt to solve the problem within ten seconds of planning time
