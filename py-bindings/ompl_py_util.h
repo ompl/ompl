@@ -49,6 +49,7 @@ namespace ompl
             return sizeof(std::vector<std::size_t>) +
                 sizeof(std::vector<bool>) +
                 sizeof(std::vector<int>) +
+                sizeof(std::vector<unsigned long>) +
                 sizeof(std::vector<double>) +
                 sizeof(std::vector<unsigned int>) +
                 sizeof(std::vector<std::string>) +

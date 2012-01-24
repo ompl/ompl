@@ -7,35 +7,26 @@ requires pygccxml and GCC-XML. You need the versions of GCC-XML,
 pygccxml, and Py++ that are taken directly from their respective
 repositories. Directions for installing GCC-XML can be found <a
 href="http://www.gccxml.org/HTML/Download.html">here</a>, and for
-installing pygccxml/py++ they can be found <a
+installing pygccxml/Py++ they can be found <a
 href="http://sourceforge.net/scm/?type=svn&group_id=118209">here</a>.
-The combined set of instructions is presented below (for Linux or Mac OS X):
+The combined set of instructions is included in the script 
+ompl/src/external/installPyPlusPlus.sh. This script will also
+apply a patch to pygccxml that is necessary to prevent it from
+treating gccxml warnings as errors. You can run this script (after
+running cmake) like so:
 \code
-# Make sure you have cvs and svn. e.g., for Ubuntu Linux: "sudo apt-get install cvs subversion"
-# On OS X cvs and svn are already installed.
+make installpyplusplus
+\endcode
+The script will ask for your password so that it can install
+these programs. If the script completes successfully, run cmake
+again and you should be able to generate the Python bindings by 
+typing “make update_bindings”.
 
-# create a location to store downloaded data
-mkdir repos
-cd repos
-
-# get latest version of gccxml, build & install it
-cvs -d :pserver:anoncvs@www.gccxml.org:/cvsroot/GCC_XML co gccxml
-cd gccxml
-cmake .
-make
-sudo make install
-cd ..
-
-# get latest version of pygccxml and Py++, build & install needed packages
-svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pygccxml_dev
-cd pygccxml_dev
-python setup.py build
-sudo python setup.py install
-cd ..
-svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pyplusplus_dev
-cd pyplusplus_dev
-python setup.py build
-sudo python setup.py install
+\par
+If you are using OS X and MacPorts, it is recommended you install Py++ like so:
+\code
+sudo port selfupdate
+sudo port install py27-pyplusplus-devel
 \endcode
 
 */

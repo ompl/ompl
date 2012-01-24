@@ -110,7 +110,7 @@ class KinematicCarModel : public oc::StatePropagator
         double                   timeStep_;
 };
 
-// Definition of the ODE for the kinematic car.  This is the only function required for the ODESolver.
+// Definition of the ODE for the kinematic car.
 // This method is analogous to the above KinematicCarModel::ode function.
 void KinematicCarODE (const oc::ODESolver::StateType& q, const oc::Control* control, oc::ODESolver::StateType& qdot)
 {
@@ -124,6 +124,14 @@ void KinematicCarODE (const oc::ODESolver::StateType& q, const oc::Control* cont
     qdot[0] = u[0] * cos(theta);
     qdot[1] = u[0] * sin(theta);
     qdot[2] = u[0] * tan(u[1]) / carLength;
+}
+
+// This is a callback method invoked after numerical integration.
+void KinematicCarPostIntegration (const oc::Control* /*control*/, ob::State* result)
+{
+    // Normalize orientation between 0 and 2*pi
+    ob::SO2StateSpace SO2;
+    SO2.enforceBounds (result->as<ob::SE2StateSpace::StateType>());
 }
 
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
@@ -188,9 +196,10 @@ void planWithSimpleSetup(void)
     // KinematicCarModel does NOT use ODESolver
     //ss.setStatePropagator(oc::StatePropagatorPtr(new KinematicCarModel(ss.getSpaceInformation())));
 
-    // Use the ODESolver to propagate the system
+    // Use the ODESolver to propagate the system.  Call KinematicCarPostIntegration
+    // when integration has finished to normalize the orientation values.
     oc::ODEBasicSolver<> odeSolver(ss.getSpaceInformation(), &KinematicCarODE);
-    ss.setStatePropagator(odeSolver.getStatePropagator());
+    ss.setStatePropagator(odeSolver.getStatePropagator(&KinematicCarPostIntegration));
 
     /// create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);
