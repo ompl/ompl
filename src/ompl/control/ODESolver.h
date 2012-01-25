@@ -37,6 +37,9 @@
 #ifndef OMPL_CONTROL_ODESOLVER_
 #define OMPL_CONTROL_ODESOLVER_
 
+// Boost.OdeInt needs Boost version >= 1.44
+#ifdef BOOST_VERSION >= 104400
+
 #include "ompl/control/Control.h"
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/StatePropagator.h"
@@ -52,6 +55,7 @@ namespace ompl
 
     namespace control
     {
+
         /// \brief Abstract base class for an object that can solve ordinary differential
         /// equations (ODE) of the type q' = f(q,u) using numerical integration.  Classes
         /// deriving from this must implement the solve method.  The user must supply
@@ -302,8 +306,11 @@ namespace ompl
             /// \brief The maximum error allowed during one step of numerical integration
             double maxEpsilonError_;
         };
-
     }
 }
+
+#else
+#warning Boost version >=1.44 is needed for ODESolver classes
+#endif
 
 #endif

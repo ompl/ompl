@@ -290,10 +290,13 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
         # make controls printable
         self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
-        # export ODESolver-derived classes that use Boost.OdeInt
-        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
-        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
-        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
+        try:
+            # export ODESolver-derived classes that use Boost.OdeInt
+            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
+            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
+            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
+        except:
+            pass
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
@@ -305,8 +308,11 @@ class ompl_control_generator_t(code_generator_t):
             'ControlSamplerAllocator', 'Control sampler allocator')
         self.add_boost_function('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
             'DirectedControlSamplerAllocator','Directed control sampler allocator')
-        self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-            'ODE','Ordindary differential equation')
+        try:
+            self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+                'ODE','Ordindary differential equation')
+        except:
+            pass
         self.add_boost_function('void(const ompl::control::Control*, ompl::base::State*)',
             'PostPropagationEvent','Post-propagation event')
         self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',

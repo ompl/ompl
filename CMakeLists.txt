@@ -22,9 +22,15 @@ else(OMPL_IN_ROS)
     include_directories(${Boost_INCLUDE_DIR})
 
     find_package(Boost COMPONENTS odeint QUIET)
-    if(NOT Boost_ODEINT_FOUND)
-        # Include bundled version of boost::odeint if it isn't installed natively
-        include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+    if (NOT ${Boost_VERSION} LESS 104400)
+        option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" ON)
+        if(NOT Boost_ODEINT_FOUND)
+            # Include bundled version of boost::odeint if it isn't installed natively
+            set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+            include_directories("${ODEINT_INCLUDE_DIR}")
+        endif()
+    else()
+        option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
     endif()
 
     if(MSVC)
