@@ -178,8 +178,13 @@ class ompl_base_generator_t(code_generator_t):
             self.ompl_ns.class_(stype + 'Path').exclude()
             self.ompl_ns.class_(stype + 'StateSpace').member_function(
                 stype[0].lower()+stype[1:]).exclude()
-        # don't expose this utility function
+        # don't expose these utility functions that return double*
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
+        self.ompl_ns.member_functions('getValueAddressAtLocation').exclude()
+        # don't export vector<ValueLocation>
+        self.ompl_ns.member_functions('getValueLocations').exclude()
+        # don't export map<std::string, ValueLocation>
+        self.ompl_ns.member_functions('getValueLocationsByName').exclude()
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateSpace').class_(
             'StateType').variable('values').exclude()
