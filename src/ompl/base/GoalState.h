@@ -79,7 +79,10 @@ namespace ompl
             void setState(const ScopedState<> &st);
 
             /** \brief Get the goal state */
-            const State* getState() const;
+            const State* getState(void) const;
+
+            /** \brief Get the goal state */
+            State* getState(void);
 
         protected:
 

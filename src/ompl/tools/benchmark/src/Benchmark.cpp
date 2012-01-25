@@ -37,6 +37,7 @@
 #include "ompl/tools/benchmark/Benchmark.h"
 #include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Time.h"
+#include <boost/scoped_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
 #include <fstream>

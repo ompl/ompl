@@ -38,7 +38,6 @@
 #define OMPL_BASE_SCOPED_STATE_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/StateAddress.h"
 #include <boost/concept_check.hpp>
 #include <iostream>
 
@@ -291,23 +290,29 @@ namespace ompl
             /** \brief Access a double value from this state contains using its name. */
             double& operator[](const std::string &name)
             {
-                if (!addressMap_)
-                    addressMap_.reset(new StateAddress(space_));
-                double *val = addressMap_->getValueAddressAtName(name, state_);
-                if (!val)
-                    throw Exception("Name '" + name + "' not known");
-                return *val;
+                const std::map<std::string, StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
+                std::map<std::string, StateSpace::ValueLocation>::const_iterator it = vm.find(name);
+                if (it != vm.end())
+                {
+                    double *val = space_->getValueAddressAtLocation(state_, it->second);
+                    if (val)
+                        return *val;
+                }
+                throw Exception("Name '" + name + "' not known");
             }
 
             /** \brief Access a double value from this state contains using its name. */
             double operator[](const std::string &name) const
             {
-                if (!addressMap_)
-                    const_cast<ScopedState<T>*>(this)->addressMap_.reset(new StateAddress(space_));
-                const double *val = addressMap_->getValueAddressAtName(name, state_);
-                if (!val)
-                    throw Exception("Name '" + name + "' not known");
-                return *val;
+                const std::map<std::string, StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
+                std::map<std::string, StateSpace::ValueLocation>::const_iterator it = vm.find(name);
+                if (it != vm.end())
+                {
+                    const double *val = space_->getValueAddressAtLocation(state_, it->second);
+                    if (val)
+                        return *val;
+                }
+                throw Exception("Name '" + name + "' not known");
             }
 
             /** \brief Compute the distance to another state. */
@@ -409,7 +414,6 @@ namespace ompl
 
             StateSpacePtr                   space_;
             StateSamplerPtr                 sampler_;
-            boost::shared_ptr<StateAddress> addressMap_;
             StateType                      *state_;
         };
 
