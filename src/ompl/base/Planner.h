@@ -389,7 +389,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a planner */
-        typedef boost::function1<PlannerPtr,const SpaceInformationPtr&> PlannerAllocator;
+        typedef boost::function<PlannerPtr(const SpaceInformationPtr&)> PlannerAllocator;
     }
 }
 

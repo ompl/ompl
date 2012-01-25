@@ -319,6 +319,9 @@ class ompl_control_generator_t(code_generator_t):
             'PostPropagationEvent','Post-propagation event')
         self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
             'StatePropagatorFn','State propagator function')
+        # code generation fails for unknown reasons when these two are included:
+        self.ompl_ns.member_functions('getPlannerAllocator').exclude()
+        self.ompl_ns.member_functions('setPlannerAllocator').exclude()
 
         # do this for all classes that exist with the same name in another namespace
         for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'PlannerData', 'SpaceInformation']:
@@ -374,6 +377,9 @@ class ompl_geometric_generator_t(code_generator_t):
         #     'ConnectionStrategy', 'Connection strategy')
         self.add_boost_function('bool(const ompl::geometric::PRM::Vertex&, const ompl::geometric::PRM::Vertex&)',
             'ConnectionFilter', 'Connection filter')
+        # code generation fails for unknown reasons when these two are included:
+        self.ompl_ns.member_functions('getPlannerAllocator').exclude()
+        self.ompl_ns.member_functions('setPlannerAllocator').exclude()
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -452,6 +458,9 @@ class ompl_tools_generator_t(code_generator_t):
         benchmark_cls.member_function('saveResultsToStream').exclude()
         # somehow the generated code for these methods is broken, so remove them
         benchmark_cls.member_functions(lambda method: method.name.startswith('set') and method.name.endswith('Event')).exclude()
+        # code generation fails for unknown reasons when this is included:
+        self.ompl_ns.member_functions('addPlannerAllocator').exclude()
+
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
