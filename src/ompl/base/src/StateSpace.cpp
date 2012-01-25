@@ -107,17 +107,6 @@ ompl::base::StateSpace::~StateSpace(void)
     as.list_.remove(this);
 }
 
-const std::string& ompl::base::StateSpace::getName(void) const
-{
-    return name_;
-}
-
-void ompl::base::StateSpace::setName(const std::string &name)
-{
-    name_ = name;
-    msg_.setPrefix(name_);
-}
-
 /// @cond IGNORE
 namespace ompl
 {
@@ -144,9 +133,9 @@ namespace ompl
             {
                 loc.index = 0;
                 loc.space = s;
-                locationsMap[s->getName()];
-		// if the space is compound, we will find this value again in the first subspace
-		// if the space is a RealVectorStateSpace, the individual dimensions are added instead
+                locationsMap[s->getName()] = loc;
+                // if the space is compound, we will find this value again in the first subspace
+                // if the space is a RealVectorStateSpace, the individual dimensions are added instead
                 if (s->getType() != base::STATE_SPACE_REAL_VECTOR && !s->isCompound())
                     locationsArray.push_back(loc);
             }
@@ -170,9 +159,35 @@ namespace ompl
                         locationsArray.push_back(loc);
                     }
         }
+
+        void computeLocationsHelper(const StateSpace *s, std::vector<StateSpace::ValueLocation> &locationsArray,
+                                    std::map<std::string, StateSpace::ValueLocation> &locationsMap)
+        {
+            locationsArray.clear();
+            locationsMap.clear();
+            computeLocationsHelper(s, locationsArray, locationsMap, StateSpace::ValueLocation());
+        }
     }
 }
 /// @endcond
+
+const std::string& ompl::base::StateSpace::getName(void) const
+{
+    return name_;
+}
+
+void ompl::base::StateSpace::setName(const std::string &name)
+{
+    name_ = name;
+    msg_.setPrefix(name_);
+
+    // we don't want to call this function during the state space construction,
+    // so we check if any values were previously inserted as value locations;
+    // if none were, then we either have none (so no need to call this function again)
+    // or setup() was not yet called
+    if (!valueLocationsInOrder_.empty())
+        computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_);
+}
 
 void ompl::base::StateSpace::computeSignature(std::vector<int> &signature) const
 {
@@ -193,9 +208,7 @@ void ompl::base::StateSpace::setup(void)
     if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
         throw Exception("The longest valid segment for state space " + getName() + " must be positive");
 
-    valueLocationsInOrder_.clear();
-    valueLocationsByName_.clear();
-    computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_, ValueLocation());
+    computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_);
 
     // make sure we don't overwrite projections that have been configured by the user
     std::map<std::string, ProjectionEvaluatorPtr> oldProjections = projections_;
