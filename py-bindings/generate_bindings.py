@@ -295,7 +295,8 @@ class ompl_control_generator_t(code_generator_t):
             self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
             self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
             self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
-        except:
+        except declarations.matcher.declaration_not_found_t:
+            # not available for boost < 1.44, so ignore this
             pass
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
@@ -311,7 +312,8 @@ class ompl_control_generator_t(code_generator_t):
         try:
             self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
                 'ODE','Ordindary differential equation')
-        except:
+        except declarations.matcher.declaration_not_found_t:
+            # not available for boost < 1.44, so ignore this
             pass
         self.add_boost_function('void(const ompl::control::Control*, ompl::base::State*)',
             'PostPropagationEvent','Post-propagation event')
