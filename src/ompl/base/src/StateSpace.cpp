@@ -145,7 +145,9 @@ namespace ompl
                 loc.index = 0;
                 loc.space = s;
                 locationsMap[s->getName()];
-                if (!s->isCompound()) // if the space is compound, we will find this value again in the first subspace
+		// if the space is compound, we will find this value again in the first subspace
+		// if the space is a RealVectorStateSpace, the individual dimensions are added instead
+                if (s->getType() != base::STATE_SPACE_REAL_VECTOR && !s->isCompound())
                     locationsArray.push_back(loc);
             }
             s->freeState(test);
