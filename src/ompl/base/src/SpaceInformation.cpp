@@ -314,6 +314,9 @@ ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSa
 
 double ompl::base::SpaceInformation::probabilityOfValidState(unsigned int attempts) const
 {
+    if (attempts == 0)
+        return 0.0;
+
     unsigned int valid = 0;
     unsigned int invalid = 0;
 
@@ -336,6 +339,10 @@ double ompl::base::SpaceInformation::probabilityOfValidState(unsigned int attemp
 
 double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attempts) const
 {
+    // take the square root here because we in fact have a nested for loop
+    // where each loop executes #attempts steps (the sample() function of the UniformValidStateSampler if a for loop too)
+    attempts = std::max((unsigned int)floor(sqrt((double)attempts) + 0.5), 2u);
+
     StateSamplerPtr ss = allocStateSampler();
     UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
     uvss->setNrAttempts(attempts);

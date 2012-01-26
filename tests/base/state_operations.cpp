@@ -49,27 +49,29 @@ TEST(State, Scoped)
 {
     base::SE3StateSpace *mSE3 = new base::SE3StateSpace();
     base::StateSpacePtr pSE3(mSE3);
-
+    
     base::RealVectorBounds b(3);
     b.setLow(0);
     b.setHigh(1);
     mSE3->setBounds(b);
-
+    mSE3->setup();
 
     base::CompoundStateSpace *mC0 = new base::CompoundStateSpace();
     base::StateSpacePtr pC0(mC0);
     mC0->addSubSpace(pSE3, 1.0);
-
+    mC0->setup();
+    
     base::CompoundStateSpace *mC1 = new base::CompoundStateSpace();
     base::StateSpacePtr pC1(mC1);
     mC1->addSubSpace(pC0, 1.0);
-
+    mC1->setup();
+    
     base::CompoundStateSpace *mC2 = new base::CompoundStateSpace();
     base::StateSpacePtr pC2(mC2);
     mC2->addSubSpace(mSE3->getSubSpace(1), 1.0);
     mC2->addSubSpace(mSE3->getSubSpace(0), 1.0);
-
-
+    mC2->setup();
+    
     base::ScopedState<base::SE3StateSpace> sSE3(pSE3);
     base::ScopedState<base::RealVectorStateSpace> sSE3_R(mSE3->getSubSpace(0));
     base::ScopedState<base::SO3StateSpace> sSE3_SO2(mSE3->getSubSpace(1));

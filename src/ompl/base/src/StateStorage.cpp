@@ -35,15 +35,15 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/StateStorage.h"
-#include "ompl/base/StoredStateSampler.h"
+#include "ompl/base/PrecomputedStateSampler.h"
 #include "ompl/util/Exception.h"
 #include <boost/bind.hpp>
 #include <fstream>
 
 /// @cond IGNORE
-static ompl::base::StateSamplerPtr allocStoredStateSampler(const ompl::base::StateSpace *space,
-                                                           const std::vector<int> &expectedSignature,
-                                                           const std::vector<const ompl::base::State*> *states)
+static ompl::base::StateSamplerPtr allocPrecomputedStateSampler(const ompl::base::StateSpace *space,
+                                                                const std::vector<int> &expectedSignature,
+                                                                const std::vector<const ompl::base::State*> *states)
 {
     std::vector<int> sig;
     space->computeSignature(sig);
@@ -59,7 +59,7 @@ static ompl::base::StateSamplerPtr allocStoredStateSampler(const ompl::base::Sta
             ss << sig[i] << " ";
         throw ompl::Exception(ss.str());
     }
-    return ompl::base::StateSamplerPtr(new ompl::base::StoredStateSampler(space, *states));
+    return ompl::base::StateSamplerPtr(new ompl::base::PrecomputedStateSampler(space, *states));
 }
 
 static const boost::uint32_t OMPL_ARCHIVE_MARKER = 0x4C504D4F; // this spells OMPL
@@ -78,7 +78,7 @@ ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAlloc
 {
     std::vector<int> sig;
     space_->computeSignature(sig);
-    return boost::bind(&allocStoredStateSampler, _1, sig, &states_);
+    return boost::bind(&allocPrecomputedStateSampler, _1, sig, &states_);
 }
 
 void ompl::base::StateStorage::load(const char *filename)

@@ -107,17 +107,6 @@ ompl::base::StateSpace::~StateSpace(void)
     as.list_.remove(this);
 }
 
-const std::string& ompl::base::StateSpace::getName(void) const
-{
-    return name_;
-}
-
-void ompl::base::StateSpace::setName(const std::string &name)
-{
-    name_ = name;
-    msg_.setPrefix(name_);
-}
-
 /// @cond IGNORE
 namespace ompl
 {
@@ -144,9 +133,28 @@ namespace ompl
             {
                 loc.index = 0;
                 loc.space = s;
-                locationsMap[s->getName()];
-                if (!s->isCompound()) // if the space is compound, we will find this value again in the first subspace
+                locationsMap[s->getName()] = loc;
+                // if the space is compound, we will find this value again in the first subspace
+                if (!s->isCompound())
+                {
+                    if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
+                    {
+                        const std::string &name = s->as<base::RealVectorStateSpace>()->getDimensionName(0);
+                        if (!name.empty())
+                            locationsMap[name] = loc;
+                    }
                     locationsArray.push_back(loc);
+                    while (s->getValueAddressAtIndex(test, ++loc.index) != NULL)
+                    {
+                        if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
+                        {
+                            const std::string &name = s->as<base::RealVectorStateSpace>()->getDimensionName(loc.index);
+                            if (!name.empty())
+                                locationsMap[name] = loc;
+                        }
+                        locationsArray.push_back(loc);
+                    }
+                }
             }
             s->freeState(test);
 
@@ -157,20 +165,36 @@ namespace ompl
                     computeLocationsHelper(s->as<base::CompoundStateSpace>()->getSubSpace(i).get(), locationsArray, locationsMap, loc);
                     loc.chain.pop_back();
                 }
-            else
-                if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
-                    for (unsigned int i = 0 ; i < s->getDimension() ; ++i)
-                    {
-                        const std::string &name = s->as<base::RealVectorStateSpace>()->getDimensionName(i);
-                        loc.index = i;
-                        if (!name.empty())
-                            locationsMap[name] = loc;
-                        locationsArray.push_back(loc);
-                    }
+        }
+
+        void computeLocationsHelper(const StateSpace *s, std::vector<StateSpace::ValueLocation> &locationsArray,
+                                    std::map<std::string, StateSpace::ValueLocation> &locationsMap)
+        {
+            locationsArray.clear();
+            locationsMap.clear();
+            computeLocationsHelper(s, locationsArray, locationsMap, StateSpace::ValueLocation());
         }
     }
 }
 /// @endcond
+
+const std::string& ompl::base::StateSpace::getName(void) const
+{
+    return name_;
+}
+
+void ompl::base::StateSpace::setName(const std::string &name)
+{
+    name_ = name;
+    msg_.setPrefix(name_);
+
+    // we don't want to call this function during the state space construction,
+    // so we check if any values were previously inserted as value locations;
+    // if none were, then we either have none (so no need to call this function again)
+    // or setup() was not yet called
+    if (!valueLocationsInOrder_.empty())
+        computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_);
+}
 
 void ompl::base::StateSpace::computeSignature(std::vector<int> &signature) const
 {
@@ -191,9 +215,7 @@ void ompl::base::StateSpace::setup(void)
     if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
         throw Exception("The longest valid segment for state space " + getName() + " must be positive");
 
-    valueLocationsInOrder_.clear();
-    valueLocationsByName_.clear();
-    computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_, ValueLocation());
+    computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_);
 
     // make sure we don't overwrite projections that have been configured by the user
     std::map<std::string, ProjectionEvaluatorPtr> oldProjections = projections_;
@@ -422,6 +444,8 @@ void ompl::base::StateSpace::sanityChecks(void) const
             ss->sampleUniform(s1);
             if (distance(s1, s1) > EPS)
                 throw Exception("Distance from a state to itself should be 0");
+            if (!equalStates(s1, s1))
+                throw Exception("A state should be equal to itself");
             ss->sampleUniform(s2);
             if (!equalStates(s1, s2))
             {
@@ -430,7 +454,10 @@ void ompl::base::StateSpace::sanityChecks(void) const
                     throw Exception("Distance between different states should be above 0");
                 double d21 = distance(s2, s1);
                 if (fabs(d12 - d21) > EPS)
-                    throw Exception("The distance function should be symmetric");
+                    throw Exception("The distance function should be symmetric (A->B=" +
+                                    boost::lexical_cast<std::string>(d12) + ", B->A=" +
+                                    boost::lexical_cast<std::string>(d21) + ", difference is " +
+                                    boost::lexical_cast<std::string>(fabs(d12 - d21)) + ")");
             }
         }
 
@@ -471,7 +498,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
             interpolate(s1, s2, 0.75, s2);
 
             if (distance(s2, s3) > EPS)
-                throw Exception("Continued interpolation does not work as expected");
+                throw Exception("Continued interpolation does not work as expected. Please also check that interpolate() works with overlapping memory for its state arguments");
         }
         freeState(s1);
         freeState(s2);

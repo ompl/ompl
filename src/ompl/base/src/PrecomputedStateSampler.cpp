@@ -34,51 +34,47 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/StateSampler.h"
-#include <vector>
+#include "ompl/base/PrecomputedStateSampler.h"
+#include "ompl/base/StateSpace.h"
+#include "ompl/util/Exception.h"
 
-namespace ompl
+ompl::base::PrecomputedStateSampler::PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states) :
+    StateSampler(space), states_(states), maxNearSamplesAttempts_(3)
 {
-    namespace base
-    {
+    if (states_.empty())
+        throw Exception("Empty set of states to sample from was specified");
+    maxStateIndex_ = states_.size() - 1;
+}
 
-        /** \brief State space sampler for discrete states */
-        class StoredStateSampler : public StateSampler
+void ompl::base::PrecomputedStateSampler::sampleUniform(State *state)
+{
+    space_->copyState(state, states_[rng_.uniformInt(0, maxStateIndex_)]);
+}
+
+void ompl::base::PrecomputedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
+{
+    int index = rng_.uniformInt(0, maxStateIndex_);
+    double dist = space_->distance(near, states_[index]);
+    if (dist > distance)
+        for (unsigned int k = 1 ; k < maxNearSamplesAttempts_ ; ++k)
         {
-        public:
-
-            /** \brief Constructor */
-            StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states);
-
-            virtual void sampleUniform(State *state);
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
-
-            /** \brief When calling sampleUniformNear() or sampleGaussian(), multiple states are drawn uniformly
-                at random, in an attempt to satisfy the requested distance. This function returns the number of attempts. */
-            unsigned int getMaxNearSamplesAttempts(void) const
+            int x = rng_.uniformInt(0, maxStateIndex_);
+            double d = space_->distance(near, states_[x]);
+            if (d <= distance)
             {
-                return maxNearSamplesAttempts_;
+                space_->copyState(state, states_[x]);
+                return;
             }
-
-            /** \brief When calling sampleUniformNear() or sampleGaussian(), multiple states are drawn uniformly
-                at random, in an attempt to satisfy the requested distance. This function sets the number of attempts. */
-            void setMaxNearSamplesAttempts(unsigned int maxNearSamplesAttempts)
+            if (d < dist)
             {
-                if (maxNearSamplesAttempts > 0)
-                    maxNearSamplesAttempts_ = maxNearSamplesAttempts;
+                dist = d;
+                index = x;
             }
+        }
+    space_->copyState(state, states_[index]);
+}
 
-        protected:
-
-            /** \brief The states to sample from */
-            const std::vector<const State*> &states_;
-
-            /** \brief When sampling near-by states, this number decides how many attempts are made to satisfy the desired distance */
-            unsigned int                     maxNearSamplesAttempts_;
-
-        private:
-            std::size_t                      maxStateIndex_;
-        };
-    }
+void ompl::base::PrecomputedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+    sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
 }
