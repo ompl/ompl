@@ -47,7 +47,7 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor */
+            /** \brief Constructor. Takes the state space to be sampled (\e space) and the set of states to draw samples from (\e states) */
             StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states);
 
             virtual void sampleUniform(State *state);

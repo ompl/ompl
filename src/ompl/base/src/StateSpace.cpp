@@ -135,9 +135,26 @@ namespace ompl
                 loc.space = s;
                 locationsMap[s->getName()] = loc;
                 // if the space is compound, we will find this value again in the first subspace
-                // if the space is a RealVectorStateSpace, the individual dimensions are added instead
-                if (s->getType() != base::STATE_SPACE_REAL_VECTOR && !s->isCompound())
+                if (!s->isCompound())
+                {
+                    if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
+                    {
+                        const std::string &name = s->as<base::RealVectorStateSpace>()->getDimensionName(0);
+                        if (!name.empty())
+                            locationsMap[name] = loc;
+                    }
                     locationsArray.push_back(loc);
+                    while (s->getValueAddressAtIndex(test, ++loc.index) != NULL)
+                    {
+                        if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
+                        {
+                            const std::string &name = s->as<base::RealVectorStateSpace>()->getDimensionName(loc.index);
+                            if (!name.empty())
+                                locationsMap[name] = loc;
+                        }
+                        locationsArray.push_back(loc);
+                    }
+                }
             }
             s->freeState(test);
 
@@ -148,16 +165,6 @@ namespace ompl
                     computeLocationsHelper(s->as<base::CompoundStateSpace>()->getSubSpace(i).get(), locationsArray, locationsMap, loc);
                     loc.chain.pop_back();
                 }
-            else
-                if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
-                    for (unsigned int i = 0 ; i < s->getDimension() ; ++i)
-                    {
-                        const std::string &name = s->as<base::RealVectorStateSpace>()->getDimensionName(i);
-                        loc.index = i;
-                        if (!name.empty())
-                            locationsMap[name] = loc;
-                        locationsArray.push_back(loc);
-                    }
         }
 
         void computeLocationsHelper(const StateSpace *s, std::vector<StateSpace::ValueLocation> &locationsArray,
