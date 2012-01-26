@@ -42,8 +42,8 @@
 
 /// @cond IGNORE
 static ompl::base::StateSamplerPtr allocPrecomputedStateSampler(const ompl::base::StateSpace *space,
-								const std::vector<int> &expectedSignature,
-								const std::vector<const ompl::base::State*> *states)
+                                                                const std::vector<int> &expectedSignature,
+                                                                const std::vector<const ompl::base::State*> *states)
 {
     std::vector<int> sig;
     space->computeSignature(sig);

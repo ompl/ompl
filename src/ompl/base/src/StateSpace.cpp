@@ -444,6 +444,8 @@ void ompl::base::StateSpace::sanityChecks(void) const
             ss->sampleUniform(s1);
             if (distance(s1, s1) > EPS)
                 throw Exception("Distance from a state to itself should be 0");
+            if (!equalStates(s1, s1))
+                throw Exception("A state should be equal to itself");
             ss->sampleUniform(s2);
             if (!equalStates(s1, s2))
             {
@@ -452,7 +454,10 @@ void ompl::base::StateSpace::sanityChecks(void) const
                     throw Exception("Distance between different states should be above 0");
                 double d21 = distance(s2, s1);
                 if (fabs(d12 - d21) > EPS)
-                    throw Exception("The distance function should be symmetric");
+                    throw Exception("The distance function should be symmetric (A->B=" +
+                                    boost::lexical_cast<std::string>(d12) + ", B->A=" +
+                                    boost::lexical_cast<std::string>(d21) + ", difference is " +
+                                    boost::lexical_cast<std::string>(fabs(d12 - d21)) + ")");
             }
         }
 
@@ -493,7 +498,7 @@ void ompl::base::StateSpace::sanityChecks(void) const
             interpolate(s1, s2, 0.75, s2);
 
             if (distance(s2, s3) > EPS)
-                throw Exception("Continued interpolation does not work as expected");
+                throw Exception("Continued interpolation does not work as expected. Please also check that interpolate() works with overlapping memory for its state arguments");
         }
         freeState(s1);
         freeState(s2);
