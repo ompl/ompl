@@ -43,12 +43,12 @@ namespace ompl
     {
 
         /** \brief State space sampler for discrete states */
-        class StoredStateSampler : public StateSampler
+        class PrecomputedStateSampler : public StateSampler
         {
         public:
 
             /** \brief Constructor. Takes the state space to be sampled (\e space) and the set of states to draw samples from (\e states) */
-            StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states);
+            PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states);
 
             virtual void sampleUniform(State *state);
             virtual void sampleUniformNear(State *state, const State *near, const double distance);

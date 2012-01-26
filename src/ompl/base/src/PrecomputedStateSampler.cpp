@@ -34,11 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/StoredStateSampler.h"
+#include "ompl/base/PrecomputedStateSampler.h"
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
 
-ompl::base::StoredStateSampler::StoredStateSampler(const StateSpace *space, const std::vector<const State*> &states) :
+ompl::base::PrecomputedStateSampler::PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states) :
     StateSampler(space), states_(states), maxNearSamplesAttempts_(3)
 {
     if (states_.empty())
@@ -46,12 +46,12 @@ ompl::base::StoredStateSampler::StoredStateSampler(const StateSpace *space, cons
     maxStateIndex_ = states_.size() - 1;
 }
 
-void ompl::base::StoredStateSampler::sampleUniform(State *state)
+void ompl::base::PrecomputedStateSampler::sampleUniform(State *state)
 {
     space_->copyState(state, states_[rng_.uniformInt(0, maxStateIndex_)]);
 }
 
-void ompl::base::StoredStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
+void ompl::base::PrecomputedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
     int index = rng_.uniformInt(0, maxStateIndex_);
     double dist = space_->distance(near, states_[index]);
@@ -74,7 +74,7 @@ void ompl::base::StoredStateSampler::sampleUniformNear(State *state, const State
     space_->copyState(state, states_[index]);
 }
 
-void ompl::base::StoredStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+void ompl::base::PrecomputedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
     sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
 }
