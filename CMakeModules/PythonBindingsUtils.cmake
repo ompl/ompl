@@ -94,8 +94,17 @@ function(create_module_target module dir)
         else()
             set(_dest_dir "${dir}/ompl")
         endif()
-        add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
-        set_target_properties(py_ompl_${module} PROPERTIES OUTPUT_NAME _${module})
+        if(WIN32)
+            # If this is built as a 'module', the compiler complains upon link,
+            # complaining that the symbol WinMain is undefined.
+            # Python on windows will NOT read this file unless the extension is .pyd
+            add_library(py_ompl_${module} SHARED ${PY${module}BINDINGS})
+            set_target_properties(py_ompl_${module} PROPERTIES OUTPUT_NAME ${module} PREFIX _ SUFFIX .pyd)
+        else(WIN32)
+            add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
+            set_target_properties(py_ompl_${module} PROPERTIES OUTPUT_NAME _${module})
+        endif(WIN32)
+       
         target_link_libraries(py_ompl_${module}
             ompl
             ${_extra_libs}
@@ -103,11 +112,19 @@ function(create_module_target module dir)
             ${PYTHON_LIBRARIES})
         add_dependencies(py_ompl py_ompl_${module})
         get_target_property(PY${module}_NAME py_ompl_${module} LOCATION)
-        add_custom_command(TARGET py_ompl_${module} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy "${PY${module}_NAME}"
-            "${_dest_dir}/${module}/_${module}${CMAKE_SHARED_MODULE_SUFFIX}"
-            WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
-            COMMENT "Copying python module ${module} into place")
+        if(WIN32)
+            add_custom_command(TARGET py_ompl_${module} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy "${PY${module}_NAME}"
+                "${_dest_dir}/${module}/_${module}.pyd"
+                WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
+                COMMENT "Copying python module ${module} into place")
+        else(WIN32)
+            add_custom_command(TARGET py_ompl_${module} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy "${PY${module}_NAME}"
+                "${_dest_dir}/${module}/_${module}${CMAKE_SHARED_MODULE_SUFFIX}"
+                WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
+                COMMENT "Copying python module ${module} into place")
+        endif(WIN32)
         install(TARGETS py_ompl_${module} DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl/${module}/")
         include_directories("${dir}/bindings/${module}" "${dir}")
     else(NUM_SOURCE_FILES GREATER 0)

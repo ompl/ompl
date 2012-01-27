@@ -62,7 +62,9 @@ else(OMPL_IN_ROS)
         ${Boost_DATE_TIME_LIBRARY}
         ${OMPL_LINK_LIBRARIES}
     )
+    
     if(WIN32)
+      target_link_libraries(ompl ws2_32 psapi)
       set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}")
     else(WIN32)
       set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
