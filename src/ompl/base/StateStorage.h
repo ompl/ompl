@@ -59,6 +59,12 @@ namespace ompl
             StateStorage(const StateSpacePtr &space);
             ~StateStorage(void);
 
+	    /** \brief Get the state space this class maintains states for */
+	    const StateSpacePtr& getStateSpace(void) const
+	    {
+		return space_;
+	    }
+	    
             /** \brief Load a set of states from a specified file */
             void load(const char *filename);
 
