@@ -34,6 +34,9 @@
 
 /* Author: Ioan Sucan */
 
+#ifndef OMPL_BASE_STATE_STORAGE_
+#define OMPL_BASE_STATE_STORAGE_
+
 #include "ompl/base/StateSpace.h"
 #include <iostream>
 
@@ -41,6 +44,11 @@ namespace ompl
 {
     namespace base
     {
+
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::StateStorage */
+        ClassForward(StateStorage);
+        /// @endcond
 
         /** \brief Manage loading and storing for a set of states of a specified state space */
         class StateStorage
@@ -112,3 +120,4 @@ namespace ompl
 
     }
 }
+#endif
