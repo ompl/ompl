@@ -319,9 +319,14 @@ class ompl_control_generator_t(code_generator_t):
             'PostPropagationEvent','Post-propagation event')
         self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
             'StatePropagatorFn','State propagator function')
-        # code generation fails for unknown reasons when these two are included:
+        # code generation fails because of same bug in gxxcml that requires us
+        # to patch the generated code with workaround_for_gccxml_bug.cmake
         self.ompl_ns.member_functions('getPlannerAllocator').exclude()
         self.ompl_ns.member_functions('setPlannerAllocator').exclude()
+        self.ompl_ns.namespace('control').class_('SimpleSetup').add_registration_code(
+            'def("setPlannerAllocator", &ompl::control::SimpleSetup::setPlannerAllocator)')
+        self.ompl_ns.namespace('control').class_('SimpleSetup').add_registration_code(
+            'def("getPlannerAllocator", &ompl::control::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
         # do this for all classes that exist with the same name in another namespace
         for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'PlannerData', 'SpaceInformation']:
@@ -377,9 +382,14 @@ class ompl_geometric_generator_t(code_generator_t):
         #     'ConnectionStrategy', 'Connection strategy')
         self.add_boost_function('bool(const ompl::geometric::PRM::Vertex&, const ompl::geometric::PRM::Vertex&)',
             'ConnectionFilter', 'Connection filter')
-        # code generation fails for unknown reasons when these two are included:
+        # code generation fails because of same bug in gxxcml that requires us
+        # to patch the generated code with workaround_for_gccxml_bug.cmake
         self.ompl_ns.member_functions('getPlannerAllocator').exclude()
         self.ompl_ns.member_functions('setPlannerAllocator').exclude()
+        self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
+            'def("setPlannerAllocator", &ompl::geometric::SimpleSetup::setPlannerAllocator)')
+        self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
+            'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -456,11 +466,24 @@ class ompl_tools_generator_t(code_generator_t):
             , bp::wrapper< ompl::Benchmark >(){}""")
         # don't want to export iostream
         benchmark_cls.member_function('saveResultsToStream').exclude()
-        # somehow the generated code for these methods is broken, so remove them
-        benchmark_cls.member_functions(lambda method: method.name.startswith('set') and method.name.endswith('Event')).exclude()
-        # code generation fails for unknown reasons when this is included:
+        # code generation fails because of same bug in gxxcml that requires us
+        # to patch the generated code with workaround_for_gccxml_bug.cmake
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
-
+        benchmark_cls.member_functions(lambda method: method.name.startswith('set') and method.name.endswith('Event')).exclude()
+        benchmark_cls.add_registration_code(
+            'def("addPlannerAllocator", &ompl::Benchmark::addPlannerAllocator)')
+        self.ompl_ns.class_('OptimizePlan').add_registration_code(
+            'def("addPlannerAllocator", &ompl::OptimizePlan::addPlannerAllocator)')
+        benchmark_cls.add_registration_code(
+            'def("setPlannerSwitchEvent", &ompl::Benchmark::setPlannerSwitchEvent)')
+        benchmark_cls.add_registration_code(
+            'def("setPreRunEvent", &ompl::Benchmark::setPreRunEvent)')
+        benchmark_cls.add_registration_code(
+            'def("setPostRunEvent", &ompl::Benchmark::setPostRunEvent)')
+        self.add_boost_function('void(const ompl::base::PlannerPtr&)',
+            'PreSetupEvent', 'Pre-setup event')
+        self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::Benchmark::RunProperties&)',
+            'PostSetupEvent', 'Post-setup event')
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):

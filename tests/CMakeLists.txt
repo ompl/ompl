@@ -35,6 +35,18 @@ if(OMPL_BUILD_TESTS)
       add_ompl_python_test(geometric/test_geometric.py)
       add_ompl_python_test(geometric/test_geometric_compoundstate.py)
       add_ompl_python_test(control/test_control.py)
+
+      # test the python function to boost::function conversion utility functions
+      include_directories(${PYTHON_INCLUDE_DIRS})
+      add_library(py_boost_function MODULE util/test_py_boost_function.cpp)
+      target_link_libraries(py_boost_function ompl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
+      get_target_property(PYBOOSTFUNCTION_NAME py_boost_function LOCATION)
+      add_custom_command(TARGET py_boost_function POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy "${PYBOOSTFUNCTION_NAME}"
+          "${CMAKE_CURRENT_SOURCE_DIR}/util"
+          WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+      add_ompl_python_test(util/test_py_boost_function.py)
+
     endif()
 
 endif(OMPL_BUILD_TESTS)
