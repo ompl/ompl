@@ -3,14 +3,15 @@
 
 Almost all of the functionality of the C++ OMPL library is accessible through Python using more or less the same API. Some important differences will be described below. The Python bindings are generated with <a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>, which relies on <a href="http://www.boost.org/doc/libs/release/libs/python/doc">Boost.Python</a>. The bindings are packaged in the ompl module. The main namespaces (ompl::base, ompl::control, ompl::geometric) are available as sub-modules. To quickly get an idea of what classes, functions, etc., are available within each submodule, type something like this at the Python prompt:
 \code
->>> from ompl import base, control, geometric, util
->>> dir(base), dir(control), dir(geometric), dir(util)
+>>> from ompl import base, control, geometric, tools, util
+>>> dir(base), dir(control), dir(geometric), dir(tools), dir(util)
 \endcode
 
-\par Contents:
+\section pycontents Contents:
 - \ref cpp_py_diffs "Important differences between C++ and Python"
 - \ref py_api_diffs "Differences between the C++ and Python API's"
 - \ref py_example "A simple example"
+- \ref pyfunction_to_boostfunction
 - \ref updating_python_bindings "Updating the Python bindings"
 .
 
@@ -35,11 +36,6 @@ sref.setX(1.0)         # set the X coordinate
 s().setX(1.0)          # this also works
 \endcode
 - The print method (for classes that have one) is mapped to the special python method __str__, so a C++ call like <tt>foo.print(std::cout)</tt> becomes <tt>print foo</tt> in python. Similarly, a C++ call like <tt>foo.printSettings(std::cout)</tt> becomes <tt>print foo.settings()</tt> in python.
-- The signature of the state validity checker is changed. In python the state validity checker has the following form:
-\code
-def isStateValid(spaceInformation, state):
-    return spaceInformation.satiesfiesBounds(state)
-\endcode
 .
 Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code.
 
@@ -51,7 +47,7 @@ Below is a simple annotated example. It is available in ompl/py-bindings/demos/R
 from ompl import base as ob
 from ompl import geometric as og
 
-def isStateValid(spaceInformation, state):
+def isStateValid(state):
     # "state" is of type SE2StateInternal, so we don't need to use the "()"
     # operator.
     #
@@ -72,7 +68,7 @@ def plan():
 
     # create a simple setup object
     ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(isStateValid)
+    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 
     start = ob.State(space)
     # we can pick a random start state...
@@ -101,6 +97,26 @@ def plan():
 
 if __name__ == "__main__":
     plan()
+\endcode
+
+\section pyfunction_to_boostfunction Creating boost::function objects from Python functions
+
+OMPL relies heavily on boost::function objects for callback functions. To specify a Python function as a callback function, that function needs to be cast to the right function type. The simple example above already showed how to do this for a state validity checker function:
+\code
+    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
+\endcode
+If you need to pass extra arguments to a function, you can use the Python \c partial function like so:
+\code
+    from functools import partial
+
+    def isStateValid(spaceInformation, state):
+        return spaceInformation.satiesfiesBounds(state)
+
+    def plan()
+        ...
+        isValidFn = ob.StateValidityCheckerFn(partial(isStateValid, ss.getSpaceInformation()))
+        ss.setStateValidityChecker(isValidFn)
+        ...
 \endcode
 
 \section updating_python_bindings (Re)generating the Python bindings

@@ -212,20 +212,23 @@ void def_function(const char* func_name, const char* func_doc)
     ;
 } // def_function
 
-#define PYDECLARE_FUNCTION(FT, func_name)                                                              \
-namespace detail                                                                                       \
-{                                                                                                      \
-    boost::function<FT> func_name(boost::python::object o)                                             \
-    {                                                                                                  \
-        return detail::pyobject_invoker<FT, boost::function_traits<FT>::result_type,                   \
-            boost::function_traits< FT >::arity>(o);                                                   \
-    }                                                                                                  \
+#define PYDECLARE_FUNCTION(FT, func_name)                                                      \
+namespace detail                                                                               \
+{                                                                                              \
+    boost::function<FT> func_name(boost::python::object o)                                     \
+    {                                                                                          \
+        return detail::pyobject_invoker<FT, boost::function_traits<FT>::result_type,           \
+            boost::function_traits< FT >::arity>(o);                                           \
+    }                                                                                          \
 }
 
-#define PYREGISTER_FUNCTION(FT,func_name,func_doc)                                                     \
-    BOOST_STATIC_ASSERT( boost::function_types::is_function< FT >::value );                            \
-    boost::python::def(BOOST_PP_STRINGIZE(func_name), &detail::func_name, func_doc);                   \
-    def_function<FT>(BOOST_PP_STRINGIZE(func_name##_t), func_doc);
+#define PYREGISTER_FUNCTION(FT,func_name,func_doc)                                             \
+    BOOST_STATIC_ASSERT( boost::function_types::is_function< FT >::value );                    \
+    boost::python::def(BOOST_PP_STRINGIZE(func_name), &detail::func_name, func_doc);           \
+    def_function<FT>(BOOST_PP_STRINGIZE(func_name##_t), func_doc);                             \
+    boost::python::implicitly_convertible<boost::python::object,                               \
+        detail::pyobject_invoker<FT, boost::function_traits<FT>::result_type,                  \
+            boost::function_traits< FT >::arity> >();
 
 #endif // PY_BINDINGS_PY_BOOST_FUNCTION_
 
