@@ -311,10 +311,10 @@ class ompl_control_generator_t(code_generator_t):
             'DirectedControlSamplerAllocator','Directed control sampler allocator')
         try:
             # self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-            #     'ODE','Ordindary differential equation')
+            #     'ODE','Ordinary differential equation')
             # Somehow, Py++ changes the type of the ODE's first argument. Weird...
             self.add_boost_function('void(ompl::control::ODESolver::StateType, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-                'ODE','Ordindary differential equation')
+                'ODE','Ordinary differential equation')
         except declarations.matcher.declaration_not_found_t:
             # not available for boost < 1.44, so ignore this
             pass
