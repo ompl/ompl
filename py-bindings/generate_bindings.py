@@ -295,6 +295,11 @@ class ompl_control_generator_t(code_generator_t):
             self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
             self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
             self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
+            # self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+            #     'ODE','Ordinary differential equation')
+            # Somehow, Py++ changes the type of the ODE's first argument. Weird...
+            self.add_boost_function('void(ompl::control::ODESolver::StateType, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+                'ODE','Ordinary differential equation')
         except declarations.matcher.declaration_not_found_t:
             # not available for boost < 1.44, so ignore this
             pass
@@ -309,15 +314,6 @@ class ompl_control_generator_t(code_generator_t):
             'ControlSamplerAllocator', 'Control sampler allocator')
         self.add_boost_function('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
             'DirectedControlSamplerAllocator','Directed control sampler allocator')
-        try:
-            # self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-            #     'ODE','Ordinary differential equation')
-            # Somehow, Py++ changes the type of the ODE's first argument. Weird...
-            self.add_boost_function('void(ompl::control::ODESolver::StateType, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-                'ODE','Ordinary differential equation')
-        except declarations.matcher.declaration_not_found_t:
-            # not available for boost < 1.44, so ignore this
-            pass
         self.add_boost_function('void(const ompl::control::Control*, ompl::base::State*)',
             'PostPropagationEvent','Post-propagation event')
         self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
