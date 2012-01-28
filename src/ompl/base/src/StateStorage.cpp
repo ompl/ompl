@@ -98,7 +98,7 @@ bool ompl::base::StateStorage::loadHeader(std::istream &in, Header &header)
 
     // check marker
     boost::uint32_t marker = 0;
-    in.read((char*)&marker, sizeof(uint32_t));
+    in.read((char*)&marker, sizeof(boost::uint32_t));
     if (marker != OMPL_ARCHIVE_MARKER)
     {
         msg_.error("The stored data does not start with the correct header");
