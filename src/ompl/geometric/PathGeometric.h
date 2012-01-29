@@ -67,6 +67,9 @@ namespace ompl
             /** \brief Construct a path instance from a single state */
             PathGeometric(const base::SpaceInformationPtr &si, const base::State *state);
 
+            /** \brief Construct a path instance from two states (thus making a segment) */
+            PathGeometric(const base::SpaceInformationPtr &si, const base::State *state1, const base::State *state2);
+
             virtual ~PathGeometric(void)
             {
                 freeMemory();

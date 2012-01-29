@@ -53,11 +53,21 @@ ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &s
     states[0] = si_->cloneState(state);
 }
 
+ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &si, const base::State *state1, const base::State *state2) : base::Path(si)
+{
+    states.resize(2);
+    states[0] = si_->cloneState(state1);
+    states[1] = si_->cloneState(state2);
+}
+
 ompl::geometric::PathGeometric& ompl::geometric::PathGeometric::operator=(const PathGeometric &other)
 {
-    freeMemory();
-    si_ = other.si_;
-    copyFrom(other);
+    if (this != &other)
+    {
+        freeMemory();
+        si_ = other.si_;
+        copyFrom(other);
+    }
     return *this;
 }
 
@@ -82,7 +92,7 @@ double ompl::geometric::PathGeometric::length(void) const
     return L;
 }
 
-double ompl::geometric::PathGeometric::clearance (void) const
+double ompl::geometric::PathGeometric::clearance(void) const
 {
     double c = 0.0;
     for (unsigned int i = 0 ; i < states.size() ; ++i)
