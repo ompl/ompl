@@ -641,7 +641,7 @@ ompl::base::ReedsSheppStateSpace::ReedsSheppPath ompl::base::ReedsSheppStateSpac
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, c = cos(th1), s = sin(th1);
     double x = c*dx + s*dy, y = -s*dx + c*dy, phi = th2 - th1;
-    return ::reedsShepp(x, y, phi, true);
+    return ::reedsShepp(x/rho_, y/rho_, phi, true);
 }
 
 
