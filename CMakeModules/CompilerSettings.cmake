@@ -2,6 +2,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
+if(MSVC OR MSVC90 OR MSVC10)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /W1")
+endif(MSVC OR MSVC90 OR MSVC10)
+
 string(REGEX MATCH ".*icpc" IS_ICPC ${CMAKE_CXX_COMPILER})
 if(IS_ICPC)
     set(CMAKE_AR "xiar" CACHE STRING "Intel archiver" FORCE)

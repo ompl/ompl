@@ -35,7 +35,7 @@ else(OMPL_IN_ROS)
 
     if(MSVC)
         add_definitions(-DBOOST_ALL_NO_LIB)
-    endif()
+    endif(MSVC)
     enable_testing()
 
     # ODE is only needed for Open Dynamics Engine bindings
