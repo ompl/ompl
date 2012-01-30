@@ -50,7 +50,7 @@ if(OMPL_IN_ROS)
     rosbuild_add_library(ompl ${OMPL_SOURCE_CODE})
     rosbuild_add_compile_flags(ompl -Wextra)
     rosbuild_add_compile_flags(ompl ${SSE_FLAGS})
-    rosbuild_link_boost(ompl thread date_time)
+    rosbuild_link_boost(ompl thread date_time serialization)
 else(OMPL_IN_ROS)
     if(MSVC)
         add_library(ompl STATIC ${OMPL_SOURCE_CODE})
@@ -60,6 +60,7 @@ else(OMPL_IN_ROS)
     target_link_libraries(ompl
         ${Boost_THREAD_LIBRARY}
         ${Boost_DATE_TIME_LIBRARY}
+        ${Boost_SERIALIZATION_LIBRARY}
         ${OMPL_LINK_LIBRARIES}
     )
     if(WIN32)

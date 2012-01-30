@@ -84,7 +84,7 @@ TEST(ReedsShepp, Simple)
     bounds2.setLow(0);
     bounds2.setHigh(1);
     d->as<base::ReedsSheppStateSpace>()->setBounds(bounds2);
-    
+
     d->setup();
     d->sanityChecks();
 }
