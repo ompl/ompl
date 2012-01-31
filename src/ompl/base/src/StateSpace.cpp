@@ -298,6 +298,18 @@ const double* ompl::base::StateSpace::getValueAddressAtLocation(const State *sta
     return loc.space->getValueAddressAtIndex(state, loc.index);
 }
 
+double* ompl::base::StateSpace::getValueAddressAtName(State *state, const std::string &name) const
+{
+    std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
+    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : NULL;
+}
+
+const double* ompl::base::StateSpace::getValueAddressAtName(const State *state, const std::string &name) const
+{
+    std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
+    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : NULL;
+}
+
 unsigned int ompl::base::StateSpace::getSerializationLength(void) const
 {
     return 0;

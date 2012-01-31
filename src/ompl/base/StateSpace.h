@@ -169,6 +169,39 @@ namespace ompl
                 return params_;
             }
 
+            /** \brief When performing discrete validation of motions,
+                the length of the longest segment that does not
+                require state validation needs to be specified. This
+                function returns this length, for this state space, as a
+                fraction of the space's maximum extent. */
+            virtual double getLongestValidSegmentFraction(void) const;
+
+            /** \brief When performing discrete validation of motions,
+                the length of the longest segment that does not
+                require state validation needs to be specified. This
+                function sets this length as a fraction of the
+                space's maximum extent.
+
+                \note This function's effect is not considered until
+                after setup() has been called. For immediate effects
+                (i.e., during planning) use
+                setValidSegmentCountFactor() */
+            virtual void setLongestValidSegmentFraction(double segmentFraction);
+
+            /** \brief Count how many segments of the "longest valid length" fit on the motion from \e state1 to \e state2 */
+            virtual unsigned int validSegmentCount(const State *state1, const State *state2) const;
+
+            /** \brief Set \e factor to be the value to multiply the
+                return value of validSegmentCount(). By default, this
+                value is 1. The higher the value, the smaller the size
+                of the segments considered valid. The effect of this
+                function is immediate (setup() does not need to be
+                called). */
+            void setValidSegmentCountFactor(unsigned int factor);
+
+            /** \brief Get the value used to multiply the return value of validSegmentCount().*/
+            unsigned int getValidSegmentCountFactor(void) const;
+
             /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
                 The first element of the signature is the number of integers that follow */
             void computeSignature(std::vector<int> &signature) const;
@@ -204,42 +237,6 @@ namespace ompl
                 metric and its return value will always be between 0 and getMaximumExtent() */
             virtual double distance(const State *state1, const State *state2) const = 0;
 
-            /** \brief Many states contain a number of double values. This function provides a means to get the
-                memory address of a double value from state \e state located at position \e index. The first double value
-                is returned for \e index = 0. If \e index is too large (does not point to any double values in the state),
-                the return value is NULL.
-
-                \note This function does @b not map a state to an
-                array of doubles. There may be components of a state
-                that do not correspond to double values and they are
-                'invisible' to this function. Furthermore, this
-                function is slow and is not intended for use in the
-                implementation of planners. */
-            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
-
-            /** \brief Const variant of the same function as above; */
-            const double* getValueAddressAtIndex(const State *state, const unsigned int index) const;
-
-            /** \brief Get the locations of values of type double contained in a state from this space. The order of the values is
-                consistent with getValueAddressAtIndex(). The setup() function must have been previously called. */
-            const std::vector<ValueLocation>& getValueLocations(void) const;
-
-            /** \brief Get the named locations of values of type double contained in a state from this space.
-                The setup() function must have been previously called. */
-            const std::map<std::string, ValueLocation>& getValueLocationsByName(void) const;
-
-            /** \brief Get a pointer to the double value in \e state that \e loc points to */
-            double* getValueAddressAtLocation(State *state, const ValueLocation &loc) const;
-
-            /** \brief Const variant of the same function as above; */
-            const double* getValueAddressAtLocation(const State *state, const ValueLocation &loc) const;
-
-            /** \brief Copy all the real values from a state \e source to the array \e reals */
-            void copyToReals(std::vector<double> &reals, const State *source) const;
-
-            /** \brief Copy the values from \e reals to the state \e destination */
-            void copyFromReals(State *destination, const std::vector<double> &reals) const;
-
             /** \brief Get the number of chars in the serialization of a state in this space */
             virtual unsigned int getSerializationLength(void) const;
 
@@ -248,39 +245,6 @@ namespace ompl
 
             /** \brief Read the binary representation of a state from \e serialization and write it to \e state */
             virtual void deserialize(State *state, const void *serialization) const;
-
-            /** \brief When performing discrete validation of motions,
-                the length of the longest segment that does not
-                require state validation needs to be specified. This
-                function returns this length, for this state space, as a
-                fraction of the space's maximum extent. */
-            virtual double getLongestValidSegmentFraction(void) const;
-
-            /** \brief When performing discrete validation of motions,
-                the length of the longest segment that does not
-                require state validation needs to be specified. This
-                function sets this length as a fraction of the
-                space's maximum extent.
-
-                \note This function's effect is not considered until
-                after setup() has been called. For immediate effects
-                (i.e., during planning) use
-                setValidSegmentCountFactor() */
-            virtual void setLongestValidSegmentFraction(double segmentFraction);
-
-            /** \brief Count how many segments of the "longest valid length" fit on the motion from \e state1 to \e state2 */
-            virtual unsigned int validSegmentCount(const State *state1, const State *state2) const;
-
-            /** \brief Set \e factor to be the value to multiply the
-                return value of validSegmentCount(). By default, this
-                value is 1. The higher the value, the smaller the size
-                of the segments considered valid. The effect of this
-                function is immediate (setup() does not need to be
-                called). */
-            void setValidSegmentCountFactor(unsigned int factor);
-
-            /** \brief Get the value used to multiply the return value of validSegmentCount().*/
-            unsigned int getValidSegmentCountFactor(void) const;
 
             /** \brief Checks whether two states are equal */
             virtual bool equalStates(const State *state1, const State *state2) const = 0;
@@ -312,6 +276,53 @@ namespace ompl
 
             /** @} */
 
+            /** @name Functionality specific to accessing real values in a state
+                @{ */
+
+            /** \brief Many states contain a number of double values. This function provides a means to get the
+                memory address of a double value from state \e state located at position \e index. The first double value
+                is returned for \e index = 0. If \e index is too large (does not point to any double values in the state),
+                the return value is NULL.
+
+                \note This function does @b not map a state to an
+                array of doubles. There may be components of a state
+                that do not correspond to double values and they are
+                'invisible' to this function. Furthermore, this
+                function is @b slow and is not intended for use in the
+                implementation of planners. Ideally, state values should not be accessed by index. If accessing of individual state elements
+                is however needed, getValueAddressAtLocation() provides a faster implementation. */
+            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
+
+            /** \brief Const variant of the same function as above; */
+            const double* getValueAddressAtIndex(const State *state, const unsigned int index) const;
+
+            /** \brief Get the locations of values of type double contained in a state from this space. The order of the values is
+                consistent with getValueAddressAtIndex(). The setup() function must have been previously called. */
+            const std::vector<ValueLocation>& getValueLocations(void) const;
+
+            /** \brief Get the named locations of values of type double contained in a state from this space.
+                The setup() function must have been previously called. */
+            const std::map<std::string, ValueLocation>& getValueLocationsByName(void) const;
+
+            /** \brief Get a pointer to the double value in \e state that \e loc points to */
+            double* getValueAddressAtLocation(State *state, const ValueLocation &loc) const;
+
+            /** \brief Const variant of the same function as above; */
+            const double* getValueAddressAtLocation(const State *state, const ValueLocation &loc) const;
+
+            /** \brief Get a pointer to the double value in \e state that \e name points to */
+            double* getValueAddressAtName(State *state, const std::string &name) const;
+
+            /** \brief Const variant of the same function as above; */
+            const double* getValueAddressAtName(const State *state, const std::string &name) const;
+
+            /** \brief Copy all the real values from a state \e source to the array \e reals using getValueAddressAtLocation() */
+            void copyToReals(std::vector<double> &reals, const State *source) const;
+
+            /** \brief Copy the values from \e reals to the state \e destination using getValueAddressAtLocation() */
+            void copyFromReals(State *destination, const std::vector<double> &reals) const;
+
+            /** @} */
 
             /** @name Management of projections from this state space to Euclidean spaces
                 @{ */
