@@ -24,8 +24,13 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
     set(PY_OMPL_COMPILE ON CACHE BOOL
         "Whether the OMPL Python modules can be built")
     mark_as_advanced(PY_OMPL_COMPILE)
+    if(WIN32)
+    set(OMPL_PYTHON_INSTALL_DIR "ompl/py-bindings" CACHE STRING
+        "Path to directory where OMPL python modules will be installed")
+    else(WIN32)
     set(OMPL_PYTHON_INSTALL_DIR "${PYTHON_SITE_MODULES}" CACHE STRING
         "Path to directory where OMPL python modules will be installed")
+    endif(WIN32)
 endif()
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
     AND PY_PYGCCXML AND GCCXML)

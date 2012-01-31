@@ -72,8 +72,10 @@ endif(OMPL_IN_ROS)
 
 # install the library
 install(TARGETS ompl DESTINATION lib/)
-get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
-add_custom_command(TARGET ompl POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${OMPL_LIBRARY_LOC}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}"
-    WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+if(!MSVC AND !MSVC90 AND !MSVC10)
+    get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
+    add_custom_command(TARGET ompl POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${OMPL_LIBRARY_LOC}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+endif(!MSVC AND !MSVC90 AND !MSVC10)
