@@ -8,7 +8,7 @@ install(DIRECTORY ompl DESTINATION include
     REGEX "/doc$" EXCLUDE
     REGEX "/tests$" EXCLUDE)
     
-install(DIRECTORY external/boost DESTINATION include)
+install(DIRECTORY external/omplext_odeint DESTINATION include)
 
 # Add target to install Py++ and its dependencies pygccxml and gccxml
 # (This won't work on Windows, since there is no "patch" command.)
