@@ -52,11 +52,11 @@ if(OMPL_IN_ROS)
     rosbuild_add_compile_flags(ompl ${SSE_FLAGS})
     rosbuild_link_boost(ompl thread date_time serialization)
 else(OMPL_IN_ROS)
-    if(MSVC)
+    if(MSVC OR IS_ICPC)
         add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-    else(MSVC)
+    else(MSVC OR IS_ICPC)
         add_library(ompl SHARED ${OMPL_SOURCE_CODE})
-    endif(MSVC)
+    endif(MSVC OR IS_ICPC)
     target_link_libraries(ompl
         ${Boost_THREAD_LIBRARY}
         ${Boost_DATE_TIME_LIBRARY}

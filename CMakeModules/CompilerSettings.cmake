@@ -5,9 +5,9 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 string(REGEX MATCH ".*icpc" IS_ICPC ${CMAKE_CXX_COMPILER})
 if(IS_ICPC)
     set(CMAKE_AR "xiar" CACHE STRING "Intel archiver" FORCE)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ipo -no-prec-div -xP -DNDEBUG -g"
+    set(CMAKE_CXX_FLAGS_RELEASE "-fast -DNDEBUG -pthread"
     CACHE STRING "Flags used by the C++ compiler during release builds." FORCE)
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING
+    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -pthread" CACHE STRING
     "Flags used by the C++ compiler during debug builds." FORCE)
 endif(IS_ICPC)
 
