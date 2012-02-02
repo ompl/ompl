@@ -440,6 +440,11 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
     out << '}' << std::endl;
 }
 
+void ompl::base::StateSpace::sanityChecks(void) const
+{
+    sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), ~0);
+}
+
 void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int flags) const
 {
     // Test that distances are always positive

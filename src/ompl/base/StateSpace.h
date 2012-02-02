@@ -51,15 +51,6 @@
 #include <string>
 #include <map>
 
-// Flags to use in a bit mask for state space sanity checks
-#define STATESPACE_DISTANCE_TO_SELF          (1<<0)
-#define STATESPACE_EQUAL_TO_SELF             (1<<1)
-#define STATESPACE_DISTANCE_POSITIVE         (1<<2)
-#define STATESPACE_DISTANCE_DIFFERENT_STATES (1<<3)
-#define STATESPACE_DISTANCE_SYMMETRIC        (1<<4)
-#define STATESPACE_INTERPOLATION             (1<<5)
-#define STATESPACE_TRIANGLE_INEQUALITY       (1<<6)
-
 namespace ompl
 {
     namespace base
@@ -127,6 +118,18 @@ namespace ompl
                 /** \brief The index of the value to be accessed, within the space above */
                 std::size_t              index;
             };
+
+            /** \brief Flags to use in a bit mask for state space sanity checks */
+            enum SanityChecks
+                {
+                    STATESPACE_DISTANCE_TO_SELF          = (1<<0),
+                    STATESPACE_EQUAL_TO_SELF             = (1<<1),
+                    STATESPACE_DISTANCE_POSITIVE         = (1<<2),
+                    STATESPACE_DISTANCE_DIFFERENT_STATES = (1<<3),
+                    STATESPACE_DISTANCE_SYMMETRIC        = (1<<4),
+                    STATESPACE_INTERPOLATION             = (1<<5),
+                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<6)
+                };
 
             /** @name Generic functionality for state spaces
                 @{ */
@@ -376,14 +379,11 @@ namespace ompl
             virtual void printProjections(std::ostream &out) const;
 
             /** \brief Perform sanity checks for this state space. Throws an exception if failures are found.
-                \note This checks if distances are always positive, whether the integration works as expected. */
-            virtual void sanityChecks(void) const
-            {
-                sanityChecks(std::numeric_limits<double>::epsilon(),
-                    std::numeric_limits<float>::epsilon(), ~0);
-            }
+                \note This checks if distances are always positive, whether the integration works as expected, etc. */
+            virtual void sanityChecks(void) const;
+
             /** \brief Convenience function that allows derived state spaces to choose which checks
-                should pass and how strict the checks are. */
+                should pass (see SanityChecks flags) and how strict the checks are. */
             virtual void sanityChecks(double zero, double eps, unsigned int flags) const;
 
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
