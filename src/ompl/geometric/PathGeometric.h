@@ -135,7 +135,7 @@ namespace ompl
 
                 \note This method attempts to get to the maximum velocity as quickly as possible, while staying within
                 acceleration limits. */
-            void computeFastTimeParametrization(double maxVel, double maxAcc, std::vector<double> &times, unsigned int maxSteps = 10);
+            void computeFastTimeParametrization(double maxVel, double maxAcc, std::vector<double> &times, unsigned int maxSteps = 10) const;
 
             /** \brief Overlay the path \e over on top of the current
                 path. States are added to the current path if needed
