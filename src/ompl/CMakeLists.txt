@@ -52,30 +52,33 @@ if(OMPL_IN_ROS)
     rosbuild_add_compile_flags(ompl ${SSE_FLAGS})
     rosbuild_link_boost(ompl thread date_time)
 else(OMPL_IN_ROS)
-    if(MSVC OR MSVC90 OR MSVC10)
+    if(MSVC)
         add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-    else(MSVC OR MSVC90 OR MSVC10)
+    else(MSVC)
         add_library(ompl SHARED ${OMPL_SOURCE_CODE})
-    endif(MSVC OR MSVC90 OR MSVC10)
+    endif(MSVC)
     target_link_libraries(ompl
         ${Boost_THREAD_LIBRARY}
         ${Boost_DATE_TIME_LIBRARY}
         ${OMPL_LINK_LIBRARIES}
     )
     
-    if(WIN32)
+    if(MSVC)
       set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
-    else(WIN32)
+    else(MSVC)
+      if (MINGW)
+        target_link_libraries(ompl psapi ws2_32)
+      endif(MINGW)
       set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
-    endif(WIN32)
+    endif(MSVC)
 endif(OMPL_IN_ROS)
 
 # install the library
 install(TARGETS ompl DESTINATION lib/)
-if(!MSVC AND !MSVC90 AND !MSVC10)
+if(!MSVC)
     get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
     add_custom_command(TARGET ompl POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${OMPL_LIBRARY_LOC}"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}"
         WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
-endif(!MSVC AND !MSVC90 AND !MSVC10)
+endif(!MSVC)
