@@ -1,4 +1,16 @@
 /**
+\htmlonly
+<!-- Facebook like box -->
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+\endhtmlonly
+
 \mainpage Introduction
 
 \htmlonly<div class="span-22 last"><div class="span-11">\endhtmlonly
@@ -51,7 +63,9 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 - \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
 
 \htmlonly
-</div></div>
+<div class="fb-like-box" data-href="http://www.facebook.com/pages/OMPL/320018418039567" data-width="640" data-show-faces="false" data-stream="false" data-header="false"></div>
+</div>
+</div>
 \endhtmlonly
 
 */
