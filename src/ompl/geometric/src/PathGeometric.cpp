@@ -474,3 +474,82 @@ int ompl::geometric::PathGeometric::getClosestIndex(const base::State *state) co
     }
     return index;
 }
+
+void ompl::geometric::PathGeometric::computeFastTimeParametrization(double maxVel, double maxAcc, std::vector<double> &times, unsigned int maxSteps)
+{
+    //  This implementation greately benefitted from discussions with Kenneth Anderson (http://sites.google.com/site/kennethaanderson/
+
+    if (states.empty())
+    {
+        times.clear();
+        return;
+    }
+    if (states.size() == 1)
+    {
+        times.resize(1);
+        times[0] = 0.0;
+        return;
+    }
+    if (states.size() == 2)
+    {
+        double d = si_->distance(states[0], states[1]);
+        times.resize(2);
+        times[0] = 0.0;
+        times[1] = std::max(2.0 * d / maxVel, sqrt(2.0 * d / maxAcc));
+        return;
+    }
+
+    times.resize(states.size());
+    times[0] = 0.0;
+    std::vector<double> vel(states.size(), maxVel);
+    vel.front() = vel.back() = 0.0;
+    std::vector<double> L(states.size() - 1);
+    for (std::size_t i = 0 ; i < L.size() ; ++i)
+        L[i] = si_->distance(states[i], states[i + 1]);
+
+    static const double velFactor = 0.95;
+
+    bool change = true;
+    unsigned int steps = 0;
+    while (change && steps < maxSteps)
+    {
+        ++steps;
+        for (std::size_t i = 1 ; i < times.size() ; ++i)
+            times[i] = times[i - 1] + (2.0 * L[i-1]) / (vel[i-1] + vel[i]);
+
+        change = false;
+        for (std::size_t i = 0 ; i < L.size() ; ++i)
+        {
+            double acc = (vel[i + 1] - vel[i]) / (times[i + 1] - times[i]);
+            if (acc > maxAcc)
+            {
+                vel[i + 1] *= velFactor;
+                change = true;
+            }
+            else
+                if (acc < -maxAcc)
+                {
+                    vel[i] *= velFactor;
+                    change = true;
+                }
+        }
+
+        if (change)
+            for (int i = L.size() - 1 ; i >= 0 ; --i)
+            {
+                double acc = (vel[i + 1] - vel[i]) / (times[i + 1] - times[i]);
+                if (acc > maxAcc)
+                {
+                    vel[i + 1] *= velFactor;
+                    change = true;
+                }
+                else
+                    if (acc < -maxAcc)
+                    {
+                        vel[i] *= velFactor;
+                        change = true;
+                    }
+            }
+    }
+
+}
