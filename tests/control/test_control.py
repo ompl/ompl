@@ -189,9 +189,14 @@ class RRTTest(TestPlanner):
         planner = oc.RRT(si)
         return planner
 
-class myProjectionEvaluator(ob.ProjectionEvaluator):
+class ESTTest(TestPlanner):
+    def newplanner(self, si):
+        planner = oc.EST(si)
+        return planner
+
+class MyProjectionEvaluator(ob.ProjectionEvaluator):
     def __init__(self, space, cellSizes):
-        super(myProjectionEvaluator, self).__init__(space)
+        super(MyProjectionEvaluator, self).__init__(space)
         self.setCellSizes(cellSizes)
 
     def getDimension(self):
@@ -207,7 +212,7 @@ class KPIECE1Test(TestPlanner):
         planner = oc.KPIECE1(si)
         cdim = ou.vectorDouble()
         cdim.extend([1, 1])
-        ope = myProjectionEvaluator(si.getStateSpace(), cdim)
+        ope = MyProjectionEvaluator(si.getStateSpace(), cdim)
         planner.setProjectionEvaluator(ope)
         return planner
 
@@ -241,6 +246,13 @@ class PlanTest(unittest.TestCase):
 
     def testControl_RRT(self):
         planner = RRTTest()
+        (success, avgruntime, avglength) = self.runPlanTest(planner)
+        self.assertTrue(success >= 99.0)
+        self.assertTrue(avgruntime < 5)
+        self.assertTrue(avglength < 100.0)
+
+    def testControl_EST(self):
+        planner = ESTTest()
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 5)

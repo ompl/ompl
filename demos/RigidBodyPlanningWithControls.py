@@ -39,6 +39,7 @@
 from math import sin, cos
 from functools import partial
 try:
+    from ompl import util as ou
     from ompl import base as ob
     from ompl import control as oc
     from ompl import geometric as og
@@ -48,9 +49,25 @@ except:
     from os.path import basename, abspath, dirname, join
     import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
+    from ompl import util as ou
     from ompl import base as ob
     from ompl import control as oc
     from ompl import geometric as og
+
+# a decomposition is only needed for SyclopRRT and SyclopEST
+class MyDecomposition(oc.GridDecomposition):
+    def __init__(self, length, bounds):
+        super(MyDecomposition, self).__init__(length, 2, bounds)
+        self.rng_ = ou.RNG()
+    def project(self, s, coord):
+        coord.resize(2)
+        coord[0] = s.getX()
+        coord[1] = s.getY()
+    def sampleFromRegion(self, rid, sampler, s):
+        sampler.sampleUniform(s)
+        regionBounds = self.getRegionBounds(rid)
+        s.setX(self.rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]))
+        s.setY(self.rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]))
 
 def isStateValid(spaceInformation, state):
     # perform collision checking or check if other constraints are
@@ -100,6 +117,19 @@ def plan():
 
     # set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05)
+
+    # (optionally) set planner
+    si = ss.getSpaceInformation()
+    #planner = oc.RRT(si)
+    #planner = oc.EST(si)
+    #planner = oc.KPIECE1(si) # this is the default
+    # SyclopEST and SyclopRRT require a decomposition to guide the search
+    decomp = MyDecomposition(32, bounds)
+    planner = oc.SyclopEST(si, decomp)
+    #planner = oc.SyclopRRT(si, decomp)
+    ss.setPlanner(planner)
+    # (optionally) set propagation step size
+    si.setPropagationStepSize(.1)
 
     # attempt to solve the problem
     solved = ss.solve(20.0)
