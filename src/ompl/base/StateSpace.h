@@ -122,13 +122,23 @@ namespace ompl
             /** \brief Flags to use in a bit mask for state space sanity checks */
             enum SanityChecks
                 {
+                    /// \brief Check whether distance from a state to itself is 0.0 (StateSpace::distance())
                     STATESPACE_DISTANCE_TO_SELF          = (1<<0),
+
+                    /// \brief Check whether a state is equal to itself (StateSpace::equalStates())
                     STATESPACE_EQUAL_TO_SELF             = (1<<1),
-                    STATESPACE_DISTANCE_POSITIVE         = (1<<2),
-                    STATESPACE_DISTANCE_DIFFERENT_STATES = (1<<3),
-                    STATESPACE_DISTANCE_SYMMETRIC        = (1<<4),
-                    STATESPACE_INTERPOLATION             = (1<<5),
-                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<6)
+
+                    /// \brief Check whether the distances between non-equal states is positive (StateSpace::distance())
+                    STATESPACE_DISTANCE_DIFFERENT_STATES = (1<<2),
+
+                    /// \brief Check whether the distance function is symmetric (StateSpace::distance())
+                    STATESPACE_DISTANCE_SYMMETRIC        = (1<<3),
+
+                    /// \brief Check whether calling StateSpace::interpolate() works as expected
+                    STATESPACE_INTERPOLATION             = (1<<4),
+
+                    /// \brief Check whether the triangle inequality holds when using StateSpace::interpolate() and StateSpace::distance()
+                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<5)
                 };
 
             /** @name Generic functionality for state spaces

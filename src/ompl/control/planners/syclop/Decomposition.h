@@ -48,7 +48,14 @@ namespace ompl
 {
     namespace control
     {
+
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::control::Decomposition */
         ClassForward(Decomposition);
+        /// @endcond
+
+        /** \class ompl::control::DecompositionPtr
+            \brief A boost shared pointer wrapper for ompl::control::Decomposition */
 
         /** \brief A Decomposition is a partition of a bounded Euclidean space into a fixed number of regions which are denoted by integers. */
         class Decomposition
