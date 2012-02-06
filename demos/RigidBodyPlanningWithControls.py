@@ -54,6 +54,7 @@ except:
     from ompl import control as oc
     from ompl import geometric as og
 
+## @cond IGNORE
 # a decomposition is only needed for SyclopRRT and SyclopEST
 class MyDecomposition(oc.GridDecomposition):
     def __init__(self, length, bounds):
@@ -68,6 +69,7 @@ class MyDecomposition(oc.GridDecomposition):
         regionBounds = self.getRegionBounds(rid)
         s.setX(self.rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]))
         s.setY(self.rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]))
+## @endcond
 
 def isStateValid(spaceInformation, state):
     # perform collision checking or check if other constraints are

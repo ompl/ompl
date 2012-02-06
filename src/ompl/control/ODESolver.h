@@ -39,7 +39,7 @@
 
 // Boost.OdeInt needs Boost version >= 1.44
 #include <boost/version.hpp>
-#if BOOST_VERSION < 104400
+#if BOOST_VERSION < 104400 && !defined(__DOXYGEN__)
 #warning Boost version >=1.44 is needed for ODESolver classes
 #else
 

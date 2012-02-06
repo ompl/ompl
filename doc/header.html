@@ -1,96 +1,103 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/xhtml; charset=UTF-8"/>
+<meta charset="utf-8">
 <title>$title</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="author" content="Ioan A. Șucan, Mark Moll, Lydia E. Kavraki">
-<link rel="stylesheet" href="../css/screen.css" type="text/css" media="screen, projection">
-<link rel="stylesheet" href="../css/print.css" type="text/css" media="print">
-<!--[if lt IE 7]>
-<script type="text/javascript" src="../js/jquery/jquery.js"></script>
-<script type="text/javascript" src="../js/jquery/jquery.dropdown.js"></script>
-<![endif]-->
-<script type="text/javaScript" src="search/search.js"></script>
-<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-9156598-2']);
-  _gaq.push(['_trackPageview']);
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-</script>
-</head>
-<body onload='searchBox.OnSelectItem(0);'>
-<script type="text/javascript"><!--
-var searchBox = new SearchBox("searchBox", "search",false,'Search API');
---></script>
-<div class="navigation" id="top">
-  <div class="tabs" id="ompltitle">
-    <ul class="tablist">
-      <li>The Open Motion Planning Library</li>
-      <li id="searchli">
-        <div id="MSearchBox" class="MSearchBoxInactive">
-        <span class="left">
-          <img id="MSearchSelect" src="search/mag_sel.png"
-               onmouseover="return searchBox.OnSearchSelectShow()"
-               onmouseout="return searchBox.OnSearchSelectHide()"
-               alt=""/>
-          <input type="text" id="MSearchField" value="Search API" accesskey="S"
-               onfocus="searchBox.OnSearchFieldFocus(true)"
-               onblur="searchBox.OnSearchFieldFocus(false)"
-               onkeyup="searchBox.OnSearchFieldChange(event)"/>
-          </span><span class="right">
-            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
-          </span>
-        </div>
-      </li>
-    </ul>
-  </div>
 
-  <ul id="nav" class="dropdown">
-    <li class="first"><a href="index.html">Home</a></li>
-    <li><a href="download.html">Download</a></li>
-    <li><span class="dir">Documentation</span>
-      <ul>
-        <li><a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">Primer</a></li>
-        <li><a href="tutorials.html">Tutorials</a></li>
-        <li><a href="group__demos.html">Demos</a></li>
-        <li><a href="python.html">Python Bindings</a></li>
-        <li><a href="availablePlanners.html">Available Planners</a></li>
-        <li><a href="availableStateSpaces.html">Available State Spaces</a></li>
-        <li class="sep">&nbsp;<em>External links:</em></li>
-        <li><a href="http://www.ros.org/wiki/ompl_ros_interface">OMPL ROS Interface</a></li>
-        <li><a href="http://kavrakilab.org/OMPLtutorial">OMPL ROS Tutorial</a></li>
-      </ul>
-    </li>
-    <li><span class="dir">Code API</span>
-      <ul>
-        <li><a href="api_overview.html">API Overview</a></li>
-        <li><a href="namespaces.html">Namespaces</a></li>
-        <li><a href="annotated.html">Classes</a></li>
-        <li><a href="files.html">Files</a></li>
-        <li><a href="dirs.html">Directories</a></li>
-      </ul>
-    </li>
-    <li><span class="dir">Community</span>
-      <ul>
-        <li><a href="developers.html">Developers</a></li>
-        <li><a href="thirdparty.html">Contributions</a></li>
-        <li><a href="education.html">Education</a></li>
-        <li><a href="gallery.html">Gallery</a></li>
-      </ul>
-    </li>
-    <li><span class="dir">About</span>
-      <ul>
-        <li><a href="license.html">License</a></li>
-        <li><a href="citations.html">Citations</a></li>
-        <li><a href="acknowledgements.html">Acknowledgments</a></li>
-        <li><a href="contact.html">Contact Us</a></li>
-      </ul>
-    </li>
-  </ul>
+<link href="../css/tabs.css" rel="stylesheet">
+<link href="../css/doxygen.css" rel="stylesheet">
+<link href="../css/search.css" rel="stylesheet">
+<link href="../css/bootstrap.css" rel="stylesheet">
+<link href="../css/bootstrap.responsive.css" rel="stylesheet">
+<link href="../css/ompl.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script src="search/search.js"></script>
+
+</head>
+<body data-spy="scroll" data-target=".subnav" data-offset="50">
+<div class="navbar navbar-fixed-top" id="top">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+      <a class="brand" href="./index.html">OMPL</a>
+      <div class="nav-collapse">
+        <ul class="nav">
+          <li><a href="./index.html">Overview</a></li>
+          <li><a href="download.html">Download</a></li>
+          <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            Documentation <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">Primer</a></li>
+              <li><a href="installation.html">Installation</a></li>
+              <li><a href="tutorials.html">Tutorials</a></li>
+              <li><a href="group__demos.html">Demos</a></li>
+              <li><a href="python.html">Python Bindings</a></li>
+              <li><a href="availablePlanners.html">Available Planners</a></li>
+              <li><a href="availableStateSpaces.html">Available State Spaces</a></li>
+              <li class="divider">
+              <li>&nbsp;<em>External links:</em></li>
+              <li><a href="http://www.ros.org/wiki/ompl_ros_interface">OMPL ROS Interface</a></li>
+              <li><a href="http://kavrakilab.org/OMPLtutorial">OMPL ROS Tutorial</a></li>
+            </ul>
+          </li>
+          <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            Code API <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="api_overview.html">API Overview</a></li>
+              <li><a href="namespaces.html">Namespaces</a></li>
+              <li><a href="annotated.html">Classes</a></li>
+              <li><a href="files.html">Files</a></li>
+              <li><a href="dirs.html">Directories</a></li>
+            </ul>
+         </li>
+         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
+           Community <b class="caret"></b></a>
+           <ul class="dropdown-menu">
+             <li><a href="developers.html">Developers</a></li>
+             <li><a href="thirdparty.html">Contributions</a></li>
+             <li><a href="education.html">Education</a></li>
+             <li><a href="gallery.html">Gallery</a></li>
+           </ul>
+         </li>
+         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
+           About <b class="caret"></b></a>
+           <ul class="dropdown-menu">
+             <li><a href="license.html">License</a></li>
+             <li><a href="citations.html">Citations</a></li>
+             <li><a href="acknowledgements.html">Acknowledgments</a></li>
+             <li><a href="contact.html">Contact Us</a></li>
+           </ul>
+         </li>
+       </ul>
+       <div id="searchli">
+         <div id="MSearchBox" class="MSearchBoxInactive">
+         <span class="left">
+           <img id="MSearchSelect" src="search/mag_sel.png"
+                onmouseover="return searchBox.OnSearchSelectShow()"
+                onmouseout="return searchBox.OnSearchSelectHide()"
+                alt=""/>
+           <input type="text" id="MSearchField" value="Search API" accesskey="S"
+                onfocus="searchBox.OnSearchFieldFocus(true)"
+                onblur="searchBox.OnSearchFieldFocus(false)"
+                onkeyup="searchBox.OnSearchFieldChange(event)"/>
+           </span><span class="right">
+             <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+           </span>
+         </div>
+       </div>
+     </div>
+   </div>
+ </div>
 </div>
 
 <!--- window showing the filter options -->
@@ -104,7 +111,3 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search API');
 <div id="MSearchResultsWindow">
   <iframe src="" frameborder="0"name="MSearchResults" id="MSearchResults"></iframe>
 </div>
-
-<div class="container">
-  <div class="span-22 push-2 first last">
-  <div>

@@ -46,7 +46,9 @@ namespace ompl
 {
     namespace control
     {
-        /** \brief SyclopRRT is Syclop with RRT as its low-level tree planner. */
+        /** \brief SyclopRRT is Syclop with RRT as its low-level tree planner.
+            \anchor cSyclopRRT
+        */
         class SyclopRRT : public Syclop
         {
         public:

@@ -18,7 +18,7 @@
   - Added implementation of path hybridization
   - Added a more advanced path shortcutting method
   - The C++ code switched to the preferred boost::function syntax. A general method for exposing boost::function objects to Python was added, but this requires a patch to pygccxml.
-  - To make installing and patching Py++, pygccml, and gccxml easier there is now a script called installPyPlusPlus.sh that does this. One can call this script after running cmake by typing “make installpypluplus”.
+  - To make installing and patching Py++, pygccml, and gccxml easier there is now a script called installPyPlusPlus.sh that does this. One can call this script after running cmake by typing “make installpyplusplus”.
 
 \section release_0_9_5 OMPL 0.9.5 (October 4, 2011)
 - Added control sampler functions that allow specifying an intended direction of propagation

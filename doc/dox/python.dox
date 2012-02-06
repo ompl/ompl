@@ -15,7 +15,7 @@ Almost all of the functionality of the C++ OMPL library is accessible through Py
 - \ref updating_python_bindings "Updating the Python bindings"
 .
 
-\section cpp_py_diffs Important differences between C++ and Python:
+\section cpp_py_diffs Important differences between C++ and Python
 - There are no templates in Python, so templated classes and functions need to be fully instantiated to allow them to be exposed to python.
 - There are no C-style pointers in python, and no "new" or "delete" operators. This could be a problem, but can be dealt with mostly by using Boost <a href="http://www.boost.org/doc/libs/release/libs/smart_ptr/shared_ptr.htm">shared_ptr</a>'s. If a C++ function takes pointer input/output parameters, \em usually a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods. In some cases odd side effects may occur if you pass temporary objects (e.g., <tt>function_call(Constructor_call())</tt>), so it's advisable to create variables with the appropriate scope.
 .

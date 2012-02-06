@@ -45,7 +45,9 @@ namespace ompl
 {
     namespace control
     {
-        /** \brief SyclopEST is Syclop with EST as its low-level tree planner. */
+        /** \brief SyclopEST is Syclop with EST as its low-level tree planner.
+            \anchor cSyclopEST
+        */
         class SyclopEST : public Syclop
         {
         public:

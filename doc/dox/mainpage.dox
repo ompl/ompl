@@ -1,6 +1,7 @@
 /**
+\mainpage The Open Motion Planning Library
+
 \htmlonly
-<!-- Facebook like box -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
   var js, fjs = d.getElementsByTagName(s)[0];
@@ -9,11 +10,8 @@
   js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
   fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
-\endhtmlonly
 
-\mainpage Introduction
-
-\htmlonly<div class="span-22 last"><div class="span-11">\endhtmlonly
+<div class="row"><div class="span6">\endhtmlonly
 The Open Motion Planning Library (@b OMPL) consists of a set of
 sampling-based motion planning algorithms. The content of the
 library is limited to these algorithms, which means there is no
@@ -31,20 +29,53 @@ more information.
 OMPL is intended to be efficient, thread safe, easy to use, easily extensible
 and freely available (visit this project on <a
 href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
+
 \htmlonly
-</div><div class="span-10 push-1 last"><img src="../images/mp.jpg" width="100%"></div></div>
-\endhtmlonly
+<div class="fb-like" data-href="http://www.facebook.com/pages/OMPL/320018418039567" data-send="false" data-layout="button_count" data-width="450" data-show-faces="true" data-action="recommend"></div>
+
+</div><div class="span6">
+  <div class="carousel slide" id="omplCarousel">
+    <div class="carousel-inner">
+      <div class="item active">
+        <img src="../images/mp.jpg">
+      </div>
+      <div class="item">
+        <img src="../images/mp.jpg" class="hidden">
+        <div class="carousel-caption carousel-caption-inset"><h4>New in 0.9.6!</h4>
+        <ul>
+           <li>Added an implementation of SyCLoP, a new multilayered meta-planner.
+           <li>Added an implementation of EST for planning with controls.
+           <li>New generic interface for parameter settings.
+           <li>Added support for high-order numerical integration.
+           <li>New state spaces for Dubins vehicles and Reeds-Shepp vehicles.
+        </ul>
+        <p>See <a href="releaseNotes.html">release notes</a> for details</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="pagination-centered"><a href="http://ompl.kavrakilab.org/gui.html"><img src="../images/gui_path-small.jpg"></a></div>
+        <div class="carousel-caption"><h4>OMPL.app GUI</h4></div>
+      </div>
+      <div class="item">
+        <div class="pagination-centered"><a href="http://www.ros.org/wiki/ompl"><img src="../images/pr2.jpg" class="pagination-centered"></a></div>
+        <div class="carousel-caption"><h4>OMPL Inside</h4><p>OMPL is used inside ROS to plan motions for the PR2 and many other robots.</p></div>
+      </div>
+    </div>
+    <a class="carousel-control left" href="#omplCarousel" data-slide="prev">&lsaquo;</a>
+    <a class="carousel-control right" href="#omplCarousel" data-slide="next">&rsaquo;</a>
+  </div>
+</div></div>\endhtmlonly
 
 
-\htmlonly<div class="span-22 last"><div class="span-7">\endhtmlonly
-\section contents Contents of this library
+\htmlonly<div class="row"><div class="span4">\endhtmlonly
+\section contents Contents of This Library
 
 - OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See \ref availablePlanners for a complete list.
 - All these planners operate on very abstractly defined state spaces. Many commonly used state spaces are already implemented and listed \ref availableStateSpaces "here".
 - \ref api_overview "API overview"
 - If you are interested in the <a href="http://www.ros.org/wiki/ompl_ros_interface">ROS interface to OMPL</a>, please read the <a href="http://kavrakilab.org/OMPLtutorial">tutorial on using OMPL within ROS</a>.
 
-\htmlonly</div><div class="span-7 push-1">\endhtmlonly
+\htmlonly</div><div class="span4">\endhtmlonly
 \section gettingStarted Getting Started
 
 - The <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
@@ -55,7 +86,7 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 - \ref tutorials
 - If interested in using Python, make sure to read \ref python "the documentation for the Python bindings".
 
-\htmlonly</div><div class="span-6 push-2 last">\endhtmlonly
+\htmlonly</div><div class="span4">\endhtmlonly
 \section otherResources Other Resources
 
 - \ref education "OMPL for education"
@@ -63,8 +94,7 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 - \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
 
 \htmlonly
-<div class="fb-like-box" data-href="http://www.facebook.com/pages/OMPL/320018418039567" data-width="640" data-show-faces="false" data-stream="false" data-header="false"></div>
-</div>
+</div></div>
 </div>
 \endhtmlonly
 
