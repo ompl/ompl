@@ -35,7 +35,7 @@
 /* Author: Matt Maly */
 
 #include "ompl/control/planners/syclop/Syclop.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/GoalSampleableRegion.h"
 #include "ompl/base/ProblemDefinition.h"
 #include <limits>
 #include <stack>
@@ -68,6 +68,12 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 
     // Extracting goal region
     const base::GoalSampleableRegion *goalSampleable = dynamic_cast<const base::GoalSampleableRegion*>(goal);
+    if (!goalSampleable)
+    {
+        msg_.error("Unknown type of goal (or goal undefined)");
+        return false;
+    }
+    
     base::State* goalState = si_->allocState();
     goalSampleable->sampleGoal(goalState);
     const int goalRegion = decomp_->locateRegion(goalState);
@@ -135,7 +141,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                 break;
         }
     }
-
+    bool addedSolution = false;    
     if (solution != NULL)
     {
         std::vector<const Motion*> mpath;
@@ -155,11 +161,9 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
             }
         }
         goal->addSolutionPath(base::PathPtr(path), !solved, goalDist);
-
-        if (!solved)
-            msg_.warn("Found approximate solution");
+        addedSolution = true;
     }
-    return goal->isAchieved();
+    return addedSolution;
 }
 
 void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
@@ -205,7 +209,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
         if (numTotal[i] == 0)
             r.percentValidCells = 1.0;
         else
-            r.percentValidCells = ((double) numValid[i]) / numTotal[i];
+            r.percentValidCells = ((double) numValid[i]) / (double)numTotal[i];
         r.freeVolume = r.percentValidCells * r.volume;
         if (r.freeVolume < std::numeric_limits<double>::epsilon())
             r.freeVolume = std::numeric_limits<double>::epsilon();
@@ -216,7 +220,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
 void ompl::control::Syclop::updateRegion(Region& r)
 {
     const double f = r.freeVolume*r.freeVolume*r.freeVolume*r.freeVolume;
-    r.alpha = 1 / ((1 + r.covGridCells.size()) * f);
+    r.alpha = 1.0 / ((1 + r.covGridCells.size()) * f);
     r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
 }
 
@@ -458,9 +462,9 @@ void ompl::control::Syclop::computeAvailableRegions(void)
 double ompl::control::Syclop::defaultEdgeCost(int r, int s)
 {
     const Adjacency& a = *regionsToEdge_[std::pair<int,int>(r,s)];
-    double factor = 1;
-    const double nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
-    factor = (1 + nsel*nsel) / (1 + a.covGridCells.size()*a.covGridCells.size());
-    factor *= a.source->alpha * a.target->alpha;
+    double factor = 1.0;
+    const int nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
+    factor = (double)(1 + nsel*nsel) / (double)(1 + a.covGridCells.size()*a.covGridCells.size());
+    factor *= (a.source->alpha * a.target->alpha);
     return factor;
 }

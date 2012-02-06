@@ -175,7 +175,9 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
             }
         }
     }
-
+    
+    bool addedSolution = false;
+    
     // Constructing the solution path
     if (solution != NULL)
     {
@@ -196,11 +198,8 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
                 path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
             }
         }
-
+        addedSolution = true;
         goal->addSolutionPath(base::PathPtr(path), !solved, slndist);
-
-        if (!solved)
-            msg_.warn("Found approximate solution");
     }
 
     // Cleaning up memory
@@ -212,7 +211,7 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
-    return goal->isAchieved();
+    return addedSolution;
 }
 
 ompl::control::EST::Motion* ompl::control::EST::selectMotion(void)

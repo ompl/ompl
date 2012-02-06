@@ -50,9 +50,15 @@ namespace ompl
         class Goal::PlannerSolutionSet
         {
         public:
-
+          
+            PlannerSolutionSet(void) : msg_("Goal")
+            {
+            }
+          
             void add(const PlannerSolution &s)
             {
+                if (s.approximate_)
+                    msg_.warn("Adding approximate solution");
                 boost::mutex::scoped_lock slock(lock_);
                 int index = solutions_.size();
                 solutions_.push_back(s);
@@ -111,6 +117,7 @@ namespace ompl
 
             std::vector<PlannerSolution> solutions_;
             boost::mutex                 lock_;
+            msg::Interface               msg_;
         };
     }
 }
