@@ -120,11 +120,10 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Starting with %u states", nn_->size());
 
-    Motion *solution     = NULL;
-    Motion *approxsol    = NULL;
-    double  approxdist   = std::numeric_limits<double>::infinity();
-    double  bestcost     = std::numeric_limits<double>::infinity();
-    bool    approxsolved = false;
+    Motion *solution       = NULL;
+    Motion *approximation  = NULL;
+    double approximatedist = std::numeric_limits<double>::infinity();
+    bool sufficientlyShort = false;
 
     Motion *rmotion     = new Motion(si_);
     base::State *rstate = rmotion->state;
@@ -287,8 +286,8 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                bool sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
-
+                sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+                
                 if (solved)
                 {
                     if (sufficientlyShort)
@@ -296,40 +295,34 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                         solution = solCheck[i];
                         break;
                     }
-                    else if (solCheck[i]->cost < bestcost)
+                    else if (!solution || (solCheck[i]->cost < solution->cost))
                     {
-                        bestcost   = solCheck[i]->cost;
-                        approxsol  = solCheck[i];
-                        approxsolved = true;
+                        solution = solCheck[i];
                     }
                 }
-                else
-                    if (!approxsolved && dist < approxdist)
-                    {
-                        approxdist = dist;
-                        approxsol = solCheck[i];
-                    }
+                else if (!solution && dist < approximatedist)
+                {
+                    approximation = solCheck[i];
+                    approximatedist = dist;
+                }
             }
         }
         
-        // terminate if a solution was found
-        if (solution != NULL)
+        // terminate if a sufficient solution is found
+        if (solution && sufficientlyShort)
             break;
     }
-
-    bool addedSolution = false;
-    bool approximate = false;
     
     double solutionCost;
-    if (solution == NULL)
+    bool approximate = (solution == NULL);
+    bool addedSolution = false;
+    if (approximate)
     {
-        solution = approxsol;
-        approximate = true;
-        if (approxsolved)
-            solutionCost = solution->cost;
-        else
-            solutionCost = approxdist;
+        solution = approximation;
+        solutionCost = approximatedist;
     }
+    else
+        solutionCost = solution->cost;
 
     if (solution != NULL)
     {
