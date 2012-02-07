@@ -1,7 +1,7 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_9_6 OMPL 0.9.6 (XXX, 2012)
+\section release_0_10_0 OMPL 0.10.0 (February, 2012)
   - Minimum Boost version is now 1.44 (for full functionality)
   - Added state serialization, deserialization, state space signatures
   - Add the notion of DirectedControlSampler
