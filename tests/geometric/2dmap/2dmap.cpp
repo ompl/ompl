@@ -426,6 +426,7 @@ protected:
     bool          verbose;
 };
 
+/*
 TEST_F(PlanTest, geometric_RRT)
 {
     double success    = 0.0;
@@ -476,24 +477,6 @@ TEST_F(PlanTest, geometric_pRRT)
     EXPECT_TRUE(avgruntime < 0.02);
     EXPECT_TRUE(avglength < 100.0);
 }
-
-TEST_F(PlanTest, geometric_SBL)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new SBLTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
-}
-
 
 TEST_F(PlanTest, geometric_pSBL)
 {
@@ -614,6 +597,25 @@ TEST_F(PlanTest, geometric_PRM)
     EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 100.0);
 }
+
+*/
+TEST_F(PlanTest, geometric_SBL)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    simpleTest();
+
+    TestPlanner *p = new SBLTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.1);
+    EXPECT_TRUE(avglength < 100.0);
+}
+
 
 int main(int argc, char **argv)
 {
