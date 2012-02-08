@@ -101,6 +101,18 @@ namespace ompl
                 return goalBias_;
             }
 
+            /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself */
+            bool getIntermediateStates(void) const
+            {
+                return addIntermediateStates_;
+            }
+
+            /** \brief Specify whether the intermediate states generated along motions are to be added to the tree itself */
+            void setIntermediateStates(bool addIntermediateStates)
+            {
+                addIntermediateStates_ = addIntermediateStates;
+            }
+
             virtual void getPlannerData(base::PlannerData &data) const;
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -172,6 +184,9 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;
+
+            /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
+            bool                                           addIntermediateStates_;
 
             /** \brief The random number generator */
             RNG                                            rng_;

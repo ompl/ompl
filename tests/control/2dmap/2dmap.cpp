@@ -300,6 +300,19 @@ protected:
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
         control::RRT *rrt = new control::RRT(si);
+        rrt->setIntermediateStates(false);
+        return base::PlannerPtr(rrt);
+    }
+};
+
+class RRTTestIntermediate : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        control::RRT *rrt = new control::RRT(si);
+        rrt->setIntermediateStates(true);
         return base::PlannerPtr(rrt);
     }
 };
@@ -425,6 +438,21 @@ TEST_F(PlanTest, controlRRT)
     double avglength  = 0.0;
 
     TestPlanner *p = new RRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.05);
+    EXPECT_TRUE(avglength < 100.0);
+}
+
+TEST_F(PlanTest, controlRRTIntermediate)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new RRTTestIntermediate();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
