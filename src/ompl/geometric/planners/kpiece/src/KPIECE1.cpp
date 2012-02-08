@@ -168,10 +168,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
             }
         }
         else
-        {
             ecell->data->score *= failedExpansionScoreFactor_;
-            disc_.updateCell(ecell);
-        }
+        disc_.updateCell(ecell);
     }
 
     bool solved = false;

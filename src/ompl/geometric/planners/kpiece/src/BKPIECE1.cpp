@@ -209,13 +209,11 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                 }
             }
             else
-            {
-                ecell->data->score *= failedExpansionScoreFactor_;
-                disc.updateCell(ecell);
-            }
+              ecell->data->score *= failedExpansionScoreFactor_;
         }
         else
-            disc.updateCell(ecell);
+            ecell->data->score *= failedExpansionScoreFactor_;
+        disc.updateCell(ecell);
     }
 
     si_->freeState(xstate);
