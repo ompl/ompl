@@ -175,9 +175,9 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
             }
         }
     }
-    
+
     bool addedSolution = false;
-    
+
     // Constructing the solution path
     if (solution != NULL)
     {
@@ -190,14 +190,10 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 
         PathControl *path = new PathControl(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-        {
-            path->states.push_back(si_->cloneState(mpath[i]->state));
             if (mpath[i]->parent)
-            {
-                path->controls.push_back(siC_->cloneControl(mpath[i]->control));
-                path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
-            }
-        }
+                path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
+            else
+                path->append(mpath[i]->state);
         addedSolution = true;
         goal->addSolutionPath(base::PathPtr(path), !solved, slndist);
     }

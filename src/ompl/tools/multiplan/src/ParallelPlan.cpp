@@ -116,7 +116,7 @@ bool ompl::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std
             {
                 geometric::PathGeometric *pg = static_cast<geometric::PathGeometric*>(hsol.get());
                 double difference = 0.0;
-                bool approximate = !pdef_->getGoal()->isSatisfied(pg->states.back(), &difference);
+                bool approximate = !pdef_->getGoal()->isSatisfied(pg->getStates().back(), &difference);
                 pdef_->getGoal()->addSolutionPath(hsol, approximate, difference);
             }
     }

@@ -50,11 +50,11 @@ namespace ompl
         class Goal::PlannerSolutionSet
         {
         public:
-          
+
             PlannerSolutionSet(void) : msg_("Goal")
             {
             }
-          
+
             void add(const PlannerSolution &s)
             {
                 if (s.approximate_)

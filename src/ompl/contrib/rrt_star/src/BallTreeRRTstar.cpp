@@ -337,12 +337,12 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                             // Remove this node from its parent list
                             removeFromParent (nbh[i]);
                             double delta = c - nbh[i]->cost;
-                            
+
                             nbh[i]->parent = motion;
                             nbh[i]->cost = c;
                             nbh[i]->parent->children.push_back(nbh[i]);
                             solCheck.push_back(nbh[i]);
-                            
+
                             // Update the costs of the node's children
                             updateChildCosts(nbh[i], delta);
                         }
@@ -355,7 +355,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
                 sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
-                
+
                 if (solved)
                 {
                     if (sufficientlyShort)
@@ -374,7 +374,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                     approximatedist = dist;
                 }
             }
-        
+
             // terminate if a sufficient solution is found
             if (solution && sufficientlyShort)
                 break;
@@ -410,10 +410,10 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
             solution = solution->parent;
         }
 
-        // set the solution path 
+        // set the solution path
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->states.push_back(si_->cloneState(mpath[i]->state));
+            path->append(mpath[i]->state);
         goal->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
         addedSolution = true;
     }

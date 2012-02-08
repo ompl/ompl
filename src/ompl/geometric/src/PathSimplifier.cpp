@@ -45,10 +45,12 @@
 /* Based on COMP450 2010 project of Yun Yu and Linda Hill (Rice University) */
 void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigned int maxSteps, double minChange)
 {
-    if (path.states.size() < 3)
+    if (path.getStateCount() < 3)
         return;
 
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
+    std::vector<base::State*> &states = path.getStates();
+
     base::State *temp1 = si->allocState();
     base::State *temp2 = si->allocState();
 
@@ -56,19 +58,19 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
     {
         path.subdivide();
 
-        unsigned int i = 2, u = 0, n1 = path.states.size() - 1;
+        unsigned int i = 2, u = 0, n1 = states.size() - 1;
         while (i < n1)
         {
-            if (si->isValid(path.states[i - 1]))
+            if (si->isValid(states[i - 1]))
             {
-                si->getStateSpace()->interpolate(path.states[i - 1], path.states[i], 0.5, temp1);
-                si->getStateSpace()->interpolate(path.states[i], path.states[i + 1], 0.5, temp2);
+                si->getStateSpace()->interpolate(states[i - 1], states[i], 0.5, temp1);
+                si->getStateSpace()->interpolate(states[i], states[i + 1], 0.5, temp2);
                 si->getStateSpace()->interpolate(temp1, temp2, 0.5, temp1);
-                if (si->checkMotion(path.states[i - 1], temp1) && si->checkMotion(temp1, path.states[i + 1]))
+                if (si->checkMotion(states[i - 1], temp1) && si->checkMotion(temp1, states[i + 1]))
                 {
-                    if (si->distance(path.states[i], temp1) > minChange)
+                    if (si->distance(states[i], temp1) > minChange)
                     {
-                        si->copyState(path.states[i], temp1);
+                        si->copyState(states[i], temp1);
                         ++u;
                     }
                 }
@@ -87,22 +89,23 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
 
 bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
 {
-    if (path.states.size() < 3)
+    if (path.getStateCount() < 3)
         return false;
 
     if (maxSteps == 0)
-        maxSteps = path.states.size();
+        maxSteps = path.getStateCount();
 
     if (maxEmptySteps == 0)
-        maxEmptySteps = path.states.size();
+        maxEmptySteps = path.getStateCount();
 
     bool result = false;
     unsigned int nochange = 0;
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
+    std::vector<base::State*> &states = path.getStates();
 
     for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
     {
-        int count = path.states.size();
+        int count = states.size();
         int maxN  = count - 1;
         int range = 1 + (int)(floor(0.5 + (double)count * rangeRatio));
 
@@ -122,11 +125,11 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
         if (p1 > p2)
             std::swap(p1, p2);
 
-        if (si->checkMotion(path.states[p1], path.states[p2]))
+        if (si->checkMotion(states[p1], states[p2]))
         {
             for (int j = p1 + 1 ; j < p2 ; ++j)
-                si->freeState(path.states[j]);
-            path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
+                si->freeState(states[j]);
+            states.erase(states.begin() + p1 + 1, states.begin() + p2);
             nochange = 0;
             result = true;
         }
@@ -136,20 +139,21 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 
 bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
 {
-    if (path.states.size() < 3)
+    if (path.getStateCount() < 3)
         return false;
 
     if (maxSteps == 0)
-        maxSteps = path.states.size();
+        maxSteps = path.getStateCount();
 
     if (maxEmptySteps == 0)
-        maxEmptySteps = path.states.size();
+        maxEmptySteps = path.getStateCount();
 
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
+    std::vector<base::State*> &states = path.getStates();
 
-    std::vector<double> dists(path.states.size(), 0.0);
+    std::vector<double> dists(states.size(), 0.0);
     for (unsigned int i = 1 ; i < dists.size() ; ++i)
-        dists[i] = dists[i - 1] + si->distance(path.states[i-1], path.states[i]);
+        dists[i] = dists[i - 1] + si->distance(states[i-1], states[i]);
     double threshold = dists.back() * snapToVertex;
     double rd = rangeRatio * dists.back();
 
@@ -199,20 +203,20 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
             continue;
 
         if (index0 >= 0)
-            s0 = path.states[index0];
+            s0 = states[index0];
         else
         {
             t0 = (p0 - dists[pos0]) / (dists[pos0 + 1] - dists[pos0]);
-            si->getStateSpace()->interpolate(path.states[pos0], path.states[pos0 + 1], t0, temp0);
+            si->getStateSpace()->interpolate(states[pos0], states[pos0 + 1], t0, temp0);
             s0 = temp0;
         }
 
         if (index1 >= 0)
-            s1 = path.states[index1];
+            s1 = states[index1];
         else
         {
             t1 = (p1 - dists[pos1]) / (dists[pos1 + 1] - dists[pos1]);
-            si->getStateSpace()->interpolate(path.states[pos1], path.states[pos1 + 1], t1, temp1);
+            si->getStateSpace()->interpolate(states[pos1], states[pos1 + 1], t1, temp1);
             s1 = temp1;
         }
 
@@ -230,46 +234,46 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
             {
                 if (pos0 + 1 == pos1)
                 {
-                    si->copyState(path.states[pos1], s0);
-                    path.states.insert(path.states.begin() + pos1 + 1, si->cloneState(s1));
+                    si->copyState(states[pos1], s0);
+                    states.insert(states.begin() + pos1 + 1, si->cloneState(s1));
                 }
                 else
                 {
                     for (int j = pos0 + 2 ; j < pos1 ; ++j)
-                        si->freeState(path.states[j]);
-                    si->copyState(path.states[pos0 + 1], s0);
-                    si->copyState(path.states[pos1], s1);
-                    path.states.erase(path.states.begin() + pos0 + 2, path.states.begin() + pos1);
+                        si->freeState(states[j]);
+                    si->copyState(states[pos0 + 1], s0);
+                    si->copyState(states[pos1], s1);
+                    states.erase(states.begin() + pos0 + 2, states.begin() + pos1);
                 }
             }
             else
                 if (index0 >= 0 && index1 >= 0)
                 {
                     for (int j = index0 + 1 ; j < index1 ; ++j)
-                        si->freeState(path.states[j]);
-                    path.states.erase(path.states.begin() + index0 + 1, path.states.begin() + index1);
+                        si->freeState(states[j]);
+                    states.erase(states.begin() + index0 + 1, states.begin() + index1);
                 }
                 else
                     if (index0 < 0 && index1 >= 0)
                     {
                         for (int j = pos0 + 2 ; j < index1 ; ++j)
-                            si->freeState(path.states[j]);
-                        si->copyState(path.states[pos0 + 1], s0);
-                        path.states.erase(path.states.begin() + pos0 + 2, path.states.begin() + index1);
+                            si->freeState(states[j]);
+                        si->copyState(states[pos0 + 1], s0);
+                        states.erase(states.begin() + pos0 + 2, states.begin() + index1);
                     }
                     else
                         if (index0 >= 0 && index1 < 0)
                         {
                             for (int j = index0 + 1 ; j < pos1 ; ++j)
-                                si->freeState(path.states[j]);
-                            si->copyState(path.states[pos1], s1);
-                            path.states.erase(path.states.begin() + index0 + 1, path.states.begin() + pos1);
+                                si->freeState(states[j]);
+                            si->copyState(states[pos1], s1);
+                            states.erase(states.begin() + index0 + 1, states.begin() + pos1);
                         }
 
             // fix the helper variables
-            dists.resize(path.states.size(), 0.0);
+            dists.resize(states.size(), 0.0);
             for (unsigned int j = pos0 + 1 ; j < dists.size() ; ++j)
-                dists[j] = dists[j - 1] + si->distance(path.states[j-1], path.states[j]);
+                dists[j] = dists[j - 1] + si->distance(states[j-1], states[j]);
             threshold = dists.back() * snapToVertex;
             rd = rangeRatio * dists.back();
             result = true;
@@ -284,22 +288,23 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
 
 bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps, unsigned int maxEmptySteps)
 {
-    if (path.states.size() < 3)
+    if (path.getStateCount() < 3)
         return false;
 
     if (maxSteps == 0)
-        maxSteps = path.states.size();
+        maxSteps = path.getStateCount();
 
     if (maxEmptySteps == 0)
-        maxEmptySteps = path.states.size();
+        maxEmptySteps = path.getStateCount();
 
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
+    std::vector<base::State*> &states = path.getStates();
 
     // compute pair-wise distances in path (construct only half the matrix)
     std::map<std::pair<const base::State*, const base::State*>, double> distances;
-    for (unsigned int i = 0 ; i < path.states.size() ; ++i)
-        for (unsigned int j = i + 2 ; j < path.states.size() ; ++j)
-            distances[std::make_pair(path.states[i], path.states[j])] = si->distance(path.states[i], path.states[j]);
+    for (unsigned int i = 0 ; i < states.size() ; ++i)
+        for (unsigned int j = i + 2 ; j < states.size() ; ++j)
+            distances[std::make_pair(states[i], states[j])] = si->distance(states[i], states[j]);
 
     bool result = false;
     unsigned int nochange = 0;
@@ -309,10 +314,10 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
         double minDist = std::numeric_limits<double>::infinity();
         int p1 = -1;
         int p2 = -1;
-        for (unsigned int i = 0 ; i < path.states.size() ; ++i)
-            for (unsigned int j = i + 2 ; j < path.states.size() ; ++j)
+        for (unsigned int i = 0 ; i < states.size() ; ++i)
+            for (unsigned int j = i + 2 ; j < states.size() ; ++j)
             {
-                double d = distances[std::make_pair(path.states[i], path.states[j])];
+                double d = distances[std::make_pair(states[i], states[j])];
                 if (d < minDist)
                 {
                     minDist = d;
@@ -323,16 +328,16 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 
         if (p1 >= 0 && p2 >= 0)
         {
-            if (si->checkMotion(path.states[p1], path.states[p2]))
+            if (si->checkMotion(states[p1], states[p2]))
             {
                 for (int i = p1 + 1 ; i < p2 ; ++i)
-                    si->freeState(path.states[i]);
-                path.states.erase(path.states.begin() + p1 + 1, path.states.begin() + p2);
+                    si->freeState(states[i]);
+                states.erase(states.begin() + p1 + 1, states.begin() + p2);
                 result = true;
                 nochange = 0;
             }
             else
-                distances[std::make_pair(path.states[p1], path.states[p2])] = std::numeric_limits<double>::infinity();
+                distances[std::make_pair(states[p1], states[p2])] = std::numeric_limits<double>::infinity();
         }
         else
             break;
@@ -360,7 +365,7 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTi
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc)
 {
-    if (path.states.size() < 3)
+    if (path.getStateCount() < 3)
         return;
 
     // try a randomized step of connecting vertices

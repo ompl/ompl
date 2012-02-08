@@ -121,7 +121,7 @@ namespace ompl
 
             struct PathInfo
             {
-                PathInfo(const base::PathPtr &path) : path_(path), states_(static_cast<const PathGeometric*>(path.get())->states), length_(0.0)
+                PathInfo(const base::PathPtr &path) : path_(path), states_(static_cast<PathGeometric*>(path.get())->getStates()), length_(0.0)
                 {
                     vertices_.reserve(states_.size());
                 }

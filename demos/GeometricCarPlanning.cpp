@@ -117,9 +117,9 @@ void plan(ob::StateSpacePtr space, bool easy)
         ps->reduceVertices(path);
         ps->collapseCloseVertices(path);
         path.interpolate(1000);
-        for (unsigned int i=0; i<path.states.size(); ++i)
+        for (unsigned int i=0; i < path.getStateCount(); ++i)
         {
-            reals = ob::ScopedState<>(space, path.states[i]).reals();
+            reals = ob::ScopedState<>(space, path.getState(i)).reals();
             std::cout << "path " << reals[0] <<' '<< reals[1] << ' ' << reals[2] << std::endl;
         }
     }

@@ -192,8 +192,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->states.push_back(si_->cloneState(mpath[i]->state));
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+            path->append(mpath[i]->state);
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
         solved = true;
     }

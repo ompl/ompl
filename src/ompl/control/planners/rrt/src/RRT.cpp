@@ -180,9 +180,9 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
                 }
 
                 //free any states after we hit the goal
-                while (++p < pstates.size()) 
+                while (++p < pstates.size())
                     si_->freeState(pstates[p]);
-                if (solved) 
+                if (solved)
                     break;
             }
             else
@@ -240,15 +240,11 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
         /* set the solution path */
         PathControl *path = new PathControl(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-        {
-            path->states.push_back(si_->cloneState(mpath[i]->state));
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             if (mpath[i]->parent)
-            {
-                path->controls.push_back(siC_->cloneControl(mpath[i]->control));
-                path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
-            }
-        }
+                path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
+            else
+                path->append(mpath[i]->state);
         solved = true;
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }

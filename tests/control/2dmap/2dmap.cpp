@@ -266,10 +266,10 @@ public:
 
             Environment2D temp = env;
             /* display the solution */
-            for (unsigned int i = 0 ; i < path->states.size() ; ++i)
+            for (unsigned int i = 0 ; i < path->getStateCount() ; ++i)
             {
-                int x = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int y = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[1]);
+                int x = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[0]);
+                int y = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[1]);
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else
@@ -322,25 +322,25 @@ protected:
 class SyclopDecomposition : public control::GridDecomposition
 {
     public:
-        SyclopDecomposition(const int len, const base::RealVectorBounds& b) : GridDecomposition(len, 2, b) {}        
-        
+        SyclopDecomposition(const int len, const base::RealVectorBounds& b) : GridDecomposition(len, 2, b) {}
+
         virtual void project(const base::State* s, std::vector<double>& coord) const
         {
             coord.resize(2);
             coord[0] = s->as<base::RealVectorStateSpace::StateType>()->values[0];
             coord[1] = s->as<base::RealVectorStateSpace::StateType>()->values[1];
-        }        
-        
+        }
+
         virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s)
         {
             const base::RealVectorBounds& regionBounds = getRegionBounds(rid);
-            
+
             sampler->sampleUniform(s);
             base::RealVectorStateSpace::StateType& st = *s->as<base::RealVectorStateSpace::StateType>();
             st[0] = rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]);
             st[1] = rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]);
         }
-        
+
     private:
         ompl::RNG rng_;
 };
@@ -350,16 +350,16 @@ class SyclopRRTTest : public TestPlanner
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
         base::RealVectorBounds bounds(2);
-        
+
         const base::RealVectorBounds& spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
         bounds.setLow(0, spacebounds.low[0]);
         bounds.setLow(1, spacebounds.low[1]);
         bounds.setHigh(0, spacebounds.high[0]);
         bounds.setHigh(1, spacebounds.high[1]);
-        
+
         // Create a 10x10 grid decomposition for Syclop
         control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
-    
+
         control::SyclopRRT *srrt = new control::SyclopRRT(si, decomp);
         return base::PlannerPtr(srrt);
     }
@@ -370,16 +370,16 @@ class SyclopESTTest : public TestPlanner
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
         base::RealVectorBounds bounds(2);
-        
+
         const base::RealVectorBounds& spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
         bounds.setLow(0, spacebounds.low[0]);
         bounds.setLow(1, spacebounds.low[1]);
         bounds.setHigh(0, spacebounds.high[0]);
         bounds.setHigh(1, spacebounds.high[1]);
-        
+
         // Create a 10x10 grid decomposition for Syclop
         control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
-    
+
         control::SyclopEST *sest = new control::SyclopEST(si, decomp);
         return base::PlannerPtr(sest);
     }

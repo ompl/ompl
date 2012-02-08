@@ -73,7 +73,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         msg_.error("Unknown type of goal (or goal undefined)");
         return false;
     }
-    
+
     base::State* goalState = si_->allocState();
     goalSampleable->sampleGoal(goalState);
     const int goalRegion = decomp_->locateRegion(goalState);
@@ -141,7 +141,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                 break;
         }
     }
-    bool addedSolution = false;    
+    bool addedSolution = false;
     if (solution != NULL)
     {
         std::vector<const Motion*> mpath;
@@ -152,14 +152,10 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         }
         PathControl* path = new PathControl(si_);
         for (int i = mpath.size()-1; i >= 0; --i)
-        {
-            path->states.push_back(si_->cloneState(mpath[i]->state));
             if (mpath[i]->parent)
-            {
-                path->controls.push_back(siC_->cloneControl(mpath[i]->control));
-                path->controlDurations.push_back(mpath[i]->steps * siC_->getPropagationStepSize());
-            }
-        }
+                path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
+            else
+                path->append(mpath[i]->state);
         goal->addSolutionPath(base::PathPtr(path), !solved, goalDist);
         addedSolution = true;
     }

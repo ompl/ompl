@@ -255,7 +255,7 @@ namespace ompl
 
                 /** \brief The radius of the volume  associated to this motion */
                 double             volRadius;
-                
+
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
             };
@@ -280,10 +280,10 @@ namespace ompl
             {
                 return (si_->distance(a->state, b->state)) - a->volRadius;
             }
-            
+
             /** \brief Removes the given motion from the parent's child list */
             void removeFromParent(Motion *m);
-            
+
             /** \brief Updates the cost of the children of this node by adding the delta */
             void updateChildCosts(Motion *m, double delta);
 

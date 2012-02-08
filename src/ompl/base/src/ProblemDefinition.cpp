@@ -159,11 +159,11 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid(void)
         if (isTrivial(&startIndex, NULL))
         {
             control::PathControl *pc = new control::PathControl(sic);
-            pc->states.push_back(sic->cloneState(startStates_[startIndex]));
-            pc->states.push_back(sic->cloneState(startStates_[startIndex]));
-            pc->controls.push_back(sic->allocControl());
-            sic->nullControl(pc->controls.back());
-            pc->controlDurations.push_back(0);
+            pc->append(startStates_[startIndex]);
+            control::Control *null = sic->allocControl();
+            sic->nullControl(null);
+            pc->append(startStates_[startIndex], null, 0.0);
+            sic->freeControl(null);
             path.reset(pc);
         }
         else
@@ -185,10 +185,8 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid(void)
                             if (goal_->isSatisfied(result2))
                             {
                                 control::PathControl *pc = new control::PathControl(sic);
-                                pc->states.push_back(sic->cloneState(start));
-                                pc->states.push_back(sic->cloneState(result2));
-                                pc->controls.push_back(sic->cloneControl(nc));
-                                pc->controlDurations.push_back(i + 1);
+                                pc->append(start);
+                                pc->append(result2, nc, (i + 1) * sic->getPropagationStepSize());
                                 path.reset(pc);
                                 break;
                             }
@@ -212,16 +210,14 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid(void)
         if (goals)
             for (unsigned int i = 0; i < goals->getStateCount(); ++i)
                 if (si_->isValid(goals->getState(i)) && si_->satisfiesBounds(goals->getState(i)))
-                    states.push_back (goals->getState(i));
+                    states.push_back(goals->getState(i));
 
         if (states.empty())
         {
             unsigned int startIndex;
             if (isTrivial(&startIndex))
             {
-                geometric::PathGeometric *pg = new geometric::PathGeometric(si_);
-                pg->states.push_back(si_->cloneState(startStates_[startIndex]));
-                pg->states.push_back(si_->cloneState(startStates_[startIndex]));
+                geometric::PathGeometric *pg = new geometric::PathGeometric(si_, startStates_[startIndex], startStates_[startIndex]);
                 path.reset(pg);
             }
         }
@@ -235,9 +231,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid(void)
                     for (unsigned int j = 0 ; j < states.size() && !path ; ++j)
                         if (si_->checkMotion(start, states[j]))
                         {
-                            geometric::PathGeometric *pg = new geometric::PathGeometric(si_);
-                            pg->states.push_back(si_->cloneState(start));
-                            pg->states.push_back(si_->cloneState(states[j]));
+                            geometric::PathGeometric *pg = new geometric::PathGeometric(si_, start, states[j]);
                             path.reset(pg);
                             break;
                         }

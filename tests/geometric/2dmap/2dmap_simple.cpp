@@ -87,7 +87,7 @@ public:
                 printf("Simplified solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
             /* fill in values that were linearly interpolated */
-            path.interpolate(path.states.size() * 2);
+            path.interpolate(path.getStateCount() * 2);
 
             if (pathLength)
                 *pathLength += path.length();
@@ -100,10 +100,10 @@ public:
 
             Environment2D temp = env;
             /* display the solution */
-            for (unsigned int i = 0 ; i < path.states.size() ; ++i)
+            for (unsigned int i = 0 ; i < path.getStateCount() ; ++i)
             {
-                int x = (int)path.states[i]->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0)->values[0];
-                int y = (int)path.states[i]->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1)->values[0];
+                int x = (int)path.getState(i)->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0)->values[0];
+                int y = (int)path.getState(i)->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1)->values[0];
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else

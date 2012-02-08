@@ -475,7 +475,7 @@ void ompl::Benchmark::benchmark(const Request &req)
                         run["solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
                         run["solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
                         run["solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
-                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
+                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().getStateCount() - 1);
                         run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
 
                         unsigned int factor = gsetup_->getStateSpace()->getValidSegmentCountFactor();
@@ -491,7 +491,7 @@ void ompl::Benchmark::benchmark(const Request &req)
                         run["simplified solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
                         run["simplified solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
                         run["simplified solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
-                        run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().states.size() - 1);
+                        run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().getStateCount() - 1);
                         run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
                         run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
@@ -503,7 +503,7 @@ void ompl::Benchmark::benchmark(const Request &req)
                         run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getGoal()->getDifference());
                         run["solution length REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().length());
                         run["solution clearance REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().asGeometric().clearance());
-                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().states.size() - 1);
+                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().getControlCount());
                         run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().check());
                     }
                 }

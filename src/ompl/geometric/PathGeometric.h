@@ -78,6 +78,7 @@ namespace ompl
             /** \brief Assignment operator */
             PathGeometric& operator=(const PathGeometric& other);
 
+
             /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
             virtual double length(void) const;
 
@@ -93,20 +94,9 @@ namespace ompl
                 the path (no interpolation is performed). The clearance for the points is averaged. */
             double clearance(void) const;
 
-            /** \brief Check if the path is valid. If it is not,
-                attempts are made to fix the path by sampling around
-                invalid states. Not more than \e attempts samples are
-                drawn. A pair of boolean values is returned. The first
-                value represents the validity of the path before any
-                change was made. The second value represents the
-                validity of the path after changes were attempted. If
-                no changes are attempted, the both values are true.
-
-                \note If repairing a path fails, the path may still be altered */
-            std::pair<bool, bool> checkAndRepair(unsigned int attempts);
-
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const;
+
 
             /** \brief Insert a number of states in a path so that the
                 path is made up of exactly \e count states. States are
@@ -127,15 +117,21 @@ namespace ompl
             /** \brief Reverse the path */
             void reverse(void);
 
-            /** \brief Compute the time parametrization for the states along this path
-                \param maxVel The maximum velocity to be attained
-                \param maxAcc The maximum acceleration of the system
-                \param times The time stamp (in seconds) for each of the states along the path. Starts at 0.0
-                \param maxSteps The maximum number of steps to run this algorithm for (the algorithm is iterative)
 
-                \note This method attempts to get to the maximum velocity as quickly as possible, while staying within
-                acceleration limits. */
-            void computeFastTimeParametrization(double maxVel, double maxAcc, std::vector<double> &times, unsigned int maxSteps = 10) const;
+            /** @name Path operations
+                @{ */
+
+            /** \brief Check if the path is valid. If it is not,
+                attempts are made to fix the path by sampling around
+                invalid states. Not more than \e attempts samples are
+                drawn. A pair of boolean values is returned. The first
+                value represents the validity of the path before any
+                change was made. The second value represents the
+                validity of the path after changes were attempted. If
+                no changes are attempted, the both values are true.
+
+                \note If repairing a path fails, the path may still be altered */
+            std::pair<bool, bool> checkAndRepair(unsigned int attempts);
 
             /** \brief Overlay the path \e over on top of the current
                 path. States are added to the current path if needed
@@ -149,7 +145,10 @@ namespace ompl
                 as with operator=() */
             void overlay(const PathGeometric &over, unsigned int startIndex = 0);
 
-            /** \brief Append \e path at the end of this path.
+            /** \brief Append \e state to the end of this path. The memory for \e state is copied. */
+            void append(const base::State *state);
+
+            /** \brief Append \e path at the end of this path. States from \e path are copied.
 
                 Let the existing path consist of states [ \e s1, \e
                 s2, ..., \e sk ]. Let \e path consist of states [\e y1, ..., \e yp].
@@ -162,23 +161,62 @@ namespace ompl
             */
             void append(const PathGeometric &path);
 
-            /** \brief Set this path to a random segment */
-            void random(void);
-
-            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
-            bool randomValid(unsigned int attempts);
-
             /** \brief Keep the part of the path that is after \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
             void keepAfter(const base::State *state);
 
             /** \brief Keep the part of the path that is before \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
             void keepBefore(const base::State *state);
 
+            /** \brief Set this path to a random segment */
+            void random(void);
+
+            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
+            bool randomValid(unsigned int attempts);
+            /** @} */
+
+
+            /** \brief Compute the time parametrization for the states along this path
+                \param maxVel The maximum velocity to be attained
+                \param maxAcc The maximum acceleration of the system
+                \param times The time stamp (in seconds) for each of the states along the path. Starts at 0.0
+                \param maxSteps The maximum number of steps to run this algorithm for (the algorithm is iterative)
+
+                \note This method attempts to get to the maximum velocity as quickly as possible, while staying within
+                acceleration limits. */
+            void computeFastTimeParametrization(double maxVel, double maxAcc, std::vector<double> &times, unsigned int maxSteps = 10) const;
+
+
+            /** @name Functionality for accessing states
+                @{ */
+
             /** \brief Get the index of the way-point along the path that is closest to \e state. Returns -1 for an empty path. */
             int getClosestIndex(const base::State *state) const;
 
-            /** \brief The list of states that make up the path */
-            std::vector<base::State*> states;
+            /** \brief Get the states that make up the path (as a reference, so it can be modified, hence the function is not const) */
+            std::vector<base::State*>& getStates(void)
+            {
+                return states_;
+            }
+
+            /** \brief Get the state located at \e index along the path */
+            base::State* getState(unsigned int index)
+            {
+                return states_[index];
+            }
+
+            /** \brief Get the state located at \e index along the path */
+            const base::State* getState(unsigned int index) const
+            {
+                return states_[index];
+            }
+
+            /** \brief Get the number of states (way-points) that make up this path */
+            std::size_t getStateCount(void) const
+            {
+                return states_.size();
+            }
+
+            /** @} */
 
         protected:
 
@@ -187,6 +225,9 @@ namespace ompl
 
             /** \brief Copy data to this path from another path instance */
             void copyFrom(const PathGeometric& other);
+
+            /** \brief The list of states that make up the path */
+            std::vector<base::State*> states_;
         };
 
     }

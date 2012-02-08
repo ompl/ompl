@@ -89,7 +89,7 @@ void ompl::geometric::PathHybridization::computeHybridPath(void)
     {
         PathGeometric *h = new PathGeometric(si_);
         for (Vertex pos = prev[goal_]; prev[pos] != pos; pos = prev[pos])
-            h->states.push_back(si_->cloneState(stateProperty_[pos]));
+            h->append(stateProperty_[pos]);
         h->reverse();
         hpath_.reset(h);
     }
@@ -116,7 +116,7 @@ void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp)
     }
 
     // skip empty paths
-    if (p->states.empty())
+    if (p->getStateCount() == 0)
         return;
 
     PathInfo pi(pp);
@@ -221,18 +221,18 @@ std::size_t ompl::geometric::PathHybridization::pathCount(void) const
 void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, const PathGeometric &q, double gapCost,
                                                     std::vector<int> &indexP, std::vector<int> &indexQ) const
 {
-    std::vector<std::vector<double> > C(p.states.size());
-    std::vector<std::vector<char> >   T(p.states.size());
+    std::vector<std::vector<double> > C(p.getStateCount());
+    std::vector<std::vector<char> >   T(p.getStateCount());
 
-    for (std::size_t i = 0 ; i < p.states.size() ; ++i)
+    for (std::size_t i = 0 ; i < p.getStateCount() ; ++i)
     {
-        C[i].resize(q.states.size(), 0.0);
-        T[i].resize(q.states.size(), '\0');
-        for (std::size_t j = 0 ; j < q.states.size() ; ++j)
+        C[i].resize(q.getStateCount(), 0.0);
+        T[i].resize(q.getStateCount(), '\0');
+        for (std::size_t j = 0 ; j < q.getStateCount() ; ++j)
         {
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
-            double match = si_->distance(p.states[i], q.states[j]) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
+            double match = si_->distance(p.getState(i), q.getState(j)) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
             double up    = gapCost + (i > 0 ? C[i - 1][j] : 0.0);
             double left  = gapCost + (j > 0 ? C[i][j - 1] : 0.0);
             if (match <= up && match <= left)
@@ -255,8 +255,8 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
         }
     }
     // construct the sequences with gaps (only index positions)
-    int m = p.states.size() - 1;
-    int n = q.states.size() - 1;
+    int m = p.getStateCount() - 1;
+    int n = q.getStateCount() - 1;
 
     indexP.clear();
     indexQ.clear();

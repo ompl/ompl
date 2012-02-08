@@ -99,7 +99,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     if (!goal)
     {
         msg_.error("Goal undefined");
-        return false; 
+        return false;
     }
 
     while (const base::State *st = pis_.nextStart())
@@ -268,13 +268,13 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                             // Remove this node from its parent list
                             removeFromParent (nbh[i]);
                             double delta = c - nbh[i]->cost;
-                        
+
                             // Add this node to the new parent
                             nbh[i]->parent = motion;
                             nbh[i]->cost = c;
                             nbh[i]->parent->children.push_back(nbh[i]);
                             solCheck.push_back(nbh[i]);
-                            
+
                             // Update the costs of the node's children
                             updateChildCosts(nbh[i], delta);
                         }
@@ -287,7 +287,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
                 sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
-                
+
                 if (solved)
                 {
                     if (sufficientlyShort)
@@ -307,12 +307,12 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                 }
             }
         }
-        
+
         // terminate if a sufficient solution is found
         if (solution && sufficientlyShort)
             break;
     }
-    
+
     double solutionCost;
     bool approximate = (solution == NULL);
     bool addedSolution = false;
@@ -334,10 +334,10 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
             solution = solution->parent;
         }
 
-        // set the solution path 
+        // set the solution path
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->states.push_back(si_->cloneState(mpath[i]->state));
+            path->append(mpath[i]->state);
         goal->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
         addedSolution = true;
     }
