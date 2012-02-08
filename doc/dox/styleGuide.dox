@@ -64,7 +64,7 @@ int SampleObject::NUM_INSTANCES = 0;
 
 
 \section otherCodingGuidelines Other Coding Guidelines
-- Compiler specific features should never be used (avoid use of #ifdef).
+- Compiler specific features should never be used (avoid use of \#ifdef).
 - Code must compile without warnings.
 - If a class member function can be marked \e const, then it should be marked \e const.
 - Member functions marked as \e const must be thread safe. If a function is intended to be thread safe, it should be marked as \e const (one can use the \e mutable keyword if needed).
