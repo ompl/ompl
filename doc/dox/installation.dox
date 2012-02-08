@@ -2,7 +2,7 @@
 \page installation Installation
 
 To compile OMPL the following two packages are required:
-- <a href="http://www.boost.org">Boost</a> (recommended version 1.44 or higher) and
+- <a href="http://www.boost.org">Boost</a> (required version 1.40, recommended version 1.44 or higher) and
 - <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher).
 .
 For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to generate the python bindings, then you need to install <a href="http://sourceforge.net/projects/pygccxml/">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
@@ -18,14 +18,13 @@ Below are installation instructions for Ubuntu Linux and Mac OS X. Similar steps
 
 \subsection install_linux_ubuntu Ubuntu Linux
 
-- If using Ubuntu 10.04 or earlier, the supplied Boost version is too old. You will need to add another repository. For Ubuntu 9.10 or 10.04, this can be done with the following command:
+- If using Ubuntu 11.04 or earlier, the supplied Boost version is too old. Ubuntu 10.04 and newer do include Boost 1.40+, which is sufficient, but for the complete functionality 
+of OMPL (Python bindings and <a href="http://odeint.org">boost::numeric::odeint</a>), you will need Boost 1.44+.
+You can install Boost from <a href="http://www.boost.org/users/download/">source</a>, but it is simpler to add another repository:
 \code
-sudo add-apt-repository ppa:gezakovacs/boost
+sudo add-apt-repository ppa:boost-latest/ppa
 \endcode
-For Ubuntu 9.04 or earlier, adding the repository will require a <a href="https://launchpad.net/~gezakovacs/+archive/boost">different approach</a>.
-
-- If using Ubuntu 9.10 or earlier, the supplied version of CMake is too old.
-You can download the latest version from <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
+- The default version of CMake should suffice. If needed, you can download the latest version from <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
 - Install Boost, CMake
 \code
 sudo apt-get install libboost-all-dev cmake
@@ -43,7 +42,7 @@ sudo apt-get install libgtest-dev doxygen graphviz python-dev libode-dev
 - If you do not need to modify or see the source code of OMPL, then the easiest way to install OMPL is with the MacPorts \c port command:
 \code
 sudo port selfupdate
-sudo port install ompl
+sudo port install ompl +python27
 \endcode
 This is it. You are done. Demo programs can be found in \c /opt/local/share/ompl.
 - If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, and CMake. Optionally, you can also install the Open Dynamics Engine, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:

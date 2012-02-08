@@ -72,8 +72,6 @@ div.qindex, div.navtab{
 	background-color: #EBEFF6;
 	border: 1px solid #A3B4D7;
 	text-align: center;
-	margin: 2px;
-	padding: 2px;
 }
 
 div.qindex, div.navpath {
@@ -183,15 +181,15 @@ div.groupText {
 }
 
 body {
-	background: white;
+	background-color: white;
 	color: black;
         margin: 0;
 }
 
 div.contents {
 	margin-top: 10px;
-	margin-left: 10px;
-	margin-right: 5px;
+	margin-left: 8px;
+	margin-right: 8px;
 }
 
 td.indexkey {
@@ -414,7 +412,7 @@ table.memberdecls {
         margin-left: 6px;
 }
 
-.memproto {
+.memproto, dl.reflist dt {
         border-top: 1px solid #A8B8D9;
         border-left: 1px solid #A8B8D9;
         border-right: 1px solid #A8B8D9;
@@ -440,7 +438,7 @@ table.memberdecls {
 
 }
 
-.memdoc {
+.memdoc, dl.reflist dd {
         border-bottom: 1px solid #A8B8D9;      
         border-left: 1px solid #A8B8D9;      
         border-right: 1px solid #A8B8D9; 
@@ -461,6 +459,15 @@ table.memberdecls {
         -webkit-border-bottom-right-radius: 8px;
         -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
         background-image: -webkit-gradient(linear,center top,center bottom,from(#FFFFFF), color-stop(0.6,#FFFFFF), color-stop(0.60,#FFFFFF), color-stop(0.95,#F7F8FB), to(#EEF1F7));
+}
+
+dl.reflist dt {
+        padding: 5px;
+}
+
+dl.reflist dd {
+        margin: 0px 0px 10px 0px;
+        padding: 5px;
 }
 
 .paramkey {
@@ -622,6 +629,58 @@ table.doxtable th {
 	text-align:left;
 }
 
+table.fieldtable {
+        width: 100%;
+        margin-bottom: 10px;
+        border: 1px solid #A8B8D9;
+        border-spacing: 0px;
+        -moz-border-radius: 4px;
+        -webkit-border-radius: 4px;
+        border-radius: 4px;
+        -moz-box-shadow: rgba(0, 0, 0, 0.15) 2px 2px 2px;
+        -webkit-box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.15);
+        box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.15);
+}
+
+.fieldtable td, .fieldtable th {
+        padding: 3px 7px 2px;
+}
+
+.fieldtable td.fieldtype, .fieldtable td.fieldname {
+        white-space: nowrap;
+        border-right: 1px solid #A8B8D9;
+        border-bottom: 1px solid #A8B8D9;
+        vertical-align: top;
+}
+
+.fieldtable td.fielddoc {
+        border-bottom: 1px solid #A8B8D9;
+        width: 100%;
+}
+
+.fieldtable tr:last-child td {
+        border-bottom: none;
+}
+
+.fieldtable th {
+        background-image:url('nav_f.png');
+        background-repeat:repeat-x;
+        background-color: #E2E8F2;
+        font-size: 90%;
+        color: #253555;
+        padding-bottom: 4px;
+        padding-top: 5px;
+        text-align:left;
+        -moz-border-radius-topleft: 4px;
+        -moz-border-radius-topright: 4px;
+        -webkit-border-top-left-radius: 4px;
+        -webkit-border-top-right-radius: 4px;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        border-bottom: 1px solid #A8B8D9;
+}
+
+
 .tabsearch {
 	top: 0px;
 	left: 10px;
@@ -701,6 +760,7 @@ div.summary a
 
 div.ingroups
 {
+	margin-left: 5px;
 	font-size: 8pt;
 	padding-left: 5px;
 	width: 50%;
@@ -723,7 +783,7 @@ div.header
 
 div.headertitle
 {
-	padding: 5px 5px 5px 10px;
+	padding: 5px 5px 5px 7px;
 }
 
 dl
@@ -831,5 +891,56 @@ dl.bug
 .caption
 {
 	font-weight: bold;
+}
+
+div.zoom
+{
+	border: 1px solid #90A5CE;
+}
+
+dl.citelist {
+        margin-bottom:50px;
+}
+
+dl.citelist dt {
+        color:#334975;
+        float:left;
+        font-weight:bold;
+        margin-right:10px;
+        padding:5px;
+}
+
+dl.citelist dd {
+        margin:2px 0;
+        padding:5px 0;
+}
+
+@media print
+{
+  #top { display: none; }
+  #side-nav { display: none; }
+  #nav-path { display: none; }
+  body { overflow:visible; }
+  h1, h2, h3, h4, h5, h6 { page-break-after: avoid; }
+  .summary { display: none; }
+  .memitem { page-break-inside: avoid; }
+  #doc-content
+  {
+    margin-left:0 !important;
+    height:auto !important;
+    width:auto !important;
+    overflow:inherit;
+    display:inline;
+  }
+  pre.fragment
+  {
+    overflow: visible;
+    text-wrap: unrestricted;
+    white-space: -moz-pre-wrap; /* Moz */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    white-space: pre-wrap; /* CSS3  */
+    word-wrap: break-word; /* IE 5.5+ */
+  }
 }
 

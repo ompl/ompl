@@ -78,14 +78,8 @@ void plan(ob::StateSpacePtr space, bool easy)
     // define a simple setup class
     og::SimpleSetup ss(space);
 
-    // use the special motion validator
-    ob::SpaceInformationPtr si(ss.getSpaceInformation());
-    if (dynamic_cast<ob::DubinsStateSpace*>(space.get()))
-        si->setMotionValidator(ob::MotionValidatorPtr(new ob::DubinsMotionValidator(si)));
-    else
-        si->setMotionValidator(ob::MotionValidatorPtr(new ob::ReedsSheppMotionValidator(si)));
-
     // set state validity checking for this space
+    ob::SpaceInformationPtr si(ss.getSpaceInformation());
     ss.setStateValidityChecker(boost::bind(
         easy ? &isStateValidEasy : &isStateValidHard, si.get(), _1));
 

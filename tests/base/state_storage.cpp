@@ -42,6 +42,24 @@
 
 using namespace ompl;
 
+struct Metadata
+{
+    Metadata(void) : tag1(0), tag2(0.5f)
+    {
+    }
+
+    int   tag1;
+    float tag2;
+
+    template<typename Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & tag1;
+        ar & tag2;
+    }
+};
+
+
 TEST(StateStorage, Store)
 {
     base::StateSpacePtr space(new base::SE3StateSpace());
@@ -61,6 +79,12 @@ TEST(StateStorage, Store)
         ss.addState(x);
     }
     ss.store("tmp_states");
+
+    base::StateStorageWithMetadata<Metadata> ssm(space);
+    ssm.generateSamples(3);
+    ssm.getMetadata(0).tag1 = 2;
+    ssm.getMetadata(1).tag2 = 1.0f;
+    ssm.store("tmp_states_wm");
 }
 
 TEST(StateStorage, Load)
@@ -74,6 +98,11 @@ TEST(StateStorage, Load)
 
     base::StateStorage ss(space);
     ss.load("tmp_states");
+
+    base::StateStorageWithMetadata<Metadata> ssm(space);
+    ssm.load("tmp_states_wm");
+    EXPECT_EQ(ssm.getMetadata(0).tag1, 2);
+    EXPECT_NEAR(ssm.getMetadata(1).tag2, 1.0f, 1e-5);
 }
 
 int main(int argc, char **argv)

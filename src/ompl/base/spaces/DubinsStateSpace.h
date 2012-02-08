@@ -106,6 +106,16 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 bool& firstTime, DubinsPath& path, State *state) const;
 
+            virtual void sanityChecks(void) const
+            {
+                double zero = std::numeric_limits<double>::epsilon();
+                double eps = std::numeric_limits<float>::epsilon();
+                int flags = ~(STATESPACE_INTERPOLATION | STATESPACE_TRIANGLE_INEQUALITY);
+                if (!isSymmetric_)
+                    flags &= ~STATESPACE_DISTANCE_SYMMETRIC;
+                StateSpace::sanityChecks(zero, eps, flags);
+            }
+
             /** \brief Return the shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
             DubinsPath dubins(const State *state1, const State *state2) const;
 

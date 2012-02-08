@@ -45,6 +45,7 @@ ompl::control::OpenDEStateSpace::OpenDEStateSpace(const OpenDEEnvironmentPtr &en
     base::CompoundStateSpace(), env_(env)
 {
     setName("OpenDE" + getName());
+    type_ = base::STATE_SPACE_TYPE_COUNT + 1;
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
     {
         std::string body = ":B" + boost::lexical_cast<std::string>(i);

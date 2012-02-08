@@ -39,7 +39,7 @@
 
 ompl::Profiler& ompl::Profiler::Instance(void)
 {
-    static Profiler p(true, true);
+    static Profiler p(true, false);
     return p;
 }
 

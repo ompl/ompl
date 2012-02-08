@@ -25,7 +25,7 @@ else(OMPL_IN_ROS)
     
     set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
     include(CompilerSettings)
-    find_package(Boost COMPONENTS date_time thread filesystem system program_options REQUIRED)
+    find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options REQUIRED)
     include_directories(${Boost_INCLUDE_DIR})
 
     find_package(Boost COMPONENTS odeint QUIET)
@@ -68,5 +68,21 @@ add_subdirectory(demos)
 add_subdirectory(doc)
 
 if(NOT OMPL_IN_ROS)
+
+    if (NOT MSVC)
+        set(PKG_DESC "The Open Motion Planning Library")
+        set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
+        configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
+        install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig)
+    endif()
+
+    # uninstall target
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
     include(CPackSettings)
 endif()

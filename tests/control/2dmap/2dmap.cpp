@@ -44,6 +44,9 @@
 #include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/control/planners/kpiece/KPIECE1.h"
+#include "ompl/control/planners/est/EST.h"
+#include "ompl/control/planners/syclop/SyclopEST.h"
+#include "ompl/control/planners/syclop/SyclopRRT.h"
 
 #include "../../resources/config.h"
 #include "../../resources/environment2D.h"
@@ -297,6 +300,19 @@ protected:
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
         control::RRT *rrt = new control::RRT(si);
+        rrt->setIntermediateStates(false);
+        return base::PlannerPtr(rrt);
+    }
+};
+
+class RRTTestIntermediate : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        control::RRT *rrt = new control::RRT(si);
+        rrt->setIntermediateStates(true);
         return base::PlannerPtr(rrt);
     }
 };
@@ -337,6 +353,25 @@ protected:
         kpiece->setProjectionEvaluator(ope);
 
         return base::PlannerPtr(kpiece);
+    }
+};
+
+class ESTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        control::EST *est = new control::EST(si);
+
+        std::vector<double> cdim;
+        cdim.push_back(1);
+        cdim.push_back(1);
+        base::ProjectionEvaluatorPtr ope(new myProjectionEvaluator(si->getStateSpace(), cdim));
+
+        est->setProjectionEvaluator(ope);
+
+        return base::PlannerPtr(est);
     }
 };
 
@@ -411,6 +446,21 @@ TEST_F(PlanTest, controlRRT)
     EXPECT_TRUE(avglength < 100.0);
 }
 
+TEST_F(PlanTest, controlRRTIntermediate)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new RRTTestIntermediate();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.05);
+    EXPECT_TRUE(avglength < 100.0);
+}
+
 TEST_F(PlanTest, controlKPIECE)
 {
     double success    = 0.0;
@@ -418,6 +468,21 @@ TEST_F(PlanTest, controlKPIECE)
     double avglength  = 0.0;
 
     TestPlanner *p = new KPIECETest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.05);
+    EXPECT_TRUE(avglength < 100.0);
+}
+
+TEST_F(PlanTest, controlEST)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new ESTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

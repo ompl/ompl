@@ -298,6 +298,18 @@ const double* ompl::base::StateSpace::getValueAddressAtLocation(const State *sta
     return loc.space->getValueAddressAtIndex(state, loc.index);
 }
 
+double* ompl::base::StateSpace::getValueAddressAtName(State *state, const std::string &name) const
+{
+    std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
+    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : NULL;
+}
+
+const double* ompl::base::StateSpace::getValueAddressAtName(const State *state, const std::string &name) const
+{
+    std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
+    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : NULL;
+}
+
 unsigned int ompl::base::StateSpace::getSerializationLength(void) const
 {
     return 0;
@@ -430,9 +442,11 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
 
 void ompl::base::StateSpace::sanityChecks(void) const
 {
-    static const double EPS  = std::numeric_limits<float>::epsilon(); // we want to allow for reduced accuracy in computation
-    static const double ZERO = std::numeric_limits<double>::epsilon();
+    sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), ~0);
+}
 
+void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int flags) const
+{
     // Test that distances are always positive
     {
         State *s1 = allocState();
@@ -442,18 +456,18 @@ void ompl::base::StateSpace::sanityChecks(void) const
         for (unsigned int i = 0 ; i < magic::TEST_STATE_COUNT ; ++i)
         {
             ss->sampleUniform(s1);
-            if (distance(s1, s1) > EPS)
+            if (flags & STATESPACE_DISTANCE_TO_SELF && distance(s1, s1) > eps)
                 throw Exception("Distance from a state to itself should be 0");
-            if (!equalStates(s1, s1))
+            if (flags & STATESPACE_EQUAL_TO_SELF && !equalStates(s1, s1))
                 throw Exception("A state should be equal to itself");
             ss->sampleUniform(s2);
             if (!equalStates(s1, s2))
             {
                 double d12 = distance(s1, s2);
-                if (d12 < ZERO)
+                if (flags & STATESPACE_DISTANCE_DIFFERENT_STATES && d12 < zero)
                     throw Exception("Distance between different states should be above 0");
                 double d21 = distance(s2, s1);
-                if (fabs(d12 - d21) > EPS)
+                if (flags & STATESPACE_DISTANCE_SYMMETRIC && fabs(d12 - d21) > eps)
                     throw Exception("The distance function should be symmetric (A->B=" +
                                     boost::lexical_cast<std::string>(d12) + ", B->A=" +
                                     boost::lexical_cast<std::string>(d21) + ", difference is " +
@@ -481,23 +495,23 @@ void ompl::base::StateSpace::sanityChecks(void) const
             ss->sampleUniform(s3);
 
             interpolate(s1, s2, 0.0, s3);
-            if (distance(s1, s3) > EPS)
+            if (flags & STATESPACE_INTERPOLATION && distance(s1, s3) > eps)
                 throw Exception("Interpolation from a state at time 0 should be not change the original state");
 
             interpolate(s1, s2, 1.0, s3);
-            if (distance(s2, s3) > EPS)
+            if (flags & STATESPACE_INTERPOLATION && distance(s2, s3) > eps)
                 throw Exception("Interpolation to a state at time 1 should be the same as the final state");
 
             interpolate(s1, s2, 0.5, s3);
             double diff = distance(s1, s3) + distance(s3, s2) - distance(s1, s2);
-            if (fabs(diff) > EPS)
+            if (flags & STATESPACE_TRIANGLE_INEQUALITY && fabs(diff) > eps)
                 throw Exception("Interpolation to midpoint state does not lead to distances that satisfy the triangle inequality (" +
                                 boost::lexical_cast<std::string>(diff) + " difference)");
 
             interpolate(s3, s2, 0.5, s3);
             interpolate(s1, s2, 0.75, s2);
 
-            if (distance(s2, s3) > EPS)
+            if (flags & STATESPACE_INTERPOLATION && distance(s2, s3) > eps)
                 throw Exception("Continued interpolation does not work as expected. Please also check that interpolate() works with overlapping memory for its state arguments");
         }
         freeState(s1);

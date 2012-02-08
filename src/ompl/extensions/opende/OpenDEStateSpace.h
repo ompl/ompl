@@ -146,8 +146,8 @@ namespace ompl
                 \param orientationWeight the weight to pass to CompoundStateSpace::addSubSpace() for orientation subspaces
             */
             OpenDEStateSpace(const OpenDEEnvironmentPtr &env,
-                          double positionWeight = 1.0, double linVelWeight = 0.5,
-                          double angVelWeight = 0.5, double orientationWeight = 1.0);
+                             double positionWeight = 1.0, double linVelWeight = 0.5,
+                             double angVelWeight = 0.5, double orientationWeight = 1.0);
 
             virtual ~OpenDEStateSpace(void)
             {

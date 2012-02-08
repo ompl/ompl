@@ -37,16 +37,19 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/DiscreteMotionValidator.h"
+#include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/util/Exception.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <queue>
 #include <cassert>
 
 ompl::base::SpaceInformation::SpaceInformation(const StateSpacePtr &space) :
-    stateSpace_(space), motionValidator_(new DiscreteMotionValidator(this)), setup_(false), msg_("SpaceInformation")
+    stateSpace_(space), setup_(false), msg_("SpaceInformation")
 {
     if (!stateSpace_)
         throw Exception("Invalid space definition");
+    setDefaultMotionValidator();
     params_.include(stateSpace_->params());
 }
 
@@ -59,7 +62,7 @@ void ompl::base::SpaceInformation::setup(void)
     }
 
     if (!motionValidator_)
-        motionValidator_.reset(new DiscreteMotionValidator(this));
+        setDefaultMotionValidator();
 
     stateSpace_->setup();
     if (stateSpace_->getDimension() <= 0)
@@ -102,6 +105,17 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
 
     setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
 }
+
+void ompl::base::SpaceInformation::setDefaultMotionValidator(void)
+{
+    if (dynamic_cast<ReedsSheppStateSpace*>(stateSpace_.get()))
+         motionValidator_.reset(new ReedsSheppMotionValidator(this));
+     else if (dynamic_cast<DubinsStateSpace*>(stateSpace_.get()))
+         motionValidator_.reset(new DubinsMotionValidator(this));
+     else
+         motionValidator_.reset(new DiscreteMotionValidator(this));
+}
+
 
 void ompl::base::SpaceInformation::setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
 {

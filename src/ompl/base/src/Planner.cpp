@@ -275,6 +275,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 
     if (goal)
     {
+        time::point start_wait;
         bool first = true;
         bool attempt = true;
         while (attempt)
@@ -293,7 +294,14 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     bool bounds = si_->satisfiesBounds(tempState_);
                     bool valid = bounds ? si_->isValid(tempState_) : false;
                     if (bounds && valid)
+                    {
+                        if (!first) // if we waited, show how long
+                        {
+                            msg::Interface msg(planner_ ? planner_->getName() : "");
+                            msg.debug("Waited %lf seconds for the first goal sample.", time::seconds(time::now() - start_wait));
+                        }
                         return tempState_;
+                    }
                     else
                     {
                         msg::Interface msg(planner_ ? planner_->getName() : "");
@@ -308,6 +316,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                 if (first)
                 {
                     first = false;
+                    start_wait = time::now();
                     msg::Interface msg(planner_ ? planner_->getName() : "");
                     msg.debug("Waiting for goal region samples ...");
                 }

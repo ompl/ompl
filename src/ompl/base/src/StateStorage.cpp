@@ -40,6 +40,9 @@
 #include <boost/bind.hpp>
 #include <fstream>
 
+#include <boost/serialization/binary_object.hpp>
+#include <boost/archive/archive_exception.hpp>
+
 /// @cond IGNORE
 static ompl::base::StateSamplerPtr allocPrecomputedStateSampler(const ompl::base::StateSpace *space,
                                                                 const std::vector<int> &expectedSignature,
@@ -71,7 +74,7 @@ ompl::base::StateStorage::StateStorage(const StateSpacePtr &space) : space_(spac
 
 ompl::base::StateStorage::~StateStorage(void)
 {
-    clear();
+    freeMemory();
 }
 
 ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocator(void) const
@@ -88,109 +91,72 @@ void ompl::base::StateStorage::load(const char *filename)
     in.close();
 }
 
-bool ompl::base::StateStorage::loadHeader(std::istream &in, Header &header)
-{
-    if (!in.good() || in.eof())
-    {
-        msg_.warn("Unable to load states");
-        return false;
-    }
-
-    // check marker
-    boost::uint32_t marker = 0;
-    in.read((char*)&marker, sizeof(boost::uint32_t));
-    if (marker != OMPL_ARCHIVE_MARKER)
-    {
-        msg_.error("The stored data does not start with the correct header");
-        return false;
-    }
-
-    // check state space signature
-    std::vector<int> sig;
-    space_->computeSignature(sig);
-
-    int signature_length = 0;
-    if (in.good())
-        in.read((char*)&signature_length, sizeof(int));
-    if (sig[0] != signature_length)
-    {
-        msg_.error("State space signatures do not match");
-        return false;
-    }
-    for (int i = 0 ; in.good() && i < signature_length ; ++i)
-    {
-        int s = 0;
-        in.read((char*)&s, sizeof(int));
-        if (s != sig[i + 1])
-        {
-            msg_.error("State space signatures do not match");
-            return false;
-        }
-    }
-    std::size_t state_count = 0;
-    std::size_t metadata_size = 0;
-    if (in.good())
-        in.read((char*)&state_count, sizeof(std::size_t));
-    else
-    {
-        msg_.error("Expected number of states. Incorrect file format");
-        return false;
-    }
-    if (in.good())
-        in.read((char*)&metadata_size, sizeof(std::size_t));
-    else
-    {
-        msg_.error("Expected metadata size. Incorrect file format");
-        return false;
-    }
-    if (state_count > 0 && !in.good())
-    {
-        msg_.error("Expected state data. Incorrect file format");
-        return false;
-    }
-    header.state_count = state_count;
-    header.metadata_size = metadata_size;
-    return true;
-}
-
-void ompl::base::StateStorage::load(std::istream &in)
-{
-    clear();
-    Header header;
-    if (!loadHeader(in, header))
-        return;
-
-    // load the file
-    unsigned int l = space_->getSerializationLength();
-    std::size_t length = header.state_count * (l + header.metadata_size);
-    char *buffer = length ? (char*)malloc(length) : NULL;
-    if (buffer)
-    {
-        in.read(buffer, length);
-        if (!in.fail())
-        {
-            msg_.debug("Deserializing %u states", header.state_count);
-            states_.reserve(header.state_count);
-
-            for (std::size_t i = 0 ; i < header.state_count ; ++i)
-            {
-                State *s = space_->allocState();
-                space_->deserialize(s, buffer + i * (l + header.metadata_size));
-                addState(s);
-            }
-        }
-        else
-            msg_.error("Unable to read state data. Incorrect file format");
-        free(buffer);
-    }
-}
-
 void ompl::base::StateStorage::store(const char *filename)
 {
     std::ofstream out(filename, std::ios::binary);
     store(out);
     out.close();
 }
+
+void ompl::base::StateStorage::load(std::istream &in)
+{
+    clear();
+    if (!in.good() || in.eof())
+    {
+        msg_.warn("Unable to load states");
+        return;
+    }
+    try
+    {
+
+        boost::archive::binary_iarchive ia(in);
+        Header h;
+        ia >> h;
+        if (h.marker != OMPL_ARCHIVE_MARKER)
+        {
+            msg_.error("OMPL archive marker not found");
+            return;
+        }
+
+        std::vector<int> sig;
+        space_->computeSignature(sig);
+        if (h.signature != sig)
+        {
+            msg_.error("State space signatures do not match");
+            return;
+        }
+        loadStates(h, ia);
+        loadMetadata(h, ia);
+    }
+
+    catch (boost::archive::archive_exception &ae)
+    {
+        msg_.error("Unable to load archive: %s", ae.what());
+    }
+
+}
+
+void ompl::base::StateStorage::loadStates(const Header &h, boost::archive::binary_iarchive &ia)
+{
+    msg_.debug("Deserializing %u states", h.state_count);
+    // load the file
+    unsigned int l = space_->getSerializationLength();
+    char *buffer = new char[l];
+    State *s = space_->allocState();
+    for (std::size_t i = 0 ; i < h.state_count ; ++i)
+    {
+        ia >> boost::serialization::make_binary_object(buffer, l);
+        space_->deserialize(s, buffer);
+        addState(s);
+    }
+    space_->freeState(s);
+    delete[] buffer;
+}
+
+void ompl::base::StateStorage::loadMetadata(const Header &h, boost::archive::binary_iarchive &ia)
+{
+}
+
 
 void ompl::base::StateStorage::store(std::ostream &out)
 {
@@ -199,59 +165,72 @@ void ompl::base::StateStorage::store(std::ostream &out)
         msg_.warn("Unable to store states");
         return;
     }
+    try
+    {
+        Header h;
+        h.marker = OMPL_ARCHIVE_MARKER;
+        h.state_count = states_.size();
+        space_->computeSignature(h.signature);
 
-    // *************** begin write header information
+        boost::archive::binary_oarchive oa(out);
+        oa << h;
 
-    // write archive marker
-    out.write((char*)&OMPL_ARCHIVE_MARKER, sizeof(boost::uint32_t));
+        storeStates(h, oa);
+        storeMetadata(h, oa);
+    }
+    catch (boost::archive::archive_exception &ae)
+    {
+        msg_.error("Unable to save archive: %s", ae.what());
+    }
+}
 
-    // write state space signature
-    std::vector<int> sig;
-    space_->computeSignature(sig);
-    out.write((char*)&sig[0], sig.size() * sizeof(int));
-
-    // write out the number of states
-    std::size_t nr_states = states_.size();
-    out.write((char*)&nr_states, sizeof(std::size_t));
-
-    // write out the size of the metadata for each state (currently no metadata)
-    std::size_t metadata_size = 0;
-    out.write((char*)&metadata_size, sizeof(std::size_t));
-
-    // *************** end write header information
-
+void ompl::base::StateStorage::storeStates(const Header &h, boost::archive::binary_oarchive &oa)
+{
     msg_.debug("Serializing %u states", (unsigned int)states_.size());
 
     unsigned int l = space_->getSerializationLength();
-    std::size_t length = l * states_.size();
-    char *buffer = (char*)malloc(length);
+    char *buffer = new char[l];
     for (std::size_t i = 0 ; i < states_.size() ; ++i)
-        space_->serialize(buffer + i * l, states_[i]);
-    out.write(buffer, length);
-    free(buffer);
+    {
+        space_->serialize(buffer, states_[i]);
+        oa << boost::serialization::make_binary_object(buffer, l);
+    }
+    delete[] buffer;
+}
+
+void ompl::base::StateStorage::storeMetadata(const Header &h, boost::archive::binary_oarchive &oa)
+{
 }
 
 void ompl::base::StateStorage::addState(const State *state)
 {
-    states_.push_back(state);
+    State *copy = space_->allocState();
+    space_->copyState(copy, state);
+    states_.push_back(copy);
 }
 
 void ompl::base::StateStorage::generateSamples(unsigned int count)
 {
     StateSamplerPtr ss = space_->allocStateSampler();
     states_.reserve(states_.size() + count);
+    State *s = space_->allocState();
     for (unsigned int i = 0 ; i < count ; ++i)
     {
-        State *s = space_->allocState();
         ss->sampleUniform(s);
         addState(s);
     }
+    space_->freeState(s);
+}
+
+void ompl::base::StateStorage::freeMemory(void)
+{
+    for (std::size_t i = 0 ; i < states_.size() ; ++i)
+        space_->freeState(const_cast<State*>(states_[i]));
 }
 
 void ompl::base::StateStorage::clear(void)
 {
-    for (std::size_t i = 0 ; i < states_.size() ; ++i)
-        space_->freeState(const_cast<State*>(states_[i]));
+    freeMemory();
     states_.clear();
 }
 

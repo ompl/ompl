@@ -123,10 +123,10 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
 
     msg_.inform("Starting with %u states", nn_->size());
 
-    Motion *solution     = NULL;
-    Motion *approxsol    = NULL;
-    double  approxdif    = std::numeric_limits<double>::infinity();
-    bool    approxsolved = false;
+    Motion *solution       = NULL;
+    Motion *approximation  = NULL;
+    double approximatedist = std::numeric_limits<double>::infinity();
+    bool sufficientlyShort = false;
 
     Motion *rmotion   = new Motion(si_, rO_);
     Motion *toTrim    = NULL;
@@ -302,6 +302,7 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
 
             /* add motion to tree */
             addMotion(motion);
+            motion->parent->children.push_back(motion);
 
             solCheck.resize(1);
             solCheck[0] = motion;
@@ -333,20 +334,28 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
 
                         if (v)
                         {
+                            // Remove this node from its parent list
+                            removeFromParent (nbh[i]);
+                            double delta = c - nbh[i]->cost;
+                            
                             nbh[i]->parent = motion;
                             nbh[i]->cost = c;
+                            nbh[i]->parent->children.push_back(nbh[i]);
                             solCheck.push_back(nbh[i]);
+                            
+                            // Update the costs of the node's children
+                            updateChildCosts(nbh[i], delta);
                         }
                     }
                 }
 
-            /* check if  we found a solution */
+            // check if we found a solution
             for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                bool sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
-
+                sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+                
                 if (solved)
                 {
                     if (sufficientlyShort)
@@ -354,34 +363,20 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
                         solution = solCheck[i];
                         break;
                     }
-                    else
+                    else if (!solution || (solCheck[i]->cost < solution->cost))
                     {
-                        if (approxsolved)
-                        {
-                            if (dist < approxdif)
-                            {
-                                approxdif = dist;
-                                approxsol = solCheck[i];
-                            }
-                        }
-                        else
-                        {
-                            approxsolved = true;
-                            approxdif = dist;
-                            approxsol = solCheck[i];
-                        }
+                        solution = solCheck[i];
                     }
                 }
-                else
-                    if (!approxsolved && dist < approxdif)
-                    {
-                        approxdif = dist;
-                        approxsol = solCheck[i];
-                    }
+                else if (!solution && dist < approximatedist)
+                {
+                    approximation = solCheck[i];
+                    approximatedist = dist;
+                }
             }
-
-            /* terminate if a solution was found */
-            if (solution != NULL)
+        
+            // terminate if a sufficient solution is found
+            if (solution && sufficientlyShort)
                 break;
         }
         else
@@ -394,17 +389,20 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
         }
     }
 
+    double solutionCost;
+    bool approximate = (solution == NULL);
     bool addedSolution = false;
-    bool approximate = false;
-    if (solution == NULL)
+    if (approximate)
     {
-        solution = approxsol;
-        approximate = true;
+        solution = approximation;
+        solutionCost = approximatedist;
     }
+    else
+        solutionCost = solution->cost;
 
     if (solution != NULL)
     {
-        /* construct the solution path */
+        // construct the solution path
         std::vector<Motion*> mpath;
         while (solution != NULL)
         {
@@ -412,11 +410,11 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
             solution = solution->parent;
         }
 
-        /* set the solution path */
+        // set the solution path 
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        goal->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
         addedSolution = true;
     }
 
@@ -428,6 +426,30 @@ bool ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondi
     msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
     return addedSolution;
+}
+
+void ompl::geometric::BallTreeRRTstar::removeFromParent(Motion *m)
+{
+    std::vector<Motion*>::iterator it = m->parent->children.begin ();
+    while (it != m->parent->children.end ())
+    {
+        if (*it == m)
+        {
+            it = m->parent->children.erase(it);
+            it = m->parent->children.end ();
+        }
+        else
+            ++it;
+    }
+}
+
+void ompl::geometric::BallTreeRRTstar::updateChildCosts(Motion *m, double delta)
+{
+    for (size_t i = 0; i < m->children.size(); ++i)
+    {
+        m->children[i]->cost += delta;
+        updateChildCosts(m->children[i], delta);
+    }
 }
 
 void ompl::geometric::BallTreeRRTstar::freeMemory(void)
