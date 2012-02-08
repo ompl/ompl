@@ -63,10 +63,18 @@ if(NOT OMPL_IN_ROS)
 
     if (NOT MSVC)
         set(PKG_DESC "The Open Motion Planning Library")
-	set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
-	configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
-	install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig)
+        set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
+        configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
+        install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig)
     endif()
+
+    # uninstall target
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
     include(CPackSettings)
 endif()

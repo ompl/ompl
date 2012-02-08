@@ -11,7 +11,15 @@ dl.attention, dl.note {
 dl.user+ul { margin-top: -1.5em;}
 .nofloat { float: none; }
 #MSearchResultsWindow, #MSearchSelectWindow { z-index: 6000;}
-#MSearchField { margin-bottom: 0; margin-top: 0;}
+#MSearchField {
+    margin-bottom: 0;
+    margin-top: 0;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    padding: 1px 1px 1px 4px;
+}
 a.download, a.download:hover, a.download:visited {
     background-color: #469;
     color: #fff;
@@ -22,18 +30,17 @@ a.download, a.download:hover, a.download:visited {
     line-height: 200%;
 }
 span.gray, span.gray a { color: #bbb; font-weight: normal; }
-body { padding-top: 60px; }
+@media (min-width: 980px) {
+    body { padding-top: 60px; }
+}
 div.header
 {
     background-image: none;
     background-color: transparent;
-    margin:  0px;
+    margin:  0px 0px 0px -20px;
     border: 0px none;
     font-weight: bold;
     color: #34170;
-    width: 960px;
-    margin-left: auto;
-    margin-right: auto;
     *zoom: 1;
 }
 
@@ -49,9 +56,7 @@ div.headertitle
 
 div.contents
 {
-    width: 960px;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0px 0px 0px -20px;
     *zoom: 1;
 }
 
@@ -88,7 +93,6 @@ input[type="text"]:focus, select:focus {
     margin-left: auto;
     margin-right: auto;
 }
-.footer .container { width: 940px; }
 .title { margin-left: 0px; margin-right: 0px; }
 .summary + .headertitle .title { font-size: 24px; }
 .summary + .headertitle { margin-left: 0px; }
