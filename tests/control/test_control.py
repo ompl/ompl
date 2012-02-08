@@ -194,6 +194,52 @@ class ESTTest(TestPlanner):
         planner = oc.EST(si)
         return planner
 
+class SyclopDecomposition(oc.GridDecomposition):
+    def __init__(self, len, bounds):
+        super(SyclopDecomposition, self).__init__(len, 2, bounds)
+        self.rng_ = ou.RNG()
+
+    def project(self, state, coord):
+        coord[0] = state[0]
+        coord[1] = state[1]
+
+    def sampleFromRegion(self, rid, sampler, state):
+        regionBounds = self.getRegionBounds(rid)
+
+        sampler.sampleUniform(state)
+        state[0] = self.rng_.uniformReal(regionBounds.low[0], regionBounds.high[0])
+        state[1] = self.rng_.uniformReal(regionBounds.low[1], regionBounds.high[1])
+
+class SyclopRRTTest(TestPlanner):
+    def newplanner(self, si):
+        spacebounds = si.getStateSpace().getBounds()  
+
+        bounds = ob.RealVectorBounds(2)        
+        bounds.setLow(0, spacebounds.low[0]);
+        bounds.setLow(1, spacebounds.low[1]);
+        bounds.setHigh(0, spacebounds.high[0]);
+        bounds.setHigh(1, spacebounds.high[1]);
+
+        # Create a 10x10 grid decomposition for Syclop
+        decomp = SyclopDecomposition(10, bounds)
+        planner = oc.SyclopRRT(si, decomp)
+        return planner
+
+class SyclopESTTest(TestPlanner):
+    def newplanner(self, si):
+        spacebounds = si.getStateSpace().getBounds()  
+
+        bounds = ob.RealVectorBounds(2)        
+        bounds.setLow(0, spacebounds.low[0]);
+        bounds.setLow(1, spacebounds.low[1]);
+        bounds.setHigh(0, spacebounds.high[0]);
+        bounds.setHigh(1, spacebounds.high[1]);
+
+        # Create a 10x10 grid decomposition for Syclop
+        decomp = SyclopDecomposition(10, bounds)
+        planner = oc.SyclopEST(si, decomp)
+        return planner        
+
 class MyProjectionEvaluator(ob.ProjectionEvaluator):
     def __init__(self, space, cellSizes):
         super(MyProjectionEvaluator, self).__init__(space)
@@ -263,6 +309,20 @@ class PlanTest(unittest.TestCase):
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 2.5)
+        self.assertTrue(avglength < 100.0)
+
+    def testControl_SyclopRRT(self):
+        planner = SyclopRRTTest()
+        (success, avgruntime, avglength) = self.runPlanTest(planner)
+        self.assertTrue(success >= 99.0)
+        self.assertTrue(avgruntime < 5.0)
+        self.assertTrue(avglength < 100.0)
+
+    def testControl_SyclopEST(self):
+        planner = SyclopESTTest()
+        (success, avgruntime, avglength) = self.runPlanTest(planner)
+        self.assertTrue(success >= 99.0)
+        self.assertTrue(avgruntime < 5.0)
         self.assertTrue(avglength < 100.0)
 
 

@@ -47,6 +47,7 @@
 #include "ompl/control/planners/est/EST.h"
 #include "ompl/control/planners/syclop/SyclopEST.h"
 #include "ompl/control/planners/syclop/SyclopRRT.h"
+#include "ompl/control/planners/syclop/GridDecomposition.h"
 
 #include "../../resources/config.h"
 #include "../../resources/environment2D.h"
@@ -317,6 +318,74 @@ protected:
     }
 };
 
+// A 2D workspace grid-decomposition for Syclop planners
+class SyclopDecomposition : public control::GridDecomposition
+{
+    public:
+        SyclopDecomposition(const int len, const base::RealVectorBounds& b) : GridDecomposition(len, 2, b) {}        
+        
+        virtual void project(const base::State* s, std::vector<double>& coord) const
+        {
+            coord.resize(2);
+            coord[0] = s->as<base::RealVectorStateSpace::StateType>()->values[0];
+            coord[1] = s->as<base::RealVectorStateSpace::StateType>()->values[1];
+        }        
+        
+        virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s)
+        {
+            const base::RealVectorBounds& regionBounds = getRegionBounds(rid);
+            
+            sampler->sampleUniform(s);
+            base::RealVectorStateSpace::StateType& st = *s->as<base::RealVectorStateSpace::StateType>();
+            st[0] = rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]);
+            st[1] = rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]);
+        }
+        
+    private:
+        ompl::RNG rng_;
+};
+
+class SyclopRRTTest : public TestPlanner
+{
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        base::RealVectorBounds bounds(2);
+        
+        const base::RealVectorBounds& spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
+        bounds.setLow(0, spacebounds.low[0]);
+        bounds.setLow(1, spacebounds.low[1]);
+        bounds.setHigh(0, spacebounds.high[0]);
+        bounds.setHigh(1, spacebounds.high[1]);
+        
+        // Create a 10x10 grid decomposition for Syclop
+        control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
+    
+        control::SyclopRRT *srrt = new control::SyclopRRT(si, decomp);
+        return base::PlannerPtr(srrt);
+    }
+};
+
+class SyclopESTTest : public TestPlanner
+{
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        base::RealVectorBounds bounds(2);
+        
+        const base::RealVectorBounds& spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
+        bounds.setLow(0, spacebounds.low[0]);
+        bounds.setLow(1, spacebounds.low[1]);
+        bounds.setHigh(0, spacebounds.high[0]);
+        bounds.setHigh(1, spacebounds.high[1]);
+        
+        // Create a 10x10 grid decomposition for Syclop
+        control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
+    
+        control::SyclopEST *sest = new control::SyclopEST(si, decomp);
+        return base::PlannerPtr(sest);
+    }
+};
+
+
 class myProjectionEvaluator : public base::ProjectionEvaluator
 {
 public:
@@ -490,6 +559,37 @@ TEST_F(PlanTest, controlEST)
     EXPECT_TRUE(avgruntime < 0.05);
     EXPECT_TRUE(avglength < 100.0);
 }
+
+TEST_F(PlanTest, controlSyclopRRT)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new SyclopRRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.15); // Syclop has a larger initialization cost than the other planners
+    EXPECT_TRUE(avglength < 100.0);
+}
+
+TEST_F(PlanTest, controlSyclopEST)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new SyclopESTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.15); // Syclop has a larger initialization cost than the other planners
+    EXPECT_TRUE(avglength < 100.0);
+}
+
 
 int main(int argc, char **argv)
 {
