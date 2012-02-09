@@ -100,8 +100,8 @@ const ompl::base::PathPtr& ompl::geometric::PathHybridization::getHybridPath(voi
     return hpath_;
 }
 
-void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp)
-{
+void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
+{    
     PathGeometric *p = dynamic_cast<PathGeometric*>(pp.get());
     if (!p)
     {
@@ -158,45 +158,63 @@ void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp)
         std::vector<int> indexP, indexQ;
         matchPaths(*p, *q, (pi.length_ + it->length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
-        int lastP = -1;
-        int lastQ = -1;
-        int gapStartP = -1;
-        int gapStartQ = -1;
-        bool gapP = false;
-        bool gapQ = false;
-        for (std::size_t i = 0 ; i < indexP.size() ; ++i)
-        {
-            if (indexP[i] < 0)
-            {
-                if (!gapP)
-                    gapStartP = i;
-                gapP = true;
-            }
-            else
-            {
-                if (gapP)
-                    for (std::size_t j = gapStartP ; j < i ; ++j)
-                        attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
-                lastP = i;
-                gapP = false;
-            }
-            if (indexQ[i] < 0)
-            {
-                if (!gapQ)
-                    gapStartQ = i;
-                gapQ = true;
-            }
-            else
-            {
-                if (gapQ)
-                    for (std::size_t j = gapStartQ ; j < i ; ++j)
-                        attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
-                lastQ = i;
-                gapQ = false;
-            }
-            if (lastP >= 0 && lastQ >= 0)
-                attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
-        }
+        if (matchAcrossGaps)
+	{	    
+	    int lastP = -1;
+	    int lastQ = -1;
+	    int gapStartP = -1;
+	    int gapStartQ = -1;
+	    bool gapP = false;
+	    bool gapQ = false;
+	    for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+	    {
+		// a gap is found in p
+		if (indexP[i] < 0)
+		{
+		    // remember this as the beginning of the gap, if needed
+		    if (!gapP)
+			gapStartP = i;
+		    // mark the fact we are now in a gap on p
+		    gapP = true;
+		}
+		else
+		{
+		    // check if a gap just ended;
+		    // if it did, try to match the endpoint with the elements in q
+		    if (gapP)
+			for (std::size_t j = gapStartP ; j < i ; ++j)
+			    attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
+		    // remember the last non-negative index in p
+		    lastP = i;
+		    gapP = false;
+		}
+		if (indexQ[i] < 0)
+		{
+		    if (!gapQ)
+			gapStartQ = i;
+		    gapQ = true;
+		}
+		else
+		{
+		    if (gapQ)
+			for (std::size_t j = gapStartQ ; j < i ; ++j)
+			    attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
+		    lastQ = i;
+		    gapQ = false;
+		}
+		
+		// try to match corresponding index values and gep beginnings
+		if (lastP >= 0 && lastQ >= 0)
+		    attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
+	    }
+	}
+	else
+	{
+	    // attempt new edge only when states align
+	    for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+		if (indexP[i] >= 0 && indexQ[i] >= 0)
+		    attemptNewEdge(pi, *it, indexP[i], indexQ[i]);
+	}
     }
 
     // remember this path is part of the hybridization
@@ -241,7 +259,6 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
                 T[i][j] = 'm';
             }
             else
-
                 if (up <= match && up <= left)
                 {
                     C[i][j] = up;

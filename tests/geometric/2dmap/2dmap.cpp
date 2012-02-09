@@ -426,7 +426,6 @@ protected:
     bool          verbose;
 };
 
-/*
 TEST_F(PlanTest, geometric_RRT)
 {
     double success    = 0.0;
@@ -598,7 +597,6 @@ TEST_F(PlanTest, geometric_PRM)
     EXPECT_TRUE(avglength < 100.0);
 }
 
-*/
 TEST_F(PlanTest, geometric_SBL)
 {
     double success    = 0.0;

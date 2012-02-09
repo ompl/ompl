@@ -162,7 +162,7 @@ void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCou
         boost::mutex::scoped_lock slock(phlock_);
         start = time::now();
         for (std::size_t i = 0 ; i < paths.size() ; ++i)
-            phybrid_->recordPath(paths[i].path_);
+            phybrid_->recordPath(paths[i].path_, false);
 
         if (phybrid_->pathCount() >= minSolCount)
             phybrid_->computeHybridPath();

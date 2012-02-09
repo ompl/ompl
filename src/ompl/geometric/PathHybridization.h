@@ -81,8 +81,8 @@ namespace ompl
             /** \brief Run Dijskstra's algorithm to find out the shortest path among the mixed ones */
             void computeHybridPath(void);
 
-            /** \brief Add a path to the hybridization */
-            void recordPath(const base::PathPtr &pp);
+            /** \brief Add a path to the hybridization. If \e matchAcrossGaps is true, more possible edge connexions are evaluated */
+            void recordPath(const base::PathPtr &pp, bool matchAcrossGaps);
 
             /** \brief Get the number of paths that are currently considered as part of the hybridization */
             std::size_t pathCount(void) const;
