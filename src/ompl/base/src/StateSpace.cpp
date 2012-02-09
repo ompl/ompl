@@ -773,7 +773,8 @@ double ompl::base::CompoundStateSpace::getMaximumExtent(void) const
 {
     double e = 0.0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-        e += weights_[i] * components_[i]->getMaximumExtent();
+	if (weights_[i] >= std::numeric_limits<double>::epsilon()) // avoid possible multiplication of 0 times infinity
+	    e += weights_[i] * components_[i]->getMaximumExtent();
     return e;
 }
 
