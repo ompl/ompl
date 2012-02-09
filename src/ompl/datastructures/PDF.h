@@ -173,36 +173,33 @@ which must be between 0 and 1. */
             }
 
             const std::size_t index = elem->index_;
-	    
-	    if (index + 1 == data_.size())
-	    {
-		// different case;
-		// Matt, can you fill this in?
-		std::cout << "Unhandled corner case! Will pretend back() and current pos are different although they're not!\n";
-	    }
-	    
             delete data_[index];
-	    
-            std::swap(data_[index], data_.back());
-            data_[index]->index_ = index;
-            std::swap(tree_.front()[index], tree_.front().back());
 
             double weight;
-            /* If index and back() are siblings in the tree, then
-             * we don't need to make an extra pass over the tree.
-             * The amount by which we change the values at the edge
-             * of the tree is different in this case. */
-            if (index+2 == data_.size() && index%2 == 0)
+            if (index+1 == data_.size())
                 weight = tree_.front().back();
             else
             {
-                weight = tree_.front()[index];
-                const double weightChange = weight - tree_.front().back();
-                std::size_t parent = index >> 1;
-                for (std::size_t row = 1; row < tree_.size(); ++row)
+                std::swap(data_[index], data_.back());
+                data_[index]->index_ = index;
+                std::swap(tree_.front()[index], tree_.front().back());
+
+                /* If index and back() are siblings in the tree, then
+                 * we don't need to make an extra pass over the tree.
+                 * The amount by which we change the values at the edge
+                 * of the tree is different in this case. */
+                if (index+2 == data_.size() && index%2 == 0)
+                    weight = tree_.front().back();
+                else
                 {
-                    tree_[row][parent] += weightChange;
-                    parent >>= 1;
+                    weight = tree_.front()[index];
+                    const double weightChange = weight - tree_.front().back();
+                    std::size_t parent = index >> 1;
+                    for (std::size_t row = 1; row < tree_.size(); ++row)
+                    {
+                        tree_[row][parent] += weightChange;
+                        parent >>= 1;
+                    }
                 }
             }
 
