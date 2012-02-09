@@ -87,16 +87,38 @@ namespace ompl
 
             /** \brief Compute a notion of smootheness for this
                 path. The closer the value is to 0, the smoother the
-                path. */
+                path. Detailed formula follows. 
+
+                The idea is to look at the triangles formed by consecutive path segments and compute the angle between those segments using
+                Pythagora's theorem. Then, the outside angle for the computed angle is normalized by the path segments and contributes to the path smoothness.
+                For a straight line path, the smoothness will be 0.
+                \f[
+                    \mbox{smoothness} = \sum\limits_{i=2}^{n-1}\left(\frac{2\left(\pi - \arccos\left(\frac{a_i^2+b_i^2-c_i^2}{2 a_i b_i}\right)\right)}{a_i + b_i}\right)^2
+                \f]
+                where \f$a_i = \mbox{dist}(s_{i-2}, s_{i-1}), b_i = \mbox{dist}(s_{i-1}, s_{i}), c_i = \mbox{dist}(s_{i-2}, s_i)\f$, \f$s_i\f$ is the i<sup>th</sup>
+                state along the path (see getState()) and \f$\mbox{dist}(s_i, s_j)\f$ gives the distance between two states (see ompl::base::StateSpace::distance()).
+            */
             double smoothness(void) const;
 
             /** \brief Compute the clearance of the way-points along
-                the path (no interpolation is performed). The clearance for the points is averaged. */
+                the path (no interpolation is performed). Detailed formula follows.
+                
+                The formula used for computing clearance is:
+                \f[
+                    \mbox{clearance} = \frac{1}{n}\sum\limits_{i=0}^{n-1}cl(s_i)
+                \f]
+                \f$n\f$ is the number of states along the path (see getStateCount())
+                \f$s_i\f$ is the i<sup>th</sup> state along the path (see getState())
+                \f$cl()\f$ gives the distance to the nearest invalid state for a particular state (see ompl::base::StateValidityChecker::clearance())
+            */
             double clearance(void) const;
 
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const;
 
+
+            /** @name Path operations
+                @{ */
 
             /** \brief Insert a number of states in a path so that the
                 path is made up of exactly \e count states. States are
@@ -116,10 +138,6 @@ namespace ompl
 
             /** \brief Reverse the path */
             void reverse(void);
-
-
-            /** @name Path operations
-                @{ */
 
             /** \brief Check if the path is valid. If it is not,
                 attempts are made to fix the path by sampling around

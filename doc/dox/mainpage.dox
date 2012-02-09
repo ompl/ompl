@@ -72,20 +72,20 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 \htmlonly<div class="row"><div class="span4">\endhtmlonly
 \section contents Contents of This Library
 
-- OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See \ref availablePlanners for a complete list.
-- All these planners operate on very abstractly defined state spaces. Many commonly used state spaces are already implemented and listed \ref availableStateSpaces "here".
+- OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See \ref availablePlanners "available planners" for a complete list.
+- All these planners operate on very abstractly defined state spaces. Many commonly used \ref availableStateSpaces "state spaces" are already implemented (e.g., SE2, SE3, R<sup>n</sup>, etc.).
+- For any state space, different \ref availableSamplers "state samplers" can be used (e.g., uniform, Gaussian, obstacle based, etc.).
 - \ref api_overview "API overview"
-- If you are interested in the <a href="http://www.ros.org/wiki/ompl_ros_interface">ROS interface to OMPL</a>, please read the <a href="http://kavrakilab.org/OMPLtutorial">tutorial on using OMPL within ROS</a>.
 
 \htmlonly</div><div class="span4">\endhtmlonly
 \section gettingStarted Getting Started
 
-- The <a href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
+- The <a class="el" href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
 - \ref download "Download" and \ref installation "install" OMPL.
-- Familiarize yourself with the \ref boost "Boost structures" used throughout OMPL.
-- Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 - \ref demos
+- Familiarize yourself with the \ref boost "Boost structures" used throughout OMPL.
 - \ref tutorials
+- Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 - If interested in using Python, make sure to read \ref python "the documentation for the Python bindings".
 
 \htmlonly</div><div class="span4">\endhtmlonly
@@ -93,6 +93,7 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 
 - \ref education "OMPL for education"
 - \ref gallery "Gallery of example uses of OMPL".
+- If you are interested in the <a href="http://www.ros.org/wiki/ompl_ros_interface">ROS interface to OMPL</a>, please read the <a href="http://kavrakilab.org/OMPLtutorial">tutorial on using OMPL within ROS</a>.
 - \ref thirdparty "Third-party contributions." (\ref contrib "Contribute your own extensions!")
 
 \htmlonly
