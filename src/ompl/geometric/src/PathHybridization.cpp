@@ -100,31 +100,34 @@ const ompl::base::PathPtr& ompl::geometric::PathHybridization::getHybridPath(voi
     return hpath_;
 }
 
-void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
+unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
 {    
     PathGeometric *p = dynamic_cast<PathGeometric*>(pp.get());
     if (!p)
     {
         msg_.error("Path hybridization only works for geometric paths");
-        return;
+        return 0;
     }
 
     if (p->getSpaceInformation() != si_)
     {
         msg_.error("Paths for hybridization must be from the same space information");
-        return;
+        return 0;
     }
 
     // skip empty paths
     if (p->getStateCount() == 0)
-        return;
+        return 0;
 
     PathInfo pi(pp);
 
     // if this path was previously included in the hybridization, skip it
     if (paths_.find(pi) != paths_.end())
-        return;
+        return 0;
 
+    // the number of connection attempts
+    unsigned int nattempts = 0;
+    
     // start from virtual root
     Vertex v0 = boost::add_vertex(g_);
     stateProperty_[v0] = pi.states_[0];
@@ -183,7 +186,10 @@ void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, boo
 		    // if it did, try to match the endpoint with the elements in q
 		    if (gapP)
 			for (std::size_t j = gapStartP ; j < i ; ++j)
-			    attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
+                        {
+                            attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
+                            ++nattempts;
+                        }
 		    // remember the last non-negative index in p
 		    lastP = i;
 		    gapP = false;
@@ -198,14 +204,20 @@ void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, boo
 		{
 		    if (gapQ)
 			for (std::size_t j = gapStartQ ; j < i ; ++j)
+                        {
 			    attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
+                            ++nattempts;
+                        }                            
 		    lastQ = i;
 		    gapQ = false;
 		}
 		
 		// try to match corresponding index values and gep beginnings
 		if (lastP >= 0 && lastQ >= 0)
+                {
 		    attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
+                    ++nattempts;
+                }
 	    }
 	}
 	else
@@ -213,12 +225,16 @@ void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, boo
 	    // attempt new edge only when states align
 	    for (std::size_t i = 0 ; i < indexP.size() ; ++i)
 		if (indexP[i] >= 0 && indexQ[i] >= 0)
+                {
 		    attemptNewEdge(pi, *it, indexP[i], indexQ[i]);
+                    ++nattempts;
+                }
 	}
     }
 
     // remember this path is part of the hybridization
     paths_.insert(pi);
+    return nattempts;
 }
 
 void ompl::geometric::PathHybridization::attemptNewEdge(const PathInfo &p, const PathInfo &q, int indexP, int indexQ)

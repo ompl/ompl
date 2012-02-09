@@ -161,13 +161,14 @@ void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCou
 
         boost::mutex::scoped_lock slock(phlock_);
         start = time::now();
+        unsigned int attempts = 0;
         for (std::size_t i = 0 ; i < paths.size() ; ++i)
-            phybrid_->recordPath(paths[i].path_, false);
+            attempts += phybrid_->recordPath(paths[i].path_, false);
 
         if (phybrid_->pathCount() >= minSolCount)
             phybrid_->computeHybridPath();
 
         duration = time::seconds(time::now() - start);
-        msg_.debug("Spent %f seconds hybridizing %u solution paths", duration, (unsigned int)phybrid_->pathCount());
+        msg_.debug("Spent %f seconds hybridizing %u solution paths (attempted %u connections between paths)", duration, (unsigned int)phybrid_->pathCount(), attempts);
     }
 }
