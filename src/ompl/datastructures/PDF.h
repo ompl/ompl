@@ -173,7 +173,16 @@ which must be between 0 and 1. */
             }
 
             const std::size_t index = elem->index_;
+	    
+	    if (index + 1 == data_.size())
+	    {
+		// different case;
+		// Matt, can you fill this in?
+		std::cout << "Unhandled corner case! Will pretend back() and current pos are different although they're not!\n";
+	    }
+	    
             delete data_[index];
+	    
             std::swap(data_[index], data_.back());
             data_[index]->index_ = index;
             std::swap(tree_.front()[index], tree_.front().back());
