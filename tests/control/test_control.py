@@ -223,6 +223,10 @@ class SyclopRRTTest(TestPlanner):
         # Create a 10x10 grid decomposition for Syclop
         decomp = SyclopDecomposition(10, bounds)
         planner = oc.SyclopRRT(si, decomp)
+        # Set syclop parameters conducive to a tiny workspace
+        planner.setNumFreeVolumeSamples(1000)
+        planner.setNumRegionExpansions(10)
+        planner.setNumTreeExpansions(5)
         return planner
 
 class SyclopESTTest(TestPlanner):
@@ -238,6 +242,10 @@ class SyclopESTTest(TestPlanner):
         # Create a 10x10 grid decomposition for Syclop
         decomp = SyclopDecomposition(10, bounds)
         planner = oc.SyclopEST(si, decomp)
+        # Set syclop parameters conducive to a tiny workspace
+        planner.setNumFreeVolumeSamples(1000)
+        planner.setNumRegionExpansions(10)
+        planner.setNumTreeExpansions(5)
         return planner        
 
 class MyProjectionEvaluator(ob.ProjectionEvaluator):
@@ -315,14 +323,14 @@ class PlanTest(unittest.TestCase):
         planner = SyclopRRTTest()
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
-        self.assertTrue(avgruntime < 5.0)
+        self.assertTrue(avgruntime < 2.5)
         self.assertTrue(avglength < 100.0)
 
     def testControl_SyclopEST(self):
         planner = SyclopESTTest()
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
-        self.assertTrue(avgruntime < 5.0)
+        self.assertTrue(avgruntime < 2.5)
         self.assertTrue(avglength < 100.0)
 
 

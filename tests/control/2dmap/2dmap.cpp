@@ -361,6 +361,10 @@ class SyclopRRTTest : public TestPlanner
         control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
 
         control::SyclopRRT *srrt = new control::SyclopRRT(si, decomp);
+        // Set syclop parameters conducive to a tiny workspace
+        srrt->setNumFreeVolumeSamples(1000);
+        srrt->setNumRegionExpansions(10);
+        srrt->setNumTreeExpansions(5);
         return base::PlannerPtr(srrt);
     }
 };
@@ -381,6 +385,10 @@ class SyclopESTTest : public TestPlanner
         control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
 
         control::SyclopEST *sest = new control::SyclopEST(si, decomp);
+        // Set syclop parameters conducive to a tiny workspace
+        sest->setNumFreeVolumeSamples(1000);
+        sest->setNumRegionExpansions(10);
+        sest->setNumTreeExpansions(5);
         return base::PlannerPtr(sest);
     }
 };
@@ -571,7 +579,7 @@ TEST_F(PlanTest, controlSyclopRRT)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.15); // Syclop has a larger initialization cost than the other planners
+    EXPECT_TRUE(avgruntime < 0.05);
     EXPECT_TRUE(avglength < 100.0);
 }
 
@@ -586,7 +594,7 @@ TEST_F(PlanTest, controlSyclopEST)
     delete p;
 
     EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.15); // Syclop has a larger initialization cost than the other planners
+    EXPECT_TRUE(avgruntime < 0.05);
     EXPECT_TRUE(avglength < 100.0);
 }
 
