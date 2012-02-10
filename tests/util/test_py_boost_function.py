@@ -48,6 +48,9 @@ def myIntFun1(i, j):
     i2.value = j
     return i2
 
+def myIntFun2(i, j):
+    i.value = j
+
 class TestPyBoostFunction(unittest.TestCase):
     def testIntClassFunObj(self):
         i = IntClass(0)
@@ -60,6 +63,8 @@ class TestPyBoostFunction(unittest.TestCase):
         # k = 2
         # j = intClassFun3_obj(i, k) # can't pass ints by reference yet
         # self.assertEqual((i.value,j.value), (2,2))
+        intClassFun4_obj(i, 3)
+        self.assertEqual(i.value, 3)
     def testMyIntClassFun0(self):
         i = IntClass(0)
         f = IntClassFun0_t(myIntFun0)
@@ -83,6 +88,11 @@ class TestPyBoostFunction(unittest.TestCase):
         f = IntClassFun2_t(myIntFun1)
         j = f(i, 2)
         self.assertEqual((i.value,j.value), (2,2))
+    def testMyIntClassFun2(self):
+        i = IntClass(0)
+        f = IntClassFun4_t(myIntFun2)
+        f(i, 3)
+        self.assertEqual(i.value, 3)        
 
 
 def suite():
