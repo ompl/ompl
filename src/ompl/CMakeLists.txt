@@ -63,17 +63,24 @@ else(OMPL_IN_ROS)
         ${Boost_SERIALIZATION_LIBRARY}
         ${OMPL_LINK_LIBRARIES}
     )
-    if(WIN32)
-      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}")
-    else(WIN32)
+    
+    if(MSVC)
+      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
+    else(MSVC)
+      if (MINGW)
+        target_link_libraries(ompl psapi ws2_32)
+        set_target_properties(ompl PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
+      endif(MINGW)
       set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
-    endif(WIN32)
+    endif(MSVC)
 endif(OMPL_IN_ROS)
 
 # install the library
 install(TARGETS ompl DESTINATION lib/)
-get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
-add_custom_command(TARGET ompl POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${OMPL_LIBRARY_LOC}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}"
-    WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+if(NOT MSVC)
+    get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
+    add_custom_command(TARGET ompl POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${OMPL_LIBRARY_LOC}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+endif(NOT MSVC)

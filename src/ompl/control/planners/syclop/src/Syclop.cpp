@@ -41,6 +41,10 @@
 #include <stack>
 #include <algorithm>
 
+const double ompl::control::Syclop::Defaults::PROB_ABANDON_LEAD_EARLY   = 0.25;
+const double ompl::control::Syclop::Defaults::PROB_KEEP_ADDING_TO_AVAIL = 0.95;
+const double ompl::control::Syclop::Defaults::PROB_SHORTEST_PATH        = 0.95;
+
 void ompl::control::Syclop::setup(void)
 {
     base::Planner::setup();

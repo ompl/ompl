@@ -87,12 +87,81 @@ If you want a debug version of ompl, change "Release" to "Debug" above. The CMAK
 
 \section install_windows Installation on Windows
 
-At this point we support only Linux and OS X, and we have not done any extensive testing on Windows. That said, it is definitely possible to compile and install OMPL on Windows.
-- Download and install <a href="http://www.cmake.org">CMake</a>.
-- If you plan to use Microsoft Visual Studio, you can download Boost <a href="http://www.boostpro.com/download/">here</a>. If you want to use MinGW or Cygwin, follow the <a href="http://www.boost.org/doc/libs/release/more/getting_started/unix-variants.html">Unix installation instructions</a>.
-- Optionally, download and install <a href="http://www.python.org/download/">Python</a>.
-- Run CMake (either the GUI or the command line version). From the GUI it is easy to generate project files for Visual Studio or Makefiles.
-- Build the "solution" ALL in Visual Studio, or run \c make if you use MinGW/Cygwin.
-.
+It is possible to run OMPL natively on Windows, although it must be stressed that 
+<b>extensive testing on Windows is not performed</b> at this time, and running OMPL 
+on Windows is considered experimental.  For best performance, the 
+<a href="http://www.mingw.org/">MinGW</a> compiler is recommended.  Visual Studio 
+can also be used to build the core OMPL library, but currently it is 
+not possible to generate and build the python bindings for OMPL with this compiler.
+
+\subsection req-dependencies Required Dependencies
+- <a href="http://www.cmake.org/">CMake</a>
+
+- <a href="http://www.mingw.org/">MinGW</a> (recommended) or Visual Studio compiler
+
+- Boost: OMPL requires <a href="http://www.boost.org/">Boost</a>, version 1.44 or greater.
+It is recommended to make a complete Boost compilation from source.  If using Visual Studio, this
+process can be automated using the <a href="http://www.boostpro.com/download">BoostPro</a> installer.  
+Once complete, set the environment variables <tt>BOOST_ROOT</tt> and <tt>BOOST_LIBRARYDIR</tt> to 
+the locations where Boost and its libraries are installed.  The default locations are <tt>C:\\Boost</tt> and 
+<tt>C:\\Boost\\lib</tt>.  Ensure that <tt>BOOST_LIBRARYDIR</tt> is also in the system PATH so 
+that any necessary Boost dlls are loaded properly at runtime.
+
+\subsection opt-dependencies Optional Dependencies (Python bindings)
+- <a href="http://cvs.nongnu.org/">CVS</a> and <a href="http://subversion.apache.org/">Subversion</a>
+
+- A <b>32-bit</b> version of <a href="http://python.org/">Python</a> 2.7.  Ensure that this is installed
+<b>before building Boost</b> so that Boost.Python is properly compiled.
+
+- Ensure that svn, cvs, and Python are all added to the system <tt>PATH</tt>.
+
+- Py++: To generate the Python bindings, Py++ and its dependencies must be installed.
+A batch file has been included to automate this process (analogous to the Linux/Mac
+installation) that can be executed via cmake.  Instructions can be found 
+\ref installPyPlusPlus "here".  Note that this process assumes the MinGW compiler,
+and installs gccxml to <tt>C:\\gccxml</tt>.  You will need to be in a shell with administrator
+privileges to execute this batch file.  Once installed, it is recommended that
+you open a new shell to realize the new environment settings.
+
+\subsection windows-build Build
+- Once the dependencies are installed, CMake can be used to generate MinGW makefiles or a Visual Studio solution
+by specifying a specific GENERATOR:
+\code
+cd ompl
+mkdir build
+cd build
+mkdir Release
+cd Release
+cmake -DCMAKE_BUILD_TYPE=Release -G "GENERATOR" ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
+\endcode
+If you want a debug version of OMPL, change "Release" to "Debug" above. The CMAKE_INSTALL_PREFIX variable is set to <tt>C:\\Program Files (x86)\\ompl</tt> by default.
+
+\subsubsection mingw MinGW
+- The CMake generator for MinGW is <tt>"MinGW Makefiles"</tt>
+- To generate the python bindings (optional), execute the update_bindings make command before compiling:
+\code
+mingw32-make update_bindings
+\endcode
+<b>Note:</b> <tt>update_bindings</tt> is <i>never</i> run automatically. If you change any of the OMPL header files, you need to regenerate the bindings for the changes to be reflected in the Python modules. See also the \ref updating_python_bindings "more detailed documentation on generating python bindings".
+- Use <tt>mingw32-make</tt> to build OMPL.
+- If you wish to install OMPL, use the install command to copy the binaries, demo code,
+and other resources to the cmake install prefix.  Note that you will need to be in a shell with administrator
+privileges to install to the default directory.
+\code
+mingw32-make install
+\endcode
+- Make sure to add the install path's \lib subdirectory to the PATH so that the DLLs are found when code 
+is loaded.
+
+\subsubsection msvc Visual Studio
+- The CMake generator for Visual Studio depends on the version of Visual Studio to generate a solution for.
+The generator for VS 2010 is <tt>"Visual Studio 10"</tt>, and the generator for VS 2008 is <tt>"Visual Studio 9 2008"</tt>.  
+Consult the CMake documentation for other generators.
+- Open ompl.sln and build the solution.  A static library will be created (ompl.lib) 
+to link your code against, as well as several demo programs.
+- You can install OMPL by building the "INSTALL" project inside of the solution.  Note that this
+will attempt to copy files to <tt>C:\\Program Files (x86)\\ompl</tt> (the default).  The installation will 
+fail unless Visual Studio is opened with administrator privileges, or a non-system install prefix is specified
+when cmake is run.
 
 */

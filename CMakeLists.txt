@@ -16,6 +16,13 @@ if(OMPL_IN_ROS)
 else(OMPL_IN_ROS)
     cmake_minimum_required(VERSION 2.8)
     project(ompl C CXX)
+    
+    # This shouldn't be necessary, but there has been trouble 
+    # with MSVC being set off, but MSVCXX ON.
+    if(MSVC OR MSVC90 OR MSVC10)
+        set(MSVC ON)
+    endif (MSVC OR MSVC90 OR MSVC10)
+    
     set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
     include(CompilerSettings)
     find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options REQUIRED)
@@ -35,7 +42,8 @@ else(OMPL_IN_ROS)
 
     if(MSVC)
         add_definitions(-DBOOST_ALL_NO_LIB)
-    endif()
+        add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
+    endif(MSVC)
     enable_testing()
 
     # ODE is only needed for Open Dynamics Engine bindings
