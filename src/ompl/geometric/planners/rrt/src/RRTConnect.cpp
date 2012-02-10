@@ -254,11 +254,11 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
                     mpath2.swap(mpath1);
 
                 PathGeometric *path = new PathGeometric(si_);
-                path->states.reserve(mpath1.size() + mpath2.size());
+                path->getStates().reserve(mpath1.size() + mpath2.size());
                 for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
-                    path->states.push_back(si_->cloneState(mpath1[i]->state));
+                    path->append(mpath1[i]->state);
                 for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
-                    path->states.push_back(si_->cloneState(mpath2[i]->state));
+                    path->append(mpath2[i]->state);
 
                 goal->addSolutionPath(base::PathPtr(path), false, 0.0);
                 solved = true;

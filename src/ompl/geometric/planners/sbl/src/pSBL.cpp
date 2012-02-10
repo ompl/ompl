@@ -173,7 +173,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
                 sol->found = true;
                 PathGeometric *path = new PathGeometric(si_);
                 for (unsigned int i = 0 ; i < solution.size() ; ++i)
-                    path->states.push_back(si_->cloneState(solution[i]->state));
+                    path->append(solution[i]->state);
                 goal->addSolutionPath(base::PathPtr(path), false, 0.0);
             }
             sol->lock.unlock();
@@ -381,9 +381,9 @@ void ompl::geometric::pSBL::removeMotion(TreeData &tree, Motion *motion, std::ma
             }
         if (cell->data.empty())
         {
+            tree.pdf.remove(cell->data.elem_);
             tree.grid.remove(cell);
             tree.grid.destroyCell(cell);
-            tree.pdf.remove (cell->data.elem_);
         }
         else
         {

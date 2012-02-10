@@ -98,6 +98,13 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 bool& firstTime, ReedsSheppPath& path, State *state) const;
 
+            virtual void sanityChecks(void) const
+            {
+                double zero = std::numeric_limits<double>::epsilon();
+                double eps = .1; // rarely such a large error will occur
+                StateSpace::sanityChecks(zero, eps, ~STATESPACE_INTERPOLATION);
+            }
+
             /** \brief Return the shortest Reeds-Shepp path from SE(2) state state1 to SE(2) state state2 */
             ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
 

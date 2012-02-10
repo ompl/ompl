@@ -231,7 +231,7 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->states.push_back(si_->cloneState(mpath[i]->state));
+            path->append(mpath[i]->state);
 
         goal->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
         solved = true;

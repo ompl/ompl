@@ -84,7 +84,7 @@ namespace ompl
                 to state \e state and the intention is to reach state
                 \e target. This is useful for some algorithms that
                 have a notion of direction in their exploration (e.g.,
-                \cRRT). Furthermore, return the duration for which
+                \ref cRRT). Furthermore, return the duration for which
                 this control should be applied. By default, this
                 function calls the second definition of ControlSampler::sample() and
                 returns the value of ControlSampler::sampleStepCount(SpaceInformation::getMinControlDuration(),
@@ -97,7 +97,7 @@ namespace ompl
                 previously applied control is \e previous. This is
                 useful for some algorithms that have a notion of
                 direction in their exploration (e.g.,
-                \cRRT). Furthermore, return the duration for which
+                \ref cRRT). Furthermore, return the duration for which
                 this control should be applied. By default, this
                 function calls the second definition of ControlSampler::sampleNext() and
                 returns the value of ControlSampler::sampleStepCount(SpaceInformation::getMinControlDuration(),

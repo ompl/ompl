@@ -78,11 +78,11 @@ namespace ompl
             StateSamplerPtr sampler_;
 
             /** \brief Number of attempts to improve a valid sample */
-            unsigned int            improveAttempts_;
+            unsigned int    improveAttempts_;
 
         private:
             /** \brief Temporary work area */
-            State                  *work_;
+            State          *work_;
         };
 
     }

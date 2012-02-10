@@ -78,14 +78,8 @@ void plan(ob::StateSpacePtr space, bool easy)
     // define a simple setup class
     og::SimpleSetup ss(space);
 
-    // use the special motion validator
-    ob::SpaceInformationPtr si(ss.getSpaceInformation());
-    if (dynamic_cast<ob::DubinsStateSpace*>(space.get()))
-        si->setMotionValidator(ob::MotionValidatorPtr(new ob::DubinsMotionValidator(si)));
-    else
-        si->setMotionValidator(ob::MotionValidatorPtr(new ob::ReedsSheppMotionValidator(si)));
-
     // set state validity checking for this space
+    ob::SpaceInformationPtr si(ss.getSpaceInformation());
     ss.setStateValidityChecker(boost::bind(
         easy ? &isStateValidEasy : &isStateValidHard, si.get(), _1));
 
@@ -123,9 +117,9 @@ void plan(ob::StateSpacePtr space, bool easy)
         ps->reduceVertices(path);
         ps->collapseCloseVertices(path);
         path.interpolate(1000);
-        for (unsigned int i=0; i<path.states.size(); ++i)
+        for (unsigned int i=0; i < path.getStateCount(); ++i)
         {
-            reals = ob::ScopedState<>(space, path.states[i]).reals();
+            reals = ob::ScopedState<>(space, path.getState(i)).reals();
             std::cout << "path " << reals[0] <<' '<< reals[1] << ' ' << reals[2] << std::endl;
         }
     }

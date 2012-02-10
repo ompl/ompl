@@ -115,7 +115,7 @@ public:
                 printf("Simplified solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
             /* fill in values that were linearly interpolated */
-            path->interpolate(path->states.size() * 2);
+            path->interpolate(path->getStateCount() * 2);
 
             if (pathLength)
                 *pathLength += path->length();
@@ -128,10 +128,10 @@ public:
 
             Environment2D temp = env;
             /* display the solution */
-            for (unsigned int i = 0 ; i < path->states.size() ; ++i)
+            for (unsigned int i = 0 ; i < path->getStateCount() ; ++i)
             {
-                int x = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int y = (int)(path->states[i]->as<base::RealVectorStateSpace::StateType>()->values[1]);
+                int x = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[0]);
+                int y = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[1]);
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else
@@ -477,24 +477,6 @@ TEST_F(PlanTest, geometric_pRRT)
     EXPECT_TRUE(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_SBL)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new SBLTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
-}
-
-
 TEST_F(PlanTest, geometric_pSBL)
 {
     double success    = 0.0;
@@ -614,6 +596,24 @@ TEST_F(PlanTest, geometric_PRM)
     EXPECT_TRUE(avgruntime < 0.1);
     EXPECT_TRUE(avglength < 100.0);
 }
+
+TEST_F(PlanTest, geometric_SBL)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    simpleTest();
+
+    TestPlanner *p = new SBLTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    EXPECT_TRUE(success >= 99.0);
+    EXPECT_TRUE(avgruntime < 0.1);
+    EXPECT_TRUE(avglength < 100.0);
+}
+
 
 int main(int argc, char **argv)
 {

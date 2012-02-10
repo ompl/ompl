@@ -79,7 +79,7 @@
        // including changing of problem definition (input states)
        // via planner->getProblemDefinition()
     }
-    
+
     void optionalPostRunEvent(const base::PlannerPtr &planner, Benchmark::RunProperties &run)
     {
        // do any cleanup, or set values for upcoming run (or upcoming call to the pre-run event).
@@ -88,9 +88,9 @@
        // (the added data will be recorded in the log file)
 
        run["some extra property name INTEGER"] = "some value";
-       // The format of added data is string key, string value pairs, 
+       // The format of added data is string key, string value pairs,
        // with the convention that the last word in string key is one of
-       // REAL, INTEGER, BOOLEAN, STRING. (this will be the type of the field 
+       // REAL, INTEGER, BOOLEAN, STRING. (this will be the type of the field
        // when the log file is processed and saved as a database).
        // The values are always converted to string.
     }
@@ -99,7 +99,7 @@
     b.setPreRunEvent(boost::bind(&optionalPreRunEvent, _1));
     b.setPostRunEvent(boost::bind(&optionalPostRunEvent, _1, _2));
     \endcode
-    
+
     \section benchmark_log Processing the benchmarking log file
 
     Once the C++ code computing the results has been executed, a log
@@ -177,11 +177,11 @@
 
     For integer and real-valued measurements the script will compute <a href="http://en.wikipedia.org/wiki/Box_plot">box plots</a>. For example, here is the plot for the real-valued attribute <strong>time</strong> for the cubicles environment:
 
-    \htmlonly<div class="span-22"><img src="../images/cubicles_time.png" class="push-2 span-12 last"></div>\endhtmlonly
+    \htmlonly<div class="row"><img src="../images/cubicles_time.png" class="span8 offset1"></div>\endhtmlonly
 
     For boolean measurements the script will create bar charts with the percentage of \b true values. For example, here is the plot for the boolean attribute <strong>solved</strong> for the Twistycool environment, a much harder problem:
 
-    \htmlonly<div class="span-22"><img src="../images/Twistycool_solved.png" class="push-2 span-12 last"></div>\endhtmlonly
+    \htmlonly<div class="row"><img src="../images/Twistycool_solved.png" class="span8 offset1"></div>\endhtmlonly
 
     Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute <strong>correct solution</strong> is not set if a solution is not found.
 */

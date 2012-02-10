@@ -99,7 +99,9 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     if (!goal)
     {
         msg_.error("Goal undefined");
-        return false; }
+        return false;
+    }
+
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(si_);
@@ -118,34 +120,34 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Starting with %u states", nn_->size());
 
-    Motion *solution     = NULL;
-    Motion *approxsol    = NULL;
-    double  approxdif    = std::numeric_limits<double>::infinity();
-    bool    approxsolved = false;
+    Motion *solution       = NULL;
+    Motion *approximation  = NULL;
+    double approximatedist = std::numeric_limits<double>::infinity();
+    bool sufficientlyShort = false;
 
-    Motion *rmotion   = new Motion(si_);
+    Motion *rmotion     = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     std::vector<Motion*> solCheck;
     std::vector<Motion*> nbh;
     std::vector<double>  dists;
     std::vector<int>     valid;
-    long unsigned int    rewireTest = 0;
+    unsigned int         rewireTest = 0;
 
     while (ptc() == false)
     {
-        /* sample random state (with goal biasing) */
+        // sample random state (with goal biasing)
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
 
-        /* find closest state in the tree */
+        // find closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
 
         base::State *dstate = rstate;
 
-        /* find state to add */
+        // find state to add
         double d = si_->distance(nmotion->state, rstate);
         if (d > maxDistance_)
         {
@@ -155,14 +157,14 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
         if (si_->checkMotion(nmotion->state, dstate))
         {
-            /* create a motion */
+            // create a motion
             double distN = si_->distance(dstate, nmotion->state);
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
             motion->cost = nmotion->cost + distN;
 
-            /* find nearby neighbors */
+            // find nearby neighbors
             double r = std::min(ballRadiusConst_ * (sqrt(log((double)(1 + nn_->size())) / ((double)(nn_->size())))),
                                 ballRadiusMax_);
 
@@ -179,28 +181,22 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
             {
                 // calculate all costs and distances
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                    if (nbh[i] != nmotion)
-                    {
-                        double c = nbh[i]->cost + si_->distance(nbh[i]->state, dstate);
-                        nbh[i]->cost = c;
-                    }
+                    nbh[i]->cost += si_->distance(nbh[i]->state, dstate);
 
                 // sort the nodes
                 std::sort(nbh.begin(), nbh.end(), compareMotion);
 
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                    if (nbh[i] != nmotion)
-                    {
-                        dists[i] = si_->distance(nbh[i]->state, dstate);
-                        nbh[i]->cost -= dists[i];
-                    }
+                {
+                    dists[i] = si_->distance(nbh[i]->state, dstate);
+                    nbh[i]->cost -= dists[i];
+                }
 
                 // collision check until a valid motion is found
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                {
                     if (nbh[i] != nmotion)
                     {
-
-                        dists[i] = si_->distance(nbh[i]->state, dstate);
                         double c = nbh[i]->cost + dists[i];
                         if (c < motion->cost)
                         {
@@ -221,15 +217,15 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                         dists[i] = distN;
                         break;
                     }
-
+                }
             }
             else
             {
-                /* find which one we connect the new state to*/
+                // find which one we connect the new state to
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                {
                     if (nbh[i] != nmotion)
                     {
-
                         dists[i] = si_->distance(nbh[i]->state, dstate);
                         double c = nbh[i]->cost + dists[i];
                         if (c < motion->cost)
@@ -249,16 +245,17 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                         valid[i] = 1;
                         dists[i] = distN;
                     }
-
+                }
             }
 
-            /* add motion to tree */
+            // add motion to the tree
             nn_->add(motion);
+            motion->parent->children.push_back(motion);
 
             solCheck.resize(1);
             solCheck[0] = motion;
 
-            /* rewire tree if needed */
+            // rewire tree if needed
             for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                 if (nbh[i] != motion->parent)
                 {
@@ -268,19 +265,28 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                         bool v = valid[i] == 0 ? si_->checkMotion(nbh[i]->state, dstate) : valid[i] == 1;
                         if (v)
                         {
+                            // Remove this node from its parent list
+                            removeFromParent (nbh[i]);
+                            double delta = c - nbh[i]->cost;
+
+                            // Add this node to the new parent
                             nbh[i]->parent = motion;
                             nbh[i]->cost = c;
+                            nbh[i]->parent->children.push_back(nbh[i]);
                             solCheck.push_back(nbh[i]);
+
+                            // Update the costs of the node's children
+                            updateChildCosts(nbh[i], delta);
                         }
                     }
                 }
 
-            /* check if  we found a solution */
+            // check if we found a solution
             for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                bool sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+                sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
 
                 if (solved)
                 {
@@ -289,49 +295,38 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
                         solution = solCheck[i];
                         break;
                     }
-                    else
+                    else if (!solution || (solCheck[i]->cost < solution->cost))
                     {
-                        if (approxsolved)
-                        {
-                            if (dist < approxdif)
-                            {
-                                approxdif = dist;
-                                approxsol = solCheck[i];
-                            }
-                        }
-                        else
-                        {
-                            approxsolved = true;
-                            approxdif = dist;
-                            approxsol = solCheck[i];
-                        }
+                        solution = solCheck[i];
                     }
                 }
-                else
-                    if (!approxsolved && dist < approxdif)
-                    {
-                        approxdif = dist;
-                        approxsol = solCheck[i];
-                    }
+                else if (!solution && dist < approximatedist)
+                {
+                    approximation = solCheck[i];
+                    approximatedist = dist;
+                }
             }
-
-            /* terminate if a solution was found */
-            if (solution != NULL)
-                break;
         }
+
+        // terminate if a sufficient solution is found
+        if (solution && sufficientlyShort)
+            break;
     }
 
+    double solutionCost;
+    bool approximate = (solution == NULL);
     bool addedSolution = false;
-    bool approximate = false;
-    if (solution == NULL)
+    if (approximate)
     {
-        solution = approxsol;
-        approximate = true;
+        solution = approximation;
+        solutionCost = approximatedist;
     }
+    else
+        solutionCost = solution->cost;
 
     if (solution != NULL)
     {
-        /* construct the solution path */
+        // construct the solution path
         std::vector<Motion*> mpath;
         while (solution != NULL)
         {
@@ -339,11 +334,11 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
             solution = solution->parent;
         }
 
-        /* set the solution path */
+        // set the solution path
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->states.push_back(si_->cloneState(mpath[i]->state));
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+            path->append(mpath[i]->state);
+        goal->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
         addedSolution = true;
     }
 
@@ -355,6 +350,30 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
     return addedSolution;
+}
+
+void ompl::geometric::RRTstar::removeFromParent(Motion *m)
+{
+    std::vector<Motion*>::iterator it = m->parent->children.begin ();
+    while (it != m->parent->children.end ())
+    {
+        if (*it == m)
+        {
+            it = m->parent->children.erase(it);
+            it = m->parent->children.end ();
+        }
+        else
+            ++it;
+    }
+}
+
+void ompl::geometric::RRTstar::updateChildCosts(Motion *m, double delta)
+{
+    for (size_t i = 0; i < m->children.size(); ++i)
+    {
+        m->children[i]->cost += delta;
+        updateChildCosts(m->children[i], delta);
+    }
 }
 
 void ompl::geometric::RRTstar::freeMemory(void)

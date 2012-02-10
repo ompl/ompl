@@ -65,15 +65,19 @@ bool isValid(const base::State *)
 
 TEST(Dubins, Simple)
 {
-    base::StateSpacePtr d(new base::DubinsStateSpace());
+    base::StateSpacePtr d(new base::DubinsStateSpace()), dsym(new base::DubinsStateSpace(1., true));
 
     base::RealVectorBounds bounds2(2);
-    bounds2.setLow(0);
-    bounds2.setHigh(1);
+    bounds2.setLow(-3);
+    bounds2.setHigh(3);
     d->as<base::DubinsStateSpace>()->setBounds(bounds2);
+    dsym->as<base::DubinsStateSpace>()->setBounds(bounds2);
 
     d->setup();
     d->sanityChecks();
+
+    dsym->setup();
+    dsym->sanityChecks();
 }
 
 TEST(ReedsShepp, Simple)
@@ -81,10 +85,10 @@ TEST(ReedsShepp, Simple)
     base::StateSpacePtr d(new base::ReedsSheppStateSpace());
 
     base::RealVectorBounds bounds2(2);
-    bounds2.setLow(0);
-    bounds2.setHigh(1);
+    bounds2.setLow(-3);
+    bounds2.setHigh(3);
     d->as<base::ReedsSheppStateSpace>()->setBounds(bounds2);
-    
+
     d->setup();
     d->sanityChecks();
 }

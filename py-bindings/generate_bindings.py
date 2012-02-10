@@ -178,13 +178,24 @@ class ompl_base_generator_t(code_generator_t):
             self.ompl_ns.class_(stype + 'Path').exclude()
             self.ompl_ns.class_(stype + 'StateSpace').member_function(
                 stype[0].lower()+stype[1:]).exclude()
-        # don't expose this utility function
+        # don't expose these utility functions that return double*
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
+        self.ompl_ns.member_functions('getValueAddressAtName').exclude()
+        self.ompl_ns.member_functions('getValueAddressAtLocation').exclude()
+        # don't export vector<ValueLocation>
+        self.ompl_ns.member_functions('getValueLocations').exclude()
+        # don't export map<std::string, ValueLocation>
+        self.ompl_ns.member_functions('getValueLocationsByName').exclude()
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateSpace').class_(
             'StateType').variable('values').exclude()
         # don't expose std::map< const State *, unsigned int >
         self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
+        try:
+            # disable for now, until we can find a way to create code that compiles
+            self.ompl_ns.class_('StateStorage').member_function('getStateSamplerAllocator').exclude()
+        except:
+            pass
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
         # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to EuclideanProjection
@@ -236,11 +247,14 @@ class ompl_base_generator_t(code_generator_t):
         # rename SamplerSelectors
         self.ompl_ns.class_('SamplerSelector< ompl::base::StateSampler >').rename('StateSamplerSelector')
         self.ompl_ns.class_('SamplerSelector< ompl::base::ValidStateSampler >').rename('ValidStateSamplerSelector')
-        cls = self.ompl_ns.class_('StateStorage').member_functions('load')
-        for c in cls:
-            print c.decl_string
-        self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
-        self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
+        try:
+            cls = self.ompl_ns.class_('StateStorage').member_functions('load')
+            for c in cls:
+                print c.decl_string
+            self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
+            self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
+        except:
+            pass
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
@@ -285,30 +299,62 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
         # make controls printable
         self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
-        # export ODESolver-derived classes that use Boost.OdeInt
-        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
-        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
-        self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
+        try:
+            # export ODESolver-derived classes that use Boost.OdeInt
+            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
+            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
+            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
+            # self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+            #     'ODE','Ordinary differential equation')
+            # Somehow, Py++ changes the type of the ODE's first argument. Weird...
+            self.add_boost_function('void(ompl::control::ODESolver::StateType, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+                'ODE','Ordinary differential equation')
+        except declarations.matcher.declaration_not_found_t:
+            # not available for boost < 1.44, so ignore this
+            pass
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
         # exclude solve() methods that take a "const PlannerTerminationCondition &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
+
+        # export pure virtual member functions, otherwise code doesn't compile
+        self.ompl_ns.class_('Syclop').add_wrapper_code("""
+        virtual ompl::control::Syclop::Motion* initializeTree(const ompl::base::State* s)
+        {
+            bp::override func_initializeTree = this->get_override("initializeTree");
+            return func_initializeTree(s);
+        }
+        virtual void selectAndExtend(ompl::control::Syclop::Region& region, std::vector<ompl::control::Syclop::Motion*>& newMotions)
+        {
+            bp::override func_selectAndExtend = this->get_override("selectAndExtend");
+            func_selectAndExtend(region, newMotions);
+        }""")
+        # omit ompl::control::Syclop::Defaults nested subclass, otherwise
+        # code doesn't compile (don't know why)
+        self.ompl_ns.class_('Defaults').exclude()
+
         # add wrappers for boost::function types
         self.add_boost_function('ompl::control::ControlSamplerPtr(const ompl::control::ControlSpace*)',
             'ControlSamplerAllocator', 'Control sampler allocator')
         self.add_boost_function('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
             'DirectedControlSamplerAllocator','Directed control sampler allocator')
-        self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-            'ODE','Ordindary differential equation')
         self.add_boost_function('void(const ompl::control::Control*, ompl::base::State*)',
             'PostPropagationEvent','Post-propagation event')
         self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
             'StatePropagatorFn','State propagator function')
+        # code generation fails because of same bug in gxxcml that requires us
+        # to patch the generated code with workaround_for_gccxml_bug.cmake
+        self.ompl_ns.member_functions('getPlannerAllocator').exclude()
+        self.ompl_ns.member_functions('setPlannerAllocator').exclude()
+        self.ompl_ns.namespace('control').class_('SimpleSetup').add_registration_code(
+            'def("setPlannerAllocator", &ompl::control::SimpleSetup::setPlannerAllocator)')
+        self.ompl_ns.namespace('control').class_('SimpleSetup').add_registration_code(
+            'def("getPlannerAllocator", &ompl::control::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
         # do this for all classes that exist with the same name in another namespace
-        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'PlannerData', 'SpaceInformation']:
+        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'PlannerData', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
         self.ompl_ns.namespace('control').class_('PlannerData').include()
 
@@ -321,7 +367,7 @@ class ompl_control_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['KPIECE1', 'RRT']:
+        for planner in ['KPIECE1', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
                     &Control%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
@@ -361,6 +407,14 @@ class ompl_geometric_generator_t(code_generator_t):
         #     'ConnectionStrategy', 'Connection strategy')
         self.add_boost_function('bool(const ompl::geometric::PRM::Vertex&, const ompl::geometric::PRM::Vertex&)',
             'ConnectionFilter', 'Connection filter')
+        # code generation fails because of same bug in gxxcml that requires us
+        # to patch the generated code with workaround_for_gccxml_bug.cmake
+        self.ompl_ns.member_functions('getPlannerAllocator').exclude()
+        self.ompl_ns.member_functions('setPlannerAllocator').exclude()
+        self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
+            'def("setPlannerAllocator", &ompl::geometric::SimpleSetup::setPlannerAllocator)')
+        self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
+            'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -437,8 +491,24 @@ class ompl_tools_generator_t(code_generator_t):
             , bp::wrapper< ompl::Benchmark >(){}""")
         # don't want to export iostream
         benchmark_cls.member_function('saveResultsToStream').exclude()
-        # somehow the generated code for these methods is broken, so remove them
+        # code generation fails because of same bug in gxxcml that requires us
+        # to patch the generated code with workaround_for_gccxml_bug.cmake
+        self.ompl_ns.member_functions('addPlannerAllocator').exclude()
         benchmark_cls.member_functions(lambda method: method.name.startswith('set') and method.name.endswith('Event')).exclude()
+        benchmark_cls.add_registration_code(
+            'def("addPlannerAllocator", &ompl::Benchmark::addPlannerAllocator)')
+        self.ompl_ns.class_('OptimizePlan').add_registration_code(
+            'def("addPlannerAllocator", &ompl::OptimizePlan::addPlannerAllocator)')
+        benchmark_cls.add_registration_code(
+            'def("setPlannerSwitchEvent", &ompl::Benchmark::setPlannerSwitchEvent)')
+        benchmark_cls.add_registration_code(
+            'def("setPreRunEvent", &ompl::Benchmark::setPreRunEvent)')
+        benchmark_cls.add_registration_code(
+            'def("setPostRunEvent", &ompl::Benchmark::setPostRunEvent)')
+        self.add_boost_function('void(const ompl::base::PlannerPtr&)',
+            'PreSetupEvent', 'Pre-setup event')
+        self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::Benchmark::RunProperties&)',
+            'PostSetupEvent', 'Post-setup event')
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):

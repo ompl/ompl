@@ -163,7 +163,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
         {
             PathGeometric *path = new PathGeometric(si_);
             for (unsigned int i = 0 ; i < solution.size() ; ++i)
-                path->states.push_back(si_->cloneState(solution[i]->state));
+                path->append(solution[i]->state);
 
             goal->addSolutionPath(base::PathPtr(path), false, 0.0);
             solved = true;
@@ -283,9 +283,9 @@ void ompl::geometric::SBL::removeMotion(TreeData &tree, Motion *motion)
         }
         if (cell->data.empty())
         {
+	    tree.pdf.remove(cell->data.elem_);
             tree.grid.remove(cell);
             tree.grid.destroyCell(cell);
-            tree.pdf.remove (cell->data.elem_);
         }
         else
         {

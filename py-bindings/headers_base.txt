@@ -4,10 +4,9 @@
 ../src/ompl/base/State.h
 ../src/ompl/base/StateSampler.h
 ../src/ompl/base/ValidStateSampler.h
-../src/ompl/base/StoredStateSampler.h
+../src/ompl/base/PrecomputedStateSampler.h
 ../src/ompl/base/ProjectionEvaluator.h
 ../src/ompl/base/StateSpace.h
-../src/ompl/base/StateStorage.h
 ../src/ompl/base/StateValidityChecker.h
 ../src/ompl/base/MotionValidator.h
 ../src/ompl/base/SpaceInformation.h

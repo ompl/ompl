@@ -89,7 +89,7 @@ void ompl::geometric::PathHybridization::computeHybridPath(void)
     {
         PathGeometric *h = new PathGeometric(si_);
         for (Vertex pos = prev[goal_]; prev[pos] != pos; pos = prev[pos])
-            h->states.push_back(si_->cloneState(stateProperty_[pos]));
+            h->append(stateProperty_[pos]);
         h->reverse();
         hpath_.reset(h);
     }
@@ -100,31 +100,34 @@ const ompl::base::PathPtr& ompl::geometric::PathHybridization::getHybridPath(voi
     return hpath_;
 }
 
-void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp)
-{
+unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
+{    
     PathGeometric *p = dynamic_cast<PathGeometric*>(pp.get());
     if (!p)
     {
         msg_.error("Path hybridization only works for geometric paths");
-        return;
+        return 0;
     }
 
     if (p->getSpaceInformation() != si_)
     {
         msg_.error("Paths for hybridization must be from the same space information");
-        return;
+        return 0;
     }
 
     // skip empty paths
-    if (p->states.empty())
-        return;
+    if (p->getStateCount() == 0)
+        return 0;
 
     PathInfo pi(pp);
 
     // if this path was previously included in the hybridization, skip it
     if (paths_.find(pi) != paths_.end())
-        return;
+        return 0;
 
+    // the number of connection attempts
+    unsigned int nattempts = 0;
+    
     // start from virtual root
     Vertex v0 = boost::add_vertex(g_);
     stateProperty_[v0] = pi.states_[0];
@@ -158,49 +161,80 @@ void ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp)
         std::vector<int> indexP, indexQ;
         matchPaths(*p, *q, (pi.length_ + it->length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
-        int lastP = -1;
-        int lastQ = -1;
-        int gapStartP = -1;
-        int gapStartQ = -1;
-        bool gapP = false;
-        bool gapQ = false;
-        for (std::size_t i = 0 ; i < indexP.size() ; ++i)
-        {
-            if (indexP[i] < 0)
-            {
-                if (!gapP)
-                    gapStartP = i;
-                gapP = true;
-            }
-            else
-            {
-                if (gapP)
-                    for (std::size_t j = gapStartP ; j < i ; ++j)
-                        attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
-                lastP = i;
-                gapP = false;
-            }
-            if (indexQ[i] < 0)
-            {
-                if (!gapQ)
-                    gapStartQ = i;
-                gapQ = true;
-            }
-            else
-            {
-                if (gapQ)
-                    for (std::size_t j = gapStartQ ; j < i ; ++j)
-                        attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
-                lastQ = i;
-                gapQ = false;
-            }
-            if (lastP >= 0 && lastQ >= 0)
-                attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
-        }
+        if (matchAcrossGaps)
+	{	    
+	    int lastP = -1;
+	    int lastQ = -1;
+	    int gapStartP = -1;
+	    int gapStartQ = -1;
+	    bool gapP = false;
+	    bool gapQ = false;
+	    for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+	    {
+		// a gap is found in p
+		if (indexP[i] < 0)
+		{
+		    // remember this as the beginning of the gap, if needed
+		    if (!gapP)
+			gapStartP = i;
+		    // mark the fact we are now in a gap on p
+		    gapP = true;
+		}
+		else
+		{
+		    // check if a gap just ended;
+		    // if it did, try to match the endpoint with the elements in q
+		    if (gapP)
+			for (std::size_t j = gapStartP ; j < i ; ++j)
+                        {
+                            attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
+                            ++nattempts;
+                        }
+		    // remember the last non-negative index in p
+		    lastP = i;
+		    gapP = false;
+		}
+		if (indexQ[i] < 0)
+		{
+		    if (!gapQ)
+			gapStartQ = i;
+		    gapQ = true;
+		}
+		else
+		{
+		    if (gapQ)
+			for (std::size_t j = gapStartQ ; j < i ; ++j)
+                        {
+			    attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
+                            ++nattempts;
+                        }                            
+		    lastQ = i;
+		    gapQ = false;
+		}
+		
+		// try to match corresponding index values and gep beginnings
+		if (lastP >= 0 && lastQ >= 0)
+                {
+		    attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
+                    ++nattempts;
+                }
+	    }
+	}
+	else
+	{
+	    // attempt new edge only when states align
+	    for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+		if (indexP[i] >= 0 && indexQ[i] >= 0)
+                {
+		    attemptNewEdge(pi, *it, indexP[i], indexQ[i]);
+                    ++nattempts;
+                }
+	}
     }
 
     // remember this path is part of the hybridization
     paths_.insert(pi);
+    return nattempts;
 }
 
 void ompl::geometric::PathHybridization::attemptNewEdge(const PathInfo &p, const PathInfo &q, int indexP, int indexQ)
@@ -221,18 +255,18 @@ std::size_t ompl::geometric::PathHybridization::pathCount(void) const
 void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, const PathGeometric &q, double gapCost,
                                                     std::vector<int> &indexP, std::vector<int> &indexQ) const
 {
-    std::vector<std::vector<double> > C(p.states.size());
-    std::vector<std::vector<char> >   T(p.states.size());
+    std::vector<std::vector<double> > C(p.getStateCount());
+    std::vector<std::vector<char> >   T(p.getStateCount());
 
-    for (std::size_t i = 0 ; i < p.states.size() ; ++i)
+    for (std::size_t i = 0 ; i < p.getStateCount() ; ++i)
     {
-        C[i].resize(q.states.size(), 0.0);
-        T[i].resize(q.states.size(), '\0');
-        for (std::size_t j = 0 ; j < q.states.size() ; ++j)
+        C[i].resize(q.getStateCount(), 0.0);
+        T[i].resize(q.getStateCount(), '\0');
+        for (std::size_t j = 0 ; j < q.getStateCount() ; ++j)
         {
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
-            double match = si_->distance(p.states[i], q.states[j]) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
+            double match = si_->distance(p.getState(i), q.getState(j)) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
             double up    = gapCost + (i > 0 ? C[i - 1][j] : 0.0);
             double left  = gapCost + (j > 0 ? C[i][j - 1] : 0.0);
             if (match <= up && match <= left)
@@ -241,7 +275,6 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
                 T[i][j] = 'm';
             }
             else
-
                 if (up <= match && up <= left)
                 {
                     C[i][j] = up;
@@ -255,8 +288,8 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
         }
     }
     // construct the sequences with gaps (only index positions)
-    int m = p.states.size() - 1;
-    int n = q.states.size() - 1;
+    int m = p.getStateCount() - 1;
+    int n = q.getStateCount() - 1;
 
     indexP.clear();
     indexQ.clear();

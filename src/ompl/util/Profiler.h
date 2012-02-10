@@ -97,24 +97,29 @@ namespace ompl
             Profiler    &prof_;
         };
 
-        /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope. */
+        /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope. 
+            If the profiler was already started, this block's constructor and destructor take no action */
         class ScopedStart
         {
         public:
 
-            ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof)
+            /** \brief Take as argument the profiler instance to operate on (\e prof) */
+            ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
             {
-                prof_.start();
+              if (!wasRunning_)
+                  prof_.start();
             }
 
             ~ScopedStart(void)
             {
-                prof_.stop();
+                if (!wasRunning_)
+                    prof_.stop();
             }
 
         private:
 
-            Profiler    &prof_;
+            Profiler &prof_;
+            bool      wasRunning_;          
         };
 
         /** \brief Return an instance of the class */
@@ -221,6 +226,18 @@ namespace ompl
         /** \brief Print the status of the profiled code chunks and
             events to the console (using msg::Console) */
         void console(void);
+      
+        /** \brief Check if the profiler is counting time or not */
+        bool running(void) const
+        {
+            return running_;
+        }
+
+        /** \brief Check if the profiler is counting time or not */
+        static bool Running(void)
+        {
+            return Instance().running();
+        }
 
     private:
 
@@ -421,6 +438,15 @@ namespace ompl
         {
         }
 
+        bool running(void) const
+        {
+            return false;
+        }
+
+        static bool Running(void)
+        {
+            return false;
+        }
     };
 }
 

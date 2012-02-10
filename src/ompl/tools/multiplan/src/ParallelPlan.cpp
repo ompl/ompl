@@ -116,7 +116,7 @@ bool ompl::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std
             {
                 geometric::PathGeometric *pg = static_cast<geometric::PathGeometric*>(hsol.get());
                 double difference = 0.0;
-                bool approximate = !pdef_->getGoal()->isSatisfied(pg->states.back(), &difference);
+                bool approximate = !pdef_->getGoal()->isSatisfied(pg->getStates().back(), &difference);
                 pdef_->getGoal()->addSolutionPath(hsol, approximate, difference);
             }
     }
@@ -161,13 +161,14 @@ void ompl::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCou
 
         boost::mutex::scoped_lock slock(phlock_);
         start = time::now();
+        unsigned int attempts = 0;
         for (std::size_t i = 0 ; i < paths.size() ; ++i)
-            phybrid_->recordPath(paths[i].path_);
+            attempts += phybrid_->recordPath(paths[i].path_, false);
 
         if (phybrid_->pathCount() >= minSolCount)
             phybrid_->computeHybridPath();
 
         duration = time::seconds(time::now() - start);
-        msg_.debug("Spent %f seconds hybridizing %u solution paths", duration, (unsigned int)phybrid_->pathCount());
+        msg_.debug("Spent %f seconds hybridizing %u solution paths (attempted %u connections between paths)", duration, (unsigned int)phybrid_->pathCount(), attempts);
     }
 }
