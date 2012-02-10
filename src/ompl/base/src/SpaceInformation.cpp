@@ -399,6 +399,9 @@ void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
     stateSpace_->printSettings(out);
     out << std::endl << "Declared parameters:" << std::endl;
     params_.print(out);
+    ValidStateSamplerPtr vss = allocValidStateSampler();
+    out << "Valid state sampler named " << vss->getName() << " with parameters:" << std::endl;
+    vss->params().print(out);
 }
 
 void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
