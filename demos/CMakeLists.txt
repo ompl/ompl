@@ -37,8 +37,8 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
 
-  if (OMPL_EXTENSION_ODE)
-    add_ompl_demo(demo_ODERigidBodyPlanning ODERigidBodyPlanning.cpp)
+  if (OMPL_EXTENSION_OPENDE)
+    add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
   endif()
 
 endif(OMPL_BUILD_DEMOS)
