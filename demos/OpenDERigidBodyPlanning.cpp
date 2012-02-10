@@ -250,7 +250,7 @@ int main(int, char **)
 
     if (ss.solve(10))
     {
-        og::PathGeometric &p = ss.getSolutionPath().asGeometric();
+        og::PathGeometric p = ss.getSolutionPath().asGeometric();
         std::vector<ob::State*> &states = p.getStates();
         for (unsigned int i = 0 ; i < states.size() ; ++i)
         {
