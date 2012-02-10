@@ -58,40 +58,66 @@ void ompl::control::Syclop::clear(void)
     lead_.clear();
     availDist_.clear();
     clearGraphDetails();
+    startRegions_.clear();
+    goalRegion_ = -1;
 }
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 {
     checkValidity();
     if (!graphReady_)
-        initGraph();
-
-    // For now, we are only considering one start state.
-    const int startRegion = decomp_->locateRegion (pdef_->getStartState(0));
-    base::Goal* goal = pdef_->getGoal().get();
-
-    // Extracting goal region
-    const base::GoalSampleableRegion *goalSampleable = dynamic_cast<const base::GoalSampleableRegion*>(goal);
-    if (!goalSampleable)
     {
-        msg_.error("Unknown type of goal (or goal undefined)");
+        numMotions_ = 0;
+        setupRegionEstimates();
+        setupEdgeEstimates();
+        graphReady_ = true;
+    }
+    while (const base::State* s = pis_.nextStart())
+    {
+        const int region = decomp_->locateRegion(s);
+        startRegions_.push_back(region);
+        //we expect initializeTree(s) to add a new root to the tree; can be called multiple times
+        Motion* startMotion = addRoot(s);
+        graph_[boost::vertex(region,graph_)].motions.push_back(startMotion);
+        ++numMotions_;
+        updateCoverageEstimate(graph_[boost::vertex(region,graph_)], s);
+    }
+    if (startRegions_.empty())
+    {
+        msg_.error("There are no valid start states");
         return false;
     }
 
-    base::State* goalState = si_->allocState();
-    goalSampleable->sampleGoal(goalState);
-    const int goalRegion = decomp_->locateRegion(goalState);
-    si_->freeState(goalState);
+    //We need at least one valid goal sample so that we can find the goal region
+    if (goalRegion_ == -1)
+    {
+        if (const base::State* g = pis_.nextGoal(ptc))
+            goalRegion_ = decomp_->locateRegion(g);
+        else
+        {
+            msg_.error("Unable to sample a valid goal state");
+            return false;
+        }
+    }
 
     msg_.inform("Starting with %u states", numMotions_);
 
     std::vector<Motion*> newMotions;
     const Motion* solution = NULL;
+    base::Goal* goal = pdef_->getGoal().get();
     double goalDist = std::numeric_limits<double>::infinity();
     bool solved = false;
     while (!ptc() && !solved)
     {
-        computeLead(startRegion, goalRegion);
+        const int chosenStartRegion = startRegions_[rng_.uniformInt(0, startRegions_.size()-1)];
+
+        if (pis_.haveMoreGoalStates())
+        {
+            if (const base::State* g = pis_.nextGoal())
+                goalRegion_ = decomp_->locateRegion(g);
+        }
+
+        computeLead(chosenStartRegion, goalRegion_);
         computeAvailableRegions();
         for (int i = 0; i < numRegionExpansions_ && !solved && !ptc(); ++i)
         {
@@ -302,19 +328,6 @@ void ompl::control::Syclop::buildGraph(void)
         }
         neighbors.clear();
     }
-}
-
-void ompl::control::Syclop::initGraph(void)
-{
-    base::State* start = getProblemDefinition()->getStartState(0);
-    int startRegion = decomp_->locateRegion(start);
-    Motion* startMotion = initializeTree(start);
-    graph_[boost::vertex(startRegion,graph_)].motions.push_back(startMotion);
-    numMotions_ = 1;
-    setupRegionEstimates();
-    setupEdgeEstimates();
-    updateCoverageEstimate(graph_[boost::vertex(startRegion,graph_)], start);
-    graphReady_ = true;
 }
 
 void ompl::control::Syclop::clearGraphDetails(void)

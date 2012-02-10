@@ -103,7 +103,8 @@ namespace ompl
                 decomp_(d),
                 covGrid_(Defaults::COVGRID_LENGTH, decomp_),
                 graphReady_(false),
-                numMotions_(0)
+                numMotions_(0),
+                goalRegion_(-1)
             {
                 specs_.approximateSolutions = true;
 
@@ -327,8 +328,8 @@ namespace ompl
             };
             #pragma pack (pop) // Restoring default byte alignment
 
-            /** \brief Initialize the low-level tree rooted at State s, and return the Motion corresponding to s. */
-            virtual Motion* initializeTree(const base::State* s) = 0;
+            /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
+            virtual Motion* addRoot(const base::State* s) = 0;
 
             /** \brief Select a Motion from the given Region, and extend the tree from the Motion.
                 Add any new motions created to newMotions. */
@@ -471,10 +472,6 @@ namespace ompl
                 creating Region and Adjacency objects for each node and edge. */
             void buildGraph(void);
 
-            /** \brief Initialize default values for Region and Adjacency objects in the RegionGraph.
-                Initialize the low-level tree with the start state from the problem definition. */
-            void initGraph(void);
-
             /** \brief Clear all Region and Adjacency objects in the graph. */
             void clearGraphDetails(void);
 
@@ -498,6 +495,8 @@ namespace ompl
             bool graphReady_;
             boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
             unsigned int numMotions_;
+            std::vector<int> startRegions_;
+            int goalRegion_;
         };
     }
 }
