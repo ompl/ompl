@@ -96,7 +96,9 @@ input[type="text"]:focus, select:focus {
 .title { margin-left: 0px; margin-right: 0px; }
 .summary + .headertitle .title { font-size: 24px; }
 .summary + .headertitle { margin-left: 0px; }
-#nav-path { margin-top: -20px; }
+#nav-path { margin: -20px -20px 0px -20px; }
+@media (max-width: 980px) { #nav-path { margin-top: -18px; } }
+#nav-path ul {margin-right: -20px; }
 .contents table { margin-left: 20px; margin-right: 20px; }
 .navbar .nav > li > a { color: #ddd; }
 iframe { border: none; }
