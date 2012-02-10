@@ -40,6 +40,10 @@
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 
+#ifdef _WIN32
+#include <malloc.h>
+#endif
+
 ompl::control::OpenDEStatePropagator::OpenDEStatePropagator(const SpaceInformationPtr &si) : StatePropagator(si)
 {
     if (OpenDEStateSpace *oss = dynamic_cast<OpenDEStateSpace*>(si->getStateSpace().get()))
