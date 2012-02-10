@@ -7,7 +7,6 @@
 ../src/ompl/base/PrecomputedStateSampler.h
 ../src/ompl/base/ProjectionEvaluator.h
 ../src/ompl/base/StateSpace.h
-../src/ompl/base/StateStorage.h
 ../src/ompl/base/StateValidityChecker.h
 ../src/ompl/base/MotionValidator.h
 ../src/ompl/base/SpaceInformation.h

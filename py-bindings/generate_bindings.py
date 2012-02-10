@@ -191,8 +191,11 @@ class ompl_base_generator_t(code_generator_t):
             'StateType').variable('values').exclude()
         # don't expose std::map< const State *, unsigned int >
         self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
-        # disable for now, until we can find a way to create code that compiles
-        self.ompl_ns.class_('StateStorage').member_function('getStateSamplerAllocator').exclude()
+        try:
+            # disable for now, until we can find a way to create code that compiles
+            self.ompl_ns.class_('StateStorage').member_function('getStateSamplerAllocator').exclude()
+        except:
+            pass
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
         # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to EuclideanProjection
@@ -244,11 +247,14 @@ class ompl_base_generator_t(code_generator_t):
         # rename SamplerSelectors
         self.ompl_ns.class_('SamplerSelector< ompl::base::StateSampler >').rename('StateSamplerSelector')
         self.ompl_ns.class_('SamplerSelector< ompl::base::ValidStateSampler >').rename('ValidStateSamplerSelector')
-        cls = self.ompl_ns.class_('StateStorage').member_functions('load')
-        for c in cls:
-            print c.decl_string
-        self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
-        self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
+        try:
+            cls = self.ompl_ns.class_('StateStorage').member_functions('load')
+            for c in cls:
+                print c.decl_string
+            self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
+            self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
+        except:
+            pass
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
