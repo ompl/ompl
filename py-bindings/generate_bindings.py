@@ -321,10 +321,10 @@ class ompl_control_generator_t(code_generator_t):
 
         # export pure virtual member functions, otherwise code doesn't compile
         self.ompl_ns.class_('Syclop').add_wrapper_code("""
-        virtual ompl::control::Syclop::Motion* initializeTree(const ompl::base::State* s)
+        virtual ompl::control::Syclop::Motion* addRoot(const ompl::base::State* s)
         {
-            bp::override func_initializeTree = this->get_override("initializeTree");
-            return func_initializeTree(s);
+            bp::override func_addRoot = this->get_override("addRoot");
+            return func_addRoot(s);
         }
         virtual void selectAndExtend(ompl::control::Syclop::Region& region, std::vector<ompl::control::Syclop::Motion*>& newMotions)
         {

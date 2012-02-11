@@ -7,7 +7,7 @@ if (OMPL_BUILD_PYBINDINGS)
 
     if(MSVC)
         # omit StateStorage class bindings on Windows;
-        # Boost.Serialization does nasty things that breaks the bindings.
+        # Boost.Serialization does nasty things that break the bindings.
         set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DOMPL_BASE_STATE_STORAGE_")
     endif(MSVC)
 
