@@ -125,7 +125,6 @@ namespace ompl
                 return selectBorderFraction_;
             }
 
-
             /** \brief When extending a motion from a cell, the
                 extension can be successful or it can fail.  If the
                 extension is successful, the score of the cell is
@@ -134,8 +133,20 @@ namespace ompl
                 numbers should be in the range (0, 1]. */
             void setCellScoreFactor(double good, double bad)
             {
-                goodScoreFactor_ = good;
+                setGoodCellScoreFactor(good);
+                setBadCellScoreFactor(bad);
+            }
+
+            /** \brief Set the factor that is to be applied to a cell's score when an expansion from that cell fails */
+            void setBadCellScoreFactor(double bad)
+            {
                 badScoreFactor_ = bad;
+            }
+
+            /** \brief Set the factor that is to be applied to a cell's score when an expansion from that cell succeedes */
+            void setGoodCellScoreFactor(double good)
+            {
+                goodScoreFactor_ = good;
             }
 
             /** \brief Get the factor that is multiplied to a cell's
@@ -150,6 +161,19 @@ namespace ompl
             double getBadCellScoreFactor(void) const
             {
                 return badScoreFactor_;
+            }
+
+            /** \brief When motions reach close to the goal, they are stored in a separate queue
+                to allow biasing towards the goal. This function sets the maximum size of that queue. */
+            void setMaxCloseSamplesCount(unsigned int nCloseSamples)
+            {
+                nCloseSamples_ = nCloseSamples;
+            }
+
+            /** \brief Get the maximum number of samples to store in the queue of samples that are close to the goal */
+            unsigned int getMaxCloseSamplesCount(void) const
+            {
+                return nCloseSamples_;
             }
 
             /** \brief Set the projection evaluator. This class is
@@ -395,6 +419,9 @@ namespace ompl
                 multiplied by this factor. */
             double                        badScoreFactor_;
 
+            /** \brief When motions reach close to the goal, they are stored in a separate queue
+                to allow biasing towards the goal. This variable specifies the maximum number of samples
+                to keep in that queue. */
             unsigned int                  nCloseSamples_;
 
             /** \brief The fraction of time to focus exploration on

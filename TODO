@@ -25,5 +25,4 @@
  
 * Start another 'concept' for ompl -- something that has algorithms for the analysis of spaces to plan in: Identify good lengths of path segments, good discretizations of control sets, automatic setting of parameters (projection cell sizes?), identification of good random projections
 
-
-
+* Add meaningful RRT* tests

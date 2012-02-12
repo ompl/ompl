@@ -112,28 +112,28 @@ namespace ompl
         };
 
 
-        /** \brief This is a helper class that instantiates
-            planner parameters of different types. */
+        /** \brief This is a helper class that instantiates parameters with different data types. */
         template<typename T>
         class SpecificParam : public GenericParam
         {
         public:
 
-            /** \brief The type for the 'setter' function for this planner parameter */
+            /** \brief The type for the 'setter' function for this parameter */
             typedef boost::function<void(T)> SetterFn;
 
-            /** \brief The type for the 'getter' function for this planner parameter */
+            /** \brief The type for the 'getter' function for this parameter */
             typedef boost::function<T()>     GetterFn;
 
-            /** \brief An explicit instantiation of a planner
-                parameter requires the \e setter function and optionally the \e
-                getter function, in addition to the \e planner and
-                the parameter \e name. */
+            /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally the \e
+                getter function. */
             SpecificParam(const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
                 GenericParam(name), setter_(setter), getter_(getter)
             {
             }
 
+
+            /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally the \e
+                getter function. In order to output information while setting parameters as if it were produced by the owner of the parameter, a console interface \e context is specified. */
             SpecificParam(const std::string &name, const msg::Interface &context, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
                 GenericParam(name, context), setter_(setter), getter_(getter)
             {
@@ -218,30 +218,32 @@ namespace ompl
             /** \brief Include the params of a different ParamSet into this one. Optionally include a prefix for each of the parameters */
             void include(const ParamSet &other, const std::string &prefix = "");
 
-            /** \brief Planning algorithms typically have parameters
-                that can be set externally. While each planner will
-                have getter and setter functions specifically for
+            /** \brief Algorithms in OMPL often have parameters that
+                can be set externally. While each algorithm will have
+                their own getter and setter functions specifically for
                 those parameters, this function allows setting
-                parameters generically, for any planner, by specifying
-                the parameter name \e key and its value \e value (both
-                as string). This makes it easy to automatically
-                configure planners using external sources (e.g., a
-                configuration file). The function returns true if the
-                parameter was parsed successfully and false
-                otherwise. */
+                parameters generically, for any algorithm that
+                declares parameters, by specifying the parameter name
+                \e key and its value \e value (both as string, but \e
+                value is cast to the type desired by the corresponding
+                setter). Under the hood, this calls SpecificParam::setValue().
+                This ability makes it easy to automatically configure
+                using external sources (e.g., a configuration
+                file). The function returns true if the parameter was
+                parsed and set successfully and false otherwise. */
             bool setParam(const std::string &key, const std::string &value);
 
-            /** \brief Get the value of a particular. Return false if no value was set */
+            /** \brief Get the value of the parameter named \e key. Store the value as string in \e value and return true if the parameter was found. Return false otherwise. */
             bool getParam(const std::string &key, std::string &value) const;
 
-            /** \brief Set a list of key-value pairs as parameters for
-                the planner. Return true if all parameters were set
-                successfully. This function simply calls setParam() multiple times.
+            /** \brief Set the values for a set of parameters. The parameter names are the keys in the map \e kv.
+                The corresponding key values in \e kv are set as the parameter values.
+                Return true if all parameters were set successfully. This function simply calls setParam() multiple times.
                 If \e ignoreUnknown is true, then no attempt is made to set unknown
                 parameters (and thus no errors are reported) */
             bool setParams(const std::map<std::string, std::string> &kv, bool ignoreUnknown = false);
 
-            /** \brief Get the known parameter as a map from names to values cast as string */
+            /** \brief Get the known parameter as a map from names to their values cast as string */
             void getParams(std::map<std::string, std::string> &params) const;
 
             /** \brief List the names of the known parameters */

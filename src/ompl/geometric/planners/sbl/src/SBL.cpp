@@ -283,7 +283,7 @@ void ompl::geometric::SBL::removeMotion(TreeData &tree, Motion *motion)
         }
         if (cell->data.empty())
         {
-	    tree.pdf.remove(cell->data.elem_);
+            tree.pdf.remove(cell->data.elem_);
             tree.grid.remove(cell);
             tree.grid.destroyCell(cell);
         }

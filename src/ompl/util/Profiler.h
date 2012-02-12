@@ -97,7 +97,7 @@ namespace ompl
             Profiler    &prof_;
         };
 
-        /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope. 
+        /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope.
             If the profiler was already started, this block's constructor and destructor take no action */
         class ScopedStart
         {
@@ -119,7 +119,7 @@ namespace ompl
         private:
 
             Profiler &prof_;
-            bool      wasRunning_;          
+            bool      wasRunning_;
         };
 
         /** \brief Return an instance of the class */
@@ -226,7 +226,7 @@ namespace ompl
         /** \brief Print the status of the profiled code chunks and
             events to the console (using msg::Console) */
         void console(void);
-      
+
         /** \brief Check if the profiler is counting time or not */
         bool running(void) const
         {

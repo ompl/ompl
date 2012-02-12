@@ -101,7 +101,7 @@ const ompl::base::PathPtr& ompl::geometric::PathHybridization::getHybridPath(voi
 }
 
 unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
-{    
+{
     PathGeometric *p = dynamic_cast<PathGeometric*>(pp.get());
     if (!p)
     {
@@ -127,7 +127,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
 
     // the number of connection attempts
     unsigned int nattempts = 0;
-    
+
     // start from virtual root
     Vertex v0 = boost::add_vertex(g_);
     stateProperty_[v0] = pi.states_[0];
@@ -162,74 +162,74 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
         matchPaths(*p, *q, (pi.length_ + it->length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
         if (matchAcrossGaps)
-	{	    
-	    int lastP = -1;
-	    int lastQ = -1;
-	    int gapStartP = -1;
-	    int gapStartQ = -1;
-	    bool gapP = false;
-	    bool gapQ = false;
-	    for (std::size_t i = 0 ; i < indexP.size() ; ++i)
-	    {
-		// a gap is found in p
-		if (indexP[i] < 0)
-		{
-		    // remember this as the beginning of the gap, if needed
-		    if (!gapP)
-			gapStartP = i;
-		    // mark the fact we are now in a gap on p
-		    gapP = true;
-		}
-		else
-		{
-		    // check if a gap just ended;
-		    // if it did, try to match the endpoint with the elements in q
-		    if (gapP)
-			for (std::size_t j = gapStartP ; j < i ; ++j)
+        {
+            int lastP = -1;
+            int lastQ = -1;
+            int gapStartP = -1;
+            int gapStartQ = -1;
+            bool gapP = false;
+            bool gapQ = false;
+            for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+            {
+                // a gap is found in p
+                if (indexP[i] < 0)
+                {
+                    // remember this as the beginning of the gap, if needed
+                    if (!gapP)
+                        gapStartP = i;
+                    // mark the fact we are now in a gap on p
+                    gapP = true;
+                }
+                else
+                {
+                    // check if a gap just ended;
+                    // if it did, try to match the endpoint with the elements in q
+                    if (gapP)
+                        for (std::size_t j = gapStartP ; j < i ; ++j)
                         {
                             attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
                             ++nattempts;
                         }
-		    // remember the last non-negative index in p
-		    lastP = i;
-		    gapP = false;
-		}
-		if (indexQ[i] < 0)
-		{
-		    if (!gapQ)
-			gapStartQ = i;
-		    gapQ = true;
-		}
-		else
-		{
-		    if (gapQ)
-			for (std::size_t j = gapStartQ ; j < i ; ++j)
+                    // remember the last non-negative index in p
+                    lastP = i;
+                    gapP = false;
+                }
+                if (indexQ[i] < 0)
+                {
+                    if (!gapQ)
+                        gapStartQ = i;
+                    gapQ = true;
+                }
+                else
+                {
+                    if (gapQ)
+                        for (std::size_t j = gapStartQ ; j < i ; ++j)
                         {
-			    attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
+                            attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
                             ++nattempts;
-                        }                            
-		    lastQ = i;
-		    gapQ = false;
-		}
-		
-		// try to match corresponding index values and gep beginnings
-		if (lastP >= 0 && lastQ >= 0)
+                        }
+                    lastQ = i;
+                    gapQ = false;
+                }
+
+                // try to match corresponding index values and gep beginnings
+                if (lastP >= 0 && lastQ >= 0)
                 {
-		    attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
+                    attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
                     ++nattempts;
                 }
-	    }
-	}
-	else
-	{
-	    // attempt new edge only when states align
-	    for (std::size_t i = 0 ; i < indexP.size() ; ++i)
-		if (indexP[i] >= 0 && indexQ[i] >= 0)
+            }
+        }
+        else
+        {
+            // attempt new edge only when states align
+            for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+                if (indexP[i] >= 0 && indexQ[i] >= 0)
                 {
-		    attemptNewEdge(pi, *it, indexP[i], indexQ[i]);
+                    attemptNewEdge(pi, *it, indexP[i], indexQ[i]);
                     ++nattempts;
                 }
-	}
+        }
     }
 
     // remember this path is part of the hybridization
