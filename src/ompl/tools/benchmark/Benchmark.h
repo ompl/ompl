@@ -139,6 +139,7 @@ namespace ompl
         /** \brief Representation of a benchmark request */
         struct Request
         {
+            /** \brief Constructor that provides default values for all members */
             Request(double maxTime = 5.0, double maxMem = 4096.0,
                 unsigned int runCount = 100, bool displayProgress = true,
                 bool saveConsoleOutput = true, bool useThreads = true)

@@ -80,7 +80,7 @@ namespace ompl
         class ScopedBlock
         {
         public:
-
+            /** \brief Start counting time for the block named \e name of the profiler \e prof */
             ScopedBlock(const std::string &name, Profiler &prof = Profiler::Instance()) : name_(name), prof_(prof)
             {
                 prof_.begin(name);

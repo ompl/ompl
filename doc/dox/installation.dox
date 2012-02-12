@@ -150,7 +150,7 @@ privileges to install to the default directory.
 \code
 mingw32-make install
 \endcode
-- Make sure to add the install path's \lib subdirectory to the PATH so that the DLLs are found when code 
+- Make sure to add the install path's \\lib subdirectory to the PATH so that the DLLs are found when code 
 is loaded.
 
 \subsubsection msvc Visual Studio
