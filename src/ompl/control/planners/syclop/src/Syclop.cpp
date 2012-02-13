@@ -59,7 +59,7 @@ void ompl::control::Syclop::clear(void)
     availDist_.clear();
     clearGraphDetails();
     startRegions_.clear();
-    goalRegion_ = -1;
+    goalRegions_.clear();
 }
 
 bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
@@ -75,8 +75,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     while (const base::State* s = pis_.nextStart())
     {
         const int region = decomp_->locateRegion(s);
-        startRegions_.push_back(region);
-        //we expect initializeTree(s) to add a new root to the tree; can be called multiple times
+        startRegions_.insert(region);
         Motion* startMotion = addRoot(s);
         graph_[boost::vertex(region,graph_)].motions.push_back(startMotion);
         ++numMotions_;
@@ -89,10 +88,10 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     }
 
     //We need at least one valid goal sample so that we can find the goal region
-    if (goalRegion_ == -1)
+    if (goalRegions_.empty())
     {
         if (const base::State* g = pis_.nextGoal(ptc))
-            goalRegion_ = decomp_->locateRegion(g);
+            goalRegions_.insert(decomp_->locateRegion(g));
         else
         {
             msg_.error("Unable to sample a valid goal state");
@@ -109,15 +108,22 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     bool solved = false;
     while (!ptc() && !solved)
     {
-        const int chosenStartRegion = startRegions_[rng_.uniformInt(0, startRegions_.size()-1)];
+        const int chosenStartRegion = startRegions_.sampleUniform();
+        int chosenGoalRegion = -1;
 
         if (pis_.haveMoreGoalStates())
         {
             if (const base::State* g = pis_.nextGoal())
-                goalRegion_ = decomp_->locateRegion(g);
+            {
+                std::cout << "sampling another goal" << std::endl;
+                chosenGoalRegion = decomp_->locateRegion(g);
+                goalRegions_.insert(chosenGoalRegion);
+            }
         }
+        if (chosenGoalRegion == -1)
+            chosenGoalRegion = goalRegions_.sampleUniform();
 
-        computeLead(chosenStartRegion, goalRegion_);
+        computeLead(chosenStartRegion, chosenGoalRegion);
         computeAvailableRegions();
         for (int i = 0; i < numRegionExpansions_ && !solved && !ptc(); ++i)
         {

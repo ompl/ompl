@@ -103,8 +103,7 @@ namespace ompl
                 decomp_(d),
                 covGrid_(Defaults::COVGRID_LENGTH, decomp_),
                 graphReady_(false),
-                numMotions_(0),
-                goalRegion_(-1)
+                numMotions_(0)
             {
                 specs_.approximateSolutions = true;
 
@@ -442,6 +441,41 @@ namespace ompl
             };
             /// @endcond
 
+            /// @cond IGNORE
+            class RegionSet
+            {
+            public:
+                int operator[](const unsigned int i) const
+                {
+                    return v[i];
+                }
+                int sampleUniform(void)
+                {
+                    if (empty())
+                        return -1;
+                    return v[rng.uniformInt(0, v.size()-1)];
+                }
+                void insert(const int r)
+                {
+                    if (s.insert(r).second)
+                        v.push_back(r);
+                }
+                void clear()
+                {
+                    s.clear();
+                    v.clear();
+                }
+                bool empty()
+                {
+                    return v.empty();
+                }
+            private:
+                RNG rng;
+                std::set<int> s;
+                std::vector<int> v;
+            };
+            /// @endcond
+
             /** \brief Initializes default values for a given Region. */
             void initRegion(Region& r);
 
@@ -495,8 +529,8 @@ namespace ompl
             bool graphReady_;
             boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
             unsigned int numMotions_;
-            std::vector<int> startRegions_;
-            int goalRegion_;
+            RegionSet startRegions_;
+            RegionSet goalRegions_;
         };
     }
 }
