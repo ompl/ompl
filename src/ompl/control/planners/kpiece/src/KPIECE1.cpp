@@ -144,7 +144,7 @@ bool ompl::control::KPIECE1::CloseSamples::consider(Grid::Cell *cell, Motion *mo
 
 
 /// @cond IGNORE
-/// this is the factor by which distances are inflated when considered for addition to closest samples
+// this is the factor by which distances are inflated when considered for addition to closest samples
 static const double CLOSE_MOTION_DISTANCE_INFLATION_FACTOR = 1.1;
 /// @endcond
 

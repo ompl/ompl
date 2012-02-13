@@ -59,6 +59,7 @@ namespace ompl
     class NearestNeighborsGNAT : public NearestNeighbors<_T>
     {
     protected:
+        /// \cond IGNORE
         // internally, we use a priority queue for nearest neighbors, paired
         // with their distance to the query point
         typedef std::pair<const _T*,double> DataDist;
@@ -83,7 +84,7 @@ namespace ompl
             }
         };
         typedef std::priority_queue<NodeDist, std::vector<NodeDist>, NodeDistCompare> NodeQueue;
-
+        /// \endcond
 
     public:
         NearestNeighborsGNAT(unsigned int degree = 4, unsigned int minDegree = 2,
