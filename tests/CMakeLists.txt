@@ -29,7 +29,7 @@ if(OMPL_BUILD_TESTS)
     add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
 
     # Python unit tests
-    if(OMPL_BUILD_PYTESTS)
+    if(OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bindings")
       add_ompl_python_test(util/test_util.py)
       add_ompl_python_test(base/test_base.py)
       add_ompl_python_test(geometric/test_geometric.py)
