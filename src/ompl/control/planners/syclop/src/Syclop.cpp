@@ -115,7 +115,6 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         {
             if (const base::State* g = pis_.nextGoal())
             {
-                std::cout << "sampling another goal" << std::endl;
                 chosenGoalRegion = decomp_->locateRegion(g);
                 goalRegions_.insert(chosenGoalRegion);
             }
