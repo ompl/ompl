@@ -288,20 +288,29 @@ namespace ompl
                     covGridCells.clear();
                 }
 
+                /** \brief The cells of the underlying coverage grid that contain tree motions from this region */
                 std::set<int> covGridCells;
+                /** \brief The tree motions contained in this region */
                 std::vector<Motion*> motions;
+                /** \brief The volume of this region */
                 double volume;
+                /** \brief The free volume of this region */
                 double freeVolume;
+                /** \brief The percent of free volume of this region */
                 double percentValidCells;
+                /** \brief The probabilistic weight of this region, used when sampling from PDF */
                 double weight;
+                /** \brief The coefficient contributed by this region to edge weights in lead computations */
                 double alpha;
+                /** \brief The index of the graph node corresponding to this region */
                 int index;
+                /** \brief The number of times this region has been selected for expansion */
                 unsigned int numSelections;
             };
             #pragma pack (pop)  // Restoring default byte alignment
 
             #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
-            /** \brief Representation of an adjacency (or edge) between two regions
+            /** \brief Representation of an adjacency (a directed edge) between two regions
                 in the Decomposition assigned to Syclop. */
             class Adjacency
             {
@@ -317,12 +326,21 @@ namespace ompl
                 {
                     covGridCells.clear();
                 }
+                /** \brief The cells of the underlying coverage grid that contain tree motions originating from
+                    direct connections along this adjacency */
                 std::set<int> covGridCells;
+                /** \brief The source region of this adjacency edge */
                 const Region* source;
+                /** \brief The target region of this adjacency edge */
                 const Region* target;
+                /** \brief The cost of this adjacency edge, used in lead computations */
                 double cost;
+                /** \brief The number of times this adjacency has been included in a lead */
                 int numLeadInclusions;
+                /** \brief The number of times the low-level tree planner has selected motions from the source region
+                    when attempting to extend the tree toward the target region. */
                 int numSelections;
+                /** \brief This value is true if and only if this adjacency's source and target regions both contain zero tree motions. */
                 bool empty;
             };
             #pragma pack (pop) // Restoring default byte alignment
@@ -465,7 +483,7 @@ namespace ompl
                     s.clear();
                     v.clear();
                 }
-                bool empty()
+                bool empty() const
                 {
                     return v.empty();
                 }
@@ -521,15 +539,25 @@ namespace ompl
             /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
 
+            /** \brief The current computed lead */
             std::vector<int> lead_;
+            /** \brief Used to sample regions in which to promote expansion */
             PDF<int> availDist_;
+            /** \brief Stores all factor functions used to compute adjacency edge cost for lead computation */
             std::vector<EdgeCostFactorFn> edgeCostFactors_;
+            /** \brief An underlying grid used to estimate coverage */
             CoverageGrid covGrid_;
+            /** \brief A graph structure whose nodes and edges correspond to regions and adjacencies in the given Decomposition */
             RegionGraph graph_;
+            /** \brief This value stores whether the graph structure has been built */
             bool graphReady_;
+            /** \brief Maps pairs of regions to adjacency objects */
             boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
+            /** \brief The total number of motions in the low-level tree */
             unsigned int numMotions_;
+            /** \brief The set of all regions that contain start states */
             RegionSet startRegions_;
+            /** \brief The set of all regions that contain goal states */
             RegionSet goalRegions_;
         };
     }
