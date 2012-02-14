@@ -44,6 +44,7 @@
 
 namespace ompl
 {
+    /** \brief Includes various tools such as self config, benchmarking, etc. */
     namespace tools
     {
 
