@@ -49,7 +49,7 @@ ompl::geometric::SimpleSetup ss(space);
 Benchmarking code starts here:
 \code
 // First we create a benchmark class:
-ompl::Benchmark b(ss, "my experiment");
+ompl::tools::Benchmark b(ss, "my experiment");
 
 // We add the planners to evaluate.
 b.addPlanner(base::PlannerPtr(new geometric::KPIECE1(ss.getSpaceInformation())));
@@ -67,7 +67,7 @@ b.addPlannerAllocator(boost::bind(&myConfiguredPlanner, _1));
 // 100 MB maximum memory usage per plan computation, 50 runs for each planner
 // and true means that a text-mode progress bar should be displayed while
 // computation is running.
-ompl::Benchmark::Request req;
+ompl::tools::Benchmark::Request req;
 req.maxTime = 5.0;
 req.maxMem = 100.0;
 req.runCount = 50;
@@ -87,7 +87,7 @@ void optionalPreRunEvent(const base::PlannerPtr &planner)
    // via planner->getProblemDefinition()
 }
 
-void optionalPostRunEvent(const base::PlannerPtr &planner, Benchmark::RunProperties &run)
+void optionalPostRunEvent(const base::PlannerPtr &planner, tools::Benchmark::RunProperties &run)
 {
    // do any cleanup, or set values for upcoming run (or upcoming call to the pre-run event).
 
