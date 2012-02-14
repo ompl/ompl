@@ -15,8 +15,6 @@ set(CPACK_SOURCE_IGNORE_FILES
     ".pyo$"
     ".so$"
     ".dylib$"
-    ".md5$"
-    "/blueprint"
     ".DS_Store"
     ".tm_properties"
     "mkwebdocs.sh"
