@@ -347,7 +347,7 @@ namespace ompl
 
         /// Equality operator for coordinate pointers
         struct EqualCoordPtr
-        {    
+        {
             /// Equality operator for coordinate pointers
             bool operator()(const Coord* const c1, const Coord* const c2) const
             {

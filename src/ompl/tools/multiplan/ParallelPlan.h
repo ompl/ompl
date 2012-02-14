@@ -148,7 +148,7 @@ namespace ompl
             /** \brief Lock for phybrid_ */
             boost::mutex                    foundSolCountLock_;
         };
-    
+
     }
 }
 

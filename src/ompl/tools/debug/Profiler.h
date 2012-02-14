@@ -68,254 +68,254 @@ namespace ompl
 
     namespace tools
     {
-	
-	/** \brief This is a simple thread-safe tool for counting time
-	    spent in various chunks of code. This is different from
-	    external profiling tools in that it allows the user to count
-	    time spent in various bits of code (sub-function granularity)
-	    or count how many times certain pieces of code are executed.*/    
-	class Profiler : private boost::noncopyable
-	{
-	public:
-	    
-	    /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope. */
-	    class ScopedBlock
-	    {
-	    public:
-		/** \brief Start counting time for the block named \e name of the profiler \e prof */
-		ScopedBlock(const std::string &name, Profiler &prof = Profiler::Instance()) : name_(name), prof_(prof)
-		{
-		    prof_.begin(name);
-		}
-		
-		~ScopedBlock(void)
-		{
-		    prof_.end(name_);
-		}
-		
-	    private:
-		
-		std::string  name_;
-		Profiler    &prof_;
-	    };
-	    
-	    /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope.
-		If the profiler was already started, this block's constructor and destructor take no action */
-	    class ScopedStart
-	    {
-	    public:
-		
-		/** \brief Take as argument the profiler instance to operate on (\e prof) */
-		ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
-		{
-		    if (!wasRunning_)
-			prof_.start();
-		}
-		
-		~ScopedStart(void)
-		{
-		    if (!wasRunning_)
-			prof_.stop();
-		}
-		
-	    private:
-		
-		Profiler &prof_;
-		bool      wasRunning_;
-	    };
-	    
-	    /** \brief Return an instance of the class */
-	    static Profiler& Instance(void);
-	    
-	    /** \brief Constructor. It is allowed to separately instantiate this
-		class (not only as a singleton) */
-	    Profiler(bool printOnDestroy = false, bool autoStart = false) : running_(false), printOnDestroy_(printOnDestroy)
-	    {
-		if (autoStart)
-		    start();
-	    }
-	    
-	    /** \brief Destructor */
-	    ~Profiler(void)
-	    {
-		if (printOnDestroy_ && !data_.empty())
-		    status();
-	    }
-	    
-	    /** \brief Start counting time */
-	    static void Start(void)
-	    {
-		Instance().start();
-	    }
-	    
-	    /** \brief Stop counting time */
-	    static void Stop(void)
-	    {
-		Instance().stop();
-	    }
-	    
-	    /** \brief Clear counted time and events */
-	    static void Clear(void)
-	    {
-		Instance().clear();
-	    }
-	    
-	    /** \brief Start counting time */
-	    void start(void);
-	    
-	    /** \brief Stop counting time */
-	    void stop(void);
-	    
-	    /** \brief Clear counted time and events */
-	    void clear(void);
-	    
-	    /** \brief Count a specific event for a number of times */
-	    static void Event(const std::string& name, const unsigned int times = 1)
-	    {
-		Instance().event(name, times);
-	    }
-	    
-	    /** \brief Count a specific event for a number of times */
-	    void event(const std::string &name, const unsigned int times = 1);
-	    
-	    /** \brief Maintain the average of a specific value */
-	    static void Average(const std::string& name, const double value)
-	    {
-		Instance().average(name, value);
-	    }
-	    
-	    /** \brief Maintain the average of a specific value */
-	    void average(const std::string &name, const double value);
-	    
-	    /** \brief Begin counting time for a specific chunk of code */
-	    static void Begin(const std::string &name)
-	    {
-		Instance().begin(name);
-	    }
-	    
-	    /** \brief Stop counting time for a specific chunk of code */
-	    static void End(const std::string &name)
-	    {
-		Instance().end(name);
-	    }
-	    
-	    /** \brief Begin counting time for a specific chunk of code */
-	    void begin(const std::string &name);
-	    
-	    /** \brief Stop counting time for a specific chunk of code */
-	    void end(const std::string &name);
-	    
-	    /** \brief Print the status of the profiled code chunks and
-		events. Optionally, computation done by different threads
-		can be printed separately. */
-	    static void Status(std::ostream &out = std::cout, bool merge = true)
-	    {
-		Instance().status(out, merge);
-	    }
-	    
-	    /** \brief Print the status of the profiled code chunks and
-		events. Optionally, computation done by different threads
-		can be printed separately. */
-	    void status(std::ostream &out = std::cout, bool merge = true);
-	    
-	    /** \brief Print the status of the profiled code chunks and
-		events to the console (using msg::Console) */
-	    static void Console(void)
-	    {
-		Instance().console();
-	    }
-	    
-	    /** \brief Print the status of the profiled code chunks and
-		events to the console (using msg::Console) */
-	    void console(void);
-	    
-	    /** \brief Check if the profiler is counting time or not */
-	    bool running(void) const
-	    {
-		return running_;
-	    }
-	    
-	    /** \brief Check if the profiler is counting time or not */
-	    static bool Running(void)
-	    {
-		return Instance().running();
-	    }
-	    
-	private:
-	    
-	    /** \brief Information about time spent in a section of the code */
-	    struct TimeInfo
-	    {
-		TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
-		{
-		}
-		
-		/** \brief Total time counted. */
-		time::duration    total;
-		
-		/** \brief The shortest counted time interval */
-		time::duration    shortest;
-		
-		/** \brief The longest counted time interval */
-		time::duration    longest;
-		
-		/** \brief Number of times a chunk of time was added to this structure */
-		unsigned long int parts;
-		
-		/** \brief The point in time when counting time started */
-		time::point       start;
-		
-		/** \brief Begin counting time */
-		void set(void)
-		{
-		    start = time::now();
-		}
-		
-		/** \brief Add the counted time to the total time */
-		void update(void)
-		{
-		    const time::duration &dt = time::now() - start;
-		    if (dt > longest)
-			longest = dt;
-		    if (dt < shortest)
-			shortest = dt;
-		    total = total + dt;
-		    ++parts;
-		}
-	    };
-	    
-	    /** \brief Information maintained about averaged values */
-	    struct AvgInfo
-	    {
-		/** \brief The sum of the values to average */
-		double            total;
-		
-		/** \brief Number of times a value was added to this structure */
-		unsigned long int parts;
-	    };
-	    
-	    /** \brief Information to be maintained for each thread */
-	    struct PerThread
-	    {
-		/** \brief The stored events */
-		std::map<std::string, unsigned long int> events;
-		
-		/** \brief The stored averages */
-		std::map<std::string, AvgInfo>           avg;
-		
-		/** \brief The amount of time spent in various places */
-		std::map<std::string, TimeInfo>          time;
-	    };
-	    
-	    void printThreadInfo(std::ostream &out, const PerThread &data);
-	    
-	    boost::mutex                           lock_;
-	    std::map<boost::thread::id, PerThread> data_;
-	    TimeInfo                               tinfo_;
-	    bool                                   running_;
-	    bool                                   printOnDestroy_;
-	    
-	};
+
+        /** \brief This is a simple thread-safe tool for counting time
+            spent in various chunks of code. This is different from
+            external profiling tools in that it allows the user to count
+            time spent in various bits of code (sub-function granularity)
+            or count how many times certain pieces of code are executed.*/
+        class Profiler : private boost::noncopyable
+        {
+        public:
+
+            /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope. */
+            class ScopedBlock
+            {
+            public:
+                /** \brief Start counting time for the block named \e name of the profiler \e prof */
+                ScopedBlock(const std::string &name, Profiler &prof = Profiler::Instance()) : name_(name), prof_(prof)
+                {
+                    prof_.begin(name);
+                }
+
+                ~ScopedBlock(void)
+                {
+                    prof_.end(name_);
+                }
+
+            private:
+
+                std::string  name_;
+                Profiler    &prof_;
+            };
+
+            /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope.
+                If the profiler was already started, this block's constructor and destructor take no action */
+            class ScopedStart
+            {
+            public:
+
+                /** \brief Take as argument the profiler instance to operate on (\e prof) */
+                ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
+                {
+                    if (!wasRunning_)
+                        prof_.start();
+                }
+
+                ~ScopedStart(void)
+                {
+                    if (!wasRunning_)
+                        prof_.stop();
+                }
+
+            private:
+
+                Profiler &prof_;
+                bool      wasRunning_;
+            };
+
+            /** \brief Return an instance of the class */
+            static Profiler& Instance(void);
+
+            /** \brief Constructor. It is allowed to separately instantiate this
+                class (not only as a singleton) */
+            Profiler(bool printOnDestroy = false, bool autoStart = false) : running_(false), printOnDestroy_(printOnDestroy)
+            {
+                if (autoStart)
+                    start();
+            }
+
+            /** \brief Destructor */
+            ~Profiler(void)
+            {
+                if (printOnDestroy_ && !data_.empty())
+                    status();
+            }
+
+            /** \brief Start counting time */
+            static void Start(void)
+            {
+                Instance().start();
+            }
+
+            /** \brief Stop counting time */
+            static void Stop(void)
+            {
+                Instance().stop();
+            }
+
+            /** \brief Clear counted time and events */
+            static void Clear(void)
+            {
+                Instance().clear();
+            }
+
+            /** \brief Start counting time */
+            void start(void);
+
+            /** \brief Stop counting time */
+            void stop(void);
+
+            /** \brief Clear counted time and events */
+            void clear(void);
+
+            /** \brief Count a specific event for a number of times */
+            static void Event(const std::string& name, const unsigned int times = 1)
+            {
+                Instance().event(name, times);
+            }
+
+            /** \brief Count a specific event for a number of times */
+            void event(const std::string &name, const unsigned int times = 1);
+
+            /** \brief Maintain the average of a specific value */
+            static void Average(const std::string& name, const double value)
+            {
+                Instance().average(name, value);
+            }
+
+            /** \brief Maintain the average of a specific value */
+            void average(const std::string &name, const double value);
+
+            /** \brief Begin counting time for a specific chunk of code */
+            static void Begin(const std::string &name)
+            {
+                Instance().begin(name);
+            }
+
+            /** \brief Stop counting time for a specific chunk of code */
+            static void End(const std::string &name)
+            {
+                Instance().end(name);
+            }
+
+            /** \brief Begin counting time for a specific chunk of code */
+            void begin(const std::string &name);
+
+            /** \brief Stop counting time for a specific chunk of code */
+            void end(const std::string &name);
+
+            /** \brief Print the status of the profiled code chunks and
+                events. Optionally, computation done by different threads
+                can be printed separately. */
+            static void Status(std::ostream &out = std::cout, bool merge = true)
+            {
+                Instance().status(out, merge);
+            }
+
+            /** \brief Print the status of the profiled code chunks and
+                events. Optionally, computation done by different threads
+                can be printed separately. */
+            void status(std::ostream &out = std::cout, bool merge = true);
+
+            /** \brief Print the status of the profiled code chunks and
+                events to the console (using msg::Console) */
+            static void Console(void)
+            {
+                Instance().console();
+            }
+
+            /** \brief Print the status of the profiled code chunks and
+                events to the console (using msg::Console) */
+            void console(void);
+
+            /** \brief Check if the profiler is counting time or not */
+            bool running(void) const
+            {
+                return running_;
+            }
+
+            /** \brief Check if the profiler is counting time or not */
+            static bool Running(void)
+            {
+                return Instance().running();
+            }
+
+        private:
+
+            /** \brief Information about time spent in a section of the code */
+            struct TimeInfo
+            {
+                TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
+                {
+                }
+
+                /** \brief Total time counted. */
+                time::duration    total;
+
+                /** \brief The shortest counted time interval */
+                time::duration    shortest;
+
+                /** \brief The longest counted time interval */
+                time::duration    longest;
+
+                /** \brief Number of times a chunk of time was added to this structure */
+                unsigned long int parts;
+
+                /** \brief The point in time when counting time started */
+                time::point       start;
+
+                /** \brief Begin counting time */
+                void set(void)
+                {
+                    start = time::now();
+                }
+
+                /** \brief Add the counted time to the total time */
+                void update(void)
+                {
+                    const time::duration &dt = time::now() - start;
+                    if (dt > longest)
+                        longest = dt;
+                    if (dt < shortest)
+                        shortest = dt;
+                    total = total + dt;
+                    ++parts;
+                }
+            };
+
+            /** \brief Information maintained about averaged values */
+            struct AvgInfo
+            {
+                /** \brief The sum of the values to average */
+                double            total;
+
+                /** \brief Number of times a value was added to this structure */
+                unsigned long int parts;
+            };
+
+            /** \brief Information to be maintained for each thread */
+            struct PerThread
+            {
+                /** \brief The stored events */
+                std::map<std::string, unsigned long int> events;
+
+                /** \brief The stored averages */
+                std::map<std::string, AvgInfo>           avg;
+
+                /** \brief The amount of time spent in various places */
+                std::map<std::string, TimeInfo>          time;
+            };
+
+            void printThreadInfo(std::ostream &out, const PerThread &data);
+
+            boost::mutex                           lock_;
+            std::map<boost::thread::id, PerThread> data_;
+            TimeInfo                               tinfo_;
+            bool                                   running_;
+            bool                                   printOnDestroy_;
+
+        };
     }
 }
 
@@ -328,132 +328,132 @@ namespace ompl
    public functions */
 namespace ompl
 {
-    
+
     namespace tools
     {
-	
-	class Profiler
-	{
-	public:
-	    
-	    class ScopedBlock
-	    {
-	    public:
-		
-		ScopedBlock(const std::string &, Profiler & = Profiler::Instance())
-		{
-		}
-		
-		~ScopedBlock(void)
-		{
-		}
-	    };
-	    
-	    class ScopedStart
-	    {
-	    public:
-		
-		ScopedStart(Profiler & = Profiler::Instance())
-		{
-		}
-		
-		~ScopedStart(void)
-		{
-		}
-	    };
-	    
-	    static Profiler& Instance(void);
-	    
-	    Profiler(bool = true, bool = true)
-	    {
-	    }
-	    
-	    ~Profiler(void)
-	    {
-	    }
-	    
-	    static void Start(void)
-	    {
-	    }
-	    
-	    static void Stop(void)
-	    {
-	    }
-	    
-	    static void Clear(void)
-	    {
-	    }
-	    
-	    void start(void)
-	    {
-	    }
-	    
-	    void stop(void)
-	    {
-	    }
-	    
-	    void clear(void)
-	    {
-	    }
-	    
-	    static void Event(const std::string&, const unsigned int = 1)
-	    {
-	    }
-	    
-	    void event(const std::string &, const unsigned int = 1)
-	    {
-	    }
-	    
-	    static void Average(const std::string&, const double)
-	    {
-	    }
-	    
-	    void average(const std::string &, const double)
-	    {
-	    }
-	    
-	    static void Begin(const std::string &)
-	    {
-	    }
-	    
-	    static void End(const std::string &)
-	    {
-	    }
-	    
-	    void begin(const std::string &)
-	    {
-	    }
-	    
-	    void end(const std::string &)
-	    {
-	    }
-	    
-	    static void Status(std::ostream & = std::cout, bool = true)
-	    {
-	    }
-	    
-	    void status(std::ostream & = std::cout, bool = true)
-	    {
-	    }
-	    
-	    static void Console(void)
-	    {
-	    }
-	    
-	    void console(void)
-	    {
-	    }
-	    
-	    bool running(void) const
-	    {
-		return false;
-	    }
-	    
-	    static bool Running(void)
-	    {
-		return false;
-	    }
-	};
+
+        class Profiler
+        {
+        public:
+
+            class ScopedBlock
+            {
+            public:
+
+                ScopedBlock(const std::string &, Profiler & = Profiler::Instance())
+                {
+                }
+
+                ~ScopedBlock(void)
+                {
+                }
+            };
+
+            class ScopedStart
+            {
+            public:
+
+                ScopedStart(Profiler & = Profiler::Instance())
+                {
+                }
+
+                ~ScopedStart(void)
+                {
+                }
+            };
+
+            static Profiler& Instance(void);
+
+            Profiler(bool = true, bool = true)
+            {
+            }
+
+            ~Profiler(void)
+            {
+            }
+
+            static void Start(void)
+            {
+            }
+
+            static void Stop(void)
+            {
+            }
+
+            static void Clear(void)
+            {
+            }
+
+            void start(void)
+            {
+            }
+
+            void stop(void)
+            {
+            }
+
+            void clear(void)
+            {
+            }
+
+            static void Event(const std::string&, const unsigned int = 1)
+            {
+            }
+
+            void event(const std::string &, const unsigned int = 1)
+            {
+            }
+
+            static void Average(const std::string&, const double)
+            {
+            }
+
+            void average(const std::string &, const double)
+            {
+            }
+
+            static void Begin(const std::string &)
+            {
+            }
+
+            static void End(const std::string &)
+            {
+            }
+
+            void begin(const std::string &)
+            {
+            }
+
+            void end(const std::string &)
+            {
+            }
+
+            static void Status(std::ostream & = std::cout, bool = true)
+            {
+            }
+
+            void status(std::ostream & = std::cout, bool = true)
+            {
+            }
+
+            static void Console(void)
+            {
+            }
+
+            void console(void)
+            {
+            }
+
+            bool running(void) const
+            {
+                return false;
+            }
+
+            static bool Running(void)
+            {
+                return false;
+            }
+        };
     }
 }
 

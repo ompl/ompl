@@ -159,7 +159,7 @@ namespace ompl
             boost::mutex              lock_;
             msg::Interface            msg_;
         };
-    
+
     }
 }
 
