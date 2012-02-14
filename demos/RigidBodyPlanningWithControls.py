@@ -61,7 +61,6 @@ class MyDecomposition(oc.GridDecomposition):
         super(MyDecomposition, self).__init__(length, 2, bounds)
         self.rng_ = ou.RNG()
     def project(self, s, coord):
-        coord.resize(2)
         coord[0] = s.getX()
         coord[1] = s.getY()
     def sampleFromRegion(self, rid, sampler, s):
