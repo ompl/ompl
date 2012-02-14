@@ -434,7 +434,7 @@ namespace ompl
                 double operator()(Vertex v)
                 {
                     const Region& region = syclop->getRegionFromIndex(v);
-                    return region.weight*goalRegion.weight;
+                    return region.alpha*goalRegion.alpha;
                 }
             private:
                 const Syclop* syclop;
