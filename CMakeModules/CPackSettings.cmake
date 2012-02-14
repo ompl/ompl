@@ -22,7 +22,12 @@ set(CPACK_SOURCE_IGNORE_FILES
     "mkwebdocs.sh"
     "/html/"
     "/bindings/"
-    "TODO")
+    "TODO"
+    "exposed_decl.pypp.txt"
+    "ompl.pc$"
+    "installPyPlusPlus.bat$"
+    "installPyPlusPlus.sh$"
+    "config.h$")
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_GENERATOR "TGZ")
 
