@@ -100,7 +100,11 @@ It is possible to run OMPL natively on Windows, although it must be stressed tha
 on Windows is considered experimental.  For best performance, the
 <a href="http://www.mingw.org/">MinGW</a> compiler is recommended.  Visual Studio
 can also be used to build the core OMPL library, but currently it is
-not possible to generate and build the python bindings for OMPL with this compiler.
+not possible to generate the python bindings for OMPL with this compiler.
+However, if the bindings are generated with MinGW, the bindings
+can be compiled by Visual Studio with some minor tweaks to the code (not recommended,
+unless you are an experienced Windows developer).
+
 
 \subsection req-dependencies Required Dependencies
 - <a href="http://www.cmake.org/">CMake</a>
