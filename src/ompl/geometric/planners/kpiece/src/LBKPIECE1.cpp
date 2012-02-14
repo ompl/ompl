@@ -60,7 +60,7 @@ ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : bas
 void ompl::geometric::LBKPIECE1::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 

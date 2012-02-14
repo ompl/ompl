@@ -46,120 +46,123 @@
 /// @cond IGNORE
 namespace ompl
 {
-    /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
-    static std::string getResultsFilename(const Benchmark::CompleteExperiment &exp)
+    namespace tools
     {
-        return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".log";
+        /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
+        static std::string getResultsFilename(const Benchmark::CompleteExperiment &exp)
+        {
+            return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".log";
+        }
+
+        /** \brief Propose a name for a file in which console output should be saved, based on the date and hostname of the experiment */
+        static std::string getConsoleFilename(const Benchmark::CompleteExperiment &exp)
+        {
+            return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".console";
+        }
+
+        static bool terminationCondition(const machine::MemUsage_t maxMem, const time::point &endTime)
+        {
+            if (time::now() < endTime && machine::getProcessMemoryUsage() < maxMem)
+                return false;
+            return true;
+        }
+
+        class RunPlanner
+        {
+        public:
+
+            RunPlanner(const Benchmark *benchmark, bool useThreads)
+                : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false), useThreads_(useThreads)
+            {
+            }
+
+            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
+            {
+                if (!useThreads_)
+                {
+                    runThread(planner, memStart + maxMem, time::seconds(maxTime));
+                    return;
+                }
+
+                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
+
+                // allow 25% more time than originally specified, in order to detect planner termination
+                if (!t.timed_join(time::seconds(maxTime * 1.25)))
+                {
+                    crashed_ = true;
+
+                    std::stringstream es;
+                    es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
+                       << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
+                    std::cerr << es.str();
+                    msg_.error(es.str());
+
+                    t.interrupt();
+                    t.join();
+
+                    std::string m = "Planning thread cancelled";
+                    std::cerr << m << std::endl;
+                    msg_.error(m);
+                }
+
+                if (memStart < memUsed_)
+                    memUsed_ -= memStart;
+                else
+                    memUsed_ = 0;
+            }
+
+            double getTimeUsed(void) const
+            {
+                return timeUsed_;
+            }
+
+            machine::MemUsage_t getMemUsed(void) const
+            {
+                return memUsed_;
+            }
+
+            bool crashed(void) const
+            {
+                return crashed_;
+            }
+
+        private:
+
+            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration)
+            {
+                time::point timeStart = time::now();
+
+                try
+                {
+                    base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    planner->solve(ptc, 0.1);
+                }
+                catch(std::runtime_error &e)
+                {
+                    std::stringstream es;
+                    es << "There was an error executing planner " << benchmark_->getStatus().activePlanner <<  ", run = " << benchmark_->getStatus().activeRun << std::endl;
+                    es << "*** " << e.what() << std::endl;
+                    std::cerr << es.str();
+                    msg_.error(es.str());
+                }
+
+                timeUsed_ = time::seconds(time::now() - timeStart);
+                memUsed_ = machine::getProcessMemoryUsage();
+            }
+
+            const Benchmark    *benchmark_;
+            double              timeUsed_;
+            machine::MemUsage_t memUsed_;
+            bool                crashed_;
+            bool                useThreads_;
+            msg::Interface      msg_;
+        };
+
     }
-
-    /** \brief Propose a name for a file in which console output should be saved, based on the date and hostname of the experiment */
-    static std::string getConsoleFilename(const Benchmark::CompleteExperiment &exp)
-    {
-        return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".console";
-    }
-
-    static bool terminationCondition(const machine::MemUsage_t maxMem, const time::point &endTime)
-    {
-        if (time::now() < endTime && machine::getProcessMemoryUsage() < maxMem)
-            return false;
-        return true;
-    }
-
-    class RunPlanner
-    {
-    public:
-
-        RunPlanner(const Benchmark *benchmark, bool useThreads)
-            : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false), useThreads_(useThreads)
-        {
-        }
-
-        void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
-        {
-            if (!useThreads_)
-            {
-                runThread(planner, memStart + maxMem, time::seconds(maxTime));
-                return;
-            }
-
-            boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
-
-            // allow 25% more time than originally specified, in order to detect planner termination
-            if (!t.timed_join(time::seconds(maxTime * 1.25)))
-            {
-                crashed_ = true;
-
-                std::stringstream es;
-                es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
-                   << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
-                std::cerr << es.str();
-                msg_.error(es.str());
-
-                t.interrupt();
-                t.join();
-
-                std::string m = "Planning thread cancelled";
-                std::cerr << m << std::endl;
-                msg_.error(m);
-            }
-
-            if (memStart < memUsed_)
-                memUsed_ -= memStart;
-            else
-                memUsed_ = 0;
-        }
-
-        double getTimeUsed(void) const
-        {
-            return timeUsed_;
-        }
-
-        machine::MemUsage_t getMemUsed(void) const
-        {
-            return memUsed_;
-        }
-
-        bool crashed(void) const
-        {
-            return crashed_;
-        }
-
-    private:
-
-        void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration)
-        {
-            time::point timeStart = time::now();
-
-            try
-            {
-                base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
-                planner->solve(ptc, 0.1);
-            }
-            catch(std::runtime_error &e)
-            {
-                std::stringstream es;
-                es << "There was an error executing planner " << benchmark_->getStatus().activePlanner <<  ", run = " << benchmark_->getStatus().activeRun << std::endl;
-                es << "*** " << e.what() << std::endl;
-                std::cerr << es.str();
-                msg_.error(es.str());
-            }
-
-            timeUsed_ = time::seconds(time::now() - timeStart);
-            memUsed_ = machine::getProcessMemoryUsage();
-        }
-
-        const Benchmark    *benchmark_;
-        double              timeUsed_;
-        machine::MemUsage_t memUsed_;
-        bool                crashed_;
-        bool                useThreads_;
-        msg::Interface      msg_;
-    };
-
 }
 /// @endcond
 
-bool ompl::Benchmark::saveResultsToFile(const char *filename) const
+bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
 {
     bool result = false;
 
@@ -180,13 +183,13 @@ bool ompl::Benchmark::saveResultsToFile(const char *filename) const
     return result;
 }
 
-bool ompl::Benchmark::saveResultsToFile(void) const
+bool ompl::tools::Benchmark::saveResultsToFile(void) const
 {
     std::string filename = getResultsFilename(exp_);
     return saveResultsToFile(filename.c_str());
 }
 
-bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
+bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 {
     if (exp_.planners.empty())
     {
@@ -268,7 +271,7 @@ bool ompl::Benchmark::saveResultsToStream(std::ostream &out) const
     return true;
 }
 
-void ompl::Benchmark::benchmark(const Request &req)
+void ompl::tools::Benchmark::benchmark(const Request &req)
 {
     // sanity checks
     if (gsetup_)

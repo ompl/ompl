@@ -56,7 +56,7 @@ ompl::geometric::SBL::~SBL(void)
 void ompl::geometric::SBL::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 

@@ -68,7 +68,7 @@ ompl::control::KPIECE1::~KPIECE1(void)
 void ompl::control::KPIECE1::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
 
     if (badScoreFactor_ < std::numeric_limits<double>::epsilon() || badScoreFactor_ > 1.0)
