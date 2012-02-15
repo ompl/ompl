@@ -34,6 +34,8 @@
 
 /* Author: Ioan Sucan */
 
+#define BOOST_HAS_TR1_TUPLE  // GTest and Boost clash without this definition
+
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <libgen.h>
