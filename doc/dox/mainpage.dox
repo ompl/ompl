@@ -82,9 +82,9 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 
 - The <a class="el" href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
 - \ref download "Download" and \ref installation "install" OMPL.
-- \ref demos
+- \ref demos "Demos" and \ref tutorials "tutorials"
+- \ref FAQ 
 - Familiarize yourself with the \ref boost "Boost structures" used throughout OMPL.
-- \ref tutorials
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 - If interested in using Python, make sure to read \ref python "the documentation for the Python bindings".
 
