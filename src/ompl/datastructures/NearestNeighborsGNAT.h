@@ -361,10 +361,10 @@ namespace ompl
                 else
                 {
                     std::vector<double> dist(children_.size());
-                    double minDist = std::numeric_limits<double>::infinity();
-                    int minInd = -1;
+                    double minDist = dist[0] = gnat.distFun_(data, children_[0]->pivot_);
+                    int minInd = 0;
 
-                    for (unsigned int i=0; i<children_.size(); ++i)
+                    for (unsigned int i=1; i<children_.size(); ++i)
                         if ((dist[i] = gnat.distFun_(data, children_[i]->pivot_)) < minDist)
                         {
                             minDist = dist[i];
