@@ -58,6 +58,7 @@ namespace ompl
         /** \class ompl::base::StatePropagatorPtr
             \brief A boost shared pointer wrapper for ompl::control::StatePropagator */
 
+        /** \brief Model the effect of controls on system states */
         class StatePropagator
         {
         public:

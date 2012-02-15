@@ -70,7 +70,7 @@ ompl::geometric::BallTreeRRTstar::~BallTreeRRTstar(void)
 void ompl::geometric::BallTreeRRTstar::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
     ballRadiusMax_ = si_->getMaximumExtent();

@@ -87,7 +87,7 @@ namespace ompl
 
             /** \brief Compute a notion of smootheness for this
                 path. The closer the value is to 0, the smoother the
-                path. Detailed formula follows. 
+                path. Detailed formula follows.
 
                 The idea is to look at the triangles formed by consecutive path segments and compute the angle between those segments using
                 Pythagora's theorem. Then, the outside angle for the computed angle is normalized by the path segments and contributes to the path smoothness.
@@ -102,7 +102,7 @@ namespace ompl
 
             /** \brief Compute the clearance of the way-points along
                 the path (no interpolation is performed). Detailed formula follows.
-                
+
                 The formula used for computing clearance is:
                 \f[
                     \mbox{clearance} = \frac{1}{n}\sum\limits_{i=0}^{n-1}cl(s_i)

@@ -56,7 +56,7 @@ ompl::geometric::SBL::~SBL(void)
 void ompl::geometric::SBL::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 
@@ -283,7 +283,7 @@ void ompl::geometric::SBL::removeMotion(TreeData &tree, Motion *motion)
         }
         if (cell->data.empty())
         {
-	    tree.pdf.remove(cell->data.elem_);
+            tree.pdf.remove(cell->data.elem_);
             tree.grid.remove(cell);
             tree.grid.destroyCell(cell);
         }

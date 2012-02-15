@@ -47,121 +47,125 @@
 /// @cond IGNORE
 namespace ompl
 {
-
-    class SelfConfig::SelfConfigImpl
+    namespace tools
     {
-        friend class SelfConfig;
 
-    public:
-
-        SelfConfigImpl(const base::SpaceInformationPtr &si) :
-            si_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
+        class SelfConfig::SelfConfigImpl
         {
-        }
+            friend class SelfConfig;
 
-        double getProbabilityOfValidState(void)
-        {
-            checkSetup();
-            if (probabilityOfValidState_ < 0.0)
-                probabilityOfValidState_ = si_->probabilityOfValidState(magic::TEST_STATE_COUNT);
-            return probabilityOfValidState_;
-        }
+        public:
 
-        double getAverageValidMotionLength(void)
-        {
-            checkSetup();
-            if (averageValidMotionLength_ < 0.0)
-                averageValidMotionLength_ = si_->averageValidMotionLength(magic::TEST_STATE_COUNT);
-            return averageValidMotionLength_;
-        }
-
-        void configureValidStateSamplingAttempts(unsigned int &attempts)
-        {
-            if (attempts == 0)
-                attempts = magic::MAX_VALID_SAMPLE_ATTEMPTS;
-
-            /*
-            static const double log_of_0_9 = -0.105360516;
-            if (attempts == 0)
+            SelfConfigImpl(const base::SpaceInformationPtr &si) :
+                si_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
             {
-                double p = 1.0 - getProbabilityOfValidState();
-                if (p > 0.0)
-                    attempts = std::min((unsigned int)std::max((int)ceil(log_of_0_9 / log(p)), 1),
-                                        magic::MAX_VALID_SAMPLE_ATTEMPTS);
-                else
-                    attempts = 1;
-                msg_.debug("Number of attempts made at sampling a valid state in space %s is computed to be %u",
-                           si_->getStateSpace()->getName().c_str(), attempts);
-            }
-            */
-        }
-
-        void configurePlannerRange(double &range)
-        {
-            if (range < std::numeric_limits<double>::epsilon())
-            {
-                range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-                msg_.debug("Planner range detected to be %lf", range);
             }
 
-            /*
-            if (range < std::numeric_limits<double>::epsilon())
+            double getProbabilityOfValidState(void)
             {
-                range = getAverageValidMotionLength() / 2.0;
-                double b = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+                checkSetup();
+                if (probabilityOfValidState_ < 0.0)
+                    probabilityOfValidState_ = si_->probabilityOfValidState(magic::TEST_STATE_COUNT);
+                return probabilityOfValidState_;
+            }
+
+            double getAverageValidMotionLength(void)
+            {
+                checkSetup();
+                if (averageValidMotionLength_ < 0.0)
+                    averageValidMotionLength_ = si_->averageValidMotionLength(magic::TEST_STATE_COUNT);
+                return averageValidMotionLength_;
+            }
+
+            void configureValidStateSamplingAttempts(unsigned int &attempts)
+            {
+                if (attempts == 0)
+                    attempts = magic::MAX_VALID_SAMPLE_ATTEMPTS;
+
+                /*
+                static const double log_of_0_9 = -0.105360516;
+                if (attempts == 0)
+                {
+                    double p = 1.0 - getProbabilityOfValidState();
+                    if (p > 0.0)
+                        attempts = std::min((unsigned int)std::max((int)ceil(log_of_0_9 / log(p)), 1),
+                                            magic::MAX_VALID_SAMPLE_ATTEMPTS);
+                    else
+                        attempts = 1;
+                    msg_.debug("Number of attempts made at sampling a valid state in space %s is computed to be %u",
+                               si_->getStateSpace()->getName().c_str(), attempts);
+                }
+                */
+            }
+
+            void configurePlannerRange(double &range)
+            {
                 if (range < std::numeric_limits<double>::epsilon())
-                    range = b;
-                else
-                    range = std::min(range, b);
-                msg_.debug("Planner range detected to be %lf", range);
-            }
-            */
-        }
+                {
+                    range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+                    msg_.debug("Planner range detected to be %lf", range);
+                }
 
-        void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
-        {
-            checkSetup();
-            if (!proj)
+                /*
+                if (range < std::numeric_limits<double>::epsilon())
+                {
+                    range = getAverageValidMotionLength() / 2.0;
+                    double b = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+                    if (range < std::numeric_limits<double>::epsilon())
+                        range = b;
+                    else
+                        range = std::min(range, b);
+                    msg_.debug("Planner range detected to be %lf", range);
+                }
+                */
+            }
+
+            void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
             {
-                msg_.inform("Attempting to use default projection.");
-                proj = si_->getStateSpace()->getDefaultProjection();
+                checkSetup();
+                if (!proj)
+                {
+                    msg_.inform("Attempting to use default projection.");
+                    proj = si_->getStateSpace()->getDefaultProjection();
+                }
+                if (!proj)
+                    throw Exception(msg_.getPrefix(), "No projection evaluator specified");
+                proj->setup();
             }
-            if (!proj)
-                throw Exception(msg_.getPrefix(), "No projection evaluator specified");
-            proj->setup();
-        }
 
-        void print(std::ostream &out) const
-        {
-            out << "Configuration parameters for space '" << si_->getStateSpace()->getName() << "'" << std::endl;
-            out << "   - probability of a valid state is " << probabilityOfValidState_ << std::endl;
-            out << "   - average length of a valid motion is " << averageValidMotionLength_ << std::endl;
-        }
-
-    private:
-
-        void checkSetup(void)
-        {
-            if (!si_->isSetup())
+            void print(std::ostream &out) const
             {
-                si_->setup();
-                probabilityOfValidState_ = -1.0;
-                averageValidMotionLength_ = -1.0;
+                out << "Configuration parameters for space '" << si_->getStateSpace()->getName() << "'" << std::endl;
+                out << "   - probability of a valid state is " << probabilityOfValidState_ << std::endl;
+                out << "   - average length of a valid motion is " << averageValidMotionLength_ << std::endl;
             }
-        }
 
-        base::SpaceInformationPtr si_;
-        double                    probabilityOfValidState_;
-        double                    averageValidMotionLength_;
+        private:
 
-        boost::mutex              lock_;
-        msg::Interface            msg_;
-    };
+            void checkSetup(void)
+            {
+                if (!si_->isSetup())
+                {
+                    si_->setup();
+                    probabilityOfValidState_ = -1.0;
+                    averageValidMotionLength_ = -1.0;
+                }
+            }
+
+            base::SpaceInformationPtr si_;
+            double                    probabilityOfValidState_;
+            double                    averageValidMotionLength_;
+
+            boost::mutex              lock_;
+            msg::Interface            msg_;
+        };
+
+    }
 }
 
 /// @endcond
 
-ompl::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) : context_(context)
+ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) : context_(context)
 {
     typedef std::map<base::SpaceInformation*, boost::shared_ptr<SelfConfigImpl> > ConfigMap;
 
@@ -186,37 +190,37 @@ ompl::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::str
     boost::mutex::scoped_lock iLock(impl_->lock_);                \
     impl_->msg_.setPrefix(context_)
 
-double ompl::SelfConfig::getProbabilityOfValidState(void)
+double ompl::tools::SelfConfig::getProbabilityOfValidState(void)
 {
     SET_CONTEXT;
     return impl_->getProbabilityOfValidState();
 }
 
-double ompl::SelfConfig::getAverageValidMotionLength(void)
+double ompl::tools::SelfConfig::getAverageValidMotionLength(void)
 {
     SET_CONTEXT;
     return impl_->getAverageValidMotionLength();
 }
 
-void ompl::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
+void ompl::tools::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
 {
     SET_CONTEXT;
     return impl_->configureProjectionEvaluator(proj);
 }
 
-void ompl::SelfConfig::configureValidStateSamplingAttempts(unsigned int &attempts)
+void ompl::tools::SelfConfig::configureValidStateSamplingAttempts(unsigned int &attempts)
 {
     SET_CONTEXT;
     impl_->configureValidStateSamplingAttempts(attempts);
 }
 
-void ompl::SelfConfig::configurePlannerRange(double &range)
+void ompl::tools::SelfConfig::configurePlannerRange(double &range)
 {
     SET_CONTEXT;
     impl_->configurePlannerRange(range);
 }
 
-void ompl::SelfConfig::print(std::ostream &out) const
+void ompl::tools::SelfConfig::print(std::ostream &out) const
 {
     SET_CONTEXT;
     impl_->print(out);

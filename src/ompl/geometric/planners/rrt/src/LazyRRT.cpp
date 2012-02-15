@@ -57,7 +57,7 @@ ompl::geometric::LazyRRT::~LazyRRT(void)
 void ompl::geometric::LazyRRT::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)

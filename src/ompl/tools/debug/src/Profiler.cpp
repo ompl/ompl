@@ -35,9 +35,9 @@
 
 /** \author Ioan Sucan */
 
-#include "ompl/util/Profiler.h"
+#include "ompl/tools/debug/Profiler.h"
 
-ompl::Profiler& ompl::Profiler::Instance(void)
+ompl::tools::Profiler& ompl::tools::Profiler::Instance(void)
 {
     static Profiler p(true, false);
     return p;
@@ -50,7 +50,7 @@ ompl::Profiler& ompl::Profiler::Instance(void)
 #include <algorithm>
 #include <sstream>
 
-void ompl::Profiler::start(void)
+void ompl::tools::Profiler::start(void)
 {
     lock_.lock();
     if (!running_)
@@ -61,7 +61,7 @@ void ompl::Profiler::start(void)
     lock_.unlock();
 }
 
-void ompl::Profiler::stop(void)
+void ompl::tools::Profiler::stop(void)
 {
     lock_.lock();
     if (running_)
@@ -72,7 +72,7 @@ void ompl::Profiler::stop(void)
     lock_.unlock();
 }
 
-void ompl::Profiler::clear(void)
+void ompl::tools::Profiler::clear(void)
 {
     lock_.lock();
     data_.clear();
@@ -82,14 +82,14 @@ void ompl::Profiler::clear(void)
     lock_.unlock();
 }
 
-void ompl::Profiler::event(const std::string &name, const unsigned int times)
+void ompl::tools::Profiler::event(const std::string &name, const unsigned int times)
 {
     lock_.lock();
     data_[boost::this_thread::get_id()].events[name] += times;
     lock_.unlock();
 }
 
-void ompl::Profiler::average(const std::string &name, const double value)
+void ompl::tools::Profiler::average(const std::string &name, const double value)
 {
     lock_.lock();
     AvgInfo &a = data_[boost::this_thread::get_id()].avg[name];
@@ -98,21 +98,21 @@ void ompl::Profiler::average(const std::string &name, const double value)
     lock_.unlock();
 }
 
-void ompl::Profiler::begin(const std::string &name)
+void ompl::tools::Profiler::begin(const std::string &name)
 {
     lock_.lock();
     data_[boost::this_thread::get_id()].time[name].set();
     lock_.unlock();
 }
 
-void ompl::Profiler::end(const std::string &name)
+void ompl::tools::Profiler::end(const std::string &name)
 {
     lock_.lock();
     data_[boost::this_thread::get_id()].time[name].update();
     lock_.unlock();
 }
 
-void ompl::Profiler::status(std::ostream &out, bool merge)
+void ompl::tools::Profiler::status(std::ostream &out, bool merge)
 {
     stop();
     lock_.lock();
@@ -155,7 +155,7 @@ void ompl::Profiler::status(std::ostream &out, bool merge)
     lock_.unlock();
 }
 
-void ompl::Profiler::console(void)
+void ompl::tools::Profiler::console(void)
 {
     static msg::Interface msg("Profiler");
 
@@ -199,7 +199,7 @@ namespace ompl
 }
 /// @endcond
 
-void ompl::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
+void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
 {
     double total = time::seconds(tinfo_.total);
 

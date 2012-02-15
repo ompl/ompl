@@ -37,24 +37,24 @@
 #include "ompl/tools/multiplan/OptimizePlan.h"
 #include "ompl/geometric/PathSimplifier.h"
 
-void ompl::OptimizePlan::addPlanner(const base::PlannerPtr &planner)
+void ompl::tools::OptimizePlan::addPlanner(const base::PlannerPtr &planner)
 {
     if (planner && planner->getSpaceInformation().get() != getProblemDefinition()->getSpaceInformation().get())
         throw Exception("Planner instance does not match space information");
     planners_.push_back(planner);
 }
 
-void ompl::OptimizePlan::addPlannerAllocator(const base::PlannerAllocator &pa)
+void ompl::tools::OptimizePlan::addPlannerAllocator(const base::PlannerAllocator &pa)
 {
     planners_.push_back(pa(getProblemDefinition()->getSpaceInformation()));
 }
 
-void ompl::OptimizePlan::clearPlanners(void)
+void ompl::tools::OptimizePlan::clearPlanners(void)
 {
     planners_.clear();
 }
 
-bool ompl::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned int nthreads)
+bool ompl::tools::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned int nthreads)
 {
     time::point end = time::now() + time::seconds(solveTime);
     unsigned int nt = std::min(nthreads, (unsigned int)planners_.size());

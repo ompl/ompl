@@ -64,7 +64,7 @@ ompl::geometric::pRRT::~pRRT(void)
 void ompl::geometric::pRRT::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)

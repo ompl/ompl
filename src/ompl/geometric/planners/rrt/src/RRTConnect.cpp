@@ -55,7 +55,7 @@ ompl::geometric::RRTConnect::~RRTConnect(void)
 void ompl::geometric::RRTConnect::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
     if (!tStart_)

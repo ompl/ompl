@@ -64,7 +64,7 @@ ompl::geometric::KPIECE1::~KPIECE1(void)
 void ompl::geometric::KPIECE1::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 

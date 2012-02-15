@@ -10,7 +10,7 @@ dl.attention, dl.note {
 }
 dl.user+ul { margin-top: -1.5em;}
 .nofloat { float: none; }
-#MSearchResultsWindow, #MSearchSelectWindow { z-index: 6000;}
+#MSearchResultsWindow, #MSearchSelectWindow { z-index: 6000; position: fixed; }
 #MSearchField {
     margin-bottom: 0;
     margin-top: 0;

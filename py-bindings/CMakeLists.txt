@@ -5,6 +5,13 @@ if (OMPL_BUILD_PYBINDINGS)
 
     include(PythonBindingsUtils)
 
+    if(WIN32)
+        # omit StateStorage class bindings on Windows;
+        # Boost.Serialization does nasty things that break the bindings.
+        set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DOMPL_BASE_STATE_STORAGE_")
+        add_definitions(-DOMPL_BASE_STATE_STORAGE_)
+    endif(WIN32)
+
     set(OMPL_MODULES base control geometric tools util)
 
     if(PY_OMPL_GENERATE)
