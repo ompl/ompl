@@ -58,7 +58,7 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
 {
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
     {
-        SelfConfig sc(si_, "GAIK");
+        tools::SelfConfig sc(si_, "GAIK");
         sc.configurePlannerRange(maxDistance_);
     }
 

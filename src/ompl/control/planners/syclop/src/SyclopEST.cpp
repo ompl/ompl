@@ -77,7 +77,7 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
     }
 }
 
-ompl::control::Syclop::Motion* ompl::control::SyclopEST::initializeTree(const base::State* s)
+ompl::control::Syclop::Motion* ompl::control::SyclopEST::addRoot(const base::State* s)
 {
     Motion* motion = new Motion(siC_);
     si_->copyState(motion->state, s);

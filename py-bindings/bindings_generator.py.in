@@ -37,7 +37,7 @@
 import logging
 from os.path import exists, join, isdir
 from os import getenv
-from subprocess import check_output
+import subprocess
 from sys import platform
 from pygccxml import declarations
 from pyplusplus import module_builder, messages
@@ -115,21 +115,22 @@ class code_generator_t(object):
             compiler = getenv('GCCXML_COMPILER')
             # MinGW
             if compiler != None and (compiler.lower().endswith('g++') or compiler.lower().endswith('c++')):
-                version = check_output([compiler, '-dumpversion']).strip()
+                version = subprocess.Popen([compiler, '-dumpversion'],
+                    stdout=subprocess.PIPE).communicate()[0].strip()
                 # Find whole path to MinGW
                 compiler_path = ""
                 for path in getenv('PATH').split(';'):
                     if exists(join(path, compiler + '.exe')):
                         compiler_path = path
                         break
-                
+
                 if compiler_path is not "":
                     # Adding in necessary include paths
                     candidate_include_paths.append (join(compiler_path, "..", "include"))
                     candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include"))
                     candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++"))
                     candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++", "mingw32"))
-            
+
         include_paths = []
         for path in candidate_include_paths:
             if len(path)>0 and exists(path):

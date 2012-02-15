@@ -329,6 +329,7 @@ namespace ompl
         /// Hash function for coordinates
         struct HashFunCoordPtr
         {
+            /// Hash function for coordinates
             std::size_t operator()(const Coord* const s) const
             {
                 unsigned long h = 0;
@@ -347,6 +348,7 @@ namespace ompl
         /// Equality operator for coordinate pointers
         struct EqualCoordPtr
         {
+            /// Equality operator for coordinate pointers
             bool operator()(const Coord* const c1, const Coord* const c2) const
             {
                 return *c1 == *c2;
@@ -359,6 +361,7 @@ namespace ompl
         /// Helper to sort components by size
         struct SortComponents
         {
+            /// Helper to sort components by size
             bool operator()(const std::vector<Cell*> &a, const std::vector<Cell*> &b) const
             {
                 return a.size() > b.size();

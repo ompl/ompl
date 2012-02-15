@@ -55,6 +55,9 @@ ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(s
 
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
     Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
+    Planner::declareParam<unsigned int>("max_close_samples", this, &KPIECE1::setMaxCloseSamplesCount, &KPIECE1::getMaxCloseSamplesCount);
+    Planner::declareParam<double>("bad_score_factor", this, &KPIECE1::setBadCellScoreFactor, &KPIECE1::getBadCellScoreFactor);
+    Planner::declareParam<double>("good_score_factor", this, &KPIECE1::setGoodCellScoreFactor, &KPIECE1::getGoodCellScoreFactor);
 }
 
 ompl::control::KPIECE1::~KPIECE1(void)
@@ -65,7 +68,7 @@ ompl::control::KPIECE1::~KPIECE1(void)
 void ompl::control::KPIECE1::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
 
     if (badScoreFactor_ < std::numeric_limits<double>::epsilon() || badScoreFactor_ > 1.0)
@@ -139,15 +142,21 @@ bool ompl::control::KPIECE1::CloseSamples::consider(Grid::Cell *cell, Motion *mo
     return false;
 }
 
+
+/// @cond IGNORE
+// this is the factor by which distances are inflated when considered for addition to closest samples
+static const double CLOSE_MOTION_DISTANCE_INFLATION_FACTOR = 1.1;
+/// @endcond
+
 bool ompl::control::KPIECE1::CloseSamples::selectMotion(Motion* &smotion, Grid::Cell* &scell)
 {
     if (samples.size() > 0)
     {
         scell = samples.begin()->cell;
         smotion = samples.begin()->motion;
-        // average the highest & lowest distances and multiply by 1.1
+        // average the highest & lowest distances and multiply by CLOSE_MOTION_DISTANCE_INFLATION_FACTOR
         // (make the distance appear artificially longer)
-        double d = (samples.begin()->distance + samples.rbegin()->distance) * 0.55;
+        double d = (samples.begin()->distance + samples.rbegin()->distance) * (CLOSE_MOTION_DISTANCE_INFLATION_FACTOR / 2.0);
         samples.erase(samples.begin());
         consider(scell, smotion, d);
         return true;
@@ -364,6 +373,11 @@ bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
         return false;
 }
 
+/// @cond IGNORE
+// this is the offset added to estimated distances to the goal, so we avoid division by 0
+static const double DISTANCE_TO_GOAL_OFFSET = 1e-3;
+/// @endcond
+
 ompl::control::KPIECE1::Grid::Cell* ompl::control::KPIECE1::addMotion(Motion *motion, double dist)
 {
     Grid::Coord coord;
@@ -383,7 +397,7 @@ ompl::control::KPIECE1::Grid::Cell* ompl::control::KPIECE1::addMotion(Motion *mo
         cell->data->coverage = motion->steps;
         cell->data->iteration = tree_.iteration;
         cell->data->selections = 1;
-        cell->data->score = (1.0 + log((double)(tree_.iteration))) / (1e-3 + dist);
+        cell->data->score = (1.0 + log((double)(tree_.iteration))) / (DISTANCE_TO_GOAL_OFFSET + dist);
         tree_.grid.add(cell);
     }
     tree_.size++;

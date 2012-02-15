@@ -38,51 +38,54 @@
 
 namespace ompl
 {
-
-    /** \brief Run one or more motion planners repeatedly (using a
-        specified number of threads), and hybridize solutions, trying
-        to optimize solutions. */
-    class OptimizePlan
+    namespace tools
     {
-    public:
-        /** \brief Create an instance for a specified space information */
-        OptimizePlan(const base::ProblemDefinitionPtr &pdef) : pp_(pdef)
+
+        /** \brief Run one or more motion planners repeatedly (using a
+            specified number of threads), and hybridize solutions, trying
+            to optimize solutions. */
+        class OptimizePlan
         {
-        }
+        public:
+            /** \brief Create an instance for a specified space information */
+            OptimizePlan(const base::ProblemDefinitionPtr &pdef) : pp_(pdef)
+            {
+            }
 
-        virtual ~OptimizePlan(void)
-        {
-        }
+            virtual ~OptimizePlan(void)
+            {
+            }
 
-        /** \brief Add a planner to use. */
-        void addPlanner(const base::PlannerPtr &planner);
+            /** \brief Add a planner to use. */
+            void addPlanner(const base::PlannerPtr &planner);
 
-        /** \brief Add a planner allocator to use. */
-        void addPlannerAllocator(const base::PlannerAllocator &pa);
+            /** \brief Add a planner allocator to use. */
+            void addPlannerAllocator(const base::PlannerAllocator &pa);
 
-        /** \brief Clear the set of planners to be executed */
-        void clearPlanners(void);
+            /** \brief Clear the set of planners to be executed */
+            void clearPlanners(void);
 
-        /** \brief Get the problem definition used */
-        const base::ProblemDefinitionPtr& getProblemDefinition(void) const
-        {
-            return pp_.getProblemDefinition();
-        }
+            /** \brief Get the problem definition used */
+            const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+            {
+                return pp_.getProblemDefinition();
+            }
 
-        /** \brief Try to solve the specified problem within a \e solveTime seconds, using at most \e nthreads threads. If
-            more than \e maxSol solutions are generated, stop generating more. */
-        bool solve(double solveTime, unsigned int maxSol = 10, unsigned int nthreads = 1);
+            /** \brief Try to solve the specified problem within a \e solveTime seconds, using at most \e nthreads threads. If
+                more than \e maxSol solutions are generated, stop generating more. */
+            bool solve(double solveTime, unsigned int maxSol = 10, unsigned int nthreads = 1);
 
-    protected:
+        protected:
 
-        /** \brief Instance of parallel planning to use for computing solutions in parallel */
-        ParallelPlan                    pp_;
+            /** \brief Instance of parallel planning to use for computing solutions in parallel */
+            ParallelPlan                    pp_;
 
-        /** \brief The set of planners to be used */
-        std::vector<base::PlannerPtr>   planners_;
+            /** \brief The set of planners to be used */
+            std::vector<base::PlannerPtr>   planners_;
 
-        /** \brief Console output */
-        msg::Interface                  msg_;
-    };
+            /** \brief Console output */
+            msg::Interface                  msg_;
+        };
 
+    }
 }

@@ -321,10 +321,10 @@ class ompl_control_generator_t(code_generator_t):
 
         # export pure virtual member functions, otherwise code doesn't compile
         self.ompl_ns.class_('Syclop').add_wrapper_code("""
-        virtual ompl::control::Syclop::Motion* initializeTree(const ompl::base::State* s)
+        virtual ompl::control::Syclop::Motion* addRoot(const ompl::base::State* s)
         {
-            bp::override func_initializeTree = this->get_override("initializeTree");
-            return func_initializeTree(s);
+            bp::override func_addRoot = this->get_override("addRoot");
+            return func_addRoot(s);
         }
         virtual void selectAndExtend(ompl::control::Syclop::Region& region, std::vector<ompl::control::Syclop::Motion*>& newMotions)
         {
@@ -454,10 +454,10 @@ class ompl_geometric_generator_t(code_generator_t):
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
-        replacement['::ompl::Benchmark::benchmark'] = ('def("benchmark", &benchmarkWrapper)', """
-        void benchmarkWrapper(%s* obj, const ompl::Benchmark::Request& request)
+        replacement['::ompl::tools::Benchmark::benchmark'] = ('def("benchmark", &benchmarkWrapper)', """
+        void benchmarkWrapper(%s* obj, const ompl::tools::Benchmark::Request& request)
         {
-            ompl::Benchmark::Request req(request);
+            ompl::tools::Benchmark::Request req(request);
             req.useThreads = false;
             obj->benchmark(request);
         }
@@ -468,7 +468,7 @@ class ompl_tools_generator_t(code_generator_t):
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors/maps of certain types
-        self.std_ns.class_('vector< ompl::Benchmark::PlannerExperiment >').rename('vectorPlannerExperiment')
+        self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename('vectorPlannerExperiment')
 
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
@@ -481,14 +481,14 @@ class ompl_tools_generator_t(code_generator_t):
             'def(bp::init< ompl::geometric::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
         benchmark_cls.add_wrapper_code(
             """Benchmark_wrapper(::ompl::geometric::SimpleSetup & setup, const ::std::string & name=std::string() )
-        : ompl::Benchmark( boost::ref(setup), name )
-          , bp::wrapper< ompl::Benchmark >(){}""")
+        : ompl::tools::Benchmark( boost::ref(setup), name )
+          , bp::wrapper< ompl::tools::Benchmark >(){}""")
         benchmark_cls.add_registration_code(
             'def(bp::init< ompl::control::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
         benchmark_cls.add_wrapper_code(
             """Benchmark_wrapper(::ompl::control::SimpleSetup & setup, const ::std::string & name=std::string() )
-          : ompl::Benchmark( boost::ref(setup), name )
-            , bp::wrapper< ompl::Benchmark >(){}""")
+          : ompl::tools::Benchmark( boost::ref(setup), name )
+            , bp::wrapper< ompl::tools::Benchmark >(){}""")
         # don't want to export iostream
         benchmark_cls.member_function('saveResultsToStream').exclude()
         # code generation fails because of same bug in gxxcml that requires us
@@ -496,18 +496,18 @@ class ompl_tools_generator_t(code_generator_t):
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
         benchmark_cls.member_functions(lambda method: method.name.startswith('set') and method.name.endswith('Event')).exclude()
         benchmark_cls.add_registration_code(
-            'def("addPlannerAllocator", &ompl::Benchmark::addPlannerAllocator)')
+            'def("addPlannerAllocator", &ompl::tools::Benchmark::addPlannerAllocator)')
         self.ompl_ns.class_('OptimizePlan').add_registration_code(
-            'def("addPlannerAllocator", &ompl::OptimizePlan::addPlannerAllocator)')
+            'def("addPlannerAllocator", &ompl::tools::OptimizePlan::addPlannerAllocator)')
         benchmark_cls.add_registration_code(
-            'def("setPlannerSwitchEvent", &ompl::Benchmark::setPlannerSwitchEvent)')
+            'def("setPlannerSwitchEvent", &ompl::tools::Benchmark::setPlannerSwitchEvent)')
         benchmark_cls.add_registration_code(
-            'def("setPreRunEvent", &ompl::Benchmark::setPreRunEvent)')
+            'def("setPreRunEvent", &ompl::tools::Benchmark::setPreRunEvent)')
         benchmark_cls.add_registration_code(
-            'def("setPostRunEvent", &ompl::Benchmark::setPostRunEvent)')
+            'def("setPostRunEvent", &ompl::tools::Benchmark::setPostRunEvent)')
         self.add_boost_function('void(const ompl::base::PlannerPtr&)',
             'PreSetupEvent', 'Pre-setup event')
-        self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::Benchmark::RunProperties&)',
+        self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
             'PostSetupEvent', 'Post-setup event')
 
 class ompl_util_generator_t(code_generator_t):

@@ -83,7 +83,7 @@ function IsInjected($str)
 <head>
   <meta charset="utf-8">
   <title>Contact Us</title>
-  <link href="../css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/bootstrap.css" rel="stylesheet">
   <link href="../css/ompl.css" rel="stylesheet">
 
 <!-- define some style elements-->

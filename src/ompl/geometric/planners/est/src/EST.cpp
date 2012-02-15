@@ -58,7 +58,7 @@ ompl::geometric::EST::~EST(void)
 void ompl::geometric::EST::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 
