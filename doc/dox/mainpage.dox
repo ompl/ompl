@@ -41,7 +41,7 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
       </div>
       <div class="item">
       <img src="../images/mp.jpg" class="hidden" style="margin-top: 1px">
-        <div class="carousel-caption carousel-caption-inset"><h4>New in 0.10.0!</h4>
+        <div class="carousel-caption carousel-caption-inset"><h4>New in 0.10!</h4>
         <ul>
            <li>SyCLoP, a new multilayered meta-planner.
            <li>EST for planning with controls.
