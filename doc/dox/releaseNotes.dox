@@ -1,7 +1,7 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_10_0 OMPL 0.10.0 (February, 2012)
+\section release_0_10_0 OMPL 0.10.0 (February 16, 2012)
 - Minimum Boost version is now 1.44 (for full functionality).
 - Added a primer on sampling-based motion planning and OMPL.
 - Added an implementation of SyCLoP, a new multilayered meta-planner that combines discrete search with a sampling-based motion planner. Implementations of Syclop with RRT and EST as the low-level planners are provided.
