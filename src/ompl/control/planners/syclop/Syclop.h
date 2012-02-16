@@ -37,12 +37,6 @@
 #ifndef OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOP_
 #define OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOP_
 
-/* Boost.Graph pulls in other Boost components, which in turn include Boost.Fusion.
-   Other code using Boost.Fusion that overload a fusion macro (e.g. ODESolver)
-   will then not compile.  To work around this, we include ODESolver here so that
-   its macros supercede the default settings.*/
-#include "ompl/control/ODESolver.h"
-
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_traits.hpp>
