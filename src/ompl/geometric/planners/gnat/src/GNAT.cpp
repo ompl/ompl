@@ -67,7 +67,7 @@ ompl::geometric::GNAT::~GNAT(void)
 void ompl::geometric::GNAT::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 }

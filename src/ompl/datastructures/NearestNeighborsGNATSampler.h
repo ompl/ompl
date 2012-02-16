@@ -363,7 +363,7 @@ namespace ompl
                     activity_ = std::min(0, activity_ + 1);
                 }
                 else
-                    activity_ = std::max((int)(-sizeof(int)), activity_ - 1);
+                    activity_ = std::max(-32, activity_ - 1);
             }
             void updateRange(unsigned int i, double dist)
             {
@@ -581,26 +581,20 @@ namespace ompl
                 }
             }
 
-            double getSamplingProbability() const
+            double getSamplingWeight() const
             {
-                assert(activity_ <= 0);
-                assert(subtreeSize_ > 0);
-                assert((subtreeSize_ << -activity_) > 0);
-                return maxRadius_ * maxRadius_ * maxRadius_ / (double)(subtreeSize_ << -activity_);
+                return pow(1.1, activity_) * maxRadius_ * maxRadius_ * maxRadius_ / (double) subtreeSize_;
             }
             const _T& sample(const GNAT& gnat) const
             {
                 if (children_.size() != 0)
                 {
+                    if (gnat.rng_.uniform01() < 1./(double) subtreeSize_)
+                        return pivot_;
                     PDF<const Node*> distribution;
-                    if (maxRadius_ == -std::numeric_limits<double>::infinity()) //root node
-                        distribution.add(this, 1./((double) subtreeSize_));
-                    else
-                        distribution.add(this, getSamplingProbability() / (double) subtreeSize_);
                     for(unsigned int i=0; i<children_.size(); ++i)
-                        distribution.add(children_[i], children_[i]->getSamplingProbability());
-                    const Node* node = distribution.sample(gnat.rng_.uniform01());
-                    return (node==this) ? pivot_ : node->sample(gnat);
+                        distribution.add(children_[i], children_[i]->getSamplingWeight());
+                    return distribution.sample(gnat.rng_.uniform01())->sample(gnat);
                 }
                 else
                 {
