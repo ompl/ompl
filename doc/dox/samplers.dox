@@ -8,7 +8,7 @@ There are two different kinds of samplers that sound similar, but have different
 - ompl::base::MaximizeClearanceValidStateSampler: This sampler behaves a lot like ompl::base::UniformValidStateSampler but once it finds a valid state, it attempts to find additional valid states with higher clearance. The reported sample is the one with highest clearance.
 .
 
-Below we will describe how you can specify a planner to use one of these samplers and how to write your own valid state sampler. The code examples are taken from the <a href="StateSampling_8cpp_source.html">StateSampling.cpp</a> demo program (note that there is also a <a href="StateSampling_8py_source.html">Python version</a> of his demo).
+Below we will describe how you can specify a planner to use one of these samplers and how to write your own valid state sampler. The code examples are taken from the <a href="StateSampling_8cpp_source.html">StateSampling.cpp</a> demo program (note that there is also a <a href="StateSampling_8py_source.html">Python version</a> of this demo).
 
 \section specifyingExistingSampler Using an Existing Sampler
 
