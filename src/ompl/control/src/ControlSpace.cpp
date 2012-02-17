@@ -40,6 +40,7 @@
 ompl::control::ControlSpace::ControlSpace(const base::StateSpacePtr &stateSpace) : stateSpace_(stateSpace)
 {
     name_ = "Control[" + stateSpace_->getName() + "]";
+    type_ = CONTROL_SPACE_UNKNOWN;
 }
 
 ompl::control::ControlSpace::~ControlSpace(void)

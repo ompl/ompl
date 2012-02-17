@@ -40,6 +40,7 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/control/Control.h"
 #include "ompl/control/ControlSampler.h"
+#include "ompl/control/ControlSpaceTypes.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/concept_check.hpp>
@@ -97,6 +98,14 @@ namespace ompl
             /** \brief Set the name of the control space */
             void setName(const std::string &name);
 
+            /** \brief Get the type of the control space. The type can be
+                used to verify whether two space instances are of
+                the same type */
+            int getType(void) const
+            {
+                return type_;
+            }
+
             /** \brief Return the state space this control space depends on */
             const base::StateSpacePtr& getStateSpace(void) const
             {
@@ -151,6 +160,9 @@ namespace ompl
             virtual void setup(void);
 
         protected:
+
+            /** \brief A type assigned for this control space */
+            int                     type_;
 
             /** \brief The state space controls can be applied to */
             base::StateSpacePtr     stateSpace_;

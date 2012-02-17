@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2012, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,28 +34,32 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/opende/OpenDEControlSpace.h"
-#include "ompl/util/Exception.h"
-#include "ompl/util/Console.h"
+#ifndef OMPL_CONTROL_CONTROL_SPACE_TYPES_
+#define OMPL_CONTROL_CONTROL_SPACE_TYPES_
 
-/// @cond IGNORE
 namespace ompl
 {
-    const control::OpenDEEnvironmentPtr& getOpenDEStateSpaceEnvironmentWithCheck(const base::StateSpacePtr &space)
+    namespace control
     {
-        if (!dynamic_cast<control::OpenDEStateSpace*>(space.get()))
-            throw Exception("OpenDE State Space needed for creating OpenDE Control Space");
-        return space->as<control::OpenDEStateSpace>()->getEnvironment();
+
+        /** \brief The type of a control space */
+        enum ControlSpaceType
+            {
+
+                /** \brief Unset type; this is the default type */
+                CONTROL_SPACE_UNKNOWN     =  0,
+
+                /** \brief ompl::control::RealVectorControlSpace */
+                CONTROL_SPACE_REAL_VECTOR =  1,
+
+                /** \brief ompl::control::DiscreteControlSpace */
+                CONTROL_SPACE_DISCRETE    =  2,
+
+                /** \brief Number of control space types; To add new types,
+                    use values that are larger than the count */
+                CONTROL_SPACE_TYPE_COUNT
+            };
     }
 }
-/// @endcond
 
-ompl::control::OpenDEControlSpace::OpenDEControlSpace(const base::StateSpacePtr &stateSpace) :
-    RealVectorControlSpace(stateSpace, getOpenDEStateSpaceEnvironmentWithCheck(stateSpace)->getControlDimension())
-{
-    setName("OpenDE" + getName());   
-    type_ = CONTROL_SPACE_TYPE_COUNT + 1;
-    base::RealVectorBounds bounds(dimension_);
-    getEnvironment()->getControlBounds(bounds.low, bounds.high);
-    setBounds(bounds);
-}
+#endif

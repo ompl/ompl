@@ -103,6 +103,17 @@ namespace ompl
                 return true;
             }
 
+            /** \brief Compute the control that can take the system from state \e from to state \e to. 
+                Store that control in \e result; the duration for which the control should be applied is stored in \e duration;
+                return true if the computation was successful; return false otherwise; 
+
+                \note If false is returned, the content of \e result and \e duration may have been changed,
+                but it does not represent a solution; */          
+            bool steer(const base::State *from, const base::State *to, Control *result, double &duration) const
+            {
+                return false;
+            }
+
         protected:
 
             /** \brief The instance of space information this state propagator operates on */
