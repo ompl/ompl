@@ -53,7 +53,7 @@ namespace ompl
 ompl::control::OpenDEControlSpace::OpenDEControlSpace(const base::StateSpacePtr &stateSpace) :
     RealVectorControlSpace(stateSpace, getOpenDEStateSpaceEnvironmentWithCheck(stateSpace)->getControlDimension())
 {
-    setName("OpenDE" + getName());   
+    setName("OpenDE" + getName());
     type_ = CONTROL_SPACE_TYPE_COUNT + 1;
     base::RealVectorBounds bounds(dimension_);
     getEnvironment()->getControlBounds(bounds.low, bounds.high);

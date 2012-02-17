@@ -5,23 +5,6 @@
   -- and add more functionality that deals with planner data;
   -- make sure PlannerData can be used easily to access the start & goal states that were extracted from the planner
   -- use PlannerData as "start states" in PlannerDefinition
-
-
-* Add an implementation of a DiscreteControlSpace (analogous to DiscreteStateSpace)
-
-* Add a function to StatePropagator such as this:
-
-  /** \brief Compute the control that can take the system from state \e from to state \e to. 
-    Store that control in \e result; the duration for which the control should be applied is stored in \e duration;
-    return true if the computation was successful; return false otherwise; 
-
-    \note If false is returned, the content of \e result and \e duration may have been changed,
-    but it does not represent a solution; */
-
-  bool steer(const base::State *from, const base::State *to, Control *result, double &duration) const
-  {
-     return false;
-  }
  
 * Start another 'concept' for ompl -- something that has algorithms for the analysis of spaces to plan in: Identify good lengths of path segments, good discretizations of control sets, automatic setting of parameters (projection cell sizes?), identification of good random projections
 

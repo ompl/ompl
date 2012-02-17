@@ -43,20 +43,20 @@ namespace ompl
 {
     namespace control
     {
-	
+
         /** \brief Control space sampler for discrete controls */
         class DiscreteControlSampler : public ControlSampler
         {
         public:
-	    
+
             /** \brief Constructor */
             DiscreteControlSampler(const ControlSpace *space) : ControlSampler(space)
             {
             }
-	    
+
             virtual void sample(Control *control);
         };
-	
+
         /** \brief A space representing discrete controls; i.e. there
             are a small number of discrete controls the system can react to.
             Controls are represented as integers [lowerBound, upperBound],
@@ -64,83 +64,83 @@ namespace ompl
         class DiscreteControlSpace : public ControlSpace
         {
         public:
-	    
+
             /** \brief The definition of a discrete control */
             class ControlType : public Control
             {
             public:
-		
+
                 /** \brief The current control - an int in range [lowerBound, upperBound] */
                 int value;
             };
-	    
+
             /** \brief Construct a discrete space in wich controls can take values in the set [\e lowerBound, \e upperBound] */
             DiscreteControlSpace(const base::StateSpacePtr &stateSpace, int lowerBound, int upperBound) :
-		ControlSpace(stateSpace), lowerBound_(lowerBound), upperBound_(upperBound)
+                ControlSpace(stateSpace), lowerBound_(lowerBound), upperBound_(upperBound)
             {
                 setName("Discrete" + getName());
                 type_ = CONTROL_SPACE_DISCRETE;
             }
-	    
+
             virtual ~DiscreteControlSpace(void)
             {
             }
-	    
+
             virtual unsigned int getDimension(void) const;
-	    
+
             virtual void copyControl(Control *destination, const Control *source) const;
-	    
+
             virtual bool equalControls(const Control *control1, const Control *control2) const;
-	    
+
             virtual ControlSamplerPtr allocDefaultControlSampler(void) const;
-	    
+
             virtual Control* allocControl(void) const;
-	    
+
             virtual void freeControl(Control *control) const;
-	    
+
             /** \brief This sets the control value to \e lowerBound_ */
             virtual void nullControl(Control *control) const;
-	    
+
             virtual void printControl(const Control *control, std::ostream &out) const;
-	    
+
             virtual void printSettings(std::ostream &out) const;
-	    
+
             /** \brief Returns the number of controls possible */
             unsigned int getControlCount(void) const
             {
                 return upperBound_ - lowerBound_ + 1;
             }
-	    
+
             /** \brief Returns the lowest possible control value */
             int getLowerBound(void) const
             {
                 return lowerBound_;
             }
-	    
+
             /** \brief Returns the highest possible control value */
             int getUpperBound(void) const
             {
                 return upperBound_;
             }
-	    
+
             /** \brief Set the bounds for the states in this space (the states will be in the set [\e lowerBound, \e upperBound] */
             void setBounds(int lowerBound, int upperBound)
             {
                 lowerBound_ = lowerBound;
                 upperBound_ = upperBound;
             }
-	    
+
             virtual void setup(void);
-	    
+
         protected:
-	    
+
             /** \brief The lowest integer state */
             int lowerBound_;
-	    
+
             /** \brief The highest integer state */
             int upperBound_;
         };
-	
+
     }
 }
 

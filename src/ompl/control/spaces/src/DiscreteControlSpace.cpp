@@ -40,13 +40,13 @@
 void ompl::control::DiscreteControlSampler::sample(Control *control)
 {
     control->as<DiscreteControlSpace::ControlType>()->value =
-	rng_.uniformInt(space_->as<DiscreteControlSpace>()->getLowerBound(),
-			space_->as<DiscreteControlSpace>()->getUpperBound());
+        rng_.uniformInt(space_->as<DiscreteControlSpace>()->getLowerBound(),
+                        space_->as<DiscreteControlSpace>()->getUpperBound());
 }
 
 unsigned int ompl::control::DiscreteControlSpace::getDimension(void) const
 {
-    return 1;  
+    return 1;
 }
 
 void ompl::control::DiscreteControlSpace::copyControl(Control *destination, const Control *source) const
@@ -55,7 +55,7 @@ void ompl::control::DiscreteControlSpace::copyControl(Control *destination, cons
 }
 
 bool ompl::control::DiscreteControlSpace::equalControls(const Control *control1, const Control *control2) const
-{ 
+{
     return control1->as<ControlType>()->value == control2->as<ControlType>()->value;
 }
 
@@ -80,7 +80,7 @@ void ompl::control::DiscreteControlSpace::nullControl(Control *control) const
 }
 
 void ompl::control::DiscreteControlSpace::printControl(const Control *control, std::ostream &out) const
-{    
+{
     out << "DiscreteControl [";
     if (control)
         out << control->as<ControlType>()->value;
@@ -90,7 +90,7 @@ void ompl::control::DiscreteControlSpace::printControl(const Control *control, s
 }
 
 void ompl::control::DiscreteControlSpace::printSettings(std::ostream &out) const
-{  
+{
     out << "Discrete control space '" << getName() << "' with bounds [" << lowerBound_ << ", " << upperBound_ << "]" << std::endl;
 }
 
