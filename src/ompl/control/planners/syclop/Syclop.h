@@ -38,9 +38,7 @@
 #define OMPL_CONTROL_PLANNERS_SYCLOP_SYCLOP_
 
 #include <boost/graph/astar_search.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/graph_traits.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/unordered_map.hpp>
 #include "ompl/control/planners/PlannerIncludes.h"
