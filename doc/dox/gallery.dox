@@ -3,10 +3,10 @@
 
 \section gallery_pr2manipulation Manipulation Planning
 
-   An example of using OMPL on the PR2 from <a href="http://www.willowgarage.com/">Willow Garage</a>. The robot is asked to move the glass on the left to a position 50cm towards the right, avoiding collisions and without spilling the content of the glass. This demo is using the <a href="http://www.ros.org/wiki/ompl">OMPL ROS package</a>.
+   An example of using OMPL on the PR2 from <a href="http://www.willowgarage.com/">Willow Garage</a>. The robot is asked to move the manipulate objects on the table. This demo is using the <a href="http://www.ros.org/wiki/ompl">OMPL ROS package</a>.
 
 \htmlonly
-<object width="640" height="390"><param name="movie" value="http://www.youtube.com/v/3jdTyKuIkrs&hl=en_US&feature=player_embedded&version=3"></param><param name="allowFullScreen" value="true"></param><param name="allowScriptAccess" value="always"></param><embed src="http://www.youtube.com/v/3jdTyKuIkrs&hl=en_US&feature=player_embedded&version=3" type="application/x-shockwave-flash" allowfullscreen="true" allowScriptAccess="always" width="640" height="390"></embed></object>
+<iframe width="560" height="315" src="http://www.youtube.com/embed/eUpvbOxrbwY" frameborder="0" allowfullscreen></iframe>
 \endhtmlonly
 
 \section gallery_ode Planning for a Car-Like Vehicle Using ODE
@@ -19,7 +19,7 @@ cKPIECE1 "KPIECE". For each computed motion plan, a representation of
 the exploration data structure (a tree of motions) is also shown.
 
 \htmlonly
-<object width="480" height="385"><param name="movie" value="http://www.youtube.com/v/bX23YA-pasg?fs=1&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/bX23YA-pasg?fs=1&amp;hl=en_US" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="480" height="385"></embed></object>
+<iframe width="420" height="315" src="http://www.youtube.com/embed/bX23YA-pasg" frameborder="0" allowfullscreen></iframe>
 \endhtmlonly
 
 \section gallery_omplapp Planning for Rigid Bodies Using OMPL.app
