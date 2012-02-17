@@ -51,7 +51,7 @@ unsigned int ompl::control::DiscreteControlSpace::getDimension(void) const
 
 void ompl::control::DiscreteControlSpace::copyControl(Control *destination, const Control *source) const
 {
-    destination->as<ControlType>()->value == source->as<ControlType>()->value;
+    destination->as<ControlType>()->value = source->as<ControlType>()->value;
 }
 
 bool ompl::control::DiscreteControlSpace::equalControls(const Control *control1, const Control *control2) const

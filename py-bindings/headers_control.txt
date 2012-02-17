@@ -8,6 +8,7 @@
 ../src/ompl/control/ODESolver.h
 ../src/ompl/control/PathControl.h
 ../src/ompl/control/SimpleSetup.h
+../src/ompl/control/spaces/DiscreteControlSpace.h
 ../src/ompl/control/spaces/RealVectorControlSpace.h
 ../src/ompl/control/PlannerData.h
 ../src/ompl/control/planners/est/EST.h
