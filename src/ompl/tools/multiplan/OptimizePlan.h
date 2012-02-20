@@ -34,6 +34,9 @@
 
 /* Author: Ioan Sucan */
 
+#ifndef OMPL_TOOLS_MULTIPLAN_OPTIMIZE_PLAN_
+#define OMPL_TOOLS_MULTIPLAN_OPTIMIZE_PLAN_
+
 #include "ompl/tools/multiplan/ParallelPlan.h"
 
 namespace ompl
@@ -89,3 +92,5 @@ namespace ompl
 
     }
 }
+#endif
+
