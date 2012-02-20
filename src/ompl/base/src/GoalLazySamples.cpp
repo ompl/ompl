@@ -95,11 +95,6 @@ bool ompl::base::GoalLazySamples::isSampling(void) const
     return terminateSamplingThread_ == false && samplingThread_ != NULL;
 }
 
-bool ompl::base::GoalLazySamples::canSample(void) const
-{
-    return maxSampleCount() > 0 || isSampling();
-}
-
 void ompl::base::GoalLazySamples::clear(void)
 {
     boost::mutex::scoped_lock slock(lock_);

@@ -36,7 +36,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/GoalLazySamples.h"
 #include <boost/thread.hpp>
 
 ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
@@ -271,7 +271,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
             throw Exception(error);
     }
 
-    const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
+    const GoalSampleableRegion *goal = pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION) ? pdef_->getGoal()->as<GoalSampleableRegion>() : NULL;
 
     if (goal)
     {
@@ -286,7 +286,6 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
             {
                 if (tempState_ == NULL)
                     tempState_ = si_->allocState();
-
                 do
                 {
                     goal->sampleGoal(tempState_);
@@ -311,7 +310,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                 while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
             }
 
-            if (goal->canSample() && !ptc())
+            if (goal->hasType(GOAL_LAZY_SAMPLES) && goal->as<GoalLazySamples>()->isSampling() && !ptc())
             {
                 if (first)
                 {
@@ -325,6 +324,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
             }
         }
     }
+
     return NULL;
 }
 
@@ -338,10 +338,7 @@ bool ompl::base::PlannerInputStates::haveMoreStartStates(void) const
 bool ompl::base::PlannerInputStates::haveMoreGoalStates(void) const
 {
     if (pdef_ && pdef_->getGoal())
-    {
-        const GoalSampleableRegion *goal = dynamic_cast<const GoalSampleableRegion*>(pdef_->getGoal().get());
-        if (goal)
-            return sampledGoalsCount_ < goal->maxSampleCount();
-    }
+        if (pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION))
+            return sampledGoalsCount_ < pdef_->getGoal()->as<GoalSampleableRegion>()->maxSampleCount();
     return false;
 }

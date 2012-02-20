@@ -67,7 +67,7 @@ namespace ompl
             virtual unsigned int maxSampleCount(void) const = 0;
 
             /** \brief Return true of maxSampleCount() > 0, since in this case samples can certainly be produced */
-            virtual bool canSample(void) const
+            bool canSample(void) const
             {
                 return maxSampleCount() > 0;
             }

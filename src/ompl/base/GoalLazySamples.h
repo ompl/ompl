@@ -121,11 +121,6 @@ namespace ompl
             /** \brief Return true if the sampling thread is active */
             bool isSampling(void) const;
 
-            /** \brief Return true of maxSampleCount() > 0 or if the
-                sampling thread is active, as in this case it is
-                possible a sample can be produced. */
-            virtual bool canSample(void) const;
-
             /** \brief Set the minimum distance that a new state returned by the sampling thread needs to be away from
                 previously added states, so that it is added to the list of goal states. */
             void setMinNewSampleDistance(double dist)
