@@ -404,6 +404,10 @@ namespace ompl
 
             /** @} */
 
+            /** \brief Compute the location information for various components of the state space. Either this function or setup() must be
+                called before any calls to getValueAddressAtName(), getValueAddressAtLocation() (and other functions where those are used). */
+            virtual void computeLocations(void);
+
             /** \brief Perform final setup steps. This function is
                 automatically called by the SpaceInformation. If any
                 default projections are to be registered, this call
@@ -604,6 +608,8 @@ namespace ompl
             virtual void printState(const State *state, std::ostream &out) const;
 
             virtual void printSettings(std::ostream &out) const;
+
+            virtual void computeLocations(void);
 
             virtual void setup(void);
 

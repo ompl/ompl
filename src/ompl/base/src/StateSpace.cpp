@@ -188,12 +188,17 @@ void ompl::base::StateSpace::setName(const std::string &name)
     name_ = name;
     msg_.setPrefix(name_);
 
-    // we don't want to call this function during the state space construction,
+    // we don't want to call this function during the state space construction because calls to virtual functions are made,
     // so we check if any values were previously inserted as value locations;
     // if none were, then we either have none (so no need to call this function again)
     // or setup() was not yet called
     if (!valueLocationsInOrder_.empty())
         computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_);
+}
+
+void ompl::base::StateSpace::computeLocations(void)
+{
+    computeLocationsHelper(this, valueLocationsInOrder_, valueLocationsByName_);
 }
 
 void ompl::base::StateSpace::computeSignature(std::vector<int> &signature) const
@@ -972,6 +977,13 @@ void ompl::base::CompoundStateSpace::setup(void)
         components_[i]->setup();
 
     StateSpace::setup();
+}
+
+void ompl::base::CompoundStateSpace::computeLocations(void)
+{
+    StateSpace::computeLocations();
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+        components_[i]->computeLocations();
 }
 
 namespace ompl
