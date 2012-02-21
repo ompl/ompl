@@ -1,6 +1,10 @@
 /**
 \page releaseNotes Release Notes
 
+\section release_0_10_1 OMPL 0.10.1 (2012)
+- Added representation of discrete control spaces
+- Bug fixes.
+
 \section release_0_10_0 OMPL 0.10.0 (February 16, 2012)
 - Minimum Boost version is now 1.44 (for full functionality).
 - Added a primer on sampling-based motion planning and OMPL.
