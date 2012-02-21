@@ -36,7 +36,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
-#include "ompl/base/GoalLazySamples.h"
+#include "ompl/base/GoalSampleableRegion.h"
 #include <boost/thread.hpp>
 
 ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
@@ -282,7 +282,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
         {
             attempt = false;
 
-            if (sampledGoalsCount_ < goal->maxSampleCount())
+            if (sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample())
             {
                 if (tempState_ == NULL)
                     tempState_ = si_->allocState();
@@ -307,10 +307,9 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                         msg.warn("Skipping invalid goal state (invalid %s)", bounds ? "state": "bounds");
                     }
                 }
-                while (sampledGoalsCount_ < goal->maxSampleCount() && !ptc());
+                while (!ptc() && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
             }
-
-            if (goal->hasType(GOAL_LAZY_SAMPLES) && goal->as<GoalLazySamples>()->isSampling() && !ptc())
+            if (goal->couldSample() && !ptc())
             {
                 if (first)
                 {

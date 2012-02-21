@@ -136,7 +136,7 @@ namespace ompl
             /** \brief Allocate an instance of the control sampler for this space. This sampler will be allocated with the
                 sampler allocator that was previously specified by setControlSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultControlSampler() is called */
-            ControlSamplerPtr allocControlSampler(void) const;
+            virtual ControlSamplerPtr allocControlSampler(void) const;
 
             /** \brief Set the sampler allocator to use */
             void setControlSamplerAllocator(const ControlSamplerAllocator &csa);

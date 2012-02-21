@@ -282,7 +282,7 @@ namespace ompl
             /** \brief Allocate an instance of the state sampler for this space. This sampler will be allocated with the
                 sampler allocator that was previously specified by setStateSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultStateSampler() is called */
-            StateSamplerPtr allocStateSampler(void) const;
+            virtual StateSamplerPtr allocStateSampler(void) const;
 
             /** \brief Set the sampler allocator to use */
             void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
