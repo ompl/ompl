@@ -22,12 +22,12 @@ else(OMPL_IN_ROS)
         set(CMAKE_BUILD_TYPE Release)
     endif()
 
-    # This shouldn't be necessary, but there has been trouble 
+    # This shouldn't be necessary, but there has been trouble
     # with MSVC being set off, but MSVCXX ON.
     if(MSVC OR MSVC90 OR MSVC10)
         set(MSVC ON)
     endif (MSVC OR MSVC90 OR MSVC10)
-    
+
     set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
     include(CompilerSettings)
     find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options REQUIRED)
@@ -75,10 +75,15 @@ add_subdirectory(doc)
 if(NOT OMPL_IN_ROS)
 
     if (NOT MSVC)
+        set(PKG_NAME "ompl")
         set(PKG_DESC "The Open Motion Planning Library")
+        set(PKG_OMPL_LIBS "-lompl")
         set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
         configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
         install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig)
+
+        install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/dox/FindOMPL.cmake"
+            DESTINATION "share/cmake-${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}/Modules/")
     endif()
 
     # uninstall target
