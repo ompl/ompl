@@ -203,6 +203,10 @@ namespace ompl
             virtual base::State* allocState(void) const;
             virtual void freeState(base::State *state) const;
             virtual void copyState(base::State *destination, const base::State *source) const;
+            virtual void interpolate(const base::State *from, const base::State *to, const double t, base::State *state) const;
+          
+            virtual base::StateSamplerPtr allocDefaultStateSampler(void) const;
+            virtual base::StateSamplerPtr allocStateSampler(void) const;
 
             /** \brief Fill the OpenDEStateSpace::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state, if unspecified.
                 Return the value value of that bit. */
