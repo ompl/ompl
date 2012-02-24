@@ -268,26 +268,26 @@ namespace ompl
             WrapperForOpenDESampler(const base::StateSpace *space, const base::StateSamplerPtr &wrapped) : base::StateSampler(space), wrapped_(wrapped)
             {
             }
-  
+
             virtual void sampleUniform(ompl::base::State *state)
             {
                 wrapped_->sampleUniform(state);
                 state->as<OpenDEStateSpace::StateType>()->collision = 0;
             }
-      
+
             virtual void sampleUniformNear(base::State *state, const base::State *near, const double distance)
-            {  
-                wrapped_->sampleUniformNear(state, near, distance); 
+            {
+                wrapped_->sampleUniformNear(state, near, distance);
                 state->as<OpenDEStateSpace::StateType>()->collision = 0;
             }
-      
+
             virtual void sampleGaussian(base::State *state, const base::State *mean, const double stdDev)
             {
-                wrapped_->sampleGaussian(state, mean, stdDev); 
+                wrapped_->sampleGaussian(state, mean, stdDev);
                 state->as<OpenDEStateSpace::StateType>()->collision = 0;
             }
         private:
-            base::StateSamplerPtr wrapped_;          
+            base::StateSamplerPtr wrapped_;
         };
     }
 }
