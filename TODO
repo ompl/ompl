@@ -9,3 +9,5 @@
 * Start another 'concept' for ompl -- something that has algorithms for the analysis of spaces to plan in: Identify good lengths of path segments, good discretizations of control sets, automatic setting of parameters (projection cell sizes?), identification of good random projections
 
 * Add meaningful RRT* tests
+
+* Make PlannerTerminationCondition just sleep for a while (during the runtime of the algorithm), until condition should become true; this sleep should be interruptible from the parent thread. This may make some things slightly more efficient, but we need to check what the wait time is for the interruption to work.
