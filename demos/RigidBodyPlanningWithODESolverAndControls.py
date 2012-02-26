@@ -55,11 +55,9 @@ except:
 def kinematicCarODE(q, u, qdot):
     theta = q[2];
     carLength = 0.2;
-    #print u[0], u[1], theta
     qdot[0] = u[0] * cos(theta)
     qdot[1] = u[0] * sin(theta)
     qdot[2] = u[0] * tan(u[1]) / carLength
-    #print qdot[0], qdot[1], qdot[2]
 
 
 def isStateValid(spaceInformation, state):
@@ -117,7 +115,7 @@ def plan():
 
     if solved:
         # print the path to screen
-        print "Found solution:", ss.getSolutionPath().asGeometric()
+        print("Found solution:", ss.getSolutionPath().asGeometric())
 
 if __name__ == "__main__":
     plan()

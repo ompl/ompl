@@ -59,7 +59,7 @@ def read_benchmark_log(dbname, filenames):
     c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
         (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
-        print "Processing " + filename
+        print("Processing " + filename)
         logfile = open(filename,'r')
         expname =  logfile.readline().split()[-1]
         hostname = logfile.readline().split()[-1]
@@ -84,7 +84,7 @@ def read_benchmark_log(dbname, filenames):
 
         for i in range(num_planners):
             planner_name = logfile.readline()[:-1]
-            print "Parsing data for", planner_name
+            print("Parsing data for", planner_name)
 
             # read common data for planner
             num_common = int(logfile.readline().split()[0])
@@ -196,7 +196,7 @@ def plot_attribute(cur, planners, attribute, typename):
 
 def plot_statistics(dbname, fname):
     """Create a PDF file with box plots for all attributes."""
-    print "Generating plot..."
+    print("Generating plot...")
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
@@ -261,7 +261,7 @@ def plot_statistics(dbname, fname):
 def save_as_mysql(dbname, mysqldump):
     # See http://stackoverflow.com/questions/1067060/perl-to-python
     import re
-    print "Saving as MySQL dump file..."
+    print("Saving as MySQL dump file...")
 
     conn = sqlite3.connect(dbname)
     mysqldump = open(mysqldump,'w')
@@ -346,7 +346,7 @@ def compute_views(dbname):
             if not best == None:
                 if not best[0] == None:
                     bp = 'best_' + enm + '_' + p
-                    print "Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0])
+                    print("Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0]))
                     c.execute('DROP VIEW IF EXISTS `%s`' % bp)
                     c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
 
@@ -358,7 +358,7 @@ def compute_views(dbname):
         if not best == None:
             if not best[0] == None:
                 bp = 'best_' + p
-                print "Best overall plannner configuration for planner " + p + " on is " + str(best[0])
+                print("Best overall plannner configuration for planner " + p + " on is " + str(best[0]))
                 c.execute('DROP VIEW IF EXISTS `%s`' % bp)
                 c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM %s WHERE plannerid = %s' % (bp, tname, best[0]))
     conn.commit()

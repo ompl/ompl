@@ -57,7 +57,7 @@ class ompl_base_generator_t(code_generator_t):
         }
         """)
         # A C++ call like "foo.printState(state, std::cout)" will be replaced with
-        # something more pythonesque: "print foo.string(state)"
+        # something more pythonesque: "print(foo.string(state))"
         replacement['printState'] = ('def("string", &__printState)', """
         std::string __printState(%s* space, ompl::base::State* state)
         {
@@ -67,7 +67,7 @@ class ompl_base_generator_t(code_generator_t):
         }
         """)
         # A C++ call like "foo.printProperties(std::cout)" will be replaced with
-        # something more pythonesque: "print foo.properties()"
+        # something more pythonesque: "print(foo.properties())"
         default_replacement['printProperties'] = ('def("properties", &__printProperties)', """
         std::string __printProperties(%s* obj)
         {
@@ -77,7 +77,7 @@ class ompl_base_generator_t(code_generator_t):
         }
         """)
         # A C++ call like "foo.printProjections(std::cout)" will be replaced with
-        # something more pythonesque: "print foo.projections()"
+        # something more pythonesque: "print(foo.projections())"
         replacement['printProjections'] = ('def("projections", &__printProjections)', """
         std::string __printProjections(%s* obj)
         {
@@ -87,7 +87,7 @@ class ompl_base_generator_t(code_generator_t):
         }
         """)
         # A C++ call like "foo.printProjection(projection, std::cout)" will be replaced with
-        # something more pythonesque: "print foo.projection()"
+        # something more pythonesque: "print(foo.projection())"
         replacement['printProjection'] = ('def("projection", &__printProjection)', """
         std::string __printProjection(%s* obj, const ompl::base::EuclideanProjection &projection)
         {
@@ -97,7 +97,7 @@ class ompl_base_generator_t(code_generator_t):
         }
         """)
         # "StateSpace::Diagram(std::cout)" will be replaced with
-        # something more pythonesque: "print StateSpace.Diagram()"
+        # something more pythonesque: "print(StateSpace.Diagram())"
         replacement['::ompl::base::StateSpace::Diagram'] = ('def("Diagram", &DiagramWrapper)', """
         std::string DiagramWrapper(%s* obj)
         {
@@ -107,7 +107,7 @@ class ompl_base_generator_t(code_generator_t):
         }
         """)
         # "StateSpace::List(std::cout)" will be replaced with
-        # something more pythonesque: "print StateSpace.List()"
+        # something more pythonesque: "print(StateSpace.List())"
         replacement['::ompl::base::StateSpace::List'] = ('def("List", &ListWrapper)', """
         std::string ListWrapper(%s* obj)
         {
@@ -250,7 +250,6 @@ class ompl_base_generator_t(code_generator_t):
         try:
             cls = self.ompl_ns.class_('StateStorage').member_functions('load')
             for c in cls:
-                print c.decl_string
             self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
             self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
         except:
@@ -260,7 +259,7 @@ class ompl_control_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
         # A C++ call like "foo.printControl(control, std::cout)" will be replaced with
-        # something more pythonesque: "print foo.string(control)"
+        # something more pythonesque: "print(foo.string(control))"
         replacement['printControl'] = ('def("string", &__printControl)', """
         std::string __printControl(%s* space, ompl::control::Control* control)
         {
@@ -544,10 +543,10 @@ class ompl_util_generator_t(code_generator_t):
 if __name__ == '__main__':
     setrecursionlimit(50000)
     if len(argv)==1:
-        print "Usage: generatebindings.py <modulename>"
+        print("Usage: generatebindings.py <modulename>")
     else:
         for module in argv[1:]:
             try:
                 globals()['ompl_'+module+'_generator_t']()
             except KeyError:
-                print "Error: can't generate code for module ", module
+                print("Error: can't generate code for module ", module)

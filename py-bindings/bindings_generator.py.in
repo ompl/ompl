@@ -57,7 +57,7 @@ messages.disable( messages.W1040 )
 # code for the replacement method.
 default_replacement = {}
 # A C++ call like "foo.print(std::cout)" will be replaced with something more
-# pythonesque using the special __str__ method: "print foo"
+# pythonesque using the special __str__ method: "print(foo)"
 default_replacement['print'] = ('def("__str__", &__str__)', """
 std::string __str__(%s* obj)
 {
@@ -67,7 +67,7 @@ std::string __str__(%s* obj)
 }
 """)
 # A C++ call like "foo.printSettings(std::cout)" will be replaced with
-# something more pythonesque: "print foo.settings()"
+# something more pythonesque: "print(foo.settings())"
 default_replacement['printSettings'] = ('def("settings", &__printSettings)', """
 std::string __printSettings(%s* obj)
 {
