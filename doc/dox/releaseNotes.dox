@@ -1,9 +1,11 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_10_1 OMPL 0.10.1 (2012)
+\section release_0_10_1 OMPL 0.10.1 (February 27, 2012)
 - Added representation of discrete control spaces
-- Bug fixes.
+- Fixes for XCode 4.3 when compiling the Python bindings
+- Updates to support Python 3.x in existing demo programs
+- Bug fixes
 
 \section release_0_10_0 OMPL 0.10.0 (February 16, 2012)
 - Minimum Boost version is now 1.44 (for full functionality).
