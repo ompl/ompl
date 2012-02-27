@@ -84,7 +84,7 @@ def read_benchmark_log(dbname, filenames):
 
         for i in range(num_planners):
             planner_name = logfile.readline()[:-1]
-            print "Parsing data for " + planner_name
+            print("Parsing data for " + planner_name)
 
             # read common data for planner
             num_common = int(logfile.readline().split()[0])
