@@ -55,7 +55,6 @@ void ompl::base::GoalLazySamples::startSampling(void)
 {
     if (samplingThread_ == NULL)
     {
-        msg::Interface msg;
         msg_.debug("Starting goal sampling thread");
         terminateSamplingThread_ = false;
         samplingThread_ = new boost::thread(&GoalLazySamples::goalSamplingThread, this);
