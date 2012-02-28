@@ -2,6 +2,7 @@
 ../src/ompl/control/ControlSampler.h
 ../src/ompl/control/DirectedControlSampler.h
 ../src/ompl/control/SimpleDirectedControlSampler.h
+../src/ompl/control/ControlSpaceTypes.h
 ../src/ompl/control/ControlSpace.h
 ../src/ompl/control/StatePropagator.h
 ../src/ompl/control/SpaceInformation.h

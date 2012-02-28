@@ -249,7 +249,6 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('SamplerSelector< ompl::base::ValidStateSampler >').rename('ValidStateSamplerSelector')
         try:
             cls = self.ompl_ns.class_('StateStorage').member_functions('load')
-            for c in cls:
             self.ompl_ns.class_('StateStorage').member_function('load', arg_types=['::std::istream &']).exclude()
             self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
         except:
@@ -549,4 +548,4 @@ if __name__ == '__main__':
             try:
                 globals()['ompl_'+module+'_generator_t']()
             except KeyError:
-                print("Error: can't generate code for module ", module)
+                print("Error: can't generate code for module %s" % module)

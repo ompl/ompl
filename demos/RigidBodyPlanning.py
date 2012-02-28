@@ -93,7 +93,7 @@ def plan():
         # get the goal representation from the problem definition (not the same as the goal state)
         # and inquire about the found path
         path = pdef.getGoal().getSolutionPath()
-        print("Found solution:\n", path)
+        print("Found solution:\n%s" % path)
     else:
         print("No solution found")
 
