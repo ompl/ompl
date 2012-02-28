@@ -353,7 +353,7 @@ def compute_views(dbname):
         if has_simplification_time:
             c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
         else:
-            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
         best = c.fetchone()
         if not best == None:
             if not best[0] == None:
