@@ -63,7 +63,7 @@ ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
 
 void ompl::control::SimpleSetup::setup(void)
 {
-    if (!configured_)
+    if (!configured_ || !si_->isSetup() || !planner_->isSetup())
     {
         if (!si_)
             throw Exception("No space information defined");
