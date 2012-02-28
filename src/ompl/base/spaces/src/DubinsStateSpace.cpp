@@ -194,10 +194,7 @@ namespace
         }
         tmp = dubinsLRL(d, alpha, beta);
         if ((len = tmp.length()) < minLength)
-        {
-            minLength = len;
             path = tmp;
-        }
         return path;
     }
 }
