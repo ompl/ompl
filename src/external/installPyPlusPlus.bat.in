@@ -1,0 +1,96 @@
+echo off
+
+:: Make sure that script is run as administrator.  This is more of
+:: a hack than a real check, but it seems to work
+at > nul
+if ERRORLEVEL 1 GOTO not-admin
+echo Executing as administrator... good :)
+
+:: Checking for svn, cvs, and Python
+:prereqs
+where svn 0>nul 
+IF ERRORLEVEL 1 GOTO no-svn
+
+where cvs 0>nul 
+IF ERRORLEVEL 1 GOTO no-cvs
+
+where python 0>nul 
+IF ERRORLEVEL 1 GOTO no-python
+
+where cmake 0>nul 
+IF ERRORLEVEL 1 GOTO no-cmake
+
+where mingw32-make 0>nul 
+IF ERRORLEVEL 1 GOTO no-mingw
+
+echo.
+echo Found all dependencies!  :D
+echo.
+echo This batch file will build and install GCCXML from source using MinGW, 
+echo and install Pygccxml and Py++ as well.  The PATH variable will also be 
+echo amended to include the path to the gccxml executable, and a new variable,
+echo GCCXML_COMPILER will be created to instruct gccxml which compiler to 
+echo emulate.
+PAUSE
+GOTO install-gccxml
+
+:not-admin
+ECHO ERROR: You must execute this file with administrator privileges!
+GOTO END
+
+:no-svn
+ECHO Subversion (svn) is not found.  Install svn and add the executable to the PATH, then re-run this batch file.
+GOTO END
+
+:no-cvs
+ECHO CVS is not found.  Install cvs and add the executable to the PATH, then re-run this batch file.
+GOTO END
+
+:no-python
+ECHO Python is not found.  Install Python 2.x (32-bit) and add python.exe to the PATH, then re-run this batch file.
+GOTO END
+
+:no-cmake
+ECHO CMake is not found.  Install CMake and add the executable to the PATH, then re-run this batch file.
+GOTO END
+
+:no-mingw
+ECHO mingw32-make is not found.  Install MinGW and add it to the PATH, then re-run this batch file.
+GOTO END
+
+:install-gccxml
+mkdir "@PROJECT_BINARY_DIR@/repos"
+cd "@PROJECT_BINARY_DIR@/repos"
+
+:: get latest version of gccxml, build & install it
+cvs -d :pserver:anoncvs@www.gccxml.org:/cvsroot/GCC_XML co gccxml
+cd gccxml
+cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="C:\gccxml"
+mingw32-make install
+cd ..
+
+SET GCCXMLPATH=C:\gccxml\bin
+:: ADD gccxml to path and create the GCCXML_COMPILER variable
+
+set PATH=%PATH%;%GCCXMLPATH%
+:: Set the PATH and GCCXML_COMPILER variables permanently
+setx PATH "%PATH%" /M 0>nul
+setx GCCXML_COMPILER g++ /M 0>nul
+
+
+:install-pygccxml
+svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pygccxml_dev
+cd pygccxml_dev
+
+::Patching pygccxml - source_reader.py
+copy /Y @PATCH_GCCXML_SOURCE_READER@ pygccxml\parser\source_reader.py
+
+python setup.py build
+python setup.py install
+cd ..
+svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pyplusplus_dev
+cd pyplusplus_dev
+python setup.py build
+python setup.py install
+
+:END

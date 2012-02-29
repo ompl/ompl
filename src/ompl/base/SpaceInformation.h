@@ -396,6 +396,8 @@ namespace ompl
             bool isSetup(void) const;
 
         protected:
+            /** \brief Set default motion validator for the state space */
+            void setDefaultMotionValidator(void);
 
             /** \brief The state space planning is to be performed in */
             StateSpacePtr              stateSpace_;

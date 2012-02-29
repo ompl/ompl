@@ -205,6 +205,7 @@ namespace ompl
                 {
                     return motions_.empty();
                 }
+
                 std::vector<Motion*> motions_;
                 CellPDF::Element*    elem_;
             };

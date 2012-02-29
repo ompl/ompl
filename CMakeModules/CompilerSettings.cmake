@@ -2,13 +2,19 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
+if(MSVC OR MSVC90 OR MSVC10)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /W1 /D_ITERATOR_DEBUG_LEVEL=0")
+endif(MSVC OR MSVC90 OR MSVC10)
+
 string(REGEX MATCH ".*icpc" IS_ICPC ${CMAKE_CXX_COMPILER})
 if(IS_ICPC)
     set(CMAKE_AR "xiar" CACHE STRING "Intel archiver" FORCE)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ipo -no-prec-div -xP -DNDEBUG -g"
+    set(CMAKE_CXX_FLAGS "-pthread" CACHE STRING "Default compile flags" FORCE)
+    set(CMAKE_CXX_FLAGS_RELEASE "-fast -DNDEBUG"
     CACHE STRING "Flags used by the C++ compiler during release builds." FORCE)
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING
     "Flags used by the C++ compiler during debug builds." FORCE)
+    set(CMAKE_LINKER "xild" CACHE STRING "Intel linker" FORCE)
 endif(IS_ICPC)
 
 string(REGEX MATCH ".*xlC" IS_XLC ${CMAKE_CXX_COMPILER})
@@ -18,9 +24,9 @@ if(IS_XLC)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -q64")
 endif(IS_XLC)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC)
+if((CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC) AND NOT MINGW)
     add_definitions(-fPIC)
-endif(CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC)
+endif((CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC) AND NOT MINGW)
 
 # Set rpath http://www.paraview.org/Wiki/CMake_RPATH_handling
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)

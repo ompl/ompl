@@ -44,50 +44,54 @@
 
 namespace ompl
 {
-
-    /** \brief This class contains methods that automatically
-        configure various parameters for motion planning. If expensive
-        computation is performed, the results are cached. */
-    class SelfConfig
+    /** \brief Includes various tools such as self config, benchmarking, etc. */
+    namespace tools
     {
-    public:
 
-        /** \brief Construct an instance that can configure the space
-            encapsulated by \e si. Any information printed to the
-            console is prefixed by \e context */
-        SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
+        /** \brief This class contains methods that automatically
+            configure various parameters for motion planning. If expensive
+            computation is performed, the results are cached. */
+        class SelfConfig
+        {
+        public:
 
-        /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::probabilityOfValidState())*/
-        double getProbabilityOfValidState(void);
+            /** \brief Construct an instance that can configure the space
+                encapsulated by \e si. Any information printed to the
+                console is prefixed by \e context */
+            SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
 
-        /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::averageValidMotionLength())*/
-        double getAverageValidMotionLength(void);
+            /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::probabilityOfValidState())*/
+            double getProbabilityOfValidState(void);
 
-        /** \brief If \e proj is undefined, it is set to the default
-            projection reported by base::StateSpace::getDefaultProjection().
-            If no default projection is available either, an exception is thrown. */
-        void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj);
+            /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::averageValidMotionLength())*/
+            double getAverageValidMotionLength(void);
 
-        /** \brief Instances of base::ValidStateSampler need a number of attempts to be specified -- the maximum number of times
-            a new sample is selected and checked to be valid. This function computes a number of \e attempts such that the probability
-            of obtaining a valid sample is 90\% */
-        void configureValidStateSamplingAttempts(unsigned int &attempts);
+            /** \brief If \e proj is undefined, it is set to the default
+                projection reported by base::StateSpace::getDefaultProjection().
+                If no default projection is available either, an exception is thrown. */
+            void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj);
 
-        /** \brief Compute what a good length for motion segments is */
-        void configurePlannerRange(double &range);
+            /** \brief Instances of base::ValidStateSampler need a number of attempts to be specified -- the maximum number of times
+                a new sample is selected and checked to be valid. This function computes a number of \e attempts such that the probability
+                of obtaining a valid sample is 90\% */
+            void configureValidStateSamplingAttempts(unsigned int &attempts);
 
-        /** \brief Print the computed configuration parameters */
-        void print(std::ostream &out = std::cout) const;
+            /** \brief Compute what a good length for motion segments is */
+            void configurePlannerRange(double &range);
 
-    private:
+            /** \brief Print the computed configuration parameters */
+            void print(std::ostream &out = std::cout) const;
 
-        /// @cond IGNORE
-        class SelfConfigImpl;
+        private:
 
-        SelfConfigImpl *impl_;
-        std::string     context_;
-        /// @endcond
-    };
+            /// @cond IGNORE
+            class SelfConfigImpl;
+
+            SelfConfigImpl *impl_;
+            std::string     context_;
+            /// @endcond
+        };
+    }
 }
 
 #endif

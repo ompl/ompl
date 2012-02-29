@@ -27,15 +27,27 @@ newSpace->addSubSpace(ompl::base::StateSpacePtr(new ompl::base::SO2StateSpace())
 
 @par Inheriting from existing state spaces
 In order to implement a new state space it is necessary to define a
-class that inherits from an existing state space class. All state space
-specific functions (pure virtual in the ompl::base::StateSpace
-class) need to be implemented accordingly. If the implementation of
-the new state space defines a ompl::base::StateSpace::allocState()
-function, it should also provide a
-ompl::base::StateSpace::freeState() function and define (or
-typedef) @b StateType to the type of the state that is
-allocated/freed. In such cases it will often be necessary to also implement
-ompl::base::StateSpace::copyState() and perhaps ompl::base::StateSpace::equalStates().
+class that inherits from an existing state space class (either the
+ompl::base::StateSpace class or an existing state space
+implementation). All state space specific functions (pure virtual in
+the ompl::base::StateSpace class) need to be implemented
+accordingly. If the implementation of the new state space uses a new
+state type (even if it inherits from an existing state type), that
+state type must be named @b StateType or a typedef must exist so that
+the name @b StateType refers to the state type of the new state space.
+To use the newly defined state type the
+ompl::base::StateSpace::allocState() and
+ompl::base::StateSpace::freeState() functions must be defined.  The
+ompl::base::StateSpace::type_ member must also be set to a new
+(unique) value when new state types are defined.  It will often be
+necessary to also implement ompl::base::StateSpace::copyState() and
+perhaps ompl::base::StateSpace::equalStates(). Optionally, if the
+state type includes real values, an implementation of
+ompl::base::StateSpace::getValueAddressAtIndex() can be provided to
+access those values separately. If (de)serialization of states is
+desired, the ompl::base::StateSpace::serialize() and
+ompl::base::StateSpace::deserialize() functions must also be
+implemented.
 
 @par Inheriting from ompl::base::CompoundStateSpace
 Another option is to inherit from a ompl::base::CompoundStateSpace
@@ -55,5 +67,10 @@ function (by calling ompl::base::StateSpace::registerProjection()
 or ompl::base::StateSpace::registerDefaultProjection()). Planners
 that need a projection but do not have one defined will attempt using
 this default projection during planning.
+
+\note 
+It is always a good idea to call
+ompl::base::StateSpace::sanityChecks() to see if a new state space
+satisfies expected functionality.
 
 */

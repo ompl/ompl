@@ -121,8 +121,8 @@ namespace ompl
 
     protected:
 
-        inline
-        void updateCheckCount(void)
+        /** \brief The maximum number of checks to perform when searching for a nearest neighbor */
+        inline void updateCheckCount(void)
         {
             checks_ = 1 + (std::size_t)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
         }

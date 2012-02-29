@@ -34,7 +34,13 @@
 
 /* Author: Ioan Sucan */
 
+#ifndef OMPL_BASE_STATE_STORAGE_
+#define OMPL_BASE_STATE_STORAGE_
+
 #include "ompl/base/StateSpace.h"
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
 #include <iostream>
 
 namespace ompl
@@ -42,38 +48,47 @@ namespace ompl
     namespace base
     {
 
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::StateStorage */
+        ClassForward(StateStorage);
+        /// @endcond
+
         /** \brief Manage loading and storing for a set of states of a specified state space */
         class StateStorage
         {
         public:
 
-            /** \brief The state space to store states for */
+            /** \brief The state space to store states for is specified as argument */
             StateStorage(const StateSpacePtr &space);
-            ~StateStorage(void);
+            virtual ~StateStorage(void);
+
+            /** \brief Get the state space this class maintains states for */
+            const StateSpacePtr& getStateSpace(void) const
+            {
+                return space_;
+            }
 
             /** \brief Load a set of states from a specified file */
             void load(const char *filename);
 
             /** \brief Load a set of states from a stream */
-            void load(std::istream &in);
+            virtual void load(std::istream &in);
 
             /** \brief Save a set of states to a file */
             void store(const char *filename);
 
             /** \brief Save a set of states to a stream */
-            void store(std::ostream &out);
+               virtual void store(std::ostream &out);
 
             /** \brief Add a state to the set of states maintained by
-                this storage structure. Ownership of the state is
-                assumed (i.e., the state will be freed when the
-                StateStorage instance goes out of scope) */
-            void addState(const State *state);
+                this storage structure. The state is copied to internal storage */
+            virtual void addState(const State *state);
 
             /** \brief Generate \e count states uniformly at random and store them in this structure */
-            void generateSamples(unsigned int count);
+            virtual void generateSamples(unsigned int count);
 
             /** \brief Clear the stored states. This frees all the memory */
-            void clear(void);
+            virtual void clear(void);
 
             /** \brief Return the number of stored states */
             std::size_t size(void) const
@@ -87,28 +102,147 @@ namespace ompl
                 return states_;
             }
 
+            /** \brief Get a particular state for non-const access */
+            State* getState(unsigned int index)
+            {
+                assert(states_.size() > index);
+                return const_cast<State*>(states_[index]);
+            }
+
+            /** \brief Get a particular state */
+            const State* getState(unsigned int index) const
+            {
+                assert(states_.size() > index);
+                return states_[index];
+            }
+
             /** \brief Get a sampler allocator to a sampler that can
                 be specified for a StateSpace, such that all sampled
                 states are actually from this storage structure. */
-            StateSamplerAllocator getStateSamplerAllocator(void) const;
+            virtual StateSamplerAllocator getStateSamplerAllocator(void) const;
 
             /** \brief Output the set of states to a specified stream, in a human readable fashion */
-            void print(std::ostream &out = std::cout) const;
+            virtual void print(std::ostream &out = std::cout) const;
 
-        private:
+        protected:
 
+            /** \brief Information stored at the beginning of the archive */
             struct Header
             {
-                std::size_t state_count;
-                std::size_t metadata_size;
+                /** \brief OMPL specific marker (fixed value) */
+                boost::uint32_t  marker;
+
+                /** \brief Number of states stored in the archive */
+                std::size_t      state_count;
+
+                /** \brief Signature of state space that allocated the saved states (see ompl::base::StateSpace::computeSignature()) */
+                std::vector<int> signature;
+
+                /** \brief boost::serialization routine */
+                template<typename Archive>
+                void serialize(Archive & ar, const unsigned int version)
+                {
+                    ar & marker;
+                    ar & state_count;
+                    ar & signature;
+                }
             };
 
-            bool loadHeader(std::istream &in, Header &header);
+            /** \brief Load the states from a binary archive \e ia, given the loaded header is \e h */
+            virtual void loadStates(const Header &h, boost::archive::binary_iarchive &ia);
 
+            /** \brief Load the state metadata from a binary archive
+                \e ia, given the loaded header is \e h. No metadata is
+                actually loaded unless the StateStorageWithMetadata
+                class is used.*/
+            virtual void loadMetadata(const Header &h, boost::archive::binary_iarchive &ia);
+
+            /** \brief Store the states to a binary archive \e oa, given the stored header is \e h */
+            virtual void storeStates(const Header &h, boost::archive::binary_oarchive &oa);
+
+            /** \brief Save the state metadata to a binary archive
+                \e oa, given the stored header is \e h. No metadata is
+                actually saved unless the StateStorageWithMetadata
+                class is used.*/
+            virtual void storeMetadata(const Header &h, boost::archive::binary_oarchive &oa);
+
+            /** \brief Free the memory allocated for states */
+            void freeMemory(void);
+
+            /** \brief State space that corresponds to maintained states */
             StateSpacePtr             space_;
+
+            /** \brief The list of maintained states */
             std::vector<const State*> states_;
+
+            /** \brief The console interface */
             msg::Interface            msg_;
+        };
+
+        /** \brief State storage that allows storing state metadata as well
+            \tparam M the datatype for the stored metadata. boost::serialization operation needs to be defined */
+        template<typename M>
+        class StateStorageWithMetadata : public StateStorage
+        {
+        public:
+
+            /** \brief The state space to store states for is specified as argument */
+            StateStorageWithMetadata(const StateSpacePtr &space) : StateStorage(space)
+            {
+            }
+
+            /** \brief Add a state to the set of states maintained by
+                this storage structure. The state is copied to
+                internal storage and metadata with default values is stored as well. */
+            virtual void addState(const State *state)
+            {
+                addState(state, M());
+            }
+
+            /** \brief Add a state to the set of states maintained by
+                this storage structure. The state is copied to internal storage. Corresponding metadata is stored too. */
+            virtual void addState(const State *state, const M& metadata)
+            {
+                StateStorage::addState(state);
+                metadata_.push_back(metadata);
+            }
+
+            virtual void clear(void)
+            {
+                StateStorage::clear();
+                metadata_.clear();
+            }
+
+            /** \brief Get const access to the metadata of a state at a particular index */
+            const M& getMetadata(unsigned int index) const
+            {
+                assert(metadata_.size() > index);
+                return metadata_[index];
+            }
+
+            /** \brief Get write access to the metadata of a state at a particular index */
+            M& getMetadata(unsigned int index)
+            {
+                assert(metadata_.size() > index);
+                return metadata_[index];
+            }
+
+        protected:
+
+            virtual void loadMetadata(const Header &h, boost::archive::binary_iarchive &ia)
+            {
+                ia >> metadata_;
+            }
+
+            virtual void storeMetadata(const Header &h, boost::archive::binary_oarchive &oa)
+            {
+                oa << metadata_;
+            }
+
+            /** \brief The metadata for each state */
+            std::vector<M> metadata_;
         };
 
     }
 }
+#endif

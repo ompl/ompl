@@ -55,7 +55,7 @@ namespace ompl
     struct CallbackParam
     {
         const control::OpenDEEnvironment *env;
-        bool                           collision;
+        bool                              collision;
     };
 
     void nearCallback(void *data, dGeomID o1, dGeomID o2)
@@ -68,8 +68,9 @@ namespace ompl
         CallbackParam *cp = reinterpret_cast<CallbackParam*>(data);
 
         const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
+        if (maxContacts <= 0) return;
 
-        dContact *contact = (dContact*)alloca(maxContacts * sizeof(dContact));
+        dContact *contact = new dContact[maxContacts];
 
         for (unsigned int i = 0; i < maxContacts; ++i)
             cp->env->setupContact(o1, o2, contact[i]);
@@ -91,6 +92,8 @@ namespace ompl
                 }
             }
         }
+
+        delete[] contact;
     }
 }
 /// @endcond

@@ -155,36 +155,3 @@ void ompl::RNG::eulerRPY(double value[3])
     value[1] = acos(1.0 - 2.0 * uni_()) - boost::math::constants::pi<double>() / 2.0;
     value[2] = boost::math::constants::pi<double>() * (2.0 * uni_() - 1.0);
 }
-
-std::vector<size_t> ompl::RNG::discreteDistribution(std::vector<double> v, size_t nSamples)
-{
-	std::vector<size_t> sampledPoints;
-	std::vector<double> cumulativeSum;
-  if(v.size() == 1)
-  {
-    for(size_t k=0; k<nSamples; k++)
-      sampledPoints.push_back(0);
-    return sampledPoints;
-  }
-
-	cumulativeSum.push_back(v[0]);
-	if(v.size()>1)
-		for(std::vector<double>::iterator it=v.begin()+1; it!=v.end(); it++)
-			cumulativeSum.push_back(cumulativeSum.back() + *it);
-
-	if(cumulativeSum.back() !=0.0)
-	{
-		boost::uniform_real<> dist(0.0,cumulativeSum.back());
-		boost::variate_generator<boost::mt19937&, boost::uniform_real<> > choice(generator_, dist);
-
-		for(size_t k=0; k<nSamples; k++)
-			sampledPoints.push_back(std::lower_bound(cumulativeSum.begin(), cumulativeSum.end(), choice()) - cumulativeSum.begin());
-	}
-	else 
-	{
-		for(size_t k=0; k<nSamples; k++)
-			sampledPoints.push_back(uniformInt(0,v.size()-1));
-	}
-	return sampledPoints;
-}
-

@@ -35,7 +35,10 @@
 # Author: Mark Moll
 
 import logging
-from os.path import exists
+from os.path import exists, join, isdir
+from os import getenv
+import subprocess
+from sys import platform
 from pygccxml import declarations
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
@@ -106,6 +109,28 @@ class code_generator_t(object):
         module_builder.set_logger_level( logging.INFO )
         candidate_include_paths = [ "@OMPL_INCLUDE_DIR@", "@OMPLAPP_INCLUDE_DIR@",
             "@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@", "@ASSIMP_INCLUDE_DIR@", "@ODEINT_INCLUDE_DIR@"]
+
+        # Adding standard windows headers
+        if platform == 'win32':
+            compiler = getenv('GCCXML_COMPILER')
+            # MinGW
+            if compiler != None and (compiler.lower().endswith('g++') or compiler.lower().endswith('c++')):
+                version = subprocess.Popen([compiler, '-dumpversion'],
+                    stdout=subprocess.PIPE).communicate()[0].strip()
+                # Find whole path to MinGW
+                compiler_path = ""
+                for path in getenv('PATH').split(';'):
+                    if exists(join(path, compiler + '.exe')):
+                        compiler_path = path
+                        break
+
+                if compiler_path is not "":
+                    # Adding in necessary include paths
+                    candidate_include_paths.append (join(compiler_path, "..", "include"))
+                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include"))
+                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++"))
+                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++", "mingw32"))
+
         include_paths = []
         for path in candidate_include_paths:
             if len(path)>0 and exists(path):

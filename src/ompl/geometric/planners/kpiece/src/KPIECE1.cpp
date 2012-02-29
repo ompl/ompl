@@ -64,7 +64,7 @@ ompl::geometric::KPIECE1::~KPIECE1(void)
 void ompl::geometric::KPIECE1::setup(void)
 {
     Planner::setup();
-    SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 
@@ -168,10 +168,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
             }
         }
         else
-        {
             ecell->data->score *= failedExpansionScoreFactor_;
-            disc_.updateCell(ecell);
-        }
+        disc_.updateCell(ecell);
     }
 
     bool solved = false;
@@ -194,8 +192,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->states.push_back(si_->cloneState(mpath[i]->state));
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+            path->append(mpath[i]->state);
         goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
         solved = true;
     }

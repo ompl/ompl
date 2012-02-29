@@ -485,8 +485,8 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
         throw Exception(name_, "Could not find solution path");
     else
         for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
-            p->states.push_back(si_->cloneState(stateProperty_[pos]));
-    p->states.push_back(si_->cloneState(stateProperty_[start]));
+            p->append(stateProperty_[pos]);
+    p->append(stateProperty_[start]);
     p->reverse();
 
     return base::PathPtr(p);

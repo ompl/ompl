@@ -127,25 +127,6 @@ namespace ompl
             (repeatable) behaviour. Useful for debugging. */
         static boost::uint32_t getSeed(void);
 
-        std::vector<size_t> discreteDistribution(std::vector<double> v, size_t nSamples);
-        template <typename _T>
-        std::vector<_T> discreteDistributionMap(std::map<_T,double> v, size_t nSamples)
-        {
-          std::vector<_T> input, output;
-          std::vector<double> dist;
-          for(typename std::map<_T,double>::iterator it=v.begin(); it!=v.end(); it++)
-          {
-            input.push_back(it->first);
-            dist.push_back(it->second);
-          }
-          std::vector<size_t> r = discreteDistribution(dist,nSamples);
-          for(std::vector<size_t>::iterator it = r.begin(); it!= r.end(); it++)
-          {
-            output.push_back(input[*it]);
-          }
-          return output;
-        }
-
     private:
 
         boost::mt19937                                                           generator_;

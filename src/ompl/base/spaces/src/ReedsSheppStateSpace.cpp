@@ -49,7 +49,7 @@ namespace
 
     const double pi = boost::math::constants::pi<double>();
     const double twopi = 2. * pi;
-    const double RS_EPS = 1e-5;
+    const double RS_EPS = 1e-6;
     const double ZERO = 10*std::numeric_limits<double>::epsilon();
 
     inline double mod2pi(double x)
@@ -115,49 +115,49 @@ namespace
     void CSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
     {
         double t, u, v, Lmin = path.length(), L;
-        if (LpSpLp(x, y, phi, t, u, v) && Lmin > (L = t + u + v))
+        if (LpSpLp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[14], t, u, v);
             Lmin = L;
         }
-        if (LpSpLp(-x, y, -phi, t, u, v) && Lmin > (L = t + u + v)) // timeflip
+        if (LpSpLp(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[14], -t, -u, -v);
             Lmin = L;
         }
-        if (LpSpLp(x, -y, -phi, t, u, v) && Lmin > (L = t + u + v)) // reflect
+        if (LpSpLp(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[15], t, u, v);
             Lmin = L;
         }
-        if (LpSpLp(-x, -y, phi, t, u, v) && Lmin > (L = t + u + v)) // timeflip + reflect
+        if (LpSpLp(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[15], -t, -u, -v);
             Lmin = L;
         }
-        if (LpSpRp(x, y, phi, t, u, v) && Lmin > (L = t + u + v))
+        if (LpSpRp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[12], t, u, v);
             Lmin = L;
         }
-        if (LpSpRp(-x, y, -phi, t, u, v) && Lmin > (L = t + u + v)) // timeflip
+        if (LpSpRp(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[12], -t, -u, -v);
             Lmin = L;
         }
-        if (LpSpRp(x, -y, -phi, t, u, v) && Lmin > (L = t + u + v)) // reflect
+        if (LpSpRp(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[13], t, u, v);
             Lmin = L;
         }
-        if (LpSpRp(-x, -y, phi, t, u, v) && Lmin > (L = t + u + v)) // timeflip + reflect
+        if (LpSpRp(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[13], -t, -u, -v);
@@ -184,25 +184,25 @@ namespace
     void CCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
     {
         double t, u, v, Lmin = path.length(), L;
-        if (LpRmL(x, y, phi, t, u, v) && Lmin > (L = t - u + fabs(v)))
+        if (LpRmL(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[0], t, u, v);
             Lmin = L;
         }
-        if (LpRmL(-x, y, -phi, t, u, v) && Lmin > (L = t - u + fabs(v))) // timeflip
+        if (LpRmL(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[0], -t, -u, -v);
             Lmin = L;
         }
-        if (LpRmL(x, -y, -phi, t, u, v) && Lmin > (L = t - u + fabs(v))) // reflect
+        if (LpRmL(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[1], t, u, v);
             Lmin = L;
         }
-        if (LpRmL(-x, -y, phi, t, u, v) && Lmin > (L = t - u + fabs(v))) // timeflip + reflect
+        if (LpRmL(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[1], -t, -u, -v);
@@ -211,25 +211,25 @@ namespace
 
         // backwards
         double xb = x*cos(phi) + y*sin(phi), yb = x*sin(phi) - y*cos(phi);
-        if (LpRmL(xb, yb, phi, t, u, v) && Lmin > (L = t - u + fabs(v)))
+        if (LpRmL(xb, yb, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[0], v, u, t);
             Lmin = L;
         }
-        if (LpRmL(-xb, yb, -phi, t, u, v) && Lmin > (L = t - u + fabs(v))) // timeflip
+        if (LpRmL(-xb, yb, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[0], -v, -u, -t);
             Lmin = L;
         }
-        if (LpRmL(xb, -yb, -phi, t, u, v) && Lmin > (L = t - u + fabs(v))) // reflect
+        if (LpRmL(xb, -yb, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[1], v, u, t);
             Lmin = L;
         }
-        if (LpRmL(-xb, -yb, phi, t, u, v) && Lmin > (L = t - u + fabs(v))) // timeflip + reflect
+        if (LpRmL(-xb, -yb, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[1], -v, -u, -t);
@@ -272,50 +272,50 @@ namespace
     void CCCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
     {
         double t, u, v, Lmin = path.length(), L;
-        if (LpRupLumRm(x, y, phi, t, u, v) && Lmin > (L = t + 2*u - v))
+        if (LpRupLumRm(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[2], t, u, -u, v);
             Lmin = L;
         }
-        if (LpRupLumRm(-x, y, -phi, t, u, v) && Lmin > (L = t + 2*u - v)) // timeflip
+        if (LpRupLumRm(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[2], -t, -u, u, -v);
             Lmin = L;
         }
-        if (LpRupLumRm(x, -y, -phi, t, u, v) && Lmin > (L = t + 2*u - v)) // reflect
+        if (LpRupLumRm(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[3], t, u, -u, v);
             Lmin = L;
         }
-        if (LpRupLumRm(-x, -y, phi, t, u, v) && Lmin > (L = t + 2*u - v)) // timeflip + reflect
+        if (LpRupLumRm(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[3], -t, -u, u, -v);
             Lmin = L;
         }
 
-        if (LpRumLumRp(x, y, phi, t, u, v) && Lmin > (L = t - 2*u + v))
+        if (LpRumLumRp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[2], t, u, u, v);
             Lmin = L;
         }
-        if (LpRumLumRp(-x, y, -phi, t, u, v) && Lmin > (L= t - 2*u + v)) // timeflip
+        if (LpRumLumRp(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[2], -t, -u, -u, -v);
             Lmin = L;
         }
-        if (LpRumLumRp(x, -y, -phi, t, u, v) && Lmin > (L = t - 2*u + v)) // reflect
+        if (LpRumLumRp(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[3], t, u, u, v);
             Lmin = L;
         }
-        if (LpRumLumRp(-x, -y, phi, t, u, v) && Lmin > (L = t - 2*u + v)) // timeflip + reflect
+        if (LpRumLumRp(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[3], -t, -u, -u, -v);
@@ -360,50 +360,50 @@ namespace
     void CCSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
     {
         double t, u, v, Lmin = path.length() - .5*pi, L;
-        if (LpRmSmLm(x, y, phi, t, u, v) && Lmin > (L = t - u - v))
+        if (LpRmSmLm(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[4], t, -.5*pi, u, v);
             Lmin = L;
         }
-        if (LpRmSmLm(-x, y, -phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip
+        if (LpRmSmLm(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[4], -t, .5*pi, -u, -v);
             Lmin = L;
         }
-        if (LpRmSmLm(x, -y, -phi, t, u, v) && Lmin > (L = t - u - v)) // reflect
+        if (LpRmSmLm(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[5], t, -.5*pi, u, v);
             Lmin = L;
         }
-        if (LpRmSmLm(-x, -y, phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip + reflect
+        if (LpRmSmLm(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[5], -t, .5*pi, -u, -v);
             Lmin = L;
         }
 
-        if (LpRmSmRm(x, y, phi, t, u, v) && Lmin > (L = t - u - v))
+        if (LpRmSmRm(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[8], t, -.5*pi, u, v);
             Lmin = L;
         }
-        if (LpRmSmRm(-x, y, -phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip
+        if (LpRmSmRm(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[8], -t, .5*pi, -u, -v);
             Lmin = L;
         }
-        if (LpRmSmRm(x, -y, -phi, t, u, v) && Lmin > (L = t - u - v)) // reflect
+        if (LpRmSmRm(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[9], t, -.5*pi, u, v);
             Lmin = L;
         }
-        if (LpRmSmRm(-x, -y, phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip + reflect
+        if (LpRmSmRm(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[9], -t, .5*pi, -u, -v);
@@ -412,50 +412,50 @@ namespace
 
         // backwards
         double xb = x*cos(phi) + y*sin(phi), yb = x*sin(phi) - y*cos(phi);
-        if (LpRmSmLm(xb, yb, phi, t, u, v) && Lmin > (L = t - u - v))
+        if (LpRmSmLm(xb, yb, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[6], v, u, -.5*pi, t);
             Lmin = L;
         }
-        if (LpRmSmLm(-xb, yb, -phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip
+        if (LpRmSmLm(-xb, yb, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[6], -v, -u, .5*pi, -t);
             Lmin = L;
         }
-        if (LpRmSmLm(xb, -yb, -phi, t, u, v) && Lmin > (L = t - u - v)) // reflect
+        if (LpRmSmLm(xb, -yb, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[7], v, u, -.5*pi, t);
             Lmin = L;
         }
-        if (LpRmSmLm(-xb, -yb, phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip + reflect
+        if (LpRmSmLm(-xb, -yb, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[7], -v, -u, .5*pi, -t);
             Lmin = L;
         }
 
-        if (LpRmSmRm(xb, yb, phi, t, u, v) && Lmin > (L = t - u - v))
+        if (LpRmSmRm(xb, yb, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[10], v, u, -.5*pi, t);
             Lmin = L;
         }
-        if (LpRmSmRm(-xb, yb, -phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip
+        if (LpRmSmRm(-xb, yb, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[10], -v, -u, .5*pi, -t);
             Lmin = L;
         }
-        if (LpRmSmRm(xb, -yb, -phi, t, u, v) && Lmin > (L = t - u - v)) // reflect
+        if (LpRmSmRm(xb, -yb, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[11], v, u, -.5*pi, t);
             Lmin = L;
         }
-        if (LpRmSmRm(-xb, -yb, phi, t, u, v) && Lmin > (L = t - u - v)) // timeflip + reflect
+        if (LpRmSmRm(-xb, -yb, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[11], -v, -u, .5*pi, -t);
@@ -485,25 +485,25 @@ namespace
     void CCSCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
     {
         double t, u, v, Lmin = path.length() - pi, L;
-        if (LpRmSLmRp(x, y, phi, t, u, v) && Lmin > (L = t - u + v))
+        if (LpRmSLmRp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[16], t, -.5*pi, u, -.5*pi, v);
             Lmin = L;
         }
-        if (LpRmSLmRp(-x, y, -phi, t, u, v) && Lmin > (L = t - u + v)) // timeflip
+        if (LpRmSLmRp(-x, y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[16], -t, .5*pi, -u, .5*pi, -v);
             Lmin = L;
         }
-        if (LpRmSLmRp(x, -y, -phi, t, u, v) && Lmin > (L = t - u + v)) // reflect
+        if (LpRmSLmRp(x, -y, -phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[17], t, -.5*pi, u, -.5*pi, v);
             Lmin = L;
         }
-        if (LpRmSLmRp(-x, -y, phi, t, u, v) && Lmin > (L = t - u + v)) // timeflip + reflect
+        if (LpRmSLmRp(-x, -y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v))) // timeflip + reflect
         {
             path = ReedsSheppStateSpace::ReedsSheppPath(
                 ReedsSheppStateSpace::reedsSheppPathType[17], -t, .5*pi, -u, .5*pi, -v);
@@ -641,7 +641,7 @@ ompl::base::ReedsSheppStateSpace::ReedsSheppPath ompl::base::ReedsSheppStateSpac
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, c = cos(th1), s = sin(th1);
     double x = c*dx + s*dy, y = -s*dx + c*dy, phi = th2 - th1;
-    return ::reedsShepp(x, y, phi, true);
+    return ::reedsShepp(x/rho_, y/rho_, phi, true);
 }
 
 

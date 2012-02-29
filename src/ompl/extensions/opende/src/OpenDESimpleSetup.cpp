@@ -115,16 +115,16 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
     const geometric::PathGeometric &pg = ctl ?
         static_cast<PathControl*>(path.get())->asGeometric() : *static_cast<geometric::PathGeometric*>(path.get());
 
-    if (!pg.states.empty())
+    if (pg.getStateCount() > 0)
     {
-        msg_.debug("Playing through %u states (%0.3f seconds)", (unsigned int)pg.states.size(),
-                   timeFactor * si_->getPropagationStepSize() * (double)(pg.states.size() - 1));
+        msg_.debug("Playing through %u states (%0.3f seconds)", (unsigned int)pg.getStateCount(),
+                   timeFactor * si_->getPropagationStepSize() * (double)(pg.getStateCount() - 1));
         time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
-        getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.states[0]);
-        for (unsigned int i = 1 ; i < pg.states.size() ; ++i)
+        getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(0));
+        for (unsigned int i = 1 ; i < pg.getStateCount() ; ++i)
         {
             boost::this_thread::sleep(d);
-            getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.states[i]);
+            getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(i));
         }
     }
 }
@@ -140,18 +140,18 @@ ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const doub
 
 ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control* control, unsigned int steps) const
 {
-    PathControl *p(new PathControl(si_));
+    PathControl *p = new PathControl(si_);
 
     base::State *s0 = si_->allocState();
     getStateSpace()->as<OpenDEStateSpace>()->readState(s0);
-    p->states.push_back(s0);
+    p->getStates().push_back(s0);
 
     base::State *s1 = si_->allocState();
     si_->propagate(s0, control, steps, s1);
-    p->states.push_back(s1);
+    p->getStates().push_back(s1);
 
-    p->controls.push_back(si_->cloneControl(control));
-    p->controlDurations.push_back(steps);
+    p->getControls().push_back(si_->cloneControl(control));
+    p->getControlDurations().push_back(steps);
     return base::PathPtr(p);
 }
 

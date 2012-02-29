@@ -1,26 +1,31 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_9_6 OMPL 0.9.6 (XXX, 2012)
-  - Minimum Boost version is now 1.44 
-  - Added state serialization, deserialization, state space signatures
-  - Add the notion of DirectedControlSampler
-  - Add OMPL Primer
-  - Add state spaces for Dubins car and Reeds-Shepp curves
-  - Update EST, SBL and pSBL to use the PDF datastructure for representing probability density functions
-  - Added support for setting generic parameters for various classes in OMPL
-  - Fixed issues with static variables for console
-  - Added RPY sampling to the RNG class
-  - Make some public members protected for GoalState and GoalStates; improvements to GoalLazySamples
-  - Add support for multiple solution paths in a Goal datastructure
-  - Added the StateAddress class to allow faster indexing in states using state space names
-  - Added implementation of path hybridization
-  - Added a more advanced path shortcutting method
+\section release_0_10_0 OMPL 0.10.0 (February, 2012)
+- Minimum Boost version is now 1.44 (for full functionality).
+- Added a primer on sampling-based motion planning and OMPL.
+- Added an implementation of SyCLoP, a new multilayered meta-planner that combines discrete search with a sampling-based motion planner. Implementations of Syclop with RRT and EST as the low-level planners are provided.
+- Added an implementation of EST for planning with controls.
+- New generic interface for parameter settings for almost anything that is user-configurable.
+- New state spaces for Dubins vehicles and Reeds-Shepp vehicles. This allows one to use any geometric planner to compute feasible paths for such vehicles. See the demo program demo_GeometricCarPlanning.
+- Added state serialization, deserialization, state space signatures.
+- Added the notion of DirectedControlSampler.
+- Added path hybridization, a technique for combining several solutions to a motion planning query to form a better bath. We also introduced a utility class called ParallelPlan that runs several planner instances in parallel and (optionally) uses path hybridization.
+- Added a more advanced path shortcutting method.
+- All versions of EST and SBL use the new PDF class to sample more efficiently from empirical probability distribution functions.
+- Added a wrapper for boost::numeric::odeint to support high-order numerical integration of ordinary differential equations.
+- Fixed issues with static variables for console.
+- Added RPY sampling to the RNG class.
+- Made some public members protected for GoalState and GoalStates; improvements to GoalLazySamples.
+- Added support for multiple solution paths in a Goal datastructure.
+- Added StateSpace::getValueAddressAtLocation() to allow faster indexing in states using state space names.
+- The C++ code switched to the preferred boost::function syntax. A general method for exposing boost::function objects to Python was added, but this requires a patch to pygccxml.
+- To make installing and patching Py++, pygccml, and gccxml easier there is now a script called installPyPlusPlus.sh that does this. One can call this script after running cmake by typing “make installpyplusplus”.
 
 \section release_0_9_5 OMPL 0.9.5 (October 4, 2011)
 - Added control sampler functions that allow specifying an intended direction of propagation
 - Removed pre-generated Python binding code. It turns out that they are dependent on the particular Boost version.
-- Bug fixes
+- Bug fixes.
 
 \section release_0_9_4 OMPL 0.9.4 (August 16, 2011)
 - Renamed StateManifold to StateSpace and ControlManifold to ControlSpace

@@ -41,7 +41,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/PDF.h"
-#include <ompl/datastructures/gnatSampler.h>
+#include <ompl/datastructures/NearestNeighborsGNATSampler.h>
 #include <boost/unordered_map.hpp>
 #include <vector>
 
@@ -82,48 +82,19 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            GNAT(const base::SpaceInformationPtr &si, 
-								bool useProjectedDistance = false, 
-								unsigned int degree = 16, unsigned int minDegree = 2,
-								unsigned int maxDegree = 24, unsigned int maxNumPtsPerLeaf = 8,
-								unsigned int removedCacheSize = 50
-								);
+            GNAT(const base::SpaceInformationPtr &si,
+                                bool useProjectedDistance = false,
+                                unsigned int degree = 16, unsigned int minDegree = 2,
+                                unsigned int maxDegree = 24, unsigned int maxNumPtsPerLeaf = 8,
+                                unsigned int removedCacheSize = 50
+                                );
             virtual ~GNAT(void);
-            virtual void setRebuildRadius(double radius);
+
             virtual void setup(void);
 
             virtual bool solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
-
-            
-            class compactState
-						{
-							public:
-								compactState() {}
-								compactState(Motion *m, base::SpaceInformationPtr &si) : _motion(m), _si(si){ _state = m->state;}
-								compactState(Motion *m, base::SpaceInformationPtr &si, base::ProjectionEvaluatorPtr proj) : _motion(m), _si(si), _proj(proj){ _state = m->state;}
-								double distance(const compactState &b) const { return _si->distance(_state,b._state); } 
-								bool operator ==(const compactState &b) const { return _si->equalStates(_state,b._state);}
-								bool operator !=(const compactState &b) const { return !_si->equalStates(_state,b._state);}
-								Motion *getMotion() const {return _motion;}
-								base::ProjectionEvaluatorPtr getProjEv() const {return _proj;}
-							protected:
-								Motion *_motion;
-								base::State *_state;
-								base::SpaceInformationPtr _si;
-								base::ProjectionEvaluatorPtr _proj;
-						};
-            typedef boost::shared_ptr<gnatSampler<ompl::geometric::GNAT::compactState> > gnatSamplerType;
-            gnatSamplerType& getSampler()
-            {
-              return _nng;
-            }
-
-						static double defaultDistanceFunction(const ompl::geometric::GNAT::compactState &A, const ompl::geometric::GNAT::compactState &B);
-						static double defaultProjectionDistanceFunction(const ompl::geometric::GNAT::compactState &A, const ompl::geometric::GNAT::compactState &B);
-
-
 
             /** \brief In the process of randomly selecting states in
                 the state space to attempt to go towards, the
@@ -157,22 +128,6 @@ namespace ompl
             double getRange(void) const
             {
                 return maxDistance_;
-            }
-            /** \brief Set the fraction of time for focusing on the
-                border (between 0 and 1). This is the minimum fraction
-                used to select cells that are exterior (minimum
-                because if 95% of cells are on the border, they will
-                be selected with 95% chance, even if this fraction is
-                set to 90%)*/
-            void setBorderFraction(double bp)
-            {
-                _borderFraction = bp;
-            }
-            /** \brief Get the fraction of time to focus exploration
-                on boundary */
-            double getBorderFraction(void) const
-            {
-                return _borderFraction;
             }
 
             /** \brief Set the projection evaluator. This class is
@@ -225,64 +180,28 @@ namespace ompl
                 Motion            *parent;
             };
 
-            struct MotionInfo;
-
-            /** \brief A grid cell */
-            typedef Grid<MotionInfo>::Cell GridCell;
-
-            /** \brief A PDF of grid cells */
-            typedef PDF<GridCell*>        CellPDF;
-
-            /** \brief A struct containing an array of motions and a corresponding PDF element */
-            struct MotionInfo
-            {
-                Motion* operator[](unsigned int i)
-                {
-                    return motions_[i];
-                }
-                const Motion* operator[](unsigned int i) const
-                {
-                    return motions_[i];
-                }
-                void push_back(Motion* m)
-                {
-                    motions_.push_back(m);
-                }
-                unsigned int size(void) const
-                {
-                    return motions_.size();
-                }
-                bool empty(void) const
-                {
-                    return motions_.empty();
-                }
-                std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
-            };
-
-
-            /** \brief The data contained by a tree of exploration */
-            struct TreeData
-            {
-                TreeData(void) : grid(0), size(0)
-                {
-                }
-
-                /** \brief A grid where each cell contains an array of motions */
-                Grid<MotionInfo> grid;
-
-                /** \brief The total number of motions in the grid */
-                unsigned int    size;
-            };
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
-            /** \brief Queues a motion to the to be added to the GNAT sampler. Solve calls flushMotions() before execution. */
-            void addMotion(Motion *motion);
+            /** \brief Compute distance between motions (actually distance between contained states) */
+            double distanceFunction(const Motion* a, const Motion* b) const
+            {
+                return si_->distance(a->state, b->state);
+            }
 
-            /** \brief Bulk insertion of pending states. */
-            void flushMotions() const;
+            /** \brief Compute distance between motions (actually distance between projections of contained states) */
+            double projectedDistanceFunction(const Motion* a, const Motion* b) const
+            {
+                unsigned int num_dims = projectionEvaluator_->getDimension();
+                ompl::base::EuclideanProjection aproj(num_dims), bproj(num_dims);
+                projectionEvaluator_->project(a->state, aproj);
+                projectionEvaluator_->project(b->state, bproj);
+                return boost::numeric::ublas::norm_2(aproj - bproj);
+            }
+
+            /** \brief Add a motion to the exploration tree */
+            void addMotion(Motion *motion);
 
             /** \brief Select a motion to continue the expansion of the tree from */
             Motion* selectMotion(void);
@@ -292,6 +211,9 @@ namespace ompl
 
             /** \brief This algorithm uses a discretization (a grid) to guide the exploration. The exploration is imposed on a projection of the state space. */
             base::ProjectionEvaluatorPtr projectionEvaluator_;
+
+            /** \brief The exploration tree constructed by this algorithm */
+            NearestNeighborsGNATSampler<Motion*> tree_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                       goalBias_;
@@ -303,10 +225,6 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                          rng_;
-
-            /** \brief The PDF used for selecting a cell from which to sample a motion */
-            mutable boost::shared_ptr<gnatSampler<ompl::geometric::GNAT::compactState> >           _nng;
-            mutable std::vector<ompl::geometric::GNAT::compactState> _insertionQueue;
         };
 
     }

@@ -16,20 +16,39 @@ if(OMPL_IN_ROS)
 else(OMPL_IN_ROS)
     cmake_minimum_required(VERSION 2.8)
     project(ompl C CXX)
+
+    # set the default build type
+    if (NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release)
+    endif()
+
+    # This shouldn't be necessary, but there has been trouble 
+    # with MSVC being set off, but MSVCXX ON.
+    if(MSVC OR MSVC90 OR MSVC10)
+        set(MSVC ON)
+    endif (MSVC OR MSVC90 OR MSVC10)
+    
     set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
     include(CompilerSettings)
-    find_package(Boost COMPONENTS date_time thread filesystem system program_options REQUIRED)
+    find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options REQUIRED)
     include_directories(${Boost_INCLUDE_DIR})
 
     find_package(Boost COMPONENTS odeint QUIET)
-    if(NOT Boost_ODEINT_FOUND)
-        # Include bundled version of boost::odeint if it isn't installed natively
-        include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+    if (NOT ${Boost_VERSION} LESS 104400)
+        option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" ON)
+        if(NOT Boost_ODEINT_FOUND)
+            # Include bundled version of boost::odeint if it isn't installed natively
+            set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+            include_directories("${ODEINT_INCLUDE_DIR}")
+        endif()
+    else()
+        option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
     endif()
 
     if(MSVC)
         add_definitions(-DBOOST_ALL_NO_LIB)
-    endif()
+        add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
+    endif(MSVC)
     enable_testing()
 
     # ODE is only needed for Open Dynamics Engine bindings
@@ -54,5 +73,21 @@ add_subdirectory(demos)
 add_subdirectory(doc)
 
 if(NOT OMPL_IN_ROS)
+
+    if (NOT MSVC)
+        set(PKG_DESC "The Open Motion Planning Library")
+        set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
+        configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
+        install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig)
+    endif()
+
+    # uninstall target
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
     include(CPackSettings)
 endif()

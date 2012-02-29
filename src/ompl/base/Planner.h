@@ -170,7 +170,7 @@ namespace ompl
             /** \brief Check if there are more potential start states */
             bool haveMoreStartStates(void) const;
 
-            /** \brief Check if there are more potential start states */
+            /** \brief Check if there are more potential goal states */
             bool haveMoreGoalStates(void) const;
 
             /** \brief Get the number of start states from the problem
@@ -389,7 +389,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a planner */
-        typedef boost::function1<PlannerPtr,const SpaceInformationPtr&> PlannerAllocator;
+        typedef boost::function<PlannerPtr(const SpaceInformationPtr&)> PlannerAllocator;
     }
 }
 
