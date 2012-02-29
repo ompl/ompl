@@ -100,7 +100,7 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
         return false;
     }
 
-    if (!goal->canSample())
+    if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
         return false;

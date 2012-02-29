@@ -83,7 +83,7 @@ ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
 
 void ompl::geometric::SimpleSetup::setup(void)
 {
-    if (!configured_)
+    if (!configured_ || !si_->isSetup() || !planner_->isSetup())
     {
         if (!si_)
             throw Exception("No space information defined");
@@ -132,6 +132,36 @@ bool ompl::geometric::SimpleSetup::solve(double time)
     return result;
 }
 
+bool ompl::geometric::SimpleSetup::solve(const base::PlannerTerminationCondition &ptc)
+{
+    setup();
+    time::point start = time::now();
+    bool result = planner_->solve(ptc);
+    planTime_ = time::seconds(time::now() - start);
+    if (result)
+        msg_.inform("Solution found in %f seconds", planTime_);
+    else
+        msg_.inform("No solution found after %f seconds", planTime_);
+    return result;
+}
+
+void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminationCondition &ptc)
+{
+    if (pdef_ && pdef_->getGoal())
+    {
+        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        if (p)
+        {
+            time::point start = time::now();
+            psk_->simplify(static_cast<PathGeometric&>(*p), ptc);
+            simplifyTime_ = time::seconds(time::now() - start);
+            msg_.inform("Path simplification took %f seconds", simplifyTime_);
+            return;
+        }
+    }
+    msg_.warn("No solution to simplify");
+}
+
 void ompl::geometric::SimpleSetup::simplifySolution(double duration)
 {
     if (pdef_ && pdef_->getGoal())
@@ -146,12 +176,10 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
                 psk_->simplify(static_cast<PathGeometric&>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
             msg_.inform("Path simplification took %f seconds", simplifyTime_);
+            return;
         }
-        else
-            msg_.warn("No solution to simplify");
     }
-    else
-        msg_.warn("No solution to simplify");
+    msg_.warn("No solution to simplify");
 }
 
 ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const

@@ -42,6 +42,7 @@
 #include "ompl/base/Path.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/GoalTypes.h"
+#include "ompl/util/Console.h"
 #include <iostream>
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
@@ -258,6 +259,9 @@ namespace ompl
 
             /** \brief The maximum length allowed for the solution path */
             double                       maximumPathLength_;
+
+            /** \brief Console interface */
+            msg::Interface               msg_;
 
         private:
 

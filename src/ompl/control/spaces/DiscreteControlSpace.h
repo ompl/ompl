@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2012, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,78 +34,56 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_CONTROL_SPACES_REAL_VECTOR_CONTROL_SPACE_
-#define OMPL_CONTROL_SPACES_REAL_VECTOR_CONTROL_SPACE_
+#ifndef OMPL_CONTROL_SPACES_DISCRETE_CONTROL_SPACE_
+#define OMPL_CONTROL_SPACES_DISCRETE_CONTROL_SPACE_
 
 #include "ompl/control/ControlSpace.h"
-#include "ompl/base/spaces/RealVectorBounds.h"
-#include <vector>
 
 namespace ompl
 {
     namespace control
     {
 
-        /** \brief Uniform sampler for the R<sup>n</sup> state space */
-        class RealVectorControlUniformSampler : public ControlSampler
+        /** \brief Control space sampler for discrete controls */
+        class DiscreteControlSampler : public ControlSampler
         {
         public:
 
             /** \brief Constructor */
-            RealVectorControlUniformSampler(const ControlSpace *space) : ControlSampler(space)
+            DiscreteControlSampler(const ControlSpace *space) : ControlSampler(space)
             {
             }
 
             virtual void sample(Control *control);
         };
 
-        /** \brief A control space representing R<sup>n</sup>. */
-        class RealVectorControlSpace : public ControlSpace
+        /** \brief A space representing discrete controls; i.e. there
+            are a small number of discrete controls the system can react to.
+            Controls are represented as integers [lowerBound, upperBound],
+            where lowerBound and upperBound are inclusive. */
+        class DiscreteControlSpace : public ControlSpace
         {
         public:
 
-            /** \brief The definition of a control in R<sup>n</sup> */
+            /** \brief The definition of a discrete control */
             class ControlType : public Control
             {
             public:
 
-                /** \brief Access element i of values.  This does not
-                    check whether the index is within bounds */
-                double operator[](unsigned int i) const
-                {
-                    return values[i];
-                }
-
-                /** \brief Access element i of values.  This does not
-                    check whether the index is within bounds */
-                double& operator[](unsigned int i)
-                {
-                    return values[i];
-                }
-
-                /** \brief An array of length \e n, representing the value of the control */
-                double *values;
+                /** \brief The current control - an int in range [lowerBound, upperBound] */
+                int value;
             };
 
-            /** \brief Constructor takes the state space the controls correspond to and the dimension of the space of controls, \e dim */
-            RealVectorControlSpace(const base::StateSpacePtr &stateSpace, unsigned int dim) :
-                ControlSpace(stateSpace), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
+            /** \brief Construct a discrete space in wich controls can take values in the set [\e lowerBound, \e upperBound] */
+            DiscreteControlSpace(const base::StateSpacePtr &stateSpace, int lowerBound, int upperBound) :
+                ControlSpace(stateSpace), lowerBound_(lowerBound), upperBound_(upperBound)
             {
-                setName("RealVector" + getName());
-                type_ = CONTROL_SPACE_REAL_VECTOR;
+                setName("Discrete" + getName());
+                type_ = CONTROL_SPACE_DISCRETE;
             }
 
-            virtual ~RealVectorControlSpace(void)
+            virtual ~DiscreteControlSpace(void)
             {
-            }
-
-            /** \brief Set the bounds (min max values for each dimension) for the control */
-            void setBounds(const base::RealVectorBounds &bounds);
-
-            /** \brief Get the bounds (min max values for each dimension) for the control */
-            const base::RealVectorBounds& getBounds(void) const
-            {
-                return bounds_;
             }
 
             virtual unsigned int getDimension(void) const;
@@ -120,27 +98,49 @@ namespace ompl
 
             virtual void freeControl(Control *control) const;
 
+            /** \brief This sets the control value to \e lowerBound_ */
             virtual void nullControl(Control *control) const;
 
             virtual void printControl(const Control *control, std::ostream &out) const;
 
-            virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
-
             virtual void printSettings(std::ostream &out) const;
+
+            /** \brief Returns the number of controls possible */
+            unsigned int getControlCount(void) const
+            {
+                return upperBound_ - lowerBound_ + 1;
+            }
+
+            /** \brief Returns the lowest possible control value */
+            int getLowerBound(void) const
+            {
+                return lowerBound_;
+            }
+
+            /** \brief Returns the highest possible control value */
+            int getUpperBound(void) const
+            {
+                return upperBound_;
+            }
+
+            /** \brief Set the bounds for the states in this space (the states will be in the set [\e lowerBound, \e upperBound] */
+            void setBounds(int lowerBound, int upperBound)
+            {
+                lowerBound_ = lowerBound;
+                upperBound_ = upperBound;
+            }
 
             virtual void setup(void);
 
         protected:
 
-            /** \brief The dimension of the state space */
-            unsigned int           dimension_;
+            /** \brief The lowest integer state */
+            int lowerBound_;
 
-            /** \brief The bounds on controls */
-            base::RealVectorBounds bounds_;
-
-        private:
-            std::size_t            controlBytes_;
+            /** \brief The highest integer state */
+            int upperBound_;
         };
+
     }
 }
 

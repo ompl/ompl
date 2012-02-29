@@ -346,7 +346,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
         return false;
     }
 
-    if (!goal->canSample())
+    if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
         return false;

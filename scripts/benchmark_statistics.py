@@ -59,7 +59,7 @@ def read_benchmark_log(dbname, filenames):
     c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
         (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
-        print "Processing " + filename
+        print("Processing " + filename)
         logfile = open(filename,'r')
         expname =  logfile.readline().split()[-1]
         hostname = logfile.readline().split()[-1]
@@ -84,7 +84,7 @@ def read_benchmark_log(dbname, filenames):
 
         for i in range(num_planners):
             planner_name = logfile.readline()[:-1]
-            print "Parsing data for", planner_name
+            print("Parsing data for " + planner_name)
 
             # read common data for planner
             num_common = int(logfile.readline().split()[0])
@@ -129,14 +129,14 @@ def read_benchmark_log(dbname, filenames):
             c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" %  (planner_table, table_columns))
 
             # check if the table has all the needed columns; if not, add them
-            c.execute('SELECT * FROM %s' % planner_table)
+            c.execute('SELECT * FROM `%s`' % planner_table)
             added_columns = [ t[0] for t in c.description]
             for col in properties.keys():
                 if not col in added_columns:
-                    c.execute('ALTER TABLE ' + planner_table + ' ADD ' + col + ' ' + properties[col] + ';')
+                    c.execute('ALTER TABLE `' + planner_table + '` ADD ' + col + ' ' + properties[col] + ';')
 
             # add measurements
-            insert_fmt_str = 'INSERT INTO ' + planner_table + ' (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
+            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
 
             num_runs = int(logfile.readline().split()[0])
             for j in range(num_runs):
@@ -162,11 +162,11 @@ def plot_attribute(cur, planners, attribute, typename):
         cur.execute('SELECT * FROM `%s`' % planner)
         attributes = [ t[0] for t in cur.description]
         if attribute in attributes:
-            cur.execute('SELECT %s FROM `%s` WHERE %s IS NOT NULL' % (attribute, planner, attribute))
+            cur.execute('SELECT `%s` FROM `%s` WHERE `%s` IS NOT NULL' % (attribute, planner, attribute))
             measurement = [ t[0] for t in cur.fetchall() ]
-            cur.execute('SELECT count(*) FROM `%s` WHERE %s IS NULL' % (planner, attribute))
+            cur.execute('SELECT count(*) FROM `%s` WHERE `%s` IS NULL' % (planner, attribute))
             nan_counts.append(cur.fetchone()[0])
-            cur.execute('SELECT DISTINCT %s FROM %s' % (attribute, planner))
+            cur.execute('SELECT DISTINCT `%s` FROM `%s`' % (attribute, planner))
             is_bool = is_bool and set([t[0] for t in cur.fetchall() if not t[0]==None]).issubset(set([0,1]))
             measurements.append(measurement)
             labels.append(planner.replace('planner_geometric_','').replace('planner_control_',''))
@@ -196,7 +196,7 @@ def plot_attribute(cur, planners, attribute, typename):
 
 def plot_statistics(dbname, fname):
     """Create a PDF file with box plots for all attributes."""
-    print "Generating plot..."
+    print("Generating plot...")
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
@@ -208,13 +208,13 @@ def plot_statistics(dbname, fname):
     experiments = []
     # merge possible attributes from all planners
     for p in planner_names:
-        c.execute('SELECT * FROM %s LIMIT 1' % p)
+        c.execute('SELECT * FROM `%s` LIMIT 1' % p)
         atr = [ t[0] for t in c.description]
         atr.remove('plannerid')
         atr.remove('experimentid')
         for a in atr:
             if a not in attributes:
-                c.execute('SELECT typeof(%s) FROM %s WHERE %s IS NOT NULL LIMIT 1' % (a, p, a))
+                c.execute('SELECT typeof(`%s`) FROM `%s` WHERE `%s` IS NOT NULL LIMIT 1' % (a, p, a))
                 attributes.append(a)
                 types[a] = c.fetchone()[0]
         c.execute('SELECT DISTINCT experimentid FROM `%s`' % p)
@@ -236,7 +236,7 @@ def plot_statistics(dbname, fname):
         # get the number of runs, per planner, for this experiment
         runcount = []
         for p in planner_names:
-            c.execute('SELECT count(*) FROM %s WHERE experimentid = %s' % (p, e))
+            c.execute('SELECT count(*) FROM `%s` WHERE experimentid = %s' % (p, e))
             runcount.append(c.fetchone()[0])
 
         # check if this number is the same for all planners
@@ -261,7 +261,7 @@ def plot_statistics(dbname, fname):
 def save_as_mysql(dbname, mysqldump):
     # See http://stackoverflow.com/questions/1067060/perl-to-python
     import re
-    print "Saving as MySQL dump file..."
+    print("Saving as MySQL dump file...")
 
     conn = sqlite3.connect(dbname)
     mysqldump = open(mysqldump,'w')
@@ -335,7 +335,7 @@ def compute_views(dbname):
 
         for enm in exps:
             # select all runs, in all configurations, for a particular problem and a particular planner
-            s0 = 'SELECT * FROM `%s` INNER JOIN experiments ON %s.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
+            s0 = 'SELECT * FROM `%s` INNER JOIN experiments ON `%s`.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
             # select the highest solve rate and shortest average runtime for each planner configuration
             if has_simplification_time:
                 s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
@@ -346,21 +346,21 @@ def compute_views(dbname):
             if not best == None:
                 if not best[0] == None:
                     bp = 'best_' + enm + '_' + p
-                    print "Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0])
+                    print("Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0]))
                     c.execute('DROP VIEW IF EXISTS `%s`' % bp)
                     c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
 
         if has_simplification_time:
-            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
         else:
-            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM %s GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
+            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
         best = c.fetchone()
         if not best == None:
             if not best[0] == None:
                 bp = 'best_' + p
-                print "Best overall plannner configuration for planner " + p + " on is " + str(best[0])
+                print("Best overall plannner configuration for planner " + p + " on is " + str(best[0]))
                 c.execute('DROP VIEW IF EXISTS `%s`' % bp)
-                c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM %s WHERE plannerid = %s' % (bp, tname, best[0]))
+                c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM `%s` WHERE plannerid = %s' % (bp, tname, best[0]))
     conn.commit()
     c.close()
 

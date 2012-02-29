@@ -54,12 +54,13 @@ if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.6)
 else()
   get_filename_component(PYTHON_EXEC_ "${PYTHON_EXEC}" ABSOLUTE)
 endif()
+set(PYTHON_EXEC "${PYTHON_EXEC_}" CACHE FILEPATH "Path to Python interpreter")
 
 string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX "${PYTHON_EXEC_}")
 string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX2 "${PYTHON_EXEC}")
 
 execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-    "import sys; print '%d.%d' % (sys.version_info[0],sys.version_info[1])"
+    "import sys; print('%d.%d' % (sys.version_info[0],sys.version_info[1]))"
     OUTPUT_VARIABLE PYTHON_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REPLACE "." "" PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
@@ -76,11 +77,11 @@ find_path(PYTHON_INCLUDE_DIRS "Python.h"
     PATHS
         "${PYTHON_PREFIX}/include"
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION}\\InstallPath]/include
-    PATH_SUFFIXES python${PYTHON_VERSION}
+    PATH_SUFFIXES python${PYTHON_VERSION} python${PYTHON_VERSION}m
     DOC "Python include directories" NO_DEFAULT_PATH)
 
 execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-    "from distutils.sysconfig import get_python_lib; print get_python_lib()"
+    "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
     OUTPUT_VARIABLE PYTHON_SITE_MODULES_
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REGEX REPLACE "^${PYTHON_PREFIX2}/" "" PYTHON_SITE_MODULES "${PYTHON_SITE_MODULES_}")
@@ -100,7 +101,7 @@ function(find_python_module module)
         # A module's location is usually a directory, but for binary modules
         # it's a .so file.
         execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-            "import re, ${module}; print re.compile('/__init__.py.*').sub('',${module}.__file__)"
+            "import re, ${module}; print(re.compile('/__init__.py.*').sub('',${module}.__file__))"
             RESULT_VARIABLE _${module}_status
             OUTPUT_VARIABLE _${module}_location
             ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)

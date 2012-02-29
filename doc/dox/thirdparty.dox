@@ -7,7 +7,7 @@ This page includes a list of extensions to OMPL provided by the community. The c
 
 \section ompl_ros_interface ROS Interface to OMPL
 
-\subsection ompl_ros_author Author: Sachin Chitta
+\subsection ompl_ros_author Author: Sachin Chitta (Willow Garage)
 <ul>
 <li>The <a href="http://www.ros.org/wiki/ompl_ros_interface">ompl_ros_interface</a> ROS package wraps OMPL such that motion planners can be easily set up for your robot. Most configuration is automated. However, you will have to specify the parts of the robot for which you want to create a motion planner.
 </li>
@@ -47,7 +47,7 @@ such functions for PRM and PRM*.
 
 \section rrt_ctrl_contrib RRT extension for planning with controls
 
-\subsection rrt_ctrl_contrib_authors Author: Jennifer Barry
+\subsection rrt_ctrl_contrib_authors Author: Jennifer Barry (MIT)
 <ul>
 <li>
 Generalized the implementation of RRT (with controls) so that

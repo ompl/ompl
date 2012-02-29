@@ -63,7 +63,7 @@ ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
 
 void ompl::control::SimpleSetup::setup(void)
 {
-    if (!configured_)
+    if (!configured_ || !si_->isSetup() || !planner_->isSetup())
     {
         if (!si_)
             throw Exception("No space information defined");
@@ -104,6 +104,19 @@ bool ompl::control::SimpleSetup::solve(double time)
     setup();
     time::point start = time::now();
     bool result = planner_->solve(time);
+    planTime_ = time::seconds(time::now() - start);
+    if (result)
+        msg_.inform("Solution found in %f seconds", planTime_);
+    else
+        msg_.inform("No solution found after %f seconds", planTime_);
+    return result;
+}
+
+bool ompl::control::SimpleSetup::solve(const base::PlannerTerminationCondition &ptc)
+{
+    setup();
+    time::point start = time::now();
+    bool result = planner_->solve(ptc);
     planTime_ = time::seconds(time::now() - start);
     if (result)
         msg_.inform("Solution found in %f seconds", planTime_);

@@ -167,17 +167,17 @@ def plan(samplerIndex):
     # attempt to solve the problem within ten seconds of planning time
     solved = ss.solve(10.0)
     if (solved):
-        print "Found solution:"
+        print("Found solution:")
         # print the path to screen
-        print ss.getSolutionPath()
+        print(ss.getSolutionPath())
     else:
-        print "No solution found"
+        print("No solution found")
 
 
 if __name__ == '__main__':
-    print "Using default uniform sampler:"
+    print("Using default uniform sampler:")
     plan(0)
-    print "\nUsing obstacle-based sampler:"
+    print("\nUsing obstacle-based sampler:")
     plan(1)
-    print "\nUsing my sampler:"
+    print("\nUsing my sampler:")
     plan(2)

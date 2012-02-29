@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2012, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,38 +34,32 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/StateSampler.h"
-#include "ompl/base/StateSpace.h"
+#ifndef OMPL_CONTROL_CONTROL_SPACE_TYPES_
+#define OMPL_CONTROL_CONTROL_SPACE_TYPES_
 
-void ompl::base::CompoundStateSampler::addSampler(const StateSamplerPtr &sampler, double weightImportance)
+namespace ompl
 {
-    samplers_.push_back(sampler);
-    weightImportance_.push_back(weightImportance);
-    samplerCount_ = samplers_.size();
+    namespace control
+    {
+
+        /** \brief The type of a control space */
+        enum ControlSpaceType
+            {
+
+                /** \brief Unset type; this is the default type */
+                CONTROL_SPACE_UNKNOWN     =  0,
+
+                /** \brief ompl::control::RealVectorControlSpace */
+                CONTROL_SPACE_REAL_VECTOR =  1,
+
+                /** \brief ompl::control::DiscreteControlSpace */
+                CONTROL_SPACE_DISCRETE    =  2,
+
+                /** \brief Number of control space types; To add new types,
+                    use values that are larger than the count */
+                CONTROL_SPACE_TYPE_COUNT
+            };
+    }
 }
 
-void ompl::base::CompoundStateSampler::sampleUniform(State *state)
-{
-    State **comps = state->as<CompoundState>()->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-        samplers_[i]->sampleUniform(comps[i]);
-}
-
-void ompl::base::CompoundStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
-{
-    State **comps = state->as<CompoundState>()->components;
-    State **nearComps = near->as<CompoundState>()->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-        if (weightImportance_[i] > std::numeric_limits<double>::epsilon())
-            samplers_[i]->sampleUniformNear(comps[i], nearComps[i], distance / weightImportance_[i]);
-        else
-            samplers_[i]->sampleUniform(comps[i]);
-}
-
-void ompl::base::CompoundStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
-{
-    State **comps = state->as<CompoundState>()->components;
-    State **meanComps = mean->as<CompoundState>()->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-        samplers_[i]->sampleGaussian(comps[i], meanComps[i], stdDev);
-}
+#endif

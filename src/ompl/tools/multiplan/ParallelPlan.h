@@ -53,14 +53,6 @@ namespace ompl
     namespace tools
     {
 
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::tools::ParallelPlan */
-        ClassForward(ParallelPlan);
-        /// @endcond
-
-        /** \class ompl::tools::ParallelPlanPtr
-            \brief A boost shared pointer wrapper for ompl::ParallelPlan */
-
         /** \brief This is a utility that allows executing multiple
             planners in parallel, until one or more find a
             solution. Optionally, the results are automatically hybridized

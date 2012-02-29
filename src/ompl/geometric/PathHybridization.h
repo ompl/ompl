@@ -78,7 +78,7 @@ namespace ompl
             /** \brief Get the currently computed hybrid path. computeHybridPath() needs to have been called before. */
             const base::PathPtr& getHybridPath(void) const;
 
-            /** \brief Run Dijskstra's algorithm to find out the shortest path among the mixed ones */
+            /** \brief Run Dijkstra's algorithm to find out the shortest path among the mixed ones */
             void computeHybridPath(void);
 
             /** \brief Add a path to the hybridization. If \e matchAcrossGaps is true, more possible edge connections are evaluated.

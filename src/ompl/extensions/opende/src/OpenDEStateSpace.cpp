@@ -248,6 +248,66 @@ void ompl::control::OpenDEStateSpace::freeState(base::State *state) const
     CompoundStateSpace::freeState(state);
 }
 
+// this function should most likely not be used with OpenDE propagations, but just in case it is called, we need to make sure the collision information
+// is cleared from the resulting state
+void ompl::control::OpenDEStateSpace::interpolate(const base::State *from, const base::State *to, const double t, base::State *state) const
+{
+    CompoundStateSpace::interpolate(from, to, t, state);
+    state->as<StateType>()->collision = 0;
+}
+
+/// @cond IGNORE
+namespace ompl
+{
+    namespace control
+    {
+        // we need to make sure any collision information is cleared when states are sampled (just in case this ever happens)
+        class WrapperForOpenDESampler : public ompl::base::StateSampler
+        {
+        public:
+            WrapperForOpenDESampler(const base::StateSpace *space, const base::StateSamplerPtr &wrapped) : base::StateSampler(space), wrapped_(wrapped)
+            {
+            }
+
+            virtual void sampleUniform(ompl::base::State *state)
+            {
+                wrapped_->sampleUniform(state);
+                state->as<OpenDEStateSpace::StateType>()->collision = 0;
+            }
+
+            virtual void sampleUniformNear(base::State *state, const base::State *near, const double distance)
+            {
+                wrapped_->sampleUniformNear(state, near, distance);
+                state->as<OpenDEStateSpace::StateType>()->collision = 0;
+            }
+
+            virtual void sampleGaussian(base::State *state, const base::State *mean, const double stdDev)
+            {
+                wrapped_->sampleGaussian(state, mean, stdDev);
+                state->as<OpenDEStateSpace::StateType>()->collision = 0;
+            }
+        private:
+            base::StateSamplerPtr wrapped_;
+        };
+    }
+}
+/// @endcond
+
+ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocDefaultStateSampler(void) const
+{
+    base::StateSamplerPtr sampler = base::CompoundStateSpace::allocDefaultStateSampler();
+    return base::StateSamplerPtr(new WrapperForOpenDESampler(this, sampler));
+}
+
+ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocStateSampler(void) const
+{
+    base::StateSamplerPtr sampler = base::CompoundStateSpace::allocStateSampler();
+    if (dynamic_cast<WrapperForOpenDESampler*>(sampler.get()))
+        return sampler;
+    else
+        return base::StateSamplerPtr(new WrapperForOpenDESampler(this, sampler));
+}
+
 void ompl::control::OpenDEStateSpace::readState(base::State *state) const
 {
     StateType *s = state->as<StateType>();
@@ -277,6 +337,7 @@ void ompl::control::OpenDEStateSpace::readState(base::State *state) const
         s_rot.y = rot[2];
         s_rot.z = rot[3];
     }
+    s->collision = 0;
 }
 
 void ompl::control::OpenDEStateSpace::writeState(const base::State *state) const

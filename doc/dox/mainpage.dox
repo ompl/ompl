@@ -40,8 +40,8 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
       <div class="pagination-centered"><img src="../images/mp.jpg"></div>
       </div>
       <div class="item">
-      <img src="../images/mp.jpg" class="hidden">
-        <div class="carousel-caption carousel-caption-inset"><h4>New in 0.10.0!</h4>
+      <img src="../images/mp.jpg" class="hidden" style="margin-top: 1px">
+        <div class="carousel-caption carousel-caption-inset"><h4>New in 0.10!</h4>
         <ul>
            <li>SyCLoP, a new multilayered meta-planner.
            <li>EST for planning with controls.
@@ -82,9 +82,9 @@ href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 
 - The <a class="el" href="http://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on sampling-based motion planning, and an overview of OMPL.
 - \ref download "Download" and \ref installation "install" OMPL.
-- \ref demos
+- \ref demos "Demos" and \ref tutorials "tutorials"
+- \ref FAQ
 - Familiarize yourself with the \ref boost "Boost structures" used throughout OMPL.
-- \ref tutorials
 - Learn how to integrate your own code with \ref buildSystem "OMPL's build system".
 - If interested in using Python, make sure to read \ref python "the documentation for the Python bindings".
 

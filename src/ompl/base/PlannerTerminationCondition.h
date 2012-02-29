@@ -175,7 +175,10 @@ namespace ompl
             PlannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2);
         };
 
+        /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time) */
         PlannerTerminationCondition         timedPlannerTerminationCondition(double duration);
+
+        /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time), but is checked in a separate thread, every \e interval seconds; \e interval must be less than \e duration */
         PlannerThreadedTerminationCondition timedPlannerTerminationCondition(double duration, double interval);
     }
 }

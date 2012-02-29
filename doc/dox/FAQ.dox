@@ -12,8 +12,7 @@
 
 - Q: <em>How do I specify collision checking for a planner?</em>
   <br>
-  A: See ompl::base::SpaceInformation::setStateValidityChecker() and
-  ompl::base::StateValidityChecker.
+  A: See \ref stateValidation "state validation".
 
 - Q: <em>Can I visualize the exploration datastructure used by a planner?</em>
   <br>
@@ -35,10 +34,9 @@
   ompl::base::SpaceInformation::allocValidStateSampler().  By default,
   ompl::base::SpaceInformation::allocValidStateSampler() produces an
   instance of ompl::base::UniformValidStateSampler, unless a sampler
-  allocator was specified. Calling
-  ompl::base::SpaceInformation::setValidStateSamplerAllocator() allows
-  the user to specify the valid state sampler allocator, thus changing
-  the sampling strategy used by planners.
+  allocator was specified. The simplest way to change which sampler is allocated is to specify a sampler allocator.
+  Calling ompl::base::SpaceInformation::setValidStateSamplerAllocator() allows
+  the user to do just that:
   @code
   #include "ompl/base/samplers/ObstacleBasedValidStateSampler.h"
   ...
@@ -53,11 +51,10 @@
   // for simplified calls, you can also use:
   // si->setValidStateSamplerAllocator(&allocValidStateSampler);
   @endcode
-
-<br>
+  The example above is similarly applicable for ompl::base::StateSamplerAllocator ompl::control::ControlSamplerAllocator, ompl::control::DirectedControlSamplerAllocator and ompl::base::PlannerAllocator.
+<br><br>
 If your question is still not answered, another good place to check is
-the <a
-href="http://sourceforge.net/mailarchive/forum.php?forum_name=ompl-users">mailing
+the <a href="http://sourceforge.net/mailarchive/forum.php?forum_name=ompl-users">mailing
 list archive</a>.
 
 

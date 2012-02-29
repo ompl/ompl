@@ -322,6 +322,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         if (!planners_[i]->isSetup())
             planners_[i]->setup();
         exp_.planners[i].name = (gsetup_ ? "geometric_" : "control_") + planners_[i]->getName();
+        msg_.inform("Configured " + exp_.planners[i].name);
     }
 
     msg_.inform("Done configuring planners.");

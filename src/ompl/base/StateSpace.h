@@ -282,7 +282,7 @@ namespace ompl
             /** \brief Allocate an instance of the state sampler for this space. This sampler will be allocated with the
                 sampler allocator that was previously specified by setStateSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultStateSampler() is called */
-            StateSamplerPtr allocStateSampler(void) const;
+            virtual StateSamplerPtr allocStateSampler(void) const;
 
             /** \brief Set the sampler allocator to use */
             void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
@@ -403,6 +403,10 @@ namespace ompl
             static void List(std::ostream &out);
 
             /** @} */
+
+            /** \brief Compute the location information for various components of the state space. Either this function or setup() must be
+                called before any calls to getValueAddressAtName(), getValueAddressAtLocation() (and other functions where those are used). */
+            virtual void computeLocations(void);
 
             /** \brief Perform final setup steps. This function is
                 automatically called by the SpaceInformation. If any
@@ -604,6 +608,8 @@ namespace ompl
             virtual void printState(const State *state, std::ostream &out) const;
 
             virtual void printSettings(std::ostream &out) const;
+
+            virtual void computeLocations(void);
 
             virtual void setup(void);
 

@@ -229,6 +229,9 @@ namespace ompl
             /** \brief Run the planner for a specified amount of time (default is 1 second) */
             virtual bool solve(double time = 1.0);
 
+            /** \brief Run the planner until \e ptc becomes true (at most) */
+            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+
             /** \brief Get the amount of time (in seconds) spent during the last planning step */
             double getLastPlanComputationTime(void) const
             {

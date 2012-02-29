@@ -1,2 +1,2 @@
 from ompl import base
-from _control import *
+from ompl.control._control import *

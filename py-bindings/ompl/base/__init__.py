@@ -1,2 +1,2 @@
 from ompl import util
-from _base import *
+from ompl.base._base import *
