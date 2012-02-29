@@ -638,13 +638,14 @@ unsigned int ompl::base::StateSpace::validSegmentCount(const State *state1, cons
     return longestValidSegmentCountFactor_ * (unsigned int)ceil(distance(state1, state2) / longestValidSegment_);
 }
 
-ompl::base::CompoundStateSpace::CompoundStateSpace(void) : StateSpace(), componentCount_(0), locked_(false)
+ompl::base::CompoundStateSpace::CompoundStateSpace(void) : StateSpace(), componentCount_(0), weightSum_(0.0), locked_(false)
 {
     setName("Compound" + getName());
 }
 
 ompl::base::CompoundStateSpace::CompoundStateSpace(const std::vector<StateSpacePtr> &components,
-                                                   const std::vector<double> &weights) : StateSpace(), componentCount_(0), locked_(false)
+                                                   const std::vector<double> &weights) :
+    StateSpace(), componentCount_(0), weightSum_(0.0), locked_(false)
 {
     if (components.size() != weights.size())
         throw Exception("Number of component spaces and weights are not the same");
@@ -661,6 +662,7 @@ void ompl::base::CompoundStateSpace::addSubSpace(const StateSpacePtr &component,
         throw Exception("Subspace weight cannot be negative");
     components_.push_back(component);
     weights_.push_back(weight);
+    weightSum_ += weight;
     componentCount_ = components_.size();
 }
 
@@ -740,7 +742,10 @@ void ompl::base::CompoundStateSpace::setSubSpaceWeight(const unsigned int index,
     if (weight < 0.0)
         throw Exception("Subspace weight cannot be negative");
     if (componentCount_ > index)
+    {
+        weightSum_ += weight - weights_[index];
         weights_[index] = weight;
+    }
     else
         throw Exception("Subspace index does not exist");
 }
@@ -890,8 +895,12 @@ void ompl::base::CompoundStateSpace::interpolate(const State *from, const State 
 ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSampler(void) const
 {
     CompoundStateSampler *ss = new CompoundStateSampler(this);
-    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-        ss->addSampler(components_[i]->allocStateSampler(), weights_[i] * components_[i]->getMaximumExtent() / maxExtent_);
+    if (weightSum_ < std::numeric_limits<double>::epsilon())
+	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	    ss->addSampler(components_[i]->allocStateSampler(), 1.0);
+    else
+	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+	    ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / weightSum_);
     return StateSamplerPtr(ss);
 }
 

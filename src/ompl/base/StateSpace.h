@@ -627,6 +627,9 @@ namespace ompl
             /** \brief The weight assigned to each component of the state space when computing the compound distance */
             std::vector<double>           weights_;
 
+            /** \brief The sum of all the weights in \e weights_ */
+            double                        weightSum_;
+
             /** \brief Flag indicating whether adding further components is allowed or not */
             bool                          locked_;
 
