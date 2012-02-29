@@ -83,9 +83,9 @@ def plan():
     # perform setup steps for the planner
     planner.setup()
     # print the settings for this space
-    print si.settings()
+    print(si.settings())
     # print the problem settings
-    print pdef
+    print(pdef)
     # attempt to solve the problem within one second of planning time
     solved = planner.solve(1.0)
 
@@ -93,9 +93,9 @@ def plan():
         # get the goal representation from the problem definition (not the same as the goal state)
         # and inquire about the found path
         path = pdef.getGoal().getSolutionPath()
-        print "Found solution:\n", path
+        print("Found solution:\n%s" % path)
     else:
-        print "No solution found"
+        print("No solution found")
 
 
 def planWithSimpleSetup():
@@ -134,10 +134,10 @@ def planWithSimpleSetup():
         # try to shorten the path
         ss.simplifySolution()
         # print the simplified path
-        print ss.getSolutionPath()
+        print(ss.getSolutionPath())
 
 
 if __name__ == "__main__":
     plan()
-    print ""
+    print("")
     planWithSimpleSetup()

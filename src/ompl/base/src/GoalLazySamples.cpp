@@ -55,6 +55,7 @@ void ompl::base::GoalLazySamples::startSampling(void)
 {
     if (samplingThread_ == NULL)
     {
+        msg_.debug("Starting goal sampling thread");
         terminateSamplingThread_ = false;
         samplingThread_ = new boost::thread(&GoalLazySamples::goalSamplingThread, this);
     }
@@ -64,21 +65,34 @@ void ompl::base::GoalLazySamples::stopSampling(void)
 {
     if (isSampling())
     {
+        msg_.debug("Attempting to stop goal sampling thread...");
         terminateSamplingThread_ = true;
         samplingThread_->join();
         delete samplingThread_;
         samplingThread_ = NULL;
     }
+    else
+        if (samplingThread_)
+        { // join a finished thread
+            samplingThread_->join();
+            delete samplingThread_;
+            samplingThread_ = NULL;
+        }
 }
 
 void ompl::base::GoalLazySamples::goalSamplingThread(void)
 {
-    // wait for everything to be set up before performing computation
-    while (!terminateSamplingThread_ && !si_->isSetup())
-        boost::this_thread::sleep(time::seconds(0.01));
+    if (!si_->isSetup())
+    {
+        msg_.debug("Waiting for space information to be set up before the sampling thread can begin computation...");
+        // wait for everything to be set up before performing computation
+        while (!terminateSamplingThread_ && !si_->isSetup())
+            boost::this_thread::sleep(time::seconds(0.01));
+    }
 
     if (!terminateSamplingThread_ && samplerFunc_)
     {
+        msg_.debug("Beginning sampling thread computation");
         ScopedState<> s(si_);
         while (!terminateSamplingThread_ && samplerFunc_(this, s.get()))
         {
@@ -87,7 +101,11 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
                 addStateIfDifferent(s.get(), minDist_);
         }
     }
+    else
+            msg_.warn("Goal sampling thread never did any work.%s",
+                  samplerFunc_ ? (si_->isSetup() ? "" : " Space information not set up.") : " No sampling function set.");
     terminateSamplingThread_ = true;
+    msg_.debug("Stopped goal sampling thread");
 }
 
 bool ompl::base::GoalLazySamples::isSampling(void) const
@@ -95,9 +113,9 @@ bool ompl::base::GoalLazySamples::isSampling(void) const
     return terminateSamplingThread_ == false && samplingThread_ != NULL;
 }
 
-bool ompl::base::GoalLazySamples::canSample(void) const
+bool ompl::base::GoalLazySamples::couldSample(void) const
 {
-    return maxSampleCount() > 0 || isSampling();
+    return canSample() || isSampling();
 }
 
 void ompl::base::GoalLazySamples::clear(void)

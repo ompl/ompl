@@ -51,14 +51,12 @@ namespace ompl
         {
         public:
 
-            PlannerSolutionSet(void) : msg_("Goal")
+            PlannerSolutionSet(void)
             {
             }
 
             void add(const PlannerSolution &s)
             {
-                if (s.approximate_)
-                    msg_.warn("Adding approximate solution");
                 boost::mutex::scoped_lock slock(lock_);
                 int index = solutions_.size();
                 solutions_.push_back(s);
@@ -117,15 +115,14 @@ namespace ompl
 
             std::vector<PlannerSolution> solutions_;
             boost::mutex                 lock_;
-            msg::Interface               msg_;
         };
     }
 }
-
 /// @endcond
 
 ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
-    type_(GOAL_ANY), si_(si), maximumPathLength_(std::numeric_limits<double>::infinity()), solutions_(new PlannerSolutionSet())
+    type_(GOAL_ANY), si_(si), maximumPathLength_(std::numeric_limits<double>::infinity()),
+    msg_("Goal"), solutions_(new PlannerSolutionSet())
 {
 }
 
@@ -146,6 +143,8 @@ ompl::base::PathPtr ompl::base::Goal::getSolutionPath(void) const
 
 void ompl::base::Goal::addSolutionPath(const PathPtr &path, bool approximate, double difference) const
 {
+    if (approximate)
+        msg_.warn("Adding approximate solution");
     solutions_->add(PlannerSolution(path, approximate, difference));
 }
 

@@ -1,2 +1,2 @@
 from ompl import base
-from _geometric import *
+from ompl.geometric._geometric import *

@@ -34,8 +34,8 @@
 
 /* Author: Elizabeth Fudge */
 
-#ifndef OMPL_BASE_SPACE_DISCRETE_STATE_SPACE_
-#define OMPL_BASE_SPACE_DISCRETE_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_DISCRETE_STATE_SPACE_
+#define OMPL_BASE_SPACES_DISCRETE_STATE_SPACE_
 
 #include "ompl/base/StateSpace.h"
 
@@ -64,7 +64,8 @@ namespace ompl
             States are represented as integers [lowerBound, upperBound],
             where lowerBound and upperBound are inclusive.
             States do not wrap around; i.e. the distance between state
-            lowerBound and state upperBound is upperBound-lowerBound, NOT 1. */
+            lowerBound and state upperBound is upperBound-lowerBound.
+            The dimension of the space is 1. */
         class DiscreteStateSpace : public StateSpace
         {
         public:

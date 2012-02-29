@@ -53,7 +53,9 @@ SOLUTION_TIME = 10.0
 
 class Environment(object):
     def __init__(self, fname):
-        lines = open(fname, 'r').readlines()
+        fp = open(fname, 'r')
+        lines = fp.readlines()
+        fp.close()
         self.width, self.height = [int(i) for i in lines[0].split(' ')[1:3]]
         self.grid = []
         self.start = [int(i) for i in lines[1].split(' ')[1:3]]
@@ -142,7 +144,7 @@ class TestPlanner(object):
             elapsed = clock() - startTime
             time = time + elapsed
             if show:
-                print 'Found solution in %f seconds!' % elapsed
+                print('Found solution in %f seconds!' % elapsed)
 
             path = goal.getSolutionPath()
             sm = og.PathSimplifier(si)
@@ -151,12 +153,12 @@ class TestPlanner(object):
             elapsed = clock() - startTime
             time = time + elapsed
             if show:
-                print 'Simplified solution in %f seconds!' % elapsed
+                print('Simplified solution in %f seconds!' % elapsed)
 
             path.interpolate(100)
             pathLength = pathLength + path.length()
             if show:
-                print env, '\n'
+                print(env, '\n')
                 temp = copy.deepcopy(env)
                 for i in range(len(path.states)):
                     x = int(path.states[i][0])
@@ -165,7 +167,7 @@ class TestPlanner(object):
                         temp.grid[x][y] = 2
                     else:
                         temp.grid[x][y] = 3
-                print temp, '\n'
+                print(temp, '\n')
         else:
             result = False
 
@@ -287,9 +289,9 @@ class PlanTest(unittest.TestCase):
         avglength = length / float(N)
 
         if self.verbose:
-            print '    Success rate: %f%%' % success
-            print '    Average runtime: %f' % avgruntime
-            print '    Average path length: %f' % avglength
+            print('    Success rate: %f%%' % success)
+            print('    Average runtime: %f' % avgruntime)
+            print('    Average path length: %f' % avglength)
 
         return (success, avgruntime, avglength)
 
