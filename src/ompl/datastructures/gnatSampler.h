@@ -38,7 +38,6 @@
 #ifndef OMPL_DATASTRUCTURES_GNAT_SAMPLER_
 #define OMPL_DATASTRUCTURES_GNAT_SAMPLER_
 
-#include <ompl/util/Profiler.h>
 #include <ompl/util/RandomNumbers.h>
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/GreedyKCenters.h"
@@ -115,9 +114,7 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 		{
       if(borderFraction > 0.5 && _dataLeaves.size() > 2)
       {
-        ompl::Profiler::Begin("Check border distribution");
         std::vector<Node*> r2 = rng_.discreteDistributionMap<Node*>(_dataLeaves,1);
-        ompl::Profiler::End("Check border distribution");
         //std::cout<<"Sampling with probability: "<<r2[0]->getSamplingProbability(*this,true)<<" "<<_dataLeaves[r2[0]]<<" "<<r2[0]->_activity<<" "<<r2[0]->data_.size()<<std::endl;
         return r2[0]->sample(*this);
       }
@@ -164,14 +161,12 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
         tree_->add(*this, data);
         double N = (double)size() + 1;
 
-        ompl::Profiler::Begin("GNAT - rebuildDataStructure");
         //if(fabs(fmod(log2(N),2.0)) < 1e-8) 
         if(tree_->_deltaRadius/std::max(0.01,tree_->_maxObservedRadius) > _rebuildRadius || fabs(fmod(log2(N),2.0)) < 1e-8)
         {
           //std::cout<<"Rebuilding tree: "<<tree_->_deltaRadius<<" "<<tree_->_maxObservedRadius<<std::endl;
           rebuildDataStructure();
         }
-        ompl::Profiler::End("GNAT - rebuildDataStructure");
       }
       else
       {
@@ -500,17 +495,13 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           if(data_.size()==0)
           {
             distribution.clear();
-            ompl::Profiler::Begin("GNAT - Child Distribution");
             distribution.push_back(getSamplingProbability(gnat,false)*1.0/double(t));
             for(unsigned int i=0; i<children_.size(); ++i)
             {
               distribution.push_back(children_[i]->getSamplingProbability(gnat,false));
               //std::cout<<"<"<<N<<"|"<<distribution.back()<<"|"<<children_[i]->maxRadius_<<">,";
             }
-            ompl::Profiler::End("GNAT - Child Distribution");
-            ompl::Profiler::Begin("GNAT - Calculate Distribution");
             std::vector<size_t> r2 = gnat.rng_.discreteDistribution(distribution,1);
-            ompl::Profiler::End("GNAT - Calculate Distribution");
             if(r2[0] == 0) {if(data_.size()) std::cout<<"Sampling pivot"<<std::endl; return pivot_;}
             else return children_[r2[0]-1]->sample(gnat,borderFraction,total);
           }
@@ -518,17 +509,13 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           {
             if(data_.size() == 0) return pivot_;
             distribution.clear();
-            ompl::Profiler::Begin("GNAT - Data Distribution");
             distribution.push_back(M_PI*powf(boundingRadius(gnat,pivot_,true),c));
             for(size_t k=0; k<data_.size(); k++)
             {
               double radius = boundingRadius(gnat,data_[k],false);
               distribution.push_back(M_PI*powf(radius,c));
             }
-            ompl::Profiler::End("GNAT - Data Distribution");
-            ompl::Profiler::Begin("GNAT - Calculate Data Distribution");
             std::vector<size_t> r2 = gnat.rng_.discreteDistribution(distribution,1);
-            ompl::Profiler::End("GNAT - Calculate Data Distribution");
             size_t sampleIndex = r2[0];
             if(sampleIndex == 0) return pivot_;
             return data_[sampleIndex-1];
@@ -584,7 +571,6 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 
         void add(GNAT& gnat, const _T& data)
         {
-          ompl::Profiler::Begin("GNAT - Add data");
           _totalChildNodes++;
           updateExpanding(gnat,data);
           if (children_.size()==0)
@@ -634,7 +620,6 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
 
             children_[minInd]->add(gnat, data);
           }
-          ompl::Profiler::End("GNAT - Add data");
         }
 
         bool needToSplit(const GNAT& gnat) const
@@ -645,7 +630,6 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
         void split(GNAT& gnat)
         {
           gnat.removeLeaf(this);
-          ompl::Profiler::Begin("GNAT - Split Node");
           std::vector<std::vector<double> > dists;
           std::vector<unsigned int> pivots;
 
@@ -713,7 +697,6 @@ class gnatSampler : public ompl::NearestNeighbors<_T>
           for (unsigned int i=0; i<degree_; ++i)
             if (children_[i]->needToSplit(gnat))
               children_[i]->split(gnat);
-          ompl::Profiler::End("GNAT - Split Node");
         }
 
         // return true iff data was added to nbh.
