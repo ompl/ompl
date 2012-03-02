@@ -89,10 +89,12 @@ namespace ompl
     public:
         NearestNeighborsGNAT(unsigned int degree = 4, unsigned int minDegree = 2,
             unsigned int maxDegree = 6, unsigned int maxNumPtsPerLeaf = 50,
-            unsigned int removedCacheSize = 50)
+            unsigned int removedCacheSize = 50, bool rebalancing = false)
             : NearestNeighbors<_T>(), tree_(NULL), degree_(degree),
             minDegree_(std::min(degree,minDegree)), maxDegree_(std::max(maxDegree,degree)),
-            maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0), removedCacheSize_(removedCacheSize)
+            maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0), 
+            rebuildSize_(rebalancing ? maxNumPtsPerLeaf*degree : std::numeric_limits<std::size_t>::max()),
+            removedCacheSize_(removedCacheSize)
         {
         }
 
@@ -101,14 +103,12 @@ namespace ompl
             if (tree_)
                 delete tree_;
         }
-
-        /** \brief Set the distance function to use */
+        /// \brief Set the distance function to use
         virtual void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun)
         {
             NearestNeighbors<_T>::setDistanceFunction(distFun);
             pivotSelector_.setDistanceFunction(distFun);
         }
-
         virtual void clear(void)
         {
             if (tree_)
@@ -130,8 +130,6 @@ namespace ompl
                 size_ = 1;
             }
         }
-
-        /** \brief Add a vector of points */
         virtual void add(const std::vector<_T> &data)
         {
             if (tree_)
@@ -146,7 +144,7 @@ namespace ompl
             }
             size_ += data.size();
         }
-        /** \brief Rebuild the internal data structure */
+        /// \brief Rebuild the internal data structure.
         void rebuildDataStructure()
         {
             std::vector<_T> lst;
@@ -154,6 +152,11 @@ namespace ompl
             clear();
             add(lst);
         }
+        /// \brief Remove data from the tree.
+        /// The element won't actually be removed immediately, but just marked
+        /// for removal in the removed_ cache. When the cache is full, the tree
+        /// will be rebuilt and the elements marked for removal will actually
+        /// be removed.
         virtual bool remove(const _T &data)
         {
             if (!tree_) return false;
@@ -170,6 +173,7 @@ namespace ompl
                 rebuildDataStructure();
             return true;
         }
+
         virtual _T nearest(const _T &data) const
         {
             if (tree_)
@@ -217,6 +221,7 @@ namespace ompl
                 tree_->list(*this, data);
         }
 
+        /// \brief Print a GNAT structure (mostly useful for debugging purposes).
         friend std::ostream& operator<<(std::ostream& out, const NearestNeighborsGNAT<_T>& gnat)
         {
             if (gnat.tree_)
@@ -269,12 +274,16 @@ namespace ompl
     protected:
         typedef NearestNeighborsGNAT<_T> GNAT;
 
+        /// Return true iff data has been marked for removal.
         bool isRemoved(const _T& data) const
         {
             return !removed_.empty() && removed_.find(&data) != removed_.end();
         }
 
-        // for k=1, return true if the nearest neighbor is a pivot
+        /// \brief Return in nbhQueue the k nearest neighbors of data.
+        /// For k=1, return true if the nearest neighbor is a pivot. 
+        /// (which is important during removal; removing pivots is a 
+        /// special case).
         bool nearestKInternal(const _T &data, std::size_t k, NearQueue& nbhQueue) const
         {
             bool isPivot;
@@ -298,6 +307,7 @@ namespace ompl
             }
             return isPivot;
         }
+        /// \brief Return in nbhQueue the elements that are within distance radius of data.
         void nearestRInternal(const _T &data, double radius, NearQueue& nbhQueue) const
         {
             double dist = radius; // note the difference with nearestKInternal
@@ -317,6 +327,8 @@ namespace ompl
                 nodeDist.first->nearestR(*this, data, radius, nbhQueue, nodeQueue);
             }
         }
+        /// \brief Convert the internal data structure used for storing neighbors
+        /// to the vector that NearestNeighbor API requires.
         void postprocessNearest(NearQueue& nbhQueue, std::vector<_T> &nbh) const
         {
             typename std::vector<_T>::reverse_iterator it;
@@ -325,9 +337,12 @@ namespace ompl
                 *it = *nbhQueue.top().first;
         }
 
+        /// The class used internally to define the GNAT.
         class Node
         {
         public:
+            /// \brief Construct a node of given degree with at most most 
+            /// \e capacity data elements and wit given pivot.
             Node(int degree, int capacity, const _T& pivot)
                 : degree_(degree), pivot_(pivot),
                 minRadius_(std::numeric_limits<double>::infinity()),
@@ -344,6 +359,26 @@ namespace ompl
                     delete children_[i];
             }
 
+            /// \brief Update minRadius_ and maxRadius_, given that an element 
+            /// was added with distance dist to the pivot.
+            void updateRadius(double dist)
+            {
+                if (minRadius_ > dist)
+                    minRadius_ = dist;
+                if (maxRadius_ < dist)
+                    maxRadius_ = dist;
+            }
+            /// \brief Update minRange_[i] and maxRange_[i], given that an
+            /// element was added to the i-th child of the parent that has
+            /// distance dist to this Node's pivot.
+            void updateRange(unsigned int i, double dist)
+            {
+                if (minRange_[i] > dist)
+                    minRange_[i] = dist;
+                if (maxRange_[i] < dist)
+                    maxRange_[i] = dist;
+            }
+            /// Add an element to the tree rooted at this node.
             void add(GNAT& gnat, const _T& data)
             {
                 if (children_.size()==0)
@@ -354,6 +389,11 @@ namespace ompl
                     {
                         if (gnat.removed_.size() > 0)
                             gnat.rebuildDataStructure();
+                        else if (gnat.size_ >= gnat.rebuildSize_)
+                        {
+                            gnat.rebuildSize_ <<= 1;
+                            gnat.rebuildDataStructure();
+                        }
                         else
                             split(gnat);
                     }
@@ -371,26 +411,20 @@ namespace ompl
                             minInd = i;
                         }
                     for (unsigned int i=0; i<children_.size(); ++i)
-                    {
-                        if (children_[i]->minRange_[minInd] > dist[i])
-                            children_[i]->minRange_[minInd] = dist[i];
-                        if (children_[i]->maxRange_[minInd] < dist[i])
-                            children_[i]->maxRange_[minInd] = dist[i];
-                    }
-                    if (minDist < children_[minInd]->minRadius_)
-                        children_[minInd]->minRadius_ = minDist;
-                    if (minDist > children_[minInd]->maxRadius_)
-                        children_[minInd]->maxRadius_ = minDist;
-
+                        children_[i]->updateRange(minInd, dist[i]);
+                    children_[minInd]->updateRadius(minDist);
                     children_[minInd]->add(gnat, data);
                 }
             }
-
+            /// Return true iff the node needs to be split into child nodes.
             bool needToSplit(const GNAT& gnat) const
             {
                 unsigned int sz = data_.size();
                 return sz > gnat.maxNumPtsPerLeaf_ && sz > degree_;
             }
+            /// \brief The split operation finds pivot elements for the child
+            /// nodes and moves each data element of this node to the appropriate
+            /// child node.
             void split(GNAT& gnat)
             {
                 std::vector<std::vector<double> > dists;
@@ -411,18 +445,10 @@ namespace ompl
                     if (j != pivots[k])
                     {
                         child->data_.push_back(data_[j]);
-                        if (dists[j][k] > child->maxRadius_)
-                            child->maxRadius_ = dists[j][k];
-                        if (dists[j][k] < child->minRadius_)
-                            child->minRadius_ = dists[j][k];
+                        child->updateRadius(dists[j][k]);
                     }
                     for (unsigned int i=0; i<degree_; ++i)
-                    {
-                        if (children_[i]->minRange_[k] > dists[j][i])
-                            children_[i]->minRange_[k] = dists[j][i];
-                        if (children_[i]->maxRange_[k] < dists[j][i])
-                            children_[i]->maxRange_[k] = dists[j][i];
-                    }
+                        children_[i]->updateRange(k, dists[j][i]);
                 }
 
                 for (unsigned int i=0; i<degree_; ++i)
@@ -444,7 +470,7 @@ namespace ompl
                         children_[i]->split(gnat);
             }
 
-            // return true iff data was added to nbh.
+            /// Insert data in nbh if it is a near neighbor. Return true iff data was added to nbh.
             bool insertNeighborK(NearQueue& nbh, std::size_t k, const _T& data, const _T& key, double dist) const
             {
                 if (nbh.size() < k)
@@ -462,7 +488,11 @@ namespace ompl
                 return false;
             }
 
-            // for k=1, isPivot is true if the nearest neighbor is a pivot
+            /// \brief Compute the k nearest neighbors of data in the tree.
+            /// For k=1, isPivot is true if the nearest neighbor is a pivot
+            /// (which is important during removal; removing pivots is a 
+            /// special case). The nodeQueue, which contains other Nodes
+            /// that need to be checked for nearest neighbors, is updated.
             void nearestK(const GNAT& gnat, const _T &data, std::size_t k,
                 NearQueue& nbh, NodeQueue& nodeQueue, bool& isPivot) const
             {
@@ -513,13 +543,15 @@ namespace ompl
                         }
                 }
             }
-
+            /// Insert data in nbh if it is a near neighbor.
             void insertNeighborR(NearQueue& nbh, double r, const _T& data, double dist) const
             {
                 if (dist <= r)
                     nbh.push(std::make_pair(&data, dist));
             }
-
+            /// \brief Return all elements that are within distance r in nbh.
+            /// The nodeQueue, which contains other Nodes that need to
+            /// be checked for nearest neighbors, is updated.
             void nearestR(const GNAT& gnat, const _T &data, double r, NearQueue& nbh, NodeQueue& nodeQueue) const
             {
                 double dist = r; //note difference with nearestK
@@ -597,31 +629,57 @@ namespace ompl
                 return out;
             }
 
-            unsigned int degree_;
-            const _T pivot_;
-            double minRadius_;
-            double maxRadius_;
+            /// Number of child nodes
+            unsigned int        degree_;
+            /// Data element stored in this Node
+            const _T            pivot_;
+            /// Minimum distance between the pivot element and the elements stored in data_
+            double              minRadius_;
+            /// Maximum distance between the pivot element and the elements stored in data_
+            double              maxRadius_;
+            /// \brief The i-th element in minRange_ is the minimum distance between the 
+            /// pivot and any data_ element in the i-th child node of this node's parent.
             std::vector<double> minRange_;
+            /// \brief The i-th element in maxRange_ is the maximum distance between the 
+            /// pivot and any data_ element in the i-th child node of this node's parent.
             std::vector<double> maxRange_;
-            std::vector<_T> data_;
-            std::vector<Node*> children_;
+            /// \brief The data elements stored in this node (in addition to the pivot
+            /// element). An internal node has no elements stored in data_.
+            std::vector<_T>     data_;
+            /// \brief The child nodes of this node. By definition, only internal nodes
+            /// have child nodes.
+            std::vector<Node*>  children_;
         };
 
-
-        /** \brief The data elements stored in this structure */
-        Node                  *tree_;
-
-        unsigned int           degree_;
-        unsigned int           minDegree_;
-        unsigned int           maxDegree_;
-        unsigned int           maxNumPtsPerLeaf_;
-        std::size_t            size_;
-        std::size_t            removedCacheSize_;
-
-        /** \brief The data structure used to split data into subtrees */
-        GreedyKCenters<_T>     pivotSelector_;
-
-        /** \brief Cache of removed elements */
+        /// \brief The data structure containing the elements stored in this structure.
+        Node*                           tree_;
+        /// The desired degree of each node.
+        unsigned int                    degree_;
+        /// \brief After splitting a Node, each child Node has degree equal to
+        /// the default degree times the fraction of data elements from the
+        /// original node that got assigned to that child Node. However, its
+        /// degree can be no less than minDegree_.
+        unsigned int                    minDegree_;
+        /// \brief After splitting a Node, each child Node has degree equal to
+        /// the default degree times the fraction of data elements from the
+        /// original node that got assigned to that child Node. However, its
+        /// degree can be no larger than maxDegree_.
+        unsigned int                    maxDegree_;
+        /// \brief Maximum number of elements allowed to be stored in a Node before
+        /// it needs to be split into several nodes.
+        unsigned int                    maxNumPtsPerLeaf_;
+        /// \brief Number of elements stored in the tree.
+        std::size_t                     size_;
+        /// \brief If size_ exceeds rebuildSize_, the tree will be rebuilt (and
+        /// automatically rebalanced), and rebuildSize_ will be doubled.
+        std::size_t                     rebuildSize_;
+        /// \brief Maximum number of removed elements that can be stored in the
+        /// removed_ cache. If the cache is full, the tree will be rebuilt with
+        /// the elements in removed_ actually removed from the tree.
+        std::size_t                     removedCacheSize_;
+        /// \brief The data structure used to split data into subtrees.
+        GreedyKCenters<_T>              pivotSelector_;
+        /// \brief Cache of removed elements.
         boost::unordered_set<const _T*> removed_;
     };
 
