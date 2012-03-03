@@ -94,8 +94,8 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!si_->isValid(s2))
     {
-	invalid_++;
-	return false;
+        invalid_++;
+        return false;
     }
 
     bool result = true;

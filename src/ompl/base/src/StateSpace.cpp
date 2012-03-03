@@ -896,11 +896,11 @@ ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSam
 {
     CompoundStateSampler *ss = new CompoundStateSampler(this);
     if (weightSum_ < std::numeric_limits<double>::epsilon())
-	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	    ss->addSampler(components_[i]->allocStateSampler(), 1.0);
+        for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+            ss->addSampler(components_[i]->allocStateSampler(), 1.0);
     else
-	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	    ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / weightSum_);
+        for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+            ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / weightSum_);
     return StateSamplerPtr(ss);
 }
 

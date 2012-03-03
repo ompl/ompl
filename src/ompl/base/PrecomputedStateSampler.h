@@ -50,6 +50,9 @@ namespace ompl
             /** \brief Constructor. Takes the state space to be sampled (\e space) and the set of states to draw samples from (\e states) */
             PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states);
 
+            /** \brief Constructor. Takes the state space to be sampled (\e space), the set of states to draw samples from (\e states) and a range to sample from: [\e minIndex, \e maxIndex]*/
+            PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states, std::size_t minIndex, std::size_t maxIndex);
+
             virtual void sampleUniform(State *state);
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
@@ -59,7 +62,10 @@ namespace ompl
             /** \brief The states to sample from */
             const std::vector<const State*> &states_;
 
-        private:
+            /** \brief The minimum index to start sampling at */
+            std::size_t                      minStateIndex_;
+
+            /** \brief The maximum index to stop sampling at */
             std::size_t                      maxStateIndex_;
         };
     }
