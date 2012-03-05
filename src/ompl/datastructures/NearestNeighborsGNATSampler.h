@@ -89,11 +89,12 @@ namespace ompl
     public:
         NearestNeighborsGNATSampler(unsigned int degree = 4, unsigned int minDegree = 2,
             unsigned int maxDegree = 6, unsigned int maxNumPtsPerLeaf = 50,
-            unsigned int removedCacheSize = 50)
+            unsigned int removedCacheSize = 50, double estimatedDimension = 6.0)
             : NearestNeighbors<_T>(), tree_(NULL), degree_(degree),
             minDegree_(std::min(degree,minDegree)), maxDegree_(std::max(maxDegree,degree)),
             maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0), rebuildSize_(maxNumPtsPerLeaf*degree),
-            removedCacheSize_(removedCacheSize)
+            removedCacheSize_(removedCacheSize), 
+            estimatedDimension_(estimatedDimension)
         {
         }
 
@@ -127,7 +128,7 @@ namespace ompl
                 tree_->add(*this, data);
             else
             {
-                tree_ = new Node(degree_, maxNumPtsPerLeaf_, data);
+                tree_ = new Node(degree_, maxNumPtsPerLeaf_, estimatedDimension_, data);
                 size_ = 1;
             }
         }
@@ -139,7 +140,7 @@ namespace ompl
                 NearestNeighbors<_T>::add(data);
             else if (data.size()>0)
             {
-                tree_ = new Node(degree_, maxNumPtsPerLeaf_, data[0]);
+                tree_ = new Node(degree_, maxNumPtsPerLeaf_, estimatedDimension_, data[0]);
                 tree_->subtreeSize_= data.size();
                 for (unsigned int i=1; i<data.size(); ++i)
                     tree_->data_.push_back(data[i]);
@@ -338,10 +339,10 @@ namespace ompl
         class Node
         {
         public:
-            Node(int degree, int capacity, const _T& pivot)
-                : degree_(degree), subtreeSize_(1), pivot_(pivot),
+            Node(int degree, int capacity, double estimatedDimension, const _T& pivot)
+                : degree_(degree), subtreeSize_(1),  pivot_(pivot),
                 minRadius_(std::numeric_limits<double>::infinity()),
-                maxRadius_(-minRadius_), activity_(0), minRange_(degree, minRadius_),
+                maxRadius_(-minRadius_), activity_(0), estimatedDimension_(estimatedDimension), minRange_(degree, minRadius_),
                 maxRange_(degree, maxRadius_)
             {
                 // The "+1" is needed because we add an element before we check whether to split
@@ -425,7 +426,7 @@ namespace ompl
                 children_.reserve(degree_);
                 gnat.pivotSelector_.kcenters(data_, degree_, pivots, dists);
                 for(unsigned int i=0; i<pivots.size(); i++)
-                    children_.push_back(new Node(degree_, gnat.maxNumPtsPerLeaf_, data_[pivots[i]]));
+                    children_.push_back(new Node(degree_, gnat.maxNumPtsPerLeaf_, estimatedDimension_, data_[pivots[i]]));
                 degree_ = pivots.size(); // in case fewer than degree_ pivots were found
                 for (unsigned int j=0; j<data_.size(); ++j)
                 {
@@ -586,7 +587,7 @@ namespace ompl
                 assert(activity_ <= 0);
                 assert(subtreeSize_ > 0);
                 assert((subtreeSize_ << -activity_) > 0);
-                return maxRadius_ * maxRadius_ * maxRadius_ / (double)(subtreeSize_ << -activity_);
+                return pow(maxRadius_,estimatedDimension_) / (double)(subtreeSize_ );//<< -activity_);
             }
             const _T& sample(const GNAT& gnat) const
             {
@@ -653,6 +654,7 @@ namespace ompl
             double              minRadius_;
             double              maxRadius_;
             int                 activity_;
+            double              estimatedDimension_;
             std::vector<double> minRange_;
             std::vector<double> maxRange_;
             std::vector<_T>     data_;
@@ -670,6 +672,7 @@ namespace ompl
         std::size_t            size_;
         std::size_t            rebuildSize_;
         std::size_t            removedCacheSize_;
+        double                 estimatedDimension_;
 
         /** \brief The data structure used to split data into subtrees */
         GreedyKCenters<_T>     pivotSelector_;
