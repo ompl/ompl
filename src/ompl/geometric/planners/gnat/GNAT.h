@@ -221,8 +221,6 @@ namespace ompl
             /** \brief The maximum length of a motion to be added to a tree */
             double                       maxDistance_;
 
-            double                       _borderFraction;
-
             /** \brief The random number generator */
             RNG                          rng_;
         };

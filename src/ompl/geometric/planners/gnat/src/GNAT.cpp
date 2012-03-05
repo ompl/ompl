@@ -44,9 +44,8 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
     bool useProjectedDistance,
     unsigned int degree, unsigned int minDegree,
     unsigned int maxDegree, unsigned int maxNumPtsPerLeaf,
-    double estimatedDimension,
     unsigned int removedCacheSize) 
-    : base::Planner(si, "GNAT"), tree_(degree,minDegree,maxDegree,maxNumPtsPerLeaf,removedCacheSize,estimatedDimension)
+    : base::Planner(si, "GNAT"), tree_(degree,minDegree,maxDegree,maxNumPtsPerLeaf,removedCacheSize)
 {
     if(useProjectedDistance)
         tree_.setDistanceFunction(boost::bind(&GNAT::projectedDistanceFunction, this, _1, _2));
@@ -68,7 +67,7 @@ ompl::geometric::GNAT::~GNAT(void)
 void ompl::geometric::GNAT::setup(void)
 {
     Planner::setup();
-    ompl::tools::SelfConfig sc(si_, getName());
+    tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
 }
