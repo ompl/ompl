@@ -84,8 +84,8 @@ namespace ompl
             /** \brief Constructor */
             GNAT(const base::SpaceInformationPtr &si,
                                 bool useProjectedDistance = false,
-                                unsigned int degree = 16, unsigned int minDegree = 6,
-                                unsigned int maxDegree = 12, unsigned int maxNumPtsPerLeaf = 4, double estimatedDimension = 6.0,
+                                unsigned int degree = 16, unsigned int minDegree = 12,
+                                unsigned int maxDegree = 24, unsigned int maxNumPtsPerLeaf = 6, double estimatedDimension = 12.0,
                                 unsigned int removedCacheSize = 50
                                 );
             virtual ~GNAT(void);
