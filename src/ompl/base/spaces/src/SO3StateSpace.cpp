@@ -143,25 +143,38 @@ void ompl::base::SO3StateSpace::deserialize(State *state, const void *serializat
     memcpy(&state->as<StateType>()->x, serialization, sizeof(double) * 4);
 }
 
+/// @cond IGNORE
 /*
 Based on code from :
 
 Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousphysics.com/Bullet/
 */
+namespace ompl
+{
+    namespace base
+    {
+        static inline double halfQuaternionDistance(const State *state1, const State *state2)
+        {
+            const SO3StateSpace::StateType *qs1 = static_cast<const SO3StateSpace::StateType*>(state1);
+            const SO3StateSpace::StateType *qs2 = static_cast<const SO3StateSpace::StateType*>(state2);
+            double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
+            if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
+                return 0.0;
+            else
+                return acos(dq);
+        }
+    }
+}
+/// @endcond
+
 double ompl::base::SO3StateSpace::distance(const State *state1, const State *state2) const
 {
-    const StateType *qs1 = static_cast<const StateType*>(state1);
-    const StateType *qs2 = static_cast<const StateType*>(state2);
-    double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
-    if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
-        return 0.0;
-    else
-        return acos(dq) * 2.0;
+    return 2.0 * halfQuaternionDistance(state1, state2);
 }
 
 bool ompl::base::SO3StateSpace::equalStates(const State *state1, const State *state2) const
 {
-    return distance(state1, state2) < std::numeric_limits<double>::epsilon() * 2.0;
+    return halfQuaternionDistance(state1, state2) < std::numeric_limits<double>::epsilon();
 }
 
 /*
@@ -171,10 +184,10 @@ Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousph
 */
 void ompl::base::SO3StateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    assert(norm(static_cast<const StateType*>(from)) - 1.0 < MAX_QUATERNION_NORM_ERROR);
-    assert(norm(static_cast<const StateType*>(to)) - 1.0 < MAX_QUATERNION_NORM_ERROR);
+    assert(fabs(norm(static_cast<const StateType*>(from)) - 1.0) < MAX_QUATERNION_NORM_ERROR);
+    assert(fabs(norm(static_cast<const StateType*>(to)) - 1.0) < MAX_QUATERNION_NORM_ERROR);
 
-    double theta = distance(from, to) / 2.0;
+    double theta = halfQuaternionDistance(from, to);
     if (theta > std::numeric_limits<double>::epsilon())
     {
         double d = 1.0 / sin(theta);

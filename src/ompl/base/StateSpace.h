@@ -138,7 +138,10 @@ namespace ompl
                     STATESPACE_INTERPOLATION             = (1<<4),
 
                     /// \brief Check whether the triangle inequality holds when using StateSpace::interpolate() and StateSpace::distance()
-                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<5)
+                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<5),
+
+                    /// \brief Check whether the StateSpace::distance() is bounded by StateSpace::getExtent()
+                    STATESPACE_DISTANCE_BOUND            = (1<<6)
                 };
 
             /** @name Generic functionality for state spaces
