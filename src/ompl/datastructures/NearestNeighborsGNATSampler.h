@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Mark Moll */
+/* Author: Mark Moll, Bryant Gipson */
 
 #ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_GNATSAMPLER_
 #define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_GNATSAMPLER_
