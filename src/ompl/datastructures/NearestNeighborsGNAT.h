@@ -341,7 +341,7 @@ namespace ompl
         class Node
         {
         public:
-            /// \brief Construct a node of given degree with at most most
+            /// \brief Construct a node of given degree with at most
             /// \e capacity data elements and wit given pivot.
             Node(int degree, int capacity, const _T& pivot)
                 : degree_(degree), pivot_(pivot),
