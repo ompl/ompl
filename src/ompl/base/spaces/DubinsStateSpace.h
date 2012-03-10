@@ -122,7 +122,7 @@ setup.setPlanner(ompl::base::PlannerPtr(planner));
             {
                 double zero = std::numeric_limits<double>::epsilon();
                 double eps = std::numeric_limits<float>::epsilon();
-                int flags = ~(STATESPACE_INTERPOLATION | STATESPACE_TRIANGLE_INEQUALITY);
+                int flags = ~(STATESPACE_INTERPOLATION | STATESPACE_TRIANGLE_INEQUALITY | STATESPACE_DISTANCE_BOUND);
                 if (!isSymmetric_)
                     flags &= ~STATESPACE_DISTANCE_SYMMETRIC;
                 StateSpace::sanityChecks(zero, eps, flags);
