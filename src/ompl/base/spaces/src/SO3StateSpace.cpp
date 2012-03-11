@@ -69,16 +69,39 @@ void ompl::base::SO3StateSampler::sampleUniform(State *state)
     rng_.quaternion(&state->as<SO3StateSpace::StateType>()->x);
 }
 
-void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State * /* near */, const double /* distance */)
+void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    /** \todo How do we sample near a quaternion ? */
-    sampleUniform(state);
+    if (distance >= .25 * boost::math::constants::pi<double>())
+    {
+        sampleUniform(state);
+        return;
+    }
+    double d = rng_.uniform01();
+    SO3StateSpace::StateType q,
+        *qs = static_cast<SO3StateSpace::StateType*>(state);
+    const SO3StateSpace::StateType *qnear = static_cast<const SO3StateSpace::StateType*>(near);
+    q.setAxisAngle(rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), pow(d,1./3.)*distance);
+    qs->product(*qnear, q);
 }
 
-void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * /* mean */, const double /* stdDev */)
+void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mean, const double stdDev)
 {
-    /** \todo How do we sample quaternions using a Gaussian distribution ?*/
-    sampleUniform(state);
+    // CDF of N(0, 1.17) at -pi/4 is approx. .25, so there's .25 probability
+    // weight in each tail. Since the maximum distance in SO(3) is pi/2, we're
+    // essentially as likely to sample a state within distance [0, pi/4] as
+    // within distance [pi/4, pi/2]. With most weight in the tails (that wrap
+    // around in case of quaternions) we might as well sample uniformly.
+    if (stdDev > 1.17)
+    {
+        sampleUniform(state);
+        return;
+    }
+    double d = rng_.gaussian01();
+    SO3StateSpace::StateType q,
+        *qs = static_cast<SO3StateSpace::StateType*>(state);
+    const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
+    q.setAxisAngle(rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), pow(d,1./3.)*d);
+    qs->product(*qmu, q);
 }
 
 
@@ -89,7 +112,7 @@ unsigned int ompl::base::SO3StateSpace::getDimension(void) const
 
 double ompl::base::SO3StateSpace::getMaximumExtent(void) const
 {
-    return boost::math::constants::pi<double>();
+    return .5 * boost::math::constants::pi<double>();
 }
 
 double ompl::base::SO3StateSpace::norm(const StateType *state) const
@@ -144,6 +167,7 @@ void ompl::base::SO3StateSpace::deserialize(State *state, const void *serializat
 }
 
 /// @cond IGNORE
+
 /*
 Based on code from :
 
@@ -153,7 +177,7 @@ namespace ompl
 {
     namespace base
     {
-        static inline double halfQuaternionDistance(const State *state1, const State *state2)
+        static inline double arcLength(const State *state1, const State *state2)
         {
             const SO3StateSpace::StateType *qs1 = static_cast<const SO3StateSpace::StateType*>(state1);
             const SO3StateSpace::StateType *qs2 = static_cast<const SO3StateSpace::StateType*>(state2);
@@ -169,12 +193,12 @@ namespace ompl
 
 double ompl::base::SO3StateSpace::distance(const State *state1, const State *state2) const
 {
-    return 2.0 * halfQuaternionDistance(state1, state2);
+    return arcLength(state1, state2);
 }
 
 bool ompl::base::SO3StateSpace::equalStates(const State *state1, const State *state2) const
 {
-    return halfQuaternionDistance(state1, state2) < std::numeric_limits<double>::epsilon();
+    return arcLength(state1, state2) < std::numeric_limits<double>::epsilon();
 }
 
 /*
@@ -187,7 +211,7 @@ void ompl::base::SO3StateSpace::interpolate(const State *from, const State *to, 
     assert(fabs(norm(static_cast<const StateType*>(from)) - 1.0) < MAX_QUATERNION_NORM_ERROR);
     assert(fabs(norm(static_cast<const StateType*>(to)) - 1.0) < MAX_QUATERNION_NORM_ERROR);
 
-    double theta = halfQuaternionDistance(from, to);
+    double theta = arcLength(from, to);
     if (theta > std::numeric_limits<double>::epsilon())
     {
         double d = 1.0 / sin(theta);

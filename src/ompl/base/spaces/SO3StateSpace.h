@@ -55,7 +55,20 @@ namespace ompl
             }
 
             virtual void sampleUniform(State *state);
+            /** \brief To sample uniformly within some given distance, we
+                first compute a rotation q about a uniformly random unit
+                vector by an angle uniformly distributed between 0 and
+                distance, with a correction to account for the larger volume
+                of states at increasing distance. The resulting state is
+                then the quaternion product of near and q. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            /** \brief To sample sample a unit quaternion from a Gaussian,
+                distribution we first compute a rotation q about a uniformly
+                random unit vector by an angle sampled from a Gaussian with
+                mean equal to 0 and standard deviation equal to stdDev, and
+                with a correction to account for the larger volume of states
+                at increasing distance. The resulting state is then the
+                quaternion product of near and q. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
         };
 
@@ -94,6 +107,15 @@ namespace ompl
 
                 /** \brief scalar component of quaternion */
                 double w;
+
+                /** \brief standard quaternion multiplication: this = q0 * q1 */
+                void product(const StateType& q0, const StateType& q1)
+                {
+                    x = q0.w*q1.x + q0.x*q1.w + q0.y*q1.z - q0.z*q1.y;
+                    y = q0.w*q1.y + q0.y*q1.w + q0.z*q1.x - q0.x*q1.z;
+                    z = q0.w*q1.z + q0.z*q1.w + q0.x*q1.y - q0.y*q1.x;
+                    w = q0.w*q1.w - q0.x*q1.x - q0.y*q1.y - q0.z*q1.z;
+                }
             };
 
             SO3StateSpace(void) : StateSpace()
