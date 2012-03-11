@@ -68,5 +68,5 @@ void ompl::base::CompoundStateSampler::sampleGaussian(State *state, const State 
     State **comps = state->as<CompoundState>()->components;
     State **meanComps = mean->as<CompoundState>()->components;
     for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
-        samplers_[i]->sampleGaussian(comps[i], meanComps[i], stdDev);
+        samplers_[i]->sampleGaussian(comps[i], meanComps[i], stdDev * weightImportance_[i]);
 }
