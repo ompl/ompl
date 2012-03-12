@@ -43,19 +43,41 @@
 
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
 
+/// @cond IGNORE
+namespace ompl
+{
+    namespace base
+    {
+        static inline void computeAxisAngle(SO3StateSpace::StateType &q, double ax, double ay, double az, double angle)
+        {
+            double norm = sqrt(ax * ax + ay * ay + az * az);
+            if (norm < MAX_QUATERNION_NORM_ERROR)
+                q.setIdentity();
+            else
+            {
+                double s = sin(angle / 2.0);
+                q.x = s * ax / norm;
+                q.y = s * ay / norm;
+                q.z = s * az / norm;
+                q.w = cos(angle / 2.0);
+            }
+        }
+
+        /* Standard quaternion multiplication: q = q0 * q1 */
+        static inline void quaternionProduct(SO3StateSpace::StateType &q, const SO3StateSpace::StateType& q0, const SO3StateSpace::StateType& q1)
+        {
+            q.x = q0.w*q1.x + q0.x*q1.w + q0.y*q1.z - q0.z*q1.y;
+            q.y = q0.w*q1.y + q0.y*q1.w + q0.z*q1.x - q0.x*q1.z;
+            q.z = q0.w*q1.z + q0.z*q1.w + q0.x*q1.y - q0.y*q1.x;
+            q.w = q0.w*q1.w - q0.x*q1.x - q0.y*q1.y - q0.z*q1.z;
+        }
+    }
+}
+/// @endcond
+
 void ompl::base::SO3StateSpace::StateType::setAxisAngle(double ax, double ay, double az, double angle)
 {
-    double norm = sqrt(ax * ax + ay * ay + az * az);
-    if (norm < MAX_QUATERNION_NORM_ERROR)
-        setIdentity();
-    else
-    {
-        double s = sin(angle / 2.0);
-        x = s * ax / norm;
-        y = s * ay / norm;
-        z = s * az / norm;
-        w = cos(angle / 2.0);
-    }
+    computeAxisAngle(*this, ax, ay, az, angle);
 }
 
 void ompl::base::SO3StateSpace::StateType::setIdentity(void)
@@ -80,8 +102,8 @@ void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *n
     SO3StateSpace::StateType q,
         *qs = static_cast<SO3StateSpace::StateType*>(state);
     const SO3StateSpace::StateType *qnear = static_cast<const SO3StateSpace::StateType*>(near);
-    q.setAxisAngle(rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), pow(d,1./3.)*distance);
-    qs->product(*qnear, q);
+    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), pow(d,1./3.)*distance);
+    quaternionProduct(*qs, *qnear, q);
 }
 
 void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mean, const double stdDev)
@@ -101,9 +123,8 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         *qs = static_cast<SO3StateSpace::StateType*>(state);
     const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
     q.setAxisAngle(rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), pow(d,1./3.)*d);
-    qs->product(*qmu, q);
+    quaternionProduct(*qs, *qmu, q);
 }
-
 
 unsigned int ompl::base::SO3StateSpace::getDimension(void) const
 {

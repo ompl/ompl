@@ -107,15 +107,6 @@ namespace ompl
 
                 /** \brief scalar component of quaternion */
                 double w;
-
-                /** \brief standard quaternion multiplication: this = q0 * q1 */
-                void product(const StateType& q0, const StateType& q1)
-                {
-                    x = q0.w*q1.x + q0.x*q1.w + q0.y*q1.z - q0.z*q1.y;
-                    y = q0.w*q1.y + q0.y*q1.w + q0.z*q1.x - q0.x*q1.z;
-                    z = q0.w*q1.z + q0.z*q1.w + q0.x*q1.y - q0.y*q1.x;
-                    w = q0.w*q1.w - q0.x*q1.x - q0.y*q1.y - q0.z*q1.z;
-                }
             };
 
             SO3StateSpace(void) : StateSpace()
