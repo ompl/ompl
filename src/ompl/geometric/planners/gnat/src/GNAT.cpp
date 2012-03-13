@@ -47,7 +47,6 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
         unsigned int removedCacheSize) 
 : base::Planner(si, "GNAT") 
 {
-    std::cout<<"GNAT Running with "<<degree<<", "<<minDegree<<", "<<maxDegree<<", "<<maxNumPtsPerLeaf<<", "<<estimatedDimension<<", "<<removedCacheSize<<std::endl;
     goalBias_ = 0.05;
     specs_.approximateSolutions = true;
     maxDistance_ = 0.0;
@@ -63,13 +62,13 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
 
     Planner::declareParam<double>("range", this, &GNAT::setRange, &GNAT::getRange);
     Planner::declareParam<double>("goal_bias", this, &GNAT::setGoalBias, &GNAT::getGoalBias);
-    Planner::declareParam<bool>("useProjectedDistance", this, &GNAT::setUseProjectedDistance, &GNAT::getUseProjectedDistance);
+    Planner::declareParam<bool>("use_projected_distance", this, &GNAT::setUseProjectedDistance, &GNAT::getUseProjectedDistance);
     Planner::declareParam<unsigned int>("degree", this, &GNAT::setDegree, &GNAT::getDegree);
-    Planner::declareParam<unsigned int>("maxMaxDegree", this, &GNAT::setMaxDegree, &GNAT::getMaxDegree);
-    Planner::declareParam<unsigned int>("minDegree", this, &GNAT::setMinDegree, &GNAT::getMinDegree);
-    Planner::declareParam<unsigned int>("maxNumPtsPerLeaf", this, &GNAT::setMaxNumPtsPerLeaf, &GNAT::getMaxNumPtsPerLeaf);
-    Planner::declareParam<unsigned int>("removedCacheSize", this, &GNAT::setRemovedCacheSize, &GNAT::getRemovedCacheSize);
-    Planner::declareParam<double>("estimatedDimension", this, &GNAT::setEstimatedDimension, &GNAT::getEstimatedDimension);
+    Planner::declareParam<unsigned int>("max_degree", this, &GNAT::setMaxDegree, &GNAT::getMaxDegree);
+    Planner::declareParam<unsigned int>("min_degree", this, &GNAT::setMinDegree, &GNAT::getMinDegree);
+    Planner::declareParam<unsigned int>("max_pts_per_leaf", this, &GNAT::setMaxNumPtsPerLeaf, &GNAT::getMaxNumPtsPerLeaf);
+    Planner::declareParam<unsigned int>("removed_cache_size", this, &GNAT::setRemovedCacheSize, &GNAT::getRemovedCacheSize);
+    Planner::declareParam<double>("estimated_dimension", this, &GNAT::setEstimatedDimension, &GNAT::getEstimatedDimension);
     Planner::declareParam<double>("min_valid_path_fraction", this, &GNAT::setMinValidPathFraction, &GNAT::getMinValidPathFraction);
 }
 
@@ -91,6 +90,7 @@ void ompl::geometric::GNAT::setup(void)
 
 void ompl::geometric::GNAT::setupTree(void)
 {
+    std::cout<<"GNAT Running with "<<degree_<<", "<<minDegree_<<", "<<maxDegree_<<", "<<maxNumPtsPerLeaf_<<", "<<estimatedDimension_<<", "<<removedCacheSize_<<std::endl;
     tree_ = new NearestNeighborsGNATSampler<Motion*>(degree_,minDegree_,maxDegree_,maxNumPtsPerLeaf_,estimatedDimension_,removedCacheSize_);
     if(useProjectedDistance_)
         tree_->setDistanceFunction(boost::bind(&GNAT::projectedDistanceFunction, this, _1, _2));
