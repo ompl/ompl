@@ -156,21 +156,13 @@ bool ompl::control::PathControl::check(void) const
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
     double res = si->getPropagationStepSize();
     base::State *dummy = si_->allocState();
-    for (unsigned int  i = 0 ; i < controls_.size() ; ++i)
+    for (unsigned int  i = 0 ; valid && i < controls_.size() ; ++i)
     {
         unsigned int steps = (unsigned int)floor(0.5 + controlDurations_[i] / res);
-        if (si->propagateWhileValid(states_[i], controls_[i], steps, dummy) != steps)
-        {
+        if (!si->isValid(states_[i]) || si->propagateWhileValid(states_[i], controls_[i], steps, dummy) != steps)
             valid = false;
-            break;
-        }
     }
     si_->freeState(dummy);
-
-    if (valid)
-        for (unsigned int j = 0 ; j < states_.size() ; ++j)
-            if (!si_->isValid(states_[j]))
-                throw Exception("Internal error. This should not ever happen. Please contact the developers.");
 
     return valid;
 }
