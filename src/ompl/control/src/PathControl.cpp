@@ -152,6 +152,14 @@ void ompl::control::PathControl::interpolate(void)
 
 bool ompl::control::PathControl::check(void) const
 {
+    if (controls_.empty())
+    {
+        if (states_.size() == 1)
+            return si_->isValid(states_[0]);
+        else
+            return false;
+    }
+
     bool valid = true;
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
     double res = si->getPropagationStepSize();

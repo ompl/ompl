@@ -60,7 +60,7 @@ namespace ompl
                 vector by an angle uniformly distributed between 0 and
                 2*distance, with a correction to account for the larger volume
                 of states at increasing distance. (Quaternion distance is equal
-                to half the angle in axis-angle representation.) The resulting 
+                to half the angle in axis-angle representation.) The resulting
                 state is then the quaternion product of near and q. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
             /** \brief To sample sample a unit quaternion from a Gaussian,
@@ -68,7 +68,7 @@ namespace ompl
                 random unit vector by an angle sampled from a Gaussian with
                 mean equal to 0 and standard deviation equal to 2*stdDev, and
                 with a correction to account for the larger volume of states
-                at increasing distance.  (Quaternion distance is equal to 
+                at increasing distance.  (Quaternion distance is equal to
                 half the angle in axis-angle representation.) The resulting
                 state is then the quaternion product of near and q. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
