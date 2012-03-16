@@ -111,7 +111,8 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         const int chosenStartRegion = startRegions_.sampleUniform();
         int chosenGoalRegion = -1;
 
-        if (pis_.haveMoreGoalStates())
+        // if we have not sampled too many goal regions already
+        if (pis_.haveMoreGoalStates() && goalRegions_.size() < numMotions_/2)
         {
             if (const base::State* g = pis_.nextGoal())
             {

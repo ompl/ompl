@@ -477,10 +477,14 @@ namespace ompl
                         regions.update(elem, regions.getWeight(elem)+1);
                     }
                 }
-                void clear()
+                void clear(void)
                 {
                     regions.clear();
                     regToElem.clear();
+                }
+                std::size_t size(void) const
+                {
+                    return regions.size();
                 }
                 bool empty() const
                 {
