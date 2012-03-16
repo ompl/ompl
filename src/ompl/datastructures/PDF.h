@@ -161,6 +161,12 @@ which must be between 0 and 1. */
             }
         }
 
+        /** \brief Returns the current weight of the given Element. */
+        double getWeight(const Element* elem) const
+        {
+            return tree_.front()[elem->index_];
+        }
+
         /** \brief Removes the data in the given Element from the PDF. After calling this function, the Element object should no longer be used. */
         void remove(Element* elem)
         {
