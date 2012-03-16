@@ -26,6 +26,19 @@ Below are installation instructions for Ubuntu Linux and Mac OS X. Similar steps
 
 \subsection install_linux_ubuntu Ubuntu Linux
 
+\subsubsection install_linux_ubuntu_deb Installation from repository
+- For Ubuntu 10.04 and 11.10, Willow Garage maintains deb packages for the latest version of OMPL. All you need to do is add the repository to your list of sources:
+\code
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
+wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+\endcode
+- and install OMPL:
+\code
+sudo apt-get update
+sudo apt-get install ros-fuerte-ompl
+\endcode
+
+\subsubsection install_linux_ubuntu_src Installation from source
 - If using Ubuntu 11.04 or earlier, the supplied Boost version is too old. Ubuntu 10.04 and newer do include Boost 1.40+, which is sufficient, but for the complete functionality
 of OMPL (Python bindings and <a href="http://odeint.org">boost::numeric::odeint</a>), you will need Boost 1.44+.
 You can install Boost from <a href="http://www.boost.org/users/download/">source</a>, but it is simpler to add another repository:
