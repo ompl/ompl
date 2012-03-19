@@ -191,9 +191,12 @@ class ompl_base_generator_t(code_generator_t):
             'StateType').variable('values').exclude()
         # don't expose std::map< const State *, unsigned int >
         self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
-        stateStorage = self.ompl_ns.class_('StateStorage')
-        stateStorage.member_function('getStateSamplerAllocatorRange').exclude()
-        stateStorage.add_registration_code('def("getStateSamplerAllocatorRange", &ompl::base::StateStorage::getStateSamplerAllocatorRange)')
+        try:
+            stateStorage = self.ompl_ns.class_('StateStorage')
+            stateStorage.member_function('getStateSamplerAllocatorRange').exclude()
+            stateStorage.add_registration_code('def("getStateSamplerAllocatorRange", &ompl::base::StateStorage::getStateSamplerAllocatorRange)')
+        except:
+            pass
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
         # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to EuclideanProjection
