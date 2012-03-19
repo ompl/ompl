@@ -1,16 +1,23 @@
 /**
 \page buildSystem Integrate your own code with OMPL's build system
 
-OMPL uses <a href="http://www.cmake.org">CMake</a> for its build system. CMake can generate Makefiles and project files for many IDE's. When developing your own code that relies on OMPL, you have two options:
--# <b>Add your own code in OMPL's directory structure</b>: If you create C++ code under \c ompl/src/ompl/[folder], <b>you need to re-run CMake.</b> CMake will detect your code if \c [folder] is one of the directories already included by OMPL. If you want your code to be in a different location, you should update ompl/src/ompl/CMakeLists.txt accordingly. See the \ref updating_python_bindings "Python documentation" for specific instructions on how to create python bindings for your own code. If you write new C++ command line programs, we suggest you look at the second option.
+When developing your own code that relies on OMPL, you have several options:
 -# <b>Install OMPL and use your own build system</b>:
-    - If you haven't installed OMPL yet, run the following commands in your OMPL build directory:
+    First, if you are installing OMPL “by hand” (i.e., not through your package manager), run the following commands in your OMPL build directory:
     \code
 cmake -DCMAKE_INSTALL_PREFIX=/some/path
 make install
 \endcode
-    Alternatively, you can change \c CMAKE_INSTALL_PREFIX through the CMake GUI (“<tt>ccmake .</tt>” on UNIX-like systems). With this approach, your code is built completely independently from OMPL's code and you would use OMPL as any other library. Note that it's not required to install OMPL; you can just as easily use the headers from the OMPL source tree and the libraries from the build directory.
-    - If you use Makefiles, add “\c -I/usr/local/include” (or, e.g., “\c -I${HOME}/ompl/src”) to your compile flags, and “\c -L/usr/local/lib \c -lompl” (or, e.g., “\c -L${HOME}/ompl/build/Release/lib \c -lompl”) to your link flags. The compile and link flags can also be obtained using  “\c pkg-config --cflags ompl” and  “\c pkg-config --libs ompl”, respectively.
-For ease of use with CMake, we have included a CMake file that finds OMPL: \ref FindOMPL.cmake.
-
+    Below are the specifics for different build systems:
+    - <b>CMake</b>: For ease of use with CMake, we have included a CMake file that finds OMPL: \ref FindOMPL.cmake. This normally gets installed in the CMake module path, so if you use CMake in your own project, you can simply use this command in your CMakeLists.txt: \c find_package(OMPL). This will define the following variables:
+        - \c OMPL_FOUND - OMPL was found
+        - \c OMPL_LIBRARY - The OMPL library
+        - \c OMPLAPP_LIBRARY - The OMPL.app library
+        - \c OMPL_LIBRARIES - The OMPL library and (if found) the OMPL.app library
+        - \c OMPL_INCLUDE_DIR - The OMPL include directory
+        .
+    - <b>Makefiles</b>: If you use Makefiles, add “\c -I/usr/local/include” (or, e.g., “\c -I${HOME}/ompl/src”) to your compile flags, and “\c -L/usr/local/lib \c -lompl” (or, e.g., “\c -L${HOME}/ompl/build/Release/lib \c -lompl”) to your link flags. The compile and link flags can also be obtained using  “\c pkg-config --cflags ompl” and  “\c pkg-config --libs ompl”, respectively.
+    - <b>Autotools</b>: Use the pkg-config autoconf macro PKG_CHECK_MODULES([OMPL],[ompl >= 0.10]). This is will define \c OMPL_LIBS and \c OMPL_CFLAGS if OMPL was found.
+    - <b>IDE's such as MS Visual Studio and Xcode</b>: consult your IDE's manual.
+-# <b>Add your own code in OMPL's directory structure</b>: This option is recommend if you extend functionality of OMPL that you wish to contribute back to the OMPL project (see \ref thirdparty for details). OMPL uses <a href="http://www.cmake.org">CMake</a> for its build system. CMake can generate Makefiles and project files for many IDE's. If you create C++ code under ompl/src/ompl/[folder], <b>you need to re-run CMake.</b> CMake will detect your code if [folder] is one of the directories already included by OMPL. If you want your code to be in a different location, you should update ompl/src/ompl/CMakeLists.txt accordingly. See the \ref updating_python_bindings "Python documentation" for specific instructions on how to create python bindings for your own code.
 */
