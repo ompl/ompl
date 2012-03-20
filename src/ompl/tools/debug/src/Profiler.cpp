@@ -230,9 +230,9 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
     {
         const AvgInfo &a = data.avg.find(avg[i].name)->second;
         out << avg[i].name << ": " << avg[i].value << " (stddev = " <<
-          sqrt(fabs(a.totalSqr / (double)a.parts - avg[i].value * avg[i].value)) << ")" << std::endl;
+          sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")" << std::endl;
     }
-    
+
     std::vector<dataDoubleVal> time;
 
     for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin() ; itm != data.time.end() ; ++itm)
