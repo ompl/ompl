@@ -111,3 +111,5 @@ body, table, div, p, dl {
 h1, h2, .title {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+a:visited.btn-primary { color: #fff; }
+a.btn-primary small, a:visited.btn-primary small { color: #ccc; }
