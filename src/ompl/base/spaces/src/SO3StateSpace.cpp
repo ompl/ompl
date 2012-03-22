@@ -43,19 +43,41 @@
 
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
 
+/// @cond IGNORE
+namespace ompl
+{
+    namespace base
+    {
+        static inline void computeAxisAngle(SO3StateSpace::StateType &q, double ax, double ay, double az, double angle)
+        {
+            double norm = sqrt(ax * ax + ay * ay + az * az);
+            if (norm < MAX_QUATERNION_NORM_ERROR)
+                q.setIdentity();
+            else
+            {
+                double s = sin(angle / 2.0);
+                q.x = s * ax / norm;
+                q.y = s * ay / norm;
+                q.z = s * az / norm;
+                q.w = cos(angle / 2.0);
+            }
+        }
+
+        /* Standard quaternion multiplication: q = q0 * q1 */
+        static inline void quaternionProduct(SO3StateSpace::StateType &q, const SO3StateSpace::StateType& q0, const SO3StateSpace::StateType& q1)
+        {
+            q.x = q0.w*q1.x + q0.x*q1.w + q0.y*q1.z - q0.z*q1.y;
+            q.y = q0.w*q1.y + q0.y*q1.w + q0.z*q1.x - q0.x*q1.z;
+            q.z = q0.w*q1.z + q0.z*q1.w + q0.x*q1.y - q0.y*q1.x;
+            q.w = q0.w*q1.w - q0.x*q1.x - q0.y*q1.y - q0.z*q1.z;
+        }
+    }
+}
+/// @endcond
+
 void ompl::base::SO3StateSpace::StateType::setAxisAngle(double ax, double ay, double az, double angle)
 {
-    double norm = sqrt(ax * ax + ay * ay + az * az);
-    if (norm < MAX_QUATERNION_NORM_ERROR)
-        setIdentity();
-    else
-    {
-        double s = sin(angle / 2.0);
-        x = s * ax / norm;
-        y = s * ay / norm;
-        z = s * az / norm;
-        w = cos(angle / 2.0);
-    }
+    computeAxisAngle(*this, ax, ay, az, angle);
 }
 
 void ompl::base::SO3StateSpace::StateType::setIdentity(void)
@@ -69,18 +91,40 @@ void ompl::base::SO3StateSampler::sampleUniform(State *state)
     rng_.quaternion(&state->as<SO3StateSpace::StateType>()->x);
 }
 
-void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State * /* near */, const double /* distance */)
+void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    /** \todo How do we sample near a quaternion ? */
-    sampleUniform(state);
+    if (distance >= .25 * boost::math::constants::pi<double>())
+    {
+        sampleUniform(state);
+        return;
+    }
+    double d = rng_.uniform01();
+    SO3StateSpace::StateType q,
+        *qs = static_cast<SO3StateSpace::StateType*>(state);
+    const SO3StateSpace::StateType *qnear = static_cast<const SO3StateSpace::StateType*>(near);
+    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), 2.*pow(d,1./3.)*distance);
+    quaternionProduct(*qs, *qnear, q);
 }
 
-void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * /* mean */, const double /* stdDev */)
+void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mean, const double stdDev)
 {
-    /** \todo How do we sample quaternions using a Gaussian distribution ?*/
-    sampleUniform(state);
+    // CDF of N(0, 1.17) at -pi/4 is approx. .25, so there's .25 probability
+    // weight in each tail. Since the maximum distance in SO(3) is pi/2, we're
+    // essentially as likely to sample a state within distance [0, pi/4] as
+    // within distance [pi/4, pi/2]. With most weight in the tails (that wrap
+    // around in case of quaternions) we might as well sample uniformly.
+    if (stdDev > 1.17)
+    {
+        sampleUniform(state);
+        return;
+    }
+    double d = rng_.gaussian01();
+    SO3StateSpace::StateType q,
+        *qs = static_cast<SO3StateSpace::StateType*>(state);
+    const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
+    q.setAxisAngle(rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), 2.*pow(d,1./3.)*stdDev);
+    quaternionProduct(*qs, *qmu, q);
 }
-
 
 unsigned int ompl::base::SO3StateSpace::getDimension(void) const
 {
@@ -89,7 +133,7 @@ unsigned int ompl::base::SO3StateSpace::getDimension(void) const
 
 double ompl::base::SO3StateSpace::getMaximumExtent(void) const
 {
-    return boost::math::constants::pi<double>();
+    return .5 * boost::math::constants::pi<double>();
 }
 
 double ompl::base::SO3StateSpace::norm(const StateType *state) const
@@ -143,25 +187,39 @@ void ompl::base::SO3StateSpace::deserialize(State *state, const void *serializat
     memcpy(&state->as<StateType>()->x, serialization, sizeof(double) * 4);
 }
 
+/// @cond IGNORE
+
 /*
 Based on code from :
 
 Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousphysics.com/Bullet/
 */
+namespace ompl
+{
+    namespace base
+    {
+        static inline double arcLength(const State *state1, const State *state2)
+        {
+            const SO3StateSpace::StateType *qs1 = static_cast<const SO3StateSpace::StateType*>(state1);
+            const SO3StateSpace::StateType *qs2 = static_cast<const SO3StateSpace::StateType*>(state2);
+            double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
+            if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
+                return 0.0;
+            else
+                return acos(dq);
+        }
+    }
+}
+/// @endcond
+
 double ompl::base::SO3StateSpace::distance(const State *state1, const State *state2) const
 {
-    const StateType *qs1 = static_cast<const StateType*>(state1);
-    const StateType *qs2 = static_cast<const StateType*>(state2);
-    double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
-    if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
-        return 0.0;
-    else
-        return acos(dq) * 2.0;
+    return arcLength(state1, state2);
 }
 
 bool ompl::base::SO3StateSpace::equalStates(const State *state1, const State *state2) const
 {
-    return distance(state1, state2) < std::numeric_limits<double>::epsilon() * 2.0;
+    return arcLength(state1, state2) < std::numeric_limits<double>::epsilon();
 }
 
 /*
@@ -171,10 +229,10 @@ Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousph
 */
 void ompl::base::SO3StateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    assert(norm(static_cast<const StateType*>(from)) - 1.0 < MAX_QUATERNION_NORM_ERROR);
-    assert(norm(static_cast<const StateType*>(to)) - 1.0 < MAX_QUATERNION_NORM_ERROR);
+    assert(fabs(norm(static_cast<const StateType*>(from)) - 1.0) < MAX_QUATERNION_NORM_ERROR);
+    assert(fabs(norm(static_cast<const StateType*>(to)) - 1.0) < MAX_QUATERNION_NORM_ERROR);
 
-    double theta = distance(from, to) / 2.0;
+    double theta = arcLength(from, to);
     if (theta > std::numeric_limits<double>::epsilon())
     {
         double d = 1.0 / sin(theta);

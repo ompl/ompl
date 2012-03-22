@@ -206,7 +206,7 @@ TEST(SO3, Simple)
     mt.test();
 
     EXPECT_EQ(m->getDimension(), 3u);
-    EXPECT_EQ(m->getMaximumExtent(), PI);
+    EXPECT_EQ(m->getMaximumExtent(), .5*PI);
 
     base::ScopedState<base::SO3StateSpace> s1(m);
     base::ScopedState<base::SO3StateSpace> s2(m);

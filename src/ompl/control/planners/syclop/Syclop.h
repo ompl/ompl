@@ -461,34 +461,39 @@ namespace ompl
             class RegionSet
             {
             public:
-                int operator[](const unsigned int i) const
-                {
-                    return v[i];
-                }
                 int sampleUniform(void)
                 {
                     if (empty())
                         return -1;
-                    return v[rng.uniformInt(0, v.size()-1)];
+                    return regions.sample(rng.uniform01());
                 }
                 void insert(const int r)
                 {
-                    if (s.insert(r).second)
-                        v.push_back(r);
+                    if (regToElem.count(r) == 0)
+                        regToElem[r] = regions.add(r, 1);
+                    else
+                    {
+                        PDF<int>::Element* elem = regToElem[r];
+                        regions.update(elem, regions.getWeight(elem)+1);
+                    }
                 }
-                void clear()
+                void clear(void)
                 {
-                    s.clear();
-                    v.clear();
+                    regions.clear();
+                    regToElem.clear();
+                }
+                std::size_t size(void) const
+                {
+                    return regions.size();
                 }
                 bool empty() const
                 {
-                    return v.empty();
+                    return regions.empty();
                 }
             private:
                 RNG rng;
-                std::set<int> s;
-                std::vector<int> v;
+                PDF<int> regions;
+                boost::unordered_map<const int, PDF<int>::Element*> regToElem;
             };
             /// @endcond
 

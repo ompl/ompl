@@ -290,6 +290,9 @@ namespace ompl
                 /** \brief The sum of the values to average */
                 double            total;
 
+                /** \brief The sub of squares of the values to average */
+                double            totalSqr;
+
                 /** \brief Number of times a value was added to this structure */
                 unsigned long int parts;
             };

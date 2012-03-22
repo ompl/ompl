@@ -92,7 +92,7 @@ namespace ompl
             unsigned int removedCacheSize = 50, bool rebalancing = false)
             : NearestNeighbors<_T>(), tree_(NULL), degree_(degree),
             minDegree_(std::min(degree,minDegree)), maxDegree_(std::max(maxDegree,degree)),
-            maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0), 
+            maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0),
             rebuildSize_(rebalancing ? maxNumPtsPerLeaf*degree : std::numeric_limits<std::size_t>::max()),
             removedCacheSize_(removedCacheSize)
         {
@@ -281,8 +281,8 @@ namespace ompl
         }
 
         /// \brief Return in nbhQueue the k nearest neighbors of data.
-        /// For k=1, return true if the nearest neighbor is a pivot. 
-        /// (which is important during removal; removing pivots is a 
+        /// For k=1, return true if the nearest neighbor is a pivot.
+        /// (which is important during removal; removing pivots is a
         /// special case).
         bool nearestKInternal(const _T &data, std::size_t k, NearQueue& nbhQueue) const
         {
@@ -341,7 +341,7 @@ namespace ompl
         class Node
         {
         public:
-            /// \brief Construct a node of given degree with at most most 
+            /// \brief Construct a node of given degree with at most
             /// \e capacity data elements and wit given pivot.
             Node(int degree, int capacity, const _T& pivot)
                 : degree_(degree), pivot_(pivot),
@@ -359,7 +359,7 @@ namespace ompl
                     delete children_[i];
             }
 
-            /// \brief Update minRadius_ and maxRadius_, given that an element 
+            /// \brief Update minRadius_ and maxRadius_, given that an element
             /// was added with distance dist to the pivot.
             void updateRadius(double dist)
             {
@@ -490,7 +490,7 @@ namespace ompl
 
             /// \brief Compute the k nearest neighbors of data in the tree.
             /// For k=1, isPivot is true if the nearest neighbor is a pivot
-            /// (which is important during removal; removing pivots is a 
+            /// (which is important during removal; removing pivots is a
             /// special case). The nodeQueue, which contains other Nodes
             /// that need to be checked for nearest neighbors, is updated.
             void nearestK(const GNAT& gnat, const _T &data, std::size_t k,
@@ -637,10 +637,10 @@ namespace ompl
             double              minRadius_;
             /// Maximum distance between the pivot element and the elements stored in data_
             double              maxRadius_;
-            /// \brief The i-th element in minRange_ is the minimum distance between the 
+            /// \brief The i-th element in minRange_ is the minimum distance between the
             /// pivot and any data_ element in the i-th child node of this node's parent.
             std::vector<double> minRange_;
-            /// \brief The i-th element in maxRange_ is the maximum distance between the 
+            /// \brief The i-th element in maxRange_ is the maximum distance between the
             /// pivot and any data_ element in the i-th child node of this node's parent.
             std::vector<double> maxRange_;
             /// \brief The data elements stored in this node (in addition to the pivot

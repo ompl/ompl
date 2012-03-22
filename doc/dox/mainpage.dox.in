@@ -30,6 +30,10 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible
 and freely available (visit this project on <a
 href="http://sourceforge.net/projects/ompl/">SourceForge</a>).
 
+<a href="download.html" class="btn btn-primary">Current version: @OMPL_VERSION@
+\htmlonly<br>\endhtmlonly
+<small>Released: @OMPL_RELEASE_DATE@</small></a>
+
 \htmlonly
 <div class="fb-like" data-href="http://www.facebook.com/pages/OMPL/320018418039567" data-send="true" data-layout="button_count" data-width="450" data-show-faces="false"></div>
 

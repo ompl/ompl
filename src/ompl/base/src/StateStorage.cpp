@@ -37,8 +37,9 @@
 #include "ompl/base/StateStorage.h"
 #include "ompl/base/PrecomputedStateSampler.h"
 #include "ompl/util/Exception.h"
-#include <boost/bind.hpp>
 #include <fstream>
+#include <algorithm>
+#include <boost/bind.hpp>
 
 #include <boost/serialization/binary_object.hpp>
 #include <boost/archive/archive_exception.hpp>
@@ -46,7 +47,8 @@
 /// @cond IGNORE
 static ompl::base::StateSamplerPtr allocPrecomputedStateSampler(const ompl::base::StateSpace *space,
                                                                 const std::vector<int> &expectedSignature,
-                                                                const std::vector<const ompl::base::State*> *states)
+                                                                const std::vector<const ompl::base::State*> *states,
+                                                                std::size_t minIndex, std::size_t maxIndex)
 {
     std::vector<int> sig;
     space->computeSignature(sig);
@@ -62,7 +64,7 @@ static ompl::base::StateSamplerPtr allocPrecomputedStateSampler(const ompl::base
             ss << sig[i] << " ";
         throw ompl::Exception(ss.str());
     }
-    return ompl::base::StateSamplerPtr(new ompl::base::PrecomputedStateSampler(space, *states));
+    return ompl::base::StateSamplerPtr(new ompl::base::PrecomputedStateSampler(space, *states, minIndex, maxIndex));
 }
 
 static const boost::uint32_t OMPL_ARCHIVE_MARKER = 0x4C504D4F; // this spells OMPL
@@ -75,13 +77,6 @@ ompl::base::StateStorage::StateStorage(const StateSpacePtr &space) : space_(spac
 ompl::base::StateStorage::~StateStorage(void)
 {
     freeMemory();
-}
-
-ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocator(void) const
-{
-    std::vector<int> sig;
-    space_->computeSignature(sig);
-    return boost::bind(&allocPrecomputedStateSampler, _1, sig, &states_);
 }
 
 void ompl::base::StateStorage::load(const char *filename)
@@ -232,6 +227,35 @@ void ompl::base::StateStorage::clear(void)
 {
     freeMemory();
     states_.clear();
+}
+
+void ompl::base::StateStorage::sort(const boost::function<bool(const State*, const State*)> &op)
+{
+    std::sort(states_.begin(), states_.end(), op);
+}
+
+ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocator(void) const
+{
+    return getStateSamplerAllocatorRange(0, states_.empty() ? 0 : states_.size() - 1);
+}
+
+ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocatorRangeUntil(std::size_t until) const
+{
+    return getStateSamplerAllocatorRange(0, until);
+}
+
+ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocatorRangeAfter(std::size_t after) const
+{
+    return getStateSamplerAllocatorRange(after, states_.empty() ? 0 : states_.size() - 1);
+}
+
+ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocatorRange(std::size_t from, std::size_t to) const
+{
+    if (states_.empty())
+        throw Exception("Cannot allocate state sampler from empty state storage");
+    std::vector<int> sig;
+    space_->computeSignature(sig);
+    return boost::bind(&allocPrecomputedStateSampler, _1, sig, &states_, from, to);
 }
 
 void ompl::base::StateStorage::print(std::ostream &out) const

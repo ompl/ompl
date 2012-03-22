@@ -454,6 +454,8 @@ void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int 
 {
     // Test that distances are always positive
     {
+        double maxExt = getMaximumExtent();
+
         State *s1 = allocState();
         State *s2 = allocState();
         StateSamplerPtr ss = allocStateSampler();
@@ -477,6 +479,10 @@ void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int 
                                     boost::lexical_cast<std::string>(d12) + ", B->A=" +
                                     boost::lexical_cast<std::string>(d21) + ", difference is " +
                                     boost::lexical_cast<std::string>(fabs(d12 - d21)) + ")");
+                if (flags & STATESPACE_DISTANCE_BOUND)
+                    if (d12 > maxExt + zero)
+                        throw Exception("The distance function should not report values larger than the maximum extent ("+
+                                        boost::lexical_cast<std::string>(d12) + " > " + boost::lexical_cast<std::string>(maxExt) + ")");
             }
         }
 
@@ -896,11 +902,11 @@ ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSam
 {
     CompoundStateSampler *ss = new CompoundStateSampler(this);
     if (weightSum_ < std::numeric_limits<double>::epsilon())
-	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	    ss->addSampler(components_[i]->allocStateSampler(), 1.0);
+        for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+            ss->addSampler(components_[i]->allocStateSampler(), 1.0);
     else
-	for (unsigned int i = 0 ; i < componentCount_ ; ++i)
-	    ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / weightSum_);
+        for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+            ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / weightSum_);
     return StateSamplerPtr(ss);
 }
 

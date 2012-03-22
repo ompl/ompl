@@ -41,6 +41,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/function.hpp>
 #include <iostream>
 
 namespace ompl
@@ -78,7 +79,7 @@ namespace ompl
             void store(const char *filename);
 
             /** \brief Save a set of states to a stream */
-               virtual void store(std::ostream &out);
+            virtual void store(std::ostream &out);
 
             /** \brief Add a state to the set of states maintained by
                 this storage structure. The state is copied to internal storage */
@@ -116,10 +117,25 @@ namespace ompl
                 return states_[index];
             }
 
-            /** \brief Get a sampler allocator to a sampler that can
-                be specified for a StateSpace, such that all sampled
+            /** \brief Sort the states according to the less-qeual operator \e op. Metadata is NOT sorted;
+                if metadata was added, the index values of the metadata will not match after the sort. */
+            void sort(const boost::function<bool(const State*, const State*)> &op);
+
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
                 states are actually from this storage structure. */
-            virtual StateSamplerAllocator getStateSamplerAllocator(void) const;
+            StateSamplerAllocator getStateSamplerAllocator(void) const;
+
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
+                states are actually from this storage structure at an index less than or equal to \e until */
+            StateSamplerAllocator getStateSamplerAllocatorRangeUntil(std::size_t until) const;
+
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
+                states are actually from this storage structure at an index above or equal to \e after */
+            StateSamplerAllocator getStateSamplerAllocatorRangeAfter(std::size_t after) const;
+
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
+                states are actually from this storage structure at an index in the range [\e from, \e to] (inclusive) */
+            virtual StateSamplerAllocator getStateSamplerAllocatorRange(std::size_t from, std::size_t to) const;
 
             /** \brief Output the set of states to a specified stream, in a human readable fashion */
             virtual void print(std::ostream &out = std::cout) const;
@@ -241,6 +257,7 @@ namespace ompl
 
             /** \brief The metadata for each state */
             std::vector<M> metadata_;
+
         };
 
     }

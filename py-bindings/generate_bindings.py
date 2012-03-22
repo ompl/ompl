@@ -192,8 +192,9 @@ class ompl_base_generator_t(code_generator_t):
         # don't expose std::map< const State *, unsigned int >
         self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
         try:
-            # disable for now, until we can find a way to create code that compiles
-            self.ompl_ns.class_('StateStorage').member_function('getStateSamplerAllocator').exclude()
+            stateStorage = self.ompl_ns.class_('StateStorage')
+            stateStorage.member_function('getStateSamplerAllocatorRange').exclude()
+            stateStorage.add_registration_code('def("getStateSamplerAllocatorRange", &ompl::base::StateStorage::getStateSamplerAllocatorRange)')
         except:
             pass
         # add array indexing to the RealVectorState

@@ -48,14 +48,26 @@ namespace ompl
 
         /** \brief An SE(2) state space where distance is measured by the
             length of Dubins curves. Note that this Dubins distance is \b not
-            a proper distance metric, so the state space sanity checks will
-            fail. Nearest neighbor methods that rely on distance() being a
-            metric will not always return the true nearest neighbors.
+            a proper distance metric, so nearest neighbor methods that rely
+            on distance() being a metric (such ompl::NearestNeighborsGNAT)
+            will not always return the true nearest neighbors or get stuck
+            in an infinite loop. This means that if you use any of the RRT-based
+            planners (which use GNAT by default), you need to do the following:
+            \code
+ob::StateSpacePtr stateSpace(new ob::DubinsStateSpace);
+og::SimpleSetup setup(stateSpace);
+og::RRTConnect* planner = new og::RRTConnect(setup.getSpaceInformation());
+planner->setNearestNeighbors<ompl::NearestNeighborsSqrtApprox>();
+setup.setPlanner(ompl::base::PlannerPtr(planner));
+            \endcode
 
-            The notation and solutions are taken from:
+            The notation and solutions in the code are taken from:<br>
             A.M. Shkel and V. Lumelsky, “Classification of the Dubins set,”
             Robotics and Autonomous Systems, 34(4):179-202, 2001.
             DOI: <a href="http://dx.doi.org/10.1016/S0921-8890(00)00127-5">10.1016/S0921-8890(00)00127-5</a>
+
+            The classification scheme described there is not actually used,
+            since it only applies to “long” paths.
             */
         class DubinsStateSpace : public SE2StateSpace
         {
@@ -110,7 +122,7 @@ namespace ompl
             {
                 double zero = std::numeric_limits<double>::epsilon();
                 double eps = std::numeric_limits<float>::epsilon();
-                int flags = ~(STATESPACE_INTERPOLATION | STATESPACE_TRIANGLE_INEQUALITY);
+                int flags = ~(STATESPACE_INTERPOLATION | STATESPACE_TRIANGLE_INEQUALITY | STATESPACE_DISTANCE_BOUND);
                 if (!isSymmetric_)
                     flags &= ~STATESPACE_DISTANCE_SYMMETRIC;
                 StateSpace::sanityChecks(zero, eps, flags);
