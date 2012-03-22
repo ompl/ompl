@@ -125,6 +125,15 @@ namespace ompl
                     return useProjectedDistance_;
                 }
 
+                void setPropagateWhileValid(bool propagateWhileValid)
+                {
+                    propagateWhileValid_ = propagateWhileValid;
+                }
+                bool getPropagateWhileValid(void)
+                {
+                    return propagateWhileValid_;
+                }
+
                 void setDegree(unsigned int degree)
                 {
                     degree_ = degree;
@@ -305,6 +314,7 @@ namespace ompl
                 unsigned int                 degree_,minDegree_,maxDegree_,maxNumPtsPerLeaf_,removedCacheSize_;
                 double                       estimatedDimension_;
                 double                       minValidPathFraction_;
+                bool                         propagateWhileValid_;
 
                 /** \brief The random number generator */
                 RNG                          rng_;

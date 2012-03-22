@@ -58,6 +58,7 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
     setRemovedCacheSize(removedCacheSize);
     setEstimatedDimension(estimatedDimension);
     setMinValidPathFraction(0.2);
+    setPropagateWhileValid(true);
     tree_ = NULL;
 
     Planner::declareParam<double>("range", this, &GNAT::setRange, &GNAT::getRange);
@@ -70,6 +71,7 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
     Planner::declareParam<unsigned int>("removed_cache_size", this, &GNAT::setRemovedCacheSize, &GNAT::getRemovedCacheSize);
     Planner::declareParam<double>("estimated_dimension", this, &GNAT::setEstimatedDimension, &GNAT::getEstimatedDimension);
     Planner::declareParam<double>("min_valid_path_fraction", this, &GNAT::setMinValidPathFraction, &GNAT::getMinValidPathFraction);
+    Planner::declareParam<double>("propagate_while_valid", this, &GNAT::setPropagateWhileValid, &GNAT::getPropagateWhileValid);
 }
 
 ompl::geometric::GNAT::~GNAT(void)
@@ -166,10 +168,16 @@ bool ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
             if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
                 continue;
 
-        std::pair<base::State*, double> fail(xstate, 0.0);
-        bool keep = si_->checkMotion(existing->state, xstate, fail);
-        if (!keep && fail.second > minValidPathFraction_)
-            keep = true;
+        bool keep = false;
+        if(propagateWhileValid_)
+        {
+            std::pair<base::State*, double> fail(xstate, 0.0);
+            keep = si_->checkMotion(existing->state, xstate, fail);
+            if (!keep && fail.second > minValidPathFraction_)
+                keep = true;
+        }
+        else
+            keep = si_->checkMotion(existing->state, xstate);
 
         if (keep)
         {
