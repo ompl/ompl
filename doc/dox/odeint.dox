@@ -33,9 +33,9 @@ of the system can be described by:
 
 \left(
   \begin{array}{c}
-    v\ cos(\theta)\\
-    v\ sin(\theta)\\
-    v\ tan(\phi)
+    v \cos(\theta)\\
+    v \sin(\theta)\\
+    v \tan(\phi)
   \end{array}
 \right) 
 \f$
