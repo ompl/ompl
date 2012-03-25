@@ -6,12 +6,12 @@
 - \b OMPL @OMPL_VERSION@, released @OMPL_RELEASE_DATE@ (<a href="releaseNotes.html">release notes</a>)<br>
 <a href="https://sourceforge.net/projects/ompl/files/ompl-@OMPL_VERSION@-Source.tar.gz" class="btn btn-primary btn-small">TGZ</a>
 <a href="https://sourceforge.net/projects/ompl/files/ompl-@OMPL_VERSION@-Source.zip" class="btn btn-primary btn-small">ZIP</a><br><br>
-- <a style="font-weight: bold" href="http://sourceforge.net/projects/ompl/files">Older releases</a>. See the \ref releaseNotes "release notes" for a brief a description of changes for each release.
+- <a class="el" href="http://sourceforge.net/projects/ompl/files">Older releases</a>. See the \ref releaseNotes "release notes" for a brief a description of changes for each release.
 .
 
 \section download_hg Source Code
 
-- The <a style="font-weight: bold" href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/">latest source</a> is available via Mercurial. For anonymous checkout use:
+- The <a class="el" href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/">latest source</a> is available via Mercurial. For anonymous checkout use:
 \code
 $ hg clone http://ompl.hg.sourceforge.net:8000/hgroot/ompl/ompl
 \endcode
@@ -27,6 +27,6 @@ $ svn co https://rice-ros-pkg.svn.sourceforge.net/svnroot/rice-ros-pkg/ompl ompl
 
 \section download_install Installing
 
-- <a style="font-weight: bold" href="installation.html">Installation instructions</a>.
+- <a class="el" href="installation.html">Installation instructions</a>.
 
 */

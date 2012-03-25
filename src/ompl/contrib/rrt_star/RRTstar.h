@@ -52,7 +52,6 @@ namespace ompl
 
         /**
            @anchor gRRTstar
-
            @par Short description
            \ref gRRTstar "RRT*" (optimal RRT) is an asymptotically-optimal incremental
            sampling-based motion planning algorithm. \ref gRRTstar "RRT*" algorithm is
@@ -64,13 +63,11 @@ namespace ompl
            how to set the maximally allowed path length to reach the goal.
            If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
            found, the algorithm terminates before the elapsed time.
-
            @par External documentation
            S. Karaman and E. Frazzoli, Sampling-based
            Algorithms for Optimal Motion Planning, International Journal of Robotics
            Research (to appear), 2011.
            <a href="http://arxiv.org/abs/1105.1186">http://arxiv.org/abs/1105.1186</a>
-
         */
 
         /** \brief Optimal Rapidly-exploring Random Trees */

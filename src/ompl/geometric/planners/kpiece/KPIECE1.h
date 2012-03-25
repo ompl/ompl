@@ -49,7 +49,6 @@ namespace ompl
 
         /**
            @anchor gKPIECE1
-
            @par Short description
            KPIECE is a tree-based planner that uses a discretization
            (multiple levels, in general) to guide the exploration of
@@ -65,7 +64,6 @@ namespace ompl
            set, the planner will attempt to use the default projection
            associated to the state space. An exception is thrown if
            no default projection is available either.
-
            @par External documentation
            I.A. Şucan and L.E. Kavraki, Kinodynamic motion planning by interior-exterior cell exploration,
            in <em>Workshop on the Algorithmic Foundations of Robotics</em>, Dec. 2008.<br>

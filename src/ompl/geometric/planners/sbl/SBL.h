@@ -51,7 +51,6 @@ namespace ompl
 
         /**
            @anchor gSBL
-
            @par Short description
            SBL is a tree-based motion planner that attempts to grow two
            trees at once: one grows from the starting state and the other
@@ -75,7 +74,6 @@ namespace ompl
            set, the planner will attempt to use the default projection
            associated to the state space. An exception is thrown if
            no default projection is available either.
-
            @par External documentation
            G. Sánchez and J.-C. Latombe, A single-query bi-directional probabilistic roadmap planner with lazy collision checking, in <em>The Tenth International Symposium on Robotics Research</em>, pp. 403–417, 2001.
            DOI: <a href="http://dx.doi.org/10.1007/3-540-36460-9_27">10.1007/3-540-36460-9_27</a><br>
