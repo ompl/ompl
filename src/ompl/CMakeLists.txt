@@ -31,9 +31,7 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp ge
 if (OMPL_EXTENSION_OPENDE)
     file(GLOB_RECURSE OMPL_OPENDE_EXTENSION_SOURCE_CODE extensions/opende/*.cpp)
     set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_OPENDE_EXTENSION_SOURCE_CODE})
-    if (NOT OMPL_IN_ROS)
-            list(APPEND OMPL_LINK_LIBRARIES ${OPENDE_LIBRARY})
-    endif()
+    list(APPEND OMPL_LINK_LIBRARIES ${OPENDE_LIBRARY})
 endif()
 
 #############################################
@@ -45,35 +43,27 @@ add_subdirectory(contrib/rrt_star)
 #############################################
 # Build and install the library             #
 #############################################
-if(OMPL_IN_ROS)
-    rosbuild_check_for_sse()
-    rosbuild_add_library(ompl ${OMPL_SOURCE_CODE})
-    rosbuild_add_compile_flags(ompl -Wextra)
-    rosbuild_add_compile_flags(ompl ${SSE_FLAGS})
-    rosbuild_link_boost(ompl thread date_time serialization)
-else(OMPL_IN_ROS)
-    if(MSVC OR IS_ICPC)
-        add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-    else(MSVC OR IS_ICPC)
-        add_library(ompl SHARED ${OMPL_SOURCE_CODE})
-    endif(MSVC OR IS_ICPC)
-    target_link_libraries(ompl
-        ${Boost_THREAD_LIBRARY}
-        ${Boost_DATE_TIME_LIBRARY}
-        ${Boost_SERIALIZATION_LIBRARY}
-        ${OMPL_LINK_LIBRARIES}
-    )
-    
-    if(MSVC)
-      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
-    else(MSVC)
-      if (MINGW)
-        target_link_libraries(ompl psapi ws2_32)
-        set_target_properties(ompl PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
-      endif(MINGW)
-      set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
-    endif(MSVC)
-endif(OMPL_IN_ROS)
+if(MSVC OR IS_ICPC)
+  add_library(ompl STATIC ${OMPL_SOURCE_CODE})
+else(MSVC OR IS_ICPC)
+  add_library(ompl SHARED ${OMPL_SOURCE_CODE})
+endif(MSVC OR IS_ICPC)
+target_link_libraries(ompl
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_DATE_TIME_LIBRARY}
+  ${Boost_SERIALIZATION_LIBRARY}
+  ${OMPL_LINK_LIBRARIES}
+  )
+
+if(MSVC)
+  set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
+else(MSVC)
+  if (MINGW)
+    target_link_libraries(ompl psapi ws2_32)
+    set_target_properties(ompl PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
+  endif(MINGW)
+  set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
+endif(MSVC)
 
 # install the library
 install(TARGETS ompl DESTINATION lib/)
