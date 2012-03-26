@@ -20,9 +20,6 @@ if (OMPL_BUILD_DOC)
             COMMAND ${CMAKE_COMMAND} -E remove_directory html
             COMMAND ${DOXYGEN} "Doxyfile"
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-        add_custom_command(TARGET doc POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy js/search.js html/search
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
         # add "website" target
         add_custom_target(website
