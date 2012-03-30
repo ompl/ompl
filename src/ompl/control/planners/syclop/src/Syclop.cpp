@@ -48,6 +48,8 @@ const double ompl::control::Syclop::Defaults::PROB_SHORTEST_PATH        = 0.95;
 void ompl::control::Syclop::setup(void)
 {
     base::Planner::setup();
+    if (!computeLeadFn)
+        computeLeadFn = boost::bind(&ompl::control::Syclop::defaultComputeLead, this, _1, _2, _3);
     buildGraph();
     addEdgeCostFactor(boost::bind(&ompl::control::Syclop::defaultEdgeCost, this, _1, _2));
 }
@@ -123,7 +125,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         if (chosenGoalRegion == -1)
             chosenGoalRegion = goalRegions_.sampleUniform();
 
-        computeLead(chosenStartRegion, chosenGoalRegion);
+        computeLeadFn(chosenStartRegion, chosenGoalRegion, lead_);
         computeAvailableRegions();
         for (int i = 0; i < numRegionExpansions_ && !solved && !ptc(); ++i)
         {
@@ -347,12 +349,36 @@ void ompl::control::Syclop::clearGraphDetails(void)
     graphReady_ = false;
 }
 
-void ompl::control::Syclop::computeLead(int startRegion, int goalRegion)
+int ompl::control::Syclop::selectRegion(void)
 {
-    lead_.clear();
+    const int index = availDist_.sample(rng_.uniform01());
+    Region& region = graph_[boost::vertex(index,graph_)];
+    ++region.numSelections;
+    updateRegion(region);
+    return index;
+}
+
+void ompl::control::Syclop::computeAvailableRegions(void)
+{
+    availDist_.clear();
+    for (int i = lead_.size()-1; i >= 0; --i)
+    {
+        Region& r = graph_[boost::vertex(lead_[i],graph_)];
+        if (!r.motions.empty())
+        {
+            availDist_.add(lead_[i], r.weight);
+            if (rng_.uniform01() >= probKeepAddingToAvail_)
+                break;
+        }
+    }
+}
+
+void ompl::control::Syclop::defaultComputeLead(int startRegion, int goalRegion, std::vector<int>& lead)
+{
+    lead.clear();
     if (startRegion == goalRegion)
     {
-        lead_.push_back(startRegion);
+        lead.push_back(startRegion);
         return;
     }
 
@@ -381,11 +407,11 @@ void ompl::control::Syclop::computeLead(int startRegion, int goalRegion)
                 region = parents[region];
                 ++leadLength;
             }
-            lead_.resize(leadLength);
+            lead.resize(leadLength);
             region = goalRegion;
             for (int i = leadLength-1; i >= 0; --i)
             {
-                lead_[i] = region;
+                lead[i] = region;
                 region = parents[region];
             }
         }
@@ -426,11 +452,11 @@ void ompl::control::Syclop::computeLead(int startRegion, int goalRegion)
                         region = parents[region];
                         ++leadLength;
                     }
-                    lead_.resize(leadLength);
+                    lead.resize(leadLength);
                     region = goalRegion;
                     for (int j = leadLength-1; j >= 0; --j)
                     {
-                        lead_[j] = region;
+                        lead[j] = region;
                         region = parents[region];
                     }
                     goalFound = true;
@@ -443,37 +469,13 @@ void ompl::control::Syclop::computeLead(int startRegion, int goalRegion)
     }
 
     //Now that we have a lead, update the edge weights.
-    for (std::size_t i = 0; i < lead_.size()-1; ++i)
+    for (std::size_t i = 0; i < lead.size()-1; ++i)
     {
-        Adjacency& adj = *regionsToEdge_[std::pair<int,int>(lead_[i], lead_[i+1])];
+        Adjacency& adj = *regionsToEdge_[std::pair<int,int>(lead[i], lead[i+1])];
         if (adj.empty)
         {
             ++adj.numLeadInclusions;
             updateEdge(adj);
-        }
-    }
-}
-
-int ompl::control::Syclop::selectRegion(void)
-{
-    const int index = availDist_.sample(rng_.uniform01());
-    Region& region = graph_[boost::vertex(index,graph_)];
-    ++region.numSelections;
-    updateRegion(region);
-    return index;
-}
-
-void ompl::control::Syclop::computeAvailableRegions(void)
-{
-    availDist_.clear();
-    for (int i = lead_.size()-1; i >= 0; --i)
-    {
-        Region& r = graph_[boost::vertex(lead_[i],graph_)];
-        if (!r.motions.empty())
-        {
-            availDist_.add(lead_[i], r.weight);
-            if (rng_.uniform01() >= probKeepAddingToAvail_)
-                break;
         }
     }
 }
