@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(ompl CXX)
+project(ompl CXX C)
 
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
