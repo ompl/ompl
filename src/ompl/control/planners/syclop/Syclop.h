@@ -548,7 +548,7 @@ namespace ompl
             double defaultEdgeCost(int r, int s);
 
             /** \brief Lead computaton boost::function object */
-            LeadComputeFn computeLeadFn;
+            LeadComputeFn leadComputeFn;
             /** \brief The current computed lead */
             std::vector<int> lead_;
             /** \brief Used to sample regions in which to promote expansion */

@@ -48,8 +48,8 @@ const double ompl::control::Syclop::Defaults::PROB_SHORTEST_PATH        = 0.95;
 void ompl::control::Syclop::setup(void)
 {
     base::Planner::setup();
-    if (!computeLeadFn)
-        computeLeadFn = boost::bind(&ompl::control::Syclop::defaultComputeLead, this, _1, _2, _3);
+    if (!leadComputeFn)
+        setLeadComputeFn(boost::bind(&ompl::control::Syclop::defaultComputeLead, this, _1, _2, _3));
     buildGraph();
     addEdgeCostFactor(boost::bind(&ompl::control::Syclop::defaultEdgeCost, this, _1, _2));
 }
@@ -125,7 +125,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         if (chosenGoalRegion == -1)
             chosenGoalRegion = goalRegions_.sampleUniform();
 
-        computeLeadFn(chosenStartRegion, chosenGoalRegion, lead_);
+        leadComputeFn(chosenStartRegion, chosenGoalRegion, lead_);
         computeAvailableRegions();
         for (int i = 0; i < numRegionExpansions_ && !solved && !ptc(); ++i)
         {
@@ -198,6 +198,11 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         addedSolution = true;
     }
     return addedSolution;
+}
+
+void ompl::control::Syclop::setLeadComputeFn(const LeadComputeFn& compute)
+{
+    leadComputeFn = compute;
 }
 
 void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
