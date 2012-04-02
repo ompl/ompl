@@ -10,7 +10,7 @@ will describe how you can use this class.
 - \ref benchmark_log
 - \ref benchmark_sample_results
 
-For a command line program for rigid body motion planning, see the <a href="http://ompl.kavrakilab.org/benchmark.html">benchmark</a> program in OMPL.app.
+For a command line program for rigid body motion planning, see the <a href="http://ompl.kavrakilab.org/benchmark.html">ompl_benchmark</a> program in OMPL.app.
 For more advanced benchmarks, please see <a href="http://plannerarena.org">plannerarena.org</a>.
 
 \section benchmark_code Writing Benchmarking Code

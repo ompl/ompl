@@ -85,10 +85,10 @@ namespace ompl
                 of \f$t\f$.
                 Additional edge cost factors can be added
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
-            typedef boost::function2<double, int, int> EdgeCostFactorFn;
+            typedef boost::function<double(int, int)> EdgeCostFactorFn;
 
             /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start region and end at the end region.  Default is \f$A^\ast$\f search. */
-            typedef boost::function3<void, int, int, std::vector<int>&> LeadComputeFn;
+            typedef boost::function<void(int, int, std::vector<int>&)> LeadComputeFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             Syclop(const SpaceInformationPtr& si, const DecompositionPtr &d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
@@ -112,7 +112,6 @@ namespace ompl
                 Planner::declareParam<double>("prob_abandon_lead_early", this, &Syclop::setProbAbandonLeadEarly, &Syclop::getProbAbandonLeadEarly);
                 Planner::declareParam<double>("prob_add_available_regions", this, &Syclop::setProbAddingToAvailableRegions, &Syclop::getProbAddingToAvailableRegions);
                 Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead, &Syclop::getProbShortestPathLead);
-
             }
 
             virtual ~Syclop()
