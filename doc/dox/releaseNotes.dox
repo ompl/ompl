@@ -1,6 +1,10 @@
 /**
 \page releaseNotes Release Notes
 
+\section release_0_10_2 OMPL 0.10.2 (March 21, 2012)
+- Created a blog to highlight new features.
+- Bug fixes.
+
 \section release_0_10_1 OMPL 0.10.1 (February 27, 2012)
 - Added representation of discrete control spaces.
 - Fixes for XCode 4.3 / clang 3.1svn when compiling the Python bindings.

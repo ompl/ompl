@@ -55,7 +55,6 @@ namespace ompl
 
         /**
            @anchor gPRM
-
            @par Short description
            PRM is a planner that constructs a roadmap of milestones
            that approximate the connectivity of the state space. The
@@ -64,7 +63,6 @@ namespace ompl
            plan that connects two given states is reduced to a
            discrete search (this implementation uses A*) in the
            roadmap.
-
            @par External documentation
            L.E. Kavraki, P.Švestka, J.-C. Latombe, and M.H. Overmars,
            Probabilistic roadmaps for path planning in high-dimensional configuration spaces,
@@ -72,7 +70,6 @@ namespace ompl
            DOI: <a href="http://dx.doi.org/10.1109/70.508439">10.1109/70.508439</a><br>
            <a href="http://ieeexplore.ieee.org/ielx4/70/11078/00508439.pdf?tp=&arnumber=508439&isnumber=11078">[PDF]</a>
            <a href="http://www.kavrakilab.org/robotics/prm.html">[more]</a>
-
         */
 
         /** \brief Probabilistic RoadMap planner */

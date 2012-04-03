@@ -50,7 +50,6 @@ namespace ompl
 
         /**
            @anchor gLazyRRT
-
            @par Short description
            RRT is a tree-based motion planner that uses the following
            idea: RRT samples a random state @b qr in the state space,
@@ -65,7 +64,6 @@ namespace ompl
            found, it is checked for collision. If collisions are
            found, the invalid path segments are removed and the search
            process is continued.
-
            @par External documentation
            - J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
            <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
@@ -74,7 +72,6 @@ namespace ompl
            <a href="http://www.kavrakilab.org/sites/default/files/bohlin2001lazy-evaluation.pdf">[PDF]</a>
            - R. Bohlin and L.E. Kavraki, Path planning using lazy PRM, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 521–528, 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
            <a href="http://ieeexplore.ieee.org/ielx5/6794/18235/00844107.pdf?tp=&arnumber=844107&isnumber=18235">[PDF]
-
         */
 
         /** \brief Lazy RRT */

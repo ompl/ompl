@@ -51,7 +51,6 @@ namespace ompl
 
         /**
            @anchor gEST
-
            @par Short description
            EST is a tree-based motion planner that attempts to detect
            the less explored area of the space through the use of a
@@ -63,13 +62,11 @@ namespace ompl
            default projection associated to the state space. An
            exception is thrown if no default projection is available
            either.
-
            @par External documentation
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
            <em>Intl. J. Computational Geometry and Applications</em>,
            vol. 9, no. 4-5, pp. 495–512, 1999. DOI: <a href="http://dx.doi.org/10.1142/S0218195999000285">10.1142/S0218195999000285</a><br>
            <a href="http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf">[PDF]</a>
-
         */
 
         /** \brief Expansive Space Trees */

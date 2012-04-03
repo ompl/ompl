@@ -54,13 +54,11 @@ namespace ompl
     {
         /**
            @anchor cSyclop
-
            @par Short description
            Syclop is a multi-layered planner that guides a low-level sampling-based tree planner
            through a sequence of sequence of discrete workspace regions from start to goal.
            Syclop is defined as an abstract base class whose pure virtual methods are defined
            by the chosen low-level sampling-based tree planner.
-
            @par External documentation
            E. Plaku, L.E. Kavraki, and M.Y. Vardi,
            Motion Planning with Dynamics by a Synergistic Combination of Layers of Planning,

@@ -52,7 +52,6 @@ namespace ompl
 
         /**
            @anchor gBallTreeRRTstar
-
            @par Short description
            Implementation of \ref gRRTstar "RRT*" that incorporates Ball Trees
            to approximate connected regions of free space with volumes in
@@ -63,7 +62,6 @@ namespace ompl
            Information from all collision checking procedures within iterations is also used to trim volumes
            accordingly. The radii of volumes are considered when computing nearest/near neighbors. This
            implementation is suited for high-dimensional planning problems with narrow collision boundary passages.
-
            @par External documentation
            A. Perez, S. Karaman, M. Walter, A. Shkolnik, E. Frazzoli, S. Teller,
            Asymptotically-optimal Manipulation Planning using Incremental Sampling-based Algorithms,
