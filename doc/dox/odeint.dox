@@ -196,7 +196,7 @@ and depends on a number of factors including the complexity of the equations and
 the cost of evaluating them.  Higher order methods tend to be more precise and 
 numerically stable, but come at a higher computational cost.
 
-Finally, the ompl::control::ODESolver base class class can also be extended to
+Finally, the ompl::control::ODESolver base class can also be extended to
 new, user defined solvers.  The ODESolver base itself does not depend on 
 boost::numeric::odeint, and any user specified code or 3rd party library could 
 be used to perform numerical integration.
