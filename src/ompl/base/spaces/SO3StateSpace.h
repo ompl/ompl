@@ -55,22 +55,22 @@ namespace ompl
             }
 
             virtual void sampleUniform(State *state);
-            /** \brief To sample uniformly within some given distance, we
-                first compute a rotation q about a uniformly random unit
-                vector by an angle uniformly distributed between 0 and
-                2*distance, with a correction to account for the larger volume
-                of states at increasing distance. (Quaternion distance is equal
-                to half the angle in axis-angle representation.) The resulting
-                state is then the quaternion product of near and q. */
+            /** \brief To sample unit quaternions uniformly within some given
+                distance, we sample a 3-vector from the R^3 tangent space.
+                This vector is drawn uniformly random from a 3D ball centered at
+                the origin with radius distance. The vector is then "wrapped"
+                around S^3 to obtain a unit quaternion uniformly distributed
+                around the identity quaternion within given distance. We
+                pre-multiply this quaternion with the quaternion near
+                to center the distribution around near. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
-            /** \brief To sample sample a unit quaternion from a Gaussian,
-                distribution we first compute a rotation q about a uniformly
-                random unit vector by an angle sampled from a Gaussian with
-                mean equal to 0 and standard deviation equal to 2*stdDev, and
-                with a correction to account for the larger volume of states
-                at increasing distance.  (Quaternion distance is equal to
-                half the angle in axis-angle representation.) The resulting
-                state is then the quaternion product of near and q. */
+            /** \brief To sample a unit quaternion from a Gaussian
+                distribution, we sample a 3-vector from the R^3 tangent space
+                using a 3D Gaussian with zero mean and covariance matrix equal
+                to diag(stdDev^2, stdDev^2, stdDev^2). This vector is "wrapped"
+                around S^3 to obtain a Gaussian quaternion with zero mean.
+                We pre-multiply this quaternion with the quaternion mean
+                to get the desired mean. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
         };
 

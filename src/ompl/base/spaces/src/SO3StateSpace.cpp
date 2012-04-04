@@ -118,12 +118,22 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         sampleUniform(state);
         return;
     }
-    double d = rng_.gaussian01();
-    SO3StateSpace::StateType q,
-        *qs = static_cast<SO3StateSpace::StateType*>(state);
-    const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
-    q.setAxisAngle(rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), 2.*pow(d,1./3.)*stdDev);
-    quaternionProduct(*qs, *qmu, q);
+    double x = rng_.gaussian01(), y = rng_.gaussian01(), z = rng_.gaussian01(),
+        theta = std::sqrt(x*x + y*y + z*z);
+    if (theta < std::numeric_limits<double>::epsilon())
+        space_->copyState(state, mean);
+    else
+    {
+        SO3StateSpace::StateType q,
+            *qs = static_cast<SO3StateSpace::StateType*>(state);
+        const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
+        double s = sin(theta / 2) / theta;
+        q.w = cos(theta / 2);
+        q.x = s * x;
+        q.y = s * y;
+        q.z = s * z;
+        quaternionProduct(*qs, *qmu, q);
+    }
 }
 
 unsigned int ompl::base::SO3StateSpace::getDimension(void) const
