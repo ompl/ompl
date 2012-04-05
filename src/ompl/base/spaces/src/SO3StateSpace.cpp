@@ -118,7 +118,7 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         sampleUniform(state);
         return;
     }
-    double x = rng_.gaussian01(), y = rng_.gaussian01(), z = rng_.gaussian01(),
+    double x = rng_.gaussian(0, stdDev), y = rng_.gaussian(0, stdDev), z = rng_.gaussian(0, stdDev),
         theta = std::sqrt(x*x + y*y + z*z);
     if (theta < std::numeric_limits<double>::epsilon())
         space_->copyState(state, mean);
