@@ -27,7 +27,7 @@ Below are installation instructions for Ubuntu Linux and Mac OS X. Similar steps
 \subsection install_linux_ubuntu Ubuntu Linux
 
 \subsubsection install_linux_ubuntu_deb Installation from repository
-- For Ubuntu 10.04 and 11.10, Willow Garage maintains deb packages for the latest version of OMPL. All you need to do is add the repository to your list of sources:
+- For Ubuntu 10.04 (lucid), 11.10 (oneiric) and 12.04 (precise), Willow Garage maintains deb packages for the latest version of OMPL. All you need to do is add the repository to your list of sources:
 \code
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
 wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
