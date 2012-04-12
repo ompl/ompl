@@ -269,9 +269,8 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
 void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondition &ptc,
                                              base::PathPtr &solution)
 {
-    bool found = false;
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
-    while (!ptc() && !found)
+    while (!ptc() && !addedSolution_)
     {
         // Check for any new goal states
         if (goal->maxSampleCount() > goalM_.size())
@@ -282,16 +281,9 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
         }
 
         // Check for a solution
-        found = haveSolution (startM_, goalM_, solution);
+        addedSolution_ = haveSolution (startM_, goalM_, solution);
         // Sleep for 1ms
         boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-    }
-
-    if (found)
-    {
-        addedSolutionMutex_.lock();
-        addedSolution_ = found;
-        addedSolutionMutex_.unlock();
     }
 }
 
@@ -332,11 +324,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
 
 bool ompl::geometric::PRM::addedNewSolution (void) const
 {
-    addedSolutionMutex_.lock();
-    bool added = addedSolution_;
-    addedSolutionMutex_.unlock();
-
-    return added;
+    return addedSolution_;
 }
 
 bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)

@@ -272,7 +272,7 @@ namespace ompl
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, base::PathPtr &solution);
 
-            /** \brief Returns the value of the addedSolution_ member.  Thread safe. */
+            /** \brief Returns the value of the addedSolution_ member. */
             bool addedNewSolution (void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
@@ -339,9 +339,6 @@ namespace ompl
 
             /** \brief A flag indicating that a solution has been added during solve() */
             bool                                                   addedSolution_;
-
-            /** \brief Mutex to guard the addedSolution_ member */
-            mutable boost::mutex                                   addedSolutionMutex_;
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                   graphMutex_;
