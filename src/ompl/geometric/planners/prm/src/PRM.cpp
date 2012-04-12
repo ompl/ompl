@@ -66,6 +66,9 @@ namespace ompl
         /** \brief The number of nearest neighbors to consider by
             default in the construction of the PRM roadmap */
         static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
+
+        /** \brief The time in seconds for a single roadmap building operation (dt)*/
+        static const double ROADMAP_BUILD_TIME = 0.2;
     }
 }
 
@@ -392,17 +395,16 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     while (ptcOrSolutionFound() == false)
     {
         // maintain a 2:1 ratio for growing/expansion of roadmap
-        // call growRoadmap() 0.4 seconds for every 0.2 second call of expandRoadmap()
+        // call growRoadmap() twice as long for every call of expandRoadmap()
         if (grow)
-            growRoadmap(base::PlannerOrTerminationCondition(ptcOrSolutionFound, base::timedPlannerTerminationCondition(0.4)), xstates[0]);
+            growRoadmap(base::PlannerOrTerminationCondition(ptcOrSolutionFound, base::timedPlannerTerminationCondition(2.0*magic::ROADMAP_BUILD_TIME)), xstates[0]);
         else
-            expandRoadmap(base::PlannerOrTerminationCondition(ptcOrSolutionFound, base::timedPlannerTerminationCondition(0.2)), xstates);
+            expandRoadmap(base::PlannerOrTerminationCondition(ptcOrSolutionFound, base::timedPlannerTerminationCondition(magic::ROADMAP_BUILD_TIME)), xstates);
         grow = !grow;
     }
 
     msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
-    bool added = sol || addedNewSolution();
     if (sol)
     {
         if(addedNewSolution())
@@ -414,7 +416,8 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 
     si_->freeStates(xstates);
 
-    return added;
+    // Return true if any solution was found.
+    return sol != NULL;
 }
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)
