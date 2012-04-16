@@ -514,11 +514,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
                 base::PlannerData pd;
                 planners_[i]->getPlannerData(pd);
-                run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.states.size());
-                unsigned long edges = 0;
-                for (unsigned int k = 0 ; k < pd.edges.size() ; ++k)
-                    edges += pd.edges[k].size();
-                run["graph motions INTEGER"] = boost::lexical_cast<std::string>(edges);
+                run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.numVertices());
+                run["graph motions INTEGER"] = boost::lexical_cast<std::string>(pd.numEdges());
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
                     run[it->first] = it->second;

@@ -32,131 +32,272 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ryan Luna */
 
 #include "ompl/base/PlannerData.h"
 
-void ompl::base::PlannerData::clear(void)
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/graphviz.hpp>
+
+enum edge_type_t { edge_type };
+namespace boost { BOOST_INSTALL_PROPERTY(edge, type); }
+
+// Must store pointers to prevent object slicing
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+                               ompl::base::PlannerDataVertex*,
+                               boost::property<edge_type_t, ompl::base::PlannerDataEdge*> > Graph;
+
+typedef boost::graph_traits<Graph>::vertex_descriptor  Vertex;
+typedef boost::graph_traits<Graph>::edge_descriptor    Edge;
+typedef boost::graph_traits<Graph>::vertex_iterator    VIterator;
+typedef boost::graph_traits<Graph>::edge_iterator      EIterator;
+typedef boost::graph_traits<Graph>::out_edge_iterator  OEIterator;
+typedef boost::graph_traits<Graph>::adjacency_iterator AdjIterator;
+
+// This is a convenient macro to cast the void* graph pointer as the Boost.Graph structure defined above
+#define graph_ static_cast<Graph*>(graph)
+
+ompl::base::PlannerData::PlannerData (void)
 {
-    stateIndex.clear();
-    states.clear();
-    tags.clear();
-    edges.clear();
-    properties.clear();
-    si.reset();
+    graph = new Graph();
 }
 
-void ompl::base::PlannerData::tagState(const State *s, int tag)
+ompl::base::PlannerData::~PlannerData (void)
 {
-    if (s != NULL)
+    clear();
+    if (graph_)
     {
-        std::map<const State*, unsigned int>::iterator it = stateIndex.find(s);
-        if (it == stateIndex.end())
-        {
-            unsigned int p = states.size();
-            states.push_back(s);
-            tags.push_back(tag);
-            stateIndex[s] = p;
-            edges.resize(states.size());
-        }
-        else
-            tags[it->second] = tag;
+        delete graph_;
+        graph = NULL;
     }
 }
 
-int ompl::base::PlannerData::recordEdge(const State *s1, const State *s2)
+void ompl::base::PlannerData::clear (void)
 {
-    if (s1 == NULL || s2 == NULL)
+    if (graph_)
     {
-        const State *s = s1 == NULL ? s2 : s1;
-        if (s != NULL)
-        {
-            std::map<const State*, unsigned int>::iterator it = stateIndex.find(s);
-            if (it == stateIndex.end())
-            {
-                unsigned int p = states.size();
-                states.push_back(s);
-                tags.push_back(0);
-                stateIndex[s] = p;
-                edges.resize(states.size());
-            }
-        }
-        return -1;
+        std::pair<EIterator, EIterator> eiterators = boost::edges(*graph_);
+        typename boost::property_map<Graph, edge_type_t>::type edges = get(edge_type, *graph_);
+        for (EIterator iter = eiterators.first; iter != eiterators.second; ++iter)
+            delete edges[*iter];
+
+        std::pair<VIterator, VIterator> viterators = boost::vertices(*graph_);
+        for (VIterator iter = viterators.first; iter != viterators.second; ++iter)
+            delete (*graph_).operator[](*iter);
+
+        graph_->clear();
+    }
+}
+
+unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const
+{
+    std::pair<AdjIterator, AdjIterator> iterators;
+    iterators = boost::adjacent_vertices(v, *graph_);
+
+    edgeList.clear();
+    for (AdjIterator iter = iterators.first; iter != iterators.second; ++iter)
+        edgeList.push_back(*iter);
+
+    return edgeList.size();
+}
+
+unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*>& edgeMap) const
+{
+    std::pair<OEIterator, OEIterator> iterators;
+    iterators = boost::out_edges(v, *graph_);
+
+    edgeMap.clear();
+    typename boost::property_map<Graph, edge_type_t>::type edgePropertyMap = get(edge_type, *graph_);
+    for (OEIterator iter = iterators.first; iter != iterators.second; ++iter)
+        edgeMap[boost::target(*iter, *graph_)] = edgePropertyMap[*iter];
+
+    return edgeMap.size();
+}
+
+bool ompl::base::PlannerData::edgeExists (unsigned int v1, unsigned int v2) const
+{
+    Edge e;
+    bool exists;
+
+    boost::tie(e, exists) = boost::edge(v1, v2, *graph_);
+    return exists;
+}
+
+bool ompl::base::PlannerData::vertexExists (const PlannerDataVertex &v) const
+{
+    return vertexIndex(v) != std::numeric_limits<unsigned int>::max();
+}
+
+unsigned int ompl::base::PlannerData::numVertices (void) const
+{
+    return boost::num_vertices(*graph_);
+}
+
+unsigned int ompl::base::PlannerData::numEdges (void) const
+{
+    return boost::num_edges(*graph_);
+}
+
+const ompl::base::PlannerDataVertex* ompl::base::PlannerData::getVertex (unsigned int index) const
+{
+    return (*graph_).operator[](index);
+}
+
+const ompl::base::PlannerDataEdge* ompl::base::PlannerData::getEdge (unsigned int v1, unsigned int v2) const
+{
+    Edge e;
+    bool exists;
+    boost::tie(e, exists) = boost::edge(v1, v2, *graph_);
+
+    if (exists)
+    {
+        typename boost::property_map<Graph, edge_type_t>::type edges = get(edge_type, *graph_);
+        return edges[e];
+    }
+    return NULL;
+}
+
+void ompl::base::PlannerData::printGraphviz (std::ostream& out) const
+{
+    boost::write_graphviz(out, *graph_);
+}
+
+unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
+{
+    unsigned int index = std::numeric_limits<unsigned int>::max();
+    std::pair<VIterator, VIterator> viterators = boost::vertices(*graph_);
+    for (VIterator iter = viterators.first; iter != viterators.second && index == std::numeric_limits<unsigned int>::max(); ++iter)
+    {
+        if ( *((*graph_).operator[](*iter)) == v)
+            index = *iter;
+    }
+
+    return index;
+}
+
+unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
+{
+    // Do not add vertices with null states
+    if (st.getState() == NULL)
+        return std::numeric_limits<unsigned int>::max();
+
+    unsigned int index = vertexIndex(st);
+    if (index == std::numeric_limits<unsigned int>::max()) // Vertex does not already exist
+    {
+        // Clone the state to prevent object slicing when retrieving this object
+        ompl::base::PlannerDataVertex *clone = st.clone();
+
+        Vertex v = boost::add_vertex(clone, *graph_);
+        return v;
+    }
+    return index;
+}
+
+bool ompl::base::PlannerData::addEdge(unsigned int v1, unsigned int v2, const PlannerDataEdge &edge)
+{
+    // Clone the edge to prevent object slicing
+    ompl::base::PlannerDataEdge *clone = edge.clone();
+
+    Edge e;
+    bool added;
+    tie(e, added) = boost::add_edge(v1, v2, clone, *graph_);
+
+    if (!added)
+        delete clone;
+
+    return added;
+}
+
+bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const PlannerDataVertex & v2, const PlannerDataEdge &edge)
+{
+    unsigned int index1 = addVertex(v1);
+    unsigned int index2 = addVertex(v2);
+
+    // If neither vertex was added or already exists, return false
+    if (index1 == std::numeric_limits<unsigned int>::max() && index2 == std::numeric_limits<unsigned int>::max())
+        return false;
+
+    // Only add the edge if both vertices exist
+    if (index1 != std::numeric_limits<unsigned int>::max() && index2 != std::numeric_limits<unsigned int>::max())
+        return addEdge (index1, index2, edge);
+
+    return true;
+}
+
+bool ompl::base::PlannerData::removeVertex (const PlannerDataVertex &st)
+{
+    unsigned int index = vertexIndex (st);
+    if (index < std::numeric_limits<unsigned int>::max())
+    {
+        return removeVertex (index);
     }
     else
-    {
-        std::map<const State*, unsigned int>::iterator it1 = stateIndex.find(s1);
-        std::map<const State*, unsigned int>::iterator it2 = stateIndex.find(s2);
-
-        bool newEdge = false;
-
-        unsigned int p1;
-        if (it1 == stateIndex.end())
-        {
-            p1 = states.size();
-            states.push_back(s1);
-            tags.push_back(0);
-            stateIndex[s1] = p1;
-            edges.resize(states.size());
-            newEdge = true;
-        }
-        else
-            p1 = it1->second;
-
-        unsigned int p2;
-        if (it2 == stateIndex.end())
-        {
-            p2 = states.size();
-            states.push_back(s2);
-            tags.push_back(0);
-            stateIndex[s2] = p2;
-            edges.resize(states.size());
-            newEdge = true;
-        }
-        else
-            p2 = it2->second;
-
-        // if we are not yet sure this is a new edge, we check indeed if this edge exists
-        if (!newEdge)
-        {
-            newEdge = true;
-            for (unsigned int i = 0 ; i < edges[p1].size() ; ++i)
-                if (edges[p1][i] == p2)
-                {
-                    newEdge = false;
-                    break;
-                }
-        }
-
-        if (newEdge)
-        {
-            edges[p1].push_back(p2);
-            return p1;
-        }
-        else
-            return -1;
-    }
+        return false;
 }
 
-void ompl::base::PlannerData::print(std::ostream &out) const
+bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
 {
-    out << states.size() << std::endl;
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    if (vIndex >= boost::num_vertices(*graph_))
+        return false;
+
+    // Delete outgoing edges from this vertex first
+    std::pair<OEIterator, OEIterator> oiterators;
+    oiterators = boost::out_edges(vIndex, *graph_);
+
+    // Freeing memory associated with outgoing edges
+    typename boost::property_map<Graph, edge_type_t>::type edgePropertyMap = get(edge_type, *graph_);
+    for (OEIterator iter = oiterators.first; iter != oiterators.second; ++iter)
+        delete edgePropertyMap[*iter];
+
+    // Slay the vertex
+    delete (*graph_).operator[](vIndex);
+    boost::remove_vertex(vIndex, *graph_);
+
+    return true;
+}
+
+bool ompl::base::PlannerData::removeEdge (unsigned int v1, unsigned int v2)
+{
+    Edge e;
+    bool exists;
+    boost::tie(e, exists) = boost::edge(v1, v2, *graph_);
+
+    if (!exists)
+        return false;
+
+    // Freeing memory associated with this edge
+    typename boost::property_map<Graph, edge_type_t>::type edges = get(edge_type, *graph_);
+    delete edges[e];
+
+    boost::remove_edge(v1, v2, *graph_);
+    return true;
+}
+
+bool ompl::base::PlannerData::removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2)
+{
+    unsigned int index1, index2;
+    index1 = vertexIndex(v1);
+    index2 = vertexIndex(v2);
+
+    if (index1 == std::numeric_limits<unsigned int>::max() || index2 == std::numeric_limits<unsigned int>::max())
+        return false;
+
+    return removeEdge (index1, index2);
+}
+
+bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
+{
+    std::pair<VIterator, VIterator> viterators = boost::vertices(*graph_);
+    for (VIterator iter = viterators.first; iter != viterators.second; ++iter)
     {
-        out << i << " (tag="<< tags[i] << "): ";
-        if (si)
-            si->printState(states[i], out);
-        else
-            out << states[i] << std::endl;
+        if ( ((*graph_).operator[](*iter))->getState() == st)
+        {
+            ((*graph_).operator[](*iter))->setTag(tag);
+            return true;
+        }
     }
 
-    for (unsigned int i = 0 ; i < edges.size() ; ++i)
-    {
-        if (edges[i].empty())
-            continue;
-        out << i << ": ";
-        for (unsigned int j = 0 ; j < edges[i].size() ; ++j)
-            out << edges[i][j] << ' ';
-        out << std::endl;
-    }
+    return false;
 }
+

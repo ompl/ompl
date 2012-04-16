@@ -222,5 +222,6 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
+            data.addEdge(base::PlannerDataVertex(motions[i][j]->parent ? motions[i][j]->parent->state : NULL),
+                         base::PlannerDataVertex(motions[i][j]->state));
 }

@@ -498,7 +498,8 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
     {
         const Vertex v1 = boost::source(e, g_);
         const Vertex v2 = boost::target(e, g_);
-        data.recordEdge(stateProperty_[v1], stateProperty_[v2]);
+        data.addEdge(base::PlannerDataVertex(stateProperty_[v1]),
+                     base::PlannerDataVertex(stateProperty_[v2]));
     }
 }
 

@@ -242,8 +242,17 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
 
     std::vector<MotionInfo> motions;
     tree_.grid.getContent(motions);
+    
+    double stepSize = siC_->getPropagationStepSize();
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
+            if (motions[i][j]->parent)
+                data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                              base::PlannerDataVertex (motions[i][j]->state),
+                              PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+            else
+                data.addEdge (base::PlannerDataVertex (NULL),
+                              base::PlannerDataVertex (motions[i][j]->state),
+                              PlannerDataEdgeControl(NULL, 0.));
 }

@@ -293,8 +293,8 @@ namespace ompl
                 for (unsigned int i = 0 ; i < cdata.size() ; ++i)
                     for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
                     {
-                        data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
-                        data.tagState(cdata[i]->motions[j]->state, tag);
+                        data.addEdge(base::PlannerDataVertex(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, tag),
+                                     base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
                     }
             }
 

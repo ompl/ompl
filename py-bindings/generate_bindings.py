@@ -189,14 +189,18 @@ class ompl_base_generator_t(code_generator_t):
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateSpace').class_(
             'StateType').variable('values').exclude()
-        # don't expose std::map< const State *, unsigned int >
-        self.ompl_ns.class_('PlannerData').variable('stateIndex').exclude()
         try:
             stateStorage = self.ompl_ns.class_('StateStorage')
             stateStorage.member_function('getStateSamplerAllocatorRange').exclude()
             stateStorage.add_registration_code('def("getStateSamplerAllocatorRange", &ompl::base::StateStorage::getStateSamplerAllocatorRange)')
         except:
             pass
+            
+        # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
+        self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
+        # Exclude PlannerData::printGraphviz until it is properly exported
+        self.ompl_ns.class_('PlannerData').member_function('printGraphviz').exclude()
+            
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
         # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to EuclideanProjection
@@ -274,7 +278,6 @@ class ompl_control_generator_t(code_generator_t):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
         self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
-        self.std_ns.class_('vector< std::vector< ompl::control::Control const* > >').rename('vectorVectorConstControlPtr')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force ControlSpace::allocControl to be exported.
@@ -358,9 +361,8 @@ class ompl_control_generator_t(code_generator_t):
             'def("getPlannerAllocator", &ompl::control::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
         # do this for all classes that exist with the same name in another namespace
-        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'PlannerData', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
+        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
-        self.ompl_ns.namespace('control').class_('PlannerData').include()
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The

@@ -205,12 +205,11 @@ bool ompl::geometric::SimpleSetup::haveExactSolutionPath(void) const
     return haveSolutionPath() && (!getGoal()->isApproximate() || getGoal()->getDifference() < std::numeric_limits<double>::epsilon());
 }
 
-ompl::base::PlannerData ompl::geometric::SimpleSetup::getPlannerData(void) const
+void ompl::geometric::SimpleSetup::getPlannerData(base::PlannerData &pd) const
 {
-    base::PlannerData pd;
+    pd.clear();
     if (planner_)
         planner_->getPlannerData(pd);
-    return pd;
 }
 
 void ompl::geometric::SimpleSetup::print(std::ostream &out) const

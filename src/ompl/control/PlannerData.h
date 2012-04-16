@@ -44,36 +44,24 @@ namespace ompl
 {
     namespace control
     {
-
-        /** \brief Datatype holding data a planner can expose for debug purposes. */
-        class PlannerData : public base::PlannerData
+    
+        class PlannerDataEdgeControl : public base::PlannerDataEdge
         {
         public:
-            PlannerData(void) : base::PlannerData()
-            {
+            PlannerDataEdgeControl (const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration) {}
+            PlannerDataEdgeControl (const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
+            virtual ~PlannerDataEdgeControl (void) {}
+            virtual base::PlannerDataEdge* clone () const
+            { 
+                return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this)); 
             }
+            
+            const Control* getControl (void) const { return c_; }
+            double getDuration (void) const { return duration_; }
 
-            virtual ~PlannerData(void)
-            {
-            }
-
-            /** \brief Record an edge between two states. This
-                function is called by planners to fill \e states, \e
-                stateIndex and \e edges. If the same state/edge is
-                seen multiple times, it is added only once. */
-            int recordEdge(const base::State *s1, const base::State *s2, const Control* c, double duration);
-
-            /** \brief Clear any stored data */
-            virtual void clear(void);
-
-            /** \brief For each i, controls[i] contains the controls[i][j]
-                that are needed to take the system from state[i] to state[j] */
-            std::vector< std::vector< const Control* > > controls;
-
-            /** \brief controlDurations[i][j] contains the duration that
-                controls[i][j] needs to be applied to take the system
-                from state[i] to state[j] */
-            std::vector< std::vector< double > >         controlDurations;
+        protected:
+            const Control *c_;
+            double duration_;
         };
     }
 }

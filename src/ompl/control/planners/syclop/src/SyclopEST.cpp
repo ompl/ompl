@@ -54,26 +54,18 @@ void ompl::control::SyclopEST::clear(void)
 void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
 {
     Planner::getPlannerData(data);
-    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
-    {
-        const double delta = siC_->getPropagationStepSize();
-
-        for (std::vector<Motion*>::const_iterator i = motions_.begin(); i != motions_.end(); ++i)
-        {
-            const Motion* m = *i;
-            if (m->parent)
-                cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
-            else
-                cpd->recordEdge(NULL, m->state, NULL, 0.);
-        }
-    }
-    else
-    {
-        for (std::vector<Motion*>::const_iterator i = motions_.begin(); i != motions_.end(); ++i)
-        {
-            const Motion* m = *i;
-            data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
-        }
+    
+    double delta = siC_->getPropagationStepSize();
+    for (size_t i = 0; i < motions_.size(); ++i)
+    {   
+        if (motions_[i]->parent)
+            data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
+                          base::PlannerDataVertex(motions_[i]->state),
+                          control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
+        else
+            data.addEdge (base::PlannerDataVertex(NULL),
+                          base::PlannerDataVertex(motions_[i]->state),
+                          control::PlannerDataEdgeControl (NULL, 0.));
     }
 }
 

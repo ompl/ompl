@@ -67,26 +67,17 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
     std::vector<Motion*> motions;
     if (nn_)
         nn_->list(motions);
-    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
-    {
-        const double delta = siC_->getPropagationStepSize();
-
-        for (std::vector<Motion*>::const_iterator i = motions.begin(); i != motions.end(); ++i)
-        {
-            const Motion* m = *i;
-            if (m->parent)
-                cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
-            else
-                cpd->recordEdge(NULL, m->state, NULL, 0.);
-        }
-    }
-    else
-    {
-        for (std::vector<Motion*>::const_iterator i = motions.begin(); i != motions.end(); ++i)
-        {
-            const Motion* m = *i;
-            data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
-        }
+    double delta = siC_->getPropagationStepSize();
+    for (size_t i = 0; i < motions.size(); ++i)
+    {   
+        if (motions[i]->parent)
+            data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
+                          base::PlannerDataVertex(motions[i]->state),
+                          control::PlannerDataEdgeControl (motions[i]->control, motions[i]->steps * delta));
+        else
+            data.addEdge (base::PlannerDataVertex(NULL),
+                          base::PlannerDataVertex(motions[i]->state),
+                          control::PlannerDataEdgeControl (NULL, 0.));
     }
 }
 

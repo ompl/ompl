@@ -32,70 +32,123 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ryan Luna */
 
 #ifndef OMPL_BASE_PLANNER_DATA_
 #define OMPL_BASE_PLANNER_DATA_
 
-#include "ompl/base/SpaceInformation.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <map>
+#include "ompl/base/State.h"
+#include "ompl/util/ClassForward.h"
+#include <boost/noncopyable.hpp>
 
 namespace ompl
 {
     namespace base
     {
-
-        /** \brief Datatype holding data a planner can expose for debug purposes. */
-        class PlannerData
+        /// \brief Base class for a vertex in the PlannerData structure.  All 
+        /// derived classes must implement the clone and equivalence operators.
+        /// It is assumed that each vertex in the PlannerData structure is 
+        /// unique (i.e. no duplicates allowed).
+        class PlannerDataVertex
         {
         public:
-            PlannerData(void)
+            PlannerDataVertex (const base::State* st, int tag = 0) : state_(st), tag_(tag) {}
+            PlannerDataVertex (const PlannerDataVertex& rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
+            virtual ~PlannerDataVertex (void) {}
+
+            virtual int  getTag (void) const { return tag_; }
+            virtual void setTag (int tag) { tag_ = tag; }
+            virtual const base::State* getState(void) const { return state_; }
+
+            virtual PlannerDataVertex* clone (void) const
             {
+                return new PlannerDataVertex(*this);
             }
 
-            virtual ~PlannerData(void)
+            virtual bool operator == (const PlannerDataVertex &rhs) const
             {
+                // States should be unique
+                return state_ == rhs.state_;
             }
 
-            /** \brief Record an edge between two states. This
-                function is called by planners to fill \e states, \e
-                stateIndex and \e edges. If the same state/edge is
-                seen multiple times, it is added only once.
-                \return index of s1 in state array when an edge is added,
-                -1 otherwise. */
-            int recordEdge(const State *s1, const State *s2);
+        protected:
+            const base::State* state_;
+            int tag_;
+        };
 
-            /** \brief Assign a tag to a state */
-            void tagState(const State *s, int tag);
+        /// \brief Base class for a PlannerData edge.
+        class PlannerDataEdge
+        {
+        public:
+            PlannerDataEdge (void) {}
+            virtual ~PlannerDataEdge (void) {}
+            virtual PlannerDataEdge* clone () const { return new PlannerDataEdge(); }
+        };
+        
+        ClassForward(PlannerData);
 
-            /** \brief Clear any stored data */
-            virtual void clear(void);
+        /// Object containing planner generated vertex and edge data.
+        class PlannerData : boost::noncopyable
+        {
+        public:
+            // Constructor.  The name of the planner creating this structure is supplied.
+            PlannerData();
+            virtual ~PlannerData(void);
 
-            /** \brief Print this data to a stream */
-            virtual void print(std::ostream &out = std::cout) const;
+            // Clears the entire data structure
+            void clear (void);
+            // Check whether an edge between v1 and v2 exists
+            bool edgeExists (unsigned int v1, unsigned int v2) const;
+            // Check whether a vertex exists with the given data
+            bool vertexExists (const PlannerDataVertex &v) const;
+            // Retrieve a reference to the vertex object with the given index
+            const PlannerDataVertex* getVertex (unsigned int index) const;
+            // Retrieve a reference to the edge object connecting vertices v1 and v2
+            const PlannerDataEdge* getEdge (unsigned int v1, unsigned int v2) const;
+            // Returns a list of the vertices directly connected to vertex v
+            unsigned int getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
+            // Returns a map of out-going edges from vertex v.  Key = vertex ID, value = edge structure.
+            unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
+            // Retrieve the number of edges in this structure
+            unsigned int numEdges (void) const;
+            // Retrieve the number of vertices in this structure
+            unsigned int numVertices (void) const;
+            // Writes a Graphviz dot file of this structure to the given output stream
+            void printGraphviz (std::ostream& out = std::cout) const;
+            // Return the index for the vertex associated with the given data.  unsigned int max is returned if this vertex does not exist in the data.
+            // O(n) complexity in the number of vertices
+            unsigned int vertexIndex (const PlannerDataVertex &v) const;
 
-            /** \brief The space information containing the states of the exploration datastructure */
-            SpaceInformationPtr                      si;
-
-            /** \brief The list of states in the current exploration datastructure */
-            std::vector< const State* >              states;
-
-            /** \brief For every state, a tag may be associated by the planner. For example, a bi-directional planner
-                may assign one tag for states in the start tree and another for states in the goal tree. By default the tag has value 0. */
-            std::vector< int >                       tags;
-
-            /** \brief The same list of states as above, provided for convenience, in a manner that allows finding out a
-                state's index from its pointer value */
-            std::map< const State *, unsigned int >  stateIndex;
-
-            /** \brief For each i, edges[i] contains the values edges[i][j] such that states[i] connects to every states[edges[i][j]] */
-            std::vector< std::vector<unsigned int> > edges;
+            // Adds the given vertex to the graph data.  A unique ID is returned.
+            unsigned int addVertex (const PlannerDataVertex &st);
+            // Removes the vertex associated with the given datum
+            bool removeVertex (const PlannerDataVertex &st);
+            // Removes the vertex with the given index
+            bool removeVertex (unsigned int vIndex);
+            // Adds the edge data between the given vertex IDs.  Success is returned.
+            bool addEdge (unsigned int v1, unsigned int v2, const PlannerDataEdge &edge = base::PlannerDataEdge());
+            // Adds the edge data between the given vertex data points.  The 
+            // vertices are added to the data if they are not already in the 
+            // structure.  Success is returned.
+            bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2, const PlannerDataEdge &edge = PlannerDataEdge());
+            // Removes the edge between vertex IDs v1 and v2
+            bool removeEdge (unsigned int v1, unsigned int v2);
+            // Removes the edge between the vertices associated with the given vertex data
+            bool removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2);
+            // Set the tag associated with the given state
+            bool tagState (const base::State* st, int tag);
 
             /** \brief Any extra properties (key-value pairs) the planner can set. */
             std::map<std::string, std::string>       properties;
+
+        private:
+            // Abstract pointer that points to the Boost.Graph structure.
+            // Obscured to prevent unnecessary inclusion of BGL throughout the rest of the code.
+            void* graph;
         };
     }
 }
