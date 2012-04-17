@@ -403,6 +403,9 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
         grow = !grow;
     }
 
+    // Ensure slnThread is ceased before exiting solve
+    slnThread.join();
+
     msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
