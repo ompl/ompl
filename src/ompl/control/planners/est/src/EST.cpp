@@ -247,12 +247,21 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+        {
+            double weight = 0.0;
             if (motions[i][j]->parent)
+            {
+                weight = si_->distance(motions[i][j]->parent->state, motions[i][j]->state);
+            
                 data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
                               base::PlannerDataVertex (motions[i][j]->state),
+                              weight,
                               PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+            }
             else
                 data.addEdge (base::PlannerDataVertex (NULL),
                               base::PlannerDataVertex (motions[i][j]->state),
+                              weight,
                               PlannerDataEdgeControl(NULL, 0.));
+        }
 }

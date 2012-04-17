@@ -35,27 +35,12 @@
 /* Author: Ryan Luna */
 
 #include "ompl/base/PlannerData.h"
+#include "ompl/base/PlannerDataGraph.h"
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graphviz.hpp>
 
-enum edge_type_t { edge_type };
-namespace boost { BOOST_INSTALL_PROPERTY(edge, type); }
-
-// Must store pointers to prevent object slicing
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
-                               ompl::base::PlannerDataVertex*,
-                               boost::property<edge_type_t, ompl::base::PlannerDataEdge*> > Graph;
-
-typedef boost::graph_traits<Graph>::vertex_descriptor  Vertex;
-typedef boost::graph_traits<Graph>::edge_descriptor    Edge;
-typedef boost::graph_traits<Graph>::vertex_iterator    VIterator;
-typedef boost::graph_traits<Graph>::edge_iterator      EIterator;
-typedef boost::graph_traits<Graph>::out_edge_iterator  OEIterator;
-typedef boost::graph_traits<Graph>::adjacency_iterator AdjIterator;
-
-// This is a convenient macro to cast the void* graph pointer as the Boost.Graph structure defined above
+// This is a convenient macro to cast the void* graph pointer as the 
+// Boost.Graph structure from PlannerDataGraph.h
 #define graph_ static_cast<Graph*>(graph)
 
 ompl::base::PlannerData::PlannerData (void)
@@ -84,7 +69,7 @@ void ompl::base::PlannerData::clear (void)
 
         std::pair<VIterator, VIterator> viterators = boost::vertices(*graph_);
         for (VIterator iter = viterators.first; iter != viterators.second; ++iter)
-            delete (*graph_).operator[](*iter);
+            delete (*graph_)[*iter];
 
         graph_->clear();
     }
@@ -115,6 +100,36 @@ unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::map<unsigne
     return edgeMap.size();
 }
 
+double ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2) const
+{
+    Edge e;
+    bool exists;
+    boost::tie(e, exists) = boost::edge(v1, v2, *graph_);
+
+    if (exists)
+    {
+        typename boost::property_map<Graph, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
+        return edges[e];
+    }
+    else
+        return -1.0;
+}
+
+bool ompl::base::PlannerData::setEdgeWeight(unsigned int v1, unsigned int v2, double weight)
+{
+    Edge e;
+    bool exists;
+    boost::tie(e, exists) = boost::edge(v1, v2, *graph_);
+
+    if (exists)
+    {
+        typename boost::property_map<Graph, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
+        edges[e] = weight;
+    }
+    
+    return exists;
+}
+
 bool ompl::base::PlannerData::edgeExists (unsigned int v1, unsigned int v2) const
 {
     Edge e;
@@ -139,12 +154,12 @@ unsigned int ompl::base::PlannerData::numEdges (void) const
     return boost::num_edges(*graph_);
 }
 
-const ompl::base::PlannerDataVertex* ompl::base::PlannerData::getVertex (unsigned int index) const
+const ompl::base::PlannerDataVertex& ompl::base::PlannerData::getVertex (unsigned int index) const
 {
-    return (*graph_).operator[](index);
+    return *(*graph_)[index];
 }
 
-const ompl::base::PlannerDataEdge* ompl::base::PlannerData::getEdge (unsigned int v1, unsigned int v2) const
+const ompl::base::PlannerDataEdge& ompl::base::PlannerData::getEdge (unsigned int v1, unsigned int v2) const
 {
     Edge e;
     bool exists;
@@ -153,9 +168,30 @@ const ompl::base::PlannerDataEdge* ompl::base::PlannerData::getEdge (unsigned in
     if (exists)
     {
         typename boost::property_map<Graph, edge_type_t>::type edges = get(edge_type, *graph_);
-        return edges[e];
+        return *(edges[e]);
     }
-    return NULL;
+    // Not sure what to do here yet...
+    #warning Have not decided what to do here yet...
+}
+
+ompl::base::PlannerDataVertex& ompl::base::PlannerData::getVertex (unsigned int index)
+{
+    return *(*graph_)[index];
+}
+
+ompl::base::PlannerDataEdge& ompl::base::PlannerData::getEdge (unsigned int v1, unsigned int v2)
+{
+    Edge e;
+    bool exists;
+    boost::tie(e, exists) = boost::edge(v1, v2, *graph_);
+
+    if (exists)
+    {
+        typename boost::property_map<Graph, edge_type_t>::type edges = get(edge_type, *graph_);
+        return *(edges[e]);
+    }
+    // Not sure what to do here yet...
+    #warning Have not decided what to do here yet...
 }
 
 void ompl::base::PlannerData::printGraphviz (std::ostream& out) const
@@ -168,8 +204,8 @@ unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) c
     unsigned int index = std::numeric_limits<unsigned int>::max();
     std::pair<VIterator, VIterator> viterators = boost::vertices(*graph_);
     for (VIterator iter = viterators.first; iter != viterators.second && index == std::numeric_limits<unsigned int>::max(); ++iter)
-    {
-        if ( *((*graph_).operator[](*iter)) == v)
+    {        
+        if ( (*(*graph_)[*iter]) == v)
             index = *iter;
     }
 
@@ -194,14 +230,15 @@ unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
     return index;
 }
 
-bool ompl::base::PlannerData::addEdge(unsigned int v1, unsigned int v2, const PlannerDataEdge &edge)
+bool ompl::base::PlannerData::addEdge(unsigned int v1, unsigned int v2, double weight, const PlannerDataEdge &edge)
 {
     // Clone the edge to prevent object slicing
     ompl::base::PlannerDataEdge *clone = edge.clone();
+    const Graph::edge_property_type properties(clone, weight);
 
     Edge e;
     bool added;
-    tie(e, added) = boost::add_edge(v1, v2, clone, *graph_);
+    tie(e, added) = boost::add_edge(v1, v2, properties, *graph_);
 
     if (!added)
         delete clone;
@@ -209,7 +246,7 @@ bool ompl::base::PlannerData::addEdge(unsigned int v1, unsigned int v2, const Pl
     return added;
 }
 
-bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const PlannerDataVertex & v2, const PlannerDataEdge &edge)
+bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const PlannerDataVertex & v2, double weight, const PlannerDataEdge &edge)
 {
     unsigned int index1 = addVertex(v1);
     unsigned int index2 = addVertex(v2);
@@ -220,7 +257,7 @@ bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const Plann
 
     // Only add the edge if both vertices exist
     if (index1 != std::numeric_limits<unsigned int>::max() && index2 != std::numeric_limits<unsigned int>::max())
-        return addEdge (index1, index2, edge);
+        return addEdge (index1, index2, weight, edge);
 
     return true;
 }
@@ -240,18 +277,25 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
 {
     if (vIndex >= boost::num_vertices(*graph_))
         return false;
+    
+    // Retrieve a list of all edge structures    
+    typename boost::property_map<Graph, edge_type_t>::type edgePropertyMap = get(edge_type, *graph_);
 
-    // Delete outgoing edges from this vertex first
+    // Freeing memory associated with outgoing edges of this vertex
     std::pair<OEIterator, OEIterator> oiterators;
     oiterators = boost::out_edges(vIndex, *graph_);
-
-    // Freeing memory associated with outgoing edges
-    typename boost::property_map<Graph, edge_type_t>::type edgePropertyMap = get(edge_type, *graph_);
     for (OEIterator iter = oiterators.first; iter != oiterators.second; ++iter)
         delete edgePropertyMap[*iter];
 
+    // Freeing memory associated with incoming edges of this vertex
+    std::pair<IEIterator, IEIterator> initerators;
+    initerators = boost::in_edges(vIndex, *graph_);
+    for (IEIterator iter = initerators.first; iter != initerators.second; ++iter)
+        delete edgePropertyMap[*iter];
+
     // Slay the vertex
-    delete (*graph_).operator[](vIndex);
+    boost::clear_vertex(vIndex, *graph_);    
+    delete (*graph_)[vIndex];
     boost::remove_vertex(vIndex, *graph_);
 
     return true;
@@ -291,9 +335,9 @@ bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
     std::pair<VIterator, VIterator> viterators = boost::vertices(*graph_);
     for (VIterator iter = viterators.first; iter != viterators.second; ++iter)
     {
-        if ( ((*graph_).operator[](*iter))->getState() == st)
+        if ((*graph_)[*iter]->getState() == st)
         {
-            ((*graph_).operator[](*iter))->setTag(tag);
+            (*graph_)[*iter]->setTag(tag);
             return true;
         }
     }

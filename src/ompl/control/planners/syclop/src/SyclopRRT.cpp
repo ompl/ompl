@@ -69,14 +69,20 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
         nn_->list(motions);
     double delta = siC_->getPropagationStepSize();
     for (size_t i = 0; i < motions.size(); ++i)
-    {   
+    {
+        double weight = 0.0;
         if (motions[i]->parent)
+        {
+            weight = si_->distance(motions[i]->parent->state, motions[i]->state);
             data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
                           base::PlannerDataVertex(motions[i]->state),
+                          weight,
                           control::PlannerDataEdgeControl (motions[i]->control, motions[i]->steps * delta));
+        }
         else
             data.addEdge (base::PlannerDataVertex(NULL),
                           base::PlannerDataVertex(motions[i]->state),
+                          weight,
                           control::PlannerDataEdgeControl (NULL, 0.));
     }
 }

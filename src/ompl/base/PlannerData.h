@@ -89,6 +89,7 @@ namespace ompl
             virtual PlannerDataEdge* clone () const { return new PlannerDataEdge(); }
         };
         
+        class Graph;
         ClassForward(PlannerData);
 
         /// Object containing planner generated vertex and edge data.
@@ -96,7 +97,7 @@ namespace ompl
         {
         public:
             // Constructor.  The name of the planner creating this structure is supplied.
-            PlannerData();
+            PlannerData(void);
             virtual ~PlannerData(void);
 
             // Clears the entire data structure
@@ -105,22 +106,34 @@ namespace ompl
             bool edgeExists (unsigned int v1, unsigned int v2) const;
             // Check whether a vertex exists with the given data
             bool vertexExists (const PlannerDataVertex &v) const;
+
             // Retrieve a reference to the vertex object with the given index
-            const PlannerDataVertex* getVertex (unsigned int index) const;
+            const PlannerDataVertex& getVertex (unsigned int index) const;
             // Retrieve a reference to the edge object connecting vertices v1 and v2
-            const PlannerDataEdge* getEdge (unsigned int v1, unsigned int v2) const;
-            // Returns a list of the vertices directly connected to vertex v
+            const PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2) const;
+            // Retrieve a reference to the vertex object with the given index
+            PlannerDataVertex& getVertex (unsigned int index);
+            // Retrieve a reference to the edge object connecting vertices v1 and v2
+            PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2);
+
+            // Returns a list of the vertices directly connected to vertex v.  The number of edges is returned.
             unsigned int getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
-            // Returns a map of out-going edges from vertex v.  Key = vertex ID, value = edge structure.
+            // Returns a map of out-going edges from vertex v.  Key = vertex ID,
+            // value = edge structure.  The number of edges is returned.
             unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
+            // Returns the weight of the edge between the given vertex ids.  -1.0 is returned for an invalid edge.
+            double getEdgeWeight(unsigned int v1, unsigned int v2) const;
+            // Sets the weight of the edge between the given vertex ids.  If an edge between v1 and v2 does not exist, false is returned.
+            bool setEdgeWeight(unsigned int v1, unsigned int v2, double weight);
             // Retrieve the number of edges in this structure
             unsigned int numEdges (void) const;
             // Retrieve the number of vertices in this structure
             unsigned int numVertices (void) const;
             // Writes a Graphviz dot file of this structure to the given output stream
             void printGraphviz (std::ostream& out = std::cout) const;
-            // Return the index for the vertex associated with the given data.  unsigned int max is returned if this vertex does not exist in the data.
-            // O(n) complexity in the number of vertices
+            // Return the index for the vertex associated with the given data.  
+            // unsigned int max is returned if this vertex does not exist in the
+            // data.  O(n) complexity in the number of vertices.
             unsigned int vertexIndex (const PlannerDataVertex &v) const;
 
             // Adds the given vertex to the graph data.  A unique ID is returned.
@@ -130,11 +143,13 @@ namespace ompl
             // Removes the vertex with the given index
             bool removeVertex (unsigned int vIndex);
             // Adds the edge data between the given vertex IDs.  Success is returned.
-            bool addEdge (unsigned int v1, unsigned int v2, const PlannerDataEdge &edge = base::PlannerDataEdge());
+            bool addEdge (unsigned int v1, unsigned int v2, double weight=1.0,
+                          const PlannerDataEdge &edge = base::PlannerDataEdge());
             // Adds the edge data between the given vertex data points.  The 
             // vertices are added to the data if they are not already in the 
             // structure.  Success is returned.
-            bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2, const PlannerDataEdge &edge = PlannerDataEdge());
+            bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2, 
+                          double weight=1.0, const PlannerDataEdge &edge = PlannerDataEdge());
             // Removes the edge between vertex IDs v1 and v2
             bool removeEdge (unsigned int v1, unsigned int v2);
             // Removes the edge between the vertices associated with the given vertex data
@@ -142,12 +157,17 @@ namespace ompl
             // Set the tag associated with the given state
             bool tagState (const base::State* st, int tag);
 
-            /** \brief Any extra properties (key-value pairs) the planner can set. */
-            std::map<std::string, std::string>       properties;
+            // Extract a Boost.Graph object from this PlannerData.  Use of this
+            // method requires inclusion of PlannerDataGraph.h
+            Graph& toBoostGraph(void);
 
+            /** \brief Any extra properties (key-value pairs) the planner can set. */
+            std::map<std::string, std::string> properties;
+            
         private:
             // Abstract pointer that points to the Boost.Graph structure.
-            // Obscured to prevent unnecessary inclusion of BGL throughout the rest of the code.
+            // Obscured to prevent unnecessary inclusion of BGL throughout the 
+            // rest of the code.
             void* graph;
         };
     }

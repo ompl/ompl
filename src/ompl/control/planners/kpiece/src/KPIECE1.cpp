@@ -416,15 +416,22 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     for (unsigned int i = 0 ; i < cells.size() ; ++i)
     {
         for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
-        {                
+        {
+            double weight = 0.0;
             const Motion* m = cells[i]->data->motions[j];
             if (m->parent)
+            {
+                weight = si_->distance(m->parent->state, m->state);
+
                 data.addEdge(base::PlannerDataVertex (m->parent->state),
                              base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                             weight,
                              control::PlannerDataEdgeControl (m->control, m->steps * delta));
+            }
             else
                 data.addEdge (base::PlannerDataVertex (NULL), 
                               base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                              weight,
                               control::PlannerDataEdgeControl (NULL, 0));
             
             // A state created as a parent first may have an improper tag variable
