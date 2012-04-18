@@ -42,30 +42,30 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 
+/// @cond IGNORE
 enum edge_type_t { edge_type };
 namespace boost { BOOST_INSTALL_PROPERTY(edge, type); }
+/// @endcond
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-                               ompl::base::PlannerDataVertex*,
-                               boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
-                               boost::property<boost::edge_weight_t, double> > > GraphType;
-
-class ompl::base::Graph : public GraphType
+/// Wrapper class for the Boost.Graph representation of the PlannerData
+class ompl::base::PlannerData::Graph : public boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
+                                                                      ompl::base::PlannerDataVertex*,
+                                                                      boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
+                                                                      boost::property<boost::edge_weight_t, double> > >
 {
+public:
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
+                                   ompl::base::PlannerDataVertex*,
+                                   boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
+                                   boost::property<boost::edge_weight_t, double> > > Type;
+
+    typedef boost::graph_traits<Type>::vertex_descriptor  Vertex;
+    typedef boost::graph_traits<Type>::edge_descriptor    Edge;
+    typedef boost::graph_traits<Type>::vertex_iterator    VIterator;
+    typedef boost::graph_traits<Type>::edge_iterator      EIterator;
+    typedef boost::graph_traits<Type>::in_edge_iterator   IEIterator;
+    typedef boost::graph_traits<Type>::out_edge_iterator  OEIterator;
+    typedef boost::graph_traits<Type>::adjacency_iterator AdjIterator;
 };
-
-typedef boost::graph_traits<GraphType>::vertex_descriptor  Vertex;
-typedef boost::graph_traits<GraphType>::edge_descriptor    Edge;
-typedef boost::graph_traits<GraphType>::vertex_iterator    VIterator;
-typedef boost::graph_traits<GraphType>::edge_iterator      EIterator;
-typedef boost::graph_traits<GraphType>::in_edge_iterator   IEIterator;
-typedef boost::graph_traits<GraphType>::out_edge_iterator  OEIterator;
-typedef boost::graph_traits<GraphType>::adjacency_iterator AdjIterator;
-
-ompl::base::Graph& ompl::base::PlannerData::toBoostGraph(void)
-{    
-    Graph* boostgraph = static_cast<Graph*>(graph);
-    return *boostgraph;
-}
 
 #endif

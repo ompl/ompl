@@ -58,22 +58,14 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
     double delta = siC_->getPropagationStepSize();
     for (size_t i = 0; i < motions_.size(); ++i)
     {
-        double weight = 0.0;
         if (motions_[i]->parent)
-        {
-            weight = si_->distance(motions_[i]->parent->state, motions_[i]->state);
             data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
                           base::PlannerDataVertex(motions_[i]->state),
-                          weight,
                           control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
-        }
         else
-        {
             data.addEdge (base::PlannerDataVertex(NULL),
                           base::PlannerDataVertex(motions_[i]->state),
-                          weight,
                           control::PlannerDataEdgeControl (NULL, 0.));
-        }
     }
 }
 

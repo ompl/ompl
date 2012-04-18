@@ -272,21 +272,14 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     double delta = siC_->getPropagationStepSize();
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        double weight = 0.0;
         const Motion* m = motions[i];
         if (m->parent)
-        {
-            weight = si_->distance(m->parent->state, m->state);
-        
             data.addEdge(base::PlannerDataVertex(m->parent->state),
                          base::PlannerDataVertex(m->state),
-                         weight,
                          control::PlannerDataEdgeControl(m->control, m->steps * delta));
-        }
         else
             data.addEdge(base::PlannerDataVertex(NULL),
                          base::PlannerDataVertex(m->state),
-                         weight,
                          control::PlannerDataEdgeControl(NULL, 0.));
     }
 }

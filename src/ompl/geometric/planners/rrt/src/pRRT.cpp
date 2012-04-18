@@ -251,15 +251,8 @@ void ompl::geometric::pRRT::getPlannerData(base::PlannerData &data) const
         nn_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-    {
-        double weight = 0.0;
-        if (motions[i]->parent)
-            weight = si_->distance(motions[i]->parent->state, motions[i]->state);
-
         data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL),
-                     base::PlannerDataVertex(motions[i]->state),
-                     weight);
-    }
+                     base::PlannerDataVertex(motions[i]->state));
 }
 
 void ompl::geometric::pRRT::setThreadCount(unsigned int nthreads)

@@ -285,28 +285,14 @@ void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
         tStart_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-    {
-        double weight = 0.0;
-        if (motions[i]->parent)
-            weight = si_->distance(motions[i]->parent->state, motions[i]->state);
-
         data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL, 1),
-                     base::PlannerDataVertex(motions[i]->state, 1),
-                     weight);
-    }
+                     base::PlannerDataVertex(motions[i]->state, 1));
 
     motions.clear();
     if (tGoal_)
         tGoal_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-    {
-        double weight = 0.0;
-        if (motions[i]->parent)
-            weight = si_->distance(motions[i]->parent->state, motions[i]->state);
-
         data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL, 2),
-                     base::PlannerDataVertex(motions[i]->state, 2),
-                     weight);
-    }
+                     base::PlannerDataVertex(motions[i]->state, 2));
 }

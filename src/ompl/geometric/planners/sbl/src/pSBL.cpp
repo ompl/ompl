@@ -445,29 +445,15 @@ void ompl::geometric::pSBL::getPlannerData(base::PlannerData &data) const
     tStart_.grid.getContent(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-        {
-            double weight = 0.0;
-            if (motions[i][j]->parent)
-                weight = si_->distance(motions[i][j]->parent->state, motions[i][j]->state);
-
             data.addEdge(base::PlannerDataVertex(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, 1),
-                         base::PlannerDataVertex(motions[i][j]->state, 1),
-                         weight);
-        }
+                         base::PlannerDataVertex(motions[i][j]->state, 1));
 
     motions.clear();
     tGoal_.grid.getContent(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-        {
-            double weight = 0.0;
-            if (motions[i][j]->parent)
-                weight = si_->distance(motions[i][j]->parent->state, motions[i][j]->state);
-        
             data.addEdge(base::PlannerDataVertex(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, 2),
-                         base::PlannerDataVertex(motions[i][j]->state, 2),
-                         weight);
-        }
+                         base::PlannerDataVertex(motions[i][j]->state, 2));
 }
 
 void ompl::geometric::pSBL::setThreadCount(unsigned int nthreads)
