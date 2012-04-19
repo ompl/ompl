@@ -86,18 +86,18 @@ TEST(PlannerData, SimpleConstruction)
     for (unsigned int i = 0; i < 9; ++i)
     {
         std::vector<unsigned int> neighbors;
-        EXPECT_EQ( data.getEdges(i, neighbors), 1);
+        EXPECT_EQ( data.getEdges(i, neighbors), 1u );
         EXPECT_EQ( neighbors[0], i+1 );
     }
 
     std::vector<unsigned int> neighbors;
-    EXPECT_EQ( data.getEdges(9, neighbors), 0 );
+    EXPECT_EQ( data.getEdges(9, neighbors), 0u );
 
     // Make sure that the vertices can be retrived properly
     for (unsigned int i = 0; i < 10; ++i)
     {
         EXPECT_EQ(data.getVertex(i).getState(), states[i]);
-        EXPECT_EQ(data.getVertex(i).getTag(), i+1);
+        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i+1);
     }
 
     for (size_t i = 0; i < states.size(); ++i)
@@ -138,17 +138,17 @@ TEST(PlannerData, AdvancedConstruction)
     for (unsigned int i = 0; i < 9; ++i)
     {
         std::vector<unsigned int> nbrs;
-        EXPECT_EQ( data.getEdges(i, nbrs), 1);
+        EXPECT_EQ( data.getEdges(i, nbrs), 1u );
         EXPECT_EQ( nbrs[0], i+1 );
     }
     std::vector<unsigned int> nbrs;
-    EXPECT_EQ( data.getEdges(9, nbrs), 0 );
+    EXPECT_EQ( data.getEdges(9, nbrs), 0u );
 
     // Make sure that the vertices can be retrived properly
     for (unsigned int i = 0; i < 10; ++i)
     {
         EXPECT_EQ(data.getVertex(i).getState(), states[i]);
-        EXPECT_EQ(data.getVertex(i).getTag(), i+1);
+        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i+1);
     }
 
     for (size_t i = 0; i < states.size(); ++i)
@@ -168,7 +168,7 @@ public:
         return static_cast<PlannerDataEdge*>(new TestEdge(*this));
     }
 
-    int a, b;
+    unsigned int a, b;
 };
 
 TEST(PlannerData, DataIntegrity)
@@ -315,14 +315,14 @@ TEST(PlannerData, AddRemoveVerticesAndEdges)
     EXPECT_TRUE( data.edgeExists(data.vertexIndex(base::PlannerDataVertex(states[7])), data.vertexIndex(base::PlannerDataVertex(states[8]))) );
 
     std::vector<unsigned int> nbrs;
-    EXPECT_EQ ( data.getEdges(0, nbrs), 1 );
-    EXPECT_EQ ( data.getEdges(1, nbrs), 0 );
-    EXPECT_EQ ( data.getEdges(2, nbrs), 1 );
-    EXPECT_EQ ( data.getEdges(3, nbrs), 1 );
-    EXPECT_EQ ( data.getEdges(4, nbrs), 0 );
-    EXPECT_EQ ( data.getEdges(5, nbrs), 0 );
-    EXPECT_EQ ( data.getEdges(6, nbrs), 1 );
-    EXPECT_EQ ( data.getEdges(7, nbrs), 0 );
+    EXPECT_EQ ( data.getEdges(0, nbrs), 1u );
+    EXPECT_EQ ( data.getEdges(1, nbrs), 0u );
+    EXPECT_EQ ( data.getEdges(2, nbrs), 1u );
+    EXPECT_EQ ( data.getEdges(3, nbrs), 1u );
+    EXPECT_EQ ( data.getEdges(4, nbrs), 0u );
+    EXPECT_EQ ( data.getEdges(5, nbrs), 0u );
+    EXPECT_EQ ( data.getEdges(6, nbrs), 1u );
+    EXPECT_EQ ( data.getEdges(7, nbrs), 0u );
 
     for (size_t i = 0; i < states.size(); ++i)
         space->freeState(states[i]);
