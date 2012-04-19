@@ -43,21 +43,27 @@
 #include <boost/graph/graph_traits.hpp>
 
 /// @cond IGNORE
+// Installing custom vertex and edge properties
 enum edge_type_t { edge_type };
-namespace boost { BOOST_INSTALL_PROPERTY(edge, type); }
+enum vertex_type_t { vertex_type };
+namespace boost
+{
+    BOOST_INSTALL_PROPERTY(edge, type);
+    BOOST_INSTALL_PROPERTY(vertex, type);
+}
 /// @endcond
 
+#define PlannerDataGraph boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, \
+                                               boost::property<vertex_type_t, ompl::base::PlannerDataVertex*, \
+                                               boost::property<boost::vertex_index_t, unsigned int> >, \
+                                               boost::property<edge_type_t, ompl::base::PlannerDataEdge*, \
+                                               boost::property<boost::edge_weight_t, double> > >
+
 /// Wrapper class for the Boost.Graph representation of the PlannerData
-class ompl::base::PlannerData::Graph : public boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-                                                                      ompl::base::PlannerDataVertex*,
-                                                                      boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
-                                                                      boost::property<boost::edge_weight_t, double> > >
+class ompl::base::PlannerData::Graph : public PlannerDataGraph
 {
 public:
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-                                   ompl::base::PlannerDataVertex*,
-                                   boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
-                                   boost::property<boost::edge_weight_t, double> > > Type;
+    typedef PlannerDataGraph Type;
 
     typedef boost::graph_traits<Type>::vertex_descriptor  Vertex;
     typedef boost::graph_traits<Type>::edge_descriptor    Edge;

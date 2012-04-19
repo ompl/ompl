@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2012, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,7 @@ namespace ompl
             virtual void setTag (int tag) { tag_ = tag; }
             virtual const base::State* getState(void) const { return state_; }
 
+            /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataVertex* clone (void) const
             {
                 return new PlannerDataVertex(*this);
@@ -75,9 +76,15 @@ namespace ompl
                 // States should be unique
                 return state_ == rhs.state_;
             }
+            
+            virtual bool operator != (const PlannerDataVertex &rhs) const
+            {
+                return !(*this == rhs);
+            }
 
         protected:
             const base::State* state_;
+            /// \brief A generic integer tag for this state.  Not used for equivalence checking.
             int tag_;
         };
 
@@ -87,92 +94,136 @@ namespace ompl
         public:
             PlannerDataEdge (void) {}
             virtual ~PlannerDataEdge (void) {}
+            /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataEdge* clone () const { return new PlannerDataEdge(); }
+            
+            /// \brief Returns true if the edges point to the same memory
+            virtual bool operator == (const PlannerDataEdge &rhs) const
+            {
+                return this == &rhs;
+            }
+            
+            /// \brief Returns true if the edges do not point to the same memory
+            virtual bool operator != (const PlannerDataEdge &rhs) const
+            {
+                return this != &rhs;
+            }
         };
 
         ClassForward(PlannerData);
 
-        /// Object containing planner generated vertex and edge data.
+        /// \brief Object containing planner generated vertex and edge data.  It 
+        /// is assumed that all vertices are unique, and only a single directed 
+        /// edge connects two vertices.
         class PlannerData : boost::noncopyable
         {
         public:
             class Graph;
-            // A function that accepts two state pointers and returns the weight of the edge between them
+            /// \brief A function that accepts two vertex data sets and the edge data, and returns the weight of the edge
             typedef boost::function<double (const PlannerDataVertex&, const PlannerDataVertex&, const PlannerDataEdge&)> EdgeWeightFn;
 
-            // Constructor.  The name of the planner creating this structure is supplied.
+            /// \brief Representation for a non-existant edge
+            static const PlannerDataEdge   NO_EDGE;
+            /// \brief Representation for a non-existant vertex
+            static const PlannerDataVertex NO_VERTEX;
+            /// \brief Representation for an invalid edge weight
+            static const double            INVALID_WEIGHT;
+
             PlannerData(void);
             virtual ~PlannerData(void);
 
-            // Clears the entire data structure
+            /// \brief Clears the entire data structure
             void clear (void);
-            // Check whether an edge between v1 and v2 exists
+            /// \brief Check whether an edge between v1 and v2 exists
             bool edgeExists (unsigned int v1, unsigned int v2) const;
-            // Check whether a vertex exists with the given data
+            /// \brief Check whether a vertex exists with the given vertex data
             bool vertexExists (const PlannerDataVertex &v) const;
 
-            // Retrieve a reference to the vertex object with the given index
+            /// \brief Retrieve a reference to the vertex object with the given 
+            /// index.  If this vertex does not exist, NO_VERTEX is returned.
             const PlannerDataVertex& getVertex (unsigned int index) const;
-            // Retrieve a reference to the vertex object with the given index
+            /// \brief Retrieve a reference to the vertex object with the given 
+            /// index.  If this vertex does not exist, NO_VERTEX is returned.
             PlannerDataVertex& getVertex (unsigned int index);
-            // Retrieve a reference to the edge object connecting vertices v1 and v2
+            /// \brief Retrieve a reference to the edge object connecting vertices
+            /// with indexes v1 and v2. If this edge does not exist, NO_EDGE is returned.
             const PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2) const;
-            // Retrieve a reference to the edge object connecting vertices v1 and v2
+            /// \brief Retrieve a reference to the edge object connecting vertices
+            /// with indexes v1 and v2. If this edge does not exist, NO_EDGE is returned.
             PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2);
 
-            // Returns a list of the vertices directly connected to vertex v.  The number of edges is returned.
+            /// \brief Returns a list of the vertex indexes directly connected to 
+            /// vertex with id \e v.  The number of edges connected to \e v is returned
             unsigned int getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
-            // Returns a map of out-going edges from vertex v.  Key = vertex ID,
-            // value = edge structure.  The number of edges is returned.
+            /// \brief Returns a map of out-going edges from vertex with index \e v.  
+            /// Key = vertex index, value = edge structure.  The number of edges is returned.
             unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
-            // Returns the weight of the edge between the given vertex ids.  -1.0 is returned for an invalid edge.
+            /// \brief Returns the weight of the edge between the given vertex ids.  
+            /// INVALID_WEIGHT is returned for a non-existant edge.
             double getEdgeWeight (unsigned int v1, unsigned int v2) const;
-            // Sets the weight of the edge between the given vertex ids.  If an edge between v1 and v2 does not exist, false is returned.
+            /// \brief Sets the weight of the edge between the given vertex ids.  
+            /// If an edge between v1 and v2 does not exist, false is returned.
             bool setEdgeWeight (unsigned int v1, unsigned int v2, double weight);
-            // Retrieve the number of edges in this structure
+            /// \brief Retrieve the number of edges in this structure
             unsigned int numEdges (void) const;
-            // Retrieve the number of vertices in this structure
+            /// \brief Retrieve the number of vertices in this structure
             unsigned int numVertices (void) const;
-            // Writes a Graphviz dot file of this structure to the given output stream
+            /// \brief Writes a Graphviz dot file of this structure to the given stream
             void printGraphviz (std::ostream& out = std::cout) const;
-            // Return the index for the vertex associated with the given data.
-            // unsigned int max is returned if this vertex does not exist in the
-            // data.  O(n) complexity in the number of vertices.
+            /// \brief Writes a GraphML file of this structure to the given stream
+            void printGraphML(std::ostream& out = std::cout) const;
+            /// \brief Return the index for the vertex associated with the given data.
+            /// unsigned int max is returned if this vertex does not exist in the
+            /// data.  O(n) complexity in the number of vertices.
+            /// \remarks This index is volatile and likely to be invalidated
+            /// after adding or removing a vertex.
             unsigned int vertexIndex (const PlannerDataVertex &v) const;
 
-            // Adds the given vertex to the graph data.  A unique ID is returned.
+            /// \brief Adds the given vertex to the graph data.  The vertex index 
+            /// is returned.  Duplicates are not added.  If a vertex is duplicated, 
+            /// the index of the existing vertex is returned.
             unsigned int addVertex (const PlannerDataVertex &st);
-            // Removes the vertex associated with the given datum
+            /// \brief Removes the vertex associated with the given data.  If the
+            /// vertex does not exist, false is returned.
             bool removeVertex (const PlannerDataVertex &st);
-            // Removes the vertex with the given index
+            /// \brief Removes the vertex with the given index.  If the index is
+            /// out of range, false is returned.
             bool removeVertex (unsigned int vIndex);
-            // Adds the edge data between the given vertex IDs.  Success is returned.
-            bool addEdge (unsigned int v1, unsigned int v2, 
+            /// \brief Adds the edge data between the given vertex IDs.  An optional
+            /// edge structure and weight can be supplied.  Success is returned.
+            bool addEdge (unsigned int v1, unsigned int v2,
                           const PlannerDataEdge &edge = base::PlannerDataEdge(), double weight=1.0);
-            // Adds the edge data between the given vertex data points.  The
-            // vertices are added to the data if they are not already in the
-            // structure.  Success is returned.
+            /// \brief Adds the edge data between the given vertex data points.  The
+            /// vertices are added to the data if they are not already in the
+            /// structure.  An optional edge structure and weight can also be supplied.
+            /// Success is returned.
             bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
                           const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
-            // Removes the edge between vertex IDs v1 and v2
+            /// \brief Removes the edge between vertex IDs v1 and v2.  Success is returned.
             bool removeEdge (unsigned int v1, unsigned int v2);
-            // Removes the edge between the vertices associated with the given vertex data
+            /// \brief Removes the edge between the vertices associated with the given vertex data.
+            /// Success is returned.
             bool removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2);
-            // Set the tag associated with the given state.  Success is returned.
+            /// \brief Set the tag associated with the given state.  Success is returned.
             bool tagState (const base::State* st, int tag);
 
-            // Computes the weights for the edges given the supplied EdgeWeightFn
+            /// \brief Computes the weight for all edges given the EdgeWeightFn \e f
             void computeEdgeWeights(const EdgeWeightFn& f);
 
-            // Extract a Boost.Graph object from this PlannerData.  Use of this
-            // method requires inclusion of PlannerDataGraph.h  The graph returned
-            // can safely be used to inspect the structure or add vertices and edges.
-            // Removal of vertices and edges should use the PlannerData::removeVertex and
-            // PlannerData::removeEdge methods to ensure proper memory clean-up.
+            /// \brief Extract a Boost.Graph object from this PlannerData.  Use of this
+            /// method requires inclusion of PlannerDataGraph.h  The graph returned
+            /// can safely be used to inspect the structure or add vertices and edges.
+            /// Removal of vertices and edges should use the PlannerData::removeVertex and
+            /// PlannerData::removeEdge methods to ensure proper memory clean-up.
             Graph& toBoostGraph (void);
+            /// \brief Extract a Boost.Graph object from this PlannerData.  Use of this
+            /// method requires inclusion of PlannerDataGraph.h  The graph returned
+            /// can safely be used to inspect the structure or add vertices and edges.
+            /// Removal of vertices and edges should use the PlannerData::removeVertex and
+            /// PlannerData::removeEdge methods to ensure proper memory clean-up.
             const Graph& toBoostGraph (void) const;
 
-            /** \brief Any extra properties (key-value pairs) the planner can set. */
+            /// \brief Any extra properties (key-value pairs) the planner can set.
             std::map<std::string, std::string> properties;
 
         private:

@@ -200,6 +200,7 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
         # Exclude PlannerData::printGraphviz until it is properly exported
         self.ompl_ns.class_('PlannerData').member_function('printGraphviz').exclude()
+        self.ompl_ns.class_('PlannerData').member_function('printGraphML').exclude()
             
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))

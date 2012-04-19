@@ -151,16 +151,85 @@ TEST(PlannerData, AdvancedConstruction)
         EXPECT_EQ(data.getVertex(i).getTag(), i+1);
     }
 
+    for (size_t i = 0; i < states.size(); ++i)
+        space->freeState(states[i]);
+}
+
+class TestEdge : public base::PlannerDataEdge
+{
+public:
+    TestEdge (unsigned int _a, unsigned int _b) : base::PlannerDataEdge(), a(_a), b(_b) {}
+    TestEdge (const TestEdge &rhs) : base::PlannerDataEdge(), a(rhs.a), b(rhs.b) {}
+    virtual ~TestEdge (void) {}
+
+    /// \brief Return a clone of this object, allocated from the heap.
+    virtual PlannerDataEdge* clone () const
+    {
+        return static_cast<PlannerDataEdge*>(new TestEdge(*this));
+    }
+
+    int a, b;
+};
+
+TEST(PlannerData, DataIntegrity)
+{
+    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
+    base::PlannerData data;
+    std::vector<base::State*> states;
+
+    // Creating states
+    for (unsigned int i = 0; i < 10; ++i)
+    {
+        base::State* st = space->allocState();
+        st->as<base::RealVectorStateSpace::StateType>()->values[0] = i;
+        states.push_back(st);
+    }
+
+    // Adding vertices and edges simultaneously
+    for (unsigned int i = 1; i < 10; ++i)
+    {
+        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i-1], i),
+                                   base::PlannerDataVertex(states[i], i+1),
+                                   TestEdge(i-1, i)) );
+    }
+
+    // We should have 10 vertices and 9 edges
+    EXPECT_EQ( data.numVertices(), 10u );
+    EXPECT_EQ( data.numEdges(), 9u );
+
+    // Attempt to retrieve some vertices
+    EXPECT_NE( &data.getVertex(0), &base::PlannerData::NO_VERTEX );
+    EXPECT_NE( &data.getVertex(3), &base::PlannerData::NO_VERTEX );
+    EXPECT_EQ( &data.getVertex(50), &base::PlannerData::NO_VERTEX ); // vertex 50 does not exist
+
+    // Attempt to retrieve some edges
+    EXPECT_NE( &data.getEdge(0, 1), &base::PlannerData::NO_EDGE );
+    EXPECT_NE( &data.getEdge(4, 5), &base::PlannerData::NO_EDGE );
+    EXPECT_EQ( &data.getEdge(0, 6), &base::PlannerData::NO_EDGE ); // edge does not exist
+
+    // Ensure vertex data integrity
+    for (unsigned int i = 0; i < 10; ++i)
+        EXPECT_EQ( data.getVertex(i).getState()->as<base::RealVectorStateSpace::StateType>()->values[0], i );
+
+    // Ensure edge data integrity
+    for (unsigned int i = 1; i < 10; ++i)
+    {
+        TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
+        ASSERT_NE ( &edge, &base::PlannerData::NO_EDGE );
+        EXPECT_EQ( edge.a, i-1 );
+        EXPECT_EQ( edge.b, i );
+    }
+
     // Reset the tag for state #0
     EXPECT_TRUE( data.tagState(states[0], 10000) );
     EXPECT_EQ( data.getVertex(0).getTag(), 10000 );
-    EXPECT_FALSE( data.tagState(0, 1000) );
+    EXPECT_FALSE( data.tagState(0, 1000) ); // state doesn't exist
 
     // Reset the edge weight for 0->1
     EXPECT_TRUE( data.setEdgeWeight(0, 1, 1.234) );
     EXPECT_NEAR( data.getEdgeWeight(0, 1), 1.234, 1e-4);
 
-    EXPECT_NEAR( data.getEdgeWeight(0, 5), -1.0, 1e-4 ); // edge does not exist
+    EXPECT_EQ( data.getEdgeWeight(0, 5), base::PlannerData::INVALID_WEIGHT ); // edge does not exist
     EXPECT_FALSE( data.setEdgeWeight(0, 5, 2.345) );
 
     // Try to tag an invalid state
