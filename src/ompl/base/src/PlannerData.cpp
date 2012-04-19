@@ -68,12 +68,12 @@ void ompl::base::PlannerData::clear (void)
     if (graph_)
     {
         std::pair<Graph::EIterator, Graph::EIterator> eiterators = boost::edges(*graph_);
-        typename boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+        boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
         for (Graph::EIterator iter = eiterators.first; iter != eiterators.second; ++iter)
             delete boost::get(edges, *iter);
 
         std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
-        typename boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
+        boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
         for (Graph::VIterator iter = viterators.first; iter != viterators.second; ++iter)
            delete vertices[*iter];
 
@@ -86,7 +86,7 @@ unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::vector<unsi
     std::pair<Graph::AdjIterator, Graph::AdjIterator> iterators = boost::adjacent_vertices(boost::vertex(v, *graph_), *graph_);
 
     edgeList.clear();
-    typename boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
+    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
     for (Graph::AdjIterator iter = iterators.first; iter != iterators.second; ++iter)
         edgeList.push_back(vertices[*iter]);
 
@@ -98,8 +98,8 @@ unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::map<unsigne
     std::pair<Graph::OEIterator, Graph::OEIterator> iterators = boost::out_edges(boost::vertex(v, *graph_), *graph_);
 
     edgeMap.clear();
-    typename boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
-    typename boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
+    boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
     for (Graph::OEIterator iter = iterators.first; iter != iterators.second; ++iter)
         edgeMap[vertices[boost::target(*iter, *graph_)]] = boost::get(edges, *iter);
 
@@ -114,7 +114,7 @@ double ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2) 
 
     if (exists)
     {
-        typename boost::property_map<Graph::Type, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
+        boost::property_map<Graph::Type, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
         return edges[e];
     }
 
@@ -129,7 +129,7 @@ bool ompl::base::PlannerData::setEdgeWeight(unsigned int v1, unsigned int v2, do
 
     if (exists)
     {
-        typename boost::property_map<Graph::Type, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
+        boost::property_map<Graph::Type, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
         edges[e] = weight;
     }
 
@@ -165,7 +165,7 @@ const ompl::base::PlannerDataVertex& ompl::base::PlannerData::getVertex (unsigne
     if (index >= boost::num_vertices(*graph_))
         return NO_VERTEX;
 
-    typename boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
+    boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
     return *(vertices[boost::vertex(index, *graph_)]);
 }
 
@@ -174,7 +174,7 @@ ompl::base::PlannerDataVertex& ompl::base::PlannerData::getVertex (unsigned int 
     if (index >= boost::num_vertices(*graph_))
         return const_cast<ompl::base::PlannerDataVertex&>(NO_VERTEX);
 
-    typename boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
+    boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
     return *(vertices[boost::vertex(index, *graph_)]);
 }
 
@@ -186,7 +186,7 @@ const ompl::base::PlannerDataEdge& ompl::base::PlannerData::getEdge (unsigned in
 
     if (exists)
     {
-        typename boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+        boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
         return *(boost::get(edges, e));
     }
 
@@ -201,7 +201,7 @@ ompl::base::PlannerDataEdge& ompl::base::PlannerData::getEdge (unsigned int v1, 
 
     if (exists)
     {
-        typename boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+        boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
         return *(boost::get(edges, e));
     }
 
@@ -224,8 +224,8 @@ void ompl::base::PlannerData::printGraphML(std::ostream& out) const
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
 {
-    typename boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
-    typename boost::property_map<Graph::Type, boost::vertex_index_t>::type vertexIndexMap = get(boost::vertex_index, *graph_);
+    boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
+    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertexIndexMap = get(boost::vertex_index, *graph_);
 
     unsigned int index = std::numeric_limits<unsigned int>::max();
     std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
@@ -251,7 +251,7 @@ unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
         ompl::base::PlannerDataVertex *clone = st.clone();
         Graph::Vertex v = boost::add_vertex(clone, *graph_);
 
-        typename boost::property_map<Graph::Type, boost::vertex_index_t>::type vertexIndexMap = get(boost::vertex_index, *graph_);
+        boost::property_map<Graph::Type, boost::vertex_index_t>::type vertexIndexMap = get(boost::vertex_index, *graph_);
         return vertexIndexMap[v];
     }
     return index;
@@ -311,7 +311,7 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
         return false;
 
     // Retrieve a list of all edge structures
-    typename boost::property_map<Graph::Type, edge_type_t>::type edgePropertyMap = get(edge_type_t(), *graph_);
+    boost::property_map<Graph::Type, edge_type_t>::type edgePropertyMap = get(edge_type_t(), *graph_);
 
     // Freeing memory associated with outgoing edges of this vertex
     std::pair<Graph::OEIterator, Graph::OEIterator> oiterators = boost::out_edges(boost::vertex(vIndex, *graph_), *graph_);
@@ -325,7 +325,7 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
 
     // Slay the vertex
     boost::clear_vertex(boost::vertex(vIndex, *graph_), *graph_);
-    typename boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
+    boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
     delete vertexTypeMap[boost::vertex(vIndex, *graph_)];
     boost::remove_vertex(boost::vertex(vIndex, *graph_), *graph_);
 
@@ -342,7 +342,7 @@ bool ompl::base::PlannerData::removeEdge (unsigned int v1, unsigned int v2)
         return false;
 
     // Freeing memory associated with this edge
-    typename boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+    boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
     delete edges[e];
 
     boost::remove_edge(boost::vertex(v1, *graph_), boost::vertex(v2, *graph_), *graph_);
@@ -366,7 +366,7 @@ bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
     std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
     for (Graph::VIterator iter = viterators.first; iter != viterators.second; ++iter)
     {
-        typename boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
+        boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
         if (vertexTypeMap[*iter]->getState() == st)
         {
             vertexTypeMap[*iter]->setTag(tag);
