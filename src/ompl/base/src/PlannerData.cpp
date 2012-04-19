@@ -117,8 +117,8 @@ double ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2) 
         typename boost::property_map<Graph::Type, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
         return edges[e];
     }
-    else
-        return INVALID_WEIGHT;
+
+    return INVALID_WEIGHT;
 }
 
 bool ompl::base::PlannerData::setEdgeWeight(unsigned int v1, unsigned int v2, double weight)
@@ -215,8 +215,9 @@ void ompl::base::PlannerData::printGraphviz (std::ostream& out) const
 
 void ompl::base::PlannerData::printGraphML(std::ostream& out) const
 {
-    // Not writing any dynamic properties (for now)
+    // Not writing vertex or edge structures.
     boost::dynamic_properties dp;
+    dp.property("weight", get(boost::edge_weight_t(), *graph_));
 
     boost::write_graphml(out, *graph_, dp);
 }
@@ -300,11 +301,8 @@ bool ompl::base::PlannerData::removeVertex (const PlannerDataVertex &st)
 {
     unsigned int index = vertexIndex (st);
     if (index < std::numeric_limits<unsigned int>::max())
-    {
         return removeVertex (index);
-    }
-    else
-        return false;
+    return false;
 }
 
 bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
@@ -316,21 +314,18 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
     typename boost::property_map<Graph::Type, edge_type_t>::type edgePropertyMap = get(edge_type_t(), *graph_);
 
     // Freeing memory associated with outgoing edges of this vertex
-    std::pair<Graph::OEIterator, Graph::OEIterator> oiterators;
-    oiterators = boost::out_edges(boost::vertex(vIndex, *graph_), *graph_);
+    std::pair<Graph::OEIterator, Graph::OEIterator> oiterators = boost::out_edges(boost::vertex(vIndex, *graph_), *graph_);
     for (Graph::OEIterator iter = oiterators.first; iter != oiterators.second; ++iter)
         delete edgePropertyMap[*iter];
 
     // Freeing memory associated with incoming edges of this vertex
-    std::pair<Graph::IEIterator, Graph::IEIterator> initerators;
-    initerators = boost::in_edges(boost::vertex(vIndex, *graph_), *graph_);
+    std::pair<Graph::IEIterator, Graph::IEIterator> initerators = boost::in_edges(boost::vertex(vIndex, *graph_), *graph_);
     for (Graph::IEIterator iter = initerators.first; iter != initerators.second; ++iter)
         delete edgePropertyMap[*iter];
 
     // Slay the vertex
     boost::clear_vertex(boost::vertex(vIndex, *graph_), *graph_);
     typename boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
-    //delete (*graph_)[vIndex];
     delete vertexTypeMap[boost::vertex(vIndex, *graph_)];
     boost::remove_vertex(boost::vertex(vIndex, *graph_), *graph_);
 
