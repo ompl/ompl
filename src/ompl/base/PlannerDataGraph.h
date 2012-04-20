@@ -51,13 +51,13 @@ namespace boost
     BOOST_INSTALL_PROPERTY(edge, type);
     BOOST_INSTALL_PROPERTY(vertex, type);
 }
-/// @endcond
 
-#define PlannerDataGraph boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, \
-                                               boost::property<vertex_type_t, ompl::base::PlannerDataVertex*, \
-                                               boost::property<boost::vertex_index_t, unsigned int> >, \
-                                               boost::property<edge_type_t, ompl::base::PlannerDataEdge*, \
-                                               boost::property<boost::edge_weight_t, double> > >
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
+                               boost::property<vertex_type_t, ompl::base::PlannerDataVertex*,
+                               boost::property<boost::vertex_index_t, unsigned int> >,
+                               boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
+                               boost::property<boost::edge_weight_t, double> > > PlannerDataGraph;
+/// @endcond
 
 /// Wrapper class for the Boost.Graph representation of the PlannerData
 class ompl::base::PlannerData::Graph : public PlannerDataGraph

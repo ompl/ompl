@@ -39,7 +39,6 @@
 
 #include <iostream>
 #include <vector>
-#include <string>
 #include <map>
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
@@ -76,8 +75,8 @@ namespace ompl
                 // States should be unique
                 return state_ == rhs.state_;
             }
-            
-            virtual bool operator != (const PlannerDataVertex &rhs) const
+
+            bool operator != (const PlannerDataVertex &rhs) const
             {
                 return !(*this == rhs);
             }
@@ -96,24 +95,24 @@ namespace ompl
             virtual ~PlannerDataEdge (void) {}
             /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataEdge* clone () const { return new PlannerDataEdge(); }
-            
+
             /// \brief Returns true if the edges point to the same memory
             virtual bool operator == (const PlannerDataEdge &rhs) const
             {
                 return this == &rhs;
             }
-            
+
             /// \brief Returns true if the edges do not point to the same memory
-            virtual bool operator != (const PlannerDataEdge &rhs) const
+            bool operator != (const PlannerDataEdge &rhs) const
             {
-                return this != &rhs;
+                return !(*this == rhs);
             }
         };
 
         ClassForward(PlannerData);
 
-        /// \brief Object containing planner generated vertex and edge data.  It 
-        /// is assumed that all vertices are unique, and only a single directed 
+        /// \brief Object containing planner generated vertex and edge data.  It
+        /// is assumed that all vertices are unique, and only a single directed
         /// edge connects two vertices.
         class PlannerData : boost::noncopyable
         {
@@ -139,10 +138,10 @@ namespace ompl
             /// \brief Check whether a vertex exists with the given vertex data
             bool vertexExists (const PlannerDataVertex &v) const;
 
-            /// \brief Retrieve a reference to the vertex object with the given 
+            /// \brief Retrieve a reference to the vertex object with the given
             /// index.  If this vertex does not exist, NO_VERTEX is returned.
             const PlannerDataVertex& getVertex (unsigned int index) const;
-            /// \brief Retrieve a reference to the vertex object with the given 
+            /// \brief Retrieve a reference to the vertex object with the given
             /// index.  If this vertex does not exist, NO_VERTEX is returned.
             PlannerDataVertex& getVertex (unsigned int index);
             /// \brief Retrieve a reference to the edge object connecting vertices
@@ -152,16 +151,16 @@ namespace ompl
             /// with indexes v1 and v2. If this edge does not exist, NO_EDGE is returned.
             PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2);
 
-            /// \brief Returns a list of the vertex indexes directly connected to 
+            /// \brief Returns a list of the vertex indexes directly connected to
             /// vertex with id \e v.  The number of edges connected to \e v is returned
             unsigned int getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
-            /// \brief Returns a map of out-going edges from vertex with index \e v.  
+            /// \brief Returns a map of out-going edges from vertex with index \e v.
             /// Key = vertex index, value = edge structure.  The number of edges is returned.
             unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
-            /// \brief Returns the weight of the edge between the given vertex ids.  
+            /// \brief Returns the weight of the edge between the given vertex ids.
             /// INVALID_WEIGHT is returned for a non-existant edge.
             double getEdgeWeight (unsigned int v1, unsigned int v2) const;
-            /// \brief Sets the weight of the edge between the given vertex ids.  
+            /// \brief Sets the weight of the edge between the given vertex ids.
             /// If an edge between v1 and v2 does not exist, false is returned.
             bool setEdgeWeight (unsigned int v1, unsigned int v2, double weight);
             /// \brief Retrieve the number of edges in this structure
@@ -174,13 +173,13 @@ namespace ompl
             void printGraphML(std::ostream& out = std::cout) const;
             /// \brief Return the index for the vertex associated with the given data.
             /// unsigned int max is returned if this vertex does not exist in the
-            /// data.  O(n) complexity in the number of vertices.
+            /// data.
             /// \remarks This index is volatile and likely to be invalidated
             /// after adding or removing a vertex.
             unsigned int vertexIndex (const PlannerDataVertex &v) const;
 
-            /// \brief Adds the given vertex to the graph data.  The vertex index 
-            /// is returned.  Duplicates are not added.  If a vertex is duplicated, 
+            /// \brief Adds the given vertex to the graph data.  The vertex index
+            /// is returned.  Duplicates are not added.  If a vertex is duplicated,
             /// the index of the existing vertex is returned.
             unsigned int addVertex (const PlannerDataVertex &st);
             /// \brief Removes the vertex associated with the given data.  If the
@@ -192,7 +191,7 @@ namespace ompl
             /// \brief Adds the edge data between the given vertex IDs.  An optional
             /// edge structure and weight can be supplied.  Success is returned.
             bool addEdge (unsigned int v1, unsigned int v2,
-                          const PlannerDataEdge &edge = base::PlannerDataEdge(), double weight=1.0);
+                          const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
             /// \brief Adds the edge data between the given vertex data points.  The
             /// vertices are added to the data if they are not already in the
             /// structure.  An optional edge structure and weight can also be supplied.
@@ -225,6 +224,10 @@ namespace ompl
 
             /// \brief Any extra properties (key-value pairs) the planner can set.
             std::map<std::string, std::string> properties;
+
+        protected:
+            /// \brief A mapping of states to vertex indexes.  For fast lookup of vertex index.
+            std::map<const State*, unsigned int> stateIndexMap;
 
         private:
             // Abstract pointer that points to the Boost.Graph structure.

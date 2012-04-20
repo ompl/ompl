@@ -224,18 +224,10 @@ void ompl::base::PlannerData::printGraphML(std::ostream& out) const
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
 {
-    boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
-    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertexIndexMap = get(boost::vertex_index, *graph_);
-
-    unsigned int index = std::numeric_limits<unsigned int>::max();
-    std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
-    for (Graph::VIterator iter = viterators.first; iter != viterators.second && index == std::numeric_limits<unsigned int>::max(); ++iter)
-    {
-        if (*(vertexTypeMap[*iter]) == v)
-            index = vertexIndexMap[*iter];
-    }
-
-    return index;
+    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap.find(v.getState());
+    if (it != stateIndexMap.end())
+        return it->second;
+    return std::numeric_limits<unsigned int>::max();
 }
 
 unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
@@ -250,8 +242,10 @@ unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
         // Clone the state to prevent object slicing when retrieving this object
         ompl::base::PlannerDataVertex *clone = st.clone();
         Graph::Vertex v = boost::add_vertex(clone, *graph_);
-
         boost::property_map<Graph::Type, boost::vertex_index_t>::type vertexIndexMap = get(boost::vertex_index, *graph_);
+
+        // Insert this entry into the stateIndexMap for fast lookup
+        stateIndexMap[clone->getState()] = numVertices()-1;
         return vertexIndexMap[v];
     }
     return index;
@@ -323,6 +317,12 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
     for (Graph::IEIterator iter = initerators.first; iter != initerators.second; ++iter)
         delete edgePropertyMap[*iter];
 
+    // Remove this vertex from stateIndexMap, and update the map
+    stateIndexMap.erase(getVertex(vIndex).getState());
+    boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
+    for (unsigned int i = vIndex+1; i < boost::num_vertices(*graph_); ++i)
+         stateIndexMap[vertices[boost::vertex(i, *graph_)]->getState()]--;
+
     // Slay the vertex
     boost::clear_vertex(boost::vertex(vIndex, *graph_), *graph_);
     boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
@@ -363,17 +363,12 @@ bool ompl::base::PlannerData::removeEdge (const PlannerDataVertex &v1, const Pla
 
 bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
 {
-    std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
-    for (Graph::VIterator iter = viterators.first; iter != viterators.second; ++iter)
+    std::map<const State*, unsigned int>::iterator it = stateIndexMap.find(st);
+    if (it != stateIndexMap.end())
     {
-        boost::property_map<Graph::Type, vertex_type_t>::type vertexTypeMap = get(vertex_type_t(), *graph_);
-        if (vertexTypeMap[*iter]->getState() == st)
-        {
-            vertexTypeMap[*iter]->setTag(tag);
-            return true;
-        }
+        getVertex(it->second).setTag(tag);
+        return true;
     }
-
     return false;
 }
 
