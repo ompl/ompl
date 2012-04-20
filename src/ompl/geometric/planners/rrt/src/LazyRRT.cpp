@@ -242,8 +242,10 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
         double weight = 0.0;
         if (motions[i]->parent)
             weight = si_->distance(motions[i]->parent->state, motions[i]->state);
-    
+
         data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL),
-                     base::PlannerDataVertex(motions[i]->state, motions[i]->valid ? 1 : 0));
+                     base::PlannerDataVertex(motions[i]->state));
+
+        data.tagState(motions[i]->state, motions[i]->valid ? 1 : 0);
     }
 }
