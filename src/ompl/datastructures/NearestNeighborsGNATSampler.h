@@ -370,7 +370,7 @@ Conf. on Very Large Databases (VLDB), pp. 574–584, 1995.
                         : degree_(degree), gnat_(gnatData), subtreeSize_(1), pivot_(pivot),
                         minRadius_(std::numeric_limits<double>::infinity()),
                         maxRadius_(-minRadius_), activity_(0), minRange_(degree, minRadius_),
-                        maxRange_(degree, maxRadius_)
+                        maxRange_(degree, maxRadius_),nodeSelections_(0)
                 {
                     // The "+1" is needed because we add an element before we check whether to split
                     data_.reserve(capacity+1);
@@ -632,10 +632,12 @@ Conf. on Very Large Databases (VLDB), pp. 574–584, 1995.
                             if(minRange_[i] < mR && minRange_[i]>0.0)
                                 mR =  minRange_[i];
                         mR = fmax(mR,maxRadius_);
-                        return /*pow(1.1, activity_) * */pow(mR/(double)subtreeSize_,gnat.estimatedDimension_);// / (double) subtreeSize_;
+                        //return /*pow(1.1, activity_) * */pow(mR/(double)subtreeSize_,gnat.estimatedDimension_);// / (double) subtreeSize_;
+                        return /*pow(1.1, activity_) * */pow(mR,gnat.estimatedDimension_) / (double) subtreeSize_;
                     }
                     const _T& sample(const GNAT& gnat) const
                     {
+                        nodeSelections_++;
                         if (children_.size() != 0)
                         {
                             if (gnat.rng_.uniform01() < 1./(double) subtreeSize_)
@@ -713,6 +715,9 @@ Conf. on Very Large Databases (VLDB), pp. 574–584, 1995.
                     /// \brief The i-th element in maxRange_ is the maximum distance between the 
                     /// pivot and any data_ element in the i-th child node of this node's parent.
                     std::vector<double> maxRange_;
+
+                    /// \brief Number of times this Node has been sampled
+                    mutable unsigned int                    nodeSelections_;
                     /// \brief The data elements stored in this node (in addition to the pivot
                     /// element). An internal node has no elements stored in data_.
                     std::vector<_T>     data_;
