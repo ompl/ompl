@@ -9,13 +9,13 @@ set(CPACK_PACKAGE_VERSION_PATCH "${OMPL_PATCH_VERSION}")
 
 set(CPACK_SOURCE_IGNORE_FILES
     "/.hg"
-    "/.svn/"
     "/build/"
     ".pyc$"
     ".pyo$"
     "__pycache__"
     ".so$"
     ".dylib$"
+    ".orig$"
     ".DS_Store"
     ".tm_properties"
     "mkwebdocs.sh"
