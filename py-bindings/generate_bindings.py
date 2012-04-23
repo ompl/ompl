@@ -319,7 +319,8 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 
         # export pure virtual member functions, otherwise code doesn't compile
-        self.ompl_ns.class_('Syclop').add_wrapper_code("""
+        syclop = self.ompl_ns.class_('Syclop')
+        syclop.add_wrapper_code("""
         virtual ompl::control::Syclop::Motion* addRoot(const ompl::base::State* s)
         {
             bp::override func_addRoot = this->get_override("addRoot");
@@ -332,7 +333,7 @@ class ompl_control_generator_t(code_generator_t):
         }""")
         # omit ompl::control::Syclop::Defaults nested subclass, otherwise
         # code doesn't compile (don't know why)
-        self.ompl_ns.class_('Defaults').exclude()
+        syclop.class_('Defaults').exclude()
 
         # add wrappers for boost::function types
         self.add_boost_function('ompl::control::ControlSamplerPtr(const ompl::control::ControlSpace*)',
@@ -343,6 +344,10 @@ class ompl_control_generator_t(code_generator_t):
             'PostPropagationEvent','Post-propagation event')
         self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
             'StatePropagatorFn','State propagator function')
+        self.add_boost_function('double(int, int)','EdgeCostFactorFn',
+            'Syclop edge cost factor function')
+        self.add_boost_function('void(int, int, std::vector<int>&)','LeadComputeFn',
+            'Syclop lead compute function')
         # code generation fails because of same bug in gxxcml that requires us
         # to patch the generated code with workaround_for_gccxml_bug.cmake
         self.ompl_ns.member_functions('getPlannerAllocator').exclude()

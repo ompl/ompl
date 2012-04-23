@@ -85,7 +85,10 @@ namespace ompl
                 of \f$t\f$.
                 Additional edge cost factors can be added
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
-            typedef boost::function2<double, int, int> EdgeCostFactorFn;
+            typedef boost::function<double(int, int)> EdgeCostFactorFn;
+
+            /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start region and end at the end region.  Default is \f$A^\ast$\f search. */
+            typedef boost::function<void(int, int, std::vector<int>&)> LeadComputeFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             Syclop(const SpaceInformationPtr& si, const DecompositionPtr &d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
@@ -129,6 +132,9 @@ namespace ompl
 
             /// @name Tunable parameters
             /// @{
+
+            /** \brief Allows the user to override the lead computation function. */
+            void setLeadComputeFn(const LeadComputeFn& compute);
 
             /** \brief Adds an edge cost factor to be used for edge weights between adjacent regions. */
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
@@ -528,18 +534,20 @@ namespace ompl
             /** \brief Clear all Region and Adjacency objects in the graph. */
             void clearGraphDetails(void);
 
-            /** \brief Computes a lead, which is a sequence of adjacent Regions from start to goal in the Decomposition. */
-            void computeLead(int startRegion, int goalRegion);
-
             /** \brief Select a Region in which to promote expansion of the low-level tree. */
             int selectRegion(void);
 
             /** \brief Compute the set of Regions available for selection. */
             void computeAvailableRegions(void);
 
+            /** \brief Default lead computation. A lead is a sequence of adjacent Regions from start to goal in the Decomposition. */
+            void defaultComputeLead(int startRegion, int goalRegion, std::vector<int>& lead);
+
             /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
 
+            /** \brief Lead computaton boost::function object */
+            LeadComputeFn leadComputeFn;
             /** \brief The current computed lead */
             std::vector<int> lead_;
             /** \brief Used to sample regions in which to promote expansion */
