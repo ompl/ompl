@@ -44,19 +44,23 @@ namespace ompl
 {
     namespace control
     {
-    
+        /// \brief Representation of an edge in PlannerData for planning with controls.
+        /// This structure encodes a specific control and a duration to apply the control.
         class PlannerDataEdgeControl : public base::PlannerDataEdge
         {
         public:
+            /// \brief Constructor.  Accepts a control pointer and a duration.
             PlannerDataEdgeControl (const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration) {}
+            /// \brief Copy constructor.
             PlannerDataEdgeControl (const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
             virtual ~PlannerDataEdgeControl (void) {}
             virtual base::PlannerDataEdge* clone () const
             { 
                 return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this)); 
             }
-            
+            /// \brief Return the control associated with this edge.
             const Control* getControl (void) const { return c_; }
+            /// \brief Return the duration associated with this edge.
             double getDuration (void) const { return duration_; }
 
         protected:

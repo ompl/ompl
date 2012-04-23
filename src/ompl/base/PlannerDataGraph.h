@@ -59,7 +59,8 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
                                boost::property<boost::edge_weight_t, double> > > PlannerDataGraph;
 /// @endcond
 
-/// Wrapper class for the Boost.Graph representation of the PlannerData
+/// \brief Wrapper class for the Boost.Graph representation of the PlannerData.
+/// This class inherits from a boost::adjacency_list Graph structure.
 class ompl::base::PlannerData::Graph : public PlannerDataGraph
 {
 public:
