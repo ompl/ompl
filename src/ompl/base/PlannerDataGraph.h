@@ -64,14 +64,22 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
 class ompl::base::PlannerData::Graph : public PlannerDataGraph
 {
 public:
+    /// \brief Data type for the Boost.Graph representation.
     typedef PlannerDataGraph Type;
 
+    /// \brief Boost.Graph vertex descriptor
     typedef boost::graph_traits<Type>::vertex_descriptor  Vertex;
+    /// \brief Boost.Graph edge descriptor
     typedef boost::graph_traits<Type>::edge_descriptor    Edge;
+    /// \brief Boost.Graph vertex iterator
     typedef boost::graph_traits<Type>::vertex_iterator    VIterator;
+    /// \brief Boost.Graph edge iterator
     typedef boost::graph_traits<Type>::edge_iterator      EIterator;
+    /// \brief Boost.Graph input edge iterator
     typedef boost::graph_traits<Type>::in_edge_iterator   IEIterator;
+    /// \brief Boost.Graph output edge iterator
     typedef boost::graph_traits<Type>::out_edge_iterator  OEIterator;
+    /// \brief Boost.Graph adjacency iterator
     typedef boost::graph_traits<Type>::adjacency_iterator AdjIterator;
 };
 
