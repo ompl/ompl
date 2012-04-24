@@ -503,6 +503,10 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
         const Vertex v2 = boost::target(e, g_);
         data.addEdge(base::PlannerDataVertex(stateProperty_[v1]),
                      base::PlannerDataVertex(stateProperty_[v2]));
+
+        // Add the reverse edge, since we're constructing an undirected roadmap
+        data.addEdge(base::PlannerDataVertex(stateProperty_[v2]),
+                     base::PlannerDataVertex(stateProperty_[v1]));
     }
 }
 

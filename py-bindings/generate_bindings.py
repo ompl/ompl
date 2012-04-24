@@ -116,6 +116,27 @@ class ompl_base_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        # "PlannerData::printGraphML(std::cout)" will be replaced with
+        # something more pythonesque: "print(PlannerData.printGraphML())"
+        replacement['::ompl::base::PlannerData::printGraphML'] = ('def("printGraphML", &__printGraphML)', """
+        std::string __printGraphML(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printGraphML(s);
+            return s.str();
+        }
+        """)
+        # "PlannerData::printGraphviz(std::cout)" will be replaced with
+        # something more pythonesque: "print(PlannerData.printGraphviz())"
+        replacement['::ompl::base::PlannerData::printGraphviz'] = ('def("printGraphviz", &__printGraphviz)', """
+        std::string __printGraphviz(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printGraphviz(s);
+            return s.str();
+        }
+        """)
+        
         code_generator_t.__init__(self, 'base', ['bindings/util'], replacement)
 
     def filter_declarations(self):
@@ -198,9 +219,15 @@ class ompl_base_generator_t(code_generator_t):
             
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
-        # Exclude PlannerData::printGraphviz until it is properly exported
-        self.ompl_ns.class_('PlannerData').member_function('printGraphviz').exclude()
-        self.ompl_ns.class_('PlannerData').member_function('printGraphML').exclude()
+        # Remove Boost.Graph representation from PlannerData
+        self.ompl_ns.class_('PlannerData').member_functions('toBoostGraph').exclude()
+        self.ompl_ns.class_('PlannerData').class_('Graph').exclude()
+        # Remove Boost.Graph property enumerations from PlannerData
+        self.mb.enumeration('edge_type_t').exclude()
+        self.mb.enumeration('vertex_type_t').exclude()
+        # Make PlannerData printable
+        self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphviz'))
+        self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphML'))
             
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
@@ -246,6 +273,8 @@ class ompl_base_generator_t(code_generator_t):
             'StateSamplerAllocator', 'State sampler allocator')
         self.add_boost_function('ompl::base::ValidStateSamplerPtr(ompl::base::SpaceInformation const*)',
             'ValidStateSamplerAllocator', 'Valid state allocator function')
+        self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
+            'EdgeWeightFn', 'Edge weight function')
 
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
