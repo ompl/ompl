@@ -56,12 +56,17 @@ namespace ompl
         class PlannerDataVertex
         {
         public:
+            /// \brief Constructor.  Takes a state pointer and an optional integer tag.
             PlannerDataVertex (const base::State* st, int tag = 0) : state_(st), tag_(tag) {}
+            /// \brief Copy constructor.
             PlannerDataVertex (const PlannerDataVertex& rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
             virtual ~PlannerDataVertex (void) {}
 
+            /// \brief Returns the integer tag associated with this vertex.
             virtual int  getTag (void) const { return tag_; }
+            /// \brief Set the integer tag associated with this vertex.
             virtual void setTag (int tag) { tag_ = tag; }
+            /// \brief Retrieve the state associated with this vertex.
             virtual const base::State* getState(void) const { return state_; }
 
             /// \brief Return a clone of this object, allocated from the heap.
@@ -70,18 +75,21 @@ namespace ompl
                 return new PlannerDataVertex(*this);
             }
 
+            /// \brief Equivalence operator.  Return true if the state pointers are equal.
             virtual bool operator == (const PlannerDataVertex &rhs) const
             {
                 // States should be unique
                 return state_ == rhs.state_;
             }
 
+            /// \brief Returns true if this vertex is not equal to the argument.  This is the complement of the == operator.
             bool operator != (const PlannerDataVertex &rhs) const
             {
                 return !(*this == rhs);
             }
 
         protected:
+            /// \brief The state represented by this vertex
             const base::State* state_;
             /// \brief A generic integer tag for this state.  Not used for equivalence checking.
             int tag_;
@@ -102,7 +110,7 @@ namespace ompl
                 return this == &rhs;
             }
 
-            /// \brief Returns true if the edges do not point to the same memory
+            /// \brief Returns true if the edges do not point to the same memory.  This is the complement of the == operator.
             bool operator != (const PlannerDataEdge &rhs) const
             {
                 return !(*this == rhs);
@@ -209,17 +217,19 @@ namespace ompl
             /// \brief Computes the weight for all edges given the EdgeWeightFn \e f
             void computeEdgeWeights(const EdgeWeightFn& f);
 
-            /// \brief Extract a Boost.Graph object from this PlannerData.  Use of this
-            /// method requires inclusion of PlannerDataGraph.h  The graph returned
-            /// can safely be used to inspect the structure or add vertices and edges.
-            /// Removal of vertices and edges should use the PlannerData::removeVertex and
-            /// PlannerData::removeEdge methods to ensure proper memory clean-up.
+            /// \brief Extract a Boost.Graph object from this PlannerData.  
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The 
+            /// graph returned can safely be used to inspect the structure or add vertices 
+            /// and edges.  Removal of vertices and edges should use the 
+            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure 
+            /// proper memory clean-up.
             Graph& toBoostGraph (void);
-            /// \brief Extract a Boost.Graph object from this PlannerData.  Use of this
-            /// method requires inclusion of PlannerDataGraph.h  The graph returned
-            /// can safely be used to inspect the structure or add vertices and edges.
-            /// Removal of vertices and edges should use the PlannerData::removeVertex and
-            /// PlannerData::removeEdge methods to ensure proper memory clean-up.
+            /// \brief Extract a Boost.Graph object from this PlannerData.  
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The 
+            /// graph returned can safely be used to inspect the structure or add vertices 
+            /// and edges.  Removal of vertices and edges should use the 
+            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure 
+            /// proper memory clean-up.
             const Graph& toBoostGraph (void) const;
 
             /// \brief Any extra properties (key-value pairs) the planner can set.
