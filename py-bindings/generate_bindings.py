@@ -423,6 +423,16 @@ class ompl_geometric_generator_t(code_generator_t):
         self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
+        # The OMPL implementation of PRM uses two threads: one for constructing
+        # the roadmap and another for checking for a solution. This causes
+        # problems when both threads try to access the python interpreter
+        # simultaneously. This is a know limitation of Boost.Python. We
+        # therefore use a single-threaded version of PRM in python.
+        PRM_cls = self.ompl_ns.class_('PRM')
+        PRM_cls.add_wrapper_code('bool solve(double solveTime);')
+        PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
+        PRM_cls.add_registration_code('def("solve", &PRM_wrapper::solve)')
+
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
         # Planner class is defined in ompl::base and two of its virtual methods,
@@ -432,7 +442,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'pRRT', 'RRT', 'RRTConnect', 'pSBL', 'SBL']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'RRT', 'RRTConnect', 'SBL']:
             if planner!='PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""
