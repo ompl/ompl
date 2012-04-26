@@ -252,8 +252,8 @@ void ompl::geometric::BKPIECE1::clear(void)
 void ompl::geometric::BKPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    dStart_.getPlannerData(data, 1);
-    dGoal_.getPlannerData(data, 2);
+    dStart_.getPlannerData(data, 1, true, NULL);
+    dGoal_.getPlannerData(data, 2, false, NULL);
 
     // Insert the edge connecting the two trees
     data.addEdge (data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));

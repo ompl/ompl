@@ -213,5 +213,5 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    disc_.getPlannerData(data, 0, lastGoalMotion_);
+    disc_.getPlannerData(data, 0, true, lastGoalMotion_);
 }

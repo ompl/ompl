@@ -269,18 +269,18 @@ namespace ompl
 
         protected:
             /// \brief A mapping of states to vertex indexes.  For fast lookup of vertex index.
-            std::map<const State*, unsigned int> stateIndexMap;
+            std::map<const State*, unsigned int> stateIndexMap_;
 
             /// \brief A mutable listing of the vertices marked as start states.  Stored in sorted order.
-            std::vector<unsigned int> startVertexIndices;
+            std::vector<unsigned int>            startVertexIndices_;
             /// \brief A mutable listing of the vertices marked as goal states.  Stored in sorted order.
-            std::vector<unsigned int> goalVertexIndices;
+            std::vector<unsigned int>            goalVertexIndices_;
 
         private:
             // Abstract pointer that points to the Boost.Graph structure.
             // Obscured to prevent unnecessary inclusion of BGL throughout the
             // rest of the code.
-            void* graph;
+            void* graphRaw_;
         };
     }
 }

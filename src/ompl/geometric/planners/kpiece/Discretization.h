@@ -286,7 +286,7 @@ namespace ompl
                 return grid_;
             }
 
-            void getPlannerData(base::PlannerData &data, int tag, Motion *lastGoalMotion=NULL) const
+            void getPlannerData(base::PlannerData &data, int tag, bool start, const Motion *lastGoalMotion) const
             {
                 std::vector<CellData*> cdata;
                 grid_.getContent(cdata);
@@ -299,19 +299,19 @@ namespace ompl
                     {
                         if (cdata[i]->motions[j]->parent == NULL)
                         {
-                            if (tag < 2)
+                            if (start)
                                 data.addStartVertex(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
                             else
                                 data.addGoalVertex(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
                         }
                         else
                         {
-                            data.addEdge(base::PlannerDataVertex(cdata[i]->motions[j]->parent->state, tag),
-                                         base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
-
-                            // Add the reverse edge to accommodate for directionality in bidirectional planning
-                            data.addEdge(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag),
-                                         base::PlannerDataVertex(cdata[i]->motions[j]->parent->state, tag));
+                            if (start)
+                                data.addEdge(base::PlannerDataVertex(cdata[i]->motions[j]->parent->state, tag),
+                                             base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
+                            else
+                                data.addEdge(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag),
+                                             base::PlannerDataVertex(cdata[i]->motions[j]->parent->state, tag));
                         }
                     }
             }
