@@ -202,7 +202,7 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false)
+            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false)
             {
             }
 
@@ -218,6 +218,10 @@ namespace ompl
             /** \brief Flag indicating whether the planner attempts to optimize the path and reduce its length until the
                 maximum path length specified by the goal representation is satisfied */
             bool     optimizingPaths;
+
+            /** \brief Flag indicating whether the planner is able to account for the fact that the validity of a motion from A to B may not be the same as the validity of a motion from B to A.
+                If this flag is true, the planner will return solutions that do not make this assumption. Usually roadmap-based planners make this assumption and tree-based planners do not. */
+            bool directed;
         };
 
         /** \brief Base class for a planner */
