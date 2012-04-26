@@ -178,6 +178,9 @@ namespace ompl
 
             double                                              goalBias_;
             double                                              maxDistance_;
+
+            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            Motion                                              *lastGoalMotion_;
         };
 
     }

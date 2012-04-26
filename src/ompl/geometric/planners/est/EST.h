@@ -247,6 +247,9 @@ namespace ompl
 
             /** \brief The PDF used for selecting a cell from which to sample a motion */
             CellPDF                      pdf_;
+
+            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            Motion                       *lastGoalMotion_;
         };
 
     }

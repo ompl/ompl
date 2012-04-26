@@ -46,6 +46,7 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(s
 
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange);
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
@@ -63,6 +64,7 @@ void ompl::geometric::RRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::geometric::RRT::setup(void)
@@ -177,6 +179,8 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -211,7 +215,15 @@ void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL),
-                     base::PlannerDataVertex(motions[i]->state));
+    {
+        if (motions[i]->parent == NULL)
+            data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+        else
+            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
+                         base::PlannerDataVertex(motions[i]->state));
+    }
 }

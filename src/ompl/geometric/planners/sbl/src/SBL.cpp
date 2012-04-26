@@ -44,6 +44,7 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(s
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     maxDistance_ = 0.0;
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
     Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange);
 }
@@ -201,6 +202,11 @@ bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
 
             if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
             {
+                if (start)
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                else
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+
                 /* extract the motions and put them in solution vector */
 
                 std::vector<Motion*> mpath1;
@@ -354,6 +360,7 @@ void ompl::geometric::SBL::clear(void)
     tGoal_.grid.clear();
     tGoal_.size = 0;
     tGoal_.pdf.clear();
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
@@ -365,16 +372,22 @@ void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.addEdge(base::PlannerDataVertex(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, 1),
-                         base::PlannerDataVertex(motions[i][j]->state, 1));
-
+            if (motions[i][j]->parent == NULL)
+                data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state, 1));
+            else
+                data.addEdge(base::PlannerDataVertex(motions[i][j]->parent->state, 1),
+                             base::PlannerDataVertex(motions[i][j]->state, 1));
 
     motions.clear();
     tGoal_.grid.getContent(motions);
-
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.addEdge(base::PlannerDataVertex(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, 2),
-                         base::PlannerDataVertex(motions[i][j]->state, 2));
+            if (motions[i][j]->parent == NULL)
+                data.addGoalVertex(base::PlannerDataVertex(motions[i][j]->state, 2));
+            else
+                // The edges in the goal tree are reversed so that they are in the same direction as start tree
+                data.addEdge(base::PlannerDataVertex(motions[i][j]->state, 2),
+                             base::PlannerDataVertex(motions[i][j]->parent->state, 2));
 
+    data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }

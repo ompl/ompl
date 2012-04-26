@@ -47,6 +47,7 @@
 const ompl::base::PlannerDataEdge   ompl::base::PlannerData::NO_EDGE = ompl::base::PlannerDataEdge();
 const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::base::PlannerDataVertex(0);
 const double ompl::base::PlannerData::INVALID_WEIGHT = std::numeric_limits<double>::infinity();
+const unsigned int ompl::base::PlannerData::INVALID_INDEX = std::numeric_limits<unsigned int>::max();
 
 ompl::base::PlannerData::PlannerData (void)
 {
@@ -147,7 +148,7 @@ bool ompl::base::PlannerData::edgeExists (unsigned int v1, unsigned int v2) cons
 
 bool ompl::base::PlannerData::vertexExists (const PlannerDataVertex &v) const
 {
-    return vertexIndex(v) != std::numeric_limits<unsigned int>::max();
+    return vertexIndex(v) != INVALID_INDEX;
 }
 
 unsigned int ompl::base::PlannerData::numVertices (void) const
@@ -213,7 +214,7 @@ void ompl::base::PlannerData::printGraphviz (std::ostream& out) const
     boost::write_graphviz(out, *graph_);
 }
 
-void ompl::base::PlannerData::printGraphML(std::ostream& out) const
+void ompl::base::PlannerData::printGraphML (std::ostream& out) const
 {
     // Not writing vertex or edge structures.
     boost::dynamic_properties dp;
@@ -227,17 +228,53 @@ unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) c
     std::map<const State*, unsigned int>::const_iterator it = stateIndexMap.find(v.getState());
     if (it != stateIndexMap.end())
         return it->second;
-    return std::numeric_limits<unsigned int>::max();
+    return INVALID_INDEX;
+}
+
+unsigned int ompl::base::PlannerData::numStartVertices (void) const
+{
+    return startVertexIndices.size();
+}
+
+unsigned int ompl::base::PlannerData::numGoalVertices (void) const
+{
+    return goalVertexIndices.size();
+}
+
+unsigned int ompl::base::PlannerData::getStartIndex (unsigned int i) const
+{
+    if (i >= startVertexIndices.size())
+        return INVALID_INDEX;
+
+    return startVertexIndices[i];
+}
+
+unsigned int ompl::base::PlannerData::getGoalIndex (unsigned int i) const
+{
+    if (i >= goalVertexIndices.size())
+        return INVALID_INDEX;
+
+    return goalVertexIndices[i];
+}
+
+bool ompl::base::PlannerData::isStartState (unsigned int index) const
+{
+    return std::binary_search(startVertexIndices.begin(), startVertexIndices.end(), index);
+}
+
+bool ompl::base::PlannerData::isGoalState (unsigned int index) const
+{
+    return std::binary_search(goalVertexIndices.begin(), goalVertexIndices.end(), index);
 }
 
 unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
 {
     // Do not add vertices with null states
     if (st.getState() == NULL)
-        return std::numeric_limits<unsigned int>::max();
+        return INVALID_INDEX;
 
     unsigned int index = vertexIndex(st);
-    if (index == std::numeric_limits<unsigned int>::max()) // Vertex does not already exist
+    if (index == INVALID_INDEX) // Vertex does not already exist
     {
         // Clone the state to prevent object slicing when retrieving this object
         ompl::base::PlannerDataVertex *clone = st.clone();
@@ -248,6 +285,25 @@ unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
         stateIndexMap[clone->getState()] = numVertices()-1;
         return vertexIndexMap[v];
     }
+    return index;
+}
+
+unsigned int ompl::base::PlannerData::addStartVertex (const PlannerDataVertex &v)
+{
+    unsigned int index = addVertex(v);
+    if (index != INVALID_INDEX)
+        markStartState(v.getState());
+
+    return index;
+}
+
+unsigned int ompl::base::PlannerData::addGoalVertex  (const PlannerDataVertex &v)
+{
+    unsigned int index = addVertex(v);
+
+    if (index != INVALID_INDEX)
+        markGoalState(v.getState());
+
     return index;
 }
 
@@ -281,11 +337,11 @@ bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const Plann
     unsigned int index2 = addVertex(v2);
 
     // If neither vertex was added or already exists, return false
-    if (index1 == std::numeric_limits<unsigned int>::max() && index2 == std::numeric_limits<unsigned int>::max())
+    if (index1 == INVALID_INDEX && index2 == INVALID_INDEX)
         return false;
 
     // Only add the edge if both vertices exist
-    if (index1 != std::numeric_limits<unsigned int>::max() && index2 != std::numeric_limits<unsigned int>::max())
+    if (index1 != INVALID_INDEX && index2 != INVALID_INDEX)
         return addEdge (index1, index2, edge, weight);
 
     return true;
@@ -294,7 +350,7 @@ bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const Plann
 bool ompl::base::PlannerData::removeVertex (const PlannerDataVertex &st)
 {
     unsigned int index = vertexIndex (st);
-    if (index < std::numeric_limits<unsigned int>::max())
+    if (index != INVALID_INDEX)
         return removeVertex (index);
     return false;
 }
@@ -322,6 +378,22 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
     boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
     for (unsigned int i = vIndex+1; i < boost::num_vertices(*graph_); ++i)
          stateIndexMap[vertices[boost::vertex(i, *graph_)]->getState()]--;
+
+    // Remove this vertex from the start and/or goal index list, if it exists.  Update the lists.
+    std::vector<unsigned int>::iterator it = std::find(startVertexIndices.begin(), startVertexIndices.end(), vIndex);
+    if (it != startVertexIndices.end())
+        startVertexIndices.erase(it);
+    for (size_t i = 0; i < startVertexIndices.size(); ++i)
+        if (startVertexIndices[i] > vIndex)
+            startVertexIndices[i]--;
+
+    it = std::find(goalVertexIndices.begin(), goalVertexIndices.end(), vIndex);
+    if (it != goalVertexIndices.end())
+        goalVertexIndices.erase(it);
+    for (size_t i = 0; i < goalVertexIndices.size(); ++i)
+        if (goalVertexIndices[i] > vIndex)
+            goalVertexIndices[i]--;
+
 
     // Slay the vertex
     boost::clear_vertex(boost::vertex(vIndex, *graph_), *graph_);
@@ -355,7 +427,7 @@ bool ompl::base::PlannerData::removeEdge (const PlannerDataVertex &v1, const Pla
     index1 = vertexIndex(v1);
     index2 = vertexIndex(v2);
 
-    if (index1 == std::numeric_limits<unsigned int>::max() || index2 == std::numeric_limits<unsigned int>::max())
+    if (index1 == INVALID_INDEX || index2 == INVALID_INDEX)
         return false;
 
     return removeEdge (index1, index2);
@@ -367,6 +439,40 @@ bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
     if (it != stateIndexMap.end())
     {
         getVertex(it->second).setTag(tag);
+        return true;
+    }
+    return false;
+}
+
+bool ompl::base::PlannerData::markStartState (const base::State* st)
+{
+    // Find the index in the stateIndexMap
+    std::map<const State*, unsigned int>::iterator it = stateIndexMap.find(st);
+    if (it != stateIndexMap.end())
+    {
+        if (!isStartState(it->second))
+        {
+            startVertexIndices.push_back(it->second);
+            // Sort the indices for quick lookup
+            std::sort(startVertexIndices.begin(), startVertexIndices.end());
+        }
+        return true;
+    }
+    return false;
+}
+
+bool ompl::base::PlannerData::markGoalState (const base::State* st)
+{
+    // Find the index in the stateIndexMap
+    std::map<const State*, unsigned int>::iterator it = stateIndexMap.find(st);
+    if (it != stateIndexMap.end())
+    {
+        if (!isGoalState(it->second))
+        {
+            goalVertexIndices.push_back(it->second);
+            // Sort the indices for quick lookup
+            std::sort(startVertexIndices.begin(), startVertexIndices.end());
+        }
         return true;
     }
     return false;

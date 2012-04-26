@@ -45,6 +45,7 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
     specs_.approximateSolutions = true;
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
@@ -73,6 +74,7 @@ void ompl::geometric::EST::clear(void)
     tree_.grid.clear();
     tree_.size = 0;
     pdf_.clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::geometric::EST::freeMemory(void)
@@ -164,6 +166,8 @@ bool ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -220,8 +224,16 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
     std::vector<MotionInfo> motions;
     tree_.grid.getContent(motions);
 
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.addEdge(base::PlannerDataVertex(motions[i][j]->parent ? motions[i][j]->parent->state : NULL),
-                         base::PlannerDataVertex(motions[i][j]->state));
+        {
+            if (motions[i][j]->parent == NULL)
+                data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state));
+            else
+                data.addEdge(base::PlannerDataVertex(motions[i][j]->parent->state),
+                             base::PlannerDataVertex(motions[i][j]->state));
+        }
 }

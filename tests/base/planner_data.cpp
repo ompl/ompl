@@ -49,41 +49,41 @@ TEST(PlannerData, SimpleConstruction)
     base::PlannerData data;
     std::vector<base::State*> states;
 
-    // Creating states
-    for (unsigned int i = 0; i < 10; ++i)
+    // Creating 1000 states
+    for (unsigned int i = 0; i < 1000; ++i)
         states.push_back(space->allocState());
 
     // Adding vertices
-    for (unsigned int i = 1; i <= 10; ++i)
+    for (unsigned int i = 0; i < states.size(); ++i)
     {
-        unsigned int vtx = data.addVertex(base::PlannerDataVertex(states[i-1], i));
+        unsigned int vtx = data.addVertex(base::PlannerDataVertex(states[i], (signed)i));
 
-        EXPECT_NE( vtx, std::numeric_limits<unsigned int>::max() );
-        EXPECT_EQ( data.addVertex(base::PlannerDataVertex(states[i-1], i)), vtx );
+        EXPECT_NE( vtx, base::PlannerData::INVALID_INDEX );
+        EXPECT_EQ( data.addVertex(base::PlannerDataVertex(states[i])), vtx );
 
-        EXPECT_EQ( data.vertexIndex(base::PlannerDataVertex(states[i-1], i)), i-1 );
-        EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i-1], i)) );
+        EXPECT_EQ( data.vertexIndex(base::PlannerDataVertex(states[i])), i );
+        EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i])) );
     }
 
-    // We should have 10 vertices and 0 edges
-    EXPECT_EQ( data.numVertices(), 10u );
+    // We should have #states vertices and 0 edges
+    EXPECT_EQ( data.numVertices(), states.size() );
     EXPECT_EQ( data.numEdges(), 0u );
 
-    // Adding some edges
-    for (unsigned int i = 1; i <= 9; ++i)
+    // Adding edges
+    for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        EXPECT_TRUE( data.addEdge(i-1, i) );
-        EXPECT_FALSE( data.addEdge(i-1, 11) );  // vertex 11 does not exist
+        EXPECT_TRUE( data.addEdge(i, i+1) );
+        EXPECT_FALSE( data.addEdge(i, states.size()) );  // vertex #states.size() does not exist
 
-        EXPECT_TRUE( data.edgeExists(i-1, i) );
+        EXPECT_TRUE( data.edgeExists(i, i+1) );
     }
 
-    // We should have 10 vertices and 9 edges at this point
-    EXPECT_EQ( data.numVertices(), 10u );
-    EXPECT_EQ( data.numEdges(), 9u );
+    // We should have #states vertices and #states-1 edges at this point
+    EXPECT_EQ( data.numVertices(), states.size() );
+    EXPECT_EQ( data.numEdges(), states.size()-1 );
 
     // Make sure our edges are where we think they are
-    for (unsigned int i = 0; i < 9; ++i)
+    for (unsigned int i = 0; i < states.size()-1; ++i)
     {
         std::vector<unsigned int> neighbors;
         EXPECT_EQ( data.getEdges(i, neighbors), 1u );
@@ -91,13 +91,13 @@ TEST(PlannerData, SimpleConstruction)
     }
 
     std::vector<unsigned int> neighbors;
-    EXPECT_EQ( data.getEdges(9, neighbors), 0u );
+    EXPECT_EQ( data.getEdges(states.size()-1, neighbors), 0u );
 
     // Make sure that the vertices can be retrived properly
-    for (unsigned int i = 0; i < 10; ++i)
+    for (unsigned int i = 0; i < states.size(); ++i)
     {
         EXPECT_EQ(data.getVertex(i).getState(), states[i]);
-        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i+1);
+        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i);
     }
 
     for (size_t i = 0; i < states.size(); ++i)
@@ -110,45 +110,80 @@ TEST(PlannerData, AdvancedConstruction)
     base::PlannerData data;
     std::vector<base::State*> states;
 
-    // Creating states
-    for (unsigned int i = 0; i < 10; ++i)
+    // Creating 1000 states
+    for (unsigned int i = 0; i < 1000; ++i)
         states.push_back(space->allocState());
 
     // Adding vertices and edges simultaneously
-    for (unsigned int i = 1; i < 10; ++i)
+    for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i-1], i),
-                                   base::PlannerDataVertex(states[i], i+1)) );
+        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i], (signed)i),
+                                   base::PlannerDataVertex(states[i+1], (signed)i+1)) );
 
         // Duplicates are not allowed
-        EXPECT_FALSE( data.addEdge (base::PlannerDataVertex(states[i-1], i),
-                                    base::PlannerDataVertex(states[i], i+1)) );
+        EXPECT_FALSE( data.addEdge (base::PlannerDataVertex(states[i], (signed)i),
+                                    base::PlannerDataVertex(states[i+1], (signed)i+1)) );
 
-        EXPECT_TRUE( data.edgeExists (i-1, i) );
+        EXPECT_TRUE( data.edgeExists (i, i+1) );
 
-        EXPECT_EQ( data.vertexIndex(base::PlannerDataVertex(states[i-1], i)), i-1 );
-        EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i-1], i)) );
+        EXPECT_EQ( data.vertexIndex(base::PlannerDataVertex(states[i], (signed)i)), i );
+        EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i], i)) );
     }
 
-    // We should have 10 vertices and 9 edges
-    EXPECT_EQ( data.numVertices(), 10u );
-    EXPECT_EQ( data.numEdges(), 9u );
+    // Adding two start states and two goal states
+    EXPECT_EQ( data.addStartVertex (base::PlannerDataVertex(states[states.size()-4], states.size()-4)), states.size()-4 );
+    EXPECT_EQ( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-3], states.size()-3)),  states.size()-3 );
+    EXPECT_EQ( data.addStartVertex (base::PlannerDataVertex(states[states.size()-2], states.size()-2)), states.size()-2 );
+    EXPECT_EQ( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-1], states.size()-1)),  states.size()-1 );
+
+    EXPECT_EQ( data.numStartVertices(), 2u );
+    EXPECT_EQ( data.numGoalVertices (), 2u );
+    EXPECT_EQ( data.getStartIndex(0), states.size()-4 );
+    EXPECT_EQ( data.getStartIndex(1), states.size()-2 );
+    EXPECT_EQ( data.getStartIndex(2), base::PlannerData::INVALID_INDEX );
+    EXPECT_EQ( data.getGoalIndex(0), states.size()-3 );
+    EXPECT_EQ( data.getGoalIndex(1), states.size()-1 );
+    EXPECT_EQ( data.getGoalIndex(2), base::PlannerData::INVALID_INDEX );
+
+    // Make sure that the start and goal indices are where we think they are
+    for (unsigned int i = 0; i < states.size(); ++i)
+    {
+        if (i < states.size()-4)
+        {
+            EXPECT_FALSE( data.isStartState(i) );
+            EXPECT_FALSE( data.isGoalState(i) );
+        }
+        else if (i == states.size()-4 || i == states.size()-2)
+        {
+            EXPECT_TRUE( data.isStartState(i) );
+            EXPECT_FALSE( data.isGoalState(i) );
+        }
+        else if (i == states.size()-3 || i == states.size()-1)
+        {
+            EXPECT_FALSE( data.isStartState(i) );
+            EXPECT_TRUE( data.isGoalState(i) );
+        }
+    }
+
+    // We should have #states vertices and #states-1 edges
+    EXPECT_EQ( data.numVertices(), states.size() );
+    EXPECT_EQ( data.numEdges(), states.size()-1 );
 
     // Make sure our edges are where we think they are
-    for (unsigned int i = 0; i < 9; ++i)
+    for (unsigned int i = 0; i < states.size()-1; ++i)
     {
         std::vector<unsigned int> nbrs;
         EXPECT_EQ( data.getEdges(i, nbrs), 1u );
         EXPECT_EQ( nbrs[0], i+1 );
     }
     std::vector<unsigned int> nbrs;
-    EXPECT_EQ( data.getEdges(9, nbrs), 0u );
+    EXPECT_EQ( data.getEdges(states.size()-1, nbrs), 0u );
 
     // Make sure that the vertices can be retrived properly
-    for (unsigned int i = 0; i < 10; ++i)
+    for (unsigned int i = 0; i < states.size(); ++i)
     {
         EXPECT_EQ(data.getVertex(i).getState(), states[i]);
-        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i+1);
+        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i);
     }
 
     for (size_t i = 0; i < states.size(); ++i)
@@ -177,8 +212,8 @@ TEST(PlannerData, DataIntegrity)
     base::PlannerData data;
     std::vector<base::State*> states;
 
-    // Creating states
-    for (unsigned int i = 0; i < 10; ++i)
+    // Creating 1000 states
+    for (unsigned int i = 0; i < 1000; ++i)
     {
         base::State* st = space->allocState();
         st->as<base::RealVectorStateSpace::StateType>()->values[0] = i;
@@ -186,33 +221,33 @@ TEST(PlannerData, DataIntegrity)
     }
 
     // Adding vertices and edges simultaneously
-    for (unsigned int i = 1; i < 10; ++i)
+    for (unsigned int i = 1; i < states.size(); ++i)
     {
         EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i-1], i),
                                    base::PlannerDataVertex(states[i], i+1),
                                    TestEdge(i-1, i)) );
     }
 
-    // We should have 10 vertices and 9 edges
-    EXPECT_EQ( data.numVertices(), 10u );
-    EXPECT_EQ( data.numEdges(), 9u );
+    // We should have #states vertices and #states-1 edges
+    EXPECT_EQ( data.numVertices(), states.size() );
+    EXPECT_EQ( data.numEdges(), states.size()-1 );
 
     // Attempt to retrieve some vertices
     EXPECT_NE( &data.getVertex(0), &base::PlannerData::NO_VERTEX );
     EXPECT_NE( &data.getVertex(3), &base::PlannerData::NO_VERTEX );
-    EXPECT_EQ( &data.getVertex(50), &base::PlannerData::NO_VERTEX ); // vertex 50 does not exist
+    EXPECT_EQ( &data.getVertex(states.size()), &base::PlannerData::NO_VERTEX ); // vertex #states.size() does not exist
 
     // Attempt to retrieve some edges
     EXPECT_NE( &data.getEdge(0, 1), &base::PlannerData::NO_EDGE );
     EXPECT_NE( &data.getEdge(4, 5), &base::PlannerData::NO_EDGE );
-    EXPECT_EQ( &data.getEdge(0, 6), &base::PlannerData::NO_EDGE ); // edge does not exist
+    EXPECT_EQ( &data.getEdge(0, states.size()), &base::PlannerData::NO_EDGE ); // edge does not exist
 
     // Ensure vertex data integrity
-    for (unsigned int i = 0; i < 10; ++i)
+    for (unsigned int i = 0; i < states.size(); ++i)
         EXPECT_EQ( data.getVertex(i).getState()->as<base::RealVectorStateSpace::StateType>()->values[0], i );
 
     // Ensure edge data integrity
-    for (unsigned int i = 1; i < 10; ++i)
+    for (unsigned int i = 1; i < states.size(); ++i)
     {
         TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
         ASSERT_NE ( &edge, &base::PlannerData::NO_EDGE );
@@ -245,87 +280,145 @@ TEST(PlannerData, AddRemoveVerticesAndEdges)
     base::PlannerData data;
     std::vector<base::State*> states;
 
-    // Creating states
-    for (unsigned int i = 0; i < 10; ++i)
+    // Creating 1000 states
+    for (unsigned int i = 0; i < 1000; ++i)
         states.push_back(space->allocState());
 
     // Adding vertices and edges
-    for (unsigned int i = 1; i < 10; ++i)
+    for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i-1], i),
-                                   base::PlannerDataVertex(states[i], i+1)) );
+        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i], i),
+                                   base::PlannerDataVertex(states[i+1], i+1)) );
     }
 
-    EXPECT_EQ( data.numVertices(), 10u );
-    EXPECT_EQ( data.numEdges(), 9u );
+    EXPECT_EQ( data.numVertices(), states.size() );
+    EXPECT_EQ( data.numEdges(), states.size()-1 );
 
-    EXPECT_TRUE( data.removeVertex(base::PlannerDataVertex(states[9])) );
-    EXPECT_EQ( data.numVertices(), 9u );
-    EXPECT_EQ( data.numEdges(), 8u );
+    EXPECT_TRUE( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])) );
+    EXPECT_EQ( data.numVertices(), states.size()-1 );
+    EXPECT_EQ( data.numEdges(), states.size()-2 );
 
-    EXPECT_FALSE( data.removeVertex(base::PlannerDataVertex(states[9])) ); // we already removed this vertex
-    EXPECT_EQ( data.numVertices(), 9u );
-    EXPECT_EQ( data.numEdges(), 8u );
+    EXPECT_FALSE( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])) ); // we already removed this vertex
+    EXPECT_EQ( data.numVertices(), states.size()-1 );
+    EXPECT_EQ( data.numEdges(), states.size()-2 );
 
-    EXPECT_FALSE( data.removeVertex(10) ); // vertex does not exist
-    EXPECT_EQ( data.numVertices(), 9u );
-    EXPECT_EQ( data.numEdges(), 8u );
+    EXPECT_FALSE( data.removeVertex(states.size()) ); // vertex does not exist
+    EXPECT_EQ( data.numVertices(), states.size()-1 );
+    EXPECT_EQ( data.numEdges(), states.size()-2 );
 
     EXPECT_TRUE( data.removeVertex(6) );
-    EXPECT_EQ( data.numVertices(), 8u );
-    EXPECT_EQ( data.numEdges(), 6u );  // incoming edge and outgoing edge should be removed
+    EXPECT_EQ( data.numVertices(), states.size()-2 );
+    EXPECT_EQ( data.numEdges(), states.size()-4 );  // incoming edge and outgoing edge should be removed
 
     EXPECT_TRUE( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])) );
-    EXPECT_EQ( data.numVertices(), 8u );
-    EXPECT_EQ( data.numEdges(), 5u );
+    EXPECT_EQ( data.numVertices(), states.size()-2 );
+    EXPECT_EQ( data.numEdges(), states.size()-5 );
 
     EXPECT_FALSE( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])) ); // we just removed this edge
-    EXPECT_EQ( data.numVertices(), 8u );
-    EXPECT_EQ( data.numEdges(), 5u );
+    EXPECT_EQ( data.numVertices(), states.size()-2  );
+    EXPECT_EQ( data.numEdges(), states.size()-5 );
 
-    EXPECT_FALSE( data.removeEdge(5, 6) ); // edge does not exist
-    EXPECT_EQ( data.numVertices(), 8u );
-    EXPECT_EQ( data.numEdges(), 5u );
+    EXPECT_FALSE( data.removeEdge(5, 6) ); // edge does not exist (we removed vertex 6)
+    EXPECT_EQ( data.numVertices(), states.size()-2 );
+    EXPECT_EQ( data.numEdges(), states.size()-5 );
 
     EXPECT_TRUE( data.removeEdge(4, 5) );
-    EXPECT_EQ( data.numVertices(), 8u );
-    EXPECT_EQ( data.numEdges(), 4u );
+    EXPECT_EQ( data.numVertices(), states.size()-2 );
+    EXPECT_EQ( data.numEdges(), states.size()-6 );
 
     // Make sure the final graph looks the way we think:
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[0])) );
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[1])) );
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[2])) );
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[3])) );
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[4])) );
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[5])) );
-    EXPECT_FALSE( data.vertexExists(base::PlannerDataVertex(states[6])) );  // we removed this vertex
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[7])) );
-    EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[8])) );
-    EXPECT_FALSE( data.vertexExists(base::PlannerDataVertex(states[9])) );  // and this one
+    for (size_t i = 0; i < states.size(); ++i)
+    {
+        if (i == 6 || i == states.size()-1)
+            EXPECT_FALSE( data.vertexExists(base::PlannerDataVertex(states[i])) );
+        else
+            EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i])) );
+    }
 
-    // Checking edges by index and vertex
-    EXPECT_TRUE( data.edgeExists(0, 1) );
-    EXPECT_TRUE( data.edgeExists(2, 3) );
-    EXPECT_TRUE( data.edgeExists(3, 4) );
-    EXPECT_TRUE( data.edgeExists(6, 7) );
-
-    EXPECT_TRUE( data.edgeExists(data.vertexIndex(base::PlannerDataVertex(states[0])), data.vertexIndex(base::PlannerDataVertex(states[1]))) );
-    EXPECT_TRUE( data.edgeExists(data.vertexIndex(base::PlannerDataVertex(states[2])), data.vertexIndex(base::PlannerDataVertex(states[3]))) );
-    EXPECT_TRUE( data.edgeExists(data.vertexIndex(base::PlannerDataVertex(states[3])), data.vertexIndex(base::PlannerDataVertex(states[4]))) );
-    EXPECT_TRUE( data.edgeExists(data.vertexIndex(base::PlannerDataVertex(states[7])), data.vertexIndex(base::PlannerDataVertex(states[8]))) );
-
-    std::vector<unsigned int> nbrs;
-    EXPECT_EQ ( data.getEdges(0, nbrs), 1u );
-    EXPECT_EQ ( data.getEdges(1, nbrs), 0u );
-    EXPECT_EQ ( data.getEdges(2, nbrs), 1u );
-    EXPECT_EQ ( data.getEdges(3, nbrs), 1u );
-    EXPECT_EQ ( data.getEdges(4, nbrs), 0u );
-    EXPECT_EQ ( data.getEdges(5, nbrs), 0u );
-    EXPECT_EQ ( data.getEdges(6, nbrs), 1u );
-    EXPECT_EQ ( data.getEdges(7, nbrs), 0u );
+    for (size_t i = 0; i < states.size()-2; ++i) // we removed two vertices
+    {
+        std::vector<unsigned int> nbrs;
+        if (i == 1 || i == 4 || i == 5 || i == states.size()-3)
+            EXPECT_EQ ( data.getEdges(i, nbrs), 0u );
+        else
+        {
+            EXPECT_EQ ( data.getEdges(i, nbrs), 1u );
+            EXPECT_EQ ( nbrs[0], i+1 );
+            EXPECT_TRUE( data.edgeExists(i, i+1) );
+         }
+    }
 
     for (size_t i = 0; i < states.size(); ++i)
         space->freeState(states[i]);
+}
+
+TEST(PlannerData, AddRemoveStartAndGoalStates)
+{
+    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
+    base::PlannerData data;
+    std::vector<base::State*> states;
+
+    // Creating 1000 states
+    for (unsigned int i = 0; i < 1000; ++i)
+        states.push_back(space->allocState());
+
+    // Adding vertices and edges
+    for (unsigned int i = 0; i < states.size()-1; ++i)
+    {
+        // Mark states at the 50s as start states
+        if (i % 50 == 0 && i % 100 != 0 && i != 0)
+            data.addStartVertex(base::PlannerDataVertex(states[i], i));
+
+        // Mark states at the 100s as goal states
+        if (i % 100 == 0)
+            data.addGoalVertex(base::PlannerDataVertex(states[i], i));
+
+        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i], i),
+                                   base::PlannerDataVertex(states[i+1], i+1)) );
+    }
+
+    EXPECT_EQ( data.numStartVertices(), 10u );
+    EXPECT_EQ( data.numGoalVertices (), 10u );
+
+    for (unsigned int i = 50; i < states.size()-1; i+=100)
+        EXPECT_TRUE( data.isStartState(i) );
+
+    for (unsigned int i = 0; i < states.size()-1; i+=100)
+        EXPECT_TRUE( data.isGoalState(i) );
+
+    // Removing a start state
+    EXPECT_TRUE( data.removeVertex(50) );
+
+    EXPECT_EQ( data.numStartVertices(), 9u );
+    EXPECT_EQ( data.numGoalVertices (), 10u );
+
+    for (unsigned int i = 149; i < states.size()-1; i+=100)
+        EXPECT_TRUE( data.isStartState(i) );
+
+    // Removing a goal state
+    EXPECT_TRUE( data.removeVertex(0) );
+
+    for (unsigned int i = 98; i < states.size()-2; i+=100)
+        EXPECT_TRUE( data.isGoalState(i) );
+
+    for (unsigned int i = 0; i < states.size() - 2; i++)
+    {
+        if ((i+2) % 100 == 0)
+        {
+            EXPECT_FALSE( data.isStartState(i) );
+            EXPECT_TRUE( data.isGoalState(i) );
+        }
+        else if ((i+2) % 50 == 0 && i != 48)
+        {
+            EXPECT_TRUE( data.isStartState(i) );
+            EXPECT_FALSE( data.isGoalState(i) );
+        }
+        else
+        {
+            EXPECT_FALSE( data.isStartState(i) );
+            EXPECT_FALSE( data.isGoalState(i) );
+        }
+    }
 }
 
 int main(int argc, char **argv)

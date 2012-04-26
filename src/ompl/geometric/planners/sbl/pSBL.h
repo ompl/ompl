@@ -273,6 +273,9 @@ namespace ompl
             double                                           maxDistance_;
 
             unsigned int                                     threadCount_;
+
+            /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
+            std::pair<base::State*, base::State*>            connectionPoint_;
         };
 
     }

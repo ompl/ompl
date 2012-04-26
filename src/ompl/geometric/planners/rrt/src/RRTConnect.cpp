@@ -45,6 +45,7 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : b
     maxDistance_ = 0.0;
 
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 ompl::geometric::RRTConnect::~RRTConnect(void)
@@ -102,6 +103,7 @@ void ompl::geometric::RRTConnect::clear(void)
         tStart_->clear();
     if (tGoal_)
         tGoal_->clear();
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion)
@@ -233,6 +235,11 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
             if (gsc == REACHED && goal->isStartGoalPairValid(startTree ? tgi.xmotion->root : addedMotion->root,
                                                              startTree ? addedMotion->root : tgi.xmotion->root))
             {
+                if (startTree)
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(tgi.xmotion->state, addedMotion->state);
+                else
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(addedMotion->state, tgi.xmotion->state);
+
                 /* construct the solution path */
                 Motion *solution = tgi.xmotion;
                 std::vector<Motion*> mpath1;
@@ -285,14 +292,32 @@ void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
         tStart_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL, 1),
-                     base::PlannerDataVertex(motions[i]->state, 1));
+    {
+        if (motions[i]->parent == NULL)
+            data.addStartVertex(base::PlannerDataVertex(motions[i]->state, 1));
+        else
+        {
+            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state, 1),
+                         base::PlannerDataVertex(motions[i]->state, 1));
+        }
+    }
 
     motions.clear();
     if (tGoal_)
         tGoal_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL, 2),
-                     base::PlannerDataVertex(motions[i]->state, 2));
+    {
+        if (motions[i]->parent == NULL)
+            data.addGoalVertex(base::PlannerDataVertex(motions[i]->state, 2));
+        else
+        {
+            // The edges in the goal tree are reversed to be consistent with start tree
+            data.addEdge(base::PlannerDataVertex(motions[i]->state, 2),
+                         base::PlannerDataVertex(motions[i]->parent->state, 2));
+        }
+    }
+
+    // Add the edge connecting the two trees
+    data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }

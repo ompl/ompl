@@ -235,6 +235,9 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                                        rng_;
+
+            /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
+            std::pair<base::State*, base::State*>      connectionPoint_;
         };
 
     }

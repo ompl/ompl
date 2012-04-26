@@ -48,6 +48,7 @@ ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base:
     minValidPathFraction_ = 0.5;
     failedExpansionScoreFactor_ = 0.5;
     maxDistance_ = 0.0;
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
     Planner::declareParam<double>("range", this, &BKPIECE1::setRange, &BKPIECE1::getRange);
     Planner::declareParam<double>("border_fraction", this, &BKPIECE1::setBorderFraction, &BKPIECE1::getBorderFraction);
@@ -176,6 +177,11 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                     if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root) &&
                         si_->checkMotion(motion->state, connectOther->state))
                     {
+                        if (startTree)
+                            connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                        else
+                            connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+
                         /* extract the motions and put them in solution vector */
 
                         std::vector<Motion*> mpath1;
@@ -240,6 +246,7 @@ void ompl::geometric::BKPIECE1::clear(void)
     sampler_.reset();
     dStart_.clear();
     dGoal_.clear();
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 void ompl::geometric::BKPIECE1::getPlannerData(base::PlannerData &data) const
@@ -247,4 +254,7 @@ void ompl::geometric::BKPIECE1::getPlannerData(base::PlannerData &data) const
     Planner::getPlannerData(data);
     dStart_.getPlannerData(data, 1);
     dGoal_.getPlannerData(data, 2);
+
+    // Insert the edge connecting the two trees
+    data.addEdge (data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
