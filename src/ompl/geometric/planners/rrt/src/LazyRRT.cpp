@@ -120,9 +120,9 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
- RETRY:
+    bool solutionFound = false;
 
-    while (ptc() == false)
+    while (ptc() == false && !solutionFound)
     {
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
@@ -155,41 +155,40 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
         {
             distsol = dist;
             solution = motion;
-            break;
-        }
-    }
+            solutionFound = true;
 
-    bool solved = false;
-    if (solution != NULL)
-    {
-        /* construct the solution path */
-        std::vector<Motion*> mpath;
-        while (solution != NULL)
-        {
-            mpath.push_back(solution);
-            solution = solution->parent;
-        }
-
-        /* check the path */
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            if (!mpath[i]->valid)
+            // Check that the solution is valid:
+            // construct the solution path
+            std::vector<Motion*> mpath;
+            while (solution != NULL)
             {
-                if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state))
-                    mpath[i]->valid = true;
-                else
-                {
-                    removeMotion(mpath[i]);
-                    goto RETRY;
-                }
+                mpath.push_back(solution);
+                solution = solution->parent;
             }
 
-        /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->append(mpath[i]->state);
+            // check each segment along the path for validity
+            for (int i = mpath.size() - 1 ; i >= 0 && solutionFound; --i)
+                if (!mpath[i]->valid)
+                {
+                    if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state))
+                        mpath[i]->valid = true;
+                    else
+                    {
+                        removeMotion(mpath[i]);
+                        solutionFound = false;
+                    }
+                }
 
-        goal->addSolutionPath(base::PathPtr(path), false, distsol);
-        solved = true;
+            if (solutionFound)
+            {
+                // set the solution path
+                PathGeometric *path = new PathGeometric(si_);
+                for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+                    path->append(mpath[i]->state);
+
+                goal->addSolutionPath(base::PathPtr(path), false, distsol);
+            }
+        }
     }
 
     si_->freeState(xstate);
@@ -198,7 +197,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states", nn_->size());
 
-    return solved;
+    return solutionFound;
 }
 
 void ompl::geometric::LazyRRT::removeMotion(Motion *motion)
