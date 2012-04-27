@@ -257,14 +257,46 @@ unsigned int ompl::base::PlannerData::getGoalIndex (unsigned int i) const
     return goalVertexIndices_[i];
 }
 
-bool ompl::base::PlannerData::isStartState (unsigned int index) const
+bool ompl::base::PlannerData::isStartVertex (unsigned int index) const
 {
     return std::binary_search(startVertexIndices_.begin(), startVertexIndices_.end(), index);
 }
 
-bool ompl::base::PlannerData::isGoalState (unsigned int index) const
+bool ompl::base::PlannerData::isGoalVertex (unsigned int index) const
 {
     return std::binary_search(goalVertexIndices_.begin(), goalVertexIndices_.end(), index);
+}
+
+const ompl::base::PlannerDataVertex& ompl::base::PlannerData::getStartVertex (unsigned int i) const
+{
+    if (i >= startVertexIndices_.size())
+        return NO_VERTEX;
+
+    return getVertex(startVertexIndices_[i]);
+}
+
+ompl::base::PlannerDataVertex& ompl::base::PlannerData::getStartVertex (unsigned int i)
+{
+    if (i >= startVertexIndices_.size())
+        return const_cast<ompl::base::PlannerDataVertex&>(NO_VERTEX);
+
+    return getVertex(startVertexIndices_[i]);
+}
+
+const ompl::base::PlannerDataVertex& ompl::base::PlannerData::getGoalVertex (unsigned int i) const
+{
+    if (i >= goalVertexIndices_.size())
+        return NO_VERTEX;
+
+    return getVertex(goalVertexIndices_[i]);
+}
+
+ompl::base::PlannerDataVertex& ompl::base::PlannerData::getGoalVertex (unsigned int i)
+{
+    if (i >= goalVertexIndices_.size())
+        return const_cast<ompl::base::PlannerDataVertex&>(NO_VERTEX);
+
+    return getVertex(goalVertexIndices_[i]);
 }
 
 unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
@@ -450,7 +482,7 @@ bool ompl::base::PlannerData::markStartState (const base::State* st)
     std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
-        if (!isStartState(it->second))
+        if (!isStartVertex(it->second))
         {
             startVertexIndices_.push_back(it->second);
             // Sort the indices for quick lookup
@@ -467,7 +499,7 @@ bool ompl::base::PlannerData::markGoalState (const base::State* st)
     std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
-        if (!isGoalState(it->second))
+        if (!isGoalVertex(it->second))
         {
             goalVertexIndices_.push_back(it->second);
             // Sort the indices for quick lookup

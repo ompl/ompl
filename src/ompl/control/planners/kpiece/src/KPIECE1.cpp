@@ -52,6 +52,7 @@ ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(s
     badScoreFactor_ = 0.45;
     goodScoreFactor_ = 0.9;
     tree_.grid.onCellUpdate(computeImportance, NULL);
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
     Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
@@ -89,6 +90,7 @@ void ompl::control::KPIECE1::clear(void)
     tree_.grid.clear();
     tree_.size = 0;
     tree_.iteration = 1;
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::KPIECE1::freeMemory(void)
@@ -315,6 +317,8 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -413,6 +417,9 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
 
     double delta = siC_->getPropagationStepSize();
 
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+
     for (unsigned int i = 0 ; i < cells.size() ; ++i)
     {
         for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
@@ -423,10 +430,8 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
                              base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
                              control::PlannerDataEdgeControl (m->control, m->steps * delta));
             else
-                data.addEdge (base::PlannerDataVertex (NULL), 
-                              base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
-                              control::PlannerDataEdgeControl (NULL, 0));
-            
+                data.addStartVertex(base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
+
             // A state created as a parent first may have an improper tag variable
             data.tagState(m->state, cells[i]->border ? 2 : 1);
         }

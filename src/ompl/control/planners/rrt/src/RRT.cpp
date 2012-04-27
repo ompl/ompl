@@ -44,6 +44,7 @@ ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT"
     specs_.approximateSolutions = true;
     siC_ = si.get();
     addIntermediateStates_ = false;
+    lastGoalMotion_ = NULL;
 
     goalBias_ = 0.05;
 
@@ -72,6 +73,7 @@ void ompl::control::RRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::RRT::freeMemory(void)
@@ -230,6 +232,8 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -268,8 +272,12 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     std::vector<Motion*> motions;
     if (nn_)
         nn_->list(motions);
-        
+
     double delta = siC_->getPropagationStepSize();
+
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
         const Motion* m = motions[i];
@@ -278,8 +286,6 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
                          base::PlannerDataVertex(m->state),
                          control::PlannerDataEdgeControl(m->control, m->steps * delta));
         else
-            data.addEdge(base::PlannerDataVertex(NULL),
-                         base::PlannerDataVertex(m->state),
-                         control::PlannerDataEdgeControl(NULL, 0.));
+            data.addStartVertex(base::PlannerDataVertex(m->state));
     }
 }

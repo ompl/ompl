@@ -43,6 +43,7 @@ void ompl::control::SyclopRRT::setup(void)
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocDirectedControlSampler();
+    lastGoalMotion_ = NULL;
 
     // Create a default GNAT nearest neighbors structure if the user doesn't want
     // the default regionalNN check from the discretization
@@ -59,6 +60,7 @@ void ompl::control::SyclopRRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
@@ -68,6 +70,10 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
     if (nn_)
         nn_->list(motions);
     double delta = siC_->getPropagationStepSize();
+
+    if (lastGoalMotion_)
+        data.addGoalVertex (base::PlannerDataVertex(lastGoalMotion_->state));
+
     for (size_t i = 0; i < motions.size(); ++i)
     {
         if (motions[i]->parent)
@@ -75,9 +81,7 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
                           base::PlannerDataVertex(motions[i]->state),
                           control::PlannerDataEdgeControl (motions[i]->control, motions[i]->steps * delta));
         else
-            data.addEdge (base::PlannerDataVertex(NULL),
-                          base::PlannerDataVertex(motions[i]->state),
-                          control::PlannerDataEdgeControl (NULL, 0.));
+            data.addStartVertex (base::PlannerDataVertex(motions[i]->state));
     }
 }
 
@@ -152,6 +156,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
         newMotions.push_back(motion);
         if (nn_)
             nn_->add(motion);
+        lastGoalMotion_ = motion;
     }
 
     si_->freeState(rmotion->state);

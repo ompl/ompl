@@ -42,6 +42,7 @@ void ompl::control::SyclopEST::setup(void)
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocControlSampler();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::SyclopEST::clear(void)
@@ -49,13 +50,18 @@ void ompl::control::SyclopEST::clear(void)
     Syclop::clear();
     freeMemory();
     motions_.clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
 {
     Planner::getPlannerData(data);
-    
+
     double delta = siC_->getPropagationStepSize();
+
+    if (lastGoalMotion_)
+        data.addGoalVertex(lastGoalMotion_->state);
+
     for (size_t i = 0; i < motions_.size(); ++i)
     {
         if (motions_[i]->parent)
@@ -63,9 +69,7 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
                           base::PlannerDataVertex(motions_[i]->state),
                           control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
         else
-            data.addEdge (base::PlannerDataVertex(NULL),
-                          base::PlannerDataVertex(motions_[i]->state),
-                          control::PlannerDataEdgeControl (NULL, 0.));
+            data.addStartVertex (base::PlannerDataVertex(motions_[i]->state));
     }
 }
 
@@ -97,6 +101,8 @@ void ompl::control::SyclopEST::selectAndExtend(Region& region, std::vector<Motio
         motion->parent = treeMotion;
         motions_.push_back(motion);
         newMotions.push_back(motion);
+
+        lastGoalMotion_ = motion;
     }
 
     siC_->freeControl(rctrl);

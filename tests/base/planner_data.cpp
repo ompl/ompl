@@ -150,18 +150,18 @@ TEST(PlannerData, AdvancedConstruction)
     {
         if (i < states.size()-4)
         {
-            EXPECT_FALSE( data.isStartState(i) );
-            EXPECT_FALSE( data.isGoalState(i) );
+            EXPECT_FALSE( data.isStartVertex(i) );
+            EXPECT_FALSE( data.isGoalVertex(i) );
         }
         else if (i == states.size()-4 || i == states.size()-2)
         {
-            EXPECT_TRUE( data.isStartState(i) );
-            EXPECT_FALSE( data.isGoalState(i) );
+            EXPECT_TRUE( data.isStartVertex(i) );
+            EXPECT_FALSE( data.isGoalVertex(i) );
         }
         else if (i == states.size()-3 || i == states.size()-1)
         {
-            EXPECT_FALSE( data.isStartState(i) );
-            EXPECT_TRUE( data.isGoalState(i) );
+            EXPECT_FALSE( data.isStartVertex(i) );
+            EXPECT_TRUE( data.isGoalVertex(i) );
         }
     }
 
@@ -381,10 +381,10 @@ TEST(PlannerData, AddRemoveStartAndGoalStates)
     EXPECT_EQ( data.numGoalVertices (), 10u );
 
     for (unsigned int i = 50; i < states.size()-1; i+=100)
-        EXPECT_TRUE( data.isStartState(i) );
+        EXPECT_TRUE( data.isStartVertex(i) );
 
     for (unsigned int i = 0; i < states.size()-1; i+=100)
-        EXPECT_TRUE( data.isGoalState(i) );
+        EXPECT_TRUE( data.isGoalVertex(i) );
 
     // Removing a start state
     EXPECT_TRUE( data.removeVertex(50) );
@@ -393,30 +393,30 @@ TEST(PlannerData, AddRemoveStartAndGoalStates)
     EXPECT_EQ( data.numGoalVertices (), 10u );
 
     for (unsigned int i = 149; i < states.size()-1; i+=100)
-        EXPECT_TRUE( data.isStartState(i) );
+        EXPECT_TRUE( data.isStartVertex(i) );
 
     // Removing a goal state
     EXPECT_TRUE( data.removeVertex(0) );
 
     for (unsigned int i = 98; i < states.size()-2; i+=100)
-        EXPECT_TRUE( data.isGoalState(i) );
+        EXPECT_TRUE( data.isGoalVertex(i) );
 
     for (unsigned int i = 0; i < states.size() - 2; i++)
     {
         if ((i+2) % 100 == 0)
         {
-            EXPECT_FALSE( data.isStartState(i) );
-            EXPECT_TRUE( data.isGoalState(i) );
+            EXPECT_FALSE( data.isStartVertex(i) );
+            EXPECT_TRUE( data.isGoalVertex(i) );
         }
         else if ((i+2) % 50 == 0 && i != 48)
         {
-            EXPECT_TRUE( data.isStartState(i) );
-            EXPECT_FALSE( data.isGoalState(i) );
+            EXPECT_TRUE( data.isStartVertex(i) );
+            EXPECT_FALSE( data.isGoalVertex(i) );
         }
         else
         {
-            EXPECT_FALSE( data.isStartState(i) );
-            EXPECT_FALSE( data.isGoalState(i) );
+            EXPECT_FALSE( data.isStartVertex(i) );
+            EXPECT_FALSE( data.isGoalVertex(i) );
         }
     }
 }
