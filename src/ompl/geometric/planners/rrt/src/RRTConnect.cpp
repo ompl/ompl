@@ -42,6 +42,8 @@
 ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+    specs_.directed = true;
+
     maxDistance_ = 0.0;
 
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange);
@@ -121,8 +123,12 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         dstate = tgi.xstate;
         reach = false;
     }
-
-    if (si_->checkMotion(nmotion->state, dstate))
+    // if we are in the start tree, we just check the motion like we normally do;
+    // if we are in the goal tree, we need to check the motion in reverse, but checkMotion() assumes the first state it receives as argument is valid,
+    // so we check that one first
+    bool validMotion = tgi.start ? si_->checkMotion(nmotion->state, dstate) : si_->getStateValidityChecker()->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
+    
+    if (validMotion)
     {
         /* create a motion */
         Motion *motion = new Motion(si_);
@@ -187,7 +193,8 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
     while (ptc() == false)
     {
-        TreeData &tree      = startTree ? tStart_ : tGoal_;
+        TreeData &tree      = startTree ? tStart_ : tGoal_; 
+        tgi.start = startTree;
         startTree = !startTree;
         TreeData &otherTree = startTree ? tStart_ : tGoal_;
 
@@ -211,7 +218,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
         /* sample random state */
         sampler_->sampleUniform(rstate);
-
+        
         GrowState gs = growTree(tree, tgi, rmotion);
 
         if (gs != TRAPPED)
@@ -225,7 +232,8 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
             if (gs != REACHED)
                 si_->copyState(rstate, tgi.xstate);
 
-            GrowState gsc = ADVANCED;
+            GrowState gsc = ADVANCED;  
+            tgi.start = startTree;
             while (gsc == ADVANCED)
                 gsc = growTree(otherTree, tgi, rmotion);
 

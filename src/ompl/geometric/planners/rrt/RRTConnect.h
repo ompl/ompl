@@ -134,6 +134,7 @@ namespace ompl
             {
                 base::State         *xstate;
                 Motion              *xmotion;
+                bool                 start;
             };
 
             /** \brief The state of the tree after an attempt to extend it */

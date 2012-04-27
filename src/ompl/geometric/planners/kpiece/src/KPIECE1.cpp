@@ -44,6 +44,7 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
                                                                          disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
 {
     specs_.approximateSolutions = true;
+    specs_.directed = true;
 
     goalBias_ = 0.05;
     failedExpansionScoreFactor_ = 0.5;

@@ -42,6 +42,7 @@
 
 ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT")
 {
+    specs_.directed = true;
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
 

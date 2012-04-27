@@ -46,6 +46,7 @@ ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner
 {
     specs_.approximateSolutions = true;
     specs_.multithreaded = true;
+    specs_.directed = true;
 
     setThreadCount(2);
     goalBias_ = 0.05;

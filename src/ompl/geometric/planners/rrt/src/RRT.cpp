@@ -43,6 +43,7 @@
 ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
 {
     specs_.approximateSolutions = true;
+    specs_.directed = true;
 
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
