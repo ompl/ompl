@@ -48,6 +48,7 @@ ompl::geometric::pSBL::pSBL(const base::SpaceInformationPtr &si) : base::Planner
     specs_.multithreaded = true;
     maxDistance_ = 0.0;
     setThreadCount(2);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
     Planner::declareParam<double>("range", this, &pSBL::setRange, &pSBL::getRange);
     Planner::declareParam<unsigned int>("thread_count", this, &pSBL::setThreadCount, &pSBL::getThreadCount);
@@ -86,6 +87,7 @@ void ompl::geometric::pSBL::clear(void)
     tGoal_.pdf.clear();
 
     removeList_.motions.clear();
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 void ompl::geometric::pSBL::freeGridMotions(Grid<MotionInfo> &grid)
@@ -281,6 +283,11 @@ bool ompl::geometric::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, 
 
             if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
             {
+                if (start)
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                else
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+
                 /* extract the motions and put them in solution vector */
 
                 std::vector<Motion*> mpath1;
@@ -443,21 +450,27 @@ void ompl::geometric::pSBL::getPlannerData(base::PlannerData &data) const
 
     std::vector<MotionInfo> motions;
     tStart_.grid.getContent(motions);
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-        {
-            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
-            data.tagState(motions[i][j]->state, 1);
-        }
+            if (motions[i][j]->parent == NULL)
+                data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state, 1));
+            else
+                data.addEdge(base::PlannerDataVertex(motions[i][j]->parent->state, 1),
+                             base::PlannerDataVertex(motions[i][j]->state, 1));
 
     motions.clear();
     tGoal_.grid.getContent(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-        {
-            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
-            data.tagState(motions[i][j]->state, 2);
-        }
+            if (motions[i][j]->parent == NULL)
+                data.addGoalVertex(base::PlannerDataVertex(motions[i][j]->state, 2));
+            else
+                // The edges in the goal tree are reversed so that they are in the same direction as start tree
+                data.addEdge(base::PlannerDataVertex(motions[i][j]->state, 2),
+                             base::PlannerDataVertex(motions[i][j]->parent->state, 2));
+
+    data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
 
 void ompl::geometric::pSBL::setThreadCount(unsigned int nthreads)

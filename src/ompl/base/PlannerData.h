@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2012, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,70 +32,297 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ryan Luna */
 
 #ifndef OMPL_BASE_PLANNER_DATA_
 #define OMPL_BASE_PLANNER_DATA_
 
-#include "ompl/base/SpaceInformation.h"
 #include <iostream>
 #include <vector>
-#include <string>
 #include <map>
+#include "ompl/base/State.h"
+#include "ompl/util/ClassForward.h"
+#include <boost/noncopyable.hpp>
+#include <boost/function.hpp>
 
 namespace ompl
 {
     namespace base
     {
-
-        /** \brief Datatype holding data a planner can expose for debug purposes. */
-        class PlannerData
+        /// \brief Base class for a vertex in the PlannerData structure.  All
+        /// derived classes must implement the clone and equivalence operators.
+        /// It is assumed that each vertex in the PlannerData structure is
+        /// unique (i.e. no duplicates allowed).
+        class PlannerDataVertex
         {
         public:
-            PlannerData(void)
+            /// \brief Constructor.  Takes a state pointer and an optional integer tag.
+            PlannerDataVertex (const base::State* st, int tag = 0) : state_(st), tag_(tag) {}
+            /// \brief Copy constructor.
+            PlannerDataVertex (const PlannerDataVertex& rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
+            virtual ~PlannerDataVertex (void) {}
+
+            /// \brief Returns the integer tag associated with this vertex.
+            virtual int  getTag (void) const { return tag_; }
+            /// \brief Set the integer tag associated with this vertex.
+            virtual void setTag (int tag) { tag_ = tag; }
+            /// \brief Retrieve the state associated with this vertex.
+            virtual const base::State* getState(void) const { return state_; }
+
+            /// \brief Return a clone of this object, allocated from the heap.
+            virtual PlannerDataVertex* clone (void) const
             {
+                return new PlannerDataVertex(*this);
             }
 
-            virtual ~PlannerData(void)
+            /// \brief Equivalence operator.  Return true if the state pointers are equal.
+            virtual bool operator == (const PlannerDataVertex &rhs) const
             {
+                // States should be unique
+                return state_ == rhs.state_;
             }
 
-            /** \brief Record an edge between two states. This
-                function is called by planners to fill \e states, \e
-                stateIndex and \e edges. If the same state/edge is
-                seen multiple times, it is added only once.
-                \return index of s1 in state array when an edge is added,
-                -1 otherwise. */
-            int recordEdge(const State *s1, const State *s2);
+            /// \brief Returns true if this vertex is not equal to the argument.
+            /// This is the complement of the == operator.
+            bool operator != (const PlannerDataVertex &rhs) const
+            {
+                return !(*this == rhs);
+            }
 
-            /** \brief Assign a tag to a state */
-            void tagState(const State *s, int tag);
+        protected:
+            /// \brief The state represented by this vertex
+            const base::State* state_;
+            /// \brief A generic integer tag for this state.  Not used for equivalence checking.
+            int tag_;
+        };
 
-            /** \brief Clear any stored data */
-            virtual void clear(void);
+        /// \brief Base class for a PlannerData edge.
+        class PlannerDataEdge
+        {
+        public:
+            PlannerDataEdge (void) {}
+            virtual ~PlannerDataEdge (void) {}
+            /// \brief Return a clone of this object, allocated from the heap.
+            virtual PlannerDataEdge* clone () const { return new PlannerDataEdge(); }
 
-            /** \brief Print this data to a stream */
-            virtual void print(std::ostream &out = std::cout) const;
+            /// \brief Returns true if the edges point to the same memory
+            virtual bool operator == (const PlannerDataEdge &rhs) const
+            {
+                return this == &rhs;
+            }
 
-            /** \brief The space information containing the states of the exploration datastructure */
-            SpaceInformationPtr                      si;
+            /// \brief Returns true if the edges do not point to the same memory.
+            /// This is the complement of the == operator.
+            bool operator != (const PlannerDataEdge &rhs) const
+            {
+                return !(*this == rhs);
+            }
+        };
 
-            /** \brief The list of states in the current exploration datastructure */
-            std::vector< const State* >              states;
+        ClassForward(PlannerData);
 
-            /** \brief For every state, a tag may be associated by the planner. For example, a bi-directional planner
-                may assign one tag for states in the start tree and another for states in the goal tree. By default the tag has value 0. */
-            std::vector< int >                       tags;
+        /// \brief Object containing planner generated vertex and edge data.  It
+        /// is assumed that all vertices are unique, and only a single directed
+        /// edge connects two vertices.
+        class PlannerData : boost::noncopyable
+        {
+        public:
+            class Graph;
+            /// \brief A function that accepts two vertex data sets and the edge data, and returns the weight of the edge
+            typedef boost::function<double (const PlannerDataVertex&, const PlannerDataVertex&, const PlannerDataEdge&)> EdgeWeightFn;
 
-            /** \brief The same list of states as above, provided for convenience, in a manner that allows finding out a
-                state's index from its pointer value */
-            std::map< const State *, unsigned int >  stateIndex;
+            /// \brief Representation for a non-existant edge
+            static const PlannerDataEdge   NO_EDGE;
+            /// \brief Representation for a non-existant vertex
+            static const PlannerDataVertex NO_VERTEX;
+            /// \brief Representation of an invalid edge weight
+            static const double            INVALID_WEIGHT;
+            /// \brief Representation of an invalid vertex index
+            static const unsigned int      INVALID_INDEX;
 
-            /** \brief For each i, edges[i] contains the values edges[i][j] such that states[i] connects to every states[edges[i][j]] */
-            std::vector< std::vector<unsigned int> > edges;
+            PlannerData(void);
+            virtual ~PlannerData(void);
 
-            /** \brief Any extra properties (key-value pairs) the planner can set. */
-            std::map<std::string, std::string>       properties;
+            /// \name PlannerData construction
+            /// \{
+
+            /// \brief Adds the given vertex to the graph data.  The vertex index
+            /// is returned.  Duplicates are not added.  If a vertex is duplicated,
+            /// the index of the existing vertex is returned instead.
+            /// Indexes are volatile and may change after adding/removing a subsequent vertex.
+            unsigned int addVertex (const PlannerDataVertex &st);
+            /// \brief Adds the given vertex to the graph data, and marks it as a
+            /// start vertex.  The vertex index is returned.  Duplicates are not added.
+            /// If a vertex is duplicated, the index of the existing vertex is returned instead.
+            /// Indexes are volatile and may change after adding/removing a subsequent vertex.
+            unsigned int addStartVertex (const PlannerDataVertex &v);
+            /// \brief Adds the given vertex to the graph data, and marks it as a
+            /// start vertex.  The vertex index is returned.  Duplicates are not added.
+            /// If a vertex is duplicated, the index of the existing vertex is returned instead.
+            /// Indexes are volatile and may change after adding/removing a subsequent vertex.
+            unsigned int addGoalVertex  (const PlannerDataVertex &v);
+            /// \brief Mark the given state as a start vertex.  If the given state does not exist in a
+            /// vertex, false is returned.
+            bool markStartState (const base::State* st);
+            /// \brief Mark the given state as a goal vertex.  If the given state does not exist in a
+            /// vertex, false is returned.
+            bool markGoalState (const base::State* st);
+            /// \brief Set the integer tag associated with the given state.  If the given
+            /// state does not exist in a vertex, false is returned.
+            bool tagState (const base::State* st, int tag);
+            /// \brief Removes the vertex associated with the given data.  If the
+            /// vertex does not exist, false is returned.
+            /// This method has O(n) complexity in the number of vertices.
+            bool removeVertex (const PlannerDataVertex &st);
+            /// \brief Removes the vertex with the given index.  If the index is
+            /// out of range, false is returned.
+            /// This method has O(n) complexity in the number of vertices.
+            bool removeVertex (unsigned int vIndex);
+            /// \brief Adds a directed edge between the given vertex indexes.  An optional
+            /// edge structure and weight can be supplied.  Success is returned.
+            bool addEdge (unsigned int v1, unsigned int v2,
+                          const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
+            /// \brief Adds a directed edge between the given vertex indexes.  The
+            /// vertices are added to the data if they are not already in the
+            /// structure.  An optional edge structure and weight can also be supplied.
+            /// Success is returned.
+            bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
+                          const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
+            /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
+            bool removeEdge (unsigned int v1, unsigned int v2);
+            /// \brief Removes the edge between the vertices associated with the given vertex data.
+            /// Success is returned.
+            bool removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2);
+            /// \brief Clears the entire data structure
+            void clear (void);
+
+            /// \}
+            /// \name PlannerData Properties
+            /// \{
+
+            /// \brief Retrieve the number of edges in this structure
+            unsigned int numEdges (void) const;
+            /// \brief Retrieve the number of vertices in this structure
+            unsigned int numVertices (void) const;
+            /// \brief Returns the number of start vertices
+            unsigned int numStartVertices (void) const;
+            /// \brief Returns the number of goal vertices
+            unsigned int numGoalVertices (void) const;
+
+            /// \}
+            /// \name PlannerData vertex lookup
+            /// \{
+
+            /// \brief Check whether a vertex exists with the given vertex data
+            bool vertexExists (const PlannerDataVertex &v) const;
+            /// \brief Retrieve a reference to the vertex object with the given
+            /// index.  If this vertex does not exist, NO_VERTEX is returned.
+            const PlannerDataVertex& getVertex (unsigned int index) const;
+            /// \brief Retrieve a reference to the vertex object with the given
+            /// index.  If this vertex does not exist, NO_VERTEX is returned.
+            PlannerDataVertex& getVertex (unsigned int index);
+            /// \brief Retrieve a reference to the ith start vertex object.  If
+            /// \e i is greater than the number of start vertices, NO_VERTEX is returned.
+            const PlannerDataVertex& getStartVertex (unsigned int i) const;
+            /// \brief Retrieve a reference to the ith start vertex object.  If
+            /// \e i is greater than the number of start vertices, NO_VERTEX is returned.
+            PlannerDataVertex& getStartVertex (unsigned int i);
+            /// \brief Retrieve a reference to the ith goal vertex object.  If
+            /// \e i is greater than the number of goal vertices, NO_VERTEX is returned.
+            const PlannerDataVertex& getGoalVertex (unsigned int i) const;
+            /// \brief Retrieve a reference to the ith goal vertex object.  If
+            /// \e i is greater than the number of goal vertices, NO_VERTEX is returned.
+            PlannerDataVertex& getGoalVertex (unsigned int i);
+            /// \brief Returns the index of the ith start state.
+            /// INVALID_INDEX is returned if \e i is out of range.
+            /// Indexes are volatile and may change after adding/removing a vertex.
+            unsigned int getStartIndex (unsigned int i) const;
+            /// \brief Returns the index of the ith goal state.
+            /// INVALID_INDEX is returned if \e i is out of range
+            /// Indexes are volatile and may change after adding/removing a vertex.
+            unsigned int getGoalIndex  (unsigned int i) const;
+            /// \brief Returns true if the given vertex index is marked as a start vertex
+            bool isStartVertex (unsigned int index) const;
+            /// \brief Returns true if the given vertex index is marked as a goal vertex
+            bool isGoalVertex (unsigned int index) const;
+            /// \brief Return the index for the vertex associated with the given data.
+            /// INVALID_INDEX is returned if this vertex does not exist.
+            /// Indexes are volatile and may change after adding/removing a vertex.
+            unsigned int vertexIndex (const PlannerDataVertex &v) const;
+
+            /// \}
+            /// \name PlannerData edge lookup
+            /// \{
+
+            /// \brief Check whether an edge between vertex index \e v1 and index \e v2 exists
+            bool edgeExists (unsigned int v1, unsigned int v2) const;
+            /// \brief Retrieve a reference to the edge object connecting vertices
+            /// with indexes \e v1 and \e v2. If this edge does not exist, NO_EDGE is returned.
+            const PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2) const;
+            /// \brief Retrieve a reference to the edge object connecting vertices
+            /// with indexes \e v1 and \e v2. If this edge does not exist, NO_EDGE is returned.
+            PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2);
+            /// \brief Returns a list of the vertex indexes directly connected to
+            /// vertex with index \e v.  The number of outgoing edges from \e v is returned
+            unsigned int getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
+            /// \brief Returns a map of out-going edges from vertex with index \e v.
+            /// Key = vertex index, value = edge structure.  The number of outgoing edges from \e v is returned
+            unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
+            /// \brief Returns the weight of the edge between the given vertex indexes.
+            /// INVALID_WEIGHT is returned for a non-existant edge.
+            double getEdgeWeight (unsigned int v1, unsigned int v2) const;
+            /// \brief Sets the weight of the edge between the given vertex indexess.
+            /// If an edge between v1 and v2 does not exist, false is returned.
+            bool setEdgeWeight (unsigned int v1, unsigned int v2, double weight);
+            /// \brief Computes the weight for all edges given the EdgeWeightFn \e f
+            void computeEdgeWeights(const EdgeWeightFn& f);
+
+            /// \}
+            /// \name Output methods
+            /// \{
+
+            /// \brief Writes a Graphviz dot file of this structure to the given stream
+            void printGraphviz (std::ostream& out = std::cout) const;
+            /// \brief Writes a GraphML file of this structure to the given stream
+            void printGraphML(std::ostream& out = std::cout) const;
+
+            /// \}
+            /// \name Advanced graph extraction
+            /// \{
+
+            /// \brief Extract a Boost.Graph object from this PlannerData.
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The
+            /// graph returned can safely be used to inspect the structure or add vertices
+            /// and edges.  Removal of vertices and edges should use the
+            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure
+            /// proper memory clean-up.
+            Graph& toBoostGraph (void);
+            /// \brief Extract a Boost.Graph object from this PlannerData.
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The
+            /// graph returned can safely be used to inspect the structure or add vertices
+            /// and edges.  Removal of vertices and edges should use the
+            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure
+            /// proper memory clean-up.
+            const Graph& toBoostGraph (void) const;
+
+            /// \}
+
+            /// \brief Any extra properties (key-value pairs) the planner can set.
+            std::map<std::string, std::string>   properties;
+
+        protected:
+            /// \brief A mapping of states to vertex indexes.  For fast lookup of vertex index.
+            std::map<const State*, unsigned int> stateIndexMap_;
+            /// \brief A mutable listing of the vertices marked as start states.  Stored in sorted order.
+            std::vector<unsigned int>            startVertexIndices_;
+            /// \brief A mutable listing of the vertices marked as goal states.  Stored in sorted order.
+            std::vector<unsigned int>            goalVertexIndices_;
+
+        private:
+            // Abstract pointer that points to the Boost.Graph structure.
+            // Obscured to prevent unnecessary inclusion of BGL throughout the
+            // rest of the code.
+            void* graphRaw_;
         };
     }
 }

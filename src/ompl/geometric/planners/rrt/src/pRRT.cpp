@@ -51,6 +51,7 @@ ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner
     setThreadCount(2);
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &pRRT::setRange, &pRRT::getRange);
     Planner::declareParam<double>("goal_bias", this, &pRRT::setGoalBias, &pRRT::getGoalBias);
@@ -80,6 +81,7 @@ void ompl::geometric::pRRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::geometric::pRRT::freeMemory(void)
@@ -221,6 +223,8 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
 
     if (sol.solution != NULL)
     {
+        lastGoalMotion_ = sol.solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (sol.solution != NULL)
@@ -250,9 +254,18 @@ void ompl::geometric::pRRT::getPlannerData(base::PlannerData &data) const
     std::vector<Motion*> motions;
     if (nn_)
         nn_->list(motions);
+        
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
+    {
+        if (motions[i]->parent == NULL)
+            data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+        else
+            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
+                         base::PlannerDataVertex(motions[i]->state));
+    }
 }
 
 void ompl::geometric::pRRT::setThreadCount(unsigned int nthreads)

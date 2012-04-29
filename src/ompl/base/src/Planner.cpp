@@ -117,7 +117,6 @@ void ompl::base::Planner::clear(void)
 
 void ompl::base::Planner::getPlannerData(PlannerData &data) const
 {
-    data.si = si_;
 }
 
 bool ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double checkInterval)

@@ -50,6 +50,7 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
     failedExpansionScoreFactor_ = 0.5;
     minValidPathFraction_ = 0.2;
     maxDistance_ = 0.0;
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange);
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
@@ -82,6 +83,7 @@ void ompl::geometric::KPIECE1::clear(void)
     Planner::clear();
     sampler_.reset();
     disc_.clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
@@ -183,6 +185,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -210,5 +214,5 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    disc_.getPlannerData(data, 0);
+    disc_.getPlannerData(data, 0, true, lastGoalMotion_);
 }

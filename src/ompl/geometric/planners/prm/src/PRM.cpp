@@ -496,12 +496,25 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
+    
+    // Explicitly add start and goal states:
+    for (size_t i = 0; i < startM_.size(); ++i)
+        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]]));
+        
+    for (size_t i = 0; i < goalM_.size(); ++i)
+        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]]));
 
+    // Adding edges and all other vertices simultaneously
     foreach(const Edge e, boost::edges(g_))
     {
         const Vertex v1 = boost::source(e, g_);
         const Vertex v2 = boost::target(e, g_);
-        data.recordEdge(stateProperty_[v1], stateProperty_[v2]);
+        data.addEdge(base::PlannerDataVertex(stateProperty_[v1]),
+                     base::PlannerDataVertex(stateProperty_[v2]));
+
+        // Add the reverse edge, since we're constructing an undirected roadmap
+        data.addEdge(base::PlannerDataVertex(stateProperty_[v2]),
+                     base::PlannerDataVertex(stateProperty_[v1]));
     }
 }
 

@@ -47,6 +47,7 @@ ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : bas
 
     minValidPathFraction_ = 0.5;
     maxDistance_ = 0.0;
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
     Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange);
     Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction);
@@ -175,6 +176,11 @@ bool ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &
 
                 if (isPathValid(disc, connect, xstate) && isPathValid(otherDisc, connectOther, xstate))
                 {
+                    if (startTree)
+                        connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                    else
+                        connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+
                     /* extract the motions and put them in solution vector */
 
                     std::vector<Motion*> mpath1;
@@ -309,11 +315,15 @@ void ompl::geometric::LBKPIECE1::clear(void)
     sampler_.reset();
     dStart_.clear();
     dGoal_.clear();
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 void ompl::geometric::LBKPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    dStart_.getPlannerData(data, 1);
-    dGoal_.getPlannerData(data, 2);
+    dStart_.getPlannerData(data, 1, true, NULL);
+    dGoal_.getPlannerData(data, 2, false, NULL);
+
+    // Insert the edge connecting the two trees
+    data.addEdge (data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }

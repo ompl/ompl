@@ -38,6 +38,7 @@
 #define OMPL_GEOMETRIC_SIMPLE_SETUP_
 
 #include "ompl/base/Planner.h"
+#include "ompl/base/PlannerData.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -138,8 +139,8 @@ namespace ompl
             /** \brief Get the solution path. Throw an exception if no solution is available */
             PathGeometric& getSolutionPath(void) const;
 
-            /** \brief Get information about the exploration data structure the motion planner used. */
-            base::PlannerData getPlannerData(void) const;
+            /** \brief Get information about the exploration data structure the motion planner used. */           
+            void getPlannerData(base::PlannerData &pd) const;
 
             /** \brief Set the state validity checker to use */
             void setStateValidityChecker(const base::StateValidityCheckerPtr &svc)

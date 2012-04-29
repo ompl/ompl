@@ -400,5 +400,6 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
         nn_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
+        data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
+                      base::PlannerDataVertex (motions[i]->state));
 }

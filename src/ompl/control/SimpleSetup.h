@@ -139,7 +139,7 @@ namespace ompl
             PathControl& getSolutionPath(void) const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
-            control::PlannerData getPlannerData(void) const;
+            void getPlannerData(base::PlannerData &pd) const;
 
             /** \brief Set the state validity checker to use */
             void setStateValidityChecker(const base::StateValidityCheckerPtr &svc)

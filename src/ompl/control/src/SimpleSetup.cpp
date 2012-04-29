@@ -148,12 +148,11 @@ bool ompl::control::SimpleSetup::haveExactSolutionPath(void) const
     return haveSolutionPath() && (!getGoal()->isApproximate() || getGoal()->getDifference() < std::numeric_limits<double>::epsilon());
 }
 
-ompl::control::PlannerData ompl::control::SimpleSetup::getPlannerData(void) const
+void ompl::control::SimpleSetup::getPlannerData(base::PlannerData &pd) const
 {
-    control::PlannerData pd;
+    pd.clear();
     if (planner_)
         planner_->getPlannerData(pd);
-    return pd;
 }
 
 void ompl::control::SimpleSetup::print(std::ostream &out) const
