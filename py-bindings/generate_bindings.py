@@ -216,9 +216,14 @@ class ompl_base_generator_t(code_generator_t):
             stateStorage.add_registration_code('def("getStateSamplerAllocatorRange", &ompl::base::StateStorage::getStateSamplerAllocatorRange)')
         except:
             pass
-            
+
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
-        self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
+        #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
+        #self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>').include()
+        mapUintToPlannerDataEdge_cls = self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>')
+        mapUintToPlannerDataEdge_cls.rename('mapUintToPlannerDataEdge')
+        mapUintToPlannerDataEdge_cls.indexing_suite.call_policies = \
+            call_policies.return_value_policy(call_policies.reference_existing_object)
         # Remove Boost.Graph representation from PlannerData
         self.ompl_ns.class_('PlannerData').member_functions('toBoostGraph').exclude()
         self.ompl_ns.class_('PlannerData').class_('Graph').exclude()
@@ -228,7 +233,7 @@ class ompl_base_generator_t(code_generator_t):
         # Make PlannerData printable
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphviz'))
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphML'))
-            
+
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
         # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to EuclideanProjection
