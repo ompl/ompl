@@ -535,4 +535,3 @@ const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void
     const ompl::base::PlannerData::Graph* boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
 }
-

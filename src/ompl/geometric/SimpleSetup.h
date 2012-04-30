@@ -139,7 +139,7 @@ namespace ompl
             /** \brief Get the solution path. Throw an exception if no solution is available */
             PathGeometric& getSolutionPath(void) const;
 
-            /** \brief Get information about the exploration data structure the motion planner used. */           
+            /** \brief Get information about the exploration data structure the motion planner used. */
             void getPlannerData(base::PlannerData &pd) const;
 
             /** \brief Set the state validity checker to use */

@@ -177,7 +177,7 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                                            rng_;
-            
+
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
         };

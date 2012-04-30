@@ -287,6 +287,9 @@ namespace ompl
                 allocDefaultStateSampler() is called */
             virtual StateSamplerPtr allocStateSampler(void) const;
 
+            /** \brief Allocate a sampler that actually samples only components that are part of \e subspace */
+            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpacePtr &subspace) const;
+
             /** \brief Set the sampler allocator to use */
             void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
 
@@ -492,7 +495,7 @@ namespace ompl
                 /** \brief Make sure the type we are casting to is indeed a state space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateSpace*>));
 
-                return static_cast<T*>(getSubSpace(index).get());
+                return static_cast<T*>(getSubspace(index).get());
             }
 
             /** \brief Cast a component of this instance to a desired type. */
@@ -502,7 +505,7 @@ namespace ompl
                 /** \brief Make sure the type we are casting to is indeed a state space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateSpace*>));
 
-                return static_cast<T*>(getSubSpace(name).get());
+                return static_cast<T*>(getSubspace(name).get());
             }
 
             virtual bool isCompound(void) const;
@@ -514,40 +517,40 @@ namespace ompl
 
             /** \brief Adds a new state space as part of the compound state space. For computing distances within the compound
                 state space, the weight of the component also needs to be specified. */
-            void addSubSpace(const StateSpacePtr &component, double weight);
+            void addSubspace(const StateSpacePtr &component, double weight);
 
             /** \brief Get the number of state spaces that make up the compound state space */
-            unsigned int getSubSpaceCount(void) const;
+            unsigned int getSubspaceCount(void) const;
 
             /** \brief Get a specific subspace from the compound state space */
-            const StateSpacePtr& getSubSpace(const unsigned int index) const;
+            const StateSpacePtr& getSubspace(const unsigned int index) const;
 
             /** \brief Get a specific subspace from the compound state space */
-            const StateSpacePtr& getSubSpace(const std::string& name) const;
+            const StateSpacePtr& getSubspace(const std::string& name) const;
 
             /** \brief Get the index of a specific subspace from the compound state space */
-            unsigned int getSubSpaceIndex(const std::string& name) const;
+            unsigned int getSubspaceIndex(const std::string& name) const;
 
             /** \brief Check if a specific subspace is contained in this state space */
-            bool hasSubSpace(const std::string &name) const;
+            bool hasSubspace(const std::string &name) const;
 
             /** \brief Get the weight of a subspace from the compound state space (used in distance computation) */
-            double getSubSpaceWeight(const unsigned int index) const;
+            double getSubspaceWeight(const unsigned int index) const;
 
             /** \brief Get the weight of a subspace from the compound state space (used in distance computation) */
-            double getSubSpaceWeight(const std::string &name) const;
+            double getSubspaceWeight(const std::string &name) const;
 
             /** \brief Set the weight of a subspace in the compound state space (used in distance computation) */
-            void setSubSpaceWeight(const unsigned int index, double weight);
+            void setSubspaceWeight(const unsigned int index, double weight);
 
             /** \brief Set the weight of a subspace in the compound state space (used in distance computation) */
-            void setSubSpaceWeight(const std::string &name, double weight);
+            void setSubspaceWeight(const std::string &name, double weight);
 
             /** \brief Get the list of components */
-            const std::vector<StateSpacePtr>& getSubSpaces(void) const;
+            const std::vector<StateSpacePtr>& getSubspaces(void) const;
 
             /** \brief Get the list of component weights */
-            const std::vector<double>& getSubSpaceWeights(void) const;
+            const std::vector<double>& getSubspaceWeights(void) const;
 
             /** \brief Return true if the state space is locked. A value
                 of true means that no further spaces can be added
@@ -599,6 +602,8 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
             virtual StateSamplerPtr allocDefaultStateSampler(void) const;
+
+            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpacePtr &subspace) const;
 
             virtual State* allocState(void) const;
 
@@ -679,6 +684,18 @@ namespace ompl
             (some data copied), 2 (all data copied) */
         int copyStateData(const StateSpacePtr &destS, State *dest,
                           const StateSpacePtr &sourceS, const State *source);
+
+        /** \brief Copy data from \e source (state from space \e
+            sourceS) to \e dest (state from space \e destS) on a
+            component by component basis. State spaces are matched by
+            name. If the state space \e destS contains any subspace
+            whose name matches any subspace of the state space \e
+            sourceS, the corresponding state components are
+            copied. The return value is either 0 (no data copied), 1
+            (some data copied), 2 (all data copied) */
+        int copyStateData(const StateSpace *destS, State *dest,
+                          const StateSpace *sourceS, const State *source);
+
     }
 }
 

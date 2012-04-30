@@ -140,10 +140,10 @@ namespace ompl
                 (SO(3)). Default bounds are set by calling setDefaultBounds().
 
                 \param env the environment to construct the state space for
-                \param positionWeight the weight to pass to CompoundStateSpace::addSubSpace() for position subspaces
-                \param linVelWeight the weight to pass to CompoundStateSpace::addSubSpace() for linear velocity subspaces
-                \param angVelWeight the weight to pass to CompoundStateSpace::addSubSpace() for angular velocity subspaces
-                \param orientationWeight the weight to pass to CompoundStateSpace::addSubSpace() for orientation subspaces
+                \param positionWeight the weight to pass to CompoundStateSpace::addSubspace() for position subspaces
+                \param linVelWeight the weight to pass to CompoundStateSpace::addSubspace() for linear velocity subspaces
+                \param angVelWeight the weight to pass to CompoundStateSpace::addSubspace() for angular velocity subspaces
+                \param orientationWeight the weight to pass to CompoundStateSpace::addSubspace() for orientation subspaces
             */
             OpenDEStateSpace(const OpenDEEnvironmentPtr &env,
                              double positionWeight = 1.0, double linVelWeight = 0.5,

@@ -200,20 +200,20 @@ namespace ompl
                 /** \brief Make sure the type we are casting to is indeed a control space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, ControlSpace*>));
 
-                return static_cast<T*>(getSubSpace(index).get());
+                return static_cast<T*>(getSubspace(index).get());
             }
 
             /** \brief Adds a control space as a component of the compound control space. */
-            virtual void addSubSpace(const ControlSpacePtr &component);
+            virtual void addSubspace(const ControlSpacePtr &component);
 
             /** \brief Get the number of control spaces that make up the compound control space */
-            unsigned int getSubSpaceCount(void) const;
+            unsigned int getSubspaceCount(void) const;
 
             /** \brief Get a specific subspace from the compound control space */
-            const ControlSpacePtr& getSubSpace(const unsigned int index) const;
+            const ControlSpacePtr& getSubspace(const unsigned int index) const;
 
             /** \brief Get a specific subspace from the compound control space */
-            const ControlSpacePtr& getSubSpace(const std::string &name) const;
+            const ControlSpacePtr& getSubspace(const std::string &name) const;
 
             virtual unsigned int getDimension(void) const;
 

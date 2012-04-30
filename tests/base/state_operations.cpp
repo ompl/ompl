@@ -58,23 +58,23 @@ TEST(State, Scoped)
 
     base::CompoundStateSpace *mC0 = new base::CompoundStateSpace();
     base::StateSpacePtr pC0(mC0);
-    mC0->addSubSpace(pSE3, 1.0);
+    mC0->addSubspace(pSE3, 1.0);
     mC0->setup();
 
     base::CompoundStateSpace *mC1 = new base::CompoundStateSpace();
     base::StateSpacePtr pC1(mC1);
-    mC1->addSubSpace(pC0, 1.0);
+    mC1->addSubspace(pC0, 1.0);
     mC1->setup();
 
     base::CompoundStateSpace *mC2 = new base::CompoundStateSpace();
     base::StateSpacePtr pC2(mC2);
-    mC2->addSubSpace(mSE3->getSubSpace(1), 1.0);
-    mC2->addSubSpace(mSE3->getSubSpace(0), 1.0);
+    mC2->addSubspace(mSE3->getSubspace(1), 1.0);
+    mC2->addSubspace(mSE3->getSubspace(0), 1.0);
     mC2->setup();
 
     base::ScopedState<base::SE3StateSpace> sSE3(pSE3);
-    base::ScopedState<base::RealVectorStateSpace> sSE3_R(mSE3->getSubSpace(0));
-    base::ScopedState<base::SO3StateSpace> sSE3_SO2(mSE3->getSubSpace(1));
+    base::ScopedState<base::RealVectorStateSpace> sSE3_R(mSE3->getSubspace(0));
+    base::ScopedState<base::SO3StateSpace> sSE3_SO2(mSE3->getSubspace(1));
     base::ScopedState<base::CompoundStateSpace> sC0(pC0);
     base::ScopedState<> sC1(pC1);
     base::ScopedState<> sC2(pC2);

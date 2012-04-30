@@ -119,7 +119,9 @@ namespace ompl
             }
         };
 
+        /// @cond IGNORE
         ClassForward(PlannerData);
+        /// @endcond
 
         /// \brief Object containing planner generated vertex and edge data.  It
         /// is assumed that all vertices are unique, and only a single directed

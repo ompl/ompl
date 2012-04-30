@@ -55,8 +55,8 @@ namespace ompl
             PlannerDataEdgeControl (const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
             virtual ~PlannerDataEdgeControl (void) {}
             virtual base::PlannerDataEdge* clone () const
-            { 
-                return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this)); 
+            {
+                return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this));
             }
             /// \brief Return the control associated with this edge.
             const Control* getControl (void) const { return c_; }

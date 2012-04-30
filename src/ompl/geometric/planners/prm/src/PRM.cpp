@@ -496,11 +496,11 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    
+
     // Explicitly add start and goal states:
     for (size_t i = 0; i < startM_.size(); ++i)
         data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]]));
-        
+
     for (size_t i = 0; i < goalM_.size(); ++i)
         data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]]));
 
@@ -517,4 +517,3 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
                      base::PlannerDataVertex(stateProperty_[v1]));
     }
 }
-

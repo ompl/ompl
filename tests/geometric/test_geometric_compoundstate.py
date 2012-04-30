@@ -101,8 +101,8 @@ class mySetup(object):
         self.m2 = mySpace1()
         self.m2.setBounds(bounds)
 
-        self.space.addSubSpace(self.m1, 1.0)
-        self.space.addSubSpace(self.m2, 1.0)
+        self.space.addSubspace(self.m1, 1.0)
+        self.space.addSubspace(self.m2, 1.0)
 
         isValidFn = ob.StateValidityCheckerFn(partial(isValid, env.grid))
         self.setup.setStateValidityChecker(isValidFn)

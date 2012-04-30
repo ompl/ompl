@@ -50,16 +50,16 @@ ompl::control::OpenDEStateSpace::OpenDEStateSpace(const OpenDEEnvironmentPtr &en
     {
         std::string body = ":B" + boost::lexical_cast<std::string>(i);
 
-        addSubSpace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), positionWeight); // position
+        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), positionWeight); // position
         components_.back()->setName(components_.back()->getName() + body + ":position");
 
-        addSubSpace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), linVelWeight);   // linear velocity
+        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), linVelWeight);   // linear velocity
         components_.back()->setName(components_.back()->getName() + body + ":linvel");
 
-        addSubSpace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), angVelWeight);   // angular velocity
+        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), angVelWeight);   // angular velocity
         components_.back()->setName(components_.back()->getName() + body + ":angvel");
 
-        addSubSpace(base::StateSpacePtr(new base::SO3StateSpace()), orientationWeight);      // orientation
+        addSubspace(base::StateSpacePtr(new base::SO3StateSpace()), orientationWeight);      // orientation
         components_.back()->setName(components_.back()->getName() + body + ":orientation");
     }
     lock();

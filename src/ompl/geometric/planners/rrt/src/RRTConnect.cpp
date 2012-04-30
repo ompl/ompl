@@ -129,7 +129,7 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     // if we are in the goal tree, we need to check the motion in reverse, but checkMotion() assumes the first state it receives as argument is valid,
     // so we check that one first
     bool validMotion = tgi.start ? si_->checkMotion(nmotion->state, dstate) : si_->getStateValidityChecker()->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
-    
+
     if (validMotion)
     {
         /* create a motion */
@@ -195,7 +195,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
     while (ptc() == false)
     {
-        TreeData &tree      = startTree ? tStart_ : tGoal_; 
+        TreeData &tree      = startTree ? tStart_ : tGoal_;
         tgi.start = startTree;
         startTree = !startTree;
         TreeData &otherTree = startTree ? tStart_ : tGoal_;
@@ -220,7 +220,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
         /* sample random state */
         sampler_->sampleUniform(rstate);
-        
+
         GrowState gs = growTree(tree, tgi, rmotion);
 
         if (gs != TRAPPED)
@@ -234,7 +234,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
             if (gs != REACHED)
                 si_->copyState(rstate, tgi.xstate);
 
-            GrowState gsc = ADVANCED;  
+            GrowState gsc = ADVANCED;
             tgi.start = startTree;
             while (gsc == ADVANCED)
                 gsc = growTree(otherTree, tgi, rmotion);

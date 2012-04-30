@@ -254,7 +254,7 @@ void ompl::geometric::pRRT::getPlannerData(base::PlannerData &data) const
     std::vector<Motion*> motions;
     if (nn_)
         nn_->list(motions);
-        
+
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 

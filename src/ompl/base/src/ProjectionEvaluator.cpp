@@ -425,21 +425,21 @@ void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection 
     out << projection << std::endl;
 }
 
-ompl::base::SubSpaceProjectionEvaluator::SubSpaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse) :
+ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse) :
     ProjectionEvaluator(space), index_(index), specifiedProj_(projToUse)
 {
     if (!space_->isCompound())
         throw Exception("Cannot construct a subspace projection evaluator for a space that is not compound");
-    if (space_->as<CompoundStateSpace>()->getSubSpaceCount() >= index_)
+    if (space_->as<CompoundStateSpace>()->getSubspaceCount() >= index_)
         throw Exception("State space " + space_->getName() + " does not have a subspace at index " + boost::lexical_cast<std::string>(index_));
 }
 
-void ompl::base::SubSpaceProjectionEvaluator::setup(void)
+void ompl::base::SubspaceProjectionEvaluator::setup(void)
 {
     if (specifiedProj_)
         proj_ = specifiedProj_;
     else
-        proj_ = space_->as<CompoundStateSpace>()->getSubSpace(index_)->getDefaultProjection();
+        proj_ = space_->as<CompoundStateSpace>()->getSubspace(index_)->getDefaultProjection();
     if (!proj_)
         throw Exception("No projection specified for subspace at index " + boost::lexical_cast<std::string>(index_));
 
@@ -447,12 +447,12 @@ void ompl::base::SubSpaceProjectionEvaluator::setup(void)
     ProjectionEvaluator::setup();
 }
 
-unsigned int ompl::base::SubSpaceProjectionEvaluator::getDimension(void) const
+unsigned int ompl::base::SubspaceProjectionEvaluator::getDimension(void) const
 {
     return proj_->getDimension();
 }
 
-void ompl::base::SubSpaceProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
+void ompl::base::SubspaceProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
 {
     proj_->project(state->as<CompoundState>()->components[index_], projection);
 }
