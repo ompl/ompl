@@ -34,7 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "2D Map Simple"
+#include <boost/test/unit_test.hpp>
+
 #include "2DmapSetup1.h"
 #include <iostream>
 
@@ -123,10 +125,27 @@ public:
     }
 };
 
-class PlanTest : public testing::Test
+class PlanTest
 {
 public:
 
+    PlanTest(void)
+    {
+        verbose = true;
+        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        path = path / "env1.txt";
+        loadEnvironment(path.string().c_str(), env);
+	
+        if (env.width * env.height == 0)
+        {
+            BOOST_FAIL("The environment has a 0 dimension. Cannot continue");
+        }
+    }
+    
+    ~PlanTest(void)
+    {
+    }
+    
     void runPlanTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
     {
         double time   = 0.0;
@@ -152,33 +171,13 @@ public:
 
 protected:
 
-    PlanTest(void)
-    {
-        verbose = true;
-    }
-
-    void SetUp(void)
-    {
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
-        path = path / "env1.txt";
-        loadEnvironment(path.string().c_str(), env);
-
-        if (env.width * env.height == 0)
-        {
-            std::cerr << "The environment has a 0 dimension. Cannot continue" << std::endl;
-            FAIL();
-        }
-    }
-
-    void TearDown(void)
-    {
-    }
-
     Environment2D env;
     bool          verbose;
 };
 
-TEST_F(PlanTest, Simple)
+BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
+
+BOOST_AUTO_TEST_CASE(Simple)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -187,13 +186,9 @@ TEST_F(PlanTest, Simple)
     TestPlanner p;
     runPlanTest(&p, &success, &avgruntime, &avglength);
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.2);
-    EXPECT_TRUE(avglength < 70.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.2);
+    BOOST_CHECK(avglength < 70.0);
 }
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+BOOST_AUTO_TEST_SUITE_END()
