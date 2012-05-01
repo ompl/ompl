@@ -36,15 +36,16 @@
 
 #include "ompl/base/PlannerStatus.h"
 
-std::string ompl::base::PlannerStatus::asString() const
+std::string ompl::base::PlannerStatus::asString(void) const
 {
     switch (status_)
     {
-        case INVALID_START: return std::string("Invalid start");
-        case INVALID_GOAL: return std::string("Invalid goal");
-        case UNRECOGNIZED_GOAL_TYPE: return std::string("Unrecognized goal type");
-        case TIMEOUT: return std::string("Timeout");
-        case APPROXIMATE_SOLUTION: return std::string("Approximate solution");
-        case EXACT_SOLUTION: return std::string("Exact solution");
+    case INVALID_START: return std::string("Invalid start");
+    case INVALID_GOAL: return std::string("Invalid goal");
+    case UNRECOGNIZED_GOAL_TYPE: return std::string("Unrecognized goal type");
+    case TIMEOUT: return std::string("Timeout");
+    case APPROXIMATE_SOLUTION: return std::string("Approximate solution");
+    case EXACT_SOLUTION: return std::string("Exact solution");
+    default: return std::string("Unknown status");
     }
 }

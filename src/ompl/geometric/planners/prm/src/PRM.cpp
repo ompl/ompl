@@ -293,6 +293,7 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
+    double sl = -1.0; // cache for solution length
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -304,14 +305,22 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 if (g->getMaximumPathLength() < std::numeric_limits<double>::infinity())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-                    if (p->length () < g->getMaximumPathLength()) // Sufficient solution
+                    double pl = p->length(); // avoid computing path length multiple times
+                    if (pl < g->getMaximumPathLength()) // Sufficient solution
                     {
                         solution = p;
                         return true;
                     }
-
-                    else if (!solution || (solution && p->length () < solution->length())) // approximation
-                        solution = p;
+                    else
+                    {
+                        if (solution && sl < 0.0)
+                            sl = solution->length();
+                        if (!solution || (solution && pl < sl)) // approximation
+                        {
+                            solution = p;
+                            sl = pl;
+                        }
+                    }
                 }
                 else // Accept the solution, regardless of length
                 {
@@ -410,7 +419,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (sol)
     {
-        if(addedNewSolution())
+        if (addedNewSolution())
             goal->addSolutionPath (sol);
         else
             // the solution is exact, but not as short as we'd like it to be
@@ -420,7 +429,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     si_->freeStates(xstates);
 
     // Return true if any solution was found.
-    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+    return sol ? (addedNewSolution() ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
 }
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)

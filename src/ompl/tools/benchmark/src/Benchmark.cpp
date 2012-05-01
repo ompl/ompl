@@ -121,6 +121,11 @@ namespace ompl
                 return memUsed_;
             }
 
+            base::PlannerStatus getStatus(void) const
+            {
+                return status_;
+            }
+
             bool crashed(void) const
             {
                 return crashed_;
@@ -135,7 +140,7 @@ namespace ompl
                 try
                 {
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
-                    planner->solve(ptc, 0.1);
+                    status_ = planner->solve(ptc, 0.1);
                 }
                 catch(std::runtime_error &e)
                 {
@@ -153,6 +158,7 @@ namespace ompl
             const Benchmark    *benchmark_;
             double              timeUsed_;
             machine::MemUsage_t memUsed_;
+            base::PlannerStatus status_;
             bool                crashed_;
             bool                useThreads_;
             msg::Interface      msg_;
@@ -459,6 +465,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 run["crashed BOOLEAN"] = boost::lexical_cast<std::string>(rp.crashed());
                 run["time REAL"] = boost::lexical_cast<std::string>(rp.getTimeUsed());
                 run["memory REAL"] = boost::lexical_cast<std::string>((double)rp.getMemUsed() / (1024.0 * 1024.0));
+                run["status INTEGER"] = boost::lexical_cast<std::string>((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
+                run["status string STRING"] = rp.getStatus().asString();
                 if (gsetup_)
                 {
                     run["solved BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->haveExactSolutionPath());

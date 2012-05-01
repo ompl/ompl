@@ -74,9 +74,12 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
             pp_.addPlanner(planners_[np]);
             np = (np + 1) % planners_.size();
         }
-        result = pp_.solve(std::max(time::seconds(end - time::now()), 0.0), true);
-        if (result)
+        base::PlannerStatus localResult = pp_.solve(std::max(time::seconds(end - time::now()), 0.0), true);
+        if (localResult)
         {
+            if (result != base::PlannerStatus::EXACT_SOLUTION)
+                result = localResult;
+
             if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
             {
                 msg_.debug("Terminating early since solution path is shorted than the maximum path length");

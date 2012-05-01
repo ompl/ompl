@@ -38,6 +38,7 @@
 #define OMPL_BASE_PLANNER_STATUS_
 
 #include <string>
+#include <ostream>
 
 namespace ompl
 {
@@ -48,27 +49,31 @@ namespace ompl
         {
             enum StatusType
             {
-                // Invalid start state or no start state specified
+                /// Uninitialized status
+                UNKNOWN,
+                /// Invalid start state or no start state specified
                 INVALID_START,
-                // Invalid goal state
+                /// Invalid goal state
                 INVALID_GOAL,
-                // The goal is of a type that a planner does not recognize
+                /// The goal is of a type that a planner does not recognize
                 UNRECOGNIZED_GOAL_TYPE,
-                // The planner failed to find a solution
+                /// The planner failed to find a solution
                 TIMEOUT,
-                // The planner found an approximate solution
+                /// The planner found an approximate solution
                 APPROXIMATE_SOLUTION,
-                // The planner found an exact solution
+                /// The planner found an exact solution
                 EXACT_SOLUTION
             };
 
-            PlannerStatus(StatusType status = TIMEOUT) : status_(status)
+            PlannerStatus(StatusType status = UNKNOWN) : status_(status)
             {
             }
+
             PlannerStatus(bool hasSolution, bool isApproximate)
                 : status_ (hasSolution ? (isApproximate ? APPROXIMATE_SOLUTION : EXACT_SOLUTION) : TIMEOUT)
             {
             }
+
             /// Return a string representation
             std::string asString() const;
             /// Allow casting to true. The value is true iff an approximate or exact solution was found
@@ -81,6 +86,8 @@ namespace ompl
             {
                 return status_;
             }
+
+        private:
             /// Exit status of calling Planner::solve()
             StatusType status_;
         };
