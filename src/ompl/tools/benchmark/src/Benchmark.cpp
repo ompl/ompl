@@ -342,6 +342,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->printProperties(setupInfo);
+    
+    setupInfo << std::endl << "Planner Status Map:" << std::endl;
+    for (unsigned int i = 0 ; i < base::PlannerStatus::TYPE_COUNT ; ++i)
+	setupInfo << i << ": " << base::PlannerStatus(static_cast<base::PlannerStatus::StatusType>(i)).asString() << std::endl;
     exp_.setupInfo = setupInfo.str();
 
     msg_.inform("Done saving information");
@@ -466,7 +470,6 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 run["time REAL"] = boost::lexical_cast<std::string>(rp.getTimeUsed());
                 run["memory REAL"] = boost::lexical_cast<std::string>((double)rp.getMemUsed() / (1024.0 * 1024.0));
                 run["status INTEGER"] = boost::lexical_cast<std::string>((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
-                run["status string STRING"] = rp.getStatus().asString();
                 if (gsetup_)
                 {
                     run["solved BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->haveExactSolutionPath());

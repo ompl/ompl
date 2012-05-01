@@ -51,7 +51,7 @@ namespace ompl
             enum StatusType
             {
                 /// Uninitialized status
-                UNKNOWN,
+                UNKNOWN = 0,
                 /// Invalid start state or no start state specified
                 INVALID_START,
                 /// Invalid goal state
@@ -63,7 +63,9 @@ namespace ompl
                 /// The planner found an approximate solution
                 APPROXIMATE_SOLUTION,
                 /// The planner found an exact solution
-                EXACT_SOLUTION
+                EXACT_SOLUTION,
+		/// The number of possible status values
+		TYPE_COUNT
             };
 
 	    /// Default constructor
