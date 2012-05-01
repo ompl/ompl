@@ -239,17 +239,24 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
             while (gsc == ADVANCED)
                 gsc = growTree(otherTree, tgi, rmotion);
 
+            Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
+            Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
+
             /* if we connected the trees in a valid way (start and goal pair is valid)*/
-            if (gsc == REACHED && goal->isStartGoalPairValid(startTree ? tgi.xmotion->root : addedMotion->root,
-                                                             startTree ? addedMotion->root : tgi.xmotion->root))
+            if (gsc == REACHED && goal->isStartGoalPairValid(startMotion->root, goalMotion->root))
             {
-                if (startTree)
-                    connectionPoint_ = std::make_pair<base::State*, base::State*>(tgi.xmotion->state, addedMotion->state);
+                // it must be the case that either the start tree or the goal tree has made some progress
+                // so one of the parents is not NULL. We go one step 'back' to avoid having a duplicate state
+                // on the solution path
+                if (startMotion->parent)
+                    startMotion = startMotion->parent;
                 else
-                    connectionPoint_ = std::make_pair<base::State*, base::State*>(addedMotion->state, tgi.xmotion->state);
+                    goalMotion = goalMotion->parent;
+
+                connectionPoint_ = std::make_pair<base::State*, base::State*>(startMotion->state, goalMotion->state);
 
                 /* construct the solution path */
-                Motion *solution = tgi.xmotion;
+                Motion *solution = startMotion;
                 std::vector<Motion*> mpath1;
                 while (solution != NULL)
                 {
@@ -257,16 +264,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                     solution = solution->parent;
                 }
 
-                solution = addedMotion;
+                solution = goalMotion;
                 std::vector<Motion*> mpath2;
                 while (solution != NULL)
                 {
                     mpath2.push_back(solution);
                     solution = solution->parent;
                 }
-
-                if (!startTree)
-                    mpath2.swap(mpath1);
 
                 PathGeometric *path = new PathGeometric(si_);
                 path->getStates().reserve(mpath1.size() + mpath2.size());

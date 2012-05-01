@@ -342,10 +342,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->printProperties(setupInfo);
-    
+
     setupInfo << std::endl << "Planner Status Map:" << std::endl;
     for (unsigned int i = 0 ; i < base::PlannerStatus::TYPE_COUNT ; ++i)
-	setupInfo << i << ": " << base::PlannerStatus(static_cast<base::PlannerStatus::StatusType>(i)).asString() << std::endl;
+        setupInfo << i << ": " << base::PlannerStatus(static_cast<base::PlannerStatus::StatusType>(i)).asString() << std::endl;
     exp_.setupInfo = setupInfo.str();
 
     msg_.inform("Done saving information");
