@@ -47,6 +47,7 @@ namespace ompl
         /// A class to store the exit status of Planner::solve()
         struct PlannerStatus
         {
+	    /// The possible values of the status returned by a planner
             enum StatusType
             {
                 /// Uninitialized status
@@ -65,10 +66,12 @@ namespace ompl
                 EXACT_SOLUTION
             };
 
+	    /// Default constructor
             PlannerStatus(StatusType status = UNKNOWN) : status_(status)
             {
             }
 
+	    /// Convenience constructor that sets status_ based on whether some solution was found (\e hasSolution) and whether that solution was approximate or not (\e isApproximate)
             PlannerStatus(bool hasSolution, bool isApproximate)
                 : status_ (hasSolution ? (isApproximate ? APPROXIMATE_SOLUTION : EXACT_SOLUTION) : TIMEOUT)
             {
