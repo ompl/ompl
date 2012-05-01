@@ -93,7 +93,7 @@ void ompl::control::RRT::freeMemory(void)
     }
 }
 
-bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -110,7 +110,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
     if (nn_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -262,7 +262,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 void ompl::control::RRT::getPlannerData(base::PlannerData &data) const

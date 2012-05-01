@@ -330,7 +330,7 @@ bool ompl::geometric::PRM::addedNewSolution (void) const
     return addedSolution_;
 }
 
-bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -338,7 +338,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     if (!goal)
     {
         msg_.error("Goal undefined or unknown type of goal");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     // Add the valid start states as milestones
@@ -348,13 +348,13 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     if (startM_.size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     // Ensure there is at least one valid goal state
@@ -367,7 +367,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
         if (goalM_.empty())
         {
             msg_.error("Unable to find any valid goal states");
-            return false;
+            return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
@@ -420,7 +420,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     si_->freeStates(xstates);
 
     // Return true if any solution was found.
-    return sol != NULL;
+    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)

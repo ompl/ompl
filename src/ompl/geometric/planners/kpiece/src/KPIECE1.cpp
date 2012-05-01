@@ -93,7 +93,7 @@ void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -112,7 +112,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     if (disc_.getMotionCount() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -208,7 +208,7 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
     msg_.inform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
                 disc_.getGrid().countInternal(), disc_.getGrid().countExternal());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const

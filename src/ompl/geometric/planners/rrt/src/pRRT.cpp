@@ -172,14 +172,14 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTer
     delete rmotion;
 }
 
-bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     base::GoalRegion *goal = dynamic_cast<base::GoalRegion*>(pdef_->getGoal().get());
 
     if (!goal)
     {
         msg_.error("Goal undefined");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     samplerArray_.resize(threadCount_);
@@ -194,7 +194,7 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
     if (nn_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     msg_.inform("Starting with %u states", nn_->size());
@@ -244,7 +244,7 @@ bool ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 void ompl::geometric::pRRT::getPlannerData(base::PlannerData &data) const

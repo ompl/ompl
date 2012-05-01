@@ -92,7 +92,7 @@ void ompl::geometric::LazyRRT::freeMemory(void)
     }
 }
 
-bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
@@ -109,7 +109,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
     if (nn_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -202,7 +202,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states", nn_->size());
 
-    return solutionFound;
+    return solutionFound ?  base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::geometric::LazyRRT::removeMotion(Motion *motion)

@@ -217,10 +217,10 @@ namespace ompl
             }
 
             /** \brief Run the planner for up to a specified amount of time (default is 1 second) */
-            virtual bool solve(double time = 1.0);
+            virtual base::PlannerStatus solve(double time = 1.0);
 
             /** \brief Run the planner until \e ptc becomes true (at most) */
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Return true if the last planning attempt failed to find a solution, and it aborted before a termination condition was reached */
             bool invalidLastRequest(void) const

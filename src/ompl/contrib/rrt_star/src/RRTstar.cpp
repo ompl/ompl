@@ -90,7 +90,7 @@ void ompl::geometric::RRTstar::clear(void)
         nn_->clear();
 }
 
-bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
@@ -99,7 +99,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     if (!goal)
     {
         msg_.error("Goal undefined");
-        return false;
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     while (const base::State *st = pis_.nextStart())
@@ -112,7 +112,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
     if (nn_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -349,7 +349,7 @@ bool ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
-    return addedSolution;
+    return base::PlannerStatus(addedSolution, approximate);
 }
 
 void ompl::geometric::RRTstar::removeFromParent(Motion *m)

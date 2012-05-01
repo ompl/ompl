@@ -175,7 +175,7 @@ unsigned int ompl::control::KPIECE1::findNextMotion(const std::vector<Grid::Coor
     return count - 1;
 }
 
-bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
@@ -191,7 +191,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     if (tree_.grid.size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!controlSampler_)
@@ -346,7 +346,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u states in %u cells (%u internal + %u external)", tree_.size, tree_.grid.size(),
                  tree_.grid.countInternal(), tree_.grid.countExternal());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)

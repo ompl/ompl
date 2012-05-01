@@ -94,7 +94,7 @@ void ompl::geometric::RRT::freeMemory(void)
     }
 }
 
-bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
@@ -110,7 +110,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
     if (nn_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -205,7 +205,7 @@ bool ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const

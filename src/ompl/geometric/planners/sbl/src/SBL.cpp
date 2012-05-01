@@ -78,7 +78,7 @@ void ompl::geometric::SBL::freeGridMotions(Grid<MotionInfo> &grid)
     }
 }
 
-bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -86,7 +86,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
     if (!goal)
     {
         msg_.error("Unknown type of goal (or goal undefined)");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     while (const base::State *st = pis_.nextStart())
@@ -101,13 +101,13 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
     if (tStart_.size == 0)
     {
         msg_.error("Motion planning start tree could not be initialized!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
@@ -177,7 +177,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
                  tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
-    return solved;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)

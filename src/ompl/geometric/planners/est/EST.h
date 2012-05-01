@@ -79,7 +79,7 @@ namespace ompl
 
             virtual ~EST(void);
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 

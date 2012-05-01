@@ -206,7 +206,7 @@ namespace ompl
                 given condition evaluates true. */
             virtual void expandRoadmap(const base::PlannerTerminationCondition &ptc);
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 

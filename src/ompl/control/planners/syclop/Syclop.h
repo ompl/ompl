@@ -127,7 +127,7 @@ namespace ompl
 
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
                 Returns true if solution was found. */
-            virtual bool solve(const base::PlannerTerminationCondition& ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc);
             /// @}
 
             /// @name Tunable parameters

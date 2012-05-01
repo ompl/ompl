@@ -80,7 +80,7 @@ namespace ompl
 
             virtual ~KPIECE1(void);
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 

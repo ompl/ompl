@@ -85,7 +85,7 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 

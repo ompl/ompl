@@ -192,14 +192,14 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
     si_->freeState(xstate);
 }
 
-bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
 {
     base::GoalState *goal = dynamic_cast<base::GoalState*>(pdef_->getGoal().get());
 
     if (!goal)
     {
         msg_.error("Unknown type of goal (or goal undefined)");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     while (const base::State *st = pis_.nextStart())
@@ -225,10 +225,15 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
             msg_.error("Goal state is invalid!");
     }
 
-    if (tStart_.size == 0 || tGoal_.size == 0)
+    if (tStart_.size == 0)
     {
-        msg_.error("Motion planning trees could not be initialized!");
-        return false;
+        msg_.error("Motion planning start tree could not be initialized!");
+        return base::PlannerStatus::INVALID_START;
+    }
+    if (tGoal_.size == 0)
+    {
+        msg_.error("Motion planning goal tree could not be initialized!");
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     samplerArray_.resize(threadCount_);
@@ -251,7 +256,7 @@ bool ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
              tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
-    return sol.found;
+    return sol.found ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 bool ompl::geometric::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)

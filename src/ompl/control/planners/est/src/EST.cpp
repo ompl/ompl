@@ -94,7 +94,7 @@ void ompl::control::EST::freeMemory(void)
     }
 }
 
-bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -112,7 +112,7 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
     if (tree_.grid.size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     // Ensure that we have a state sampler AND a control sampler
@@ -211,7 +211,7 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
-    return addedSolution;
+    return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 ompl::control::EST::Motion* ompl::control::EST::selectMotion(void)

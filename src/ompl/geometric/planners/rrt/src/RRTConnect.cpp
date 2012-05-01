@@ -149,7 +149,7 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         return TRAPPED;
 }
 
-bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -157,7 +157,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
     if (!goal)
     {
         msg_.error("Unknown type of goal (or goal undefined)");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     while (const base::State *st = pis_.nextStart())
@@ -171,13 +171,13 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
     if (tStart_->size() == 0)
     {
         msg_.error("Motion planning start tree could not be initialized!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
@@ -288,7 +288,7 @@ bool ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition 
 
     msg_.inform("Created %u states (%u start + %u goal)", tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
 
-    return solved;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const

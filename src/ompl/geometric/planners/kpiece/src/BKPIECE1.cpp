@@ -76,7 +76,7 @@ void ompl::geometric::BKPIECE1::setup(void)
     dGoal_.setDimension(projectionEvaluator_->getDimension());
 }
 
-bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -84,7 +84,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
     if (!goal)
     {
         msg_.error("Unknown type of goal (or goal undefined)");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     Discretization<Motion>::Coord xcoord;
@@ -101,13 +101,13 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
     if (dStart_.getMotionCount() == 0)
     {
         msg_.error("Motion planning start tree could not be initialized!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
@@ -229,7 +229,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
-    return solved;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::geometric::BKPIECE1::freeMotion(Motion *motion)
