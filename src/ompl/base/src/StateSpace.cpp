@@ -422,6 +422,51 @@ void ompl::base::StateSpace::List(std::ostream &out)
         out << "@ " << *it << ": " << (*it)->getName() << std::endl;
 }
 
+void ompl::base::StateSpace::list(std::ostream &out) const
+{
+    std::queue<const StateSpace*> q;
+    q.push(this);
+    while (!q.empty())
+    {
+	const StateSpace *m = q.front();
+	q.pop();
+        out << "@ " << m << ": " << m->getName() << std::endl;
+	if (m->isCompound())
+	{
+	    unsigned int c = m->as<CompoundStateSpace>()->getSubspaceCount();
+	    for (unsigned int i = 0 ; i < c ; ++i)
+		q.push(m->as<CompoundStateSpace>()->getSubspace(i).get());
+	}
+    }
+}
+
+void ompl::base::StateSpace::diagram(std::ostream &out) const
+{     
+    out << "digraph StateSpace {" << std::endl;
+    out << '"' << getName() << '"' << std::endl;
+
+    std::queue<const StateSpace*> q;
+    q.push(this);
+    while (!q.empty())
+    {
+	const StateSpace *m = q.front();
+	q.pop();
+	if (m->isCompound())
+	{
+	    unsigned int c = m->as<CompoundStateSpace>()->getSubspaceCount();
+	    for (unsigned int i = 0 ; i < c ; ++i)
+	    {
+		const StateSpace *s = m->as<CompoundStateSpace>()->getSubspace(i).get();
+		q.push(s);
+		out << '"' << m->getName() << "\" -> \"" << s->getName() << "\" [label=\"" <<
+		    boost::lexical_cast<std::string>(m->as<CompoundStateSpace>()->getSubspaceWeight(i)) << "\"];" << std::endl;
+	    }
+	}
+    }
+    
+    out << '}' << std::endl;
+}
+
 void ompl::base::StateSpace::Diagram(std::ostream &out)
 {
     AllocatedSpaces &as = getAllocatedSpaces();
@@ -617,6 +662,8 @@ ompl::base::StateSamplerPtr ompl::base::StateSpace::allocStateSampler(void) cons
 
 ompl::base::StateSamplerPtr ompl::base::StateSpace::allocSubspaceStateSampler(const StateSpacePtr &subspace) const
 {
+    if (subspace->getName() == getName())
+	return allocStateSampler();
     return StateSamplerPtr(new SubspaceStateSampler(this, subspace.get(), 1.0));
 }
 
@@ -917,6 +964,8 @@ ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSam
 
 ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocSubspaceStateSampler(const StateSpacePtr &subspace) const
 {
+    if (subspace->getName() == getName())
+	return allocStateSampler();
     if (hasSubspace(subspace->getName()))
         return StateSamplerPtr(new SubspaceStateSampler(this, subspace.get(), getSubspaceWeight(subspace->getName()) / weightSum_));
     return StateSpace::allocSubspaceStateSampler(subspace);

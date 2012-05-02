@@ -402,6 +402,12 @@ namespace ompl
                 should pass (see SanityChecks flags) and how strict the checks are. */
             virtual void sanityChecks(double zero, double eps, unsigned int flags) const;
 
+            /** \brief Print a Graphviz digraph that represents the containment diagram for the state space */
+	    void diagram(std::ostream &out) const;
+
+            /** \brief Print the list of all contained state space instances */
+	    void list(std::ostream &out) const;
+	    
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
             static void Diagram(std::ostream &out);
 
