@@ -34,13 +34,17 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "StateStorage"
+#include <boost/test/unit_test.hpp>
 #include "ompl/base/StateStorage.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 
 using namespace ompl;
+
+// define a convenience macro
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
 
 struct Metadata
 {
@@ -60,7 +64,7 @@ struct Metadata
 };
 
 
-TEST(StateStorage, Store)
+BOOST_AUTO_TEST_CASE(Store)
 {
     base::StateSpacePtr space(new base::SE3StateSpace());
     base::RealVectorBounds bounds(3);
@@ -87,7 +91,7 @@ TEST(StateStorage, Store)
     ssm.store("tmp_states_wm");
 }
 
-TEST(StateStorage, Load)
+BOOST_AUTO_TEST_CASE(Load)
 {
     base::StateSpacePtr space(new base::SE3StateSpace());
     base::RealVectorBounds bounds(3);
@@ -101,12 +105,7 @@ TEST(StateStorage, Load)
 
     base::StateStorageWithMetadata<Metadata> ssm(space);
     ssm.load("tmp_states_wm");
-    EXPECT_EQ(ssm.getMetadata(0).tag1, 2);
-    EXPECT_NEAR(ssm.getMetadata(1).tag2, 1.0f, 1e-5);
+    BOOST_CHECK_EQUAL(ssm.getMetadata(0).tag1, 2);
+    BOOST_OMPL_EXPECT_NEAR(ssm.getMetadata(1).tag2, 1.0, 1e-5);
 }
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

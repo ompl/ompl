@@ -34,7 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "Memory"
+#include <boost/test/unit_test.hpp>
 #include "ompl/tools/benchmark/MachineSpecs.h"
 #include <cstring>
 #include <cstdlib>
@@ -42,7 +43,7 @@
 using namespace ompl;
 
 /* Just test we get some random values */
-TEST(Memory, Simple)
+BOOST_AUTO_TEST_CASE(Simple)
 {
     machine::MemUsage_t start = machine::getProcessMemoryUsage();
 
@@ -56,13 +57,8 @@ TEST(Memory, Simple)
     int allocated_MB = (size/1024)/1024;
     int used_MB =  (u/1024)/1024;
 
-    EXPECT_TRUE(abs(used_MB - allocated_MB) < 2);
+    BOOST_CHECK(abs(used_MB - allocated_MB) < 2);
 
     free(data);
 }
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

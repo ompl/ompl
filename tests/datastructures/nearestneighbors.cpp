@@ -34,15 +34,21 @@
 
 /* Author: Mark Moll */
 
+#define BOOST_TEST_MODULE "NearestNeighbors"
+#include <boost/test/unit_test.hpp>
+
 #include <algorithm>
 #include <boost/unordered_set.hpp>
-#include <gtest/gtest.h>
+
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
 
 using namespace ompl;
+
+// define a convenience macro
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
 
 template<typename T>
 double distance(const T* space, base::State* const &s0, base::State* const &s1)
@@ -70,10 +76,10 @@ void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
     if (!approximate)
         proximityLinear.add(states);
 
-    EXPECT_EQ((int)proximity.size(), n);
+    BOOST_CHECK_EQUAL((int)proximity.size(), n);
 
     proximity.list(nghbr);
-    EXPECT_EQ(nghbr.size(),proximity.size());
+    BOOST_CHECK_EQUAL(nghbr.size(),proximity.size());
 
     for(i=0,j=0; i<n; ++i)
     {
@@ -81,42 +87,42 @@ void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
         if (s==states[i]) j++;
 
         proximity.nearestK(states[i], 10, nghbr);
-        EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ(nghbr.size(), 10u);
+        BOOST_CHECK_EQUAL(nghbr[0], states[i]);
+        BOOST_CHECK_EQUAL(nghbr.size(), 10u);
         if (!approximate)
         {
             proximityLinear.nearestK(states[i], nghbr.size(), nghbrGroundTruth);
             for (unsigned int k=0; k<nghbr.size(); ++k)
-                EXPECT_EQ(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
+                BOOST_CHECK_EQUAL(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
         }
 
         proximity.nearestR(states[i], std::numeric_limits<double>::infinity(), nghbr);
-        EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ(nghbr.size(),proximity.size());
+        BOOST_CHECK_EQUAL(nghbr[0], states[i]);
+        BOOST_CHECK_EQUAL(nghbr.size(),proximity.size());
         if (!approximate)
         {
             proximityLinear.nearestR(states[i], std::numeric_limits<double>::infinity(), nghbrGroundTruth);
             for (unsigned int k=0; k<nghbr.size(); ++k)
-                EXPECT_EQ(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
+                BOOST_CHECK_EQUAL(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
         }
 
         proximity.nearestK(states[i], 2*n, nghbr);
-        EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ((int) nghbr.size(), n);
+        BOOST_CHECK_EQUAL(nghbr[0], states[i]);
+        BOOST_CHECK_EQUAL((int) nghbr.size(), n);
         if (!approximate)
         {
             proximityLinear.nearestK(states[i], 2*n, nghbrGroundTruth);
             for (unsigned int k=0; k<nghbr.size(); ++k)
-                EXPECT_EQ(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
+                BOOST_CHECK_EQUAL(intDistance(states[i], nghbrGroundTruth[k]), intDistance(states[i], nghbr[k]));
         }
 
     }
-    EXPECT_GE(j, 10);
+    BOOST_CHECK_GE(j, 10);
 
     for(i=n-1; i>=0; --i)
     {
         proximity.remove(states[i]);
-        EXPECT_EQ((int)proximity.size(), i);
+        BOOST_CHECK_EQUAL((int)proximity.size(), i);
     }
     try
     {
@@ -124,7 +130,7 @@ void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
     }
     catch (std::exception& e)
     {
-        EXPECT_STREQ("No elements found", e.what());
+        BOOST_CHECK_EQUAL("No elements found", e.what());
     }
 }
 
@@ -155,10 +161,10 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
     proximity.add(states);
     proximityLinear.add(states);
 
-    EXPECT_EQ((int)proximity.size(), n);
+    BOOST_CHECK_EQUAL((int)proximity.size(), n);
 
     proximity.list(nghbr);
-    EXPECT_EQ(nghbr.size(),proximity.size());
+    BOOST_CHECK_EQUAL(nghbr.size(),proximity.size());
 
 
     for(i=0,j=0; i<n; ++i)
@@ -167,41 +173,41 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
         if (s==states[i]) j++;
 
         proximity.nearestK(states[i], 10, nghbr);
-        EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ(nghbr.size(), 10u);
+        BOOST_CHECK_EQUAL(nghbr[0], states[i]);
+        BOOST_CHECK_EQUAL(nghbr.size(), 10u);
         if (!approximate)
         {
             proximityLinear.nearestK(states[i], nghbr.size(), nghbrGroundTruth);
             for (unsigned int k=0; k<nghbr.size(); ++k)
-                EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
+                BOOST_OMPL_EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
         }
 
         proximity.nearestR(states[i], std::numeric_limits<double>::infinity(), nghbr);
-        EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ(nghbr.size(),proximity.size());
+        BOOST_CHECK_EQUAL(nghbr[0], states[i]);
+        BOOST_CHECK_EQUAL(nghbr.size(),proximity.size());
         if (!approximate)
         {
             proximityLinear.nearestR(states[i], nghbr.size(), nghbrGroundTruth);
             for (unsigned int k=0; k<nghbr.size(); ++k)
-                EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
+                BOOST_OMPL_EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
         }
 
         proximity.nearestK(states[i], 2*n, nghbr);
-        EXPECT_EQ(nghbr[0], states[i]);
-        EXPECT_EQ((int) nghbr.size(), n);
+        BOOST_CHECK_EQUAL(nghbr[0], states[i]);
+        BOOST_CHECK_EQUAL((int) nghbr.size(), n);
         if (!approximate)
         {
             proximityLinear.nearestK(states[i], nghbr.size(), nghbrGroundTruth);
             for (unsigned int k=0; k<nghbr.size(); ++k)
-                EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
+                BOOST_OMPL_EXPECT_NEAR(distance(&SE3, states[i], nghbrGroundTruth[k]), distance(&SE3, states[i], nghbr[k]), eps);
         }
     }
-    EXPECT_GE(j, 10);
+    BOOST_CHECK_GE(j, 10);
 
     for(i=n-1; i>=0; --i)
     {
         proximity.remove(states[i]);
-        EXPECT_EQ((int)proximity.size(), i);
+        BOOST_CHECK_EQUAL((int)proximity.size(), i);
     }
     try
     {
@@ -209,7 +215,7 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
     }
     catch (std::exception& e)
     {
-        EXPECT_STREQ("No elements found", e.what());
+        BOOST_CHECK_EQUAL("No elements found", e.what());
     }
 }
 
@@ -245,16 +251,16 @@ void randomAccessPatternIntTest(NearestNeighbors<int>& proximity)
             k = rng.uniformInt(1, 20);
             proximityLinear.nearestK(s, k, nghbrGroundTruth);
             proximity.nearestK(s, k, nghbr);
-            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            BOOST_CHECK_EQUAL(nghbr.size(), nghbrGroundTruth.size());
             for (p=0; p<nghbr.size(); ++p)
-                EXPECT_NEAR(intDistance(s, nghbrGroundTruth[p]), intDistance(s, nghbr[p]), eps);
+                BOOST_OMPL_EXPECT_NEAR(intDistance(s, nghbrGroundTruth[p]), intDistance(s, nghbr[p]), eps);
 
             r = rng.uniformReal(0, 3);
             proximityLinear.nearestR(s, r, nghbrGroundTruth);
             proximity.nearestR(s, r, nghbr);
-            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            BOOST_CHECK_EQUAL(nghbr.size(), nghbrGroundTruth.size());
             for (p=0; p<nghbr.size(); ++p)
-                EXPECT_NEAR(intDistance(s, nghbrGroundTruth[p]), intDistance(s, nghbr[p]), eps);
+                BOOST_OMPL_EXPECT_NEAR(intDistance(s, nghbrGroundTruth[p]), intDistance(s, nghbr[p]), eps);
         }
 
         for (it=states.begin(); it!=states.end();)
@@ -313,16 +319,16 @@ void randomAccessPatternStateTest(NearestNeighbors<base::State*>& proximity)
             k = rng.uniformInt(1, 20);
             proximityLinear.nearestK(s, k, nghbrGroundTruth);
             proximity.nearestK(s, k, nghbr);
-            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            BOOST_CHECK_EQUAL(nghbr.size(), nghbrGroundTruth.size());
             for (p=0; p<nghbr.size(); ++p)
-                EXPECT_NEAR(distance(&SE3, s, nghbrGroundTruth[p]), distance(&SE3, s, nghbr[p]), eps);
+                BOOST_OMPL_EXPECT_NEAR(distance(&SE3, s, nghbrGroundTruth[p]), distance(&SE3, s, nghbr[p]), eps);
 
             r = rng.uniformReal(0, 3);
             proximityLinear.nearestR(s, r, nghbrGroundTruth);
             proximity.nearestR(s, r, nghbr);
-            EXPECT_EQ(nghbr.size(), nghbrGroundTruth.size());
+            BOOST_CHECK_EQUAL(nghbr.size(), nghbrGroundTruth.size());
             for (p=0; p<nghbr.size(); ++p)
-                EXPECT_NEAR(distance(&SE3, s, nghbrGroundTruth[p]), distance(&SE3, s, nghbr[p]), eps);
+                BOOST_OMPL_EXPECT_NEAR(distance(&SE3, s, nghbrGroundTruth[p]), distance(&SE3, s, nghbr[p]), eps);
 
             SE3.freeState(s);
         }
@@ -341,56 +347,51 @@ void randomAccessPatternStateTest(NearestNeighbors<base::State*>& proximity)
     }
 }
 
-TEST(NearestNeighbors, IntLinear)
+BOOST_AUTO_TEST_CASE(IntLinear)
 {
     NearestNeighborsLinear<int> proximity;
     intTest(proximity, true);
 }
 
-TEST(NearestNeighbors, StateLinear)
+BOOST_AUTO_TEST_CASE(StateLinear)
 {
     NearestNeighborsLinear<base::State*> proximity;
     stateTest(proximity, true);
 }
 
-TEST(NearestNeighbors, IntSqrtApprox)
+BOOST_AUTO_TEST_CASE(IntSqrtLinear)
 {
     NearestNeighborsSqrtApprox<int> proximity;
     intTest(proximity, true);
 }
 
-TEST(NearestNeighbors, StateSqrtApprox)
+BOOST_AUTO_TEST_CASE(StateSqrtLinear)
 {
     NearestNeighborsSqrtApprox<base::State*> proximity;
     stateTest(proximity, true);
 }
 
-TEST(NearestNeighbors, IntGNAT)
+BOOST_AUTO_TEST_CASE(IntGNAT)
 {
     NearestNeighborsGNAT<int> proximity;
     intTest(proximity);
 }
 
-TEST(NearestNeighbors, StateGNAT)
+BOOST_AUTO_TEST_CASE(StateGNAT)
 {
     NearestNeighborsGNAT<base::State*> proximity;
     stateTest(proximity);
 }
 
-TEST(NearestNeighbors, RandomAccessPatternIntGNAT)
+BOOST_AUTO_TEST_CASE(RandomAccessPatternIntGNAT)
 {
     NearestNeighborsGNAT<int> proximity(4,2,6,5);
     randomAccessPatternIntTest(proximity);
 }
 
-TEST(NearestNeighbors, RandomAccessPatternStateGNAT)
+BOOST_AUTO_TEST_CASE(RandomAccessPatternStateGNAT)
 {
     NearestNeighborsGNAT<base::State*> proximity(4,2,6,5);
     randomAccessPatternStateTest(proximity);
 }
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

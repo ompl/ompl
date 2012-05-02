@@ -55,7 +55,7 @@ struct SetSeedTo1
 static SetSeedTo1 proxy;
 
 // define a convenience macro
-#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL(a - b, diff)
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
 
 /* Just test we get some random values */
 BOOST_AUTO_TEST_CASE(DifferentSeeds)

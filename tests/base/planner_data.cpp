@@ -34,7 +34,8 @@
 
 /* Author: Ryan Luna */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "PlannerData"
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <vector>
 
@@ -43,7 +44,10 @@
 
 using namespace ompl;
 
-TEST(PlannerData, SimpleConstruction)
+// define a convenience macro
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
+
+BOOST_AUTO_TEST_CASE(SimpleConstruction)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
     base::PlannerData data;
@@ -58,53 +62,53 @@ TEST(PlannerData, SimpleConstruction)
     {
         unsigned int vtx = data.addVertex(base::PlannerDataVertex(states[i], (signed)i));
 
-        EXPECT_NE( vtx, base::PlannerData::INVALID_INDEX );
-        EXPECT_EQ( data.addVertex(base::PlannerDataVertex(states[i])), vtx );
+        BOOST_CHECK_NE( vtx, base::PlannerData::INVALID_INDEX );
+        BOOST_CHECK_EQUAL( data.addVertex(base::PlannerDataVertex(states[i])), vtx );
 
-        EXPECT_EQ( data.vertexIndex(base::PlannerDataVertex(states[i])), i );
-        EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i])) );
+        BOOST_CHECK_EQUAL( data.vertexIndex(base::PlannerDataVertex(states[i])), i );
+        BOOST_CHECK( data.vertexExists(base::PlannerDataVertex(states[i])) );
     }
 
     // We should have #states vertices and 0 edges
-    EXPECT_EQ( data.numVertices(), states.size() );
-    EXPECT_EQ( data.numEdges(), 0u );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size() );
+    BOOST_CHECK_EQUAL( data.numEdges(), 0u );
 
     // Adding edges
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        EXPECT_TRUE( data.addEdge(i, i+1) );
-        EXPECT_FALSE( data.addEdge(i, states.size()) );  // vertex #states.size() does not exist
+        BOOST_CHECK( data.addEdge(i, i+1) );
+        BOOST_CHECK_EQUAL( data.addEdge(i, states.size()), false ); // vertex #states.size() does not exist
 
-        EXPECT_TRUE( data.edgeExists(i, i+1) );
+        BOOST_CHECK( data.edgeExists(i, i+1) );
     }
 
     // We should have #states vertices and #states-1 edges at this point
-    EXPECT_EQ( data.numVertices(), states.size() );
-    EXPECT_EQ( data.numEdges(), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size() );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-1);
 
     // Make sure our edges are where we think they are
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
         std::vector<unsigned int> neighbors;
-        EXPECT_EQ( data.getEdges(i, neighbors), 1u );
-        EXPECT_EQ( neighbors[0], i+1 );
+        BOOST_REQUIRE_EQUAL( data.getEdges(i, neighbors), 1u );
+        BOOST_CHECK_EQUAL( neighbors[0], i+1 );
     }
 
     std::vector<unsigned int> neighbors;
-    EXPECT_EQ( data.getEdges(states.size()-1, neighbors), 0u );
+    BOOST_CHECK_EQUAL( data.getEdges(states.size()-1, neighbors), 0u );
 
     // Make sure that the vertices can be retrived properly
     for (unsigned int i = 0; i < states.size(); ++i)
     {
-        EXPECT_EQ(data.getVertex(i).getState(), states[i]);
-        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i);
+        BOOST_CHECK_EQUAL( data.getVertex(i).getState(), states[i] );
+        BOOST_CHECK_EQUAL( data.getVertex(i).getTag(), (signed)i );
     }
 
     for (size_t i = 0; i < states.size(); ++i)
         space->freeState(states[i]);
 }
 
-TEST(PlannerData, AdvancedConstruction)
+BOOST_AUTO_TEST_CASE(AdvancedConstruction)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
     base::PlannerData data;
@@ -117,73 +121,72 @@ TEST(PlannerData, AdvancedConstruction)
     // Adding vertices and edges simultaneously
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i], (signed)i),
+        BOOST_CHECK( data.addEdge (base::PlannerDataVertex(states[i], (signed)i),
                                    base::PlannerDataVertex(states[i+1], (signed)i+1)) );
 
         // Duplicates are not allowed
-        EXPECT_FALSE( data.addEdge (base::PlannerDataVertex(states[i], (signed)i),
-                                    base::PlannerDataVertex(states[i+1], (signed)i+1)) );
+        BOOST_CHECK_EQUAL( data.addEdge (base::PlannerDataVertex(states[i], (signed)i), base::PlannerDataVertex(states[i+1], (signed)i+1)), false );
 
-        EXPECT_TRUE( data.edgeExists (i, i+1) );
+        BOOST_CHECK( data.edgeExists (i, i+1) );
 
-        EXPECT_EQ( data.vertexIndex(base::PlannerDataVertex(states[i], (signed)i)), i );
-        EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i], i)) );
+        BOOST_CHECK_EQUAL( data.vertexIndex(base::PlannerDataVertex(states[i], (signed)i)), i );
+        BOOST_CHECK( data.vertexExists(base::PlannerDataVertex(states[i], i)) );
     }
 
     // Adding two start states and two goal states
-    EXPECT_EQ( data.addStartVertex (base::PlannerDataVertex(states[states.size()-4], states.size()-4)), states.size()-4 );
-    EXPECT_EQ( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-3], states.size()-3)),  states.size()-3 );
-    EXPECT_EQ( data.addStartVertex (base::PlannerDataVertex(states[states.size()-2], states.size()-2)), states.size()-2 );
-    EXPECT_EQ( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-1], states.size()-1)),  states.size()-1 );
+    BOOST_CHECK_EQUAL( data.addStartVertex (base::PlannerDataVertex(states[states.size()-4], states.size()-4)), states.size()-4 );
+    BOOST_CHECK_EQUAL( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-3], states.size()-3)),  states.size()-3 );
+    BOOST_CHECK_EQUAL( data.addStartVertex (base::PlannerDataVertex(states[states.size()-2], states.size()-2)), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-1], states.size()-1)),  states.size()-1 );
 
-    EXPECT_EQ( data.numStartVertices(), 2u );
-    EXPECT_EQ( data.numGoalVertices (), 2u );
-    EXPECT_EQ( data.getStartIndex(0), states.size()-4 );
-    EXPECT_EQ( data.getStartIndex(1), states.size()-2 );
-    EXPECT_EQ( data.getStartIndex(2), base::PlannerData::INVALID_INDEX );
-    EXPECT_EQ( data.getGoalIndex(0), states.size()-3 );
-    EXPECT_EQ( data.getGoalIndex(1), states.size()-1 );
-    EXPECT_EQ( data.getGoalIndex(2), base::PlannerData::INVALID_INDEX );
+    BOOST_CHECK_EQUAL( data.numStartVertices(), 2u );
+    BOOST_CHECK_EQUAL( data.numGoalVertices (), 2u );
+    BOOST_CHECK_EQUAL( data.getStartIndex(0), states.size()-4 );
+    BOOST_CHECK_EQUAL( data.getStartIndex(1), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.getStartIndex(2), base::PlannerData::INVALID_INDEX );
+    BOOST_CHECK_EQUAL( data.getGoalIndex(0), states.size()-3 );
+    BOOST_CHECK_EQUAL( data.getGoalIndex(1), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.getGoalIndex(2), base::PlannerData::INVALID_INDEX );
 
     // Make sure that the start and goal indices are where we think they are
     for (unsigned int i = 0; i < states.size(); ++i)
     {
         if (i < states.size()-4)
         {
-            EXPECT_FALSE( data.isStartVertex(i) );
-            EXPECT_FALSE( data.isGoalVertex(i) );
+            BOOST_CHECK_EQUAL( data.isStartVertex(i), false );
+            BOOST_CHECK_EQUAL( data.isGoalVertex(i), false );
         }
         else if (i == states.size()-4 || i == states.size()-2)
         {
-            EXPECT_TRUE( data.isStartVertex(i) );
-            EXPECT_FALSE( data.isGoalVertex(i) );
+            BOOST_CHECK_EQUAL( data.isStartVertex(i), true );
+            BOOST_CHECK_EQUAL( data.isGoalVertex(i), false );
         }
         else if (i == states.size()-3 || i == states.size()-1)
         {
-            EXPECT_FALSE( data.isStartVertex(i) );
-            EXPECT_TRUE( data.isGoalVertex(i) );
+            BOOST_CHECK_EQUAL( data.isStartVertex(i), false );
+            BOOST_CHECK_EQUAL( data.isGoalVertex(i), true );
         }
     }
 
     // We should have #states vertices and #states-1 edges
-    EXPECT_EQ( data.numVertices(), states.size() );
-    EXPECT_EQ( data.numEdges(), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size() );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-1 );
 
     // Make sure our edges are where we think they are
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
         std::vector<unsigned int> nbrs;
-        EXPECT_EQ( data.getEdges(i, nbrs), 1u );
-        EXPECT_EQ( nbrs[0], i+1 );
+        BOOST_CHECK_EQUAL( data.getEdges(i, nbrs), 1u );
+        BOOST_CHECK_EQUAL( nbrs[0], i+1 );
     }
     std::vector<unsigned int> nbrs;
-    EXPECT_EQ( data.getEdges(states.size()-1, nbrs), 0u );
+    BOOST_CHECK_EQUAL( data.getEdges(states.size()-1, nbrs), 0u );
 
     // Make sure that the vertices can be retrived properly
     for (unsigned int i = 0; i < states.size(); ++i)
     {
-        EXPECT_EQ(data.getVertex(i).getState(), states[i]);
-        EXPECT_EQ(data.getVertex(i).getTag(), (signed)i);
+        BOOST_CHECK_EQUAL(data.getVertex(i).getState(), states[i]);
+        BOOST_CHECK_EQUAL(data.getVertex(i).getTag(), (signed)i);
     }
 
     for (size_t i = 0; i < states.size(); ++i)
@@ -206,7 +209,7 @@ public:
     unsigned int a, b;
 };
 
-TEST(PlannerData, DataIntegrity)
+BOOST_AUTO_TEST_CASE(DataIntegrity)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
     base::PlannerData data;
@@ -223,58 +226,58 @@ TEST(PlannerData, DataIntegrity)
     // Adding vertices and edges simultaneously
     for (unsigned int i = 1; i < states.size(); ++i)
     {
-        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i-1], i),
+        BOOST_CHECK( data.addEdge (base::PlannerDataVertex(states[i-1], i),
                                    base::PlannerDataVertex(states[i], i+1),
                                    TestEdge(i-1, i)) );
     }
 
     // We should have #states vertices and #states-1 edges
-    EXPECT_EQ( data.numVertices(), states.size() );
-    EXPECT_EQ( data.numEdges(), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size() );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-1 );
 
     // Attempt to retrieve some vertices
-    EXPECT_NE( &data.getVertex(0), &base::PlannerData::NO_VERTEX );
-    EXPECT_NE( &data.getVertex(3), &base::PlannerData::NO_VERTEX );
-    EXPECT_EQ( &data.getVertex(states.size()), &base::PlannerData::NO_VERTEX ); // vertex #states.size() does not exist
+    BOOST_CHECK_NE( &data.getVertex(0), &base::PlannerData::NO_VERTEX );
+    BOOST_CHECK_NE( &data.getVertex(3), &base::PlannerData::NO_VERTEX );
+    BOOST_CHECK_EQUAL( &data.getVertex(states.size()), &base::PlannerData::NO_VERTEX ); // vertex #states.size() does not exist
 
     // Attempt to retrieve some edges
-    EXPECT_NE( &data.getEdge(0, 1), &base::PlannerData::NO_EDGE );
-    EXPECT_NE( &data.getEdge(4, 5), &base::PlannerData::NO_EDGE );
-    EXPECT_EQ( &data.getEdge(0, states.size()), &base::PlannerData::NO_EDGE ); // edge does not exist
+    BOOST_CHECK_NE( &data.getEdge(0, 1), &base::PlannerData::NO_EDGE );
+    BOOST_CHECK_NE( &data.getEdge(4, 5), &base::PlannerData::NO_EDGE );
+    BOOST_CHECK_EQUAL( &data.getEdge(0, states.size()), &base::PlannerData::NO_EDGE ); // edge does not exist
 
     // Ensure vertex data integrity
     for (unsigned int i = 0; i < states.size(); ++i)
-        EXPECT_EQ( data.getVertex(i).getState()->as<base::RealVectorStateSpace::StateType>()->values[0], i );
+        BOOST_CHECK_EQUAL( data.getVertex(i).getState()->as<base::RealVectorStateSpace::StateType>()->values[0], i );
 
     // Ensure edge data integrity
     for (unsigned int i = 1; i < states.size(); ++i)
     {
         TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
-        ASSERT_NE ( &edge, &base::PlannerData::NO_EDGE );
-        EXPECT_EQ( edge.a, i-1 );
-        EXPECT_EQ( edge.b, i );
+        BOOST_REQUIRE_NE ( &edge, &base::PlannerData::NO_EDGE );
+        BOOST_CHECK_EQUAL( edge.a, i-1 );
+        BOOST_CHECK_EQUAL( edge.b, i );
     }
 
     // Reset the tag for state #0
-    EXPECT_TRUE( data.tagState(states[0], 10000) );
-    EXPECT_EQ( data.getVertex(0).getTag(), 10000 );
-    EXPECT_FALSE( data.tagState(0, 1000) ); // state doesn't exist
+    BOOST_CHECK( data.tagState(states[0], 10000) );
+    BOOST_CHECK_EQUAL( data.getVertex(0).getTag(), 10000 );
+    BOOST_CHECK_EQUAL( data.tagState(0, 1000), false ); // state doesn't exist
 
     // Reset the edge weight for 0->1
-    EXPECT_TRUE( data.setEdgeWeight(0, 1, 1.234) );
-    EXPECT_NEAR( data.getEdgeWeight(0, 1), 1.234, 1e-4);
+    BOOST_CHECK( data.setEdgeWeight(0, 1, 1.234) );
+    BOOST_OMPL_EXPECT_NEAR( data.getEdgeWeight(0, 1), 1.234, 1e-4);
 
-    EXPECT_EQ( data.getEdgeWeight(0, 5), base::PlannerData::INVALID_WEIGHT ); // edge does not exist
-    EXPECT_FALSE( data.setEdgeWeight(0, 5, 2.345) );
+    BOOST_CHECK_EQUAL( data.getEdgeWeight(0, 5), base::PlannerData::INVALID_WEIGHT ); // edge does not exist
+    BOOST_CHECK_EQUAL( data.setEdgeWeight(0, 5, 2.345), false );
 
     // Try to tag an invalid state
-    EXPECT_FALSE( data.tagState(0, 100) );
+    BOOST_CHECK_EQUAL( data.tagState(0, 100), false );
 
     for (size_t i = 0; i < states.size(); ++i)
         space->freeState(states[i]);
 }
 
-TEST(PlannerData, AddRemoveVerticesAndEdges)
+BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
     base::PlannerData data;
@@ -287,64 +290,64 @@ TEST(PlannerData, AddRemoveVerticesAndEdges)
     // Adding vertices and edges
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i], i),
-                                   base::PlannerDataVertex(states[i+1], i+1)) );
+        BOOST_CHECK_EQUAL( data.addEdge (base::PlannerDataVertex(states[i], i), base::PlannerDataVertex(states[i+1], i+1)), 
+                           true );
     }
 
-    EXPECT_EQ( data.numVertices(), states.size() );
-    EXPECT_EQ( data.numEdges(), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size() );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-1 );
 
-    EXPECT_TRUE( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])) );
-    EXPECT_EQ( data.numVertices(), states.size()-1 );
-    EXPECT_EQ( data.numEdges(), states.size()-2 );
+    BOOST_CHECK( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])) );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-2 );
 
-    EXPECT_FALSE( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])) ); // we already removed this vertex
-    EXPECT_EQ( data.numVertices(), states.size()-1 );
-    EXPECT_EQ( data.numEdges(), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])), false ); // we already removed this vertex
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-2 );
 
-    EXPECT_FALSE( data.removeVertex(states.size()) ); // vertex does not exist
-    EXPECT_EQ( data.numVertices(), states.size()-1 );
-    EXPECT_EQ( data.numEdges(), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.removeVertex(states.size()), false ); // vertex does not exist
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-1 );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-2 );
 
-    EXPECT_TRUE( data.removeVertex(6) );
-    EXPECT_EQ( data.numVertices(), states.size()-2 );
-    EXPECT_EQ( data.numEdges(), states.size()-4 );  // incoming edge and outgoing edge should be removed
+    BOOST_CHECK( data.removeVertex(6) );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-4 );  // incoming edge and outgoing edge should be removed
 
-    EXPECT_TRUE( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])) );
-    EXPECT_EQ( data.numVertices(), states.size()-2 );
-    EXPECT_EQ( data.numEdges(), states.size()-5 );
+    BOOST_CHECK( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])) );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-5 );
 
-    EXPECT_FALSE( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])) ); // we just removed this edge
-    EXPECT_EQ( data.numVertices(), states.size()-2  );
-    EXPECT_EQ( data.numEdges(), states.size()-5 );
+    BOOST_CHECK_EQUAL( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])), false ); // we just removed this edge
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2  );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-5 );
 
-    EXPECT_FALSE( data.removeEdge(5, 6) ); // edge does not exist (we removed vertex 6)
-    EXPECT_EQ( data.numVertices(), states.size()-2 );
-    EXPECT_EQ( data.numEdges(), states.size()-5 );
+    BOOST_CHECK_EQUAL( data.removeEdge(5, 6), false ); // edge does not exist (we removed vertex 6)
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-5 );
 
-    EXPECT_TRUE( data.removeEdge(4, 5) );
-    EXPECT_EQ( data.numVertices(), states.size()-2 );
-    EXPECT_EQ( data.numEdges(), states.size()-6 );
+    BOOST_CHECK( data.removeEdge(4, 5) );
+    BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.numEdges(), states.size()-6 );
 
     // Make sure the final graph looks the way we think:
     for (size_t i = 0; i < states.size(); ++i)
     {
         if (i == 6 || i == states.size()-1)
-            EXPECT_FALSE( data.vertexExists(base::PlannerDataVertex(states[i])) );
+            BOOST_CHECK_EQUAL( data.vertexExists(base::PlannerDataVertex(states[i])), false );
         else
-            EXPECT_TRUE( data.vertexExists(base::PlannerDataVertex(states[i])) );
+            BOOST_CHECK( data.vertexExists(base::PlannerDataVertex(states[i])) );
     }
 
     for (size_t i = 0; i < states.size()-2; ++i) // we removed two vertices
     {
         std::vector<unsigned int> nbrs;
         if (i == 1 || i == 4 || i == 5 || i == states.size()-3)
-            EXPECT_EQ ( data.getEdges(i, nbrs), 0u );
+            BOOST_CHECK_EQUAL ( data.getEdges(i, nbrs), 0u );
         else
         {
-            EXPECT_EQ ( data.getEdges(i, nbrs), 1u );
-            EXPECT_EQ ( nbrs[0], i+1 );
-            EXPECT_TRUE( data.edgeExists(i, i+1) );
+            BOOST_CHECK_EQUAL ( data.getEdges(i, nbrs), 1u );
+            BOOST_CHECK_EQUAL ( nbrs[0], i+1 );
+            BOOST_CHECK( data.edgeExists(i, i+1) );
          }
     }
 
@@ -352,7 +355,7 @@ TEST(PlannerData, AddRemoveVerticesAndEdges)
         space->freeState(states[i]);
 }
 
-TEST(PlannerData, AddRemoveStartAndGoalStates)
+BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
     base::PlannerData data;
@@ -373,56 +376,51 @@ TEST(PlannerData, AddRemoveStartAndGoalStates)
         if (i % 100 == 0)
             data.addGoalVertex(base::PlannerDataVertex(states[i], i));
 
-        EXPECT_TRUE( data.addEdge (base::PlannerDataVertex(states[i], i),
+        BOOST_CHECK( data.addEdge (base::PlannerDataVertex(states[i], i),
                                    base::PlannerDataVertex(states[i+1], i+1)) );
     }
 
-    EXPECT_EQ( data.numStartVertices(), 10u );
-    EXPECT_EQ( data.numGoalVertices (), 10u );
+    BOOST_CHECK_EQUAL( data.numStartVertices(), 10u );
+    BOOST_CHECK_EQUAL( data.numGoalVertices (), 10u );
 
     for (unsigned int i = 50; i < states.size()-1; i+=100)
-        EXPECT_TRUE( data.isStartVertex(i) );
+        BOOST_CHECK( data.isStartVertex(i) );
 
     for (unsigned int i = 0; i < states.size()-1; i+=100)
-        EXPECT_TRUE( data.isGoalVertex(i) );
+        BOOST_CHECK( data.isGoalVertex(i) );
 
     // Removing a start state
-    EXPECT_TRUE( data.removeVertex(50) );
+    BOOST_CHECK( data.removeVertex(50) );
 
-    EXPECT_EQ( data.numStartVertices(), 9u );
-    EXPECT_EQ( data.numGoalVertices (), 10u );
+    BOOST_CHECK_EQUAL( data.numStartVertices(), 9u );
+    BOOST_CHECK_EQUAL( data.numGoalVertices (), 10u );
 
     for (unsigned int i = 149; i < states.size()-1; i+=100)
-        EXPECT_TRUE( data.isStartVertex(i) );
+        BOOST_CHECK( data.isStartVertex(i) );
 
     // Removing a goal state
-    EXPECT_TRUE( data.removeVertex(0) );
+    BOOST_CHECK( data.removeVertex(0) );
 
     for (unsigned int i = 98; i < states.size()-2; i+=100)
-        EXPECT_TRUE( data.isGoalVertex(i) );
+        BOOST_CHECK( data.isGoalVertex(i) );
 
     for (unsigned int i = 0; i < states.size() - 2; i++)
     {
         if ((i+2) % 100 == 0)
         {
-            EXPECT_FALSE( data.isStartVertex(i) );
-            EXPECT_TRUE( data.isGoalVertex(i) );
+            BOOST_CHECK_EQUAL( data.isStartVertex(i), false );
+            BOOST_CHECK_EQUAL( data.isGoalVertex(i), true );
         }
         else if ((i+2) % 50 == 0 && i != 48)
         {
-            EXPECT_TRUE( data.isStartVertex(i) );
-            EXPECT_FALSE( data.isGoalVertex(i) );
+            BOOST_CHECK_EQUAL( data.isStartVertex(i), true );
+            BOOST_CHECK_EQUAL( data.isGoalVertex(i), false );
         }
         else
         {
-            EXPECT_FALSE( data.isStartVertex(i) );
-            EXPECT_FALSE( data.isGoalVertex(i) );
+            BOOST_CHECK_EQUAL( data.isStartVertex(i), false );
+            BOOST_CHECK_EQUAL( data.isGoalVertex(i), false );
         }
     }
 }
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

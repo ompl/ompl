@@ -34,7 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "GeometricPlanning"
+#include <boost/test/unit_test.hpp>
 
 #include "2DmapSetup.h"
 #include <iostream>
@@ -363,7 +364,7 @@ protected:
 
 };
 
-class PlanTest : public testing::Test
+class PlanTest
 {
 public:
 
@@ -403,30 +404,23 @@ protected:
     PlanTest(void)
     {
         verbose = true;
-    }
-
-    void SetUp(void)
-    {
         boost::filesystem::path path(TEST_RESOURCES_DIR);
         path = path / "env1.txt";
         loadEnvironment(path.string().c_str(), env);
 
         if (env.width * env.height == 0)
         {
-            std::cerr << "The environment has a 0 dimension. Cannot continue" << std::endl;
-            FAIL();
+            BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
         }
-    }
-
-    void TearDown(void)
-    {
     }
 
     Environment2D env;
     bool          verbose;
 };
 
-TEST_F(PlanTest, geometric_RRT)
+BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
+
+BOOST_AUTO_TEST_CASE(geometric_RRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -438,12 +432,12 @@ TEST_F(PlanTest, geometric_RRT)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.01);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.01);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_RRTConnect)
+BOOST_AUTO_TEST_CASE(geometric_RRTConnect)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -455,12 +449,12 @@ TEST_F(PlanTest, geometric_RRTConnect)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.01);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.01);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_pRRT)
+BOOST_AUTO_TEST_CASE(geometric_pRRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -472,12 +466,12 @@ TEST_F(PlanTest, geometric_pRRT)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.02);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.02);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_pSBL)
+BOOST_AUTO_TEST_CASE(geometric_pSBL)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -489,13 +483,13 @@ TEST_F(PlanTest, geometric_pSBL)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.2);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.2);
+    BOOST_CHECK(avglength < 100.0);
 }
 
 
-TEST_F(PlanTest, geometric_KPIECE1)
+BOOST_AUTO_TEST_CASE(geometric_KPIECE1)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -507,12 +501,12 @@ TEST_F(PlanTest, geometric_KPIECE1)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.1);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_LBKPIECE1)
+BOOST_AUTO_TEST_CASE(geometric_LBKPIECE1)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -524,12 +518,12 @@ TEST_F(PlanTest, geometric_LBKPIECE1)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.1);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_BKPIECE1)
+BOOST_AUTO_TEST_CASE(geometric_BKPIECE1)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -541,12 +535,12 @@ TEST_F(PlanTest, geometric_BKPIECE1)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.1);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_EST)
+BOOST_AUTO_TEST_CASE(geometric_EST)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -558,12 +552,12 @@ TEST_F(PlanTest, geometric_EST)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.1);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_LazyRRT)
+BOOST_AUTO_TEST_CASE(geometric_LazyRRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -575,12 +569,12 @@ TEST_F(PlanTest, geometric_LazyRRT)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 70.0);
-    EXPECT_TRUE(avgruntime < 1.0);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 70.0);
+    BOOST_CHECK(avgruntime < 1.0);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_PRM)
+BOOST_AUTO_TEST_CASE(geometric_PRM)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -592,12 +586,12 @@ TEST_F(PlanTest, geometric_PRM)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.1);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, geometric_SBL)
+BOOST_AUTO_TEST_CASE(geometric_SBL)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -609,14 +603,10 @@ TEST_F(PlanTest, geometric_SBL)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.1);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.1);
+    BOOST_CHECK(avglength < 100.0);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
