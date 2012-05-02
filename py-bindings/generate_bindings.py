@@ -463,7 +463,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # simultaneously. This is a know limitation of Boost.Python. We
         # therefore use a single-threaded version of PRM in python.
         PRM_cls = self.ompl_ns.class_('PRM')
-        PRM_cls.add_wrapper_code('bool solve(double solveTime);')
+        PRM_cls.add_wrapper_code('ompl::base::PlannerStatus solve(double solveTime);')
         PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
         PRM_cls.add_registration_code('def("solve", &PRM_wrapper::solve)')
 

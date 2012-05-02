@@ -36,7 +36,7 @@
 
 #include "ompl/base/GoalSampleableRegion.h"
 
-bool PRM_wrapper::solve(double solveTime)
+ompl::base::PlannerStatus PRM_wrapper::solve(double solveTime)
 {
     using namespace ompl;
 
@@ -51,7 +51,7 @@ bool PRM_wrapper::solve(double solveTime)
     if (!goal)
     {
         msg_.error("Goal undefined or unknown type of goal");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     // Add the valid start states as milestones
@@ -61,13 +61,13 @@ bool PRM_wrapper::solve(double solveTime)
     if (startM_.size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     // Ensure there is at least one valid goal state
@@ -80,7 +80,7 @@ bool PRM_wrapper::solve(double solveTime)
         if (goalM_.empty())
         {
             msg_.error("Unable to find any valid goal states");
-            return false;
+            return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
@@ -138,5 +138,5 @@ bool PRM_wrapper::solve(double solveTime)
     si_->freeStates(xstates);
 
     // Return true if any solution was found.
-    return sln != NULL;
+    return sln ? (addedSolution_ ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
 }
