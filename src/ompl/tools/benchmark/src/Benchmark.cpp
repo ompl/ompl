@@ -72,7 +72,7 @@ namespace ompl
         public:
 
             RunPlanner(const Benchmark *benchmark, bool useThreads)
-                : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false), useThreads_(useThreads)
+                : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), useThreads_(useThreads)
             {
             }
 
@@ -89,7 +89,7 @@ namespace ompl
                 // allow 25% more time than originally specified, in order to detect planner termination
                 if (!t.timed_join(time::seconds(maxTime * 1.25)))
                 {
-                    crashed_ = true;
+                    status_ = base::PlannerStatus::CRASH;
 
                     std::stringstream es;
                     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
@@ -126,11 +126,6 @@ namespace ompl
                 return status_;
             }
 
-            bool crashed(void) const
-            {
-                return crashed_;
-            }
-
         private:
 
             void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration)
@@ -159,7 +154,6 @@ namespace ompl
             double              timeUsed_;
             machine::MemUsage_t memUsed_;
             base::PlannerStatus status_;
-            bool                crashed_;
             bool                useThreads_;
             msg::Interface      msg_;
         };
@@ -219,6 +213,14 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
     out << exp_.maxMem << " MB per run" << std::endl;
     out << exp_.runCount << " runs per planner" << std::endl;
     out << exp_.totalDuration << " seconds spent to collect the data" << std::endl;
+
+    // change this if more enum types are added
+    out << "1 enum type" << std::endl;
+    out << "status";
+    for (unsigned int i = 0 ; i < base::PlannerStatus::TYPE_COUNT ; ++i)
+        out << '|' << base::PlannerStatus(static_cast<base::PlannerStatus::StatusType>(i)).asString();
+    out << std::endl;
+
     out << exp_.planners.size() << " planners" << std::endl;
 
     for (unsigned int i = 0 ; i < exp_.planners.size() ; ++i)
@@ -343,9 +345,6 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->printProperties(setupInfo);
 
-    setupInfo << std::endl << "Planner Status Map:" << std::endl;
-    for (unsigned int i = 0 ; i < base::PlannerStatus::TYPE_COUNT ; ++i)
-        setupInfo << i << ": " << base::PlannerStatus(static_cast<base::PlannerStatus::StatusType>(i)).asString() << std::endl;
     exp_.setupInfo = setupInfo.str();
 
     msg_.inform("Done saving information");
@@ -466,10 +465,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 RunProperties run;
 
-                run["crashed BOOLEAN"] = boost::lexical_cast<std::string>(rp.crashed());
                 run["time REAL"] = boost::lexical_cast<std::string>(rp.getTimeUsed());
                 run["memory REAL"] = boost::lexical_cast<std::string>((double)rp.getMemUsed() / (1024.0 * 1024.0));
-                run["status INTEGER"] = boost::lexical_cast<std::string>((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
+                run["status ENUM"] = boost::lexical_cast<std::string>((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
                 if (gsetup_)
                 {
                     run["solved BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->haveExactSolutionPath());

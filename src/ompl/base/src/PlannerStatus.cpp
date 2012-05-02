@@ -46,6 +46,7 @@ std::string ompl::base::PlannerStatus::asString(void) const
     case TIMEOUT: return std::string("Timeout");
     case APPROXIMATE_SOLUTION: return std::string("Approximate solution");
     case EXACT_SOLUTION: return std::string("Exact solution");
+    case CRASH: return std::string("Crash");
     default: return std::string("Unknown status");
     }
 }

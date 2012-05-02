@@ -64,6 +64,8 @@ namespace ompl
                 APPROXIMATE_SOLUTION,
                 /// The planner found an exact solution
                 EXACT_SOLUTION,
+                /// The planner crashed
+                CRASH,
                 /// The number of possible status values
                 TYPE_COUNT
             };
