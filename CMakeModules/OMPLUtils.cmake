@@ -1,5 +1,3 @@
-find_package(Threads)
-
 macro(add_ompl_test test_name)
   add_executable(${ARGV})
   target_link_libraries(${test_name}
@@ -9,8 +7,7 @@ macro(add_ompl_test test_name)
     ${Boost_THREAD_LIBRARY}
     ${Boost_DATE_TIME_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-    ${Boost_TEST_EXEC_MONITOR_LIBRARY}
-    ${CMAKE_THREAD_LIBS_INIT})
+    ${Boost_TEST_EXEC_MONITOR_LIBRARY})
   add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
 endmacro(add_ompl_test)
 
