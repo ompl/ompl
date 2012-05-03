@@ -24,7 +24,7 @@ endif (MSVC OR MSVC90 OR MSVC10)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(CompilerSettings)
-find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework test_exec_monitor REQUIRED)
+find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 find_package(Boost COMPONENTS odeint QUIET)

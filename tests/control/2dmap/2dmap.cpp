@@ -37,7 +37,6 @@
 #define BOOST_TEST_MODULE "ControlPlanning"
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
-#include <libgen.h>
 #include <iostream>
 
 #include "ompl/base/GoalState.h"

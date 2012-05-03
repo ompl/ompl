@@ -58,7 +58,7 @@ double distance(const T* space, base::State* const &s0, base::State* const &s1)
 
 double intDistance(int i, int j)
 {
-    return fabs(i-j);
+    return fabs(double(i-j));
 }
 
 void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
@@ -143,7 +143,7 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
     std::vector<base::State*> states(n), nghbr, nghbrGroundTruth;
     NearestNeighborsLinear<base::State*> proximityLinear;
     base::State* s;
-    double eps = std::numeric_limits<double>::epsilon();
+    double eps = 1e-6;
 
     b.setLow(0);
     b.setHigh(1);
@@ -229,7 +229,7 @@ void randomAccessPatternIntTest(NearestNeighbors<int>& proximity)
     boost::unordered_multiset<int> states;
     boost::unordered_multiset<int>::iterator it;
     int s;
-    double eps = std::numeric_limits<double>::epsilon(), r;
+    double eps = 1e-6, r;
 
     proximity.setDistanceFunction(intDistance);
     proximityLinear.setDistanceFunction(intDistance);
@@ -290,7 +290,7 @@ void randomAccessPatternStateTest(NearestNeighbors<base::State*>& proximity)
     boost::unordered_set<base::State*> states;
     boost::unordered_set<base::State*>::iterator it;
     base::State* s;
-    double eps = std::numeric_limits<double>::epsilon(), r;
+    double eps = 1e-6, r;
 
     b.setLow(0);
     b.setHigh(1);

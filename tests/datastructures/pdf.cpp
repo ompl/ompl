@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(Statistical)
         variance += elem.second*(elem.first-mean)*(elem.first-mean);
     }
     variance /= sumWeights;
-    const double stderr = sqrt(variance/NUM_SAMPLES);
+    double standerr = sqrt(variance/NUM_SAMPLES);
 
     double sampleMean = 0.0;
     ompl::RNG rand;
@@ -176,6 +176,6 @@ BOOST_AUTO_TEST_CASE(Statistical)
         sampleMean += p.sample(rand.uniform01());
     sampleMean /= NUM_SAMPLES;
 
-    BOOST_OMPL_EXPECT_NEAR(sampleMean, mean, STDERR_WIDENING_FACTOR*stderr);
+    BOOST_OMPL_EXPECT_NEAR(sampleMean, mean, STDERR_WIDENING_FACTOR*standerr);
 }
 
