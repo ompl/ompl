@@ -1,3 +1,5 @@
+add_definitions(-DBOOST_TEST_DYN_LINK)
+
 # configure location of resources
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources" TEST_RESOURCES_DIR)
 configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config.h")
