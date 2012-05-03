@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
 #include "ompl/base/Planner.h"
+#include <boost/test/unit_test.hpp>
 
 namespace ompl
 {
@@ -65,15 +65,15 @@ namespace ompl
                 planner_->clear();
 
                 bool solved = planner_->solve(PlannerNonTerminatingCondition());
-                EXPECT_TRUE(solved);
+                BOOST_CHECK(solved);
 
                 planner_->clear();
 
                 solved = planner_->solve(PlannerNonTerminatingCondition());
-                EXPECT_TRUE(solved);
+                BOOST_CHECK(solved);
 
                 solved = planner_->solve(PlannerNonTerminatingCondition());
-                EXPECT_TRUE(solved);
+                BOOST_CHECK(solved);
 
                 planner_->clear();
 
@@ -83,7 +83,7 @@ namespace ompl
                 solved = planner_->solve(0.1);
                 if (!solved)
                     solved = planner_->solve(PlannerNonTerminatingCondition());
-                EXPECT_TRUE(solved);
+                BOOST_CHECK(solved);
                 planner_->clear();
                 planner_->clear();
                 planner_->clear();

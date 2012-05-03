@@ -5,7 +5,7 @@ To compile OMPL the following two packages are required:
 - <a href="http://www.boost.org">Boost</a> (required version 1.40, recommended version 1.44 or higher) and
 - <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher).
 .
-For running the tests, you will also need <a href="http://code.google.com/p/googletest/">GTest</a>. For the python bindings you need to have the python libraries and header files installed. If you also want to be able to generate the python bindings, then you need to install <a href="http://sourceforge.net/projects/pygccxml/">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
+For the python bindings you need to have the python libraries and header files installed. If you also want to be able to generate the python bindings, then you need to install <a href="http://sourceforge.net/projects/pygccxml/">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
 Below are installation instructions for <a href="#install_linuxosx">Linux, OS X</a>, and <a href="#install_windows">Windows</a>.
 <br>
@@ -50,9 +50,9 @@ sudo add-apt-repository ppa:boost-latest/ppa
 \code
 sudo apt-get install libboost-all-dev cmake
 \endcode
-- To be able to build tests, generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
+- To be able to generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
 \code
-sudo apt-get install libgtest-dev doxygen graphviz python-dev libode-dev
+sudo apt-get install doxygen graphviz python-dev libode-dev
 \endcode
 - To be able to generate Python bindings, follow \ref installPyPlusPlus "these" instructions.
 - Follow the common steps \ref common_steps "below".
@@ -92,9 +92,9 @@ You can check if the MacPorts-installed python 2.7 is the default one by typing 
 \code
 ls -l `which python`
 \endcode
-- To be able to build tests and generate documentation, Google Test and Doxygen are also needed:
+- To be able to generate documentation, Doxygen is also needed:
 \code
-sudo port install google-test doxygen
+sudo port install doxygen
 \endcode
 - Follow the common steps \ref common_steps "below".
 

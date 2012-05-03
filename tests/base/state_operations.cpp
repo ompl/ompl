@@ -34,7 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "State"
+#include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 #include <iostream>
 
@@ -45,7 +46,10 @@
 
 using namespace ompl;
 
-TEST(State, Scoped)
+// define a convenience macro
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
+
+BOOST_AUTO_TEST_CASE(Scoped)
 {
     base::SE3StateSpace *mSE3 = new base::SE3StateSpace();
     base::StateSpacePtr pSE3(mSE3);
@@ -83,35 +87,35 @@ TEST(State, Scoped)
 
     sSE3 >> sSE3_SO2;
 
-    EXPECT_EQ(sSE3->rotation().x, sSE3_SO2->x);
-    EXPECT_EQ(sSE3->rotation().y, sSE3_SO2->y);
-    EXPECT_EQ(sSE3->rotation().z, sSE3_SO2->z);
-    EXPECT_EQ(sSE3->rotation().w, sSE3_SO2->w);
+    BOOST_CHECK_EQUAL(sSE3->rotation().x, sSE3_SO2->x);
+    BOOST_CHECK_EQUAL(sSE3->rotation().y, sSE3_SO2->y);
+    BOOST_CHECK_EQUAL(sSE3->rotation().z, sSE3_SO2->z);
+    BOOST_CHECK_EQUAL(sSE3->rotation().w, sSE3_SO2->w);
 
     base::ScopedState<> sSE3_copy(pSE3);
     sSE3_copy << sSE3;
-    EXPECT_EQ(sSE3_copy, sSE3);
+    BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
     sSE3 >> sSE3_copy;
-    EXPECT_EQ(sSE3_copy, sSE3);
+    BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
 
     sSE3_R << sSE3_copy;
 
-    EXPECT_EQ(sSE3->getX(), sSE3_R->values[0]);
-    EXPECT_EQ(sSE3->getY(), sSE3_R->values[1]);
-    EXPECT_EQ(sSE3->getZ(), sSE3_R->values[2]);
+    BOOST_CHECK_EQUAL(sSE3->getX(), sSE3_R->values[0]);
+    BOOST_CHECK_EQUAL(sSE3->getY(), sSE3_R->values[1]);
+    BOOST_CHECK_EQUAL(sSE3->getZ(), sSE3_R->values[2]);
 
     sSE3_SO2 >> sC1;
     sC1 << sSE3_R;
 
     sC1 >> sC0;
     sSE3_copy = sC0->components[0];
-    EXPECT_EQ(sSE3_copy, sSE3);
+    BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
 
     sSE3.random();
 
     sSE3 >> sC2;
     sSE3_copy << sC2;
-    EXPECT_EQ(sSE3_copy, sSE3);
+    BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
 
 
     sSE3.random();
@@ -119,37 +123,37 @@ TEST(State, Scoped)
     sSE3 >> sSE3_R;
 
     (sSE3_R ^ sSE3_SO2) >> sSE3_copy;
-    EXPECT_EQ(sSE3_copy, sSE3);
-    EXPECT_EQ(sSE3_copy[pSE3 * sSE3_R.getSpace()], sSE3_R);
-    EXPECT_EQ(sSE3_copy[sSE3_SO2.getSpace()], sSE3_SO2);
+    BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
+    BOOST_CHECK_EQUAL(sSE3_copy[pSE3 * sSE3_R.getSpace()], sSE3_R);
+    BOOST_CHECK_EQUAL(sSE3_copy[sSE3_SO2.getSpace()], sSE3_SO2);
 
     sSE3->setY(1.0);
-    EXPECT_NEAR(sSE3.reals()[1], 1.0, 1e-12);
+    BOOST_OMPL_EXPECT_NEAR(sSE3.reals()[1], 1.0, 1e-12);
 
-    EXPECT_NEAR(sSE3[1], 1.0, 1e-12);
+    BOOST_OMPL_EXPECT_NEAR(sSE3[1], 1.0, 1e-12);
     sSE3[2] = 0.1;
-    EXPECT_NEAR(sSE3.reals()[2], 0.1, 1e-12);
+    BOOST_OMPL_EXPECT_NEAR(sSE3.reals()[2], 0.1, 1e-12);
 
     sSE3.random();
     std::vector<double> r = sSE3.reals();
-    EXPECT_EQ(r.size(), 7u);
+    BOOST_CHECK_EQUAL(r.size(), 7u);
     sSE3_copy = r;
-    EXPECT_EQ(sSE3_copy, sSE3);
-    EXPECT_EQ(sSE3[6], r[6]);
-    EXPECT_EQ(sSE3[0], r[0]);
-    EXPECT_EQ(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
+    BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
+    BOOST_CHECK_EQUAL(sSE3[6], r[6]);
+    BOOST_CHECK_EQUAL(sSE3[0], r[0]);
+    BOOST_CHECK_EQUAL(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
 
     sSE3_R = 0.5;
-    EXPECT_EQ(sSE3_R[0], 0.5);
+    BOOST_CHECK_EQUAL(sSE3_R[0], 0.5);
 
     sSE3 << sSE3_R;
     pSE3->setName("test");
-    EXPECT_EQ(sSE3["test"], 0.5);
+    BOOST_CHECK_EQUAL(sSE3["test"], 0.5);
     sSE3["test"] = 0.1;
-    EXPECT_EQ(sSE3[0], 0.1);
+    BOOST_CHECK_EQUAL(sSE3[0], 0.1);
 }
 
-TEST(State, ScopedRV)
+BOOST_AUTO_TEST_CASE(ScopedRV)
 {
     base::StateSpacePtr m(new base::RealVectorStateSpace(2));
 
@@ -158,29 +162,29 @@ TEST(State, ScopedRV)
     s1->values[1] = 2.0;
 
     base::ScopedState<base::RealVectorStateSpace> s2 = s1;
-    EXPECT_TRUE(s2->values[1] == s1->values[1]);
+    BOOST_CHECK(s2->values[1] == s1->values[1]);
 
     base::ScopedState<> s3(m);
     s3 = s1;
     base::ScopedState<> s4 = s3;
-    EXPECT_TRUE(s4 == s3);
-    EXPECT_TRUE(s4 == s1);
+    BOOST_CHECK(s4 == s3);
+    BOOST_CHECK(s4 == s1);
 
     base::ScopedState<base::RealVectorStateSpace> s5 = s2;
-    EXPECT_TRUE(s5 == s1);
+    BOOST_CHECK(s5 == s1);
 
     s1->values[1] = 4.0;
 
-    EXPECT_TRUE(s5 != s1);
+    BOOST_CHECK(s5 != s1);
 
     base::ScopedState<base::RealVectorStateSpace> s6(s5);
-    EXPECT_TRUE(s6 != s1);
+    BOOST_CHECK(s6 != s1);
     s1 = s5;
     s5 = s1;
-    EXPECT_TRUE(s6 == s1);
+    BOOST_CHECK(s6 == s1);
 }
 
-TEST(State, Allocation)
+BOOST_AUTO_TEST_CASE(Allocation)
 {
     base::StateSpacePtr m(new base::SE3StateSpace());
     base::RealVectorBounds b(3);
@@ -258,7 +262,7 @@ void randomizedAllocator(const base::SpaceInformation *si)
             si->freeState(states[i]);
 }
 
-TEST(State, AllocationWithThreads)
+BOOST_AUTO_TEST_CASE(AllocationWithThreads)
 {
     base::StateSpacePtr m(new base::SE3StateSpace());
     base::RealVectorBounds b(3);
@@ -281,8 +285,3 @@ TEST(State, AllocationWithThreads)
         << ompl::time::seconds(ompl::time::now() - start) << std::endl;
 }
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

@@ -34,7 +34,8 @@
 
 /* Author: Your Name */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "SampleContribTest"
+#include <boost/test/unit_test.hpp>
 
 // The following header file is useful for testing planners.
 // See ../../../../../tests/geometric/2dmap.cpp for example usage.
@@ -46,19 +47,13 @@
 using namespace ompl;
 
 
-TEST(SampleContrib, Basic)
+BOOST_AUTO_TEST_CASE(Basic)
 {
     // basic tests of correctness
 }
 
-TEST(SampleContrib, More)
+BOOST_AUTO_TEST_CASE(More)
 {
     // other tests, if you want
 }
 
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
