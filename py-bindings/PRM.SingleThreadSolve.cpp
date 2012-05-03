@@ -36,13 +36,16 @@
 
 #include "ompl/base/GoalSampleableRegion.h"
 
-ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus PRM_wrapper::solve(double solveTime)
 {
     using namespace ompl;
 
     checkValidity();
 
     static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 5;
+    base::PlannerTerminationCondition ptc = solveTime < 1.0
+        ? base::timedPlannerTerminationCondition(solveTime)
+        : base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1));
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
