@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include <boost/filesystem.hpp>
-#include <libgen.h>
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"

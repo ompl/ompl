@@ -94,7 +94,7 @@ void ompl::control::ControlSpace::printSettings(std::ostream &out) const
     out << "ControlSpace '" << getName() << "' instance: " << this << std::endl;
 }
 
-void ompl::control::CompoundControlSpace::addSubSpace(const ControlSpacePtr &component)
+void ompl::control::CompoundControlSpace::addSubspace(const ControlSpacePtr &component)
 {
     if (locked_)
         throw Exception("This control space is locked. No further components can be added");
@@ -103,12 +103,12 @@ void ompl::control::CompoundControlSpace::addSubSpace(const ControlSpacePtr &com
     componentCount_ = components_.size();
 }
 
-unsigned int ompl::control::CompoundControlSpace::getSubSpaceCount(void) const
+unsigned int ompl::control::CompoundControlSpace::getSubspaceCount(void) const
 {
     return componentCount_;
 }
 
-const ompl::control::ControlSpacePtr& ompl::control::CompoundControlSpace::getSubSpace(const unsigned int index) const
+const ompl::control::ControlSpacePtr& ompl::control::CompoundControlSpace::getSubspace(const unsigned int index) const
 {
     if (componentCount_ > index)
         return components_[index];
@@ -116,7 +116,7 @@ const ompl::control::ControlSpacePtr& ompl::control::CompoundControlSpace::getSu
         throw Exception("Subspace index does not exist");
 }
 
-const ompl::control::ControlSpacePtr& ompl::control::CompoundControlSpace::getSubSpace(const std::string &name) const
+const ompl::control::ControlSpacePtr& ompl::control::CompoundControlSpace::getSubspace(const std::string &name) const
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         if (components_[i]->getName() == name)

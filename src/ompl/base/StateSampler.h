@@ -133,8 +133,43 @@ namespace ompl
         private:
 
             /** \brief The number of samplers that are composed */
-            unsigned int                samplerCount_;
+            unsigned int                 samplerCount_;
 
+        };
+
+        /** \brief Construct a sampler that samples only within a subspace of the space */
+        class SubspaceStateSampler : public StateSampler
+        {
+        public:
+
+            /** \brief Construct a sampler for \e space but only sample components common to \e subspace. Use \e weight as a multiplicative factor for \e distance and \e stdDev in the sampleUniformNear() and sampleGaussian() functions. */
+            SubspaceStateSampler(const StateSpace *space, const StateSpace *subspace, double weight);
+            virtual ~SubspaceStateSampler(void);
+
+            virtual void sampleUniform(State *state);
+
+            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+
+            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+
+        protected:
+
+            /** \brief The subspace to sample */
+            const StateSpace *subspace_;
+
+            /** \brief The sampler for the subspace */
+            StateSamplerPtr   subspaceSampler_;
+
+            /** \brief The weigth factor to multiply distance and stdDev when sampling in the vicinity of a state */
+            double            weight_;
+
+        private:
+
+            /** \brief Temporary work area */
+            State            *work_;
+
+            /** \brief Temporary work area */
+            State            *work2_;
         };
 
         /** \brief Definition of a function that can allocate a state sampler */

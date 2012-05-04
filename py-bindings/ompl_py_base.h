@@ -45,6 +45,7 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/Goal.h"
+#include "ompl/base/PlannerData.h"
 #include "py_boost_function.hpp"
 
 #define DeclareStateType(T) \
@@ -71,11 +72,11 @@ namespace ompl
         DeclareStateType(Dubins);
         DeclareStateType(ReedsShepp);
 
-        inline int dummyVectorPlannerSolution()
+        inline int dummySTLContainerSize()
         {
-            return sizeof(std::vector<ompl::base::PlannerSolution>);
+            return sizeof(std::vector<ompl::base::PlannerSolution>)
+                + sizeof(std::map<unsigned int, ompl::base::PlannerDataEdge const *>);
         }
-
     }
 }
 

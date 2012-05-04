@@ -73,7 +73,7 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 
@@ -177,6 +177,9 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                                            rng_;
+
+            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            Motion                                         *lastGoalMotion_;
         };
 
     }

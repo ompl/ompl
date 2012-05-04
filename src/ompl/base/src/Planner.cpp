@@ -117,15 +117,14 @@ void ompl::base::Planner::clear(void)
 
 void ompl::base::Planner::getPlannerData(PlannerData &data) const
 {
-    data.si = si_;
 }
 
-bool ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double checkInterval)
+ompl::base::PlannerStatus ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double checkInterval)
 {
     return solve(PlannerThreadedTerminationCondition(ptc, checkInterval));
 }
 
-bool ompl::base::Planner::solve(double solveTime)
+ompl::base::PlannerStatus ompl::base::Planner::solve(double solveTime)
 {
     if (solveTime < 1.0)
         return solve(timedPlannerTerminationCondition(solveTime));

@@ -45,6 +45,7 @@ ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::P
     specs_.directed = true;
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange);
     Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias);
@@ -73,6 +74,7 @@ void ompl::geometric::LazyRRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::geometric::LazyRRT::freeMemory(void)
@@ -90,7 +92,7 @@ void ompl::geometric::LazyRRT::freeMemory(void)
     }
 }
 
-bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
@@ -107,7 +109,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
     if (nn_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -158,6 +160,8 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
             solution = motion;
             solutionFound = true;
 
+            lastGoalMotion_ = solution;
+
             // Check that the solution is valid:
             // construct the solution path
             std::vector<Motion*> mpath;
@@ -198,7 +202,7 @@ bool ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &pt
 
     msg_.inform("Created %u states", nn_->size());
 
-    return solutionFound;
+    return solutionFound ?  base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::geometric::LazyRRT::removeMotion(Motion *motion)
@@ -237,10 +241,20 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
+    data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        data.recordEdge(motions[i]->parent ? motions[i]->parent->state : NULL, motions[i]->state);
-        if (motions[i]->valid)
-            data.tagState(motions[i]->state, 1);
+        double weight = 0.0;
+        if (motions[i]->parent)
+            weight = si_->distance(motions[i]->parent->state, motions[i]->state);
+
+        if (motions[i]->parent == NULL)
+            data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+        else
+            data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : NULL),
+                         base::PlannerDataVertex(motions[i]->state));
+
+        data.tagState(motions[i]->state, motions[i]->valid ? 1 : 0);
     }
 }

@@ -244,7 +244,7 @@ void planWithSimpleSetup(void)
     static_cast<DemoStatePropagator*>(ss.getStatePropagator().get())->setIntegrationTimeStep(ss.getSpaceInformation()->getPropagationStepSize());
 
     /// attempt to solve the problem within one second of planning time
-    bool solved = ss.solve(10.0);
+    ob::PlannerStatus solved = ss.solve(10.0);
 
     if (solved)
     {

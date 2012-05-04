@@ -44,6 +44,7 @@ ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT"
     specs_.approximateSolutions = true;
     siC_ = si.get();
     addIntermediateStates_ = false;
+    lastGoalMotion_ = NULL;
 
     goalBias_ = 0.05;
 
@@ -72,6 +73,7 @@ void ompl::control::RRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::RRT::freeMemory(void)
@@ -91,7 +93,7 @@ void ompl::control::RRT::freeMemory(void)
     }
 }
 
-bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -108,7 +110,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
     if (nn_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -230,6 +232,8 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -258,7 +262,7 @@ bool ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", nn_->size());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
@@ -269,25 +273,19 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
-    {
-        double delta = siC_->getPropagationStepSize();
+    double delta = siC_->getPropagationStepSize();
 
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        {
-            const Motion* m = motions[i];
-            if (m->parent)
-                cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
-            else
-                cpd->recordEdge(NULL, m->state, NULL, 0.);
-        }
-    }
-    else
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+
+    for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        {
-            const Motion* m = motions[i];
-            data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
-        }
+        const Motion* m = motions[i];
+        if (m->parent)
+            data.addEdge(base::PlannerDataVertex(m->parent->state),
+                         base::PlannerDataVertex(m->state),
+                         control::PlannerDataEdgeControl(m->control, m->steps * delta));
+        else
+            data.addStartVertex(base::PlannerDataVertex(m->state));
     }
 }

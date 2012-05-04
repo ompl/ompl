@@ -64,7 +64,7 @@ void ompl::control::Syclop::clear(void)
     goalRegions_.clear();
 }
 
-bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
+ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 {
     checkValidity();
     if (!graphReady_)
@@ -86,7 +86,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     if (startRegions_.empty())
     {
         msg_.error("There are no valid start states");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     //We need at least one valid goal sample so that we can find the goal region
@@ -97,7 +97,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         else
         {
             msg_.error("Unable to sample a valid goal state");
-            return false;
+            return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
@@ -197,7 +197,7 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
         goal->addSolutionPath(base::PathPtr(path), !solved, goalDist);
         addedSolution = true;
     }
-    return addedSolution;
+    return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::control::Syclop::setLeadComputeFn(const LeadComputeFn& compute)

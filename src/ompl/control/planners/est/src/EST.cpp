@@ -46,6 +46,7 @@ ompl::control::EST::EST(const SpaceInformationPtr &si) : base::Planner(si, "EST"
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
     siC_ = si.get();
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
@@ -75,6 +76,7 @@ void ompl::control::EST::clear(void)
     tree_.grid.clear();
     tree_.size = 0;
     pdf_.clear ();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::EST::freeMemory(void)
@@ -92,7 +94,7 @@ void ompl::control::EST::freeMemory(void)
     }
 }
 
-bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -110,7 +112,7 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
     if (tree_.grid.size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     // Ensure that we have a state sampler AND a control sampler
@@ -181,6 +183,8 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
     // Constructing the solution path
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         std::vector<Motion*> mpath;
         while (solution != NULL)
         {
@@ -207,7 +211,7 @@ bool ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
-    return addedSolution;
+    return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 ompl::control::EST::Motion* ompl::control::EST::selectMotion(void)
@@ -243,7 +247,19 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
     std::vector<MotionInfo> motions;
     tree_.grid.getContent(motions);
 
+    double stepSize = siC_->getPropagationStepSize();
+
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
+        {
+            if (motions[i][j]->parent)
+                data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                              base::PlannerDataVertex (motions[i][j]->state),
+                              PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+            else
+                data.addStartVertex (base::PlannerDataVertex (motions[i][j]->state));
+        }
 }

@@ -49,7 +49,7 @@
 		  // free any allocated memory
 	      }
 	      
-	      virtual bool solve(const base::PlannerTerminationCondition &ptc)
+	      virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc)
 	      {
 		  // make sure the planner is configured correctly; this makes sure there 
 		  // are input states and a goal is specified
@@ -78,7 +78,7 @@
 		  // compute a valid motion plan and set it in the goal
 		  pdef_->getGoal()->addSolutionPath(...);
 		  
-		  return ...; // true if a solution path was added to the goal, false otherwise
+		  return base::PlannerStatus::EXACT_SOLUTION; // see base::PlannerStatus for the possible return values
 	      }
 	      
 	      virtual void clear(void)

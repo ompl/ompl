@@ -293,6 +293,7 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
+    double sl = -1.0; // cache for solution length
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -304,14 +305,22 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 if (g->getMaximumPathLength() < std::numeric_limits<double>::infinity())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-                    if (p->length () < g->getMaximumPathLength()) // Sufficient solution
+                    double pl = p->length(); // avoid computing path length multiple times
+                    if (pl < g->getMaximumPathLength()) // Sufficient solution
                     {
                         solution = p;
                         return true;
                     }
-
-                    else if (!solution || (solution && p->length () < solution->length())) // approximation
-                        solution = p;
+                    else
+                    {
+                        if (solution && sl < 0.0)
+                            sl = solution->length();
+                        if (!solution || (solution && pl < sl)) // approximation
+                        {
+                            solution = p;
+                            sl = pl;
+                        }
+                    }
                 }
                 else // Accept the solution, regardless of length
                 {
@@ -330,7 +339,7 @@ bool ompl::geometric::PRM::addedNewSolution (void) const
     return addedSolution_;
 }
 
-bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -338,7 +347,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     if (!goal)
     {
         msg_.error("Goal undefined or unknown type of goal");
-        return false;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     // Add the valid start states as milestones
@@ -348,13 +357,13 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     if (startM_.size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
         msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     // Ensure there is at least one valid goal state
@@ -367,7 +376,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
         if (goalM_.empty())
         {
             msg_.error("Unable to find any valid goal states");
-            return false;
+            return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
@@ -410,7 +419,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 
     if (sol)
     {
-        if(addedNewSolution())
+        if (addedNewSolution())
             goal->addSolutionPath (sol);
         else
             // the solution is exact, but not as short as we'd like it to be
@@ -420,7 +429,7 @@ bool ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
     si_->freeStates(xstates);
 
     // Return true if any solution was found.
-    return sol != NULL;
+    return sol ? (addedNewSolution() ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
 }
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)
@@ -497,11 +506,23 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
+    // Explicitly add start and goal states:
+    for (size_t i = 0; i < startM_.size(); ++i)
+        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]]));
+
+    for (size_t i = 0; i < goalM_.size(); ++i)
+        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]]));
+
+    // Adding edges and all other vertices simultaneously
     foreach(const Edge e, boost::edges(g_))
     {
         const Vertex v1 = boost::source(e, g_);
         const Vertex v2 = boost::target(e, g_);
-        data.recordEdge(stateProperty_[v1], stateProperty_[v2]);
+        data.addEdge(base::PlannerDataVertex(stateProperty_[v1]),
+                     base::PlannerDataVertex(stateProperty_[v2]));
+
+        // Add the reverse edge, since we're constructing an undirected roadmap
+        data.addEdge(base::PlannerDataVertex(stateProperty_[v2]),
+                     base::PlannerDataVertex(stateProperty_[v1]));
     }
 }
-

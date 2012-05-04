@@ -69,7 +69,7 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 
@@ -174,6 +174,9 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                           rng_;
+
+            /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
+            std::pair<base::State*, base::State*>      connectionPoint_;
         };
 
     }

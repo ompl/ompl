@@ -134,7 +134,7 @@ void planWithIK(void)
     ss.setGoal(goal);
 
     // attempt to solve the problem
-    bool solved = ss.solve(3.0);
+    ob::PlannerStatus solved = ss.solve(3.0);
 
     if (solved)
     {

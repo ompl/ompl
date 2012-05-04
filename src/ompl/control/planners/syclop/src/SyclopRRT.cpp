@@ -43,6 +43,7 @@ void ompl::control::SyclopRRT::setup(void)
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocDirectedControlSampler();
+    lastGoalMotion_ = NULL;
 
     // Create a default GNAT nearest neighbors structure if the user doesn't want
     // the default regionalNN check from the discretization
@@ -59,6 +60,7 @@ void ompl::control::SyclopRRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
@@ -67,26 +69,19 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
     std::vector<Motion*> motions;
     if (nn_)
         nn_->list(motions);
-    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
-    {
-        const double delta = siC_->getPropagationStepSize();
+    double delta = siC_->getPropagationStepSize();
 
-        for (std::vector<Motion*>::const_iterator i = motions.begin(); i != motions.end(); ++i)
-        {
-            const Motion* m = *i;
-            if (m->parent)
-                cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
-            else
-                cpd->recordEdge(NULL, m->state, NULL, 0.);
-        }
-    }
-    else
+    if (lastGoalMotion_)
+        data.addGoalVertex (base::PlannerDataVertex(lastGoalMotion_->state));
+
+    for (size_t i = 0; i < motions.size(); ++i)
     {
-        for (std::vector<Motion*>::const_iterator i = motions.begin(); i != motions.end(); ++i)
-        {
-            const Motion* m = *i;
-            data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
-        }
+        if (motions[i]->parent)
+            data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
+                          base::PlannerDataVertex(motions[i]->state),
+                          control::PlannerDataEdgeControl (motions[i]->control, motions[i]->steps * delta));
+        else
+            data.addStartVertex (base::PlannerDataVertex(motions[i]->state));
     }
 }
 
@@ -163,6 +158,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
         newMotions.push_back(motion);
         if (nn_)
             nn_->add(motion);
+        lastGoalMotion_ = motion;
     }
 
     si_->freeState(rmotion->state);

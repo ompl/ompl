@@ -34,11 +34,16 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#include <boost/test/unit_test.hpp>
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/util/RandomNumbers.h"
 #include <limits>
+
+// define a convenience macro
+#ifndef BOOST_OMPL_EXPECT_NEAR
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
+#endif
 
 namespace ompl
 {
@@ -72,14 +77,14 @@ namespace ompl
             for (int i = 0 ; i < n_ ; ++i)
             {
                 s1.random();
-                EXPECT_NEAR(s1.distance(s1), 0.0, eps_);
+                BOOST_OMPL_EXPECT_NEAR(s1.distance(s1), 0.0, eps_);
                 s2.random();
                 if (s1 != s2)
                 {
                     double d12 = s1.distance(s2);
-                    EXPECT_TRUE(d12 > 0.0);
+                    BOOST_CHECK(d12 > 0.0);
                     double d21 = s2.distance(s1);
-                    EXPECT_NEAR(d12, d21, eps_);
+                    BOOST_OMPL_EXPECT_NEAR(d12, d21, eps_);
                 }
             }
         }
@@ -96,17 +101,17 @@ namespace ompl
                 s1.random(); s2.random(); s3.random();
 
                 space_->interpolate(s1.get(), s2.get(), 0.0, s3.get());
-                EXPECT_NEAR(s1.distance(s3), 0.0, eps_);
+                BOOST_OMPL_EXPECT_NEAR(s1.distance(s3), 0.0, eps_);
 
                 space_->interpolate(s1.get(), s2.get(), 1.0, s3.get());
-                EXPECT_NEAR(s2.distance(s3), 0.0, eps_);
+                BOOST_OMPL_EXPECT_NEAR(s2.distance(s3), 0.0, eps_);
 
                 space_->interpolate(s1.get(), s2.get(), 0.5, s3.get());
-                EXPECT_NEAR(s1.distance(s3) + s3.distance(s2), s1.distance(s2), eps_);
+                BOOST_OMPL_EXPECT_NEAR(s1.distance(s3) + s3.distance(s2), s1.distance(s2), eps_);
 
                 space_->interpolate(s3.get(), s2.get(), 0.5, s3.get());
                 space_->interpolate(s1.get(), s2.get(), 0.75, s2.get());
-                EXPECT_NEAR(s2.distance(s3), 0.0, eps_);
+                BOOST_OMPL_EXPECT_NEAR(s2.distance(s3), 0.0, eps_);
             }
         }
 

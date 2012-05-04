@@ -72,23 +72,23 @@ void ompl::tools::ParallelPlan::clearHybridizationPaths(void)
     phybrid_->clear();
 }
 
-bool ompl::tools::ParallelPlan::solve(double solveTime, bool hybridize)
+ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(double solveTime, bool hybridize)
 {
     return solve(solveTime, 1, planners_.size(), hybridize);
 }
 
-bool ompl::tools::ParallelPlan::solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize)
+ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize)
 {
     return solve(base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)), minSolCount, maxSolCount, hybridize);
 }
 
 
-bool ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, bool hybridize)
+ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, bool hybridize)
 {
     return solve(ptc, 1, planners_.size(), hybridize);
 }
 
-bool ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize)
+ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize)
 {
     if (!pdef_->getSpaceInformation()->isSetup())
         pdef_->getSpaceInformation()->setup();
@@ -123,7 +123,7 @@ bool ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &p
 
     msg_.inform("Solution found in %f seconds", time::seconds(time::now() - start));
 
-    return pdef_->getGoal()->isAchieved();
+    return base::PlannerStatus(pdef_->getGoal()->isAchieved(), pdef_->getGoal()->isApproximate());
 }
 
 void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc)

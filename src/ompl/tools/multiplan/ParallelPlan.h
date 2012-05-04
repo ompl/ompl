@@ -90,24 +90,24 @@ namespace ompl
             /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
                 If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
                 If \e hybridize is true, all planners are executed until termination and the obtained solution paths are hybridized. */
-            bool solve(double solveTime, bool hybridize = true);
+            base::PlannerStatus solve(double solveTime, bool hybridize = true);
 
             /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc becomes true.
                 If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
                 If \e hybridize is true, all planners are executed until termination and the obtained solution paths are hybridized. */
-            bool solve(const base::PlannerTerminationCondition &ptc, bool hybridize = true);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, bool hybridize = true);
 
             /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
                 If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions maintained by ompl::base::Goal), the rest of the planners are stopped as well.
                 If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new solutions were obtained.
                 While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized. */
-            bool solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
+            base::PlannerStatus solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
 
             /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc becomes true.
                 If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions maintained by ompl::base::Goal), the rest of the planners are stopped as well.
                 If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new solutions were obtained.
                 While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized. */
-            bool solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
 
         protected:
 

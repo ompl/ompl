@@ -202,7 +202,7 @@ void plan(void)
     pdef->print(std::cout);
 
     // attempt to solve the problem within one second of planning time
-    bool solved = planner->solve(10.0);
+    ob::PlannerStatus solved = planner->solve(10.0);
 
     if (solved)
     {
@@ -267,7 +267,7 @@ void planWithSimpleSetup(void)
     ss.setStartAndGoalStates(start, goal, 0.05);
 
     // attempt to solve the problem within one second of planning time
-    bool solved = ss.solve(10.0);
+    ob::PlannerStatus solved = ss.solve(10.0);
 
     if (solved)
     {

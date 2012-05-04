@@ -52,6 +52,7 @@ ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(s
     badScoreFactor_ = 0.45;
     goodScoreFactor_ = 0.9;
     tree_.grid.onCellUpdate(computeImportance, NULL);
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
     Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
@@ -89,6 +90,7 @@ void ompl::control::KPIECE1::clear(void)
     tree_.grid.clear();
     tree_.size = 0;
     tree_.iteration = 1;
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::control::KPIECE1::freeMemory(void)
@@ -173,7 +175,7 @@ unsigned int ompl::control::KPIECE1::findNextMotion(const std::vector<Grid::Coor
     return count - 1;
 }
 
-bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
@@ -189,7 +191,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     if (tree_.grid.size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!controlSampler_)
@@ -315,6 +317,8 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -342,7 +346,7 @@ bool ompl::control::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
     msg_.inform("Created %u states in %u cells (%u internal + %u external)", tree_.size, tree_.grid.size(),
                  tree_.grid.countInternal(), tree_.grid.countExternal());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
@@ -411,29 +415,25 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     Grid::CellArray cells;
     tree_.grid.getCells(cells);
 
-    if (PlannerData *cpd = dynamic_cast<control::PlannerData*>(&data))
-    {
-        double delta = siC_->getPropagationStepSize();
+    double delta = siC_->getPropagationStepSize();
 
-        for (unsigned int i = 0 ; i < cells.size() ; ++i)
-            for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
-            {
-                const Motion* m = cells[i]->data->motions[j];
-                if (m->parent)
-                    cpd->recordEdge(m->parent->state, m->state, m->control, m->steps * delta);
-                else
-                    cpd->recordEdge(NULL, m->state, NULL, 0.);
-                cpd->tagState(m->state, cells[i]->border ? 2 : 1);
-            }
-    }
-    else
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+
+    for (unsigned int i = 0 ; i < cells.size() ; ++i)
     {
-        for (unsigned int i = 0 ; i < cells.size() ; ++i)
-            for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
-            {
-                const Motion* m = cells[i]->data->motions[j];
-                data.recordEdge(m->parent ? m->parent->state : NULL, m->state);
-                data.tagState(m->state, cells[i]->border ? 2 : 1);
-            }
+        for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
+        {
+            const Motion* m = cells[i]->data->motions[j];
+            if (m->parent)
+                data.addEdge(base::PlannerDataVertex (m->parent->state),
+                             base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                             control::PlannerDataEdgeControl (m->control, m->steps * delta));
+            else
+                data.addStartVertex(base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
+
+            // A state created as a parent first may have an improper tag variable
+            data.tagState(m->state, cells[i]->border ? 2 : 1);
+        }
     }
 }

@@ -116,12 +116,12 @@ void ompl::geometric::SimpleSetup::clear(void)
         pdef_->getGoal()->clearSolutionPaths();
 }
 
-bool ompl::geometric::SimpleSetup::solve(double time)
+ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(double time)
 {
     setup();
     invalid_request_ = false;
     time::point start = time::now();
-    bool result = planner_->solve(time);
+    base::PlannerStatus result = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
     if (result)
         msg_.inform("Solution found in %f seconds", planTime_);
@@ -134,12 +134,12 @@ bool ompl::geometric::SimpleSetup::solve(double time)
     return result;
 }
 
-bool ompl::geometric::SimpleSetup::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(const base::PlannerTerminationCondition &ptc)
 {
     setup();
     invalid_request_ = false;
     time::point start = time::now();
-    bool result = planner_->solve(ptc);
+    base::PlannerStatus result = planner_->solve(ptc);
     planTime_ = time::seconds(time::now() - start);
     if (result)
         msg_.inform("Solution found in %f seconds", planTime_);
@@ -205,12 +205,11 @@ bool ompl::geometric::SimpleSetup::haveExactSolutionPath(void) const
     return haveSolutionPath() && (!getGoal()->isApproximate() || getGoal()->getDifference() < std::numeric_limits<double>::epsilon());
 }
 
-ompl::base::PlannerData ompl::geometric::SimpleSetup::getPlannerData(void) const
+void ompl::geometric::SimpleSetup::getPlannerData(base::PlannerData &pd) const
 {
-    base::PlannerData pd;
+    pd.clear();
     if (planner_)
         planner_->getPlannerData(pd);
-    return pd;
 }
 
 void ompl::geometric::SimpleSetup::print(std::ostream &out) const

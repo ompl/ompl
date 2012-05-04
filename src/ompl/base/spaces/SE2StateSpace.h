@@ -113,8 +113,8 @@ namespace ompl
             {
                 setName("SE2" + getName());
                 type_ = STATE_SPACE_SE2;
-                addSubSpace(StateSpacePtr(new RealVectorStateSpace(2)), 1.0);
-                addSubSpace(StateSpacePtr(new SO2StateSpace()), 0.5);
+                addSubspace(StateSpacePtr(new RealVectorStateSpace(2)), 1.0);
+                addSubspace(StateSpacePtr(new SO2StateSpace()), 0.5);
                 lock();
             }
 

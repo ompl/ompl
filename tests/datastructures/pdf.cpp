@@ -34,49 +34,53 @@
 
 /* Author: Matt Maly */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "PDF"
+#include <boost/test/unit_test.hpp>
 #include "ompl/datastructures/PDF.h"
 #include "ompl/util/RandomNumbers.h"
 #include <cmath>
 #include <vector>
 
-TEST(PDF, Simple)
+// define a convenience macro
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
+
+BOOST_AUTO_TEST_CASE(Simple)
 {
     typedef ompl::PDF<int>::Element Element;
     ompl::PDF<int> p;
-    EXPECT_TRUE(p.empty());
+    BOOST_CHECK(p.empty());
     p.add(0, 1.0);
-    EXPECT_EQ(0, p.sample(0.5));
-    EXPECT_EQ(1u, p.size());
-    EXPECT_FALSE(p.empty());
+    BOOST_CHECK_EQUAL(0, p.sample(0.5));
+    BOOST_CHECK_EQUAL(1u, p.size());
+    BOOST_CHECK_EQUAL(p.empty(), false);
     p.add(1, 0.0);
     p.add(2, 0.0);
     p.add(3, 0.0);
-    EXPECT_EQ(0, p.sample(0.5));
-    EXPECT_EQ(4u, p.size());
+    BOOST_CHECK_EQUAL(0, p.sample(0.5));
+    BOOST_CHECK_EQUAL(4u, p.size());
 
     p.clear();
     Element* e25 = p.add(0, 25);
     // 25
-    EXPECT_EQ(0, p.sample(1.0));
+    BOOST_CHECK_EQUAL(0, p.sample(1.0));
 
     Element* e50 = p.add(1, 50);
     // 25 50
-    EXPECT_EQ(0, p.sample(0.3));
-    EXPECT_EQ(1, p.sample(0.5));
+    BOOST_CHECK_EQUAL(0, p.sample(0.3));
+    BOOST_CHECK_EQUAL(1, p.sample(0.5));
 
     Element* e15 = p.add(2, 15);
     // 25 50 15
-    EXPECT_EQ(0, p.sample(0.25));
-    EXPECT_EQ(1, p.sample(0.5));
-    EXPECT_EQ(2, p.sample(0.85));
+    BOOST_CHECK_EQUAL(0, p.sample(0.25));
+    BOOST_CHECK_EQUAL(1, p.sample(0.5));
+    BOOST_CHECK_EQUAL(2, p.sample(0.85));
 
     Element* e10 = p.add(3, 10);
     // 25 50 15 10
-    EXPECT_EQ(0, p.sample(0.1));
-    EXPECT_EQ(1, p.sample(0.7));
-    EXPECT_EQ(2, p.sample(0.8));
-    EXPECT_EQ(3, p.sample(0.95));
+    BOOST_CHECK_EQUAL(0, p.sample(0.1));
+    BOOST_CHECK_EQUAL(1, p.sample(0.7));
+    BOOST_CHECK_EQUAL(2, p.sample(0.8));
+    BOOST_CHECK_EQUAL(3, p.sample(0.95));
 
     Element* e6 = p.add(4, 6);
     Element* e30 = p.add(5, 30);
@@ -85,52 +89,52 @@ TEST(PDF, Simple)
 
     p.remove(e1);
     // 25 50 15 10 6 30
-    EXPECT_EQ(5, p.sample(0.80));
-    EXPECT_EQ(0, p.sample(0.05));
+    BOOST_CHECK_EQUAL(5, p.sample(0.80));
+    BOOST_CHECK_EQUAL(0, p.sample(0.05));
 
     p.update(e30, 4);
     // 25 50 15 10 6 4
-    EXPECT_EQ(5, p.sample(0.98));
-    EXPECT_EQ(4, p.sample(0.93));
+    BOOST_CHECK_EQUAL(5, p.sample(0.98));
+    BOOST_CHECK_EQUAL(4, p.sample(0.93));
 
     p.remove(e6);
     // 25 50 15 10 4
-    EXPECT_EQ(5u, p.size());
-    EXPECT_EQ(3, p.sample(0.96));
-    EXPECT_EQ(1, p.sample(0.3));
+    BOOST_CHECK_EQUAL(5u, p.size());
+    BOOST_CHECK_EQUAL(3, p.sample(0.96));
+    BOOST_CHECK_EQUAL(1, p.sample(0.3));
 
     p.remove(e25);
     // 4 50 15 10
-    EXPECT_EQ(5, p.sample(0.03));
-    EXPECT_EQ(1, p.sample(0.4));
-    EXPECT_EQ(2, p.sample(0.85));
-    EXPECT_EQ(3, p.sample(0.95));
+    BOOST_CHECK_EQUAL(5, p.sample(0.03));
+    BOOST_CHECK_EQUAL(1, p.sample(0.4));
+    BOOST_CHECK_EQUAL(2, p.sample(0.85));
+    BOOST_CHECK_EQUAL(3, p.sample(0.95));
 
     p.remove(e50);
     // 4 10 15
-    EXPECT_EQ(2, p.sample(0.75));
+    BOOST_CHECK_EQUAL(2, p.sample(0.75));
 
     p.update(e10, 51);
     // 4 51 15
-    EXPECT_EQ(3, p.sample(0.5));
+    BOOST_CHECK_EQUAL(3, p.sample(0.5));
 
     p.remove(e10);
     p.remove(e30);
     // 15
-    EXPECT_EQ(2, p.sample(1.0));
+    BOOST_CHECK_EQUAL(2, p.sample(1.0));
 
     p.remove(e15);
-    EXPECT_EQ(0u, p.size());
-    EXPECT_TRUE(p.empty());
+    BOOST_CHECK_EQUAL(0u, p.size());
+    BOOST_CHECK(p.empty());
 
     p.clear();
 }
 
-TEST(PDF, Statistical)
+BOOST_AUTO_TEST_CASE(Statistical)
 {
     const std::size_t NUM_SAMPLES = 5000000;
     /* The following widening factor is multiplied by the standard error of the mean
-     * to obtain a reasonable range to pass to EXPECT_NEAR(). For five million samples,
+     * to obtain a reasonable range to pass to BOOST_OMPL_EXPECT_NEAR(). For five million samples,
      * a widening factor of 2.5 seems sufficient. If the number of samples is increased,
      * then this widening factor can be decreased. */
     const double STDERR_WIDENING_FACTOR = 2.5;
@@ -164,7 +168,7 @@ TEST(PDF, Statistical)
         variance += elem.second*(elem.first-mean)*(elem.first-mean);
     }
     variance /= sumWeights;
-    const double stderr = sqrt(variance/NUM_SAMPLES);
+    double standerr = sqrt(variance/NUM_SAMPLES);
 
     double sampleMean = 0.0;
     ompl::RNG rand;
@@ -172,11 +176,6 @@ TEST(PDF, Statistical)
         sampleMean += p.sample(rand.uniform01());
     sampleMean /= NUM_SAMPLES;
 
-    EXPECT_NEAR(sampleMean, mean, STDERR_WIDENING_FACTOR*stderr);
+    BOOST_OMPL_EXPECT_NEAR(sampleMean, mean, STDERR_WIDENING_FACTOR*standerr);
 }
 
-int main(int argc, char** argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2012, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,28 +34,19 @@
 
 /* Author: Mark Moll */
 
-#include "ompl/control/PlannerData.h"
+#include "ompl/base/PlannerStatus.h"
 
-void ompl::control::PlannerData::clear(void)
+std::string ompl::base::PlannerStatus::asString(void) const
 {
-    base::PlannerData::clear();
-    controls.clear();
-    controlDurations.clear();
-}
-
-int ompl::control::PlannerData::recordEdge(const base::State *s1, const base::State *s2,
-    const Control* c, double duration)
-{
-    int i = base::PlannerData::recordEdge(s1,s2);
-    if (i!=-1)
+    switch (status_)
     {
-        if (i >= (int) controls.size())
-        {
-            controls.resize(i+1);
-            controlDurations.resize(i+1);
-        }
-        controls[i].push_back(c);
-        controlDurations[i].push_back(duration);
+    case INVALID_START: return std::string("Invalid start");
+    case INVALID_GOAL: return std::string("Invalid goal");
+    case UNRECOGNIZED_GOAL_TYPE: return std::string("Unrecognized goal type");
+    case TIMEOUT: return std::string("Timeout");
+    case APPROXIMATE_SOLUTION: return std::string("Approximate solution");
+    case EXACT_SOLUTION: return std::string("Exact solution");
+    case CRASH: return std::string("Crash");
+    default: return std::string("Unknown status");
     }
-    return i;
 }
