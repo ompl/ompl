@@ -217,6 +217,18 @@ class ompl_base_generator_t(code_generator_t):
         except:
             pass
 
+        cls = self.ompl_ns.class_('PlannerStatus')
+        # rename to something more memorable than the default Py++ name for
+        # the casting operator:
+        # as__scope_ompl_scope_base_scope_PlannerStatus_scope_StatusType
+        cls.operator(lambda decl: decl.name=='operator ::ompl::base::PlannerStatus::StatusType').rename('getStatus')
+        # for python 2.x
+        cls.add_registration_code(
+            'def("__nonzero__", &ompl::base::PlannerStatus::operator bool)')
+        # for python 3.x
+        cls.add_registration_code(
+            'def("__bool__", &ompl::base::PlannerStatus::operator bool)')
+
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
         #self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>').include()
