@@ -270,10 +270,10 @@ namespace ompl
             /// \brief Returns a map of out-going edges from vertex with index \e v.
             /// Key = vertex index, value = edge structure.  The number of outgoing edges from \e v is returned
             unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
-            /// \brief Returns the weight of the edge between the given vertex indexes.
+            /// \brief Returns the weight of the edge between the given vertex indices.
             /// INVALID_WEIGHT is returned for a non-existant edge.
             double getEdgeWeight (unsigned int v1, unsigned int v2) const;
-            /// \brief Sets the weight of the edge between the given vertex indexess.
+            /// \brief Sets the weight of the edge between the given vertex indices.
             /// If an edge between v1 and v2 does not exist, false is returned.
             bool setEdgeWeight (unsigned int v1, unsigned int v2, double weight);
             /// \brief Computes the weight for all edges given the EdgeWeightFn \e f
@@ -291,6 +291,15 @@ namespace ompl
             /// \}
             /// \name Advanced graph extraction
             /// \{
+
+            /// \brief Extracts the minimum spanning tree of the data rooted at the vertex
+            /// with index \e v.  The minimum spanning tree is saved into \e mst.
+            /// O(|E| log |V|) complexity.
+            void extractMinimumSpanningTree (unsigned int v, PlannerData &mst) const;
+            /// \brief Extracts the subset of PlannerData reachable from the vertex with index
+            /// v.  For tree structures, this will be the sub-tree rooted at v. The reachable set
+            /// is saved into \e data.
+            void extractReachable(unsigned int v, PlannerData &data) const;
 
             /// \brief Extract a Boost.Graph object from this PlannerData.
             /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The
