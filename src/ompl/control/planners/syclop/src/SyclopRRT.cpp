@@ -105,7 +105,9 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
 {
     Motion* rmotion = new Motion(siC_);
     base::StateSamplerPtr sampler(si_->allocStateSampler());
-    decomp_->sampleFromRegion(region.index, sampler, rmotion->state);
+    std::vector<double> coord(decomp_->getDimension());
+    decomp_->sampleFromRegion(region.index, rng_, coord);
+    decomp_->sampleFullState(sampler, coord, rmotion->state);
 
     Motion* nmotion;
     if (regionalNN_)

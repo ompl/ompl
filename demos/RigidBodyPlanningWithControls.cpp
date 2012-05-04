@@ -43,6 +43,8 @@
 #include <ompl/control/planners/est/EST.h>
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/SyclopEST.h>
+#include <ompl/control/planners/syclop/GridDecomposition.h>
+#include <ompl/control/planners/syclop/SimpleTriangularDecomposition.h>
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
 #include <iostream>
@@ -64,18 +66,32 @@ public:
         coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
         coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
     }
-    virtual void sampleFromRegion(const int rid, const ob::StateSamplerPtr& sampler, ob::State* s)
+
+    virtual void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const
     {
-        const ob::RealVectorBounds& regionBounds(getRegionBounds(rid));
         sampler->sampleUniform(s);
-        s->as<ob::SE2StateSpace::StateType>()->setX(
-            rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]));
-        s->as<ob::SE2StateSpace::StateType>()->setY(
-            rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]));
+        s->as<ob::SE2StateSpace::StateType>()->setXY(coord[0], coord[1]);
+    }
+};
+class MyTriangularDecomposition : public oc::SimpleTriangularDecomposition
+{
+public:
+    MyTriangularDecomposition(const ob::RealVectorBounds& bounds)
+        : oc::SimpleTriangularDecomposition(2, bounds)
+    {
+    }
+    virtual void project(const ob::State* s, std::vector<double>& coord) const
+    {
+        coord.resize(2);
+        coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
+        coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
     }
 
-private:
-    ompl::RNG rng_;
+    virtual void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const
+    {
+        sampler->sampleUniform(s);
+        s->as<ob::SE2StateSpace::StateType>()->setXY(coord[0], coord[1]);
+    }
 };
 
 
@@ -167,7 +183,8 @@ void plan(void)
     //ob::PlannerPtr planner(new oc::RRT(si));
     //ob::PlannerPtr planner(new oc::EST(si));
     //ob::PlannerPtr planner(new oc::KPIECE1(si));
-    oc::DecompositionPtr decomp(new MyDecomposition(32, bounds));
+    //oc::DecompositionPtr decomp(new MyDecomposition(32, bounds));
+    oc::DecompositionPtr decomp(new MyTriangularDecomposition(bounds));
     ob::PlannerPtr planner(new oc::SyclopEST(si, decomp));
     //ob::PlannerPtr planner(new oc::SyclopRRT(si, decomp));
 

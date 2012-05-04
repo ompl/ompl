@@ -43,6 +43,7 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/util/RandomNumbers.h"
 
 namespace ompl
 {
@@ -63,7 +64,7 @@ namespace ompl
         public:
 
             /** \brief Constructor. Creates a Decomposition with a given number of regions, a given dimension, and a given set of bounds. */
-            Decomposition(const int n, const std::size_t dim, const base::RealVectorBounds& b) : numRegions_(n), dimension_(dim), bounds_(b)
+            Decomposition(const std::size_t dim, const base::RealVectorBounds& b, const int n = 0) : numRegions_(n), dimension_(dim), bounds_(b)
             {
                 if (dim > b.low.size())
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
@@ -106,15 +107,19 @@ namespace ompl
             /** \brief Stores a given region's neighbors into a given vector. */
             virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const = 0;
 
-            /** \brief Samples a State from a given region using a given StateSampler. */
-            virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s) = 0;
+            /** \brief Samples a projected coordinate from a given region. */
+            virtual void sampleFromRegion(const int rid, RNG& rng, std::vector<double>& coord) const = 0;
 
-            /** \brief Returns the bounds of a given region in this Decomposition. */
-            virtual const base::RealVectorBounds& getRegionBounds(const int rid) = 0;
+            /** \brief Samples a State using a projected coordinate and a StateSampler. */
+            virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const = 0;
 
         protected:
+            virtual void setNumRegions(const int n)
+            {
+                numRegions_ = n;
+            }
 
-            const int numRegions_;
+            int numRegions_;
             const std::size_t dimension_;
             const base::RealVectorBounds bounds_;
             msg::Interface msg_;

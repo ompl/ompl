@@ -43,6 +43,7 @@
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
+#include "ompl/util/RandomNumbers.h"
 
 namespace ompl
 {
@@ -68,14 +69,23 @@ namespace ompl
 
             virtual int locateRegion(const base::State* s) const;
 
-            virtual const base::RealVectorBounds& getRegionBounds(const int rid);
+            virtual void sampleFromRegion(const int rid, RNG& rng, std::vector<double>& coord) const;
 
         protected:
-            /** \brief Converts a given region to a coordinate in the grid. */
-            void regionToCoord(int rid, std::vector<int>& coord) const;
+            /** \brief Helper method to return the bounds of a given region. */
+            virtual const base::RealVectorBounds& getRegionBounds(const int rid) const;
 
-            /** \brief Converts the given coordinate to the region in the grid. */
-            int coordToRegion (const std::vector<int> &coord) const;
+            /** \brief Converts a given region to a coordinate in the grid. */
+            void regionToGridCoord(int rid, std::vector<int>& coord) const;
+
+            /** \brief Converts the given grid coordinate to its corresponding region ID. */
+            int gridCoordToRegion (const std::vector<int> &coord) const;
+
+            /** \brief Converts a decomposition space coordinate to the ID of the region that contains iit. */
+            int coordToRegion(const std::vector<double>& coord) const;
+
+            /** \brief Converts a decomposition space coordinate to a grid coordinate. */
+            void coordToGridCoord(const std::vector<double>& coord, std::vector<int>& gridCoord) const;
 
             /** \brief Computes the neighbors of the given region in a n-dimensional grid */
             void computeGridNeighbors (int rid, std::vector <int> &neighbors) const;
@@ -86,7 +96,7 @@ namespace ompl
 
             const int length_;
             double cellVolume_;
-            boost::unordered_map<int, boost::shared_ptr<base::RealVectorBounds> > regToBounds_;
+            mutable boost::unordered_map<int, boost::shared_ptr<base::RealVectorBounds> > regToBounds_;
 
         private:
             /** \brief Helper method to return len^dim in call to super-constructor. */

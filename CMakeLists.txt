@@ -9,6 +9,7 @@ set(OMPL_DEMO_INSTALL_DIR share/ompl/demos
 set(OMPL_DOC_INSTALL_DIR share/ompl/doc
     CACHE STRING "Relative path to directory where documentation will be installed")
 
+
 include_directories("${OMPL_INCLUDE_DIR}")
 
 # set the default build type
@@ -53,11 +54,17 @@ if (OPENDE_FOUND)
   include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
+include(UseTriangle)
+include_directories(${TRIANGLE_INCLUDE_DIR})
+
+
 include(OMPLVersion)
 include(OMPLUtils)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+#add_subdirectory(triangle)
 
 add_subdirectory(src)
 add_subdirectory(py-bindings)
