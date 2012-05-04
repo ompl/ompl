@@ -521,7 +521,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     }
                 }
 
-                base::PlannerData pd;
+                base::PlannerData pd (gsetup_ ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation());
                 planners_[i]->getPlannerData(pd);
                 run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.numVertices());
                 run["graph motions INTEGER"] = boost::lexical_cast<std::string>(pd.numEdges());

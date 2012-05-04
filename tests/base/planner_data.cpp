@@ -50,7 +50,8 @@ using namespace ompl;
 BOOST_AUTO_TEST_CASE(SimpleConstruction)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::PlannerData data;
+    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    base::PlannerData data(si);
     std::vector<base::State*> states;
 
     // Creating 1000 states
@@ -111,7 +112,8 @@ BOOST_AUTO_TEST_CASE(SimpleConstruction)
 BOOST_AUTO_TEST_CASE(AdvancedConstruction)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::PlannerData data;
+    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    base::PlannerData data(si);
     std::vector<base::State*> states;
 
     // Creating 1000 states
@@ -212,7 +214,8 @@ public:
 BOOST_AUTO_TEST_CASE(DataIntegrity)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::PlannerData data;
+    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    base::PlannerData data(si);
     std::vector<base::State*> states;
 
     // Creating 1000 states
@@ -280,7 +283,8 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
 BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::PlannerData data;
+    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    base::PlannerData data(si);
     std::vector<base::State*> states;
 
     // Creating 1000 states
@@ -358,7 +362,8 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
 BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
 {
     base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::PlannerData data;
+    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    base::PlannerData data(si);
     std::vector<base::State*> states;
 
     // Creating 1000 states

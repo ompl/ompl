@@ -50,7 +50,7 @@ const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::b
 const double ompl::base::PlannerData::INVALID_WEIGHT = std::numeric_limits<double>::infinity();
 const unsigned int ompl::base::PlannerData::INVALID_INDEX = std::numeric_limits<unsigned int>::max();
 
-ompl::base::PlannerData::PlannerData (void)
+ompl::base::PlannerData::PlannerData (const SpaceInformationPtr &si) : si_(si)
 {
     graphRaw_ = new Graph();
 }
@@ -513,6 +513,11 @@ bool ompl::base::PlannerData::markGoalState (const base::State* st)
 
 void ompl::base::PlannerData::computeEdgeWeights(const ompl::base::PlannerData::EdgeWeightFn& f)
 {
+    // If f wasn't specified, use defaultEdgeWeight
+    ompl::base::PlannerData::EdgeWeightFn func = f;
+    if (!func)
+        func = boost::bind(&ompl::base::PlannerData::defaultEdgeWeight, this, _1, _2, _3);
+
     unsigned int nv = numVertices();
     for (unsigned int i = 0; i < nv; ++i)
     {
@@ -521,7 +526,7 @@ void ompl::base::PlannerData::computeEdgeWeights(const ompl::base::PlannerData::
 
         std::map<unsigned int, const PlannerDataEdge*>::const_iterator it;
         for (it = nbrs.begin(); it != nbrs.end(); ++it)
-            setEdgeWeight(i, it->first, f(getVertex(i), getVertex(it->first), *it->second));
+            setEdgeWeight(i, it->first, func(getVertex(i), getVertex(it->first), *it->second));
     }
 }
 
@@ -593,3 +598,9 @@ const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void
     const ompl::base::PlannerData::Graph* boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
 }
+
+double ompl::base::PlannerData::defaultEdgeWeight(const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2, const base::PlannerDataEdge& /*e*/) const
+{
+    return si_->distance(v1.getState(), v2.getState());
+}
+
