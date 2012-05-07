@@ -1,7 +1,7 @@
 /**
 \page installPyPlusPlus Installation of Py++
 
-<a href="http://www.language-binding.net/pyplusplus/pyplusplus.html">Py++</a>
+<a href="https://sourceforge.net/projects/pygccxml/">Py++</a>
 requires pygccxml and GCC-XML. You need the versions of GCC-XML,
 pygccxml, and Py++ that are taken directly from their respective
 repositories. Directions for installing GCC-XML can be found <a

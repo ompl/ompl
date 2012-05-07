@@ -258,7 +258,7 @@ namespace ompl
             /** \brief Copy a state to another. The memory of source and destination should NOT overlap. */
             virtual void copyState(State *destination, const State *source) const = 0;
 
-            /** \brief Computes distance to between two states. This function satisfies the properties of a
+            /** \brief Computes distance between two states. This function satisfies the properties of a
                 metric and its return value will always be between 0 and getMaximumExtent() */
             virtual double distance(const State *state1, const State *state2) const = 0;
 
