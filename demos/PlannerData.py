@@ -196,11 +196,13 @@ def plan():
     start = ob.State(space)
     start().setX(-9)
     start().setY(-9)
+    start().setYaw(0)
 
     # create a goal state
     goal = ob.State(space)
     goal().setX(9)
     goal().setY(9)
+    goal().setYaw(0)
 
     ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 
@@ -210,16 +212,17 @@ def plan():
     # Lets use PRM.  It will have interesting PlannerData
     planner = og.PRM(ss.getSpaceInformation())
     ss.setPlanner(planner)
+    ss.setup()
 
     # attempt to solve the problem
-    solved = ss.solve(20.0)
+    solved = planner.solve(20.0)
 
     if solved:
         # print the path to screen
         print("Found solution:\n%s" % ss.getSolutionPath())
 
         # Extracting planner data from most recent solve attempt
-        pd = ob.PlannerData()
+        pd = ob.PlannerData(ss.getSpaceInformation())
         ss.getPlannerData(pd)
         if (graphtool):
             useGraphTool(pd, space)
