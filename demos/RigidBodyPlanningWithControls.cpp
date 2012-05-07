@@ -44,7 +44,7 @@
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/SyclopEST.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
-#include <ompl/control/planners/syclop/SimpleTriangularDecomposition.h>
+#include <ompl/control/planners/syclop/TriangularDecomposition.h>
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
 #include <iostream>
@@ -73,11 +73,11 @@ public:
         s->as<ob::SE2StateSpace::StateType>()->setXY(coord[0], coord[1]);
     }
 };
-class MyTriangularDecomposition : public oc::SimpleTriangularDecomposition
+class MyTriangularDecomposition : public oc::TriangularDecomposition
 {
 public:
     MyTriangularDecomposition(const ob::RealVectorBounds& bounds)
-        : oc::SimpleTriangularDecomposition(2, bounds)
+        : oc::TriangularDecomposition(2, bounds)
     {
     }
     virtual void project(const ob::State* s, std::vector<double>& coord) const

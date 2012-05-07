@@ -235,9 +235,12 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     {
         sampler->sampleUniform(s);
         int rid = decomp_->locateRegion(s);
-        if (checker->isValid(s))
-            ++numValid[rid];
-        ++numTotal[rid];
+        if (rid >= 0)
+        {
+            if (checker->isValid(s))
+                ++numValid[rid];
+            ++numTotal[rid];
+        }
     }
     si_->freeState(s);
 

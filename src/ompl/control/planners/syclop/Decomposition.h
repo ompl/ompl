@@ -95,10 +95,11 @@ namespace ompl
             }
 
             /** \brief Returns the volume of a given region in this Decomposition. */
-            virtual double getRegionVolume(const int rid) const = 0;
+            virtual double getRegionVolume(const int rid) = 0;
 
             /** \brief Returns the index of the region containing a given State.
-             * Most often, this is obtained by first calling project(). */
+             * Most often, this is obtained by first calling project().
+             * Returns -1 if no region contains the State. */
             virtual int locateRegion(const base::State* s) const = 0;
 
             /** \brief Project a given State to a set of coordinates in R^k, where k is the dimension of this Decomposition. */

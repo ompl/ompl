@@ -60,7 +60,7 @@ namespace ompl
             {
             }
 
-            virtual double getRegionVolume(const int rid) const
+            virtual double getRegionVolume(const int rid)
             {
                 return cellVolume_;
             }
