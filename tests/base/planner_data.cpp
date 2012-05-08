@@ -83,6 +83,13 @@ BOOST_AUTO_TEST_CASE(SimpleConstruction)
         BOOST_CHECK( data.edgeExists(i, i+1) );
     }
 
+    for (unsigned int i = 1; i < states.size(); ++i)
+    {
+        std::vector<unsigned int> neighbors;
+        BOOST_REQUIRE_EQUAL( data.getIncomingEdges(i, neighbors), 1u );
+        BOOST_CHECK_EQUAL( neighbors[0], i-1 );
+    }
+
     // We should have #states vertices and #states-1 edges at this point
     BOOST_CHECK_EQUAL( data.numVertices(), states.size() );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-1);
@@ -181,6 +188,14 @@ BOOST_AUTO_TEST_CASE(AdvancedConstruction)
         BOOST_CHECK_EQUAL( data.getEdges(i, nbrs), 1u );
         BOOST_CHECK_EQUAL( nbrs[0], i+1 );
     }
+
+    for (unsigned int i = 1; i < states.size(); ++i)
+    {
+        std::vector<unsigned int> neighbors;
+        BOOST_REQUIRE_EQUAL( data.getIncomingEdges(i, neighbors), 1u );
+        BOOST_CHECK_EQUAL( neighbors[0], i-1 );
+    }
+
     std::vector<unsigned int> nbrs;
     BOOST_CHECK_EQUAL( data.getEdges(states.size()-1, nbrs), 0u );
 

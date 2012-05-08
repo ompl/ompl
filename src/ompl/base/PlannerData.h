@@ -266,11 +266,19 @@ namespace ompl
             /// with indexes \e v1 and \e v2. If this edge does not exist, NO_EDGE is returned.
             PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2);
             /// \brief Returns a list of the vertex indexes directly connected to
-            /// vertex with index \e v.  The number of outgoing edges from \e v is returned
+            /// vertex with index \e v (outgoing edges).  The number of outgoing 
+            /// edges from \e v is returned.
             unsigned int getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
-            /// \brief Returns a map of out-going edges from vertex with index \e v.
+            /// \brief Returns a map of outgoing edges from vertex with index \e v.
             /// Key = vertex index, value = edge structure.  The number of outgoing edges from \e v is returned
             unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
+            /// \brief Returns a list of vertices with outgoing edges to the vertex with index \e v.
+            /// The number of edges connecting to \e v is returned. 
+            unsigned int getIncomingEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
+            /// \brief Returns a map of incoming edges to the vertex with index \e v (i.e. if there is an
+            /// edge from w to v, w and the edge structure will be in the map.)
+            /// Key = vertex index, value = edge structure.  The number of incoming edges to \e v is returned
+            unsigned int getIncomingEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
             /// \brief Returns the weight of the edge between the given vertex indices.
             /// INVALID_WEIGHT is returned for a non-existant edge.
             double getEdgeWeight (unsigned int v1, unsigned int v2) const;

@@ -108,6 +108,31 @@ unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::map<unsigne
     return edgeMap.size();
 }
 
+unsigned int ompl::base::PlannerData::getIncomingEdges (unsigned int v, std::vector<unsigned int>& edgeList) const
+{
+    std::pair<Graph::IEIterator, Graph::IEIterator> iterators = boost::in_edges(boost::vertex(v, *graph_), *graph_);
+
+    edgeList.clear();
+    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
+    for (Graph::IEIterator iter = iterators.first; iter != iterators.second; ++iter)
+        edgeList.push_back(vertices[boost::source(*iter, *graph_)]);
+
+    return edgeList.size();
+}
+
+unsigned int ompl::base::PlannerData::getIncomingEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const
+{
+    std::pair<Graph::IEIterator, Graph::IEIterator> iterators = boost::in_edges(boost::vertex(v, *graph_), *graph_);
+
+    edgeMap.clear();
+    boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
+    for (Graph::IEIterator iter = iterators.first; iter != iterators.second; ++iter)
+        edgeMap[vertices[boost::source(*iter, *graph_)]] = boost::get(edges, *iter);
+
+    return edgeMap.size();
+}
+
 double ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2) const
 {
     Graph::Edge e;
