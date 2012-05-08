@@ -12,9 +12,9 @@ set(OMPL_DOC_INSTALL_DIR share/ompl/doc
 include_directories("${OMPL_INCLUDE_DIR}")
 
 # set the default build type
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+#if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug)
+#endif()
 
 # This shouldn't be necessary, but there has been trouble
 # with MSVC being set off, but MSVCXX ON.
