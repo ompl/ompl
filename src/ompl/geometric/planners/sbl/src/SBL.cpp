@@ -166,7 +166,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             for (unsigned int i = 0 ; i < solution.size() ; ++i)
                 path->append(solution[i]->state);
 
-            goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+            pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
             solved = true;
             break;
         }

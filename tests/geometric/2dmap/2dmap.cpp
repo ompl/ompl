@@ -99,7 +99,7 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getGoal()->getSolutionPath().get());
+            geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
 
 
             /* make the solution more smooth */

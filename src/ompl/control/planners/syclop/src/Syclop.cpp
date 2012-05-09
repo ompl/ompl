@@ -194,7 +194,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), !solved, goalDist);
+        pdef_->addSolutionPath(base::PathPtr(path), !solved, goalDist);
         addedSolution = true;
     }
     return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;

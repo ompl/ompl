@@ -92,8 +92,8 @@ void ompl::control::SimpleSetup::clear(void)
 {
     if (planner_)
         planner_->clear();
-    if (pdef_ && pdef_->getGoal())
-        pdef_->getGoal()->clearSolutionPaths();
+    if (pdef_)
+        pdef_->clearSolutionPaths();
 }
 
 ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(double time)
@@ -134,9 +134,9 @@ ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(const base::PlannerT
 
 ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) const
 {
-    if (pdef_ && pdef_->getGoal())
+    if (pdef_)
     {
-        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
             return static_cast<PathControl&>(*p);
     }
@@ -145,7 +145,7 @@ ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) co
 
 bool ompl::control::SimpleSetup::haveExactSolutionPath(void) const
 {
-    return haveSolutionPath() && (!getGoal()->isApproximate() || getGoal()->getDifference() < std::numeric_limits<double>::epsilon());
+    return haveSolutionPath() && (!pdef_->isApproximate() || pdef_->getDifference() < std::numeric_limits<double>::epsilon());
 }
 
 void ompl::control::SimpleSetup::getPlannerData(base::PlannerData &pd) const

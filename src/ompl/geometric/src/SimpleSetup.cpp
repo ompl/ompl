@@ -112,8 +112,8 @@ void ompl::geometric::SimpleSetup::clear(void)
 {
     if (planner_)
         planner_->clear();
-    if (pdef_ && pdef_->getGoal())
-        pdef_->getGoal()->clearSolutionPaths();
+    if (pdef_)
+        pdef_->clearSolutionPaths();
 }
 
 ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(double time)
@@ -154,9 +154,9 @@ ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(const base::Planne
 
 void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminationCondition &ptc)
 {
-    if (pdef_ && pdef_->getGoal())
+    if (pdef_)
     {
-        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
         {
             time::point start = time::now();
@@ -171,9 +171,9 @@ void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminati
 
 void ompl::geometric::SimpleSetup::simplifySolution(double duration)
 {
-    if (pdef_ && pdef_->getGoal())
+    if (pdef_)
     {
-        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
         {
             time::point start = time::now();
@@ -191,9 +191,9 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
 
 ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const
 {
-    if (pdef_ && pdef_->getGoal())
+    if (pdef_)
     {
-        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
             return static_cast<PathGeometric&>(*p);
     }
@@ -202,7 +202,7 @@ ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(vo
 
 bool ompl::geometric::SimpleSetup::haveExactSolutionPath(void) const
 {
-    return haveSolutionPath() && (!getGoal()->isApproximate() || getGoal()->getDifference() < std::numeric_limits<double>::epsilon());
+    return haveSolutionPath() && (!pdef_->isApproximate() || pdef_->getDifference() < std::numeric_limits<double>::epsilon());
 }
 
 void ompl::geometric::SimpleSetup::getPlannerData(base::PlannerData &pd) const

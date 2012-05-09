@@ -128,10 +128,10 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
     if (sln)
     {
         if(addedSolution_)
-            goal->addSolutionPath (sln);
+            pdef_->addSolutionPath (sln);
         else
             // the solution is exact, but not as short as we'd like it to be
-            goal->addSolutionPath (sln, true, 0.0);
+            pdef_->addSolutionPath (sln, true, 0.0);
     }
 
     si_->freeStates(xstates);

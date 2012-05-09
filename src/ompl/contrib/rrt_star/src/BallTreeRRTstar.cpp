@@ -414,7 +414,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
         addedSolution = true;
     }
 

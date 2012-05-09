@@ -100,7 +100,7 @@ void ompl::control::OpenDESimpleSetup::setup(void)
 void ompl::control::OpenDESimpleSetup::playSolutionPath(double timeFactor) const
 {
     if (haveSolutionPath())
-        playPath(getGoal()->getSolutionPath(), timeFactor);
+        playPath(pdef_->getSolutionPath(), timeFactor);
 }
 
 void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const

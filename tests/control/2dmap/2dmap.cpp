@@ -244,7 +244,7 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            control::PathControl *path = static_cast<control::PathControl*>(goal->getSolutionPath().get());
+            control::PathControl *path = static_cast<control::PathControl*>(pdef->getSolutionPath().get());
             path->interpolate();
 
             if (!path->check())

@@ -36,136 +36,11 @@
 
 #include "ompl/base/Goal.h"
 
-#include <algorithm>
 #include <limits>
 
-#include <boost/thread/mutex.hpp>
-
-/// @cond IGNORE
-namespace ompl
-{
-    namespace base
-    {
-
-        class Goal::PlannerSolutionSet
-        {
-        public:
-
-            PlannerSolutionSet(void)
-            {
-            }
-
-            void add(const PlannerSolution &s)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                int index = solutions_.size();
-                solutions_.push_back(s);
-                solutions_.back().index_ = index;
-                std::sort(solutions_.begin(), solutions_.end());
-            }
-
-            void clear(void)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                solutions_.clear();
-            }
-
-            std::vector<PlannerSolution> getSolutions(void)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                std::vector<PlannerSolution> copy = solutions_;
-                return copy;
-            }
-
-            bool isApproximate(void)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                bool result = false;
-                if (!solutions_.empty())
-                    result = solutions_[0].approximate_;
-                return result;
-            }
-
-            double getDifference(void)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                double diff = -1.0;
-                if (!solutions_.empty())
-                    diff = solutions_[0].difference_;
-                return diff;
-            }
-
-            PathPtr getTopSolution(void)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                PathPtr copy;
-                if (!solutions_.empty())
-                    copy = solutions_[0].path_;
-                return copy;
-            }
-
-            std::size_t getSolutionCount(void)
-            {
-                boost::mutex::scoped_lock slock(lock_);
-                std::size_t result = solutions_.size();
-                return result;
-            }
-
-        private:
-
-            std::vector<PlannerSolution> solutions_;
-            boost::mutex                 lock_;
-        };
-    }
-}
-/// @endcond
-
 ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
-    type_(GOAL_ANY), si_(si), maximumPathLength_(std::numeric_limits<double>::infinity()),
-    msg_("Goal"), solutions_(new PlannerSolutionSet())
+    type_(GOAL_ANY), si_(si), maximumPathLength_(std::numeric_limits<double>::infinity()), msg_("Goal")
 {
-}
-
-bool ompl::base::Goal::isAchieved(void) const
-{
-    return solutions_->getSolutionCount() > 0;
-}
-
-std::size_t ompl::base::Goal::getSolutionCount(void) const
-{
-    return solutions_->getSolutionCount();
-}
-
-ompl::base::PathPtr ompl::base::Goal::getSolutionPath(void) const
-{
-    return solutions_->getTopSolution();
-}
-
-void ompl::base::Goal::addSolutionPath(const PathPtr &path, bool approximate, double difference) const
-{
-    if (approximate)
-        msg_.warn("Adding approximate solution");
-    solutions_->add(PlannerSolution(path, approximate, difference));
-}
-
-bool ompl::base::Goal::isApproximate(void) const
-{
-    return solutions_->isApproximate();
-}
-
-double ompl::base::Goal::getDifference(void) const
-{
-    return solutions_->getDifference();
-}
-
-std::vector<ompl::base::PlannerSolution> ompl::base::Goal::getSolutions(void) const
-{
-    return solutions_->getSolutions();
-}
-
-void ompl::base::Goal::clearSolutionPaths(void) const
-{
-    solutions_->clear();
 }
 
 bool ompl::base::Goal::isSatisfied(const State *st, double *distance) const
@@ -190,5 +65,4 @@ bool ompl::base::Goal::isSatisfied(const State *st, double pathLength, double *d
 void ompl::base::Goal::print(std::ostream &out) const
 {
     out << "Goal memory address " << this << std::endl;
-    out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }

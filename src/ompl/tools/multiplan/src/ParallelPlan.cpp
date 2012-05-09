@@ -117,13 +117,13 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
                 geometric::PathGeometric *pg = static_cast<geometric::PathGeometric*>(hsol.get());
                 double difference = 0.0;
                 bool approximate = !pdef_->getGoal()->isSatisfied(pg->getStates().back(), &difference);
-                pdef_->getGoal()->addSolutionPath(hsol, approximate, difference);
+                pdef_->addSolutionPath(hsol, approximate, difference);
             }
     }
 
     msg_.inform("Solution found in %f seconds", time::seconds(time::now() - start));
 
-    return base::PlannerStatus(pdef_->getGoal()->isAchieved(), pdef_->getGoal()->isApproximate());
+    return base::PlannerStatus(pdef_->isAchieved(), pdef_->isApproximate());
 }
 
 void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc)
@@ -157,7 +157,7 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
 
         msg_.debug("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
 
-        const std::vector<base::PlannerSolution> &paths = pdef_->getGoal()->getSolutions();
+        const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
 
         boost::mutex::scoped_lock slock(phlock_);
         start = time::now();

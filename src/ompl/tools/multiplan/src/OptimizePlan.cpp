@@ -62,7 +62,8 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
 
     base::PlannerStatus result;
     unsigned int np = 0;
-    const base::GoalPtr &goal = getProblemDefinition()->getGoal();
+    const base::ProblemDefinitionPtr &pdef = getProblemDefinition();
+    const base::GoalPtr &goal = pdef->getGoal();
     pp_.clearHybridizationPaths();
 
     while (time::now() < end)
@@ -80,12 +81,12 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
             if (result != base::PlannerStatus::EXACT_SOLUTION)
                 result = localResult;
 
-            if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
+            if (pdef->getSolutionPath()->length() <= goal->getMaximumPathLength())
             {
                 msg_.debug("Terminating early since solution path is shorted than the maximum path length");
                 break;
             }
-            if (goal->getSolutionCount() >= maxSol)
+            if (pdef->getSolutionCount() >= maxSol)
             {
                 msg_.debug("Terminating early since %u solutions were generated", maxSol);
                 break;
@@ -96,7 +97,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
     // if we have more time, and we have a geometric path, we try to simplify it
     if (time::now() < end && result)
     {
-        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(goal->getSolutionPath().get());
+        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
         if (p)
         {
             geometric::PathSimplifier ps(getProblemDefinition()->getSpaceInformation());

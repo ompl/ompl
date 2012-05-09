@@ -420,10 +420,10 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     if (sol)
     {
         if (addedNewSolution())
-            goal->addSolutionPath (sol);
+            pdef_->addSolutionPath (sol);
         else
             // the solution is exact, but not as short as we'd like it to be
-            goal->addSolutionPath (sol, true, 0.0);
+            pdef_->addSolutionPath (sol, true, 0.0);
     }
 
     si_->freeStates(xstates);

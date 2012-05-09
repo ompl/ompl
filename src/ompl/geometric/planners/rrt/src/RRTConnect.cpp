@@ -279,7 +279,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                     path->append(mpath2[i]->state);
 
-                goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
                 solved = true;
                 break;
             }
