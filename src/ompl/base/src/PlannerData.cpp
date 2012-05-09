@@ -68,8 +68,7 @@ ompl::base::PlannerData::~PlannerData (void)
 void ompl::base::PlannerData::clear (void)
 {
     // Freeing decoupled states, if any
-    std::set<State*>::iterator it;
-    for (it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
+    for (std::set<State*>::iterator it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
     {
         si_->freeState(*it);
     }
@@ -112,7 +111,6 @@ void ompl::base::PlannerData::decoupleFromPlanner (void)
             count++;
         }
     }
-    std::cout << count << " states were decoupled" << std::endl;
 }
 
 unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const
