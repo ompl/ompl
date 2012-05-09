@@ -202,7 +202,7 @@ ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(vo
 
 bool ompl::geometric::SimpleSetup::haveExactSolutionPath(void) const
 {
-    return haveSolutionPath() && (!pdef_->isApproximate() || pdef_->getDifference() < std::numeric_limits<double>::epsilon());
+    return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }
 
 void ompl::geometric::SimpleSetup::getPlannerData(base::PlannerData &pd) const

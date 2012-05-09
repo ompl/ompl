@@ -247,15 +247,15 @@ namespace ompl
             bool fixInvalidInputStates(double distStart, double distGoal, unsigned int attempts);
 
             /** \brief Returns true if a solution path has been found (could be approximate) */
-            bool isAchieved(void) const;
+            bool hasSolution(void) const;
 
             /** \brief Return true if the top found solution is
                 approximate (does not actually reach the desired goal,
                 but hopefully is closer to it) */
-            bool isApproximate(void) const;
+            bool hasApproximateSolution(void) const;
 
             /** \brief Get the distance to the desired goal for the top solution. Return -1.0 if there are no solutions available. */
-            double getDifference(void) const;
+            double getSolutionDifference(void) const;
 
             /** \brief Return the top solution path, if one is found. The top path is the shortest
                  one that was found, preference being given to solutions that are not approximate.

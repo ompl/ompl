@@ -145,7 +145,7 @@ ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) co
 
 bool ompl::control::SimpleSetup::haveExactSolutionPath(void) const
 {
-    return haveSolutionPath() && (!pdef_->isApproximate() || pdef_->getDifference() < std::numeric_limits<double>::epsilon());
+    return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }
 
 void ompl::control::SimpleSetup::getPlannerData(base::PlannerData &pd) const

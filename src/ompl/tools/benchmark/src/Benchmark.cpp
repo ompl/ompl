@@ -483,8 +483,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 {
                     if (gsetup_)
                     {
-                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->isApproximate());
-                        run["solution difference REAL"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->getDifference());
+                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->getSolutionDifference());
                         run["solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
                         run["solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
                         run["solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
@@ -512,8 +512,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     }
                     else
                     {
-                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->isApproximate());
-                        run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->getDifference());
+                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->getSolutionDifference());
                         run["solution length REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().length());
                         run["solution clearance REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().asGeometric().clearance());
                         run["solution segments INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().getControlCount());

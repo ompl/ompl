@@ -361,7 +361,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
     return false;
 }
 
-bool ompl::base::ProblemDefinition::isAchieved(void) const
+bool ompl::base::ProblemDefinition::hasSolution(void) const
 {
     return solutions_->getSolutionCount() > 0;
 }
@@ -383,12 +383,12 @@ void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool ap
     solutions_->add(PlannerSolution(path, approximate, difference));
 }
 
-bool ompl::base::ProblemDefinition::isApproximate(void) const
+bool ompl::base::ProblemDefinition::hasApproximateSolution(void) const
 {
     return solutions_->isApproximate();
 }
 
-double ompl::base::ProblemDefinition::getDifference(void) const
+double ompl::base::ProblemDefinition::getSolutionDifference(void) const
 {
     return solutions_->getDifference();
 }

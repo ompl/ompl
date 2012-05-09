@@ -96,7 +96,7 @@ bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::Problem
     }
 
     // we continue sampling while we are able to find solutions, we have found not more than 2 previous solutions and we have not yet solved the problem
-    return cont && gls->maxSampleCount() < 3 && !pd->isAchieved();
+    return cont && gls->maxSampleCount() < 3 && !pd->hasSolution();
 }
 
 void planWithIK(void)

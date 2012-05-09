@@ -123,7 +123,7 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
 
     msg_.inform("Solution found in %f seconds", time::seconds(time::now() - start));
 
-    return base::PlannerStatus(pdef_->isAchieved(), pdef_->isApproximate());
+    return base::PlannerStatus(pdef_->hasSolution(), pdef_->hasApproximateSolution());
 }
 
 void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc)
