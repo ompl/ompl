@@ -215,7 +215,7 @@ def plan():
     ss.setup()
 
     # attempt to solve the problem
-    solved = planner.solve(20.0)
+    solved = ss.solve(20.0)
 
     if solved:
         # print the path to screen

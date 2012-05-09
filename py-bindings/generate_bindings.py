@@ -475,9 +475,10 @@ class ompl_geometric_generator_t(code_generator_t):
         # simultaneously. This is a know limitation of Boost.Python. We
         # therefore use a single-threaded version of PRM in python.
         PRM_cls = self.ompl_ns.class_('PRM')
-        PRM_cls.add_wrapper_code('ompl::base::PlannerStatus solve(double solveTime);')
+        PRM_cls.add_wrapper_code('ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition& ptc);')
         PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
         PRM_cls.add_registration_code('def("solve", &PRM_wrapper::solve)')
+        PRM_cls.add_registration_code('def("solve", timed_solve_function_type(&ompl::base::Planner::solve))')
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
