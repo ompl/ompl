@@ -40,6 +40,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <set>
 #include "ompl/base/State.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
@@ -95,6 +96,8 @@ namespace ompl
             const base::State* state_;
             /// \brief A generic integer tag for this state.  Not used for equivalence checking.
             int tag_;
+
+            friend class PlannerData;
         };
 
         /// \brief Base class for a PlannerData edge.
@@ -198,6 +201,14 @@ namespace ompl
             bool removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2);
             /// \brief Clears the entire data structure
             void clear (void);
+            /// \brief Creates a deep copy of the states contained in the vertices of this
+            /// PlannerData structure so that when the planner that created this instance goes
+            /// out of scope, all data remains intact.
+            /// \remarks Shallow state pointers inside of the PlannerDataVertex objects already 
+            /// in this PlannerData will be replaced with clones which are scoped to this PlannerData
+            /// object.  A subsequent call to this method is necessary after any other vertices are 
+            /// added to ensure that this PlannerData instance is fully decoupled.
+            void decoupleFromPlanner(void);
 
             /// \}
             /// \name PlannerData Properties
@@ -266,14 +277,14 @@ namespace ompl
             /// with indexes \e v1 and \e v2. If this edge does not exist, NO_EDGE is returned.
             PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2);
             /// \brief Returns a list of the vertex indexes directly connected to
-            /// vertex with index \e v (outgoing edges).  The number of outgoing 
+            /// vertex with index \e v (outgoing edges).  The number of outgoing
             /// edges from \e v is returned.
             unsigned int getEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
             /// \brief Returns a map of outgoing edges from vertex with index \e v.
             /// Key = vertex index, value = edge structure.  The number of outgoing edges from \e v is returned
             unsigned int getEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
             /// \brief Returns a list of vertices with outgoing edges to the vertex with index \e v.
-            /// The number of edges connecting to \e v is returned. 
+            /// The number of edges connecting to \e v is returned.
             unsigned int getIncomingEdges (unsigned int v, std::vector<unsigned int>& edgeList) const;
             /// \brief Returns a map of incoming edges to the vertex with index \e v (i.e. if there is an
             /// edge from w to v, w and the edge structure will be in the map.)
@@ -344,6 +355,9 @@ namespace ompl
 
             /// \brief The space information instance for this data.
             SpaceInformationPtr                  si_;
+            /// \brief A list of states that are allocated during the decoupleFromPlanner method.
+            /// These states are freed by PlannerData in the destructor.
+            std::set<State*>                     decoupledStates_;
 
         private:
             // Abstract pointer that points to the Boost.Graph structure.
