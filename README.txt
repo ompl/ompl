@@ -19,5 +19,7 @@ following commands:
    mkdir -p build/Release
    cd build/Release
    cmake ../..
-   make update_bindings  # if you want Python bindings and have Py++ installed
+   # next two steps are optional
+   make installpyplusplus && cmake . # download & install Py++
+   make update_bindings # if you want Python bindings
    make -j 4 # replace "4" with the number of cores on your machine
