@@ -1,3 +1,5 @@
+The Open Motion Planning Library (OMPL)
+
 Visit http://ompl.kavrakilab.org/core/installation.html for
 detailed installation instructions.
 
@@ -11,10 +13,11 @@ The following dependencies are optional:
  * Doxygen (needed to create a local copy of the documentation at
    http://ompl.kavrakilab.org/core)
 
-Once dependencies are installed, you can build OMPL on Linux and OS X.
-Go to the top-level directory of OMPL and type the following commands:
+Once dependencies are installed, you can build OMPL on Linux, OS X,
+and MS Windows. Go to the top-level directory of OMPL and type the
+following commands:
    mkdir -p build/Release
    cd build/Release
-   cmake -DCMAKE_BUILD_TYPE=Release ../..
+   cmake ../..
    make update_bindings  # if you want Python bindings and have Py++ installed
    make -j 4 # replace "4" with the number of cores on your machine
