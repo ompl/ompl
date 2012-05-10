@@ -109,7 +109,8 @@ namespace ompl
         };
 
         /** \brief Definition of a problem to be solved. This includes
-            the start state(s) for the system and a goal specification */
+            the start state(s) for the system and a goal specification.
+            Will contain solutions, if found.  */
         class ProblemDefinition : private boost::noncopyable
         {
         public:

@@ -59,7 +59,7 @@ namespace ompl
         /** \class ompl::base::GoalPtr
             \brief A boost shared pointer wrapper for ompl::base::Goal */
 
-        /** \brief Abstract definition of goals. Will contain solutions, if found */
+        /** \brief Abstract definition of goals.*/
         class Goal : private boost::noncopyable
         {
         public:
@@ -67,7 +67,7 @@ namespace ompl
             /** \brief Constructor. The goal must always know the space information it is part of */
             Goal(const SpaceInformationPtr &si);
 
-            /** \brief Destructor. Clears the solution as well */
+            /** \brief Destructor.*/
             virtual ~Goal(void)
             {
             }
@@ -182,7 +182,7 @@ namespace ompl
             /** \brief The space information for this goal */
             SpaceInformationPtr          si_;
 
-            /** \brief The maximum length allowed for the solution path */
+            /** \brief The maximum length allowed for a solution path */
             double                       maximumPathLength_;
 
             /** \brief Console interface */
