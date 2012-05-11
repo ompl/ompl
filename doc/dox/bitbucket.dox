@@ -1,0 +1,18 @@
+/**
+\page bitbucketBrowseRepository Browse Repository
+
+\htmlonly
+<iframe src="https://bitbucket.org/mamoll/ompl/src" id="bitbucket">
+</iframe>
+<style type="text/css">footer {position: fixed; bottom: 0px; left: 0px; right: 0px}</style>
+\endhtmlonly
+*/
+
+/**
+\page bitbucketIssues Issues
+\htmlonly
+<iframe src="https://bitbucket.org/mamoll/ompl/issues?status=new&status=open" id="bitbucket">
+</iframe>
+<style type="text/css">footer {position: fixed; bottom: 0px; left: 0px; right: 0px}</style>
+\endhtmlonly
+*/
