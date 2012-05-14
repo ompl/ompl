@@ -5,9 +5,11 @@ To compile OMPL the following two packages are required:
 - <a href="http://www.boost.org">Boost</a> (required version 1.40, recommended version 1.44 or higher) and
 - <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher).
 .
-For the python bindings you need to have the python libraries and header files installed. If you also want to be able to generate the python bindings, then you need to install <a href="http://sourceforge.net/projects/pygccxml/">Py++</a>. To (re)generate this documentation locally you will need <a href="http://www.doxygen.org">Doxygen</a>.
 
-Below are installation instructions for <a href="#install_linuxosx">Linux, OS X</a>, and <a href="#install_windows">Windows</a>.
+To be able to generate python bindings the following dependencies are also required
+- <a href="http://www.python.org">Python</a> (including libraries and header files) and
+- \ref installPyPlusPlus "Py++"
+To generate this documentation you will need <a href="http://www.doxygen.org">Doxygen</a>.
 <br>
 
 \note If you are using <a href="http://code.ros.org">ROS</a>, please see the <a href="http://www.ros.org/wiki/ompl_ros_interface">ROS interface to OMPL</a>.

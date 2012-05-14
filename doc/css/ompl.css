@@ -91,6 +91,7 @@ input[type="text"]:focus, select:focus {
 @media (max-width: 980px) { #nav-path { margin-top: -18px; } }
 #nav-path ul {margin-right: -20px; }
 .contents table { margin-left: 20px; margin-right: 20px; }
+.navbar .brand { color:#fff; }
 .navbar .nav > li > a { color: #ddd; }
 iframe { border: none; }
 .carousel-caption ul { color: #fff; }
