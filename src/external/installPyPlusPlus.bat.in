@@ -6,14 +6,8 @@ at > nul
 if ERRORLEVEL 1 GOTO not-admin
 echo Executing as administrator... good :)
 
-:: Checking for svn, cvs, and Python
+:: Checking for cmake, Python, and mingw
 :prereqs
-where svn 0>nul 
-IF ERRORLEVEL 1 GOTO no-svn
-
-where cvs 0>nul 
-IF ERRORLEVEL 1 GOTO no-cvs
-
 where python 0>nul 
 IF ERRORLEVEL 1 GOTO no-python
 
@@ -26,24 +20,16 @@ IF ERRORLEVEL 1 GOTO no-mingw
 echo.
 echo Found all dependencies!  :D
 echo.
-echo This batch file will build and install GCCXML from source using MinGW, 
-echo and install Pygccxml and Py++ as well.  The PATH variable will also be 
-echo amended to include the path to the gccxml executable, and a new variable,
-echo GCCXML_COMPILER will be created to instruct gccxml which compiler to 
-echo emulate.
+echo This batch file will download, build and install GCCXML from source using
+echo MinGW, and install Pygccxml and Py++ as well.  The PATH variable will also
+echo be amended to include the path to the gccxml executable, and a new 
+echo variable, echo GCCXML_COMPILER will be created to instruct gccxml which 
+echo compiler to emulate.
 PAUSE
-GOTO install-gccxml
+GOTO download-deps
 
 :not-admin
 ECHO ERROR: You must execute this file with administrator privileges!
-GOTO END
-
-:no-svn
-ECHO Subversion (svn) is not found.  Install svn and add the executable to the PATH, then re-run this batch file.
-GOTO END
-
-:no-cvs
-ECHO CVS is not found.  Install cvs and add the executable to the PATH, then re-run this batch file.
 GOTO END
 
 :no-python
@@ -58,12 +44,13 @@ GOTO END
 ECHO mingw32-make is not found.  Install MinGW and add it to the PATH, then re-run this batch file.
 GOTO END
 
-:install-gccxml
-mkdir "@PROJECT_BINARY_DIR@/repos"
-cd "@PROJECT_BINARY_DIR@/repos"
+:download-deps
+cmake -DTEMPDIR=@PROJECT_BINARY_DIR@/tempdir -P downloadPyPlusPlus.cmake
+cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2012-01-23.tgz"
+cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml-r1856.tgz"
+cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus-r1856.tgz"
 
-:: get latest version of gccxml, build & install it
-cvs -d :pserver:anoncvs@www.gccxml.org:/cvsroot/GCC_XML co gccxml
+:install-gccxml
 cd gccxml
 cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="C:\gccxml"
 mingw32-make install
@@ -77,20 +64,16 @@ set PATH=%PATH%;%GCCXMLPATH%
 setx PATH "%PATH%" /M 0>nul
 setx GCCXML_COMPILER g++ /M 0>nul
 
-
 :install-pygccxml
-svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pygccxml_dev
-cd pygccxml_dev
-
-::Patching pygccxml - source_reader.py
-copy /Y @PATCH_GCCXML_SOURCE_READER@ pygccxml\parser\source_reader.py
-
+cd pygccxml
 python setup.py build
 python setup.py install
 cd ..
-svn co https://pygccxml.svn.sourceforge.net/svnroot/pygccxml/pyplusplus_dev
-cd pyplusplus_dev
+
+:install-pyplusplus
+cd pyplusplus
 python setup.py build
 python setup.py install
+cd ..
 
 :END
