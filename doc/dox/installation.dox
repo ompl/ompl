@@ -1,15 +1,15 @@
 /**
 \page installation Installation
 
+If you use Linux or OS X, then all dependencies can be installed either through a package manager or by OMPL's build system. In other words, you probably don't have to compile dependencies from source.
+
 To compile OMPL the following two packages are required:
 - <a href="http://www.boost.org">Boost</a> (required version 1.40, recommended version 1.44 or higher) and
 - <a href="http://www.cmake.org">CMake</a> (required version 2.8.2 or higher).
 .
 
-To be able to generate python bindings the following dependencies are also required
-- <a href="http://www.python.org">Python</a> (including libraries and header files) and
-- \ref installPyPlusPlus "Py++"
-To generate this documentation you will need <a href="http://www.doxygen.org">Doxygen</a>.
+To be able to generate python bindings you need to install the
+<a href="http://www.python.org">Python</a> library and header files.
 <br>
 
 \note If you are using <a href="http://code.ros.org">ROS</a>, please see the <a href="http://www.ros.org/wiki/ompl_ros_interface">ROS interface to OMPL</a>.
@@ -48,16 +48,32 @@ You can install Boost from <a href="http://www.boost.org/users/download/">source
 sudo add-apt-repository ppa:boost-latest/ppa
 \endcode
 - The default version of CMake should suffice. If needed, you can download the latest version from <a href="http://www.cmake.org/cmake/resources/software.html">here</a>.
-- Install Boost, CMake
+- Install Boost and CMake
 \code
 sudo apt-get install libboost-all-dev cmake
 \endcode
+Some versions of Linux offer multiple versions of Boost. It is strongly advised to install only one version.
 - To be able to generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
 \code
 sudo apt-get install doxygen graphviz python-dev libode-dev
 \endcode
-- To be able to generate Python bindings, follow \ref installPyPlusPlus "these" instructions.
-- Follow the common steps \ref common_steps "below".
+- Create a build directory and run cmake:
+\code
+cd ompl
+mkdir -p build/Release
+cd build/Release
+cmake ../..
+\endcode
+- If you want Python bindings, type the following two commands:
+\code
+make installpyplusplus && cmake . # download & install Py++
+make update_bindings
+\endcode
+- Compile OMPL by typing \c make.
+- Optionally, run the test programs by typing <tt>make test</tt>.
+- Optionally, generate documentation by typing <tt>make doc</tt>.
+- If you need to install the library, you can type <tt>sudo make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed (e.g., $HOME/lib/python2.7/site-packages).
+.
 
 \subsection install_linux_fedora Fedora Linux
 
@@ -98,23 +114,27 @@ ls -l `which python`
 \code
 sudo port install doxygen
 \endcode
-- Follow the common steps \ref common_steps "below".
-
-\subsection common_steps Common steps
 - Create a build directory and run cmake:
 \code
 cd ompl
 mkdir -p build/Release
 cd build/Release
-cmake -DCMAKE_BUILD_TYPE=Release ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
+cmake ../..
 \endcode
-If you want a debug version of ompl, change "Release" to "Debug" above. The CMAKE_INSTALL_PREFIX variable is set to \c /usr/local by default.
-- If Python bindings are to be generated, type <tt>make update_bindings</tt>. (If this does not work and you are sure you have Py++ installed, you may have to run \c cmake again.) <b>Note:</b> <tt>make update_bindings</tt> is <i>never</i> run automatically. If you change any of the OMPL header files, you need to type <tt>make update_bindings</tt> again for the changes to be reflected in the Python modules. The command <tt>make</tt> needs to be executed <b>after</b> every call to <tt>make update_bindings</tt>. See also the \ref updating_python_bindings "more detailed documentation on generating python bindings".
+- If you want Python bindings, type the following command:
+\code
+make update_bindings
+\endcode
+If you do not have MacPorts installed, you need to precede this command by:
+\code
+make installpyplusplus && cmake . # download & install Py++
+\endcode
 - Compile OMPL by typing \c make.
 - Optionally, run the test programs by typing <tt>make test</tt>.
 - Optionally, generate documentation by typing <tt>make doc</tt>.
 - If you need to install the library, you can type <tt>sudo make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed (e.g., $HOME/lib/python2.7/site-packages).
 .
+
 
 \section install_windows Installation on Windows
 
@@ -143,12 +163,10 @@ the locations where Boost and its libraries are installed.  The default location
 that any necessary Boost dlls are loaded properly at runtime.
 
 \subsection opt-dependencies Optional Dependencies (Python bindings)
-- <a href="http://cvs.nongnu.org/">CVS</a> and <a href="http://subversion.apache.org/">Subversion</a>
-
 - A <b>32-bit</b> version of <a href="http://python.org/">Python</a> 2.7.  Ensure that this is installed
 <b>before building Boost</b> so that Boost.Python is properly compiled.
 
-- Ensure that svn, cvs, and Python are all added to the system <tt>PATH</tt>.
+- Ensure that Python is added to the system <tt>PATH</tt>.
 
 - Py++: To generate the Python bindings, Py++ and its dependencies must be installed.
 A batch file has been included to automate this process (analogous to the Linux/Mac
@@ -167,9 +185,9 @@ mkdir build
 cd build
 mkdir Release
 cd Release
-cmake -DCMAKE_BUILD_TYPE=Release -G "GENERATOR" ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
+cmake -G "GENERATOR" ../.. [-DCMAKE_INSTALL_PREFIX=/path/to/install]
 \endcode
-If you want a debug version of OMPL, change "Release" to "Debug" above. The CMAKE_INSTALL_PREFIX variable is set to <tt>C:\\Program Files (x86)\\ompl</tt> by default.
+The CMAKE_INSTALL_PREFIX variable is set to <tt>C:\\Program Files (x86)\\ompl</tt> by default.
 
 \subsubsection mingw MinGW
 - The CMake generator for MinGW is <tt>"MinGW Makefiles"</tt>
