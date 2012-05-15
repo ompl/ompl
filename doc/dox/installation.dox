@@ -55,7 +55,7 @@ sudo apt-get install libboost-all-dev cmake
 Some versions of Linux offer multiple versions of Boost. It is strongly advised to install only one version.
 - To be able to generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
 \code
-sudo apt-get install doxygen graphviz python-dev libode-dev
+sudo apt-get install doxygen graphviz python-dev libode-dev curl
 \endcode
 - Create a build directory and run cmake:
 \code
