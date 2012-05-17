@@ -46,7 +46,7 @@ GOTO END
 
 :download-deps
 cmake -DTEMPDIR=@PROJECT_BINARY_DIR@/tempdir -P downloadPyPlusPlus.cmake
-cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2012-01-23.tgz"
+cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2012-05-17.tgz"
 cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml-r1856.tgz"
 cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus-r1856.tgz"
 
@@ -77,3 +77,4 @@ python setup.py install
 cd ..
 
 :END
+
