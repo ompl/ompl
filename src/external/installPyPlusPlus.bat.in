@@ -21,10 +21,10 @@ echo.
 echo Found all dependencies!  :D
 echo.
 echo This batch file will download, build and install GCCXML from source using
-echo MinGW, and install Pygccxml and Py++ as well.  The PATH variable will also
-echo be amended to include the path to the gccxml executable, and a new 
-echo variable, echo GCCXML_COMPILER will be created to instruct gccxml which 
-echo compiler to emulate.
+echo MinGW to C:\gccxml, and install Pygccxml and Py++ as well.  The PATH 
+echo variable will also be amended to include the path to the gccxml executable,
+echo and a new variable, GCCXML_COMPILER will be created to instruct gccxml 
+echo which compiler to emulate.
 PAUSE
 GOTO download-deps
 
@@ -45,7 +45,11 @@ ECHO mingw32-make is not found.  Install MinGW and add it to the PATH, then re-r
 GOTO END
 
 :download-deps
-cmake -DTEMPDIR=@PROJECT_BINARY_DIR@/tempdir -P downloadPyPlusPlus.cmake
+del /S /Q "@PROJECT_BINARY_DIR@/tempdir"
+del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/gccxml"
+del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pygccxml"
+del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pyplusplus"
+cmake -DTEMPDIR="@PROJECT_BINARY_DIR@/tempdir" -P @CMAKE_CURRENT_LIST_DIR@/external/downloadPyPlusPlus.cmake
 cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2012-05-17.tgz"
 cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml-r1856.tgz"
 cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus-r1856.tgz"
