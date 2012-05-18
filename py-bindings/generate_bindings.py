@@ -148,7 +148,9 @@ class ompl_base_generator_t(code_generator_t):
         # rename STL vectors of certain types
         self.std_ns.class_('map< std::string, boost::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
-        self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
+        try:
+            self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
+        except: pass
         self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename('vectorPlannerSolution')
         self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
@@ -238,10 +240,6 @@ class ompl_base_generator_t(code_generator_t):
             call_policies.return_value_policy(call_policies.reference_existing_object)
         # Remove Boost.Graph representation from PlannerData
         self.ompl_ns.class_('PlannerData').member_functions('toBoostGraph').exclude()
-        self.ompl_ns.class_('PlannerData').class_('Graph').exclude()
-        # Remove Boost.Graph property enumerations from PlannerData
-        self.mb.enumeration('edge_type_t').exclude()
-        self.mb.enumeration('vertex_type_t').exclude()
         # Make PlannerData printable
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphviz'))
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphML'))

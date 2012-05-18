@@ -39,6 +39,9 @@ if(OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bin
     include_directories(${PYTHON_INCLUDE_DIRS})
     add_library(py_boost_function MODULE util/test_py_boost_function.cpp)
     target_link_libraries(py_boost_function ompl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
+    if(WIN32)
+        set_target_properties(py_boost_function PROPERTIES OUTPUT_NAME py_boost_function SUFFIX .pyd)
+    endif(WIN32)
     get_target_property(PYBOOSTFUNCTION_NAME py_boost_function LOCATION)
     add_custom_command(TARGET py_boost_function POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${PYBOOSTFUNCTION_NAME}"
