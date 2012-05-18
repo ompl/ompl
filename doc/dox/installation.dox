@@ -22,9 +22,9 @@ To be able to generate python bindings you need to install the
 </div>
 \endhtmlonly
 
-\section install_linuxosx Installation on Linux and Mac OS X
+\section install_linuxosx Installation on Linux
 
-Below are installation instructions for Ubuntu Linux and Mac OS X. Similar steps can be taken for other distributions, but package names may not be identical.
+Below are installation instructions for Ubuntu Linux. Similar steps can be taken for other distributions, but package names may not be identical.
 
 \subsection install_linux_ubuntu Ubuntu Linux
 
@@ -83,7 +83,7 @@ yum install ompl
 \endcode
 - Installation from source is also possible if dependencies listed above are installed.
 
-\subsection install_mac_os Mac OS X
+\section install_mac_os Mac OS X
 
 - It is easiest to install the dependencies through <a href="http://www.macports.org">MacPorts</a>, a package manager for OS X, so install MacPorts first.
 - If you do not need to modify or see the source code of OMPL, then the easiest way to install OMPL is with the MacPorts \c port command:
