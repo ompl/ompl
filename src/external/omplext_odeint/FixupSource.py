@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This script makes the boost::numeric::odeint source future proof by 
 # changing the namespace and include directory to something OMPL specific.
 # 
@@ -26,6 +27,11 @@ def FixupSource(headerFilename):
         elif l.find('boost::numeric::odeint') != -1:
             line = l
             line = line.replace ('boost::numeric::odeint', 'boost::numeric::omplext_odeint')
+            newlines.append(line)
+        # Changing instance of typename odeint:: to typename omplext_odeint
+        elif l.find('typename odeint::') != -1:
+            line = l
+            line = line.replace ('typename odeint::', 'typename omplext_odeint::')
             newlines.append(line)
         # Patch includes
         elif l.find('#include') != -1 and l.find('boost/numeric/odeint') != -1:

@@ -20,14 +20,22 @@
 #include <string>
 #include <sstream>
 
+
+#define ODEINT_MAJOR_VERSION 2
+#define ODEINT_MINOR_VERSION 1
+#define ODEINT_PATCH_LEVEL 0
+#define ODEINT_VERSION ( ODEINT_MAJOR_VERSION * 100000 + ODEINT_MINOR_VERSION * 100 + ODEINT_PATCH_LEVEL )
+
+
 namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
 namespace version {
 
-const int major = 2;
-const int minor = 1;
+const int major = ODEINT_MAJOR_VERSION ;
+const int minor = ODEINT_MINOR_VERSION ;
+const int patch_level = ODEINT_PATCH_LEVEL ;
 
 }
 
@@ -35,6 +43,7 @@ inline std::string get_version_string( void )
 {
     std::ostringstream str;
     str << "v" << version::major << "." << version::minor;
+    if( version::patch_level != 0 ) str << "_" << version::patch_level;
     return str.str();
 }
 

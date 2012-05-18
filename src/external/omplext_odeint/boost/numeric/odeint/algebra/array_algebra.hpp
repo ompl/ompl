@@ -3,7 +3,7 @@
  boost/numeric/odeint/algebra/array_algebra.hpp
 
  [begin_description]
- Algebra for boost::array
+ Algebra for boost::array. Highly specialized for odeint. Const arguments are introduce to work with odeint.
  [end_description]
 
  Copyright 2009-2011 Karsten Ahnert
@@ -34,9 +34,9 @@ struct array_algebra
     }
 
 
-    template< typename T , size_t dim , class Op >
-    static void for_each2( boost::array< T , dim > &s1 ,
-            const boost::array< T , dim > &s2 , Op op )
+    template< typename T1 , typename T2 , size_t dim , class Op >
+    static void for_each2( boost::array< T1 , dim > &s1 ,
+            const boost::array< T2 , dim > &s2 , Op op )
     {
         for( size_t i=0 ; i<dim ; ++i )
             op( s1[i] , s2[i] );

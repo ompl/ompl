@@ -130,6 +130,25 @@ struct range_algebra
         return detail::reduce( boost::begin( s ) , boost::end( s ) , red , init );
     }
 
+    template< class Value , class S1 , class S2 , class Red >
+    static Value reduce2( const S1 &s1 , const S2 &s2 , Red red , Value init )
+    {
+        return detail::reduce2( boost::begin( s1 ) , boost::end( s1 ) , boost::begin( s2 ) , red , init );
+    }
+
+    template< class Value , class S1 , class S2 , class S3 , class Red >
+    static Value reduce3( const S1 &s1 , const S2 &s2 , const S3 &s3 , Red red , Value init )
+    {
+        return detail::reduce3( boost::begin( s1 ) , boost::end( s1 ) , boost::begin( s2 ) , boost::begin( s3 ) , red , init );
+    }
+
+    template< class Value , class S1 , class S2 , class S3 , class S4 , class Red >
+    static Value reduce4( const S1 &s1 , const S2 &s2 , const S3 &s3 , const S4 &s4 , Red red , Value init )
+    {
+        return detail::reduce4( boost::begin( s1 ) , boost::end( s1 ) , boost::begin( s2 ) , boost::begin( s3 ) , boost::begin( s4 ) , red , init );
+    }
+
+
 };
 
 } // odeint

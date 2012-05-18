@@ -19,11 +19,10 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_TIMES_HPP_INCLUDED
 
 #include <stdexcept>
-#include <iostream>
 
+#include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
 
-#include <boost/ref.hpp>
 
 namespace boost {
 namespace numeric {
@@ -42,15 +41,17 @@ size_t integrate_times(
         Observer observer , stepper_tag
 )
 {
-    typename boost::unwrap_reference< Observer >::type &obs = observer;
+    typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
     size_t steps = 0;
     Time current_dt = dt;
-    while( start_time != end_time )
+    while( true )
     {
         Time current_time = *start_time++;
         obs( start_state , current_time );
-        while( current_time < *start_time )
+        if( start_time == end_time )
+            break;
+        while( (current_time < *start_time) )
         {
             current_dt = std::min( dt , *start_time - current_time );
             stepper.do_step( system , start_state , current_time , current_dt );
@@ -71,25 +72,29 @@ size_t integrate_times(
         Observer observer , controlled_stepper_tag
 )
 {
-    typename boost::unwrap_reference< Observer >::type &obs = observer;
+    typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
     const size_t max_attempts = 1000;
     const char *error_string = "Integrate adaptive : Maximal number of iterations reached. A step size could not be found.";
     size_t steps = 0;
-    while( start_time != end_time )
+    while( true )
     {
         size_t fail_steps = 0;
         Time current_time = *start_time++;
         obs( start_state , current_time );
+        if( start_time == end_time )
+            break;
         while( current_time < *start_time )
         {
             dt = std::min( dt , *start_time - current_time );
             if( stepper.try_step( system , start_state , current_time , dt ) == success )
             {
-                current_time += dt;
-                steps++;
-            } else
-                fail_steps++;
+                ++steps;
+            }
+            else
+            {
+                ++fail_steps;
+            }
             if( fail_steps == max_attempts ) throw std::overflow_error( error_string );
         }
     }
@@ -106,7 +111,7 @@ size_t integrate_times(
         Observer observer , dense_output_stepper_tag
 )
 {
-     typename boost::unwrap_reference< Observer >::type &obs = observer;
+     typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
      Time last_time_point = *(end_time-1);
 

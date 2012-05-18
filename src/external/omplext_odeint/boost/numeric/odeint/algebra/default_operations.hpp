@@ -22,76 +22,12 @@
 #include <cmath>      // for std::max
 #include <boost/array.hpp>
 
-#ifndef __CUDACC__
-#include <boost/utility/result_of.hpp>
-#include <boost/units/quantity.hpp>
-#endif
+#include <omplext_odeint/boost/numeric/odeint/util/unit_helper.hpp>
+
 
 namespace boost {
 namespace numeric {
 namespace omplext_odeint {
-
-/*
- * Conversion of boost::units for use in standard_operations::rel_error and standard_operations::maximum
- */
-namespace detail {
-
-template<class T>
-struct get_value_impl
-{
-    static T value(const T &t)
-    {
-        return t;
-    }
-    typedef T result_type;
-};
-
-#ifndef __CUDACC__
-template<class Unit , class T>
-struct get_value_impl<boost::units::quantity<Unit , T> >
-{
-    static T value(const boost::units::quantity<Unit , T> &t)
-    {
-        return t.value();
-    }
-    typedef T result_type;
-};
-#endif
-
-template<class T>
-typename get_value_impl<T>::result_type get_value(const T &t)
-{
-    return get_value_impl<T>::value(t);
-}
-
-template<class T , class V>
-struct set_value_impl
-{
-    static void set_value(T &t , const V &v)
-    {
-        t = v;
-    }
-};
-
-#ifndef __CUDACC__
-template<class Unit , class T , class V>
-struct set_value_impl<boost::units::quantity<Unit , T> , V>
-{
-    static void set_value(boost::units::quantity<Unit , T> &t , const V &v)
-    {
-        t = boost::units::quantity<Unit , T>::from_value(v);
-    }
-};
-#endif
-
-template<class T , class V>
-
-void set_value(T &t , const V &v)
-{
-    return set_value_impl<T , V>::set_value(t , v);
-}
-
-}
 
 
 
@@ -151,6 +87,10 @@ struct default_operations
         }
 
         typedef void result_type;
+
+    private:
+        scale_sum2< Fac1 , Fac2 >& operator=( const scale_sum2< Fac1 , Fac2 > &sum2 )
+        { }
     };
 
 
@@ -503,13 +443,44 @@ struct default_operations
         void operator()( T3 &t3 , const T1 &t1 , const T2 &t2 ) const
         {
             using std::abs;
-            using detail::get_value;
-            using detail::set_value;
-            set_value( t3 , abs( get_value( t3 ) ) / ( m_eps_abs + m_eps_rel * ( m_a_x * abs( get_value( t1 ) ) + m_a_dxdt * abs( get_value( t2 ) ) ) ) );
+            set_unit_value( t3 , abs( get_unit_value( t3 ) ) / ( m_eps_abs + m_eps_rel * ( m_a_x * abs( get_unit_value( t1 ) ) + m_a_dxdt * abs( get_unit_value( t2 ) ) ) ) );
         }
 
         typedef void result_type;
     };
+
+
+    /*
+     * for usage in for_each3
+     *
+     * used in the controller for the rosenbrock4 method
+     *
+     * Works with boost::units by eliminating the unit
+     */
+    template< class Fac1 = double >
+    struct default_rel_error
+    {
+        const Fac1 m_eps_abs , m_eps_rel ;
+
+        default_rel_error( const Fac1 &eps_abs , const Fac1 &eps_rel )
+        : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) { }
+
+
+        /*
+         * xerr = xerr / ( eps_abs + eps_rel * max( x , x_old ) )
+         */
+        template< class T1 , class T2 , class T3 >
+        void operator()( T3 &t3 , const T1 &t1 , const T2 &t2 ) const
+        {
+            using std::abs;
+            using std::max;
+            Fac1 x1 = abs( get_unit_value( t1 ) ) , x2 = abs( get_unit_value( t2 ) );
+            set_unit_value( t3 , abs( get_unit_value( t3 ) ) / ( m_eps_abs + m_eps_rel * max( x1 , x2 ) ) );
+        }
+
+        typedef void result_type;
+    };
+
 
 
     /*
@@ -524,13 +495,107 @@ struct default_operations
         {
             using std::max;
             using std::abs;
-            using detail::get_value;
-            Value a1 = abs( get_value( t1 ) ) , a2 = abs( get_value( t2 ) );
+            Value a1 = abs( get_unit_value( t1 ) ) , a2 = abs( get_unit_value( t2 ) );
             return ( a1 < a2 ) ? a2 : a1 ;
         }
 
         typedef Value result_type;
     };
+
+
+
+
+
+    template< class Fac1 = double >
+    struct rel_error_max
+    {
+        const Fac1 m_eps_abs , m_eps_rel;
+
+        rel_error_max( const Fac1 &eps_abs , const Fac1 &eps_rel )
+        : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel )
+        { }
+
+        template< class Res , class T1 , class T2 , class T3 >
+        Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &x_err )
+        {
+            using std::abs;
+            using std::max;
+            Res tmp = abs( get_unit_value( x_err ) ) / ( m_eps_abs + m_eps_rel * max( abs( x_old ) , abs( x ) ) );
+            return max( r , tmp );
+        }
+    };
+
+
+    template< class Fac1 = double >
+    struct rel_error_max2
+    {
+        const Fac1 m_eps_abs , m_eps_rel , m_a_x , m_a_dxdt;
+
+        rel_error_max2( const Fac1 &eps_abs , const Fac1 &eps_rel , const Fac1 &a_x , const Fac1 &a_dxdt )
+        : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) , m_a_x( a_x ) , m_a_dxdt( a_dxdt )
+        { }
+
+        template< class Res , class T1 , class T2 , class T3 , class T4 >
+        Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &dxdt_old , const T4 &x_err )
+        {
+            using std::abs;
+            using std::max;
+
+            Res tmp = abs( get_unit_value( x_err ) ) /
+                    ( m_eps_abs + m_eps_rel * ( m_a_x * abs( get_unit_value( x_old ) ) + m_a_dxdt * abs( get_unit_value( dxdt_old ) ) ) );
+            return max( r , tmp );
+        }
+    };
+
+
+
+
+    template< class Fac1 = double >
+    struct rel_error_l2
+    {
+        const Fac1 m_eps_abs , m_eps_rel;
+
+        rel_error_l2( const Fac1 &eps_abs , const Fac1 &eps_rel )
+        : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel )
+        { }
+
+        template< class Res , class T1 , class T2 , class T3 >
+        Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &x_err )
+        {
+            using std::abs;
+            using std::max;
+            Res tmp = abs( get_unit_value( x_err ) ) / ( m_eps_abs + m_eps_rel * max( abs( x_old ) , abs( x ) ) );
+            return r + tmp * tmp;
+        }
+    };
+
+
+
+
+    template< class Fac1 = double >
+    struct rel_error_l2_2
+    {
+        const Fac1 m_eps_abs , m_eps_rel , m_a_x , m_a_dxdt;
+
+        rel_error_l2_2( const Fac1 &eps_abs , const Fac1 &eps_rel , const Fac1 &a_x , const Fac1 &a_dxdt )
+        : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) , m_a_x( a_x ) , m_a_dxdt( a_dxdt )
+        { }
+
+        template< class Res , class T1 , class T2 , class T3 , class T4 >
+        Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &dxdt_old , const T4 &x_err )
+        {
+            using std::abs;
+            using std::max;
+
+            Res tmp = abs( get_unit_value( x_err ) ) /
+                    ( m_eps_abs + m_eps_rel * ( m_a_x * abs( get_unit_value( x_old ) ) + m_a_dxdt * abs( get_unit_value( dxdt_old ) ) ) );
+            return r + tmp * tmp;
+        }
+    };
+
+
+
+
 
 
 };

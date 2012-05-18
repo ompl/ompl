@@ -22,8 +22,7 @@
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 #include <omplext_odeint/boost/numeric/odeint/integrate/null_observer.hpp>
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_const.hpp>
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp>
+#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_n_steps.hpp>
 
 namespace boost {
 namespace numeric {
@@ -42,16 +41,10 @@ Time integrate_n_steps(
         Observer observer )
 {
 
-    BOOST_STATIC_ASSERT( (boost::is_convertible< typename Stepper::stepper_category , stepper_tag >::value) );
-
-    Time end_time = start_time + dt * num_of_steps;
-
-    detail::integrate_const(
+    return detail::integrate_n_steps(
                 stepper , system , start_state ,
-                start_time , end_time+dt/2  , dt ,
+                start_time , dt , num_of_steps ,
                 observer , typename Stepper::stepper_category() );
-
-    return end_time;
 }
 
 template< class Stepper , class System , class State , class Time , class Observer >
@@ -60,16 +53,10 @@ Time integrate_n_steps(
         Time start_time , Time dt , size_t num_of_steps ,
         Observer observer )
 {
-    BOOST_STATIC_ASSERT( (boost::is_convertible< typename Stepper::stepper_category , stepper_tag >::value) );
-
-    Time end_time = start_time + dt * num_of_steps;
-
-    detail::integrate_const(
+    return detail::integrate_n_steps(
                  stepper , system , start_state ,
-                 start_time , end_time+dt/2  , dt ,
+                 start_time , dt , num_of_steps ,
                  observer , typename Stepper::stepper_category() );
-
-     return end_time;
 }
 
 

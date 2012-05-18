@@ -22,6 +22,7 @@
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_stepper_base.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
@@ -59,15 +60,15 @@ public :
     template< class System , class StateIn , class DerivIn , class StateOut >
     void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt , const time_type &t , StateOut &out , const time_type &dt )
     {
-        static const value_type val1 = static_cast< value_type >( 1.0 );
-        static const value_type val05 = static_cast< value_type >( 0.5 );
+        static const value_type val1 = static_cast< value_type >( 1 );
+        static const value_type val05 = static_cast< value_type >( 1 ) / static_cast< value_type >( 2 );
 
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize_impl< StateIn > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) );
 
         const time_type h = dt / static_cast<time_type>( m_steps );
-        const time_type h2 = static_cast<time_type>( 2.0 ) * h;
+        const time_type h2 = static_cast<time_type>( 2 ) * h;
 
-        typename boost::unwrap_reference< System >::type &sys = system;
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
 
         time_type th = t + h;
 
@@ -119,9 +120,9 @@ private:
     bool resize_impl( const StateIn &x )
     {
         bool resized( false );
-        resized |= adjust_size_by_resizeability( m_x0 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt , x , typename wrapped_state_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x0 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt , x , typename is_resizeable<deriv_type>::type() );
         return resized;
     }
 
@@ -183,15 +184,15 @@ public :
             state_type &x_mp , deriv_table_type &derivs )
     {
 
-        static const value_type val1 = static_cast< value_type >( 1.0 );
-        static const value_type val05 = static_cast< value_type >( 0.5 );
+        static const value_type val1 = static_cast< value_type >( 1 );
+        static const value_type val05 = static_cast< value_type >( 1 ) / static_cast< value_type >( 2 );
 
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize< StateIn > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize< StateIn > , detail::ref( *this ) , detail::_1 ) );
 
         const time_type h = dt / static_cast<time_type>( m_steps );
-        const time_type h2 = static_cast<time_type>( 2.0 ) * h;
+        const time_type h2 = static_cast<time_type>( 2 ) * h;
 
-        typename boost::unwrap_reference< System >::type &sys = system;
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
 
         time_type th = t + h;
 
@@ -242,8 +243,8 @@ public :
     bool resize( const StateIn &x )
     {
         bool resized( false );
-        resized |= adjust_size_by_resizeability( m_x0 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x0 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
         return resized;
     }
 

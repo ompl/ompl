@@ -23,8 +23,7 @@
 
 #include <algorithm>
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <boost/math/special_functions/binomial.hpp>
 
@@ -36,6 +35,7 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <boost/type_traits.hpp>
@@ -225,7 +225,7 @@ public:
     template< class System , class StateInOut >
     controlled_step_result try_step( System system , StateInOut &x , time_type &t , time_type &dt )
     {
-        m_xnew_resizer.adjust_size( x , boost::bind( &controlled_error_bs_type::template resize_m_xnew< StateInOut > , boost::ref( *this ) , _1 ) );
+        m_xnew_resizer.adjust_size( x , detail::bind( &controlled_error_bs_type::template resize_m_xnew< StateInOut > , detail::ref( *this ) , detail::_1 ) );
         controlled_step_result res = try_step( system , x , t , m_xnew.m_v , dt );
         if( ( res == success_step_size_increased ) || ( res == success_step_size_unchanged ) )
         {
@@ -240,8 +240,8 @@ public:
     {
         static const time_type val1( static_cast< time_type >( 1.0 ) );
 
-        typename boost::unwrap_reference< System >::type &sys = system;
-//        if( m_resizer.adjust_size( in , boost::bind( &controlled_error_bs_type::template resize_impl< StateIn > , boost::ref( *this ) , _1 ) ) )
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+//        if( m_resizer.adjust_size( in , detail::bind( &controlled_error_bs_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) ) )
 //            reset(); // system resized -> reset
 //        if( dt != m_dt_last )
 //            reset(); // step size changed from outside -> reset
@@ -288,10 +288,10 @@ public:
                         if( (work[k] < KFAC2*work[k-1]) || (m_current_k_opt <= 2) )
                         {
                             // leave order as is (except we were in first round)
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , static_cast<int>(k)+1 );
+                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k)+1 ) );
                             new_h = h_opt[k] * m_cost[k+1]/m_cost[k];
                         } else {
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , static_cast<int>(k) );
+                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k) ) );
                             new_h = h_opt[k];
                         }
                         break;
@@ -384,7 +384,7 @@ public:
     template< class StateType >
     void initialize( const StateType &x0 , const time_type &t0 , const time_type &dt0 )
     {
-        m_resizer.adjust_size( x0 , boost::bind( &controlled_error_bs_type::template resize_impl< StateType > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( x0 , detail::bind( &controlled_error_bs_type::template resize_impl< StateType > , detail::ref( *this ) , detail::_1 ) );
         boost::numeric::omplext_odeint::copy( x0 , *m_current_state );
         m_t = t0;
         m_dt = dt0;
@@ -402,7 +402,7 @@ public:
 
         if( m_first )
         {
-            typename boost::unwrap_reference< System >::type &sys = system;
+            typename omplext_odeint::unwrap_reference< System >::type &sys = system;
             sys( *m_current_state , *m_current_deriv , m_t );
         }
 
@@ -552,7 +552,7 @@ private:
 
     template< class StateIn1 , class DerivIn1 , class StateIn2 , class DerivIn2 >
     value_type prepare_dense_output( const int k , const StateIn1 &x_start , const DerivIn1 &dxdt_start ,
-            const StateIn2 &x_end , const DerivIn2 &dxdt_end , const time_type dt )  // k is the order to which the result was approximated
+            const StateIn2 & /* x_end */ , const DerivIn2 & /*dxdt_end */ , const time_type dt )  // k is the order to which the result was approximated
     {
 
         // compute the coefficients of the interpolation polynomial
@@ -762,22 +762,22 @@ private:
     {
         bool resized( false );
 
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x2 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_err , x , typename wrapped_state_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x2 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_err , x , typename is_resizeable<state_type>::type() );
 
         for( size_t i = 0 ; i < m_k_max ; ++i )
-            resized |= adjust_size_by_resizeability( m_table[i] , x , typename wrapped_state_type::is_resizeable() );
+            resized |= adjust_size_by_resizeability( m_table[i] , x , typename is_resizeable<state_type>::type() );
         for( size_t i = 0 ; i < m_k_max+1 ; ++i )
-                    resized |= adjust_size_by_resizeability( m_mp_states[i] , x , typename wrapped_state_type::is_resizeable() );
+                    resized |= adjust_size_by_resizeability( m_mp_states[i] , x , typename is_resizeable<state_type>::type() );
         for( size_t i = 0 ; i < m_k_max+1 ; ++i )
             for( size_t j = 0 ; j < m_derivs[i].size() ; ++j )
-                resized |= adjust_size_by_resizeability( m_derivs[i][j] , x , typename wrapped_deriv_type::is_resizeable() );
+                resized |= adjust_size_by_resizeability( m_derivs[i][j] , x , typename is_resizeable<deriv_type>::type() );
         for( size_t i = 0 ; i < 2*m_k_max+1 ; ++i )
             for( size_t j = 0 ; j < m_diffs[i].size() ; ++j )
-                resized |= adjust_size_by_resizeability( m_diffs[i][j] , x , typename wrapped_deriv_type::is_resizeable() );
+                resized |= adjust_size_by_resizeability( m_diffs[i][j] , x , typename is_resizeable<deriv_type>::type() );
 
         return resized;
     }

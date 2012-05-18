@@ -19,10 +19,10 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_BASE_EXPLICIT_STEPPER_AND_ERROR_STEPPER_BASE_HPP_INCLUDED
 
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
-
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
@@ -136,8 +136,8 @@ public:
     template< class System , class StateIn , class StateOut >
     void do_step( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_resizer.adjust_size( in , boost::bind( &internal_stepper_base_type::template resize_impl<StateIn> , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_resizer.adjust_size( in , detail::bind( &internal_stepper_base_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
         sys( in , m_dxdt.m_v ,t );
         this->stepper().do_step_impl( system , in , m_dxdt.m_v , t , out , dt );
     }
@@ -195,8 +195,8 @@ public:
     template< class System , class StateIn , class StateOut , class Err >
     void do_step( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt , Err &xerr )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_resizer.adjust_size( in , boost::bind( &internal_stepper_base_type::template resize_impl<StateIn> , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_resizer.adjust_size( in , detail::bind( &internal_stepper_base_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
         sys( in , m_dxdt.m_v ,t );
         this->stepper().do_step_impl( system , in , m_dxdt.m_v , t , out , dt , xerr );
     }
@@ -226,8 +226,8 @@ private:
     template< class System , class StateInOut >
     void do_step_v1( System system , StateInOut &x , const time_type &t , const time_type &dt )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_resizer.adjust_size( x , boost::bind( &internal_stepper_base_type::template resize_impl<StateInOut> , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_resizer.adjust_size( x , detail::bind( &internal_stepper_base_type::template resize_impl<StateInOut> , detail::ref( *this ) , detail::_1 ) );
         sys( x , m_dxdt.m_v ,t );
         this->stepper().do_step_impl( system , x , m_dxdt.m_v , t , x , dt );
     }
@@ -235,8 +235,8 @@ private:
     template< class System , class StateInOut , class Err >
     void do_step_v5( System system , StateInOut &x , const time_type &t , const time_type &dt , Err &xerr )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_resizer.adjust_size( x , boost::bind( &internal_stepper_base_type::template resize_impl<StateInOut> , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_resizer.adjust_size( x , detail::bind( &internal_stepper_base_type::template resize_impl<StateInOut> , detail::ref( *this ) , detail::_1 ) );
         sys( x , m_dxdt.m_v ,t );
         this->stepper().do_step_impl( system , x , m_dxdt.m_v , t , x , dt , xerr );
     }
@@ -244,7 +244,7 @@ private:
     template< class StateIn >
     bool resize_impl( const StateIn &x )
     {
-        return adjust_size_by_resizeability( m_dxdt , x , typename wrapped_deriv_type::is_resizeable() );
+        return adjust_size_by_resizeability( m_dxdt , x , typename is_resizeable<deriv_type>::type() );
     }
 
     stepper_type& stepper( void )

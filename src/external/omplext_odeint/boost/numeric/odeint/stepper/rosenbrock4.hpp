@@ -19,10 +19,9 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_ROSENBROCK4_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_ROSENBROCK4_HPP_INCLUDED
 
-#include <boost/ref.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/bind.hpp>
 
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -30,7 +29,7 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/ublas_wrapper.hpp>
-//#include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <boost/numeric/ublas/vector.hpp>
@@ -53,12 +52,13 @@ namespace omplext_odeint {
 
 
 template< class Value >
-struct default_rosenbrock_coefficients : boost::noncopyable
+struct default_rosenbrock_coefficients
 {
     typedef Value value_type;
+    typedef unsigned short order_type;
 
     default_rosenbrock_coefficients( void )
-    : gamma ( 0.25 ) ,
+    : gamma ( static_cast< value_type >( 0.25 ) ) ,
       d1 ( 0.25 ) , d2 ( -0.1043 ) , d3 ( 0.1035 ) , d4 ( 0.3620000000000023e-01 ) ,
       c2 ( 0.386 ) , c3 ( 0.21 ) , c4 ( 0.63 ) ,
       c21 ( -0.5668800000000000e+01 ) ,
@@ -88,6 +88,9 @@ struct default_rosenbrock_coefficients : boost::noncopyable
     const value_type c61 , c62 , c63 , c64 , c65;
     const value_type d21 , d22 , d23 , d24 , d25;
     const value_type d31 , d32 , d33 , d34 , d35;
+
+    static const order_type stepper_order = 4;
+    static const order_type error_order = 3;
 };
 
 
@@ -101,41 +104,50 @@ public:
 
     typedef Value value_type;
     typedef boost::numeric::ublas::vector< value_type > state_type;
-    typedef state_wrapper< state_type > wrapped_state_type;
     typedef state_type deriv_type;
-    typedef state_wrapper< deriv_type > wrapped_deriv_type;
     typedef value_type time_type;
     typedef boost::numeric::ublas::matrix< value_type > matrix_type;
-    typedef state_wrapper< matrix_type > wrapped_matrix_type;
     typedef boost::numeric::ublas::permutation_matrix< size_t > pmatrix_type;
-    typedef state_wrapper< pmatrix_type > wrapped_pmatrix_type;
     typedef Resizer resizer_type;
     typedef Coefficients rosenbrock_coefficients;
     typedef stepper_tag stepper_category;
+    typedef unsigned short order_type;
+
+    typedef state_wrapper< state_type > wrapped_state_type;
+    typedef state_wrapper< deriv_type > wrapped_deriv_type;
+    typedef state_wrapper< matrix_type > wrapped_matrix_type;
+    typedef state_wrapper< pmatrix_type > wrapped_pmatrix_type;
 
     typedef rosenbrock4< Value , Coefficients , Resizer > stepper_type;
 
-    rosenbrock4( ) // = default; // c++09 feature, don't know if all compilers understand that
+    const static order_type stepper_order = rosenbrock_coefficients::stepper_order;
+    const static order_type error_order = rosenbrock_coefficients::error_order;
+
+    rosenbrock4( void )
+    : m_resizer() , m_x_err_resizer() ,
+      m_jac() , m_pm() ,
+      m_dfdt() , m_dxdt() , m_dxdtnew() ,
+      m_g1() , m_g2() , m_g3() , m_g4() , m_g5() ,
+      m_cont3() , m_cont4() , m_xtmp() , m_x_err() ,
+      m_coef()
     { }
 
-    rosenbrock4( const rosenbrock4 &rb )
-    : m_coef()
-    { }
+
 
     template< class System >
     void do_step( System system , const state_type &x , time_type t , state_type &xout , time_type dt , state_type &xerr )
     {
         // get the systen and jacobi function
-        typedef typename boost::unwrap_reference< System >::type system_type;
-        typedef typename boost::unwrap_reference< typename system_type::first_type >::type deriv_func_type;
-        typedef typename boost::unwrap_reference< typename system_type::second_type >::type jacobi_func_type;
+        typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
+        typedef typename omplext_odeint::unwrap_reference< typename system_type::first_type >::type deriv_func_type;
+        typedef typename omplext_odeint::unwrap_reference< typename system_type::second_type >::type jacobi_func_type;
         system_type &sys = system;
         deriv_func_type &deriv_func = sys.first;
         jacobi_func_type &jacobi_func = sys.second;
 
         const size_t n = x.size();
 
-        m_resizer.adjust_size( x , boost::bind( &stepper_type::template resize_impl<state_type> , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( x , detail::bind( &stepper_type::template resize_impl<state_type> , detail::ref( *this ) , detail::_1 ) );
 
         for( size_t i=0 ; i<n ; ++i )
             m_pm.m_v( i ) = i;
@@ -206,14 +218,14 @@ public:
     template< class System >
     void do_step( System system , const state_type &x , time_type t , state_type &xout , time_type dt )
     {
-        m_x_err_resizer.adjust_size( x , boost::bind( &stepper_type::template resize_x_err<state_type> , boost::ref( *this ) , _1 ) );
+        m_x_err_resizer.adjust_size( x , detail::bind( &stepper_type::template resize_x_err<state_type> , detail::ref( *this ) , detail::_1 ) );
         do_step( system , x , t , xout , dt , m_x_err.m_v );
     }
 
     template< class System >
     void do_step( System system , state_type &x , time_type t , time_type dt )
     {
-        m_x_err_resizer.adjust_size( x , boost::bind( &stepper_type::template resize_x_err<state_type> , boost::ref( *this ) , _1 ) );
+        m_x_err_resizer.adjust_size( x , detail::bind( &stepper_type::template resize_x_err<state_type> , detail::ref( *this ) , detail::_1 ) );
         do_step( system , x , t , dt , m_x_err.m_v );
     }
 
@@ -256,26 +268,26 @@ protected:
     bool resize_impl( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_dxdt , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dfdt , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdtnew , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_xtmp , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_g1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_g2 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_g3 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_g4 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_g5 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_cont3 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_cont4 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_jac , x , typename wrapped_matrix_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_pm , x , typename wrapped_pmatrix_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_dxdt , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dfdt , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdtnew , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_xtmp , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_g1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_g2 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_g3 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_g4 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_g5 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_cont3 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_cont4 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_jac , x , typename is_resizeable<matrix_type>::type() );
+        resized |= adjust_size_by_resizeability( m_pm , x , typename is_resizeable<pmatrix_type>::type() );
         return resized;
     }
 
     template< class StateIn >
     bool resize_x_err( const StateIn &x )
     {
-        return adjust_size_by_resizeability( m_x_err , x , typename wrapped_state_type::is_resizeable() );
+        return adjust_size_by_resizeability( m_x_err , x , typename is_resizeable<state_type>::type() );
     }
 
 private:
@@ -292,7 +304,7 @@ private:
     wrapped_state_type m_xtmp;
     wrapped_state_type m_x_err;
 
-    rosenbrock_coefficients m_coef;
+    const rosenbrock_coefficients m_coef;
 };
 
 

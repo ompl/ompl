@@ -25,7 +25,7 @@ namespace omplext_odeint {
 struct null_observer
 {
     template< class State , class Time >
-    void operator()( const State& x , const Time &t ) const
+    void operator()( const State& /* x */ , const Time& /* t */ ) const
     {
 
     }

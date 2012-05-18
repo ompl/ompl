@@ -42,7 +42,7 @@ struct rk4_coefficients_a1 : boost::array< Value , 1 >
 {
     rk4_coefficients_a1( void )
             {
-        (*this)[0] = static_cast< Value >( 0.5 );
+        (*this)[0] = static_cast< Value >( 1 ) / static_cast< Value >( 2 );
             }
 };
 
@@ -50,10 +50,10 @@ template< class Value = double >
 struct rk4_coefficients_a2 : boost::array< Value , 2 >
 {
     rk4_coefficients_a2( void )
-            {
-        (*this)[0] = static_cast<Value>(0.0);
-        (*this)[1] = static_cast<Value>(0.5);
-            }
+    {
+        (*this)[0] = static_cast<Value>(0);
+        (*this)[1] = static_cast< Value >( 1 ) / static_cast< Value >( 2 );
+    }
 };
 
 
@@ -62,9 +62,9 @@ struct rk4_coefficients_a3 : boost::array< Value , 3 >
 {
     rk4_coefficients_a3( void )
             {
-        (*this)[0] = static_cast<Value>(0.0);
-        (*this)[1] = static_cast<Value>(0.0);
-        (*this)[2] = static_cast<Value>(1.0);
+        (*this)[0] = static_cast<Value>(0);
+        (*this)[1] = static_cast<Value>(0);
+        (*this)[2] = static_cast<Value>(1);
             }
 };
 
@@ -72,24 +72,24 @@ template< class Value = double >
 struct rk4_coefficients_b : boost::array< Value , 4 >
 {
     rk4_coefficients_b( void )
-            {
-        (*this)[0] = static_cast<Value>(1.0)/static_cast<Value>(6.0);
-        (*this)[1] = static_cast<Value>(1.0)/static_cast<Value>(3.0);
-        (*this)[2] = static_cast<Value>(1.0)/static_cast<Value>(3.0);
-        (*this)[3] = static_cast<Value>(1.0)/static_cast<Value>(6.0);
-            }
+    {
+        (*this)[0] = static_cast<Value>(1)/static_cast<Value>(6);
+        (*this)[1] = static_cast<Value>(1)/static_cast<Value>(3);
+        (*this)[2] = static_cast<Value>(1)/static_cast<Value>(3);
+        (*this)[3] = static_cast<Value>(1)/static_cast<Value>(6);
+    }
 };
 
 template< class Value = double >
 struct rk4_coefficients_c : boost::array< Value , 4 >
 {
     rk4_coefficients_c( void )
-            {
-        (*this)[0] = static_cast<Value>(0.0);
-        (*this)[1] = static_cast<Value>(0.5);
-        (*this)[2] = static_cast<Value>(0.5);
-        (*this)[3] = static_cast<Value>(1.0);
-            }
+    {
+        (*this)[0] = static_cast<Value>(0);
+        (*this)[1] = static_cast< Value >( 1 ) / static_cast< Value >( 2 );
+        (*this)[2] = static_cast< Value >( 1 ) / static_cast< Value >( 2 );
+        (*this)[3] = static_cast<Value>(1);
+    }
 };
 
 

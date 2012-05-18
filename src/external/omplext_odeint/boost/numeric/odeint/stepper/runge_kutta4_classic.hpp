@@ -19,7 +19,6 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_RUNGE_KUTTA4_CLASSIC_HPP_INCLUDED
 
 
-#include <boost/ref.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_stepper_base.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
@@ -27,6 +26,7 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 namespace boost {
@@ -65,13 +65,13 @@ public :
     {
         // ToDo : check if size of in,dxdt,out are equal?
 
-        static const value_type val1 = static_cast< value_type >( 1.0 );
+        static const value_type val1 = static_cast< value_type >( 1 );
 
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize_impl< StateIn > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) );
 
-        typename boost::unwrap_reference< System >::type &sys = system;
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
 
-        const time_type dh = static_cast< value_type >( 0.5 ) * dt;
+        const time_type dh = dt / static_cast< value_type >( 2 );
         const time_type th = t + dh;
 
         // dt * dxdt = k1
@@ -98,8 +98,8 @@ public :
         // dt * m_dxh = k4
         sys( m_x_tmp.m_v , m_dxh.m_v , t + dt );
         //x += dt/6 * ( m_dxdt + m_dxt + val2*m_dxm )
-        time_type dt6 = dt / static_cast< value_type >( 6.0 );
-        time_type dt3 = dt / static_cast< value_type >( 3.0 );
+        time_type dt6 = dt / static_cast< value_type >( 6 );
+        time_type dt3 = dt / static_cast< value_type >( 3 );
         stepper_base_type::m_algebra.for_each6( out , in , dxdt , m_dxt.m_v , m_dxm.m_v , m_dxh.m_v ,
                 typename operations_type::template scale_sum5< value_type , time_type , time_type , time_type , time_type >( 1.0 , dt6 , dt3 , dt3 , dt6 ) );
     }
@@ -117,10 +117,10 @@ private:
     bool resize_impl( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxm , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxt , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxh , x , typename wrapped_deriv_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxm , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxt , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxh , x , typename is_resizeable<deriv_type>::type() );
         return resized;
     }
 

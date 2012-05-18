@@ -18,6 +18,8 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_DETAIL_GENERIC_RK_ALGORITHM_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_DETAIL_GENERIC_RK_ALGORITHM_HPP_INCLUDED
 
+#include <boost/static_assert.hpp>
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -37,6 +39,7 @@
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/detail/generic_rk_call_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/detail/generic_rk_operations.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 namespace mpl = boost::mpl;
 namespace fusion = boost::fusion;
@@ -227,7 +230,7 @@ public:
             const Time &t , StateOut &out , const Time &dt ,
             StateTemp &x_tmp , Deriv F[StageCount-1] ) const
     {
-        typedef typename boost::unwrap_reference< System >::type unwrapped_system_type;
+        typedef typename omplext_odeint::unwrap_reference< System >::type unwrapped_system_type;
         unwrapped_system_type &sys = system;
         fusion::for_each( m_stages , calculate_stage<
                 unwrapped_system_type , StateIn , StateTemp , DerivIn , Deriv , StateOut , Time >

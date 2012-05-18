@@ -23,12 +23,12 @@
 #include <utility>
 #include <stdexcept>
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/copy.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
@@ -38,18 +38,13 @@ namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
-template
-<
-class Stepper ,
-class StepperCategory = typename Stepper::stepper_category
->
+template< class Stepper , class StepperCategory = typename Stepper::stepper_category >
 class dense_output_runge_kutta;
 
 
-template
-<
-class Stepper
->
+
+
+template< class Stepper >
 class dense_output_runge_kutta< Stepper , stepper_tag >
 {
 
@@ -118,7 +113,7 @@ public:
     template< class StateType >
     void initialize( const StateType &x0 , const time_type &t0 , const time_type &dt0 )
     {
-        m_resizer.adjust_size( x0 , boost::bind( &dense_output_stepper_type::template resize_impl< StateType > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( x0 , detail::bind( &dense_output_stepper_type::template resize_impl< StateType > , detail::ref( *this ) , detail::_1 ) );
         boost::numeric::omplext_odeint::copy( x0 , *m_current_state );
         m_t = t0;
         m_dt = dt0;
@@ -183,8 +178,8 @@ private:
     bool resize_impl( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x2 , x , typename wrapped_state_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x2 , x , typename is_resizeable<state_type>::type() );
         return resized;
     }
 
@@ -202,10 +197,7 @@ private:
 
 
 
-template
-<
-class Stepper
->
+template< class Stepper >
 class dense_output_runge_kutta< Stepper , explicit_controlled_stepper_fsal_tag >
 {
 private:
@@ -291,7 +283,7 @@ public:
     template< class StateType >
     void initialize( const StateType &x0 , const time_type &t0 , const time_type &dt0 )
     {
-        m_resizer.adjust_size( x0 , boost::bind( &dense_output_stepper_type::template resize< StateType > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( x0 , detail::bind( &dense_output_stepper_type::template resize< StateType > , detail::ref( *this ) , detail::_1 ) );
         boost::numeric::omplext_odeint::copy( x0 , *m_current_state );
         m_t = t0;
         m_dt = dt0;
@@ -305,7 +297,7 @@ public:
 
         if( !m_is_deriv_initialized )
         {
-            typename boost::unwrap_reference< System >::type &sys = system;
+            typename omplext_odeint::unwrap_reference< System >::type &sys = system;
             sys( *m_current_state , *m_current_deriv , m_t );
             m_is_deriv_initialized = true;
         }
@@ -346,10 +338,10 @@ public:
     bool resize( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x2 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename wrapped_deriv_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x2 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename is_resizeable<deriv_type>::type() );
         return resized;
     }
 

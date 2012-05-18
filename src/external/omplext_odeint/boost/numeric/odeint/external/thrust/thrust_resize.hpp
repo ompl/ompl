@@ -36,11 +36,49 @@ struct is_resizeable< thrust::device_vector< T > >
 };
 
 template< class T >
+struct same_size_impl< thrust::device_vector< T > , thrust::device_vector< T > >
+{
+    static bool same_size( const thrust::device_vector< T > &x , const thrust::device_vector< T > &y )
+    {
+        return x.size() == y.size();
+    }
+};
+
+template< class T >
+struct resize_impl< thrust::device_vector< T > , thrust::device_vector< T > >
+{
+    static void resize( thrust::device_vector< T > &x , const thrust::device_vector< T > &y )
+    {
+        x.resize( y.size() );
+    }
+};
+
+
+template< class T >
 struct is_resizeable< thrust::host_vector< T > >
 {
     struct type : public boost::true_type { };
     const static bool value = type::value;
 };
+
+template< class T >
+struct same_size_impl< thrust::host_vector< T > , thrust::host_vector< T > >
+{
+    static bool same_size( const thrust::host_vector< T > &x , const thrust::host_vector< T > &y )
+    {
+        return x.size() == y.size();
+    }
+};
+
+template< class T >
+struct resize_impl< thrust::host_vector< T > , thrust::host_vector< T > >
+{
+    static void resize( thrust::host_vector< T > &x , const thrust::host_vector< T > &y )
+    {
+        x.resize( y.size() );
+    }
+};
+
 
 
 template< class Container1, class Value >

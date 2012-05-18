@@ -21,12 +21,12 @@
 
 #include <utility>
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
-
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/ublas_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <boost/numeric/ublas/vector.hpp>
@@ -72,14 +72,14 @@ public:
     template< class System >
     void do_step( System system , state_type &x , value_type t , value_type dt )
     {
-        typedef typename boost::unwrap_reference< System >::type system_type;
-        typedef typename boost::unwrap_reference< typename system_type::first_type >::type deriv_func_type;
-        typedef typename boost::unwrap_reference< typename system_type::second_type >::type jacobi_func_type;
+        typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
+        typedef typename omplext_odeint::unwrap_reference< typename system_type::first_type >::type deriv_func_type;
+        typedef typename omplext_odeint::unwrap_reference< typename system_type::second_type >::type jacobi_func_type;
         system_type &sys = system;
         deriv_func_type &deriv_func = sys.first;
         jacobi_func_type &jacobi_func = sys.second;
 
-        m_resizer.adjust_size( x , boost::bind( &stepper_type::template resize_impl<state_type> , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( x , detail::bind( &stepper_type::template resize_impl<state_type> , detail::ref( *this ) , detail::_1 ) );
 
         for( size_t i=0 ; i<x.size() ; ++i )
             m_pm.m_v[i] = i;
@@ -131,11 +131,11 @@ private:
     bool resize_impl( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_dxdt , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_b , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_jacobi , x , typename wrapped_matrix_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_pm , x , typename wrapped_pmatrix_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_dxdt , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_b , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_jacobi , x , typename is_resizeable<matrix_type>::type() );
+        resized |= adjust_size_by_resizeability( m_pm , x , typename is_resizeable<pmatrix_type>::type() );
         return resized;
     }
 

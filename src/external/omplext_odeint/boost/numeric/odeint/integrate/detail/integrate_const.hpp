@@ -18,7 +18,7 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_CONST_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_CONST_HPP_INCLUDED
 
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp>
+#include <omplext_odeint/omplext_odeint/omplext_odeint/omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp>
 
 #include <boost/ref.hpp>
 

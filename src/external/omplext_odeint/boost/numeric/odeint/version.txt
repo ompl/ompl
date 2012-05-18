@@ -1,2 +1,2 @@
-This version of boost::numeric::odeint was cloned from github on 6 January 2012.  
-Git tag: v2.1-54-g45a9b69
+This version of boost::numeric::odeint was cloned from github on May 18, 2012.  
+Git tag: 61b8f1a3077f140932cc0de82c8e325593d97913

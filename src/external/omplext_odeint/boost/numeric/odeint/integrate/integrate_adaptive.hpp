@@ -22,7 +22,6 @@
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 #include <omplext_odeint/boost/numeric/odeint/integrate/null_observer.hpp>
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_const.hpp>
 #include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp>
 
 namespace boost {

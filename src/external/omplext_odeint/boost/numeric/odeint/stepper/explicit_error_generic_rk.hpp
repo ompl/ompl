@@ -27,6 +27,7 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/detail/generic_rk_operations.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 
@@ -120,10 +121,7 @@ public:
     void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt ,
             const time_type &t , StateOut &out , const time_type &dt )
     {
-        //typedef typename boost::unwrap_reference< System >::type unwrapped_system_type;
-        //unwrapped_system_type &sys = system;
-
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize_impl< StateIn > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) );
 
         // actual calculation done in generic_rk.hpp
         m_rk_algorithm.do_step( stepper_base_type::m_algebra , system , in , dxdt , t , out , dt , m_x_tmp.m_v , m_F );
@@ -143,10 +141,10 @@ private:
     bool resize_impl( const StateIn &x )
     {
         bool resized( false );
-        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename wrapped_state_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename is_resizeable<state_type>::type() );
         for( size_t i = 0 ; i < StageCount-1 ; ++i )
         {
-            resized |= adjust_size_by_resizeability( m_F[i] , x , typename wrapped_deriv_type::is_resizeable() );
+            resized |= adjust_size_by_resizeability( m_F[i] , x , typename is_resizeable<deriv_type>::type() );
         }
         return resized;
     }
