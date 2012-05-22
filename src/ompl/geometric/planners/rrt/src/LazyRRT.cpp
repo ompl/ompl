@@ -245,10 +245,6 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        double weight = 0.0;
-        if (motions[i]->parent)
-            weight = si_->distance(motions[i]->parent->state, motions[i]->state);
-
         if (motions[i]->parent == NULL)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
         else

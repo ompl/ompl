@@ -106,7 +106,6 @@ void ompl::geometric::pSBL::freeGridMotions(Grid<MotionInfo> &grid)
 void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
 {
     checkValidity();
-    base::GoalState *goal = static_cast<base::GoalState*>(pdef_->getGoal().get());
     RNG              rng;
 
     std::vector<Motion*> solution;
