@@ -119,29 +119,34 @@ namespace ompl
                 std::size_t              index;
             };
 
-            /** \brief Flags to use in a bit mask for state space sanity checks */
+            /** \brief Flags to use in a bit mask for state space sanity checks. Some basic checks do not have flags associated (they are always executed; for example,
+                whether copyState() works as expected) */
             enum SanityChecks
                 {
-                    /// \brief Check whether distance from a state to itself is 0.0 (StateSpace::distance())
-                    STATESPACE_DISTANCE_TO_SELF          = (1<<0),
 
-                    /// \brief Check whether a state is equal to itself (StateSpace::equalStates())
-                    STATESPACE_EQUAL_TO_SELF             = (1<<1),
-
-                    /// \brief Check whether the distances between non-equal states is positive (StateSpace::distance())
-                    STATESPACE_DISTANCE_DIFFERENT_STATES = (1<<2),
+                    /// \brief Check whether the distances between non-equal states is strictly positive (StateSpace::distance())
+                    STATESPACE_DISTANCE_DIFFERENT_STATES = (1<<1),
 
                     /// \brief Check whether the distance function is symmetric (StateSpace::distance())
-                    STATESPACE_DISTANCE_SYMMETRIC        = (1<<3),
+                    STATESPACE_DISTANCE_SYMMETRIC        = (1<<2),
 
                     /// \brief Check whether calling StateSpace::interpolate() works as expected
-                    STATESPACE_INTERPOLATION             = (1<<4),
+                    STATESPACE_INTERPOLATION             = (1<<3),
 
                     /// \brief Check whether the triangle inequality holds when using StateSpace::interpolate() and StateSpace::distance()
-                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<5),
+                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<4),
 
                     /// \brief Check whether the StateSpace::distance() is bounded by StateSpace::getExtent()
-                    STATESPACE_DISTANCE_BOUND            = (1<<6)
+                    STATESPACE_DISTANCE_BOUND            = (1<<5),
+
+                    /// \brief Check whether sampled states are always within bounds
+                    STATESPACE_RESPECT_BOUNDS            = (1<<6),
+
+                    /// \brief Check that enforceBounds() does not modify the contents of states that are within bounds
+                    STATESPACE_ENFORCE_BOUNDS_NO_OP      = (1<<7),
+
+                    /// \brief Check whether the StateSpace::serialize() and StateSpace::deserialize() work as expected
+                    STATESPACE_SERIALIZATION             = (1<<8)
                 };
 
             /** @name Generic functionality for state spaces
@@ -396,11 +401,11 @@ namespace ompl
 
             /** \brief Perform sanity checks for this state space. Throws an exception if failures are found.
                 \note This checks if distances are always positive, whether the integration works as expected, etc. */
-            virtual void sanityChecks(void) const;
+            virtual void sanityChecks(double zero, double eps, unsigned int flags) const;
 
             /** \brief Convenience function that allows derived state spaces to choose which checks
-                should pass (see SanityChecks flags) and how strict the checks are. */
-            virtual void sanityChecks(double zero, double eps, unsigned int flags) const;
+                should pass (see SanityChecks flags) and how strict the checks are. This just calls sanityChecks() with some default arguments. */
+            virtual void sanityChecks(void) const;
 
             /** \brief Print a Graphviz digraph that represents the containment diagram for the state space */
 	    void diagram(std::ostream &out) const;
