@@ -37,6 +37,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/GoalSampleableRegion.h"
+#include <sstream>
 #include <boost/thread.hpp>
 
 ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
@@ -248,6 +249,9 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
         {
             msg::Interface msg(planner_ ? planner_->getName() : "");
             msg.warn("Skipping invalid start state (invalid %s)", bounds ? "state": "bounds");
+            std::stringstream ss;
+            si_->printState(st, ss);
+            msg.debug("Discarded start state %s", ss.str().c_str());
         }
     }
     return NULL;
@@ -304,6 +308,9 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     {
                         msg::Interface msg(planner_ ? planner_->getName() : "");
                         msg.warn("Skipping invalid goal state (invalid %s)", bounds ? "state": "bounds");
+                        std::stringstream ss;
+                        si_->printState(tempState_, ss);
+                        msg.debug("Discarded goal state %s", ss.str().c_str());
                     }
                 }
                 while (!ptc() && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
