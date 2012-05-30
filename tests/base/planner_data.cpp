@@ -309,7 +309,7 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
     // Adding vertices and edges
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        BOOST_CHECK_EQUAL( data.addEdge (base::PlannerDataVertex(states[i], i), base::PlannerDataVertex(states[i+1], i+1)), 
+        BOOST_CHECK_EQUAL( data.addEdge (base::PlannerDataVertex(states[i], i), base::PlannerDataVertex(states[i+1], i+1)),
                            true );
     }
 
@@ -442,5 +442,7 @@ BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
             BOOST_CHECK_EQUAL( data.isGoalVertex(i), false );
         }
     }
-}
 
+    for (size_t i = 0; i < states.size(); ++i)
+        space->freeState(states[i]);
+}

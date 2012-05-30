@@ -217,6 +217,9 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
     {
         BOOST_CHECK_EQUAL("No elements found", e.what());
     }
+
+    for(i=0; i<n; ++i)
+        SE3.freeState(states[i]);
 }
 
 void randomAccessPatternIntTest(NearestNeighbors<int>& proximity)
@@ -339,12 +342,16 @@ void randomAccessPatternStateTest(NearestNeighbors<base::State*>& proximity)
             {
                 proximityLinear.remove(*it);
                 proximity.remove(*it);
+                SE3.freeState(*it);
                 it = states.erase(it);
             }
             else
                 ++it;
         }
     }
+
+    for(it = states.begin(); it != states.end(); ++it)
+        SE3.freeState(*it);
 }
 
 BOOST_AUTO_TEST_CASE(IntLinear)
@@ -394,4 +401,3 @@ BOOST_AUTO_TEST_CASE(RandomAccessPatternStateGNAT)
     NearestNeighborsGNAT<base::State*> proximity(4,2,6,5);
     randomAccessPatternStateTest(proximity);
 }
-
