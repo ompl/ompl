@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/planners/kpiece/KPIECE1.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/util/Exception.h"
 #include <limits>

@@ -38,7 +38,7 @@
 #define OMPL_GEOMETRIC_IK_GAIK_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/GoalRegion.h"
+#include "ompl/base/goals/GoalRegion.h"
 #include "ompl/geometric/ik/HCIK.h"
 #include "ompl/util/Console.h"
 

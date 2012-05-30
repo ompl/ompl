@@ -35,7 +35,7 @@
 /* Author: Matt Maly */
 
 #include "ompl/control/planners/syclop/SyclopEST.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 
 void ompl::control::SyclopEST::setup(void)
 {

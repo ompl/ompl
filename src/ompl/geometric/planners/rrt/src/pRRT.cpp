@@ -36,7 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread/thread.hpp>
 #include <limits>

@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/sbl/pSBL.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread.hpp>
 #include <limits>

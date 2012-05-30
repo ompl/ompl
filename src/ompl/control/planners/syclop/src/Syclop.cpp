@@ -35,7 +35,7 @@
 /* Author: Matt Maly */
 
 #include "ompl/control/planners/syclop/Syclop.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/ProblemDefinition.h"
 #include <limits>
 #include <stack>

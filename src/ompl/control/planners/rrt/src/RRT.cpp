@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/planners/rrt/RRT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include <limits>
 

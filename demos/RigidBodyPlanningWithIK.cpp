@@ -36,7 +36,7 @@
 
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
-#include <ompl/base/GoalLazySamples.h>
+#include <ompl/base/goals/GoalLazySamples.h>
 #include <ompl/geometric/ik/GAIK.h>
 
 #include <ompl/config.h>

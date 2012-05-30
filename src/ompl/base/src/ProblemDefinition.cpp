@@ -35,8 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/ProblemDefinition.h"
-#include "ompl/base/GoalState.h"
-#include "ompl/base/GoalStates.h"
+#include "ompl/base/goals/GoalState.h"
+#include "ompl/base/goals/GoalStates.h"
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/PathControl.h"
 #include <sstream>

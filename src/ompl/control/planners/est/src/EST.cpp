@@ -35,7 +35,7 @@
 /* Author: Ryan Luna */
 
 #include "ompl/control/planners/est/EST.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>

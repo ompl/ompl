@@ -39,7 +39,7 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 
-#include "ompl/base/GoalState.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/control/planners/rrt/RRT.h"
@@ -591,4 +591,3 @@ BOOST_AUTO_TEST_CASE(controlSyclopEST)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

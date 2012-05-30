@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/GoalLazySamples.h"
+#include "ompl/base/goals/GoalLazySamples.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/util/Time.h"
 

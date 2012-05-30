@@ -36,7 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
 ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")

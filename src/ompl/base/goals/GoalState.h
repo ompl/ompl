@@ -34,54 +34,63 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/GoalState.h"
-#include "ompl/base/SpaceInformation.h"
+#ifndef OMPL_BASE_GOALS_GOAL_STATE_
+#define OMPL_BASE_GOALS_GOAL_STATE_
 
-ompl::base::GoalState::~GoalState(void)
+#include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/ScopedState.h"
+
+namespace ompl
 {
-    if (state_)
-        si_->freeState(state_);
+
+    namespace base
+    {
+
+        /** \brief Definition of a goal state */
+        class GoalState : public GoalSampleableRegion
+        {
+        public:
+
+            /** \brief Create a goal representation that is in fact a state  */
+            GoalState(const SpaceInformationPtr &si) : GoalSampleableRegion(si), state_(NULL)
+            {
+                type_ = GOAL_STATE;
+            }
+
+            virtual ~GoalState(void);
+
+            /** \brief Sample a state in the goal region */
+            virtual void sampleGoal(State *st) const;
+
+            /** \brief Return the maximum number of samples that can be asked for before repeating */
+            virtual unsigned int maxSampleCount(void) const;
+
+            /** \brief Compute the distance to the goal (heuristic) */
+            virtual double distanceGoal(const State *st) const;
+
+            /** \brief Print information about the goal data structure
+                to a stream */
+            virtual void print(std::ostream &out = std::cout) const;
+
+            /** \brief Set the goal state */
+            void setState(const State* st);
+
+            /** \brief Set the goal state */
+            void setState(const ScopedState<> &st);
+
+            /** \brief Get the goal state */
+            const State* getState(void) const;
+
+            /** \brief Get the goal state */
+            State* getState(void);
+
+        protected:
+
+            /** \brief The goal state */
+            State *state_;
+        };
+
+    }
 }
 
-double ompl::base::GoalState::distanceGoal(const State *st) const
-{
-    return si_->distance(st, state_);
-}
-
-void ompl::base::GoalState::print(std::ostream &out) const
-{
-    out << "Goal state, threshold = " << threshold_ << ", memory address = " << this << ", state = " << std::endl;
-    si_->printState(state_, out);
-}
-
-void ompl::base::GoalState::sampleGoal(base::State *st) const
-{
-    si_->copyState(st, state_);
-}
-
-unsigned int ompl::base::GoalState::maxSampleCount(void) const
-{
-    return 1;
-}
-
-void ompl::base::GoalState::setState(const State* st)
-{
-    if (state_)
-        si_->freeState(state_);
-    state_ = si_->cloneState(st);
-}
-
-void ompl::base::GoalState::setState(const ScopedState<> &st)
-{
-    setState(st.get());
-}
-
-const ompl::base::State * ompl::base::GoalState::getState(void) const
-{
-    return state_;
-}
-
-ompl::base::State * ompl::base::GoalState::getState(void)
-{
-    return state_;
-}
+#endif

@@ -36,7 +36,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include <sstream>
 #include <boost/thread.hpp>
 

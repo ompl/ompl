@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, James D. Marble */
 
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 
 typedef ::ompl::base::PlannerStatus ( ::ompl::base::Planner::*timed_solve_function_type )( double ) ;
 
