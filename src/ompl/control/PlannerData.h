@@ -39,6 +39,7 @@
 
 #include "ompl/base/PlannerData.h"
 #include "ompl/control/Control.h"
+#include <boost/serialization/base_object.hpp>
 
 namespace ompl
 {
@@ -64,6 +65,15 @@ namespace ompl
             double getDuration (void) const { return duration_; }
 
         protected:
+            friend class boost::serialization::access;
+            template <class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+            {
+                ar & boost::serialization::base_object<base::PlannerDataEdge>(*this);
+                //ar & c_; <-- we cannot do this yet!
+                ar & duration_;
+            }
+
             const Control *c_;
             double duration_;
         };

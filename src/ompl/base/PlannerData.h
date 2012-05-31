@@ -38,14 +38,17 @@
 #define OMPL_BASE_PLANNER_DATA_
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 #include <set>
 #include "ompl/base/State.h"
+#include "ompl/base/StateStorage.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/noncopyable.hpp>
 #include <boost/function.hpp>
+#include <boost/serialization/access.hpp>
 
 namespace ompl
 {
@@ -59,7 +62,7 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Takes a state pointer and an optional integer tag.
-            PlannerDataVertex (const base::State* st, int tag = 0) : state_(st), tag_(tag) {}
+            PlannerDataVertex (base::State* st, int tag = 0) : state_(st), tag_(tag) {}
             /// \brief Copy constructor.
             PlannerDataVertex (const PlannerDataVertex& rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
             virtual ~PlannerDataVertex (void) {}
@@ -69,7 +72,7 @@ namespace ompl
             /// \brief Set the integer tag associated with this vertex.
             virtual void setTag (int tag) { tag_ = tag; }
             /// \brief Retrieve the state associated with this vertex.
-            virtual const base::State* getState(void) const { return state_; }
+            virtual base::State* getState(void) const { return state_; }
 
             /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataVertex* clone (void) const
@@ -92,8 +95,17 @@ namespace ompl
             }
 
         protected:
+            PlannerDataVertex(void) {}
+
+            friend class boost::serialization::access;
+            template <class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+            {
+                ar & tag_;
+            }
+
             /// \brief The state represented by this vertex
-            const base::State* state_;
+            base::State* state_;
             /// \brief A generic integer tag for this state.  Not used for equivalence checking.
             int tag_;
 
@@ -120,6 +132,14 @@ namespace ompl
             bool operator != (const PlannerDataEdge &rhs) const
             {
                 return !(*this == rhs);
+            }
+
+        protected:
+
+            friend class boost::serialization::access;
+            template <class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+            {
             }
         };
 
@@ -169,13 +189,13 @@ namespace ompl
             unsigned int addGoalVertex  (const PlannerDataVertex &v);
             /// \brief Mark the given state as a start vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markStartState (const base::State* st);
+            bool markStartState (base::State* st);
             /// \brief Mark the given state as a goal vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markGoalState (const base::State* st);
+            bool markGoalState (base::State* st);
             /// \brief Set the integer tag associated with the given state.  If the given
             /// state does not exist in a vertex, false is returned.
-            bool tagState (const base::State* st, int tag);
+            bool tagState (base::State* st, int tag);
             /// \brief Removes the vertex associated with the given data.  If the
             /// vertex does not exist, false is returned.
             /// This method has O(n) complexity in the number of vertices.
@@ -204,9 +224,9 @@ namespace ompl
             /// \brief Creates a deep copy of the states contained in the vertices of this
             /// PlannerData structure so that when the planner that created this instance goes
             /// out of scope, all data remains intact.
-            /// \remarks Shallow state pointers inside of the PlannerDataVertex objects already 
+            /// \remarks Shallow state pointers inside of the PlannerDataVertex objects already
             /// in this PlannerData will be replaced with clones which are scoped to this PlannerData
-            /// object.  A subsequent call to this method is necessary after any other vertices are 
+            /// object.  A subsequent call to this method is necessary after any other vertices are
             /// added to ensure that this PlannerData instance is fully decoupled.
             void decoupleFromPlanner(void);
 
@@ -308,7 +328,80 @@ namespace ompl
             /// \brief Writes a Graphviz dot file of this structure to the given stream
             void printGraphviz (std::ostream& out = std::cout) const;
             /// \brief Writes a GraphML file of this structure to the given stream
-            void printGraphML(std::ostream& out = std::cout) const;
+            void printGraphML (std::ostream& out = std::cout) const;
+
+            /// \brief Serializes the structure to the given filename.
+            void serialize(const char *filename) const
+            {
+                std::ofstream out(filename, std::ios::binary);
+                serialize(out);
+                out.close();
+            }
+
+            /// \brief Serializes the structure to the given stream.
+            void serialize(std::ostream &out) const
+            {
+                StateStorageWithMetadata<PlannerDataMetadata> storage(si_->getStateSpace());
+
+                for (size_t i = 0; i < numVertices(); ++i)
+                {
+                    // Create a metadata object to store other members of the vertex class
+                    PlannerDataMetadata data (&getVertex(i));
+
+                    // Enumerating all edges of this vertex, and storing pointers into the metadata object
+                    std::map<unsigned int, const PlannerDataEdge*> neighbors;
+                    getEdges(i, neighbors);
+                    for (std::map<unsigned int, const PlannerDataEdge*>::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+                    {
+                        data.edgeIndexes_.push_back(it->first);
+                        data.edgeObjects_.push_back(it->second);
+                    }
+                    // Storing the state and all metadata
+                    storage.addState(getVertex(i).getState(), data);
+                }
+
+                storage.store(out);
+            }
+
+            /// \brief Deserializes the structure from the given filename.
+            void deserialize(const char *filename)
+            {
+                std::ifstream in(filename, std::ios::binary);
+                deserialize(in);
+                in.close();
+            }
+
+            /// \brief Deserializes the structure from the given stream.
+            void deserialize(std::istream &in)
+            {
+                clear();
+
+                StateStorageWithMetadata<PlannerDataMetadata> storage(si_->getStateSpace());
+                storage.load(in);
+
+                // Repopulate the vertices and all associated vertex data
+                for (size_t i = 0; i < storage.size(); ++i)
+                {
+                    PlannerDataMetadata &data = storage.getMetadata(i);
+                    PlannerDataVertex* v = const_cast<PlannerDataVertex*>(data.v_);
+                    v->state_ = storage.getState(i);
+                    addVertex(*v);
+                }
+
+                // Loading all edges and edge data
+                for (size_t i = 0; i < storage.size(); ++i)
+                {
+                    PlannerDataMetadata &data = storage.getMetadata(i);
+                    for (size_t j = 0; j < data.edgeIndexes_.size(); ++j)
+                        addEdge(i, data.edgeIndexes_[j], *(data.edgeObjects_[j]));
+
+                }
+
+                // We are using pointers from StateStorage in the vertices, which will be
+                // freed when storage goes out of scope.  Very important to create our own
+                // copy of the state pointers here.
+                decoupleFromPlanner();
+            }
 
             /// \}
             /// \name Advanced graph extraction
@@ -324,18 +417,18 @@ namespace ompl
             void extractReachable(unsigned int v, PlannerData &data) const;
 
             /// \brief Extract a Boost.Graph object from this PlannerData.
-            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The
-            /// graph returned can safely be used to inspect the structure or add vertices
-            /// and edges.  Removal of vertices and edges should use the
-            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure
-            /// proper memory clean-up.
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object
+            /// returned can be used safely for all read-only purposes in Boost.  Adding or
+            /// removing vertices and edges should be performed by using the respective method
+            /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
+            /// will result in undefined behavior with this class.
             Graph& toBoostGraph (void);
             /// \brief Extract a Boost.Graph object from this PlannerData.
-            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The
-            /// graph returned can safely be used to inspect the structure or add vertices
-            /// and edges.  Removal of vertices and edges should use the
-            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure
-            /// proper memory clean-up.
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object
+            /// returned can be used safely for all read-only purposes in Boost.  Adding or
+            /// removing vertices and edges should be performed by using the respective method
+            /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
+            /// will result in undefined behavior with this class.
             const Graph& toBoostGraph (void) const;
 
             /// \}
@@ -347,7 +440,7 @@ namespace ompl
             double defaultEdgeWeight(const PlannerDataVertex &v1, const PlannerDataVertex &v2, const PlannerDataEdge& e) const;
 
             /// \brief A mapping of states to vertex indexes.  For fast lookup of vertex index.
-            std::map<const State*, unsigned int> stateIndexMap_;
+            std::map<State*, unsigned int>       stateIndexMap_;
             /// \brief A mutable listing of the vertices marked as start states.  Stored in sorted order.
             std::vector<unsigned int>            startVertexIndices_;
             /// \brief A mutable listing of the vertices marked as goal states.  Stored in sorted order.
@@ -364,6 +457,29 @@ namespace ompl
             // Obscured to prevent unnecessary inclusion of BGL throughout the
             // rest of the code.
             void* graphRaw_;
+
+            // This class is used to serialize vertex and edge data (other than state pointers).
+            // Since this object is used in a class template, it cannot be defined locally, and
+            // is defined here to discourage external use.
+            class PlannerDataMetadata
+            {
+            public:
+                PlannerDataMetadata() : v_(NULL) {}
+                PlannerDataMetadata(const ompl::base::PlannerDataVertex* v) : v_(v) {}
+
+                template<typename Archive>
+                void serialize(Archive & ar, const unsigned int version)
+                {
+                    ar & v_;
+                    ar & edgeIndexes_;
+                    ar & edgeObjects_;
+                }
+
+                const ompl::base::PlannerDataVertex *v_;
+                // ideally these members would constitute a map, but boost.serialize cannot process that structure
+                std::vector<unsigned int> edgeIndexes_;
+                std::vector<const ompl::base::PlannerDataEdge*> edgeObjects_;
+            };
         };
     }
 }

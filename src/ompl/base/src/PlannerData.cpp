@@ -98,12 +98,12 @@ void ompl::base::PlannerData::decoupleFromPlanner (void)
         // If this vertex's state is not in the decoupled list, clone it and add it
         if (decoupledStates_.find(const_cast<State*>(vtx.getState())) == decoupledStates_.end())
         {
-            const State* oldState = vtx.getState();
+            State* oldState = vtx.getState();
             State* clone = si_->cloneState(oldState);
             decoupledStates_.insert(clone);
             // Replacing the shallow state pointer with our shiny new clone
             vtx.state_ = clone;
-            
+
             // Remove oldState from stateIndexMap
             stateIndexMap_.erase(oldState);
             // Add the new, cloned state to stateIndexMap
@@ -281,7 +281,7 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
 {
-    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(v.getState());
+    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(v.getState());
     if (it != stateIndexMap_.end())
         return it->second;
     return INVALID_INDEX;
@@ -529,9 +529,9 @@ bool ompl::base::PlannerData::removeEdge (const PlannerDataVertex &v1, const Pla
     return removeEdge (index1, index2);
 }
 
-bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
+bool ompl::base::PlannerData::tagState (base::State* st, int tag)
 {
-    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
+    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
         getVertex(it->second).setTag(tag);
@@ -540,10 +540,10 @@ bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
     return false;
 }
 
-bool ompl::base::PlannerData::markStartState (const base::State* st)
+bool ompl::base::PlannerData::markStartState (base::State* st)
 {
     // Find the index in the stateIndexMap_
-    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
+    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
         if (!isStartVertex(it->second))
@@ -557,10 +557,10 @@ bool ompl::base::PlannerData::markStartState (const base::State* st)
     return false;
 }
 
-bool ompl::base::PlannerData::markGoalState (const base::State* st)
+bool ompl::base::PlannerData::markGoalState (base::State* st)
 {
     // Find the index in the stateIndexMap_
-    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
+    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
         if (!isGoalVertex(it->second))
@@ -666,4 +666,3 @@ double ompl::base::PlannerData::defaultEdgeWeight(const base::PlannerDataVertex 
 {
     return si_->distance(v1.getState(), v2.getState());
 }
-
