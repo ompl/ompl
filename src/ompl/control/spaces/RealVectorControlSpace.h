@@ -130,6 +130,15 @@ namespace ompl
 
             virtual void setup(void);
 
+            /** \brief Returns the serialization size for a single control in this space */
+            virtual unsigned int getSerializationLength(void) const;
+
+            /** \brief Serializes the given control into the serialization buffer. */
+            virtual void serialize(void *serialization, const Control *ctrl) const;
+
+            /** \brief Deserializes a control from the serialization buffer. */
+            virtual void deserialize(Control *ctrl, const void *serialization) const;
+
         protected:
 
             /** \brief The dimension of the state space */
