@@ -69,9 +69,8 @@ void ompl::base::PlannerData::clear (void)
 {
     // Freeing decoupled states, if any
     for (std::set<State*>::iterator it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
-    {
         si_->freeState(*it);
-    }
+    decoupledStates_.clear();
 
     if (graph_)
     {
@@ -103,7 +102,7 @@ void ompl::base::PlannerData::decoupleFromPlanner (void)
             decoupledStates_.insert(clone);
             // Replacing the shallow state pointer with our shiny new clone
             vtx.state_ = clone;
-            
+
             // Remove oldState from stateIndexMap
             stateIndexMap_.erase(oldState);
             // Add the new, cloned state to stateIndexMap
@@ -666,4 +665,3 @@ double ompl::base::PlannerData::defaultEdgeWeight(const base::PlannerDataVertex 
 {
     return si_->distance(v1.getState(), v2.getState());
 }
-
