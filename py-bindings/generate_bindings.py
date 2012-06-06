@@ -571,6 +571,7 @@ class ompl_tools_generator_t(code_generator_t):
             'PreSetupEvent', 'Pre-setup event')
         self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
             'PostSetupEvent', 'Post-setup event')
+        benchmark_cls.class_('Request').no_init = False
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
