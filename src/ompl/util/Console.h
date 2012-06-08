@@ -61,13 +61,13 @@
 
     \}
 */
-#define logError(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::ERROR, fmt, ##__VA_ARGS__)
+#define logError(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_ERROR, fmt, ##__VA_ARGS__)
 
-#define logWarn(fmt, ...)   ompl::msg::log(__FILE__, __LINE__, ompl::msg::WARN,  fmt, ##__VA_ARGS__)
+#define logWarn(fmt, ...)   ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_WARN,  fmt, ##__VA_ARGS__)
 
-#define logInform(fmt, ...) ompl::msg::log(__FILE__, __LINE__, ompl::msg::INFO,  fmt, ##__VA_ARGS__)
+#define logInform(fmt, ...) ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_INFO,  fmt, ##__VA_ARGS__)
 
-#define logDebug(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::DEBUG, fmt, ##__VA_ARGS__)
+#define logDebug(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEBUG, fmt, ##__VA_ARGS__)
 
 namespace ompl
 {
@@ -80,11 +80,11 @@ namespace ompl
         /** \brief The set of priorities for message logging */
         enum LogLevel
         {
-            DEBUG = 0,
-            INFO,
-            WARN,
-            ERROR,
-            NONE
+            LOG_DEBUG = 0,
+            LOG_INFO,
+            LOG_WARN,
+            LOG_ERROR,
+            LOG_NONE
         };
 
         /** \brief Generic class to handle output from a piece of

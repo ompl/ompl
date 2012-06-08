@@ -49,7 +49,7 @@ struct DefaultOutputHandler
     {
         output_handler_ = static_cast<ompl::msg::OutputHandler*>(&std_output_handler_);
         previous_output_handler_ = output_handler_;
-        logLevel_ = ompl::msg::DEBUG;
+        logLevel_ = ompl::msg::LOG_DEBUG;
     }
 
     ompl::msg::OutputHandlerSTD std_output_handler_;
@@ -134,7 +134,7 @@ static const char* LogLevelString[4] = {"Debug:   ", "Info:    ", "Warning: ", "
 
 void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
-    if (level >= WARN)
+    if (level >= LOG_WARN)
     {
         std::cerr << LogLevelString[level] << text << std::endl;
         std::cerr << "         at line " << line << " in " << boost::filesystem::path(filename).filename().string() << std::endl;
@@ -166,7 +166,7 @@ void ompl::msg::OutputHandlerFile::log(const std::string &text, LogLevel level, 
     if (file_)
     {
         fprintf(file_, "%s%s\n", LogLevelString[level], text.c_str());
-        if(level >= WARN)
+        if(level >= LOG_WARN)
             fprintf(file_, "         at line %d in %s\n", line, boost::filesystem::path(filename).filename().string().c_str());
         fflush(file_);
     }
