@@ -106,17 +106,9 @@ namespace ompl
             {
             }
 
-            /** \brief Print an error message: "Error: ...." */
-            virtual void error(const std::string &text) = 0;
-
-            /** \brief Print an warning message: "Warning: ...." */
-            virtual void warn(const std::string &text) = 0;
-
-            /** \brief Print some information: "Information: ...." */
-            virtual void inform(const std::string &text) = 0;
-
-            /** \brief Print a debug message */
-            virtual void debug(const std::string &text) = 0;
+            /** \brief log a message to the output handler with the given text
+                and logging level from a specific file and line number */
+            virtual void log(const std::string &text, LogLevel level, const char *filename, int line) = 0;
         };
 
         /** \brief Default implementation of OutputHandler. This sends
@@ -129,13 +121,7 @@ namespace ompl
             {
             }
 
-            virtual void error(const std::string &text);
-
-            virtual void warn(const std::string &text);
-
-            virtual void inform(const std::string &text);
-
-            virtual void debug(const std::string &text);
+            virtual void log(const std::string &text, LogLevel level, const char *filename, int line);
 
         };
 
@@ -149,13 +135,7 @@ namespace ompl
 
             virtual ~OutputHandlerFile(void);
 
-            virtual void error(const std::string &text);
-
-            virtual void warn(const std::string &text);
-
-            virtual void inform(const std::string &text);
-
-            virtual void debug(const std::string &text);
+            virtual void log(const std::string &text, LogLevel level, const char *filename, int line);
 
         private:
 
@@ -188,9 +168,6 @@ namespace ompl
             but rather used via a \ref logging "logging macro".  Formats the message
             string given the arguments and forwards the string to the output handler */
         void log(const char *file, int line, LogLevel level, const char* m, ...);
-
-        /** \brief Toggle output of line number and file name in logging */
-        void showLineNumbers(bool show);
     }
 
 }

@@ -50,7 +50,6 @@ struct DefaultOutputHandler
         output_handler_ = static_cast<ompl::msg::OutputHandler*>(&std_output_handler_);
         previous_output_handler_ = output_handler_;
         logLevel_ = ompl::msg::DEBUG;
-        showLineNumbers_ = false;
     }
 
     ompl::msg::OutputHandlerSTD std_output_handler_;
@@ -58,7 +57,6 @@ struct DefaultOutputHandler
     ompl::msg::OutputHandler   *previous_output_handler_;
     ompl::msg::LogLevel         logLevel_;
     boost::mutex                lock_; // it is likely the outputhandler does some I/O, so we serialize it
-    bool                        showLineNumbers_;
 };
 
 // we use this function because we want to handle static initialization correctly
@@ -116,34 +114,7 @@ void ompl::msg::log(const char *file, int line, LogLevel level, const char* m, .
         va_end(__ap);
         buf[MAX_BUFFER_SIZE - 1] = '\0';
 
-        std::stringstream ss;
-        if (doh->showLineNumbers_)
-            ss << "line " << line << " in " << boost::filesystem::path(file).filename().string() << ": ";
-        ss << buf;
-
-        switch (level)
-        {
-            case ERROR:
-                doh->output_handler_->error (ss.str());
-                break;
-
-            case WARN:
-                doh->output_handler_->warn (ss.str());
-                break;
-
-            case INFO:
-                doh->output_handler_->inform (ss.str());
-                break;
-
-            case DEBUG:
-                doh->output_handler_->debug (ss.str());
-                break;
-
-            case NONE: // intentional fall through.  These cases should never happen
-            default:
-                doh->output_handler_->error (ss.str());
-                break;
-        }
+        doh->output_handler_->log(buf, level, file, line);
     }
 }
 
@@ -159,34 +130,21 @@ ompl::msg::LogLevel ompl::msg::getLogLevel(void)
     return doh->logLevel_;
 }
 
-void ompl::msg::showLineNumbers(bool show)
-{
-    USE_DOH;
-    doh->showLineNumbers_ = show;
-}
+static const char* LogLevelString[4] = {"Debug:   ", "Info:    ", "Warning: ", "Error:   "};
 
-void ompl::msg::OutputHandlerSTD::error(const std::string &text)
+void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
-    std::cerr << "Error:   " << text << std::endl;
-    std::cerr.flush();
-}
-
-void ompl::msg::OutputHandlerSTD::warn(const std::string &text)
-{
-    std::cerr << "Warning: " << text << std::endl;
-    std::cerr.flush();
-}
-
-void ompl::msg::OutputHandlerSTD::inform(const std::string &text)
-{
-    std::cout << "Info:    " << text << std::endl;
-    std::cout.flush();
-}
-
-void ompl::msg::OutputHandlerSTD::debug(const std::string &text)
-{
-    std::cout << "Debug:   " << text << std::endl;
-    std::cout.flush();
+    if (level >= WARN)
+    {
+        std::cerr << LogLevelString[level] << text << std::endl;
+        std::cerr << "         at line " << line << " in " << boost::filesystem::path(filename).filename().string() << std::endl;
+        std::cerr.flush();
+    }
+    else
+    {
+        std::cout << LogLevelString[level] << text << std::endl;
+        std::cout.flush();
+    }
 }
 
 ompl::msg::OutputHandlerFile::OutputHandlerFile(const char *filename) : OutputHandler()
@@ -203,38 +161,13 @@ ompl::msg::OutputHandlerFile::~OutputHandlerFile(void)
             std::cerr << "Error closing logfile" << std::endl;
 }
 
-void ompl::msg::OutputHandlerFile::error(const std::string &text)
+void ompl::msg::OutputHandlerFile::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
     if (file_)
     {
-        fprintf(file_, "Error:   %s\n", text.c_str());
-        fflush(file_);
-    }
-}
-
-void ompl::msg::OutputHandlerFile::warn(const std::string &text)
-{
-    if (file_)
-    {
-        fprintf(file_, "Warning: %s\n", text.c_str());
-        fflush(file_);
-    }
-}
-
-void ompl::msg::OutputHandlerFile::inform(const std::string &text)
-{
-    if (file_)
-    {
-        fprintf(file_, "Info:    %s\n", text.c_str());
-        fflush(file_);
-    }
-}
-
-void ompl::msg::OutputHandlerFile::debug(const std::string &text)
-{
-    if (file_)
-    {
-        fprintf(file_, "Debug:   %s\n", text.c_str());
+        fprintf(file_, "%s%s\n", LogLevelString[level], text.c_str());
+        if(level >= WARN)
+            fprintf(file_, "         at line %d in %s\n", line, boost::filesystem::path(filename).filename().string().c_str());
         fflush(file_);
     }
 }

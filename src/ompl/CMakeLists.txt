@@ -53,6 +53,7 @@ target_link_libraries(ompl
   ${Boost_DATE_TIME_LIBRARY}
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   ${OMPL_LINK_LIBRARIES}
   )
 
