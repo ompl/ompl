@@ -36,8 +36,8 @@
 
 #include "ompl/util/Console.h"
 #include <boost/thread/mutex.hpp>
+#include <boost/filesystem/path.hpp>
 #include <iostream>
-#include <cstdlib>
 #include <cstdio>
 #include <cstdarg>
 
@@ -49,12 +49,16 @@ struct DefaultOutputHandler
     {
         output_handler_ = static_cast<ompl::msg::OutputHandler*>(&std_output_handler_);
         previous_output_handler_ = output_handler_;
+        logLevel_ = ompl::msg::DEBUG;
+        showLineNumbers_ = false;
     }
 
     ompl::msg::OutputHandlerSTD std_output_handler_;
     ompl::msg::OutputHandler   *output_handler_;
     ompl::msg::OutputHandler   *previous_output_handler_;
+    ompl::msg::LogLevel         logLevel_;
     boost::mutex                lock_; // it is likely the outputhandler does some I/O, so we serialize it
+    bool                        showLineNumbers_;
 };
 
 // we use this function because we want to handle static initialization correctly
@@ -68,8 +72,10 @@ static DefaultOutputHandler* getDOH(void)
 }
 
 #define USE_DOH                                                                \
-    DefaultOutputHandler *doh = getDOH();                                \
+    DefaultOutputHandler *doh = getDOH();                                      \
     boost::mutex::scoped_lock slock(doh->lock_)
+
+#define MAX_BUFFER_SIZE 1024
 
 /// @endcond
 
@@ -98,91 +104,65 @@ ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
     return getDOH()->output_handler_;
 }
 
-ompl::msg::Interface::Interface(const std::string &prefix)
+void ompl::msg::log(const char *file, int line, LogLevel level, const char* m, ...)
 {
-    setPrefix(prefix);
+    USE_DOH;
+    if (doh->output_handler_ && level >= doh->logLevel_)
+    {
+        va_list __ap;
+        va_start(__ap, m);
+        char buf[MAX_BUFFER_SIZE];
+        vsnprintf(buf, sizeof(buf), m, __ap);
+        va_end(__ap);
+        buf[MAX_BUFFER_SIZE - 1] = '\0';
+
+        std::stringstream ss;
+        if (doh->showLineNumbers_)
+            ss << "line " << line << " in " << boost::filesystem::path(file).filename().string() << ": ";
+        ss << buf;
+
+        switch (level)
+        {
+            case ERROR:
+                doh->output_handler_->error (ss.str());
+                break;
+
+            case WARN:
+                doh->output_handler_->warn (ss.str());
+                break;
+
+            case INFO:
+                doh->output_handler_->inform (ss.str());
+                break;
+
+            case DEBUG:
+                doh->output_handler_->debug (ss.str());
+                break;
+
+            case NONE: // intentional fall through.  These cases should never happen
+            default:
+                doh->output_handler_->error (ss.str());
+                break;
+        }
+    }
 }
 
-ompl::msg::Interface::~Interface(void)
+void ompl::msg::setLogLevel(LogLevel level)
 {
+    USE_DOH;
+    doh->logLevel_ = level;
 }
 
-const std::string& ompl::msg::Interface::getPrefix(void) const
+ompl::msg::LogLevel ompl::msg::getLogLevel(void)
 {
-    return prefix_;
+    USE_DOH;
+    return doh->logLevel_;
 }
 
-void ompl::msg::Interface::setPrefix(const std::string &prefix)
+void ompl::msg::showLineNumbers(bool show)
 {
-    prefix_ = prefix;
-    if (!prefix_.empty())
-        prefix_ += ": ";
-}
-
-/// @cond IGNORE
-
-// the maximum buffer size to use when printing a message
-#define MAX_BUFFER_SIZE 1024
-
-// macro that combines the set of arguments into a single string
-#define COMBINE(m, buf, size)                                                \
-    va_list __ap;                                                        \
-    va_start(__ap, m);                                                        \
-    char buf##_chr[size];                                                \
-    vsnprintf(buf##_chr, sizeof(buf##_chr), m, __ap);                        \
-    va_end(__ap);                                                        \
-    buf##_chr[size - 1] = '\0';                                                \
-    std::string buf(buf##_chr)
-
-#define CALL_DOH(fn, arg)                                                \
-    USE_DOH;                                                                \
-    if (doh->output_handler_)                                                \
-        doh->output_handler_->fn(arg)
-
-/// @endcond
-
-void ompl::msg::Interface::debug(const std::string &text) const
-{
-    CALL_DOH(debug, prefix_ + text);
-}
-
-void ompl::msg::Interface::debug(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    debug(buf);
-}
-
-void ompl::msg::Interface::inform(const std::string &text) const
-{
-    CALL_DOH(inform, prefix_ + text);
-}
-
-void ompl::msg::Interface::inform(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    inform(buf);
-}
-
-void ompl::msg::Interface::warn(const std::string &text) const
-{
-    CALL_DOH(warn, prefix_ + text);
-}
-
-void ompl::msg::Interface::warn(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    warn(buf);
-}
-
-void ompl::msg::Interface::error(const std::string &text) const
-{
-    CALL_DOH(error, prefix_ + text);
-}
-
-void ompl::msg::Interface::error(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    error(buf);
+    USE_DOH;
+    doh->showLineNumbers_ = show;
 }
 
 void ompl::msg::OutputHandlerSTD::error(const std::string &text)

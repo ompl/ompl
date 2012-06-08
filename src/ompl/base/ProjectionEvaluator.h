@@ -250,9 +250,6 @@ namespace ompl
 
             /** \brief The set of parameters for this projection */
             ParamSet             params_;
-
-            /** \brief The console interface */
-            msg::Interface       msg_;
         };
 
         /** \brief If the projection for a CompoundStateSpace is

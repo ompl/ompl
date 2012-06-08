@@ -38,66 +38,53 @@
 #define OMPL_UTIL_CONSOLE_
 
 #include <string>
-#include <cstdarg>
+
+/** \file Console.h
+    \defgroup logging Logging Macros
+    \{
+
+    \def logError(fmt, ...)
+    \brief Log a formatted error string.
+    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+
+    \def logWarn(fmt, ...)
+    \brief Log a formatted warning string.
+    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+
+    \def logInform(fmt, ...)
+    \brief Log a formatted information string.
+    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+
+    \def logDebug(fmt, ...)
+    \brief Log a formatted debugging string.
+    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+
+    \}
+*/
+#define logError(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::ERROR, fmt, ##__VA_ARGS__)
+
+#define logWarn(fmt, ...)   ompl::msg::log(__FILE__, __LINE__, ompl::msg::WARN,  fmt, ##__VA_ARGS__)
+
+#define logInform(fmt, ...) ompl::msg::log(__FILE__, __LINE__, ompl::msg::INFO,  fmt, ##__VA_ARGS__)
+
+#define logDebug(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::DEBUG, fmt, ##__VA_ARGS__)
 
 namespace ompl
 {
 
     /** \brief Message namespace. This contains classes needed to
-        output error messages (or logging) from within the library. */
+        output error messages (or logging) from within the library.
+        Message logging can be performed with \ref logging "logging macros" */
     namespace msg
     {
-
-        /** \brief The piece of code that desires interaction with an
-            action or an output handler should use an instance of this
-            class. This class connects to the active OutputHandler (if
-            any) and forwards messages. */
-        class Interface
+        /** \brief The set of priorities for message logging */
+        enum LogLevel
         {
-        public:
-
-            /** \brief The text that will appear in front of every
-                message forwarded by this Interface instance can be
-                optionally set as a constructor argument. */
-            explicit
-            Interface(const std::string &prefix = "");
-            virtual ~Interface(void);
-
-            /** \brief Set the text that will appear in front of every
-                message forwarded by this Interface instance. */
-            void setPrefix(const std::string &prefix);
-
-            /** \brief Get the text that appears in front of every forwarded message. */
-            const std::string& getPrefix(void) const;
-
-            /** \brief Forward information */
-            void inform(const std::string &text) const;
-
-            /** \brief Forward a warning */
-            void warn(const std::string &text) const;
-
-            /** \brief Forward an error */
-            void error(const std::string &text) const;
-
-            /** \brief Forward a debug message */
-            void debug(const std::string &text) const;
-
-            /** \brief Forward information */
-            void inform(const char *msg, ...) const;
-
-            /** \brief Forward a warning */
-            void warn(const char *msg, ...) const;
-
-            /** \brief Forward an error */
-            void error(const char *msg, ...) const;
-
-            /** \brief Forward a debug message */
-            void debug(const char *msg, ...) const;
-
-        protected:
-
-            /** \brief The string that appears in front of very forwarded message. */
-            std::string prefix_;
+            DEBUG = 0,
+            INFO,
+            WARN,
+            ERROR,
+            NONE
         };
 
         /** \brief Generic class to handle output from a piece of
@@ -105,9 +92,8 @@ namespace ompl
 
             In order to handle output from the library in different
             ways, an implementation of this class needs to be
-            provided. The Interface class forwards calls to an
-            instance of OutputHandler. This instance can be set with
-            the useOutputHandler function. */
+            provided. This instance can be set with the useOutputHandler
+            function. */
         class OutputHandler
         {
         public:
@@ -178,7 +164,7 @@ namespace ompl
 
         };
 
-        /** \brief This function instructs ompl that no messages should be outputted. Equivalent to setOutputHandler(NULL) */
+        /** \brief This function instructs ompl that no messages should be outputted. Equivalent to useOutputHandler(NULL) */
         void noOutputHandler(void);
 
         /** \brief Restore the output handler that was previously in use (if any) */
@@ -189,6 +175,22 @@ namespace ompl
 
         /** \brief Get the instance of the OutputHandler currently used. This is NULL in case there is no output handler. */
         OutputHandler* getOutputHandler(void);
+
+        /** \brief Set the minimum level of logging data to output.  Messages
+            with lower logging levels will not be recorded. */
+        void setLogLevel(LogLevel level);
+
+        /** \brief Retrieve the current level of logging data.  Messages
+            with lower logging levels will not be recorded. */
+        LogLevel getLogLevel(void);
+
+        /** \brief Root level logging function.  This should not be invoked directly,
+            but rather used via a \ref logging "logging macro".  Formats the message
+            string given the arguments and forwards the string to the output handler */
+        void log(const char *file, int line, LogLevel level, const char* m, ...);
+
+        /** \brief Toggle output of line number and file name in logging */
+        void showLineNumbers(bool show);
     }
 
 }

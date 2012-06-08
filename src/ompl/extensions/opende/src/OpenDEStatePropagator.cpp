@@ -86,9 +86,8 @@ namespace ompl
                     cp->collision = true;
                 if (cp->env->verboseContacts_)
                 {
-                    static msg::Interface msg;
-                    msg.debug((valid ? "Valid" : "Invalid") + std::string(" contact between ") +
-                              cp->env->getGeomName(o1) + " and " + cp->env->getGeomName(o2));
+                    logDebug("%s contact between %s and %s", (valid ? "Valid" : "Invalid"),
+                             cp->env->getGeomName(o1).c_str(), cp->env->getGeomName(o1).c_str());
                 }
             }
         }

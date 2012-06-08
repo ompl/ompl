@@ -200,8 +200,6 @@ namespace ompl
             bool                                         tryImprove_;
 
             double                                       maxDistance_;
-
-            msg::Interface                               msg_;
         };
 
     }

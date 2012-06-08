@@ -184,9 +184,6 @@ namespace ompl
 
             /** \brief The maximum length allowed for a solution path */
             double                       maximumPathLength_;
-
-            /** \brief Console interface */
-            msg::Interface               msg_;
         };
 
     }

@@ -165,17 +165,17 @@ bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double di
     {
         v = si_->isValid(state);
         if (!v)
-            msg_.debug("%s state is not valid", start ? "Start" : "Goal");
+            logDebug("%s state is not valid", start ? "Start" : "Goal");
     }
     else
-        msg_.debug("%s state is not within space bounds", start ? "Start" : "Goal");
+        logDebug("%s state is not within space bounds", start ? "Start" : "Goal");
 
     if (!b || !v)
     {
         std::stringstream ss;
         si_->printState(state, ss);
         ss << " within distance " << dist;
-        msg_.debug("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
+        logDebug("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
 
         State *temp = si_->allocState();
         if (si_->searchValidNearby(temp, state, dist, attempts))
@@ -184,7 +184,7 @@ bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double di
             result = true;
         }
         else
-            msg_.warn("Unable to fix %s state", start ? "start" : "goal");
+            logWarn("Unable to fix %s state", start ? "start" : "goal");
         si_->freeState(temp);
     }
 
@@ -333,7 +333,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
 {
     if (!goal_)
     {
-        msg_.error("Goal undefined");
+        logError("Goal undefined");
         return false;
     }
 
@@ -354,7 +354,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
         }
         else
         {
-            msg_.error("Initial state is in collision!");
+            logError("Initial state is in collision!");
         }
     }
 
@@ -379,7 +379,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath(void) const
 void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference) const
 {
     if (approximate)
-        msg_.warn("Adding approximate solution");
+        logWarn("Adding approximate solution");
     solutions_->add(PlannerSolution(path, approximate, difference));
 }
 

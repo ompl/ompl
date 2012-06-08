@@ -358,14 +358,14 @@ namespace ompl
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter)
             {
-                params_.declareParam<T>(name, msg_, boost::bind(setter, planner, _1), boost::bind(getter, planner));
+                params_.declareParam<T>(name, boost::bind(setter, planner, _1), boost::bind(getter, planner));
             }
 
             /** \brief This function declares a parameter for this planner instance, and specifies the setter function. */
             template<typename T, typename PlannerType, typename SetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter)
             {
-                params_.declareParam<T>(name, msg_, boost::bind(setter, planner, _1));
+                params_.declareParam<T>(name, boost::bind(setter, planner, _1));
             }
 
             /** \brief The space information for which planning is done */
@@ -388,9 +388,6 @@ namespace ompl
 
             /** \brief Flag indicating whether setup() has been called */
             bool                 setup_;
-
-            /** \brief Console interface */
-            msg::Interface       msg_;
         };
 
         /** \brief Definition of a function that can allocate a planner */

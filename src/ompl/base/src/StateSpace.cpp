@@ -78,7 +78,6 @@ ompl::base::StateSpace::StateSpace(void)
     lock.unlock();
 
     name_ = "Space" + boost::lexical_cast<std::string>(m);
-    msg_.setPrefix(name_);
 
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
@@ -88,11 +87,11 @@ ompl::base::StateSpace::StateSpace(void)
 
     maxExtent_ = std::numeric_limits<double>::infinity();
 
-    params_.declareParam<double>("longest_valid_segment_fraction", msg_,
+    params_.declareParam<double>("longest_valid_segment_fraction",
                                  boost::bind(&StateSpace::setLongestValidSegmentFraction, this, _1),
                                  boost::bind(&StateSpace::getLongestValidSegmentFraction, this));
 
-    params_.declareParam<unsigned int>("valid_segment_count_factor", msg_,
+    params_.declareParam<unsigned int>("valid_segment_count_factor",
                                        boost::bind(&StateSpace::setValidSegmentCountFactor, this, _1),
                                        boost::bind(&StateSpace::getValidSegmentCountFactor, this));
     AllocatedSpaces &as = getAllocatedSpaces();
@@ -186,7 +185,6 @@ const std::string& ompl::base::StateSpace::getName(void) const
 void ompl::base::StateSpace::setName(const std::string &name)
 {
     name_ = name;
-    msg_.setPrefix(name_);
 
     // we don't want to call this function during the state space construction because calls to virtual functions are made,
     // so we check if any values were previously inserted as value locations;
@@ -441,7 +439,7 @@ void ompl::base::StateSpace::list(std::ostream &out) const
 }
 
 void ompl::base::StateSpace::diagram(std::ostream &out) const
-{     
+{
     out << "digraph StateSpace {" << std::endl;
     out << '"' << getName() << '"' << std::endl;
 
@@ -463,7 +461,7 @@ void ompl::base::StateSpace::diagram(std::ostream &out) const
 	    }
 	}
     }
-    
+
     out << '}' << std::endl;
 }
 
@@ -613,7 +611,7 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateSpace::getDefaultProjection(
         return getProjection(DEFAULT_PROJECTION_NAME);
     else
     {
-        msg_.error("No default projection is set. Perhaps setup() needs to be called");
+        logError("No default projection is set. Perhaps setup() needs to be called");
         return ProjectionEvaluatorPtr();
     }
 }
@@ -625,7 +623,7 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateSpace::getProjection(const s
         return it->second;
     else
     {
-        msg_.error("Projection '" + name + "' is not defined");
+        logError("Projection '%s' is not defined", name.c_str());
         return ProjectionEvaluatorPtr();
     }
 }
@@ -645,7 +643,7 @@ void ompl::base::StateSpace::registerProjection(const std::string &name, const P
     if (projection)
         projections_[name] = projection;
     else
-        msg_.error("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
+        logError("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
 }
 
 bool ompl::base::StateSpace::isCompound(void) const

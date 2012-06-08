@@ -416,9 +416,6 @@ namespace ompl
 
             /** \brief Combined parameters for the contained classes */
             ParamSet                   params_;
-
-            /** \brief The console interface */
-            msg::Interface             msg_;
         };
 
     }
