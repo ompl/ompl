@@ -277,7 +277,7 @@ namespace ompl
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
                 the same problem, without calling clear() in
-                between. This allows the planner to continue work more
+                between. This allows the planner to continue work for more
                 time on an unsolved problem, for example. If this
                 option is used, it is assumed the problem definition
                 is not changed (unpredictable results otherwise). The

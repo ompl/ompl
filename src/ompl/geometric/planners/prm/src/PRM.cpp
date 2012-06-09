@@ -125,6 +125,11 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
 void ompl::geometric::PRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
 {
     Planner::setProblemDefinition(pdef);
+    clearQuery();
+}
+
+void ompl::geometric::PRM::clearQuery(void)
+{
     startM_.clear();
     goalM_.clear();
 }
@@ -137,8 +142,7 @@ void ompl::geometric::PRM::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
-    startM_.clear();
-    goalM_.clear();
+    clearQuery();
     maxEdgeID_ = 0;
 }
 
