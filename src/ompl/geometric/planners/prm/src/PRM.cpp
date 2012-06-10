@@ -132,8 +132,7 @@ void ompl::geometric::PRM::clearQuery(void)
 {
     startM_.clear();
     goalM_.clear();
-    pis_.clear();
-    pis_.update();
+    pis_.restart();
 }
 
 void ompl::geometric::PRM::clear(void)
@@ -144,8 +143,7 @@ void ompl::geometric::PRM::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
-    startM_.clear();
-    goalM_.clear();
+    clearQuery();
     maxEdgeID_ = 0;
 }
 
