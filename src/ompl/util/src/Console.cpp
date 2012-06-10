@@ -36,7 +36,6 @@
 
 #include "ompl/util/Console.h"
 #include <boost/thread/mutex.hpp>
-#include <boost/filesystem/path.hpp>
 #include <iostream>
 #include <cstdio>
 #include <cstdarg>
@@ -137,7 +136,7 @@ void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, c
     if (level >= LOG_WARN)
     {
         std::cerr << LogLevelString[level] << text << std::endl;
-        std::cerr << "         at line " << line << " in " << boost::filesystem::path(filename).filename().string() << std::endl;
+        std::cerr << "         at line " << line << " in " << filename << std::endl;
         std::cerr.flush();
     }
     else
@@ -167,7 +166,7 @@ void ompl::msg::OutputHandlerFile::log(const std::string &text, LogLevel level, 
     {
         fprintf(file_, "%s%s\n", LogLevelString[level], text.c_str());
         if(level >= LOG_WARN)
-            fprintf(file_, "         at line %d in %s\n", line, boost::filesystem::path(filename).filename().string().c_str());
+            fprintf(file_, "         at line %d in %s\n", line, filename);
         fflush(file_);
     }
 }
