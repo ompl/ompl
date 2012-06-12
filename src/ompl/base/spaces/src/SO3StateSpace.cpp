@@ -322,11 +322,6 @@ double* ompl::base::SO3StateSpace::getValueAddressAtIndex(State *state, const un
     return index < 4 ? &(state->as<StateType>()->x) + index : NULL;
 }
 
-void ompl::base::SO3StateSpace::sanityChecks(void) const
-{
-    StateSpace::sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), ~STATESPACE_ENFORCE_BOUNDS_NO_OP);
-}
-
 void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "SO3State [";
