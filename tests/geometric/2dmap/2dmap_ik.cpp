@@ -41,6 +41,7 @@
 
 #include "ompl/geometric/ik/GAIK.h"
 #include "ompl/util/Time.h"
+#include "../../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -86,4 +87,3 @@ BOOST_AUTO_TEST_CASE(SimpleIK)
     time = time / (double)N;
     BOOST_CHECK(time < 0.01);
 }
-

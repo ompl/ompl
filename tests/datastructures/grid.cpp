@@ -39,6 +39,7 @@
 
 #include "ompl/datastructures/Grid.h"
 #include "ompl/datastructures/GridN.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -197,4 +198,3 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
     BOOST_CHECK_EQUAL((unsigned int)2, g.components().size());
     BOOST_CHECK_EQUAL(g.components()[0].size() + g.components()[1].size(), g.size());
 }
-

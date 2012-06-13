@@ -52,6 +52,7 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 
 #include <boost/math/constants/constants.hpp>
+#include "../BoostTestTeamCityReporter.h"
 
 #include "StateSpaceTest.h"
 
@@ -418,4 +419,3 @@ BOOST_AUTO_TEST_CASE(Compound_Simple)
     BOOST_CHECK(m3->includes(m3));
     BOOST_CHECK(t->includes(t));
 }
-

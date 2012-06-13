@@ -38,6 +38,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "ompl/util/RandomNumbers.h"
+#include "../../BoostTestTeamCityReporter.h"
 #include <cmath>
 #include <vector>
 #include <cstdio>
