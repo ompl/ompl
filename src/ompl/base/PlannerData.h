@@ -208,11 +208,11 @@ namespace ompl
             /// \brief Removes the vertex with the given index.  If the index is
             /// out of range, false is returned.
             /// This method has O(n) complexity in the number of vertices.
-            bool removeVertex (unsigned int vIndex);
+            virtual bool removeVertex (unsigned int vIndex);
             /// \brief Adds a directed edge between the given vertex indexes.  An optional
             /// edge structure and weight can be supplied.  Success is returned.
-            bool addEdge (unsigned int v1, unsigned int v2,
-                          const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
+            virtual bool addEdge (unsigned int v1, unsigned int v2,
+                                  const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
             /// \brief Adds a directed edge between the given vertex indexes.  The
             /// vertices are added to the data if they are not already in the
             /// structure.  An optional edge structure and weight can also be supplied.
@@ -220,7 +220,7 @@ namespace ompl
             virtual bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
                                   const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
             /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
-            bool removeEdge (unsigned int v1, unsigned int v2);
+            virtual bool removeEdge (unsigned int v1, unsigned int v2);
             /// \brief Removes the edge between the vertices associated with the given vertex data.
             /// Success is returned.
             virtual bool removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2);

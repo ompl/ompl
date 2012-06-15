@@ -108,11 +108,17 @@ namespace ompl
             /// \brief Removes the vertex associated with the given data.  If the
             /// vertex does not exist, false is returned.
             /// This method has O(n) complexity in the number of vertices.
-            virtual bool removeVertex (const ompl::base::PlannerDataVertex &st);
+            virtual bool removeVertex (const base::PlannerDataVertex &st);
+            /// \brief Removes the vertex with the given index.  If the index is
+            /// out of range, false is returned.
+            /// This method has O(n) complexity in the number of vertices.
+            virtual bool removeVertex (unsigned int vIndex);
 
+            /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
+            virtual bool removeEdge (unsigned int v1, unsigned int v2);
             /// \brief Removes the edge between the vertices associated with the given vertex data.
             /// Success is returned.
-            virtual bool removeEdge (const ompl::base::PlannerDataVertex &v1, const ompl::base::PlannerDataVertex &v2);
+            virtual bool removeEdge (const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2);
 
             /// \brief Clears the entire data structure
             virtual void clear (void);

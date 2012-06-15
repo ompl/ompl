@@ -47,6 +47,11 @@ ompl::control::PlannerData::~PlannerData(void)
     decoupledControls_.clear();
 }
 
+bool ompl::control::PlannerData::removeVertex (unsigned int vIndex)
+{
+    return ompl::base::PlannerData::removeVertex(vIndex);
+}
+
 bool ompl::control::PlannerData::removeVertex (const ompl::base::PlannerDataVertex &st)
 {
     unsigned int index = vertexIndex (st);
@@ -69,6 +74,11 @@ bool ompl::control::PlannerData::removeVertex (const ompl::base::PlannerDataVert
     }
 
     return ompl::base::PlannerData::removeVertex(index);
+}
+
+bool ompl::control::PlannerData::removeEdge (unsigned int v1, unsigned int v2)
+{
+    return ompl::base::PlannerData::removeEdge(v1, v2);
 }
 
 bool ompl::control::PlannerData::removeEdge (const ompl::base::PlannerDataVertex &v1, const ompl::base::PlannerDataVertex &v2)

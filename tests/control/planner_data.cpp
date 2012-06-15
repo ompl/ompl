@@ -447,11 +447,11 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-1 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-2 );
 
-    BOOST_CHECK_EQUAL( data.ompl::base::PlannerData::removeVertex(states.size()), false ); // vertex does not exist
+    BOOST_CHECK_EQUAL( data.removeVertex(states.size()), false ); // vertex does not exist
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-1 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-2 );
 
-    BOOST_CHECK( data.ompl::base::PlannerData::removeVertex(6) );
+    BOOST_CHECK( data.removeVertex(6) );
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-4 );  // incoming edge and outgoing edge should be removed
 
@@ -463,11 +463,11 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2  );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-5 );
 
-    BOOST_CHECK_EQUAL( data.ompl::base::PlannerData::removeEdge(5, 6), false ); // edge does not exist (we removed vertex 6)
+    BOOST_CHECK_EQUAL( data.removeEdge(5, 6), false ); // edge does not exist (we removed vertex 6)
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-5 );
 
-    BOOST_CHECK( data.ompl::base::PlannerData::removeEdge(4, 5) );
+    BOOST_CHECK( data.removeEdge(4, 5) );
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-6 );
 
