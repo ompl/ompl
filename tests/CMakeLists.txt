@@ -35,6 +35,7 @@ add_ompl_test(test_2dmap_ik geometric/2dmap/2dmap_ik.cpp)
 
 # Test planning with controls on a 2D map
 add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
+add_ompl_test(test_planner_data_control control/planner_data.cpp)
 
 # Python unit tests
 if(OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bindings")
