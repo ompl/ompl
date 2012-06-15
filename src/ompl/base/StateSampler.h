@@ -41,6 +41,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/ClassForward.h"
 #include <vector>
+#include <string>
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 
@@ -155,21 +156,24 @@ namespace ompl
         protected:
 
             /** \brief The subspace to sample */
-            const StateSpace *subspace_;
+            const StateSpace        *subspace_;
 
             /** \brief The sampler for the subspace */
-            StateSamplerPtr   subspaceSampler_;
+            StateSamplerPtr          subspaceSampler_;
 
             /** \brief The weigth factor to multiply distance and stdDev when sampling in the vicinity of a state */
-            double            weight_;
+            double                   weight_;
 
+            /** \brief The names of common subspaces between \e space_ and \e subspace_; these are the ones copied after sampling a state */
+            std::vector<std::string> subspaces_;
+          
         private:
 
             /** \brief Temporary work area */
-            State            *work_;
+            State                   *work_;
 
             /** \brief Temporary work area */
-            State            *work2_;
+            State                   *work2_;
         };
 
         /** \brief Definition of a function that can allocate a state sampler */

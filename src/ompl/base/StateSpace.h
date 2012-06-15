@@ -102,8 +102,8 @@ namespace ompl
                 return static_cast<const T*>(this);
             }
 
-            /** \brief Representation of the address of a value in a state. This structure stores the indexing information needed to access elements of a state (no pointer values are stored) */
-            struct ValueLocation
+            /** \brief Representation of the address of a substate in a state. This structure stores the indexing information needed to access a particular substate of a state */
+            struct SubstateLocation
             {
                 /** \brief In a complex state space there may be multiple
                     compound state spaces that make up an even larger
@@ -113,10 +113,17 @@ namespace ompl
                 std::vector<std::size_t> chain;
 
                 /** \brief The space that is reached if the chain above is followed on the state space */
-                const base::StateSpace  *space;
+                const StateSpace        *space;
+            };
 
-                /** \brief The index of the value to be accessed, within the space above */
-                std::size_t              index;
+            /** \brief Representation of the address of a value in a state. This structure stores the indexing information needed to access elements of a state (no pointer values are stored) */
+            struct ValueLocation
+            {
+                /** \brief Location of the substate that contains the pointed to value */
+                SubstateLocation stateLocation;
+
+                /** \brief The index of the value to be accessed, within the substate location above */
+                std::size_t      index;
             };
 
             /** \brief Flags to use in a bit mask for state space sanity checks. Some basic checks do not have flags associated (they are always executed; for example,
@@ -183,9 +190,16 @@ namespace ompl
             /** \brief Return true if \e other is a space included (perhaps equal, perhaps a subspace) in this one. */
             bool includes(const StateSpacePtr &other) const;
 
+            /** \brief Return true if \e other is a space included (perhaps equal, perhaps a subspace) in this one. */
+            bool includes(const StateSpace *other) const;
+
             /** \brief Return true if \e other is a space that is either included (perhaps equal, perhaps a subspace)
                 in this one, or all of its subspaces are included in this one. */
             bool covers(const StateSpacePtr &other) const;
+
+            /** \brief Return true if \e other is a space that is either included (perhaps equal, perhaps a subspace)
+                in this one, or all of its subspaces are included in this one. */
+            bool covers(const StateSpace *other) const;
 
             /** \brief Get the parameters for this space */
             ParamSet& params(void)
@@ -260,7 +274,8 @@ namespace ompl
                 can always return true. */
             virtual bool satisfiesBounds(const State *state) const = 0;
 
-            /** \brief Copy a state to another. The memory of source and destination should NOT overlap. */
+            /** \brief Copy a state to another. The memory of source and destination should NOT overlap. 
+                \note For more advanced state copying methods (partial copy, for example), see \ref advancedStateCopy. */
             virtual void copyState(State *destination, const State *source) const = 0;
 
             /** \brief Computes distance between two states. This function satisfies the properties of a
@@ -291,9 +306,6 @@ namespace ompl
                 sampler allocator that was previously specified by setStateSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultStateSampler() is called */
             virtual StateSamplerPtr allocStateSampler(void) const;
-
-            /** \brief Allocate a sampler that actually samples only components that are part of \e subspace */
-            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpacePtr &subspace) const;
 
             /** \brief Set the sampler allocator to use */
             void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
@@ -421,9 +433,37 @@ namespace ompl
 
             /** @} */
 
+            /** @name Operations with substates
+                @{ */
+
+            /** \brief Allocate a sampler that actually samples only components that are part of \e subspace */
+            StateSamplerPtr allocSubspaceStateSampler(const StateSpacePtr &subspace) const;
+
+            /** \brief Allocate a sampler that actually samples only components that are part of \e subspace */
+            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpace *subspace) const;
+
+            /** \brief Get the substate of \e state that is pointed to by \e loc */
+            State* getSubstateAtLocation(State *state, const SubstateLocation &loc) const;
+
+            /** \brief Get the substate of \e state that is pointed to by \e loc */
+            const State* getSubstateAtLocation(const State *state, const SubstateLocation &loc) const;
+
+            /** \brief Get the list of known substate locations (keys of the map corrspond to names of subspaces) */
+            const std::map<std::string, SubstateLocation>& getSubstateLocationsByName(void) const;
+
+            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does 
+                not contain spaces that cover each other, even though they may be common, as that is redundant information. */
+            void getCommonSubspaces(const StateSpacePtr &other, std::vector<std::string> &subspaces) const;
+
+            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does 
+                not contain spaces that cover each other, even though they may be common, as that is redundant information. */
+            void getCommonSubspaces(const StateSpace *other, std::vector<std::string> &subspaces) const;
+          
             /** \brief Compute the location information for various components of the state space. Either this function or setup() must be
                 called before any calls to getValueAddressAtName(), getValueAddressAtLocation() (and other functions where those are used). */
             virtual void computeLocations(void);
+
+            /** @} */
 
             /** \brief Perform final setup steps. This function is
                 automatically called by the SpaceInformation. If any
@@ -471,6 +511,9 @@ namespace ompl
             /** \brief All the known value locations, by name. The names of state spaces access the first element of a state.
                 RealVectorStateSpace dimensions are used to access individual dimensions. */
             std::map<std::string, ValueLocation>          valueLocationsByName_;
+
+            /** \brief All the known substat locations, by name. */
+            std::map<std::string, SubstateLocation>       substateLocationsByName_;
 
         private:
 
@@ -573,6 +616,13 @@ namespace ompl
             void lock(void);
             /** @} */
 
+            /** @name Operations with substates
+                @{ */
+
+            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpace *subspace) const;
+
+            /** @} */
+
             /** @name Functionality specific to the state space
                 @{ */
 
@@ -610,8 +660,6 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
             virtual StateSamplerPtr allocDefaultStateSampler(void) const;
-
-            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpacePtr &subspace) const;
 
             virtual State* allocState(void) const;
 
@@ -682,16 +730,23 @@ namespace ompl
         StateSpacePtr operator*(const StateSpacePtr &a, const StateSpacePtr &b);
         /** @} */
 
-        /** \brief Copy data from \e source (state from space \e
-            sourceS) to \e dest (state from space \e destS) on a
-            component by component basis. State spaces are matched by
-            name. If the state space \e destS contains any subspace
-            whose name matches any subspace of the state space \e
-            sourceS, the corresponding state components are
-            copied. The return value is either 0 (no data copied), 1
-            (some data copied), 2 (all data copied) */
-        int copyStateData(const StateSpacePtr &destS, State *dest,
-                          const StateSpacePtr &sourceS, const State *source);
+
+        /** \defgroup advancedStateCopy Advanced methods for copying states
+         *  @{
+         */
+
+        /** \brief The possible outputs for an advanced copy operation */
+        enum AdvancedStateCopyOperation
+            {
+                /** \brief No data was copied */
+                NO_DATA_COPIED = 0,
+
+                /** \brief Some data was copied */
+                SOME_DATA_COPIED = 1,
+
+                /** \brief All data was copied */
+                ALL_DATA_COPIED  = 2
+            };
 
         /** \brief Copy data from \e source (state from space \e
             sourceS) to \e dest (state from space \e destS) on a
@@ -699,10 +754,38 @@ namespace ompl
             name. If the state space \e destS contains any subspace
             whose name matches any subspace of the state space \e
             sourceS, the corresponding state components are
-            copied. The return value is either 0 (no data copied), 1
-            (some data copied), 2 (all data copied) */
-        int copyStateData(const StateSpace *destS, State *dest,
-                          const StateSpace *sourceS, const State *source);
+            copied. */
+        AdvancedStateCopyOperation copyStateData(const StateSpacePtr &destS, State *dest,
+                                                 const StateSpacePtr &sourceS, const State *source);
+
+        /** \brief Copy data from \e source (state from space \e
+            sourceS) to \e dest (state from space \e destS) on a
+            component by component basis. State spaces are matched by
+            name. If the state space \e destS contains any subspace
+            whose name matches any subspace of the state space \e
+            sourceS, the corresponding state components are
+            copied. */
+        AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest,
+                                                 const StateSpace *sourceS, const State *source);
+
+        /** \brief Copy data from \e source (state from space \e
+            sourceS) to \e dest (state from space \e destS) but only
+            for the subspaces indicated by name in \e subspaces. This
+            uses StateSpace::getSubstateLocationsByName().
+            \note For efficiency reasons it is a good idea usually to make sure the elements of \e subspaces are not subspaces of each other */
+        AdvancedStateCopyOperation copyStateData(const StateSpacePtr &destS, State *dest,
+                                                 const StateSpacePtr &sourceS, const State *source,
+                                                 const std::vector<std::string> &subspaces);
+
+        /** \brief Copy data from \e source (state from space \e
+            sourceS) to \e dest (state from space \e destS) but only
+            for the subspaces indicated by name in \e subspaces. This
+            uses StateSpace::getSubstateLocationsByName(). 
+            \note For efficiency reasons it is a good idea usually to make sure the elements of \e subspaces are not subspaces of each other */
+        AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest,
+                                                 const StateSpace *sourceS, const State *source,
+                                                 const std::vector<std::string> &subspaces);
+        /** @} */
 
     }
 }
