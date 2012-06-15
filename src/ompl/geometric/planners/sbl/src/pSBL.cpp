@@ -197,7 +197,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
 
     if (!goal)
     {
-        msg_.error("Unknown type of goal (or goal undefined)");
+        logError("Unknown type of goal (or goal undefined)");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -221,23 +221,23 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
             addMotion(tGoal_, motion);
         }
         else
-            msg_.error("Goal state is invalid!");
+            logError("Goal state is invalid!");
     }
 
     if (tStart_.size == 0)
     {
-        msg_.error("Motion planning start tree could not be initialized!");
+        logError("Motion planning start tree could not be initialized!");
         return base::PlannerStatus::INVALID_START;
     }
     if (tGoal_.size == 0)
     {
-        msg_.error("Motion planning goal tree could not be initialized!");
+        logError("Motion planning goal tree could not be initialized!");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     samplerArray_.resize(threadCount_);
 
-    msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
+    logInform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
 
     SolutionInfo sol;
     sol.found = false;
@@ -252,7 +252,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
         delete th[i];
     }
 
-    msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
+    logInform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
              tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
     return sol.found ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;

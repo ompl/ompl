@@ -296,9 +296,6 @@ namespace ompl
             /** \brief The goal representation */
             GoalPtr              goal_;
 
-            /** \brief Interface for console output */
-            msg::Interface       msg_;
-
         private:
 
             /// @cond IGNORE

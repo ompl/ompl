@@ -412,7 +412,7 @@ namespace ompl
 
             /** \brief Print the list of all contained state space instances */
 	    void list(std::ostream &out) const;
-	    
+
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
             static void Diagram(std::ostream &out);
 
@@ -471,9 +471,6 @@ namespace ompl
             /** \brief All the known value locations, by name. The names of state spaces access the first element of a state.
                 RealVectorStateSpace dimensions are used to access individual dimensions. */
             std::map<std::string, ValueLocation>          valueLocationsByName_;
-
-            /** \brief Interface used for console output */
-            msg::Interface                                msg_;
 
         private:
 

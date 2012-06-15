@@ -101,7 +101,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
     if (!goal)
     {
-        msg_.error("Goal undefined");
+        logError("Goal undefined");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -114,14 +114,14 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
     if (nn_->size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    msg_.inform("Starting with %u states", nn_->size());
+    logInform("Starting with %u states", nn_->size());
 
     Motion *solution       = NULL;
     Motion *approximation  = NULL;
@@ -423,7 +423,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
+    logInform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
     return base::PlannerStatus(addedSolution, approximate);
 }

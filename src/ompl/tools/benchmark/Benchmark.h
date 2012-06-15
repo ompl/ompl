@@ -170,13 +170,13 @@ namespace ompl
             };
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL), msg_("Benchmark")
+            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL)
             {
                 exp_.name = name;
             }
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(NULL), csetup_(&setup), msg_("Benchmark")
+            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(NULL), csetup_(&setup)
             {
                 exp_.name = name;
             }
@@ -298,9 +298,6 @@ namespace ompl
 
             /// Event to be called after the run of a planner
             PostSetupEvent                postRun_;
-
-            /// Interface for console output
-            msg::Interface                msg_;
 
         };
     }

@@ -41,8 +41,9 @@
 #include <vector>
 
 #include "ompl/base/PlannerData.h"
+#include "ompl/base/PlannerDataStorage.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/util/RandomNumbers.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -511,10 +512,11 @@ BOOST_AUTO_TEST_CASE(Serialization)
     BOOST_CHECK_EQUAL ( data.numVertices(), states.size() );
     BOOST_CHECK_EQUAL ( data.numEdges(), num_edges_to_add );
 
-    data.serialize("testdata");
+
+    base::PlannerDataStorage::Serialize(data, "testdata");
 
     base::PlannerData data2(si);
-    data2.deserialize("testdata");
+    base::PlannerDataStorage::Deserialize("testdata", data2);
 
     // Verify that data == data2
     BOOST_CHECK_EQUAL ( data2.numVertices(), states.size() );

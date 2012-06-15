@@ -43,6 +43,7 @@
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Time.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -284,4 +285,3 @@ BOOST_AUTO_TEST_CASE(AllocationWithThreads)
     std::cout << "Time spent randomly allocating & freeing states: "
         << ompl::time::seconds(ompl::time::now() - start) << std::endl;
 }
-

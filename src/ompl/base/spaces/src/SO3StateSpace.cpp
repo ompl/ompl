@@ -156,15 +156,15 @@ void ompl::base::SO3StateSpace::enforceBounds(State *state) const
 {
     StateType *qstate = static_cast<StateType*>(state);
     double nrm = norm(qstate);
-    if (fabs(nrm - 1.0) > MAX_QUATERNION_NORM_ERROR)
+    if (fabs(nrm) < MAX_QUATERNION_NORM_ERROR)
+        qstate->setIdentity();
+    else if (fabs(nrm - 1.0) > MAX_QUATERNION_NORM_ERROR)
     {
         qstate->x /= nrm;
         qstate->y /= nrm;
         qstate->z /= nrm;
         qstate->w /= nrm;
     }
-    else
-        qstate->setIdentity();
 }
 
 bool ompl::base::SO3StateSpace::satisfiesBounds(const State *state) const
@@ -320,11 +320,6 @@ void ompl::base::SO3StateSpace::registerProjections(void)
 double* ompl::base::SO3StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
     return index < 4 ? &(state->as<StateType>()->x) + index : NULL;
-}
-
-void ompl::base::SO3StateSpace::sanityChecks(void) const
-{ 
-    StateSpace::sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), ~STATESPACE_ENFORCE_BOUNDS_NO_OP);
 }
 
 void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out) const

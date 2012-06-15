@@ -158,8 +158,6 @@ namespace ompl
 
             virtual void printSettings(std::ostream &out) const;
 
-            virtual void sanityChecks(void) const;
-
             virtual void registerProjections(void);
         };
     }

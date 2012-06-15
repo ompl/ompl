@@ -159,12 +159,10 @@ void ompl::tools::Profiler::status(std::ostream &out, bool merge)
 
 void ompl::tools::Profiler::console(void)
 {
-    static msg::Interface msg("Profiler");
-
     std::stringstream ss;
     ss << std::endl;
     status(ss, true);
-    msg.inform(ss.str());
+    logInform(ss.str().c_str());
 }
 
 /// @cond IGNORE

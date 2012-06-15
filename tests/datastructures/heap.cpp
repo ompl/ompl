@@ -37,6 +37,7 @@
 #define BOOST_TEST_MODULE "Heap"
 #include <boost/test/unit_test.hpp>
 #include "ompl/datastructures/BinaryHeap.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -86,4 +87,3 @@ BOOST_AUTO_TEST_CASE(Simple)
     h.insert(-1);
     BOOST_CHECK(h.top()->data == -1);
 }
-

@@ -45,7 +45,7 @@
 #include <cassert>
 
 ompl::base::SpaceInformation::SpaceInformation(const StateSpacePtr &space) :
-    stateSpace_(space), setup_(false), msg_("SpaceInformation")
+    stateSpace_(space), setup_(false)
 {
     if (!stateSpace_)
         throw Exception("Invalid space definition");
@@ -58,7 +58,7 @@ void ompl::base::SpaceInformation::setup(void)
     if (!stateValidityChecker_)
     {
         stateValidityChecker_.reset(new AllValidStateValidityChecker(this));
-        msg_.warn("State validity checker not set! No collision checking is performed");
+        logWarn("State validity checker not set! No collision checking is performed");
     }
 
     if (!motionValidator_)
@@ -426,7 +426,7 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
         {
             result = false;
             out << std::endl << "  - SANITY CHECKS FOR STATE SPACE ***DID NOT PASS*** (" << e.what() << ")" << std::endl << std::endl;
-            msg_.error(e.what());
+            logError(e.what());
         }
         if (result)
             out << "  - sanity checks for state space passed" << std::endl;

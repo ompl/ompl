@@ -153,8 +153,6 @@ namespace ompl
             Vertex                                            goal_;
             std::set<PathInfo>                                paths_;
             base::PathPtr                                     hpath_;
-
-            msg::Interface                                    msg_;
         };
     }
 }

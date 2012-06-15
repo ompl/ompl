@@ -73,7 +73,7 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
 }
 
 ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
-    configured_(false), planTime_(0.0), simplifyTime_(0.0), invalid_request_(false), msg_("SimpleSetup")
+    configured_(false), planTime_(0.0), simplifyTime_(0.0), invalid_request_(false)
 {
     si_.reset(new base::SpaceInformation(space));
     pdef_.reset(new base::ProblemDefinition(si_));
@@ -93,7 +93,7 @@ void ompl::geometric::SimpleSetup::setup(void)
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                msg_.inform("No planner specified. Using default.");
+                logInform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
             }
         }
@@ -124,12 +124,12 @@ ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(double time)
     base::PlannerStatus result = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
     if (result)
-        msg_.inform("Solution found in %f seconds", planTime_);
+        logInform("Solution found in %f seconds", planTime_);
     else
     {
         if (planTime_ < time)
             invalid_request_ = true;
-        msg_.inform("No solution found after %f seconds", planTime_);
+        logInform("No solution found after %f seconds", planTime_);
     }
     return result;
 }
@@ -142,12 +142,12 @@ ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(const base::Planne
     base::PlannerStatus result = planner_->solve(ptc);
     planTime_ = time::seconds(time::now() - start);
     if (result)
-        msg_.inform("Solution found in %f seconds", planTime_);
+        logInform("Solution found in %f seconds", planTime_);
     else
     {
         if (!ptc())
             invalid_request_ = true;
-        msg_.inform("No solution found after %f seconds", planTime_);
+        logInform("No solution found after %f seconds", planTime_);
     }
     return result;
 }
@@ -162,11 +162,11 @@ void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminati
             time::point start = time::now();
             psk_->simplify(static_cast<PathGeometric&>(*p), ptc);
             simplifyTime_ = time::seconds(time::now() - start);
-            msg_.inform("Path simplification took %f seconds", simplifyTime_);
+            logInform("Path simplification took %f seconds", simplifyTime_);
             return;
         }
     }
-    msg_.warn("No solution to simplify");
+    logWarn("No solution to simplify");
 }
 
 void ompl::geometric::SimpleSetup::simplifySolution(double duration)
@@ -182,11 +182,11 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
             else
                 psk_->simplify(static_cast<PathGeometric&>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
-            msg_.inform("Path simplification took %f seconds", simplifyTime_);
+            logInform("Path simplification took %f seconds", simplifyTime_);
             return;
         }
     }
-    msg_.warn("No solution to simplify");
+    logWarn("No solution to simplify");
 }
 
 ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const

@@ -37,6 +37,7 @@
 #define BOOST_TEST_MODULE "GridB"
 #include <boost/test/unit_test.hpp>
 #include "ompl/datastructures/GridB.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -140,4 +141,3 @@ BOOST_AUTO_TEST_CASE(Simple)
         sum += it->second->data;
     BOOST_CHECK_EQUAL(14, sum);
 }
-

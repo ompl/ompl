@@ -111,7 +111,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     if (tree_.grid.size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -121,7 +121,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    msg_.inform("Starting with %u states", tree_.size);
+    logInform("Starting with %u states", tree_.size);
 
     Motion *solution = NULL;
     double   slndist = std::numeric_limits<double>::infinity();
@@ -209,7 +209,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         siC_->freeControl(rmotion->control);
     delete rmotion;
 
-    msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
+    logInform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
     return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

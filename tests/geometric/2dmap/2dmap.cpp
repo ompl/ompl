@@ -54,6 +54,7 @@
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 
+#include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
 
 using namespace ompl;
@@ -609,4 +610,3 @@ BOOST_AUTO_TEST_CASE(geometric_SBL)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

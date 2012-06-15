@@ -1,6 +1,15 @@
 /**
 \page releaseNotes Release Notes
 
+\section release_0_11_0 OMPL 0.11.0 (X, 2012)
+- PlannerData now uses BGL. Much more flexibility and power in the inspection of planner data structures
+- Logging mechanism is now using macros instead of the msg::Interface class
+- Added serialization for controls
+- Moved solution paths from Goal to ProblemDefinition
+- Implementation of PRM is now threaded (one thread fro growing the roadmap, one thread for monitoring whether the problem is solved)
+- Removing dependency on GTest (using Boost test instead)
+- Improvements to sampleUniformNear() for SO3
+
 \section release_0_10_2 OMPL 0.10.2 (March 21, 2012)
 - Created a blog to highlight new features.
 - Bug fixes.

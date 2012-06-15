@@ -43,8 +43,7 @@ bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &v
         return it->second->setValue(value);
     else
     {
-        msg::Interface msg;
-        msg.error("Parameter '" + key + "' was not found");
+        logError("Parameter '%s' was not found", key.c_str());
         return false;
     }
 }

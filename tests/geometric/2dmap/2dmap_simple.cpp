@@ -38,6 +38,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "2DmapSetup1.h"
+#include "../../BoostTestTeamCityReporter.h"
 #include <iostream>
 
 using namespace ompl;
@@ -135,17 +136,17 @@ public:
         boost::filesystem::path path(TEST_RESOURCES_DIR);
         path = path / "env1.txt";
         loadEnvironment(path.string().c_str(), env);
-	
+
         if (env.width * env.height == 0)
         {
             BOOST_FAIL("The environment has a 0 dimension. Cannot continue");
         }
     }
-    
+
     ~PlanTest(void)
     {
     }
-    
+
     void runPlanTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
     {
         double time   = 0.0;

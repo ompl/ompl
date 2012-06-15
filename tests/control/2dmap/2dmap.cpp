@@ -49,6 +49,7 @@
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
+#include "../../BoostTestTeamCityReporter.h"
 #include "../../resources/config.h"
 #include "../../resources/environment2D.h"
 

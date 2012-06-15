@@ -38,6 +38,7 @@
 #include <boost/test/unit_test.hpp>
 #include "ompl/datastructures/PDF.h"
 #include "ompl/util/RandomNumbers.h"
+#include "../BoostTestTeamCityReporter.h"
 #include <cmath>
 #include <vector>
 
@@ -178,4 +179,3 @@ BOOST_AUTO_TEST_CASE(Statistical)
 
     BOOST_OMPL_EXPECT_NEAR(sampleMean, mean, STDERR_WIDENING_FACTOR*standerr);
 }
-

@@ -98,7 +98,7 @@ void ompl::base::StateStorage::load(std::istream &in)
     clear();
     if (!in.good() || in.eof())
     {
-        msg_.warn("Unable to load states");
+        logWarn("Unable to load states");
         return;
     }
     try
@@ -109,7 +109,7 @@ void ompl::base::StateStorage::load(std::istream &in)
         ia >> h;
         if (h.marker != OMPL_ARCHIVE_MARKER)
         {
-            msg_.error("OMPL archive marker not found");
+            logError("OMPL archive marker not found");
             return;
         }
 
@@ -117,7 +117,7 @@ void ompl::base::StateStorage::load(std::istream &in)
         space_->computeSignature(sig);
         if (h.signature != sig)
         {
-            msg_.error("State space signatures do not match");
+            logError("State space signatures do not match");
             return;
         }
         loadStates(h, ia);
@@ -126,14 +126,14 @@ void ompl::base::StateStorage::load(std::istream &in)
 
     catch (boost::archive::archive_exception &ae)
     {
-        msg_.error("Unable to load archive: %s", ae.what());
+        logError("Unable to load archive: %s", ae.what());
     }
 
 }
 
 void ompl::base::StateStorage::loadStates(const Header &h, boost::archive::binary_iarchive &ia)
 {
-    msg_.debug("Deserializing %u states", h.state_count);
+    logDebug("Deserializing %u states", h.state_count);
     // load the file
     unsigned int l = space_->getSerializationLength();
     char *buffer = new char[l];
@@ -157,7 +157,7 @@ void ompl::base::StateStorage::store(std::ostream &out)
 {
     if (!out.good())
     {
-        msg_.warn("Unable to store states");
+        logWarn("Unable to store states");
         return;
     }
     try
@@ -175,13 +175,13 @@ void ompl::base::StateStorage::store(std::ostream &out)
     }
     catch (boost::archive::archive_exception &ae)
     {
-        msg_.error("Unable to save archive: %s", ae.what());
+        logError("Unable to save archive: %s", ae.what());
     }
 }
 
 void ompl::base::StateStorage::storeStates(const Header &h, boost::archive::binary_oarchive &oa)
 {
-    msg_.debug("Serializing %u states", (unsigned int)states_.size());
+    logDebug("Serializing %u states", (unsigned int)states_.size());
 
     unsigned int l = space_->getSerializationLength();
     char *buffer = new char[l];

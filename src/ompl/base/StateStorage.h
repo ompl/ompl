@@ -190,9 +190,6 @@ namespace ompl
 
             /** \brief The list of maintained states */
             std::vector<const State*> states_;
-
-            /** \brief The console interface */
-            msg::Interface            msg_;
         };
 
         /** \brief State storage that allows storing state metadata as well

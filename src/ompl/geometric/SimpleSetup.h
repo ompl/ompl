@@ -303,10 +303,6 @@ namespace ompl
 
             /// The parameters that describe the planning context
             base::ParamSet                params_;
-
-            /// Interface for console output
-            msg::Interface                msg_;
-
         };
 
         /** \brief Given a goal specification, decide on a planner for that goal */

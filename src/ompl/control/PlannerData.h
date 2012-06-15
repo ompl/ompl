@@ -38,6 +38,7 @@
 #define OMPL_CONTROL_PLANNER_DATA_
 
 #include "ompl/base/PlannerData.h"
+#include "ompl/control/SpaceInformation.h"
 #include "ompl/control/Control.h"
 #include <boost/serialization/base_object.hpp>
 
@@ -54,28 +55,82 @@ namespace ompl
             PlannerDataEdgeControl (const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration) {}
             /// \brief Copy constructor.
             PlannerDataEdgeControl (const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
+
             virtual ~PlannerDataEdgeControl (void) {}
+
             virtual base::PlannerDataEdge* clone () const
             {
                 return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this));
             }
+
             /// \brief Return the control associated with this edge.
             const Control* getControl (void) const { return c_; }
             /// \brief Return the duration associated with this edge.
             double getDuration (void) const { return duration_; }
 
+            virtual bool operator == (const PlannerDataEdge &rhs) const
+            {
+                const PlannerDataEdgeControl *rhsc = static_cast<const PlannerDataEdgeControl*> (&rhs);
+                if (rhsc)
+                {
+                    if (c_ == rhsc->c_)
+                        return static_cast<const PlannerDataEdge>(*this) == rhs;
+                }
+
+                return false;
+            }
+
         protected:
             friend class boost::serialization::access;
+            friend class PlannerDataStorage;
+            friend class PlannerData;
+
+            PlannerDataEdgeControl() : PlannerDataEdge(), c_(NULL) {};
+
             template <class Archive>
             void serialize(Archive & ar, const unsigned int version)
             {
                 ar & boost::serialization::base_object<base::PlannerDataEdge>(*this);
-                //ar & c_; <-- we cannot do this yet!
                 ar & duration_;
+                // Serializing the control is handled by PlannerDataStorage
             }
 
             const Control *c_;
             double duration_;
+        };
+
+        class PlannerData : public base::PlannerData
+        {
+        public:
+            PlannerData(const SpaceInformationPtr &siC);
+            virtual ~PlannerData(void);
+
+            /// \brief Removes the vertex associated with the given data.  If the
+            /// vertex does not exist, false is returned.
+            /// This method has O(n) complexity in the number of vertices.
+            virtual bool removeVertex (const ompl::base::PlannerDataVertex &st);
+
+            /// \brief Removes the edge between the vertices associated with the given vertex data.
+            /// Success is returned.
+            virtual bool removeEdge (const ompl::base::PlannerDataVertex &v1, const ompl::base::PlannerDataVertex &v2);
+
+            /// \brief Clears the entire data structure
+            virtual void clear (void);
+
+            /// \brief Creates a deep copy of the states contained in the vertices of this
+            /// PlannerData structure so that when the planner that created this instance goes
+            /// out of scope, all data remains intact.
+            /// \remarks Shallow state pointers inside of the PlannerDataVertex objects already
+            /// in this PlannerData will be replaced with clones which are scoped to this PlannerData
+            /// object.  A subsequent call to this method is necessary after any other vertices are
+            /// added to ensure that this PlannerData instance is fully decoupled.
+            virtual void decoupleFromPlanner(void);
+
+            const SpaceInformationPtr& getSpaceInformation(void) const;
+
+        protected:
+            SpaceInformationPtr  siC_;
+            std::set<Control*>   decoupledControls_;
         };
     }
 }

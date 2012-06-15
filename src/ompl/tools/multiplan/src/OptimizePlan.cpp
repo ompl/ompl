@@ -58,7 +58,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
 {
     time::point end = time::now() + time::seconds(solveTime);
     unsigned int nt = std::min(nthreads, (unsigned int)planners_.size());
-    msg_.debug("Using %u threads", nt);
+    logDebug("Using %u threads", nt);
 
     base::PlannerStatus result;
     unsigned int np = 0;
@@ -83,12 +83,12 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
 
             if (pdef->getSolutionPath()->length() <= goal->getMaximumPathLength())
             {
-                msg_.debug("Terminating early since solution path is shorted than the maximum path length");
+                logDebug("Terminating early since solution path is shorted than the maximum path length");
                 break;
             }
             if (pdef->getSolutionCount() >= maxSol)
             {
-                msg_.debug("Terminating early since %u solutions were generated", maxSol);
+                logDebug("Terminating early since %u solutions were generated", maxSol);
                 break;
             }
         }

@@ -6,6 +6,11 @@ if(WIN32)
 endif(WIN32)
 configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config.h")
 
+# Disable teamcity reporting for tests by default
+option(OMPL_TESTS_TEAMCITY "Enable unit test reporting to TeamCity" OFF)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" CURRENT_DIR)
+configure_file("${CURRENT_DIR}/BoostTestTeamCityReporter.h.in" "${CURRENT_DIR}/BoostTestTeamCityReporter.h")
+
 # Test datastructures implementation
 add_ompl_test(test_heap datastructures/heap.cpp)
 add_ompl_test(test_grid datastructures/grid.cpp)

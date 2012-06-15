@@ -57,7 +57,25 @@ ompl::base::PlannerData::PlannerData (const SpaceInformationPtr &si) : si_(si)
 
 ompl::base::PlannerData::~PlannerData (void)
 {
-    clear();
+     // Freeing decoupled states, if any
+    for (std::set<State*>::iterator it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
+        si_->freeState(*it);
+    decoupledStates_.clear();
+
+    if (graph_)
+    {
+        std::pair<Graph::EIterator, Graph::EIterator> eiterators = boost::edges(*graph_);
+        boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+        for (Graph::EIterator iter = eiterators.first; iter != eiterators.second; ++iter)
+            delete boost::get(edges, *iter);
+
+        std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
+        boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
+        for (Graph::VIterator iter = viterators.first; iter != viterators.second; ++iter)
+           delete vertices[*iter];
+
+        graph_->clear();
+    }
     if (graph_)
     {
         delete graph_;
@@ -69,9 +87,8 @@ void ompl::base::PlannerData::clear (void)
 {
     // Freeing decoupled states, if any
     for (std::set<State*>::iterator it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
-    {
         si_->freeState(*it);
-    }
+    decoupledStates_.clear();
 
     if (graph_)
     {
@@ -98,7 +115,7 @@ void ompl::base::PlannerData::decoupleFromPlanner (void)
         // If this vertex's state is not in the decoupled list, clone it and add it
         if (decoupledStates_.find(const_cast<State*>(vtx.getState())) == decoupledStates_.end())
         {
-            State* oldState = vtx.getState();
+            const State* oldState = vtx.getState();
             State* clone = si_->cloneState(oldState);
             decoupledStates_.insert(clone);
             // Replacing the shallow state pointer with our shiny new clone
@@ -281,7 +298,7 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
 {
-    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(v.getState());
+    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(v.getState());
     if (it != stateIndexMap_.end())
         return it->second;
     return INVALID_INDEX;
@@ -529,9 +546,9 @@ bool ompl::base::PlannerData::removeEdge (const PlannerDataVertex &v1, const Pla
     return removeEdge (index1, index2);
 }
 
-bool ompl::base::PlannerData::tagState (base::State* st, int tag)
+bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
 {
-    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
+    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
         getVertex(it->second).setTag(tag);
@@ -540,10 +557,10 @@ bool ompl::base::PlannerData::tagState (base::State* st, int tag)
     return false;
 }
 
-bool ompl::base::PlannerData::markStartState (base::State* st)
+bool ompl::base::PlannerData::markStartState (const base::State* st)
 {
     // Find the index in the stateIndexMap_
-    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
+    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
         if (!isStartVertex(it->second))
@@ -557,10 +574,10 @@ bool ompl::base::PlannerData::markStartState (base::State* st)
     return false;
 }
 
-bool ompl::base::PlannerData::markGoalState (base::State* st)
+bool ompl::base::PlannerData::markGoalState (const base::State* st)
 {
     // Find the index in the stateIndexMap_
-    std::map<State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
+    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
     {
         if (!isGoalVertex(it->second))
@@ -665,4 +682,9 @@ const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void
 double ompl::base::PlannerData::defaultEdgeWeight(const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2, const base::PlannerDataEdge& /*e*/) const
 {
     return si_->distance(v1.getState(), v2.getState());
+}
+
+const ompl::base::SpaceInformationPtr& ompl::base::PlannerData::getSpaceInformation(void) const
+{
+    return si_;
 }

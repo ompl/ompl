@@ -125,8 +125,14 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
 void ompl::geometric::PRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
 {
     Planner::setProblemDefinition(pdef);
+    clearQuery();
+}
+
+void ompl::geometric::PRM::clearQuery(void)
+{
     startM_.clear();
     goalM_.clear();
+    pis_.restart();
 }
 
 void ompl::geometric::PRM::clear(void)
@@ -137,8 +143,7 @@ void ompl::geometric::PRM::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
-    startM_.clear();
-    goalM_.clear();
+    clearQuery();
     maxEdgeID_ = 0;
 }
 
@@ -346,7 +351,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (!goal)
     {
-        msg_.error("Goal undefined or unknown type of goal");
+        logError("Goal undefined or unknown type of goal");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -356,13 +361,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (startM_.size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        msg_.error("Insufficient states in sampleable goal region");
+        logError("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -375,7 +380,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
         if (goalM_.empty())
         {
-            msg_.error("Unable to find any valid goal states");
+            logError("Unable to find any valid goal states");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
@@ -386,7 +391,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         simpleSampler_ = si_->allocStateSampler();
 
     unsigned int nrStartStates = boost::num_vertices(g_);
-    msg_.inform("Starting with %u states", nrStartStates);
+    logInform("Starting with %u states", nrStartStates);
 
     std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
@@ -415,7 +420,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     // Ensure slnThread is ceased before exiting solve
     slnThread.join();
 
-    msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    logInform("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
     {
