@@ -415,6 +415,9 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     Grid::CellArray cells;
     tree_.grid.getCells(cells);
 
+    if (!dynamic_cast<control::PlannerData*>(&data))
+        logWarn ("Failed to cast to an instance of control::PlannerData.  decoupleFromPlanner() and PlannerDataStorage methods will NOT work properly for controls.");
+
     double delta = siC_->getPropagationStepSize();
 
     if (lastGoalMotion_)

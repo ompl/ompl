@@ -273,6 +273,9 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
+    if (!dynamic_cast<control::PlannerData*>(&data))
+        logWarn ("Failed to cast to an instance of control::PlannerData.  decoupleFromPlanner() and PlannerDataStorage methods will NOT work properly for controls.");
+
     double delta = siC_->getPropagationStepSize();
 
     if (lastGoalMotion_)

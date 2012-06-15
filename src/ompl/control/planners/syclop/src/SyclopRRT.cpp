@@ -71,6 +71,9 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
         nn_->list(motions);
     double delta = siC_->getPropagationStepSize();
 
+    if (!dynamic_cast<control::PlannerData*>(&data))
+        logWarn ("Failed to cast to an instance of control::PlannerData.  decoupleFromPlanner() and PlannerDataStorage methods will NOT work properly for controls.");
+
     if (lastGoalMotion_)
         data.addGoalVertex (base::PlannerDataVertex(lastGoalMotion_->state));
 
