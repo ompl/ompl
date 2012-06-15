@@ -1,11 +1,3 @@
-
-* Expose OpenDE extension through Python bindings.
-
-* Make PlannerData use BGL
-  -- and add more functionality that deals with planner data;
-  -- make sure PlannerData can be used easily to access the start & goal states that were extracted from the planner
-  -- use PlannerData as "start states" in PlannerDefinition
- 
 * Start another 'concept' for ompl -- something that has algorithms for the analysis of spaces to plan in: Identify good lengths of path segments, good discretizations of control sets, automatic setting of parameters (projection cell sizes?), identification of good random projections
 
 * Add meaningful RRT* tests

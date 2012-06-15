@@ -2,13 +2,16 @@
 \page releaseNotes Release Notes
 
 \section release_0_11_0 OMPL 0.11.0 (X, 2012)
-- PlannerData now uses BGL. Much more flexibility and power in the inspection of planner data structures
-- Logging mechanism is now using macros instead of the msg::Interface class
-- Added serialization for controls
-- Moved solution paths from Goal to ProblemDefinition
-- Implementation of PRM is now threaded (one thread fro growing the roadmap, one thread for monitoring whether the problem is solved)
-- Removing dependency on GTest (using Boost test instead)
-- Improvements to sampleUniformNear() for SO3
+- PlannerData now uses the Boost Graph Library (BGL). This offers much more flexibility and power in the inspection of planner data structures. Rather than storing only the data common to all planners, each planner can store its own (meta)data per vertex and edge in a graph. All graph algorithms that exists in BGL can be applied directly.
+- Logging mechanism is now using macros instead of the msg::Interface class. The file name and line number where a message originated is printed out for every message type.
+- Added serialization for controls.
+- Moved solution paths from Goal to ProblemDefinition.
+- Implementation of PRM is now threaded (one thread for growing the roadmap, one thread for monitoring whether the problem is solved).
+- Improvements to sampleUniformNear() for SO3.
+- A TeamCity Continuous Integration server has been set up at http://teamcity.kavrakilab.org. This means not only that all code will automatically be compiled and tested on various platforms, but also that you can download fresh binary builds of OMPL.
+- The public repository, issue tracker, and downloads have been moved to Bitbucket. Sourceforge is being phased out for these services.
+- Reduced dependencies: GTest has been replaced by Boost Test, no longer need subversion and CVS to get some optional dependencies.
+- Bug fixes.
 
 \section release_0_10_2 OMPL 0.10.2 (March 21, 2012)
 - Created a blog to highlight new features.
