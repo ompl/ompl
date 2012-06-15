@@ -182,7 +182,7 @@ namespace ompl
                 nearestK(data, 1, nbh);
                 if (!nbh.empty()) return nbh[0];
             }
-            throw Exception("No elements found");
+            throw Exception("No elements found in nearest neighbors data structure");
         }
 
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const

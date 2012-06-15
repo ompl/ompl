@@ -116,7 +116,7 @@ namespace ompl
             if (pos != n)
                 return NearestNeighborsLinear<_T>::data_[pos];
 
-            throw Exception("No elements found");
+            throw Exception("No elements found in nearest neighbors data structure");
         }
 
     protected:

@@ -110,7 +110,7 @@ namespace ompl
             if (pos != sz)
                 return data_[pos];
 
-            throw Exception("No elements found");
+            throw Exception("nearest neighbors data structure");
         }
 
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
