@@ -131,7 +131,7 @@ void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
     }
     catch (std::exception& e)
     {
-        BOOST_CHECK_EQUAL("No elements found", e.what());
+        BOOST_CHECK_EQUAL("No elements found", std::string(e.what()).substr(0, 17));
     }
 }
 
@@ -216,7 +216,7 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
     }
     catch (std::exception& e)
     {
-        BOOST_CHECK_EQUAL("No elements found", e.what());
+        BOOST_CHECK_EQUAL("No elements found", std::string(e.what()).substr(0, 17));
     }
 
     for(i=0; i<n; ++i)
