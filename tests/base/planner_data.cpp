@@ -496,6 +496,13 @@ BOOST_AUTO_TEST_CASE(Serialization)
         BOOST_CHECK (static_cast<PlannerDataTestVertex&>(data.getVertex(i)).tag2_ == (signed)i+1);
     }
 
+    // Mark some start and goal states
+    data.markStartState(states[0]);
+    data.markStartState(states[states.size()/2]);
+    data.markStartState(states[states.size()-1]);
+    data.markGoalState(states[1]);
+    data.markGoalState(states[states.size()-2]);
+
     // Add a whole bunch of random edges
     unsigned int num_edges_to_add = 10000;
     ompl::RNG rng;
@@ -520,11 +527,20 @@ BOOST_AUTO_TEST_CASE(Serialization)
     BOOST_CHECK_EQUAL ( data2.numVertices(), states.size() );
     BOOST_CHECK_EQUAL ( data2.numEdges(), num_edges_to_add );
 
+    // Check our start/goal states
+    BOOST_CHECK ( data2.numStartVertices() == 3 );
+    BOOST_CHECK ( data2.numGoalVertices() == 2 );
+    BOOST_CHECK ( data2.isStartVertex(0) );
+    BOOST_CHECK ( data2.isStartVertex(states.size()/2) );
+    BOOST_CHECK ( data2.isStartVertex(states.size()-1) );
+    BOOST_CHECK ( data2.isGoalVertex(1) );
+    BOOST_CHECK ( data2.isGoalVertex(states.size()-2) );
+
     for (size_t i = 0; i < states.size(); ++i)
     {
         BOOST_CHECK (space->equalStates(data2.getVertex(i).getState(), states[i]) );
         BOOST_CHECK (data.getVertex(i).getTag() == data2.getVertex(i).getTag() );
-        BOOST_CHECK (static_cast<PlannerDataTestVertex&>(data.getVertex(i)).tag2_ == (signed)i+1);
+        BOOST_CHECK (static_cast<PlannerDataTestVertex&>(data2.getVertex(i)).tag2_ == (signed)i+1);
     }
 
     for (size_t i = 0; i < states.size(); ++i)

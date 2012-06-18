@@ -225,15 +225,24 @@ namespace ompl
             /// \brief The object containing all vertex data that will be stored
             struct PlannerDataVertexData
             {
+                enum VertexType
+                {
+                    STANDARD = 0,
+                    START,
+                    GOAL
+                };
+
                 template<typename Archive>
                 void serialize(Archive & ar, const unsigned int version)
                 {
                     ar & v_;
                     ar & state_;
+                    ar & type_;
                 }
 
                 const PlannerDataVertex* v_;
                 std::vector<unsigned char> state_;
+                VertexType type_;
 
                 // Need to add start/goal state status
             };
@@ -276,7 +285,13 @@ namespace ompl
                     space->deserialize (state, &vertexData.state_[0]);
                     const_cast<PlannerDataVertex*>(v)->state_ = state;
 
-                    pd.addVertex(*v);
+                    // Record the type of the vertex (i.e. start vertex).
+                    if (vertexData.type_ == PlannerDataVertexData::START)
+                        pd.addStartVertex(*v);
+                    else if (vertexData.type_ == PlannerDataVertexData::GOAL)
+                        pd.addGoalVertex(*v);
+                    else
+                        pd.addVertex(*v);
 
                     // We deserialized the vertex object pointer, and we own it.
                     // Since addEdge copies the object, it is safe to free here.
@@ -308,6 +323,13 @@ namespace ompl
                     // Serializing all data in the vertex (except the state)
                     const PlannerDataVertex &v = pd.getVertex(i);
                     vertexData.v_ = &v;
+
+                    // Record the type of the vertex (i.e. start vertex).
+                    if (pd.isStartVertex(i))
+                        vertexData.type_ = PlannerDataVertexData::START;
+                    else if (pd.isGoalVertex(i))
+                        vertexData.type_ = PlannerDataVertexData::GOAL;
+                    else vertexData.type_ = PlannerDataVertexData::STANDARD;
 
                     // Serializing the state contained in this vertex
                     space->serialize (&state[0], v.getState());
