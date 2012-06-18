@@ -244,13 +244,13 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
+    if (!data.hasControls())
+        logWarn("PlannerData is not expecting controls.  Control data will NOT be retrieved.");
+
     std::vector<MotionInfo> motions;
     tree_.grid.getContent(motions);
 
     double stepSize = siC_->getPropagationStepSize();
-
-    if (!dynamic_cast<control::PlannerData*>(&data))
-        logWarn ("Failed to cast to an instance of control::PlannerData.  decoupleFromPlanner() and PlannerDataStorage methods will NOT work properly for controls.");
 
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
@@ -259,9 +259,15 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
         {
             if (motions[i][j]->parent)
-                data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
-                              base::PlannerDataVertex (motions[i][j]->state),
-                              PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+            {
+                if (data.hasControls())
+                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                                  base::PlannerDataVertex (motions[i][j]->state),
+                                  PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+                else
+                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                                  base::PlannerDataVertex (motions[i][j]->state));
+            }
             else
                 data.addStartVertex (base::PlannerDataVertex (motions[i][j]->state));
         }

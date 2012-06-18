@@ -415,8 +415,8 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     Grid::CellArray cells;
     tree_.grid.getCells(cells);
 
-    if (!dynamic_cast<control::PlannerData*>(&data))
-        logWarn ("Failed to cast to an instance of control::PlannerData.  decoupleFromPlanner() and PlannerDataStorage methods will NOT work properly for controls.");
+    if (!data.hasControls())
+        logWarn("PlannerData is not expecting controls.  Control data will NOT be retrieved.");
 
     double delta = siC_->getPropagationStepSize();
 
@@ -429,9 +429,15 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
         {
             const Motion* m = cells[i]->data->motions[j];
             if (m->parent)
-                data.addEdge(base::PlannerDataVertex (m->parent->state),
-                             base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
-                             control::PlannerDataEdgeControl (m->control, m->steps * delta));
+            {
+                if (data.hasControls())
+                    data.addEdge(base::PlannerDataVertex (m->parent->state),
+                                base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                                control::PlannerDataEdgeControl (m->control, m->steps * delta));
+                else
+                    data.addEdge(base::PlannerDataVertex (m->parent->state),
+                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
+            }
             else
                 data.addStartVertex(base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
 

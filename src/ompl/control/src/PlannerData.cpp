@@ -42,9 +42,7 @@ ompl::control::PlannerData::PlannerData(const SpaceInformationPtr &siC) : base::
 
 ompl::control::PlannerData::~PlannerData(void)
 {
-    for (std::set<Control*>::iterator it = decoupledControls_.begin(); it != decoupledControls_.end(); ++it)
-        siC_->freeControl(*it);
-    decoupledControls_.clear();
+    freeMemory();
 }
 
 bool ompl::control::PlannerData::removeVertex (unsigned int vIndex)
@@ -107,8 +105,7 @@ void ompl::control::PlannerData::clear (void)
 {
     ompl::base::PlannerData::clear();
 
-    for (std::set<Control*>::iterator it = decoupledControls_.begin(); it != decoupledControls_.end(); ++it)
-        siC_->freeControl(*it);
+    freeMemory();
     decoupledControls_.clear();
 }
 
@@ -140,4 +137,15 @@ void ompl::control::PlannerData::decoupleFromPlanner(void)
 const ompl::control::SpaceInformationPtr& ompl::control::PlannerData::getSpaceInformation(void) const
 {
     return siC_;
+}
+
+bool ompl::control::PlannerData::hasControls(void) const
+{
+    return true;
+}
+
+void ompl::control::PlannerData::freeMemory(void)
+{
+    for (std::set<Control*>::iterator it = decoupledControls_.begin(); it != decoupledControls_.end(); ++it)
+        siC_->freeControl(*it);
 }

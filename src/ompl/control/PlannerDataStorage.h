@@ -52,140 +52,26 @@ namespace ompl
         class PlannerDataStorage : public base::PlannerDataStorage
         {
         public:
-            /// @cond IGNORE
-            static const boost::uint32_t OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER = 0x5044434D; // this spells PDCM
-            /// @endcond
-
-            PlannerDataStorage(void) : base::PlannerDataStorage() {};
-            virtual ~PlannerDataStorage(void) {};
+            /// \brief Default constructor
+            PlannerDataStorage(void);
+            /// \brief Destructor
+            virtual ~PlannerDataStorage(void);
 
             /// \brief Load the PlannerData structure from the given filename.
-            virtual void load(const char *filename, base::PlannerData& pd)
-            {
-                base::PlannerDataStorage::load(filename, pd);
-            }
+            virtual void load(const char *filename, base::PlannerData& pd);
 
             /// \brief Deserializes the structure from the given stream.
-            virtual void load(std::istream &in, base::PlannerData& pd)
-            {
-                control::PlannerData* pdc = dynamic_cast<control::PlannerData*>(&pd);
-                if (!pdc)
-                {
-                    logWarn("Failed to cast PlannerData to control::PlannerData.  Invoking base::PlannerDataStorage::load");
-                    base::PlannerDataStorage::load(in, pd);
-                    return;
-                }
-
-                pd.clear();
-
-                const SpaceInformationPtr &si = pdc->getSpaceInformation();
-                if (!in.good())
-                {
-                    logError("Failed to load PlannerData: input stream is invalid");
-                    return;
-                }
-                if (!si)
-                {
-                    logError("Failed to load PlannerData: SpaceInformation is invalid");
-                    return;
-                }
-                // Loading the planner data:
-                try
-                {
-                    boost::archive::binary_iarchive ia(in);
-
-                    // Read the header
-                    Header h;
-                    ia >> h;
-
-                    // Checking the archive marker
-                    if (h.marker != OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER)
-                    {
-                        logError("Failed to load PlannerData: PlannerData control archive marker not found");
-                        return;
-                    }
-
-                    // Verify that the state space is the same
-                    std::vector<int> sig;
-                    si->getStateSpace()->computeSignature(sig);
-                    if (h.signature != sig)
-                    {
-                        logError("Failed to load PlannerData: StateSpace signature mismatch");
-                        return;
-                    }
-
-                    // Verify that the control space is the same
-                    sig.clear();
-                    si->getControlSpace()->computeSignature(sig);
-                    if (h.control_signature != sig)
-                    {
-                        logError("Failed to load PlannerData: ControlSpace signature mismatch");
-                        return;
-                    }
-
-                    // File seems ok... loading vertices and edges
-                    loadVertices(pd, h.vertex_count, ia);
-                    loadEdges(pd, h.edge_count, ia);
-                }
-                catch (boost::archive::archive_exception &ae)
-                {
-                    logError("Failed to load PlannerData: %s", ae.what());
-                }
-            }
+            virtual void load(std::istream &in, base::PlannerData& pd);
 
             /// \brief Store (serialize) the structure to the given filename.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData& pd, const char *filename)
-            {
-                base::PlannerDataStorage::store(pd, filename);
-            }
+            virtual void store(const base::PlannerData& pd, const char *filename);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData& pd, std::ostream &out)
-            {
-                const control::PlannerData* pdc = dynamic_cast<const control::PlannerData*>(&pd);
-                if (!pdc)
-                {
-                    logWarn("Failed to cast PlannerData to control::PlannerData.  Invoking base::PlannerDataStorage::store");
-                    base::PlannerDataStorage::store(pd, out);
-                    return;
-                }
-
-                const SpaceInformationPtr &si = pdc->getSpaceInformation();
-                if (!out.good())
-                {
-                    logError("Failed to store PlannerData: output stream is invalid");
-                    return;
-                }
-                if (!si)
-                {
-                    logError("Failed to store PlannerData: SpaceInformation is invalid");
-                    return;
-                }
-                try
-                {
-                    boost::archive::binary_oarchive oa(out);
-
-                    // Writing the header
-                    Header h;
-                    h.marker = OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER;
-                    h.vertex_count = pdc->numVertices();
-                    h.edge_count = pdc->numEdges();
-                    si->getStateSpace()->computeSignature(h.signature);
-                    si->getControlSpace()->computeSignature(h.control_signature);
-                    oa << h;
-
-                    storeVertices(pd, oa);
-                    storeEdges(pd, oa);
-                }
-                catch (boost::archive::archive_exception &ae)
-                {
-                    logError("Failed to store PlannerData: %s", ae.what());
-                }
-            }
+            virtual void store(const base::PlannerData& pd, std::ostream &out);
 
         protected:
 

@@ -59,8 +59,8 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
 
     double delta = siC_->getPropagationStepSize();
 
-    if (!dynamic_cast<control::PlannerData*>(&data))
-        logWarn ("Failed to cast to an instance of control::PlannerData.  decoupleFromPlanner() and PlannerDataStorage methods will NOT work properly for controls.");
+    if (!data.hasControls())
+        logWarn("PlannerData is not expecting controls.  Control data will NOT be retrieved.");
 
     if (lastGoalMotion_)
         data.addGoalVertex(lastGoalMotion_->state);
@@ -68,9 +68,15 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
     for (size_t i = 0; i < motions_.size(); ++i)
     {
         if (motions_[i]->parent)
-            data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
-                          base::PlannerDataVertex(motions_[i]->state),
-                          control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
+        {
+            if (data.hasControls())
+                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
+                              base::PlannerDataVertex(motions_[i]->state),
+                              control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
+            else
+                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
+                              base::PlannerDataVertex(motions_[i]->state));
+        }
         else
             data.addStartVertex (base::PlannerDataVertex(motions_[i]->state));
     }

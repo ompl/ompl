@@ -38,7 +38,6 @@
 #define OMPL_BASE_PLANNER_DATA_STORAGE_
 
 #include "ompl/base/PlannerData.h"
-#include "ompl/base/StateStorage.h"
 #include "ompl/util/Console.h"
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -81,118 +80,27 @@ namespace ompl
         class PlannerDataStorage
         {
         public:
-            /// @cond IGNORE
-            static const boost::uint32_t OMPL_PLANNER_DATA_ARCHIVE_MARKER = 0x5044414D; // this spells PDAM
-            /// \endcond
 
-            PlannerDataStorage(void) {};
-            virtual ~PlannerDataStorage(void) {};
+            /// \brief Default constructor.
+            PlannerDataStorage(void);
+            /// \brief Destructor
+            virtual ~PlannerDataStorage(void);
 
             /// \brief Store (serialize) the PlannerData structure to the given filename.
-            virtual void store(const PlannerData& pd, const char *filename)
-            {
-                std::ofstream out(filename, std::ios::binary);
-                store(pd, out);
-                out.close();
-            }
+            virtual void store(const PlannerData& pd, const char *filename);
 
             /// \brief Store (serialize) the PlannerData structure to the given stream.
-            virtual void store(const PlannerData& pd, std::ostream &out)
-            {
-                const SpaceInformationPtr &si = pd.getSpaceInformation();
-                if (!out.good())
-                {
-                    logError("Failed to store PlannerData: output stream is invalid");
-                    return;
-                }
-                if (!si)
-                {
-                    logError("Failed to store PlannerData: SpaceInformation is invalid");
-                    return;
-                }
-                try
-                {
-                    boost::archive::binary_oarchive oa(out);
-
-                    // Writing the header
-                    Header h;
-                    h.marker = OMPL_PLANNER_DATA_ARCHIVE_MARKER;
-                    h.vertex_count = pd.numVertices();
-                    h.edge_count = pd.numEdges();
-                    si->getStateSpace()->computeSignature(h.signature);
-                    oa << h;
-
-                    storeVertices(pd, oa);
-                    storeEdges(pd, oa);
-                }
-                catch (boost::archive::archive_exception &ae)
-                {
-                    logError("Failed to store PlannerData: %s", ae.what());
-                }
-            }
+            virtual void store(const PlannerData& pd, std::ostream &out);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(const char *filename, PlannerData& pd)
-            {
-                std::ifstream in(filename, std::ios::binary);
-                load(in, pd);
-                in.close();
-            }
+            virtual void load(const char *filename, PlannerData& pd);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(std::istream &in, PlannerData& pd)
-            {
-                pd.clear();
-
-                const SpaceInformationPtr &si = pd.getSpaceInformation();
-                if (!in.good())
-                {
-                    logError("Failed to load PlannerData: input stream is invalid");
-                    return;
-                }
-                if (!si)
-                {
-                    logError("Failed to load PlannerData: SpaceInformation is invalid");
-                    return;
-                }
-                // Loading the planner data:
-                try
-                {
-                    boost::archive::binary_iarchive ia(in);
-
-                    // Read the header
-                    Header h;
-                    ia >> h;
-
-                    // Checking the archive marker
-                    if (h.marker != OMPL_PLANNER_DATA_ARCHIVE_MARKER)
-                    {
-                        logError("Failed to load PlannerData: PlannerData archive marker not found");
-                        return;
-                    }
-
-                    // Verify that the state space is the same
-                    std::vector<int> sig;
-                    si->getStateSpace()->computeSignature(sig);
-                    if (h.signature != sig)
-                    {
-                        logError("Failed to load PlannerData: StateSpace signature mismatch");
-                        return;
-                    }
-
-                    // File seems ok... loading vertices and edges
-                    loadVertices(pd, h.vertex_count, ia);
-                    loadEdges(pd, h.edge_count, ia);
-                }
-                catch (boost::archive::archive_exception &ae)
-                {
-                    logError("Failed to load PlannerData: %s", ae.what());
-                }
-            }
+            virtual void load(std::istream &in, PlannerData& pd);
 
         protected:
             /// @cond IGNORE
@@ -243,8 +151,6 @@ namespace ompl
                 const PlannerDataVertex* v_;
                 std::vector<unsigned char> state_;
                 VertexType type_;
-
-                // Need to add start/goal state status
             };
 
             /// \brief The object containing all edge data that will be stored

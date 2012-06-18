@@ -365,6 +365,8 @@ namespace ompl
             /// \brief Return the instance of SpaceInformation used in this PlannerData
             const SpaceInformationPtr& getSpaceInformation(void) const;
 
+            virtual bool hasControls(void) const;
+
             /// \brief Any extra properties (key-value pairs) the planner can set.
             std::map<std::string, std::string>   properties;
 
@@ -385,6 +387,8 @@ namespace ompl
             std::set<State*>                     decoupledStates_;
 
         private:
+            void freeMemory(void);
+
             // Abstract pointer that points to the Boost.Graph structure.
             // Obscured to prevent unnecessary inclusion of BGL throughout the
             // rest of the code.

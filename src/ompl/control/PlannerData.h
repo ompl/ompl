@@ -141,12 +141,18 @@ namespace ompl
             /// \brief Return the instance of SpaceInformation used in this PlannerData
             const SpaceInformationPtr& getSpaceInformation(void) const;
 
+            /// \brief Returns true if this PlannerData instance has controls associated with it
+            virtual bool hasControls(void) const;
+
         protected:
             /// \brief The instance of control::SpaceInformation associated with this data
             SpaceInformationPtr  siC_;
             /// \brief A list of controls that are allocated during the decoupleFromPlanner method.
             /// These controls are freed by PlannerData in the destructor.
             std::set<Control*>   decoupledControls_;
+
+        private:
+            void freeMemory(void);
         };
     }
 }
