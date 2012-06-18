@@ -538,10 +538,10 @@ BOOST_AUTO_TEST_CASE(Serialization)
     BOOST_CHECK_EQUAL ( data.numVertices(), states.size() );
     BOOST_CHECK_EQUAL ( data.numEdges(), num_edges_to_add );
 
-    control::PlannerDataStorage::Serialize(data, "testdata");
-
     control::PlannerData data2(si);
-    control::PlannerDataStorage::Deserialize("testdata", data2);
+    control::PlannerDataStorage storage;
+    storage.store(data, "testdata");
+    storage.load("testdata", data2);
 
     // Verify that data == data2
     BOOST_CHECK_EQUAL ( data2.numVertices(), states.size() );

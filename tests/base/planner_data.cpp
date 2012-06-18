@@ -293,7 +293,6 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
 
     // Try to tag an invalid state
     BOOST_CHECK_EQUAL( data.tagState(0, 100), false );
-
     for (size_t i = 0; i < states.size(); ++i)
         space->freeState(states[i]);
 }
@@ -512,11 +511,10 @@ BOOST_AUTO_TEST_CASE(Serialization)
     BOOST_CHECK_EQUAL ( data.numVertices(), states.size() );
     BOOST_CHECK_EQUAL ( data.numEdges(), num_edges_to_add );
 
-
-    base::PlannerDataStorage::Serialize(data, "testdata");
-
     base::PlannerData data2(si);
-    base::PlannerDataStorage::Deserialize("testdata", data2);
+    base::PlannerDataStorage storage;
+    storage.store(data, "testdata");
+    storage.load("testdata", data2);
 
     // Verify that data == data2
     BOOST_CHECK_EQUAL ( data2.numVertices(), states.size() );

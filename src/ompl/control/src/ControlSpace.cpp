@@ -37,6 +37,27 @@
 #include "ompl/control/ControlSpace.h"
 #include "ompl/util/Exception.h"
 
+/// @cond IGNORE
+namespace ompl
+{
+    namespace control
+    {
+        static void computeControlSpaceSignatureHelper(const ControlSpace *space, std::vector<int> &signature)
+        {
+            signature.push_back(space->getType());
+            signature.push_back(space->getDimension());
+
+            if (space->isCompound())
+            {
+                unsigned int c = space->as<CompoundControlSpace>()->getSubspaceCount();
+                for (unsigned int i = 0 ; i < c ; ++i)
+                    computeControlSpaceSignatureHelper(space->as<CompoundControlSpace>()->getSubspace(i).get(), signature);
+            }
+        }
+    }
+}
+/// @endcond
+
 ompl::control::ControlSpace::ControlSpace(const base::StateSpacePtr &stateSpace) : stateSpace_(stateSpace)
 {
     name_ = "Control[" + stateSpace_->getName() + "]";
@@ -105,6 +126,18 @@ void ompl::control::ControlSpace::serialize(void *serialization, const Control *
 
 void ompl::control::ControlSpace::deserialize(Control *ctrl, const void *serialization) const
 {
+}
+
+void ompl::control::ControlSpace::computeSignature(std::vector<int> &signature) const
+{
+    signature.clear();
+    computeControlSpaceSignatureHelper(this, signature);
+    signature.insert(signature.begin(), signature.size());
+}
+
+bool ompl::control::ControlSpace::isCompound(void) const
+{
+    return false;
 }
 
 void ompl::control::CompoundControlSpace::addSubspace(const ControlSpacePtr &component)
@@ -275,4 +308,9 @@ void ompl::control::CompoundControlSpace::deserialize(Control *ctrl, const void 
         components_[i]->deserialize(compctrl->components[i], reinterpret_cast<const char*>(serialization) + l);
         l += components_[i]->getSerializationLength();
     }
+}
+
+bool ompl::control::CompoundControlSpace::isCompound(void) const
+{
+    return true;
 }

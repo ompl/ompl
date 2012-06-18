@@ -92,17 +92,23 @@ namespace ompl
             {
                 ar & boost::serialization::base_object<base::PlannerDataEdge>(*this);
                 ar & duration_;
-                // Serializing the control is handled by PlannerDataStorage
+                // Serializing the control is handled by control::PlannerDataStorage
             }
 
             const Control *c_;
             double duration_;
         };
 
+        /// \copydoc ompl::base::PlannerData
+        /// \brief This class assumes edges are derived from PlannerDataEdgeControl.
+        /// If this is not the case, see base::PlannerData.
         class PlannerData : public base::PlannerData
         {
         public:
+
+            /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
             PlannerData(const SpaceInformationPtr &siC);
+            /// \brief Destructor.
             virtual ~PlannerData(void);
 
             /// \brief Removes the vertex associated with the given data.  If the
@@ -132,10 +138,14 @@ namespace ompl
             /// added to ensure that this PlannerData instance is fully decoupled.
             virtual void decoupleFromPlanner(void);
 
+            /// \brief Return the instance of SpaceInformation used in this PlannerData
             const SpaceInformationPtr& getSpaceInformation(void) const;
 
         protected:
+            /// \brief The instance of control::SpaceInformation associated with this data
             SpaceInformationPtr  siC_;
+            /// \brief A list of controls that are allocated during the decoupleFromPlanner method.
+            /// These controls are freed by PlannerData in the destructor.
             std::set<Control*>   decoupledControls_;
         };
     }

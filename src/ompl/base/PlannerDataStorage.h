@@ -39,128 +39,321 @@
 
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/StateStorage.h"
-#include <boost/serialization/access.hpp>
+#include "ompl/util/Console.h"
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/archive_exception.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/utility.hpp>
 #include <fstream>
 
 namespace ompl
 {
     namespace base
     {
+        /// \brief Object that handles loading/storing a PlannerData object to/from a binary stream.
+        /// Serialization of vertices and edges is performed using the Boost archive method
+        /// \e serialize.  Derived vertex/edge classes are handled, presuming those classes implement
+        /// the \e serialize method.
+        /// \remarks Since the \e serialize method for vertices and edges is templated, it cannot
+        /// be virtual.  To serialize a derived class AND the base class data, a special call can
+        /// be invoked inside of \e serialize that instructs the serializer to also serialize the
+        /// base class.  The derived class must also have a GUID exposed to the serializer
+        /// for proper deserialization at runtime.  This is performed with the \e BOOST_CLASS_EXPORT
+        /// macro.  An example of these items is given below:
+        /// \code
+        /// #include <boost/serialization/export.hpp>
+        ///
+        /// class MyVertexClass : public ompl::base::PlannerDataVertex
+        /// {
+        ///     // ---SNIP---
+        ///
+        ///     template <class Archive>
+        ///     void serialize(Archive & ar, const unsigned int version)
+        ///     {
+        ///         ar & boost::serialization::base_object<ompl::base::PlannerDataVertex>(*this);
+        ///         // ... (The other members of MyVertexClass)
+        ///     }
+        /// };
+        ///
+        /// BOOST_CLASS_EXPORT(MyVertexClass);
+        /// \endcode
         class PlannerDataStorage
         {
         public:
-            /// \brief Serializes the planner data structure to the given filename.
-            static void Serialize(const PlannerData& pd, const char *filename)
+            /// @cond IGNORE
+            static const boost::uint32_t OMPL_PLANNER_DATA_ARCHIVE_MARKER = 0x5044414D; // this spells PDAM
+            /// \endcond
+
+            PlannerDataStorage(void) {};
+            virtual ~PlannerDataStorage(void) {};
+
+            /// \brief Store (serialize) the PlannerData structure to the given filename.
+            virtual void store(const PlannerData& pd, const char *filename)
             {
                 std::ofstream out(filename, std::ios::binary);
-                Serialize(pd, out);
+                store(pd, out);
                 out.close();
             }
 
-            /// \brief Serializes the structure to the given stream.
-            static void Serialize(const PlannerData& pd, std::ostream &out)
+            /// \brief Store (serialize) the PlannerData structure to the given stream.
+            virtual void store(const PlannerData& pd, std::ostream &out)
             {
-                StateStorageWithMetadata<PlannerDataMetadata> storage(pd.getSpaceInformation()->getStateSpace());
-
-                for (size_t i = 0; i < pd.numVertices(); ++i)
+                const SpaceInformationPtr &si = pd.getSpaceInformation();
+                if (!out.good())
                 {
-                    // Create a metadata object to store other members of the vertex class
-                    PlannerDataMetadata data (&pd.getVertex(i));
-
-                    // Enumerating all edges of this vertex, and storing pointers into the metadata object
-                    std::map<unsigned int, const PlannerDataEdge*> neighbors;
-                    pd.getEdges(i, neighbors);
-                    for (std::map<unsigned int, const PlannerDataEdge*>::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
-                    {
-                        data.edgeIndexes_.push_back(it->first);
-                        data.edgeObjects_.push_back(it->second);
-                    }
-                    // Storing the state and all metadata
-                    storage.addState(pd.getVertex(i).getState(), data);
+                    logError("Failed to store PlannerData: output stream is invalid");
+                    return;
                 }
+                if (!si)
+                {
+                    logError("Failed to store PlannerData: SpaceInformation is invalid");
+                    return;
+                }
+                try
+                {
+                    boost::archive::binary_oarchive oa(out);
 
-                storage.store(out);
+                    // Writing the header
+                    Header h;
+                    h.marker = OMPL_PLANNER_DATA_ARCHIVE_MARKER;
+                    h.vertex_count = pd.numVertices();
+                    h.edge_count = pd.numEdges();
+                    si->getStateSpace()->computeSignature(h.signature);
+                    oa << h;
+
+                    storeVertices(pd, oa);
+                    storeEdges(pd, oa);
+                }
+                catch (boost::archive::archive_exception &ae)
+                {
+                    logError("Failed to store PlannerData: %s", ae.what());
+                }
             }
 
-            /// \brief Deserializes the structure from the given filename.
-            static void Deserialize(const char *filename, PlannerData& pd)
+            /// \brief Load the PlannerData structure from the given stream.
+            /// The StateSpace that was used to store the data must match the
+            /// StateSpace inside of the argument PlannerData.
+            virtual void load(const char *filename, PlannerData& pd)
             {
                 std::ifstream in(filename, std::ios::binary);
-                Deserialize(in, pd);
+                load(in, pd);
                 in.close();
             }
 
-            /// \brief Deserializes the structure from the given stream.
-            static void Deserialize(std::istream &in, PlannerData& pd)
+            /// \brief Load the PlannerData structure from the given stream.
+            /// The StateSpace that was used to store the data must match the
+            /// StateSpace inside of the argument PlannerData.
+            virtual void load(std::istream &in, PlannerData& pd)
             {
                 pd.clear();
 
-                StateStorageWithMetadata<PlannerDataMetadata> storage(pd.getSpaceInformation()->getStateSpace());
-                storage.load(in);
-
-                // Repopulate the vertices and all associated vertex data
-                for (size_t i = 0; i < storage.size(); ++i)
+                const SpaceInformationPtr &si = pd.getSpaceInformation();
+                if (!in.good())
                 {
-                    PlannerDataMetadata &data = storage.getMetadata(i);
-                    PlannerDataVertex* v = const_cast<PlannerDataVertex*>(data.v_);
-
-                    v->state_ = storage.getState(i);
-                    pd.addVertex(*v);
+                    logError("Failed to load PlannerData: input stream is invalid");
+                    return;
                 }
-
-                // Loading all edges and edge data
-                for (size_t i = 0; i < storage.size(); ++i)
+                if (!si)
                 {
-                    PlannerDataMetadata &data = storage.getMetadata(i);
-                    for (size_t j = 0; j < data.edgeIndexes_.size(); ++j)
-                        pd.addEdge(i, data.edgeIndexes_[j], *(data.edgeObjects_[j]));
-
-                    // When pointers in metadata are deserialized, we assume ownership of them.
-                    // PlannerData clones all memory for vertices and edges, so it is safe to
-                    // free the metadata here.
-                    data.freeMemory();
+                    logError("Failed to load PlannerData: SpaceInformation is invalid");
+                    return;
                 }
+                // Loading the planner data:
+                try
+                {
+                    boost::archive::binary_iarchive ia(in);
 
-                // We are using pointers from StateStorage in the vertices, which will be
-                // freed when storage goes out of scope.  Very important to create our own
-                // copy of the state pointers here.
-                pd.decoupleFromPlanner();
+                    // Read the header
+                    Header h;
+                    ia >> h;
+
+                    // Checking the archive marker
+                    if (h.marker != OMPL_PLANNER_DATA_ARCHIVE_MARKER)
+                    {
+                        logError("Failed to load PlannerData: PlannerData archive marker not found");
+                        return;
+                    }
+
+                    // Verify that the state space is the same
+                    std::vector<int> sig;
+                    si->getStateSpace()->computeSignature(sig);
+                    if (h.signature != sig)
+                    {
+                        logError("Failed to load PlannerData: StateSpace signature mismatch");
+                        return;
+                    }
+
+                    // File seems ok... loading vertices and edges
+                    loadVertices(pd, h.vertex_count, ia);
+                    loadEdges(pd, h.edge_count, ia);
+                }
+                catch (boost::archive::archive_exception &ae)
+                {
+                    logError("Failed to load PlannerData: %s", ae.what());
+                }
             }
 
-            protected:
-                // This class is used internally to serialize vertex and edge
-                // data (other than state pointers).
-                class PlannerDataMetadata
-                {
-                public:
-                    PlannerDataMetadata() : v_(NULL) {}
-                    PlannerDataMetadata(const PlannerDataVertex* v) : v_(v) {}
+        protected:
+            /// @cond IGNORE
+            /// \brief Information stored at the beginning of the PlannerData archive
+            struct Header
+            {
+                /// \brief OMPL PlannerData specific marker (fixed value)
+                boost::uint32_t  marker;
 
-                    void freeMemory()
+                /// \brief Number of vertices stored in the archive
+                std::size_t      vertex_count;
+
+                /// \brief Number of edges stored in the archive
+                std::size_t      edge_count;
+
+                /// \brief Signature of state space that allocated the saved states in the vertices (see ompl::base::StateSpace::computeSignature()) */
+                std::vector<int> signature;
+
+                /// \brief boost::serialization routine
+                template<typename Archive>
+                void serialize(Archive & ar, const unsigned int version)
+                {
+                    ar & marker;
+                    ar & vertex_count;
+                    ar & edge_count;
+                    ar & signature;
+                }
+            };
+
+            /// \brief The object containing all vertex data that will be stored
+            struct PlannerDataVertexData
+            {
+                template<typename Archive>
+                void serialize(Archive & ar, const unsigned int version)
+                {
+                    ar & v_;
+                    ar & state_;
+                }
+
+                const PlannerDataVertex* v_;
+                std::vector<unsigned char> state_;
+
+                // Need to add start/goal state status
+            };
+
+            /// \brief The object containing all edge data that will be stored
+            struct PlannerDataEdgeData
+            {
+                template<typename Archive>
+                void serialize(Archive & ar, const unsigned int version)
+                {
+                    ar & e_;
+                    ar & endpoints_;
+                    ar & weight_;
+                }
+
+                const PlannerDataEdge* e_;
+                std::pair<unsigned int, unsigned int> endpoints_;
+                double weight_;
+            };
+            /// \endcond
+
+            /// \brief Read \e numVertices from the binary input \e ia and store them as PlannerData.
+            virtual void loadVertices(PlannerData &pd, unsigned int numVertices, boost::archive::binary_iarchive &ia)
+            {
+                logDebug("Loading %d PlannerDataVertex objects", numVertices);
+
+                const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
+                std::vector<State*> states;
+                for (unsigned int i = 0; i < numVertices; ++i)
+                {
+                    PlannerDataVertexData vertexData;
+                    ia >> vertexData;
+
+                    // Deserializing all data in the vertex (except the state)
+                    const PlannerDataVertex *v = vertexData.v_;
+
+                    // Allocating a new state and deserializing it from the buffer
+                    State* state = space->allocState();
+                    states.push_back(state);
+                    space->deserialize (state, &vertexData.state_[0]);
+                    const_cast<PlannerDataVertex*>(v)->state_ = state;
+
+                    pd.addVertex(*v);
+
+                    // We deserialized the vertex object pointer, and we own it.
+                    // Since addEdge copies the object, it is safe to free here.
+                    delete vertexData.v_;
+                }
+
+                // These vertices are using state pointers allocated here.
+                // To avoid a memory leak, we decouple planner data from the
+                // 'planner', which will clone all states and properly free the
+                // memory when PlannerData goes out of scope.  Then it is safe
+                // to free all memory allocated here.
+                pd.decoupleFromPlanner();
+
+                for (size_t i = 0; i < states.size(); ++i)
+                    space->freeState(states[i]);
+            }
+
+            /// \brief Serialize and store all vertices in \e pd to the binary archive.
+            virtual void storeVertices(const PlannerData &pd, boost::archive::binary_oarchive &oa)
+            {
+                logDebug("Storing %d PlannerDataVertex objects", pd.numVertices());
+
+                const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
+                std::vector<unsigned char> state (space->getSerializationLength());
+                for (unsigned int i = 0; i < pd.numVertices(); ++i)
+                {
+                    PlannerDataVertexData vertexData;
+
+                    // Serializing all data in the vertex (except the state)
+                    const PlannerDataVertex &v = pd.getVertex(i);
+                    vertexData.v_ = &v;
+
+                    // Serializing the state contained in this vertex
+                    space->serialize (&state[0], v.getState());
+                    vertexData.state_ = state;
+
+                    oa << vertexData;
+                }
+            }
+
+            /// \brief Read \e numEdges from the binary input \e ia and store them as PlannerData.
+            virtual void loadEdges(PlannerData &pd, unsigned int numEdges, boost::archive::binary_iarchive &ia)
+            {
+                logDebug("Loading %d PlannerDataEdge objects", numEdges);
+
+                for (unsigned int i = 0; i < numEdges; ++i)
+                {
+                    PlannerDataEdgeData edgeData;
+                    ia >> edgeData;
+                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_, edgeData.weight_);
+
+                    // We deserialized the edge object pointer, and we own it.
+                    // Since addEdge copies the object, it is safe to free here.
+                    delete edgeData.e_;
+                }
+            }
+
+            /// \brief Serialize and store all edges in \e pd to the binary archive.
+            virtual void storeEdges(const PlannerData &pd, boost::archive::binary_oarchive &oa)
+            {
+                logDebug("Storing %d PlannerDataEdge objects", pd.numEdges());
+
+                for (unsigned int i = 0; i < pd.numVertices(); ++i)
+                    for (unsigned int j = 0; j < pd.numVertices(); ++j)
                     {
-                        for (size_t i = 0; i < edgeObjects_.size(); ++i)
-                            delete edgeObjects_[i];
-                        edgeObjects_.clear();
-                        if (v_)
+                        if(pd.edgeExists(i, j))
                         {
-                            delete v_;
-                            v_ = NULL;
+                            PlannerDataEdgeData edgeData;
+                            edgeData.e_ = &pd.getEdge(i, j);
+                            edgeData.endpoints_.first = i;
+                            edgeData.endpoints_.second = j;
+                            edgeData.weight_ = pd.getEdgeWeight(i, j);
+
+                            oa << edgeData;
                         }
                     }
-
-                    template<typename Archive>
-                    void serialize(Archive & ar, const unsigned int version)
-                    {
-                        ar & v_;
-                        ar & edgeIndexes_;
-                        ar & edgeObjects_;
-                    }
-
-                    const PlannerDataVertex *v_;
-                    // ideally these members would constitute a map, but boost.serialize cannot process that structure
-                    std::vector<unsigned int> edgeIndexes_;
-                    std::vector<const PlannerDataEdge*> edgeObjects_;
-                };
+            }
         };
     }
 }

@@ -50,11 +50,6 @@
 
 namespace ompl
 {
-    /// @cond IGNORE
-    // Forward declaration for befriending this class
-    namespace control { class PlannerDataStorage; }
-    /// @endcond
-
     namespace base
     {
         /// \brief Base class for a vertex in the PlannerData structure.  All
@@ -65,7 +60,7 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Takes a state pointer and an optional integer tag.
-            PlannerDataVertex (const base::State* st, int tag = 0) : state_(st), tag_(tag) {}
+            PlannerDataVertex (const State* st, int tag = 0) : state_(st), tag_(tag) {}
             /// \brief Copy constructor.
             PlannerDataVertex (const PlannerDataVertex& rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
             virtual ~PlannerDataVertex (void) {}
@@ -75,7 +70,7 @@ namespace ompl
             /// \brief Set the integer tag associated with this vertex.
             virtual void setTag (int tag) { tag_ = tag; }
             /// \brief Retrieve the state associated with this vertex.
-            virtual const base::State* getState(void) const { return state_; }
+            virtual const State* getState(void) const { return state_; }
 
             /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataVertex* clone (void) const
@@ -105,16 +100,16 @@ namespace ompl
             void serialize(Archive & ar, const unsigned int version)
             {
                 ar & tag_;
+                // Serialization of the state pointer is handled by PlannerDataStorage
             }
 
             /// \brief The state represented by this vertex
-            const base::State* state_;
+            const State* state_;
             /// \brief A generic integer tag for this state.  Not used for equivalence checking.
             int tag_;
 
             friend class PlannerData;
             friend class PlannerDataStorage;
-            friend class control::PlannerDataStorage;
         };
 
         /// \brief Base class for a PlannerData edge.
@@ -171,7 +166,9 @@ namespace ompl
             /// \brief Representation of an invalid vertex index
             static const unsigned int      INVALID_INDEX;
 
+            /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
             PlannerData(const SpaceInformationPtr &si);
+            /// \brief Destructor.
             virtual ~PlannerData(void);
 
             /// \name PlannerData construction
@@ -194,13 +191,13 @@ namespace ompl
             unsigned int addGoalVertex  (const PlannerDataVertex &v);
             /// \brief Mark the given state as a start vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markStartState (const base::State* st);
+            bool markStartState (const State* st);
             /// \brief Mark the given state as a goal vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markGoalState (const base::State* st);
+            bool markGoalState (const State* st);
             /// \brief Set the integer tag associated with the given state.  If the given
             /// state does not exist in a vertex, false is returned.
-            bool tagState (const base::State* st, int tag);
+            bool tagState (const State* st, int tag);
             /// \brief Removes the vertex associated with the given data.  If the
             /// vertex does not exist, false is returned.
             /// This method has O(n) complexity in the number of vertices.
@@ -365,7 +362,8 @@ namespace ompl
 
             /// \}
 
-            const base::SpaceInformationPtr& getSpaceInformation(void) const;
+            /// \brief Return the instance of SpaceInformation used in this PlannerData
+            const SpaceInformationPtr& getSpaceInformation(void) const;
 
             /// \brief Any extra properties (key-value pairs) the planner can set.
             std::map<std::string, std::string>   properties;
