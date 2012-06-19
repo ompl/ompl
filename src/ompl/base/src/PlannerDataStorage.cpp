@@ -35,6 +35,7 @@
 /* Author: Ryan Luna */
 
 #include "ompl/base/PlannerDataStorage.h"
+#include <boost/archive/archive_exception.hpp>
 
 static const boost::uint32_t OMPL_PLANNER_DATA_ARCHIVE_MARKER = 0x5044414D; // this spells PDAM
 

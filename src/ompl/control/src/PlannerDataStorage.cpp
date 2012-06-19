@@ -35,6 +35,7 @@
 /* Author: Ryan Luna */
 
 #include "ompl/control/PlannerDataStorage.h"
+#include <boost/archive/archive_exception.hpp>
 
 /// \cond IGNORE
 static const boost::uint32_t OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER = 0x5044434D; // this spells PDCM

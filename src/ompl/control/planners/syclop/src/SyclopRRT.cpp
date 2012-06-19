@@ -71,9 +71,6 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
         nn_->list(motions);
     double delta = siC_->getPropagationStepSize();
 
-    if (!data.hasControls())
-        logWarn("PlannerData is not expecting controls.  Control data will NOT be retrieved.");
-
     if (lastGoalMotion_)
         data.addGoalVertex (base::PlannerDataVertex(lastGoalMotion_->state));
 

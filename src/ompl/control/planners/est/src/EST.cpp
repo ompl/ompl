@@ -244,9 +244,6 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    if (!data.hasControls())
-        logWarn("PlannerData is not expecting controls.  Control data will NOT be retrieved.");
-
     std::vector<MotionInfo> motions;
     tree_.grid.getContent(motions);
 

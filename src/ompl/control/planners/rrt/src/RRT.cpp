@@ -273,9 +273,6 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    if (!data.hasControls())
-        logWarn("PlannerData is not expecting controls.  Control data will NOT be retrieved.");
-
     double delta = siC_->getPropagationStepSize();
 
     if (lastGoalMotion_)

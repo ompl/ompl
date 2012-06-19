@@ -415,9 +415,6 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     Grid::CellArray cells;
     tree_.grid.getCells(cells);
 
-    if (!data.hasControls())
-        logWarn("PlannerData is not expecting controls.  Control data will NOT be retrieved.");
-
     double delta = siC_->getPropagationStepSize();
 
     if (lastGoalMotion_)
@@ -432,8 +429,8 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
             {
                 if (data.hasControls())
                     data.addEdge(base::PlannerDataVertex (m->parent->state),
-                                base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
-                                control::PlannerDataEdgeControl (m->control, m->steps * delta));
+                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                                 control::PlannerDataEdgeControl (m->control, m->steps * delta));
                 else
                     data.addEdge(base::PlannerDataVertex (m->parent->state),
                                  base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
