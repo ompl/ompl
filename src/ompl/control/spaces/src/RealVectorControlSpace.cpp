@@ -164,10 +164,10 @@ unsigned int ompl::control::RealVectorControlSpace::getSerializationLength(void)
 
 void ompl::control::RealVectorControlSpace::serialize(void *serialization, const Control *ctrl) const
 {
-    memcpy(serialization, &ctrl->as<ControlType>()->values, controlBytes_);
+    memcpy(serialization, ctrl->as<ControlType>()->values, controlBytes_);
 }
 
 void ompl::control::RealVectorControlSpace::deserialize(Control *ctrl, const void *serialization) const
 {
-    memcpy(&ctrl->as<ControlType>()->values, serialization, controlBytes_);
+    memcpy(ctrl->as<ControlType>()->values, serialization, controlBytes_);
 }

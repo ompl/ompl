@@ -426,9 +426,15 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
         {
             const Motion* m = cells[i]->data->motions[j];
             if (m->parent)
-                data.addEdge(base::PlannerDataVertex (m->parent->state),
-                             base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
-                             control::PlannerDataEdgeControl (m->control, m->steps * delta));
+            {
+                if (data.hasControls())
+                    data.addEdge(base::PlannerDataVertex (m->parent->state),
+                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                                 control::PlannerDataEdgeControl (m->control, m->steps * delta));
+                else
+                    data.addEdge(base::PlannerDataVertex (m->parent->state),
+                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
+            }
             else
                 data.addStartVertex(base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
 

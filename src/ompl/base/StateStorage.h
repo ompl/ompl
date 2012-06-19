@@ -117,7 +117,7 @@ namespace ompl
                 return states_[index];
             }
 
-            /** \brief Sort the states according to the less-qeual operator \e op. Metadata is NOT sorted;
+            /** \brief Sort the states according to the less-equal operator \e op. Metadata is NOT sorted;
                 if metadata was added, the index values of the metadata will not match after the sort. */
             void sort(const boost::function<bool(const State*, const State*)> &op);
 

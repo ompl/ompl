@@ -77,9 +77,15 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
     for (size_t i = 0; i < motions.size(); ++i)
     {
         if (motions[i]->parent)
-            data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
-                          base::PlannerDataVertex(motions[i]->state),
-                          control::PlannerDataEdgeControl (motions[i]->control, motions[i]->steps * delta));
+        {
+            if (data.hasControls())
+                data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
+                              base::PlannerDataVertex(motions[i]->state),
+                              control::PlannerDataEdgeControl (motions[i]->control, motions[i]->steps * delta));
+            else
+                data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
+                              base::PlannerDataVertex(motions[i]->state));
+        }
         else
             data.addStartVertex (base::PlannerDataVertex(motions[i]->state));
     }

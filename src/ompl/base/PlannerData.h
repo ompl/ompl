@@ -46,6 +46,7 @@
 #include "ompl/util/ClassForward.h"
 #include <boost/noncopyable.hpp>
 #include <boost/function.hpp>
+#include <boost/serialization/access.hpp>
 
 namespace ompl
 {
@@ -59,7 +60,7 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Takes a state pointer and an optional integer tag.
-            PlannerDataVertex (const base::State* st, int tag = 0) : state_(st), tag_(tag) {}
+            PlannerDataVertex (const State* st, int tag = 0) : state_(st), tag_(tag) {}
             /// \brief Copy constructor.
             PlannerDataVertex (const PlannerDataVertex& rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
             virtual ~PlannerDataVertex (void) {}
@@ -69,7 +70,7 @@ namespace ompl
             /// \brief Set the integer tag associated with this vertex.
             virtual void setTag (int tag) { tag_ = tag; }
             /// \brief Retrieve the state associated with this vertex.
-            virtual const base::State* getState(void) const { return state_; }
+            virtual const State* getState(void) const { return state_; }
 
             /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataVertex* clone (void) const
@@ -92,12 +93,23 @@ namespace ompl
             }
 
         protected:
+            PlannerDataVertex(void) {}
+
+            friend class boost::serialization::access;
+            template <class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+            {
+                ar & tag_;
+                // Serialization of the state pointer is handled by PlannerDataStorage
+            }
+
             /// \brief The state represented by this vertex
-            const base::State* state_;
+            const State* state_;
             /// \brief A generic integer tag for this state.  Not used for equivalence checking.
             int tag_;
 
             friend class PlannerData;
+            friend class PlannerDataStorage;
         };
 
         /// \brief Base class for a PlannerData edge.
@@ -120,6 +132,14 @@ namespace ompl
             bool operator != (const PlannerDataEdge &rhs) const
             {
                 return !(*this == rhs);
+            }
+
+        protected:
+
+            friend class boost::serialization::access;
+            template <class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+            {
             }
         };
 
@@ -146,7 +166,9 @@ namespace ompl
             /// \brief Representation of an invalid vertex index
             static const unsigned int      INVALID_INDEX;
 
+            /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
             PlannerData(const SpaceInformationPtr &si);
+            /// \brief Destructor.
             virtual ~PlannerData(void);
 
             /// \name PlannerData construction
@@ -169,46 +191,46 @@ namespace ompl
             unsigned int addGoalVertex  (const PlannerDataVertex &v);
             /// \brief Mark the given state as a start vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markStartState (const base::State* st);
+            bool markStartState (const State* st);
             /// \brief Mark the given state as a goal vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markGoalState (const base::State* st);
+            bool markGoalState (const State* st);
             /// \brief Set the integer tag associated with the given state.  If the given
             /// state does not exist in a vertex, false is returned.
-            bool tagState (const base::State* st, int tag);
+            bool tagState (const State* st, int tag);
             /// \brief Removes the vertex associated with the given data.  If the
             /// vertex does not exist, false is returned.
             /// This method has O(n) complexity in the number of vertices.
-            bool removeVertex (const PlannerDataVertex &st);
+            virtual bool removeVertex (const PlannerDataVertex &st);
             /// \brief Removes the vertex with the given index.  If the index is
             /// out of range, false is returned.
             /// This method has O(n) complexity in the number of vertices.
-            bool removeVertex (unsigned int vIndex);
+            virtual bool removeVertex (unsigned int vIndex);
             /// \brief Adds a directed edge between the given vertex indexes.  An optional
             /// edge structure and weight can be supplied.  Success is returned.
-            bool addEdge (unsigned int v1, unsigned int v2,
-                          const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
+            virtual bool addEdge (unsigned int v1, unsigned int v2,
+                                  const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
             /// \brief Adds a directed edge between the given vertex indexes.  The
             /// vertices are added to the data if they are not already in the
             /// structure.  An optional edge structure and weight can also be supplied.
             /// Success is returned.
-            bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
-                          const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
+            virtual bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
+                                  const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
             /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
-            bool removeEdge (unsigned int v1, unsigned int v2);
+            virtual bool removeEdge (unsigned int v1, unsigned int v2);
             /// \brief Removes the edge between the vertices associated with the given vertex data.
             /// Success is returned.
-            bool removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2);
+            virtual bool removeEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2);
             /// \brief Clears the entire data structure
-            void clear (void);
+            virtual void clear (void);
             /// \brief Creates a deep copy of the states contained in the vertices of this
             /// PlannerData structure so that when the planner that created this instance goes
             /// out of scope, all data remains intact.
-            /// \remarks Shallow state pointers inside of the PlannerDataVertex objects already 
+            /// \remarks Shallow state pointers inside of the PlannerDataVertex objects already
             /// in this PlannerData will be replaced with clones which are scoped to this PlannerData
-            /// object.  A subsequent call to this method is necessary after any other vertices are 
+            /// object.  A subsequent call to this method is necessary after any other vertices are
             /// added to ensure that this PlannerData instance is fully decoupled.
-            void decoupleFromPlanner(void);
+            virtual void decoupleFromPlanner(void);
 
             /// \}
             /// \name PlannerData Properties
@@ -308,7 +330,7 @@ namespace ompl
             /// \brief Writes a Graphviz dot file of this structure to the given stream
             void printGraphviz (std::ostream& out = std::cout) const;
             /// \brief Writes a GraphML file of this structure to the given stream
-            void printGraphML(std::ostream& out = std::cout) const;
+            void printGraphML (std::ostream& out = std::cout) const;
 
             /// \}
             /// \name Advanced graph extraction
@@ -324,21 +346,26 @@ namespace ompl
             void extractReachable(unsigned int v, PlannerData &data) const;
 
             /// \brief Extract a Boost.Graph object from this PlannerData.
-            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The
-            /// graph returned can safely be used to inspect the structure or add vertices
-            /// and edges.  Removal of vertices and edges should use the
-            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure
-            /// proper memory clean-up.
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object
+            /// returned can be used safely for all read-only purposes in Boost.  Adding or
+            /// removing vertices and edges should be performed by using the respective method
+            /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
+            /// will result in undefined behavior with this class.
             Graph& toBoostGraph (void);
             /// \brief Extract a Boost.Graph object from this PlannerData.
-            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The
-            /// graph returned can safely be used to inspect the structure or add vertices
-            /// and edges.  Removal of vertices and edges should use the
-            /// PlannerData::removeVertex and PlannerData::removeEdge methods to ensure
-            /// proper memory clean-up.
+            /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object
+            /// returned can be used safely for all read-only purposes in Boost.  Adding or
+            /// removing vertices and edges should be performed by using the respective method
+            /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
+            /// will result in undefined behavior with this class.
             const Graph& toBoostGraph (void) const;
 
             /// \}
+
+            /// \brief Return the instance of SpaceInformation used in this PlannerData
+            const SpaceInformationPtr& getSpaceInformation(void) const;
+
+            virtual bool hasControls(void) const;
 
             /// \brief Any extra properties (key-value pairs) the planner can set.
             std::map<std::string, std::string>   properties;
@@ -360,6 +387,8 @@ namespace ompl
             std::set<State*>                     decoupledStates_;
 
         private:
+            void freeMemory(void);
+
             // Abstract pointer that points to the Boost.Graph structure.
             // Obscured to prevent unnecessary inclusion of BGL throughout the
             // rest of the code.

@@ -34,15 +34,16 @@
 
 /* Author: Ryan Luna */
 
-#define BOOST_TEST_MODULE "PlannerData"
+#define BOOST_TEST_MODULE "PlannerDataControl"
 #include <boost/test/unit_test.hpp>
 #include <boost/serialization/export.hpp>
 #include <iostream>
 #include <vector>
 
-#include "ompl/base/PlannerData.h"
-#include "ompl/base/PlannerDataStorage.h"
+#include "ompl/control/PlannerData.h"
+#include "ompl/control/PlannerDataStorage.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
@@ -50,27 +51,127 @@ using namespace ompl;
 // define a convenience macro
 #define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
 
+// Define the state and control spaces used throughout the testing
+#define SETUP_STATE_CONTROL_SPACES \
+base::StateSpacePtr space(new base::RealVectorStateSpace(1)); \
+control::ControlSpacePtr cspace (new control::RealVectorControlSpace(space, 2)); \
+base::RealVectorBounds spacebounds(1); \
+spacebounds.setLow(-10); \
+spacebounds.setHigh(10); \
+base::RealVectorBounds ctrlbounds(2); \
+ctrlbounds.setLow(-1); \
+ctrlbounds.setHigh(1); \
+space->as<base::RealVectorStateSpace>()->setBounds(spacebounds); \
+cspace->as<control::RealVectorControlSpace>()->setBounds(ctrlbounds); \
+control::SpaceInformationPtr si(new control::SpaceInformation(space, cspace)); \
+si->setStateValidityChecker(isValid); \
+si->setStatePropagator(propagate); \
+si->setMinMaxControlDuration(1, 10); \
+si->setPropagationStepSize(1); \
+si->setup();
+
+
+class PlannerDataTestVertex : public ompl::base::PlannerDataVertex
+{
+public:
+    PlannerDataTestVertex (base::State* st, int tag = 0, int tag2 = 0) : ompl::base::PlannerDataVertex(st, tag), tag2_(tag2) {}
+    PlannerDataTestVertex (const PlannerDataTestVertex &rhs) : ompl::base::PlannerDataVertex(rhs.state_, rhs.tag_), tag2_(rhs.tag2_) {}
+
+    virtual ompl::base::PlannerDataVertex* clone (void) const
+    {
+        return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
+    }
+
+    int tag2_;
+
+protected:
+    PlannerDataTestVertex(void) {}
+
+    friend class boost::serialization::access;
+    template <class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & boost::serialization::base_object<ompl::base::PlannerDataVertex>(*this);
+        ar & tag2_;
+    }
+};
+
+class PlannerDataTestEdge : public ompl::control::PlannerDataEdgeControl
+{
+public:
+    PlannerDataTestEdge(const control::Control *c, double duration, int id) : PlannerDataEdgeControl(c, duration), id_(id) {}
+
+    PlannerDataTestEdge (const PlannerDataTestEdge &rhs) : PlannerDataEdgeControl(rhs.c_, rhs.duration_), id_(rhs.id_)  {}
+
+    virtual ~PlannerDataTestEdge (void) {}
+
+    virtual ompl::base::PlannerDataEdge* clone () const
+    {
+        return static_cast<base::PlannerDataEdge*>(new PlannerDataTestEdge(*this));
+    }
+
+    virtual bool operator == (const ompl::base::PlannerDataEdge &rhs) const
+    {
+        const PlannerDataTestEdge *rhst = static_cast<const PlannerDataTestEdge*> (&rhs);
+        if (rhst)
+        {
+            if (id_ == rhst->id_)
+                return static_cast<const ompl::control::PlannerDataEdgeControl>(*this) == rhs;
+        }
+
+        return false;
+    }
+
+    int id_;
+
+protected:
+    PlannerDataTestEdge() : PlannerDataEdgeControl() {};
+    friend class boost::serialization::access;
+
+    template <class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & boost::serialization::base_object<ompl::control::PlannerDataEdgeControl>(*this);
+        ar & id_;
+    }
+};
+
+// This allows us to serialize the derived vertex and edge classes
+BOOST_CLASS_EXPORT(PlannerDataTestVertex);
+BOOST_CLASS_EXPORT(PlannerDataTestEdge);
+
+void propagate(const base::State *, const control::Control *, const double, base::State *){}
+bool isValid (const base::State*){ return true; }
+
 BOOST_AUTO_TEST_CASE(SimpleConstruction)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
-    base::PlannerData data(si);
-    std::vector<base::State*> states;
+    SETUP_STATE_CONTROL_SPACES
 
-    // Creating 1000 states
+    control::PlannerData data(si);
+    std::vector<base::State*> states;
+    std::vector<control::Control*> controls;
+    base::StateSamplerPtr stsamp = space->allocDefaultStateSampler();
+    control::ControlSamplerPtr csamp = cspace->allocDefaultControlSampler();
+
+    // Creating 1000 states and controls
     for (unsigned int i = 0; i < 1000; ++i)
+    {
         states.push_back(space->allocState());
+        stsamp->sampleUniform(states[i]);
+        controls.push_back(cspace->allocControl());
+        csamp->sample(controls[i]);
+    }
 
     // Adding vertices
     for (unsigned int i = 0; i < states.size(); ++i)
     {
-        unsigned int vtx = data.addVertex(base::PlannerDataVertex(states[i], (signed)i));
+        unsigned int vtx = data.addVertex(PlannerDataTestVertex(states[i], (signed)i, (signed)i+1));
 
         BOOST_CHECK_NE( vtx, base::PlannerData::INVALID_INDEX );
-        BOOST_CHECK_EQUAL( data.addVertex(base::PlannerDataVertex(states[i])), vtx );
+        BOOST_CHECK_EQUAL( data.addVertex(PlannerDataTestVertex(states[i])), vtx );
 
-        BOOST_CHECK_EQUAL( data.vertexIndex(base::PlannerDataVertex(states[i])), i );
-        BOOST_CHECK( data.vertexExists(base::PlannerDataVertex(states[i])) );
+        BOOST_CHECK_EQUAL( data.vertexIndex(PlannerDataTestVertex(states[i])), i );
+        BOOST_CHECK( data.vertexExists(PlannerDataTestVertex(states[i])) );
     }
 
     // We should have #states vertices and 0 edges
@@ -80,7 +181,7 @@ BOOST_AUTO_TEST_CASE(SimpleConstruction)
     // Adding edges
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        BOOST_CHECK( data.addEdge(i, i+1) );
+        BOOST_CHECK( data.addEdge(i, i+1, PlannerDataTestEdge(controls[i], (double)i, (double)i)) );
         BOOST_CHECK_EQUAL( data.addEdge(i, states.size()), false ); // vertex #states.size() does not exist
 
         BOOST_CHECK( data.edgeExists(i, i+1) );
@@ -116,40 +217,54 @@ BOOST_AUTO_TEST_CASE(SimpleConstruction)
     }
 
     for (size_t i = 0; i < states.size(); ++i)
+    {
         space->freeState(states[i]);
+        cspace->freeControl(controls[i]);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(AdvancedConstruction)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
-    base::PlannerData data(si);
+    SETUP_STATE_CONTROL_SPACES
+
+    control::PlannerData data(si);
     std::vector<base::State*> states;
+    std::vector<control::Control*> controls;
+    base::StateSamplerPtr stsamp = space->allocDefaultStateSampler();
+    control::ControlSamplerPtr csamp = cspace->allocDefaultControlSampler();
 
     // Creating 1000 states
     for (unsigned int i = 0; i < 1000; ++i)
+    {
         states.push_back(space->allocState());
+        stsamp->sampleUniform(states[i]);
+        controls.push_back(cspace->allocControl());
+        csamp->sample(controls[i]);
+    }
 
     // Adding vertices and edges simultaneously
     for (unsigned int i = 0; i < states.size()-1; ++i)
     {
-        BOOST_CHECK( data.addEdge (base::PlannerDataVertex(states[i], (signed)i),
-                                   base::PlannerDataVertex(states[i+1], (signed)i+1)) );
+        BOOST_CHECK( data.addEdge (PlannerDataTestVertex(states[i], (signed)i),
+                                   PlannerDataTestVertex(states[i+1], (signed)i+1),
+                                   PlannerDataTestEdge(controls[i], (double)i, (double)i)) );
 
         // Duplicates are not allowed
-        BOOST_CHECK_EQUAL( data.addEdge (base::PlannerDataVertex(states[i], (signed)i), base::PlannerDataVertex(states[i+1], (signed)i+1)), false );
+        BOOST_CHECK_EQUAL( data.addEdge (PlannerDataTestVertex(states[i], (signed)i),
+                                         PlannerDataTestVertex(states[i+1], (signed)i+1),
+                                         PlannerDataTestEdge(controls[i], (double)i, (double)i)), false );
 
         BOOST_CHECK( data.edgeExists (i, i+1) );
 
-        BOOST_CHECK_EQUAL( data.vertexIndex(base::PlannerDataVertex(states[i], (signed)i)), i );
-        BOOST_CHECK( data.vertexExists(base::PlannerDataVertex(states[i], i)) );
+        BOOST_CHECK_EQUAL( data.vertexIndex(PlannerDataTestVertex(states[i])), i );
+        BOOST_CHECK( data.vertexExists(PlannerDataTestVertex(states[i])) );
     }
 
     // Adding two start states and two goal states
-    BOOST_CHECK_EQUAL( data.addStartVertex (base::PlannerDataVertex(states[states.size()-4], states.size()-4)), states.size()-4 );
-    BOOST_CHECK_EQUAL( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-3], states.size()-3)),  states.size()-3 );
-    BOOST_CHECK_EQUAL( data.addStartVertex (base::PlannerDataVertex(states[states.size()-2], states.size()-2)), states.size()-2 );
-    BOOST_CHECK_EQUAL( data.addGoalVertex (base::PlannerDataVertex(states[states.size()-1], states.size()-1)),  states.size()-1 );
+    BOOST_CHECK_EQUAL( data.addStartVertex (PlannerDataTestVertex(states[states.size()-4])), states.size()-4 );
+    BOOST_CHECK_EQUAL( data.addGoalVertex (PlannerDataTestVertex(states[states.size()-3])),  states.size()-3 );
+    BOOST_CHECK_EQUAL( data.addStartVertex (PlannerDataTestVertex(states[states.size()-2])), states.size()-2 );
+    BOOST_CHECK_EQUAL( data.addGoalVertex (PlannerDataTestVertex(states[states.size()-1])),  states.size()-1 );
 
     BOOST_CHECK_EQUAL( data.numStartVertices(), 2u );
     BOOST_CHECK_EQUAL( data.numGoalVertices (), 2u );
@@ -210,46 +325,37 @@ BOOST_AUTO_TEST_CASE(AdvancedConstruction)
     }
 
     for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
-}
-
-class TestEdge : public base::PlannerDataEdge
-{
-public:
-    TestEdge (unsigned int _a, unsigned int _b) : base::PlannerDataEdge(), a(_a), b(_b) {}
-    TestEdge (const TestEdge &rhs) : base::PlannerDataEdge(), a(rhs.a), b(rhs.b) {}
-    virtual ~TestEdge (void) {}
-
-    /// \brief Return a clone of this object, allocated from the heap.
-    virtual PlannerDataEdge* clone () const
     {
-        return static_cast<PlannerDataEdge*>(new TestEdge(*this));
+        space->freeState(states[i]);
+        cspace->freeControl(controls[i]);
     }
-
-    unsigned int a, b;
-};
+}
 
 BOOST_AUTO_TEST_CASE(DataIntegrity)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
-    base::PlannerData data(si);
+    SETUP_STATE_CONTROL_SPACES
+
+    control::PlannerData data(si);
     std::vector<base::State*> states;
+    std::vector<control::Control*> controls;
+    base::StateSamplerPtr stsamp = space->allocDefaultStateSampler();
+    control::ControlSamplerPtr csamp = cspace->allocDefaultControlSampler();
 
     // Creating 1000 states
     for (unsigned int i = 0; i < 1000; ++i)
     {
-        base::State* st = space->allocState();
-        st->as<base::RealVectorStateSpace::StateType>()->values[0] = i;
-        states.push_back(st);
+        states.push_back(space->allocState());
+        stsamp->sampleUniform(states[i]);
+        controls.push_back(cspace->allocControl());
+        csamp->sample(controls[i]);
     }
 
     // Adding vertices and edges simultaneously
     for (unsigned int i = 1; i < states.size(); ++i)
     {
-        BOOST_CHECK( data.addEdge (base::PlannerDataVertex(states[i-1], i),
-                                   base::PlannerDataVertex(states[i], i+1),
-                                   TestEdge(i-1, i)) );
+        BOOST_CHECK( data.addEdge (PlannerDataTestVertex(states[i-1], i, i+1),
+                                   PlannerDataTestVertex(states[i], i+1, i+2),
+                                   PlannerDataTestEdge(controls[i], i, i+1)) );
     }
 
     // We should have #states vertices and #states-1 edges
@@ -268,15 +374,17 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
 
     // Ensure vertex data integrity
     for (unsigned int i = 0; i < states.size(); ++i)
-        BOOST_CHECK_EQUAL( data.getVertex(i).getState()->as<base::RealVectorStateSpace::StateType>()->values[0], i );
+        BOOST_CHECK_EQUAL( data.getVertex(i).getState()->as<base::RealVectorStateSpace::StateType>()->values[0], states[i]->as<base::RealVectorStateSpace::StateType>()->values[0] );
 
     // Ensure edge data integrity
     for (unsigned int i = 1; i < states.size(); ++i)
     {
-        TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
+        //TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
+        PlannerDataTestEdge &edge = static_cast<PlannerDataTestEdge&>(data.getEdge(i-1, i));
         BOOST_REQUIRE_NE ( &edge, &base::PlannerData::NO_EDGE );
-        BOOST_CHECK_EQUAL( edge.a, i-1 );
-        BOOST_CHECK_EQUAL( edge.b, i );
+        BOOST_CHECK_EQUAL( edge.getControl(), controls[i] );
+        BOOST_OMPL_EXPECT_NEAR ( edge.getDuration(), i, 1e-9 );
+        BOOST_CHECK_EQUAL ( edge.id_, i+1 );
     }
 
     // Reset the tag for state #0
@@ -293,36 +401,49 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
 
     // Try to tag an invalid state
     BOOST_CHECK_EQUAL( data.tagState(0, 100), false );
+
     for (size_t i = 0; i < states.size(); ++i)
+    {
         space->freeState(states[i]);
+        cspace->freeControl(controls[i]);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
-    base::PlannerData data(si);
+    SETUP_STATE_CONTROL_SPACES
+
+    control::PlannerData data(si);
     std::vector<base::State*> states;
+    std::vector<control::Control*> controls;
+    base::StateSamplerPtr stsamp = space->allocDefaultStateSampler();
+    control::ControlSamplerPtr csamp = cspace->allocDefaultControlSampler();
 
     // Creating 1000 states
     for (unsigned int i = 0; i < 1000; ++i)
+    {
         states.push_back(space->allocState());
+        stsamp->sampleUniform(states[i]);
+        controls.push_back(cspace->allocControl());
+        csamp->sample(controls[i]);
+    }
 
     // Adding vertices and edges
-    for (unsigned int i = 0; i < states.size()-1; ++i)
+    for (unsigned int i = 1; i < states.size(); ++i)
     {
-        BOOST_CHECK_EQUAL( data.addEdge (base::PlannerDataVertex(states[i], i), base::PlannerDataVertex(states[i+1], i+1)),
-                           true );
+        BOOST_CHECK( data.addEdge (PlannerDataTestVertex(states[i-1], i, i+1),
+                                   PlannerDataTestVertex(states[i], i+1, i+2),
+                                   PlannerDataTestEdge(controls[i], i, i+1)) );
     }
 
     BOOST_CHECK_EQUAL( data.numVertices(), states.size() );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-1 );
 
-    BOOST_CHECK( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])) );
+    BOOST_CHECK( data.removeVertex(PlannerDataTestVertex(states[states.size()-1], states.size()-1, states.size())) );
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-1 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-2 );
 
-    BOOST_CHECK_EQUAL( data.removeVertex(base::PlannerDataVertex(states[states.size()-1])), false ); // we already removed this vertex
+    BOOST_CHECK_EQUAL( data.removeVertex(PlannerDataTestVertex(states[states.size()-1], states.size()-1, states.size())), false ); // we already removed this vertex
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-1 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-2 );
 
@@ -334,11 +455,11 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-4 );  // incoming edge and outgoing edge should be removed
 
-    BOOST_CHECK( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])) );
+    BOOST_CHECK( data.removeEdge(PlannerDataTestVertex(states[1], 1, 2), PlannerDataTestVertex(states[2], 2, 3)) );
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2 );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-5 );
 
-    BOOST_CHECK_EQUAL( data.removeEdge(base::PlannerDataVertex(states[1]), base::PlannerDataVertex(states[2])), false ); // we just removed this edge
+    BOOST_CHECK_EQUAL( data.removeEdge(PlannerDataTestVertex(states[1], 1, 2), PlannerDataTestVertex(states[2], 2, 3)), false ); // we just removed this edge
     BOOST_CHECK_EQUAL( data.numVertices(), states.size()-2  );
     BOOST_CHECK_EQUAL( data.numEdges(), states.size()-5 );
 
@@ -354,9 +475,9 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
     for (size_t i = 0; i < states.size(); ++i)
     {
         if (i == 6 || i == states.size()-1)
-            BOOST_CHECK_EQUAL( data.vertexExists(base::PlannerDataVertex(states[i])), false );
+            BOOST_CHECK_EQUAL( data.vertexExists(PlannerDataTestVertex(states[i], i, i+1)), false );
         else
-            BOOST_CHECK( data.vertexExists(base::PlannerDataVertex(states[i])) );
+            BOOST_CHECK( data.vertexExists(PlannerDataTestVertex(states[i], i, i+1)) );
     }
 
     for (size_t i = 0; i < states.size()-2; ++i) // we removed two vertices
@@ -373,135 +494,30 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
     }
 
     for (size_t i = 0; i < states.size(); ++i)
+    {
         space->freeState(states[i]);
+        cspace->freeControl(controls[i]);
+    }
 }
-
-BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
-{
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
-    base::PlannerData data(si);
-    std::vector<base::State*> states;
-
-    // Creating 1000 states
-    for (unsigned int i = 0; i < 1000; ++i)
-        states.push_back(space->allocState());
-
-    // Adding vertices and edges
-    for (unsigned int i = 0; i < states.size()-1; ++i)
-    {
-        // Mark states at the 50s as start states
-        if (i % 50 == 0 && i % 100 != 0 && i != 0)
-            data.addStartVertex(base::PlannerDataVertex(states[i], i));
-
-        // Mark states at the 100s as goal states
-        if (i % 100 == 0)
-            data.addGoalVertex(base::PlannerDataVertex(states[i], i));
-
-        BOOST_CHECK( data.addEdge (base::PlannerDataVertex(states[i], i),
-                                   base::PlannerDataVertex(states[i+1], i+1)) );
-    }
-
-    BOOST_CHECK_EQUAL( data.numStartVertices(), 10u );
-    BOOST_CHECK_EQUAL( data.numGoalVertices (), 10u );
-
-    for (unsigned int i = 50; i < states.size()-1; i+=100)
-        BOOST_CHECK( data.isStartVertex(i) );
-
-    for (unsigned int i = 0; i < states.size()-1; i+=100)
-        BOOST_CHECK( data.isGoalVertex(i) );
-
-    // Removing a start state
-    BOOST_CHECK( data.removeVertex(50) );
-
-    BOOST_CHECK_EQUAL( data.numStartVertices(), 9u );
-    BOOST_CHECK_EQUAL( data.numGoalVertices (), 10u );
-
-    for (unsigned int i = 149; i < states.size()-1; i+=100)
-        BOOST_CHECK( data.isStartVertex(i) );
-
-    // Removing a goal state
-    BOOST_CHECK( data.removeVertex(0) );
-
-    for (unsigned int i = 98; i < states.size()-2; i+=100)
-        BOOST_CHECK( data.isGoalVertex(i) );
-
-    for (unsigned int i = 0; i < states.size() - 2; i++)
-    {
-        if ((i+2) % 100 == 0)
-        {
-            BOOST_CHECK_EQUAL( data.isStartVertex(i), false );
-            BOOST_CHECK_EQUAL( data.isGoalVertex(i), true );
-        }
-        else if ((i+2) % 50 == 0 && i != 48)
-        {
-            BOOST_CHECK_EQUAL( data.isStartVertex(i), true );
-            BOOST_CHECK_EQUAL( data.isGoalVertex(i), false );
-        }
-        else
-        {
-            BOOST_CHECK_EQUAL( data.isStartVertex(i), false );
-            BOOST_CHECK_EQUAL( data.isGoalVertex(i), false );
-        }
-    }
-
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
-}
-
-class PlannerDataTestVertex : public ompl::base::PlannerDataVertex
-{
-public:
-    PlannerDataTestVertex (base::State* st, int tag = 0, int tag2 = 0) : ompl::base::PlannerDataVertex(st, tag), tag2_(tag2) {}
-    PlannerDataTestVertex (const PlannerDataTestVertex &rhs) : ompl::base::PlannerDataVertex(rhs.state_, rhs.tag_), tag2_(rhs.tag2_) {}
-
-    virtual ompl::base::PlannerDataVertex* clone (void) const
-    {
-        return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
-    }
-
-    int tag2_;
-
-protected:
-    PlannerDataTestVertex(void) {}
-
-    friend class boost::serialization::access;
-    template <class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & boost::serialization::base_object<ompl::base::PlannerDataVertex>(*this);
-        ar & tag2_;
-    }
-};
-
-// This allows us to serialize the derived class PlannerDataTestVertex
-BOOST_CLASS_EXPORT(PlannerDataTestVertex);
 
 BOOST_AUTO_TEST_CASE(Serialization)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
-    base::PlannerData data(si);
-    std::vector<base::State*> states;
+    SETUP_STATE_CONTROL_SPACES
 
-    // Creating 1000 states
+    control::PlannerData data(si);
+    std::vector<base::State*> states;
+    std::vector<control::Control*> controls;
+    base::StateSamplerPtr stsamp = space->allocDefaultStateSampler();
+    control::ControlSamplerPtr csamp = cspace->allocDefaultControlSampler();
+
+    // Creating 1000 states, and adding them to PlannerData
     for (unsigned int i = 0; i < 1000; ++i)
     {
         states.push_back(space->allocState());
-        states[i]->as<base::RealVectorStateSpace::StateType>()->values[0] = (double)i;
+        stsamp->sampleUniform(states[i]);
 
-        PlannerDataTestVertex vtx(states[i], i, i+1);
-        BOOST_CHECK (data.addVertex(vtx) == i );
-        BOOST_CHECK (data.getVertex(i).getTag() == (signed)i);
-        BOOST_CHECK (static_cast<PlannerDataTestVertex&>(data.getVertex(i)).tag2_ == (signed)i+1);
+        data.addVertex(PlannerDataTestVertex(states[i], i, i+1));
     }
-
-    // Mark some start and goal states
-    data.markStartState(states[0]);
-    data.markStartState(states[states.size()/2]);
-    data.markStartState(states[states.size()-1]);
-    data.markGoalState(states[1]);
-    data.markGoalState(states[states.size()-2]);
 
     // Add a whole bunch of random edges
     unsigned int num_edges_to_add = 10000;
@@ -512,14 +528,18 @@ BOOST_AUTO_TEST_CASE(Serialization)
         unsigned int v2, v1 = rng.uniformInt(0, states.size()-1);
         do v2 = rng.uniformInt(0, states.size()-1); while (v2 == v1 || data.edgeExists(v1, v2));
 
-        BOOST_CHECK( data.addEdge(v1, v2) );
+        // allocate a random control
+        controls.push_back(cspace->allocControl());
+        csamp->sample(controls[i]);
+
+        BOOST_CHECK( data.addEdge(v1, v2, PlannerDataTestEdge(controls[i], (double)i, i)) );
     }
 
     BOOST_CHECK_EQUAL ( data.numVertices(), states.size() );
     BOOST_CHECK_EQUAL ( data.numEdges(), num_edges_to_add );
 
-    base::PlannerData data2(si);
-    base::PlannerDataStorage storage;
+    control::PlannerData data2(si);
+    control::PlannerDataStorage storage;
     storage.store(data, "testdata");
     storage.load("testdata", data2);
 
@@ -527,22 +547,15 @@ BOOST_AUTO_TEST_CASE(Serialization)
     BOOST_CHECK_EQUAL ( data2.numVertices(), states.size() );
     BOOST_CHECK_EQUAL ( data2.numEdges(), num_edges_to_add );
 
-    // Check our start/goal states
-    BOOST_CHECK ( data2.numStartVertices() == 3 );
-    BOOST_CHECK ( data2.numGoalVertices() == 2 );
-    BOOST_CHECK ( data2.isStartVertex(0) );
-    BOOST_CHECK ( data2.isStartVertex(states.size()/2) );
-    BOOST_CHECK ( data2.isStartVertex(states.size()-1) );
-    BOOST_CHECK ( data2.isGoalVertex(1) );
-    BOOST_CHECK ( data2.isGoalVertex(states.size()-2) );
-
+    // Checking vertices
     for (size_t i = 0; i < states.size(); ++i)
     {
-        BOOST_CHECK (space->equalStates(data2.getVertex(i).getState(), states[i]) );
-        BOOST_CHECK (data.getVertex(i).getTag() == data2.getVertex(i).getTag() );
-        BOOST_CHECK (static_cast<PlannerDataTestVertex&>(data2.getVertex(i)).tag2_ == (signed)i+1);
+        BOOST_CHECK ( space->equalStates(data2.getVertex(i).getState(), data.getVertex(i).getState()) );
+        BOOST_CHECK ( data2.getVertex(i).getTag() == data.getVertex(i).getTag() );
+        BOOST_CHECK ( static_cast<PlannerDataTestVertex&>(data2.getVertex(i)).tag2_ == static_cast<PlannerDataTestVertex&>(data.getVertex(i)).tag2_ );
     }
 
+    // Checking edges
     for (size_t i = 0; i < states.size(); ++i)
     {
         std::vector<unsigned int> neighbors, neighbors2;
@@ -554,9 +567,20 @@ BOOST_AUTO_TEST_CASE(Serialization)
         BOOST_REQUIRE_EQUAL( neighbors.size(), neighbors2.size() );
 
         for (size_t j = 0; j < neighbors.size(); ++j)
+        {
             BOOST_CHECK_EQUAL( neighbors[j], neighbors2[j] );
+
+            PlannerDataTestEdge &edge  = static_cast<PlannerDataTestEdge&>(data.getEdge(i, neighbors[j]));
+            PlannerDataTestEdge &edge2 = static_cast<PlannerDataTestEdge&>(data2.getEdge(i, neighbors[j]));
+            BOOST_CHECK ( cspace->equalControls (edge.getControl(), edge2.getControl()) );
+            BOOST_CHECK ( edge.getDuration() == edge2.getDuration() );
+            BOOST_CHECK ( edge.id_ == edge2.id_ );
+        }
     }
 
     for (size_t i = 0; i < states.size(); ++i)
         space->freeState(states[i]);
+
+    for (size_t i = 0; i < controls.size(); ++i)
+        cspace->freeControl(controls[i]);
 }

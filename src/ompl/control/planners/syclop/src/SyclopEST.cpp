@@ -65,9 +65,15 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData& data) const
     for (size_t i = 0; i < motions_.size(); ++i)
     {
         if (motions_[i]->parent)
-            data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
-                          base::PlannerDataVertex(motions_[i]->state),
-                          control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
+        {
+            if (data.hasControls())
+                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
+                              base::PlannerDataVertex(motions_[i]->state),
+                              control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
+            else
+                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
+                              base::PlannerDataVertex(motions_[i]->state));
+        }
         else
             data.addStartVertex (base::PlannerDataVertex(motions_[i]->state));
     }

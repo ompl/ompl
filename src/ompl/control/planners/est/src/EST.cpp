@@ -256,9 +256,15 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
         {
             if (motions[i][j]->parent)
-                data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
-                              base::PlannerDataVertex (motions[i][j]->state),
-                              PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+            {
+                if (data.hasControls())
+                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                                  base::PlannerDataVertex (motions[i][j]->state),
+                                  PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+                else
+                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                                  base::PlannerDataVertex (motions[i][j]->state));
+            }
             else
                 data.addStartVertex (base::PlannerDataVertex (motions[i][j]->state));
         }

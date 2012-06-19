@@ -282,9 +282,15 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     {
         const Motion* m = motions[i];
         if (m->parent)
-            data.addEdge(base::PlannerDataVertex(m->parent->state),
-                         base::PlannerDataVertex(m->state),
-                         control::PlannerDataEdgeControl(m->control, m->steps * delta));
+        {
+            if (data.hasControls())
+                data.addEdge(base::PlannerDataVertex(m->parent->state),
+                             base::PlannerDataVertex(m->state),
+                             control::PlannerDataEdgeControl(m->control, m->steps * delta));
+            else
+                data.addEdge(base::PlannerDataVertex(m->parent->state),
+                             base::PlannerDataVertex(m->state));
+        }
         else
             data.addStartVertex(base::PlannerDataVertex(m->state));
     }
