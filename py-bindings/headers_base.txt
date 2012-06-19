@@ -23,6 +23,7 @@
 ../src/ompl/base/goals/GoalLazySamples.h
 ../src/ompl/base/DiscreteMotionValidator.h
 ../src/ompl/base/PlannerData.h
+../src/ompl/base/PlannerDataStorage.h
 ../src/ompl/base/PlannerStatus.h
 ../src/ompl/base/Planner.h
 ../src/ompl/base/ProblemDefinition.h
