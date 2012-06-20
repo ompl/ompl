@@ -47,8 +47,7 @@ href="https://bitbucket.org/ompl/ompl">Bitbucket</a>).
       <img src="../images/mp.jpg" class="hidden" style="margin-top: 1px">
         <div class="carousel-caption carousel-caption-inset"><h4>New in 0.11!</h4>
         <ul>
-           <li>PlannerData now uses the Boost Graph Library; each planner can store arbitrary metadata in a graph.
-           <li><a href="http://teamcity.kavrakilab.org/">TeamCity Continuous Integration.</a> You can download up-to-date binary builds of OMPL for a variety of platforms.
+           <li>PlannerData now uses the Boost Graph Library; each planner can store arbitrary metadata in a graph. All this PlannerData can easily be (de)serialized for messaging or storing/loading of planner data.
            <li>Implementation of PRM is now threaded (one thread for growing the roadmap, one thread for monitoring whether the problem is solved).
         </ul>
         <p>See <a href="releaseNotes.html">release notes</a> for details</p>

@@ -102,7 +102,6 @@ namespace ompl
             virtual void load(std::istream &in, PlannerData& pd);
 
         protected:
-            /// @cond IGNORE
             /// \brief Information stored at the beginning of the PlannerData archive
             struct Header
             {
@@ -167,7 +166,6 @@ namespace ompl
                 std::pair<unsigned int, unsigned int> endpoints_;
                 double weight_;
             };
-            /// \endcond
 
             /// \brief Read \e numVertices from the binary input \e ia and store them as PlannerData.
             virtual void loadVertices(PlannerData &pd, unsigned int numVertices, boost::archive::binary_iarchive &ia)
