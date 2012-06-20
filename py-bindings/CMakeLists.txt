@@ -8,8 +8,8 @@ if (OMPL_BUILD_PYBINDINGS)
     if(WIN32)
         # omit StateStorage class bindings on Windows;
         # Boost.Serialization does nasty things that break the bindings.
-        set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DOMPL_BASE_STATE_STORAGE_")
-        add_definitions(-DOMPL_BASE_STATE_STORAGE_)
+        set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DOMPL_BASE_STATE_STORAGE_ -DOMPL_BASE_PLANNER_DATA_STORAGE_ -DOMPL_CONTROL_PLANNER_DATA_STORAGE_")
+        add_definitions(-DOMPL_BASE_STATE_STORAGE_ -DOMPL_BASE_PLANNER_DATA_STORAGE_ -DOMPL_CONTROL_PLANNER_DATA_STORAGE_)
     endif(WIN32)
 
     set(OMPL_MODULES base control geometric tools util)
