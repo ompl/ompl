@@ -48,6 +48,15 @@ namespace ompl
     {
         /// \brief Representation of an edge in PlannerData for planning with controls.
         /// This structure encodes a specific control and a duration to apply the control.
+        /// \remarks If using PlannerDataEdgeControl in conjunction with PlannerDataStorage,
+        /// (i.e., storing the PlannerData from a controls planner) you must export a GUID
+        /// for PlannerDataEdgeControl so that the serializer can identify the derived
+        /// edge class:
+        /// \code
+        /// #include <boost/serialization/export.hpp>
+        /// ...
+        /// BOOST_CLASS_EXPORT(ompl::control::PlannerDataEdgeControl);
+        /// \endcode
         class PlannerDataEdgeControl : public base::PlannerDataEdge
         {
         public:
@@ -71,13 +80,10 @@ namespace ompl
             virtual bool operator == (const PlannerDataEdge &rhs) const
             {
                 const PlannerDataEdgeControl *rhsc = static_cast<const PlannerDataEdgeControl*> (&rhs);
-                if (rhsc)
-                {
-                    if (c_ == rhsc->c_)
-                        return static_cast<const PlannerDataEdge>(*this) == rhs;
-                }
-
-                return false;
+                if (c_ == rhsc->c_)
+                    return static_cast<const PlannerDataEdge>(*this) == rhs;
+                else
+                    return false;
             }
 
         protected:

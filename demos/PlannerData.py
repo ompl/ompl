@@ -38,6 +38,18 @@
 
 from math import sqrt
 from functools import partial
+
+try:
+    # graph-tool and py-OMPL have some minor issues coexisting with each other.  Both modules
+    # define conversions to C++ STL containers (i.e. std::vector), and the module that is imported
+    # first will have its conversions used.  Order doesn't seem to matter on Linux,
+    # but on Apple, graph_tool will not be imported properly if OMPL comes first.
+    import graph_tool.all as gt
+    graphtool = True
+except:
+    print 'Failed to import graph-tool.  PlannerData will not be analyzed or plotted'
+    graphtool = False
+
 try:
     from ompl import util as ou
     from ompl import base as ob
@@ -52,44 +64,22 @@ except:
     from ompl import base as ob
     from ompl import geometric as og
 
-try:
-    # graph-tool and py-OMPL have some minor issues coexisting with each other.  Both modules
-    # define conversions to C++ STL containers (i.e. std::vector), and the module that is imported
-    # first will have its conversions used.  If graph_tool is imported first, OMPL will segfault
-    # inside of the solve call.  Importing graph_tool second will cause any STL containers to use
-    # OMPL's conversion, and any containers created in python are bound by OMPL's API.  This seems
-    # to not inhibit graph_tool, but invalidates a small part of their documentation when dealing
-    # with property maps of type vector<FOO>.
-    import graph_tool.all as gt
-    graphtool = True
-except:
-    print 'Failed to import graph-tool.  PlannerData will not be analyzed or plotted'
-    graphtool = False
 
-
-# There is an invalid 3x3 rectangle in the environment, centered at the origin
+# Create a narrow passage between y=[-3,3].  Only a 6x6x6 cube will be valid, centered at origin
 def isStateValid(state):
-    if state.getX() >= -3 and state.getX() <= 3 and state.getY() >= -3 and state.getY() <= 3:
-        return False
-    return True
+    if (state.getY() >= -3 and state.getY() <= 3):
+        if (state.getX() >= -3 and state.getX() <= 3 and state.getZ() >= -3 and state.getZ() <= 3):
+            return True
+        else:
+            return False
+    else:
+        return True
 
 # Returns the distance between the states contained in v1 and v2.
 def edgeWeight(space, v1, v2, edge):
     return space.distance(v1.getState(), v2.getState())
 
-# Returns an admissible estimate of the cost from the vertex to the goal
-def heuristic(vertex, goal, positions):
-    dist = 0
-    for i in range(len(positions[vertex])):
-        di = positions[vertex][i] - positions[goal][i]
-        dist += (di**2)
-
-    return sqrt(dist)
-
 def useGraphTool(pd, space):
-    # Computing weights of all edges based on distance
-    pd.computeEdgeWeights(ob.EdgeWeightFn(partial(edgeWeight, space)))
-
     # Extract the graphml representation of the planner data
     graphml = pd.printGraphML()
     f = open("graph.xml", 'w')
@@ -118,34 +108,28 @@ def useGraphTool(pd, space):
 
     # Plotting the graph
     gt.remove_parallel_edges(graph) # Removing any superfluous edges
-    plotPlannerData(pd, graph, space)
 
-def plotPlannerData(pd, graph, space):
     edgeweights = graph.edge_properties["weight"]
     colorprops = graph.new_vertex_property("string")
-    vertexpos = graph.new_vertex_property("vector<double>")
     vertexsize = graph.new_vertex_property("double")
 
     start = -1
     goal = -1
 
-    # Mapping the vertices to their logical x,y positions
     for v in range(graph.num_vertices()):
-        vertexpos[graph.vertex(v)].append(pd.getVertex(v).getState().getX())
-        vertexpos[graph.vertex(v)].append(pd.getVertex(v).getState().getY())
 
         # Color and size vertices by type: start, goal, other
         if (pd.isStartVertex(v)):
             start = v
             colorprops[graph.vertex(v)] = "cyan"
-            vertexsize[graph.vertex(v)] = 0.40
+            vertexsize[graph.vertex(v)] = 10
         elif (pd.isGoalVertex(v)):
             goal = v
             colorprops[graph.vertex(v)] = "green"
-            vertexsize[graph.vertex(v)] = 0.40
+            vertexsize[graph.vertex(v)] = 10
         else:
             colorprops[graph.vertex(v)] = "yellow"
-            vertexsize[graph.vertex(v)] = 0.15
+            vertexsize[graph.vertex(v)] = 5
 
     # default edge color is black with size 0.5:
     edgecolor = graph.new_edge_property("string")
@@ -156,8 +140,7 @@ def plotPlannerData(pd, graph, space):
 
     # using A* to find shortest path in planner data
     if start != -1 and goal != -1:
-        dist, pred = gt.astar_search(graph, graph.vertex(start), edgeweights,
-                                     heuristic = lambda v: heuristic(v, graph.vertex(goal), vertexpos))
+        dist, pred = gt.astar_search(graph, graph.vertex(start), edgeweights)
 
         # Color edges along shortest path red with size 3.0
         v = graph.vertex(goal)
@@ -166,25 +149,24 @@ def plotPlannerData(pd, graph, space):
             for e in p.out_edges():
                 if e.target() == v:
                     edgecolor[e] = "red"
-                    edgesize[e]  = 3.0
+                    edgesize[e]  = 2.0
             v = p
 
     # Writing graph to file:
     # pos indicates the desired vertex positions, and pin=True says that we
     # really REALLY want the vertices at those positions
-    gt.graph_draw (graph, size=(20, 20), pos=vertexpos, pin=True,
-                   vsize=vertexsize, penwidth=edgesize,
-                   vcolor=colorprops, ecolor=edgecolor,
+    gt.graph_draw (graph, vertex_size=vertexsize, vertex_fill_color=colorprops,
+                   edge_pen_width=edgesize, edge_color=edgecolor,
                    output="graph.png")
     print
     print 'Graph written to graph.png'
 
 def plan():
     # construct the state space we are planning in
-    space = ob.SE2StateSpace()
+    space = ob.SE3StateSpace()
 
-    # set the bounds for R^2 portion of SE(2)
-    bounds = ob.RealVectorBounds(2)
+    # set the bounds for R^3 portion of SE(3)
+    bounds = ob.RealVectorBounds(3)
     bounds.setLow(-10)
     bounds.setHigh(10)
     space.setBounds(bounds)
@@ -196,13 +178,15 @@ def plan():
     start = ob.State(space)
     start().setX(-9)
     start().setY(-9)
-    start().setYaw(0)
+    start().setZ(-9)
+    start().rotation().setIdentity()
 
     # create a goal state
     goal = ob.State(space)
-    goal().setX(9)
+    goal().setX(-9)
     goal().setY(9)
-    goal().setYaw(0)
+    goal().setZ(-9)
+    goal().rotation().setIdentity()
 
     ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 
@@ -224,8 +208,11 @@ def plan():
         # Extracting planner data from most recent solve attempt
         pd = ob.PlannerData(ss.getSpaceInformation())
         ss.getPlannerData(pd)
-        if (graphtool):
-            useGraphTool(pd, space)
+
+        # Computing weights of all edges based on distance
+        pd.computeEdgeWeights(ob.EdgeWeightFn(partial(edgeWeight, space)))
+
+        useGraphTool(pd, space)
 
 if __name__ == "__main__":
     plan()
