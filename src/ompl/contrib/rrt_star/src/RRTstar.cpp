@@ -281,6 +281,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                 }
 
+            // Make sure to check the existing solution for improvement
+            if (solution)
+                solCheck.push_back(solution);
+
             // check if we found a solution
             for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
             {
