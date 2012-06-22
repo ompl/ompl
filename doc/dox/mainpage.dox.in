@@ -97,7 +97,7 @@ href="https://bitbucket.org/ompl/ompl">Bitbucket</a>).
 
 \htmlonly
 </div></div>
-<div class="span12">
+<div class="row"><div class="span12">
 \endhtmlonly
 \section newsevents News & Events
 
@@ -106,7 +106,7 @@ href="https://bitbucket.org/ompl/ompl">Bitbucket</a>).
 - <a href="http://kavrakilab.org/OMPLtutorial">IROS 2011 Tutorial on Motion Planning for Real Robots</a>. This hands-on tutorial describes how to use the ROS and OMPL, but it also gives some background on sampling-based motion planning.
 
 \htmlonly
-</div></div>
+</div></div></div>
 \endhtmlonly
 
 */
