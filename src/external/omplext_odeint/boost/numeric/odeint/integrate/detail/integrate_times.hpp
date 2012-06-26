@@ -22,6 +22,7 @@
 
 #include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/detail/less_with_sign.hpp>
 
 
 namespace boost {
@@ -51,7 +52,7 @@ size_t integrate_times(
         obs( start_state , current_time );
         if( start_time == end_time )
             break;
-        while( (current_time < *start_time) )
+        while( less_with_sign( current_time , *start_time , current_dt ) )
         {
             current_dt = std::min( dt , *start_time - current_time );
             stepper.do_step( system , start_state , current_time , current_dt );
@@ -84,7 +85,7 @@ size_t integrate_times(
         obs( start_state , current_time );
         if( start_time == end_time )
             break;
-        while( current_time < *start_time )
+        while( less_with_sign( current_time , *start_time , dt ) )
         {
             dt = std::min( dt , *start_time - current_time );
             if( stepper.try_step( system , start_state , current_time , dt ) == success )
@@ -121,7 +122,8 @@ size_t integrate_times(
      size_t count = 0;
      while( start_time != end_time )
      {
-         while( ( *start_time <= stepper.current_time() ) && ( start_time != end_time ) )
+         while( less_eq_with_sign( *start_time , stepper.current_time() , stepper.current_time_step() )
+                && ( start_time != end_time ) )
          {
              stepper.calc_state( *start_time , start_state );
              obs( start_state , *start_time );
@@ -129,7 +131,9 @@ size_t integrate_times(
          }
 
          // we have not reached the end, do another real step
-         if( stepper.current_time() + stepper.current_time_step() <= last_time_point )
+         if( less_eq_with_sign( stepper.current_time() + stepper.current_time_step() ,
+                                last_time_point ,
+                                stepper.current_time_step() ) )
          {
              stepper.do_step( system );
              ++count;

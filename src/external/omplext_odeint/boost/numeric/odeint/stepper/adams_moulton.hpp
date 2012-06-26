@@ -113,13 +113,13 @@ public :
      * solves the forwarding problem
      */
     template< class System , class StateInOut , class ABBuf >
-    void do_step( System system , StateInOut &in , const time_type &t , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , StateInOut &in , time_type t , time_type dt , const ABBuf &buf )
     {
         do_step( system , in , t , in , dt , buf );
     }
 
     template< class System , class StateInOut , class ABBuf >
-    void do_step( System system , const StateInOut &in , const time_type &t , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , const StateInOut &in , time_type t , time_type dt , const ABBuf &buf )
     {
         do_step( system , in , t , in , dt , buf );
     }
@@ -132,7 +132,7 @@ public :
      * solves the forwarding problem
      */
     template< class System , class StateIn , class StateOut , class ABBuf >
-    void do_step( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt , const ABBuf &buf )
     {
         typename omplext_odeint::unwrap_reference< System >::type &sys = system;
         m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
@@ -141,7 +141,7 @@ public :
     }
 
     template< class System , class StateIn , class StateOut , class ABBuf >
-    void do_step( System system , const StateIn &in , const time_type &t , const StateOut &out , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , const StateIn &in , time_type t , const StateOut &out , time_type dt , const ABBuf &buf )
     {
         typename omplext_odeint::unwrap_reference< System >::type &sys = system;
         m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );

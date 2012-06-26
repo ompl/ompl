@@ -33,7 +33,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 1 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         typedef typename Coefficients::value_type value_type;
         algebra.for_each3( out , in , dxdt , typename Operations::template scale_sum2< value_type , Time >( 1.0 , dt * coef[0] ) );
@@ -45,7 +45,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 2 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         typedef typename Coefficients::value_type value_type;
         algebra.for_each4( out , in , dxdt , steps[0].m_v ,
@@ -58,7 +58,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 3 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         typedef typename Coefficients::value_type value_type;
         algebra.for_each5( out , in , dxdt , steps[0].m_v , steps[1].m_v ,
@@ -71,7 +71,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 4 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         typedef typename Coefficients::value_type value_type;
         algebra.for_each6( out , in , dxdt , steps[0].m_v , steps[1].m_v , steps[2].m_v ,
@@ -85,7 +85,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 5 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         typedef typename Coefficients::value_type value_type;
         algebra.for_each7( out , in , dxdt , steps[0].m_v , steps[1].m_v , steps[2].m_v , steps[3].m_v ,
@@ -99,7 +99,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 6 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         typedef typename Coefficients::value_type value_type;
         algebra.for_each8( out , in , dxdt , steps[0].m_v , steps[1].m_v , steps[2].m_v , steps[3].m_v , steps[4].m_v ,
@@ -113,7 +113,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 7 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         assert( false ); // not implemented
     }
@@ -124,7 +124,7 @@ template< class Algebra , class Operations >
 struct adams_moulton_call_algebra< 8 , Algebra , Operations >
 {
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
-    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , const Time &dt ) const
+    void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
         assert( false ); // not implemented
     }

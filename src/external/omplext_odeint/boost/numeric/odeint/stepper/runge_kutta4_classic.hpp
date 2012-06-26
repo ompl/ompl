@@ -23,7 +23,6 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_stepper_base.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
@@ -51,17 +50,28 @@ class runge_kutta4_classic
 
 public :
 
+    typedef explicit_stepper_base<
+    runge_kutta4_classic< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
+    4 , State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_base_type;
 
-    BOOST_ODEINT_EXPLICIT_STEPPERS_TYPEDEFS( runge_kutta4_classic , 4 );
+    typedef typename stepper_base_type::state_type state_type;
+    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
+    typedef typename stepper_base_type::value_type value_type;
+    typedef typename stepper_base_type::deriv_type deriv_type;
+    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
+    typedef typename stepper_base_type::time_type time_type;
+    typedef typename stepper_base_type::algebra_type algebra_type;
+    typedef typename stepper_base_type::operations_type operations_type;
+    typedef typename stepper_base_type::resizer_type resizer_type;
+    typedef typename stepper_base_type::stepper_type stepper_type;
 
-    typedef runge_kutta4_classic< State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_type;
 
     runge_kutta4_classic( const algebra_type &algebra = algebra_type() ) : stepper_base_type( algebra )
     { }
 
 
     template< class System , class StateIn , class DerivIn , class StateOut >
-    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt , const time_type &t , StateOut &out , const time_type &dt )
+    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt , time_type t , StateOut &out , time_type dt )
     {
         // ToDo : check if size of in,dxdt,out are equal?
 

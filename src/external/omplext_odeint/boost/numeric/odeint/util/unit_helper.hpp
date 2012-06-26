@@ -1,18 +1,18 @@
 /*
- [auto_generated]
- boost/numeric/odeint/util/unit_helper.hpp
+  [auto_generated]
+  boost/numeric/odeint/util/unit_helper.hpp
 
- [begin_description]
- Get and set the the value of a unit.
- [end_description]
+  [begin_description]
+  Get and set the the value of a unit.
+  [end_description]
 
- Copyright 2009-2011 Karsten Ahnert
- Copyright 2009-2011 Mario Mulansky
+  Copyright 2009-2011 Karsten Ahnert
+  Copyright 2009-2011 Mario Mulansky
 
- Distributed under the Boost Software License, Version 1.0.
- (See accompanying file LICENSE_1_0.txt or
- copy at http://www.boost.org/LICENSE_1_0.txt)
- */
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or
+  copy at http://www.boost.org/LICENSE_1_0.txt)
+*/
 
 
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_UTIL_UNIT_HELPER_HPP_INCLUDED
@@ -30,87 +30,87 @@ namespace numeric {
 namespace omplext_odeint {
 
 
-
 namespace detail {
 
-	template<class T>
-	struct get_unit_value_impl
+    template<class T>
+    struct get_unit_value_impl
+    {
+	static T value(const T &t)
 	{
-		static T value(const T &t)
-		{
-			return t;
-		}
-		typedef T result_type;
-	};
+	    return t;
+	}
+	typedef T result_type;
+    };
 
-	#ifndef __CUDACC__
-	template<class Unit , class T>
-	struct get_unit_value_impl< boost::units::quantity< Unit , T> >
+#ifndef __CUDACC__
+    template<class Unit , class T>
+    struct get_unit_value_impl< boost::units::quantity< Unit , T> >
+    {
+	static T value( const boost::units::quantity< Unit , T> &t )
 	{
-		static T value( const boost::units::quantity< Unit , T> &t )
-		{
-			return t.value();
-		}
-		typedef T result_type;
-	};
-	#endif
+	    return t.value();
+	}
+	typedef T result_type;
+    };
+#endif
 
 
 
 
 
-	template<class T , class V>
-	struct set_unit_value_impl
+    template<class T , class V>
+    struct set_unit_value_impl
+    {
+	static void set_value(T &t , const V &v)
 	{
-		static void set_value(T &t , const V &v)
-		{
-			t = v;
-		}
-	};
+	    t = v;
+	}
+    };
 
-	#ifndef __CUDACC__
-	template<class Unit , class T , class V>
-	struct set_unit_value_impl<boost::units::quantity<Unit , T> , V>
+#ifndef __CUDACC__
+    template<class Unit , class T , class V>
+    struct set_unit_value_impl<boost::units::quantity<Unit , T> , V>
+    {
+	static void set_value(boost::units::quantity<Unit , T> &t , const V &v)
 	{
-		static void set_value(boost::units::quantity<Unit , T> &t , const V &v)
-		{
-			t = boost::units::quantity<Unit , T>::from_value(v);
-		}
-	};
-	#endif
+	    t = boost::units::quantity<Unit , T>::from_value(v);
+	}
+    };
+#endif
 
 
 
 } // namespace detail
 
-template<class T>
-typename detail::get_unit_value_impl<T>::result_type get_unit_value(const T &t)
-{
-    return detail::get_unit_value_impl<T>::value(t);
-}
+
+    template<class T>
+    typename detail::get_unit_value_impl<T>::result_type get_unit_value(const T &t)
+    {
+	return detail::get_unit_value_impl<T>::value(t);
+    }
 
 
-template<class T , class V>
+    template<class T , class V>
 
-void set_unit_value(T &t , const V &v)
-{
-    return detail::set_unit_value_impl<T , V>::set_value(t , v);
-}
+    void set_unit_value(T &t , const V &v)
+    {
+	return detail::set_unit_value_impl<T , V>::set_value(t , v);
+    }
 
 
 
-template< class T >
-struct unit_value_type
-{
+    template< class T >
+    struct unit_value_type
+    {
 	typedef T type;
-};
+    };
 
 #ifndef __CUDACC__
-template< class Unit , class Y >
-struct unit_value_type< boost::units::quantity< Unit , Y > >
-{
-    typedef Y type;
-};
+    template< class Unit , class Y >
+    struct unit_value_type< boost::units::quantity< Unit , Y > >
+    {
+	typedef Y type;
+    };
 #endif
 
 

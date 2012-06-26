@@ -31,7 +31,6 @@
 #include <boost/array.hpp>
 
 
-namespace fusion = boost::fusion;
 
 
 namespace boost {
@@ -167,7 +166,7 @@ public:
     typedef typename stepper_base_type::stepper_type stepper_type;
 
     runge_kutta_cash_karp54( const algebra_type &algebra = algebra_type() ) : stepper_base_type(
-            fusion::make_vector( rk54_ck_coefficients_a1<Value>() ,
+	boost::fusion::make_vector( rk54_ck_coefficients_a1<Value>() ,
                                  rk54_ck_coefficients_a2<Value>() ,
                                  rk54_ck_coefficients_a3<Value>() ,
                                  rk54_ck_coefficients_a4<Value>() ,

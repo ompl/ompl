@@ -109,14 +109,14 @@ public:
      * This version does not solve the forwarding problem, boost.range can not be used.
      */
     template< class System , class StateInOut >
-    void do_step( System system , const StateInOut &state , const time_type &t , const time_type &dt )
+    void do_step( System system , const StateInOut &state , time_type t , time_type dt )
     {
         typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
         do_step_impl( system , state , t , state , dt , typename is_pair< system_type >::type() );
     }
 
     template< class System , class StateInOut >
-    void do_step( System system , StateInOut &state , const time_type &t , const time_type &dt )
+    void do_step( System system , StateInOut &state , time_type t , time_type dt )
     {
         typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
         do_step_impl( system , state , t , state , dt , typename is_pair< system_type >::type() );
@@ -131,13 +131,13 @@ public:
      * The two overloads are needed in order to solve the forwarding problem.
      */
     template< class System , class CoorInOut , class MomentumInOut >
-    void do_step( System system , CoorInOut &q , MomentumInOut &p , const time_type &t , const time_type &dt )
+    void do_step( System system , CoorInOut &q , MomentumInOut &p , time_type t , time_type dt )
     {
         do_step( system , std::make_pair( detail::ref( q ) , detail::ref( p ) ) , t , dt );
     }
 
     template< class System , class CoorInOut , class MomentumInOut >
-    void do_step( System system , const CoorInOut &q , const MomentumInOut &p , const time_type &t , const time_type &dt )
+    void do_step( System system , const CoorInOut &q , const MomentumInOut &p , time_type t , time_type dt )
     {
         do_step( system , std::make_pair( detail::ref( q ) , detail::ref( p ) ) , t , dt );
     }
@@ -152,7 +152,7 @@ public:
      * The forwarding problem is not solved in this version
      */
     template< class System , class StateIn , class StateOut >
-    void do_step( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt )
+    void do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt )
     {
         typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
         do_step_impl( system , in , t , out , dt , typename is_pair< system_type >::type() );
@@ -173,7 +173,7 @@ private:
 
     // stepper for systems with function for dq/dt = f(p) and dp/dt = -f(q)
     template< class System , class StateIn , class StateOut >
-    void do_step_impl( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt , boost::mpl::true_ )
+    void do_step_impl( System system , const StateIn &in , time_type t , StateOut &out , time_type dt , boost::mpl::true_ )
     {
         typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
         typedef typename omplext_odeint::unwrap_reference< typename system_type::first_type >::type coor_deriv_func_type;
@@ -227,7 +227,7 @@ private:
 
     // stepper for systems with only function dp /dt = -f(q), dq/dt = p, time not required but still expected for compatibility reasons
     template< class System , class StateIn , class StateOut >
-    void do_step_impl( System system , const StateIn &in , const time_type & /* t */ , StateOut &out , const time_type &dt , boost::mpl::false_ )
+    void do_step_impl( System system , const StateIn &in , time_type  /* t */ , StateOut &out , time_type dt , boost::mpl::false_ )
     {
         typedef typename omplext_odeint::unwrap_reference< System >::type momentum_deriv_func_type;
         momentum_deriv_func_type &momentum_func = system;

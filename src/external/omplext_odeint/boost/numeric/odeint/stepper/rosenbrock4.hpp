@@ -59,19 +59,48 @@ struct default_rosenbrock_coefficients
 
     default_rosenbrock_coefficients( void )
     : gamma ( static_cast< value_type >( 0.25 ) ) ,
-      d1 ( 0.25 ) , d2 ( -0.1043 ) , d3 ( 0.1035 ) , d4 ( 0.3620000000000023e-01 ) ,
-      c2 ( 0.386 ) , c3 ( 0.21 ) , c4 ( 0.63 ) ,
-      c21 ( -0.5668800000000000e+01 ) ,
-      a21 ( 0.1544000000000000e+01 ) ,
-      c31 ( -0.2430093356833875e+01 ) , c32 ( -0.2063599157091915e+00 ) ,
-      a31 ( 0.9466785280815826e+00 ) , a32 ( 0.2557011698983284e+00 ) ,
-      c41 ( -0.1073529058151375e+00 ) , c42 ( -0.9594562251023355e+01 ) , c43 ( -0.2047028614809616e+02 ) ,
-      a41 ( 0.3314825187068521e+01 ) , a42 ( 0.2896124015972201e+01 ) , a43 ( 0.9986419139977817e+00 ) ,
-      c51 ( 0.7496443313967647e+01 ) , c52 ( -0.1024680431464352e+02 ) , c53 ( -0.3399990352819905e+02 ) , c54 (  0.1170890893206160e+02 ) ,
-      a51 ( 0.1221224509226641e+01 ) , a52 ( 0.6019134481288629e+01 ) , a53 ( 0.1253708332932087e+02 ) , a54 ( -0.6878860361058950e+00 ) ,
-      c61 ( 0.8083246795921522e+01 ) , c62 ( -0.7981132988064893e+01 ) , c63 ( -0.3152159432874371e+02 ) , c64 ( 0.1631930543123136e+02 ) , c65 ( -0.6058818238834054e+01 ) ,
-      d21 ( 0.1012623508344586e+02 ) , d22 ( -0.7487995877610167e+01 ) , d23 ( -0.3480091861555747e+02 ) , d24 ( -0.7992771707568823e+01 ) , d25 ( 0.1025137723295662e+01 ) ,
-      d31 ( -0.6762803392801253e+00 ) , d32 ( 0.6087714651680015e+01 ) , d33 ( 0.1643084320892478e+02 ) , d34 ( 0.2476722511418386e+02 ) , d35 ( -0.6594389125716872e+01 )
+      d1 ( static_cast< value_type >( 0.25 ) ) ,
+      d2 ( static_cast< value_type >( -0.1043 ) ) ,
+      d3 ( static_cast< value_type >( 0.1035 ) ) ,
+      d4 ( static_cast< value_type >( 0.3620000000000023e-01 ) ) ,
+      c2 ( static_cast< value_type >( 0.386 ) ) ,
+      c3 ( static_cast< value_type >( 0.21 ) ) ,
+      c4 ( static_cast< value_type >( 0.63 ) ) ,
+      c21 ( static_cast< value_type >( -0.5668800000000000e+01 ) ) ,
+      a21 ( static_cast< value_type >( 0.1544000000000000e+01 ) ) ,
+      c31 ( static_cast< value_type >( -0.2430093356833875e+01 ) ) ,
+      c32 ( static_cast< value_type >( -0.2063599157091915e+00 ) ) ,
+      a31 ( static_cast< value_type >( 0.9466785280815826e+00 ) ) ,
+      a32 ( static_cast< value_type >( 0.2557011698983284e+00 ) ) ,
+      c41 ( static_cast< value_type >( -0.1073529058151375e+00 ) ) ,
+      c42 ( static_cast< value_type >( -0.9594562251023355e+01 ) ) ,
+      c43 ( static_cast< value_type >( -0.2047028614809616e+02 ) ) ,
+      a41 ( static_cast< value_type >( 0.3314825187068521e+01 ) ) ,
+      a42 ( static_cast< value_type >( 0.2896124015972201e+01 ) ) ,
+      a43 ( static_cast< value_type >( 0.9986419139977817e+00 ) ) ,
+      c51 ( static_cast< value_type >( 0.7496443313967647e+01 ) ) ,
+      c52 ( static_cast< value_type >( -0.1024680431464352e+02 ) ) ,
+      c53 ( static_cast< value_type >( -0.3399990352819905e+02 ) ) ,
+      c54 ( static_cast< value_type >(  0.1170890893206160e+02 ) ) ,
+      a51 ( static_cast< value_type >( 0.1221224509226641e+01 ) ) ,
+      a52 ( static_cast< value_type >( 0.6019134481288629e+01 ) ) ,
+      a53 ( static_cast< value_type >( 0.1253708332932087e+02 ) ) ,
+      a54 ( static_cast< value_type >( -0.6878860361058950e+00 ) ) ,
+      c61 ( static_cast< value_type >( 0.8083246795921522e+01 ) ) ,
+      c62 ( static_cast< value_type >( -0.7981132988064893e+01 ) ) ,
+      c63 ( static_cast< value_type >( -0.3152159432874371e+02 ) ) ,
+      c64 ( static_cast< value_type >( 0.1631930543123136e+02 ) ) ,
+      c65 ( static_cast< value_type >( -0.6058818238834054e+01 ) ) ,
+      d21 ( static_cast< value_type >( 0.1012623508344586e+02 ) ) ,
+      d22 ( static_cast< value_type >( -0.7487995877610167e+01 ) ) ,
+      d23 ( static_cast< value_type >( -0.3480091861555747e+02 ) ) ,
+      d24 ( static_cast< value_type >( -0.7992771707568823e+01 ) ) ,
+      d25 ( static_cast< value_type >( 0.1025137723295662e+01 ) ) ,
+      d31 ( static_cast< value_type >( -0.6762803392801253e+00 ) ) ,
+      d32 ( static_cast< value_type >( 0.6087714651680015e+01 ) ) ,
+      d33 ( static_cast< value_type >( 0.1643084320892478e+02 ) ) ,
+      d34 ( static_cast< value_type >( 0.2476722511418386e+02 ) ) ,
+      d35 ( static_cast< value_type >( -0.6594389125716872e+01 ) )
     {}
 
     const value_type gamma;
@@ -240,9 +269,9 @@ public:
     }
 
 
-    void calc_state( const time_type &t , state_type &x ,
-            const state_type &x_old , const time_type &t_old ,
-            const state_type &x_new , const time_type &t_new )
+    void calc_state( time_type t , state_type &x ,
+            const state_type &x_old , time_type t_old ,
+            const state_type &x_new , time_type t_new )
     {
         const size_t n = m_g1.m_v.size();
         time_type dt = t_new - t_old;

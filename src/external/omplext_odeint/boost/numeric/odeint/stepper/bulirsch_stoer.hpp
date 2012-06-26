@@ -34,7 +34,6 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
@@ -77,13 +76,19 @@ public:
     typedef std::vector< size_t > int_vector;
     typedef std::vector< wrapped_state_type > state_table_type;
 
+    const static size_t m_k_max = 8;
+
+
     bulirsch_stoer(
             time_type eps_abs = 1E-6 , time_type eps_rel = 1E-6 ,
             time_type factor_x = 1.0 , time_type factor_dxdt = 1.0 )
-    : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ),
-      m_k_max(8) ,
+    : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ) , m_midpoint() ,
       m_last_step_rejected( false ) , m_first( true ) ,
-      m_dt_last( 1.0E30 ) ,
+      m_dt_last( 1.0E30 ) , m_t_last() ,
+      m_current_k_opt() ,
+      m_algebra() ,
+      m_dxdt_resizer() , m_xnew_resizer() , m_resizer() ,
+      m_xnew() , m_err() , m_dxdt() ,
       m_interval_sequence( m_k_max+1 ) ,
       m_coeff( m_k_max+1 ) ,
       m_cost( m_k_max+1 ) ,
@@ -114,19 +119,6 @@ public:
 
     }
 
-    bulirsch_stoer( const bulirsch_stoer &bs )
-    : m_error_checker( bs.m_error_checker ) ,
-      m_midpoint( bs.m_midpoint ) ,
-      m_k_max( bs.m_k_max ) ,
-      m_last_step_rejected( bs.m_last_step_rejected ) , m_first( bs.m_first ) ,
-      m_dt_last( bs.m_dt_last ) , m_t_last( bs.m_t_last ) ,
-      m_current_k_opt( bs.m_current_k_opt ) ,
-      m_interval_sequence( bs.m_interval_sequence ) ,
-      m_coeff( bs.m_coeff ) ,
-      m_cost( bs.m_cost ) ,
-      m_table( bs.m_table ) ,
-      STEPFAC1( bs.STEPFAC1 ) , STEPFAC2( bs.STEPFAC2 ) , STEPFAC3( bs.STEPFAC3 ) , STEPFAC4( bs.STEPFAC4 ) , KFAC1( bs.KFAC1 ) , KFAC2( bs.KFAC2 )
-    { }
 
     /*
      * Version 1 : try_step( sys , x , t , dt )
@@ -373,7 +365,7 @@ private:
 
 
     template< class StateInOut >
-    void extrapolate( const size_t k , state_table_type &table , const value_matrix &coeff , StateInOut &xest )
+    void extrapolate( size_t k , state_table_type &table , const value_matrix &coeff , StateInOut &xest )
     //polynomial extrapolation, see http://www.nr.com/webnotes/nr3web21.pdf
     {
         //std::cout << "extrapolate k=" << k << ":" << std::endl;
@@ -389,7 +381,7 @@ private:
                 typename operations_type::template scale_sum2< time_type , time_type >( val1 + coeff[k][0] , -coeff[k][0]) );
     }
 
-    time_type calc_h_opt( const time_type h , const value_type error , const size_t k ) const
+    time_type calc_h_opt( time_type h , value_type error , size_t k ) const
     {
         time_type expo=1.0/(2*k+1);
         time_type facmin = std::pow( STEPFAC3 , expo );
@@ -401,10 +393,11 @@ private:
             fac = STEPFAC2 / std::pow( error / STEPFAC1 , expo );
             fac = std::max( facmin/STEPFAC4 , std::min( 1.0/facmin , fac ) );
         }
-        return std::abs(h*fac);
+        //return std::abs(h*fac);
+        return h*fac;
     }
 
-    controlled_step_result set_k_opt( const size_t k , const value_vector &work , const value_vector &h_opt , time_type &dt )
+    controlled_step_result set_k_opt( size_t k , const value_vector &work , const value_vector &h_opt , time_type &dt )
     {
         //std::cout << "finding k_opt..." << std::endl;
         if( k == 1 )
@@ -433,14 +426,14 @@ private:
         }
     }
 
-    bool in_convergence_window( const size_t k ) const
+    bool in_convergence_window( size_t k ) const
     {
         if( (k == m_current_k_opt-1) && !m_last_step_rejected )
             return true; // decrease stepsize only if last step was not rejected
         return ( (k == m_current_k_opt) || (k == m_current_k_opt+1) );
     }
 
-    bool should_reject( const time_type error , const size_t k ) const
+    bool should_reject( time_type error , size_t k ) const
     {
         if( (k == m_current_k_opt-1) )
         {
@@ -459,8 +452,6 @@ private:
 
     default_error_checker< value_type, algebra_type , operations_type > m_error_checker;
     modified_midpoint< state_type , value_type , deriv_type , time_type , algebra_type , operations_type , resizer_type > m_midpoint;
-
-    const size_t m_k_max;
 
     bool m_last_step_rejected;
     bool m_first;

@@ -21,11 +21,10 @@
 
 #include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
-#include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_stepper_and_error_stepper_fsal_base.hpp>
+#include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_error_stepper_fsal_base.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
@@ -47,23 +46,36 @@ class Operations = default_operations ,
 class Resizer = initially_resizer
 >
 class runge_kutta_dopri5
-: public explicit_stepper_and_error_stepper_fsal_base<
+: public explicit_error_stepper_fsal_base<
   runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
   5 , 5 , 4 , State , Value , Deriv , Time , Algebra , Operations , Resizer >
 {
 
 public :
 
-    BOOST_ODEINT_EXPLICIT_STEPPERS_AND_ERROR_STEPPERS_FSAL_TYPEDEFS( runge_kutta_dopri5 , 5 , 5 , 4 );
-    typedef runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_type;
+    typedef explicit_error_stepper_fsal_base<
+    runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
+    5 , 5 , 4 , State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_base_type;
+    
+    typedef typename stepper_base_type::state_type state_type;
+    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
+    typedef typename stepper_base_type::value_type value_type;
+    typedef typename stepper_base_type::deriv_type deriv_type;
+    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
+    typedef typename stepper_base_type::time_type time_type;
+    typedef typename stepper_base_type::algebra_type algebra_type;
+    typedef typename stepper_base_type::operations_type operations_type;
+    typedef typename stepper_base_type::resizer_type resizer_type;
+    typedef typename stepper_base_type::stepper_type stepper_type;
+
 
     runge_kutta_dopri5( const algebra_type &algebra = algebra_type() ) : stepper_base_type( algebra )
     { }
 
 
     template< class System , class StateIn , class DerivIn , class StateOut , class DerivOut >
-    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , const time_type &t ,
-            StateOut &out , DerivOut &dxdt_out , const time_type &dt )
+    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , time_type t ,
+            StateOut &out , DerivOut &dxdt_out , time_type dt )
     {
         const value_type a2 = static_cast<value_type> ( 1 ) / static_cast<value_type>( 5 );
         const value_type a3 = static_cast<value_type> ( 3 ) / static_cast<value_type> ( 10 );
@@ -132,8 +144,8 @@ public :
 
 
     template< class System , class StateIn , class DerivIn , class StateOut , class DerivOut , class Err >
-    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , const time_type &t ,
-            StateOut &out , DerivOut &dxdt_out , const time_type &dt , Err &xerr )
+    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , time_type t ,
+            StateOut &out , DerivOut &dxdt_out , time_type dt , Err &xerr )
     {
         const value_type c1 = static_cast<value_type> ( 35 ) / static_cast<value_type>( 384 );
         const value_type c3 = static_cast<value_type> ( 500 ) / static_cast<value_type>( 1113 );
@@ -181,9 +193,9 @@ public :
      * www-m2.ma.tum.de/homepages/simeon/numerik3/kap3.ps
      */
     template< class StateOut , class StateIn1 , class DerivIn1 , class StateIn2 , class DerivIn2 >
-    void calc_state( const time_type &t , StateOut &x ,
-            const StateIn1 &x_old , const DerivIn1 &deriv_old , const time_type &t_old ,
-            const StateIn2 & /* x_new */ , const DerivIn2 &deriv_new , const time_type &t_new )
+    void calc_state( time_type t , StateOut &x ,
+            const StateIn1 &x_old , const DerivIn1 &deriv_old , time_type t_old ,
+            const StateIn2 & /* x_new */ , const DerivIn2 &deriv_new , time_type t_new )
     {
         const value_type b1 = static_cast<value_type> ( 35 ) / static_cast<value_type>( 384 );
         const value_type b3 = static_cast<value_type> ( 500 ) / static_cast<value_type>( 1113 );

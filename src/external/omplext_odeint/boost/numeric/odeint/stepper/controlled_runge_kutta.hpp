@@ -19,7 +19,11 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_CONTROLLED_RUNGE_KUTTA_HPP_INCLUDED
 
 
+
 #include <cmath>
+
+#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
@@ -61,22 +65,22 @@ public:
 
 
     default_error_checker(
-            const value_type eps_abs = static_cast< value_type >( 1.0e-6 ) ,
-            const value_type eps_rel = static_cast< value_type >( 1.0e-6 ) ,
-            const value_type a_x = static_cast< value_type >( 1 ) ,
-            const value_type a_dxdt = static_cast< value_type >( 1 ) )
+            value_type eps_abs = static_cast< value_type >( 1.0e-6 ) ,
+            value_type eps_rel = static_cast< value_type >( 1.0e-6 ) ,
+            value_type a_x = static_cast< value_type >( 1 ) ,
+            value_type a_dxdt = static_cast< value_type >( 1 ) )
     : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) , m_a_x( a_x ) , m_a_dxdt( a_dxdt )
     { }
 
 
     template< class State , class Deriv , class Err , class Time >
-    value_type error( const State &x_old , const Deriv &dxdt_old , Err &x_err , const Time &dt )
+    value_type error( const State &x_old , const Deriv &dxdt_old , Err &x_err , Time dt ) const
     {
         return error( algebra_type() , x_old , dxdt_old , x_err , dt );
     }
 
     template< class State , class Deriv , class Err , class Time >
-    value_type error( algebra_type &algebra , const State &x_old , const Deriv &dxdt_old , Err &x_err , const Time &dt )
+    value_type error( algebra_type &algebra , const State &x_old , const Deriv &dxdt_old , Err &x_err , Time dt ) const
     {
         // this overwrites x_err !
         algebra.for_each3( x_err , x_old , dxdt_old ,
@@ -87,7 +91,7 @@ public:
         return res;
     }
 
-    value_type check() { return m_eps_abs; }
+    value_type check( void ) const { return m_eps_abs; }
 
 private:
 
@@ -123,6 +127,12 @@ class controlled_runge_kutta ;
 
 /*
  * explicit stepper version
+ *
+ * this class introduces the following try_step overloads
+    * try_step( sys , x , t , dt )
+    * try_step( sys , x , dxdt , t , dt )
+    * try_step( sys , in , t , out , dt )
+    * try_step( sys , in , dxdt , t , out , dt )
  */
 template<
 class ErrorStepper ,
@@ -139,7 +149,6 @@ public:
     typedef typename stepper_type::value_type value_type;
     typedef typename stepper_type::deriv_type deriv_type;
     typedef typename stepper_type::time_type time_type;
-    typedef typename stepper_type::order_type order_type;
     typedef typename stepper_type::algebra_type algebra_type;
     typedef typename stepper_type::operations_type operations_type;
     typedef Resizer resizer_type;
@@ -201,9 +210,12 @@ public:
      * Version 3 : try_step( sys , in , t , out , dt )
      *
      * this version does not solve the forwarding problem, boost.range can not be used
+     *
+     * the disable is needed to avoid ambiguous overloads if state_type = time_type
      */
     template< class System , class StateIn , class StateOut >
-    controlled_step_result try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
+    typename boost::disable_if< boost::is_same< StateIn , time_type > , controlled_step_result >::type
+    try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
     {
         typename omplext_odeint::unwrap_reference< System >::type &sys = system;
         m_dxdt_resizer.adjust_size( in , detail::bind( &controlled_runge_kutta::template resize_m_dxdt_impl< StateIn > , detail::ref( *this ) , detail::_1 ) );
@@ -341,7 +353,11 @@ private:
 /*
  * explicit stepper fsal version
  *
- * ToDo : introduce the same functions as for the above stepper
+ * the class introduces the following try_step overloads
+    * try_step( sys , x , t , dt ) 
+    * try_step( sys , in , t , out , dt )
+    * try_step( sys , x , dxdt , t , dt )
+    * try_step( sys , in , dxdt_in , t , out , dxdt_out , dt )
  */
 template<
 class ErrorStepper ,
@@ -358,7 +374,6 @@ public:
     typedef typename stepper_type::value_type value_type;
     typedef typename stepper_type::deriv_type deriv_type;
     typedef typename stepper_type::time_type time_type;
-    typedef typename stepper_type::order_type order_type;
     typedef typename stepper_type::algebra_type algebra_type;
     typedef typename stepper_type::operations_type operations_type;
     typedef Resizer resizer_type;
@@ -400,15 +415,16 @@ public:
      * Version 2 : try_step( sys , in , t , out , dt );
      *
      * This version does not solve the forwarding problem, boost::range can not be used.
+     * 
+     * The disabler is needed to solve ambigous overloads
      */
     template< class System , class StateIn , class StateOut >
-    controlled_step_result try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
+    typename boost::disable_if< boost::is_same< StateIn , time_type > , controlled_step_result >::type
+    try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
     {
         if( m_dxdt_resizer.adjust_size( in , detail::bind( &controlled_runge_kutta::template resize_m_dxdt_impl< StateIn > , detail::ref( *this ) , detail::_1 ) ) || m_first_call )
         {
-            typename omplext_odeint::unwrap_reference< System >::type &sys = system;
-            sys( in , m_dxdt.m_v ,t );
-            m_first_call = false;
+            initialize( system , in , t );
         }
         return try_step( system , in , m_dxdt.m_v , t , out , dt );
     }
@@ -435,7 +451,7 @@ public:
 
 
     /*
-     * Version 3 : try_step( sys , in , dxdt , t , out , dt )
+     * Version 4 : try_step( sys , in , dxdt_in , t , out , dxdt_out , dt )
      *
      * This version does not solve the forwarding problem, boost::range can not be used.
      */
@@ -478,6 +494,32 @@ public:
         }
     }
 
+
+
+    void reset( void )
+    {
+        m_first_call = true;
+    }
+
+    template< class DerivIn >
+    void initialize( const DerivIn &deriv )
+    {
+        boost::numeric::omplext_odeint::copy( deriv , m_dxdt.m_v );
+        m_first_call = false;
+    }
+
+    template< class System , class StateIn >
+    void initialize( System system , const StateIn &x , time_type t )
+    {
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        sys( x , m_dxdt.m_v , t );
+        m_first_call = false;
+    }
+
+    bool is_initialized( void ) const
+    {
+        return ! m_first_call;
+    }
 
 
 
@@ -536,9 +578,7 @@ private:
     {
         if( m_dxdt_resizer.adjust_size( x , detail::bind( &controlled_runge_kutta::template resize_m_dxdt_impl< StateInOut > , detail::ref( *this ) , detail::_1 ) ) || m_first_call )
         {
-            typename omplext_odeint::unwrap_reference< System >::type &sys = system;
-            sys( x , m_dxdt.m_v , t );
-            m_first_call = false;
+        	initialize( system , x , t );
         }
         return try_step( system , x , m_dxdt.m_v , t , dt );
     }

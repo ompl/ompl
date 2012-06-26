@@ -85,28 +85,28 @@ public :
     order_type order( void ) const { return order_value; }
 
     template< class System , class StateInOut >
-    void do_step( System system , StateInOut &x , const time_type &t , const time_type &dt )
+    void do_step( System system , StateInOut &x , time_type t , time_type dt )
     {
         m_adams_bashforth.do_step( system , x , t , dt );
         m_adams_moulton.do_step( system , x , t , dt , m_adams_bashforth.step_storage() );
     }
 
     template< class System , class StateInOut >
-    void do_step( System system , const StateInOut &x , const time_type &t , const time_type &dt )
+    void do_step( System system , const StateInOut &x , time_type t , time_type dt )
     {
         m_adams_bashforth.do_step( system , x , t , dt );
         m_adams_moulton.do_step( system , x , t , dt , m_adams_bashforth.step_storage() );
     }
 
     template< class System , class StateIn , class StateOut >
-    void do_step( System system , const StateIn &in , const time_type &t , const StateOut &out , const time_type &dt )
+    void do_step( System system , const StateIn &in , time_type t , const StateOut &out , time_type dt )
     {
         m_adams_bashforth.do_step( system , in , t , out , dt );
         m_adams_moulton.do_step( system , out , t , dt , m_adams_bashforth.step_storage() );
     }
 
     template< class System , class StateIn , class StateOut >
-    void do_step( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt )
+    void do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt )
     {
         m_adams_bashforth.do_step( system , in , t , out , dt );
         m_adams_moulton.do_step( system , out , t , dt , m_adams_bashforth.step_storage() );
@@ -121,13 +121,13 @@ public :
 
 
     template< class ExplicitStepper , class System , class StateIn >
-    void initialize( ExplicitStepper explicit_stepper , System system , StateIn &x , time_type &t , const time_type &dt )
+    void initialize( ExplicitStepper explicit_stepper , System system , StateIn &x , time_type &t , time_type dt )
     {
         m_adams_bashforth.initialize( explicit_stepper , system , x , t , dt );
     }
 
     template< class System , class StateIn >
-    void initialize( System system , StateIn &x , time_type &t , const time_type &dt )
+    void initialize( System system , StateIn &x , time_type &t , time_type dt )
     {
         m_adams_bashforth.initialize( system , x , t , dt );
     }

@@ -27,6 +27,8 @@
 #include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/copy.hpp>
 
+#include <omplext_odeint/boost/numeric/odeint/util/detail/less_with_sign.hpp>
+
 
 #include <iostream>
 
@@ -55,7 +57,7 @@ size_t integrate_adaptive(
     size_t steps = static_cast< size_t >( (end_time-start_time)/dt );
     Time end = detail::integrate_n_steps( stepper , system , start_state , start_time ,
                                           dt , steps , observer , stepper_tag() );
-    if( end < end_time )
+    if( less_with_sign( end , end_time , dt ) )
     {   //make a last step to end exactly at end_time
         stepper.do_step( system , start_state , end , end_time - end );
         steps++;
@@ -81,10 +83,10 @@ size_t integrate_adaptive(
     const size_t max_attempts = 1000;
     const char *error_string = "Integrate adaptive : Maximal number of iterations reached. A step size could not be found.";
     size_t count = 0;
-    while( start_time < end_time )
+    while( less_with_sign( start_time , end_time , dt ) )
     {
         obs( start_state , start_time );
-        if( ( start_time + dt ) > end_time )
+        if( less_with_sign( end_time , start_time + dt , dt ) )
         {
             dt = end_time - start_time;
         }
@@ -122,9 +124,11 @@ size_t integrate_adaptive(
     size_t count = 0;
     stepper.initialize( start_state , start_time , dt );
 
-    while( stepper.current_time() < end_time )
+    while( less_with_sign( stepper.current_time() , end_time , stepper.current_time_step() ) )
     {
-        while( stepper.current_time() + stepper.current_time_step() <= end_time )
+        while( less_eq_with_sign( stepper.current_time() + stepper.current_time_step() ,
+               end_time ,
+               stepper.current_time_step() ) )
         {   //make sure we don't go beyond the end_time
             obs( stepper.current_state() , stepper.current_time() );
             stepper.do_step( system );

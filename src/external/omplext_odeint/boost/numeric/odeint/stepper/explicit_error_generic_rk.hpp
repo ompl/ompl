@@ -18,7 +18,7 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_EXPLICIT_ERROR_GENERIC_RK_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_EXPLICIT_ERROR_GENERIC_RK_HPP_INCLUDED
 
-#include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_stepper_and_error_stepper_base.hpp>
+#include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_error_stepper_base.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
@@ -30,9 +30,6 @@
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
-
-namespace mpl = boost::mpl;
-namespace fusion = boost::fusion;
 
 
 namespace boost {
@@ -53,7 +50,7 @@ class Operations = default_operations ,
 class Resizer = initially_resizer
 >
 class explicit_error_generic_rk
-: public explicit_stepper_and_error_stepper_base<
+: public explicit_error_stepper_base<
   explicit_error_generic_rk< StageCount , Order , StepperOrder , ErrorOrder , State ,
   Value , Deriv , Time , Algebra , Operations , Resizer > ,
   Order , StepperOrder , ErrorOrder , State , Value , Deriv , Time , Algebra ,
@@ -62,7 +59,7 @@ class explicit_error_generic_rk
 
 public:
 
-    typedef explicit_stepper_and_error_stepper_base<
+    typedef explicit_error_stepper_base<
             explicit_error_generic_rk< StageCount , Order , StepperOrder , ErrorOrder , State ,
             Value , Deriv , Time , Algebra , Operations , Resizer > ,
             Order , StepperOrder , ErrorOrder , State , Value , Deriv , Time , Algebra ,
@@ -107,7 +104,7 @@ public:
 
     template< class System , class StateIn , class DerivIn , class StateOut , class Err >
     void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt ,
-            const time_type &t , StateOut &out , const time_type &dt , Err &xerr )
+            time_type t , StateOut &out , time_type dt , Err &xerr )
     {
         // normal step
         do_step_impl( system , in , dxdt , t , out , dt );
@@ -119,7 +116,7 @@ public:
 
     template< class System , class StateIn , class DerivIn , class StateOut >
     void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt ,
-            const time_type &t , StateOut &out , const time_type &dt )
+            time_type t , StateOut &out , time_type dt )
     {
         m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) );
 

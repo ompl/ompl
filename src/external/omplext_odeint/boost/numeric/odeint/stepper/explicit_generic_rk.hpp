@@ -31,9 +31,6 @@
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
-namespace mpl = boost::mpl;
-namespace fusion = boost::fusion;
-
 namespace boost {
 namespace numeric {
 namespace omplext_odeint {
@@ -154,7 +151,7 @@ public:
 
     template< class System , class StateIn , class DerivIn , class StateOut >
     void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt ,
-            const time_type &t , StateOut &out , const time_type &dt )
+            time_type t , StateOut &out , time_type dt )
     {
         m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) );
 

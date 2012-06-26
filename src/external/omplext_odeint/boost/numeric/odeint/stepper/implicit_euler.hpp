@@ -64,13 +64,13 @@ public:
     typedef stepper_tag stepper_category;
     typedef implicit_euler< ValueType , Resizer > stepper_type;
 
-    implicit_euler( const value_type epsilon = 1E-6 )
+    implicit_euler( value_type epsilon = 1E-6 )
     : m_epsilon( epsilon ) 
     { }
 
 
     template< class System >
-    void do_step( System system , state_type &x , value_type t , value_type dt )
+    void do_step( System system , state_type &x , time_type t , time_type dt )
     {
         typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
         typedef typename omplext_odeint::unwrap_reference< typename system_type::first_type >::type deriv_func_type;

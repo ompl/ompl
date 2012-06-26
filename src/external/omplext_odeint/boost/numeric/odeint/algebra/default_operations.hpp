@@ -44,7 +44,7 @@ struct default_operations
     {
         const Fac1 m_alpha1;
 
-        scale( const Fac1 &alpha1 ) : m_alpha1( alpha1 ) { }
+        scale( Fac1 alpha1 ) : m_alpha1( alpha1 ) { }
 
         template< class T1 >
         void operator()( T1 &t1 ) const
@@ -60,7 +60,7 @@ struct default_operations
     {
         const Fac1 m_alpha1;
 
-        scale_sum1( const Fac1 &alpha1 ) : m_alpha1( alpha1 ) { }
+        scale_sum1( Fac1 alpha1 ) : m_alpha1( alpha1 ) { }
 
         template< class T1 , class T2 >
         void operator()( T1 &t1 , const T2 &t2 ) const
@@ -78,7 +78,7 @@ struct default_operations
         const Fac1 m_alpha1;
         const Fac2 m_alpha2;
 
-        scale_sum2( const Fac1 &alpha1 , const Fac2 &alpha2 ) : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) { }
+        scale_sum2( Fac1 alpha1 , Fac2 alpha2 ) : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) { }
 
         template< class T1 , class T2 , class T3 >
         void operator()( T1 &t1 , const T2 &t2 , const T3 &t3) const
@@ -101,7 +101,7 @@ struct default_operations
         const Fac2 m_alpha2;
         const Fac3 m_alpha3;
 
-        scale_sum3( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 )
+        scale_sum3( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 >
@@ -122,7 +122,7 @@ struct default_operations
         const Fac3 m_alpha3;
         const Fac4 m_alpha4;
 
-        scale_sum4( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 )
+        scale_sum4( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 >
@@ -144,7 +144,7 @@ struct default_operations
         const Fac4 m_alpha4;
         const Fac5 m_alpha5;
 
-        scale_sum5( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 , const Fac5 &alpha5 )
+        scale_sum5( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 , Fac5 alpha5 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 >
@@ -167,7 +167,7 @@ struct default_operations
         const Fac5 m_alpha5;
         const Fac6 m_alpha6;
 
-        scale_sum6( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 , const Fac5 &alpha5 , const Fac6 &alpha6 )
+        scale_sum6( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 , Fac5 alpha5 , Fac6 alpha6 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ){ }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 >
@@ -191,8 +191,8 @@ struct default_operations
         const Fac6 m_alpha6;
         const Fac7 m_alpha7;
 
-        scale_sum7( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 )
+        scale_sum7( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 >
@@ -217,8 +217,8 @@ struct default_operations
         const Fac7 m_alpha7;
         const Fac8 m_alpha8;
 
-        scale_sum8( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 , const Fac8 &alpha8 )
+        scale_sum8( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 , Fac8 alpha8 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) , m_alpha8( alpha8 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 , class T9 >
@@ -243,8 +243,8 @@ struct default_operations
         const Fac8 m_alpha8;
         const Fac9 m_alpha9;
 
-        scale_sum9( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 , const Fac8 &alpha8 , const Fac9 &alpha9 )
+        scale_sum9( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 , Fac8 alpha8 , Fac9 alpha9 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) , m_alpha8( alpha8 ) , m_alpha9( alpha9 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 , class T9 , class T10 >
@@ -270,8 +270,8 @@ struct default_operations
         const Fac9 m_alpha9;
         const Fac10 m_alpha10;
 
-        scale_sum10( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 , const Fac8 &alpha8 , const Fac9 &alpha9 , const Fac10 &alpha10 )
+        scale_sum10( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 , Fac8 alpha8 , Fac9 alpha9 , Fac10 alpha10 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) , m_alpha8( alpha8 ) , m_alpha9( alpha9 ) , m_alpha10( alpha10 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 , class T9 , class T10 , class T11 >
@@ -299,9 +299,9 @@ struct default_operations
         const Fac10 m_alpha10;
         const Fac11 m_alpha11;
 
-        scale_sum11( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 , const Fac8 &alpha8 , const Fac9 &alpha9 ,
-                const Fac10 &alpha10 , const Fac11 &alpha11 )
+        scale_sum11( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 , Fac8 alpha8 , Fac9 alpha9 ,
+                Fac10 alpha10 , Fac11 alpha11 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) , m_alpha8( alpha8 ) , m_alpha9( alpha9 ) , m_alpha10( alpha10 ) , m_alpha11( alpha11 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 , class T9 , class T10 , class T11 , class T12 >
@@ -329,9 +329,9 @@ struct default_operations
         const Fac11 m_alpha11;
         const Fac12 m_alpha12;
 
-        scale_sum12( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 , const Fac8 &alpha8 , const Fac9 &alpha9 ,
-                const Fac10 &alpha10 , const Fac11 &alpha11 , const Fac12 &alpha12 )
+        scale_sum12( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 , Fac8 alpha8 , Fac9 alpha9 ,
+                Fac10 alpha10 , Fac11 alpha11 , Fac12 alpha12 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) , m_alpha8( alpha8 ) , m_alpha9( alpha9 ) , m_alpha10( alpha10 ) , m_alpha11( alpha11 ) , m_alpha12( alpha12 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 , class T9 , class T10 , class T11 , class T12 , class T13 >
@@ -360,9 +360,9 @@ struct default_operations
         const Fac12 m_alpha12;
         const Fac13 m_alpha13;
 
-        scale_sum13( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 , const Fac8 &alpha8 , const Fac9 &alpha9 ,
-                const Fac10 &alpha10 , const Fac11 &alpha11 , const Fac12 &alpha12 , const Fac13 &alpha13 )
+        scale_sum13( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 , Fac8 alpha8 , Fac9 alpha9 ,
+                Fac10 alpha10 , Fac11 alpha11 , Fac12 alpha12 , Fac13 alpha13 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) , m_alpha8( alpha8 ) , m_alpha9( alpha9 ) , m_alpha10( alpha10 ) , m_alpha11( alpha11 ) , m_alpha12( alpha12 ) , m_alpha13( alpha13 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 , class T9 , class T10 , class T11 , class T12 , class T13 , class T14 >
@@ -392,9 +392,9 @@ struct default_operations
         const Fac13 m_alpha13;
         const Fac14 m_alpha14;
 
-        scale_sum14( const Fac1 &alpha1 , const Fac2 &alpha2 , const Fac3 &alpha3 , const Fac4 &alpha4 ,
-                const Fac5 &alpha5 , const Fac6 &alpha6 , const Fac7 &alpha7 , const Fac8 &alpha8 , const Fac9 &alpha9 ,
-                const Fac10 &alpha10 , const Fac11 &alpha11 , const Fac12 &alpha12 , const Fac13 &alpha13 , const Fac14 &alpha14 )
+        scale_sum14( Fac1 alpha1 , Fac2 alpha2 , Fac3 alpha3 , Fac4 alpha4 ,
+                Fac5 alpha5 , Fac6 alpha6 , Fac7 alpha7 , Fac8 alpha8 , Fac9 alpha9 ,
+                Fac10 alpha10 , Fac11 alpha11 , Fac12 alpha12 , Fac13 alpha13 , Fac14 alpha14 )
         : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) , m_alpha3( alpha3 ) , m_alpha4( alpha4 ) , m_alpha5( alpha5 ) , m_alpha6( alpha6 ) , m_alpha7( alpha7 ) , m_alpha8( alpha8 ) , m_alpha9( alpha9 ) , m_alpha10( alpha10 ) , m_alpha11( alpha11 ) , m_alpha12( alpha12 ) , m_alpha13( alpha13 ) , m_alpha14( alpha14 ) { }
 
         template< class T1 , class T2 , class T3 , class T4 , class T5 , class T6 , class T7 , class T8 , class T9 , class T10 , class T11 , class T12 , class T13 , class T14 , class T15 >
@@ -412,7 +412,7 @@ struct default_operations
         const Fac1 m_alpha1;
         const Fac2 m_alpha2;
 
-        scale_sum_swap2( const Fac1 &alpha1 , const Fac2 &alpha2 ) : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) { }
+        scale_sum_swap2( Fac1 alpha1 , Fac2 alpha2 ) : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) { }
 
         template< class T1 , class T2 , class T3 >
         void operator()( T1 &t1 , T2 &t2 , const T3 &t3) const
@@ -435,7 +435,7 @@ struct default_operations
     {
         const Fac1 m_eps_abs , m_eps_rel , m_a_x , m_a_dxdt;
 
-        rel_error( const Fac1 &eps_abs , const Fac1 &eps_rel , const Fac1 &a_x , const Fac1 &a_dxdt )
+        rel_error( Fac1 eps_abs , Fac1 eps_rel , Fac1 a_x , Fac1 a_dxdt )
         : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) , m_a_x( a_x ) , m_a_dxdt( a_dxdt ) { }
 
 
@@ -462,7 +462,7 @@ struct default_operations
     {
         const Fac1 m_eps_abs , m_eps_rel ;
 
-        default_rel_error( const Fac1 &eps_abs , const Fac1 &eps_rel )
+        default_rel_error( Fac1 eps_abs , Fac1 eps_rel )
         : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) { }
 
 
@@ -491,7 +491,7 @@ struct default_operations
     struct maximum
     {
         template< class Fac1 , class Fac2 >
-        Value operator()( const Fac1 &t1 , const Fac2 &t2 ) const
+        Value operator()( Fac1 t1 , const Fac2 t2 ) const
         {
             using std::max;
             using std::abs;
@@ -511,7 +511,7 @@ struct default_operations
     {
         const Fac1 m_eps_abs , m_eps_rel;
 
-        rel_error_max( const Fac1 &eps_abs , const Fac1 &eps_rel )
+        rel_error_max( Fac1 eps_abs , Fac1 eps_rel )
         : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel )
         { }
 
@@ -531,7 +531,7 @@ struct default_operations
     {
         const Fac1 m_eps_abs , m_eps_rel , m_a_x , m_a_dxdt;
 
-        rel_error_max2( const Fac1 &eps_abs , const Fac1 &eps_rel , const Fac1 &a_x , const Fac1 &a_dxdt )
+        rel_error_max2( Fac1 eps_abs , Fac1 eps_rel , Fac1 a_x , Fac1 a_dxdt )
         : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) , m_a_x( a_x ) , m_a_dxdt( a_dxdt )
         { }
 
@@ -555,7 +555,7 @@ struct default_operations
     {
         const Fac1 m_eps_abs , m_eps_rel;
 
-        rel_error_l2( const Fac1 &eps_abs , const Fac1 &eps_rel )
+        rel_error_l2( Fac1 eps_abs , Fac1 eps_rel )
         : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel )
         { }
 
@@ -577,7 +577,7 @@ struct default_operations
     {
         const Fac1 m_eps_abs , m_eps_rel , m_a_x , m_a_dxdt;
 
-        rel_error_l2_2( const Fac1 &eps_abs , const Fac1 &eps_rel , const Fac1 &a_x , const Fac1 &a_dxdt )
+        rel_error_l2_2( Fac1 eps_abs , Fac1 eps_rel , Fac1 a_x , Fac1 a_dxdt )
         : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) , m_a_x( a_x ) , m_a_dxdt( a_dxdt )
         { }
 

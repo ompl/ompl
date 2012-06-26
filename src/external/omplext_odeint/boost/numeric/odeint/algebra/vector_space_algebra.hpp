@@ -38,7 +38,7 @@ template<>
 struct vector_space_reduce< double >
 {
   template< class Op >
-  double operator()( const double x , Op op , double init ) const
+  double operator()( double x , Op op , double init ) const
   {
       init = op( init , x );
       return init;
