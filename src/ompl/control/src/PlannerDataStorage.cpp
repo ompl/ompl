@@ -34,6 +34,12 @@
 
 /* Author: Ryan Luna */
 
+// PlannerDataStorage requires Boost version >= 1.44
+#include <boost/version.hpp>
+#if BOOST_VERSION < 104400
+#warning Boost version >= 1.44 is required for PlannerDataStorage classes
+#else
+
 #include "ompl/control/PlannerDataStorage.h"
 #include <boost/archive/archive_exception.hpp>
 
@@ -168,3 +174,5 @@ void ompl::control::PlannerDataStorage::store(const base::PlannerData& pd, std::
         logError("Failed to store PlannerData: %s", ae.what());
     }
 }
+
+#endif

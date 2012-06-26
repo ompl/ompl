@@ -37,6 +37,12 @@
 #ifndef OMPL_CONTROL_PLANNER_DATA_STORAGE_
 #define OMPL_CONTROL_PLANNER_DATA_STORAGE_
 
+// PlannerDataStorage requires Boost version >= 1.44
+#include <boost/version.hpp>
+#if BOOST_VERSION < 104400
+#warning Boost version >= 1.44 is required for PlannerDataStorage classes
+#else
+
 #include "ompl/base/PlannerDataStorage.h"
 #include "ompl/control/PlannerData.h"
 #include "ompl/control/SpaceInformation.h"
@@ -174,5 +180,7 @@ namespace ompl
         };
     }
 }
+
+#endif
 
 #endif
