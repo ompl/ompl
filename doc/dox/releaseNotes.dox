@@ -8,9 +8,9 @@
 - Moved solution paths from Goal to ProblemDefinition.
 - Implementation of PRM is now threaded (one thread for growing the roadmap, one thread for monitoring whether the problem is solved).
 - Improvements to sampleUniformNear() for SO3.
-- A TeamCity Continuous Integration server has been set up at http://teamcity.kavrakilab.org. This means not only that all code will automatically be compiled and tested on various platforms, but also that you can download fresh binary builds of OMPL.
+- A TeamCity Continuous Integration server has been set up at http://teamcity.kavrakilab.org.
 - The public repository, issue tracker, and downloads have been moved to Bitbucket. Sourceforge is being phased out for these services.
-- Reduced dependencies: GTest has been replaced by Boost Test, no longer need subversion and CVS to get some optional dependencies.
+- Reduced dependencies: GTest has been replaced by Boost Test, subversion and CVS are no longer needed to get some optional dependencies.
 - Bug fixes.
 
 \section release_0_10_2 OMPL 0.10.2 (March 21, 2012)
