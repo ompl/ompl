@@ -3,8 +3,10 @@
 
 \section release_0_11_0 OMPL 0.11.0 (X, 2012)
 - PlannerData now uses the Boost Graph Library (BGL). This offers much more flexibility and power in the inspection of planner data structures. Rather than storing only the data common to all planners, each planner can store its own (meta)data per vertex and edge in a graph. All graph algorithms that exists in BGL can be applied directly.
+- Added PlannerDataStorage object for serialization/deserialization of PlannerData
 - Logging mechanism is now using macros instead of the msg::Interface class. The file name and line number where a message originated is printed out for every message type.
-- Added serialization for controls.
+- Changed the return type for Planner::solve from bool to an enumeration (base::PlannerStatus).  This allows for more refined failure/success reporting.  A cast to bool exists for a quick success check.
+- Added serialization for controls and a signature for the control space.
 - Moved solution paths from Goal to ProblemDefinition.
 - Implementation of PRM is now threaded (one thread for growing the roadmap, one thread for monitoring whether the problem is solved).
 - Improvements to sampleUniformNear() for SO3.
