@@ -35,7 +35,7 @@ endif()
 
 
 # find the OMPL library
-find_library(OMPL_LIBRARY ompl
+find_library(OMPL_LIBRARIES ompl
     PATHS ${OMPL_LIB_PATH}
     PATH_SUFFIXES lib build/lib)
 # find the OMPL library

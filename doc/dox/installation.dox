@@ -89,7 +89,7 @@ yum install ompl
 - If you do not need to modify or see the source code of OMPL, then the easiest way to install OMPL is with the MacPorts \c port command:
 \code
 sudo port selfupdate
-sudo port install ompl +python27
+sudo port install boost +python27 \; install ompl +python27
 \endcode
 This is it. You are done. Demo programs can be found in \c /opt/local/share/ompl.
 - If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, and CMake. Optionally, you can also install the Open Dynamics Engine, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
