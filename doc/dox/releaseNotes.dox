@@ -1,7 +1,7 @@
 /**
 \page releaseNotes Release Notes
 
-\section release_0_11_0 OMPL 0.11.0 (X, 2012)
+\section release_0_11_0 OMPL 0.11.0 (June 30, 2012)
 - PlannerData now uses the Boost Graph Library (BGL). This offers much more flexibility and power in the inspection of planner data structures. Rather than storing only the data common to all planners, each planner can store its own (meta)data per vertex and edge in a graph. All graph algorithms that exists in BGL can be applied directly.
 - Added PlannerDataStorage object for serialization/deserialization of PlannerData
 - Logging mechanism is now using macros instead of the msg::Interface class. The file name and line number where a message originated is printed out for every message type.
