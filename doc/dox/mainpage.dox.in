@@ -35,8 +35,8 @@ href="https://bitbucket.org/ompl/ompl">Bitbucket</a>).
 <br>
 <small>Released: @OMPL_RELEASE_DATE@</small></a>
 
-<a data-toggle="modal" href="#myModal" class="btn btn-primary btn-primary">Click for citation,<br><small>if you use OMPL in your work</small></a>
-<div id="myModal" class="modal hide fade">
+<a data-toggle="modal" href="#citationModal" class="btn btn-primary btn-primary">Click for citation,<br><small>if you use OMPL in your work</small></a>
+<div id="citationModal" class="modal hide fade">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h3>OMPL Citation</h3>
