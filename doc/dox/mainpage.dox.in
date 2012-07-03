@@ -35,23 +35,7 @@ href="https://bitbucket.org/ompl/ompl">Bitbucket</a>).
 <br>
 <small>Released: @OMPL_RELEASE_DATE@</small></a>
 
-<a data-toggle="modal" href="#citationModal" class="btn btn-primary btn-primary">Click for citation,<br><small>if you use OMPL in your work</small></a>
-<div id="citationModal" class="modal hide fade">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h3>OMPL Citation</h3>
-    </div>
-    <div class="modal-body">
-        <p>If you use OMPL in your research, we kindly ask you to include the following citation in your publications:
-        <ul>
-        <li> Ioan A. Șucan, Mark Moll, Lydia E. Kavraki, <i>The Open Motion Planning Library,</i> IEEE Robotics & Automation Magazine, 2012. To appear. <a href="http://ompl.kavrakilab.org">http://ompl.kavrakilab.org</a></li>
-        </ul>
-    </p>
-</div>
-<div class="modal-footer">
-    <a href="#" class="btn" data-dismiss="modal" >Close</a>
-</div>
-</div>
+<a href="citations.html" class="btn btn-primary btn-primary">Click for citation,<br><small>if you use OMPL in your work</small></a>
 </p>
 
 <div class="fb-like" data-href="http://www.facebook.com/pages/OMPL/320018418039567" data-send="true" data-layout="button_count" data-width="450" data-show-faces="false"></div>
