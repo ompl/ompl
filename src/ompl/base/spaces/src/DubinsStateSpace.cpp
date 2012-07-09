@@ -47,9 +47,11 @@ namespace
 {
     const double twopi = 2. * boost::math::constants::pi<double>();
     const double DUBINS_EPS = 1e-6;
+    const double DUBINS_ZERO = -1e-9;
 
     inline double mod2pi(double x)
     {
+        if (x<0 && x>DUBINS_ZERO) return 0;
         return x - twopi * floor(x / twopi);
     }
 
@@ -57,11 +59,11 @@ namespace
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = 2. + d*d - 2.*(ca*cb +sa*sb - d*(sa - sb));
-        if (tmp >= 0.)
+        if (tmp >= DUBINS_ZERO)
         {
             double theta = atan2(cb - ca, d + sa - sb);
             double t = mod2pi(-alpha + theta);
-            double p = sqrt(tmp);
+            double p = sqrt(std::max(tmp, 0.));
             double q = mod2pi(beta - theta);
             assert(fabs(p*cos(alpha + t) - sa + sb - d) < DUBINS_EPS);
             assert(fabs(p*sin(alpha + t) + ca - cb) < DUBINS_EPS);
@@ -75,11 +77,11 @@ namespace
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = 2. + d*d - 2.*(ca*cb + sa*sb - d*(sb - sa));
-        if (tmp >= 0.)
+        if (tmp >= DUBINS_ZERO)
         {
             double theta = atan2(ca - cb, d - sa + sb);
             double t = mod2pi(alpha - theta);
-            double p = sqrt(tmp);
+            double p = sqrt(std::max(tmp, 0.));
             double q = mod2pi(-beta + theta);
             assert(fabs(p*cos(alpha - t) + sa - sb - d) < DUBINS_EPS);
             assert(fabs(p*sin(alpha - t) - ca + cb) < DUBINS_EPS);
@@ -93,9 +95,9 @@ namespace
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = d * d - 2. + 2. * (ca*cb + sa*sb - d * (sa + sb));
-        if (tmp >= 0.)
+        if (tmp >= DUBINS_ZERO)
         {
-            double p = sqrt(tmp);
+            double p = sqrt(std::max(tmp, 0.));
             double theta = atan2(ca + cb, d - sa - sb) - atan2(2., p);
             double t = mod2pi(alpha - theta);
             double q = mod2pi(beta - theta);
@@ -111,9 +113,9 @@ namespace
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = -2. + d * d + 2. * (ca*cb + sa*sb + d * (sa + sb));
-        if (tmp >= 0.)
+        if (tmp >= DUBINS_ZERO)
         {
-            double p = sqrt(tmp);
+            double p = sqrt(std::max(tmp, 0.));
             double theta = atan2(-ca - cb, d + sa + sb) - atan2(-2., p);
             double t = mod2pi(-alpha + theta);
             double q = mod2pi(-beta + theta);
@@ -131,7 +133,7 @@ namespace
         double tmp = .125 * (6. - d * d  + 2. * (ca*cb + sa*sb + d * (sa - sb)));
         if (fabs(tmp) < 1.)
         {
-            double p = acos(tmp);
+            double p = twopi - acos(tmp);
             double theta = atan2(ca - cb, d - sa + sb);
             double t = mod2pi(alpha - theta + .5 * p);
             double q = mod2pi(alpha - beta - t + p);
@@ -149,7 +151,7 @@ namespace
         double tmp = .125 * (6. - d * d  + 2. * (ca*cb + sa*sb - d * (sa - sb)));
         if (fabs(tmp) < 1.)
         {
-            double p = acos(tmp);
+            double p = twopi - acos(tmp);
             double theta = atan2(-ca + cb, d + sa - sb);
             double t = mod2pi(-alpha + theta + .5 * p);
             double q = mod2pi(beta - alpha - t + p);

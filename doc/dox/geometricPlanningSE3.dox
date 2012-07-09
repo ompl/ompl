@@ -54,9 +54,9 @@
    @skipline setStartAndGoalStates
    We can now try to solve the problem. This will also trigger a call to ompl::geometric::SimpleSetup::setup() and create a default instance of a planner,
    since we have not specified one. Furthermore, ompl::base::Planner::setup() is called, which in turn calls ompl::base::SpaceInformation::setup(). This chain
-   of calls will lead to computation of runtime parameters such as the state validity checking resolution. This call returns a boolean flag indicating whether
-   a solution has been found within the specified amount of time (in seconds).
-   @skipline bool solved
+   of calls will lead to computation of runtime parameters such as the state validity checking resolution. This call returns a value from ompl::base::PlannerStatus
+   which describes whether a solution has been found within the specified amount of time (in seconds).  If this value can be cast to true, a solution was found.
+   @skipline ob::PlannerStatus solved
    If a solution has been found, we can optionally simplify it and the display it
    @skip solved
    @until }
@@ -96,9 +96,10 @@
    @skipline setProblemDefinition
    Make sure all the settings for the space and planner are in order. This will also lead to the runtime computation of the state validity checking resolution.
    @skipline planner->setup
-   We can now try to solve the problem. This call returns a boolean flag indicating whether
-   a solution has been found within the specified amount of time (in seconds).
-   @skipline bool solved
+   We can now try to solve the problem. This call returns a value from ompl::base::PlannerStatus
+   which describes whether a solution has been found within the specified amount of time (in seconds).
+   If this value can be cast to true, a solution was found.
+   @skipline ob::PlannerStatus solved
    If a solution has been found, we display it. Simplification could be done, but we would need to create an instance of ompl::geometric::PathSimplifier.
    @skip solved
    @until }
