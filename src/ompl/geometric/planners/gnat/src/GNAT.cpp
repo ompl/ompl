@@ -35,7 +35,7 @@
 /* Author: Bryant Gipson, Mark Moll, Ioan Sucan */
 
 #include "ompl/geometric/planners/gnat/GNAT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
@@ -141,14 +141,14 @@ ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTermin
 
     if (tree_->size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    msg_.inform("Starting with %u states", tree_->size());
+    logInform("Starting with %u states", tree_->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -225,13 +225,13 @@ ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTermin
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
         solved = true;
     }
 
     si_->freeState(xstate);
 
-    msg_.inform("Created %u states", tree_->size());
+    logInform("Created %u states", tree_->size());
 
     return base::PlannerStatus(solved, approximate);
 }
@@ -254,5 +254,10 @@ void ompl::geometric::GNAT::getPlannerData(base::PlannerData &data) const
     std::vector<Motion*> motions;
     tree_->list(motions);
     for (std::vector<Motion*>::iterator it=motions.begin(); it!=motions.end(); it++)
-        data.recordEdge((*it)->parent ? (*it)->parent->state : NULL, (*it)->state);
+    {
+        if((*it)->parent == NULL)
+            data.addStartVertex(base::PlannerDataVertex((*it)->state,1));
+        else
+            data.addEdge(base::PlannerDataVertex((*it)->parent->state,1),base::PlannerDataVertex((*it)->state,1));
+    }
 }
