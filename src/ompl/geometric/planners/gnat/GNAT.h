@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Bryant Gipson, Mark Moll, Ioan Sucan */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_GNAT_GNAT_
 #define OMPL_GEOMETRIC_PLANNERS_GNAT_GNAT_
@@ -94,7 +94,7 @@ namespace ompl
 
                 virtual void setupTree(void);
 
-                virtual bool solve(const base::PlannerTerminationCondition &ptc);
+                virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
                 virtual void clear(void);
 

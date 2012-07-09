@@ -487,7 +487,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST','GNAT', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'pRRT', 'RRT', 'RRTConnect', 'pSBL', 'SBL']:
+        for planner in ['EST','GNAT', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'RRT', 'RRTConnect', 'SBL']:
             if planner!='PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""

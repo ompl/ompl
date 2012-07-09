@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Bryant Gipson, Mark Moll, Ioan Sucan */
 
 #include "ompl/geometric/planners/gnat/GNAT.h"
 #include "ompl/base/GoalSampleableRegion.h"
@@ -126,7 +126,7 @@ void ompl::geometric::GNAT::freeMemory(void)
     }
 }
 
-bool ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -142,7 +142,7 @@ bool ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
     if (tree_->size() == 0)
     {
         msg_.error("There are no valid initial states!");
-        return false;
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
@@ -233,7 +233,7 @@ bool ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
 
     msg_.inform("Created %u states", tree_->size());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 void ompl::geometric::GNAT::addMotion(Motion *motion)
