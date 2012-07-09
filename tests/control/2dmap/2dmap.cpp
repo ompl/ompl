@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "ControlPlanning"
+#include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
-#include <libgen.h>
 #include <iostream>
 
-#include "ompl/base/GoalState.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/control/planners/rrt/RRT.h"
@@ -49,6 +49,7 @@
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
+#include "../../BoostTestTeamCityReporter.h"
 #include "../../resources/config.h"
 #include "../../resources/environment2D.h"
 
@@ -244,7 +245,7 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            control::PathControl *path = static_cast<control::PathControl*>(goal->getSolutionPath().get());
+            control::PathControl *path = static_cast<control::PathControl*>(pdef->getSolutionPath().get());
             path->interpolate();
 
             if (!path->check())
@@ -452,7 +453,7 @@ protected:
     }
 };
 
-class PlanTest : public testing::Test
+class PlanTest
 {
 public:
 
@@ -484,31 +485,23 @@ protected:
     PlanTest(void)
     {
         verbose = true;
-    }
-
-    void SetUp(void)
-    {
-        /* load environment */
         boost::filesystem::path path(TEST_RESOURCES_DIR);
         path = path / "env1.txt";
         loadEnvironment(path.string().c_str(), env);
 
         if (env.width * env.height == 0)
         {
-            std::cerr << "The environment has a 0 dimension. Cannot continue" << std::endl;
-            FAIL();
+            BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
         }
-    }
-
-    void TearDown(void)
-    {
     }
 
     Environment2D env;
     bool          verbose;
 };
 
-TEST_F(PlanTest, controlRRT)
+BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
+
+BOOST_AUTO_TEST_CASE(controlRRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -518,12 +511,12 @@ TEST_F(PlanTest, controlRRT)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, controlRRTIntermediate)
+BOOST_AUTO_TEST_CASE(controlRRTIntermediate)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -533,12 +526,12 @@ TEST_F(PlanTest, controlRRTIntermediate)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, controlKPIECE)
+BOOST_AUTO_TEST_CASE(controlKPIECE)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -548,12 +541,12 @@ TEST_F(PlanTest, controlKPIECE)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, controlEST)
+BOOST_AUTO_TEST_CASE(controlEST)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -563,12 +556,12 @@ TEST_F(PlanTest, controlEST)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, controlSyclopRRT)
+BOOST_AUTO_TEST_CASE(controlSyclopRRT)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -578,12 +571,12 @@ TEST_F(PlanTest, controlSyclopRRT)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-TEST_F(PlanTest, controlSyclopEST)
+BOOST_AUTO_TEST_CASE(controlSyclopEST)
 {
     double success    = 0.0;
     double avgruntime = 0.0;
@@ -593,14 +586,9 @@ TEST_F(PlanTest, controlSyclopEST)
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
-    EXPECT_TRUE(success >= 99.0);
-    EXPECT_TRUE(avgruntime < 0.05);
-    EXPECT_TRUE(avglength < 100.0);
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
 }
 
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+BOOST_AUTO_TEST_SUITE_END()

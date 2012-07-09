@@ -87,6 +87,10 @@
     ...
     planner->as<geometric::KPIECE1>()->setProjectionEvaluator("myProjection");
     \endcode
+    The last two lines can be combined into one if you register \c MyProjection as the default projection for your space:
+    \code
+    space->registerDefaultProjection(base::ProjectionEvaluatorPtr(new MyProjection(space)));
+    \endcode
 
     For more reading on this topic, please see:
     \n

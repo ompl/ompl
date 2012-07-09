@@ -187,16 +187,44 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
             /** \brief If the user desires, the roadmap can be
-                improved for a specified amount of time. The solve()
+                improved for the given time (seconds). The solve()
                 method will also improve the roadmap, as needed.*/
             virtual void growRoadmap(double growTime);
 
-            /** \brief Attempt to connect disjoint components in the
-                roadmap using random bounding motions (the PRM
-                expansion step) */
+            /** \brief If the user desires, the roadmap can be
+                improved until a given condition is true. The solve()
+                method will also improve the roadmap, as needed.*/
+            virtual void growRoadmap(const base::PlannerTerminationCondition &ptc);
+
+            /** \brief Attempt to connect disjoint components in the roadmap
+                using random bouncing motions (the PRM expansion step) for the
+                given time (seconds). */
             virtual void expandRoadmap(double expandTime);
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            /** \brief Attempt to connect disjoint components in the roadmap
+                using random bouncing motions (the PRM expansion step) until the
+                given condition evaluates true. */
+            virtual void expandRoadmap(const base::PlannerTerminationCondition &ptc);
+
+            /** \brief Function that can solve the motion planning
+                problem. This function can be called multiple times on
+                the same problem, without calling clear() in
+                between. This allows the planner to continue work for
+                more time on an unsolved problem, for example. Start
+                and goal states from the currently specified
+                ProblemDefinition are cached. This means that between
+                calls to solve(), input states are only added, not
+                removed. When using PRM as a multi-query planner, the
+                input states should be however cleared, without
+                clearing the roadmap itself. This can be done using
+                the clearQuery() function. */
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+
+            /** \brief Clear the query previously loaded from the ProblemDefinition.
+                Subsequent calls to solve() will reuse the previously computed roadmap,
+                but will clear the set of input states constructed by the previous call to solve().
+                This enables multi-query functionality for PRM. */
+            void clearQuery(void);
 
             virtual void clear(void);
 
@@ -246,21 +274,29 @@ namespace ompl
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
 
-            /** \brief Randomly sample the state space, add and connect milestones in the roadmap. Stop this process when the termination condition \e ptc returns true or when any of the \e start milestones are in the same connected component as any of the \e goal milestones. Use \e workState as temporary memory. */
-            void growRoadmap(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, const base::PlannerTerminationCondition &ptc, base::State *workState);
+            /** \brief Randomly sample the state space, add and connect milestones
+                 in the roadmap. Stop this process when the termination condition
+                 \e ptc returns true.  Use \e workState as temporary memory. */
+            void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
 
             /** \brief Attempt to connect disjoint components in the
                 roadmap using random bounding motions (the PRM
                 expansion step) */
-            void expandRoadmap(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, const base::PlannerTerminationCondition &ptc, std::vector<base::State*> &workStates);
+            void expandRoadmap(const base::PlannerTerminationCondition &ptc, std::vector<base::State*> &workStates);
 
-            /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If \e endpoints is not null, that pair is recorded. */
-            bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, std::pair<Vertex, Vertex> *endpoints = NULL);
+            /** Thread that checks for solution */
+            void checkForSolution (const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
+
+            /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
+            bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, base::PathPtr &solution);
+
+            /** \brief Returns the value of the addedSolution_ member. */
+            bool addedNewSolution (void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            virtual base::PathPtr constructSolution(const Vertex start, const Vertex goal);
+            virtual base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
 
-            /** \brief Flag indicating whether the default strategy is the Star trategy or not */
+            /** \brief Flag indicating whether the default connection strategy is the Star strategy */
             bool                                                   starStrategy_;
 
             /** \brief Sampler user for generating valid samples in the state space */
@@ -280,12 +316,6 @@ namespace ompl
 
             /** \brief Array of goal milestones */
             std::vector<Vertex>                                    goalM_;
-
-            /** \brief Storage for approximate solutions */
-            base::PathPtr                                          approxsol_;
-
-            /** \brief The length of the approximate solution */
-            double                                                 approxlen_;
 
             /** \brief Access to the internal base::state at each Vertex */
             boost::property_map<Graph, vertex_state_t>::type       stateProperty_;
@@ -324,6 +354,13 @@ namespace ompl
 
             /** \brief Random number generator */
             RNG                                                    rng_;
+
+            /** \brief A flag indicating that a solution has been added during solve() */
+            bool                                                   addedSolution_;
+
+            /** \brief Mutex to guard access to the Graph member (g_) */
+            mutable boost::mutex                                   graphMutex_;
+
         };
 
     }

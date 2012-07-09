@@ -34,15 +34,32 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "Random"
+#include <boost/test/unit_test.hpp>
+
 #include "ompl/util/RandomNumbers.h"
+#include "../../BoostTestTeamCityReporter.h"
 #include <cmath>
 #include <vector>
+#include <cstdio>
 
 using namespace ompl;
 
+struct SetSeedTo1
+{
+    SetSeedTo1(void)
+    {
+	ompl::RNG::setSeed(1);
+    }
+};
+// make sure the test is deterministic
+static SetSeedTo1 proxy;
+
+// define a convenience macro
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
+
 /* Just test we get some random values */
-TEST(Random, DifferentSeeds)
+BOOST_AUTO_TEST_CASE(DifferentSeeds)
 {
     RNG r1, r2, r3, r4;
     int same = 0;
@@ -67,11 +84,11 @@ TEST(Random, DifferentSeeds)
         if (v4 == r4.uniformInt(0, 100))
             same++;
     }
-    EXPECT_FALSE(eq > N / 2);
-    EXPECT_TRUE(same < 2 * N);
+    BOOST_CHECK(!(eq > N / 2));
+    BOOST_CHECK(same < 2 * N);
 }
 
-TEST(Random, ValidRangeInts)
+BOOST_AUTO_TEST_CASE(ValidRangeInts)
 {
     RNG r;
     const int N = 100;
@@ -80,19 +97,19 @@ TEST(Random, ValidRangeInts)
     for (int i = 0 ; i < V ; ++i)
     {
         int v = r.uniformInt(0, N);
-        EXPECT_TRUE(v >= 0);
-        EXPECT_TRUE(v <= N);
+        BOOST_CHECK(v >= 0);
+        BOOST_CHECK(v <= N);
         c[v]++;
     }
 
     for (unsigned int i = 0 ; i < c.size() ; ++i)
-        EXPECT_TRUE(c[i] > V/N/3);
+        BOOST_CHECK(c[i] > V/N/3);
 }
 
 static const double NUM_INT_SAMPLES =  1000000;
 static const double NUM_REAL_SAMPLES = 1000000;
 /* The following widening factor is multiplied by the standard error of the mean
- * in errUniformInt() and errUniformReal() to obtain a reasonable range to pass to EXPECT_NEAR().
+ * in errUniformInt() and errUniformReal() to obtain a reasonable range to pass to BOOST_CHECK_CLOSE().
  * 4 sigma events should only happen "twice a lifetime" on average, so this should be lienient enough. */
 static const double STDERR_WIDENING_FACTOR = 4.0;
 
@@ -115,19 +132,19 @@ static double errUniformInt(int s, int l)
     const int length = l-s+1;
     //standard error of mean for discrete uniform distribution over {s,s+1,...,l}
     const double stdErr = sqrt((length*length-1)/(12.0*NUM_INT_SAMPLES));
-    return stdErr * STDERR_WIDENING_FACTOR;
+    return stdErr * STDERR_WIDENING_FACTOR + std::numeric_limits<double>::epsilon();
 }
 
-TEST(Random, AvgInts)
+BOOST_AUTO_TEST_CASE(AvgInts)
 {
-    EXPECT_NEAR(avgInts(0, 1), 0.5, errUniformInt(0,1));
-    EXPECT_NEAR(avgInts(0, 10), 5.0, errUniformInt(0,10));
-    EXPECT_NEAR(avgInts(-1, 1), 0.0, errUniformInt(-1,1));
-    EXPECT_NEAR(avgInts(-1, 0), -0.5, errUniformInt(-1,0));
-    EXPECT_NEAR(avgInts(-2, 4), 1.0, errUniformInt(-2,4));
-    EXPECT_NEAR(avgInts(2, 4), 3.0, errUniformInt(2,4));
-    EXPECT_NEAR(avgInts(-6, -2), -4.0, errUniformInt(-6,-2));
-    EXPECT_NEAR(avgIntsN(0, 0, 1000), 0.0, errUniformInt(0,0));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(0, 1), 0.5, errUniformInt(0,1));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(0, 10), 5.0, errUniformInt(0,10));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-1, 1), 0.0, errUniformInt(-1,1));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-1, 0), -0.5, errUniformInt(-1,0));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-2, 4), 1.0, errUniformInt(-2,4));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(2, 4), 3.0, errUniformInt(2,4));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-6, -2), -4.0, errUniformInt(-6,-2));
+    BOOST_OMPL_EXPECT_NEAR(avgIntsN(0, 0, 1000), 0.0, errUniformInt(0,0));
 }
 
 static double avgRealsN(double s, double l, const int N)
@@ -148,20 +165,20 @@ static double errUniformReal(double s, double l)
 {
     //standard error of mean for continuous uniform distribution over real interval [s,l].
     const double stdErr = (l-s)*sqrt(1.0/(12.0*NUM_REAL_SAMPLES));
-    return stdErr * STDERR_WIDENING_FACTOR;
+    return stdErr * STDERR_WIDENING_FACTOR + std::numeric_limits<double>::epsilon();
 }
 
-TEST(Random, AvgReals)
+BOOST_AUTO_TEST_CASE(AvgReals)
 {
-    EXPECT_NEAR(avgReals(-0.1, 0.3), 0.1, errUniformReal(-0.1,0.3));
-    EXPECT_NEAR(avgReals(0, 1), 0.5, errUniformReal(0,1));
-    EXPECT_NEAR(avgReals(0, 10), 5.0, errUniformReal(0,10));
-    EXPECT_NEAR(avgReals(-1, 1), 0.0, errUniformReal(-1,1));
-    EXPECT_NEAR(avgReals(-1, 0), -0.5, errUniformReal(-1,0));
-    EXPECT_NEAR(avgReals(-2, 4), 1.0, errUniformReal(-2,4));
-    EXPECT_NEAR(avgReals(2, 4), 3.0, errUniformReal(2,4));
-    EXPECT_NEAR(avgReals(-6, -2), -4.0, errUniformReal(-6,-2));
-    EXPECT_NEAR(avgRealsN(0, 0, 1000), 0.0, errUniformReal(0,0));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-0.1, 0.3), 0.1, errUniformReal(-0.1,0.3));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(0, 1), 0.5, errUniformReal(0,1));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(0, 10), 5.0, errUniformReal(0,10));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-1, 1), 0.0, errUniformReal(-1,1));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-1, 0), -0.5, errUniformReal(-1,0));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-2, 4), 1.0, errUniformReal(-2,4));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(2, 4), 3.0, errUniformReal(2,4));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-6, -2), -4.0, errUniformReal(-6,-2));
+    BOOST_OMPL_EXPECT_NEAR(avgRealsN(0, 0, 1000), 0.0, errUniformReal(0,0));
 }
 
 static double avgNormalRealsN(double mean, double stddev, const int N)
@@ -184,14 +201,7 @@ static double errNormal(double stddev)
     return STDERR_WIDENING_FACTOR * stddev / sqrt(NUM_REAL_SAMPLES);
 }
 
-TEST(Random, NormalReals)
+BOOST_AUTO_TEST_CASE(NormalReals)
 {
-    EXPECT_NEAR(avgNormalReals(10.0, 1.0), 10.0, errNormal(1.0));
-}
-
-int main(int argc, char **argv)
-{
-    ompl::RNG::setSeed(1);
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    BOOST_OMPL_EXPECT_NEAR(avgNormalReals(10.0, 1.0), 10.0, errNormal(1.0));
 }

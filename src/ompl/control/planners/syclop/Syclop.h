@@ -87,7 +87,7 @@ namespace ompl
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
             typedef boost::function<double(int, int)> EdgeCostFactorFn;
 
-            /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start region and end at the end region.  Default is \f$A^\ast$\f search. */
+            /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start region and end at the end region.  Default is \f$A^\ast\f$ search. */
             typedef boost::function<void(int, int, std::vector<int>&)> LeadComputeFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
@@ -127,7 +127,7 @@ namespace ompl
 
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
                 Returns true if solution was found. */
-            virtual bool solve(const base::PlannerTerminationCondition& ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc);
             /// @}
 
             /// @name Tunable parameters

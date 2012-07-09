@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <ompl/control/SpaceInformation.h>
-#include <ompl/base/GoalState.h>
+#include <ompl/base/goals/GoalState.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
@@ -185,13 +185,13 @@ void plan(void)
     pdef->print(std::cout);
 
     // attempt to solve the problem within one second of planning time
-    bool solved = planner->solve(10.0);
+    ob::PlannerStatus solved = planner->solve(10.0);
 
     if (solved)
     {
         // get the goal representation from the problem definition (not the same as the goal state)
         // and inquire about the found path
-        ob::PathPtr path = pdef->getGoal()->getSolutionPath();
+        ob::PathPtr path = pdef->getSolutionPath();
         std::cout << "Found solution:" << std::endl;
 
         // print the path to screen
@@ -250,7 +250,7 @@ void planWithSimpleSetup(void)
     ss.setStartAndGoalStates(start, goal, 0.05);
 
     // attempt to solve the problem within one second of planning time
-    bool solved = ss.solve(10.0);
+    ob::PlannerStatus solved = ss.solve(10.0);
 
     if (solved)
     {

@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,60 +34,70 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_STATE_
-#define OMPL_BASE_GOAL_STATE_
+#ifndef OMPL_BASE_GOALS_GOAL_STATES_
+#define OMPL_BASE_GOALS_GOAL_STATES_
 
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/ScopedState.h"
+#include <vector>
 
 namespace ompl
 {
-
     namespace base
     {
 
-        /** \brief Definition of a goal state */
-        class GoalState : public GoalSampleableRegion
+        /** \brief Definition of a set of goal states */
+        class GoalStates : public GoalSampleableRegion
         {
         public:
 
-            /** \brief Create a goal representation that is in fact a state  */
-            GoalState(const SpaceInformationPtr &si) : GoalSampleableRegion(si), state_(NULL)
+            /** \brief Create a goal representation that is in fact a set of states  */
+            GoalStates(const SpaceInformationPtr &si) : GoalSampleableRegion(si), samplePosition_(0)
             {
-                type_ = GOAL_STATE;
+                type_ = GOAL_STATES;
             }
 
-            virtual ~GoalState(void);
+            virtual ~GoalStates(void);
 
-            /** \brief Sample a state in the goal region */
             virtual void sampleGoal(State *st) const;
 
-            /** \brief Return the maximum number of samples that can be asked for before repeating */
             virtual unsigned int maxSampleCount(void) const;
 
-            /** \brief Compute the distance to the goal (heuristic) */
             virtual double distanceGoal(const State *st) const;
 
-            /** \brief Print information about the goal data structure
-                to a stream */
             virtual void print(std::ostream &out = std::cout) const;
 
-            /** \brief Set the goal state */
-            void setState(const State* st);
+            /** \brief Add a goal state */
+            virtual void addState(const State* st);
 
-            /** \brief Set the goal state */
-            void setState(const ScopedState<> &st);
+            /** \brief Add a goal state (calls the previous definition of addState())*/
+            void addState(const ScopedState<> &st);
 
-            /** \brief Get the goal state */
-            const State* getState(void) const;
+            /** \brief Clear all goal states */
+            virtual void clear(void);
 
-            /** \brief Get the goal state */
-            State* getState(void);
+            /** \brief Check if there are any states in this goal region */
+            virtual bool hasStates(void) const;
+
+            /** \brief Return a pointer to the indexth state in the state list */
+            virtual const State* getState(unsigned int index) const;
+
+            /** \brief Return the number of valid goal states */
+            virtual std::size_t getStateCount(void) const;
 
         protected:
 
-            /** \brief The goal state */
-            State *state_;
+            /** \brief The goal states. Only ones that are valid are considered by the motion planner. */
+            std::vector<State*> states_;
+
+        private:
+
+            /** \brief The index of the next sample to be returned  */
+            mutable unsigned int samplePosition_;
+
+            /** \brief Free allocated memory */
+            void freeMemory(void);
+
         };
 
     }

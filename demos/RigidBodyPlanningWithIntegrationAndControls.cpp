@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <ompl/control/SpaceInformation.h>
-#include <ompl/base/GoalState.h>
+#include <ompl/base/goals/GoalState.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
@@ -244,7 +244,7 @@ void planWithSimpleSetup(void)
     static_cast<DemoStatePropagator*>(ss.getStatePropagator().get())->setIntegrationTimeStep(ss.getSpaceInformation()->getPropagationStepSize());
 
     /// attempt to solve the problem within one second of planning time
-    bool solved = ss.solve(10.0);
+    ob::PlannerStatus solved = ss.solve(10.0);
 
     if (solved)
     {

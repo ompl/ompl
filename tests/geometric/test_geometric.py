@@ -146,7 +146,7 @@ class TestPlanner(object):
             if show:
                 print('Found solution in %f seconds!' % elapsed)
 
-            path = goal.getSolutionPath()
+            path = pdef.getSolutionPath()
             sm = og.PathSimplifier(si)
             startTime = clock()
             sm.reduceVertices(path)

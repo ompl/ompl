@@ -35,11 +35,97 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/ProblemDefinition.h"
-#include "ompl/base/GoalState.h"
-#include "ompl/base/GoalStates.h"
+#include "ompl/base/goals/GoalState.h"
+#include "ompl/base/goals/GoalStates.h"
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/PathControl.h"
 #include <sstream>
+#include <algorithm>
+
+#include <boost/thread/mutex.hpp>
+
+/// @cond IGNORE
+namespace ompl
+{
+    namespace base
+    {
+
+        class ProblemDefinition::PlannerSolutionSet
+        {
+        public:
+
+            PlannerSolutionSet(void)
+            {
+            }
+
+            void add(const PlannerSolution &s)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                int index = solutions_.size();
+                solutions_.push_back(s);
+                solutions_.back().index_ = index;
+                std::sort(solutions_.begin(), solutions_.end());
+            }
+
+            void clear(void)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                solutions_.clear();
+            }
+
+            std::vector<PlannerSolution> getSolutions(void)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                std::vector<PlannerSolution> copy = solutions_;
+                return copy;
+            }
+
+            bool isApproximate(void)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                bool result = false;
+                if (!solutions_.empty())
+                    result = solutions_[0].approximate_;
+                return result;
+            }
+
+            double getDifference(void)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                double diff = -1.0;
+                if (!solutions_.empty())
+                    diff = solutions_[0].difference_;
+                return diff;
+            }
+
+            PathPtr getTopSolution(void)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                PathPtr copy;
+                if (!solutions_.empty())
+                    copy = solutions_[0].path_;
+                return copy;
+            }
+
+            std::size_t getSolutionCount(void)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                std::size_t result = solutions_.size();
+                return result;
+            }
+
+        private:
+
+            std::vector<PlannerSolution> solutions_;
+            boost::mutex                 lock_;
+        };
+    }
+}
+/// @endcond
+
+ompl::base::ProblemDefinition::ProblemDefinition(const SpaceInformationPtr &si) : si_(si), solutions_(new PlannerSolutionSet())
+{
+}
 
 void ompl::base::ProblemDefinition::setStartAndGoalStates(const State *start, const State *goal, const double threshold)
 {
@@ -79,17 +165,17 @@ bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double di
     {
         v = si_->isValid(state);
         if (!v)
-            msg_.debug("%s state is not valid", start ? "Start" : "Goal");
+            logDebug("%s state is not valid", start ? "Start" : "Goal");
     }
     else
-        msg_.debug("%s state is not within space bounds", start ? "Start" : "Goal");
+        logDebug("%s state is not within space bounds", start ? "Start" : "Goal");
 
     if (!b || !v)
     {
         std::stringstream ss;
         si_->printState(state, ss);
         ss << " within distance " << dist;
-        msg_.debug("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
+        logDebug("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
 
         State *temp = si_->allocState();
         if (si_->searchValidNearby(temp, state, dist, attempts))
@@ -98,7 +184,7 @@ bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double di
             result = true;
         }
         else
-            msg_.warn("Unable to fix %s state", start ? "start" : "goal");
+            logWarn("Unable to fix %s state", start ? "start" : "goal");
         si_->freeState(temp);
     }
 
@@ -247,7 +333,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
 {
     if (!goal_)
     {
-        msg_.error("Goal undefined");
+        logError("Goal undefined");
         return false;
     }
 
@@ -268,11 +354,53 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
         }
         else
         {
-            msg_.error("Initial state is in collision!");
+            logError("Initial state is in collision!");
         }
     }
 
     return false;
+}
+
+bool ompl::base::ProblemDefinition::hasSolution(void) const
+{
+    return solutions_->getSolutionCount() > 0;
+}
+
+std::size_t ompl::base::ProblemDefinition::getSolutionCount(void) const
+{
+    return solutions_->getSolutionCount();
+}
+
+ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath(void) const
+{
+    return solutions_->getTopSolution();
+}
+
+void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference) const
+{
+    if (approximate)
+        logWarn("Adding approximate solution");
+    solutions_->add(PlannerSolution(path, approximate, difference));
+}
+
+bool ompl::base::ProblemDefinition::hasApproximateSolution(void) const
+{
+    return solutions_->isApproximate();
+}
+
+double ompl::base::ProblemDefinition::getSolutionDifference(void) const
+{
+    return solutions_->getDifference();
+}
+
+std::vector<ompl::base::PlannerSolution> ompl::base::ProblemDefinition::getSolutions(void) const
+{
+    return solutions_->getSolutions();
+}
+
+void ompl::base::ProblemDefinition::clearSolutionPaths(void) const
+{
+    solutions_->clear();
 }
 
 void ompl::base::ProblemDefinition::print(std::ostream &out) const
@@ -284,4 +412,5 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
         goal_->print(out);
     else
         out << "Goal = NULL" << std::endl;
+    out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }

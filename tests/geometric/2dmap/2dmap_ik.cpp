@@ -34,16 +34,18 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "GeometricPlanningIK"
+#include <boost/test/unit_test.hpp>
 #include "2DmapSetup.h"
 #include <iostream>
 
 #include "ompl/geometric/ik/GAIK.h"
 #include "ompl/util/Time.h"
+#include "../../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
-TEST(GAIK, Simple)
+BOOST_AUTO_TEST_CASE(SimpleIK)
 {
     /* load environment */
     Environment2D env;
@@ -53,8 +55,7 @@ TEST(GAIK, Simple)
 
     if (env.width * env.height == 0)
     {
-        std::cerr << "The environment has a 0 dimension. Cannot continue" << std::endl;
-        FAIL();
+        BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
     }
 
     /* instantiate space information */
@@ -80,16 +81,9 @@ TEST(GAIK, Simple)
         bool solved = gaik.solve(1.0, goal, found.get());
         ompl::time::duration elapsed = ompl::time::now() - startTime;
         time += ompl::time::seconds(elapsed);
-        EXPECT_TRUE(solved);
-        EXPECT_TRUE(si->distance(found.get(), gstate.get()) < 1e-3);
+        BOOST_CHECK(solved);
+        BOOST_CHECK(si->distance(found.get(), gstate.get()) < 1e-3);
     }
     time = time / (double)N;
-    EXPECT_TRUE(time < 0.01);
-}
-
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    BOOST_CHECK(time < 0.01);
 }

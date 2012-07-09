@@ -23,7 +23,8 @@
    @section control_spaces Control Spaces
 
    This set of control spaces included in in OMPL:
-   - R<sup>n</sup> (ompl::control::RealVectorControlSpace).
+   - R<sup>n</sup> (ompl::control::RealVectorControlSpace). 
+   - Discrete (ompl::control::DiscreteControlSpace).
    - ODE (ompl::control::OpenDEControlSpace). This is an extension that is built only if the <a href="http://sourceforge.net/projects/opende/">Open Dynamics Engine</a> library is detected.
 .
 */

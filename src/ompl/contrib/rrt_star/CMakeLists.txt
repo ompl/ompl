@@ -6,7 +6,5 @@ if(OMPL_CONTRIB_RRTSTAR_CONTRIB)
     file(GLOB_RECURSE OMPL_CONTRIB_RRTSTAR_CONTRIB_SOURCE_CODE src/*.cpp)
     set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_CONTRIB_RRTSTAR_CONTRIB_SOURCE_CODE} PARENT_SCOPE)
 
-    if(OMPL_BUILD_TESTS)
-        add_ompl_test(test_rrt_star tests/test_rrt_star.cpp)
-    endif()
+    add_ompl_test(test_rrt_star tests/test_rrt_star.cpp)
 endif()

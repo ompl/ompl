@@ -73,7 +73,7 @@ namespace ompl
             virtual ~RRT(void);
 
             /** \brief Continue solving for some amount of time. Return true if solution was found. */
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Clear datastructures. Call this function if the
                 input data to the planner has changed and you do not
@@ -187,6 +187,9 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                                            rng_;
+
+            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            Motion                                         *lastGoalMotion_;
         };
 
     }

@@ -35,7 +35,7 @@
 /* Author: Matt Maly */
 
 #include "ompl/control/planners/syclop/Syclop.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/ProblemDefinition.h"
 #include <limits>
 #include <stack>
@@ -64,7 +64,7 @@ void ompl::control::Syclop::clear(void)
     goalRegions_.clear();
 }
 
-bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
+ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
 {
     checkValidity();
     if (!graphReady_)
@@ -85,8 +85,8 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
     }
     if (startRegions_.empty())
     {
-        msg_.error("There are no valid start states");
-        return false;
+        logError("There are no valid start states");
+        return base::PlannerStatus::INVALID_START;
     }
 
     //We need at least one valid goal sample so that we can find the goal region
@@ -96,12 +96,12 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
             goalRegions_.insert(decomp_->locateRegion(g));
         else
         {
-            msg_.error("Unable to sample a valid goal state");
-            return false;
+            logError("Unable to sample a valid goal state");
+            return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
-    msg_.inform("Starting with %u states", numMotions_);
+    logInform("Starting with %u states", numMotions_);
 
     std::vector<Motion*> newMotions;
     const Motion* solution = NULL;
@@ -194,10 +194,10 @@ bool ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), !solved, goalDist);
+        pdef_->addSolutionPath(base::PathPtr(path), !solved, goalDist);
         addedSolution = true;
     }
-    return addedSolution;
+    return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::control::Syclop::setLeadComputeFn(const LeadComputeFn& compute)

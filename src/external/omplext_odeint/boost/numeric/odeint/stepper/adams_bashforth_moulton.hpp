@@ -19,13 +19,11 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_ADAMS_BASHFORTH_MOULTON_HPP_INCLUDED
 
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
-//#include <omplext_odeint/boost/numeric/odeint/util/size_adjuster.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
@@ -33,9 +31,6 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/adams_bashforth.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/adams_moulton.hpp>
 
-/*
- * # Introduce the number of states
- */
 
 namespace boost {
 namespace numeric {
@@ -44,11 +39,6 @@ namespace omplext_odeint {
 
 /*
  * Static Adams-Bashforth-Moulton multistep-solver without step size control and without dense output.
- *
- * # Define the number of steps
- * # Define the explicit method
- * # Define the implicit method
- * # Bring the explicit method and the implicit method together
  */
 template<
 size_t Steps ,
@@ -84,7 +74,8 @@ public :
     typedef unsigned short order_type;
     static const order_type order_value = steps + 1;
 
-    adams_bashforth_moulton( ) : m_adams_moulton( m_adams_bashforth.algebra() )
+    adams_bashforth_moulton( void )
+    : m_adams_bashforth() , m_adams_moulton( m_adams_bashforth.algebra() )
     { }
 
     adams_bashforth_moulton( const algebra_type &algebra )
@@ -94,28 +85,28 @@ public :
     order_type order( void ) const { return order_value; }
 
     template< class System , class StateInOut >
-    void do_step( System system , StateInOut &x , const time_type &t , const time_type &dt )
+    void do_step( System system , StateInOut &x , time_type t , time_type dt )
     {
         m_adams_bashforth.do_step( system , x , t , dt );
         m_adams_moulton.do_step( system , x , t , dt , m_adams_bashforth.step_storage() );
     }
 
     template< class System , class StateInOut >
-    void do_step( System system , const StateInOut &x , const time_type &t , const time_type &dt )
+    void do_step( System system , const StateInOut &x , time_type t , time_type dt )
     {
         m_adams_bashforth.do_step( system , x , t , dt );
         m_adams_moulton.do_step( system , x , t , dt , m_adams_bashforth.step_storage() );
     }
 
     template< class System , class StateIn , class StateOut >
-    void do_step( System system , const StateIn &in , const time_type &t , const StateOut &out , const time_type &dt )
+    void do_step( System system , const StateIn &in , time_type t , const StateOut &out , time_type dt )
     {
         m_adams_bashforth.do_step( system , in , t , out , dt );
         m_adams_moulton.do_step( system , out , t , dt , m_adams_bashforth.step_storage() );
     }
 
     template< class System , class StateIn , class StateOut >
-    void do_step( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt )
+    void do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt )
     {
         m_adams_bashforth.do_step( system , in , t , out , dt );
         m_adams_moulton.do_step( system , out , t , dt , m_adams_bashforth.step_storage() );
@@ -130,13 +121,13 @@ public :
 
 
     template< class ExplicitStepper , class System , class StateIn >
-    void initialize( ExplicitStepper explicit_stepper , System system , StateIn &x , time_type &t , const time_type &dt )
+    void initialize( ExplicitStepper explicit_stepper , System system , StateIn &x , time_type &t , time_type dt )
     {
         m_adams_bashforth.initialize( explicit_stepper , system , x , t , dt );
     }
 
     template< class System , class StateIn >
-    void initialize( System system , StateIn &x , time_type &t , const time_type &dt )
+    void initialize( System system , StateIn &x , time_type &t , time_type dt )
     {
         m_adams_bashforth.initialize( system , x , t , dt );
     }

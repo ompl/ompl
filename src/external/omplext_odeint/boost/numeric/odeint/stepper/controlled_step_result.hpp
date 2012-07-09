@@ -26,7 +26,7 @@ namespace omplext_odeint {
 typedef enum
 {
     success ,
-    fail ,
+    fail
 } controlled_step_result;
 
 } // namespace omplext_odeint

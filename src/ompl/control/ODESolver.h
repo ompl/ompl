@@ -79,7 +79,7 @@ namespace ompl
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), ode_(ode), intStep_(intStep), msg_("ODESolver")
+            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), ode_(ode), intStep_(intStep)
             {
             }
 
@@ -152,9 +152,6 @@ namespace ompl
 
             /// \brief The size of the numerical integration step.  Should be small to minimize error.
             double                        intStep_;
-
-            /// \brief Interface used for reporting errors
-            msg::Interface                msg_;
 
             /// @cond IGNORE
             // Functor used by the boost::numeric::odeint stepper object

@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/sbl/SBL.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
@@ -44,6 +44,7 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(s
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     maxDistance_ = 0.0;
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
     Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange);
 }
@@ -77,15 +78,15 @@ void ompl::geometric::SBL::freeGridMotions(Grid<MotionInfo> &grid)
     }
 }
 
-bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
     {
-        msg_.error("Unknown type of goal (or goal undefined)");
-        return false;
+        logError("Unknown type of goal (or goal undefined)");
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     while (const base::State *st = pis_.nextStart())
@@ -99,20 +100,20 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
 
     if (tStart_.size == 0)
     {
-        msg_.error("Motion planning start tree could not be initialized!");
-        return false;
+        logError("Motion planning start tree could not be initialized!");
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        logError("Insufficient states in sampleable goal region");
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
+    logInform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -140,7 +141,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
             }
             if (tGoal_.size == 0)
             {
-                msg_.error("Unable to sample any valid states for goal tree");
+                logError("Unable to sample any valid states for goal tree");
                 break;
             }
         }
@@ -165,7 +166,7 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
             for (unsigned int i = 0 ; i < solution.size() ; ++i)
                 path->append(solution[i]->state);
 
-            goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+            pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
             solved = true;
             break;
         }
@@ -173,10 +174,10 @@ bool ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
 
     si_->freeState(xstate);
 
-    msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
+    logInform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
                  tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
-    return solved;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution)
@@ -201,6 +202,11 @@ bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
 
             if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
             {
+                if (start)
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                else
+                    connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+
                 /* extract the motions and put them in solution vector */
 
                 std::vector<Motion*> mpath1;
@@ -354,6 +360,7 @@ void ompl::geometric::SBL::clear(void)
     tGoal_.grid.clear();
     tGoal_.size = 0;
     tGoal_.pdf.clear();
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
@@ -365,20 +372,22 @@ void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-        {
-            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
-            data.tagState(motions[i][j]->state, 1);
-        }
-
+            if (motions[i][j]->parent == NULL)
+                data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state, 1));
+            else
+                data.addEdge(base::PlannerDataVertex(motions[i][j]->parent->state, 1),
+                             base::PlannerDataVertex(motions[i][j]->state, 1));
 
     motions.clear();
     tGoal_.grid.getContent(motions);
-
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-        {
-            data.recordEdge(motions[i][j]->parent ? motions[i][j]->parent->state : NULL, motions[i][j]->state);
-            data.tagState(motions[i][j]->state, 2);
-        }
+            if (motions[i][j]->parent == NULL)
+                data.addGoalVertex(base::PlannerDataVertex(motions[i][j]->state, 2));
+            else
+                // The edges in the goal tree are reversed so that they are in the same direction as start tree
+                data.addEdge(base::PlannerDataVertex(motions[i][j]->state, 2),
+                             base::PlannerDataVertex(motions[i][j]->parent->state, 2));
 
+    data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }

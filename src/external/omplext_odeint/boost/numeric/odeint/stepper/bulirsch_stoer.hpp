@@ -26,17 +26,17 @@
 
 #include <algorithm>
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_runge_kutta.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/modified_midpoint.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 namespace boost {
@@ -76,13 +76,19 @@ public:
     typedef std::vector< size_t > int_vector;
     typedef std::vector< wrapped_state_type > state_table_type;
 
+    const static size_t m_k_max = 8;
+
+
     bulirsch_stoer(
             time_type eps_abs = 1E-6 , time_type eps_rel = 1E-6 ,
             time_type factor_x = 1.0 , time_type factor_dxdt = 1.0 )
-    : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ),
-      m_k_max(8) ,
+    : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ) , m_midpoint() ,
       m_last_step_rejected( false ) , m_first( true ) ,
-      m_dt_last( 1.0E30 ) ,
+      m_dt_last( 1.0E30 ) , m_t_last() ,
+      m_current_k_opt() ,
+      m_algebra() ,
+      m_dxdt_resizer() , m_xnew_resizer() , m_resizer() ,
+      m_xnew() , m_err() , m_dxdt() ,
       m_interval_sequence( m_k_max+1 ) ,
       m_coeff( m_k_max+1 ) ,
       m_cost( m_k_max+1 ) ,
@@ -113,19 +119,6 @@ public:
 
     }
 
-    bulirsch_stoer( const bulirsch_stoer &bs )
-    : m_error_checker( bs.m_error_checker ) ,
-      m_midpoint( bs.m_midpoint ) ,
-      m_k_max( bs.m_k_max ) ,
-      m_last_step_rejected( bs.m_last_step_rejected ) , m_first( bs.m_first ) ,
-      m_dt_last( bs.m_dt_last ) , m_t_last( bs.m_t_last ) ,
-      m_current_k_opt( bs.m_current_k_opt ) ,
-      m_interval_sequence( bs.m_interval_sequence ) ,
-      m_coeff( bs.m_coeff ) ,
-      m_cost( bs.m_cost ) ,
-      m_table( bs.m_table ) ,
-      STEPFAC1( bs.STEPFAC1 ) , STEPFAC2( bs.STEPFAC2 ) , STEPFAC3( bs.STEPFAC3 ) , STEPFAC4( bs.STEPFAC4 ) , KFAC1( bs.KFAC1 ) , KFAC2( bs.KFAC2 )
-    { }
 
     /*
      * Version 1 : try_step( sys , x , t , dt )
@@ -152,7 +145,7 @@ public:
     template< class System , class StateInOut , class DerivIn >
     controlled_step_result try_step( System system , StateInOut &x , const DerivIn &dxdt , time_type &t , time_type &dt )
     {
-        m_xnew_resizer.adjust_size( x , boost::bind( &controlled_error_bs_type::template resize_m_xnew< StateInOut > , boost::ref( *this ) , _1 ) );
+        m_xnew_resizer.adjust_size( x , detail::bind( &controlled_error_bs_type::template resize_m_xnew< StateInOut > , detail::ref( *this ) , detail::_1 ) );
         controlled_step_result res = try_step( system , x , dxdt , t , m_xnew.m_v , dt );
         if( res == success )
         {
@@ -169,8 +162,8 @@ public:
     template< class System , class StateIn , class StateOut >
     controlled_step_result try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_dxdt_resizer.adjust_size( in , boost::bind( &controlled_error_bs_type::template resize_m_dxdt< StateIn > , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_dxdt_resizer.adjust_size( in , detail::bind( &controlled_error_bs_type::template resize_m_dxdt< StateIn > , detail::ref( *this ) , detail::_1 ) );
         sys( in , m_dxdt.m_v , t );
         return try_step( system , in , m_dxdt.m_v , t , out , dt );
     }
@@ -181,8 +174,8 @@ public:
     {
         static const time_type val1( static_cast< time_type >( 1.0 ) );
 
-        typename boost::unwrap_reference< System >::type &sys = system;
-        if( m_resizer.adjust_size( in , boost::bind( &controlled_error_bs_type::template resize_impl< StateIn > , boost::ref( *this ) , _1 ) ) )
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        if( m_resizer.adjust_size( in , detail::bind( &controlled_error_bs_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) ) )
         {
             reset(); // system resized -> reset
         }
@@ -197,13 +190,13 @@ public:
         value_vector h_opt( m_k_max+1 );
         value_vector work( m_k_max+1 );
 
-        std::cout << "t=" << t <<", dt=" << dt << "(" << m_dt_last << ")" << ", k_opt=" << m_current_k_opt << std::endl;
+        //std::cout << "t=" << t <<", dt=" << dt << "(" << m_dt_last << ")" << ", k_opt=" << m_current_k_opt << std::endl;
 
         time_type new_h = dt;
 
         for( size_t k = 0 ; k <= m_current_k_opt+1 ; k++ )
         {
-            std::cout << "  k=" << k; //<<": " << ", first: " << m_first << std::endl;
+            //std::cout << "  k=" << k; //<<": " << ", first: " << m_first << std::endl;
             m_midpoint.set_steps( m_interval_sequence[k] );
             if( k == 0 )
             {
@@ -220,7 +213,7 @@ public:
                 h_opt[k] = calc_h_opt( dt , error , k );
                 work[k] = m_cost[k]/h_opt[k];
                 //std::cout << '\t' << "h_opt=" << h_opt[k] << ", work=" << work[k] << std::endl;
-                std::cout << '\t' << "error: " << error << std::endl;
+                //std::cout << '\t' << "error: " << error << std::endl;
 
                 if( (k == m_current_k_opt-1) || m_first )
                 { // convergence before k_opt ?
@@ -231,10 +224,10 @@ public:
                         if( (work[k] < KFAC2*work[k-1]) || (m_current_k_opt <= 2) )
                         {
                             // leave order as is (except we were in first round)
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , static_cast<int>(k)+1 );
+                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k)+1 ) );
                             new_h = h_opt[k] * m_cost[k+1]/m_cost[k];
                         } else {
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , static_cast<int>(k) );
+                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k) ) );
                             new_h = h_opt[k];
                         }
                         break;
@@ -261,6 +254,7 @@ public:
                         {
                             m_current_k_opt = std::min( static_cast<int>(m_k_max-1) , static_cast<int>(m_current_k_opt)+1 );
                             new_h = h_opt[k]*m_cost[m_current_k_opt]/m_cost[k];
+                            //std::cout << new_h << std::endl;
                         } else
                             new_h = h_opt[m_current_k_opt];
                         break;
@@ -296,8 +290,8 @@ public:
         if( !reject )
         {
             t += dt;
-        } else
-            std::cout << "REJECT!" << std::endl;
+        }// else
+         //   std::cout << "REJECT!" << std::endl;
 
         if( !m_last_step_rejected || (new_h < dt) )
         {
@@ -340,13 +334,13 @@ private:
     template< class StateIn >
     bool resize_m_dxdt( const StateIn &x )
     {
-        return adjust_size_by_resizeability( m_dxdt , x , typename wrapped_deriv_type::is_resizeable() );
+        return adjust_size_by_resizeability( m_dxdt , x , typename is_resizeable<deriv_type>::type() );
     }
 
     template< class StateIn >
     bool resize_m_xnew( const StateIn &x )
     {
-        return adjust_size_by_resizeability( m_xnew , x , typename wrapped_state_type::is_resizeable() );
+        return adjust_size_by_resizeability( m_xnew , x , typename is_resizeable<state_type>::type() );
     }
 
     template< class StateIn >
@@ -354,8 +348,8 @@ private:
     {
         bool resized( false );
         for( size_t i = 0 ; i < m_k_max ; ++i )
-            resized |= adjust_size_by_resizeability( m_table[i] , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_err , x , typename wrapped_state_type::is_resizeable() );
+            resized |= adjust_size_by_resizeability( m_table[i] , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_err , x , typename is_resizeable<state_type>::type() );
         return resized;
     }
 
@@ -363,15 +357,15 @@ private:
     template< class System , class StateInOut >
     controlled_step_result try_step_v1( System system , StateInOut &x , time_type &t , time_type &dt )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_dxdt_resizer.adjust_size( x , boost::bind( &controlled_error_bs_type::template resize_m_dxdt< StateInOut > , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_dxdt_resizer.adjust_size( x , detail::bind( &controlled_error_bs_type::template resize_m_dxdt< StateInOut > , detail::ref( *this ) , detail::_1 ) );
         sys( x , m_dxdt.m_v ,t );
         return try_step( system , x , m_dxdt.m_v , t , dt );
     }
 
 
     template< class StateInOut >
-    void extrapolate( const size_t k , state_table_type &table , const value_matrix &coeff , StateInOut &xest )
+    void extrapolate( size_t k , state_table_type &table , const value_matrix &coeff , StateInOut &xest )
     //polynomial extrapolation, see http://www.nr.com/webnotes/nr3web21.pdf
     {
         //std::cout << "extrapolate k=" << k << ":" << std::endl;
@@ -387,7 +381,7 @@ private:
                 typename operations_type::template scale_sum2< time_type , time_type >( val1 + coeff[k][0] , -coeff[k][0]) );
     }
 
-    time_type calc_h_opt( const time_type h , const value_type error , const size_t k ) const
+    time_type calc_h_opt( time_type h , value_type error , size_t k ) const
     {
         time_type expo=1.0/(2*k+1);
         time_type facmin = std::pow( STEPFAC3 , expo );
@@ -399,10 +393,11 @@ private:
             fac = STEPFAC2 / std::pow( error / STEPFAC1 , expo );
             fac = std::max( facmin/STEPFAC4 , std::min( 1.0/facmin , fac ) );
         }
-        return std::abs(h*fac);
+        //return std::abs(h*fac);
+        return h*fac;
     }
 
-    controlled_step_result set_k_opt( const size_t k , const value_vector &work , const value_vector &h_opt , time_type &dt )
+    controlled_step_result set_k_opt( size_t k , const value_vector &work , const value_vector &h_opt , time_type &dt )
     {
         //std::cout << "finding k_opt..." << std::endl;
         if( k == 1 )
@@ -431,14 +426,14 @@ private:
         }
     }
 
-    bool in_convergence_window( const size_t k ) const
+    bool in_convergence_window( size_t k ) const
     {
         if( (k == m_current_k_opt-1) && !m_last_step_rejected )
             return true; // decrease stepsize only if last step was not rejected
         return ( (k == m_current_k_opt) || (k == m_current_k_opt+1) );
     }
 
-    bool should_reject( const time_type error , const size_t k ) const
+    bool should_reject( time_type error , size_t k ) const
     {
         if( (k == m_current_k_opt-1) )
         {
@@ -457,8 +452,6 @@ private:
 
     default_error_checker< value_type, algebra_type , operations_type > m_error_checker;
     modified_midpoint< state_type , value_type , deriv_type , time_type , algebra_type , operations_type , resizer_type > m_midpoint;
-
-    const size_t m_k_max;
 
     bool m_last_step_rejected;
     bool m_first;

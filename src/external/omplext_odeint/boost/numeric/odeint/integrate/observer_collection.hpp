@@ -34,7 +34,7 @@ public:
     typedef boost::function< void( const State& , const Time& ) > observer_type;
     typedef std::vector< observer_type > collection_type;
 
-    void operator()( const State& x , const Time &t )
+    void operator()( const State& x , Time t )
     {
         for( size_t i=0 ; i<m_observers.size() ; ++i )
             m_observers[i]( x , t );

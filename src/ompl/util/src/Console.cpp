@@ -37,7 +37,6 @@
 #include "ompl/util/Console.h"
 #include <boost/thread/mutex.hpp>
 #include <iostream>
-#include <cstdlib>
 #include <cstdio>
 #include <cstdarg>
 
@@ -49,11 +48,13 @@ struct DefaultOutputHandler
     {
         output_handler_ = static_cast<ompl::msg::OutputHandler*>(&std_output_handler_);
         previous_output_handler_ = output_handler_;
+        logLevel_ = ompl::msg::LOG_DEBUG;
     }
 
     ompl::msg::OutputHandlerSTD std_output_handler_;
     ompl::msg::OutputHandler   *output_handler_;
     ompl::msg::OutputHandler   *previous_output_handler_;
+    ompl::msg::LogLevel         logLevel_;
     boost::mutex                lock_; // it is likely the outputhandler does some I/O, so we serialize it
 };
 
@@ -68,8 +69,10 @@ static DefaultOutputHandler* getDOH(void)
 }
 
 #define USE_DOH                                                                \
-    DefaultOutputHandler *doh = getDOH();                                \
+    DefaultOutputHandler *doh = getDOH();                                      \
     boost::mutex::scoped_lock slock(doh->lock_)
+
+#define MAX_BUFFER_SIZE 1024
 
 /// @endcond
 
@@ -98,115 +101,49 @@ ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
     return getDOH()->output_handler_;
 }
 
-ompl::msg::Interface::Interface(const std::string &prefix)
+void ompl::msg::log(const char *file, int line, LogLevel level, const char* m, ...)
 {
-    setPrefix(prefix);
+    USE_DOH;
+    if (doh->output_handler_ && level >= doh->logLevel_)
+    {
+        va_list __ap;
+        va_start(__ap, m);
+        char buf[MAX_BUFFER_SIZE];
+        vsnprintf(buf, sizeof(buf), m, __ap);
+        va_end(__ap);
+        buf[MAX_BUFFER_SIZE - 1] = '\0';
+
+        doh->output_handler_->log(buf, level, file, line);
+    }
 }
 
-ompl::msg::Interface::~Interface(void)
+void ompl::msg::setLogLevel(LogLevel level)
 {
+    USE_DOH;
+    doh->logLevel_ = level;
 }
 
-const std::string& ompl::msg::Interface::getPrefix(void) const
+ompl::msg::LogLevel ompl::msg::getLogLevel(void)
 {
-    return prefix_;
+    USE_DOH;
+    return doh->logLevel_;
 }
 
-void ompl::msg::Interface::setPrefix(const std::string &prefix)
+static const char* LogLevelString[4] = {"Debug:   ", "Info:    ", "Warning: ", "Error:   "};
+
+void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
-    prefix_ = prefix;
-    if (!prefix_.empty())
-        prefix_ += ": ";
-}
-
-/// @cond IGNORE
-
-// the maximum buffer size to use when printing a message
-#define MAX_BUFFER_SIZE 1024
-
-// macro that combines the set of arguments into a single string
-#define COMBINE(m, buf, size)                                                \
-    va_list __ap;                                                        \
-    va_start(__ap, m);                                                        \
-    char buf##_chr[size];                                                \
-    vsnprintf(buf##_chr, sizeof(buf##_chr), m, __ap);                        \
-    va_end(__ap);                                                        \
-    buf##_chr[size - 1] = '\0';                                                \
-    std::string buf(buf##_chr)
-
-#define CALL_DOH(fn, arg)                                                \
-    USE_DOH;                                                                \
-    if (doh->output_handler_)                                                \
-        doh->output_handler_->fn(arg)
-
-/// @endcond
-
-void ompl::msg::Interface::debug(const std::string &text) const
-{
-    CALL_DOH(debug, prefix_ + text);
-}
-
-void ompl::msg::Interface::debug(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    debug(buf);
-}
-
-void ompl::msg::Interface::inform(const std::string &text) const
-{
-    CALL_DOH(inform, prefix_ + text);
-}
-
-void ompl::msg::Interface::inform(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    inform(buf);
-}
-
-void ompl::msg::Interface::warn(const std::string &text) const
-{
-    CALL_DOH(warn, prefix_ + text);
-}
-
-void ompl::msg::Interface::warn(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    warn(buf);
-}
-
-void ompl::msg::Interface::error(const std::string &text) const
-{
-    CALL_DOH(error, prefix_ + text);
-}
-
-void ompl::msg::Interface::error(const char *msg, ...) const
-{
-    COMBINE(msg, buf, MAX_BUFFER_SIZE);
-    error(buf);
-}
-
-void ompl::msg::OutputHandlerSTD::error(const std::string &text)
-{
-    std::cerr << "Error:   " << text << std::endl;
-    std::cerr.flush();
-}
-
-void ompl::msg::OutputHandlerSTD::warn(const std::string &text)
-{
-    std::cerr << "Warning: " << text << std::endl;
-    std::cerr.flush();
-}
-
-void ompl::msg::OutputHandlerSTD::inform(const std::string &text)
-{
-    std::cout << "Info:    " << text << std::endl;
-    std::cout.flush();
-}
-
-void ompl::msg::OutputHandlerSTD::debug(const std::string &text)
-{
-    std::cout << "Debug:   " << text << std::endl;
-    std::cout.flush();
+    if (level >= LOG_WARN)
+    {
+        std::cerr << LogLevelString[level] << text << std::endl;
+        std::cerr << "         at line " << line << " in " << filename << std::endl;
+        std::cerr.flush();
+    }
+    else
+    {
+        std::cout << LogLevelString[level] << text << std::endl;
+        std::cout.flush();
+    }
 }
 
 ompl::msg::OutputHandlerFile::OutputHandlerFile(const char *filename) : OutputHandler()
@@ -223,38 +160,13 @@ ompl::msg::OutputHandlerFile::~OutputHandlerFile(void)
             std::cerr << "Error closing logfile" << std::endl;
 }
 
-void ompl::msg::OutputHandlerFile::error(const std::string &text)
+void ompl::msg::OutputHandlerFile::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
     if (file_)
     {
-        fprintf(file_, "Error:   %s\n", text.c_str());
-        fflush(file_);
-    }
-}
-
-void ompl::msg::OutputHandlerFile::warn(const std::string &text)
-{
-    if (file_)
-    {
-        fprintf(file_, "Warning: %s\n", text.c_str());
-        fflush(file_);
-    }
-}
-
-void ompl::msg::OutputHandlerFile::inform(const std::string &text)
-{
-    if (file_)
-    {
-        fprintf(file_, "Info:    %s\n", text.c_str());
-        fflush(file_);
-    }
-}
-
-void ompl::msg::OutputHandlerFile::debug(const std::string &text)
-{
-    if (file_)
-    {
-        fprintf(file_, "Debug:   %s\n", text.c_str());
+        fprintf(file_, "%s%s\n", LogLevelString[level], text.c_str());
+        if(level >= LOG_WARN)
+            fprintf(file_, "         at line %d in %s\n", line, filename);
         fflush(file_);
     }
 }

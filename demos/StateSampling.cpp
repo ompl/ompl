@@ -176,7 +176,7 @@ void plan(int samplerIndex)
     ss.setPlanner(planner);
 
     // attempt to solve the problem within ten seconds of planning time
-    bool solved = ss.solve(10.0);
+    ob::PlannerStatus solved = ss.solve(10.0);
     if (solved)
     {
         std::cout << "Found solution:" << std::endl;

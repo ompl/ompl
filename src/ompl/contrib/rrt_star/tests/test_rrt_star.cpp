@@ -34,7 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "rrt_star"
+#include <boost/test/unit_test.hpp>
+#include "../../../../../tests/BoostTestTeamCityReporter.h"
 
 // The following header file is useful for testing planners.
 // See ../../../../../tests/geometric/2dmap.cpp for example usage.
@@ -47,7 +49,7 @@
 using namespace ompl;
 
 
-TEST(rrt_star, Basic)
+BOOST_AUTO_TEST_CASE(Basic)
 {
     geometric::SimpleSetup2DMap s("env1.txt");
     s.setPlanner(base::PlannerPtr(new geometric::RRTstar(s.getSpaceInformation())));
@@ -56,14 +58,7 @@ TEST(rrt_star, Basic)
     pt.test();
 }
 
-TEST(rrt_star, More)
+BOOST_AUTO_TEST_CASE(More)
 {
     // other tests, if you want
-}
-
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

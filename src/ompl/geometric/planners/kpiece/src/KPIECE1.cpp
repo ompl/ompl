@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
@@ -44,11 +44,13 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
                                                                          disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
 {
     specs_.approximateSolutions = true;
+    specs_.directed = true;
 
     goalBias_ = 0.05;
     failedExpansionScoreFactor_ = 0.5;
     minValidPathFraction_ = 0.2;
     maxDistance_ = 0.0;
+    lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange);
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
@@ -81,6 +83,7 @@ void ompl::geometric::KPIECE1::clear(void)
     Planner::clear();
     sampler_.reset();
     disc_.clear();
+    lastGoalMotion_ = NULL;
 }
 
 void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
@@ -90,7 +93,7 @@ void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -108,14 +111,14 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
     if (disc_.getMotionCount() == 0)
     {
-        msg_.error("There are no valid initial states!");
-        return false;
+        logError("There are no valid initial states!");
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    msg_.inform("Starting with %u states", disc_.getMotionCount());
+    logInform("Starting with %u states", disc_.getMotionCount());
 
     Motion *solution    = NULL;
     Motion *approxsol   = NULL;
@@ -182,6 +185,8 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
 
     if (solution != NULL)
     {
+        lastGoalMotion_ = solution;
+
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -194,20 +199,20 @@ bool ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &pt
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
         solved = true;
     }
 
     si_->freeState(xstate);
 
-    msg_.inform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
+    logInform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
                 disc_.getGrid().countInternal(), disc_.getGrid().countExternal());
 
-    return solved;
+    return base::PlannerStatus(solved, approximate);
 }
 
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    disc_.getPlannerData(data, 0);
+    disc_.getPlannerData(data, 0, true, lastGoalMotion_);
 }

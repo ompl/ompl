@@ -2,10 +2,9 @@
 # Once done this will define:
 #
 # OMPL_FOUND - OMPL was found
-# OMPL_LIBRARY - The OMPL library
-# OMPLAPP_LIBRARY - The OMPL.app library
-# OMPL_LIBRARIES - The OMPL library and (if found) the OMPL.app library
-# OMPL_INCLUDE_DIR - The OMPL include directory
+# OMPL_INCLUDE_DIRS - The OMPL include directory
+# OMPL_LIBRARIES - The OMPL library
+# OMPLAPP_LIBRARIES - The OMPL.app library
 
 include(FindPackageHandleStandardArgs)
 
@@ -36,23 +35,22 @@ endif()
 
 
 # find the OMPL library
-find_library(OMPL_LIBRARY ompl
+find_library(OMPL_LIBRARIES ompl
     PATHS ${OMPL_LIB_PATH}
     PATH_SUFFIXES lib build/lib)
 # find the OMPL library
-find_library(OMPLAPP_LIBRARY ompl_app
+find_library(OMPLAPP_LIBRARIES ompl_app
     PATHS ${OMPL_LIB_PATH}
     PATH_SUFFIXES lib build/lib)
-set(OMPL_LIBRARIES "${OMPL_LIBRARY}" "${OMPLAPP_LIBRARY}")
 
 # find include path
-find_path(OMPL_INCLUDE_DIR SpaceInformation.h
+find_path(OMPL_INCLUDE_DIRS SpaceInformation.h
     PATHS ${OMPL_INCLUDE_PATH}
 PATH_SUFFIXES base ompl/base include/ompl/base src/ompl/base)
-if (OMPL_INCLUDE_DIR)
-    string(REGEX REPLACE "/ompl/base$" "" OMPL_INCLUDE_DIR ${OMPL_INCLUDE_DIR})
+if (OMPL_INCLUDE_DIRS)
+    string(REGEX REPLACE "/ompl/base$" "" OMPL_INCLUDE_DIRS ${OMPL_INCLUDE_DIRS})
 else()
-    set(OMPL_INCLUDE_DIR "")
+    set(OMPL_INCLUDE_DIRS "")
 endif()
 
-find_package_handle_standard_args(OMPL DEFAULT_MSG OMPL_LIBRARY OMPL_INCLUDE_DIR)
+find_package_handle_standard_args(OMPL DEFAULT_MSG OMPL_LIBRARIES OMPL_INCLUDE_DIRS)

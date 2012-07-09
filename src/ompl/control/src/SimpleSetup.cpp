@@ -54,7 +54,7 @@ ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goa
 }
 
 ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
-    configured_(false), planTime_(0.0), invalid_request_(false), msg_("SimpleSetup")
+    configured_(false), planTime_(0.0), invalid_request_(false)
 {
     si_.reset(new SpaceInformation(space->getStateSpace(), space));
     pdef_.reset(new base::ProblemDefinition(si_));
@@ -73,7 +73,7 @@ void ompl::control::SimpleSetup::setup(void)
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                msg_.inform("No planner specified. Using default.");
+                logInform("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
             }
         }
@@ -92,51 +92,51 @@ void ompl::control::SimpleSetup::clear(void)
 {
     if (planner_)
         planner_->clear();
-    if (pdef_ && pdef_->getGoal())
-        pdef_->getGoal()->clearSolutionPaths();
+    if (pdef_)
+        pdef_->clearSolutionPaths();
 }
 
-bool ompl::control::SimpleSetup::solve(double time)
+ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(double time)
 {
     setup();
     invalid_request_ = false;
     time::point start = time::now();
-    bool result = planner_->solve(time);
+    base::PlannerStatus result = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
     if (result)
-        msg_.inform("Solution found in %f seconds", planTime_);
+        logInform("Solution found in %f seconds", planTime_);
     else
     {
         if (planTime_ < time)
             invalid_request_ = true;
-        msg_.inform("No solution found after %f seconds", planTime_);
+        logInform("No solution found after %f seconds", planTime_);
     }
     return result;
 }
 
-bool ompl::control::SimpleSetup::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(const base::PlannerTerminationCondition &ptc)
 {
     setup();
     invalid_request_ = false;
     time::point start = time::now();
-    bool result = planner_->solve(ptc);
+    base::PlannerStatus result = planner_->solve(ptc);
     planTime_ = time::seconds(time::now() - start);
     if (result)
-        msg_.inform("Solution found in %f seconds", planTime_);
+        logInform("Solution found in %f seconds", planTime_);
     else
     {
         if (!ptc())
             invalid_request_ = true;
-        msg_.inform("No solution found after %f seconds", planTime_);
+        logInform("No solution found after %f seconds", planTime_);
     }
     return result;
 }
 
 ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) const
 {
-    if (pdef_ && pdef_->getGoal())
+    if (pdef_)
     {
-        const base::PathPtr &p = pdef_->getGoal()->getSolutionPath();
+        const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
             return static_cast<PathControl&>(*p);
     }
@@ -145,15 +145,14 @@ ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) co
 
 bool ompl::control::SimpleSetup::haveExactSolutionPath(void) const
 {
-    return haveSolutionPath() && (!getGoal()->isApproximate() || getGoal()->getDifference() < std::numeric_limits<double>::epsilon());
+    return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }
 
-ompl::control::PlannerData ompl::control::SimpleSetup::getPlannerData(void) const
+void ompl::control::SimpleSetup::getPlannerData(base::PlannerData &pd) const
 {
-    control::PlannerData pd;
+    pd.clear();
     if (planner_)
         planner_->getPlannerData(pd);
-    return pd;
 }
 
 void ompl::control::SimpleSetup::print(std::ostream &out) const

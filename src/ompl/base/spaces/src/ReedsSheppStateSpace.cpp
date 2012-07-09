@@ -613,7 +613,7 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Reed
     }
     state->as<StateType>()->setX(s->getX() * rho_ + from->as<StateType>()->getX());
     state->as<StateType>()->setY(s->getY() * rho_ + from->as<StateType>()->getY());
-    getSubSpace(1)->enforceBounds(s->as<SO2StateSpace::StateType>(1));
+    getSubspace(1)->enforceBounds(s->as<SO2StateSpace::StateType>(1));
     state->as<StateType>()->setYaw(s->getYaw());
     freeState(s);
 }

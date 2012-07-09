@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2012, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,56 +32,21 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll */
 
-#include "ompl/base/GoalState.h"
-#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/PlannerStatus.h"
 
-ompl::base::GoalState::~GoalState(void)
+std::string ompl::base::PlannerStatus::asString(void) const
 {
-    if (state_)
-        si_->freeState(state_);
-}
-
-double ompl::base::GoalState::distanceGoal(const State *st) const
-{
-    return si_->distance(st, state_);
-}
-
-void ompl::base::GoalState::print(std::ostream &out) const
-{
-    out << "Goal state, threshold = " << threshold_ << ", memory address = " << this << ", state = " << std::endl;
-    si_->printState(state_, out);
-}
-
-void ompl::base::GoalState::sampleGoal(base::State *st) const
-{
-    si_->copyState(st, state_);
-}
-
-unsigned int ompl::base::GoalState::maxSampleCount(void) const
-{
-    return 1;
-}
-
-void ompl::base::GoalState::setState(const State* st)
-{
-    if (state_)
-        si_->freeState(state_);
-    state_ = si_->cloneState(st);
-}
-
-void ompl::base::GoalState::setState(const ScopedState<> &st)
-{
-    setState(st.get());
-}
-
-const ompl::base::State * ompl::base::GoalState::getState(void) const
-{
-    return state_;
-}
-
-ompl::base::State * ompl::base::GoalState::getState(void)
-{
-    return state_;
+    switch (status_)
+    {
+    case INVALID_START: return std::string("Invalid start");
+    case INVALID_GOAL: return std::string("Invalid goal");
+    case UNRECOGNIZED_GOAL_TYPE: return std::string("Unrecognized goal type");
+    case TIMEOUT: return std::string("Timeout");
+    case APPROXIMATE_SOLUTION: return std::string("Approximate solution");
+    case EXACT_SOLUTION: return std::string("Exact solution");
+    case CRASH: return std::string("Crash");
+    default: return std::string("Unknown status");
+    }
 }

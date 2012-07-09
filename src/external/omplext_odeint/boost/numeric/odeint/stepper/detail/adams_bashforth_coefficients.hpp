@@ -36,7 +36,7 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 1 >()
       {
-        (*this)[0] = static_cast< Value >( 1.0 );
+        (*this)[0] = static_cast< Value >( 1 );
       }
 };
 
@@ -48,8 +48,8 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 2 >()
       {
-        (*this)[0] = static_cast< Value >( 3.0 ) / static_cast< Value >( 2.0 );
-        (*this)[1] = -static_cast< Value >( 1.0 ) / static_cast< Value >( 2.0 );
+        (*this)[0] = static_cast< Value >( 3 ) / static_cast< Value >( 2 );
+        (*this)[1] = -static_cast< Value >( 1 ) / static_cast< Value >( 2 );
       }
 };
 
@@ -61,9 +61,9 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 3 >()
       {
-        (*this)[0] = static_cast< Value >( 23.0 ) / static_cast< Value >( 12.0 );
-        (*this)[1] = -static_cast< Value >( 4.0 ) / static_cast< Value >( 3.0 );
-        (*this)[2] = static_cast< Value >( 5.0 ) / static_cast< Value >( 12.0 );
+        (*this)[0] = static_cast< Value >( 23 ) / static_cast< Value >( 12 );
+        (*this)[1] = -static_cast< Value >( 4 ) / static_cast< Value >( 3 );
+        (*this)[2] = static_cast< Value >( 5 ) / static_cast< Value >( 12 );
       }
 };
 
@@ -75,10 +75,10 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 4 >()
       {
-        (*this)[0] = static_cast< Value >( 55.0 ) / static_cast< Value >( 24.0 );
-        (*this)[1] = -static_cast< Value >( 59.0 ) / static_cast< Value >( 24.0 );
-        (*this)[2] = static_cast< Value >( 37.0 ) / static_cast< Value >( 24.0 );
-        (*this)[3] = -static_cast< Value >( 3.0 ) / static_cast< Value >( 8.0 );
+        (*this)[0] = static_cast< Value >( 55 ) / static_cast< Value >( 24 );
+        (*this)[1] = -static_cast< Value >( 59 ) / static_cast< Value >( 24 );
+        (*this)[2] = static_cast< Value >( 37 ) / static_cast< Value >( 24 );
+        (*this)[3] = -static_cast< Value >( 3 ) / static_cast< Value >( 8 );
       }
 };
 
@@ -90,11 +90,11 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 5 >()
       {
-        (*this)[0] = static_cast< Value >( 1901.0 ) / static_cast< Value >( 720.0 );
-        (*this)[1] = -static_cast< Value >( 1387.0 ) / static_cast< Value >( 360.0 );
-        (*this)[2] = static_cast< Value >( 109.0 ) / static_cast< Value >( 30.0 );
-        (*this)[3] = -static_cast< Value >( 637.0 ) / static_cast< Value >( 360.0 );
-        (*this)[4] = static_cast< Value >( 251.0 ) / static_cast< Value >( 720.0 );
+        (*this)[0] = static_cast< Value >( 1901 ) / static_cast< Value >( 720 );
+        (*this)[1] = -static_cast< Value >( 1387 ) / static_cast< Value >( 360 );
+        (*this)[2] = static_cast< Value >( 109 ) / static_cast< Value >( 30 );
+        (*this)[3] = -static_cast< Value >( 637 ) / static_cast< Value >( 360 );
+        (*this)[4] = static_cast< Value >( 251 ) / static_cast< Value >( 720 );
       }
 };
 
@@ -106,12 +106,12 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 6 >()
       {
-        (*this)[0] = static_cast< Value >( 4277.0 ) / static_cast< Value >( 1440.0 );
-        (*this)[1] = -static_cast< Value >( 2641.0 ) / static_cast< Value >( 480.0 );
-        (*this)[2] = static_cast< Value >( 4991.0 ) / static_cast< Value >( 720.0 );
-        (*this)[3] = -static_cast< Value >( 3649.0 ) / static_cast< Value >( 720.0 );
-        (*this)[4] = static_cast< Value >( 959.0 ) / static_cast< Value >( 480.0 );
-        (*this)[5] = -static_cast< Value >( 95.0 ) / static_cast< Value >( 288.0 );
+        (*this)[0] = static_cast< Value >( 4277 ) / static_cast< Value >( 1440 );
+        (*this)[1] = -static_cast< Value >( 2641 ) / static_cast< Value >( 480 );
+        (*this)[2] = static_cast< Value >( 4991 ) / static_cast< Value >( 720 );
+        (*this)[3] = -static_cast< Value >( 3649 ) / static_cast< Value >( 720 );
+        (*this)[4] = static_cast< Value >( 959 ) / static_cast< Value >( 480 );
+        (*this)[5] = -static_cast< Value >( 95 ) / static_cast< Value >( 288 );
       }
 };
 
@@ -123,13 +123,13 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 7 >()
       {
-        (*this)[0] = static_cast< Value >( 198721.0 ) / static_cast< Value >( 60480.0 );
-        (*this)[1] = -static_cast< Value >( 18637.0 ) / static_cast< Value >( 2520.0 );
-        (*this)[2] = static_cast< Value >( 235183.0 ) / static_cast< Value >( 20160.0 );
-        (*this)[3] = -static_cast< Value >( 10754.0 ) / static_cast< Value >( 945.0 );
-        (*this)[4] = static_cast< Value >( 135713.0 ) / static_cast< Value >( 20160.0 );
-        (*this)[5] = -static_cast< Value >( 5603.0 ) / static_cast< Value >( 2520.0 );
-        (*this)[6] = static_cast< Value >( 19087.0 ) / static_cast< Value >( 60480.0 );
+        (*this)[0] = static_cast< Value >( 198721 ) / static_cast< Value >( 60480 );
+        (*this)[1] = -static_cast< Value >( 18637 ) / static_cast< Value >( 2520 );
+        (*this)[2] = static_cast< Value >( 235183 ) / static_cast< Value >( 20160 );
+        (*this)[3] = -static_cast< Value >( 10754 ) / static_cast< Value >( 945 );
+        (*this)[4] = static_cast< Value >( 135713 ) / static_cast< Value >( 20160 );
+        (*this)[5] = -static_cast< Value >( 5603 ) / static_cast< Value >( 2520 );
+        (*this)[6] = static_cast< Value >( 19087 ) / static_cast< Value >( 60480 );
       }
 };
 
@@ -141,14 +141,14 @@ public:
     adams_bashforth_coefficients( void )
     : boost::array< Value , 8 >()
       {
-        (*this)[0] = static_cast< Value >( 16083.0 ) / static_cast< Value >( 4480.0 );
-        (*this)[1] = -static_cast< Value >( 1152169.0 ) / static_cast< Value >( 120960.0 );
-        (*this)[2] = static_cast< Value >( 242653.0 ) / static_cast< Value >( 13440.0 );
-        (*this)[3] = -static_cast< Value >( 296053.0 ) / static_cast< Value >( 13440.0 );
-        (*this)[4] = static_cast< Value >( 2102243.0 ) / static_cast< Value >( 120960.0 );
-        (*this)[5] = -static_cast< Value >( 115747.0 ) / static_cast< Value >( 13440.0 );
-        (*this)[6] = static_cast< Value >( 32863.0 ) / static_cast< Value >( 13440.0 );
-        (*this)[7] = -static_cast< Value >( 5257.0 ) / static_cast< Value >( 17280.0 );
+        (*this)[0] = static_cast< Value >( 16083 ) / static_cast< Value >( 4480 );
+        (*this)[1] = -static_cast< Value >( 1152169 ) / static_cast< Value >( 120960 );
+        (*this)[2] = static_cast< Value >( 242653 ) / static_cast< Value >( 13440 );
+        (*this)[3] = -static_cast< Value >( 296053 ) / static_cast< Value >( 13440 );
+        (*this)[4] = static_cast< Value >( 2102243 ) / static_cast< Value >( 120960 );
+        (*this)[5] = -static_cast< Value >( 115747 ) / static_cast< Value >( 13440 );
+        (*this)[6] = static_cast< Value >( 32863 ) / static_cast< Value >( 13440 );
+        (*this)[7] = -static_cast< Value >( 5257 ) / static_cast< Value >( 17280 );
       }
 };
 

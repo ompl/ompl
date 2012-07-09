@@ -286,15 +286,33 @@ namespace ompl
                 return grid_;
             }
 
-            void getPlannerData(base::PlannerData &data, int tag) const
+            void getPlannerData(base::PlannerData &data, int tag, bool start, const Motion *lastGoalMotion) const
             {
                 std::vector<CellData*> cdata;
                 grid_.getContent(cdata);
+
+                if (lastGoalMotion)
+                    data.addGoalVertex (base::PlannerDataVertex(lastGoalMotion->state, tag));
+
                 for (unsigned int i = 0 ; i < cdata.size() ; ++i)
                     for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
                     {
-                        data.recordEdge(cdata[i]->motions[j]->parent ? cdata[i]->motions[j]->parent->state : NULL, cdata[i]->motions[j]->state);
-                        data.tagState(cdata[i]->motions[j]->state, tag);
+                        if (cdata[i]->motions[j]->parent == NULL)
+                        {
+                            if (start)
+                                data.addStartVertex(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
+                            else
+                                data.addGoalVertex(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
+                        }
+                        else
+                        {
+                            if (start)
+                                data.addEdge(base::PlannerDataVertex(cdata[i]->motions[j]->parent->state, tag),
+                                             base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));
+                            else
+                                data.addEdge(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag),
+                                             base::PlannerDataVertex(cdata[i]->motions[j]->parent->state, tag));
+                        }
                     }
             }
 

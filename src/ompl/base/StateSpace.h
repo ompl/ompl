@@ -102,8 +102,8 @@ namespace ompl
                 return static_cast<const T*>(this);
             }
 
-            /** \brief Representation of the address of a value in a state. This structure stores the indexing information needed to access elements of a state (no pointer values are stored) */
-            struct ValueLocation
+            /** \brief Representation of the address of a substate in a state. This structure stores the indexing information needed to access a particular substate of a state */
+            struct SubstateLocation
             {
                 /** \brief In a complex state space there may be multiple
                     compound state spaces that make up an even larger
@@ -113,35 +113,47 @@ namespace ompl
                 std::vector<std::size_t> chain;
 
                 /** \brief The space that is reached if the chain above is followed on the state space */
-                const base::StateSpace  *space;
-
-                /** \brief The index of the value to be accessed, within the space above */
-                std::size_t              index;
+                const StateSpace        *space;
             };
 
-            /** \brief Flags to use in a bit mask for state space sanity checks */
+            /** \brief Representation of the address of a value in a state. This structure stores the indexing information needed to access elements of a state (no pointer values are stored) */
+            struct ValueLocation
+            {
+                /** \brief Location of the substate that contains the pointed to value */
+                SubstateLocation stateLocation;
+
+                /** \brief The index of the value to be accessed, within the substate location above */
+                std::size_t      index;
+            };
+
+            /** \brief Flags to use in a bit mask for state space sanity checks. Some basic checks do not have flags associated (they are always executed; for example,
+                whether copyState() works as expected) */
             enum SanityChecks
                 {
-                    /// \brief Check whether distance from a state to itself is 0.0 (StateSpace::distance())
-                    STATESPACE_DISTANCE_TO_SELF          = (1<<0),
 
-                    /// \brief Check whether a state is equal to itself (StateSpace::equalStates())
-                    STATESPACE_EQUAL_TO_SELF             = (1<<1),
-
-                    /// \brief Check whether the distances between non-equal states is positive (StateSpace::distance())
-                    STATESPACE_DISTANCE_DIFFERENT_STATES = (1<<2),
+                    /// \brief Check whether the distances between non-equal states is strictly positive (StateSpace::distance())
+                    STATESPACE_DISTANCE_DIFFERENT_STATES = (1<<1),
 
                     /// \brief Check whether the distance function is symmetric (StateSpace::distance())
-                    STATESPACE_DISTANCE_SYMMETRIC        = (1<<3),
+                    STATESPACE_DISTANCE_SYMMETRIC        = (1<<2),
 
                     /// \brief Check whether calling StateSpace::interpolate() works as expected
-                    STATESPACE_INTERPOLATION             = (1<<4),
+                    STATESPACE_INTERPOLATION             = (1<<3),
 
                     /// \brief Check whether the triangle inequality holds when using StateSpace::interpolate() and StateSpace::distance()
-                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<5),
+                    STATESPACE_TRIANGLE_INEQUALITY       = (1<<4),
 
                     /// \brief Check whether the StateSpace::distance() is bounded by StateSpace::getExtent()
-                    STATESPACE_DISTANCE_BOUND            = (1<<6)
+                    STATESPACE_DISTANCE_BOUND            = (1<<5),
+
+                    /// \brief Check whether sampled states are always within bounds
+                    STATESPACE_RESPECT_BOUNDS            = (1<<6),
+
+                    /// \brief Check that enforceBounds() does not modify the contents of states that are within bounds
+                    STATESPACE_ENFORCE_BOUNDS_NO_OP      = (1<<7),
+
+                    /// \brief Check whether the StateSpace::serialize() and StateSpace::deserialize() work as expected
+                    STATESPACE_SERIALIZATION             = (1<<8)
                 };
 
             /** @name Generic functionality for state spaces
@@ -178,9 +190,16 @@ namespace ompl
             /** \brief Return true if \e other is a space included (perhaps equal, perhaps a subspace) in this one. */
             bool includes(const StateSpacePtr &other) const;
 
+            /** \brief Return true if \e other is a space included (perhaps equal, perhaps a subspace) in this one. */
+            bool includes(const StateSpace *other) const;
+
             /** \brief Return true if \e other is a space that is either included (perhaps equal, perhaps a subspace)
                 in this one, or all of its subspaces are included in this one. */
             bool covers(const StateSpacePtr &other) const;
+
+            /** \brief Return true if \e other is a space that is either included (perhaps equal, perhaps a subspace)
+                in this one, or all of its subspaces are included in this one. */
+            bool covers(const StateSpace *other) const;
 
             /** \brief Get the parameters for this space */
             ParamSet& params(void)
@@ -255,10 +274,11 @@ namespace ompl
                 can always return true. */
             virtual bool satisfiesBounds(const State *state) const = 0;
 
-            /** \brief Copy a state to another. The memory of source and destination should NOT overlap. */
+            /** \brief Copy a state to another. The memory of source and destination should NOT overlap. 
+                \note For more advanced state copying methods (partial copy, for example), see \ref advancedStateCopy. */
             virtual void copyState(State *destination, const State *source) const = 0;
 
-            /** \brief Computes distance to between two states. This function satisfies the properties of a
+            /** \brief Computes distance between two states. This function satisfies the properties of a
                 metric and its return value will always be between 0 and getMaximumExtent() */
             virtual double distance(const State *state1, const State *state2) const = 0;
 
@@ -393,11 +413,17 @@ namespace ompl
 
             /** \brief Perform sanity checks for this state space. Throws an exception if failures are found.
                 \note This checks if distances are always positive, whether the integration works as expected, etc. */
-            virtual void sanityChecks(void) const;
+            virtual void sanityChecks(double zero, double eps, unsigned int flags) const;
 
             /** \brief Convenience function that allows derived state spaces to choose which checks
-                should pass (see SanityChecks flags) and how strict the checks are. */
-            virtual void sanityChecks(double zero, double eps, unsigned int flags) const;
+                should pass (see SanityChecks flags) and how strict the checks are. This just calls sanityChecks() with some default arguments. */
+            virtual void sanityChecks(void) const;
+
+            /** \brief Print a Graphviz digraph that represents the containment diagram for the state space */
+	    void diagram(std::ostream &out) const;
+
+            /** \brief Print the list of all contained state space instances */
+	    void list(std::ostream &out) const;
 
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
             static void Diagram(std::ostream &out);
@@ -407,9 +433,37 @@ namespace ompl
 
             /** @} */
 
+            /** @name Operations with substates
+                @{ */
+
+            /** \brief Allocate a sampler that actually samples only components that are part of \e subspace */
+            StateSamplerPtr allocSubspaceStateSampler(const StateSpacePtr &subspace) const;
+
+            /** \brief Allocate a sampler that actually samples only components that are part of \e subspace */
+            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpace *subspace) const;
+
+            /** \brief Get the substate of \e state that is pointed to by \e loc */
+            State* getSubstateAtLocation(State *state, const SubstateLocation &loc) const;
+
+            /** \brief Get the substate of \e state that is pointed to by \e loc */
+            const State* getSubstateAtLocation(const State *state, const SubstateLocation &loc) const;
+
+            /** \brief Get the list of known substate locations (keys of the map corrspond to names of subspaces) */
+            const std::map<std::string, SubstateLocation>& getSubstateLocationsByName(void) const;
+
+            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does 
+                not contain spaces that cover each other, even though they may be common, as that is redundant information. */
+            void getCommonSubspaces(const StateSpacePtr &other, std::vector<std::string> &subspaces) const;
+
+            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does 
+                not contain spaces that cover each other, even though they may be common, as that is redundant information. */
+            void getCommonSubspaces(const StateSpace *other, std::vector<std::string> &subspaces) const;
+          
             /** \brief Compute the location information for various components of the state space. Either this function or setup() must be
                 called before any calls to getValueAddressAtName(), getValueAddressAtLocation() (and other functions where those are used). */
             virtual void computeLocations(void);
+
+            /** @} */
 
             /** \brief Perform final setup steps. This function is
                 automatically called by the SpaceInformation. If any
@@ -458,8 +512,8 @@ namespace ompl
                 RealVectorStateSpace dimensions are used to access individual dimensions. */
             std::map<std::string, ValueLocation>          valueLocationsByName_;
 
-            /** \brief Interface used for console output */
-            msg::Interface                                msg_;
+            /** \brief All the known substat locations, by name. */
+            std::map<std::string, SubstateLocation>       substateLocationsByName_;
 
         private:
 
@@ -492,7 +546,7 @@ namespace ompl
                 /** \brief Make sure the type we are casting to is indeed a state space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateSpace*>));
 
-                return static_cast<T*>(getSubSpace(index).get());
+                return static_cast<T*>(getSubspace(index).get());
             }
 
             /** \brief Cast a component of this instance to a desired type. */
@@ -502,7 +556,7 @@ namespace ompl
                 /** \brief Make sure the type we are casting to is indeed a state space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateSpace*>));
 
-                return static_cast<T*>(getSubSpace(name).get());
+                return static_cast<T*>(getSubspace(name).get());
             }
 
             virtual bool isCompound(void) const;
@@ -514,40 +568,40 @@ namespace ompl
 
             /** \brief Adds a new state space as part of the compound state space. For computing distances within the compound
                 state space, the weight of the component also needs to be specified. */
-            void addSubSpace(const StateSpacePtr &component, double weight);
+            void addSubspace(const StateSpacePtr &component, double weight);
 
             /** \brief Get the number of state spaces that make up the compound state space */
-            unsigned int getSubSpaceCount(void) const;
+            unsigned int getSubspaceCount(void) const;
 
             /** \brief Get a specific subspace from the compound state space */
-            const StateSpacePtr& getSubSpace(const unsigned int index) const;
+            const StateSpacePtr& getSubspace(const unsigned int index) const;
 
             /** \brief Get a specific subspace from the compound state space */
-            const StateSpacePtr& getSubSpace(const std::string& name) const;
+            const StateSpacePtr& getSubspace(const std::string& name) const;
 
             /** \brief Get the index of a specific subspace from the compound state space */
-            unsigned int getSubSpaceIndex(const std::string& name) const;
+            unsigned int getSubspaceIndex(const std::string& name) const;
 
             /** \brief Check if a specific subspace is contained in this state space */
-            bool hasSubSpace(const std::string &name) const;
+            bool hasSubspace(const std::string &name) const;
 
             /** \brief Get the weight of a subspace from the compound state space (used in distance computation) */
-            double getSubSpaceWeight(const unsigned int index) const;
+            double getSubspaceWeight(const unsigned int index) const;
 
             /** \brief Get the weight of a subspace from the compound state space (used in distance computation) */
-            double getSubSpaceWeight(const std::string &name) const;
+            double getSubspaceWeight(const std::string &name) const;
 
             /** \brief Set the weight of a subspace in the compound state space (used in distance computation) */
-            void setSubSpaceWeight(const unsigned int index, double weight);
+            void setSubspaceWeight(const unsigned int index, double weight);
 
             /** \brief Set the weight of a subspace in the compound state space (used in distance computation) */
-            void setSubSpaceWeight(const std::string &name, double weight);
+            void setSubspaceWeight(const std::string &name, double weight);
 
             /** \brief Get the list of components */
-            const std::vector<StateSpacePtr>& getSubSpaces(void) const;
+            const std::vector<StateSpacePtr>& getSubspaces(void) const;
 
             /** \brief Get the list of component weights */
-            const std::vector<double>& getSubSpaceWeights(void) const;
+            const std::vector<double>& getSubspaceWeights(void) const;
 
             /** \brief Return true if the state space is locked. A value
                 of true means that no further spaces can be added
@@ -560,6 +614,13 @@ namespace ompl
                 state space that inherits from CompoundStateSpace to
                 prevent the user to add further components. */
             void lock(void);
+            /** @} */
+
+            /** @name Operations with substates
+                @{ */
+
+            virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpace *subspace) const;
+
             /** @} */
 
             /** @name Functionality specific to the state space
@@ -669,16 +730,63 @@ namespace ompl
         StateSpacePtr operator*(const StateSpacePtr &a, const StateSpacePtr &b);
         /** @} */
 
+
+        /** \defgroup advancedStateCopy Advanced methods for copying states
+         *  @{
+         */
+
+        /** \brief The possible outputs for an advanced copy operation */
+        enum AdvancedStateCopyOperation
+            {
+                /** \brief No data was copied */
+                NO_DATA_COPIED = 0,
+
+                /** \brief Some data was copied */
+                SOME_DATA_COPIED = 1,
+
+                /** \brief All data was copied */
+                ALL_DATA_COPIED  = 2
+            };
+
         /** \brief Copy data from \e source (state from space \e
             sourceS) to \e dest (state from space \e destS) on a
             component by component basis. State spaces are matched by
             name. If the state space \e destS contains any subspace
             whose name matches any subspace of the state space \e
             sourceS, the corresponding state components are
-            copied. The return value is either 0 (no data copied), 1
-            (some data copied), 2 (all data copied) */
-        int copyStateData(const StateSpacePtr &destS, State *dest,
-                          const StateSpacePtr &sourceS, const State *source);
+            copied. */
+        AdvancedStateCopyOperation copyStateData(const StateSpacePtr &destS, State *dest,
+                                                 const StateSpacePtr &sourceS, const State *source);
+
+        /** \brief Copy data from \e source (state from space \e
+            sourceS) to \e dest (state from space \e destS) on a
+            component by component basis. State spaces are matched by
+            name. If the state space \e destS contains any subspace
+            whose name matches any subspace of the state space \e
+            sourceS, the corresponding state components are
+            copied. */
+        AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest,
+                                                 const StateSpace *sourceS, const State *source);
+
+        /** \brief Copy data from \e source (state from space \e
+            sourceS) to \e dest (state from space \e destS) but only
+            for the subspaces indicated by name in \e subspaces. This
+            uses StateSpace::getSubstateLocationsByName().
+            \note For efficiency reasons it is a good idea usually to make sure the elements of \e subspaces are not subspaces of each other */
+        AdvancedStateCopyOperation copyStateData(const StateSpacePtr &destS, State *dest,
+                                                 const StateSpacePtr &sourceS, const State *source,
+                                                 const std::vector<std::string> &subspaces);
+
+        /** \brief Copy data from \e source (state from space \e
+            sourceS) to \e dest (state from space \e destS) but only
+            for the subspaces indicated by name in \e subspaces. This
+            uses StateSpace::getSubstateLocationsByName(). 
+            \note For efficiency reasons it is a good idea usually to make sure the elements of \e subspaces are not subspaces of each other */
+        AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest,
+                                                 const StateSpace *sourceS, const State *source,
+                                                 const std::vector<std::string> &subspaces);
+        /** @} */
+
     }
 }
 

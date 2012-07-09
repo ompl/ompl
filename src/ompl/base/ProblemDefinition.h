@@ -39,6 +39,7 @@
 
 #include "ompl/base/State.h"
 #include "ompl/base/Goal.h"
+#include "ompl/base/Path.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
@@ -64,16 +65,58 @@ namespace ompl
         /** \class ompl::base::ProblemDefinitionPtr
             \brief A boost shared pointer wrapper for ompl::base::ProblemDefinition */
 
+        /** \brief Representation of a solution to a planning problem */
+        struct PlannerSolution
+        {
+            /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
+            PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0) :
+                index_(-1), path_(path), length_(path->length()), approximate_(approximate), difference_(difference)
+            {
+            }
+
+            /** \brief Return true if two solutions are the same */
+            bool operator==(const PlannerSolution& p) const
+            {
+                return path_ == p.path_;
+            }
+
+            /** \brief Define a ranking for solutions */
+            bool operator<(const PlannerSolution &b) const
+            {
+                if (!approximate_ && b.approximate_)
+                    return true;
+                if (approximate_ && !b.approximate_)
+                    return false;
+                if (approximate_ && b.approximate_)
+                    return difference_ < b.difference_;
+                return length_ < b.length_;
+            }
+
+            /** \brief When multiple solutions are found, each is given a number starting at 0, so that the order in which the solutions was found can be retrieved. */
+            int     index_;
+
+            /** \brief Solution path */
+            PathPtr path_;
+
+            /** \brief For efficiency reasons, keep the length of the path as well */
+            double  length_;
+
+            /** \brief True if goal was not achieved, but an approximate solution was found */
+            bool    approximate_;
+
+            /** \brief The achieved difference between the found solution and the desired goal */
+            double  difference_;
+        };
+
         /** \brief Definition of a problem to be solved. This includes
-            the start state(s) for the system and a goal specification */
+            the start state(s) for the system and a goal specification.
+            Will contain solutions, if found.  */
         class ProblemDefinition : private boost::noncopyable
         {
         public:
 
             /** \brief Create a problem definition given the SpaceInformation it is part of */
-            ProblemDefinition(const SpaceInformationPtr &si) : si_(si)
-            {
-            }
+            ProblemDefinition(const SpaceInformationPtr &si);
 
             virtual ~ProblemDefinition(void)
             {
@@ -204,6 +247,38 @@ namespace ompl
               * is also specified. Returns true if all states are valid after completion. */
             bool fixInvalidInputStates(double distStart, double distGoal, unsigned int attempts);
 
+            /** \brief Returns true if a solution path has been found (could be approximate) */
+            bool hasSolution(void) const;
+
+            /** \brief Return true if the top found solution is
+                approximate (does not actually reach the desired goal,
+                but hopefully is closer to it) */
+            bool hasApproximateSolution(void) const;
+
+            /** \brief Get the distance to the desired goal for the top solution. Return -1.0 if there are no solutions available. */
+            double getSolutionDifference(void) const;
+
+            /** \brief Return the top solution path, if one is found. The top path is the shortest
+                 one that was found, preference being given to solutions that are not approximate.
+
+                This will need to be casted into the specialization computed by the planner */
+            PathPtr getSolutionPath(void) const;
+
+            /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal.
+                If a solution does not reach the desired goal it is considered approximate.
+                Optionally, the distance between the desired goal and the one actually achieved is set by \e difference.
+            */
+            void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0) const;
+
+            /** \brief Get the number of solutions already found */
+            std::size_t getSolutionCount(void) const;
+
+            /** \brief Get all the solution paths available for this goal */
+            std::vector<PlannerSolution> getSolutions(void) const;
+
+            /** \brief Forget the solution paths (thread safe). Memory is freed. */
+            void clearSolutionPaths(void) const;
+
             /** \brief Print information about the start and goal states */
             void print(std::ostream &out = std::cout) const;
 
@@ -221,8 +296,14 @@ namespace ompl
             /** \brief The goal representation */
             GoalPtr              goal_;
 
-            /** \brief Interface for console output */
-            msg::Interface       msg_;
+        private:
+
+            /// @cond IGNORE
+            ClassForward(PlannerSolutionSet);
+            /// @endcond
+
+            /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */
+            PlannerSolutionSetPtr        solutions_;
         };
     }
 }

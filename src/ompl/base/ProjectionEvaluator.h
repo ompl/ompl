@@ -250,16 +250,13 @@ namespace ompl
 
             /** \brief The set of parameters for this projection */
             ParamSet             params_;
-
-            /** \brief The console interface */
-            msg::Interface       msg_;
         };
 
         /** \brief If the projection for a CompoundStateSpace is
             supposed to be the same as the one for one of its included
             subspaces, this class facilitates selecting a projection
             of that subspace. */
-        class SubSpaceProjectionEvaluator : public ProjectionEvaluator
+        class SubspaceProjectionEvaluator : public ProjectionEvaluator
         {
         public:
 
@@ -269,7 +266,7 @@ namespace ompl
                 projection to use can be specified by \e projToUse. If
                 the projection is not specified, the default one for
                 the subspace at position \e index is used. */
-            SubSpaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse = ProjectionEvaluatorPtr());
+            SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse = ProjectionEvaluatorPtr());
 
             virtual void setup(void);
 

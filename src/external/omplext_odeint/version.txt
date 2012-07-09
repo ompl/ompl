@@ -1,0 +1,2 @@
+This version of boost::numeric::odeint was cloned from github on June 26, 2012.
+Git tag: 0f126ac9e410f26c9a90cc4a2cc562462f538346

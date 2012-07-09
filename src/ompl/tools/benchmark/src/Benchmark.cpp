@@ -72,7 +72,7 @@ namespace ompl
         public:
 
             RunPlanner(const Benchmark *benchmark, bool useThreads)
-                : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), crashed_(false), useThreads_(useThreads)
+                : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), useThreads_(useThreads)
             {
             }
 
@@ -89,20 +89,20 @@ namespace ompl
                 // allow 25% more time than originally specified, in order to detect planner termination
                 if (!t.timed_join(time::seconds(maxTime * 1.25)))
                 {
-                    crashed_ = true;
+                    status_ = base::PlannerStatus::CRASH;
 
                     std::stringstream es;
                     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
                        << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
                     std::cerr << es.str();
-                    msg_.error(es.str());
+                    logError(es.str().c_str());
 
                     t.interrupt();
                     t.join();
 
                     std::string m = "Planning thread cancelled";
                     std::cerr << m << std::endl;
-                    msg_.error(m);
+                    logError(m.c_str());
                 }
 
                 if (memStart < memUsed_)
@@ -121,9 +121,9 @@ namespace ompl
                 return memUsed_;
             }
 
-            bool crashed(void) const
+            base::PlannerStatus getStatus(void) const
             {
-                return crashed_;
+                return status_;
             }
 
         private:
@@ -135,7 +135,7 @@ namespace ompl
                 try
                 {
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
-                    planner->solve(ptc, 0.1);
+                    status_ = planner->solve(ptc, 0.1);
                 }
                 catch(std::runtime_error &e)
                 {
@@ -143,7 +143,7 @@ namespace ompl
                     es << "There was an error executing planner " << benchmark_->getStatus().activePlanner <<  ", run = " << benchmark_->getStatus().activeRun << std::endl;
                     es << "*** " << e.what() << std::endl;
                     std::cerr << es.str();
-                    msg_.error(es.str());
+                    logError(es.str().c_str());
                 }
 
                 timeUsed_ = time::seconds(time::now() - timeStart);
@@ -153,9 +153,8 @@ namespace ompl
             const Benchmark    *benchmark_;
             double              timeUsed_;
             machine::MemUsage_t memUsed_;
-            bool                crashed_;
+            base::PlannerStatus status_;
             bool                useThreads_;
-            msg::Interface      msg_;
         };
 
     }
@@ -170,7 +169,7 @@ bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
     if (fout.good())
     {
         result = saveResultsToStream(fout);
-        msg_.inform("Results saved to '%s'", filename);
+        logInform("Results saved to '%s'", filename);
     }
     else
     {
@@ -178,7 +177,7 @@ bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
         if (getResultsFilename(exp_) != std::string(filename))
             result = saveResultsToFile();
 
-        msg_.error("Unable to write results to '%s'", filename);
+        logError("Unable to write results to '%s'", filename);
     }
     return result;
 }
@@ -193,13 +192,13 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 {
     if (exp_.planners.empty())
     {
-        msg_.warn("There is no experimental data to save");
+        logWarn("There is no experimental data to save");
         return false;
     }
 
     if (!out.good())
     {
-        msg_.error("Unable to write to stream");
+        logError("Unable to write to stream");
         return false;
     }
 
@@ -213,6 +212,14 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
     out << exp_.maxMem << " MB per run" << std::endl;
     out << exp_.runCount << " runs per planner" << std::endl;
     out << exp_.totalDuration << " seconds spent to collect the data" << std::endl;
+
+    // change this if more enum types are added
+    out << "1 enum type" << std::endl;
+    out << "status";
+    for (unsigned int i = 0 ; i < base::PlannerStatus::TYPE_COUNT ; ++i)
+        out << '|' << base::PlannerStatus(static_cast<base::PlannerStatus::StatusType>(i)).asString();
+    out << std::endl;
+
     out << exp_.planners.size() << " planners" << std::endl;
 
     for (unsigned int i = 0 ; i < exp_.planners.size() ; ++i)
@@ -287,13 +294,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     if (!(gsetup_ ? gsetup_->getGoal() : csetup_->getGoal()))
     {
-        msg_.error("No goal defined");
+        logError("No goal defined");
         return;
     }
 
     if (planners_.empty())
     {
-        msg_.error("There are no planners to benchmark");
+        logError("There are no planners to benchmark");
         return;
     }
 
@@ -307,7 +314,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     exp_.startTime = time::now();
 
-    msg_.inform("Configuring planners ...");
+    logInform("Configuring planners ...");
 
     // clear previous experimental data
     exp_.planners.clear();
@@ -322,11 +329,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         if (!planners_[i]->isSetup())
             planners_[i]->setup();
         exp_.planners[i].name = (gsetup_ ? "geometric_" : "control_") + planners_[i]->getName();
-        msg_.inform("Configured " + exp_.planners[i].name);
+        logInform("Configured %s", exp_.planners[i].name.c_str());
     }
 
-    msg_.inform("Done configuring planners.");
-    msg_.inform("Saving planner setup information ...");
+    logInform("Done configuring planners.");
+    logInform("Saving planner setup information ...");
 
     std::stringstream setupInfo;
     if (gsetup_)
@@ -336,11 +343,12 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->printProperties(setupInfo);
+
     exp_.setupInfo = setupInfo.str();
 
-    msg_.inform("Done saving information");
+    logInform("Done saving information");
 
-    msg_.inform("Beginning benchmark");
+    logInform("Beginning benchmark");
     msg::OutputHandler *oh = msg::getOutputHandler();
     boost::scoped_ptr<msg::OutputHandlerFile> ohf;
     if (req.saveConsoleOutput)
@@ -350,7 +358,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     }
     else
         msg::noOutputHandler();
-    msg_.inform("Beginning benchmark");
+    logInform("Beginning benchmark");
 
     boost::scoped_ptr<boost::progress_display> progress;
     if (req.displayProgress)
@@ -372,9 +380,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         {
             if (plannerSwitch_)
             {
-                msg_.inform("Executing planner-switch event for planner %s ...", status_.activePlanner.c_str());
+                logInform("Executing planner-switch event for planner %s ...", status_.activePlanner.c_str());
                 plannerSwitch_(planners_[i]);
-                msg_.inform("Completed execution of planner-switch event");
+                logInform("Completed execution of planner-switch event");
             }
         }
         catch(std::runtime_error &e)
@@ -383,7 +391,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             es << "There was an error executing the planner-switch event for planner " << status_.activePlanner << std::endl;
             es << "*** " << e.what() << std::endl;
             std::cerr << es.str();
-            msg_.error(es.str());
+            logError(es.str().c_str());
         }
         if (gsetup_)
             gsetup_->setup();
@@ -402,7 +410,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 while (status_.progressPercentage > progress->count())
                     ++(*progress);
 
-            msg_.inform("Preparing for run %d of %s", status_.activeRun, status_.activePlanner.c_str());
+            logInform("Preparing for run %d of %s", status_.activeRun, status_.activePlanner.c_str());
 
             // make sure all planning data structures are cleared
             try
@@ -410,12 +418,12 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 planners_[i]->clear();
                 if (gsetup_)
                 {
-                    gsetup_->getGoal()->clearSolutionPaths();
+                    gsetup_->getProblemDefinition()->clearSolutionPaths();
                     gsetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
                 }
                 else
                 {
-                    csetup_->getGoal()->clearSolutionPaths();
+                    csetup_->getProblemDefinition()->clearSolutionPaths();
                     csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
                 }
             }
@@ -425,7 +433,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 es << "There was an error while preparing for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
-                msg_.error(es.str());
+                logError(es.str().c_str());
             }
 
             // execute pre-run event, if set
@@ -433,9 +441,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 if (preRun_)
                 {
-                    msg_.inform("Executing pre-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                    logInform("Executing pre-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
                     preRun_(planners_[i]);
-                    msg_.inform("Completed execution of pre-run event");
+                    logInform("Completed execution of pre-run event");
                 }
             }
             catch(std::runtime_error &e)
@@ -444,7 +452,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 es << "There was an error executing the pre-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
-                msg_.error(es.str());
+                logError(es.str().c_str());
             }
 
             RunPlanner rp(this, req.useThreads);
@@ -456,9 +464,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 RunProperties run;
 
-                run["crashed BOOLEAN"] = boost::lexical_cast<std::string>(rp.crashed());
                 run["time REAL"] = boost::lexical_cast<std::string>(rp.getTimeUsed());
                 run["memory REAL"] = boost::lexical_cast<std::string>((double)rp.getMemUsed() / (1024.0 * 1024.0));
+                run["status ENUM"] = boost::lexical_cast<std::string>((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
                 if (gsetup_)
                 {
                     run["solved BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->haveExactSolutionPath());
@@ -474,8 +482,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 {
                     if (gsetup_)
                     {
-                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getGoal()->isApproximate());
-                        run["solution difference REAL"] = boost::lexical_cast<std::string>(gsetup_->getGoal()->getDifference());
+                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->getSolutionDifference());
                         run["solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
                         run["solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
                         run["solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
@@ -503,8 +511,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     }
                     else
                     {
-                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getGoal()->isApproximate());
-                        run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getGoal()->getDifference());
+                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->getSolutionDifference());
                         run["solution length REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().length());
                         run["solution clearance REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().asGeometric().clearance());
                         run["solution segments INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().getControlCount());
@@ -512,13 +520,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     }
                 }
 
-                base::PlannerData pd;
+                base::PlannerData pd (gsetup_ ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation());
                 planners_[i]->getPlannerData(pd);
-                run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.states.size());
-                unsigned long edges = 0;
-                for (unsigned int k = 0 ; k < pd.edges.size() ; ++k)
-                    edges += pd.edges[k].size();
-                run["graph motions INTEGER"] = boost::lexical_cast<std::string>(edges);
+                run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.numVertices());
+                run["graph motions INTEGER"] = boost::lexical_cast<std::string>(pd.numEdges());
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
                     run[it->first] = it->second;
@@ -528,9 +533,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 {
                     if (postRun_)
                     {
-                        msg_.inform("Executing post-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                        logInform("Executing post-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
                         postRun_(planners_[i], run);
-                        msg_.inform("Completed execution of post-run event");
+                        logInform("Completed execution of post-run event");
                     }
                 }
                 catch(std::runtime_error &e)
@@ -539,7 +544,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     es << "There was an error in the execution of the post-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
                     es << "*** " << e.what() << std::endl;
                     std::cerr << es.str();
-                    msg_.error(es.str());
+                    logError(es.str().c_str());
                 }
 
                 exp_.planners[i].runs.push_back(run);
@@ -550,7 +555,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 es << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
-                msg_.error(es.str());
+                logError(es.str().c_str());
             }
         }
     }
@@ -566,7 +571,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     exp_.totalDuration = time::seconds(time::now() - exp_.startTime);
 
-    msg_.inform("Benchmark complete");
+    logInform("Benchmark complete");
     msg::useOutputHandler(oh);
-    msg_.inform("Benchmark complete");
+    logInform("Benchmark complete");
 }

@@ -50,16 +50,16 @@ ompl::control::OpenDEStateSpace::OpenDEStateSpace(const OpenDEEnvironmentPtr &en
     {
         std::string body = ":B" + boost::lexical_cast<std::string>(i);
 
-        addSubSpace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), positionWeight); // position
+        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), positionWeight); // position
         components_.back()->setName(components_.back()->getName() + body + ":position");
 
-        addSubSpace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), linVelWeight);   // linear velocity
+        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), linVelWeight);   // linear velocity
         components_.back()->setName(components_.back()->getName() + body + ":linvel");
 
-        addSubSpace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), angVelWeight);   // angular velocity
+        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), angVelWeight);   // angular velocity
         components_.back()->setName(components_.back()->getName() + body + ":angvel");
 
-        addSubSpace(base::StateSpacePtr(new base::SO3StateSpace()), orientationWeight);      // orientation
+        addSubspace(base::StateSpacePtr(new base::SO3StateSpace()), orientationWeight);      // orientation
         components_.back()->setName(components_.back()->getName() + body + ":orientation");
     }
     lock();
@@ -182,10 +182,9 @@ namespace ompl
                 reinterpret_cast<CallbackParam*>(data)->collision = !valid;
                 if (reinterpret_cast<CallbackParam*>(data)->env->verboseContacts_)
                 {
-                    static msg::Interface msg;
-                    msg.debug((valid ? "Valid" : "Invalid") + std::string(" contact between ") +
-                              reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o1) + " and " +
-                              reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o2));
+                    logDebug("%s contact between %s and %s", (valid ? "Valid" : "Invalid"),
+                             reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o1).c_str(),
+                             reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o2).c_str());
                 }
             }
         }

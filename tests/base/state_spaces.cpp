@@ -34,7 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE "StateSpaces"
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 
 #include "ompl/base/ScopedState.h"
@@ -51,10 +52,14 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 
 #include <boost/math/constants/constants.hpp>
+#include "../BoostTestTeamCityReporter.h"
 
 #include "StateSpaceTest.h"
 
 using namespace ompl;
+
+// define a convenience macro
+#define BOOST_OMPL_EXPECT_NEAR(a, b, diff) BOOST_CHECK_SMALL((a) - (b), diff)
 
 const double PI = boost::math::constants::pi<double>();
 
@@ -63,7 +68,7 @@ bool isValid(const base::State *)
     return true;
 }
 
-TEST(Dubins, Simple)
+BOOST_AUTO_TEST_CASE(Dubins_Simple)
 {
     base::StateSpacePtr d(new base::DubinsStateSpace()), dsym(new base::DubinsStateSpace(1., true));
 
@@ -80,7 +85,7 @@ TEST(Dubins, Simple)
     dsym->sanityChecks();
 }
 
-TEST(ReedsShepp, Simple)
+BOOST_AUTO_TEST_CASE(ReedsShepp_Simple)
 {
     base::StateSpacePtr d(new base::ReedsSheppStateSpace());
 
@@ -94,31 +99,31 @@ TEST(ReedsShepp, Simple)
 }
 
 
-TEST(Discrete, Simple)
+BOOST_AUTO_TEST_CASE(Discrete_Simple)
 {
     base::StateSpacePtr d(new base::DiscreteStateSpace(0, 2));
     base::DiscreteStateSpace &dm = *d->as<base::DiscreteStateSpace>();
     d->setup();
     d->sanityChecks();
 
-    EXPECT_EQ(d->getDimension(), 1u);
-    EXPECT_EQ(d->getMaximumExtent(), 2);
-    EXPECT_EQ(dm.getStateCount(), 3u);
+    BOOST_CHECK_EQUAL(d->getDimension(), 1u);
+    BOOST_CHECK_EQUAL(d->getMaximumExtent(), 2);
+    BOOST_CHECK_EQUAL(dm.getStateCount(), 3u);
     base::ScopedState<base::DiscreteStateSpace> s1(d);
     base::ScopedState<base::DiscreteStateSpace> s2(d);
     base::ScopedState<base::DiscreteStateSpace> s3(d);
     s1->value = 0;
     s2->value = 2;
     s3->value = 0;
-    EXPECT_EQ(s1, s3);
-    EXPECT_EQ(s2->value, 2);
+    BOOST_CHECK_EQUAL(s1, s3);
+    BOOST_CHECK_EQUAL(s2->value, 2);
     d->interpolate(s1.get(), s2.get(), 0.3, s3.get());
-    EXPECT_EQ(s3->value, 1);
+    BOOST_CHECK_EQUAL(s3->value, 1);
     d->interpolate(s1.get(), s2.get(), 0.2, s3.get());
-    EXPECT_EQ(s3->value, 0);
+    BOOST_CHECK_EQUAL(s3->value, 0);
 }
 
-TEST(SO2, Simple)
+BOOST_AUTO_TEST_CASE(SO2_Simple)
 {
     base::StateSpacePtr m(new base::SO2StateSpace());
     m->setup();
@@ -127,8 +132,8 @@ TEST(SO2, Simple)
     StateSpaceTest mt(m, 1000, 1e-15);
     mt.test();
 
-    EXPECT_EQ(m->getDimension(), 1u);
-    EXPECT_EQ(m->getMaximumExtent(), PI);
+    BOOST_CHECK_EQUAL(m->getDimension(), 1u);
+    BOOST_CHECK_EQUAL(m->getMaximumExtent(), PI);
 
     base::ScopedState<base::SO2StateSpace> s1(m);
     base::ScopedState<base::SO2StateSpace> s2(m);
@@ -136,51 +141,51 @@ TEST(SO2, Simple)
 
     s1->value = PI - 0.1;
     s2->value = -PI + 0.1;
-    EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
-    EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2, 1e-3);
-    EXPECT_NEAR(m->distance(s1.get(), s1.get()), 0.0, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s1.get()), 0.0, 1e-3);
 
     s1->value = PI - 0.08;
     m->interpolate(s1.get(), s2.get(), 0.5, s3.get());
-    EXPECT_NEAR(s3->value, -PI + 0.01, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(s3->value, -PI + 0.01, 1e-3);
 
     s1->value = PI - 0.1;
     s2->value = 0.1;
-    EXPECT_NEAR(m->distance(s2.get(), s1.get()), PI - 0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), PI - 0.2, 1e-3);
 
     m->interpolate(s1.get(), s2.get(), 0.5, s3.get());
-    EXPECT_NEAR(s3->value, PI / 2.0, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(s3->value, PI / 2.0, 1e-3);
 
     s2 = s1;
     m->interpolate(s1.get(), s1.get(), 0.5, s1.get());
-    EXPECT_EQ(s1, s2);
+    BOOST_CHECK_EQUAL(s1, s2);
 
     m->interpolate(s1.get(), s2.get(), 0.5, s1.get());
-    EXPECT_EQ(s1, s2);
+    BOOST_CHECK_EQUAL(s1, s2);
     s1->value = 0.5;
     s2->value = 1.5;
 
     m->interpolate(s1.get(), s2.get(), 0.0, s3.get());
-    EXPECT_NEAR(s3->value, s1->value, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(s3->value, s1->value, 1e-3);
     m->interpolate(s1.get(), s2.get(), 1.0, s3.get());
-    EXPECT_NEAR(s3->value, s2->value, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(s3->value, s2->value, 1e-3);
 }
 
-TEST(SO2, Projection)
+BOOST_AUTO_TEST_CASE(SO2_Projection)
 {
     base::StateSpacePtr m(new base::SO2StateSpace());
     m->setup();
 
     base::ProjectionEvaluatorPtr proj = m->getDefaultProjection();
-    EXPECT_EQ(proj->getDimension(), 1u);
+    BOOST_CHECK_EQUAL(proj->getDimension(), 1u);
 
     base::EuclideanProjection p(proj->getDimension());
     base::ScopedState<base::SO2StateSpace> s(m);
     proj->project(s.get(), p);
-    EXPECT_EQ(p[0], s->value);
+    BOOST_CHECK_EQUAL(p[0], s->value);
 }
 
-TEST(SO2, Sampler)
+BOOST_AUTO_TEST_CASE(SO2_Sampler)
 {
     base::StateSpacePtr m(new base::SO2StateSpace());
     m->setup();
@@ -191,12 +196,12 @@ TEST(SO2, Sampler)
     for (int i = 0 ; i < 100 ; ++i)
     {
         s->sampleUniformNear(y.get(), x.get(), 10000);
-        EXPECT_TRUE(y.satisfiesBounds());
+        BOOST_CHECK(y.satisfiesBounds());
     }
 }
 
 
-TEST(SO3, Simple)
+BOOST_AUTO_TEST_CASE(SO3_Simple)
 {
     base::StateSpacePtr m(new base::SO3StateSpace());
     m->setup();
@@ -205,8 +210,8 @@ TEST(SO3, Simple)
     StateSpaceTest mt(m, 1000, 1e-12);
     mt.test();
 
-    EXPECT_EQ(m->getDimension(), 3u);
-    EXPECT_EQ(m->getMaximumExtent(), .5*PI);
+    BOOST_CHECK_EQUAL(m->getDimension(), 3u);
+    BOOST_CHECK_EQUAL(m->getMaximumExtent(), .5*PI);
 
     base::ScopedState<base::SO3StateSpace> s1(m);
     base::ScopedState<base::SO3StateSpace> s2(m);
@@ -214,8 +219,8 @@ TEST(SO3, Simple)
     s1.random();
     s2 = s1;
 
-    EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
-    EXPECT_EQ(s1, s2);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
+    BOOST_CHECK_EQUAL(s1, s2);
 
     s2.random();
 
@@ -226,22 +231,22 @@ TEST(SO3, Simple)
     std::vector<base::State*> states;
     unsigned int ns = 100;
     unsigned int count = si.getMotionStates(s1.get(), s2.get(), states, ns, true, true);
-    EXPECT_TRUE(states.size() == count);
-    EXPECT_TRUE(ns + 2 == count);
+    BOOST_CHECK(states.size() == count);
+    BOOST_CHECK(ns + 2 == count);
 
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
         double nrm = m->as<base::SO3StateSpace>()->norm(states[i]->as<base::SO3StateSpace::StateType>());
-        EXPECT_NEAR(nrm, 1.0, 1e-15);
-        EXPECT_TRUE(m->satisfiesBounds(states[i]));
+        BOOST_OMPL_EXPECT_NEAR(nrm, 1.0, 1e-15);
+        BOOST_CHECK(m->satisfiesBounds(states[i]));
         si.freeState(states[i]);
     }
 
     base::ProjectionEvaluatorPtr proj = m->getDefaultProjection();
-    EXPECT_EQ(proj->getDimension(), 3u);
+    BOOST_CHECK_EQUAL(proj->getDimension(), 3u);
 }
 
-TEST(RealVector, Bounds)
+BOOST_AUTO_TEST_CASE(RealVector_Bounds)
 {
     base::RealVectorBounds bounds1(1);
     bounds1.setLow(0);
@@ -249,8 +254,8 @@ TEST(RealVector, Bounds)
     base::RealVectorStateSpace rsm1(1);
     rsm1.setBounds(bounds1);
     rsm1.setup();
-    EXPECT_EQ(rsm1.getDimension(), 1u);
-    EXPECT_NEAR(rsm1.getMaximumExtent(), 1.0, 1e-3);
+    BOOST_CHECK_EQUAL(rsm1.getDimension(), 1u);
+    BOOST_OMPL_EXPECT_NEAR(rsm1.getMaximumExtent(), 1.0, 1e-3);
 
     base::RealVectorBounds bounds3(3);
     bounds3.setLow(0);
@@ -258,14 +263,14 @@ TEST(RealVector, Bounds)
     base::RealVectorStateSpace rsm3(3);
     rsm3.setBounds(bounds3);
     rsm3.setup();
-    EXPECT_TRUE(rsm3.getDimension() == 3);
-    EXPECT_NEAR(rsm3.getMaximumExtent(), sqrt(3.0), 1e-3);
+    BOOST_CHECK(rsm3.getDimension() == 3);
+    BOOST_OMPL_EXPECT_NEAR(rsm3.getMaximumExtent(), sqrt(3.0), 1e-3);
 
-    EXPECT_TRUE(rsm3.getBounds().low == bounds3.low);
-    EXPECT_TRUE(rsm3.getBounds().high == bounds3.high);
+    BOOST_CHECK(rsm3.getBounds().low == bounds3.low);
+    BOOST_CHECK(rsm3.getBounds().high == bounds3.high);
 }
 
-TEST(RealVector, Simple)
+BOOST_AUTO_TEST_CASE(RealVector_Simple)
 {
     base::RealVectorBounds bounds3(3);
     bounds3.setLow(0);
@@ -285,42 +290,42 @@ TEST(RealVector, Simple)
     (*s0)[1] = 0;
     (*s0)[2] = 0;
 
-    EXPECT_TRUE(m->satisfiesBounds(s0.get()));
+    BOOST_CHECK(m->satisfiesBounds(s0.get()));
 
     base::ScopedState<base::RealVectorStateSpace> s1 = s0;
-    EXPECT_EQ(s0, s1);
-    EXPECT_NEAR(m->distance(s0.get(), s1.get()), 0.0, 1e-3);
+    BOOST_CHECK_EQUAL(s0, s1);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s0.get(), s1.get()), 0.0, 1e-3);
     m->interpolate(s0.get(), s0.get(), 0.6, s0.get());
-    EXPECT_EQ(s0, s1);
+    BOOST_CHECK_EQUAL(s0, s1);
     s1->values[2] = 1.0;
 
-    EXPECT_TRUE(m->satisfiesBounds(s1.get()));
+    BOOST_CHECK(m->satisfiesBounds(s1.get()));
     m->interpolate(s0.get(), s1.get(), 0.5, s0.get());
 
-    EXPECT_NEAR((*s0)[rm.getDimensionIndex("testDim")], 0.5, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR((*s0)[rm.getDimensionIndex("testDim")], 0.5, 1e-3);
 
     base::StateSpacePtr m2(new base::RealVectorStateSpace());
     m2->as<base::RealVectorStateSpace>()->addDimension(1, 2);
     m2->setup();
-    EXPECT_NEAR(m2->getMaximumExtent(), 1.0, 1e-3);
-    EXPECT_EQ(m2->getDimension(), 1u);
+    BOOST_OMPL_EXPECT_NEAR(m2->getMaximumExtent(), 1.0, 1e-3);
+    BOOST_CHECK_EQUAL(m2->getDimension(), 1u);
 }
 
-TEST(Time, Bounds)
+BOOST_AUTO_TEST_CASE(Time_Bounds)
 {
     base::TimeStateSpace t;
     t.setup();
 
-    EXPECT_EQ(t.getDimension(), 1u);
-    EXPECT_FALSE(t.isBounded());
-    EXPECT_NEAR(t.getMaximumExtent(), 1.0, 1e-3);
+    BOOST_CHECK_EQUAL(t.getDimension(), 1u);
+    BOOST_CHECK_EQUAL(t.isBounded(), false);
+    BOOST_OMPL_EXPECT_NEAR(t.getMaximumExtent(), 1.0, 1e-3);
 
     t.setBounds(-1, 1);
-    EXPECT_TRUE(t.isBounded());
-    EXPECT_NEAR(t.getMaximumExtent(), 2.0, 1e-3);
+    BOOST_CHECK(t.isBounded());
+    BOOST_OMPL_EXPECT_NEAR(t.getMaximumExtent(), 2.0, 1e-3);
 }
 
-TEST(Time, Simple)
+BOOST_AUTO_TEST_CASE(Time_Simple)
 {
     base::StateSpacePtr t(new base::TimeStateSpace());
     t->setup();
@@ -331,8 +336,8 @@ TEST(Time, Simple)
 
     base::ScopedState<base::TimeStateSpace> ss(t);
     ss.random();
-    EXPECT_EQ(ss->position, 0.0);
-    EXPECT_TRUE(t->satisfiesBounds(ss.get()));
+    BOOST_CHECK_EQUAL(ss->position, 0.0);
+    BOOST_CHECK(t->satisfiesBounds(ss.get()));
 
     t->as<base::TimeStateSpace>()->setBounds(-1, 1);
     t->setup();
@@ -343,80 +348,74 @@ TEST(Time, Simple)
         if (ss->position != 0.0)
             break;
     }
-    EXPECT_TRUE(ss->position != 0.0);
+    BOOST_CHECK(ss->position != 0.0);
 
     ss->position = 2.0;
-    EXPECT_FALSE(t->satisfiesBounds(ss.get()));
+    BOOST_CHECK_EQUAL(t->satisfiesBounds(ss.get()), false);
     t->enforceBounds(ss.get());
-    EXPECT_NEAR(ss->position, 1.0, 1e-3);
-    EXPECT_TRUE(t->satisfiesBounds(ss.get()));
+    BOOST_OMPL_EXPECT_NEAR(ss->position, 1.0, 1e-3);
+    BOOST_CHECK(t->satisfiesBounds(ss.get()));
 
     base::ScopedState<base::TimeStateSpace> s0 = ss;
     s0->position = 0.5;
     t->interpolate(s0.get(), ss.get(), 0.5, ss.get());
-    EXPECT_NEAR(ss->position, 0.75, 1e-3);
-    EXPECT_FALSE(s0 == ss);
+    BOOST_OMPL_EXPECT_NEAR(ss->position, 0.75, 1e-3);
+    BOOST_CHECK_NE(s0, ss);
     ss = s0;
-    EXPECT_TRUE(s0 == ss);
+    BOOST_CHECK(s0 == ss);
 }
 
-TEST(Compound, Simple)
+BOOST_AUTO_TEST_CASE(Compound_Simple)
 {
     base::StateSpacePtr m1(new base::SE2StateSpace());
     base::StateSpacePtr m2(new base::SE3StateSpace());
     base::StateSpacePtr m3(new base::SO2StateSpace());
     base::StateSpacePtr m4(new base::SO3StateSpace());
 
-    EXPECT_TRUE(m1 + m1 == m1);
+    BOOST_CHECK(m1 + m1 == m1);
 
     base::StateSpacePtr s = m1 + m2 + m3;
-    EXPECT_TRUE(s + s == s);
-    EXPECT_TRUE(s - s + s == s);
-    EXPECT_TRUE(s + s - s + s  == s);
-    EXPECT_TRUE(s * s  == s);
-    EXPECT_TRUE(s * m2 == m2);
-    EXPECT_TRUE(m1 * s == m1);
-    EXPECT_TRUE(m1 + s == s);
-    EXPECT_TRUE(s + m2 == s);
-    EXPECT_TRUE(m1 + s + m2 == s);
-    EXPECT_TRUE(m1 + s + m2 - "x" == s);
-    EXPECT_TRUE(s - "random" == s);
-    EXPECT_TRUE(m3 + m3 == m3);
-    EXPECT_TRUE(m3 + s * m3 * s - m2 - m1 == m3 * s);
+    BOOST_CHECK(s + s == s);
+    BOOST_CHECK(s - s + s == s);
+    BOOST_CHECK(s + s - s + s  == s);
+    BOOST_CHECK(s * s  == s);
+    BOOST_CHECK(s * m2 == m2);
+    BOOST_CHECK(m1 * s == m1);
+    BOOST_CHECK(m1 + s == s);
+    BOOST_CHECK(s + m2 == s);
+    BOOST_CHECK(m1 + s + m2 == s);
+    BOOST_CHECK(m1 + s + m2 - "x" == s);
+    BOOST_CHECK(s - "random" == s);
+    BOOST_CHECK(m3 + m3 == m3);
+    BOOST_CHECK(m3 + s * m3 * s - m2 - m1 == m3 * s);
 
-    EXPECT_TRUE(base::StateSpacePtr() + m1 == m1);
-    EXPECT_TRUE(m1 + base::StateSpacePtr() == m1);
-    EXPECT_FALSE(m1 + base::StateSpacePtr() == m2 * s);
-    EXPECT_TRUE(base::StateSpacePtr() * s + m1 == m1);
-    EXPECT_TRUE(m3 * base::StateSpacePtr() + m1 == m1);
-    EXPECT_TRUE(base::StateSpacePtr() * base::StateSpacePtr() + m4 == m4);
-    EXPECT_TRUE(base::StateSpacePtr() + base::StateSpacePtr() + m4 == m4);
-    EXPECT_TRUE(base::StateSpacePtr() - base::StateSpacePtr() + m4 == m4);
-    EXPECT_TRUE((base::StateSpacePtr() - "")->getDimension() == 0);
+    BOOST_CHECK(base::StateSpacePtr() + m1 == m1);
+    BOOST_CHECK(m1 + base::StateSpacePtr() == m1);
+    BOOST_CHECK_EQUAL(m1 + base::StateSpacePtr() == m2 * s, false);
+    BOOST_CHECK(base::StateSpacePtr() * s + m1 == m1);
+    BOOST_CHECK(m3 * base::StateSpacePtr() + m1 == m1);
+    BOOST_CHECK(base::StateSpacePtr() * base::StateSpacePtr() + m4 == m4);
+    BOOST_CHECK(base::StateSpacePtr() + base::StateSpacePtr() + m4 == m4);
+    BOOST_CHECK(base::StateSpacePtr() - base::StateSpacePtr() + m4 == m4);
+    BOOST_CHECK((base::StateSpacePtr() - "")->getDimension() == 0);
 
-    EXPECT_EQ(s->getDimension(), m1->getDimension() + m2->getDimension() + m3->getDimension());
+    BOOST_CHECK_EQUAL(s->getDimension(), m1->getDimension() + m2->getDimension() + m3->getDimension());
     base::StateSpacePtr d = s - m2;
-    EXPECT_EQ(d->getDimension(), m1->getDimension() + m3->getDimension());
-    EXPECT_TRUE((s + d)->getDimension() == s->getDimension());
+    BOOST_CHECK_EQUAL(d->getDimension(), m1->getDimension() + m3->getDimension());
+    BOOST_CHECK((s + d)->getDimension() == s->getDimension());
 
     m4->setName("test");
-    EXPECT_TRUE(m4->getName() == "test");
+    BOOST_CHECK(m4->getName() == "test");
 
     base::StateSpacePtr t = m1 + m4;
-    EXPECT_EQ((t - "test")->getDimension(), m1->getDimension());
-    EXPECT_EQ((m1 - m1)->getDimension(), 0u);
+    BOOST_CHECK_EQUAL((t - "test")->getDimension(), m1->getDimension());
+    BOOST_CHECK_EQUAL((m1 - m1)->getDimension(), 0u);
     t->setName(t->getName());
     base::ScopedState<> st(t);
-    EXPECT_TRUE(t->getValueAddressAtIndex(st.get(), 10000) == NULL);
-    EXPECT_TRUE(t->includes(m1));
-    EXPECT_FALSE(t->includes(m2));
-    EXPECT_FALSE(m1->includes(t));
-    EXPECT_TRUE(m3->includes(m3));
-    EXPECT_TRUE(t->includes(t));
-}
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    BOOST_CHECK(t->getValueAddressAtIndex(st.get(), 10000) == NULL);
+    BOOST_CHECK(t->includes(m1));
+    BOOST_CHECK_EQUAL(t->includes(m2), false);
+    BOOST_CHECK_EQUAL(m1->includes(t), false);
+    BOOST_CHECK(m3->includes(m3));
+    BOOST_CHECK(t->includes(t));
 }

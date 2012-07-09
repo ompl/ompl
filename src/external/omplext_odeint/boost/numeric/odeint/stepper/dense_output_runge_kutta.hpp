@@ -23,12 +23,12 @@
 #include <utility>
 #include <stdexcept>
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/copy.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
@@ -38,36 +38,15 @@ namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
-template
-<
-class Stepper ,
-class StepperCategory = typename Stepper::stepper_category
->
+template< class Stepper , class StepperCategory = typename Stepper::stepper_category >
 class dense_output_runge_kutta;
 
 
-template
-<
-class Stepper
->
+
+
+template< class Stepper >
 class dense_output_runge_kutta< Stepper , stepper_tag >
 {
-
-private:
-
-    void copy_pointers( const dense_output_runge_kutta &dense_output )
-    {
-        if( dense_output.m_current_state == (&dense_output.m_x1.m_v ) )
-        {
-            m_current_state = &m_x1.m_v;
-            m_old_state = &m_x2.m_v;
-        }
-        else
-        {
-            m_current_state = &m_x2.m_v;
-            m_old_state = &m_x1.m_v;
-        }
-    }
 
 public:
 
@@ -90,36 +69,17 @@ public:
 
 
     dense_output_runge_kutta( const stepper_type &stepper = stepper_type() )
-    : m_stepper( stepper ) ,
-      m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v )
-    { }
+    : m_stepper( stepper ) , m_resizer() ,
+      m_x1() , m_x2() , m_current_state_x1( true ) , 
+      m_t() , m_t_old() , m_dt()
+    { } 
 
-
-    dense_output_runge_kutta( const dense_output_runge_kutta &dense_output )
-    : m_stepper( dense_output.m_stepper ) , m_x1( dense_output.m_x1 ) , m_x2( dense_output.m_x2 ) ,
-      m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v ) ,
-      m_t( dense_output.m_t ) , m_t_old( dense_output.m_t_old ) , m_dt( dense_output.m_dt )
-    {
-        copy_pointers( dense_output );
-    }
-
-    dense_output_runge_kutta& operator=( const dense_output_runge_kutta &dense_output )
-    {
-        m_stepper = dense_output.m_stepper;
-        m_x1 = dense_output.m_x1;
-        m_x2 = dense_output.m_x2;
-        m_t = dense_output.m_t;
-        m_t_old = dense_output.m_t_old;
-        m_dt = dense_output.m_dt;
-        copy_pointers( dense_output );
-        return *this;
-    }
 
     template< class StateType >
-    void initialize( const StateType &x0 , const time_type &t0 , const time_type &dt0 )
+    void initialize( const StateType &x0 , time_type t0 , time_type dt0 )
     {
-        m_resizer.adjust_size( x0 , boost::bind( &dense_output_stepper_type::template resize_impl< StateType > , boost::ref( *this ) , _1 ) );
-        boost::numeric::omplext_odeint::copy( x0 , *m_current_state );
+        m_resizer.adjust_size( x0 , detail::bind( &dense_output_stepper_type::template resize_impl< StateType > , detail::ref( *this ) , detail::_1 ) );
+        boost::numeric::omplext_odeint::copy( x0 , get_current_state() );
         m_t = t0;
         m_dt = dt0;
     }
@@ -127,10 +87,10 @@ public:
     template< class System >
     std::pair< time_type , time_type > do_step( System system )
     {
-        m_stepper.do_step( system , *m_current_state , m_t , *m_old_state , m_dt );
+        m_stepper.do_step( system , get_current_state() , m_t , get_old_state() , m_dt );
         m_t_old = m_t;
         m_t += m_dt;
-        std::swap( m_current_state , m_old_state );
+        toggle_current_state();
         return std::make_pair( m_t_old , m_dt );
     }
 
@@ -138,15 +98,15 @@ public:
      * The next two overloads are needed to solve the forwarding problem
      */
     template< class StateOut >
-    void calc_state( const time_type &t , StateOut &x )
+    void calc_state( time_type t , StateOut &x )
     {
-        m_stepper.calc_state( x , t , *m_old_state , m_t_old , *m_current_state , m_t );
+        m_stepper.calc_state( x , t , get_old_state() , m_t_old , get_current_state() , m_t );
     }
 
     template< class StateOut >
-    void calc_state( const time_type &t , const StateOut &x )
+    void calc_state( time_type t , const StateOut &x )
     {
-        m_stepper.calc_state( x , t , *m_old_state , m_t_old , *m_current_state , m_t );
+        m_stepper.calc_state( x , t , get_old_state() , m_t_old , get_current_state() , m_t );
     }
 
     template< class StateType >
@@ -158,20 +118,20 @@ public:
 
     const state_type& current_state( void ) const
     {
-        return *m_current_state;
+        return get_current_state();
     }
 
-    const time_type& current_time( void ) const
+    time_type current_time( void ) const
     {
         return m_t;
     }
 
-    const time_type& previous_state( void ) const
+    const state_type& previous_state( void ) const
     {
-        return *m_old_state;
+        return get_old_state();
     }
 
-    const time_type& previous_time( void ) const
+    time_type previous_time( void ) const
     {
         return m_t_old;
     }
@@ -179,12 +139,38 @@ public:
 
 private:
 
+    state_type& get_current_state( void )
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    const state_type& get_current_state( void ) const
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    state_type& get_old_state( void )
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+    
+    const state_type& get_old_state( void ) const
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+    
+    void toggle_current_state( void )
+    {
+        m_current_state_x1 = ! m_current_state_x1;
+    }
+
+
     template< class StateIn >
     bool resize_impl( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x2 , x , typename wrapped_state_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x2 , x , typename is_resizeable<state_type>::type() );
         return resized;
     }
 
@@ -192,7 +178,7 @@ private:
     stepper_type m_stepper;
     resizer_type m_resizer;
     wrapped_state_type m_x1 , m_x2;
-    state_type *m_current_state , *m_old_state;
+    bool m_current_state_x1;    // if true, the current state is m_x1
     time_type m_t , m_t_old , m_dt;
 
 };
@@ -202,38 +188,9 @@ private:
 
 
 
-template
-<
-class Stepper
->
+template< class Stepper >
 class dense_output_runge_kutta< Stepper , explicit_controlled_stepper_fsal_tag >
 {
-private:
-
-    void copy_pointers( const dense_output_runge_kutta &dense_output )
-    {
-        if( dense_output.m_current_state == (&dense_output.m_x1.m_v ) )
-        {
-            m_current_state = &m_x1.m_v;
-            m_old_state = &m_x2.m_v;
-        }
-        else
-        {
-            m_current_state = &m_x2.m_v;
-            m_old_state = &m_x1.m_v;
-        }
-        if( dense_output.m_current_deriv == ( &dense_output.m_dxdt1.m_v ) )
-        {
-            m_current_deriv = &m_dxdt1.m_v;
-            m_old_deriv = &m_dxdt2.m_v;
-        }
-        else
-        {
-            m_current_deriv = &m_dxdt2.m_v;
-            m_old_deriv = &m_dxdt1.m_v;
-        }
-    }
-
 public:
 
     /*
@@ -254,45 +211,21 @@ public:
     typedef dense_output_stepper_tag stepper_category;
     typedef dense_output_runge_kutta< Stepper > dense_output_stepper_type;
 
+
     dense_output_runge_kutta( const controlled_stepper_type &stepper = controlled_stepper_type() )
-    : m_stepper( stepper ) ,
-      m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v ) ,
-      m_current_deriv( &m_dxdt1.m_v ) , m_old_deriv( &m_dxdt2.m_v ) ,
+    : m_stepper( stepper ) , m_resizer() ,
+      m_current_state_x1( true ) ,
+      m_x1() , m_x2() , m_dxdt1() , m_dxdt2() ,
+      m_t() , m_t_old() , m_dt() ,
       m_is_deriv_initialized( false )
     { }
 
-    dense_output_runge_kutta( const dense_output_runge_kutta &dense_output )
-    : m_stepper( dense_output.m_stepper ) ,
-      m_x1( dense_output.m_x1 ) , m_x2( dense_output.m_x2 ) ,
-      m_dxdt1( dense_output.m_dxdt1 ) , m_dxdt2( dense_output.m_dxdt2 ) ,
-      m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v ) ,
-      m_current_deriv( &m_dxdt1.m_v ) , m_old_deriv( &m_dxdt2.m_v ) ,
-      m_t( dense_output.m_t ) , m_t_old( dense_output.m_t_old ) , m_dt( dense_output.m_dt ) ,
-      m_is_deriv_initialized( dense_output.m_is_deriv_initialized )
-    {
-        copy_pointers( dense_output );
-    }
-
-    dense_output_runge_kutta& operator=( const dense_output_runge_kutta &dense_output )
-    {
-        m_stepper = dense_output.m_stepper;
-        m_x1 = dense_output.m_x1;
-        m_x2 = dense_output.m_x2;
-        m_dxdt1 = dense_output.m_dxdt1;
-        m_dxdt2 = dense_output.m_dxdt2;
-        m_current_state = &m_x1.m_v;
-        m_old_state = &m_x2.m_v;
-        m_current_deriv = &m_dxdt1.m_v;
-        m_old_deriv = &m_dxdt2.m_v;
-        copy_pointers( dense_output );
-        return *this;
-    }
 
     template< class StateType >
-    void initialize( const StateType &x0 , const time_type &t0 , const time_type &dt0 )
+    void initialize( const StateType &x0 , time_type t0 , time_type dt0 )
     {
-        m_resizer.adjust_size( x0 , boost::bind( &dense_output_stepper_type::template resize< StateType > , boost::ref( *this ) , _1 ) );
-        boost::numeric::omplext_odeint::copy( x0 , *m_current_state );
+        m_resizer.adjust_size( x0 , detail::bind( &dense_output_stepper_type::template resize< StateType > , detail::ref( *this ) , detail::_1 ) );
+        boost::numeric::omplext_odeint::copy( x0 , get_current_state() );
         m_t = t0;
         m_dt = dt0;
         m_is_deriv_initialized = false;
@@ -305,8 +238,8 @@ public:
 
         if( !m_is_deriv_initialized )
         {
-            typename boost::unwrap_reference< System >::type &sys = system;
-            sys( *m_current_state , *m_current_deriv , m_t );
+            typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+            sys( get_current_state() , get_current_deriv() , m_t );
             m_is_deriv_initialized = true;
         }
 
@@ -315,13 +248,13 @@ public:
         size_t count = 0;
         do
         {
-            res = m_stepper.try_step( system , *m_current_state , *m_current_deriv , m_t , *m_old_state , *m_old_deriv , m_dt );
+            res = m_stepper.try_step( system , get_current_state() , get_current_deriv() , m_t ,
+                                      get_old_state() , get_old_deriv() , m_dt );
             if( count++ == max_count )
                 throw std::overflow_error( "dense_output_controlled_explicit : too much iterations!");
         }
         while( res == fail );
-        std::swap( m_current_state , m_old_state );
-        std::swap( m_current_deriv , m_old_deriv );
+        toggle_current_state();
         return std::make_pair( m_t_old , m_t );
     }
 
@@ -330,15 +263,17 @@ public:
      * The two overloads are needed in order to solve the forwarding problem.
      */
     template< class StateOut >
-    void calc_state( const time_type &t , StateOut &x )
+    void calc_state( time_type t , StateOut &x )
     {
-        m_stepper.stepper().calc_state( t , x , *m_old_state , *m_old_deriv , m_t_old , *m_current_state , *m_current_deriv , m_t );
+        m_stepper.stepper().calc_state( t , x , get_old_state() , get_old_deriv() , m_t_old ,
+                                        get_current_state() , get_current_deriv() , m_t );
     }
 
     template< class StateOut >
-    void calc_state( const time_type &t , const StateOut &x )
+    void calc_state( time_type t , const StateOut &x )
     {
-        m_stepper.stepper().calc_state( t , x , *m_old_state , *m_old_deriv , m_t_old , *m_current_state , *m_current_deriv , m_t );
+        m_stepper.stepper().calc_state( t , x , get_old_state() , get_old_deriv() , m_t_old ,
+                                        get_current_state() , get_current_deriv() , m_t );
     }
 
 
@@ -346,10 +281,10 @@ public:
     bool resize( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x2 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename wrapped_deriv_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x2 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename is_resizeable<deriv_type>::type() );
         return resized;
     }
 
@@ -363,25 +298,25 @@ public:
 
     const state_type& current_state( void ) const
     {
-        return *m_current_state;
+        return get_current_state();
     }
 
-    const time_type& current_time( void ) const
+    time_type current_time( void ) const
     {
         return m_t;
     }
 
-    const time_type& previous_state( void ) const
+    const state_type& previous_state( void ) const
     {
-        return *m_old_state;
+        return get_old_state();
     }
 
-    const time_type& previous_time( void ) const
+    time_type previous_time( void ) const
     {
         return m_t_old;
     }
 
-    const time_type& current_time_step( void ) const
+    time_type current_time_step( void ) const
     {
         return m_dt;
     }
@@ -389,12 +324,58 @@ public:
 
 private:
 
+    state_type& get_current_state( void )
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    const state_type& get_current_state( void ) const
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    state_type& get_old_state( void )
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+    
+    const state_type& get_old_state( void ) const
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+
+    deriv_type& get_current_deriv( void )
+    {
+        return m_current_state_x1 ? m_dxdt1.m_v : m_dxdt2.m_v ;
+    }
+    
+    const deriv_type& get_current_deriv( void ) const
+    {
+        return m_current_state_x1 ? m_dxdt1.m_v : m_dxdt2.m_v ;
+    }
+    
+    deriv_type& get_old_deriv( void )
+    {
+        return m_current_state_x1 ? m_dxdt2.m_v : m_dxdt1.m_v ;
+    }
+    
+    const deriv_type& get_old_deriv( void ) const
+    {
+        return m_current_state_x1 ? m_dxdt2.m_v : m_dxdt1.m_v ;
+    }
+
+    
+    void toggle_current_state( void )
+    {
+        m_current_state_x1 = ! m_current_state_x1;
+    }
+
+
     controlled_stepper_type m_stepper;
     resizer_type m_resizer;
+    bool m_current_state_x1;
     wrapped_state_type m_x1 , m_x2;
     wrapped_deriv_type m_dxdt1 , m_dxdt2;
-    state_type *m_current_state , *m_old_state;
-    deriv_type *m_current_deriv , *m_old_deriv;
     time_type m_t , m_t_old , m_dt;
     bool m_is_deriv_initialized;
 

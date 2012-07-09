@@ -15,14 +15,14 @@ ompl::base::StateSpacePtr newSpace = r5 + so2;
 Alternatively to using the "+" operator on state spaces (see \ref
 workingWithStates "working with states and state spaces"), one could
 directly create an instance of ompl::base::CompoundStateSpace and
-call ompl::base::CompoundStateSpace::addSubSpace() on it. This
+call ompl::base::CompoundStateSpace::addSubspace() on it. This
 approach allows setting the weights of each added subspace for
 computing distances bewteen states in the compound state space. When
 using the "+" operator these weights are assumed to be 1.0.
 @code
 ompl::base::CompoundStateSpace *newSpace = new ompl::base::CompoundStateSpace();
-newSpace->addSubSpace(ompl::base::StateSpacePtr(new ompl::base::RealVectorStateSpace(5)), 1.0);
-newSpace->addSubSpace(ompl::base::StateSpacePtr(new ompl::base::SO2StateSpace()), 0.5);
+newSpace->addSubspace(ompl::base::StateSpacePtr(new ompl::base::RealVectorStateSpace(5)), 1.0);
+newSpace->addSubspace(ompl::base::StateSpacePtr(new ompl::base::SO2StateSpace()), 0.5);
 @endcode
 
 @par Inheriting from existing state spaces
@@ -51,7 +51,7 @@ implemented.
 
 @par Inheriting from ompl::base::CompoundStateSpace
 Another option is to inherit from a ompl::base::CompoundStateSpace
-and call ompl::base::CompoundStateSpace::addSubSpace() in the
+and call ompl::base::CompoundStateSpace::addSubspace() in the
 constructor of the new class for other existing state spaces. This is the
 easiest way to create new state spaces -- only the constructor needs to
 be provided. For example, see

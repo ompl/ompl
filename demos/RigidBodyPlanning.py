@@ -45,6 +45,7 @@ except:
     from os.path import basename, abspath, dirname, join
     import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
+    from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
 
@@ -54,7 +55,46 @@ def isStateValid(state):
     # to convert state to an SE2State.)
     return state.getX() < .6
 
-def plan():
+def planWithSimpleSetup():
+    # create an SE2 state space
+    space = ob.SE2StateSpace()
+
+    # set lower and upper bounds
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-1)
+    bounds.setHigh(1)
+    space.setBounds(bounds)
+
+    # create a simple setup object
+    ss = og.SimpleSetup(space)
+    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
+
+    start = ob.State(space)
+    # we can pick a random start state...
+    start.random()
+    # ... or set specific values
+    start().setX(.5)
+
+    goal = ob.State(space)
+    # we can pick a random goal state...
+    goal.random()
+    # ... or set specific values
+    goal().setX(-.5)
+
+    ss.setStartAndGoalStates(start, goal)
+
+    # this will automatically choose a default planner with
+    # default parameters
+    solved = ss.solve(1.0)
+
+    if solved:
+        # try to shorten the path
+        ss.simplifySolution()
+        # print the simplified path
+        print(ss.getSolutionPath())
+
+
+def planTheHardWay():
     # create an SE2 state space
     space = ob.SE2StateSpace()
     # set lower and upper bounds
@@ -92,52 +132,13 @@ def plan():
     if solved:
         # get the goal representation from the problem definition (not the same as the goal state)
         # and inquire about the found path
-        path = pdef.getGoal().getSolutionPath()
+        path = pdef.getSolutionPath()
         print("Found solution:\n%s" % path)
     else:
         print("No solution found")
 
 
-def planWithSimpleSetup():
-    # create an SE2 state space
-    space = ob.SE2StateSpace()
-
-    # set lower and upper bounds
-    bounds = ob.RealVectorBounds(2)
-    bounds.setLow(-1)
-    bounds.setHigh(1)
-    space.setBounds(bounds)
-
-    # create a simple setup object
-    ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
-
-    start = ob.State(space)
-    # we can pick a random start state...
-    start.random()
-    # ... or set specific values
-    start().setX(.5)
-
-    goal = ob.State(space)
-    # we can pick a random goal state...
-    goal.random()
-    # ... or set specific values
-    goal().setY(-.5)
-
-    ss.setStartAndGoalStates(start, goal)
-
-    # this will automatically choose a default planner with
-    # default parameters
-    solved = ss.solve(1.0)
-
-    if solved:
-        # try to shorten the path
-        ss.simplifySolution()
-        # print the simplified path
-        print(ss.getSolutionPath())
-
-
 if __name__ == "__main__":
-    plan()
-    print("")
     planWithSimpleSetup()
+    print("")
+    planTheHardWay()

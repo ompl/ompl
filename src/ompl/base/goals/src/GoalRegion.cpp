@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/GoalRegion.h"
+#include "ompl/base/goals/GoalRegion.h"
 #include "ompl/base/SpaceInformation.h"
 #include <limits>
 

@@ -56,7 +56,7 @@ struct dense_output_factory< Stepper , rosenbrock4_dense_output< rosenbrock4_con
     typedef typename stepper_type::value_type value_type;
     typedef rosenbrock4_dense_output< controller_type > dense_output_type;
 
-    dense_output_type operator()( const value_type &abs_error , const value_type &rel_error , const stepper_type &stepper )
+    dense_output_type operator()( value_type abs_error , value_type rel_error , const stepper_type &stepper )
     {
         return dense_output_type( controller_type( abs_error , rel_error , stepper ) );
     }

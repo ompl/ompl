@@ -24,7 +24,7 @@ endif (MSVC OR MSVC90 OR MSVC10)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(CompilerSettings)
-find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options REQUIRED)
+find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 find_package(Boost COMPONENTS odeint QUIET)
@@ -43,6 +43,9 @@ if(MSVC)
   add_definitions(-DBOOST_ALL_NO_LIB)
   add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
 endif(MSVC)
+# Ensure dynamic linking with boost unit_test_framework
+add_definitions(-DBOOST_TEST_DYN_LINK)
+
 enable_testing()
 
 # ODE is only needed for Open Dynamics Engine bindings

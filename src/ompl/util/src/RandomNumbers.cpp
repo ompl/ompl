@@ -44,30 +44,38 @@
 #include <boost/math/constants/constants.hpp>
 
 /// The seed the user asked for (cannot be 0)
-static boost::uint32_t userSetSeed = 0;
+static boost::uint32_t& getUserSetSeed(void)
+{
+    static boost::uint32_t userSetSeed = 0;
+    return userSetSeed;
+}
 
 /// Flag indicating whether the first seed has already been generated or not
-static bool            firstSeedGenerated = false;
-
-/// The value of the first seed
-static boost::uint32_t firstSeedValue = 0;
+static bool& getFirstSeedGenerated(void)
+{
+    static bool firstSeedGenerated = false;
+    return firstSeedGenerated;
+}
 
 /// Compute the first seed to be used; this function should be called only once
 static boost::uint32_t firstSeed(void)
 {
+    /// The value of the first seed
+    static boost::uint32_t firstSeedValue = 0;
+
     static boost::mutex fsLock;
     boost::mutex::scoped_lock slock(fsLock);
 
-    if (firstSeedGenerated)
+    if (getFirstSeedGenerated())
         return firstSeedValue;
 
-    if (userSetSeed != 0)
-        firstSeedValue = userSetSeed;
+    if (getUserSetSeed() != 0)
+        firstSeedValue = getUserSetSeed();
     else
         firstSeedValue =
             (boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
                               boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds();
-    firstSeedGenerated = true;
+    getFirstSeedGenerated() = true;
 
     return firstSeedValue;
 }
@@ -92,19 +100,17 @@ boost::uint32_t ompl::RNG::getSeed(void)
 
 void ompl::RNG::setSeed(boost::uint32_t seed)
 {
-    if (firstSeedGenerated)
+    if (getFirstSeedGenerated())
     {
-        msg::Interface msg;
-        msg.error("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
+        logError("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
     }
     if (seed == 0)
     {
-        msg::Interface msg;
-        msg.warn("Random generator seed cannot be 0. Using 1 instead.");
-        userSetSeed = 1;
+        logWarn("Random generator seed cannot be 0. Using 1 instead.");
+        getUserSetSeed() = 1;
     }
     else
-        userSetSeed = seed;
+        getUserSetSeed() = seed;
 }
 
 ompl::RNG::RNG(void) : generator_(nextSeed()),

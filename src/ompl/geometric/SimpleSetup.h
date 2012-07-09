@@ -38,6 +38,7 @@
 #define OMPL_GEOMETRIC_SIMPLE_SETUP_
 
 #include "ompl/base/Planner.h"
+#include "ompl/base/PlannerData.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -132,14 +133,14 @@ namespace ompl
             /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
             bool haveSolutionPath(void) const
             {
-                return getGoal()->getSolutionPath();
+                return pdef_->getSolutionPath();
             }
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
             PathGeometric& getSolutionPath(void) const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
-            base::PlannerData getPlannerData(void) const;
+            void getPlannerData(base::PlannerData &pd) const;
 
             /** \brief Set the state validity checker to use */
             void setStateValidityChecker(const base::StateValidityCheckerPtr &svc)
@@ -216,10 +217,10 @@ namespace ompl
             }
 
             /** \brief Run the planner for up to a specified amount of time (default is 1 second) */
-            virtual bool solve(double time = 1.0);
+            virtual base::PlannerStatus solve(double time = 1.0);
 
             /** \brief Run the planner until \e ptc becomes true (at most) */
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Return true if the last planning attempt failed to find a solution, and it aborted before a termination condition was reached */
             bool invalidLastRequest(void) const
@@ -302,10 +303,6 @@ namespace ompl
 
             /// The parameters that describe the planning context
             base::ParamSet                params_;
-
-            /// Interface for console output
-            msg::Interface                msg_;
-
         };
 
         /** \brief Given a goal specification, decide on a planner for that goal */

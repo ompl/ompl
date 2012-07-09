@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_REGION_
-#define OMPL_BASE_GOAL_REGION_
+#ifndef OMPL_BASE_GOALS_GOAL_REGION_
+#define OMPL_BASE_GOALS_GOAL_REGION_
 
 #include "ompl/base/Goal.h"
 

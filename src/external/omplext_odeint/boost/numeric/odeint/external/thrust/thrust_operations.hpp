@@ -187,7 +187,7 @@ struct thrust_operations
     {
         const Fac1 m_eps_abs , m_eps_rel , m_a_x , m_a_dxdt;
 
-        rel_error( const Fac1 &eps_abs , const Fac1 &eps_rel , const Fac1 &a_x , const Fac1 &a_dxdt )
+        rel_error( const Fac1 eps_abs , const Fac1 eps_rel , const Fac1 a_x , const Fac1 a_dxdt )
         : m_eps_abs( eps_abs ) , m_eps_rel( eps_rel ) , m_a_x( a_x ) , m_a_dxdt( a_dxdt ) { }
 
 
@@ -213,7 +213,7 @@ struct thrust_operations
     {
         template< class Fac1 , class Fac2 >
         __host__ __device__
-        Value operator()( const Fac1 &t1 , const Fac2 &t2 ) const
+        Value operator()( const Fac1 t1 , const Fac2 t2 ) const
         {
             using std::max;
             return ( abs( t1 ) < abs( t2 ) ) ? t2 : t1 ;

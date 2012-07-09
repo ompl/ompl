@@ -102,7 +102,7 @@ void plan(ob::StateSpacePtr space, bool easy)
     ss.print();
 
     // attempt to solve the problem within 30 seconds of planning time
-    bool solved = ss.solve(30.0);
+    ob::PlannerStatus solved = ss.solve(30.0);
 
     if (solved)
     {

@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_SAMPLEABLE_REGION_
-#define OMPL_BASE_GOAL_SAMPLEABLE_REGION_
+#ifndef OMPL_BASE_GOALS_GOAL_SAMPLEABLE_REGION_
+#define OMPL_BASE_GOALS_GOAL_SAMPLEABLE_REGION_
 
-#include "ompl/base/GoalRegion.h"
+#include "ompl/base/goals/GoalRegion.h"
 
 namespace ompl
 {

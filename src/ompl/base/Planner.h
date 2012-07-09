@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/PlannerData.h"
+#include "ompl/base/PlannerStatus.h"
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Console.h"
@@ -202,7 +203,7 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false)
+            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false)
             {
             }
 
@@ -218,6 +219,10 @@ namespace ompl
             /** \brief Flag indicating whether the planner attempts to optimize the path and reduce its length until the
                 maximum path length specified by the goal representation is satisfied */
             bool     optimizingPaths;
+
+            /** \brief Flag indicating whether the planner is able to account for the fact that the validity of a motion from A to B may not be the same as the validity of a motion from B to A.
+                If this flag is true, the planner will return solutions that do not make this assumption. Usually roadmap-based planners make this assumption and tree-based planners do not. */
+            bool     directed;
         };
 
         /** \brief Base class for a planner */
@@ -272,7 +277,7 @@ namespace ompl
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
                 the same problem, without calling clear() in
-                between. This allows the planner to continue work more
+                between. This allows the planner to continue work for more
                 time on an unsolved problem, for example. If this
                 option is used, it is assumed the problem definition
                 is not changed (unpredictable results otherwise). The
@@ -281,16 +286,16 @@ namespace ompl
                 states (but not changing previously added start/goal
                 states). The function terminates if the call to \e ptc
                 returns true. */
-            virtual bool solve(const PlannerTerminationCondition &ptc) = 0;
+            virtual PlannerStatus solve(const PlannerTerminationCondition &ptc) = 0;
 
             /** \brief Same as above except the termination condition
                 is only evaluated at a specified interval. */
-            bool solve(const PlannerTerminationConditionFn &ptc, double checkInterval);
+            PlannerStatus solve(const PlannerTerminationConditionFn &ptc, double checkInterval);
 
             /** \brief Same as above except the termination condition
                 is solely a time limit: the number of seconds the
                 algorithm is allowed to spend planning. */
-            bool solve(double solveTime);
+            PlannerStatus solve(double solveTime);
 
             /** \brief Clear all internal datastructures. Planner
                 settings are not affected. Subsequent calls to solve()
@@ -353,14 +358,14 @@ namespace ompl
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter)
             {
-                params_.declareParam<T>(name, msg_, boost::bind(setter, planner, _1), boost::bind(getter, planner));
+                params_.declareParam<T>(name, boost::bind(setter, planner, _1), boost::bind(getter, planner));
             }
 
             /** \brief This function declares a parameter for this planner instance, and specifies the setter function. */
             template<typename T, typename PlannerType, typename SetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter)
             {
-                params_.declareParam<T>(name, msg_, boost::bind(setter, planner, _1));
+                params_.declareParam<T>(name, boost::bind(setter, planner, _1));
             }
 
             /** \brief The space information for which planning is done */
@@ -383,9 +388,6 @@ namespace ompl
 
             /** \brief Flag indicating whether setup() has been called */
             bool                 setup_;
-
-            /** \brief Console interface */
-            msg::Interface       msg_;
         };
 
         /** \brief Definition of a function that can allocate a planner */

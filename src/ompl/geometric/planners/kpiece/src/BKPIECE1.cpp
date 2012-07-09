@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/kpiece/BKPIECE1.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
@@ -48,6 +48,7 @@ ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base:
     minValidPathFraction_ = 0.5;
     failedExpansionScoreFactor_ = 0.5;
     maxDistance_ = 0.0;
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
     Planner::declareParam<double>("range", this, &BKPIECE1::setRange, &BKPIECE1::getRange);
     Planner::declareParam<double>("border_fraction", this, &BKPIECE1::setBorderFraction, &BKPIECE1::getBorderFraction);
@@ -75,15 +76,15 @@ void ompl::geometric::BKPIECE1::setup(void)
     dGoal_.setDimension(projectionEvaluator_->getDimension());
 }
 
-bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
     {
-        msg_.error("Unknown type of goal (or goal undefined)");
-        return false;
+        logError("Unknown type of goal (or goal undefined)");
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     Discretization<Motion>::Coord xcoord;
@@ -99,20 +100,20 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
 
     if (dStart_.getMotionCount() == 0)
     {
-        msg_.error("Motion planning start tree could not be initialized!");
-        return false;
+        logError("Motion planning start tree could not be initialized!");
+        return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        msg_.error("Insufficient states in sampleable goal region");
-        return false;
+        logError("Insufficient states in sampleable goal region");
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    msg_.inform("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
+    logInform("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -140,7 +141,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
             }
             if (dGoal_.getMotionCount() == 0)
             {
-                msg_.error("Unable to sample any valid states for goal tree");
+                logError("Unable to sample any valid states for goal tree");
                 break;
             }
         }
@@ -176,6 +177,11 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                     if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root) &&
                         si_->checkMotion(motion->state, connectOther->state))
                     {
+                        if (startTree)
+                            connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                        else
+                            connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+
                         /* extract the motions and put them in solution vector */
 
                         std::vector<Motion*> mpath1;
@@ -202,7 +208,7 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
                         for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                             path->append(mpath2[i]->state);
 
-                        goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                        pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
                         solved = true;
                         break;
                     }
@@ -218,12 +224,12 @@ bool ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &p
 
     si_->freeState(xstate);
 
-    msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
+    logInform("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
                 dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(), dGoal_.getMotionCount(),
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
-    return solved;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::geometric::BKPIECE1::freeMotion(Motion *motion)
@@ -240,11 +246,15 @@ void ompl::geometric::BKPIECE1::clear(void)
     sampler_.reset();
     dStart_.clear();
     dGoal_.clear();
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
 void ompl::geometric::BKPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    dStart_.getPlannerData(data, 1);
-    dGoal_.getPlannerData(data, 2);
+    dStart_.getPlannerData(data, 1, true, NULL);
+    dGoal_.getPlannerData(data, 2, false, NULL);
+
+    // Insert the edge connecting the two trees
+    data.addEdge (data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }

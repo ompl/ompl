@@ -46,6 +46,7 @@ from matplotlib import __version__ as matplotlibversion
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
+from math import floor
 from optparse import OptionParser, OptionGroup
 
 def read_benchmark_log(dbname, filenames):
@@ -58,6 +59,8 @@ def read_benchmark_log(dbname, filenames):
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
     c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
         (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS enums
+        (name VARCHAR(512), value INTEGER, description TEXT, PRIMARY KEY (name,value))""")
     for filename in filenames:
         print("Processing " + filename)
         logfile = open(filename,'r')
@@ -75,7 +78,14 @@ def read_benchmark_log(dbname, filenames):
         memorylimit = float(logfile.readline().split()[0])
         nrruns = float(logfile.readline().split()[0])
         totaltime = float(logfile.readline().split()[0])
-
+        num_enums = int(logfile.readline().split()[0])
+        for i in range(num_enums):
+            enum = logfile.readline()[:-1].split('|')
+            c.execute('SELECT * FROM enums WHERE name IS "%s"' % enum[0])
+            if c.fetchone()==None:
+                for j in range(len(enum)-1):
+                    c.execute('INSERT INTO enums VALUES (?,?,?)',
+                        (enum[0],j,enum[j+1]))
         c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?)',
               (None, expname, totaltime, timelimit, memorylimit, nrruns, hostname, date, rseed, expsetup) )
         c.execute('SELECT last_insert_rowid()')
@@ -150,14 +160,17 @@ def read_benchmark_log(dbname, filenames):
     c.close()
 
 def plot_attribute(cur, planners, attribute, typename):
-    """Create a box plot for a particular attribute. It will include data for
+    """Create a plot for a particular attribute. It will include data for
     all planners that have data for this attribute."""
     plt.clf()
     ax = plt.gca()
     labels = []
     measurements = []
     nan_counts = []
-    is_bool = True
+    cur.execute('SELECT count(*) FROM enums where name IS "%s"' % attribute)
+    num_vals = cur.fetchone()[0]
+    is_enum = False if num_vals==0 else True
+    is_bool = not is_enum
     for planner in planners:
         cur.execute('SELECT * FROM `%s`' % planner)
         attributes = [ t[0] for t in cur.description]
@@ -168,9 +181,34 @@ def plot_attribute(cur, planners, attribute, typename):
             nan_counts.append(cur.fetchone()[0])
             cur.execute('SELECT DISTINCT `%s` FROM `%s`' % (attribute, planner))
             is_bool = is_bool and set([t[0] for t in cur.fetchall() if not t[0]==None]).issubset(set([0,1]))
-            measurements.append(measurement)
+            if is_enum:
+                scale = 100. / len(measurement)
+                measurements.append([measurement.count(i)*scale for i in range(num_vals)])
+            else:
+                measurements.append(measurement)
             labels.append(planner.replace('planner_geometric_','').replace('planner_control_',''))
-    if is_bool:
+
+    if is_enum:
+        width = .5
+        measurements = np.transpose(np.vstack(measurements))
+        colsum = np.sum(measurements, axis=1)
+        rows = np.where(colsum != 0)[0]
+        heights = np.zeros((1,measurements.shape[1]))
+        ind = range(measurements.shape[1])
+        legend_labels = []
+        for i in rows:
+            cur.execute('SELECT `description` FROM enums WHERE name IS "%s" AND value IS "%d"' % (attribute,i))
+            plt.bar(ind, measurements[i], width, bottom=heights[0],
+                color=matplotlib.cm.hot(int(floor(i*256/num_vals))), label=cur.fetchone()[0])
+            heights = heights + measurements[i]
+        xtickNames = plt.xticks([x+width/2. for x in ind], labels, rotation=30)
+        ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        props = matplotlib.font_manager.FontProperties()
+        props.set_size('small')
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop = props)
+    elif is_bool:
         width = .5
         measurements_percentage = [sum(m)*100./len(m) for m in measurements]
         ind = range(len(measurements))

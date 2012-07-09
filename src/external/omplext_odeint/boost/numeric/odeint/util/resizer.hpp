@@ -40,7 +40,7 @@ bool adjust_size_by_resizeability( ResizeWrappedState &x , const State &y , boos
 }
 
 template< class ResizeWrappedState , class State >
-bool adjust_size_by_resizeability( ResizeWrappedState &x , const State &y , boost::false_type )
+bool adjust_size_by_resizeability( ResizeWrappedState & /* x */ , const State & /* y */ , boost::false_type )
 {
     return false;
 }

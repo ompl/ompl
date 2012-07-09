@@ -220,7 +220,7 @@ void planWithSimpleSetup(void)
     ss.setup();
 
     /// attempt to solve the problem within one second of planning time
-    bool solved = ss.solve(10.0);
+    ob::PlannerStatus solved = ss.solve(10.0);
 
     if (solved)
     {

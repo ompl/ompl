@@ -23,8 +23,7 @@
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 #include <omplext_odeint/boost/numeric/odeint/integrate/null_observer.hpp>
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_const.hpp>
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp>
+#include <omplext_odeint/boost/numeric/odeint/integrate/integrate_n_steps.hpp>
 
 namespace boost {
 namespace numeric {
@@ -54,10 +53,9 @@ size_t integrate_const(
     }
     else
     {
-        return detail::integrate_const(
-                stepper , system , start_state ,
-                start_time , end_time  , dt ,
-                observer , typename Stepper::stepper_category() );
+        const size_t steps = static_cast<size_t>( (end_time-start_time)/dt );
+        integrate_n_steps( stepper , system , start_state , start_time , dt , steps , observer );
+        return steps;
     }
 }
 
@@ -79,10 +77,9 @@ size_t integrate_const(
     }
     else
     {
-        return detail::integrate_const(
-                stepper , system , start_state ,
-                start_time , end_time  , dt ,
-                observer , typename Stepper::stepper_category() );
+        const size_t steps = static_cast<size_t>( (end_time-start_time)/dt );
+        integrate_n_steps( stepper , system , start_state , start_time , dt , steps , observer );
+        return steps;
     }
 }
 

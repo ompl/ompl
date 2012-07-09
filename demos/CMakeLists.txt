@@ -12,7 +12,7 @@ if (OMPL_BUILD_DEMOS)
       ${Boost_DATE_TIME_LIBRARY}
       ${Boost_PROGRAM_OPTIONS_LIBRARY})
   endmacro(add_ompl_demo)
-  
+
   add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
@@ -20,14 +20,19 @@ if (OMPL_BUILD_DEMOS)
   if (OMPL_ODESOLVER)
       add_ompl_demo(demo_RigidBodyPlanningWithODESolverAndControls RigidBodyPlanningWithODESolverAndControls.cpp)
   endif()
-  
+
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
+  add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
   endif()
 
+# Only build the PlannerData demo on Boost >= 1.44
+  if(NOT "${Boost_VERSION}" LESS 104400)
+    add_ompl_demo(demo_PlannerData PlannerData.cpp)
+  endif(NOT "${Boost_VERSION}" LESS 104400)
 endif(OMPL_BUILD_DEMOS)
 
 file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")

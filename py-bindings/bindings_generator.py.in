@@ -141,9 +141,10 @@ class code_generator_t(object):
             gccxml_path = "@GCCXML@",
             include_paths = include_paths,
             cflags="@PYOMPL_EXTRA_CFLAGS@",
-            indexing_suite_version = 1 )
+            indexing_suite_version = 2 )
         self.replacement = {} if replacement_dict==None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
+        self.mb.add_registration_code('PyEval_InitThreads();', tail=False)
         self.std_ns = self.mb.namespace('std')
         self.ompl_ns = self.mb.namespace('ompl')
         self.call_policies()

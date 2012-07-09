@@ -38,7 +38,7 @@
 #define OMPL_DATASTRUCTURES_PDF_
 
 #include "ompl/util/Exception.h"
-#include <ostream>
+#include <iostream>
 #include <vector>
 
 namespace ompl

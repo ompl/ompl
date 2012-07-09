@@ -18,7 +18,7 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_INTEGRATE_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_INTEGRATE_HPP_INCLUDED
 
-#include <omplext_odeint/boost/numeric/odeint/stepper/runge_kutta_cash_karp54_classic.hpp>
+#include <omplext_odeint/boost/numeric/odeint/stepper/runge_kutta_dopri5.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_runge_kutta.hpp>
 #include <omplext_odeint/boost/numeric/odeint/integrate/null_observer.hpp>
 #include <omplext_odeint/boost/numeric/odeint/integrate/integrate_adaptive.hpp>

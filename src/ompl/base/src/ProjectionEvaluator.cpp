@@ -147,7 +147,7 @@ void ompl::base::ProjectionEvaluator::setCellSizes(const std::vector<double> &ce
 void ompl::base::ProjectionEvaluator::setCellSizes(unsigned int dim, double cellSize)
 {
     if (cellSizes_.size() >= dim)
-        msg_.error("Dimension %u is not defined for projection evaluator", dim);
+        logError("Dimension %u is not defined for projection evaluator", dim);
     else
     {
         std::vector<double> c = cellSizes_;
@@ -160,7 +160,7 @@ double ompl::base::ProjectionEvaluator::getCellSizes(unsigned int dim) const
 {
     if (cellSizes_.size() > dim)
         return cellSizes_[dim];
-    msg_.error("Dimension %u is not defined for projection evaluator", dim);
+    logError("Dimension %u is not defined for projection evaluator", dim);
     return 0.0;
 }
 
@@ -302,24 +302,24 @@ void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const S
                 s += comp[i].size();
             double f = (double)s / (double)g.size();
 
-            msg_.debug("There are %u connected components in the projected grid. The first 10%% fractions is %f", comp.size(), f);
+            logDebug("There are %u connected components in the projected grid. The first 10%% fractions is %f", comp.size(), f);
 
             if (f < 0.7)
             {
                 dir1 = true;
                 int bestD = updateComponentCountDimension(proj, cellSizes_, true);
-                msg_.debug("Increasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
+                logDebug("Increasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
             }
             else
                 if (f > 0.9)
                 {
                     dir2 = true;
                     int bestD = updateComponentCountDimension(proj, cellSizes_, false);
-                    msg_.debug("Decreasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
+                    logDebug("Decreasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
                 }
                 else
                 {
-                    msg_.debug("No more changes made to cell sizes");
+                    logDebug("No more changes made to cell sizes");
                     break;
                 }
         }
@@ -368,7 +368,7 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             if (cellSizes_[j] < std::numeric_limits<double>::epsilon())
             {
                 cellSizes_[j] = 1.0;
-                msg_.warn("Inferred cell size for dimension %u of a projection for state space %s is 0. Setting arbitrary value of 1 instead.",
+                logWarn("Inferred cell size for dimension %u of a projection for state space %s is 0. Setting arbitrary value of 1 instead.",
                           j, space_->getName().c_str());
             }
         }
@@ -425,21 +425,21 @@ void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection 
     out << projection << std::endl;
 }
 
-ompl::base::SubSpaceProjectionEvaluator::SubSpaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse) :
+ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse) :
     ProjectionEvaluator(space), index_(index), specifiedProj_(projToUse)
 {
     if (!space_->isCompound())
         throw Exception("Cannot construct a subspace projection evaluator for a space that is not compound");
-    if (space_->as<CompoundStateSpace>()->getSubSpaceCount() >= index_)
+    if (space_->as<CompoundStateSpace>()->getSubspaceCount() >= index_)
         throw Exception("State space " + space_->getName() + " does not have a subspace at index " + boost::lexical_cast<std::string>(index_));
 }
 
-void ompl::base::SubSpaceProjectionEvaluator::setup(void)
+void ompl::base::SubspaceProjectionEvaluator::setup(void)
 {
     if (specifiedProj_)
         proj_ = specifiedProj_;
     else
-        proj_ = space_->as<CompoundStateSpace>()->getSubSpace(index_)->getDefaultProjection();
+        proj_ = space_->as<CompoundStateSpace>()->getSubspace(index_)->getDefaultProjection();
     if (!proj_)
         throw Exception("No projection specified for subspace at index " + boost::lexical_cast<std::string>(index_));
 
@@ -447,12 +447,12 @@ void ompl::base::SubSpaceProjectionEvaluator::setup(void)
     ProjectionEvaluator::setup();
 }
 
-unsigned int ompl::base::SubSpaceProjectionEvaluator::getDimension(void) const
+unsigned int ompl::base::SubspaceProjectionEvaluator::getDimension(void) const
 {
     return proj_->getDimension();
 }
 
-void ompl::base::SubSpaceProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
+void ompl::base::SubspaceProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
 {
     proj_->project(state->as<CompoundState>()->components[index_], projection);
 }

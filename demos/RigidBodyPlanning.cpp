@@ -112,13 +112,13 @@ void plan(void)
     pdef->print(std::cout);
 
     // attempt to solve the problem within one second of planning time
-    bool solved = planner->solve(1.0);
+    ob::PlannerStatus solved = planner->solve(1.0);
 
     if (solved)
     {
         // get the goal representation from the problem definition (not the same as the goal state)
         // and inquire about the found path
-        ob::PathPtr path = pdef->getGoal()->getSolutionPath();
+        ob::PathPtr path = pdef->getSolutionPath();
         std::cout << "Found solution:" << std::endl;
 
         // print the path to screen
@@ -162,7 +162,7 @@ void planWithSimpleSetup(void)
     ss.print();
 
     // attempt to solve the problem within one second of planning time
-    bool solved = ss.solve(1.0);
+    ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
     {

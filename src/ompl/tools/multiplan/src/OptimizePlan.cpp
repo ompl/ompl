@@ -54,15 +54,16 @@ void ompl::tools::OptimizePlan::clearPlanners(void)
     planners_.clear();
 }
 
-bool ompl::tools::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned int nthreads)
+ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, unsigned int maxSol, unsigned int nthreads)
 {
     time::point end = time::now() + time::seconds(solveTime);
     unsigned int nt = std::min(nthreads, (unsigned int)planners_.size());
-    msg_.debug("Using %u threads", nt);
+    logDebug("Using %u threads", nt);
 
-    bool result = false;
+    base::PlannerStatus result;
     unsigned int np = 0;
-    const base::GoalPtr &goal = getProblemDefinition()->getGoal();
+    const base::ProblemDefinitionPtr &pdef = getProblemDefinition();
+    const base::GoalPtr &goal = pdef->getGoal();
     pp_.clearHybridizationPaths();
 
     while (time::now() < end)
@@ -74,17 +75,20 @@ bool ompl::tools::OptimizePlan::solve(double solveTime, unsigned int maxSol, uns
             pp_.addPlanner(planners_[np]);
             np = (np + 1) % planners_.size();
         }
-        if (pp_.solve(std::max(time::seconds(end - time::now()), 0.0), true))
+        base::PlannerStatus localResult = pp_.solve(std::max(time::seconds(end - time::now()), 0.0), true);
+        if (localResult)
         {
-            result = true;
-            if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
+            if (result != base::PlannerStatus::EXACT_SOLUTION)
+                result = localResult;
+
+            if (pdef->getSolutionPath()->length() <= goal->getMaximumPathLength())
             {
-                msg_.debug("Terminating early since solution path is shorted than the maximum path length");
+                logDebug("Terminating early since solution path is shorted than the maximum path length");
                 break;
             }
-            if (goal->getSolutionCount() >= maxSol)
+            if (pdef->getSolutionCount() >= maxSol)
             {
-                msg_.debug("Terminating early since %u solutions were generated", maxSol);
+                logDebug("Terminating early since %u solutions were generated", maxSol);
                 break;
             }
         }
@@ -93,7 +97,7 @@ bool ompl::tools::OptimizePlan::solve(double solveTime, unsigned int maxSol, uns
     // if we have more time, and we have a geometric path, we try to simplify it
     if (time::now() < end && result)
     {
-        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(goal->getSolutionPath().get());
+        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
         if (p)
         {
             geometric::PathSimplifier ps(getProblemDefinition()->getSpaceInformation());

@@ -74,7 +74,7 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual bool solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear(void);
 
@@ -178,6 +178,9 @@ namespace ompl
 
             double                                              goalBias_;
             double                                              maxDistance_;
+
+            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            Motion                                              *lastGoalMotion_;
         };
 
     }

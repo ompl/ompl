@@ -23,8 +23,7 @@
 
 #include <algorithm>
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <boost/math/special_functions/binomial.hpp>
 
@@ -33,9 +32,9 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <boost/type_traits.hpp>
@@ -72,31 +71,6 @@ class Resizer = initially_resizer
 >
 class bulirsch_stoer_dense_out {
 
-private:
-
-    void copy_pointers( const bulirsch_stoer_dense_out &bs )
-    {
-        if( bs.m_current_state == (&bs.m_x1.m_v ) )
-        {
-            m_current_state = &m_x1.m_v;
-            m_old_state = &m_x2.m_v;
-        }
-        else
-        {
-            m_current_state = &m_x2.m_v;
-            m_old_state = &m_x1.m_v;
-        }
-        if( bs.m_current_deriv == ( &bs.m_dxdt1.m_v ) )
-        {
-            m_current_deriv = &m_dxdt1.m_v;
-            m_old_deriv = &m_dxdt2.m_v;
-        }
-        else
-        {
-            m_current_deriv = &m_dxdt2.m_v;
-            m_old_deriv = &m_dxdt1.m_v;
-        }
-    }
 
 public:
 
@@ -120,18 +94,25 @@ public:
     typedef std::vector< wrapped_deriv_type > deriv_vector_type;
     typedef std::vector< deriv_vector_type > deriv_table_type;
 
+    const static size_t m_k_max = 8;
+
+
+
+
     bulirsch_stoer_dense_out(
             time_type eps_abs = 1E-6 , time_type eps_rel = 1E-6 ,
             time_type factor_x = 1.0 , time_type factor_dxdt = 1.0 ,
             bool control_interpolation = false )
-    : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ) ,
+    : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ) , m_midpoint() , 
       m_control_interpolation( control_interpolation) ,
-      m_k_max(8) ,
       m_last_step_rejected( false ) , m_first( true ) ,
-      m_dt_last( 1.0E30 ) ,
+      m_t() , m_dt() ,
+      m_dt_last( 1.0E30 ) , m_t_last() ,
+      m_current_k_opt() ,
       m_k_final(0) ,
-      m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v ) ,
-      m_current_deriv( &m_dxdt1.m_v ) , m_old_deriv( &m_dxdt2.m_v ) ,
+      m_algebra() , m_resizer() ,
+      m_x1() , m_x2() , m_dxdt1() , m_dxdt2() , m_err() ,
+      m_current_state_x1( true ) ,
       m_error( m_k_max ) ,
       m_interval_sequence( m_k_max+1 ) ,
       m_coeff( m_k_max+1 ) ,
@@ -173,59 +154,13 @@ public:
         }
     }
 
-    bulirsch_stoer_dense_out( const bulirsch_stoer_dense_out &bs )
-    : m_error_checker( bs.m_error_checker ) ,
-      m_midpoint( bs.m_midpoint ) ,
-      m_control_interpolation( bs.m_control_interpolation) ,
-      m_k_max( bs.m_k_max ) ,
-      m_last_step_rejected( bs.m_last_step_rejected ) , m_first( bs.m_first ) ,
-      m_t( bs.m_t ) , m_dt( bs.m_dt ) , m_dt_last( bs.m_dt_last ) , m_t_last( bs.m_t_last ) ,
-      m_current_k_opt( bs.m_current_k_opt ) , m_k_final( bs.m_k_final ) ,
-      m_x1( bs.m_x1 ) , m_x2( bs.m_x2 ) , m_dxdt1( bs.m_dxdt1 ) , m_dxdt2( bs.m_dxdt2 ) ,
-      m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v ) ,
-      m_current_deriv( &m_dxdt1.m_v ) , m_old_deriv( &m_dxdt2.m_v ) ,
-      m_error( bs.m_error ) ,
-      m_interval_sequence( bs.m_interval_sequence ) ,
-      m_coeff( bs.m_coeff ) ,
-      m_cost( bs.m_cost ) ,
-      m_table( bs.m_table ) ,
-      m_mp_states( bs.m_mp_states ) ,
-      m_derivs( bs.m_derivs ) ,
-      m_diffs( bs.m_diffs ) ,
-      STEPFAC1( bs.STEPFAC1 ) , STEPFAC2( bs.STEPFAC2 ) , STEPFAC3( bs.STEPFAC3 ) , STEPFAC4( bs.STEPFAC4 ) , KFAC1( bs.KFAC1 ) , KFAC2( bs.KFAC2 )
-    {
-        copy_pointers( bs );
-    }
 
-    bulirsch_stoer_dense_out& operator = ( const bulirsch_stoer_dense_out &bs )
-    {
-        m_error_checker = bs.m_error_checker;
-        m_midpoint = bs.m_midpoint;
-        m_control_interpolation = bs.m_control_interpolation;
-        m_k_max = bs.m_k_max;
-        m_last_step_rejected = bs.m_last_step_rejected;
-        m_first = bs.m_first;
-        m_t = bs.m_t; m_dt = bs.m_dt; m_dt_last = bs.m_dt_last; m_t_last = bs.m_t_last;
-        m_current_k_opt = bs.m_current_k_opt; m_k_final = bs.m_k_final;
-        m_x1 = bs.m_x1; m_x2 = bs.m_x2; m_dxdt1 = bs.m_dxdt1; m_dxdt2 = bs.m_dxdt2;
-        m_current_state = &m_x1.m_v; m_old_state = &m_x2.m_v;
-        m_current_deriv = &m_dxdt1.m_v; m_old_deriv = &m_dxdt2.m_v;
-        m_error = bs.m_error;
-        m_interval_sequence = bs.m_interval_sequence;
-        m_coeff = bs.m_coeff;
-        m_cost = bs.m_cost;
-        m_table = bs.m_table;
-        m_mp_states = bs.m_mp_states;
-        m_derivs = bs.m_derivs;
-        m_diffs = bs.m_diffs;
-        STEPFAC1 = bs.STEPFAC1; STEPFAC2 = bs.STEPFAC2; STEPFAC3 = bs.STEPFAC3; STEPFAC4 = bs.STEPFAC4; KFAC1 = bs.KFAC1; KFAC2 = bs.KFAC2;
-    }
 
 /*
     template< class System , class StateInOut >
     controlled_step_result try_step( System system , StateInOut &x , time_type &t , time_type &dt )
     {
-        m_xnew_resizer.adjust_size( x , boost::bind( &controlled_error_bs_type::template resize_m_xnew< StateInOut > , boost::ref( *this ) , _1 ) );
+        m_xnew_resizer.adjust_size( x , detail::bind( &controlled_error_bs_type::template resize_m_xnew< StateInOut > , detail::ref( *this ) , detail::_1 ) );
         controlled_step_result res = try_step( system , x , t , m_xnew.m_v , dt );
         if( ( res == success_step_size_increased ) || ( res == success_step_size_unchanged ) )
         {
@@ -240,8 +175,8 @@ public:
     {
         static const time_type val1( static_cast< time_type >( 1.0 ) );
 
-        typename boost::unwrap_reference< System >::type &sys = system;
-//        if( m_resizer.adjust_size( in , boost::bind( &controlled_error_bs_type::template resize_impl< StateIn > , boost::ref( *this ) , _1 ) ) )
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+//        if( m_resizer.adjust_size( in , detail::bind( &controlled_error_bs_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) ) )
 //            reset(); // system resized -> reset
 //        if( dt != m_dt_last )
 //            reset(); // step size changed from outside -> reset
@@ -288,10 +223,10 @@ public:
                         if( (work[k] < KFAC2*work[k-1]) || (m_current_k_opt <= 2) )
                         {
                             // leave order as is (except we were in first round)
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , static_cast<int>(k)+1 );
+                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k)+1 ) );
                             new_h = h_opt[k] * m_cost[k+1]/m_cost[k];
                         } else {
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , static_cast<int>(k) );
+                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k) ) );
                             new_h = h_opt[k];
                         }
                         break;
@@ -384,8 +319,8 @@ public:
     template< class StateType >
     void initialize( const StateType &x0 , const time_type &t0 , const time_type &dt0 )
     {
-        m_resizer.adjust_size( x0 , boost::bind( &controlled_error_bs_type::template resize_impl< StateType > , boost::ref( *this ) , _1 ) );
-        boost::numeric::omplext_odeint::copy( x0 , *m_current_state );
+        m_resizer.adjust_size( x0 , detail::bind( &controlled_error_bs_type::template resize_impl< StateType > , detail::ref( *this ) , detail::_1 ) );
+        boost::numeric::omplext_odeint::copy( x0 , get_current_state() );
         m_t = t0;
         m_dt = dt0;
         reset();
@@ -402,8 +337,8 @@ public:
 
         if( m_first )
         {
-            typename boost::unwrap_reference< System >::type &sys = system;
-            sys( *m_current_state , *m_current_deriv , m_t );
+            typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+            sys( get_current_state() , get_current_deriv() , m_t );
         }
 
         controlled_step_result res = fail;
@@ -411,19 +346,18 @@ public:
         size_t count = 0;
         while( res == fail )
         {
-            res = try_step( system , *m_current_state , *m_current_deriv , m_t , *m_old_state , *m_old_deriv , m_dt );
+            res = try_step( system , get_current_state() , get_current_deriv() , m_t , get_old_state() , get_old_deriv() , m_dt );
             m_first = false;
             if( count++ == max_count )
                 throw std::overflow_error( "bulirsch_stoer : too much iterations!");
         }
-        std::swap( m_current_state , m_old_state );
-        std::swap( m_current_deriv , m_old_deriv );
+        toggle_current_state();
         return std::make_pair( m_t_last , m_t );
     }
 
     /* performs the interpolation from a calculated step */
     template< class StateOut >
-    void calc_state( const time_type &t , StateOut &x )
+    void calc_state( time_type t , StateOut &x )
     {
         //std::cout << "===========" << std::endl << "doing interpolation for t=" << t << std::endl;
         do_interpolation( t , x );
@@ -433,25 +367,25 @@ public:
 
     const state_type& current_state( void ) const
     {
-        return *m_current_state;
+        return get_current_state();
     }
 
-    const time_type& current_time( void ) const
+    time_type current_time( void ) const
     {
         return m_t;
     }
 
-    const time_type& previous_state( void ) const
+    const state_type& previous_state( void ) const
     {
-        return *m_old_state;
+        return get_old_state();
     }
 
-    const time_type& previous_time( void ) const
+    time_type previous_time( void ) const
     {
         return m_t_last;
     }
 
-    const time_type& current_time_step( void ) const
+    time_type current_time_step( void ) const
     {
         return m_dt;
     }
@@ -475,7 +409,7 @@ public:
 private:
 
     template< class StateInOut , class StateVector >
-    void extrapolate( const size_t k , StateVector &table , const value_matrix &coeff , StateInOut &xest , const size_t order_start_index = 0 )
+    void extrapolate( size_t k , StateVector &table , const value_matrix &coeff , StateInOut &xest , size_t order_start_index = 0 )
     //polynomial extrapolation, see http://www.nr.com/webnotes/nr3web21.pdf
     {
         static const time_type val1 = static_cast< time_type >( 1.0 );
@@ -492,7 +426,7 @@ private:
 
 
     template< class StateVector >
-    void extrapolate_dense_out( const size_t k , StateVector &table , const value_matrix &coeff , const size_t order_start_index = 0 )
+    void extrapolate_dense_out( size_t k , StateVector &table , const value_matrix &coeff , size_t order_start_index = 0 )
     //polynomial extrapolation, see http://www.nr.com/webnotes/nr3web21.pdf
     {
         // result is written into table[0]
@@ -511,7 +445,7 @@ private:
                         -coeff[k + order_start_index][order_start_index]) );
     }
 
-    time_type calc_h_opt( const time_type h , const value_type error , const size_t k ) const
+    time_type calc_h_opt( time_type h , value_type error , size_t k ) const
     {
         time_type expo=1.0/(m_interval_sequence[k-1]);
         time_type facmin = std::pow( STEPFAC3 , expo );
@@ -523,17 +457,18 @@ private:
             fac = STEPFAC2 / std::pow( error / STEPFAC1 , expo );
             fac = std::max( facmin/STEPFAC4 , std::min( 1.0/facmin , fac ) );
         }
-        return std::abs(h*fac); //std::min( 0.1 , std::abs(h*fac) );
+        //return std::abs(h*fac); //std::min( 0.1 , std::abs(h*fac) );
+        return h*fac;
     }
 
-    bool in_convergence_window( const size_t k ) const
+    bool in_convergence_window( size_t k ) const
     {
         if( (k == m_current_k_opt-1) && !m_last_step_rejected )
             return true; // decrease order only if last step was not rejected
         return ( (k == m_current_k_opt) || (k == m_current_k_opt+1) );
     }
 
-    bool should_reject( const time_type error , const size_t k ) const
+    bool should_reject( time_type error , size_t k ) const
     {
         if( (k == m_current_k_opt-1) )
         {
@@ -551,8 +486,8 @@ private:
     }
 
     template< class StateIn1 , class DerivIn1 , class StateIn2 , class DerivIn2 >
-    value_type prepare_dense_output( const int k , const StateIn1 &x_start , const DerivIn1 &dxdt_start ,
-            const StateIn2 &x_end , const DerivIn2 &dxdt_end , const time_type dt )  // k is the order to which the result was approximated
+    value_type prepare_dense_output( int k , const StateIn1 &x_start , const DerivIn1 &dxdt_start ,
+            const StateIn2 & /* x_end */ , const DerivIn2 & /*dxdt_end */ , time_type dt )  // k is the order to which the result was approximated
     {
 
         // compute the coefficients of the interpolation polynomial
@@ -673,7 +608,7 @@ private:
     }
 
     template< class DerivIn >
-    void calculate_finite_difference( const size_t j , const size_t kappa , const time_type fac , const DerivIn &dxdt )
+    void calculate_finite_difference( size_t j , size_t kappa , time_type fac , const DerivIn &dxdt )
     {
         const int m = m_interval_sequence[j]/2-1;
         if( kappa == 0) // no calculation required for 0th derivative of f
@@ -723,7 +658,7 @@ private:
     }
 
     template< class StateOut >
-    void do_interpolation( const time_type t , StateOut &out )
+    void do_interpolation( time_type t , StateOut &out )
     {
         // interpolation polynomial is defined for theta = -1 ... 1
         // m_k_final is the number of order-iterations done for the last step - it governs the order of the interpolation polynomial
@@ -762,33 +697,79 @@ private:
     {
         bool resized( false );
 
-        resized |= adjust_size_by_resizeability( m_x1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_x2 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_err , x , typename wrapped_state_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_x2 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt1 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxdt2 , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_err , x , typename is_resizeable<state_type>::type() );
 
         for( size_t i = 0 ; i < m_k_max ; ++i )
-            resized |= adjust_size_by_resizeability( m_table[i] , x , typename wrapped_state_type::is_resizeable() );
+            resized |= adjust_size_by_resizeability( m_table[i] , x , typename is_resizeable<state_type>::type() );
         for( size_t i = 0 ; i < m_k_max+1 ; ++i )
-                    resized |= adjust_size_by_resizeability( m_mp_states[i] , x , typename wrapped_state_type::is_resizeable() );
+                    resized |= adjust_size_by_resizeability( m_mp_states[i] , x , typename is_resizeable<state_type>::type() );
         for( size_t i = 0 ; i < m_k_max+1 ; ++i )
             for( size_t j = 0 ; j < m_derivs[i].size() ; ++j )
-                resized |= adjust_size_by_resizeability( m_derivs[i][j] , x , typename wrapped_deriv_type::is_resizeable() );
+                resized |= adjust_size_by_resizeability( m_derivs[i][j] , x , typename is_resizeable<deriv_type>::type() );
         for( size_t i = 0 ; i < 2*m_k_max+1 ; ++i )
             for( size_t j = 0 ; j < m_diffs[i].size() ; ++j )
-                resized |= adjust_size_by_resizeability( m_diffs[i][j] , x , typename wrapped_deriv_type::is_resizeable() );
+                resized |= adjust_size_by_resizeability( m_diffs[i][j] , x , typename is_resizeable<deriv_type>::type() );
 
         return resized;
     }
+
+
+    state_type& get_current_state( void )
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    const state_type& get_current_state( void ) const
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    state_type& get_old_state( void )
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+    
+    const state_type& get_old_state( void ) const
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+
+    deriv_type& get_current_deriv( void )
+    {
+        return m_current_state_x1 ? m_dxdt1.m_v : m_dxdt2.m_v ;
+    }
+    
+    const deriv_type& get_current_deriv( void ) const
+    {
+        return m_current_state_x1 ? m_dxdt1.m_v : m_dxdt2.m_v ;
+    }
+    
+    deriv_type& get_old_deriv( void )
+    {
+        return m_current_state_x1 ? m_dxdt2.m_v : m_dxdt1.m_v ;
+    }
+    
+    const deriv_type& get_old_deriv( void ) const
+    {
+        return m_current_state_x1 ? m_dxdt2.m_v : m_dxdt1.m_v ;
+    }
+
+    
+    void toggle_current_state( void )
+    {
+        m_current_state_x1 = ! m_current_state_x1;
+    }
+
 
 
     default_error_checker< value_type, algebra_type , operations_type > m_error_checker;
     modified_midpoint_dense_out< state_type , value_type , deriv_type , time_type , algebra_type , operations_type , resizer_type > m_midpoint;
 
     bool m_control_interpolation;
-
-    const size_t m_k_max;
 
     bool m_last_step_rejected;
     bool m_first;
@@ -807,10 +788,10 @@ private:
 
     wrapped_state_type m_x1 , m_x2;
     wrapped_deriv_type m_dxdt1 , m_dxdt2;
-    state_type *m_current_state , *m_old_state;
-    deriv_type *m_current_deriv , *m_old_deriv;
-
     wrapped_state_type m_err;
+    bool m_current_state_x1;
+
+
 
     value_vector m_error; // errors of repeated midpoint steps and extrapolations
     int_vector m_interval_sequence; // stores the successive interval counts
