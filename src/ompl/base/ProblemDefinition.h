@@ -290,7 +290,7 @@ namespace ompl
             void clearSolutionNonExistenceProof(void);
 
             /** \brief Retrieve a pointer to the SolutionNonExistenceProof instance for this problem definition */
-            SolutionNonExistenceProofPtr getSolutionNonExistenceProof(void) const;
+            const SolutionNonExistenceProofPtr& getSolutionNonExistenceProof(void) const;
 
             /** \brief Set the instance of SolutionNonExistenceProof for this problem definition */
             void setSolutionNonExistenceProof(const SolutionNonExistenceProofPtr& nonExistenceProof);
