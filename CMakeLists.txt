@@ -24,6 +24,18 @@ endif (MSVC OR MSVC90 OR MSVC10)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(CompilerSettings)
+
+if(MSVC)
+    add_definitions(-DBOOST_ALL_NO_LIB)
+    add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
+endif(MSVC)
+if(IS_ICPC)
+    set(Boost_USE_STATIC_LIBS ON CACHE STRING "Use statically linked Boost libraries")
+else(IS_ICPC)
+    # Ensure dynamic linking with boost unit_test_framework
+    add_definitions(-DBOOST_TEST_DYN_LINK)
+endif(IS_ICPC)
+
 find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
@@ -38,13 +50,6 @@ if (NOT ${Boost_VERSION} LESS 104400)
 else()
   option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
 endif()
-
-if(MSVC)
-  add_definitions(-DBOOST_ALL_NO_LIB)
-  add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
-endif(MSVC)
-# Ensure dynamic linking with boost unit_test_framework
-add_definitions(-DBOOST_TEST_DYN_LINK)
 
 enable_testing()
 
@@ -76,7 +81,7 @@ if (NOT MSVC)
   set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
   configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
   install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig)
-  
+
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/dox/FindOMPL.cmake"
     DESTINATION "share/cmake-${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}/Modules/")
 endif()
