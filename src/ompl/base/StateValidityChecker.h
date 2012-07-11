@@ -61,17 +61,13 @@ namespace ompl
         /** \brief Properties that a state validity checker may have */
         struct StateValidityCheckerSpecs
         {
-            StateValidityCheckerSpecs(void) : hasExactClearance(false), hasBoundedApproximateClearance(false), hasApproximateClearance(false), hasGradientComputation(false)
+            StateValidityCheckerSpecs(void) : hasExactClearance(false), hasApproximateClearance(false), hasGradientComputation(false)
             {
             }
 
             /** \brief Flag indicating whether the StateValidityChecker can
                 compute the exact clearance of a state */
             bool hasExactClearance;
-
-            /** \brief Flag indicating that the clearance value computed by the
-                StateValidityChecker is approximated by a lower bound */
-            bool hasBoundedApproximateClearance;
 
             /** \brief Flag indicating that the clearance value computed by the
                 StateValidityChecker is a conservative approximation */
