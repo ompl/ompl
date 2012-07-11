@@ -41,6 +41,7 @@
 #include "ompl/base/Goal.h"
 #include "ompl/base/Path.h"
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/SolutionNonExistenceProof.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/ScopedState.h"
@@ -282,19 +283,34 @@ namespace ompl
             /** \brief Print information about the start and goal states */
             void print(std::ostream &out = std::cout) const;
 
+            /** \brief Returns true if the problem definition has a proof of non existence for a solution */
+            bool hasSolutionNonExistenceProof(void) const;
+
+            /** \brief Removes any existing instance of SolutionNonExistenceProof */
+            void clearSolutionNonExistenceProof(void);
+
+            /** \brief Retrieve a pointer to the SolutionNonExistenceProof instance for this problem definition */
+            SolutionNonExistenceProofPtr getSolutionNonExistenceProof(void) const;
+
+            /** \brief Set the instance of SolutionNonExistenceProof for this problem definition */
+            void setSolutionNonExistenceProof(const SolutionNonExistenceProofPtr& nonExistenceProof);
+
         protected:
 
             /** \brief Helper function for fixInvalidInputStates(). Attempts to fix an individual state */
             bool fixInvalidInputState(State *state, double dist, bool start, unsigned int attempts);
 
             /** \brief The space information this problem definition is for */
-            SpaceInformationPtr  si_;
+            SpaceInformationPtr          si_;
 
             /** \brief The set of start states */
-            std::vector<State*>  startStates_;
+            std::vector<State*>          startStates_;
 
             /** \brief The goal representation */
-            GoalPtr              goal_;
+            GoalPtr                      goal_;
+
+            /** \brief A Representation of a proof of non-existence of a solution for this problem definition */
+            SolutionNonExistenceProofPtr nonExistenceProof_;
 
         private:
 

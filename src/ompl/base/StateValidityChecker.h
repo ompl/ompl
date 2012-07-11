@@ -58,6 +58,30 @@ namespace ompl
         /** \class ompl::base::StateValidityCheckerPtr
             \brief A boost shared pointer wrapper for ompl::base::StateValidityChecker */
 
+        /** \brief Properties that a state validity checker may have */
+        struct StateValidityCheckerSpecs
+        {
+            StateValidityCheckerSpecs(void) : hasExactClearance(false), hasBoundedApproximateClearance(false), hasApproximateClearance(false), hasGradientComputation(false)
+            {
+            }
+
+            /** \brief Flag indicating whether the StateValidityChecker can
+                compute the exact clearance of a state */
+            bool hasExactClearance;
+
+            /** \brief Flag indicating that the clearance value computed by the
+                StateValidityChecker is approximated by a lower bound */
+            bool hasBoundedApproximateClearance;
+
+            /** \brief Flag indicating that the clearance value computed by the
+                StateValidityChecker is a conservative approximation */
+            bool hasApproximateClearance;
+
+            /** \brief Flag indicating that this state validity checker can return
+                a direction that moves a state away from being invalid. */
+            bool hasGradientComputation;
+        };
+
         /** \brief Abstract definition for a class checking the
             validity of states. The implementation of this class must
             be thread safe. */
@@ -116,10 +140,19 @@ namespace ompl
                 return clearance(state);
             }
 
+            /** \brief Return the specifications (capabilities of this state validity checker) */
+            const StateValidityCheckerSpecs& getSpecs(void) const
+            {
+                return specs_;
+            }
+
         protected:
 
             /** \brief The instance of space information this state validity checker operates on */
-            SpaceInformation *si_;
+            SpaceInformation*         si_;
+
+            /** \brief The specifications of the state validity checker (its capabilities) */
+            StateValidityCheckerSpecs specs_;
 
         };
 

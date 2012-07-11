@@ -414,3 +414,24 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
         out << "Goal = NULL" << std::endl;
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }
+
+
+bool ompl::base::ProblemDefinition::hasSolutionNonExistenceProof(void) const
+{
+    return nonExistenceProof_.get() != NULL;
+}
+
+void ompl::base::ProblemDefinition::clearSolutionNonExistenceProof(void)
+{
+    nonExistenceProof_.reset();
+}
+
+ompl::base::SolutionNonExistenceProofPtr ompl::base::ProblemDefinition::getSolutionNonExistenceProof(void) const
+{
+    return nonExistenceProof_;
+}
+
+void ompl::base::ProblemDefinition::setSolutionNonExistenceProof(const ompl::base::SolutionNonExistenceProofPtr& nonExistenceProof)
+{
+    nonExistenceProof_ = nonExistenceProof;
+}
