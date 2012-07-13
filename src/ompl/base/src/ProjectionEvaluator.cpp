@@ -64,7 +64,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
             projection(i, j) = rng.gaussian01();
     }
 
-    for (unsigned int i = 1 ; i < to ; ++i)
+    for (unsigned int i = 0 ; i < to ; ++i)
     {
         matrix_row<Matrix> row(projection, i);
         for (unsigned int j = 0 ; j < i ; ++j)
