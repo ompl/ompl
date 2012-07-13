@@ -30,9 +30,6 @@ if (OMPL_VERSIONED_INSTALL)
             COMMAND ln -sf
             \"${CMAKE_INSTALL_PREFIX}/${path}/${base}${OMPL_INSTALL_SUFFIX}${ext}\"
             \"${CMAKE_INSTALL_PREFIX}/${path}/${file}\")")
-            message("execute_process(COMMAND ln -sf
-            \"${CMAKE_INSTALL_PREFIX}/${path}/${base}${OMPL_INSTALL_SUFFIX}${ext}\"
-            \"${CMAKE_INSTALL_PREFIX}/${path}/${file}\")")
     endmacro(ompl_install_symlink)
 else()
     set(OMPL_INSTALL_SUFFIX "")
