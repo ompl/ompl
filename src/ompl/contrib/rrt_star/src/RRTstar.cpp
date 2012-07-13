@@ -133,6 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     std::vector<double>  dists;
     std::vector<int>     valid;
     unsigned int         rewireTest = 0;
+    double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
 
     while (ptc() == false)
     {
@@ -165,7 +166,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             motion->cost = nmotion->cost + distN;
 
             // find nearby neighbors
-            double r = std::min(ballRadiusConst_ * (sqrt(log((double)(1 + nn_->size())) / ((double)(nn_->size())))),
+            double r = std::min(ballRadiusConst_ * pow(log((double)(1 + nn_->size())) / (double)(nn_->size()), stateSpaceDimensionConstant),
                                 ballRadiusMax_);
 
             nn_->nearestR(motion, r, nbh);
