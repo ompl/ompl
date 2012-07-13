@@ -25,14 +25,13 @@ if (OMPL_VERSIONED_INSTALL)
     set(OMPL_INSTALL_SUFFIX "-${OMPL_MAJOR_VERSION}.${OMPL_MINOR_VERSION}")
     macro(ompl_install_symlink path file)
         get_filename_component(base ${file} NAME_WE)
-        string(REPLACE "${OMPL_VERSION}" "${OMPL_INSTALL_SUFFIX}" new_base "${base}")
         get_filename_component(ext ${file} EXT)
         install(CODE "execute_process(COMMAND mkdir -p \"${CMAKE_INSTALL_PREFIX}/${path}\"
             COMMAND ln -sf
-            \"${CMAKE_INSTALL_PREFIX}/${path}/${new_base}${OMPL_INSTALL_SUFFIX}${ext}\"
+            \"${CMAKE_INSTALL_PREFIX}/${path}/${base}${OMPL_INSTALL_SUFFIX}${ext}\"
             \"${CMAKE_INSTALL_PREFIX}/${path}/${file}\")")
             message("execute_process(COMMAND ln -sf
-            \"${CMAKE_INSTALL_PREFIX}/${path}/${new_base}${OMPL_INSTALL_SUFFIX}${ext}\"
+            \"${CMAKE_INSTALL_PREFIX}/${path}/${base}${OMPL_INSTALL_SUFFIX}${ext}\"
             \"${CMAKE_INSTALL_PREFIX}/${path}/${file}\")")
     endmacro(ompl_install_symlink)
 else()
