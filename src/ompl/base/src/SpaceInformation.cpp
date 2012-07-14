@@ -40,6 +40,7 @@
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Time.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <queue>
 #include <cassert>
@@ -390,6 +391,33 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
         return 0.0;
 }
 
+void ompl::base::SpaceInformation::samplesPerSecond(double &uniform, double &near, double &gaussian, unsigned int attempts) const
+{
+    StateSamplerPtr ss = allocStateSampler();
+    std::vector<State*> states(attempts + 1);
+    allocStates(states);
+
+    time::point start = time::now();
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+        ss->sampleUniform(states[i]);
+    uniform = (double)attempts / time::seconds(time::now() - start);
+
+    double d = getMaximumExtent() / 10.0;
+    ss->sampleUniform(states[attempts]);
+
+    start = time::now();
+    for (unsigned int i = 1 ; i <= attempts ; ++i)
+        ss->sampleUniformNear(states[i - 1], states[i], d);
+    near = (double)attempts / time::seconds(time::now() - start);
+
+    start = time::now();
+    for (unsigned int i = 1 ; i <= attempts ; ++i)
+        ss->sampleGaussian(states[i - 1], states[i], d);
+    gaussian = (double)attempts / time::seconds(time::now() - start);
+
+    freeStates(states);
+}
+
 void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
 {
     out << "Settings for the state space '" << stateSpace_->getName() << "'" << std::endl;
@@ -432,6 +460,9 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
             out << "  - sanity checks for state space passed" << std::endl;
         out << "  - probability of valid states: " << probabilityOfValidState(magic::TEST_STATE_COUNT) << std::endl;
         out << "  - average length of a valid motion: " << averageValidMotionLength(magic::TEST_STATE_COUNT) << std::endl;
+        double uniform, near, gaussian;
+        samplesPerSecond(uniform, near, gaussian, magic::TEST_STATE_COUNT);
+        out << "  - average number of samples drawn per second: sampleUniform()=" << uniform << " sampleUniformNear()=" << near << " sampleGaussian()=" << gaussian << std::endl;
     }
     else
         out << "Call setup() before to get more information" << std::endl;

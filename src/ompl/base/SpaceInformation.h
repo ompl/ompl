@@ -366,6 +366,9 @@ namespace ompl
             /** \brief Estimate the length of a valid motion. setup() is assumed to have been called.*/
             double averageValidMotionLength(unsigned int attempts) const;
 
+            /** \brief Estimate the number of samples that can be drawn per second, using the sampler returned by allocStateSampler() */
+            void samplesPerSecond(double &uniform, double &near, double &gaussian, unsigned int attempts) const;
+
             /** @}*/
 
             /** \brief Print information about the current instance of the state space */
