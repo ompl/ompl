@@ -92,10 +92,25 @@ namespace ompl
             /** \brief Retrieve the value of the parameter, as a string. */
             virtual std::string getValue(void) const = 0;
 
+            /** \brief Assignment operator by type. This is just for convenience, as it just calls setValue() */
+            template<typename T>
+            GenericParam& operator=(const T &value)
+            {
+                try
+                {
+                    setValue(boost::lexical_cast<std::string>(value));
+                }
+                catch (boost::bad_lexical_cast &e)
+                {
+                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                }
+                return *this;
+            }
+
         protected:
 
             /** \brief The name of the parameter */
-            std::string           name_;
+            std::string name_;
         };
 
 
@@ -116,6 +131,8 @@ namespace ompl
             SpecificParam(const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
                 GenericParam(name), setter_(setter), getter_(getter)
             {
+                if (!setter_)
+                    logError("Setter function must be specified for parameter");
             }
 
             virtual ~SpecificParam(void)
@@ -127,7 +144,8 @@ namespace ompl
                 bool result = true;
                 try
                 {
-                    setter_(boost::lexical_cast<T>(value));
+                    if (setter_)
+                        setter_(boost::lexical_cast<T>(value));
                 }
                 catch (boost::bad_lexical_cast &e)
                 {
@@ -231,6 +249,9 @@ namespace ompl
 
             /** \brief Check whether this set of parameters includes the parameter named \e key */
             bool hasParam(const std::string &key) const;
+
+            /** \brief Access operator for parameters, by name. If the parameter is not defined, an exception is thrown */
+            GenericParam& operator[](const std::string &key);
 
             /** \brief Get the number of parameters maintained by this instance */
             std::size_t size(void) const

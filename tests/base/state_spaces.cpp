@@ -330,6 +330,7 @@ BOOST_AUTO_TEST_CASE(Time_Simple)
     base::StateSpacePtr t(new base::TimeStateSpace());
     t->setup();
     t->sanityChecks();
+    t->params()["valid_segment_count_factor"] = 1;
 
     StateSpaceTest mt(t, 1000, 1e-12);
     mt.test();
