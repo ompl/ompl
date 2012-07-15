@@ -16,7 +16,7 @@ macro(add_ompl_python_test test_file)
 endmacro(add_ompl_python_test)
 
 if(UNIX)
-    option(OMPL_VERSIONED_INSTALL "Append version suffix to binaries, libraries, and include dir." ON)
+    option(OMPL_VERSIONED_INSTALL "Append version suffix to binaries, libraries, and include dir." OFF)
 else()
     option(OMPL_VERSIONED_INSTALL "Append version suffix to binaries, libraries, and include dir." OFF)
 endif()
