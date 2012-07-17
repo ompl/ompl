@@ -7,10 +7,8 @@ install(DIRECTORY ompl/ DESTINATION "include/ompl${OMPL_INSTALL_SUFFIX}"
     REGEX "/src$" EXCLUDE
     REGEX "/doc$" EXCLUDE
     REGEX "/tests$" EXCLUDE)
-ompl_install_symlink(include ompl)
 
 install(DIRECTORY external/omplext_odeint/ DESTINATION "include/omplext_odeint${OMPL_INSTALL_SUFFIX}")
-ompl_install_symlink(include omplext_odeint)
 
 # Add target to install Py++ and its dependencies pygccxml and gccxml
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/external/installPyPlusPlus.sh.in"

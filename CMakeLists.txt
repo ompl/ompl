@@ -74,18 +74,24 @@ add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
 
-ompl_install_symlink(share ompl)
 if (NOT MSVC)
   set(PKG_NAME "ompl")
   set(PKG_DESC "The Open Motion Planning Library")
   set(PKG_OMPL_LIBS "-lompl")
   set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
   configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
-  install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
-  ompl_install_symlink(lib/pkgconfig ompl.pc)
+  install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/
+    COMPONENT pkgconfig RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
 
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/dox/FindOMPL.cmake"
-    DESTINATION "share/cmake-${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}/Modules/")
+    DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+    RENAME ompl-config.cmake)
+  include(CMakePackageConfigHelpers)
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake
+    VERSION ${OMPL_VERSION} COMPATIBILITY ExactVersion)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake
+    DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}")
 endif()
 
 # uninstall target
@@ -96,4 +102,16 @@ configure_file(
 add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
+if (OMPL_VERSIONED_INSTALL)
+  # script to create sym links
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/postinst.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/postinst" @ONLY)
+  install(CODE "execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/postinst)")
+  # script to uninstall sym links
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/prerm.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/prerm" @ONLY)
+  add_custom_target(uninstall_links COMMAND
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/prerm")
+  add_dependencies(uninstall uninstall_links)
+endif()
 include(CPackSettings)

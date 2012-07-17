@@ -1,0 +1,8 @@
+#!/bin/sh
+cd @CMAKE_INSTALL_PREFIX@/share
+ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
+cd @CMAKE_INSTALL_PREFIX@/lib/pkgconfig
+ln -s ompl@OMPL_INSTALL_SUFFIX@.pc ompl.pc
+cd @CMAKE_INSTALL_PREFIX@/include
+ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
+ln -s omplext_odeint@OMPL_INSTALL_SUFFIX@ omplext_odeint
