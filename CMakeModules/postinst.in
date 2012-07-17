@@ -1,8 +1,16 @@
 #!/bin/sh
-cd @CMAKE_INSTALL_PREFIX@/share
-ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
-cd @CMAKE_INSTALL_PREFIX@/lib/pkgconfig
-ln -s ompl@OMPL_INSTALL_SUFFIX@.pc ompl.pc
-cd @CMAKE_INSTALL_PREFIX@/include
-ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
-ln -s omplext_odeint@OMPL_INSTALL_SUFFIX@ omplext_odeint
+if [ "$1" = "configure" ]; then
+    mkdir -p @CMAKE_INSTALL_PREFIX@/share
+    cd @CMAKE_INSTALL_PREFIX@/share
+    rm -f ompl
+    ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
+    mkdir -p @CMAKE_INSTALL_PREFIX@/lib/pkgconfig
+    cd @CMAKE_INSTALL_PREFIX@/lib/pkgconfig
+    rm -f ompl.pc
+    ln -s ompl@OMPL_INSTALL_SUFFIX@.pc ompl.pc
+    mkdir -p @CMAKE_INSTALL_PREFIX@/include
+    cd @CMAKE_INSTALL_PREFIX@/include
+    rm -f ompl omplext_odeint
+    ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
+    ln -s omplext_odeint@OMPL_INSTALL_SUFFIX@ omplext_odeint
+fi
