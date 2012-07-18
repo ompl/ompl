@@ -1,9 +1,0 @@
-#!/bin/sh
-if [ "$1" = "remove" ]; then
-    cd @CMAKE_INSTALL_PREFIX@/share
-    rm -f ompl
-    cd @CMAKE_INSTALL_PREFIX@/lib/pkgconfig
-    rm -f ompl.pc
-    cd @CMAKE_INSTALL_PREFIX@/include
-    rm -f ompl omplext_odeint
-fi

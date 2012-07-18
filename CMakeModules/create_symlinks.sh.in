@@ -1,0 +1,18 @@
+#!/bin/sh
+if [ ! -d .symlinks ]; then
+    mkdir -p .symlinks/share
+    cd .symlinks/share
+    ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
+    cd ../..
+    mkdir -p .symlinks/lib/pkgconfig
+    cd .symlinks/lib/pkgconfig
+    ln -s ompl@OMPL_INSTALL_SUFFIX@.pc ompl.pc
+    cd ../../..
+    mkdir -p .symlinks/include
+    cd .symlinks/include
+    ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
+    ln -s omplext_odeint@OMPL_INSTALL_SUFFIX@ omplext_odeint
+    if [ $# == 1 ]; then
+        ln -s omplapp@OMPL_INSTALL_SUFFIX@ omplapp
+    fi
+fi

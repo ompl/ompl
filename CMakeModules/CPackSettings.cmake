@@ -43,9 +43,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     set(CPACK_PACKAGE_FILE_NAME "omplapp_${OMPL_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-Ubuntu${UBUNTU_RELEASE}")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "python${PYTHON_VERSION}, libboost-all-dev, libode-dev")
-    if(OMPL_VERSIONED_INSTALL)
-      set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/CMakeModules/postinst;${CMAKE_SOURCE_DIR}/CMakeModules/prerm;")
-    endif()
 endif()
 
 if(WIN32)
@@ -53,4 +50,3 @@ if(WIN32)
 endif()
 
 include(CPack)
-

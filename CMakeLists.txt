@@ -104,14 +104,17 @@ add_custom_target(uninstall
 
 if (OMPL_VERSIONED_INSTALL)
   # script to create sym links
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/postinst.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/postinst" @ONLY)
-  install(CODE "execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/postinst)")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh" @ONLY)
+  execute_process(COMMAND
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/.symlinks/ DESTINATION .)
   # script to uninstall sym links
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/prerm.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/prerm" @ONLY)
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh" @ONLY)
   add_custom_target(uninstall_links COMMAND
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/prerm")
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh")
   add_dependencies(uninstall uninstall_links)
 endif()
 include(CPackSettings)
