@@ -3,3 +3,8 @@
 * Add meaningful RRT* tests
 
 * Make PlannerTerminationCondition just sleep for a while (during the runtime of the algorithm), until condition should become true; this sleep should be interruptible from the parent thread. This may make some things slightly more efficient, but we need to check what the wait time is for the interruption to work.
+
+* Add a OptimizationObjective class that encodes whether planner should optimize over length, cost, etc. This class will belong to ProblemDefinition and be used by planners that can address optimality constraints in conjunction with Goal. 
+
+* Better support for anytime planners? Need to think about this. Maybe it comes out from the previous point
+
