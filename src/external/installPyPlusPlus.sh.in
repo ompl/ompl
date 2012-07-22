@@ -11,7 +11,7 @@ curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependenc
 
 # build & install gccxml
 cd gccxml
-cmake .
+cmake @CMAKE_GCCXML_ARGS@ .
 make
 sudo make install
 

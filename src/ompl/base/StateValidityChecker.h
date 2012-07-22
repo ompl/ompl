@@ -69,7 +69,7 @@ namespace ompl
                 BOUNDED_APPROXIMATE,
             };
 
-            StateValidityCheckerSpecs(void) : clearanceComputationType(NONE), hasGradientComputation(false)
+            StateValidityCheckerSpecs(void) : clearanceComputationType(NONE), hasValidDirectionComputation(false)
             {
             }
 
@@ -79,7 +79,7 @@ namespace ompl
 
             /** \brief Flag indicating that this state validity checker can return
                 a direction that moves a state away from being invalid. */
-            bool hasGradientComputation;
+            bool                     hasValidDirectionComputation;
         };
 
         /** \brief Abstract definition for a class checking the
@@ -115,12 +115,13 @@ namespace ompl
                 return isValid(state);
             }
 
-            /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest invalid state.
-                If a direction that moves \e state away from being invalid is available, it is set in \e gradient. \e gradient is an element
-                of the tangent space that contains \e state.  \e gradientAvailable is set to true if \e gradient is updated. */
-            virtual bool isValid(const State *state, double &dist, State *gradient, bool &gradientAvailable) const
+            /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest
+                invalid state (using clearance()). If a direction that moves \e state away from being invalid is available, 
+                a valid state in that direction is also set (\e validState). \e validStateAvailable is set to true if \e validState
+                is updated. */
+            virtual bool isValid(const State *state, double &dist, State *validState, bool &validStateAvailable) const
             {
-                dist = clearance(state, gradient, gradientAvailable);
+                dist = clearance(state, validState, validStateAvailable);
                 return isValid(state);
             }
 
@@ -131,12 +132,12 @@ namespace ompl
                 return 0.0;
             }
 
-            /** \brief Report the distance to the nearest invalid state when starting from \e state, and if available,
-                also set the gradient: the direction that moves away from the colliding state. \e gradientAvailable is set
-                to true if \e gradient is updated. */
-            virtual double clearance(const State *state, State *gradient, bool &gradientAvailable) const
+            /** \brief Report the distance to the nearest invalid state when starting from \e state, and if possible,
+                also specify a valid state \e validState in the direction that moves away from the colliding
+                state. The \e validStateAvailable flag is set to true if \e validState is updated. */
+            virtual double clearance(const State *state, State *validState, bool &validStateAvailable) const
             {
-                gradientAvailable = false;
+                validStateAvailable = false;
                 return clearance(state);
             }
 
