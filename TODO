@@ -4,7 +4,40 @@
 
 * Make PlannerTerminationCondition just sleep for a while (during the runtime of the algorithm), until condition should become true; this sleep should be interruptible from the parent thread. This may make some things slightly more efficient, but we need to check what the wait time is for the interruption to work.
 
-* Add a OptimizationObjective class that encodes whether planner should optimize over length, cost, etc. This class will belong to ProblemDefinition and be used by planners that can address optimality constraints in conjunction with Goal. 
 
 * Better support for anytime planners? Need to think about this. Maybe it comes out from the previous point
+  - We need an event callback for anytime planners to let the user know that a solution has been found.
 
+* Add a OptimizationObjective class that encodes whether planner should optimize over length, cost, etc. This class will belong to ProblemDefinition and be used by planners that can address optimality constraints in conjunction with Goal. 
+
+Assumptions: Objectives can be evaluated incrementally 
+
+p is a path;
+assuming we want to optimize something like min_{p} F(p)
+further, assume p = (s1, ..., sn)
+and than
+
+F(p) = F((p', s)) = combine(F(p'), cost(p', s))
+
+struct ObjectiveCost
+{
+	double value;
+};
+
+class OptimisationObjective
+{
+public:
+ OptimisationObjective(SpaceInformation)
+ {.. }
+
+  virtual bool isSatisfied(ObjectiveCost totalObjectiveCost)  = 0;
+  // this is a simple check, verifying that our objective is satisfied already and we can stop planning
+
+  virtual ObjectiveCost getIncrementalCost(const State *s1, const State *s2) = 0;
+ // this will be things like taking the distance between s1, s2 
+ // or the cost of the segment between s1 & s2
+
+  virtual ObjectiveCost combineObjectiveCost(const ObjectiveCost &a, const ObjectiveCost &b) = 0;
+};
+
+Maybe a notion of Compound objectives?
