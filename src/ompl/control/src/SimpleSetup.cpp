@@ -46,9 +46,15 @@ ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goa
 
     SpaceInformationPtr si = boost::static_pointer_cast<SpaceInformation, base::SpaceInformation>(goal->getSpaceInformation());
     if (si->getStateSpace()->hasDefaultProjection())
+      {
+	logInform("Using KPIECE1 planner");
         planner = base::PlannerPtr(new KPIECE1(si));
+      }
     else
+      {
+	logInform("Using RRT planner");
         planner = base::PlannerPtr(new RRT(si));
+      }
 
     return planner;
 }
@@ -73,7 +79,7 @@ void ompl::control::SimpleSetup::setup(void)
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                logInform("No planner specified. Using default.");
+                logInform("No planner specified. Using default. (control)");
                 planner_ = getDefaultPlanner(getGoal());
             }
         }
