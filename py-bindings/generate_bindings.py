@@ -154,6 +154,7 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename('vectorPlannerSolution')
         self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
+        self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename('mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
