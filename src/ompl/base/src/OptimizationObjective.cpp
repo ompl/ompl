@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,22 +34,43 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/Goal.h"
-#include <limits>
+#include "ompl/base/OptimizationObjective.h"
+#include "ompl/geometric/PathGeometric.h"
 
-ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
-    type_(GOAL_ANY), si_(si)
+double ompl::base::OptimizationObjective::getCost(const PathPtr &path) const
 {
+    double total = 0.0;
+    if (path)
+    {
+        const geometric::PathGeometric *pg = dynamic_cast<const geometric::PathGeometric*>(path.get());
+        if (pg)
+            for (std::size_t i = 1 ; i < pg->getStateCount() ; ++i)
+                total = combineObjectiveCosts(total, getIncrementalCost(pg->getState(i-1), pg->getState(i)));
+        else
+            logWarn("Cannot compute costs for unknown path type");
+    }
+    return total;
 }
 
-bool ompl::base::Goal::isSatisfied(const State *st, double *distance) const
+bool ompl::base::BoundedAdditiveOptimizationObjective::isSatisfied(double totalObjectiveCost) const
 {
-    if (distance != NULL)
-        *distance = std::numeric_limits<double>::max();
-    return isSatisfied(st);
+    return totalObjectiveCost <= maximumUpperBound_;
 }
 
-void ompl::base::Goal::print(std::ostream &out) const
+double ompl::base::BoundedAdditiveOptimizationObjective::combineObjectiveCosts(double a, double b) const
 {
-    out << "Goal memory address " << this << std::endl;
+    return a + b;
+}
+
+double ompl::base::PathLengthOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
+{
+    return si_->distance(s1, s2);
+}
+
+double ompl::base::StateCostOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
+{
+    double c;
+    std::pair<double, double> dummy;
+    si_->getMotionValidator()->computeMotionCost(s1, s2, c, dummy);
+    return c;
 }

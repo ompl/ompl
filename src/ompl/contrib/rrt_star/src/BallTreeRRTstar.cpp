@@ -96,8 +96,9 @@ void ompl::geometric::BallTreeRRTstar::clear(void)
 ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                 *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal                  *goal   = pdef_->getGoal().get();
+    base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
 
     if (!goal)
     {
@@ -359,7 +360,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
 
                 if (solved)
                 {

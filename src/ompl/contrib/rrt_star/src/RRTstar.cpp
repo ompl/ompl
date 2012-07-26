@@ -93,9 +93,10 @@ void ompl::geometric::RRTstar::clear(void)
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                 *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-
+    base::Goal                  *goal   = pdef_->getGoal().get();
+    base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
+    
     if (!goal)
     {
         logError("Goal undefined");
@@ -291,7 +292,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
 
                 if (solved)
                 {

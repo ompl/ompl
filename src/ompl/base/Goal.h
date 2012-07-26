@@ -127,17 +127,6 @@ namespace ompl
              *  isStartGoalPairValid() need not be called. */
             virtual bool isSatisfied(const State *st, double *distance) const;
 
-            /** \brief Return true if the state satisfies the goal
-             *  constraints and the path length is less than the
-             *  desired maximum length.  This call also computes the
-             *  distance between the state given as argument and the
-             *  goal.
-             *  \param st the state to check for validity
-             *  \param pathLength the length of the path that leads to \e st
-             *  \param distance location at which distance to goal will be stored
-             */
-            bool isSatisfied(const State *st, double pathLength, double *distance) const;
-
             /** \brief Since there can be multiple starting states
                 (and multiple goal states) it is possible certain
                 pairs are not to be allowed. By default we however
@@ -147,28 +136,6 @@ namespace ompl
             virtual bool isStartGoalPairValid(const State * /* start */, const State * /* goal */) const
             {
                 return true;
-            }
-
-            /** \brief Get the maximum length allowed for a solution path */
-            double getMaximumPathLength(void) const
-            {
-                return maximumPathLength_;
-            }
-
-            /** \brief Set the maximum length allowed for a solution
-                path. This value is checked only in the version of
-                isSatisfied() that takes the path length as argument
-                or by isPathLengthSatisfied(). The default maximal
-                path length is infinity. */
-            void setMaximumPathLength(double maximumPathLength)
-            {
-                maximumPathLength_ = maximumPathLength;
-            }
-
-            /** \brief Check if \e pathLength is smaller than the value returned by getMaximumPathLength() */
-            bool isPathLengthSatisfied(double pathLength) const
-            {
-                return pathLength <= maximumPathLength_;
             }
 
             /** \brief Print information about the goal */
@@ -181,9 +148,6 @@ namespace ompl
 
             /** \brief The space information for this goal */
             SpaceInformationPtr          si_;
-
-            /** \brief The maximum length allowed for a solution path */
-            double                       maximumPathLength_;
         };
 
     }
