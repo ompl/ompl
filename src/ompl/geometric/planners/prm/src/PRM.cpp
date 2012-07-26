@@ -307,7 +307,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
             if (boost::same_component(start, goal, disjointSets_) &&
                 g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
-                // If there is a maximum acceptable path length, check the solution length
+                // If there is an optimization objective, check it
                 if (pdef_->hasOptimizationObjective())
                 {
                     base::PathPtr p = constructSolution(start, goal);
@@ -328,11 +328,12 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                         if (!solution || obj_cost < sol_cost)
                         {
                             solution = p;
-                            sol_cost = obj_cost;
+                            sol_cost = obj_cost;   
+                            sol_cost_set = true;
                         }
                     }
                 }
-                else // Accept the solution, regardless of length
+                else // Accept the solution, regardless of cost
                 {
                     solution = constructSolution(start, goal);
                     return true;
