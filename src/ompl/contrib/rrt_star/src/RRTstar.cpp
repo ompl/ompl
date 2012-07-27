@@ -96,7 +96,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
-    
+
+    if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
+    {
+        opt = NULL;
+        logWarn("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
+    }
+
     if (!goal)
     {
         logError("Goal undefined");

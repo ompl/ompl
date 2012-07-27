@@ -72,6 +72,8 @@ namespace ompl
             /** \brief The path length (sum of control durations) */
             virtual double length(void) const;
 
+            virtual double cost(const base::OptimizationObjective &objective) const;
+
             /** \brief Check if the path is valid */
             virtual bool check(void) const;
 

@@ -66,6 +66,12 @@ namespace ompl
             virtual ~OptimizationObjective(void)
             {
             }
+          
+            /** \brief Get the description of this optimization objective */
+            const std::string& getDescription(void) const
+            {
+                return description_;
+            }
 
             /** \brief Verify that our objective is satisfied already and we can stop planning (it the cost is \e totalObjectiveCost) */
             virtual bool isSatisfied(double totalObjectiveCost) const = 0;
@@ -82,6 +88,9 @@ namespace ompl
         protected:
             /** \brief The space information for this objective */
             SpaceInformationPtr si_;
+
+            /** \brief The description of this optimization objective */
+            std::string description_;
         };
 
         /** \brief Representation of optimization objectives that are additive (we sum the values of the objective costs)
@@ -126,10 +135,8 @@ namespace ompl
         public:
       
             /** \brief Constructor. The objective must always know the space information it is part of */
-            PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength = std::numeric_limits<double>::infinity()) :
-                BoundedAdditiveOptimizationObjective(si, maximumPathLength)
-            {
-            }
+            PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength = std::numeric_limits<double>::infinity());
+
             virtual double getIncrementalCost(const State *s1, const State *s2) const;
         };
 
@@ -138,10 +145,7 @@ namespace ompl
         public:
       
             /** \brief Constructor. The objective must always know the space information it is part of */
-            StateCostOptimizationObjective(const SpaceInformationPtr &si, double maximumCostSum = std::numeric_limits<double>::infinity()) :
-                BoundedAdditiveOptimizationObjective(si, maximumCostSum)
-            {
-            }
+            StateCostOptimizationObjective(const SpaceInformationPtr &si, double maximumCostSum = std::numeric_limits<double>::infinity());
 
             virtual double getIncrementalCost(const State *s1, const State *s2) const;
         };

@@ -35,21 +35,14 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/OptimizationObjective.h"
-#include "ompl/geometric/PathGeometric.h"
+
+ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) : si_(si)
+{
+}
 
 double ompl::base::OptimizationObjective::getCost(const PathPtr &path) const
 {
-    double total = 0.0;
-    if (path)
-    {
-        const geometric::PathGeometric *pg = dynamic_cast<const geometric::PathGeometric*>(path.get());
-        if (pg)
-            for (std::size_t i = 1 ; i < pg->getStateCount() ; ++i)
-                total = combineObjectiveCosts(total, getIncrementalCost(pg->getState(i-1), pg->getState(i)));
-        else
-            logWarn("Cannot compute costs for unknown path type");
-    }
-    return total;
+    return path->cost(*this);
 }
 
 bool ompl::base::BoundedAdditiveOptimizationObjective::isSatisfied(double totalObjectiveCost) const
@@ -62,9 +55,19 @@ double ompl::base::BoundedAdditiveOptimizationObjective::combineObjectiveCosts(d
     return a + b;
 }
 
+ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength) : BoundedAdditiveOptimizationObjective(si, maximumPathLength)
+{
+    description_ = "Path Length";
+}
+
 double ompl::base::PathLengthOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
 {
     return si_->distance(s1, s2);
+}
+
+ompl::base::StateCostOptimizationObjective::StateCostOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength) : BoundedAdditiveOptimizationObjective(si, maximumPathLength)
+{
+    description_ = "State Cost";
 }
 
 double ompl::base::StateCostOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
