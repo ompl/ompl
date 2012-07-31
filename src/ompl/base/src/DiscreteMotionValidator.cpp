@@ -142,3 +142,45 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
 
     return result;
 }
+
+void ompl::base::DiscreteMotionValidator::computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const
+{
+    int nd = stateSpace_->validSegmentCount(s1, s2);
+
+    double c1 = si_->getStateValidityChecker()->cost(s1);
+    double c2 = si_->getStateValidityChecker()->cost(s2);
+    
+    if (c1 <= c2)
+    {
+        bounds.first = c1;
+        bounds.second = c2;
+    }
+    else
+    {
+        bounds.first = c2;
+        bounds.second = c1;
+    }
+
+    if (nd > 1)
+    {
+        /* temporary storage for the checked state */
+        State *test = si_->allocState();
+        double totalCost = (c1 + c2) / 2.0;
+        
+        for (int j = 1 ; j < nd ; ++j)
+        {
+            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, test);
+            double cost = si_->getStateValidityChecker()->cost(test);
+            if (cost < bounds.first)
+                bounds.first = cost;
+            else
+                if (cost > bounds.second)
+                    bounds.second = cost;
+            totalCost += cost;
+        }
+        si_->freeState(test);
+        cost = totalCost * si_->distance(s1, s2) / (double)nd;
+    }
+    else
+        cost = si_->distance(s1, s2) * (c1 + c2) / 2.0;
+}

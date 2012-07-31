@@ -141,6 +141,12 @@ namespace ompl
                 return clearance(state);
             }
 
+            /** \brief Return the cost of a particular state */
+            virtual double cost(const State *state) const
+            {
+                return 0.0;
+            }
+
             /** \brief Return the specifications (capabilities of this state validity checker) */
             const StateValidityCheckerSpecs& getSpecs(void) const
             {

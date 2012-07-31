@@ -355,6 +355,16 @@ namespace ompl
                 \param alloc flag indicating whether memory is to be allocated automatically */
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const;
 
+            /** \brief Compute the cost of a path segment from \e s1 to \e s2  (including endpoints)
+                \param s1 start state of the motion to be evaluated
+                \param s2 final state of the motion to be evaluated
+                \param cost the cost of the motion segment
+                \param bounds the minimum (first) and maximum (second) cost a state along the motion incurrs */
+            void computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const
+            {
+                return motionValidator_->computeMotionCost(s1, s2, cost, bounds);
+            }
+
             /** @}*/
 
             /** @name Routines for inferring information about the state space

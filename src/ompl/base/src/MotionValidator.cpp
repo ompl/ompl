@@ -34,22 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/Goal.h"
-#include <limits>
+#include "ompl/base/MotionValidator.h"
+#include "ompl/base/SpaceInformation.h"
 
-ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
-    type_(GOAL_ANY), si_(si)
+void ompl::base::MotionValidator::computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const          
 {
-}
-
-bool ompl::base::Goal::isSatisfied(const State *st, double *distance) const
-{
-    if (distance != NULL)
-        *distance = std::numeric_limits<double>::max();
-    return isSatisfied(st);
-}
-
-void ompl::base::Goal::print(std::ostream &out) const
-{
-    out << "Goal memory address " << this << std::endl;
+    bounds.first = si_->getStateValidityChecker()->cost(s1);
+    bounds.second = si_->getStateValidityChecker()->cost(s2);
+    if (bounds.first > bounds.second)
+        std::swap(bounds.first, bounds.second);
+    cost = si_->distance(s1, s2) * (bounds.first + bounds.second) / 2.0;
 }

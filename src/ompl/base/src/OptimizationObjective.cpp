@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,22 +34,46 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/Goal.h"
-#include <limits>
+#include "ompl/base/OptimizationObjective.h"
 
-ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
-    type_(GOAL_ANY), si_(si)
+ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) : si_(si)
 {
 }
 
-bool ompl::base::Goal::isSatisfied(const State *st, double *distance) const
+double ompl::base::OptimizationObjective::getCost(const PathPtr &path) const
 {
-    if (distance != NULL)
-        *distance = std::numeric_limits<double>::max();
-    return isSatisfied(st);
+    return path->cost(*this);
 }
 
-void ompl::base::Goal::print(std::ostream &out) const
+bool ompl::base::BoundedAdditiveOptimizationObjective::isSatisfied(double totalObjectiveCost) const
 {
-    out << "Goal memory address " << this << std::endl;
+    return totalObjectiveCost <= maximumUpperBound_;
+}
+
+double ompl::base::BoundedAdditiveOptimizationObjective::combineObjectiveCosts(double a, double b) const
+{
+    return a + b;
+}
+
+ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength) : BoundedAdditiveOptimizationObjective(si, maximumPathLength)
+{
+    description_ = "Path Length";
+}
+
+double ompl::base::PathLengthOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
+{
+    return si_->distance(s1, s2);
+}
+
+ompl::base::StateCostOptimizationObjective::StateCostOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength) : BoundedAdditiveOptimizationObjective(si, maximumPathLength)
+{
+    description_ = "State Cost";
+}
+
+double ompl::base::StateCostOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
+{
+    double c;
+    std::pair<double, double> dummy;
+    si_->getMotionValidator()->computeMotionCost(s1, s2, c, dummy);
+    return c;
 }

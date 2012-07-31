@@ -81,9 +81,17 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
             if (result != base::PlannerStatus::EXACT_SOLUTION)
                 result = localResult;
 
-            if (pdef->getSolutionPath()->length() <= goal->getMaximumPathLength())
+            if (!pdef->hasOptimizationObjective())
+            {         
+                logDebug("Terminating early since there is no optimization objective specified");
+                break;
+            }
+            
+            double obj_cost = pdef->getOptimizationObjective()->getCost(pdef->getSolutionPath());
+
+            if (pdef->getOptimizationObjective()->isSatisfied(obj_cost))
             {
-                logDebug("Terminating early since solution path is shorted than the maximum path length");
+                logDebug("Terminating early since solution path satisfies the optimization objective");
                 break;
             }
             if (pdef->getSolutionCount() >= maxSol)
