@@ -1,6 +1,12 @@
 /**
 \page releaseNotes Release Notes
 
+\section release_0_11_1 OMPL 0.11.1 (July 26, 2012)
+
+- Fixed bug in RRT* where nearest neighbor radius shrinks too fast.
+- Added option for versioned installs: multiple versions of OMPL can be installed simultaneously (disabled by default). This is enabled by running <tt>cmake -DOMPL_VERSIONED_INSTALL=ON</tt>.
+- Bug and documentation fixes.
+
 \section release_0_11_0 OMPL 0.11.0 (June 30, 2012)
 - PlannerData now uses the Boost Graph Library (BGL). This offers much more flexibility and power in the inspection of planner data structures. Rather than storing only the data common to all planners, each planner can store its own (meta)data per vertex and edge in a graph. All graph algorithms that exists in BGL can be applied directly.
 - Added PlannerDataStorage object for serialization/deserialization of PlannerData

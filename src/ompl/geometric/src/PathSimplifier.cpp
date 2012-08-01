@@ -103,37 +103,48 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
     std::vector<base::State*> &states = path.getStates();
 
-    for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
+    if (si->checkMotion(states.front(), states.back()))
     {
-        int count = states.size();
-        int maxN  = count - 1;
-        int range = 1 + (int)(floor(0.5 + (double)count * rangeRatio));
-
-        int p1 = rng_.uniformInt(0, maxN);
-        int p2 = rng_.uniformInt(std::max(p1 - range, 0), std::min(maxN, p1 + range));
-        if (abs(p1 - p2) < 2)
-        {
-            if (p1 < maxN - 1)
-                p2 = p1 + 2;
-            else
-                if (p1 > 1)
-                    p2 = p1 - 2;
-                else
-                    continue;
-        }
-
-        if (p1 > p2)
-            std::swap(p1, p2);
-
-        if (si->checkMotion(states[p1], states[p2]))
-        {
-            for (int j = p1 + 1 ; j < p2 ; ++j)
-                si->freeState(states[j]);
-            states.erase(states.begin() + p1 + 1, states.begin() + p2);
-            nochange = 0;
-            result = true;
-        }
+        for (std::size_t i = 2 ; i < states.size() ; ++i)
+            si->freeState(states[i-1]);
+        std::vector<base::State*> newStates(2);
+        newStates[0] = states.front();
+        newStates[1] = states.back();
+        states.swap(newStates);
+        result = true;
     }
+    else
+        for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
+        {
+            int count = states.size();
+            int maxN  = count - 1;
+            int range = 1 + (int)(floor(0.5 + (double)count * rangeRatio));
+
+            int p1 = rng_.uniformInt(0, maxN);
+            int p2 = rng_.uniformInt(std::max(p1 - range, 0), std::min(maxN, p1 + range));
+            if (abs(p1 - p2) < 2)
+            {
+                if (p1 < maxN - 1)
+                    p2 = p1 + 2;
+                else
+                    if (p1 > 1)
+                        p2 = p1 - 2;
+                    else
+                        continue;
+            }
+
+            if (p1 > p2)
+                std::swap(p1, p2);
+
+            if (si->checkMotion(states[p1], states[p2]))
+            {
+                for (int j = p1 + 1 ; j < p2 ; ++j)
+                    si->freeState(states[j]);
+                states.erase(states.begin() + p1 + 1, states.begin() + p2);
+                nochange = 0;
+                result = true;
+            }
+        }
     return result;
 }
 
