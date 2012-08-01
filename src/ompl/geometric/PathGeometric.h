@@ -78,9 +78,10 @@ namespace ompl
             /** \brief Assignment operator */
             PathGeometric& operator=(const PathGeometric& other);
 
-
             /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
             virtual double length(void) const;
+
+            virtual double cost(const base::OptimizationObjective &objective) const;
 
             /** \brief Check if the path is valid */
             virtual bool check(void) const;

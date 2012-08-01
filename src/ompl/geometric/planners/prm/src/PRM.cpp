@@ -298,7 +298,8 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sl = -1.0; // cache for solution length
+    double sol_cost;
+    bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -306,28 +307,33 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
             if (boost::same_component(start, goal, disjointSets_) &&
                 g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
-                // If there is a maximum acceptable path length, check the solution length
-                if (g->getMaximumPathLength() < std::numeric_limits<double>::infinity())
+                // If there is an optimization objective, check it
+                if (pdef_->hasOptimizationObjective())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-                    double pl = p->length(); // avoid computing path length multiple times
-                    if (pl < g->getMaximumPathLength()) // Sufficient solution
+                    double obj_cost = pdef_->getOptimizationObjective()->getCost(p);
+                    if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
                     {
                         solution = p;
                         return true;
                     }
                     else
-                    {
-                        if (solution && sl < 0.0)
-                            sl = solution->length();
-                        if (!solution || (solution && pl < sl)) // approximation
+                    {          
+                        if (solution && !sol_cost_set)
+                        {
+                            sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
+                            sol_cost_set = true;
+                        }
+                      
+                        if (!solution || obj_cost < sol_cost)
                         {
                             solution = p;
-                            sl = pl;
+                            sol_cost = obj_cost;   
+                            sol_cost_set = true;
                         }
                     }
                 }
-                else // Accept the solution, regardless of length
+                else // Accept the solution, regardless of cost
                 {
                     solution = constructSolution(start, goal);
                     return true;
@@ -339,7 +345,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
     return false;
 }
 
-bool ompl::geometric::PRM::addedNewSolution (void) const
+bool ompl::geometric::PRM::addedNewSolution(void) const
 {
     return addedSolution_;
 }
