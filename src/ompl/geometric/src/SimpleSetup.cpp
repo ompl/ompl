@@ -106,7 +106,7 @@ void ompl::geometric::SimpleSetup::setup(void)
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                logInform("No planner specified. Using default. (geometric fork)");
+                logInform("No planner specified. Using default. (geometric)");
                 planner_ = getDefaultPlanner(getGoal());
             }
         }
