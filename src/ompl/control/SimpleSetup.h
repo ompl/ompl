@@ -232,10 +232,10 @@ namespace ompl
             /** \brief Run the planner until \e ptc becomes true (at most) */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief Return true if the last planning attempt failed to find a solution, and it aborted before a termination condition was reached */
-            bool invalidLastRequest(void) const
+            /** \brief Return the status of the last planning attempt */
+            base::PlannerStatus getLastPlannerStatus(void) const
             {
-                return invalid_request_;
+                return last_status_;
             }
 
             /** \brief Get the amount of time (in seconds) spent during the last planning step */
@@ -289,8 +289,8 @@ namespace ompl
             /// The amount of time the last planning step took
             double                        planTime_;
 
-            /// Flag indicating whether the last request was invalid
-            bool                          invalid_request_;
+            /// The status of the last planning request
+            base::PlannerStatus           last_status_;
 
             /// The parameters that describe the planning context
             base::ParamSet                params_;
