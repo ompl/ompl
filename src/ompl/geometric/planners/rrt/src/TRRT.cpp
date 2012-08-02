@@ -254,7 +254,8 @@ ompl::base::PlannerStatus ompl::geometric::TRRT::solve(const base::PlannerTermin
     motion->distance = motion_distance; // cache the distance btw parent and state
     //motion->cost = //TODO: get cost
 
-    if( !tranistionTest( motion ) )
+    // Only add this motion to the tree if the tranistion test accepts it
+    if( !transitionTest( motion ) )
       continue; // try a new sample
 
     //// AddNewEdge(T, q_near, q_new) -------------------------------------

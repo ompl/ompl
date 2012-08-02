@@ -129,7 +129,7 @@ public:
   template<template<typename T> class NN>
   void setNearestNeighbors(void)
   {
-    nearest_neighbor_.reset(new NN<Motion*>());
+    nearest_neighbors_.reset(new NN<Motion*>());
   }
 
   virtual void setup(void);
