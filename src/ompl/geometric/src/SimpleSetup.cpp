@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -38,6 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
+#include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
 
@@ -48,22 +49,34 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
         throw Exception("Unable to allocate default planner for unspecified goal definition");
 
     // if we can sample the goal region, use a bi-directional planner
-    if (goal->hasType(base::GOAL_SAMPLEABLE_REGION))
+    if (goal->hasType(base::GOAL_SAMPLEABLE_REGION) && false ) // TODO: remove this false
     {
         // if we have a default projection
         if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
+        {
+            logInform("Using LBKPIECE1 planner 1");
             planner = base::PlannerPtr(new LBKPIECE1(goal->getSpaceInformation()));
+        }
         else
+        {
+            logInform("Using RRTConnect planner");
             planner = base::PlannerPtr(new RRTConnect(goal->getSpaceInformation()));
+        }
     }
-    // other use a single-tree planner
+    // otherwise use a single-tree planner
     else
     {
         // if we have a default projection
-        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
+        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection() && false) //TODO: remove this false
+        {
+            logInform("Using KPIECE1 planner 2");
             planner = base::PlannerPtr(new KPIECE1(goal->getSpaceInformation()));
+        }
         else
-            planner = base::PlannerPtr(new RRT(goal->getSpaceInformation()));
+        {
+            logInform("Using TRRT planner");
+            planner = base::PlannerPtr(new TRRT(goal->getSpaceInformation()));
+        }
     }
 
     if (!planner)
@@ -93,7 +106,7 @@ void ompl::geometric::SimpleSetup::setup(void)
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                logInform("No planner specified. Using default.");
+                logInform("No planner specified. Using default. (geometric)");
                 planner_ = getDefaultPlanner(getGoal());
             }
         }
