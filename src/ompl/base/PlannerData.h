@@ -154,6 +154,8 @@ namespace ompl
         /// \brief Object containing planner generated vertex and edge data.  It
         /// is assumed that all vertices are unique, and only a single directed
         /// edge connects two vertices.
+        /// \note The storage for states this class maintains belongs to the planner
+        /// instance that filled the data (by default; see PlannerData::decoupleFromPlanner())
         class PlannerData : boost::noncopyable
         {
         public:
