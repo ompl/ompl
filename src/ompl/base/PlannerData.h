@@ -371,6 +371,7 @@ namespace ompl
             /// \brief Return the instance of SpaceInformation used in this PlannerData
             const SpaceInformationPtr& getSpaceInformation(void) const;
 
+          /// \brief Indicate whether any information about controls (ompl::control::Control) is stored in this instance
             virtual bool hasControls(void) const;
 
             /// \brief Any extra properties (key-value pairs) the planner can set.

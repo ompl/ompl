@@ -102,6 +102,7 @@ namespace ompl
                 return si_->getStateValidityChecker();
             }
 
+            /** \brief Get the instance of the state propagator being used */
             const StatePropagatorPtr& getStatePropagator(void) const
             {
                 return si_->getStatePropagator();
