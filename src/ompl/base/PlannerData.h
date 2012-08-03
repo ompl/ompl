@@ -147,6 +147,10 @@ namespace ompl
         ClassForward(PlannerData);
         /// @endcond
 
+        /** \class ompl::base::PlannerDataPtr
+            \brief A boost shared pointer wrapper for ompl::base::PlannerData */
+
+
         /// \brief Object containing planner generated vertex and edge data.  It
         /// is assumed that all vertices are unique, and only a single directed
         /// edge connects two vertices.
