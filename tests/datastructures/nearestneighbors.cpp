@@ -44,6 +44,7 @@
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -130,7 +131,7 @@ void intTest(NearestNeighbors<int>& proximity, bool approximate=false)
     }
     catch (std::exception& e)
     {
-        BOOST_CHECK_EQUAL("No elements found", e.what());
+        BOOST_CHECK_EQUAL("No elements found", std::string(e.what()).substr(0, 17));
     }
 }
 
@@ -215,8 +216,11 @@ void stateTest(NearestNeighbors<base::State*>& proximity, bool approximate=false
     }
     catch (std::exception& e)
     {
-        BOOST_CHECK_EQUAL("No elements found", e.what());
+        BOOST_CHECK_EQUAL("No elements found", std::string(e.what()).substr(0, 17));
     }
+
+    for(i=0; i<n; ++i)
+        SE3.freeState(states[i]);
 }
 
 void randomAccessPatternIntTest(NearestNeighbors<int>& proximity)
@@ -339,12 +343,16 @@ void randomAccessPatternStateTest(NearestNeighbors<base::State*>& proximity)
             {
                 proximityLinear.remove(*it);
                 proximity.remove(*it);
+                SE3.freeState(*it);
                 it = states.erase(it);
             }
             else
                 ++it;
         }
     }
+
+    for(it = states.begin(); it != states.end(); ++it)
+        SE3.freeState(*it);
 }
 
 BOOST_AUTO_TEST_CASE(IntLinear)
@@ -394,4 +402,3 @@ BOOST_AUTO_TEST_CASE(RandomAccessPatternStateGNAT)
     NearestNeighborsGNAT<base::State*> proximity(4,2,6,5);
     randomAccessPatternStateTest(proximity);
 }
-

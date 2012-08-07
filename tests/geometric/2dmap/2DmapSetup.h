@@ -39,7 +39,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/ScopedState.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/geometric/SimpleSetup.h"
 
 #include "ompl/base/spaces/RealVectorStateSpace.h"

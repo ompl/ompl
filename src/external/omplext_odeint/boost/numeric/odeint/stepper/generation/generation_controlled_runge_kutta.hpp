@@ -36,7 +36,7 @@ struct controller_factory< Stepper , controlled_runge_kutta< Stepper > >
     typedef typename controller_type::error_checker_type error_checker_type;
     typedef typename stepper_type::value_type value_type;
 
-    controller_type operator()( const value_type &abs_error , const value_type &rel_error , const stepper_type &stepper )
+    controller_type operator()( value_type abs_error , value_type rel_error , const stepper_type &stepper )
     {
         return controller_type( error_checker_type( abs_error , rel_error ) , stepper );
     }

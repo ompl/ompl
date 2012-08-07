@@ -39,7 +39,7 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 
-#include "ompl/base/GoalState.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/control/planners/rrt/RRT.h"
@@ -49,6 +49,7 @@
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
+#include "../../BoostTestTeamCityReporter.h"
 #include "../../resources/config.h"
 #include "../../resources/environment2D.h"
 
@@ -244,7 +245,7 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            control::PathControl *path = static_cast<control::PathControl*>(goal->getSolutionPath().get());
+            control::PathControl *path = static_cast<control::PathControl*>(pdef->getSolutionPath().get());
             path->interpolate();
 
             if (!path->check())
@@ -588,4 +589,3 @@ BOOST_AUTO_TEST_CASE(controlSyclopEST)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

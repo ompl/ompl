@@ -36,6 +36,7 @@
 
 #define BOOST_TEST_MODULE "rrt_star"
 #include <boost/test/unit_test.hpp>
+#include "../../../../../tests/BoostTestTeamCityReporter.h"
 
 // The following header file is useful for testing planners.
 // See ../../../../../tests/geometric/2dmap.cpp for example usage.
@@ -61,4 +62,3 @@ BOOST_AUTO_TEST_CASE(More)
 {
     // other tests, if you want
 }
-

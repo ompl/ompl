@@ -76,6 +76,9 @@ ompl::base::SubspaceStateSampler::SubspaceStateSampler(const StateSpace *space, 
     work_ = subspace_->allocState();
     work2_ = subspace_->allocState();
     subspaceSampler_ = subspace_->allocStateSampler();
+    space_->getCommonSubspaces(subspace_, subspaces_);
+    if (subspaces_.empty())
+        logWarn("Subspace state sampler did not find any common subspaces. Sampling will have no effect.");
 }
 
 ompl::base::SubspaceStateSampler::~SubspaceStateSampler(void)
@@ -87,19 +90,19 @@ ompl::base::SubspaceStateSampler::~SubspaceStateSampler(void)
 void ompl::base::SubspaceStateSampler::sampleUniform(State *state)
 {
     subspaceSampler_->sampleUniform(work_);
-    copyStateData(space_, state, subspace_, work_);
+    copyStateData(space_, state, subspace_, work_, subspaces_);
 }
 
 void ompl::base::SubspaceStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
     copyStateData(subspace_, work2_, space_, near);
     subspaceSampler_->sampleUniformNear(work_, work2_, distance * weight_);
-    copyStateData(space_, state, subspace_, work_);
+    copyStateData(space_, state, subspace_, work_, subspaces_);
 }
 
 void ompl::base::SubspaceStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
     copyStateData(subspace_, work2_, space_, mean);
     subspaceSampler_->sampleGaussian(work_, work2_, stdDev * weight_);
-    copyStateData(space_, state, subspace_, work_);
+    copyStateData(space_, state, subspace_, work_, subspaces_);
 }

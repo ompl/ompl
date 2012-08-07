@@ -32,21 +32,18 @@ namespace omplext_odeint {
 template< class State > struct vector_space_reduce;
 
 /*
- * Example:
+ * Example: instantiation for sole doubles
  */
-//template< class LorenzState >
-//class vector_space_reduce
-//{
-//	template< class Value , class Op >
-//	Value operator()( const LorenzState &s , Op op , Value init ) const
-//	{
-//		init = op( init , s.x );
-//		init = op( init , s.y );
-//		init = op( init , s.z );
-//		return init;
-//	}
-//};
-
+template<>
+struct vector_space_reduce< double >
+{
+  template< class Op >
+  double operator()( double x , Op op , double init ) const
+  {
+      init = op( init , x );
+      return init;
+  }
+};
 
 
 struct vector_space_algebra

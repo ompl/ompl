@@ -19,14 +19,13 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_RUNGE_KUTTA4_CLASSIC_HPP_INCLUDED
 
 
-#include <boost/ref.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_stepper_base.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 namespace boost {
@@ -51,27 +50,38 @@ class runge_kutta4_classic
 
 public :
 
+    typedef explicit_stepper_base<
+    runge_kutta4_classic< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
+    4 , State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_base_type;
 
-    BOOST_ODEINT_EXPLICIT_STEPPERS_TYPEDEFS( runge_kutta4_classic , 4 );
+    typedef typename stepper_base_type::state_type state_type;
+    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
+    typedef typename stepper_base_type::value_type value_type;
+    typedef typename stepper_base_type::deriv_type deriv_type;
+    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
+    typedef typename stepper_base_type::time_type time_type;
+    typedef typename stepper_base_type::algebra_type algebra_type;
+    typedef typename stepper_base_type::operations_type operations_type;
+    typedef typename stepper_base_type::resizer_type resizer_type;
+    typedef typename stepper_base_type::stepper_type stepper_type;
 
-    typedef runge_kutta4_classic< State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_type;
 
     runge_kutta4_classic( const algebra_type &algebra = algebra_type() ) : stepper_base_type( algebra )
     { }
 
 
     template< class System , class StateIn , class DerivIn , class StateOut >
-    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt , const time_type &t , StateOut &out , const time_type &dt )
+    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt , time_type t , StateOut &out , time_type dt )
     {
         // ToDo : check if size of in,dxdt,out are equal?
 
-        static const value_type val1 = static_cast< value_type >( 1.0 );
+        static const value_type val1 = static_cast< value_type >( 1 );
 
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize_impl< StateIn > , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) );
 
-        typename boost::unwrap_reference< System >::type &sys = system;
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
 
-        const time_type dh = static_cast< value_type >( 0.5 ) * dt;
+        const time_type dh = dt / static_cast< value_type >( 2 );
         const time_type th = t + dh;
 
         // dt * dxdt = k1
@@ -98,8 +108,8 @@ public :
         // dt * m_dxh = k4
         sys( m_x_tmp.m_v , m_dxh.m_v , t + dt );
         //x += dt/6 * ( m_dxdt + m_dxt + val2*m_dxm )
-        time_type dt6 = dt / static_cast< value_type >( 6.0 );
-        time_type dt3 = dt / static_cast< value_type >( 3.0 );
+        time_type dt6 = dt / static_cast< value_type >( 6 );
+        time_type dt3 = dt / static_cast< value_type >( 3 );
         stepper_base_type::m_algebra.for_each6( out , in , dxdt , m_dxt.m_v , m_dxm.m_v , m_dxh.m_v ,
                 typename operations_type::template scale_sum5< value_type , time_type , time_type , time_type , time_type >( 1.0 , dt6 , dt3 , dt3 , dt6 ) );
     }
@@ -117,10 +127,10 @@ private:
     bool resize_impl( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxm , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxt , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_dxh , x , typename wrapped_deriv_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxm , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxt , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_dxh , x , typename is_resizeable<deriv_type>::type() );
         return resized;
     }
 

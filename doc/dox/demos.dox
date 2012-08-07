@@ -7,6 +7,7 @@
 - <a href="RigidBodyPlanning_8cpp_source.html"><strong>Rigid body planning</strong></a> <a href="RigidBodyPlanning_8py_source.html"><strong>[Python version]</strong></a>.
 This demo is essentially the same example described in the first tutorial. It illustrates how to use the main classes.
 - <a href="StateSampling_8cpp_source.html"><strong>State sampling</strong></a> <a href="StateSampling_8py_source.html"><strong>[Python version]</strong></a>. This is the demo program used in the last beginner tutorial.
+- <a href="PlannerData_8py_source.html"><strong>Analyze and visualize planner data in Python</strong></a>. This demo relies on the <a href="http://projects.skewed.de/graph-tool/">graph-tool</a> package.
 - <a href="RigidBodyPlanningWithControls_8cpp_source.html"><strong>Rigid body planning with controls</strong></a> <a href="RigidBodyPlanningWithControls_8py_source.html"><strong>[Python version]</strong></a>.
 This demo shows how to perform planning under differential constraints for a simple car-like vehicle.
 - <a href="RigidBodyPlanningWithIntegrationAndControls_8cpp_source.html"><strong>Rigid body planning with integration and controls. </strong></a>

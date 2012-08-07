@@ -27,10 +27,11 @@
 
 #include <boost/array.hpp>
 
+#include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 
-namespace fusion = boost::fusion;
 
 
 namespace boost {
@@ -308,7 +309,7 @@ public:
     typedef typename stepper_base_type::stepper_type stepper_type;
 
     runge_kutta_fehlberg78( const algebra_type &algebra = algebra_type() ) : stepper_base_type(
-            fusion::make_vector( rk78_coefficients_a1<Value>() , rk78_coefficients_a2<Value>() , rk78_coefficients_a3<Value>() ,
+            boost::fusion::make_vector( rk78_coefficients_a1<Value>() , rk78_coefficients_a2<Value>() , rk78_coefficients_a3<Value>() ,
                     rk78_coefficients_a4<Value>() , rk78_coefficients_a5<Value>() , rk78_coefficients_a6<Value>() ,
                     rk78_coefficients_a7<Value>() , rk78_coefficients_a8<Value>() , rk78_coefficients_a9<Value>() ,
                     rk78_coefficients_a10<Value>() , rk78_coefficients_a11<Value>() , rk78_coefficients_a12<Value>() ) ,

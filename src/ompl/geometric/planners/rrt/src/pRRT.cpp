@@ -36,7 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread/thread.hpp>
 #include <limits>
@@ -178,7 +178,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (!goal)
     {
-        msg_.error("Goal undefined");
+        logError("Goal undefined");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -193,11 +193,11 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (nn_->size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
-    msg_.inform("Starting with %u states", nn_->size());
+    logInform("Starting with %u states", nn_->size());
 
     SolutionInfo sol;
     sol.solution = NULL;
@@ -238,11 +238,11 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        goal->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
         solved = true;
     }
 
-    msg_.inform("Created %u states", nn_->size());
+    logInform("Created %u states", nn_->size());
 
     return base::PlannerStatus(solved, approximate);
 }

@@ -54,6 +54,7 @@
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 
+#include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
 
 using namespace ompl;
@@ -99,7 +100,7 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getGoal()->getSolutionPath().get());
+            geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
 
 
             /* make the solution more smooth */
@@ -609,4 +610,3 @@ BOOST_AUTO_TEST_CASE(geometric_SBL)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

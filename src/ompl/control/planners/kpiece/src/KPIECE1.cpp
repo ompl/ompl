@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/planners/kpiece/KPIECE1.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/util/Exception.h"
 #include <limits>
@@ -190,14 +190,14 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
 
     if (tree_.grid.size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!controlSampler_)
         controlSampler_ = siC_->allocControlSampler();
 
-    msg_.inform("Starting with %u states", tree_.size);
+    logInform("Starting with %u states", tree_.size);
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -335,7 +335,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
             else
                 path->append(mpath[i]->state);
 
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
         solved = true;
     }
 
@@ -343,7 +343,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
     for (unsigned int i = 0 ; i < states.size() ; ++i)
         si_->freeState(states[i]);
 
-    msg_.inform("Created %u states in %u cells (%u internal + %u external)", tree_.size, tree_.grid.size(),
+    logInform("Created %u states in %u cells (%u internal + %u external)", tree_.size, tree_.grid.size(),
                  tree_.grid.countInternal(), tree_.grid.countExternal());
 
     return base::PlannerStatus(solved, approximate);
@@ -358,7 +358,7 @@ bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
     // with 0 values for the score. This is where we fix the problem
     if (scell->data->score < std::numeric_limits<double>::epsilon())
     {
-        msg_.debug("Numerical precision limit reached. Resetting costs.");
+        logDebug("Numerical precision limit reached. Resetting costs.");
         std::vector<CellData*> content;
         content.reserve(tree_.grid.size());
         tree_.grid.getContent(content);
@@ -426,9 +426,15 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
         {
             const Motion* m = cells[i]->data->motions[j];
             if (m->parent)
-                data.addEdge(base::PlannerDataVertex (m->parent->state),
-                             base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
-                             control::PlannerDataEdgeControl (m->control, m->steps * delta));
+            {
+                if (data.hasControls())
+                    data.addEdge(base::PlannerDataVertex (m->parent->state),
+                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                                 control::PlannerDataEdgeControl (m->control, m->steps * delta));
+                else
+                    data.addEdge(base::PlannerDataVertex (m->parent->state),
+                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
+            }
             else
                 data.addStartVertex(base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
 

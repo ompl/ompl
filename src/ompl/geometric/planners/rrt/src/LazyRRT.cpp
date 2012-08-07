@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
@@ -108,14 +108,14 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
     if (nn_->size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    msg_.inform("Starting with %u states", nn_->size());
+    logInform("Starting with %u states", nn_->size());
 
     Motion *solution = NULL;
     double  distsol  = -1.0;
@@ -191,7 +191,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
                 for (int i = mpath.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath[i]->state);
 
-                goal->addSolutionPath(base::PathPtr(path), false, distsol);
+                pdef_->addSolutionPath(base::PathPtr(path), false, distsol);
             }
         }
     }
@@ -200,7 +200,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
     si_->freeState(rstate);
     delete rmotion;
 
-    msg_.inform("Created %u states", nn_->size());
+    logInform("Created %u states", nn_->size());
 
     return solutionFound ?  base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
@@ -245,10 +245,6 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        double weight = 0.0;
-        if (motions[i]->parent)
-            weight = si_->distance(motions[i]->parent->state, motions[i]->state);
-
         if (motions[i]->parent == NULL)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
         else

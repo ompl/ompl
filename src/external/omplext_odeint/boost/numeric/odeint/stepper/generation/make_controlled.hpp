@@ -37,8 +37,8 @@ template< class Stepper , class Controller >
 struct controller_factory
 {
     Controller operator()(
-            const typename Stepper::value_type &abs_error ,
-            const typename Stepper::value_type &rel_error ,
+            typename Stepper::value_type abs_error ,
+            typename Stepper::value_type rel_error ,
             const Stepper &stepper )
     {
         return Controller( abs_error , rel_error , stepper );
@@ -60,8 +60,8 @@ namespace result_of
 
 template< class Stepper >
 typename result_of::make_controlled< Stepper >::type make_controlled(
-        const typename Stepper::value_type abs_error ,
-        const typename Stepper::value_type rel_error ,
+        typename Stepper::value_type abs_error ,
+        typename Stepper::value_type rel_error ,
         const Stepper & stepper = Stepper() )
 {
     typedef Stepper stepper_type;

@@ -40,6 +40,7 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -75,13 +76,14 @@ BOOST_AUTO_TEST_CASE(Store)
 
     base::StateStorage ss(space);
     base::ScopedState<> s(space);
+    base::State *x = space->allocState();
     for (int i = 0 ; i < 1000 ; ++i)
     {
         s.random();
-        base::State *x = space->allocState();
         space->copyState(x, s.get());
         ss.addState(x);
     }
+    space->freeState(x);
     ss.store("tmp_states");
 
     base::StateStorageWithMetadata<Metadata> ssm(space);
@@ -108,4 +110,3 @@ BOOST_AUTO_TEST_CASE(Load)
     BOOST_CHECK_EQUAL(ssm.getMetadata(0).tag1, 2);
     BOOST_OMPL_EXPECT_NEAR(ssm.getMetadata(1).tag2, 1.0, 1e-5);
 }
-

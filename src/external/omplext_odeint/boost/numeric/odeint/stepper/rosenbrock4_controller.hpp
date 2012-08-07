@@ -19,18 +19,15 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_ROSENBROCK4_CONTROLLER_HPP_INCLUDED
 
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/copy.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/rosenbrock4.hpp>
-
-#include <iostream>
-
 
 namespace boost {
 namespace numeric {
@@ -58,7 +55,7 @@ public:
 
 
     rosenbrock4_controller( value_type atol = 1.0e-6 , value_type rtol = 1.0e-6 , const stepper_type &stepper = stepper_type() )
-    : m_atol( atol ) , m_rtol( rtol ) ,
+    : m_stepper( stepper ) , m_atol( atol ) , m_rtol( rtol ) ,
       m_first_step( true ) , m_err_old( 0.0 ) , m_dt_old( 0.0 ) ,
       m_last_rejected( false )
     { }
@@ -84,15 +81,11 @@ public:
 
 
 
-    /*
-     * ToDo : xout in size_adjuster
-     * Check
-     */
     template< class System >
     boost::numeric::omplext_odeint::controlled_step_result
-    try_step( System sys , state_type &x , value_type &t , value_type &dt )
+    try_step( System sys , state_type &x , time_type &t , time_type &dt )
     {
-        m_xnew_resizer.adjust_size( x , boost::bind( &controller_type::template resize_m_xnew< state_type > , boost::ref( *this ) , _1 ) );
+        m_xnew_resizer.adjust_size( x , detail::bind( &controller_type::template resize_m_xnew< state_type > , detail::ref( *this ) , detail::_1 ) );
         boost::numeric::omplext_odeint::controlled_step_result res = try_step( sys , x , t , m_xnew.m_v , dt );
         if( res == success )
         {
@@ -102,16 +95,13 @@ public:
     }
 
 
-    /*
-     * ToDo : xerr in size_adjuster und adjust size
-     */
     template< class System >
     boost::numeric::omplext_odeint::controlled_step_result
-    try_step( System sys , const state_type &x , value_type &t , state_type &xout , value_type &dt )
+    try_step( System sys , const state_type &x , time_type &t , state_type &xout , time_type &dt )
     {
         static const value_type safe = 0.9 , fac1 = 5.0 , fac2 = 1.0 / 6.0;
 
-        m_xerr_resizer.adjust_size( x , boost::bind( &controller_type::template resize_m_xerr< state_type > , boost::ref( *this ) , _1 ) );
+        m_xerr_resizer.adjust_size( x , detail::bind( &controller_type::template resize_m_xerr< state_type > , detail::ref( *this ) , detail::_1 ) );
 
         m_stepper.do_step( sys , x , t , xout , dt , m_xerr.m_v );
         value_type err = error( xout , x , m_xerr.m_v );
@@ -177,13 +167,13 @@ private:
     template< class StateIn >
     bool resize_m_xerr( const StateIn &x )
     {
-        return adjust_size_by_resizeability( m_xerr , x , typename wrapped_state_type::is_resizeable() );
+        return adjust_size_by_resizeability( m_xerr , x , typename is_resizeable<state_type>::type() );
     }
 
     template< class StateIn >
     bool resize_m_xnew( const StateIn &x )
     {
-        return adjust_size_by_resizeability( m_xnew , x , typename wrapped_state_type::is_resizeable() );
+        return adjust_size_by_resizeability( m_xnew , x , typename is_resizeable<state_type>::type() );
     }
 
 

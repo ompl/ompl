@@ -104,7 +104,7 @@ function(create_module_target module dir)
             add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
             set_target_properties(py_ompl_${module} PROPERTIES OUTPUT_NAME _${module})
         endif(WIN32)
-       
+
         target_link_libraries(py_ompl_${module}
             ompl
             ${_extra_libs}

@@ -24,13 +24,16 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
   add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
+  add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
   endif()
 
-  add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
-
+# Only build the PlannerData demo on Boost >= 1.44
+  if(NOT "${Boost_VERSION}" LESS 104400)
+    add_ompl_demo(demo_PlannerData PlannerData.cpp)
+  endif(NOT "${Boost_VERSION}" LESS 104400)
 endif(OMPL_BUILD_DEMOS)
 
 file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")

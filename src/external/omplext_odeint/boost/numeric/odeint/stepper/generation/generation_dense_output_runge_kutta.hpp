@@ -36,7 +36,7 @@ struct dense_output_factory< Stepper , dense_output_runge_kutta< controlled_rung
     typedef typename stepper_type::value_type value_type;
     typedef dense_output_runge_kutta< controller_type > dense_output_type;
 
-    dense_output_type operator()( const value_type &abs_error , const value_type &rel_error , const stepper_type &stepper )
+    dense_output_type operator()( value_type abs_error , value_type rel_error , const stepper_type &stepper )
     {
         return dense_output_type( controller_type( error_checker_type( abs_error , rel_error ) , stepper ) );
     }

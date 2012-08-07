@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/GoalStates.h"
+#include "ompl/base/goals/GoalStates.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Exception.h"
 #include <boost/lexical_cast.hpp>

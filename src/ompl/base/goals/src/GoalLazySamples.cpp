@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/GoalLazySamples.h"
+#include "ompl/base/goals/GoalLazySamples.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/util/Time.h"
 
@@ -55,7 +55,7 @@ void ompl::base::GoalLazySamples::startSampling(void)
 {
     if (samplingThread_ == NULL)
     {
-        msg_.debug("Starting goal sampling thread");
+        logDebug("Starting goal sampling thread");
         terminateSamplingThread_ = false;
         samplingThread_ = new boost::thread(&GoalLazySamples::goalSamplingThread, this);
     }
@@ -65,7 +65,7 @@ void ompl::base::GoalLazySamples::stopSampling(void)
 {
     if (isSampling())
     {
-        msg_.debug("Attempting to stop goal sampling thread...");
+        logDebug("Attempting to stop goal sampling thread...");
         terminateSamplingThread_ = true;
         samplingThread_->join();
         delete samplingThread_;
@@ -84,7 +84,7 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
 {
     if (!si_->isSetup())
     {
-        msg_.debug("Waiting for space information to be set up before the sampling thread can begin computation...");
+        logDebug("Waiting for space information to be set up before the sampling thread can begin computation...");
         // wait for everything to be set up before performing computation
         while (!terminateSamplingThread_ && !si_->isSetup())
             boost::this_thread::sleep(time::seconds(0.01));
@@ -92,7 +92,7 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
     unsigned int prevsa = samplingAttempts_;
     if (!terminateSamplingThread_ && samplerFunc_)
     {
-        msg_.debug("Beginning sampling thread computation");
+        logDebug("Beginning sampling thread computation");
         ScopedState<> s(si_);
         while (!terminateSamplingThread_ && samplerFunc_(this, s.get()))
         {
@@ -102,10 +102,10 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
         }
     }
     else
-        msg_.warn("Goal sampling thread never did any work.%s",
+        logWarn("Goal sampling thread never did any work.%s",
                   samplerFunc_ ? (si_->isSetup() ? "" : " Space information not set up.") : " No sampling function set.");
     terminateSamplingThread_ = true;
-    msg_.debug("Stopped goal sampling thread after %u sampling attempts", samplingAttempts_ - prevsa);
+    logDebug("Stopped goal sampling thread after %u sampling attempts", samplingAttempts_ - prevsa);
 }
 
 bool ompl::base::GoalLazySamples::isSampling(void) const

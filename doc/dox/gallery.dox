@@ -9,6 +9,26 @@
 <iframe width="560" height="315" src="http://www.youtube.com/embed/eUpvbOxrbwY" frameborder="0" allowfullscreen></iframe>
 \endhtmlonly
 
+\section ros_industrial ROS-Industrial Consortium
+
+ROS-Industrial aims to bring ROS to the industrial world. Path and motion planning, as provided by OMPL, are critical component of that. Below is brief overview of ROS-Industrial.
+
+\htmlonly
+<iframe width="560" height="315" src="http://www.youtube.com/embed/h54YzGIZFt4" frameborder="0" allowfullscreen></iframe>
+\endhtmlonly
+
+\section footstep_planning Real-time footstep planning for humanoid robots
+
+Below is a video illustrating the results of using OMPL to plan footsteps for a humanoid. The work is described in detail in:
+
+Nicolas Perrin and Olivier Stasse and Florent Lamiraux and Young J. Kim and Dinesh Manocha, Real-time footstep planning for humanoid robots among 3D obstacles using a hybrid bounding box, in <i>Proc. IEEE Conf. on Robotics and Automation</i>, 2012.
+
+The focus is not so much on OMPL, but rather a new hybrid bounding box that allows the robot to step over obstacles.
+
+\htmlonly
+<iframe width="420" height="315" src="http://www.youtube.com/embed/HNE4dMycosE" frameborder="0" allowfullscreen></iframe>
+\endhtmlonly
+
 \section gallery_ode Planning for a Car-Like Vehicle Using ODE
 
    An example of using OMPL to plan for a robotic system simulated

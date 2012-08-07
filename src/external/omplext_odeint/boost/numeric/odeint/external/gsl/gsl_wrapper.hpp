@@ -199,7 +199,6 @@ struct state_wrapper< gsl_vector* >
     typedef double value_type;
     typedef gsl_vector* state_type;
     typedef state_wrapper< gsl_vector* > state_wrapper_type;
-    typedef boost::true_type is_resizeable;
 
     state_type m_v;
 

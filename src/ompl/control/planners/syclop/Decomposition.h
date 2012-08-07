@@ -69,7 +69,7 @@ namespace ompl
                 if (dim > b.low.size())
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
                 else if (dim < b.low.size())
-                    msg_.warn("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
+                    logWarn("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
             }
 
             virtual ~Decomposition()
@@ -123,7 +123,6 @@ namespace ompl
             int numRegions_;
             const std::size_t dimension_;
             const base::RealVectorBounds bounds_;
-            msg::Interface msg_;
         };
     }
 }

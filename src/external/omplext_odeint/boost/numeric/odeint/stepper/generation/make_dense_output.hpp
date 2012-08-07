@@ -33,8 +33,8 @@ template< class Stepper , class DenseOutput >
 struct dense_output_factory
 {
     DenseOutput operator()(
-            const typename Stepper::value_type &abs_error ,
-            const typename Stepper::value_type &rel_error ,
+            typename Stepper::value_type abs_error ,
+            typename Stepper::value_type rel_error ,
             const Stepper &stepper )
     {
         return DenseOutput( abs_error , rel_error , stepper );
@@ -56,8 +56,8 @@ namespace result_of
 
 template< class Stepper >
 typename result_of::make_dense_output< Stepper >::type make_dense_output(
-        const typename Stepper::value_type abs_error ,
-        const typename Stepper::value_type rel_error ,
+        typename Stepper::value_type abs_error ,
+        typename Stepper::value_type rel_error ,
         const Stepper &stepper = Stepper() )
 {
     typedef Stepper stepper_type;

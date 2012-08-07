@@ -129,9 +129,6 @@ namespace ompl
             /** \brief Lock for phybrid_ */
             boost::mutex                    phlock_;
 
-            /** \brief Interface for console output */
-            msg::Interface                  msg_;
-
         private:
 
             /** \brief Number of solutions found during a particular run */

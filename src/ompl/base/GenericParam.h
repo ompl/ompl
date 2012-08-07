@@ -66,13 +66,7 @@ namespace ompl
         public:
 
             /** \brief The constructor of a parameter takes the name of the parameter (\e name) */
-            GenericParam(const std::string &name) : name_(name), msg_(&msgDefault_)
-            {
-            }
-
-            /** \brief The constructor of a parameter takes the name of the parameter (\e name) and a context (\e context) for that parameter.
-                The contex is used for console output */
-            GenericParam(const std::string &name, const msg::Interface &context) : name_(name), msg_(&context)
+            GenericParam(const std::string &name) : name_(name)
             {
             }
 
@@ -98,17 +92,25 @@ namespace ompl
             /** \brief Retrieve the value of the parameter, as a string. */
             virtual std::string getValue(void) const = 0;
 
-        private:
-
-            msg::Interface msgDefault_;
+            /** \brief Assignment operator by type. This is just for convenience, as it just calls setValue() */
+            template<typename T>
+            GenericParam& operator=(const T &value)
+            {
+                try
+                {
+                    setValue(boost::lexical_cast<std::string>(value));
+                }
+                catch (boost::bad_lexical_cast &e)
+                {
+                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                }
+                return *this;
+            }
 
         protected:
 
             /** \brief The name of the parameter */
-            std::string           name_;
-
-            /** \brief Interface for publishing console messages */
-            const msg::Interface *msg_;
+            std::string name_;
         };
 
 
@@ -129,14 +131,8 @@ namespace ompl
             SpecificParam(const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
                 GenericParam(name), setter_(setter), getter_(getter)
             {
-            }
-
-
-            /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally the \e
-                getter function. In order to output information while setting parameters as if it were produced by the owner of the parameter, a console interface \e context is specified. */
-            SpecificParam(const std::string &name, const msg::Interface &context, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
-                GenericParam(name, context), setter_(setter), getter_(getter)
-            {
+                if (!setter_)
+                    logError("Setter function must be specified for parameter");
             }
 
             virtual ~SpecificParam(void)
@@ -148,18 +144,19 @@ namespace ompl
                 bool result = true;
                 try
                 {
-                    setter_(boost::lexical_cast<T>(value));
+                    if (setter_)
+                        setter_(boost::lexical_cast<T>(value));
                 }
                 catch (boost::bad_lexical_cast &e)
                 {
                     result = false;
-                    msg_->warn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
                 }
 
                 if (getter_)
-                    msg_->debug("The value of parameter '" + name_ + "' is now: '" + getValue() + "'");
+                    logDebug("The value of parameter '%s' is now: '%s'", name_.c_str(), getValue().c_str());
                 else
-                    msg_->debug("The value of parameter '" + name_ + "' was set to: '" + value + "'");
+                    logDebug("The value of parameter '%s' was set to: '%s'", name_.c_str(), value.c_str());
                 return result;
             }
 
@@ -172,7 +169,7 @@ namespace ompl
                     }
                     catch (boost::bad_lexical_cast &e)
                     {
-                        msg_->warn("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
+                        logWarn("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
                         return "";
                     }
                 else
@@ -192,14 +189,6 @@ namespace ompl
         class ParamSet
         {
         public:
-
-            /** \brief This function declares a parameter \e name, and specifies the \e setter and \e getter functions. */
-            template<typename T>
-            void declareParam(const std::string &name, const msg::Interface &context, const typename SpecificParam<T>::SetterFn &setter,
-                              const typename SpecificParam<T>::GetterFn &getter = typename SpecificParam<T>::GetterFn())
-            {
-                params_[name].reset(new SpecificParam<T>(name, context, setter, getter));
-            }
 
             /** \brief This function declares a parameter \e name, and specifies the \e setter and \e getter functions. */
             template<typename T>
@@ -260,6 +249,9 @@ namespace ompl
 
             /** \brief Check whether this set of parameters includes the parameter named \e key */
             bool hasParam(const std::string &key) const;
+
+            /** \brief Access operator for parameters, by name. If the parameter is not defined, an exception is thrown */
+            GenericParam& operator[](const std::string &key);
 
             /** \brief Get the number of parameters maintained by this instance */
             std::size_t size(void) const

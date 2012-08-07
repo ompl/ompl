@@ -43,6 +43,7 @@
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Time.h"
+#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
@@ -285,3 +286,42 @@ BOOST_AUTO_TEST_CASE(AllocationWithThreads)
         << ompl::time::seconds(ompl::time::now() - start) << std::endl;
 }
 
+BOOST_AUTO_TEST_CASE(PartialCopy)
+{
+    base::StateSpacePtr m(new base::SE3StateSpace());
+    base::RealVectorBounds b(3);
+    b.setLow(0);
+    b.setHigh(1);
+    m->as<base::SE3StateSpace>()->setBounds(b);
+    m->setup();
+    base::StateSpacePtr r3 = m->as<base::CompoundStateSpace>()->getSubspace(0);
+    base::StateSpacePtr q = m->as<base::CompoundStateSpace>()->getSubspace(1);
+    base::StateSamplerPtr s1 = m->allocSubspaceStateSampler(r3);
+    base::StateSamplerPtr s2 = m->allocSubspaceStateSampler(q);
+    base::ScopedState<base::SE3StateSpace> state(m);
+    base::ScopedState<base::SE3StateSpace> tmp(m);
+    std::vector<std::string> subspaces;
+    m->getCommonSubspaces(m, subspaces);
+    BOOST_CHECK(subspaces.size() == 1);
+    BOOST_CHECK(subspaces[0] == m->getName());
+    q->getCommonSubspaces(r3, subspaces);
+    BOOST_CHECK(subspaces.size() == 0);
+    m->getCommonSubspaces(q, subspaces);
+    BOOST_CHECK(subspaces.size() == 1);
+    
+    for (int i = 0 ; i < 100 ; ++i)
+    {
+        state.random();
+        tmp = state;
+        s1->sampleUniform(tmp.get());
+        BOOST_CHECK(tmp[q] == state[q]);
+        BOOST_CHECK(tmp[r3] != state[r3]);
+        s2->sampleUniform(tmp.get());
+        BOOST_CHECK(tmp[q] != state[q]);
+        BOOST_CHECK(copyStateData(m, state.get(), q, tmp[q].get(), subspaces) == base::ALL_DATA_COPIED);
+        BOOST_CHECK(tmp[q] == state[q]);   
+        BOOST_CHECK(copyStateData(m, state.get(), q, tmp[q].get()) == base::ALL_DATA_COPIED);
+        BOOST_CHECK(copyStateData(q, tmp[q].get(), m, state.get()) == base::SOME_DATA_COPIED);  
+        BOOST_CHECK(copyStateData(q, tmp[q].get(), r3, state[r3].get()) == base::NO_DATA_COPIED);
+    }
+}

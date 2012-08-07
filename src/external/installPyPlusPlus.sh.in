@@ -5,13 +5,13 @@ mkdir -p @PROJECT_BINARY_DIR@/pyplusplus
 cd @PROJECT_BINARY_DIR@/pyplusplus
 
 # get sources
-curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/gccxml-2012-01-23.tgz | tar xzf -
+curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/gccxml-2012-05-17.tgz | tar xzf -
 curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/pygccxml-r1856.tgz | tar xzf -
 curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/pyplusplus-r1856.tgz | tar xzf -
 
 # build & install gccxml
 cd gccxml
-cmake .
+cmake @CMAKE_GCCXML_ARGS@ .
 make
 sudo make install
 

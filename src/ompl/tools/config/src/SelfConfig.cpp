@@ -103,7 +103,7 @@ namespace ompl
                 if (range < std::numeric_limits<double>::epsilon())
                 {
                     range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-                    msg_.debug("Planner range detected to be %lf", range);
+                    logDebug("Planner range detected to be %lf", range);
                 }
 
                 /*
@@ -125,11 +125,11 @@ namespace ompl
                 checkSetup();
                 if (!proj)
                 {
-                    msg_.inform("Attempting to use default projection.");
+                    logInform("Attempting to use default projection.");
                     proj = si_->getStateSpace()->getDefaultProjection();
                 }
                 if (!proj)
-                    throw Exception(msg_.getPrefix(), "No projection evaluator specified");
+                    throw Exception("No projection evaluator specified");
                 proj->setup();
             }
 
@@ -157,7 +157,6 @@ namespace ompl
             double                    averageValidMotionLength_;
 
             boost::mutex              lock_;
-            msg::Interface            msg_;
         };
 
     }
@@ -186,42 +185,38 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
 
 /* ------------------------------------------------------------------------ */
 
-#define SET_CONTEXT                                                \
-    boost::mutex::scoped_lock iLock(impl_->lock_);                \
-    impl_->msg_.setPrefix(context_)
-
 double ompl::tools::SelfConfig::getProbabilityOfValidState(void)
 {
-    SET_CONTEXT;
+    boost::mutex::scoped_lock iLock(impl_->lock_);
     return impl_->getProbabilityOfValidState();
 }
 
 double ompl::tools::SelfConfig::getAverageValidMotionLength(void)
 {
-    SET_CONTEXT;
+    boost::mutex::scoped_lock iLock(impl_->lock_);
     return impl_->getAverageValidMotionLength();
 }
 
 void ompl::tools::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
 {
-    SET_CONTEXT;
+    boost::mutex::scoped_lock iLock(impl_->lock_);
     return impl_->configureProjectionEvaluator(proj);
 }
 
 void ompl::tools::SelfConfig::configureValidStateSamplingAttempts(unsigned int &attempts)
 {
-    SET_CONTEXT;
+    boost::mutex::scoped_lock iLock(impl_->lock_);
     impl_->configureValidStateSamplingAttempts(attempts);
 }
 
 void ompl::tools::SelfConfig::configurePlannerRange(double &range)
 {
-    SET_CONTEXT;
+    boost::mutex::scoped_lock iLock(impl_->lock_);
     impl_->configurePlannerRange(range);
 }
 
 void ompl::tools::SelfConfig::print(std::ostream &out) const
 {
-    SET_CONTEXT;
+    boost::mutex::scoped_lock iLock(impl_->lock_);
     impl_->print(out);
 }

@@ -20,13 +20,13 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_ADAMS_MOULTON_HPP_INCLUDED
 
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
@@ -48,8 +48,6 @@ namespace omplext_odeint {
 
 /*
  * Static implicit Adams-Moulton multistep-solver without step size control and without dense output.
- *
- * # Define the number of steps
  */
 template<
 size_t Steps ,
@@ -88,10 +86,14 @@ public :
 
     typedef detail::rotating_buffer< wrapped_deriv_type , steps > step_storage_type;
 
-    adams_moulton( ) : m_algebra( m_algebra_instance )
+    adams_moulton( )
+    : m_coefficients() , m_dxdt() , m_resizer() ,
+      m_algebra_instance() , m_algebra( m_algebra_instance )
     { }
 
-    adams_moulton( algebra_type &algebra ) : m_algebra( algebra )
+    adams_moulton( algebra_type &algebra )
+    : m_coefficients() , m_dxdt() , m_resizer() ,
+      m_algebra_instance() , m_algebra( algebra )
     { }
 
     adams_moulton& operator=( const adams_moulton &stepper )
@@ -111,13 +113,13 @@ public :
      * solves the forwarding problem
      */
     template< class System , class StateInOut , class ABBuf >
-    void do_step( System system , StateInOut &in , const time_type &t , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , StateInOut &in , time_type t , time_type dt , const ABBuf &buf )
     {
         do_step( system , in , t , in , dt , buf );
     }
 
     template< class System , class StateInOut , class ABBuf >
-    void do_step( System system , const StateInOut &in , const time_type &t , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , const StateInOut &in , time_type t , time_type dt , const ABBuf &buf )
     {
         do_step( system , in , t , in , dt , buf );
     }
@@ -130,19 +132,19 @@ public :
      * solves the forwarding problem
      */
     template< class System , class StateIn , class StateOut , class ABBuf >
-    void do_step( System system , const StateIn &in , const time_type &t , StateOut &out , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt , const ABBuf &buf )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize_impl<StateIn> , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
         sys( in , m_dxdt.m_v , t );
         detail::adams_moulton_call_algebra< steps , algebra_type , operations_type >()( m_algebra , in , out , m_dxdt.m_v , buf , m_coefficients , dt );
     }
 
     template< class System , class StateIn , class StateOut , class ABBuf >
-    void do_step( System system , const StateIn &in , const time_type &t , const StateOut &out , const time_type &dt , const ABBuf &buf )
+    void do_step( System system , const StateIn &in , time_type t , const StateOut &out , time_type dt , const ABBuf &buf )
     {
-        typename boost::unwrap_reference< System >::type &sys = system;
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize_impl<StateIn> , boost::ref( *this ) , _1 ) );
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
         sys( in , m_dxdt.m_v , t );
         detail::adams_moulton_call_algebra< steps , algebra_type , operations_type >()( m_algebra , in , out , m_dxdt.m_v , buf , m_coefficients , dt );
     }
@@ -167,7 +169,7 @@ private:
     template< class StateIn >
     bool resize_impl( const StateIn &x )
     {
-        return adjust_size_by_resizeability( m_dxdt , x , typename wrapped_deriv_type::is_resizeable() );
+        return adjust_size_by_resizeability( m_dxdt , x , typename is_resizeable<deriv_type>::type() );
     }
 
 
@@ -176,6 +178,7 @@ private:
     resizer_type m_resizer;
 
 protected:
+
     algebra_type m_algebra_instance;
     algebra_type &m_algebra;
 };

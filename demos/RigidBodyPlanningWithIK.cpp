@@ -36,7 +36,7 @@
 
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
-#include <ompl/base/GoalLazySamples.h>
+#include <ompl/base/goals/GoalLazySamples.h>
 #include <ompl/geometric/ik/GAIK.h>
 
 #include <ompl/config.h>
@@ -75,7 +75,7 @@ public:
 // with some other algorithm. Genetic algorithms that essentially
 // perform inverse kinematics in the general sense can be used:
 
-bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::GoalRegion *region, const ob::GoalLazySamples *gls, ob::State *result)
+bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::ProblemDefinitionPtr &pd, const ob::GoalRegion *region, const ob::GoalLazySamples *gls, ob::State *result)
 {
     og::GAIK g(si);
 
@@ -96,7 +96,7 @@ bool regionSamplingWithGAIK(const ob::SpaceInformationPtr &si, const ob::GoalReg
     }
 
     // we continue sampling while we are able to find solutions, we have found not more than 2 previous solutions and we have not yet solved the problem
-    return cont && gls->maxSampleCount() < 3 && !gls->isAchieved();
+    return cont && gls->maxSampleCount() < 3 && !pd->hasSolution();
 }
 
 void planWithIK(void)
@@ -125,7 +125,7 @@ void planWithIK(void)
 
     // bind a sampling function that fills its argument with a sampled state and returns true while it can produce new samples
     // we don't need to check if new samples are different from ones previously computed as this is pefromed automatically by GoalLazySamples
-    ob::GoalSamplingFn samplingFunction = boost::bind(&regionSamplingWithGAIK, ss.getSpaceInformation(), &region, _1, _2);
+    ob::GoalSamplingFn samplingFunction = boost::bind(&regionSamplingWithGAIK, ss.getSpaceInformation(), ss.getProblemDefinition(), &region, _1, _2);
 
     // create an instance of GoalLazySamples:
     ob::GoalPtr goal(new ob::GoalLazySamples(ss.getSpaceInformation(), samplingFunction));

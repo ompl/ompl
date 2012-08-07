@@ -85,9 +85,6 @@ namespace ompl
 
             /** \brief The set of planners to be used */
             std::vector<base::PlannerPtr>   planners_;
-
-            /** \brief Console output */
-            msg::Interface                  msg_;
         };
 
     }

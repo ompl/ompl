@@ -58,11 +58,12 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
 {
     time::point end = time::now() + time::seconds(solveTime);
     unsigned int nt = std::min(nthreads, (unsigned int)planners_.size());
-    msg_.debug("Using %u threads", nt);
+    logDebug("Using %u threads", nt);
 
     base::PlannerStatus result;
     unsigned int np = 0;
-    const base::GoalPtr &goal = getProblemDefinition()->getGoal();
+    const base::ProblemDefinitionPtr &pdef = getProblemDefinition();
+    const base::GoalPtr &goal = pdef->getGoal();
     pp_.clearHybridizationPaths();
 
     while (time::now() < end)
@@ -80,14 +81,22 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
             if (result != base::PlannerStatus::EXACT_SOLUTION)
                 result = localResult;
 
-            if (goal->getSolutionPath()->length() <= goal->getMaximumPathLength())
-            {
-                msg_.debug("Terminating early since solution path is shorted than the maximum path length");
+            if (!pdef->hasOptimizationObjective())
+            {         
+                logDebug("Terminating early since there is no optimization objective specified");
                 break;
             }
-            if (goal->getSolutionCount() >= maxSol)
+            
+            double obj_cost = pdef->getOptimizationObjective()->getCost(pdef->getSolutionPath());
+
+            if (pdef->getOptimizationObjective()->isSatisfied(obj_cost))
             {
-                msg_.debug("Terminating early since %u solutions were generated", maxSol);
+                logDebug("Terminating early since solution path satisfies the optimization objective");
+                break;
+            }
+            if (pdef->getSolutionCount() >= maxSol)
+            {
+                logDebug("Terminating early since %u solutions were generated", maxSol);
                 break;
             }
         }
@@ -96,7 +105,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
     // if we have more time, and we have a geometric path, we try to simplify it
     if (time::now() < end && result)
     {
-        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(goal->getSolutionPath().get());
+        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
         if (p)
         {
             geometric::PathSimplifier ps(getProblemDefinition()->getSpaceInformation());

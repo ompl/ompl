@@ -24,8 +24,6 @@
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
 
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
-
 #include <boost/array.hpp>
 
 namespace boost {
@@ -57,9 +55,9 @@ namespace symplectic_rkn_sb3a_mclachlan {
 	{
 		coef_a_type( void )
 		{
-			(*this)[0] = 0.40518861839525227722;
-			(*this)[1] = -0.28714404081652408900;
-			(*this)[2] = 0.5 - ( (*this)[0] + (*this)[1] );
+		    (*this)[0] = static_cast< Value >( 0.40518861839525227722 );
+			(*this)[1] = static_cast< Value >( -0.28714404081652408900 );
+			(*this)[2] = static_cast< Value >( 1 ) / static_cast< Value >( 2 ) - ( (*this)[0] + (*this)[1] );
 			(*this)[3] = (*this)[2];
 			(*this)[4] = (*this)[1];
 			(*this)[5] = (*this)[0];
@@ -72,12 +70,12 @@ namespace symplectic_rkn_sb3a_mclachlan {
 	{
 		coef_b_type( void )
 		{
-			(*this)[0] = -3.0 / 73.0;
-			(*this)[1] = 17.0 / 59.0;
-			(*this)[2] = 1.0 - 2.0 * ( (*this)[0] + (*this)[1] );
+			(*this)[0] = static_cast< Value >( -3 ) / static_cast< Value >( 73 );
+			(*this)[1] = static_cast< Value >( 17 ) / static_cast< Value >( 59 );
+			(*this)[2] = static_cast< Value >( 1 ) - static_cast< Value >( 2 ) * ( (*this)[0] + (*this)[1] );
 			(*this)[3] = (*this)[1];
 			(*this)[4] = (*this)[0];
-			(*this)[5] = 0.0;
+			(*this)[5] = static_cast< Value >( 0 );
 		}
 	};
 
@@ -107,9 +105,17 @@ class symplectic_rkn_sb3a_mclachlan :
 {
 public:
 
-    BOOST_ODEINT_SYMPLECTIC_NYSTROEM_STEPPER_TYPEDEFS( symplectic_rkn_sb3a_mclachlan , 6 );
+    typedef symplectic_nystroem_stepper_base
+    <
+    6 ,
+    symplectic_rkn_sb3a_mclachlan< Coor , Momentum , Value , CoorDeriv , MomentumDeriv , Time , Algebra , Operations , Resizer > ,
+    Coor , Momentum , Value , CoorDeriv , MomentumDeriv , Time , Algebra , Operations , Resizer
+    > stepper_base_type;
 
-	symplectic_rkn_sb3a_mclachlan( const algebra_type &algebra = algebra_type() )
+    typedef typename stepper_base_type::algebra_type algebra_type;
+    typedef typename stepper_base_type::value_type value_type;
+
+    symplectic_rkn_sb3a_mclachlan( const algebra_type &algebra = algebra_type() )
         : stepper_base_type(
             detail::symplectic_rkn_sb3a_mclachlan::coef_a_type< value_type >() ,
             detail::symplectic_rkn_sb3a_mclachlan::coef_b_type< value_type >() ,

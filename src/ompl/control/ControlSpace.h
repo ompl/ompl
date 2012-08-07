@@ -159,6 +159,22 @@ namespace ompl
             /** \brief Perform final setup steps. This function is automatically called by the SpaceInformation */
             virtual void setup(void);
 
+            /** \brief Returns the serialization size for a single control in this space */
+            virtual unsigned int getSerializationLength(void) const;
+
+            /** \brief Serializes the given control into the serialization buffer. */
+            virtual void serialize(void *serialization, const Control *ctrl) const;
+
+            /** \brief Deserializes a control from the serialization buffer. */
+            virtual void deserialize(Control *ctrl, const void *serialization) const;
+
+            /** \brief Compute an array of ints that uniquely identifies the structure of the control space.
+                The first element of the signature is the number of integers that follow */
+            void computeSignature(std::vector<int> &signature) const;
+
+            /** \brief Check if the control space is compound */
+            virtual bool isCompound(void) const;
+
         protected:
 
             /** \brief A type assigned for this control space */
@@ -236,6 +252,17 @@ namespace ompl
             virtual void printSettings(std::ostream &out) const;
 
             virtual void setup(void);
+
+            /** \brief Returns the serialization size for a single control in this space */
+            virtual unsigned int getSerializationLength(void) const;
+
+            /** \brief Serializes the given control into the serialization buffer. */
+            virtual void serialize(void *serialization, const Control *ctrl) const;
+
+            /** \brief Deserializes a control from the serialization buffer. */
+            virtual void deserialize(Control *ctrl, const void *serialization) const;
+
+            virtual bool isCompound(void) const;
 
             /** \brief Lock this control space. This means no further
              control spaces can be added as components.  This function can

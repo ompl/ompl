@@ -102,6 +102,7 @@ namespace ompl
                 return si_->getStateValidityChecker();
             }
 
+            /** \brief Get the instance of the state propagator being used */
             const StatePropagatorPtr& getStatePropagator(void) const
             {
                 return si_->getStatePropagator();
@@ -132,7 +133,7 @@ namespace ompl
             /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
             bool haveSolutionPath(void) const
             {
-                return getGoal()->getSolutionPath();
+                return pdef_->getSolutionPath();
             }
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
@@ -232,10 +233,10 @@ namespace ompl
             /** \brief Run the planner until \e ptc becomes true (at most) */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief Return true if the last planning attempt failed to find a solution, and it aborted before a termination condition was reached */
-            bool invalidLastRequest(void) const
+            /** \brief Return the status of the last planning attempt */
+            base::PlannerStatus getLastPlannerStatus(void) const
             {
-                return invalid_request_;
+                return last_status_;
             }
 
             /** \brief Get the amount of time (in seconds) spent during the last planning step */
@@ -289,14 +290,11 @@ namespace ompl
             /// The amount of time the last planning step took
             double                        planTime_;
 
-            /// Flag indicating whether the last request was invalid
-            bool                          invalid_request_;
+            /// The status of the last planning request
+            base::PlannerStatus           last_status_;
 
             /// The parameters that describe the planning context
             base::ParamSet                params_;
-
-            /// Interface for console output
-            msg::Interface                msg_;
         };
 
         /** \brief Given a goal specification, decide on a planner for that goal */

@@ -35,7 +35,7 @@
 /* Author: Matt Maly */
 
 #include "ompl/control/planners/syclop/Syclop.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/ProblemDefinition.h"
 #include <limits>
 #include <stack>
@@ -85,7 +85,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
     }
     if (startRegions_.empty())
     {
-        msg_.error("There are no valid start states");
+        logError("There are no valid start states");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -96,12 +96,12 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
             goalRegions_.insert(decomp_->locateRegion(g));
         else
         {
-            msg_.error("Unable to sample a valid goal state");
+            logError("Unable to sample a valid goal state");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
-    msg_.inform("Starting with %u states", numMotions_);
+    logInform("Starting with %u states", numMotions_);
 
     std::vector<Motion*> newMotions;
     const Motion* solution = NULL;
@@ -194,7 +194,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), !solved, goalDist);
+        pdef_->addSolutionPath(base::PathPtr(path), !solved, goalDist);
         addedSolution = true;
     }
     return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;

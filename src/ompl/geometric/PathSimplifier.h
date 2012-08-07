@@ -68,7 +68,7 @@ namespace ompl
         public:
 
             /** \brief Create an instance for a specified space information */
-            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si), msg_("PathSimplifier")
+            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si)
             {
             }
 
@@ -211,8 +211,6 @@ namespace ompl
             /** \brief Instance of random number generator */
             RNG                       rng_;
 
-            /** \brief Interface for console output */
-            msg::Interface            msg_;
         };
     }
 }

@@ -36,7 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
 ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTConnect")
@@ -156,7 +156,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     if (!goal)
     {
-        msg_.error("Unknown type of goal (or goal undefined)");
+        logError("Unknown type of goal (or goal undefined)");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -170,20 +170,20 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     if (tStart_->size() == 0)
     {
-        msg_.error("Motion planning start tree could not be initialized!");
+        logError("Motion planning start tree could not be initialized!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        msg_.error("Insufficient states in sampleable goal region");
+        logError("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    msg_.inform("Starting with %d states", (int)(tStart_->size() + tGoal_->size()));
+    logInform("Starting with %d states", (int)(tStart_->size() + tGoal_->size()));
 
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
@@ -213,7 +213,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
             if (tGoal_->size() == 0)
             {
-                msg_.error("Unable to sample any valid states for goal tree");
+                logError("Unable to sample any valid states for goal tree");
                 break;
             }
         }
@@ -279,7 +279,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                     path->append(mpath2[i]->state);
 
-                goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
                 solved = true;
                 break;
             }
@@ -290,7 +290,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     si_->freeState(rstate);
     delete rmotion;
 
-    msg_.inform("Created %u states (%u start + %u goal)", tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
+    logInform("Created %u states (%u start + %u goal)", tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

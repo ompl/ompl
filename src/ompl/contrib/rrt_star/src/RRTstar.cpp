@@ -35,7 +35,7 @@
 /* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
 
 #include "ompl/contrib/rrt_star/RRTstar.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
@@ -93,12 +93,19 @@ void ompl::geometric::RRTstar::clear(void)
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                 *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal                  *goal   = pdef_->getGoal().get();
+    base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
+
+    if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
+    {
+        opt = NULL;
+        logWarn("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
+    }
 
     if (!goal)
     {
-        msg_.error("Goal undefined");
+        logError("Goal undefined");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -111,14 +118,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     if (nn_->size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    msg_.inform("Starting with %u states", nn_->size());
+    logInform("Starting with %u states", nn_->size());
 
     Motion *solution       = NULL;
     Motion *approximation  = NULL;
@@ -133,6 +140,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     std::vector<double>  dists;
     std::vector<int>     valid;
     unsigned int         rewireTest = 0;
+    double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
 
     while (ptc() == false)
     {
@@ -165,7 +173,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             motion->cost = nmotion->cost + distN;
 
             // find nearby neighbors
-            double r = std::min(ballRadiusConst_ * (sqrt(log((double)(1 + nn_->size())) / ((double)(nn_->size())))),
+            double r = std::min(ballRadiusConst_ * pow(log((double)(1 + nn_->size())) / (double)(nn_->size()), stateSpaceDimensionConstant),
                                 ballRadiusMax_);
 
             nn_->nearestR(motion, r, nbh);
@@ -281,12 +289,16 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                 }
 
+            // Make sure to check the existing solution for improvement
+            if (solution)
+                solCheck.push_back(solution);
+
             // check if we found a solution
             for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
 
                 if (solved)
                 {
@@ -338,7 +350,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
         addedSolution = true;
     }
 
@@ -347,7 +359,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    msg_.inform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
+    logInform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
     return base::PlannerStatus(addedSolution, approximate);
 }

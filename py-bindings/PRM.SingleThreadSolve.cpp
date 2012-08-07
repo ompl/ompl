@@ -34,23 +34,22 @@
 
 /* Author: Ioan Sucan, James D. Marble */
 
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 
-ompl::base::PlannerStatus PRM_wrapper::solve(double solveTime)
+typedef ::ompl::base::PlannerStatus ( ::ompl::base::Planner::*timed_solve_function_type )( double ) ;
+
+ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminationCondition& ptc)
 {
     using namespace ompl;
 
     checkValidity();
 
     static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 5;
-    base::PlannerTerminationCondition ptc = solveTime < 1.0
-        ? base::timedPlannerTerminationCondition(solveTime)
-        : base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1));
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
     {
-        msg_.error("Goal undefined or unknown type of goal");
+        logError("Goal undefined or unknown type of goal");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -60,13 +59,13 @@ ompl::base::PlannerStatus PRM_wrapper::solve(double solveTime)
 
     if (startM_.size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        msg_.error("Insufficient states in sampleable goal region");
+        logError("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -79,7 +78,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(double solveTime)
 
         if (goalM_.empty())
         {
-            msg_.error("Unable to find any valid goal states");
+            logError("Unable to find any valid goal states");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
@@ -90,7 +89,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(double solveTime)
         simpleSampler_ = si_->allocStateSampler();
 
     unsigned int nrStartStates = boost::num_vertices(g_);
-    msg_.inform("Starting with %u states", nrStartStates);
+    logInform("Starting with %u states", nrStartStates);
 
     std::vector<base::State*> xstates(MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
@@ -124,15 +123,15 @@ ompl::base::PlannerStatus PRM_wrapper::solve(double solveTime)
         addedSolution_ = haveSolution (startM_, goalM_, sln);
     }
 
-    msg_.inform("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    logInform("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sln)
     {
         if(addedSolution_)
-            goal->addSolutionPath (sln);
+            pdef_->addSolutionPath (sln);
         else
             // the solution is exact, but not as short as we'd like it to be
-            goal->addSolutionPath (sln, true, 0.0);
+            pdef_->addSolutionPath (sln, true, 0.0);
     }
 
     si_->freeStates(xstates);

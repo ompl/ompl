@@ -203,7 +203,7 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false)
+            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false), provingSolutionNonExistence(false)
             {
             }
 
@@ -223,6 +223,9 @@ namespace ompl
             /** \brief Flag indicating whether the planner is able to account for the fact that the validity of a motion from A to B may not be the same as the validity of a motion from B to A.
                 If this flag is true, the planner will return solutions that do not make this assumption. Usually roadmap-based planners make this assumption and tree-based planners do not. */
             bool     directed;
+
+            /** \brief Flag indicating whether the planner is able to prove that no solution path exists. */
+            bool     provingSolutionNonExistence;
         };
 
         /** \brief Base class for a planner */
@@ -277,7 +280,7 @@ namespace ompl
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
                 the same problem, without calling clear() in
-                between. This allows the planner to continue work more
+                between. This allows the planner to continue work for more
                 time on an unsolved problem, for example. If this
                 option is used, it is assumed the problem definition
                 is not changed (unpredictable results otherwise). The
@@ -358,14 +361,14 @@ namespace ompl
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter)
             {
-                params_.declareParam<T>(name, msg_, boost::bind(setter, planner, _1), boost::bind(getter, planner));
+                params_.declareParam<T>(name, boost::bind(setter, planner, _1), boost::bind(getter, planner));
             }
 
             /** \brief This function declares a parameter for this planner instance, and specifies the setter function. */
             template<typename T, typename PlannerType, typename SetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter)
             {
-                params_.declareParam<T>(name, msg_, boost::bind(setter, planner, _1));
+                params_.declareParam<T>(name, boost::bind(setter, planner, _1));
             }
 
             /** \brief The space information for which planning is done */
@@ -388,9 +391,6 @@ namespace ompl
 
             /** \brief Flag indicating whether setup() has been called */
             bool                 setup_;
-
-            /** \brief Console interface */
-            msg::Interface       msg_;
         };
 
         /** \brief Definition of a function that can allocate a planner */

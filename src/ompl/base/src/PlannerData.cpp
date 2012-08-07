@@ -50,14 +50,15 @@ const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::b
 const double ompl::base::PlannerData::INVALID_WEIGHT = std::numeric_limits<double>::infinity();
 const unsigned int ompl::base::PlannerData::INVALID_INDEX = std::numeric_limits<unsigned int>::max();
 
-ompl::base::PlannerData::PlannerData (void)
+ompl::base::PlannerData::PlannerData (const SpaceInformationPtr &si) : si_(si)
 {
     graphRaw_ = new Graph();
 }
 
 ompl::base::PlannerData::~PlannerData (void)
 {
-    clear();
+    freeMemory();
+
     if (graph_)
     {
         delete graph_;
@@ -67,19 +68,31 @@ ompl::base::PlannerData::~PlannerData (void)
 
 void ompl::base::PlannerData::clear (void)
 {
-    if (graph_)
+    freeMemory();
+    decoupledStates_.clear();
+}
+
+void ompl::base::PlannerData::decoupleFromPlanner (void)
+{
+    unsigned int count = 0;
+    for (unsigned int i = 0; i < numVertices(); ++i)
     {
-        std::pair<Graph::EIterator, Graph::EIterator> eiterators = boost::edges(*graph_);
-        boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
-        for (Graph::EIterator iter = eiterators.first; iter != eiterators.second; ++iter)
-            delete boost::get(edges, *iter);
+        PlannerDataVertex& vtx = getVertex(i);
+        // If this vertex's state is not in the decoupled list, clone it and add it
+        if (decoupledStates_.find(const_cast<State*>(vtx.getState())) == decoupledStates_.end())
+        {
+            const State* oldState = vtx.getState();
+            State* clone = si_->cloneState(oldState);
+            decoupledStates_.insert(clone);
+            // Replacing the shallow state pointer with our shiny new clone
+            vtx.state_ = clone;
 
-        std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
-        boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
-        for (Graph::VIterator iter = viterators.first; iter != viterators.second; ++iter)
-           delete vertices[*iter];
-
-        graph_->clear();
+            // Remove oldState from stateIndexMap
+            stateIndexMap_.erase(oldState);
+            // Add the new, cloned state to stateIndexMap
+            stateIndexMap_[clone] = i;
+            count++;
+        }
     }
 }
 
@@ -104,6 +117,31 @@ unsigned int ompl::base::PlannerData::getEdges (unsigned int v, std::map<unsigne
     boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
     for (Graph::OEIterator iter = iterators.first; iter != iterators.second; ++iter)
         edgeMap[vertices[boost::target(*iter, *graph_)]] = boost::get(edges, *iter);
+
+    return edgeMap.size();
+}
+
+unsigned int ompl::base::PlannerData::getIncomingEdges (unsigned int v, std::vector<unsigned int>& edgeList) const
+{
+    std::pair<Graph::IEIterator, Graph::IEIterator> iterators = boost::in_edges(boost::vertex(v, *graph_), *graph_);
+
+    edgeList.clear();
+    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
+    for (Graph::IEIterator iter = iterators.first; iter != iterators.second; ++iter)
+        edgeList.push_back(vertices[boost::source(*iter, *graph_)]);
+
+    return edgeList.size();
+}
+
+unsigned int ompl::base::PlannerData::getIncomingEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const
+{
+    std::pair<Graph::IEIterator, Graph::IEIterator> iterators = boost::in_edges(boost::vertex(v, *graph_), *graph_);
+
+    edgeMap.clear();
+    boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+    boost::property_map<Graph::Type, boost::vertex_index_t>::type vertices = get(boost::vertex_index, *graph_);
+    for (Graph::IEIterator iter = iterators.first; iter != iterators.second; ++iter)
+        edgeMap[vertices[boost::source(*iter, *graph_)]] = boost::get(edges, *iter);
 
     return edgeMap.size();
 }
@@ -427,6 +465,14 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
         if (goalVertexIndices_[i] > vIndex)
             goalVertexIndices_[i]--;
 
+    // If the state attached to this vertex was decoupled, free it here
+    State* vtxState = const_cast<State*>(getVertex(vIndex).getState());
+    if (decoupledStates_.find(vtxState) != decoupledStates_.end())
+    {
+        decoupledStates_.erase(vtxState);
+        si_->freeState(vtxState);
+        vtxState = NULL;
+    }
 
     // Slay the vertex
     boost::clear_vertex(boost::vertex(vIndex, *graph_), *graph_);
@@ -513,6 +559,11 @@ bool ompl::base::PlannerData::markGoalState (const base::State* st)
 
 void ompl::base::PlannerData::computeEdgeWeights(const ompl::base::PlannerData::EdgeWeightFn& f)
 {
+    // If f wasn't specified, use defaultEdgeWeight
+    ompl::base::PlannerData::EdgeWeightFn func = f;
+    if (!func)
+        func = boost::bind(&ompl::base::PlannerData::defaultEdgeWeight, this, _1, _2, _3);
+
     unsigned int nv = numVertices();
     for (unsigned int i = 0; i < nv; ++i)
     {
@@ -521,7 +572,7 @@ void ompl::base::PlannerData::computeEdgeWeights(const ompl::base::PlannerData::
 
         std::map<unsigned int, const PlannerDataEdge*>::const_iterator it;
         for (it = nbrs.begin(); it != nbrs.end(); ++it)
-            setEdgeWeight(i, it->first, f(getVertex(i), getVertex(it->first), *it->second));
+            setEdgeWeight(i, it->first, func(getVertex(i), getVertex(it->first), *it->second));
     }
 }
 
@@ -592,4 +643,41 @@ const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void
 {
     const ompl::base::PlannerData::Graph* boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
+}
+
+double ompl::base::PlannerData::defaultEdgeWeight(const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2, const base::PlannerDataEdge& /*e*/) const
+{
+    return si_->distance(v1.getState(), v2.getState());
+}
+
+const ompl::base::SpaceInformationPtr& ompl::base::PlannerData::getSpaceInformation(void) const
+{
+    return si_;
+}
+
+void ompl::base::PlannerData::freeMemory(void)
+{
+    // Freeing decoupled states, if any
+    for (std::set<State*>::iterator it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
+        si_->freeState(*it);
+
+    if (graph_)
+    {
+        std::pair<Graph::EIterator, Graph::EIterator> eiterators = boost::edges(*graph_);
+        boost::property_map<Graph::Type, edge_type_t>::type edges = get(edge_type_t(), *graph_);
+        for (Graph::EIterator iter = eiterators.first; iter != eiterators.second; ++iter)
+            delete boost::get(edges, *iter);
+
+        std::pair<Graph::VIterator, Graph::VIterator> viterators = boost::vertices(*graph_);
+        boost::property_map<Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), *graph_);
+        for (Graph::VIterator iter = viterators.first; iter != viterators.second; ++iter)
+           delete vertices[*iter];
+
+        graph_->clear();
+    }
+}
+
+bool ompl::base::PlannerData::hasControls(void) const
+{
+    return false;
 }

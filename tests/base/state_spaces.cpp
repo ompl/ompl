@@ -52,6 +52,7 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 
 #include <boost/math/constants/constants.hpp>
+#include "../BoostTestTeamCityReporter.h"
 
 #include "StateSpaceTest.h"
 
@@ -329,6 +330,7 @@ BOOST_AUTO_TEST_CASE(Time_Simple)
     base::StateSpacePtr t(new base::TimeStateSpace());
     t->setup();
     t->sanityChecks();
+    t->params()["valid_segment_count_factor"] = 1;
 
     StateSpaceTest mt(t, 1000, 1e-12);
     mt.test();
@@ -418,4 +420,3 @@ BOOST_AUTO_TEST_CASE(Compound_Simple)
     BOOST_CHECK(m3->includes(m3));
     BOOST_CHECK(t->includes(t));
 }
-

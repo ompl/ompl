@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2012, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,64 +32,41 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ryan Luna */
 
-#ifndef OMPL_BASE_GOAL_STATE_
-#define OMPL_BASE_GOAL_STATE_
+#ifndef OMPL_BASE_SOLUTION_NON_EXISTENCE_PROOF_
+#define OMPL_BASE_SOLUTION_NON_EXISTENCE_PROOF_
 
-#include "ompl/base/GoalSampleableRegion.h"
-#include "ompl/base/ScopedState.h"
+#include "ompl/base/SpaceInformation.h"
+#include "ompl/util/ClassForward.h"
 
 namespace ompl
 {
-
     namespace base
     {
+        /// @cond IGNORE
+        /// \brief Forward declaration of ompl::base::SolutionNonExistenceProof
+        ClassForward(SolutionNonExistenceProof);
+        /// @endcond
 
-        /** \brief Definition of a goal state */
-        class GoalState : public GoalSampleableRegion
+        /// \class ompl::base::SolutionNonExistenceProofPtr
+        /// \brief A boost shared pointer wrapper for ompl::base::SolutionNonExistenceProof
+
+        /// \brief Abstract definition of a proof for the non-existence of a solution to a problem
+        class SolutionNonExistenceProof
         {
-        public:
+            public:
+                SolutionNonExistenceProof(const SpaceInformationPtr &si) : si_(si)
+                {
+                }
 
-            /** \brief Create a goal representation that is in fact a state  */
-            GoalState(const SpaceInformationPtr &si) : GoalSampleableRegion(si), state_(NULL)
-            {
-                type_ = GOAL_STATE;
-            }
+                virtual ~SolutionNonExistenceProof(void)
+                {
+                }
 
-            virtual ~GoalState(void);
-
-            /** \brief Sample a state in the goal region */
-            virtual void sampleGoal(State *st) const;
-
-            /** \brief Return the maximum number of samples that can be asked for before repeating */
-            virtual unsigned int maxSampleCount(void) const;
-
-            /** \brief Compute the distance to the goal (heuristic) */
-            virtual double distanceGoal(const State *st) const;
-
-            /** \brief Print information about the goal data structure
-                to a stream */
-            virtual void print(std::ostream &out = std::cout) const;
-
-            /** \brief Set the goal state */
-            void setState(const State* st);
-
-            /** \brief Set the goal state */
-            void setState(const ScopedState<> &st);
-
-            /** \brief Get the goal state */
-            const State* getState(void) const;
-
-            /** \brief Get the goal state */
-            State* getState(void);
-
-        protected:
-
-            /** \brief The goal state */
-            State *state_;
+            protected:
+                SpaceInformationPtr si_;
         };
-
     }
 }
 

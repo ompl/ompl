@@ -3,30 +3,49 @@
 
 \section download_release Releases
 
-- \b OMPL @OMPL_VERSION@, released @OMPL_RELEASE_DATE@ (<a href="releaseNotes.html">release notes</a>)<br>
-<a href="https://sourceforge.net/projects/ompl/files/ompl-@OMPL_VERSION@-Source.tar.gz" class="btn btn-primary btn-small">TGZ</a>
-<a href="https://sourceforge.net/projects/ompl/files/ompl-@OMPL_VERSION@-Source.zip" class="btn btn-primary btn-small">ZIP</a><br><br>
-- <a class="el" href="http://sourceforge.net/projects/ompl/files">Older releases</a>. See the \ref releaseNotes "release notes" for a brief a description of changes for each release.
+- Get \b OMPL @OMPL_VERSION@, released @OMPL_RELEASE_DATE@ (<a href="releaseNotes.html">release notes</a>)<br>
+<a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@OMPL_VERSION@-Source.tar.gz" class="btn btn-primary btn-small">TGZ</a>
+<a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@OMPL_VERSION@-Source.zip" class="btn btn-primary btn-small">ZIP</a><br><br>
+- <a class="el" href="installation.html">Installation instructions</a>.<br>
+- <a class="el" href="https://bitbucket.org/ompl/ompl/downloads/">Older releases</a>. See the \ref releaseNotes "release notes" for a brief a description of changes for each release.
 .
 
 \section download_hg Source Code
 
-- The <a class="el" href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/">latest source</a> is available via Mercurial. For anonymous checkout use:
+- The <a class="el" href="https://bitbucket.org/ompl/ompl/src">latest source</a> is available via Mercurial. For anonymous checkout use:
 \code
-$ hg clone http://ompl.hg.sourceforge.net:8000/hgroot/ompl/ompl
+$ hg clone https://bitbucket.org/ompl/ompl
 \endcode
 <br>
 - Alternatively, get a snapshot for the latest source code:<br>
-<a href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/archive/tip.tar.gz" class="btn btn-primary btn-small">TGZ</a>
-<a href="http://ompl.hg.sourceforge.net/hgweb/ompl/ompl/archive/tip.zip" class="btn btn-primary btn-small">ZIP</a><br><br>
-- A <a href="http://www.ros.org">ROS</a> package providing the latest version of this library is available at:
+<a href="https://bitbucket.org/ompl/ompl/get/tip.tar.bz2" class="btn btn-primary btn-small">TBZ</a>
+<a href="https://bitbucket.org/ompl/ompl/get/tip.tar.gz" class="btn btn-primary btn-small">TGZ</a>
+<a href="https://bitbucket.org/ompl/ompl/get/tip.zip" class="btn btn-primary btn-small">ZIP</a><br><br>
+- <a class="el" href="installation.html">Installation instructions</a> are the same as for a release.
+.
+
+\section download_deb Debian Packages
+
+- Debian Packages are are generated periodically for \b OMPL as part of the ROS release process. On Ubuntu, you can use this:
+\code
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
+wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install ros-fuerte-ompl
+\endcode
+- The .deb files are also available on <a class="el" href="http://packages.ros.org/ros/ubuntu/pool/main/r/ros-fuerte-ompl/">http://packages.ros.org</a>.
+- Notes:
+  - The binary files are installed in /opt/ros/fuerte/, so yo will need to include that path when searching for OMPL headers and libs.
+  - The version for the .deb files is of the form \e X.Y.Z00R, where \e X.Y.Z is the most recent OMPL release version and \e R is the revision number in the Mercurial repository for that .deb file.
+  .
+.
+
+\section download_ros OMPL in ROS
+- \b OMPL is used as a system dependency in <a class="el" href="http://www.ros.org">ROS</a>, and the correct .deb file is installed automatically as needed.
+- A ROS package providing the latest version of this library is also available at:
 \code
 $ svn co https://rice-ros-pkg.svn.sourceforge.net/svnroot/rice-ros-pkg/ompl ompl
 \endcode
-.
 
-\section download_install Installing
-
-- <a class="el" href="installation.html">Installation instructions</a>.
 
 */

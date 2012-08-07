@@ -33,13 +33,13 @@ struct generic_rk_call_algebra< 1 , Algebra >
 	typedef Algebra algebra_type;
 
     template< class S1 , class S2 , class S3 , class S4 , class Op>
-    void operator()( algebra_type &algebra , S1 &s1 , S2 &s2 ,  S3 &s3 , S4 *s4_array , Op op ) const
+    void operator()( algebra_type &algebra , S1 &s1 , S2 &s2 ,  S3 &s3 , S4 * /* s4_array */ , Op op ) const
     {
         algebra.for_each3( s1 , s2 , s3 , op );
     }
 
     template< class S1 , class S2 , class S4 , class Op>
-    void operator()( algebra_type &algebra , S1 &s1 , S2 &s2 , S4 *s4_array , Op op ) const
+    void operator()( algebra_type &algebra , S1 &s1 , S2 &s2 , S4 * /* s4_array */ , Op op ) const
     {
         algebra.for_each2( s1 , s2 , op );
     }

@@ -20,10 +20,15 @@
 
 #include <stdexcept>
 
+#include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_const.hpp>
+#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_n_steps.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/copy.hpp>
 
-#include <boost/ref.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/detail/less_with_sign.hpp>
+
 
 #include <iostream>
 
@@ -32,17 +37,12 @@ namespace numeric {
 namespace omplext_odeint {
 namespace detail {
 
-
-//forward declaration of detail::integrate const, 
-//required in integrate_const for normal stepper
-template< class Stepper , class System , class State , class Time , class Observer >
-size_t integrate_const(        
+// forward declaration
+template< class Stepper , class System , class State , class Time , class Observer>
+Time integrate_n_steps(
         Stepper stepper , System system , State &start_state ,
-        Time start_time , Time end_time , Time dt ,
-        Observer observer , stepper_tag
-                             );
-
-
+        Time start_time , Time dt , size_t num_of_steps ,
+        Observer observer , stepper_tag );
 
 /*
  * integrate_adaptive for simple stepper is basically an integrate_const + some last step
@@ -54,14 +54,14 @@ size_t integrate_adaptive(
         Observer observer , stepper_tag
 )
 {
-    size_t steps = boost::numeric::omplext_odeint::detail::integrate_const( 
-                       stepper , system , start_state , start_time , 
-                       end_time , dt , observer , stepper_tag() );
-    if( steps*dt < end_time )
+    size_t steps = static_cast< size_t >( (end_time-start_time)/dt );
+    Time end = detail::integrate_n_steps( stepper , system , start_state , start_time ,
+                                          dt , steps , observer , stepper_tag() );
+    if( less_with_sign( end , end_time , dt ) )
     {   //make a last step to end exactly at end_time
-        stepper.do_step( system , start_state , steps*dt , end_time-steps*dt );
+        stepper.do_step( system , start_state , end , end_time - end );
         steps++;
-        typename boost::unwrap_reference< Observer >::type &obs = observer;
+        typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
         obs( start_state , end_time );
     }
     return steps;
@@ -78,15 +78,15 @@ size_t integrate_adaptive(
         Observer observer , controlled_stepper_tag
 )
 {
-    typename boost::unwrap_reference< Observer >::type &obs = observer;
+    typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
     const size_t max_attempts = 1000;
     const char *error_string = "Integrate adaptive : Maximal number of iterations reached. A step size could not be found.";
     size_t count = 0;
-    while( start_time < end_time )
+    while( less_with_sign( start_time , end_time , dt ) )
     {
         obs( start_state , start_time );
-        if( ( start_time + dt ) > end_time )
+        if( less_with_sign( end_time , start_time + dt , dt ) )
         {
             dt = end_time - start_time;
         }
@@ -119,14 +119,16 @@ size_t integrate_adaptive(
         Time start_time , Time end_time , Time dt ,
         Observer observer , dense_output_stepper_tag )
 {
-    typename boost::unwrap_reference< Observer >::type &obs = observer;
+    typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
     size_t count = 0;
     stepper.initialize( start_state , start_time , dt );
 
-    while( stepper.current_time() < end_time )
+    while( less_with_sign( stepper.current_time() , end_time , stepper.current_time_step() ) )
     {
-        while( stepper.current_time() + stepper.current_time_step() <= end_time )
+        while( less_eq_with_sign( stepper.current_time() + stepper.current_time_step() ,
+               end_time ,
+               stepper.current_time_step() ) )
         {   //make sure we don't go beyond the end_time
             obs( stepper.current_state() , stepper.current_time() );
             stepper.do_step( system );
@@ -135,6 +137,8 @@ size_t integrate_adaptive(
         stepper.initialize( stepper.current_state() , stepper.current_time() , end_time - stepper.current_time() );
     }
     obs( stepper.current_state() , stepper.current_time() );
+    // overwrite start_state with the final point
+    boost::numeric::omplext_odeint::copy( stepper.current_state() , start_state );
     return count;
 }
 

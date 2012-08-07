@@ -34,7 +34,7 @@
 
 /* Author: Elizabeth Fudge */
 
-#include <ompl/base/GoalState.h>
+#include <ompl/base/goals/GoalState.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/DiscreteStateSpace.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
         if (!setup.haveExactSolutionPath())
         {
             std::cout << "Solution is approximate. Distance to actual goal is " <<
-                setup.getGoal()->getDifference() << std::endl;
+                setup.getProblemDefinition()->getSolutionDifference() << std::endl;
         }
     }
 

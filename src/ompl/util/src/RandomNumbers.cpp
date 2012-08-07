@@ -102,13 +102,11 @@ void ompl::RNG::setSeed(boost::uint32_t seed)
 {
     if (getFirstSeedGenerated())
     {
-        msg::Interface msg;
-        msg.error("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
+        logError("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
     }
     if (seed == 0)
     {
-        msg::Interface msg;
-        msg.warn("Random generator seed cannot be 0. Using 1 instead.");
+        logWarn("Random generator seed cannot be 0. Using 1 instead.");
         getUserSetSeed() = 1;
     }
     else

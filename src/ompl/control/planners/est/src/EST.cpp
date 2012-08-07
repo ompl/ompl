@@ -35,7 +35,7 @@
 /* Author: Ryan Luna */
 
 #include "ompl/control/planners/est/EST.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
@@ -111,7 +111,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     if (tree_.grid.size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -121,7 +121,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    msg_.inform("Starting with %u states", tree_.size);
+    logInform("Starting with %u states", tree_.size);
 
     Motion *solution = NULL;
     double   slndist = std::numeric_limits<double>::infinity();
@@ -199,7 +199,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
             else
                 path->append(mpath[i]->state);
         addedSolution = true;
-        goal->addSolutionPath(base::PathPtr(path), !solved, slndist);
+        pdef_->addSolutionPath(base::PathPtr(path), !solved, slndist);
     }
 
     // Cleaning up memory
@@ -209,7 +209,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         siC_->freeControl(rmotion->control);
     delete rmotion;
 
-    msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
+    logInform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
     return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
@@ -256,9 +256,15 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
         {
             if (motions[i][j]->parent)
-                data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
-                              base::PlannerDataVertex (motions[i][j]->state),
-                              PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+            {
+                if (data.hasControls())
+                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                                  base::PlannerDataVertex (motions[i][j]->state),
+                                  PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+                else
+                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
+                                  base::PlannerDataVertex (motions[i][j]->state));
+            }
             else
                 data.addStartVertex (base::PlannerDataVertex (motions[i][j]->state));
         }

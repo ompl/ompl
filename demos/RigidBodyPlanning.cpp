@@ -118,7 +118,7 @@ void plan(void)
     {
         // get the goal representation from the problem definition (not the same as the goal state)
         // and inquire about the found path
-        ob::PathPtr path = pdef->getGoal()->getSolutionPath();
+        ob::PathPtr path = pdef->getSolutionPath();
         std::cout << "Found solution:" << std::endl;
 
         // print the path to screen

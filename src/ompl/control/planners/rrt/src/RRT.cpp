@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/planners/rrt/RRT.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include <limits>
 
@@ -109,7 +109,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
 
     if (nn_->size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -118,7 +118,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    msg_.inform("Starting with %u states", nn_->size());
+    logInform("Starting with %u states", nn_->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -250,7 +250,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
             else
                 path->append(mpath[i]->state);
         solved = true;
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }
 
     if (rmotion->state)
@@ -260,7 +260,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     delete rmotion;
     si_->freeState(xstate);
 
-    msg_.inform("Created %u states", nn_->size());
+    logInform("Created %u states", nn_->size());
 
     return base::PlannerStatus(solved, approximate);
 }
@@ -282,9 +282,15 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     {
         const Motion* m = motions[i];
         if (m->parent)
-            data.addEdge(base::PlannerDataVertex(m->parent->state),
-                         base::PlannerDataVertex(m->state),
-                         control::PlannerDataEdgeControl(m->control, m->steps * delta));
+        {
+            if (data.hasControls())
+                data.addEdge(base::PlannerDataVertex(m->parent->state),
+                             base::PlannerDataVertex(m->state),
+                             control::PlannerDataEdgeControl(m->control, m->steps * delta));
+            else
+                data.addEdge(base::PlannerDataVertex(m->parent->state),
+                             base::PlannerDataVertex(m->state));
+        }
         else
             data.addStartVertex(base::PlannerDataVertex(m->state));
     }

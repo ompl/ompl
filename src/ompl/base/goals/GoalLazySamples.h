@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_LAZY_SAMPLES_
-#define OMPL_BASE_GOAL_LAZY_SAMPLES_
+#ifndef OMPL_BASE_GOALS_GOAL_LAZY_SAMPLES_
+#define OMPL_BASE_GOALS_GOAL_LAZY_SAMPLES_
 
-#include "ompl/base/GoalStates.h"
+#include "ompl/base/goals/GoalStates.h"
 #include <boost/thread/thread.hpp>
 #include <boost/function.hpp>
 #include <limits>

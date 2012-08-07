@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,54 +34,46 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/base/GoalState.h"
-#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/OptimizationObjective.h"
 
-ompl::base::GoalState::~GoalState(void)
+ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) : si_(si)
 {
-    if (state_)
-        si_->freeState(state_);
 }
 
-double ompl::base::GoalState::distanceGoal(const State *st) const
+double ompl::base::OptimizationObjective::getCost(const PathPtr &path) const
 {
-    return si_->distance(st, state_);
+    return path->cost(*this);
 }
 
-void ompl::base::GoalState::print(std::ostream &out) const
+bool ompl::base::BoundedAdditiveOptimizationObjective::isSatisfied(double totalObjectiveCost) const
 {
-    out << "Goal state, threshold = " << threshold_ << ", memory address = " << this << ", state = " << std::endl;
-    si_->printState(state_, out);
+    return totalObjectiveCost <= maximumUpperBound_;
 }
 
-void ompl::base::GoalState::sampleGoal(base::State *st) const
+double ompl::base::BoundedAdditiveOptimizationObjective::combineObjectiveCosts(double a, double b) const
 {
-    si_->copyState(st, state_);
+    return a + b;
 }
 
-unsigned int ompl::base::GoalState::maxSampleCount(void) const
+ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength) : BoundedAdditiveOptimizationObjective(si, maximumPathLength)
 {
-    return 1;
+    description_ = "Path Length";
 }
 
-void ompl::base::GoalState::setState(const State* st)
+double ompl::base::PathLengthOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
 {
-    if (state_)
-        si_->freeState(state_);
-    state_ = si_->cloneState(st);
+    return si_->distance(s1, s2);
 }
 
-void ompl::base::GoalState::setState(const ScopedState<> &st)
+ompl::base::StateCostOptimizationObjective::StateCostOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength) : BoundedAdditiveOptimizationObjective(si, maximumPathLength)
 {
-    setState(st.get());
+    description_ = "State Cost";
 }
 
-const ompl::base::State * ompl::base::GoalState::getState(void) const
+double ompl::base::StateCostOptimizationObjective::getIncrementalCost(const State *s1, const State *s2) const
 {
-    return state_;
-}
-
-ompl::base::State * ompl::base::GoalState::getState(void)
-{
-    return state_;
+    double c;
+    std::pair<double, double> dummy;
+    si_->getMotionValidator()->computeMotionCost(s1, s2, c, dummy);
+    return c;
 }

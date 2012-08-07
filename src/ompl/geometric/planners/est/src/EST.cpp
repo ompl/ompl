@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/est/EST.h"
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
@@ -106,14 +106,14 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     if (tree_.grid.size() == 0)
     {
-        msg_.error("There are no valid initial states!");
+        logError("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    msg_.inform("Starting with %u states", tree_.size);
+    logInform("Starting with %u states", tree_.size);
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -181,13 +181,13 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        goal->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
         solved = true;
     }
 
     si_->freeState(xstate);
 
-    msg_.inform("Created %u states in %u cells", tree_.size, tree_.grid.size());
+    logInform("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
     return base::PlannerStatus(solved, approximate);
 }

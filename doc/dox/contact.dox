@@ -11,7 +11,7 @@ href="https://lists.sourceforge.net/lists/listinfo/ompl-users"><strong>here</str
 <br/>
 
 \section bugs Reporting Bugs
-To report a bug, please click <a href="http://sourceforge.net/tracker/?group_id=340426&atid=1425335"><strong>here</strong></a>.
+To report a bug, please click \ref bitbucketIssues "here".
 
 \htmlonly</div><div class="span6">
 <h2>Contact form</h2>

@@ -156,15 +156,15 @@ void ompl::base::SO3StateSpace::enforceBounds(State *state) const
 {
     StateType *qstate = static_cast<StateType*>(state);
     double nrm = norm(qstate);
-    if (fabs(nrm - 1.0) > MAX_QUATERNION_NORM_ERROR)
+    if (fabs(nrm) < MAX_QUATERNION_NORM_ERROR)
+        qstate->setIdentity();
+    else if (fabs(nrm - 1.0) > MAX_QUATERNION_NORM_ERROR)
     {
         qstate->x /= nrm;
         qstate->y /= nrm;
         qstate->z /= nrm;
         qstate->w /= nrm;
     }
-    else
-        qstate->setIdentity();
 }
 
 bool ompl::base::SO3StateSpace::satisfiesBounds(const State *state) const

@@ -100,3 +100,18 @@ void ompl::control::DiscreteControlSpace::setup(void)
         throw Exception("Lower bound cannot be larger than upper bound for a discrete space");
     ControlSpace::setup();
 }
+
+unsigned int ompl::control::DiscreteControlSpace::getSerializationLength(void) const
+{
+    return sizeof(int);
+}
+
+void ompl::control::DiscreteControlSpace::serialize(void *serialization, const Control *ctrl) const
+{
+    memcpy(serialization, &ctrl->as<ControlType>()->value, sizeof(int));
+}
+
+void ompl::control::DiscreteControlSpace::deserialize(Control *ctrl, const void *serialization) const
+{
+    memcpy(&ctrl->as<ControlType>()->value, serialization, sizeof(int));
+}

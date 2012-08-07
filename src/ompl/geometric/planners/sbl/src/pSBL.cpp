@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/sbl/pSBL.h"
-#include "ompl/base/GoalState.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread.hpp>
 #include <limits>
@@ -106,7 +106,6 @@ void ompl::geometric::pSBL::freeGridMotions(Grid<MotionInfo> &grid)
 void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
 {
     checkValidity();
-    base::GoalState *goal = static_cast<base::GoalState*>(pdef_->getGoal().get());
     RNG              rng;
 
     std::vector<Motion*> solution;
@@ -176,7 +175,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
                 PathGeometric *path = new PathGeometric(si_);
                 for (unsigned int i = 0 ; i < solution.size() ; ++i)
                     path->append(solution[i]->state);
-                goal->addSolutionPath(base::PathPtr(path), false, 0.0);
+                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
             }
             sol->lock.unlock();
         }
@@ -198,7 +197,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
 
     if (!goal)
     {
-        msg_.error("Unknown type of goal (or goal undefined)");
+        logError("Unknown type of goal (or goal undefined)");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -222,23 +221,23 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
             addMotion(tGoal_, motion);
         }
         else
-            msg_.error("Goal state is invalid!");
+            logError("Goal state is invalid!");
     }
 
     if (tStart_.size == 0)
     {
-        msg_.error("Motion planning start tree could not be initialized!");
+        logError("Motion planning start tree could not be initialized!");
         return base::PlannerStatus::INVALID_START;
     }
     if (tGoal_.size == 0)
     {
-        msg_.error("Motion planning goal tree could not be initialized!");
+        logError("Motion planning goal tree could not be initialized!");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     samplerArray_.resize(threadCount_);
 
-    msg_.inform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
+    logInform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
 
     SolutionInfo sol;
     sol.found = false;
@@ -253,7 +252,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
         delete th[i];
     }
 
-    msg_.inform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
+    logInform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
              tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
     return sol.found ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;

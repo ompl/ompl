@@ -148,10 +148,13 @@ class ompl_base_generator_t(code_generator_t):
         # rename STL vectors of certain types
         self.std_ns.class_('map< std::string, boost::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
-        self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
+        try:
+            self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
+        except: pass
         self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename('vectorPlannerSolution')
         self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
+        self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename('mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
@@ -238,10 +241,6 @@ class ompl_base_generator_t(code_generator_t):
             call_policies.return_value_policy(call_policies.reference_existing_object)
         # Remove Boost.Graph representation from PlannerData
         self.ompl_ns.class_('PlannerData').member_functions('toBoostGraph').exclude()
-        self.ompl_ns.class_('PlannerData').class_('Graph').exclude()
-        # Remove Boost.Graph property enumerations from PlannerData
-        self.mb.enumeration('edge_type_t').exclude()
-        self.mb.enumeration('vertex_type_t').exclude()
         # Make PlannerData printable
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphviz'))
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphML'))
@@ -475,9 +474,10 @@ class ompl_geometric_generator_t(code_generator_t):
         # simultaneously. This is a know limitation of Boost.Python. We
         # therefore use a single-threaded version of PRM in python.
         PRM_cls = self.ompl_ns.class_('PRM')
-        PRM_cls.add_wrapper_code('ompl::base::PlannerStatus solve(double solveTime);')
+        PRM_cls.add_wrapper_code('ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition& ptc);')
         PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
         PRM_cls.add_registration_code('def("solve", &PRM_wrapper::solve)')
+        PRM_cls.add_registration_code('def("solve", timed_solve_function_type(&ompl::base::Planner::solve))')
 
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -572,6 +572,7 @@ class ompl_tools_generator_t(code_generator_t):
             'PreSetupEvent', 'Pre-setup event')
         self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
             'PostSetupEvent', 'Post-setup event')
+        benchmark_cls.class_('Request').no_init = False
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):

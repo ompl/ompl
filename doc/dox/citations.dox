@@ -1,10 +1,18 @@
 /**
-\page citations Citations
+\page citations Citation
 
 If you use OMPL in your research, we kindly ask you to include the following citation in your publications:
 
-- The Open Motion Planning Library (OMPL), <a href="http://ompl.kavrakilab.org">http://ompl.kavrakilab.org</a>, 2010.
+- Ioan A. Șucan, Mark Moll, Lydia E. Kavraki, <i>The Open Motion Planning Library,</i> IEEE Robotics & Automation Magazine, 2012. To appear. <a href="http://ompl.kavrakilab.org">http://ompl.kavrakilab.org</a>
 
-(We are working on a publication about OMPL, so check back in a while to see if the primary reference has changed.)
-
+\code
+@article{sucan2012the-open-motion-planning-library,
+	Author = {Ioan A. \c{S}ucan and Mark Moll and Lydia E. Kavraki},
+	Journal = {{IEEE} Robotics \& Automation Magazine},
+	Note = {To appear.},
+	Title = {The {O}pen {M}otion {P}lanning {L}ibrary},
+	Url = {http://ompl.kavrakilab.org},
+	Year = {2012}
+}
+\endcode
 */

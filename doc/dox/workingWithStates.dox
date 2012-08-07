@@ -161,6 +161,9 @@ space->freeState(state);
 space->freeState(copy);
 \endcode
 
+See \ref advancedStateCopy for more information on copying states.
+
+
 \section stateAndSpaceOperatorsCopy Operators for States and State Spaces
 \copydoc stateAndSpaceOperators
 

@@ -84,7 +84,7 @@ namespace ompl
                 projection.
 
                 Each element is sampled with a Gaussian distribution
-                with mean 0 and variance 1 and the matrix columns are
+                with mean 0 and variance 1 and the matrix rows are
                 made orthonormal. */
             static Matrix ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale);
 
@@ -94,7 +94,7 @@ namespace ompl
                 vector with \e to elements.
 
                 Each element is sampled with a Gaussian distribution
-                with mean 0 and variance 1 and the matrix columns are
+                with mean 0 and variance 1 and the matrix rows are
                 made orthonormal. */
             static Matrix ComputeRandom(const unsigned int from, const unsigned int to);
 
@@ -250,9 +250,6 @@ namespace ompl
 
             /** \brief The set of parameters for this projection */
             ParamSet             params_;
-
-            /** \brief The console interface */
-            msg::Interface       msg_;
         };
 
         /** \brief If the projection for a CompoundStateSpace is

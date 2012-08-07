@@ -19,14 +19,17 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_RUNGE_KUTTA_DOPRI5_HPP_INCLUDED
 
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
-#include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_stepper_and_error_stepper_fsal_base.hpp>
+#include <omplext_odeint/boost/numeric/odeint/stepper/base/explicit_error_stepper_fsal_base.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/default_operations.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
-#include <omplext_odeint/boost/numeric/odeint/stepper/detail/macros.hpp>
+
+#include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
+
 
 namespace boost {
 namespace numeric {
@@ -43,58 +46,71 @@ class Operations = default_operations ,
 class Resizer = initially_resizer
 >
 class runge_kutta_dopri5
-: public explicit_stepper_and_error_stepper_fsal_base<
+: public explicit_error_stepper_fsal_base<
   runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
   5 , 5 , 4 , State , Value , Deriv , Time , Algebra , Operations , Resizer >
 {
 
 public :
 
-    BOOST_ODEINT_EXPLICIT_STEPPERS_AND_ERROR_STEPPERS_FSAL_TYPEDEFS( runge_kutta_dopri5 , 5 , 5 , 4 );
-    typedef runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_type;
+    typedef explicit_error_stepper_fsal_base<
+    runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
+    5 , 5 , 4 , State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_base_type;
+    
+    typedef typename stepper_base_type::state_type state_type;
+    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
+    typedef typename stepper_base_type::value_type value_type;
+    typedef typename stepper_base_type::deriv_type deriv_type;
+    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
+    typedef typename stepper_base_type::time_type time_type;
+    typedef typename stepper_base_type::algebra_type algebra_type;
+    typedef typename stepper_base_type::operations_type operations_type;
+    typedef typename stepper_base_type::resizer_type resizer_type;
+    typedef typename stepper_base_type::stepper_type stepper_type;
+
 
     runge_kutta_dopri5( const algebra_type &algebra = algebra_type() ) : stepper_base_type( algebra )
     { }
 
 
     template< class System , class StateIn , class DerivIn , class StateOut , class DerivOut >
-    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , const time_type &t ,
-            StateOut &out , DerivOut &dxdt_out , const time_type &dt )
+    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , time_type t ,
+            StateOut &out , DerivOut &dxdt_out , time_type dt )
     {
-        const value_type a2 = static_cast<value_type> ( 0.2 );
-        const value_type a3 = static_cast<value_type> ( 0.3 );
-        const value_type a4 = static_cast<value_type> ( 0.8 );
-        const value_type a5 = static_cast<value_type> ( 8.0 )/static_cast<value_type> ( 9.0 );
+        const value_type a2 = static_cast<value_type> ( 1 ) / static_cast<value_type>( 5 );
+        const value_type a3 = static_cast<value_type> ( 3 ) / static_cast<value_type> ( 10 );
+        const value_type a4 = static_cast<value_type> ( 4 ) / static_cast<value_type> ( 5 );
+        const value_type a5 = static_cast<value_type> ( 8 )/static_cast<value_type> ( 9 );
 
-        const value_type b21 = static_cast<value_type> ( 0.2 );
+        const value_type b21 = static_cast<value_type> ( 1 ) / static_cast<value_type> ( 5 );
 
-        const value_type b31 = static_cast<value_type> ( 3.0 ) / static_cast<value_type>( 40.0 );
-        const value_type b32 = static_cast<value_type> ( 9.0 ) / static_cast<value_type>( 40.0 );
+        const value_type b31 = static_cast<value_type> ( 3 ) / static_cast<value_type>( 40 );
+        const value_type b32 = static_cast<value_type> ( 9 ) / static_cast<value_type>( 40 );
 
-        const value_type b41 = static_cast<value_type> ( 44.0 ) / static_cast<value_type> ( 45.0 );
-        const value_type b42 = static_cast<value_type> ( -56.0 ) / static_cast<value_type> ( 15.0 );
-        const value_type b43 = static_cast<value_type> ( 32.0 ) / static_cast<value_type> ( 9.0 );
+        const value_type b41 = static_cast<value_type> ( 44 ) / static_cast<value_type> ( 45 );
+        const value_type b42 = static_cast<value_type> ( -56 ) / static_cast<value_type> ( 15 );
+        const value_type b43 = static_cast<value_type> ( 32 ) / static_cast<value_type> ( 9 );
 
-        const value_type b51 = static_cast<value_type> ( 19372.0 ) / static_cast<value_type>( 6561.0 );
-        const value_type b52 = static_cast<value_type> ( -25360.0 ) / static_cast<value_type> ( 2187.0 );
-        const value_type b53 = static_cast<value_type> ( 64448.0 ) / static_cast<value_type>( 6561.0 );
-        const value_type b54 = static_cast<value_type> ( -212.0 ) / static_cast<value_type>( 729.0 );
+        const value_type b51 = static_cast<value_type> ( 19372 ) / static_cast<value_type>( 6561 );
+        const value_type b52 = static_cast<value_type> ( -25360 ) / static_cast<value_type> ( 2187 );
+        const value_type b53 = static_cast<value_type> ( 64448 ) / static_cast<value_type>( 6561 );
+        const value_type b54 = static_cast<value_type> ( -212 ) / static_cast<value_type>( 729 );
 
-        const value_type b61 = static_cast<value_type> ( 9017.0 ) / static_cast<value_type>( 3168.0 );
-        const value_type b62 = static_cast<value_type> ( -355.0 ) / static_cast<value_type>( 33.0 );
-        const value_type b63 = static_cast<value_type> ( 46732.0 ) / static_cast<value_type>( 5247.0 );
-        const value_type b64 = static_cast<value_type> ( 49.0 ) / static_cast<value_type>( 176.0 );
-        const value_type b65 = static_cast<value_type> ( -5103.0 ) / static_cast<value_type>( 18656.0 );
+        const value_type b61 = static_cast<value_type> ( 9017 ) / static_cast<value_type>( 3168 );
+        const value_type b62 = static_cast<value_type> ( -355 ) / static_cast<value_type>( 33 );
+        const value_type b63 = static_cast<value_type> ( 46732 ) / static_cast<value_type>( 5247 );
+        const value_type b64 = static_cast<value_type> ( 49 ) / static_cast<value_type>( 176 );
+        const value_type b65 = static_cast<value_type> ( -5103 ) / static_cast<value_type>( 18656 );
 
-        const value_type c1 = static_cast<value_type> ( 35.0 ) / static_cast<value_type>( 384.0 );
-        const value_type c3 = static_cast<value_type> ( 500.0 ) / static_cast<value_type>( 1113.0 );
-        const value_type c4 = static_cast<value_type> ( 125.0 ) / static_cast<value_type>( 192.0 );
-        const value_type c5 = static_cast<value_type> ( -2187.0 ) / static_cast<value_type>( 6784.0 );
-        const value_type c6 = static_cast<value_type> ( 11.0 ) / static_cast<value_type>( 84.0 );
+        const value_type c1 = static_cast<value_type> ( 35 ) / static_cast<value_type>( 384 );
+        const value_type c3 = static_cast<value_type> ( 500 ) / static_cast<value_type>( 1113 );
+        const value_type c4 = static_cast<value_type> ( 125 ) / static_cast<value_type>( 192 );
+        const value_type c5 = static_cast<value_type> ( -2187 ) / static_cast<value_type>( 6784 );
+        const value_type c6 = static_cast<value_type> ( 11 ) / static_cast<value_type>( 84 );
 
-        typename boost::unwrap_reference< System >::type &sys = system;
+        typename omplext_odeint::unwrap_reference< System >::type &sys = system;
 
-        m_resizer.adjust_size( in , boost::bind( &stepper_type::template resize_impl<StateIn> , boost::ref( *this ) , _1 ) );
+        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
 
         //m_x_tmp = x + dt*b21*dxdt
         stepper_base_type::m_algebra.for_each3( m_x_tmp.m_v , in , dxdt_in ,
@@ -128,21 +144,21 @@ public :
 
 
     template< class System , class StateIn , class DerivIn , class StateOut , class DerivOut , class Err >
-    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , const time_type &t ,
-            StateOut &out , DerivOut &dxdt_out , const time_type &dt , Err &xerr )
+    void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , time_type t ,
+            StateOut &out , DerivOut &dxdt_out , time_type dt , Err &xerr )
     {
-        const value_type c1 = static_cast<value_type> ( 35.0 ) / static_cast<value_type>( 384.0 );
-        const value_type c3 = static_cast<value_type> ( 500.0 ) / static_cast<value_type>( 1113.0 );
-        const value_type c4 = static_cast<value_type> ( 125.0 ) / static_cast<value_type>( 192.0 );
-        const value_type c5 = static_cast<value_type> ( -2187.0 ) / static_cast<value_type>( 6784.0 );
-        const value_type c6 = static_cast<value_type> ( 11.0 ) / static_cast<value_type>( 84.0 );
+        const value_type c1 = static_cast<value_type> ( 35 ) / static_cast<value_type>( 384 );
+        const value_type c3 = static_cast<value_type> ( 500 ) / static_cast<value_type>( 1113 );
+        const value_type c4 = static_cast<value_type> ( 125 ) / static_cast<value_type>( 192 );
+        const value_type c5 = static_cast<value_type> ( -2187 ) / static_cast<value_type>( 6784 );
+        const value_type c6 = static_cast<value_type> ( 11 ) / static_cast<value_type>( 84 );
 
-        const value_type dc1 = c1 - static_cast<value_type> ( 5179.0 ) / static_cast<value_type>( 57600.0 );
-        const value_type dc3 = c3 - static_cast<value_type> ( 7571.0 ) / static_cast<value_type>( 16695.0 );
-        const value_type dc4 = c4 - static_cast<value_type> ( 393.0 ) / static_cast<value_type>( 640.0 );
-        const value_type dc5 = c5 - static_cast<value_type> ( -92097.0 ) / static_cast<value_type>( 339200.0 );
-        const value_type dc6 = c6 - static_cast<value_type> ( 187.0 ) / static_cast<value_type>( 2100.0 );
-        const value_type dc7 = static_cast<value_type>( -0.025 );
+        const value_type dc1 = c1 - static_cast<value_type> ( 5179 ) / static_cast<value_type>( 57600 );
+        const value_type dc3 = c3 - static_cast<value_type> ( 7571 ) / static_cast<value_type>( 16695 );
+        const value_type dc4 = c4 - static_cast<value_type> ( 393 ) / static_cast<value_type>( 640 );
+        const value_type dc5 = c5 - static_cast<value_type> ( -92097 ) / static_cast<value_type>( 339200 );
+        const value_type dc6 = c6 - static_cast<value_type> ( 187 ) / static_cast<value_type>( 2100 );
+        const value_type dc7 = static_cast<value_type>( -1 ) / static_cast<value_type> ( 40 );
 
         do_step_impl( system , in , dxdt_in , t , out , dxdt_out , dt );
 
@@ -177,28 +193,28 @@ public :
      * www-m2.ma.tum.de/homepages/simeon/numerik3/kap3.ps
      */
     template< class StateOut , class StateIn1 , class DerivIn1 , class StateIn2 , class DerivIn2 >
-    void calc_state( const time_type &t , StateOut &x ,
-            const StateIn1 &x_old , const DerivIn1 &deriv_old , const time_type &t_old ,
-            const StateIn2 &x_new , const DerivIn2 &deriv_new , const time_type &t_new )
+    void calc_state( time_type t , StateOut &x ,
+            const StateIn1 &x_old , const DerivIn1 &deriv_old , time_type t_old ,
+            const StateIn2 & /* x_new */ , const DerivIn2 &deriv_new , time_type t_new )
     {
-        const value_type b1 = static_cast<value_type> ( 35.0 ) / static_cast<value_type>( 384.0 );
-        const value_type b3 = static_cast<value_type> ( 500.0 ) / static_cast<value_type>( 1113.0 );
-        const value_type b4 = static_cast<value_type> ( 125.0 ) / static_cast<value_type>( 192.0 );
-        const value_type b5 = static_cast<value_type> ( -2187.0 ) / static_cast<value_type>( 6784.0 );
-        const value_type b6 = static_cast<value_type> ( 11.0 ) / static_cast<value_type>( 84.0 );
+        const value_type b1 = static_cast<value_type> ( 35 ) / static_cast<value_type>( 384 );
+        const value_type b3 = static_cast<value_type> ( 500 ) / static_cast<value_type>( 1113 );
+        const value_type b4 = static_cast<value_type> ( 125 ) / static_cast<value_type>( 192 );
+        const value_type b5 = static_cast<value_type> ( -2187 ) / static_cast<value_type>( 6784 );
+        const value_type b6 = static_cast<value_type> ( 11 ) / static_cast<value_type>( 84 );
 
         time_type dt = ( t_new - t_old );
         value_type theta = ( t - t_old ) / dt;
-        value_type X1 = static_cast< value_type >( 5.0 ) * ( static_cast< value_type >( 2558722523.0 ) - static_cast< value_type >( 31403016.0 ) * theta ) / static_cast< value_type >( 11282082432.0 );
-        value_type X3 = static_cast< value_type >( 100.0 ) * ( static_cast< value_type >( 882725551.0 ) - static_cast< value_type >( 15701508.0 ) * theta ) / static_cast< value_type >( 32700410799.0 );
-        value_type X4 = static_cast< value_type >( 25.0 ) * ( static_cast< value_type >( 443332067.0 ) - static_cast< value_type >( 31403016.0 ) * theta ) / static_cast< value_type >( 1880347072.0 ) ;
-        value_type X5 = static_cast< value_type >( 32805.0 ) * ( static_cast< value_type >( 23143187.0 ) - static_cast< value_type >( 3489224.0 ) * theta ) / static_cast< value_type >( 199316789632.0 );
-        value_type X6 = static_cast< value_type >( 55.0 ) * ( static_cast< value_type >( 29972135.0 ) - static_cast< value_type >( 7076736.0 ) * theta ) / static_cast< value_type >( 822651844.0 );
-        value_type X7 = static_cast< value_type >( 10.0 ) * ( static_cast< value_type >( 7414447.0 ) - static_cast< value_type >( 829305.0 ) * theta ) / static_cast< value_type >( 29380423.0 );
+        value_type X1 = static_cast< value_type >( 5 ) * ( static_cast< value_type >( 2558722523LL ) - static_cast< value_type >( 31403016 ) * theta ) / static_cast< value_type >( 11282082432LL );
+        value_type X3 = static_cast< value_type >( 100 ) * ( static_cast< value_type >( 882725551 ) - static_cast< value_type >( 15701508 ) * theta ) / static_cast< value_type >( 32700410799LL );
+        value_type X4 = static_cast< value_type >( 25 ) * ( static_cast< value_type >( 443332067 ) - static_cast< value_type >( 31403016 ) * theta ) / static_cast< value_type >( 1880347072LL ) ;
+        value_type X5 = static_cast< value_type >( 32805 ) * ( static_cast< value_type >( 23143187 ) - static_cast< value_type >( 3489224 ) * theta ) / static_cast< value_type >( 199316789632LL );
+        value_type X6 = static_cast< value_type >( 55 ) * ( static_cast< value_type >( 29972135 ) - static_cast< value_type >( 7076736 ) * theta ) / static_cast< value_type >( 822651844 );
+        value_type X7 = static_cast< value_type >( 10 ) * ( static_cast< value_type >( 7414447 ) - static_cast< value_type >( 829305 ) * theta ) / static_cast< value_type >( 29380423 );
 
-        value_type theta_m_1 = theta - static_cast< value_type >( 1.0 );
+        value_type theta_m_1 = theta - static_cast< value_type >( 1 );
         value_type theta_sq = theta * theta;
-        value_type A = theta_sq * ( static_cast< value_type >( 3.0 ) - static_cast< value_type >( 2.0 ) * theta );
+        value_type A = theta_sq * ( static_cast< value_type >( 3 ) - static_cast< value_type >( 2 ) * theta );
         value_type B = theta_sq * theta_m_1;
         value_type C = theta_sq * theta_m_1 * theta_m_1;
         value_type D = theta * theta_m_1 * theta_m_1;
@@ -238,12 +254,12 @@ private:
     bool resize_impl( const StateIn &x )
     {
         bool resized = false;
-        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename wrapped_state_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_k2 , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_k3 , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_k4 , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_k5 , x , typename wrapped_deriv_type::is_resizeable() );
-        resized |= adjust_size_by_resizeability( m_k6 , x , typename wrapped_deriv_type::is_resizeable() );
+        resized |= adjust_size_by_resizeability( m_x_tmp , x , typename is_resizeable<state_type>::type() );
+        resized |= adjust_size_by_resizeability( m_k2 , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_k3 , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_k4 , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_k5 , x , typename is_resizeable<deriv_type>::type() );
+        resized |= adjust_size_by_resizeability( m_k6 , x , typename is_resizeable<deriv_type>::type() );
         return resized;
     }
 

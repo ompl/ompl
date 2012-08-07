@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_GOAL_STATES_
-#define OMPL_BASE_GOAL_STATES_
+#ifndef OMPL_BASE_GOALS_GOAL_STATES_
+#define OMPL_BASE_GOALS_GOAL_STATES_
 
-#include "ompl/base/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/ScopedState.h"
 #include <vector>
 

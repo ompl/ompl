@@ -34,8 +34,6 @@ if (OMPL_EXTENSION_OPENDE)
     list(APPEND OMPL_LINK_LIBRARIES ${OPENDE_LIBRARY})
 endif()
 
-#file(GLOB_RECURSE TRIANGLE_SOURCE_CODE ../../triangle/*.c)
-#set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${TRIANGLE_SOURCE_CODE})
 list(APPEND OMPL_LINK_LIBRARIES ${TRIANGLE_LIBRARY})
 
 #############################################
@@ -56,7 +54,10 @@ target_link_libraries(ompl
   ${Boost_THREAD_LIBRARY}
   ${Boost_DATE_TIME_LIBRARY}
   ${Boost_SERIALIZATION_LIBRARY}
-  ${OMPL_LINK_LIBRARIES})
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${OMPL_LINK_LIBRARIES}
+  )
 
 if(MSVC)
   set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
