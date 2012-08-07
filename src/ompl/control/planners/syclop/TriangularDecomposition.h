@@ -69,26 +69,43 @@ namespace ompl
 
             virtual void sampleFromRegion(const int triID, RNG& rng, std::vector<double>& coord) const;
 
+            //Debug method: prints this decomposition as a list of polygons
+            void print(std::ostream& out) const;
+
+
+        protected:
             struct Vertex
             {
                 double x, y;
             };
 
-        protected:
-            struct Triangle
+            //A polygon is a list of vertices in counter-clockwise order.
+            struct Polygon
             {
-                Vertex pts[3];
+                Polygon(unsigned int nv) : pts(nv) {}
+                virtual ~Polygon() {}
+                std::vector<Vertex> pts;
+            };
+
+            struct Triangle : public Polygon
+            {
+                Triangle(void) : Polygon(3) {}
+                virtual ~Triangle() {}
                 std::vector<int> neighbors;
                 double volume;
             };
 
-            /** \brief Constructor. Creates a TriangularDecomposition over the given bounds, which must be 2-dimensional. */
-            TriangularDecomposition(const std::size_t dim, const base::RealVectorBounds& b);
+            /** \brief Constructor. Creates a TriangularDecomposition over the given bounds, which must be 2-dimensional.
+                The triangulation will respect any given obstacles, which are assumed to be convex polygons.
+             */
+            TriangularDecomposition(const std::size_t dim, const base::RealVectorBounds& b,
+                const std::vector<Polygon>& holes = std::vector<Polygon>());
 
             /** \brief Helper method to triangulate the space and return the number of triangles. */
             virtual unsigned int createTriangles();
 
             std::vector<Triangle> triangles_;
+            std::vector<Polygon> holes_;
 
         private:
             class LocatorGrid : public GridDecomposition
@@ -132,6 +149,9 @@ namespace ompl
 
             /** \brief Helper method to determine whether a point lies within a triangle. */
             bool triContains(const Triangle& tri, const std::vector<double>& coord) const;
+
+            /** \brief Helper method to generate a point within a convex polygon. */
+            Vertex pointWithinPoly(const Polygon& poly) const;
 
             LocatorGrid locator;
         };

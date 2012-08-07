@@ -29,6 +29,8 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
   endif()
 
+  add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
+
 endif(OMPL_BUILD_DEMOS)
 
 file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")

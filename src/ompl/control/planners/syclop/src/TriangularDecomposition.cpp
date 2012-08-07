@@ -37,8 +37,9 @@
 #include "ompl/control/planners/syclop/TriangularDecomposition.h"
 #include <boost/lexical_cast.hpp>
 
-ompl::control::TriangularDecomposition::TriangularDecomposition(const std::size_t dim, const base::RealVectorBounds& b) :
+ompl::control::TriangularDecomposition::TriangularDecomposition(const std::size_t dim, const base::RealVectorBounds& b, const std::vector<Polygon>& holes) :
     Decomposition(dim, b),
+    holes_(holes),
     locator(64, this)
 {
     unsigned int numTriangles = createTriangles();
@@ -91,7 +92,7 @@ int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) c
         if (triContains(triangles_[triID], coord))
         {
             if (triangle >= 0)
-                msg_.error("Decomposition coordinate (%f,%f) is somehow contained by multiple triangles.\n", coord[0], coord[1]);
+                msg_.error("Decomposition space coordinate (%f,%f) is somehow contained by multiple triangles.\n", coord[0], coord[1]);
             triangle = triID;
         }
     }
@@ -107,7 +108,12 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
     const double maxTriangleArea = bounds.getVolume()*0.0003;
     std::string triswitches = "pDznQ -a" + boost::lexical_cast<std::string>(maxTriangleArea);
     struct triangulateio in;
+
     in.numberofpoints = 4;
+    //each obstacle vertex is also considered a hole
+    for (std::vector<Polygon>::const_iterator i = holes_.begin(); i != holes_.end(); ++i)
+        in.numberofpoints += i->pts.size();
+
     in.numberofpointattributes = 0;
     in.pointlist = (REAL*) malloc(2*in.numberofpoints*sizeof(REAL));
     in.pointlist[0] = bounds.low[0];
@@ -122,16 +128,42 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
     in.pointattributelist = NULL;
     in.pointmarkerlist = NULL;
 
-    in.numberofsegments = 4;
-    in.segmentlist = (int*) malloc(2*in.numberofpoints*sizeof(int));
-    for (int i = 0; i < in.numberofpoints; ++i)
+    in.numberofsegments = in.numberofpoints;
+    in.segmentlist = (int*) malloc(2*in.numberofsegments*sizeof(int));
+    //first add segments for bounding box
+    for (int i = 0; i < 4; ++i)
     {
         in.segmentlist[2*i] = i;
-        in.segmentlist[2*i+1] = (i+1) % in.numberofpoints;
+        in.segmentlist[2*i+1] = (i+1) % 4;
+    }
+    //now add points and segments for each obstacle, if any exist
+    int pointIndex = 4;
+    for (std::vector<Polygon>::const_iterator i = holes_.begin(); i != holes_.end(); ++i)
+    {
+        const Polygon& p = *i;
+        for (unsigned int j = 0; j < p.pts.size(); ++j)
+        {
+            in.pointlist[2*(pointIndex+j)] = p.pts[j].x;
+            in.pointlist[2*(pointIndex+j)+1] = p.pts[j].y;
+            in.segmentlist[2*(pointIndex+j)] = pointIndex + j;
+            in.segmentlist[2*(pointIndex+j)+1] = pointIndex + (j+1)%p.pts.size();
+        }
+        pointIndex += p.pts.size();
     }
     in.segmentmarkerlist = (int*) NULL;
 
-    in.numberofholes = 0;
+    in.numberofholes = holes_.size();
+    in.holelist = NULL;
+    if (in.numberofholes > 0)
+    {
+        in.holelist = (REAL*) malloc(2*in.numberofholes*sizeof(REAL));
+        for (unsigned int i = 0; i < holes_.size(); ++i)
+        {
+            Vertex v = pointWithinPoly(holes_[i]);
+            in.holelist[2*i] = v.x;
+            in.holelist[2*i+1] = v.y;
+        }
+    }
     in.numberofregions = 0;
     in.regionlist = NULL;
 
@@ -151,7 +183,7 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
     out.trianglelist = (int*) NULL;
     out.triangleattributelist = (REAL*) NULL;
 
-    struct triangulateio *vorout = NULL;
+    struct triangulateio* vorout = NULL;
     triangulate(const_cast<char*>(triswitches.c_str()), &in, &out, vorout);
 
     triangles_.resize(out.numberoftriangles);
@@ -170,6 +202,8 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
 
     trifree(in.pointlist);
     trifree(in.segmentlist);
+    if (in.numberofholes > 0)
+        trifree(in.holelist);
     trifree(out.pointlist);
     trifree(out.pointmarkerlist);
     trifree(out.trianglelist);
@@ -180,6 +214,22 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
     trifree(out.segmentmarkerlist);
 
     return out.numberoftriangles;
+}
+
+void ompl::control::TriangularDecomposition::print(std::ostream& out) const
+{
+    //number of triangles
+    out << triangles_.size() << std::endl;
+
+    //print all triangles; each triplet of lines determines a triangle
+    for (unsigned int i = 0; i < triangles_.size(); ++i)
+    {
+        const Triangle& tri = triangles_[i];
+        // <x> <y>
+        for (unsigned int v = 0; v < 3; ++v)
+            out << tri.pts[v].x << " " << tri.pts[v].y << " ";
+        out << "-1" << std::endl;
+    }
 }
 
 void ompl::control::TriangularDecomposition::buildLocatorGrid()
@@ -205,6 +255,21 @@ bool ompl::control::TriangularDecomposition::triContains(const Triangle& tri, co
     return true;
 }
 
+ompl::control::TriangularDecomposition::Vertex ompl::control::TriangularDecomposition::pointWithinPoly(const Polygon& poly) const
+{
+    Vertex p;
+    p.x = 0.;
+    p.y = 0.;
+    for (std::vector<Vertex>::const_iterator i = poly.pts.begin(); i != poly.pts.end(); ++i)
+    {
+        p.x += i->x;
+        p.y += i->y;
+    }
+    p.x /= poly.pts.size();
+    p.y /= poly.pts.size();
+    return p;
+}
+
 void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const std::vector<Triangle>& triangles)
 {
     regToTriangles_.resize(getNumRegions());
@@ -213,6 +278,8 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
     std::vector<int> gridCoord[2];
     for (int i = 0; i < triangles.size(); ++i)
     {
+        /* for Triangle tri, compute the smallest rectangular
+         * bounding box that contains tri. */
         const Triangle& tri = triangles[i];
         bboxLow[0] = tri.pts[0].x;
         bboxLow[1] = tri.pts[0].y;
@@ -231,11 +298,13 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
                 bboxHigh[1] = tri.pts[j].y;
         }
 
+        /* Convert the bounding box into grid cell coordinates */
+
         coordToGridCoord(bboxLow, gridCoord[0]);
         coordToGridCoord(bboxHigh, gridCoord[1]);
 
-        /* every grid cell within bounding box gets
-           current triangle added to its map entry */
+        /* Every grid cell within bounding box gets
+           tri added to its map entry */
         std::vector<int> c(2);
         for (int x = gridCoord[0][0]; x <= gridCoord[1][0]; ++x)
         {
