@@ -85,7 +85,9 @@ void ompl::geometric::TRRT::setup(void)
 {
   Planner::setup();
   tools::SelfConfig self_config(si_, getName());
+
   self_config.configurePlannerRange(maxDistance_);
+  std::cout << "MAX DISTANCE: " << maxDistance_ << std::endl;
 
   if (!nearest_neighbors_)
     nearest_neighbors_.reset(new NearestNeighborsGNAT<Motion*>());
@@ -113,7 +115,7 @@ void ompl::geometric::TRRT::freeMemory(void)
 // *********************************************************************************************************************
 // Solve - the main algorithm
 // *********************************************************************************************************************
-ompl::base::PlannerStatus 
+ompl::base::PlannerStatus
 ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_termination_condition)
 {
   // Basic error checking
@@ -140,9 +142,6 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
 
     // Set cost for this start state
     motion->cost = state_validity_checker->cost( motion->state );
-
-    // DTC
-    std::cout << "\nAdding motion to nearest neighbor" << motion->state << std::endl << std::endl;
 
     // Add start motion to the tree
     nearest_neighbors_->add(motion);
@@ -229,7 +228,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         // Computes the state that lies at time t in [0, 1] on the segment that connects *from* state to *to* state.
         // The memory location of *state* is not required to be different from the memory of either *from* or *to*.
         //                    interpolate(const State *from, const State *to, const double t, State *state) const
-        si_->getStateSpace()->interpolate( near_motion->state, rand_state, 
+        si_->getStateSpace()->interpolate( near_motion->state, rand_state,
                                            maxDistance_ / rand_motion_distance, interpolated_state);
 
         // Update the distance between near and new with the interpolated_state
@@ -400,16 +399,17 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
 
   // Max number of rejections allowed
   //  static const int MAX_NUM_FAILED = 100; // the tempered version
-  static const int MAX_NUM_FAILED = 10; // the greedy version
+  //static const int MAX_NUM_FAILED = 10; // the greedy version
+  static const int MAX_NUM_FAILED = 5;
 
   // Failure temperature factor used when MAX_NUM_FAILED failures occur
   static const double FAILED_FACTOR = 2; // little alpha
 
   // Prevent temperature from dropping too far
-  static const double MIN_TEMPERATURE = pow( 10, -10 );
+  static const double MIN_TEMPERATURE = 10e-10;
 
   // A very low value at initialization to authorize very easy positive slopes
-  static const double INIT_TEMPERATURE = pow( 10, -6 );
+  static const double INIT_TEMPERATURE = 10e-6;
 
   // Statics ------------------------------------------------------------------------------
 
@@ -450,7 +450,7 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   // Constant value used to normalize expression. Based on order of magnitude of the considered costs.
   // Average cost of the query configurtaions (start?) since they are the only cost values known at the
   // beginning of the search process.
-  double K = 10; //pow(10, -300); // TODO: calculate dynamically
+  double K = 128; // TODO: calculate dynamically
 
   // The probability of acceptance of a new configuration is defined by comparing its cost c_j
   // relatively to the cost c_i of its parent in the tree. Baased on the Metropolis criterion.
@@ -484,7 +484,7 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   else
   {
     // State has failed
-    if( num_failed > MAX_NUM_FAILED )
+    if( num_failed >= MAX_NUM_FAILED )
     {
       T = T * FAILED_FACTOR;
       num_failed = 0;
