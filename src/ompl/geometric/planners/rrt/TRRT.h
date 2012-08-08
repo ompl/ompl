@@ -204,54 +204,6 @@ protected:
 
   /** \brief The most recent goal motion.  Used for PlannerData computation */
   Motion                                         *lastGoalMotion_;
-
-
-  // *******************************************************************************************************************
-  // Custom TRRT Member Variables
-  // *******************************************************************************************************************
-
-  // Transition Test -----------------------------------------------------
-
-  // TODO: for my application this is the same as an obstacle, not sure how to rectify this...
-  //  static const double cost_max = 1000000; // TODO: move this elsewhere and give better value
-
-  // Max number of rejections allowed
-  //  static const int MAX_NUM_FAILED = 100; // the tempered version
-  static const int MAX_NUM_FAILED = 10; // the greedy version
-
-  // Failure temperature factor used when MAX_NUM_FAILED failures occur
-  static const double FAILED_FACTOR = 2; // little alpha
-
-  // Prevent temperature from dropping too far
-  static const double MIN_TEMPERATURE = 10e-10;
-
-  // A very low value at initialization to authorize very easy positive slopes
-  static const double INIT_TEMPERATURE = 10e-6;
-
-  // Failure counter for which states are rejected
-  int num_failed_;
-
-  // Temperature parameter used to control the difficulty level of transition tests. Low temperatures
-  // limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
-  // Dynamically tuned according to the information acquired during exploration
-  double temp_;
-
-
-  // Minumum Expansion Control ---------------------------------------------
-
-  // How far is a frontier node considered to be
-  static const double EXPANSION_STEP = 5; // little delta
-
-  // Target ratio of nonfrontier nodes to frontier nodes. rho
-  static const double NONFRONTIER_NODE_RATIO = 1/10; // 1 nonfrontier for every 10 frontier
-
-  // Ratio counters for space exploration
-  double nonfrontier_count_;
-  double frontier_count_; // init to 1 to prevent division by zero error
-
-
-
-
 };
 
 }
