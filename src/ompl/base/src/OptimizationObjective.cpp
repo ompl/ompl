@@ -55,6 +55,11 @@ double ompl::base::BoundedAdditiveOptimizationObjective::combineObjectiveCosts(d
     return a + b;
 }
 
+double ompl::base::BoundedAdditiveOptimizationObjective::getTerminalCost(const State *s) const
+{
+  return 0.0;
+}
+
 ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength) : BoundedAdditiveOptimizationObjective(si, maximumPathLength)
 {
     description_ = "Path Length";
