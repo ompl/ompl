@@ -479,6 +479,15 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
 
   }
 
+  // Increase temperature artifically
+  static int counter = 0;
+  ++counter;
+  if( counter > 3000 )
+  {
+    T = T * 1.6;
+  }
+
+
   if( true )
   {
     // Debug output
@@ -502,7 +511,9 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
               << -cost_slope / (K * T) << std::setw(20)
               << transition_probability << std::setw(20)
               << double(num_states_failed_) << std::setw(20)
-              << (result ? "ACCEPT" : "REJECT\033[0m") << std::endl;
+              << (result ? "ACCEPT" : "REJECT\033[0m")
+              << "   " << counter
+              << std::endl;
   }
 
   return result;

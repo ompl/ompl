@@ -217,7 +217,7 @@ protected:
   // Max number of rejections allowed
   //  static const int MAX_NUM_FAILED = 100; // the tempered version
   //static const int MAX_NUM_FAILED = 10; // the greedy version
-  static const int MAX_NUM_FAILED = 5;
+  static const int MAX_NUM_FAILED = 6;
 
   // Failure temperature factor used when MAX_NUM_FAILED failures occur
   static const double FAILED_FACTOR = 2; // little alpha
@@ -235,7 +235,8 @@ protected:
   // Minimum Expansion Control --------------------------------------------------------------
 
   // The distance between an old state and a new state that qualifies it as a frontier state
-  static const double EXPANSION_STEP = 2; // little delta
+  //  static const double EXPANSION_STEP = 2; // for 100x100
+  static const double EXPANSION_STEP = 4; // for 400*400
 
   // Target ratio of nonfrontier nodes to frontier nodes. rho
   static const double NONFRONTIER_NODE_RATIO = 1/10; // 1 nonfrontier for every 10 frontier
