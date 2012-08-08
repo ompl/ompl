@@ -209,7 +209,38 @@ protected:
   // TRRT-Specific Variables
   // *********************************************************************************************************
 
-  
+  // Transtion Test -----------------------------------------------------------------------
+
+  // TODO: for my application this is the same as an obstacle, not sure how to rectify this...
+  static const double cost_max = 1000000; // TODO: move this elsewhere and give better value
+
+  // Max number of rejections allowed
+  //  static const int MAX_NUM_FAILED = 100; // the tempered version
+  //static const int MAX_NUM_FAILED = 10; // the greedy version
+  static const int MAX_NUM_FAILED = 5;
+
+  // Failure temperature factor used when MAX_NUM_FAILED failures occur
+  static const double FAILED_FACTOR = 2; // little alpha
+
+  // Prevent temperature from dropping too far
+  static const double MIN_TEMPERATURE = 10e-10;
+
+  // A very low value at initialization to authorize very easy positive slopes
+  static const double INIT_TEMPERATURE = 10e-6;
+
+  // Failure counter for states that are rejected
+  int num_states_failed_;
+
+
+  // Minimum Expansion Control --------------------------------------------------------------
+
+  // The distance between an old state and a new state that qualifies it as a frontier state
+  static const double EXPANSION_STEP = 2; // little delta
+
+  // Target ratio of nonfrontier nodes to frontier nodes. rho
+  static const double NONFRONTIER_NODE_RATIO = 1/10; // 1 nonfrontier for every 10 frontier
+
+
 
 };
 

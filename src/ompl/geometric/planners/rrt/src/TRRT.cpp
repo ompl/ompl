@@ -76,6 +76,9 @@ void ompl::geometric::TRRT::clear(void)
   if (nearest_neighbors_)
     nearest_neighbors_->clear();
   lastGoalMotion_ = NULL;
+
+  // Clear TRRT specific variables ---------------------------------------------------------
+  num_states_failed_ = 0;
 }
 
 // *********************************************************************************************************************
@@ -92,6 +95,9 @@ void ompl::geometric::TRRT::setup(void)
   if (!nearest_neighbors_)
     nearest_neighbors_.reset(new NearestNeighborsGNAT<Motion*>());
   nearest_neighbors_->setDistanceFunction(boost::bind(&TRRT::distanceFunction, this, _1, _2));
+
+  // Setup TRRT specific variables ---------------------------------------------------------
+  num_states_failed_ = 0;
 }
 
 // *********************************************************************************************************************
@@ -392,29 +398,6 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
      c_j = motion->cost = cost of child
   */
 
-  // Constants ------------------------------------------------------------------------------
-
-  // TODO: for my application this is the same as an obstacle, not sure how to rectify this...
-  //  static const double cost_max = 1000000; // TODO: move this elsewhere and give better value
-
-  // Max number of rejections allowed
-  //  static const int MAX_NUM_FAILED = 100; // the tempered version
-  //static const int MAX_NUM_FAILED = 10; // the greedy version
-  static const int MAX_NUM_FAILED = 5;
-
-  // Failure temperature factor used when MAX_NUM_FAILED failures occur
-  static const double FAILED_FACTOR = 2; // little alpha
-
-  // Prevent temperature from dropping too far
-  static const double MIN_TEMPERATURE = 10e-10;
-
-  // A very low value at initialization to authorize very easy positive slopes
-  static const double INIT_TEMPERATURE = 10e-6;
-
-  // Statics ------------------------------------------------------------------------------
-
-  // Failure counter
-  static int num_failed = 0;
 
   // Temperature parameter used to control the difficulty level of transition tests. Low temperatures
   // limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
@@ -477,21 +460,21 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
       T = MIN_TEMPERATURE;
     }
 
-    num_failed = 0;
+    num_states_failed_ = 0;
 
     result = true;
   }
   else
   {
     // State has failed
-    if( num_failed >= MAX_NUM_FAILED )
+    if( num_states_failed_ >= MAX_NUM_FAILED )
     {
       T = T * FAILED_FACTOR;
-      num_failed = 0;
+      num_states_failed_ = 0;
     }
     else
     {
-      ++num_failed;
+      ++num_states_failed_;
     }
 
   }
@@ -518,7 +501,7 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
               << T << std::setw(20)
               << -cost_slope / (K * T) << std::setw(20)
               << transition_probability << std::setw(20)
-              << double(num_failed) << std::setw(20)
+              << double(num_states_failed_) << std::setw(20)
               << (result ? "ACCEPT" : "REJECT\033[0m") << std::endl;
   }
 
@@ -530,15 +513,9 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
 // *********************************************************************************************************************
 bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
 {
-  static const double EXPANSION_STEP = 5; // little delta
-
-  // Target ratio of nonfrontier nodes to frontier nodes. rho
-  static const double NONFRONTIER_NODE_RATIO = 1/10; // 1 nonfrontier for every 10 frontier
-
   // Ratio counters
   static double nonfrontier_count = 1;
   static double frontier_count = 1; // init to 1 to prevent division by zero error
-
 
   // Decide to accept or not
   if( rand_motion_distance > EXPANSION_STEP )
@@ -557,6 +534,9 @@ bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
     if( nonfrontier_count / frontier_count > NONFRONTIER_NODE_RATIO )
     {
       std::cout << "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio" << std::endl;
+
+      // Increment so that the temperature rises faster
+      ++num_states_failed_;
 
       // reject this node as being too much refinement
       return false;
