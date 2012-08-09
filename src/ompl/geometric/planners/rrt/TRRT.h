@@ -125,6 +125,82 @@ public:
     return maxDistance_;
   }
 
+  /** \brief Set the maximum number of states that can be rejected before the temperature starts to rise */
+  void setMaxStatesFailed( double max_states_failed )
+  {
+    max_states_failed_ = max_states_failed;
+  }
+
+  /** \brief Get the maximum number of states that can be rejected before the temperature starts to rise */
+  double getMaxStatesFailed( void ) const
+  {
+    return max_states_failed_;
+  }
+
+  /** \brief Set the factor by which the temperature rises or falls based on current acceptance/rejection rate */
+  void setTempChangeFactor( double temp_change_factor )
+  {
+    temp_change_factor_ = temp_change_factor;
+  }
+
+  /** \brief Get the factor by which the temperature rises or falls based on current acceptance/rejection rate */  
+  double getTempChangeFactor( void ) const
+  {
+    return temp_change_factor_;
+  }
+
+  /** \brief Set the minimum the temperature can drop to before being floored at that value */
+  void setMinTemperature( double min_temperature )
+  {
+    min_temperature_ = min_temperature;
+  }
+
+  /** \brief Get the minimum the temperature can drop to before being floored at that value */  
+  double getMinTemperature( void ) const
+  {
+    return min_temperature_;
+  }
+
+  /** \brief Set the initial temperature at the beginning of the algorithm. Should be low */
+  void setInitTemperature( double init_temperature )
+  {
+    init_temperature_ = init_temperature;
+  }
+
+  /** \brief Get the initial temperature at the beginning of the algorithm. Should be low */  
+  double getInitTemperature( void ) const
+  {
+    return init_temperature_;
+  }
+
+  /** \brief Set the distance between a new state and the nearest neighbor 
+      that qualifies that state as being a frontier */
+  void setFrontierThreshold( double frontier_threshold )
+  {
+    frontier_threshold_ = frontier_threshold;
+  }
+
+  /** \brief Get the distance between a new state and the nearest neighbor 
+      that qualifies that state as being a frontier */  
+  double getFrontierThreshold( void ) const
+  {
+    return frontier_threshold_;
+  }
+
+  /** \brief Set the ratio between adding nonfrontier nodes to frontier nodes,
+      for example .1 is 1/10 or one nonfrontier node for every 10 frontier nodes added */
+  void setFrontierNodeRatio( double frontier_node_ratio )
+  {
+    frontier_node_ratio_ = frontier_node_ratio;
+  }
+
+  /** \brief Get the ratio between adding nonfrontier nodes to frontier nodes,
+      for example .1 is 1/10 or one nonfrontier node for every 10 frontier nodes added */
+  double getFrontierNodeRatio( void ) const
+  {
+    return frontier_node_ratio_;
+  }
+
   /** \brief Set a different nearest neighbors datastructure */
   template<template<typename T> class NN>
   void setNearestNeighbors(void)
@@ -211,13 +287,18 @@ protected:
 
   // Transtion Test -----------------------------------------------------------------------
 
+  // Temperature parameter used to control the difficulty level of transition tests. Low temperatures
+  // limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
+  // Dynamically tuned according to the information acquired during exploration
+  double temp_;
+
   // Max number of rejections allowed
-  //  static const int max_num_failed_ = 100; // the tempered version
-  //static const int max_num_failed_ = 10; // the greedy version
-  unsigned int max_num_failed_;
+  //  static const int max_states_failed_ = 100; // the tempered version
+  //static const int max_states_failed_ = 10; // the greedy version
+  unsigned int max_states_failed_;
 
   // Failure temperature factor used when max_num_failed_ failures occur
-  double failed_factor_;
+  double temp_change_factor_;
 
   // Prevent temperature from dropping too far
   double min_temperature_;
@@ -236,11 +317,11 @@ protected:
   double frontier_count_;
 
   // The distance between an old state and a new state that qualifies it as a frontier state
-  //  static const double expansion_step_ = 2; // for 100x100
-  double expansion_step_; // for 400*400
+  //  static const double frontier_threshold_ = 2; // for 100x100
+  double frontier_threshold_; // for 400*400
 
   // Target ratio of nonfrontier nodes to frontier nodes. rho
-  double nonfrontier_node_ratio_; // 1 nonfrontier for every 10 frontier
+  double frontier_node_ratio_; // 1 nonfrontier for every 10 frontier
 
 
 

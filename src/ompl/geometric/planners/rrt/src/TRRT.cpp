@@ -46,6 +46,7 @@
 // *********************************************************************************************************************
 ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "TRRT")
 {
+  // Standard RRT Variables
   specs_.approximateSolutions = true;
   specs_.directed = true;
 
@@ -57,17 +58,20 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
   Planner::declareParam<double>("goal_bias", this, &TRRT::setGoalBias, &TRRT::getGoalBias);
 
   // TRRT Specific Variables
-  nonfrontier_count_ = 1;
-  frontier_count_ = 1; // init to 1 to prevent division by zero error
-  max_num_failed_ = 6;
-  failed_factor_ = 2; // little alpha
+  max_states_failed_ = 6;
+  temp_change_factor_ = 2; // little alpha
   min_temperature_ = 10e-10;
   init_temperature_ = 10e-6;
-  num_states_failed_;
-  nonfrontier_count_;
-  frontier_count_;
-  expansion_step_ = 4.0; // for 400*400
-  nonfrontier_node_ratio_ = 0.1; // 1 nonfrontier for every 10 frontier
+  frontier_threshold_ = 4.0; // for 400*400
+  frontier_node_ratio_ = 0.1; // 1/10, or 1 nonfrontier for every 10 frontier
+
+  Planner::declareParam<double>("max_states_failed", this, &TRRT::setMaxStatesFailed, &TRRT::getMaxStatesFailed);
+  Planner::declareParam<double>("temp_change_factor", this, &TRRT::setTempChangeFactor, &TRRT::getTempChangeFactor);
+  Planner::declareParam<double>("min_temperature", this, &TRRT::setMinTemperature, &TRRT::getMinTemperature);
+  Planner::declareParam<double>("init_temperature", this, &TRRT::setInitTemperature, &TRRT::getInitTemperature);
+  Planner::declareParam<double>("frontier_threshold", this, &TRRT::setFrontierThreshold, &TRRT::getFrontierThreshold);
+  Planner::declareParam<double>("frontier_node_ratio", this, &TRRT::setFrontierNodeRatio, &TRRT::getFrontierNodeRatio);
+
 }
 
 // *********************************************************************************************************************
@@ -92,6 +96,9 @@ void ompl::geometric::TRRT::clear(void)
 
   // Clear TRRT specific variables ---------------------------------------------------------
   num_states_failed_ = 0;
+  temp_ = init_temperature_;
+  nonfrontier_count_ = 1;
+  frontier_count_ = 1; // init to 1 to prevent division by zero error
 }
 
 // *********************************************************************************************************************
@@ -113,7 +120,9 @@ void ompl::geometric::TRRT::setup(void)
 
   // Setup TRRT specific variables ---------------------------------------------------------
   num_states_failed_ = 0;
-  std::cout << "here" << std::endl;
+  temp_ = init_temperature_;
+  nonfrontier_count_ = 1;
+  frontier_count_ = 1; // init to 1 to prevent division by zero error
 }
 
 // *********************************************************************************************************************
@@ -415,12 +424,6 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   */
 
 
-  // Temperature parameter used to control the difficulty level of transition tests. Low temperatures
-  // limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
-  // Dynamically tuned according to the information acquired during exploration
-  static double T = init_temperature_;
-
-
   // Variables --------------------------------------------------------------------------------
 
   double child_cost = motion->cost;
@@ -461,19 +464,19 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   // Calculate tranision probabilty
   if( cost_slope > 0 )
   {
-    transition_probability = exp( -cost_slope / (K * T) );
+    transition_probability = exp( -cost_slope / (K * temp_) );
   }
 
   // Check if we can accept it
   if( rng_.uniform01() <= transition_probability )
   {
-    T = T / failed_factor_;
+    temp_ = temp_ / temp_change_factor_;
 
-    // Prevent T from getting too small
-    if( T < min_temperature_ )
+    // Prevent temp_ from getting too small
+    if( temp_ < min_temperature_ )
     {
       std::cout << "Temp too low --------------------------------------------------------- " << std::endl;
-      T = min_temperature_;
+      temp_ = min_temperature_;
     }
 
     num_states_failed_ = 0;
@@ -483,9 +486,9 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   else
   {
     // State has failed
-    if( num_states_failed_ >= max_num_failed_ )
+    if( num_states_failed_ >= max_states_failed_ )
     {
-      T = T * failed_factor_;
+      temp_ = temp_ * temp_change_factor_;
       num_states_failed_ = 0;
     }
     else
@@ -500,7 +503,7 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   ++counter;
   if( counter > 3000 )
   {
-    T = T * 1.6;
+    temp_ = temp_ * 1.6;
   }
 
 
@@ -523,8 +526,8 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
               << child_cost-parent_cost << std::setw(20)
               << motion->distance << std::setw(20)
               << cost_slope << std::setw(20)
-              << T << std::setw(20)
-              << -cost_slope / (K * T) << std::setw(20)
+              << temp_ << std::setw(20)
+              << -cost_slope / (K * temp_) << std::setw(20)
               << transition_probability << std::setw(20)
               << double(num_states_failed_) << std::setw(20)
               << (result ? "ACCEPT" : "REJECT\033[0m")
@@ -541,7 +544,7 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
 bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
 {
   // Decide to accept or not
-  if( rand_motion_distance > expansion_step_ )
+  if( rand_motion_distance > frontier_threshold_ )
   {
     // participates in the tree expansion
     ++frontier_count_;
@@ -554,7 +557,7 @@ bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
     // participates in the tree refinement
 
     // check our ratio first before accepting it
-    if( nonfrontier_count_ / frontier_count_ > nonfrontier_node_ratio_ )
+    if( nonfrontier_count_ / frontier_count_ > frontier_node_ratio_ )
     {
       std::cout << "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio" << std::endl;
 
