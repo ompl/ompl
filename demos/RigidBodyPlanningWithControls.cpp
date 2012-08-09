@@ -44,7 +44,6 @@
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/SyclopEST.h>
 #include <ompl/control/planners/syclop/GridDecomposition.h>
-#include <ompl/control/planners/syclop/TriangularDecomposition.h>
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
 #include <iostream>

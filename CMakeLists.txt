@@ -67,8 +67,11 @@ if (OPENDE_FOUND)
   include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
-include(UseTriangle)
-include_directories(${TRIANGLE_INCLUDE_DIR})
+find_package(Triangle QUIET)
+set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
+if (TRIANGLE_FOUND)
+  include_directories(${TRIANGLE_INCLUDE_DIR})
+endif()
 
 add_subdirectory(src)
 add_subdirectory(py-bindings)

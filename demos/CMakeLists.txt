@@ -24,10 +24,13 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
   add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
-  add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
+  endif()
+
+  if (OMPL_EXTENSION_TRIANGLE)
+    add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
   endif()
 
 # Only build the PlannerData demo on Boost >= 1.44

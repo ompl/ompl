@@ -1,5 +1,5 @@
 #include <ompl/control/SpaceInformation.h>
-#include <ompl/base/GoalState.h>
+#include <ompl/base/goals/GoalState.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
@@ -7,10 +7,9 @@
 #include <ompl/control/planners/est/EST.h>
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/SyclopEST.h>
-#include <ompl/control/planners/syclop/GridDecomposition.h>
-#include <ompl/control/planners/syclop/TriangularDecomposition.h>
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
+#include <ompl/extensions/triangle/TriangularDecomposition.h>
 #include <iostream>
 
 namespace ob = ompl::base;
@@ -193,7 +192,7 @@ void plan(void)
     {
         // get the goal representation from the problem definition (not the same as the goal state)
         // and inquire about the found path
-        ob::PathPtr path = pdef->getGoal()->getSolutionPath();
+        ob::PathPtr path = pdef->getSolutionPath();
         std::cout << "Found solution:" << std::endl;
 
         // print the path to screen

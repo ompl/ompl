@@ -34,7 +34,11 @@ if (OMPL_EXTENSION_OPENDE)
     list(APPEND OMPL_LINK_LIBRARIES ${OPENDE_LIBRARY})
 endif()
 
-list(APPEND OMPL_LINK_LIBRARIES ${TRIANGLE_LIBRARY})
+if (OMPL_EXTENSION_TRIANGLE)
+  file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_SOURCE_CODE extensions/triangle/*.cpp)
+  set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_TRIANGLE_EXTENSION_SOURCE_CODE})
+  list(APPEND OMPL_LINK_LIBRARIES ${TRIANGLE_LIBRARY})
+endif()
 
 #############################################
 # Add enabled contributed source code       #
