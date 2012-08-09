@@ -164,7 +164,7 @@ protected:
     /** \brief The parent motion in the exploration tree */
     Motion            *parent;
 
-    /** \brief The cost of the motion, cached for optimization */
+    /** \brief The distance between parent state and this state, cached for optimization */
     double            distance;
 
     /** \brief Cost of the state */
@@ -234,12 +234,16 @@ protected:
 
   // Minimum Expansion Control --------------------------------------------------------------
 
+  // Ratio counters for nodes that expand the search space versus those that do not
+  double nonfrontier_count_;
+  double frontier_count_;
+
   // The distance between an old state and a new state that qualifies it as a frontier state
   //  static const double EXPANSION_STEP = 2; // for 100x100
-  static const double EXPANSION_STEP = 4; // for 400*400
+  static const double EXPANSION_STEP = 4.0; // for 400*400
 
   // Target ratio of nonfrontier nodes to frontier nodes. rho
-  static const double NONFRONTIER_NODE_RATIO = 1/10; // 1 nonfrontier for every 10 frontier
+  static const double NONFRONTIER_NODE_RATIO = 0.1; // 1 nonfrontier for every 10 frontier
 
 
 

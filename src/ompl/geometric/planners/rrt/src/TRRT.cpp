@@ -55,6 +55,10 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
 
   Planner::declareParam<double>("range", this, &TRRT::setRange, &TRRT::getRange);
   Planner::declareParam<double>("goal_bias", this, &TRRT::setGoalBias, &TRRT::getGoalBias);
+
+  // TRRT Specific Variables
+  nonfrontier_count_ = 1;
+  frontier_count_ = 1; // init to 1 to prevent division by zero error
 }
 
 // *********************************************************************************************************************
@@ -132,7 +136,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
   base::GoalSampleableRegion *goal_region = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
   // Object for getting the cost of a state
-  const base::StateValidityCheckerPtr state_validity_checker = si_->getStateValidityChecker();
+  const base::StateValidityCheckerPtr &state_validity_checker = si_->getStateValidityChecker();
 
 
   // Input States ---------------------------------------------------------------------------------
@@ -524,15 +528,11 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
 // *********************************************************************************************************************
 bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
 {
-  // Ratio counters
-  static double nonfrontier_count = 1;
-  static double frontier_count = 1; // init to 1 to prevent division by zero error
-
   // Decide to accept or not
   if( rand_motion_distance > EXPANSION_STEP )
   {
     // participates in the tree expansion
-    ++frontier_count;
+    ++frontier_count_;
     std::cout << "MIN_EXPAND_CONTROL: accepted bc larger than step" << std::endl;
 
     return true;
@@ -542,7 +542,7 @@ bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
     // participates in the tree refinement
 
     // check our ratio first before accepting it
-    if( nonfrontier_count / frontier_count > NONFRONTIER_NODE_RATIO )
+    if( nonfrontier_count_ / frontier_count_ > NONFRONTIER_NODE_RATIO )
     {
       std::cout << "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio" << std::endl;
 
@@ -556,7 +556,7 @@ bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
     {
       std::cout << "MIN_EXPAND_CONTROL: accepted as within ratio" << std::endl;
 
-      ++nonfrontier_count;
+      ++nonfrontier_count_;
       return true;
     }
   }
