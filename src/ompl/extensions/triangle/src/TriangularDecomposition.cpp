@@ -34,7 +34,7 @@
 
 /* Author: Matt Maly */
 
-#include "ompl/control/planners/syclop/TriangularDecomposition.h"
+#include "ompl/extensions/triangle/TriangularDecomposition.h"
 #include <boost/lexical_cast.hpp>
 
 ompl::control::TriangularDecomposition::TriangularDecomposition(const std::size_t dim, const base::RealVectorBounds& b, const std::vector<Polygon>& holes) :
@@ -43,7 +43,7 @@ ompl::control::TriangularDecomposition::TriangularDecomposition(const std::size_
     locator(64, this)
 {
     unsigned int numTriangles = createTriangles();
-    msg_.inform("Created %u triangles", numTriangles);
+    logInform("Created %u triangles", numTriangles);
     setNumRegions(numTriangles);
     buildLocatorGrid();
 }
@@ -92,7 +92,7 @@ int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) c
         if (triContains(triangles_[triID], coord))
         {
             if (triangle >= 0)
-                msg_.error("Decomposition space coordinate (%f,%f) is somehow contained by multiple triangles.\n", coord[0], coord[1]);
+                logError("Decomposition space coordinate (%f,%f) is somehow contained by multiple triangles.\n", coord[0], coord[1]);
             triangle = triID;
         }
     }
