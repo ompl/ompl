@@ -211,25 +211,22 @@ protected:
 
   // Transtion Test -----------------------------------------------------------------------
 
-  // TODO: for my application this is the same as an obstacle, not sure how to rectify this...
-  static const double cost_max = 1000000; // TODO: move this elsewhere and give better value
-
   // Max number of rejections allowed
-  //  static const int MAX_NUM_FAILED = 100; // the tempered version
-  //static const int MAX_NUM_FAILED = 10; // the greedy version
-  static const int MAX_NUM_FAILED = 6;
+  //  static const int max_num_failed_ = 100; // the tempered version
+  //static const int max_num_failed_ = 10; // the greedy version
+  unsigned int max_num_failed_;
 
-  // Failure temperature factor used when MAX_NUM_FAILED failures occur
-  static const double FAILED_FACTOR = 2; // little alpha
+  // Failure temperature factor used when max_num_failed_ failures occur
+  double failed_factor_;
 
   // Prevent temperature from dropping too far
-  static const double MIN_TEMPERATURE = 10e-10;
+  double min_temperature_;
 
   // A very low value at initialization to authorize very easy positive slopes
-  static const double INIT_TEMPERATURE = 10e-6;
+  double init_temperature_;
 
   // Failure counter for states that are rejected
-  int num_states_failed_;
+  unsigned int num_states_failed_;
 
 
   // Minimum Expansion Control --------------------------------------------------------------
@@ -239,11 +236,11 @@ protected:
   double frontier_count_;
 
   // The distance between an old state and a new state that qualifies it as a frontier state
-  //  static const double EXPANSION_STEP = 2; // for 100x100
-  static const double EXPANSION_STEP = 4.0; // for 400*400
+  //  static const double expansion_step_ = 2; // for 100x100
+  double expansion_step_; // for 400*400
 
   // Target ratio of nonfrontier nodes to frontier nodes. rho
-  static const double NONFRONTIER_NODE_RATIO = 0.1; // 1 nonfrontier for every 10 frontier
+  double nonfrontier_node_ratio_; // 1 nonfrontier for every 10 frontier
 
 
 

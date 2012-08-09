@@ -59,6 +59,15 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
   // TRRT Specific Variables
   nonfrontier_count_ = 1;
   frontier_count_ = 1; // init to 1 to prevent division by zero error
+  max_num_failed_ = 6;
+  failed_factor_ = 2; // little alpha
+  min_temperature_ = 10e-10;
+  init_temperature_ = 10e-6;
+  num_states_failed_;
+  nonfrontier_count_;
+  frontier_count_;
+  expansion_step_ = 4.0; // for 400*400
+  nonfrontier_node_ratio_ = 0.1; // 1 nonfrontier for every 10 frontier
 }
 
 // *********************************************************************************************************************
@@ -92,16 +101,19 @@ void ompl::geometric::TRRT::setup(void)
 {
   Planner::setup();
   tools::SelfConfig self_config(si_, getName());
-
+  std::cout << "here" << std::endl;
   self_config.configurePlannerRange(maxDistance_);
   std::cout << "MAX DISTANCE: " << maxDistance_ << std::endl;
 
   if (!nearest_neighbors_)
     nearest_neighbors_.reset(new NearestNeighborsGNAT<Motion*>());
+  std::cout << "here" << std::endl;
   nearest_neighbors_->setDistanceFunction(boost::bind(&TRRT::distanceFunction, this, _1, _2));
+  std::cout << "here" << std::endl;
 
   // Setup TRRT specific variables ---------------------------------------------------------
   num_states_failed_ = 0;
+  std::cout << "here" << std::endl;
 }
 
 // *********************************************************************************************************************
@@ -406,7 +418,7 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   // Temperature parameter used to control the difficulty level of transition tests. Low temperatures
   // limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
   // Dynamically tuned according to the information acquired during exploration
-  static double T = INIT_TEMPERATURE;
+  static double T = init_temperature_;
 
 
   // Variables --------------------------------------------------------------------------------
@@ -455,13 +467,13 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   // Check if we can accept it
   if( rng_.uniform01() <= transition_probability )
   {
-    T = T / FAILED_FACTOR;
+    T = T / failed_factor_;
 
     // Prevent T from getting too small
-    if( T < MIN_TEMPERATURE )
+    if( T < min_temperature_ )
     {
       std::cout << "Temp too low --------------------------------------------------------- " << std::endl;
-      T = MIN_TEMPERATURE;
+      T = min_temperature_;
     }
 
     num_states_failed_ = 0;
@@ -471,9 +483,9 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
   else
   {
     // State has failed
-    if( num_states_failed_ >= MAX_NUM_FAILED )
+    if( num_states_failed_ >= max_num_failed_ )
     {
-      T = T * FAILED_FACTOR;
+      T = T * failed_factor_;
       num_states_failed_ = 0;
     }
     else
@@ -529,7 +541,7 @@ bool ompl::geometric::TRRT::transitionTest( Motion *motion )
 bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
 {
   // Decide to accept or not
-  if( rand_motion_distance > EXPANSION_STEP )
+  if( rand_motion_distance > expansion_step_ )
   {
     // participates in the tree expansion
     ++frontier_count_;
@@ -542,7 +554,7 @@ bool ompl::geometric::TRRT::minExpansionControl( double rand_motion_distance )
     // participates in the tree refinement
 
     // check our ratio first before accepting it
-    if( nonfrontier_count_ / frontier_count_ > NONFRONTIER_NODE_RATIO )
+    if( nonfrontier_count_ / frontier_count_ > nonfrontier_node_ratio_ )
     {
       std::cout << "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio" << std::endl;
 
