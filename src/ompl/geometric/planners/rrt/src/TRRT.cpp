@@ -47,6 +47,8 @@
 
 ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "TRRT")
 {
+    verbose_ = false;
+
     // Standard RRT Variables
     specs_.approximateSolutions = true;
     specs_.directed = true;
@@ -65,6 +67,7 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     init_temperature_ = 10e-6;
     frontier_threshold_ = 5.0; // this is not necessarily a good default value, use setup()
     frontier_node_ratio_ = 0.1; // 1/10, or 1 nonfrontier for every 10 frontier
+    k_constant_ = 1; // this is not necessarily a good default value, use setup()
 
     Planner::declareParam<double>("max_states_failed", this, &TRRT::setMaxStatesFailed, &TRRT::getMaxStatesFailed);
     Planner::declareParam<double>("temp_change_factor", this, &TRRT::setTempChangeFactor, &TRRT::getTempChangeFactor);
@@ -72,6 +75,7 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<double>("init_temperature", this, &TRRT::setInitTemperature, &TRRT::getInitTemperature);
     Planner::declareParam<double>("frontier_threshold", this, &TRRT::setFrontierThreshold, &TRRT::getFrontierThreshold);
     Planner::declareParam<double>("frontier_node_ratio", this, &TRRT::setFrontierNodeRatio, &TRRT::getFrontierNodeRatio);
+    Planner::declareParam<double>("k_constant", this, &TRRT::setKConstant, &TRRT::getKConstant);
 }
 
 ompl::geometric::TRRT::~TRRT(void)
@@ -100,13 +104,22 @@ void ompl::geometric::TRRT::setup(void)
     Planner::setup();
     tools::SelfConfig self_config(si_, getName());
 
+    double average_cost = si_->averageStateCost( 100 );
+
     // Set maximum distance a new node can be from its nearest neighbor
-    self_config.configurePlannerRange(maxDistance_);
-    std::cout << "MAX DISTANCE: " << maxDistance_ << std::endl;
+    /*
+      self_config.configurePlannerRange(maxDistance_);
+      std::cout << "MAX DISTANCE: " << maxDistance_ << std::endl;
+    */
+    static const double SAMPLE_DISTANCE_RATIO = 0.035; // a magic number that seems to work
+    maxDistance_ = si_->getMaximumExtent() * SAMPLE_DISTANCE_RATIO;
 
     // Set the threshold that decides if a new node is a frontier node or non-frontier node
     frontier_threshold_ = si_->getMaximumExtent() * 0.01; // 5.0
-    std::cout << "MAX EXTENT: = " << si_->getMaximumExtent() << "  threshold = " << frontier_threshold_ << std::endl;
+    logInform( "MAX EXTENT: = ", si_->getMaximumExtent(), "  threshold = ", frontier_threshold_);
+
+    // Autoconfigure the K constant
+    k_constant_ = average_cost;
 
     // Create the nearest neighbor function the first time setup is run
     if (!nearest_neighbors_)
@@ -220,13 +233,11 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         // Sample random state (with goal biasing probability)
         if (goal_region && rng_.uniform01() < goalBias_ && goal_region->canSample())
         {
-            //std::cout << "Sample biased toward GOAL" << std::endl;
             // Bias sample towards goal
             goal_region->sampleGoal(rand_state);
         }
         else
         {
-            //std::cout << "NOT BIASED" << std::endl;
             // Uniformly Sample
             sampler_->sampleUniform(rand_state);
         }
@@ -279,7 +290,8 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
 
 
         // TODO: remove
-        temp_history.push_back(temp_);
+        if( verbose_ )
+            temp_history.push_back(temp_);
 
         // Minimum Expansion Control
         // A possible side effect may appear when the tree expansion toward unexplored regions remains slow, and the
@@ -298,7 +310,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
             continue; // give up on this one and try a new sample
         }
 
-		// V.
+        // V.
 
         // Create a motion
         Motion *motion = new Motion(si_);
@@ -310,7 +322,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         // Add motion to data structure
         nearest_neighbors_->add(motion);
 
-		// VI.
+        // VI.
 
         // Check if this motion is the goal
         double dist_to_goal = 0.0;
@@ -361,7 +373,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-		
+
         pdef_->addSolutionPath(base::PathPtr(path), approximate, approx_difference);
         solved = true;
     }
@@ -376,13 +388,16 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
     logInform("Created %u states", nearest_neighbors_->size());
 
 
-	// OUTPUT PLOT
+    // OUTPUT PLOT
     // TODO: remove this
-    static int num = 0;
-    std::ofstream output_file("./temperatures.dat");
-    for(size_t num = 0; num < temp_history.size(); ++num)
+    if( verbose_ )
     {
-        output_file << num << "," << temp_history[ num ] << "\n";
+        static int num = 0;
+        std::ofstream output_file("./temperatures.dat");
+        for(size_t num = 0; num < temp_history.size(); ++num)
+        {
+            output_file << num << "," << temp_history[ num ] << "\n";
+        }
     }
 
     return base::PlannerStatus(solved, approximate);
@@ -415,15 +430,8 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
     if(child_cost < parent_cost)
         return true;
 
-    // Transition Test ------------------------------------------------------------------------------
-
     // Difference in cost
     double cost_slope = (child_cost - parent_cost) / (distance); // TODO: is distance always calculated here?
-
-    // Constant value used to normalize expression. Based on order of magnitude of the considered costs.
-    // Average cost of the query configurtaions (start?) since they are the only cost values known at the
-    // beginning of the search process.
-    double K = 128; // TODO: calculate dynamically
 
     // The probability of acceptance of a new configuration is defined by comparing its cost c_j
     // relatively to the cost c_i of its parent in the tree. Baased on the Metropolis criterion.
@@ -435,7 +443,7 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
     // Calculate tranision probabilty
     if(cost_slope > 0)
     {
-        transition_probability = exp(-cost_slope / (K * temp_));
+        transition_probability = exp(-cost_slope / (k_constant_ * temp_));
     }
 
     // Check if we can accept it
@@ -446,7 +454,8 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
         // Prevent temp_ from getting too small
         if(temp_ < min_temperature_)
         {
-            std::cout << "Temp too low --------------------------------------------------------- " << std::endl;
+            if(verbose_)
+                std::cout << "Temp too low --------------------------------------------------------- " << std::endl;
             temp_ = min_temperature_;
         }
 
@@ -469,7 +478,7 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
 
     }
 
-    if(true)
+    if( verbose_ )
     {
         // Debug output
         std::cout << "Parent Cost " << std::setw(12)
@@ -489,7 +498,7 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
                   << distance << std::setw(20)
                   << cost_slope << std::setw(20)
                   << temp_ << std::setw(20)
-                  << -cost_slope / (K * temp_) << std::setw(20)
+                  << -cost_slope / (k_constant_ * temp_) << std::setw(20)
                   << transition_probability << std::setw(20)
                   << double(num_states_failed_) << std::setw(20)
                   << (result ? "ACCEPT" : "REJECT\033[0m")
@@ -507,7 +516,8 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
     {
         // participates in the tree expansion
         ++frontier_count_;
-        std::cout << "MIN_EXPAND_CONTROL: accepted bc larger than step" << std::endl;
+        if(verbose_)
+            std::cout << "MIN_EXPAND_CONTROL: accepted bc larger than step" << std::endl;
 
         return true;
     }
@@ -518,7 +528,8 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
         // check our ratio first before accepting it
         if(nonfrontier_count_ / frontier_count_ > frontier_node_ratio_)
         {
-            std::cout << "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio" << std::endl;
+            if(verbose_)
+                std::cout << "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio" << std::endl;
 
             // Increment so that the temperature rises faster
             ++num_states_failed_;
@@ -528,7 +539,8 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
         }
         else
         {
-            std::cout << "MIN_EXPAND_CONTROL: accepted as within ratio" << std::endl;
+            if(verbose_)
+                std::cout << "MIN_EXPAND_CONTROL: accepted as within ratio" << std::endl;
 
             ++nonfrontier_count_;
             return true;

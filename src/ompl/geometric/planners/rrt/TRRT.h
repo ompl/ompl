@@ -200,6 +200,18 @@ namespace ompl
             {
                 return frontier_node_ratio_;
             }
+			
+            /** \brief Set the constant value used to normalize the expression */
+            void setKConstant( double k_constant )
+            {
+                k_constant_ = k_constant;
+            }
+
+            /** \brief Get the constant value used to normalize the expression */
+            double getKConstant( void ) const
+            {
+                return k_constant_;
+            }			
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
@@ -285,6 +297,9 @@ namespace ompl
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
 
+			/** \brief Output debug info */
+			bool										   verbose_;
+			
             // *********************************************************************************************************
             // TRRT-Specific Variables
             // *********************************************************************************************************
@@ -294,35 +309,40 @@ namespace ompl
             // Temperature parameter used to control the difficulty level of transition tests. Low temperatures
             // limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
             // Dynamically tuned according to the information acquired during exploration
-            double											temp_;
+            double                                          temp_;
+
+            // Constant value used to normalize expression. Based on order of magnitude of the considered costs.
+            // Average cost of the query configurtaions since they are the only cost values known at the
+            // beginning of the search process.
+            double											k_constant_; 
 
             // Max number of rejections allowed
-            unsigned int									max_states_failed_;
+            unsigned int                                    max_states_failed_;
 
             // Failure temperature factor used when max_num_failed_ failures occur
-            double											temp_change_factor_;
+            double                                          temp_change_factor_;
 
             // Prevent temperature from dropping too far
-            double  										min_temperature_;
+            double                                          min_temperature_;
 
             // A very low value at initialization to authorize very easy positive slopes
-            double  										init_temperature_;
+            double                                          init_temperature_;
 
             // Failure counter for states that are rejected
-            unsigned int									num_states_failed_;
+            unsigned int                                    num_states_failed_;
 
 
             // Minimum Expansion Control --------------------------------------------------------------
 
             // Ratio counters for nodes that expand the search space versus those that do not
-            double  										nonfrontier_count_;
-            double  										frontier_count_;
+            double                                          nonfrontier_count_;
+            double                                          frontier_count_;
 
             // The distance between an old state and a new state that qualifies it as a frontier state
-            double  										frontier_threshold_;
+            double                                          frontier_threshold_;
 
             // Target ratio of nonfrontier nodes to frontier nodes. rho
-            double  										frontier_node_ratio_;
+            double                                          frontier_node_ratio_;
 
 
 
