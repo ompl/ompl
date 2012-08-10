@@ -116,13 +116,13 @@ namespace ompl
                 motion to be added in the tree of motions. */
             void setRange(double distance)
             {
-                maxDistance_ = distance;
+                max_distance_ = distance;
             }
 
             /** \brief Get the range the planner is using */
             double getRange(void) const
             {
-                return maxDistance_;
+                return max_distance_;
             }
 
             /** \brief Set the maximum number of states that can be rejected before the temperature starts to rise */
@@ -289,7 +289,7 @@ namespace ompl
             double                                         goalBias_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                                         maxDistance_;
+            double                                         max_distance_;
 
             /** \brief The random number generator */
             RNG                                            rng_;

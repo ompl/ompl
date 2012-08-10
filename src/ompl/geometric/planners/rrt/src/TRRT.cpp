@@ -54,20 +54,20 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     specs_.directed = true;
 
     goalBias_ = 0.05;
-    maxDistance_ = 0.0;
+    max_distance_ = 0.0; // set in setup()
     lastGoalMotion_ = NULL;
 
     Planner::declareParam<double>("range", this, &TRRT::setRange, &TRRT::getRange);
     Planner::declareParam<double>("goal_bias", this, &TRRT::setGoalBias, &TRRT::getGoalBias);
 
     // TRRT Specific Variables
+    frontier_threshold_ = 0.0; // set in setup()
+    k_constant_ = 0.0; // set in setup()
     max_states_failed_ = 6;
     temp_change_factor_ = 2;
     min_temperature_ = 10e-10;
     init_temperature_ = 10e-6;
-    frontier_threshold_ = 5.0; // this is not necessarily a good default value, use setup()
     frontier_node_ratio_ = 0.1; // 1/10, or 1 nonfrontier for every 10 frontier
-    k_constant_ = 1; // this is not necessarily a good default value, use setup()
 
     Planner::declareParam<double>("max_states_failed", this, &TRRT::setMaxStatesFailed, &TRRT::getMaxStatesFailed);
     Planner::declareParam<double>("temp_change_factor", this, &TRRT::setTempChangeFactor, &TRRT::getTempChangeFactor);
@@ -107,19 +107,22 @@ void ompl::geometric::TRRT::setup(void)
     double average_cost = si_->averageStateCost( 100 );
 
     // Set maximum distance a new node can be from its nearest neighbor
-    /*
-      self_config.configurePlannerRange(maxDistance_);
-      std::cout << "MAX DISTANCE: " << maxDistance_ << std::endl;
-    */
-    static const double SAMPLE_DISTANCE_RATIO = 0.035; // a magic number that seems to work
-    maxDistance_ = si_->getMaximumExtent() * SAMPLE_DISTANCE_RATIO;
+    self_config.configureCostPlannerRange(max_distance_);
 
     // Set the threshold that decides if a new node is a frontier node or non-frontier node
-    frontier_threshold_ = si_->getMaximumExtent() * 0.01; // 5.0
-    logInform( "MAX EXTENT: = ", si_->getMaximumExtent(), "  threshold = ", frontier_threshold_);
+    if (frontier_threshold_ < std::numeric_limits<double>::epsilon())
+    {
+        frontier_threshold_ = si_->getMaximumExtent() * 0.01; // 5.0
+        //frontier_threshold_ = max_distance_;
+        logDebug("Frontier threshold detected to be %lf", frontier_threshold_);
+    }
 
     // Autoconfigure the K constant
-    k_constant_ = average_cost;
+    if (k_constant_ < std::numeric_limits<double>::epsilon())
+    {
+        k_constant_ = average_cost;
+        logDebug("K constant detected to be %lf", k_constant_);
+    }
 
     // Create the nearest neighbor function the first time setup is run
     if (!nearest_neighbors_)
@@ -133,6 +136,7 @@ void ompl::geometric::TRRT::setup(void)
     temp_ = init_temperature_;
     nonfrontier_count_ = 1;
     frontier_count_ = 1; // init to 1 to prevent division by zero error
+
 }
 
 void ompl::geometric::TRRT::freeMemory(void)
@@ -253,12 +257,12 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         rand_motion_distance = si_->distance(near_motion->state, rand_state);
 
         // Check if the rand_state is too far away
-        if(rand_motion_distance > maxDistance_)
+        if(rand_motion_distance > max_distance_)
         {
             // Computes the state that lies at time t in [0, 1] on the segment that connects *from* state to *to* state.
             // The memory location of *state* is not required to be different from the memory of either *from* or *to*.
             si_->getStateSpace()->interpolate(near_motion->state, rand_state,
-                                              maxDistance_ / rand_motion_distance, interpolated_state);
+                                              max_distance_ / rand_motion_distance, interpolated_state);
 
             // Update the distance between near and new with the interpolated_state
             motion_distance = si_->distance(near_motion->state, interpolated_state);
