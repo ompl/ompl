@@ -53,54 +53,56 @@ namespace ompl
         class GridDecomposition : public Decomposition
         {
         public:
-            /** \brief Constructor. Creates a GridDecomposition as a hypercube with a given dimension, side length, and bounds. */
-            GridDecomposition(const int len, const std::size_t dim, const base::RealVectorBounds& b);
+            /** \brief Constructor. Creates a GridDecomposition as a hypercube with a given dimension, side length, and bounds.
+                The cells of the hypercube are referenced by integer coordinates of the form
+                \f$(r_1,\ldots,r_k)\f$, where \f$ 0 \leq r_i < \texttt{len}\f$. */
+            GridDecomposition(unsigned int len, unsigned int dim, const base::RealVectorBounds& b);
 
             virtual ~GridDecomposition()
             {
             }
 
-            virtual double getRegionVolume(const int rid)
+            virtual double getRegionVolume(unsigned int rid)
             {
                 return cellVolume_;
             }
 
-            virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const;
+            virtual void getNeighbors(unsigned int rid, std::vector<unsigned int>& neighbors) const;
 
             virtual int locateRegion(const base::State* s) const;
 
-            virtual void sampleFromRegion(const int rid, RNG& rng, std::vector<double>& coord) const;
+            virtual void sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const;
 
         protected:
             /** \brief Helper method to return the bounds of a given region. */
-            virtual const base::RealVectorBounds& getRegionBounds(const int rid) const;
+            virtual const base::RealVectorBounds& getRegionBounds(unsigned int rid) const;
 
             /** \brief Converts a given region to a coordinate in the grid. */
-            void regionToGridCoord(int rid, std::vector<int>& coord) const;
+            void regionToGridCoord(unsigned int rid, std::vector<unsigned int>& coord) const;
 
             /** \brief Converts the given grid coordinate to its corresponding region ID. */
-            int gridCoordToRegion (const std::vector<int> &coord) const;
+            unsigned int gridCoordToRegion (const std::vector<unsigned int> &coord) const;
 
             /** \brief Converts a decomposition space coordinate to the ID of the region that contains iit. */
-            int coordToRegion(const std::vector<double>& coord) const;
+            unsigned int coordToRegion(const std::vector<double>& coord) const;
 
             /** \brief Converts a decomposition space coordinate to a grid coordinate. */
-            void coordToGridCoord(const std::vector<double>& coord, std::vector<int>& gridCoord) const;
+            void coordToGridCoord(const std::vector<double>& coord, std::vector<unsigned int>& gridCoord) const;
 
             /** \brief Computes the neighbors of the given region in a n-dimensional grid */
-            void computeGridNeighbors (int rid, std::vector <int> &neighbors) const;
+            void computeGridNeighbors (unsigned int rid, std::vector <unsigned int> &neighbors) const;
 
             /** Recursive subroutine for grid neighbor computation */
-            void computeGridNeighborsSub (const std::vector <int>&coord, std::vector <int> &neighbors,
-                                          unsigned int dim, std::vector <int> &candidate) const;
+            void computeGridNeighborsSub (const std::vector <unsigned int>&coord, std::vector <unsigned int> &neighbors,
+                                          unsigned int dim, std::vector <unsigned int> &candidate) const;
 
-            const int length_;
+            unsigned int length_;
             double cellVolume_;
             mutable boost::unordered_map<int, boost::shared_ptr<base::RealVectorBounds> > regToBounds_;
 
         private:
             /** \brief Helper method to return len^dim in call to super-constructor. */
-            int calcNumRegions(const int len, const std::size_t dim) const;
+            unsigned int calcNumRegions(unsigned int len, unsigned int dim) const;
         };
     }
 }

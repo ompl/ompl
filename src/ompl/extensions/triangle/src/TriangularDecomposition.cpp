@@ -37,7 +37,7 @@
 #include "ompl/extensions/triangle/TriangularDecomposition.h"
 #include <boost/lexical_cast.hpp>
 
-ompl::control::TriangularDecomposition::TriangularDecomposition(const std::size_t dim, const base::RealVectorBounds& b, const std::vector<Polygon>& holes) :
+ompl::control::TriangularDecomposition::TriangularDecomposition(unsigned int dim, const base::RealVectorBounds& b, const std::vector<Polygon>& holes) :
     Decomposition(dim, b),
     holes_(holes),
     locator(64, this)
@@ -48,7 +48,7 @@ ompl::control::TriangularDecomposition::TriangularDecomposition(const std::size_
     buildLocatorGrid();
 }
 
-double ompl::control::TriangularDecomposition::getRegionVolume(const int triID)
+double ompl::control::TriangularDecomposition::getRegionVolume(unsigned int triID)
 {
     Triangle& tri = triangles_[triID];
     if (tri.volume < 0)
@@ -63,7 +63,7 @@ double ompl::control::TriangularDecomposition::getRegionVolume(const int triID)
     return tri.volume;
 }
 
-void ompl::control::TriangularDecomposition::sampleFromRegion(const int triID, RNG& rng, std::vector<double>& coord) const
+void ompl::control::TriangularDecomposition::sampleFromRegion(unsigned int triID, RNG& rng, std::vector<double>& coord) const
 {
     /* Uniformly sample a point from within a triangle, using the approach discussed in
      * http://math.stackexchange.com/questions/18686/uniform-random-point-in-triangle */
@@ -75,7 +75,7 @@ void ompl::control::TriangularDecomposition::sampleFromRegion(const int triID, R
     coord[1] = (1-r1)*tri.pts[0].y + r1*(1-r2)*tri.pts[1].y + r1*r2*tri.pts[2].y;
 }
 
-void ompl::control::TriangularDecomposition::getNeighbors(const int triID, std::vector<int>& neighbors) const
+void ompl::control::TriangularDecomposition::getNeighbors(unsigned int triID, std::vector<unsigned int>& neighbors) const
 {
     neighbors = triangles_[triID].neighbors;
 }
@@ -84,11 +84,11 @@ int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) c
 {
     std::vector<double> coord(2);
     project(s, coord);
-    const std::vector<int>& gridTriangles = locator.locateTriangles(s);
+    const std::vector<unsigned int>& gridTriangles = locator.locateTriangles(s);
     int triangle = -1;
-    for (std::vector<int>::const_iterator i = gridTriangles.begin(); i != gridTriangles.end(); ++i)
+    for (std::vector<unsigned int>::const_iterator i = gridTriangles.begin(); i != gridTriangles.end(); ++i)
     {
-        const int triID = *i;
+        unsigned int triID = *i;
         if (triContains(triangles_[triID], coord))
         {
             if (triangle >= 0)
@@ -275,8 +275,8 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
     regToTriangles_.resize(getNumRegions());
     std::vector<double> bboxLow(2);
     std::vector<double> bboxHigh(2);
-    std::vector<int> gridCoord[2];
-    for (int i = 0; i < triangles.size(); ++i)
+    std::vector<unsigned int> gridCoord[2];
+    for (unsigned int i = 0; i < triangles.size(); ++i)
     {
         /* for Triangle tri, compute the smallest rectangular
          * bounding box that contains tri. */
@@ -286,7 +286,7 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
         bboxHigh[0] = bboxLow[0];
         bboxHigh[1] = bboxLow[1];
 
-        for (int j = 1; j < 3; ++j)
+        for (unsigned int j = 1; j < 3; ++j)
         {
             if (tri.pts[j].x < bboxLow[0])
                 bboxLow[0] = tri.pts[j].x;
@@ -305,14 +305,14 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
 
         /* Every grid cell within bounding box gets
            tri added to its map entry */
-        std::vector<int> c(2);
-        for (int x = gridCoord[0][0]; x <= gridCoord[1][0]; ++x)
+        std::vector<unsigned int> c(2);
+        for (unsigned int x = gridCoord[0][0]; x <= gridCoord[1][0]; ++x)
         {
-            for (int y = gridCoord[0][1]; y <= gridCoord[1][1]; ++y)
+            for (unsigned int y = gridCoord[0][1]; y <= gridCoord[1][1]; ++y)
             {
                 c[0] = x;
                 c[1] = y;
-                int cellID = gridCoordToRegion(c);
+                unsigned int cellID = gridCoordToRegion(c);
                 regToTriangles_[cellID].push_back(i);
             }
         }
