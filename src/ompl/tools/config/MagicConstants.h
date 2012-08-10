@@ -70,6 +70,14 @@ namespace ompl
             used as the maximum length of a motion */
         static const double MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.2;
 
+		/** \brief For cost-based planners: if default values are to be
+			used for the maxium length of motion, this constant is a used
+			to modify the above constant (MAX_MOTION_LENTH_AS_SPACE_EXTENT_FRACTION)
+			so as to sample smaller distances. If used without above constant,
+			or the above constant is modified, the 'stand-alone' constant value is
+			0.035 based on visual experimentation. */
+		static const double COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.175;
+		
         /** \brief When standard deviation is needed for Gaussian
             sampling in the state space, by default the value of the
             standard deviation is computed as a fraction of the extent

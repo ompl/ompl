@@ -120,6 +120,16 @@ namespace ompl
                 */
             }
 
+            void configureCostPlannerRange(double &range)
+            {
+                if (range < std::numeric_limits<double>::epsilon())
+                {
+                    range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION *
+						magic::COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+                    logDebug("Cost planner range detected to be %lf", range);
+                }
+            }			
+
             void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
             {
                 checkSetup();
@@ -197,12 +207,6 @@ double ompl::tools::SelfConfig::getAverageValidMotionLength(void)
     return impl_->getAverageValidMotionLength();
 }
 
-void ompl::tools::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
-{
-    boost::mutex::scoped_lock iLock(impl_->lock_);
-    return impl_->configureProjectionEvaluator(proj);
-}
-
 void ompl::tools::SelfConfig::configureValidStateSamplingAttempts(unsigned int &attempts)
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
@@ -213,6 +217,18 @@ void ompl::tools::SelfConfig::configurePlannerRange(double &range)
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
     impl_->configurePlannerRange(range);
+}
+
+void ompl::tools::SelfConfig::configureCostPlannerRange(double &range)
+{
+    boost::mutex::scoped_lock iLock(impl_->lock_);
+    impl_->configureCostPlannerRange(range);
+}
+
+void ompl::tools::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
+{
+    boost::mutex::scoped_lock iLock(impl_->lock_);
+    return impl_->configureProjectionEvaluator(proj);
 }
 
 void ompl::tools::SelfConfig::print(std::ostream &out) const
