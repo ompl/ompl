@@ -460,6 +460,9 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
         {
             if(verbose_)
                 std::cout << "Temp too low --------------------------------------------------------- " << std::endl;
+
+
+
             temp_ = min_temperature_;
         }
 
@@ -509,6 +512,16 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
             // << "   " << counter
                   << std::endl;
     }
+    logDebug( "ParentC %f | ChildC %f | Diff %f | Dist %f | Slope %f | Temp %f | Prob %f | NumFail %d | Result %s",
+               parent_cost,
+               child_cost,
+               child_cost-parent_cost,
+               distance,
+               cost_slope,
+               temp_,
+               transition_probability,
+               num_states_failed_,
+               (result ? "ACCEPT" : "REJECT\033[0m") );
 
     return result;
 }
@@ -520,8 +533,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
     {
         // participates in the tree expansion
         ++frontier_count_;
-        if(verbose_)
-            std::cout << "MIN_EXPAND_CONTROL: accepted bc larger than step" << std::endl;
+        logDebug( "MIN_EXPAND_CONTROL: accepted bc larger than step"  );
 
         return true;
     }
@@ -532,8 +544,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
         // check our ratio first before accepting it
         if(nonfrontier_count_ / frontier_count_ > frontier_node_ratio_)
         {
-            if(verbose_)
-                std::cout << "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio" << std::endl;
+            logDebug( "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio"  );
 
             // Increment so that the temperature rises faster
             ++num_states_failed_;
@@ -543,8 +554,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
         }
         else
         {
-            if(verbose_)
-                std::cout << "MIN_EXPAND_CONTROL: accepted as within ratio" << std::endl;
+            logDebug( "MIN_EXPAND_CONTROL: accepted as within ratio"  );
 
             ++nonfrontier_count_;
             return true;
