@@ -38,6 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/tools/debug/Profiler.h"
 #include <limits>
 #include <stdio.h>
 // TODO: remove these:
@@ -63,8 +64,8 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     // TRRT Specific Variables
     frontier_threshold_ = 0.0; // set in setup()
     k_constant_ = 0.0; // set in setup()
-    max_states_failed_ = 6;
-    temp_change_factor_ = 2;
+    max_states_failed_ = 10;
+    temp_change_factor_ = 2.0;
     min_temperature_ = 10e-10;
     init_temperature_ = 10e-6;
     frontier_node_ratio_ = 0.1; // 1/10, or 1 nonfrontier for every 10 frontier
@@ -160,6 +161,8 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
 {
     // Basic error checking
     checkValidity();
+
+    ompl::tools::Profiler::ScopedStart ss();
 
     // Goal information
     base::Goal                 *goal   = pdef_->getGoal().get();
@@ -289,8 +292,8 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
             \param s1 start state of the motion to be checked (assumed to be valid)
             \param s2 final state of the motion to be checked
         */
-        if(!si_->checkMotion(near_motion->state, new_state))
-            continue; // try a new sample
+	if(!si_->checkMotion(near_motion->state, new_state))
+	  continue; // try a new sample
 
 
         // TODO: remove
@@ -300,22 +303,31 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         // Minimum Expansion Control
         // A possible side effect may appear when the tree expansion toward unexplored regions remains slow, and the
         // new nodes contribute only to refine already explored regions.
-        if(!minExpansionControl(rand_motion_distance))
-        {
-            continue; // give up on this one and try a new sample
-        }
+	if(!minExpansionControl(rand_motion_distance))
+	  {
+	    continue; // give up on this one and try a new sample
+	  }
 
         // Save the cost of this new state
-		double child_cost = 0.0; //state_validity_checker->cost(new_state);
-		std::pair<double, double> bounds;
-		si_->computeMotionCost(near_motion->state, new_state, child_cost, bounds);
+	//	ompl::tools::Profiler::Begin("motion_cost");
+	//	double dummy;
+	//	std::pair<double, double> bounds;
+	//	si_->computeMotionCost(near_motion->state, new_state, dummy, bounds);
+	//	ompl::tools::Profiler::End("motion_cost");
 
-		
+	double child_cost = state_validity_checker->cost(new_state);
+
         // Only add this motion to the tree if the tranistion test accepts it
         if(!transitionTest(child_cost, near_motion->cost, motion_distance))
         {
+	  ompl::tools::Profiler::Event("fail");
             continue; // give up on this one and try a new sample
         }
+
+	ompl::tools::Profiler::Event("ok");
+	
+	
+	//	logWarn("add transition to child cost = %lf :  b = %lf, %lf, valid = %d", child_cost, bounds.first, bounds.second, si_->isValid(new_state));
 
         // V.
 
@@ -406,6 +418,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
             output_file << num << "," << temp_history[ num ] << "\n";
         }
     }
+    ompl::tools::Profiler::Status();
 
     return base::PlannerStatus(solved, approximate);
 }
@@ -434,7 +447,7 @@ void ompl::geometric::TRRT::getPlannerData(base::PlannerData &data) const
 bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost, double distance)
 {
     // Always accept if new state has lower cost than old state
-    if(child_cost < parent_cost)
+    if(child_cost <= parent_cost)
         return true;
 
     // Difference in cost
@@ -456,6 +469,8 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
     // Check if we can accept it
     if(rng_.uniform01() <= transition_probability)
     {
+      if (temp_ > min_temperature_)
+	{
         temp_ = temp_ / temp_change_factor_;
 
         // Prevent temp_ from getting too small
@@ -468,6 +483,7 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
 
             temp_ = min_temperature_;
         }
+	}
 
         num_states_failed_ = 0;
 
@@ -514,8 +530,8 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
                   << (result ? "ACCEPT" : "REJECT\033[0m")
             // << "   " << counter
                   << std::endl;
-    }
-    logDebug( "ParentC %f | ChildC %f | Diff %f | Dist %f | Slope %f | Temp %f | Prob %f | NumFail %d | Result %s",
+    
+    logInform( "ParentC %f | ChildC %f | Diff %f | Dist %f | Slope %f | Temp %f | Prob %f | NumFail %d | Result %s",
                parent_cost,
                child_cost,
                child_cost-parent_cost,
@@ -525,7 +541,7 @@ bool ompl::geometric::TRRT::transitionTest(double child_cost, double parent_cost
                transition_probability,
                num_states_failed_,
                (result ? "ACCEPT" : "REJECT\033[0m") );
-
+    }
     return result;
 }
 
@@ -536,7 +552,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
     {
         // participates in the tree expansion
         ++frontier_count_;
-        logDebug( "MIN_EXPAND_CONTROL: accepted bc larger than step"  );
+	//        logInform( "MIN_EXPAND_CONTROL: accepted bc larger than step"  );
 
         return true;
     }
@@ -547,7 +563,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
         // check our ratio first before accepting it
         if(nonfrontier_count_ / frontier_count_ > frontier_node_ratio_)
         {
-            logDebug( "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio"  );
+//            logInform( "MIN_EXPAND_CONTROL: \033[0;31mREJECTED\033[0m bc bad ratio"  );
 
             // Increment so that the temperature rises faster
             ++num_states_failed_;
@@ -557,7 +573,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double rand_motion_distance)
         }
         else
         {
-            logDebug( "MIN_EXPAND_CONTROL: accepted as within ratio"  );
+	  //            logInform( "MIN_EXPAND_CONTROL: accepted as within ratio"  );
 
             ++nonfrontier_count_;
             return true;
