@@ -396,11 +396,15 @@ double ompl::base::SpaceInformation::averageStateCost(unsigned int attempts) con
 	StateSamplerPtr ss = allocStateSampler();
 	State *state = allocState();
 	double cost = 0.0;
+	
 	for (unsigned int i = 0 ; i < attempts ; ++i)
 	{
 		ss->sampleUniform(state);
 		cost += stateValidityChecker_->cost(state);
 	}
+
+	//delete state;
+	
 	return cost / (double)attempts;
 }
 
