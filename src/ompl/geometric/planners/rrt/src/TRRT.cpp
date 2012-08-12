@@ -306,8 +306,11 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         }
 
         // Save the cost of this new state
-        double child_cost = state_validity_checker->cost(new_state);
+		double child_cost = 0.0; //state_validity_checker->cost(new_state);
+		std::pair<double, double> bounds;
+		si_->computeMotionCost(near_motion->state, new_state, child_cost, bounds);
 
+		
         // Only add this motion to the tree if the tranistion test accepts it
         if(!transitionTest(child_cost, near_motion->cost, motion_distance))
         {
