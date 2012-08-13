@@ -13,16 +13,6 @@ This page includes a list of extensions to OMPL provided by the community. The c
 </li>
 </ul>
 
-\section trrt_contrib Transition-based RRT (T-RRT)
-
-\subsection trrt_contrib_authors Author: Dave Coleman
-
-<ul>
-<li>
-.....
-</li>
-</ul>
-
 \section rrtstar_contrib RRT* and extensions
 
 \subsection rrtstar_contrib_authors Authors: Alejandro Perez and Sertac Karaman (MIT)
