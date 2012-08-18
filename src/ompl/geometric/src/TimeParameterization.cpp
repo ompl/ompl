@@ -125,60 +125,42 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrization(const
           return false;
     }
     
-    std::cout << "times" << std::endl;
     // take the time of the slowest part for each state 
     times.resize(path.getStateCount());
     if (!times.empty())
     {
-      times[0] = 0.0;
-      for (std::size_t i = 1 ; i < times.size() ; ++i)
-    {
-        double mt = 0.0;
-        for (std::map<std::string, std::vector<double> >::const_iterator it = timeMap.begin() ; it != timeMap.end() ; ++it)
-            if (it->second[i] > mt)
-                mt = it->second[i];
-        times[i] = times[i-1] + mt ;
-        std::cout << mt << " ";
-    }
+        times[0] = 0.0;
+        for (std::size_t i = 1 ; i < times.size() ; ++i)
+        {
+            double mt = 0.0;
+            for (std::map<std::string, std::vector<double> >::const_iterator it = timeMap.begin() ; it != timeMap.end() ; ++it)
+                if (it->second[i] > mt)
+                    mt = it->second[i];
+            times[i] = times[i-1] + mt ;
+        }
     }
     
-    std::cout << std::endl << std::endl;
     const base::StateSpacePtr &ss = path.getSpaceInformation()->getStateSpace();
-
 
     for (std::map<std::string, std::vector<double> >::iterator it = velocities.begin() ; it != velocities.end() ; ++it)
     {   
-      std::map<std::string, base::StateSpace::SubstateLocation>::const_iterator sl_it = substates.find(it->first);
-      const base::StateSpace::SubstateLocation &sloc = sl_it->second;
+        std::map<std::string, base::StateSpace::SubstateLocation>::const_iterator sl_it = substates.find(it->first);
+        const base::StateSpace::SubstateLocation &sloc = sl_it->second;
       
-      std::vector<double> L(path.getStateCount() - 1);
-      for (std::size_t i = 0 ; i < L.size() ; ++i)
-        L[i] = sloc.space->distance(ss->getSubstateAtLocation(path.getState(i), sloc), ss->getSubstateAtLocation(path.getState(i + 1), sloc));
+        std::vector<double> L(path.getStateCount() - 1);
+        for (std::size_t i = 0 ; i < L.size() ; ++i)
+            L[i] = sloc.space->distance(ss->getSubstateAtLocation(path.getState(i), sloc), ss->getSubstateAtLocation(path.getState(i + 1), sloc));
 
-      std::map<std::string, double>::const_iterator vel_it = maxVel.find(it->first);
-
-      if (it->second.size() >1)
-        for (std::size_t i = 1 ; i < it->second.size() -1; ++i)
-        {
-          double dt = times[i] - times[i-1];
-          if (dt > std::numeric_limits<double>::epsilon())
-          {
-            it->second[i] = boost::math::sign(it->second[i]) * std::min(vel_it->second, L[i] / dt);
-            std::cout << "BAAAAD: " << it->second[i] << "    " << vel_it->second << std::endl;
-            assert(fabs(it->second[i]) <= std::numeric_limits<double>::epsilon() + vel_it->second);
-            
-          }
-          
-        }
+        std::map<std::string, double>::const_iterator vel_it = maxVel.find(it->first);
       
-      std::cout << it->first << std::endl;
-      for (std::size_t i = 0 ; i < it->second.size() ; ++i)
-        std::cout << it->second[i] <<  " ";
-      std::cout << std::endl;
+        if (it->second.size() >1)
+            for (std::size_t i = 1 ; i < it->second.size() -1; ++i)
+            {
+                double dt = times[i] - times[i-1];
+                if (dt > std::numeric_limits<double>::epsilon())
+                    it->second[i] = boost::math::sign(it->second[i]) * std::min(vel_it->second, L[i] / dt);
+            }
     }
-    
-    std::cout.flush();
-
     
     return true;
 }
@@ -186,114 +168,104 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrization(const
 static bool getTime(double v0, double vf, double dist, double maxvel, double maxacc,
                     double &possible_v0, double &possible_vf, double &t, bool forward)
 {
-  //  std::cout << "try v0 = " << v0 << " vf = " << vf << " on dist = " << dist << std::endl;
-  
     // the time needed to reach max velocity from initial velocity
-  double t_acc = (maxvel - fabs(v0)) / maxacc;
+    double t_acc = (maxvel - fabs(v0)) / maxacc;
   
     // the time needed to break from max velocity to desired final velocity
-  double t_break = (maxvel - fabs(vf)) / maxacc;
+    double t_break = (maxvel - fabs(vf)) / maxacc;
   
     // the distance traveled if we only accelerate and decelerate
-  double d_acc_decc = maxacc * (t_acc * t_acc - t_break * t_break) / 2.0 + fabs(v0) * t_acc + maxvel * t_break;
+    double d_acc_decc = maxacc * (t_acc * t_acc - t_break * t_break) / 2.0 + fabs(v0) * t_acc + maxvel * t_break;
   
     // if that distance is less than what we have to travel, we just assume we travel at maximum velocity
     // for the middle part of the segment (we accelerate at max, we use acceleration as 0, then we decelerate at maximum)
     if (d_acc_decc - dist <= std::numeric_limits<double>::epsilon())
     {
         t = t_acc + t_break + (dist - d_acc_decc) / maxvel;
-        //        std::cout << "ok for t = " << t << std::endl;
         return true;
     }
     else
     {
         // check if we can at least decelerate in time:
-      if (vf <= v0)
+        if (vf <= v0)
         {
            double t_break_0f = (v0 - vf) / maxacc;
            double d_dec = v0 * t_break_0f - maxacc * t_break_0f * t_break_0f / 2.0;
-           //            std::cout << "min deceleration distance is " << d_dec << std::endl;
             
             // we cannot decelerate in time;
             // with maximum deceleration, the best we can do in terms of reducing speed given the constraints,
             if (fabs(d_dec) - dist > std::numeric_limits<double>::epsilon())
             {
-              if (forward)
-              {
-                // compute the final velocity that can be possibly achieved, within limits
-                double abs_vf = sqrt(v0 * v0 - 2.0 * boost::math::sign(d_dec) * dist * maxacc);
-                if (vf - abs_vf < std::numeric_limits<double>::epsilon() && abs_vf - v0 < std::numeric_limits<double>::epsilon())
-                  possible_vf = abs_vf;
-                else
-                  possible_vf = -abs_vf;
-                //                std::cout << "cannot decelerate on time; best we can slow down to is " << possible_vf << std::endl;
-                assert(abs_vf <= maxvel + std::numeric_limits<double>::epsilon());
-              }
-              else
-              {
-                double abs_v0 = sqrt(vf * vf + 2.0 * boost::math::sign(d_dec) * dist * maxacc);
-                if (vf - abs_v0 < std::numeric_limits<double>::epsilon() && abs_v0 - v0 < std::numeric_limits<double>::epsilon())
-                  possible_v0 = abs_v0;
-                else
-                  possible_v0 = -abs_v0;
-                //                std::cout << "cannot decelerate on time; we could if the start vel were " << possible_v0 << std::endl;
-                assert(abs_v0 <= maxvel + std::numeric_limits<double>::epsilon());                
-              }
-              return false;
-            }
-            else
-            {
-              // we can decelerate in time; just compute how long it takes
-              t = (v0 - vf) / maxacc;
-              return true;
-            }
-            
-        }
-    
-        // check if we can accelerate in time:
-        else
-        {
-          double t_acc_f0 = (vf - v0) / maxacc;
-          double d_acc = v0 * t_acc_f0 + maxacc * t_acc_f0 * t_acc_f0 / 2.0;
-          if (fabs(d_acc) - dist > std::numeric_limits<double>::epsilon())
-          {
-            // we cannot accelerate in time;
-            // with maximum acceleration, the best we can do is:
-
-            if (forward)
-                {     
-                  // compute the final velocity that can be possibly achieved, within limits
-                double abs_vf = sqrt(v0 * v0 + 2.0 * boost::math::sign(d_acc) * dist * maxacc);
-                if (v0 - abs_vf < std::numeric_limits<double>::epsilon() && abs_vf - vf < std::numeric_limits<double>::epsilon())
-                  possible_vf = abs_vf;
-                else
-                  possible_vf = -abs_vf;
-                //                std::cout << "cannot accelerate enough; best we can do is " << possible_vf << std::endl;
-                assert(abs_vf <= maxvel + std::numeric_limits<double>::epsilon());
+                if (forward)
+                {
+                    // compute the final velocity that can be possibly achieved, within limits
+                    double abs_vf = sqrt(v0 * v0 - 2.0 * boost::math::sign(d_dec) * dist * maxacc);
+                    if (vf - abs_vf < std::numeric_limits<double>::epsilon() && abs_vf - v0 < std::numeric_limits<double>::epsilon())
+                        possible_vf = abs_vf;
+                    else
+                        possible_vf = -abs_vf;
+                    assert(abs_vf <= maxvel + std::numeric_limits<double>::epsilon());
                 }
                 else
                 {
-                  double abs_v0 = sqrt(vf * vf - 2.0 * boost::math::sign(d_acc) *  dist * maxacc);
-                  if (v0 - abs_v0 < std::numeric_limits<double>::epsilon() && abs_v0 - vf < std::numeric_limits<double>::epsilon())
-                    possible_v0 = abs_v0;
-                  else
-                    possible_v0 = -abs_v0;
-                  //                  std::cout << "cannot accelerate enough; we could if we started at " << possible_v0 << std::endl;
-                  assert(abs_v0 <= maxvel + std::numeric_limits<double>::epsilon());
+                    double abs_v0 = sqrt(vf * vf + 2.0 * boost::math::sign(d_dec) * dist * maxacc);
+                    if (vf - abs_v0 < std::numeric_limits<double>::epsilon() && abs_v0 - v0 < std::numeric_limits<double>::epsilon())
+                        possible_v0 = abs_v0;
+                    else
+                        possible_v0 = -abs_v0;
+                    assert(abs_v0 <= maxvel + std::numeric_limits<double>::epsilon());                
                 }
                 return false;
             }
             else
             {
-              // we can accelerate in time; just compute how long it takes
-              t = (vf - v0) / maxacc;
-              //              std::cout << "ok5 for t = " << t << std::endl;
-              return true;
+                // we can decelerate in time; just compute how long it takes
+                t = (v0 - vf) / maxacc;
+                return true;
+            }
+        }
+    
+        // check if we can accelerate in time:
+        else
+        {
+            double t_acc_f0 = (vf - v0) / maxacc;
+            double d_acc = v0 * t_acc_f0 + maxacc * t_acc_f0 * t_acc_f0 / 2.0;
+            if (fabs(d_acc) - dist > std::numeric_limits<double>::epsilon())
+            {
+                // we cannot accelerate in time;
+                // with maximum acceleration, the best we can do is:
+
+                if (forward)
+                {     
+                    // compute the final velocity that can be possibly achieved, within limits
+                    double abs_vf = sqrt(v0 * v0 + 2.0 * boost::math::sign(d_acc) * dist * maxacc);
+                    if (v0 - abs_vf < std::numeric_limits<double>::epsilon() && abs_vf - vf < std::numeric_limits<double>::epsilon())
+                      possible_vf = abs_vf;
+                    else
+                      possible_vf = -abs_vf;
+                    assert(abs_vf <= maxvel + std::numeric_limits<double>::epsilon());
+                }
+                else
+                {
+                    double abs_v0 = sqrt(vf * vf - 2.0 * boost::math::sign(d_acc) *  dist * maxacc);
+                    if (v0 - abs_v0 < std::numeric_limits<double>::epsilon() && abs_v0 - vf < std::numeric_limits<double>::epsilon())
+                        possible_v0 = abs_v0;
+                    else
+                        possible_v0 = -abs_v0;
+                    assert(abs_v0 <= maxvel + std::numeric_limits<double>::epsilon());
+                }
+                return false;
+            }
+            else
+            {
+                // we can accelerate in time; just compute how long it takes
+                t = (vf - v0) / maxacc;
+                return true;
             }
         }
     }
 }
-#include<fstream>
+
 bool ompl::geometric::TimeParameterization::computeFastTimeParametrizationPart(const PathGeometric &path,
                                                                                const base::StateSpace::SubstateLocation &sloc, 
                                                                                double maxVel, double maxAcc, 
@@ -302,12 +274,8 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrizationPart(c
                                                                                double startVel, double endVel,
                                                                                unsigned int maxSteps) const
 {
-  std::ofstream fout (("/u/isucan/" + sloc.space->getName() + ".x").c_str());
-  
-  //  This implementation greatly benefited from discussions with Kenneth Anderson (http://sites.google.com/site/kennethaanderson/)
-  std::cout << "Part " << sloc.space->getName() << std::endl;
-  
-  if (path.getStateCount() == 0)
+    //  This implementation greatly benefited from discussions with Kenneth Anderson (http://sites.google.com/site/kennethaanderson/)
+    if (path.getStateCount() == 0)
     {
         times.clear();
         velocities.clear();
@@ -328,12 +296,6 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrizationPart(c
     std::vector<double> L(path.getStateCount() - 1);
     for (std::size_t i = 0 ; i < L.size() ; ++i)
         L[i] = sloc.space->distance(ss->getSubstateAtLocation(path.getState(i), sloc), ss->getSubstateAtLocation(path.getState(i + 1), sloc));
-    /*
-    std::cout << "L = [";
-    for (std::size_t i = 0 ; i < L.size() ; ++i)
-      std::cout << L[i] << " ";
-    std::cout << "];\n";
-    */
 
     // the time for the first state is 0
     times.resize(path.getStateCount());
@@ -345,39 +307,8 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrizationPart(c
     velocities.front() = std::min(maxVel, startVel);
     velocities.back() = std::min(maxVel, endVel);
 
-    std::vector<double> maxacc_t(path.getStateCount(), maxAcc);
-
-    //    std::cout << "type = " <<sloc.space->getType() << " dim = " << sloc.space->getDimension() << std::endl;
-    fout << "p = [";
-    // check if some velocities need to be negative
-    if (sloc.space->getDimension() == 1)
-    {     
-      for (std::size_t i = 0 ; i < velocities.size() ; ++i)
-      {
-        const double *s0 = sloc.space->getValueAddressAtIndex(ss->getSubstateAtLocation(path.getState(i), sloc),0);
-        fout << *s0 << " ";        
-        std::cout << *s0 << " ";
-      }
-      std::cout << std::endl;
-      //      std::cout << "HERE!\n";
-      for (std::size_t i = 1 ; i < velocities.size() ; ++i)
-      {
-        const double *s0 = sloc.space->getValueAddressAtIndex(ss->getSubstateAtLocation(path.getState(i-1), sloc),0);
-        const double *s1 = sloc.space->getValueAddressAtIndex(ss->getSubstateAtLocation(path.getState(i), sloc),0);
-        if (sloc.space->getType() == base::STATE_SPACE_SO2)
-        {
-          if (*s0 > *s1 && (*s0 - *s1 < boost::math::constants::pi<double>()))
-              velocities[i] *= -1.0;
-        }
-        else
-          if (*s0 > *s1)
-            velocities[i] *= -1.0;
-      }
-    }
-      fout << "];\n";
-      
-      
-      //    std::cout.flush();
+    // we should check if some of the veolcities should be set to a negative value.
+    // this would be done 
     
     // compute the cosine of the angle between consecutive segments
     // and scale the maximum desired velocity by that value
@@ -387,41 +318,29 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrizationPart(c
     {
         double a = L[i-1];
         if (a < std::numeric_limits<double>::epsilon() * 2.0)
-          velocities[i] = 0.0;
+            velocities[i] = 0.0;
         else
         {
-          double b = L[i];
-          double c = sloc.space->distance(ss->getSubstateAtLocation(path.getState(i - 1), sloc), ss->getSubstateAtLocation(path.getState(i + 1), sloc));
-          double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
-          velocities[i] *= std::min(1.0, fabs(acosValue));
+            double b = L[i];
+            double c = sloc.space->distance(ss->getSubstateAtLocation(path.getState(i - 1), sloc), ss->getSubstateAtLocation(path.getState(i + 1), sloc));
+            double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+            velocities[i] *= std::min(1.0, fabs(acosValue));
         }
     }
     
-    for (std::size_t i = 0 ; i < L.size() ; ++i)
-      maxacc_t[i] *= 1.0 - fabs(velocities[i + 1] - velocities[i])/(4.0 * maxVel);
-
     bool valid = true;
     bool change = true;
     unsigned int steps = 0;
     while (change && steps <= maxSteps)
     {
-      //      std::cout << steps << std::endl;
-      
-      for (std::size_t i = 0 ; i < times.size() ; ++i)
-        std::cout << times[i] << " ";
-      std::cout << std::endl;
-      for (std::size_t i = 0 ; i < velocities.size() ; ++i)
-        std::cout << velocities[i] << " ";
-      std::cout << std::endl << std::endl;
-      
-      ++steps;
-      change = false;
-      valid = true;
-      
+        ++steps;
+        change = false;
+        valid = true;
+        
         for (std::size_t i = 1 ; i < times.size() ; ++i)
         {
             double possible_v0, possible_vf, t;
-            bool ok = getTime(velocities[i-1], velocities[i], L[i-1], maxVel, maxacc_t[i-1], possible_v0, possible_vf, t, true);
+            bool ok = getTime(velocities[i-1], velocities[i], L[i-1], maxVel, maxAcc, possible_v0, possible_vf, t, true);
             if (ok)
                 times[i] = t;
             else
@@ -441,7 +360,7 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrizationPart(c
           for (int i = L.size() - 1 ; i >= 0 ; --i)
             {
                 double possible_v0, possible_vf, t;
-                if (!getTime(velocities[i], velocities[i+1], L[i], maxVel, maxacc_t[i], possible_v0, possible_vf, t, false))
+                if (!getTime(velocities[i], velocities[i+1], L[i], maxVel, maxAcc, possible_v0, possible_vf, t, false))
                 {
                   if (fabs(velocities[i]) > fabs(possible_v0))
                     {
@@ -454,17 +373,5 @@ bool ompl::geometric::TimeParameterization::computeFastTimeParametrizationPart(c
         }
         
     }  
-          for (std::size_t i = 0 ; i < times.size() ; ++i)
-        std::cout << times[i] << " ";
-      std::cout << std::endl;
-      for (std::size_t i = 0 ; i < velocities.size() ; ++i)
-        std::cout << velocities[i] << " ";
-      std::cout << std::endl << std::endl;
-      
-    fout << "v = [";
-    for (std::size_t i = 0 ; i < velocities.size() ; ++i)
-      fout << velocities[i] << " ";
-    fout << "];\n";
-    fout.close();
     return valid;
 }
