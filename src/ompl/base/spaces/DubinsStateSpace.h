@@ -53,14 +53,13 @@ namespace ompl
             will not always return the true nearest neighbors or get stuck
             in an infinite loop. This means that if you use any of the RRT-based
             planners (which use GNAT by default), you need to do the following:
-            \code
+\code
 ob::StateSpacePtr stateSpace(new ob::DubinsStateSpace);
 og::SimpleSetup setup(stateSpace);
 og::RRTConnect* planner = new og::RRTConnect(setup.getSpaceInformation());
 planner->setNearestNeighbors<ompl::NearestNeighborsSqrtApprox>();
 setup.setPlanner(ompl::base::PlannerPtr(planner));
-            \endcode
-
+\endcode
             The notation and solutions in the code are taken from:<br>
             A.M. Shkel and V. Lumelsky, “Classification of the Dubins set,”
             Robotics and Autonomous Systems, 34(4):179-202, 2001.

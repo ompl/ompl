@@ -28,7 +28,8 @@ set(CPACK_SOURCE_IGNORE_FILES
     "installPyPlusPlus.sh$"
     "create_symlinks.sh$"
     "uninstall_symlinks.sh$"
-    "config.h$")
+    "config.h$"
+    ".registered$")
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_GENERATOR "TGZ")
 

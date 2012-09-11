@@ -9,14 +9,14 @@ href="http://www.gccxml.org/HTML/Download.html">here</a>, and for
 installing pygccxml/Py++ they can be found <a
 href="http://sourceforge.net/scm/?type=svn&group_id=118209">here</a>.
 The combined set of instructions is included in the script
-ompl/src/external/installPyPlusPlus.sh. This script will also
+ompl/src/external/installPyPlusPlus.{sh,bat}. This script will also
 apply a patch to pygccxml that is necessary to prevent it from
 treating gccxml warnings as errors. You can run this script (after
 running cmake) like so:
 \code
 make installpyplusplus
 \endcode
-The script will ask for your password so that it can install
+The script may ask for your password so that it can install
 these programs. If the script completes successfully, run cmake
 again and you should be able to generate the Python bindings by
 typing “make update_bindings”.
