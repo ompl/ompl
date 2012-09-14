@@ -120,7 +120,7 @@ action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">
 <div class="span6"><input id="6_letters_code" name="6_letters_code" type="text" class="span3"><br>
 <small>Can't read the image? click <a href='javascript: refreshCaptcha();'>here</a> to refresh</small>
 </p>
-<input type="submit" value="Submit" name='submit'>
+<input type="submit" value="Submit" name='submit' class="btn btn-primary">
 </div>
 </div>
 </form>
