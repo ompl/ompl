@@ -9,6 +9,7 @@ ompl::base::ProjectionEvaluator also includes utilities for discretizing the pro
 Projections are specific to state spaces. This means that each ompl::base::StateSpace has its corresponding set of ompl::base::ProjectionEvaluator. In the implementation of state spaces, it is recommended that projections are set in the ompl::base::StateSpace::registerProjections() function. Although not required, it is good practice to register all projections to their corresponding state space, as this ensures calling ompl::base::ProjectionEvaluator::setup() when needed. Most state spaces have at least a default projection set by ompl::base::StateSpace::registerProjections(). The user is encouraged to define appropriate projections, if available.
 
 Example code for adding a projection for an R<sup>n</sup> state space:
+
 ~~~{.cpp}
 using namespace ompl;
 
@@ -47,7 +48,9 @@ space->registerProjection("myProjection", base::ProjectionEvaluatorPtr(new MyPro
 ...
 planner->as<geometric::KPIECE1>()->setProjectionEvaluator("myProjection");
 ~~~
+
 The last two lines can be combined into one if you register \c MyProjection as the default projection for your space:
+
 ~~~{.cpp}
 space->registerDefaultProjection(base::ProjectionEvaluatorPtr(new MyProjection(space)));
 ~~~

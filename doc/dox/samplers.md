@@ -13,6 +13,7 @@ Below we will describe how you can specify a planner to use one of these sampler
 # Using an Existing Sampler
 
 We cannot set the type of sampler directly in the SimpleSetup or SpaceInformation classes, because each thread needs it own copy of a sampler. Instead, we need to define a ompl::base::ValidStateSamplerAllocator, a function that, given a pointer to an ompl::base::SpaceInformation, returns ompl::base::ValidStateSamplerPtr. This function can also configure the valid state sampler according to the specific space information before returning it. The following simple example shows how to use the ObstacleBasedValidStateSampler:
+
 \dontinclude StateSampling.cpp
 \skip ompl::base
 \until ompl::geometric
@@ -34,6 +35,7 @@ A wide variety of heuristics have been proposed to improve the sampling of state
 - If you can directly incorporate state validity constraints into the sampling (rather than use the rejection sampling scheme of the standard valid state samplers), then this will help boost performance. We will give an example of such sampler below.
 
 In the code below we are planning for a 3D point moving around inside a cube centered at the origin. There is one rectangular obstacle. Since the valid region is easy to describe, we can sample directly from the free space.
+
 \dontinclude StateSampling.cpp
 \skip ompl::base
 \until };

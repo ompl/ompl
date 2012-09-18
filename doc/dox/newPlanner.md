@@ -27,6 +27,7 @@ Aside from the strict requirements, there are other methods which can be impleme
 ## New Planner Template
 
 The following is a template which can be used to craft a new ompl::base::Planner object:
+
 ~~~{.cpp}
 #include <ompl/base/Planner.h>
 

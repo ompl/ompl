@@ -4,6 +4,7 @@
 # State Spaces
 
 This set of state spaces is included in OMPL:
+
 - R<sup>n</sup> (ompl::base::RealVectorStateSpace),
 - SO(2) (rotation in the plane, ompl::base::SO2StateSpace),
 - SO(3) (rotation in 3D, ompl::base::SO3StateSpace),
@@ -22,6 +23,7 @@ In addition, the ompl::base::CompoundStateSpace allows users to create arbitrari
 # Control Spaces
 
 This set of control spaces is included in OMPL:
+
 - R<sup>n</sup> (ompl::control::RealVectorControlSpace). 
 - Discrete (ompl::control::DiscreteControlSpace).
 - OpenDE (ompl::control::OpenDEControlSpace). This is an extension that is built only if the [Open Dynamics Engine][opende] library is detected.

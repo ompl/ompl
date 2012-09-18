@@ -9,6 +9,7 @@ This document provides a brief overview of OMPL coding standards. It is meant to
 - Each enclosing brace should reside on its own line, but braces can be omitted if the enclosed block consists of exactly one line.
 
 The following is an example of desirable code spacing.
+
 ~~~{.cpp}
 for (unsigned int i = 0 ; i < 50 ; ++i)
 {
@@ -26,6 +27,7 @@ for (unsigned int i = 0 ; i < 50 ; ++i)
 - Include guards in header files should be of the form OMPL_PATH_FILENAME_, where the words in the filename are separated by underscores.
 
 For example, the header and implementation files in which ompl::RNG is defined are ompl/util/RandomNumbers.h and ompl/util/src/RandomNumbers.cpp, respectively. The header file begins with the include guard
+
 ~~~{.cpp}
 #ifndef OMPL_UTIL_RANDOM_NUMBERS_
 ~~~
@@ -41,6 +43,7 @@ For example, the header and implementation files in which ompl::RNG is defined a
 - Names of constants and static variables should be in all capital letters, with an underscore between each word (e.g., ompl::base::StateSpace::DEFAULT_PROJECTION_NAME).
 
 For example, consider the following source code, which follows the above guidelines.
+
 ~~~{.cpp}
 class SampleObject
 {

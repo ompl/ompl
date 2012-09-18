@@ -3,6 +3,7 @@
 ### Instantiating a state space
 
 The first step for setting up a planning problem is selecting the space we are planning in. Simply create an instance of a class that inherits from ompl::base::StateSpace, or select one from the available implementations. To change the definition of the employed sampler or distance function, it is possible to provide a further specialization of such a state space. See [Implementing State Spaces]{implementingStateSpaces.html}.
+
 ~~~{.cpp}
 base::StateSpacePtr space(new base::SE2StateSpace());
 // set bounds ....
@@ -12,6 +13,7 @@ base::StateSpacePtr space(new base::SE2StateSpace());
 ### Instantiating a control space
 
 If planning with differential constraints, a representation of the space of controls is needed as well. Simply create an instance of a class that inherits from ompl::control::ControlSpace. Usually, ompl::control::RealVectorControlSpace is sufficient. An implementation needs to be specified for the ompl::control:ControlSpace::propagate() either by inheriting from the control space class or by calling ompl::control::ControlSpace::setPropagationFunction().
+
 ~~~{.cpp}
 base::StateSpacePtr space(new base::SE2StateSpace());
 // set bounds for state space
@@ -53,6 +55,7 @@ pdef->setStartAndGoalStates(start, goal);
 ### Instantiating a planner
 
 In order to use a motion planner (ompl::geometric::XXX, from __ompl/geometric/planners__ or ompl::control::XXX, from __ompl/control/planners__), an instance of ompl::base::SpaceInformation (ompl::control::SpaceInformation, respectively) must be available. This instance is supplied to the planner's constructor. After creation, a call to the planner's ompl::base::Planner::setup() method must be made and the planner instance is ready for use. The problem to be solved is set with ompl::base::Planner::setProblemDefinition(). The ompl::base::Planner::solve() method can be called repeatedly with different allowed time durations until a solution is found. The planning process continues with the available data structures when sequential calls to ompl::base::Planner::solve() are made. A call to ompl::base::Planner::clear() will restore a planner to its state before any calls to the ompl::base::Planner::solve() method were made.
+
 ~~~{.cpp}
 using namespace ompl;
 base::SpaceInformationPtr si(...);

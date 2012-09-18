@@ -4,6 +4,7 @@ State Validity Checking {#stateValidation}
 OMPL itself does not include code for state validity checking. This is intentional, since defining this notion depends on the type of problems to be solved. For instance, OMPL.app defines state validity checking in terms of collision checking between loaded CAD models. The ROS interface to OMPL defines state validity checking to be collision checking between the robot model and sensed objects in the environment. If planning for protein folding, the state validity check has to do with the evaluation of energy functions.
 
 In order to allow the user to specify the notion of state validity, OMPL defines two abstract classes:
+
 - ompl::base::StateValidityChecker
 - ompl::base::MotionValidator
 

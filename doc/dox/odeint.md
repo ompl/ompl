@@ -34,15 +34,18 @@ Computing the exact solution for the majority of non-linear differential equatio
 # Using OMPL's ODESolver
 
 To use the ODESolver, a function describing the ODE of your system must be implemented.  This function must have the following signature:
+
 ~~~{.cpp}
 void ODE(const oc::ODESolver::StateType& q, const oc::Control* u, oc::ODESolver::StateType& qdot)
 ~~~
+
 This function takes a vector q (StateType is a std::vector) that describes the current state of the system, a control u that defines the inputs applied to the system at state q, and a vector qdot to store the output of the computation. ODESolver utilizes [boost::numeric::odeint][odeint] to perform the numerical integration, and it is necessary to translate the ompl::base::State values into an iterable container of real values.  Therefore, values in the vector q directly correspond to the real valued state parameters in the ompl::base::State.  This data is analogous to the result of calling ompl::base::ScopedState::reals.
 
 
 ## Define the ODE
 
 Assume that you are planning for the simple car-like system described above. The state space of the car is [SE(2)](http://en.wikipedia.org/wiki/Euclidean_group) (x and y position with one angle for orientation). An implementation of this space already exists in OMPL (ompl::base::SE2StateSpace), so it is not necessary to define a new space for the car. The ompl::control::ControlSpace for this simple car model consists of the velocity and steering angle, both real valued. Given these definitions, the ODE defined for the ODESolver then has the following structure:
+
 ~~~{.cpp}
 namespace oc = ompl::control;
 
@@ -72,15 +75,20 @@ void SimpleCarODE(const oc::ODESolver::StateType& q, const oc::Control* c, oc::O
 ## A Basic Example
 
 When planning with the ODESolver, the user must instantiate the derived solver. All of the solvers require a SpaceInformationPtr that the system operates in to be supplied in the constructor. This is used to extract the values of ompl::base::State into a container for integration via the StateSpace. The ODE itself must also be given to the solver. The simplest solver is the ompl::control::ODEBasicSolver, which uses fourth order [Runge-Kutta](http://mathworld.wolfram.com/Runge-KuttaMethod.html) integration. Given the car-like system and ODE described above, the solver can be instanted with the following code snippet:
+
 ~~~{.cpp}
 // SpaceInformationPtr is defined as the variable si.
 ompl::control::ODEBasicSolver<> odeSolver (si, &SimpleCarODE);
 ~~~
+
 Control based planners also require a ompl::control::StatePropagator object that defines how the system moves given a specific control. The ODESolver provides a wrapper for this functionality via the getStatePropagator method:
+
 ~~~{.cpp}
 si->setStatePropagator(odeSolver.getStatePropagator());
 ~~~
+
 This is all that is needed for the planner to sample a control and propagate the system by solving the differential equations defined in the ode. In some systems, a post-numerical integration callback event is useful. As an example, note that the ODE allows the state values to unboundedly change, and for some systems this is not acceptable. For the car-like system above, the orientation parameter \f$\theta\f$ is generally a value between 0 and \f$2\pi\f$, and integration could have the value exceed these bounds. In such a case, it is useful to define a post-integration event callback that is invoked after numerical integration is complete:
+
 ~~~{.cpp}
 void postPropagate(const control::Control *ctrl, base::State *result)
 {
@@ -91,7 +99,9 @@ void postPropagate(const control::Control *ctrl, base::State *result)
     SO2.enforceBounds(s[1]);
 }
 ~~~
+
 The StatePropagator can then be defined to take this new post-Integration function as an argument:
+
 ~~~{.cpp}
 si->setStatePropagator(odeSolver.getStatePropagator(&postPropagate));
 ~~~

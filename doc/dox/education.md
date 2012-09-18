@@ -8,6 +8,7 @@ As part of this effort, we have developed a collection of assignments that can b
 2. A systematic comparison of motion planners. Students need to write a benchmarking program, collect performance metrics. They will learn the importance of randomness and the sensitivity to a specific motion planning problem.
 3. Development of a new motion planning algorithm for dynamical systems. The students are asked to test their planner on a pendulum system and a simple car-like vehicle system and compare the performance against two planning algorithms that are already implemented in OMPL.
 4. A final project on topics such as:
+
   - Path clustering
   - Path optimization (see [gallery](gallery.html#gallery_comp450))
   - Dynamic manipulation

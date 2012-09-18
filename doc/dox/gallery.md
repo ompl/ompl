@@ -41,6 +41,7 @@ An example of using OMPL to plan for a robotic system simulated with [ODE](http:
 Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app.
 
 __The “cubicles” environment.__ An L-shaped robot has to fly through a number of rooms and the “basement” to reach the goal state:
+
 \htmlonly
 <div class="row">
 <div class="span5 offset1">
@@ -53,6 +54,7 @@ __The “cubicles” environment.__ An L-shaped robot has to fly through a numbe
 \endhtmlonly
 
 __The “Twistycool” environment.__ A twisted shape has to make a complex maneuver to move through a narrow passage:
+
 \htmlonly
 <div class="row">
 <div class="span5 offset1">
@@ -67,6 +69,7 @@ __The “Twistycool” environment.__ A twisted shape has to make a complex mane
 # Class Project from COMP 450 on Path Optimization {#gallery_comp450}
 
 In Fall 2010 OMPL was used for the first time in Lydia Kavraki's Algorithmic Robotics class. Students completed several projects. For their last project they could choose from several options. Linda Hill and Yu Yun worked on path optimization. The different optimization criteria considered they considered were path length and sum of discrete path curvature sum. Minimizing the former in shorter paths, minimizing the second results in smoother paths. They used two optimization techniques specific to paths / curves: B-spline interpolation and path hybridization. Path smoothing using B-spline interpolation is shown below on the left. In path hybridization a set of (approximate) solutions to a motion planning problem is given as input, cross-over points are computed, and a new optimized path composed of path segments is found. An example of path hybridization to minimize path length is shown below on the right. In both cases the paths were in SE(3); the figures show simply the R<sup>3</sup> component.
+
 \htmlonly
 <div class="row">
 <div class="span6">

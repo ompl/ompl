@@ -1,12 +1,14 @@
 # Python Bindings
 
 Almost all of the functionality of the C++ OMPL library is accessible through Python using more or less the same API. Some important differences will be described below. The Python bindings are generated with [Py++](https://sourceforge.net/projects/pygccxml), which relies on [Boost.Python](http://www.boost.org/doc/libs/release/libs/python/doc). The bindings are packaged in the ompl module. The main namespaces (ompl::base, ompl::control, ompl::geometric) are available as sub-modules. To quickly get an idea of what classes, functions, etc., are available within each submodule, type something like this at the Python prompt:
+
 ~~~{.py}
 from ompl import base, control, geometric, tools, util
 dir(base), dir(control), dir(geometric), dir(tools), dir(util)
 ~~~
 
 # Contents:
+
 - \ref py_good_practices
 - \ref cpp_py_diffs
 - \ref py_api_diffs
@@ -45,6 +47,7 @@ sref = s()             # sref corresponds to a C++ State*. In this case sref is
 sref.setX(1.0)         # set the X coordinate
 s().setX(1.0)          # this also works
 ~~~
+
 - The print method (for classes that have one) is mapped to the special python method __str__, so a C++ call like <tt>foo.print(std::cout)</tt> becomes <tt>print foo</tt> in python. Similarly, a C++ call like <tt>foo.printSettings(std::cout)</tt> becomes <tt>print foo.settings()</tt> in python.
 
 Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code.
@@ -52,6 +55,7 @@ Many of the python demo and test programs are direct ports of the corresponding 
 # A simple example {#py_example}
 
 Below is a simple annotated example. It is available in ompl/py-bindings/demos/RigidBodyPlanning.py.
+
 ~~~{.py}
 from ompl import base as ob
 from ompl import geometric as og
@@ -108,13 +112,17 @@ if __name__ == "__main__":
     plan()
 ~~~
 
+
 # Creating boost::function objects from Python functions {#pyfunction_to_boostfunction}
 
 OMPL relies heavily on boost::function objects for callback functions. To specify a Python function as a callback function, that function needs to be cast to the right function type. The simple example above already showed how to do this for a state validity checker function:
+
 ~~~{.py}
 ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 ~~~
+
 If you need to pass extra arguments to a function, you can use the Python \c partial function like so:
+
 ~~~{.py}
 from functools import partial
 
@@ -128,9 +136,11 @@ def plan()
     ...
 ~~~
 
+
 # (Re)generating the Python bindings {#updating_python_bindings}
 
 The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, you will need to update the Python bindings. Updating the bindings is a two-step process. First, the code for the modules needs to be generated. Second, the code needs to be compiled into binary Python modules.
+
 
 ## Code generation {#binding_code_generation}
 

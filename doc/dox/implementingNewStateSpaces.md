@@ -5,12 +5,15 @@ Implementing State Spaces {#implementingStateSpaces}
 ### Combining existing state spaces
 
 The simplest way to obtain new state spaces is to combine existing ones. For example, to get the state space of a manipulator arm one could combine R<sup>5</sup> (ompl::base::RealVectorStateSpace) and SO2 (ompl::base::SO2StateSpace) to represent 5 joints that have bounds and one joint that can rotate continuously:
+
 ~~~{.cpp}
 ompl::base::StateSpacePtr r5(new ompl::base::RealVectorStateSpace(5));
 ompl::base::StateSpacePtr so2(new ompl::base::SO2StateSpace())
 ompl::base::StateSpacePtr newSpace = r5 + so2;
 ~~~
+
 Alternatively to using the “+” operator on state spaces (see [working with states and state spaces](workingWithStates.html)), one could directly create an instance of ompl::base::CompoundStateSpace and call ompl::base::CompoundStateSpace::addSubspace() on it. This approach allows setting the weights of each added subspace for computing distances bewteen states in the compound state space. When using the “+” operator these weights are assumed to be 1.0.
+
 ~~~{.cpp}
 ompl::base::CompoundStateSpace *newSpace = new ompl::base::CompoundStateSpace();
 newSpace->addSubspace(ompl::base::StateSpacePtr(new ompl::base::RealVectorStateSpace(5)), 1.0);

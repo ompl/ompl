@@ -39,6 +39,7 @@
   // for simplified calls, you can also use:
   // si->setValidStateSamplerAllocator(&allocValidStateSampler);
   ~~~
+
   The example above is similarly applicable for ompl::base::StateSamplerAllocator ompl::control::ControlSamplerAllocator, ompl::control::DirectedControlSamplerAllocator and ompl::base::PlannerAllocator.
 
 If your question is still not answered, another good place to check is the [mailing list archive](http://sourceforge.net/mailarchive/forum.php?forum_name=ompl-users).
