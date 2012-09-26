@@ -198,8 +198,8 @@ void planWithSimpleSetup(void)
 
     // Use the ODESolver to propagate the system.  Call KinematicCarPostIntegration
     // when integration has finished to normalize the orientation values.
-    oc::ODEBasicSolver<> odeSolver(ss.getSpaceInformation(), &KinematicCarODE);
-    ss.setStatePropagator(odeSolver.getStatePropagator(&KinematicCarPostIntegration));
+    oc::ODESolverPtr odeSolver(new oc::ODEBasicSolver<> (ss.getSpaceInformation(), &KinematicCarODE));
+    ss.setStatePropagator(oc::ODESolver::getStatePropagator(odeSolver, &KinematicCarPostIntegration));
 
     /// create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);

@@ -47,6 +47,7 @@
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/StatePropagator.h"
 #include "ompl/util/Console.h"
+#include "ompl/util/ClassForward.h"
 
 #include <omplext_odeint/boost/numeric/odeint.hpp>
 #include <boost/function.hpp>
@@ -58,6 +59,13 @@ namespace ompl
 
     namespace control
     {
+    
+        /// @cond IGNORE
+        ClassForward(ODESolver);
+        /// @endcond
+
+        /// \class ompl::control::ODESolverPtr
+        /// \brief A boost shared pointer wrapper for ompl::control::ODESolver
 
         /// \brief Abstract base class for an object that can solve ordinary differential
         /// equations (ODE) of the type q' = f(q,u) using numerical integration.  Classes
@@ -79,7 +87,7 @@ namespace ompl
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), ode_(ode), intStep_(intStep)
+            ODESolver (const SpaceInformationPtr& si, const ODE& ode, double intStep) : si_(si), ode_(ode), intStep_(intStep)
             {
             }
 
@@ -106,18 +114,20 @@ namespace ompl
                 intStep_ = intStep;
             }
 
-            /// \brief Retrieve a StatePropagator object that solves the system of ordinary
-            /// differential equations defined by this ODESolver.
+            /// \brief Retrieve a StatePropagator object that solves a system of ordinary
+            /// differential equations defined by an ODESolver.
             /// An optional PostPropagationEvent can also be specified as a callback after
             /// numerical integration is finished for further operations on the resulting
             /// state.
-            StatePropagatorPtr getStatePropagator (const PostPropagationEvent &postEvent = NULL) const
+            static StatePropagatorPtr getStatePropagator (ODESolverPtr solver, const PostPropagationEvent &postEvent = NULL)
             {
                 class ODESolverStatePropagator : public StatePropagator
                 {
                     public:
-                        ODESolverStatePropagator (const SpaceInformationPtr& si, const ODESolver *solver, const PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), postEvent_(pe)
+                        ODESolverStatePropagator (ODESolverPtr solver, const PostPropagationEvent &pe) : StatePropagator (solver->si_), solver_(solver), postEvent_(pe)
                         {
+                            if (!solver.get())
+                                logError("ODESolverPtr does not reference a valid ODESolver object");
                         }
 
                         virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
@@ -132,11 +142,11 @@ namespace ompl
                         }
 
                     protected:
-                        const ODESolver *solver_;
+                        ODESolverPtr solver_;
                         ODESolver::PostPropagationEvent postEvent_;
                 };
 
-                return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(si_, this, postEvent)));
+                return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(solver, postEvent)));
             }
 
         protected:
@@ -145,7 +155,7 @@ namespace ompl
             virtual void solve (StateType &state, const Control* control, const double duration) const = 0;
 
             /// \brief The SpaceInformation that this ODESolver operates in.
-            const SpaceInformationPtr     si_;
+            const SpaceInformationPtr&    si_;
 
             /// \brief Definition of the ODE to find solutions for.
             ODE                           ode_;
