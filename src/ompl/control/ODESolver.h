@@ -83,7 +83,7 @@ namespace ompl
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            typedef boost::function<void(const Control*, base::State*)> PostPropagationEvent;
+            typedef boost::function<void(const base::State *state, const Control* control, const double duration, base::State *result)> PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
@@ -138,7 +138,7 @@ namespace ompl
                             si_->getStateSpace()->copyFromReals(result, reals);
 
                             if (postEvent_)
-                                postEvent_ (control, result);
+                                postEvent_ (state, control, duration, result);
                         }
 
                     protected:

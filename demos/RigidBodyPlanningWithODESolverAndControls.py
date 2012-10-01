@@ -92,8 +92,8 @@ def plan():
     validityChecker = ob.StateValidityCheckerFn(partial(isStateValid, ss.getSpaceInformation()))
     ss.setStateValidityChecker(validityChecker)
     ode = oc.ODE(kinematicCarODE)
-    odeSolver = oc.ODEBasicSolver(ss.getSpaceInformation(), ode)
-    ss.setStatePropagator(odeSolver.getStatePropagator(oc.PostPropagationEvent(postProp)))
+    odeSolver = oc.ODESolverPtr(ODEBasicSolver(ss.getSpaceInformation(), ode))
+    ss.setStatePropagator(oc.ODESolver.getStatePropagator(odeSolver, oc.PostPropagationEvent(postProp)))
 
     # create a start state
     start = ob.State(space)
