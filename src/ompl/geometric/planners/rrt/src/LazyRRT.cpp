@@ -160,8 +160,6 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
             solution = motion;
             solutionFound = true;
 
-            lastGoalMotion_ = solution;
-
             // Check that the solution is valid:
             // construct the solution path
             std::vector<Motion*> mpath;
@@ -192,6 +190,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
                     path->append(mpath[i]->state);
 
                 pdef_->addSolutionPath(base::PathPtr(path), false, distsol);
+                
+                lastGoalMotion_ = solution;
             }
         }
     }
@@ -241,7 +241,8 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
