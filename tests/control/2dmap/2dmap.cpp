@@ -43,6 +43,7 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/control/planners/rrt/RRT.h"
+#include "ompl/control/planners/rrt/TRRT.h"
 #include "ompl/control/planners/kpiece/KPIECE1.h"
 #include "ompl/control/planners/est/EST.h"
 #include "ompl/control/planners/syclop/SyclopEST.h"
@@ -319,6 +320,31 @@ protected:
     }
 };
 
+// Transition-based RRT
+class TRRTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        control::TRRT *rrt = new control::TRRT(si);
+        rrt->setIntermediateStates(false);
+        return base::PlannerPtr(rrt);
+    }
+};
+
+class TRRTTestIntermediate : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        control::TRRT *rrt = new control::TRRT(si);
+        rrt->setIntermediateStates(true);
+        return base::PlannerPtr(rrt);
+    }
+};
+
 // A 2D workspace grid-decomposition for Syclop planners
 class SyclopDecomposition : public control::GridDecomposition
 {
@@ -523,6 +549,36 @@ BOOST_AUTO_TEST_CASE(controlRRTIntermediate)
     double avglength  = 0.0;
 
     TestPlanner *p = new RRTTestIntermediate();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
+}
+
+BOOST_AUTO_TEST_CASE(controlTRRT)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new TRRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.05);
+    BOOST_CHECK(avglength < 100.0);
+}
+
+BOOST_AUTO_TEST_CASE(controlTRRTIntermediate)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    TestPlanner *p = new TRRTTestIntermediate();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 
