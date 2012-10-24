@@ -41,15 +41,15 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 
 /*
-  TODO: change these variables back to short style to match other planners:
+  NOTES:
+  **Variable Names that have been converted to longer versions from standards:
   nearest_neighbors_ -> nn_
   planner_termination_condition -> ptc
 
-  NOTES: Inherited Member Variables Key
+  **Inherited Member Variables Key:
   si_ -> SpaceInformation
   pdef_ -> ProblemDefinition
   pis_ -> PlannerInputStates - Utility class to extract valid input states
-
 */
 
 
@@ -62,14 +62,12 @@ namespace geometric
 /**
    @anchor TRRT
    @par Short description
-   T-RRT is a tree-based motion planner that uses the following
-   idea: T-RRT samples a random state @b qr in the state space,
-   then finds the state @b qc among the previously seen states
-   that is closest to @b qr and expands from @b qc towards @b
-   qr, until a state @b qm is reached. @b qm is then added to
-   the exploration tree.
+   T-RRT is an RRT variant and tree-based motion planner that takes into consideration state costs 
+   to compute low-cost paths that follow valleys and saddle points of the configuration-space 
+   costmap. It uses transition tests from stoachastic optimization methods to accept or reject new
+   potential sates.
    @par External documentation
-   L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: <a href="http://ieeexplore.ieee.org/xpl/login.jsp?tp=&arnumber=5477164&url=http%3A%2F%2Fieeexplore.ieee.org%2Fxpls%2Fabs_all.jsp%3Farnumber%3D5477164">IEEE</a><br />
+   L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: <a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5477164&isnumber=5540533">IEEE</a><br />
    <a href="http://homepages.laas.fr/nic/Papers/10TRO.pdf">[PDF]</a>
 */
 
