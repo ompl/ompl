@@ -56,7 +56,9 @@ namespace ompl
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
 
-        /** \brief Abstract definition of optimization objectives. */
+        /** \brief Abstract definition of optimization objectives. 
+
+            \note This implementation has greatly benefited from discussions with <a href="http://www.cs.indiana.edu/~hauserk/">Kris Hauser</a> */
         class OptimizationObjective : private boost::noncopyable
         {
         public:
@@ -79,6 +81,9 @@ namespace ompl
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual double getIncrementalCost(const State *s1, const State *s2) const = 0;
 
+            /** \brief Get the cost that corresponds to the final state on the path (that satisfies the goal) */
+            virtual double getTerminalCost(const State *s) const = 0;
+          
             /** \brief Get the cost that corresponds to combining the costs \e a and \e b */
             virtual double combineObjectiveCosts(double a, double b) const = 0;
 
@@ -123,13 +128,15 @@ namespace ompl
 
             virtual double combineObjectiveCosts(double a, double b) const;
 
+            virtual double getTerminalCost(const State *s) const;
+
         protected:
 
             /** \brief The maximum upper bound for the objective cost that is to be accepted as satisfactory */
             double  maximumUpperBound_;
         };
-    
-          
+
+
         class PathLengthOptimizationObjective : public BoundedAdditiveOptimizationObjective
         {   
         public:
