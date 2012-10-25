@@ -191,11 +191,6 @@ class RRTTest(TestPlanner):
         planner = oc.RRT(si)
         return planner
 
-class TRRTTest(TestPlanner):
-    def newplanner(self, si):
-        planner = oc.TRRT(si)
-        return planner
-
 class ESTTest(TestPlanner):
     def newplanner(self, si):
         planner = oc.EST(si)
@@ -307,13 +302,6 @@ class PlanTest(unittest.TestCase):
 
     def testControl_RRT(self):
         planner = RRTTest()
-        (success, avgruntime, avglength) = self.runPlanTest(planner)
-        self.assertTrue(success >= 99.0)
-        self.assertTrue(avgruntime < 5)
-        self.assertTrue(avglength < 100.0)
-
-    def testControl_TRRT(self):
-        planner = TRRTTest()
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 5)
