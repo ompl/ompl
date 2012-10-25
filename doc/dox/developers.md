@@ -11,6 +11,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 
 # Contributors:
 
+- [Dave Coleman](http://davetcoleman.com/),  Nikolaus Correll's [group](http://correll.cs.colorado.edu/), University of Colorado Boulder
 - [Alejandro Perez](http://people.csail.mit.edu/aperez/www), Seth Teller's [Robotics, Vision, and Sensor Networks Group](http://rvsn.csail.mit.edu), MIT
 - [Sertac Karaman](http://sertac.scripts.mit.edu/web), Emilio Frazzoli's [Aerospace Robotics and Embedded Systems Laboratory](http://ares.lids.mit.edu), MIT
 - [James Marble](http://www.cse.unr.edu/robotics/pracsys/marble), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.cse.unr.edu/robotics/pracsys), University of Nevada, Reno

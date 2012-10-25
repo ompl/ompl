@@ -71,9 +71,9 @@ namespace ompl
         static const double MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.2;
 
         /** \brief For cost-based planners it has been observed that smaller ranges
-	    are typically suitable. The same range computation strategy is used for all
-	    planners, but for cost planners an additional factor (smaller than 1) is 
-	    multiplied in. */
+            are typically suitable. The same range computation strategy is used for all
+            planners, but for cost planners an additional factor (smaller than 1) is
+            multiplied in. */
         static const double COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION = 0.175;
 
         /** \brief When standard deviation is needed for Gaussian

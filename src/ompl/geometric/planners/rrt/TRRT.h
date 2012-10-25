@@ -60,7 +60,7 @@ namespace ompl
     {
 
         /**
-           @anchor TRRT
+           @anchor gTRRT
            @par Short description
            T-RRT is an RRT variant and tree-based motion planner that takes into consideration state costs
            to compute low-cost paths that follow valleys and saddle points of the configuration-space
@@ -296,7 +296,7 @@ namespace ompl
             Motion                                         *lastGoalMotion_;
 
             /** \brief Output debug info */
-            bool                                                                             verbose_;
+            bool                                            verbose_;
 
             // *********************************************************************************************************
             // TRRT-Specific Variables
@@ -304,48 +304,45 @@ namespace ompl
 
             // Transtion Test -----------------------------------------------------------------------
 
-            // Temperature parameter used to control the difficulty level of transition tests. Low temperatures
-            // limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
-            // Dynamically tuned according to the information acquired during exploration
+            /** \brief Temperature parameter used to control the difficulty level of transition tests. Low temperatures
+                limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
+                Dynamically tuned according to the information acquired during exploration */
             double                                          temp_;
 
-            // Constant value used to normalize expression. Based on order of magnitude of the considered costs.
-            // Average cost of the query configurtaions since they are the only cost values known at the
-            // beginning of the search process.
-            double                                                                                        k_constant_;
+            /** \brief Constant value used to normalize expression. Based on order of magnitude of the considered costs.
+                Average cost of the query configurtaions since they are the only cost values known at the
+                beginning of the search process. */
+            double                                          k_constant_;
 
-            // Max number of rejections allowed
+            /// Max number of rejections allowed
             unsigned int                                    max_states_failed_;
 
-            // Failure temperature factor used when max_num_failed_ failures occur
+            /// Failure temperature factor used when max_num_failed_ failures occur
             double                                          temp_change_factor_;
 
-            // Prevent temperature from dropping too far
+            /// Prevent temperature from dropping too far
             double                                          min_temperature_;
 
-            // A very low value at initialization to authorize very easy positive slopes
+            /// A very low value at initialization to authorize very easy positive slopes
             double                                          init_temperature_;
 
-            // Failure counter for states that are rejected
+            /// Failure counter for states that are rejected
             unsigned int                                    num_states_failed_;
 
 
             // Minimum Expansion Control --------------------------------------------------------------
 
-            // Ratio counters for nodes that expand the search space versus those that do not
+            /// Ratio counters for nodes that expand the search space versus those that do not
             double                                          nonfrontier_count_;
             double                                          frontier_count_;
 
-            // The distance between an old state and a new state that qualifies it as a frontier state
+            /// The distance between an old state and a new state that qualifies it as a frontier state
             double                                          frontier_threshold_;
 
-            // Target ratio of nonfrontier nodes to frontier nodes. rho
+            /// Target ratio of nonfrontier nodes to frontier nodes. rho
             double                                          frontier_node_ratio_;
 
-
-
         };
-
     }
 }
 

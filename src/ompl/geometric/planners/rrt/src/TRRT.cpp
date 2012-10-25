@@ -104,10 +104,10 @@ void ompl::geometric::TRRT::setup(void)
     // Set maximum distance a new node can be from its nearest neighbor
     if (max_distance_ < std::numeric_limits<double>::epsilon())
     {
-	self_config.configurePlannerRange(max_distance_);
-	max_distance_ *= magic::COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+        self_config.configurePlannerRange(max_distance_);
+        max_distance_ *= magic::COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
     }
-    
+
     // Set the threshold that decides if a new node is a frontier node or non-frontier node
     if (frontier_threshold_ < std::numeric_limits<double>::epsilon())
     {
