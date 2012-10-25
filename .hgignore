@@ -3,15 +3,6 @@
 build/
 bin/
 lib/
-msg_gen/
-msg/.*Action\.msg$
-msg/.*ActionFeedback\.msg$
-msg/.*ActionGoal\.msg$
-msg/.*ActionResult\.msg$
-msg/.*Feedback\.msg$
-msg/.*Goal\.msg$
-msg/.*Result\.msg$
-msg/_.*\.py$
 \.pcd$
 .pyc$
 CMakeModules/ompl.pc

@@ -57,6 +57,9 @@ else()
   option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
 endif()
 
+# pthread is sometimes needed, depending on OS / compiler
+find_package(Threads QUIET)
+
 enable_testing()
 
 # ODE is only needed for Open Dynamics Engine bindings
