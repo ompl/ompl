@@ -74,14 +74,11 @@ namespace ompl
             /** \brief Compute what a good length for motion segments is */
             void configurePlannerRange(double &range);
 
-            /** \brief Compute what a good length for motion segments is for COST planners */
-            void configureCostPlannerRange(double &range);
-
             /** \brief If \e proj is undefined, it is set to the default
                 projection reported by base::StateSpace::getDefaultProjection().
                 If no default projection is available either, an exception is thrown. */
             void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj);
-			
+
             /** \brief Print the computed configuration parameters */
             void print(std::ostream &out = std::cout) const;
 

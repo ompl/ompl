@@ -318,17 +318,17 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                         return true;
                     }
                     else
-                    {          
+                    {
                         if (solution && !sol_cost_set)
                         {
                             sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
                             sol_cost_set = true;
                         }
-                      
+
                         if (!solution || obj_cost < sol_cost)
                         {
                             solution = p;
-                            sol_cost = obj_cost;   
+                            sol_cost = obj_cost;
                             sol_cost_set = true;
                         }
                     }

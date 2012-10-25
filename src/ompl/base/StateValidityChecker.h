@@ -119,7 +119,7 @@ namespace ompl
             }
 
             /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest
-                invalid state (using clearance()). If a direction that moves \e state away from being invalid is available, 
+                invalid state (using clearance()). If a direction that moves \e state away from being invalid is available,
                 a valid state in that direction is also set (\e validState). \e validStateAvailable is set to true if \e validState
                 is updated. */
             virtual bool isValid(const State *state, double &dist, State *validState, bool &validStateAvailable) const

@@ -120,16 +120,6 @@ namespace ompl
                 */
             }
 
-            void configureCostPlannerRange(double &range)
-            {
-                if (range < std::numeric_limits<double>::epsilon())
-                {
-                    range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION *
-						magic::COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-                    logDebug("Cost planner range detected to be %lf", range);
-                }
-            }			
-
             void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
             {
                 checkSetup();
@@ -217,12 +207,6 @@ void ompl::tools::SelfConfig::configurePlannerRange(double &range)
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
     impl_->configurePlannerRange(range);
-}
-
-void ompl::tools::SelfConfig::configureCostPlannerRange(double &range)
-{
-    boost::mutex::scoped_lock iLock(impl_->lock_);
-    impl_->configureCostPlannerRange(range);
 }
 
 void ompl::tools::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)

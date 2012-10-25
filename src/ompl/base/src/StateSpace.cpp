@@ -271,7 +271,7 @@ ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(State *state, c
 }
 
 const ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(const State *state, const SubstateLocation &loc) const
-{    
+{
     std::size_t index = 0;
     while (loc.chain.size() > index)
         state = state->as<CompoundState>()->components[loc.chain[index++]];
@@ -435,7 +435,7 @@ namespace ompl
               return a.space->getName() > b.space->getName();
             }
         };
-    
+
     }
 }
 
@@ -479,7 +479,7 @@ void ompl::base::StateSpace::getCommonSubspaces(const StateSpace *other, std::ve
     bool found = true;
     while (found)
     {
-      found = false;      
+      found = false;
       for (std::set<StateSpace::SubstateLocation, CompareSubstateLocation>::iterator it = intersection.begin() ; it != intersection.end() ; ++it)
           for (std::set<StateSpace::SubstateLocation, CompareSubstateLocation>::iterator jt = intersection.begin() ; jt != intersection.end() ; ++jt)
               if (it != jt)
@@ -509,15 +509,15 @@ void ompl::base::StateSpace::list(std::ostream &out) const
     q.push(this);
     while (!q.empty())
     {
-	const StateSpace *m = q.front();
-	q.pop();
+        const StateSpace *m = q.front();
+        q.pop();
         out << "@ " << m << ": " << m->getName() << std::endl;
-	if (m->isCompound())
-	{
-	    unsigned int c = m->as<CompoundStateSpace>()->getSubspaceCount();
-	    for (unsigned int i = 0 ; i < c ; ++i)
-		q.push(m->as<CompoundStateSpace>()->getSubspace(i).get());
-	}
+        if (m->isCompound())
+        {
+            unsigned int c = m->as<CompoundStateSpace>()->getSubspaceCount();
+            for (unsigned int i = 0 ; i < c ; ++i)
+                q.push(m->as<CompoundStateSpace>()->getSubspace(i).get());
+        }
     }
 }
 
@@ -530,19 +530,19 @@ void ompl::base::StateSpace::diagram(std::ostream &out) const
     q.push(this);
     while (!q.empty())
     {
-	const StateSpace *m = q.front();
-	q.pop();
-	if (m->isCompound())
-	{
-	    unsigned int c = m->as<CompoundStateSpace>()->getSubspaceCount();
-	    for (unsigned int i = 0 ; i < c ; ++i)
-	    {
-		const StateSpace *s = m->as<CompoundStateSpace>()->getSubspace(i).get();
-		q.push(s);
-		out << '"' << m->getName() << "\" -> \"" << s->getName() << "\" [label=\"" <<
-		    boost::lexical_cast<std::string>(m->as<CompoundStateSpace>()->getSubspaceWeight(i)) << "\"];" << std::endl;
-	    }
-	}
+        const StateSpace *m = q.front();
+        q.pop();
+        if (m->isCompound())
+        {
+            unsigned int c = m->as<CompoundStateSpace>()->getSubspaceCount();
+            for (unsigned int i = 0 ; i < c ; ++i)
+            {
+                const StateSpace *s = m->as<CompoundStateSpace>()->getSubspace(i).get();
+                q.push(s);
+                out << '"' << m->getName() << "\" -> \"" << s->getName() << "\" [label=\"" <<
+                    boost::lexical_cast<std::string>(m->as<CompoundStateSpace>()->getSubspaceWeight(i)) << "\"];" << std::endl;
+            }
+        }
     }
 
     out << '}' << std::endl;
@@ -770,7 +770,7 @@ ompl::base::StateSamplerPtr ompl::base::StateSpace::allocSubspaceStateSampler(co
 ompl::base::StateSamplerPtr ompl::base::StateSpace::allocSubspaceStateSampler(const StateSpace *subspace) const
 {
     if (subspace->getName() == getName())
-	return allocStateSampler();
+        return allocStateSampler();
     return StateSamplerPtr(new SubspaceStateSampler(this, subspace, 1.0));
 }
 
@@ -1072,7 +1072,7 @@ ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSam
 ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocSubspaceStateSampler(const StateSpace *subspace) const
 {
     if (subspace->getName() == getName())
-	return allocStateSampler();
+        return allocStateSampler();
     if (hasSubspace(subspace->getName()))
         return StateSamplerPtr(new SubspaceStateSampler(this, subspace, getSubspaceWeight(subspace->getName()) / weightSum_));
     return StateSpace::allocSubspaceStateSampler(subspace);
@@ -1247,13 +1247,13 @@ namespace ompl
 
             return result;
         }
-    
+
         AdvancedStateCopyOperation copyStateData(const StateSpacePtr &destS, State *dest,
                                                  const StateSpacePtr &sourceS, const State *source,
                                                  const std::vector<std::string> &subspaces)
         {
             return copyStateData(destS.get(), dest, sourceS.get(), source, subspaces);
-        }   
+        }
 
         AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest,
                                                  const StateSpace *sourceS, const State *source,
@@ -1281,7 +1281,7 @@ namespace ompl
                 return SOME_DATA_COPIED;
             return NO_DATA_COPIED;
         }
-    
+
         /// @cond IGNORE
         inline bool StateSpaceHasContent(const StateSpacePtr &m)
         {

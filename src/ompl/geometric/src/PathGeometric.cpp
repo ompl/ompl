@@ -94,7 +94,7 @@ double ompl::geometric::PathGeometric::length(void) const
 }
 
 double ompl::geometric::PathGeometric::cost(const base::OptimizationObjective &objective) const
-{  
+{
     double L = 0.0;
     for (unsigned int i = 1 ; i < states_.size() ; ++i)
         L = objective.combineObjectiveCosts(L, objective.getIncrementalCost(states_[i-1], states_[i]));
