@@ -103,7 +103,7 @@ namespace ompl
                 if (range < std::numeric_limits<double>::epsilon())
                 {
                     range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-                    logDebug("Planner range detected to be %lf", range);
+                    OMPL_DEBUG("Planner range detected to be %lf", range);
                 }
 
                 /*
@@ -125,7 +125,7 @@ namespace ompl
                 checkSetup();
                 if (!proj)
                 {
-                    logInform("Attempting to use default projection.");
+                    OMPL_INFORM("Attempting to use default projection.");
                     proj = si_->getStateSpace()->getDefaultProjection();
                 }
                 if (!proj)

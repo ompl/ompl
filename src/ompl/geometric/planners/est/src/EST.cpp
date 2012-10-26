@@ -106,14 +106,14 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     if (tree_.grid.size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    logInform("Starting with %u states", tree_.size);
+    OMPL_INFORM("Starting with %u states", tree_.size);
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -187,7 +187,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     si_->freeState(xstate);
 
-    logInform("Created %u states in %u cells", tree_.size, tree_.grid.size());
+    OMPL_INFORM("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
     return base::PlannerStatus(solved, approximate);
 }

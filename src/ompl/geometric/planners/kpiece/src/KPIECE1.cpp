@@ -111,14 +111,14 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
 
     if (disc_.getMotionCount() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    logInform("Starting with %u states", disc_.getMotionCount());
+    OMPL_INFORM("Starting with %u states", disc_.getMotionCount());
 
     Motion *solution    = NULL;
     Motion *approxsol   = NULL;
@@ -205,7 +205,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
 
     si_->freeState(xstate);
 
-    logInform("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
+    OMPL_INFORM("Created %u states in %u cells (%u internal + %u external)", disc_.getMotionCount(), disc_.getCellCount(),
                 disc_.getGrid().countInternal(), disc_.getGrid().countExternal());
 
     return base::PlannerStatus(solved, approximate);

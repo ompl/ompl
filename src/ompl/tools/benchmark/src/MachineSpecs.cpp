@@ -157,7 +157,7 @@ ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
     MemUsage_t result = getProcessMemoryUsageAux();
     if (result == 0)
     {
-        logWarn("Unable to get memory usage");
+        OMPL_WARN("Unable to get memory usage");
     }
     return result;
 }

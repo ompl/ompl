@@ -112,14 +112,14 @@ void ompl::geometric::TRRT::setup(void)
     if (frontier_threshold_ < std::numeric_limits<double>::epsilon())
     {
         frontier_threshold_ = si_->getMaximumExtent() * 0.01; // 5.0
-        logDebug("Frontier threshold detected to be %lf", frontier_threshold_);
+        OMPL_DEBUG("Frontier threshold detected to be %lf", frontier_threshold_);
     }
 
     // Autoconfigure the K constant
     if (k_constant_ < std::numeric_limits<double>::epsilon())
     {
         k_constant_ = average_cost;
-        logDebug("K constant detected to be %lf", k_constant_);
+        OMPL_DEBUG("K constant detected to be %lf", k_constant_);
     }
 
     // Create the nearest neighbor function the first time setup is run
@@ -186,7 +186,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
     // Check that input states exist
     if (nearest_neighbors_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -195,7 +195,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         sampler_ = si_->allocStateSampler();
 
     // Debug
-    logInform("Starting with %u states", nearest_neighbors_->size());
+    OMPL_INFORM("Starting with %u states", nearest_neighbors_->size());
 
 
     // Solver variables ------------------------------------------------------------------------------------
@@ -378,7 +378,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &planner_te
         si_->freeState(rand_motion->state);
     delete rand_motion;
 
-    logInform("Created %u states", nearest_neighbors_->size());
+    OMPL_INFORM("Created %u states", nearest_neighbors_->size());
 
     return base::PlannerStatus(solved, approximate);
 }

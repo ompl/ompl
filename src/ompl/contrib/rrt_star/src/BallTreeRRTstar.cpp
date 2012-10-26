@@ -103,12 +103,12 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
     if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
     {
         opt = NULL;
-        logWarn("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
+        OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
     }
 
     if (!goal)
     {
-        logError("Goal undefined");
+        OMPL_ERROR("Goal undefined");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -121,14 +121,14 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution       = NULL;
     Motion *approximation  = NULL;
@@ -435,7 +435,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    logInform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
+    OMPL_INFORM("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
     return base::PlannerStatus(addedSolution, approximate);
 }

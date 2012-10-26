@@ -58,7 +58,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
 {
     time::point end = time::now() + time::seconds(solveTime);
     unsigned int nt = std::min(nthreads, (unsigned int)planners_.size());
-    logDebug("Using %u threads", nt);
+    OMPL_DEBUG("Using %u threads", nt);
 
     base::PlannerStatus result;
     unsigned int np = 0;
@@ -83,7 +83,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
 
             if (!pdef->hasOptimizationObjective())
             {
-                logDebug("Terminating early since there is no optimization objective specified");
+                OMPL_DEBUG("Terminating early since there is no optimization objective specified");
                 break;
             }
 
@@ -91,12 +91,12 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
 
             if (pdef->getOptimizationObjective()->isSatisfied(obj_cost))
             {
-                logDebug("Terminating early since solution path satisfies the optimization objective");
+                OMPL_DEBUG("Terminating early since solution path satisfies the optimization objective");
                 break;
             }
             if (pdef->getSolutionCount() >= maxSol)
             {
-                logDebug("Terminating early since %u solutions were generated", maxSol);
+                OMPL_DEBUG("Terminating early since %u solutions were generated", maxSol);
                 break;
             }
         }

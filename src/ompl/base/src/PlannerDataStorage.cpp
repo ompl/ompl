@@ -65,12 +65,12 @@ void ompl::base::PlannerDataStorage::store(const PlannerData& pd, std::ostream &
     const SpaceInformationPtr &si = pd.getSpaceInformation();
     if (!out.good())
     {
-        logError("Failed to store PlannerData: output stream is invalid");
+        OMPL_ERROR("Failed to store PlannerData: output stream is invalid");
         return;
     }
     if (!si)
     {
-        logError("Failed to store PlannerData: SpaceInformation is invalid");
+        OMPL_ERROR("Failed to store PlannerData: SpaceInformation is invalid");
         return;
     }
     try
@@ -90,7 +90,7 @@ void ompl::base::PlannerDataStorage::store(const PlannerData& pd, std::ostream &
     }
     catch (boost::archive::archive_exception &ae)
     {
-        logError("Failed to store PlannerData: %s", ae.what());
+        OMPL_ERROR("Failed to store PlannerData: %s", ae.what());
     }
 }
 
@@ -108,12 +108,12 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData& pd)
     const SpaceInformationPtr &si = pd.getSpaceInformation();
     if (!in.good())
     {
-        logError("Failed to load PlannerData: input stream is invalid");
+        OMPL_ERROR("Failed to load PlannerData: input stream is invalid");
         return;
     }
     if (!si)
     {
-        logError("Failed to load PlannerData: SpaceInformation is invalid");
+        OMPL_ERROR("Failed to load PlannerData: SpaceInformation is invalid");
         return;
     }
     // Loading the planner data:
@@ -128,7 +128,7 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData& pd)
         // Checking the archive marker
         if (h.marker != OMPL_PLANNER_DATA_ARCHIVE_MARKER)
         {
-            logError("Failed to load PlannerData: PlannerData archive marker not found");
+            OMPL_ERROR("Failed to load PlannerData: PlannerData archive marker not found");
             return;
         }
 
@@ -137,7 +137,7 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData& pd)
         si->getStateSpace()->computeSignature(sig);
         if (h.signature != sig)
         {
-            logError("Failed to load PlannerData: StateSpace signature mismatch");
+            OMPL_ERROR("Failed to load PlannerData: StateSpace signature mismatch");
             return;
         }
 
@@ -147,7 +147,7 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData& pd)
     }
     catch (boost::archive::archive_exception &ae)
     {
-        logError("Failed to load PlannerData: %s", ae.what());
+        OMPL_ERROR("Failed to load PlannerData: %s", ae.what());
     }
 }
 

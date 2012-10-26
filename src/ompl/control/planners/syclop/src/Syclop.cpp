@@ -85,7 +85,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
     }
     if (startRegions_.empty())
     {
-        logError("There are no valid start states");
+        OMPL_ERROR("There are no valid start states");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -96,12 +96,12 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
             goalRegions_.insert(decomp_->locateRegion(g));
         else
         {
-            logError("Unable to sample a valid goal state");
+            OMPL_ERROR("Unable to sample a valid goal state");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
-    logInform("Starting with %u states", numMotions_);
+    OMPL_INFORM("Starting with %u states", numMotions_);
 
     std::vector<Motion*> newMotions;
     const Motion* solution = NULL;

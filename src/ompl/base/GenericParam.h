@@ -102,7 +102,7 @@ namespace ompl
                 }
                 catch (boost::bad_lexical_cast &e)
                 {
-                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                    OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
                 }
                 return *this;
             }
@@ -132,7 +132,7 @@ namespace ompl
                 GenericParam(name), setter_(setter), getter_(getter)
             {
                 if (!setter_)
-                    logError("Setter function must be specified for parameter");
+                    OMPL_ERROR("Setter function must be specified for parameter");
             }
 
             virtual ~SpecificParam(void)
@@ -150,13 +150,13 @@ namespace ompl
                 catch (boost::bad_lexical_cast &e)
                 {
                     result = false;
-                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                    OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
                 }
 
                 if (getter_)
-                    logDebug("The value of parameter '%s' is now: '%s'", name_.c_str(), getValue().c_str());
+                    OMPL_DEBUG("The value of parameter '%s' is now: '%s'", name_.c_str(), getValue().c_str());
                 else
-                    logDebug("The value of parameter '%s' was set to: '%s'", name_.c_str(), value.c_str());
+                    OMPL_DEBUG("The value of parameter '%s' was set to: '%s'", name_.c_str(), value.c_str());
                 return result;
             }
 
@@ -169,7 +169,7 @@ namespace ompl
                     }
                     catch (boost::bad_lexical_cast &e)
                     {
-                        logWarn("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
+                        OMPL_WARN("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
                         return "";
                     }
                 else

@@ -178,7 +178,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (!goal)
     {
-        logError("Goal undefined");
+        OMPL_ERROR("Goal undefined");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -193,11 +193,11 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     SolutionInfo sol;
     sol.solution = NULL;
@@ -242,7 +242,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
         solved = true;
     }
 
-    logInform("Created %u states", nn_->size());
+    OMPL_INFORM("Created %u states", nn_->size());
 
     return base::PlannerStatus(solved, approximate);
 }

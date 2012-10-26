@@ -182,7 +182,7 @@ namespace ompl
                 reinterpret_cast<CallbackParam*>(data)->collision = !valid;
                 if (reinterpret_cast<CallbackParam*>(data)->env->verboseContacts_)
                 {
-                    logDebug("%s contact between %s and %s", (valid ? "Valid" : "Invalid"),
+                    OMPL_DEBUG("%s contact between %s and %s", (valid ? "Valid" : "Invalid"),
                              reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o1).c_str(),
                              reinterpret_cast<CallbackParam*>(data)->env->getGeomName(o2).c_str());
                 }

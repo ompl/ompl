@@ -123,7 +123,7 @@ void ompl::control::PathControl::interpolate(void)
 {
     if (states_.size() <= controls_.size())
     {
-        logError("Interpolation not performed.  Number of states in the path should be strictly greater than the number of controls.");
+        OMPL_ERROR("Interpolation not performed.  Number of states in the path should be strictly greater than the number of controls.");
         return;
     }
 

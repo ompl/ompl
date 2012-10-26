@@ -115,7 +115,7 @@ namespace ompl
             /// that the edges can be cast to ompl::control::PlannerDataEdgeControl.
             virtual void loadEdges(base::PlannerData &pd, unsigned int numEdges, boost::archive::binary_iarchive &ia)
             {
-                logDebug("Loading %d PlannerDataEdgeControl objects", numEdges);
+                OMPL_DEBUG("Loading %d PlannerDataEdgeControl objects", numEdges);
 
                 const ControlSpacePtr& space = static_cast<control::PlannerData&>(pd).getSpaceInformation()->getControlSpace();
                 std::vector<Control*> controls;
@@ -153,7 +153,7 @@ namespace ompl
             /// that the edges can be cast to ompl::control::PlannerDataEdgeControl.
             virtual void storeEdges(const base::PlannerData &pd, boost::archive::binary_oarchive &oa)
             {
-                logDebug("Storing %d PlannerDataEdgeControl objects", pd.numEdges());
+                OMPL_DEBUG("Storing %d PlannerDataEdgeControl objects", pd.numEdges());
 
                 const ControlSpacePtr& space = static_cast<const control::PlannerData&>(pd).getSpaceInformation()->getControlSpace();
                 std::vector<unsigned char> ctrl (space->getSerializationLength());

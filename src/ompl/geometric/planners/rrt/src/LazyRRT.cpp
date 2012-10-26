@@ -108,14 +108,14 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution = NULL;
     double  distsol  = -1.0;
@@ -200,7 +200,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
     si_->freeState(rstate);
     delete rmotion;
 
-    logInform("Created %u states", nn_->size());
+    OMPL_INFORM("Created %u states", nn_->size());
 
     return solutionFound ?  base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

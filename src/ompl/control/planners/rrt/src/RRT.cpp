@@ -109,7 +109,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -118,7 +118,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -260,7 +260,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     delete rmotion;
     si_->freeState(xstate);
 
-    logInform("Created %u states", nn_->size());
+    OMPL_INFORM("Created %u states", nn_->size());
 
     return base::PlannerStatus(solved, approximate);
 }

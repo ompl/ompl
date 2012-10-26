@@ -93,7 +93,7 @@ void ompl::geometric::SimpleSetup::setup(void)
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                logInform("No planner specified. Using default.");
+                OMPL_INFORM("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
             }
         }
@@ -125,9 +125,9 @@ ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(double time)
     last_status_ = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
     if (last_status_)
-        logInform("Solution found in %f seconds", planTime_);
+        OMPL_INFORM("Solution found in %f seconds", planTime_);
     else
-        logInform("No solution found after %f seconds", planTime_);
+        OMPL_INFORM("No solution found after %f seconds", planTime_);
     return last_status_;
 }
 
@@ -139,9 +139,9 @@ ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(const base::Planne
     last_status_ = planner_->solve(ptc);
     planTime_ = time::seconds(time::now() - start);
     if (last_status_)
-        logInform("Solution found in %f seconds", planTime_);
+        OMPL_INFORM("Solution found in %f seconds", planTime_);
     else
-        logInform("No solution found after %f seconds", planTime_);
+        OMPL_INFORM("No solution found after %f seconds", planTime_);
     return last_status_;
 }
 
@@ -155,11 +155,11 @@ void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminati
             time::point start = time::now();
             psk_->simplify(static_cast<PathGeometric&>(*p), ptc);
             simplifyTime_ = time::seconds(time::now() - start);
-            logInform("Path simplification took %f seconds", simplifyTime_);
+            OMPL_INFORM("Path simplification took %f seconds", simplifyTime_);
             return;
         }
     }
-    logWarn("No solution to simplify");
+    OMPL_WARN("No solution to simplify");
 }
 
 void ompl::geometric::SimpleSetup::simplifySolution(double duration)
@@ -175,11 +175,11 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
             else
                 psk_->simplify(static_cast<PathGeometric&>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
-            logInform("Path simplification took %f seconds", simplifyTime_);
+            OMPL_INFORM("Path simplification took %f seconds", simplifyTime_);
             return;
         }
     }
-    logWarn("No solution to simplify");
+    OMPL_WARN("No solution to simplify");
 }
 
 ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const

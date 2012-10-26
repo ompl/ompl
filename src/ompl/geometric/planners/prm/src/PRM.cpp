@@ -357,7 +357,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (!goal)
     {
-        logError("Goal undefined or unknown type of goal");
+        OMPL_ERROR("Goal undefined or unknown type of goal");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -367,13 +367,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (startM_.size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        logError("Insufficient states in sampleable goal region");
+        OMPL_ERROR("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -386,7 +386,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
         if (goalM_.empty())
         {
-            logError("Unable to find any valid goal states");
+            OMPL_ERROR("Unable to find any valid goal states");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
@@ -397,7 +397,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         simpleSampler_ = si_->allocStateSampler();
 
     unsigned int nrStartStates = boost::num_vertices(g_);
-    logInform("Starting with %u states", nrStartStates);
+    OMPL_INFORM("Starting with %u states", nrStartStates);
 
     std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
@@ -426,7 +426,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     // Ensure slnThread is ceased before exiting solve
     slnThread.join();
 
-    logInform("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
     {

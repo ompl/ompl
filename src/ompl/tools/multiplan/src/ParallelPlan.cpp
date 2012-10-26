@@ -121,14 +121,14 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
             }
     }
 
-    logInform("Solution found in %f seconds", time::seconds(time::now() - start));
+    OMPL_INFORM("Solution found in %f seconds", time::seconds(time::now() - start));
 
     return base::PlannerStatus(pdef_->hasSolution(), pdef_->hasApproximateSolution());
 }
 
 void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc)
 {
-    logDebug("Starting %s", planner->getName().c_str());
+    OMPL_DEBUG("Starting %s", planner->getName().c_str());
     time::point start = time::now();
     if (planner->solve(*ptc))
     {
@@ -138,7 +138,7 @@ void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t min
         foundSolCountLock_.unlock();
         if (nrSol >= minSolCount)
             ptc->terminate();
-        logDebug("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
     }
 }
 
@@ -155,7 +155,7 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
         if (nrSol >= maxSolCount)
             ptc->terminate();
 
-        logDebug("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
 
         const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
 
@@ -169,6 +169,6 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
             phybrid_->computeHybridPath();
 
         duration = time::seconds(time::now() - start);
-        logDebug("Spent %f seconds hybridizing %u solution paths (attempted %u connections between paths)", duration, (unsigned int)phybrid_->pathCount(), attempts);
+        OMPL_DEBUG("Spent %f seconds hybridizing %u solution paths (attempted %u connections between paths)", duration, (unsigned int)phybrid_->pathCount(), attempts);
     }
 }

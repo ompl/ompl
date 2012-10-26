@@ -694,7 +694,7 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateSpace::getDefaultProjection(
         return getProjection(DEFAULT_PROJECTION_NAME);
     else
     {
-        logError("No default projection is set. Perhaps setup() needs to be called");
+        OMPL_ERROR("No default projection is set. Perhaps setup() needs to be called");
         return ProjectionEvaluatorPtr();
     }
 }
@@ -706,7 +706,7 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateSpace::getProjection(const s
         return it->second;
     else
     {
-        logError("Projection '%s' is not defined", name.c_str());
+        OMPL_ERROR("Projection '%s' is not defined", name.c_str());
         return ProjectionEvaluatorPtr();
     }
 }
@@ -726,7 +726,7 @@ void ompl::base::StateSpace::registerProjection(const std::string &name, const P
     if (projection)
         projections_[name] = projection;
     else
-        logError("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
+        OMPL_ERROR("Attempting to register invalid projection under name '%s'. Ignoring.", name.c_str());
 }
 
 bool ompl::base::StateSpace::isCompound(void) const

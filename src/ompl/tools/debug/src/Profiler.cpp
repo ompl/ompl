@@ -162,7 +162,7 @@ void ompl::tools::Profiler::console(void)
     std::stringstream ss;
     ss << std::endl;
     status(ss, true);
-    logInform(ss.str().c_str());
+    OMPL_INFORM(ss.str().c_str());
 }
 
 /// @cond IGNORE

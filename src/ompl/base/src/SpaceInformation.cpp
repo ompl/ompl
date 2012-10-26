@@ -59,7 +59,7 @@ void ompl::base::SpaceInformation::setup(void)
     if (!stateValidityChecker_)
     {
         stateValidityChecker_.reset(new AllValidStateValidityChecker(this));
-        logWarn("State validity checker not set! No collision checking is performed");
+        OMPL_WARN("State validity checker not set! No collision checking is performed");
     }
 
     if (!motionValidator_)
@@ -471,7 +471,7 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
         {
             result = false;
             out << std::endl << "  - SANITY CHECKS FOR STATE SPACE ***DID NOT PASS*** (" << e.what() << ")" << std::endl << std::endl;
-            logError(e.what());
+            OMPL_ERROR(e.what());
         }
         if (result)
             out << "  - sanity checks for state space passed" << std::endl;
