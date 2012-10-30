@@ -113,7 +113,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_ERROR("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
+    OMPL_INFORM("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     base::State *xstate = si_->allocState();
     bool      startTree = true;
