@@ -359,16 +359,20 @@ namespace ompl
 
             /** \brief This function declares a parameter for this planner instance, and specifies the setter and getter functions. */
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
-            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter)
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter, const std::string &rangeSuggestion = "")
             {
                 params_.declareParam<T>(name, boost::bind(setter, planner, _1), boost::bind(getter, planner));
+                if (!rangeSuggestion.empty())
+                    params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
             /** \brief This function declares a parameter for this planner instance, and specifies the setter function. */
             template<typename T, typename PlannerType, typename SetterType>
-            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter)
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const std::string &rangeSuggestion = "")
             {
                 params_.declareParam<T>(name, boost::bind(setter, planner, _1));
+                if (!rangeSuggestion.empty())
+                    params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
             /** \brief The space information for which planning is done */

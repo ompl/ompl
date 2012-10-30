@@ -107,26 +107,26 @@ namespace ompl
                 return *this;
             }
 
-            /** Set a suggested range */
-            void setRangeSuggestion(std::string rangeSuggestion)
+            /** \brief Set a suggested range */
+            void setRangeSuggestion(const std::string &rangeSuggestion)
             {
                 rangeSuggestion_ = rangeSuggestion;
             }
 
-            /** Get the suggested range of values */
-            std::string getRangeSuggestion()
+            /** \brief Get the suggested range of values */
+            const std::string& getRangeSuggestion(void) const
             {
                 return rangeSuggestion_;
             }
 
-            /** Set a default value */
-            void setDefaultValue(std::string defaultValue)
+            /** \brief Set a default value */
+            void setDefaultValue(const std::string &defaultValue)
             {
                 defaultValue_ = defaultValue;
             }
 
-            /** Return the default value */
-            std::string getDefaultValue()
+            /** \brief Return the default value */
+            const std::string& getDefaultValue(void) const
             {
                 return defaultValue_;
             }
