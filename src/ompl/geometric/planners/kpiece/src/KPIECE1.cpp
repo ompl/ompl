@@ -57,6 +57,12 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
     Planner::declareParam<double>("failed_expansion_score_factor", this, &KPIECE1::setFailedExpansionCellScoreFactor, &KPIECE1::getFailedExpansionCellScoreFactor);
     Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
+
+    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
+    params_["border_fraction"].setRangeSuggestion("0.:0.05:1.");
+    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
+    params_["border_fraction"].setDefaultValue(".9");
 }
 
 ompl::geometric::KPIECE1::~KPIECE1(void)

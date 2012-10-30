@@ -107,10 +107,55 @@ namespace ompl
                 return *this;
             }
 
+            /** Set a suggested range */
+            void setRangeSuggestion(std::string rangeSuggestion)
+            {
+                rangeSuggestion_ = rangeSuggestion;
+            }
+
+            /** Get the suggested range of values */
+            std::string getRangeSuggestion()
+            {
+                return rangeSuggestion_;
+            }
+
+            /** Set a default value */
+            void setDefaultValue(std::string defaultValue)
+            {
+                defaultValue_ = defaultValue;
+            }
+
+            /** Return the default value */
+            std::string getDefaultValue()
+            {
+                return defaultValue_;
+            }
+
         protected:
 
             /** \brief The name of the parameter */
             std::string name_;
+
+            /** \brief Suggested range for the parameter
+
+                This can be used to provide a hint to, e.g., a GUI. The
+                convention used in OMPL is to denote ranges for the
+                following types as follows:
+                * bool: "false,true"
+                * enum: "<enum_val0>,<enum_val1>,<enum_val2>,..."
+                * int, double: either "first:last" or "first:stepsize:last".
+                  In the first case, the stepsize is assumed to be 1. It is
+                  important to use floating point representations for double
+                  ranges (i.e., "1." instead of "1") to make sure the type is
+                  deduced correctly.
+            */
+            std::string rangeSuggestion_;
+
+            /** \brief Default value for the paramer
+
+                This suggested default value can be used by, e.g., a GUI.
+            */
+            std::string defaultValue_;
         };
 
 

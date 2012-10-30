@@ -49,6 +49,9 @@ ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::P
 
     Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange);
     Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias);
+    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
+    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
 }
 
 ompl::geometric::LazyRRT::~LazyRRT(void)

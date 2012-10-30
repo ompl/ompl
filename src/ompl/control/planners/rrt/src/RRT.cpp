@@ -50,6 +50,8 @@ ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT"
 
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
     Planner::declareParam<bool>("intermediate_states", this, &RRT::setIntermediateStates, &RRT::getIntermediateStates);
+    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
+    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
 }
 
 ompl::control::RRT::~RRT(void)

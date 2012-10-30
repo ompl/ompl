@@ -50,6 +50,9 @@ ompl::control::EST::EST(const SpaceInformationPtr &si) : base::Planner(si, "EST"
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
+    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
+    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
 }
 
 ompl::control::EST::~EST(void)

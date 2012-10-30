@@ -52,6 +52,9 @@ ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : bas
     Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange);
     Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction);
     Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction, &LBKPIECE1::getMinValidPathFraction);
+    params_["range"].setRangeSuggestion("0.:1.:10000");
+    params_["border_fraction"].setRangeSuggestion("0.:.05:1.");
+    params_["border_fraction"].setDefaultValue(".9");
 }
 
  ompl::geometric::LBKPIECE1::~LBKPIECE1(void)

@@ -59,6 +59,11 @@ ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<unsigned int>("max_close_samples", this, &KPIECE1::setMaxCloseSamplesCount, &KPIECE1::getMaxCloseSamplesCount);
     Planner::declareParam<double>("bad_score_factor", this, &KPIECE1::setBadCellScoreFactor, &KPIECE1::getBadCellScoreFactor);
     Planner::declareParam<double>("good_score_factor", this, &KPIECE1::setGoodCellScoreFactor, &KPIECE1::getGoodCellScoreFactor);
+
+    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
+    params_["border_fraction"].setRangeSuggestion("0.:0.05:1.");
+    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
+    params_["border_fraction"].setDefaultValue(boost::lexical_cast<std::string>(selectBorderFraction_));
 }
 
 ompl::control::KPIECE1::~KPIECE1(void)

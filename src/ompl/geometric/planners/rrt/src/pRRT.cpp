@@ -56,6 +56,12 @@ ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<double>("range", this, &pRRT::setRange, &pRRT::getRange);
     Planner::declareParam<double>("goal_bias", this, &pRRT::setGoalBias, &pRRT::getGoalBias);
     Planner::declareParam<unsigned int>("thread_count", this, &pRRT::setThreadCount, &pRRT::getThreadCount);
+    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
+    params_["border_fraction"].setRangeSuggestion("0.:0.05:1.");
+    params_["thread_count"].setRangeSuggestion("1:64");
+    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
+    params_["thread_count"].setDefaultValue("2");
 }
 
 ompl::geometric::pRRT::~pRRT(void)

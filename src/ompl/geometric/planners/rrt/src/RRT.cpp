@@ -51,6 +51,9 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(s
 
     Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange);
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
+    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
+    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
 }
 
 ompl::geometric::RRT::~RRT(void)

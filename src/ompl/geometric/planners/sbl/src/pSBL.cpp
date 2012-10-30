@@ -52,6 +52,9 @@ ompl::geometric::pSBL::pSBL(const base::SpaceInformationPtr &si) : base::Planner
 
     Planner::declareParam<double>("range", this, &pSBL::setRange, &pSBL::getRange);
     Planner::declareParam<unsigned int>("thread_count", this, &pSBL::setThreadCount, &pSBL::getThreadCount);
+    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    params_["thread_count"].setRangeSuggestion("1:64");
+    params_["thread_count"].setDefaultValue("2");
 }
 
 ompl::geometric::pSBL::~pSBL(void)
