@@ -90,9 +90,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
 
-    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors);
-    params_["max_nearest_neighbors"].setRangeSuggestion("1:1000");
-    params_["max_nearest_neighbors"].setDefaultValue("10");
+    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("1:1000"));
 }
 
 ompl::geometric::PRM::~PRM(void)

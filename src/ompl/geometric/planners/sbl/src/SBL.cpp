@@ -46,8 +46,7 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(s
     maxDistance_ = 0.0;
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
-    Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange);
-    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange, "0.:1.:10000.");
 }
 
 ompl::geometric::SBL::~SBL(void)

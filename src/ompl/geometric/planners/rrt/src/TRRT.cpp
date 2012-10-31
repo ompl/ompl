@@ -51,11 +51,8 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     max_distance_ = 0.0; // set in setup()
     lastGoalMotion_ = NULL;
 
-    Planner::declareParam<double>("range", this, &TRRT::setRange, &TRRT::getRange);
-    Planner::declareParam<double>("goal_bias", this, &TRRT::setGoalBias, &TRRT::getGoalBias);
-    params_["range"].setRangeSuggestion("0.:1.:10000.");
-    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
-    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
+    Planner::declareParam<double>("range", this, &TRRT::setRange, &TRRT::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &TRRT::setGoalBias, &TRRT::getGoalBias, "0.:.05:1.");
 
     // TRRT Specific Variables
     frontier_threshold_ = 0.0; // set in setup()

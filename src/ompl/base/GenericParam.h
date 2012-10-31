@@ -119,18 +119,6 @@ namespace ompl
                 return rangeSuggestion_;
             }
 
-            /** \brief Set a default value */
-            void setDefaultValue(const std::string &defaultValue)
-            {
-                defaultValue_ = defaultValue;
-            }
-
-            /** \brief Return the default value */
-            const std::string& getDefaultValue(void) const
-            {
-                return defaultValue_;
-            }
-
         protected:
 
             /** \brief The name of the parameter */
@@ -150,12 +138,6 @@ namespace ompl
                   deduced correctly.
             */
             std::string rangeSuggestion_;
-
-            /** \brief Default value for the paramer
-
-                This suggested default value can be used by, e.g., a GUI.
-            */
-            std::string defaultValue_;
         };
 
 

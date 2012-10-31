@@ -50,13 +50,10 @@ ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base:
     maxDistance_ = 0.0;
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
-    Planner::declareParam<double>("range", this, &BKPIECE1::setRange, &BKPIECE1::getRange);
-    Planner::declareParam<double>("border_fraction", this, &BKPIECE1::setBorderFraction, &BKPIECE1::getBorderFraction);
+    Planner::declareParam<double>("range", this, &BKPIECE1::setRange, &BKPIECE1::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("border_fraction", this, &BKPIECE1::setBorderFraction, &BKPIECE1::getBorderFraction, "0.:.05:1.");
     Planner::declareParam<double>("failed_expansion_score_factor", this, &BKPIECE1::setFailedExpansionCellScoreFactor, &BKPIECE1::getFailedExpansionCellScoreFactor);
     Planner::declareParam<double>("min_valid_path_fraction", this, &BKPIECE1::setMinValidPathFraction, &BKPIECE1::getMinValidPathFraction);
-    params_["range"].setRangeSuggestion("0.:1.:10000.");
-    params_["border_fraction"].setRangeSuggestion("0.:.05:1.");
-    params_["border_fraction"].setDefaultValue(".9");
 }
 
 ompl::geometric::BKPIECE1::~BKPIECE1(void)

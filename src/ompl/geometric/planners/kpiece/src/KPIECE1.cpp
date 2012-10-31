@@ -52,17 +52,11 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
     maxDistance_ = 0.0;
     lastGoalMotion_ = NULL;
 
-    Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange);
-    Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias);
-    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction);
+    Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction, "0.:0.05:1.");
     Planner::declareParam<double>("failed_expansion_score_factor", this, &KPIECE1::setFailedExpansionCellScoreFactor, &KPIECE1::getFailedExpansionCellScoreFactor);
     Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
-
-    params_["range"].setRangeSuggestion("0.:1.:10000.");
-    params_["goal_bias"].setRangeSuggestion("0.:.05:1.");
-    params_["border_fraction"].setRangeSuggestion("0.:0.05:1.");
-    params_["goal_bias"].setDefaultValue(boost::lexical_cast<std::string>(goalBias_));
-    params_["border_fraction"].setDefaultValue(".9");
 }
 
 ompl::geometric::KPIECE1::~KPIECE1(void)

@@ -48,10 +48,11 @@ class PlanningAlgorithms(object):
                 # Note that ompl.control.SpaceInformation is derived from
                 # ompl.base.SpaceInformation and geometric planner constructors
                 # happily accept an ompl.control.SpaceInformation object.
-                params = eval("""%s(ompl.control.SpaceInformation(
+                plannerObject = eval("""%s(ompl.control.SpaceInformation(
                     ompl.base.RealVectorStateSpace(1),
                     ompl.control.RealVectorControlSpace(
-                        ompl.base.RealVectorStateSpace(1),1))).params()""" % planner)
+                        ompl.base.RealVectorStateSpace(1),1)))"""  % planner)
+                params = plannerObject.params()
             except:
                 # skip planners like Syclop that don't have a basic constructor
                 return
@@ -63,10 +64,8 @@ class PlanningAlgorithms(object):
                 rangeSuggestion = p.getRangeSuggestion()
                 if rangeSuggestion == '': continue
                 rangeSuggestion = rangeSuggestion.split(':')
-                defaultValue = p.getDefaultValue()
+                defaultValue = p.getValue()
                 if len(rangeSuggestion)==1:
-                    print planner
-                    print rangeSuggestion
                     rangeSuggestion = rangeSuggestion[0].split(',')
                     if len(rangeSuggestion)==1:
                         raise Exception('Cannot parse range suggestion')
@@ -76,6 +75,8 @@ class PlanningAlgorithms(object):
                         rangeSuggestion = ''
                     else:
                         rangeType = self.ENUM
+                        print rangeSuggestion, defaultValue
+                        defaultValue = 0 if defaultValue=='' else rangeSuggestion.index(defaultValue)
                 else:
                     if ('.' in rangeSuggestion[0] or '.' in rangeSuggestion[-1]):
                         rangeType = self.DOUBLE
@@ -87,10 +88,9 @@ class PlanningAlgorithms(object):
                         defaultValue = 0 if defaultValue=='' else int(defaultValue)
                     if len(rangeSuggestion)==2:
                         rangeSuggestion = [rangeSuggestion[0], 1, rangeSuggestion[1]]
-                if rangeSuggestion != '':
-                    name = p.getName()
-                    displayName = name.replace('_', ' ').capitalize()
-                    paramMap[p.getName()] = (displayName, rangeType, rangeSuggestion, defaultValue)
+                name = p.getName()
+                displayName = name.replace('_', ' ').capitalize()
+                paramMap[p.getName()] = (displayName, rangeType, rangeSuggestion, defaultValue)
             self.plannerMap[planner] = paramMap
 
     def getPlanners(self):

@@ -46,8 +46,7 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : b
 
     maxDistance_ = 0.0;
 
-    Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange);
-    params_["range"].setRangeSuggestion("0.:1.:10000.");
+    Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
