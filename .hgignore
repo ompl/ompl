@@ -15,6 +15,7 @@ doc/dox/mainpage.md
 py-bindings/ompl/bindings_generator.py
 py-bindings/bindings
 py-bindings/ompl/app
+py-bindings/ompl/rrtstar
 src/external/installPyPlusPlus.bat
 src/external/installPyPlusPlus.sh
 src/ompl/config.h

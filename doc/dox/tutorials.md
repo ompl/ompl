@@ -23,4 +23,5 @@ Below we include a number of tutorials we believe are useful for understanding h
 
 - [Benchmarking planners](benchmark.html)
 - [Adding a new planner](newPlanner.html)
+- [Creating Python bindings for a new planner](pybindingsPlanner.html)
 - [Setting up a projection](projections.html)

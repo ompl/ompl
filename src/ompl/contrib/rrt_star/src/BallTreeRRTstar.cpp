@@ -54,12 +54,12 @@ ompl::geometric::BallTreeRRTstar::BallTreeRRTstar(const base::SpaceInformationPt
     rO_ = std::numeric_limits<double>::infinity();
     delayCC_ = true;
 
-    Planner::declareParam<double>("range", this, &BallTreeRRTstar::setRange, &BallTreeRRTstar::getRange);
-    Planner::declareParam<double>("goal_bias", this, &BallTreeRRTstar::setGoalBias, &BallTreeRRTstar::getGoalBias);
+    Planner::declareParam<double>("range", this, &BallTreeRRTstar::setRange, &BallTreeRRTstar::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &BallTreeRRTstar::setGoalBias, &BallTreeRRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("ball_radius_constant", this, &BallTreeRRTstar::setBallRadiusConstant, &BallTreeRRTstar::getBallRadiusConstant);
     Planner::declareParam<double>("max_ball_radius", this, &BallTreeRRTstar::setMaxBallRadius, &BallTreeRRTstar::getMaxBallRadius);
     Planner::declareParam<double>("initial_volume_radius", this, &BallTreeRRTstar::setInitialVolumeRadius, &BallTreeRRTstar::getInitialVolumeRadius);
-    Planner::declareParam<bool>("delay_cc", this, &BallTreeRRTstar::setDelayCC, &BallTreeRRTstar::getDelayCC);
+    Planner::declareParam<bool>("delay_cc", this, &BallTreeRRTstar::setDelayCC, &BallTreeRRTstar::getDelayCC, "false,true");
 }
 
 ompl::geometric::BallTreeRRTstar::~BallTreeRRTstar(void)
@@ -73,10 +73,10 @@ void ompl::geometric::BallTreeRRTstar::setup(void)
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
-    ballRadiusMax_ = si_->getMaximumExtent();
-    ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
-
-    delayCC_ = true;
+    if (ballRadiusMax_ == 0.0)
+        ballRadiusMax_ = si_->getMaximumExtent();
+    if (ballRadiusConst_ == 1.0)
+        ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
