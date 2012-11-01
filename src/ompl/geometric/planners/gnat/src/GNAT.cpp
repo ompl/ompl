@@ -44,8 +44,8 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
         bool useProjectedDistance,
         unsigned int degree, unsigned int minDegree,
         unsigned int maxDegree, unsigned int maxNumPtsPerLeaf, double estimatedDimension,
-        unsigned int removedCacheSize) 
-: base::Planner(si, "GNAT") 
+        unsigned int removedCacheSize)
+: base::Planner(si, "GNAT")
 {
     goalBias_ = 0.05;
     specs_.approximateSolutions = true;
@@ -61,17 +61,17 @@ ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
     setPropagateWhileValid(true);
     tree_ = NULL;
 
-    Planner::declareParam<double>("range", this, &GNAT::setRange, &GNAT::getRange);
-    Planner::declareParam<double>("goal_bias", this, &GNAT::setGoalBias, &GNAT::getGoalBias);
-    Planner::declareParam<bool>("use_projected_distance", this, &GNAT::setUseProjectedDistance, &GNAT::getUseProjectedDistance);
-    Planner::declareParam<unsigned int>("degree", this, &GNAT::setDegree, &GNAT::getDegree);
-    Planner::declareParam<unsigned int>("max_degree", this, &GNAT::setMaxDegree, &GNAT::getMaxDegree);
-    Planner::declareParam<unsigned int>("min_degree", this, &GNAT::setMinDegree, &GNAT::getMinDegree);
-    Planner::declareParam<unsigned int>("max_pts_per_leaf", this, &GNAT::setMaxNumPtsPerLeaf, &GNAT::getMaxNumPtsPerLeaf);
-    Planner::declareParam<unsigned int>("removed_cache_size", this, &GNAT::setRemovedCacheSize, &GNAT::getRemovedCacheSize);
-    Planner::declareParam<double>("estimated_dimension", this, &GNAT::setEstimatedDimension, &GNAT::getEstimatedDimension);
-    Planner::declareParam<double>("min_valid_path_fraction", this, &GNAT::setMinValidPathFraction, &GNAT::getMinValidPathFraction);
-    Planner::declareParam<double>("propagate_while_valid", this, &GNAT::setPropagateWhileValid, &GNAT::getPropagateWhileValid);
+    Planner::declareParam<double>("range", this, &GNAT::setRange, &GNAT::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &GNAT::setGoalBias, &GNAT::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<bool>("use_projected_distance", this, &GNAT::setUseProjectedDistance, &GNAT::getUseProjectedDistance, "false,true");
+    Planner::declareParam<unsigned int>("degree", this, &GNAT::setDegree, &GNAT::getDegree, "2:20");
+    Planner::declareParam<unsigned int>("max_degree", this, &GNAT::setMaxDegree, &GNAT::getMaxDegree, "2:20");
+    Planner::declareParam<unsigned int>("min_degree", this, &GNAT::setMinDegree, &GNAT::getMinDegree, "2:20");
+    Planner::declareParam<unsigned int>("max_pts_per_leaf", this, &GNAT::setMaxNumPtsPerLeaf, &GNAT::getMaxNumPtsPerLeaf, "1:200");
+    Planner::declareParam<unsigned int>("removed_cache_size", this, &GNAT::setRemovedCacheSize, &GNAT::getRemovedCacheSize, "1:200");
+    Planner::declareParam<double>("estimated_dimension", this, &GNAT::setEstimatedDimension, &GNAT::getEstimatedDimension, "1.:30.");
+    Planner::declareParam<double>("min_valid_path_fraction", this, &GNAT::setMinValidPathFraction, &GNAT::getMinValidPathFraction, "0.:.05:1.");
+    Planner::declareParam<bool>("propagate_while_valid", this, &GNAT::setPropagateWhileValid, &GNAT::getPropagateWhileValid, "false,true");
 }
 
 ompl::geometric::GNAT::~GNAT(void)
@@ -98,7 +98,7 @@ void ompl::geometric::GNAT::setupTree(void)
         tree_->setDistanceFunction(boost::bind(&GNAT::projectedDistanceFunction, this, _1, _2));
     else
         tree_->setDistanceFunction(boost::bind(&GNAT::distanceFunction, this, _1, _2));
-} 
+}
 
 
 void ompl::geometric::GNAT::clear(void)
@@ -141,14 +141,14 @@ ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTermin
 
     if (tree_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    logInform("Starting with %u states", tree_->size());
+    OMPL_INFORM("Starting with %u states", tree_->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -231,7 +231,7 @@ ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTermin
 
     si_->freeState(xstate);
 
-    logInform("Created %u states", tree_->size());
+    OMPL_INFORM("Created %u states", tree_->size());
 
     return base::PlannerStatus(solved, approximate);
 }
