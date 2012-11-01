@@ -75,7 +75,6 @@ class PlanningAlgorithms(object):
                         rangeSuggestion = ''
                     else:
                         rangeType = self.ENUM
-                        print rangeSuggestion, defaultValue
                         defaultValue = 0 if defaultValue=='' else rangeSuggestion.index(defaultValue)
                 else:
                     if ('.' in rangeSuggestion[0] or '.' in rangeSuggestion[-1]):
