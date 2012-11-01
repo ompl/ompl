@@ -47,8 +47,8 @@ ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::P
     maxDistance_ = 0.0;
     lastGoalMotion_ = NULL;
 
-    Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange);
-    Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias);
+    Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias, "0.:.05:1.");
 }
 
 ompl::geometric::LazyRRT::~LazyRRT(void)
@@ -108,14 +108,14 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution = NULL;
     double  distsol  = -1.0;
@@ -159,7 +159,6 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
             distsol = dist;
             solution = motion;
             solutionFound = true;
-
             lastGoalMotion_ = solution;
 
             // Check that the solution is valid:
@@ -181,6 +180,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
                     {
                         removeMotion(mpath[i]);
                         solutionFound = false;
+                        lastGoalMotion_ = NULL;
                     }
                 }
 
@@ -200,7 +200,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
     si_->freeState(rstate);
     delete rmotion;
 
-    logInform("Created %u states", nn_->size());
+    OMPL_INFORM("Created %u states", nn_->size());
 
     return solutionFound ?  base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
@@ -241,7 +241,8 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
+    if (lastGoalMotion_)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {

@@ -35,11 +35,10 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/Goal.h"
-
 #include <limits>
 
 ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
-    type_(GOAL_ANY), si_(si), maximumPathLength_(std::numeric_limits<double>::infinity())
+    type_(GOAL_ANY), si_(si)
 {
 }
 
@@ -48,18 +47,6 @@ bool ompl::base::Goal::isSatisfied(const State *st, double *distance) const
     if (distance != NULL)
         *distance = std::numeric_limits<double>::max();
     return isSatisfied(st);
-}
-
-bool ompl::base::Goal::isSatisfied(const State *st, double pathLength, double *distance) const
-{
-    if (pathLength > maximumPathLength_)
-    {
-        if (distance != NULL)
-            isSatisfied(st, distance);
-        return false;
-    }
-    else
-        return isSatisfied(st, distance);
 }
 
 void ompl::base::Goal::print(std::ostream &out) const

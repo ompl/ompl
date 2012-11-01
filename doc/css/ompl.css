@@ -1,6 +1,7 @@
 h1 { margin-top: 1em; }
 h2 { margin-bottom: .25em; margin-top: 1em;}
 h2:first-child { margin-top: 0em; }
+h3 { margin-top: .75em; }
 
 dl.attention, dl.note {
     background-color: #f8f8ff;
@@ -104,6 +105,11 @@ body, table, div, p, dl {
 }
 h1, h2, .title {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+div.textblock p>a, div.textblock p>a:hover, div.textblock p>a:visited,
+div.textblock li>a, div.textblock li>a:hover, div.textblock li>a:visited
+{
+    font-weight: bold;
 }
 a:visited.btn-primary { color: #fff; }
 a.btn-primary small, a:visited.btn-primary small { color: #ccc; }

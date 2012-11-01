@@ -11,14 +11,14 @@ curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependenc
 
 # build & install gccxml
 cd gccxml
-cmake .
-make
-sudo make install
+@CMAKE_COMMAND@ @CMAKE_GCCXML_ARGS@ .
+@CMAKE_COMMAND@ --build .
+sudo @CMAKE_COMMAND@ --build . --target install
 
 # build & install pygccxml and Py++
 cd ../pygccxml
-python setup.py build
-sudo python setup.py install
+@PYTHON_EXEC@ setup.py build
+sudo @PYTHON_EXEC@ setup.py install
 cd ../pyplusplus
-python setup.py build
-sudo python setup.py install
+@PYTHON_EXEC@ setup.py build
+sudo @PYTHON_EXEC@ setup.py install

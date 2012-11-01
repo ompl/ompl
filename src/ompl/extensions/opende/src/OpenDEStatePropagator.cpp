@@ -86,7 +86,7 @@ namespace ompl
                     cp->collision = true;
                 if (cp->env->verboseContacts_)
                 {
-                    logDebug("%s contact between %s and %s", (valid ? "Valid" : "Invalid"),
+                    OMPL_DEBUG("%s contact between %s and %s", (valid ? "Valid" : "Invalid"),
                              cp->env->getGeomName(o1).c_str(), cp->env->getGeomName(o1).c_str());
                 }
             }

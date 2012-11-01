@@ -87,12 +87,12 @@ void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())
     {
-        logInform("Space information setup was not yet called. Calling now.");
+        OMPL_INFORM("Space information setup was not yet called. Calling now.");
         si_->setup();
     }
 
     if (setup_)
-        logWarn("Planner setup called multiple times");
+        OMPL_WARN("Planner setup called multiple times");
     else
         setup_ = true;
 }
@@ -246,10 +246,10 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
             return st;
         else
         {
-            logWarn("Skipping invalid start state (invalid %s)", bounds ? "state": "bounds");
+            OMPL_WARN("Skipping invalid start state (invalid %s)", bounds ? "state": "bounds");
             std::stringstream ss;
             si_->printState(st, ss);
-            logDebug("Discarded start state %s", ss.str().c_str());
+            OMPL_DEBUG("Discarded start state %s", ss.str().c_str());
         }
     }
     return NULL;
@@ -297,16 +297,16 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     {
                         if (!first) // if we waited, show how long
                         {
-                           logDebug("Waited %lf seconds for the first goal sample.", time::seconds(time::now() - start_wait));
+                           OMPL_DEBUG("Waited %lf seconds for the first goal sample.", time::seconds(time::now() - start_wait));
                         }
                         return tempState_;
                     }
                     else
                     {
-                        logWarn("Skipping invalid goal state (invalid %s)", bounds ? "state": "bounds");
+                        OMPL_WARN("Skipping invalid goal state (invalid %s)", bounds ? "state": "bounds");
                         std::stringstream ss;
                         si_->printState(tempState_, ss);
-                        logDebug("Discarded goal state %s", ss.str().c_str());
+                        OMPL_DEBUG("Discarded goal state %s", ss.str().c_str());
                     }
                 }
                 while (!ptc() && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
@@ -317,7 +317,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                 {
                     first = false;
                     start_wait = time::now();
-                    logDebug("Waiting for goal region samples ...");
+                    OMPL_DEBUG("Waiting for goal region samples ...");
                 }
                 boost::this_thread::sleep(time::seconds(0.01));
                 attempt = !ptc();

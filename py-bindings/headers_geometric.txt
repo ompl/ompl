@@ -12,6 +12,7 @@
 ../src/ompl/geometric/planners/rrt/RRT.h
 ../src/ompl/geometric/planners/rrt/RRTConnect.h
 ../src/ompl/geometric/planners/rrt/LazyRRT.h
+../src/ompl/geometric/planners/rrt/TRRT.h
 ../src/ompl/geometric/planners/sbl/SBL.h
 ../src/ompl/datastructures/NearestNeighbors.h
 ../src/ompl/datastructures/NearestNeighborsLinear.h

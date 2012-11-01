@@ -95,14 +95,14 @@ namespace ompl
                     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
                        << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
                     std::cerr << es.str();
-                    logError(es.str().c_str());
+                    OMPL_ERROR(es.str().c_str());
 
                     t.interrupt();
                     t.join();
 
                     std::string m = "Planning thread cancelled";
                     std::cerr << m << std::endl;
-                    logError(m.c_str());
+                    OMPL_ERROR(m.c_str());
                 }
 
                 if (memStart < memUsed_)
@@ -143,7 +143,7 @@ namespace ompl
                     es << "There was an error executing planner " << benchmark_->getStatus().activePlanner <<  ", run = " << benchmark_->getStatus().activeRun << std::endl;
                     es << "*** " << e.what() << std::endl;
                     std::cerr << es.str();
-                    logError(es.str().c_str());
+                    OMPL_ERROR(es.str().c_str());
                 }
 
                 timeUsed_ = time::seconds(time::now() - timeStart);
@@ -169,7 +169,7 @@ bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
     if (fout.good())
     {
         result = saveResultsToStream(fout);
-        logInform("Results saved to '%s'", filename);
+        OMPL_INFORM("Results saved to '%s'", filename);
     }
     else
     {
@@ -177,7 +177,7 @@ bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
         if (getResultsFilename(exp_) != std::string(filename))
             result = saveResultsToFile();
 
-        logError("Unable to write results to '%s'", filename);
+        OMPL_ERROR("Unable to write results to '%s'", filename);
     }
     return result;
 }
@@ -192,13 +192,13 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 {
     if (exp_.planners.empty())
     {
-        logWarn("There is no experimental data to save");
+        OMPL_WARN("There is no experimental data to save");
         return false;
     }
 
     if (!out.good())
     {
-        logError("Unable to write to stream");
+        OMPL_ERROR("Unable to write to stream");
         return false;
     }
 
@@ -294,13 +294,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     if (!(gsetup_ ? gsetup_->getGoal() : csetup_->getGoal()))
     {
-        logError("No goal defined");
+        OMPL_ERROR("No goal defined");
         return;
     }
 
     if (planners_.empty())
     {
-        logError("There are no planners to benchmark");
+        OMPL_ERROR("There are no planners to benchmark");
         return;
     }
 
@@ -314,7 +314,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     exp_.startTime = time::now();
 
-    logInform("Configuring planners ...");
+    OMPL_INFORM("Configuring planners ...");
 
     // clear previous experimental data
     exp_.planners.clear();
@@ -329,11 +329,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         if (!planners_[i]->isSetup())
             planners_[i]->setup();
         exp_.planners[i].name = (gsetup_ ? "geometric_" : "control_") + planners_[i]->getName();
-        logInform("Configured %s", exp_.planners[i].name.c_str());
+        OMPL_INFORM("Configured %s", exp_.planners[i].name.c_str());
     }
 
-    logInform("Done configuring planners.");
-    logInform("Saving planner setup information ...");
+    OMPL_INFORM("Done configuring planners.");
+    OMPL_INFORM("Saving planner setup information ...");
 
     std::stringstream setupInfo;
     if (gsetup_)
@@ -346,9 +346,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     exp_.setupInfo = setupInfo.str();
 
-    logInform("Done saving information");
+    OMPL_INFORM("Done saving information");
 
-    logInform("Beginning benchmark");
+    OMPL_INFORM("Beginning benchmark");
     msg::OutputHandler *oh = msg::getOutputHandler();
     boost::scoped_ptr<msg::OutputHandlerFile> ohf;
     if (req.saveConsoleOutput)
@@ -358,7 +358,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     }
     else
         msg::noOutputHandler();
-    logInform("Beginning benchmark");
+    OMPL_INFORM("Beginning benchmark");
 
     boost::scoped_ptr<boost::progress_display> progress;
     if (req.displayProgress)
@@ -380,9 +380,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         {
             if (plannerSwitch_)
             {
-                logInform("Executing planner-switch event for planner %s ...", status_.activePlanner.c_str());
+                OMPL_INFORM("Executing planner-switch event for planner %s ...", status_.activePlanner.c_str());
                 plannerSwitch_(planners_[i]);
-                logInform("Completed execution of planner-switch event");
+                OMPL_INFORM("Completed execution of planner-switch event");
             }
         }
         catch(std::runtime_error &e)
@@ -391,7 +391,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             es << "There was an error executing the planner-switch event for planner " << status_.activePlanner << std::endl;
             es << "*** " << e.what() << std::endl;
             std::cerr << es.str();
-            logError(es.str().c_str());
+            OMPL_ERROR(es.str().c_str());
         }
         if (gsetup_)
             gsetup_->setup();
@@ -410,7 +410,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 while (status_.progressPercentage > progress->count())
                     ++(*progress);
 
-            logInform("Preparing for run %d of %s", status_.activeRun, status_.activePlanner.c_str());
+            OMPL_INFORM("Preparing for run %d of %s", status_.activeRun, status_.activePlanner.c_str());
 
             // make sure all planning data structures are cleared
             try
@@ -433,7 +433,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 es << "There was an error while preparing for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
-                logError(es.str().c_str());
+                OMPL_ERROR(es.str().c_str());
             }
 
             // execute pre-run event, if set
@@ -441,9 +441,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 if (preRun_)
                 {
-                    logInform("Executing pre-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                    OMPL_INFORM("Executing pre-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
                     preRun_(planners_[i]);
-                    logInform("Completed execution of pre-run event");
+                    OMPL_INFORM("Completed execution of pre-run event");
                 }
             }
             catch(std::runtime_error &e)
@@ -452,7 +452,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 es << "There was an error executing the pre-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
-                logError(es.str().c_str());
+                OMPL_ERROR(es.str().c_str());
             }
 
             RunPlanner rp(this, req.useThreads);
@@ -533,9 +533,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 {
                     if (postRun_)
                     {
-                        logInform("Executing post-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                        OMPL_INFORM("Executing post-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
                         postRun_(planners_[i], run);
-                        logInform("Completed execution of post-run event");
+                        OMPL_INFORM("Completed execution of post-run event");
                     }
                 }
                 catch(std::runtime_error &e)
@@ -544,7 +544,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     es << "There was an error in the execution of the post-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
                     es << "*** " << e.what() << std::endl;
                     std::cerr << es.str();
-                    logError(es.str().c_str());
+                    OMPL_ERROR(es.str().c_str());
                 }
 
                 exp_.planners[i].runs.push_back(run);
@@ -555,7 +555,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 es << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
-                logError(es.str().c_str());
+                OMPL_ERROR(es.str().c_str());
             }
         }
     }
@@ -571,7 +571,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     exp_.totalDuration = time::seconds(time::now() - exp_.startTime);
 
-    logInform("Benchmark complete");
+    OMPL_INFORM("Benchmark complete");
     msg::useOutputHandler(oh);
-    logInform("Benchmark complete");
+    OMPL_INFORM("Benchmark complete");
 }

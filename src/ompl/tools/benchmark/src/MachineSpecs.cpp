@@ -98,7 +98,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 }
 
 #else
-#if defined _POSIX_VERSION || defined _POSIX2_VERSION || defined __linux__ 
+#if defined _POSIX_VERSION || defined _POSIX2_VERSION || defined __linux__
 // we need a posix compliant os that exposes /proc/self/stat
 
 #include <unistd.h>
@@ -157,7 +157,7 @@ ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
     MemUsage_t result = getProcessMemoryUsageAux();
     if (result == 0)
     {
-        logWarn("Unable to get memory usage");
+        OMPL_WARN("Unable to get memory usage");
     }
     return result;
 }

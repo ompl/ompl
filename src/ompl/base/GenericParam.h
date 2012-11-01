@@ -92,10 +92,52 @@ namespace ompl
             /** \brief Retrieve the value of the parameter, as a string. */
             virtual std::string getValue(void) const = 0;
 
+            /** \brief Assignment operator by type. This is just for convenience, as it just calls setValue() */
+            template<typename T>
+            GenericParam& operator=(const T &value)
+            {
+                try
+                {
+                    setValue(boost::lexical_cast<std::string>(value));
+                }
+                catch (boost::bad_lexical_cast &e)
+                {
+                    OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                }
+                return *this;
+            }
+
+            /** \brief Set a suggested range */
+            void setRangeSuggestion(const std::string &rangeSuggestion)
+            {
+                rangeSuggestion_ = rangeSuggestion;
+            }
+
+            /** \brief Get the suggested range of values */
+            const std::string& getRangeSuggestion(void) const
+            {
+                return rangeSuggestion_;
+            }
+
         protected:
 
             /** \brief The name of the parameter */
-            std::string           name_;
+            std::string name_;
+
+            /** \brief Suggested range for the parameter
+
+                This can be used to provide a hint to, e.g., a GUI. The
+                convention used in OMPL is to denote ranges for the
+                following types as follows:
+                * bool: "false,true"
+                * enum: "<enum_val0>,<enum_val1>,<enum_val2>,..."
+                * int, double: either "first:last" or "first:stepsize:last".
+                  In the first case, the stepsize is assumed to be 1. It is
+                  important to use floating point representations for double
+                  ranges (i.e., "1." instead of "1") to make sure the type is
+                  deduced correctly.
+            */
+            std::string rangeSuggestion_;
         };
 
 
@@ -116,6 +158,8 @@ namespace ompl
             SpecificParam(const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
                 GenericParam(name), setter_(setter), getter_(getter)
             {
+                if (!setter_)
+                    OMPL_ERROR("Setter function must be specified for parameter");
             }
 
             virtual ~SpecificParam(void)
@@ -127,18 +171,19 @@ namespace ompl
                 bool result = true;
                 try
                 {
-                    setter_(boost::lexical_cast<T>(value));
+                    if (setter_)
+                        setter_(boost::lexical_cast<T>(value));
                 }
                 catch (boost::bad_lexical_cast &e)
                 {
                     result = false;
-                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                    OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
                 }
 
                 if (getter_)
-                    logDebug("The value of parameter '%s' is now: '%s'", name_.c_str(), getValue().c_str());
+                    OMPL_DEBUG("The value of parameter '%s' is now: '%s'", name_.c_str(), getValue().c_str());
                 else
-                    logDebug("The value of parameter '%s' was set to: '%s'", name_.c_str(), value.c_str());
+                    OMPL_DEBUG("The value of parameter '%s' was set to: '%s'", name_.c_str(), value.c_str());
                 return result;
             }
 
@@ -151,7 +196,7 @@ namespace ompl
                     }
                     catch (boost::bad_lexical_cast &e)
                     {
-                        logWarn("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
+                        OMPL_WARN("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
                         return "";
                     }
                 else
@@ -231,6 +276,9 @@ namespace ompl
 
             /** \brief Check whether this set of parameters includes the parameter named \e key */
             bool hasParam(const std::string &key) const;
+
+            /** \brief Access operator for parameters, by name. If the parameter is not defined, an exception is thrown */
+            GenericParam& operator[](const std::string &key);
 
             /** \brief Get the number of parameters maintained by this instance */
             std::size_t size(void) const

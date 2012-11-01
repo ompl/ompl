@@ -147,9 +147,15 @@ namespace ompl
         ClassForward(PlannerData);
         /// @endcond
 
+        /** \class ompl::base::PlannerDataPtr
+            \brief A boost shared pointer wrapper for ompl::base::PlannerData */
+
+
         /// \brief Object containing planner generated vertex and edge data.  It
         /// is assumed that all vertices are unique, and only a single directed
         /// edge connects two vertices.
+        /// \note The storage for states this class maintains belongs to the planner
+        /// instance that filled the data (by default; see PlannerData::decoupleFromPlanner())
         class PlannerData : boost::noncopyable
         {
         public:
@@ -365,6 +371,7 @@ namespace ompl
             /// \brief Return the instance of SpaceInformation used in this PlannerData
             const SpaceInformationPtr& getSpaceInformation(void) const;
 
+          /// \brief Indicate whether any information about controls (ompl::control::Control) is stored in this instance
             virtual bool hasControls(void) const;
 
             /// \brief Any extra properties (key-value pairs) the planner can set.

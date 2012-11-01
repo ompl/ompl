@@ -87,7 +87,7 @@ namespace ompl
                 previously applied control is \e previous. This is
                 useful for some algorithms that have a notion of
                 direction in their exploration (e.g.,
-                \cRRT). Furthermore, return the duration for which
+                \ref cRRT). Furthermore, return the duration for which
                 this control should be applied. */
             virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target) = 0;
 

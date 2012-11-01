@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/GenericParam.h"
+#include "ompl/util/Exception.h"
 
 bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &value)
 {
@@ -43,7 +44,7 @@ bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &v
         return it->second->setValue(value);
     else
     {
-        logError("Parameter '%s' was not found", key.c_str());
+        OMPL_ERROR("Parameter '%s' was not found", key.c_str());
         return false;
     }
 }
@@ -114,6 +115,13 @@ void ompl::base::ParamSet::getParams(std::map<std::string, std::string> &params)
 bool ompl::base::ParamSet::hasParam(const std::string &key) const
 {
     return params_.find(key) != params_.end();
+}
+
+ompl::base::GenericParam& ompl::base::ParamSet::operator[](const std::string &key)
+{
+    if (!hasParam(key))
+        throw Exception("Parameter '%s' is not defined", key.c_str());
+    return *getParam(key);
 }
 
 void ompl::base::ParamSet::include(const ParamSet &other, const std::string &prefix)

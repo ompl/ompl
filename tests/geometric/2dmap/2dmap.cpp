@@ -50,6 +50,7 @@
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/geometric/planners/sbl/pSBL.h"
 #include "ompl/geometric/planners/rrt/pRRT.h"
+#include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
@@ -191,6 +192,18 @@ protected:
         geometric::pRRT *rrt = new geometric::pRRT(si);
         rrt->setRange(10.0);
         rrt->setThreadCount(4);
+        return base::PlannerPtr(rrt);
+    }
+};
+
+class TRRTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::TRRT *rrt = new geometric::TRRT(si);
+        rrt->setRange(10.0);
         return base::PlannerPtr(rrt);
     }
 };
@@ -464,6 +477,23 @@ BOOST_AUTO_TEST_CASE(geometric_pRRT)
     simpleTest();
 
     TestPlanner *p = new pRRTTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.02);
+    BOOST_CHECK(avglength < 100.0);
+}
+
+BOOST_AUTO_TEST_CASE(geometric_TRRT)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    simpleTest();
+
+    TestPlanner *p = new TRRTTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

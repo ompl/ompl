@@ -165,17 +165,17 @@ bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double di
     {
         v = si_->isValid(state);
         if (!v)
-            logDebug("%s state is not valid", start ? "Start" : "Goal");
+            OMPL_DEBUG("%s state is not valid", start ? "Start" : "Goal");
     }
     else
-        logDebug("%s state is not within space bounds", start ? "Start" : "Goal");
+        OMPL_DEBUG("%s state is not within space bounds", start ? "Start" : "Goal");
 
     if (!b || !v)
     {
         std::stringstream ss;
         si_->printState(state, ss);
         ss << " within distance " << dist;
-        logDebug("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
+        OMPL_DEBUG("Attempting to fix %s state %s", start ? "start" : "goal", ss.str().c_str());
 
         State *temp = si_->allocState();
         if (si_->searchValidNearby(temp, state, dist, attempts))
@@ -184,7 +184,7 @@ bool ompl::base::ProblemDefinition::fixInvalidInputState(State *state, double di
             result = true;
         }
         else
-            logWarn("Unable to fix %s state", start ? "start" : "goal");
+            OMPL_WARN("Unable to fix %s state", start ? "start" : "goal");
         si_->freeState(temp);
     }
 
@@ -333,7 +333,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
 {
     if (!goal_)
     {
-        logError("Goal undefined");
+        OMPL_ERROR("Goal undefined");
         return false;
     }
 
@@ -354,7 +354,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
         }
         else
         {
-            logError("Initial state is in collision!");
+            OMPL_ERROR("Initial state is in collision!");
         }
     }
 
@@ -379,7 +379,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath(void) const
 void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference) const
 {
     if (approximate)
-        logWarn("Adding approximate solution");
+        OMPL_WARN("Adding approximate solution");
     solutions_->add(PlannerSolution(path, approximate, difference));
 }
 
@@ -413,4 +413,25 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
     else
         out << "Goal = NULL" << std::endl;
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
+}
+
+
+bool ompl::base::ProblemDefinition::hasSolutionNonExistenceProof(void) const
+{
+    return nonExistenceProof_;
+}
+
+void ompl::base::ProblemDefinition::clearSolutionNonExistenceProof(void)
+{
+    nonExistenceProof_.reset();
+}
+
+const ompl::base::SolutionNonExistenceProofPtr& ompl::base::ProblemDefinition::getSolutionNonExistenceProof(void) const
+{
+    return nonExistenceProof_;
+}
+
+void ompl::base::ProblemDefinition::setSolutionNonExistenceProof(const ompl::base::SolutionNonExistenceProofPtr& nonExistenceProof)
+{
+    nonExistenceProof_ = nonExistenceProof;
 }

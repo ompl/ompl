@@ -203,7 +203,7 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false)
+            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false), provingSolutionNonExistence(false)
             {
             }
 
@@ -223,6 +223,9 @@ namespace ompl
             /** \brief Flag indicating whether the planner is able to account for the fact that the validity of a motion from A to B may not be the same as the validity of a motion from B to A.
                 If this flag is true, the planner will return solutions that do not make this assumption. Usually roadmap-based planners make this assumption and tree-based planners do not. */
             bool     directed;
+
+            /** \brief Flag indicating whether the planner is able to prove that no solution path exists. */
+            bool     provingSolutionNonExistence;
         };
 
         /** \brief Base class for a planner */
@@ -356,16 +359,20 @@ namespace ompl
 
             /** \brief This function declares a parameter for this planner instance, and specifies the setter and getter functions. */
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
-            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter)
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter, const std::string &rangeSuggestion = "")
             {
                 params_.declareParam<T>(name, boost::bind(setter, planner, _1), boost::bind(getter, planner));
+                if (!rangeSuggestion.empty())
+                    params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
             /** \brief This function declares a parameter for this planner instance, and specifies the setter function. */
             template<typename T, typename PlannerType, typename SetterType>
-            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter)
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const std::string &rangeSuggestion = "")
             {
                 params_.declareParam<T>(name, boost::bind(setter, planner, _1));
+                if (!rangeSuggestion.empty())
+                    params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
             /** \brief The space information for which planning is done */

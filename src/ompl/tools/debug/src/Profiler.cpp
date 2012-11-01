@@ -162,7 +162,7 @@ void ompl::tools::Profiler::console(void)
     std::stringstream ss;
     ss << std::endl;
     status(ss, true);
-    logInform(ss.str().c_str());
+    OMPL_INFORM(ss.str().c_str());
 }
 
 /// @cond IGNORE
@@ -257,10 +257,14 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
         out << std::endl;
         unaccounted -= time[i].value;
     }
-    out << "Unaccounted time : " << unaccounted;
-    if (total > 0.0)
-        out << " (" << (100.0 * unaccounted / total) << " %)";
-    out << std::endl;
+    // if we do not appear to have counted time multiple times, print the unaccounted time too
+    if (unaccounted >= 0.0)
+    {
+        out << "Unaccounted time : " << unaccounted;
+        if (total > 0.0)
+            out << " (" << (100.0 * unaccounted / total) << " %)";
+        out << std::endl;
+    }
 
     out << std::endl;
 }

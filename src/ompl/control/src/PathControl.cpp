@@ -37,6 +37,7 @@
 #include "ompl/control/PathControl.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 #include <numeric>
@@ -90,6 +91,16 @@ double ompl::control::PathControl::length(void) const
     return std::accumulate(controlDurations_.begin(), controlDurations_.end(), 0.0);
 }
 
+double ompl::control::PathControl::cost(const base::OptimizationObjective &objective) const
+{
+    double L = 0.0;
+    for (unsigned int i = 1 ; i < states_.size() ; ++i)
+        L = objective.combineObjectiveCosts(L, objective.getIncrementalCost(states_[i-1], states_[i]));
+    if (!states_.empty())
+        L += objective.getTerminalCost(states_.back());
+    return L;
+}
+
 void ompl::control::PathControl::print(std::ostream &out) const
 {
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
@@ -112,7 +123,7 @@ void ompl::control::PathControl::interpolate(void)
 {
     if (states_.size() <= controls_.size())
     {
-        logError("Interpolation not performed.  Number of states in the path should be strictly greater than the number of controls.");
+        OMPL_ERROR("Interpolation not performed.  Number of states in the path should be strictly greater than the number of controls.");
         return;
     }
 

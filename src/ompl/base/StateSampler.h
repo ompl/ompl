@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_SPACE_STATE_SAMPLER_
-#define OMPL_BASE_SPACE_STATE_SAMPLER_
+#ifndef OMPL_BASE_STATE_SAMPLER_
+#define OMPL_BASE_STATE_SAMPLER_
 
 #include "ompl/base/State.h"
 #include "ompl/util/RandomNumbers.h"
@@ -88,10 +88,10 @@ namespace ompl
         protected:
 
             /** \brief The state space this sampler samples */
-            const StateSpace     *space_;
+            const StateSpace *space_;
 
             /** \brief An instance of a random number generator */
-            RNG                  rng_;
+            RNG               rng_;
         };
 
         /** \brief Definition of a compound state sampler. This is useful to construct samplers for compound states. */
@@ -166,7 +166,7 @@ namespace ompl
 
             /** \brief The names of common subspaces between \e space_ and \e subspace_; these are the ones copied after sampling a state */
             std::vector<std::string> subspaces_;
-          
+
         private:
 
             /** \brief Temporary work area */

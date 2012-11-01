@@ -50,16 +50,16 @@ ompl::geometric::BallTreeRRTstar::BallTreeRRTstar(const base::SpaceInformationPt
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
     ballRadiusMax_ = 0.0;
-    ballRadiusConst_ = 1.0;
+    ballRadiusConst_ = 0.0;
     rO_ = std::numeric_limits<double>::infinity();
     delayCC_ = true;
 
-    Planner::declareParam<double>("range", this, &BallTreeRRTstar::setRange, &BallTreeRRTstar::getRange);
-    Planner::declareParam<double>("goal_bias", this, &BallTreeRRTstar::setGoalBias, &BallTreeRRTstar::getGoalBias);
+    Planner::declareParam<double>("range", this, &BallTreeRRTstar::setRange, &BallTreeRRTstar::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &BallTreeRRTstar::setGoalBias, &BallTreeRRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("ball_radius_constant", this, &BallTreeRRTstar::setBallRadiusConstant, &BallTreeRRTstar::getBallRadiusConstant);
     Planner::declareParam<double>("max_ball_radius", this, &BallTreeRRTstar::setMaxBallRadius, &BallTreeRRTstar::getMaxBallRadius);
     Planner::declareParam<double>("initial_volume_radius", this, &BallTreeRRTstar::setInitialVolumeRadius, &BallTreeRRTstar::getInitialVolumeRadius);
-    Planner::declareParam<bool>("delay_cc", this, &BallTreeRRTstar::setDelayCC, &BallTreeRRTstar::getDelayCC);
+    Planner::declareParam<bool>("delay_collision_checking", this, &BallTreeRRTstar::setDelayCC, &BallTreeRRTstar::getDelayCC, "false,true");
 }
 
 ompl::geometric::BallTreeRRTstar::~BallTreeRRTstar(void)
@@ -73,10 +73,10 @@ void ompl::geometric::BallTreeRRTstar::setup(void)
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
-    ballRadiusMax_ = si_->getMaximumExtent();
-    ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
-
-    delayCC_ = true;
+    if (ballRadiusMax_ == 0.0)
+        ballRadiusMax_ = si_->getMaximumExtent();
+    if (ballRadiusConst_ == 0.0)
+        ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
@@ -96,12 +96,19 @@ void ompl::geometric::BallTreeRRTstar::clear(void)
 ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                 *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal                  *goal   = pdef_->getGoal().get();
+    base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
+
+    if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
+    {
+        opt = NULL;
+        OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
+    }
 
     if (!goal)
     {
-        logError("Goal undefined");
+        OMPL_ERROR("Goal undefined");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -114,14 +121,14 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution       = NULL;
     Motion *approximation  = NULL;
@@ -138,6 +145,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
     std::vector<double>  dists;
     std::vector<int>     valid;
     long unsigned int    rewireTest = 0;
+    double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
 
     std::pair<base::State*,double> lastValid(tstate, 0.0);
 
@@ -201,7 +209,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
             motion->cost = nmotion->cost + distN;
 
             /* find nearby neighbors */
-            double r = std::min(ballRadiusConst_ * (sqrt(log((double)(1 + nn_->size())) / ((double)(nn_->size())))),
+            double r = std::min(ballRadiusConst_ * pow(log((double)(1 + nn_->size())) / (double)(nn_->size()), stateSpaceDimensionConstant),
                                 ballRadiusMax_);
 
             nn_->nearestR(motion, r, nbh);
@@ -358,7 +366,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? goal->isPathLengthSatisfied(solCheck[i]->cost) : false;
+                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
 
                 if (solved)
                 {
@@ -427,7 +435,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    logInform("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
+    OMPL_INFORM("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
     return base::PlannerStatus(addedSolution, approximate);
 }

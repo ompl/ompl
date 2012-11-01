@@ -90,7 +90,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
 
-    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors);
+    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("1:1000"));
 }
 
 ompl::geometric::PRM::~PRM(void)
@@ -298,7 +298,8 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sl = -1.0; // cache for solution length
+    double sol_cost;
+    bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -306,28 +307,33 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
             if (boost::same_component(start, goal, disjointSets_) &&
                 g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
-                // If there is a maximum acceptable path length, check the solution length
-                if (g->getMaximumPathLength() < std::numeric_limits<double>::infinity())
+                // If there is an optimization objective, check it
+                if (pdef_->hasOptimizationObjective())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-                    double pl = p->length(); // avoid computing path length multiple times
-                    if (pl < g->getMaximumPathLength()) // Sufficient solution
+                    double obj_cost = pdef_->getOptimizationObjective()->getCost(p);
+                    if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
                     {
                         solution = p;
                         return true;
                     }
                     else
                     {
-                        if (solution && sl < 0.0)
-                            sl = solution->length();
-                        if (!solution || (solution && pl < sl)) // approximation
+                        if (solution && !sol_cost_set)
+                        {
+                            sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
+                            sol_cost_set = true;
+                        }
+
+                        if (!solution || obj_cost < sol_cost)
                         {
                             solution = p;
-                            sl = pl;
+                            sol_cost = obj_cost;
+                            sol_cost_set = true;
                         }
                     }
                 }
-                else // Accept the solution, regardless of length
+                else // Accept the solution, regardless of cost
                 {
                     solution = constructSolution(start, goal);
                     return true;
@@ -339,7 +345,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
     return false;
 }
 
-bool ompl::geometric::PRM::addedNewSolution (void) const
+bool ompl::geometric::PRM::addedNewSolution(void) const
 {
     return addedSolution_;
 }
@@ -351,7 +357,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (!goal)
     {
-        logError("Goal undefined or unknown type of goal");
+        OMPL_ERROR("Goal undefined or unknown type of goal");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -361,13 +367,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (startM_.size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        logError("Insufficient states in sampleable goal region");
+        OMPL_ERROR("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -380,7 +386,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
         if (goalM_.empty())
         {
-            logError("Unable to find any valid goal states");
+            OMPL_ERROR("Unable to find any valid goal states");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
@@ -391,7 +397,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         simpleSampler_ = si_->allocStateSampler();
 
     unsigned int nrStartStates = boost::num_vertices(g_);
-    logInform("Starting with %u states", nrStartStates);
+    OMPL_INFORM("Starting with %u states", nrStartStates);
 
     std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
@@ -420,7 +426,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     // Ensure slnThread is ceased before exiting solve
     slnThread.join();
 
-    logInform("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
     {
