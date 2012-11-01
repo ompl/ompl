@@ -59,7 +59,7 @@ ompl::geometric::BallTreeRRTstar::BallTreeRRTstar(const base::SpaceInformationPt
     Planner::declareParam<double>("ball_radius_constant", this, &BallTreeRRTstar::setBallRadiusConstant, &BallTreeRRTstar::getBallRadiusConstant);
     Planner::declareParam<double>("max_ball_radius", this, &BallTreeRRTstar::setMaxBallRadius, &BallTreeRRTstar::getMaxBallRadius);
     Planner::declareParam<double>("initial_volume_radius", this, &BallTreeRRTstar::setInitialVolumeRadius, &BallTreeRRTstar::getInitialVolumeRadius);
-    Planner::declareParam<bool>("delay_cc", this, &BallTreeRRTstar::setDelayCC, &BallTreeRRTstar::getDelayCC, "false,true");
+    Planner::declareParam<bool>("delay_collision_checking", this, &BallTreeRRTstar::setDelayCC, &BallTreeRRTstar::getDelayCC, "false,true");
 }
 
 ompl::geometric::BallTreeRRTstar::~BallTreeRRTstar(void)
