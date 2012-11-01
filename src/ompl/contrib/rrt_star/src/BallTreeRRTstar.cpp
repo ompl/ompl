@@ -50,7 +50,7 @@ ompl::geometric::BallTreeRRTstar::BallTreeRRTstar(const base::SpaceInformationPt
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
     ballRadiusMax_ = 0.0;
-    ballRadiusConst_ = 1.0;
+    ballRadiusConst_ = 0.0;
     rO_ = std::numeric_limits<double>::infinity();
     delayCC_ = true;
 
@@ -75,7 +75,7 @@ void ompl::geometric::BallTreeRRTstar::setup(void)
 
     if (ballRadiusMax_ == 0.0)
         ballRadiusMax_ = si_->getMaximumExtent();
-    if (ballRadiusConst_ == 1.0)
+    if (ballRadiusConst_ == 0.0)
         ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     if (!nn_)

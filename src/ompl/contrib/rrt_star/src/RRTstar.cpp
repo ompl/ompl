@@ -50,7 +50,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
     ballRadiusMax_ = 0.0;
-    ballRadiusConst_ = 1.0;
+    ballRadiusConst_ = 0.0;
     delayCC_ = true;
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
@@ -73,7 +73,7 @@ void ompl::geometric::RRTstar::setup(void)
 
     if (ballRadiusMax_ == 0.0)
         ballRadiusMax_ = si_->getMaximumExtent();
-    if (ballRadiusConst_ == 1.0)
+    if (ballRadiusConst_ == 0.0)
         ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     if (!nn_)
