@@ -83,7 +83,7 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &planner_termination_condition);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &plannerTerminationCondition);
 
             virtual void clear(void);
 
@@ -114,108 +114,108 @@ namespace ompl
                 motion to be added in the tree of motions. */
             void setRange(double distance)
             {
-                max_distance_ = distance;
+                maxDistance_ = distance;
             }
 
             /** \brief Get the range the planner is using */
             double getRange(void) const
             {
-                return max_distance_;
+                return maxDistance_;
             }
 
             /** \brief Set the maximum number of states that can be rejected before the temperature starts to rise */
-            void setMaxStatesFailed( double max_states_failed )
+            void setMaxStatesFailed( double maxStatesFailed )
             {
-                max_states_failed_ = max_states_failed;
+                maxStatesFailed_ = maxStatesFailed;
             }
 
             /** \brief Get the maximum number of states that can be rejected before the temperature starts to rise */
             double getMaxStatesFailed( void ) const
             {
-                return max_states_failed_;
+                return maxStatesFailed_;
             }
 
             /** \brief Set the factor by which the temperature rises or falls based on current acceptance/rejection rate */
-            void setTempChangeFactor( double temp_change_factor )
+            void setTempChangeFactor( double tempChangeFactor )
             {
-                temp_change_factor_ = temp_change_factor;
+                tempChangeFactor_ = tempChangeFactor;
             }
 
             /** \brief Get the factor by which the temperature rises or falls based on current acceptance/rejection rate */
             double getTempChangeFactor( void ) const
             {
-                return temp_change_factor_;
+                return tempChangeFactor_;
             }
 
             /** \brief Set the minimum the temperature can drop to before being floored at that value */
-            void setMinTemperature( double min_temperature )
+            void setMinTemperature( double minTemperature )
             {
-                min_temperature_ = min_temperature;
+                minTemperature_ = minTemperature;
             }
 
             /** \brief Get the minimum the temperature can drop to before being floored at that value */
             double getMinTemperature( void ) const
             {
-                return min_temperature_;
+                return minTemperature_;
             }
 
             /** \brief Set the initial temperature at the beginning of the algorithm. Should be low */
-            void setInitTemperature( double init_temperature )
+            void setInitTemperature( double initTemperature )
             {
-                init_temperature_ = init_temperature;
+                initTemperature_ = initTemperature;
             }
 
             /** \brief Get the initial temperature at the beginning of the algorithm. Should be low */
             double getInitTemperature( void ) const
             {
-                return init_temperature_;
+                return initTemperature_;
             }
 
             /** \brief Set the distance between a new state and the nearest neighbor
                 that qualifies that state as being a frontier */
             void setFrontierThreshold( double frontier_threshold )
             {
-                frontier_threshold_ = frontier_threshold;
+                frontierThreshold_ = frontier_threshold;
             }
 
             /** \brief Get the distance between a new state and the nearest neighbor
                 that qualifies that state as being a frontier */
             double getFrontierThreshold( void ) const
             {
-                return frontier_threshold_;
+                return frontierThreshold_;
             }
 
             /** \brief Set the ratio between adding nonfrontier nodes to frontier nodes,
                 for example .1 is 1/10 or one nonfrontier node for every 10 frontier nodes added */
-            void setFrontierNodeRatio( double frontier_node_ratio )
+            void setFrontierNodeRatio( double frontierNodeRatio )
             {
-                frontier_node_ratio_ = frontier_node_ratio;
+                frontierNodeRatio_ = frontierNodeRatio;
             }
 
             /** \brief Get the ratio between adding nonfrontier nodes to frontier nodes,
                 for example .1 is 1/10 or one nonfrontier node for every 10 frontier nodes added */
             double getFrontierNodeRatio( void ) const
             {
-                return frontier_node_ratio_;
+                return frontierNodeRatio_;
             }
 
             /** \brief Set the constant value used to normalize the expression */
-            void setKConstant( double k_constant )
+            void setKConstant( double kConstant )
             {
-                k_constant_ = k_constant;
+                kConstant_ = kConstant;
             }
 
             /** \brief Get the constant value used to normalize the expression */
             double getKConstant( void ) const
             {
-                return k_constant_;
+                return kConstant_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
             void setNearestNeighbors(void)
             {
-                nearest_neighbors_.reset(new NN<Motion*>());
+                nearestNeighbors_.reset(new NN<Motion*>());
             }
 
             virtual void setup(void);
@@ -268,26 +268,26 @@ namespace ompl
             }
 
             /** \brief Filter irrelevant configuration regarding the search of low-cost paths before inserting into tree
-                \param child_cost - cost of current state
-                \param parent_cost - cost of its ancestor parent state
+                \param childCost - cost of current state
+                \param parentCost - cost of its ancestor parent state
                 \param distance - distance between parent and child
             */
-            bool transitionTest( double child_cost, double parent_cost, double distance );
+            bool transitionTest( double childCost, double parentCost, double distance );
 
             /** \brief Use ratio to prefer frontier nodes to nonfrontier ones */
-            bool minExpansionControl( double rand_motion_distance );
+            bool minExpansionControl( double randMotionDistance );
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nearest_neighbors_;
+            boost::shared_ptr< NearestNeighbors<Motion*> > nearestNeighbors_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                                         max_distance_;
+            double                                         maxDistance_;
 
             /** \brief The random number generator */
             RNG                                            rng_;
@@ -312,35 +312,35 @@ namespace ompl
             /** \brief Constant value used to normalize expression. Based on order of magnitude of the considered costs.
                 Average cost of the query configurtaions since they are the only cost values known at the
                 beginning of the search process. */
-            double                                          k_constant_;
+            double                                          kConstant_;
 
             /// Max number of rejections allowed
-            unsigned int                                    max_states_failed_;
+            unsigned int                                    maxStatesFailed_;
 
             /// Failure temperature factor used when max_num_failed_ failures occur
-            double                                          temp_change_factor_;
+            double                                          tempChangeFactor_;
 
             /// Prevent temperature from dropping too far
-            double                                          min_temperature_;
+            double                                          minTemperature_;
 
             /// A very low value at initialization to authorize very easy positive slopes
-            double                                          init_temperature_;
+            double                                          initTemperature_;
 
             /// Failure counter for states that are rejected
-            unsigned int                                    num_states_failed_;
+            unsigned int                                    numStatesFailed_;
 
 
             // Minimum Expansion Control --------------------------------------------------------------
 
             /// Ratio counters for nodes that expand the search space versus those that do not
-            double                                          nonfrontier_count_;
-            double                                          frontier_count_;
+            double                                          nonfrontierCount_;
+            double                                          frontierCount_;
 
             /// The distance between an old state and a new state that qualifies it as a frontier state
-            double                                          frontier_threshold_;
+            double                                          frontierThreshold_;
 
             /// Target ratio of nonfrontier nodes to frontier nodes. rho
-            double                                          frontier_node_ratio_;
+            double                                          frontierNodeRatio_;
 
         };
     }
