@@ -129,7 +129,7 @@ namespace ompl
                 This can be used to provide a hint to, e.g., a GUI. The
                 convention used in OMPL is to denote ranges for the
                 following types as follows:
-                * bool: "false,true"
+                * bool: "0,1"
                 * enum: "<enum_val0>,<enum_val1>,<enum_val2>,..."
                 * int, double: either "first:last" or "first:stepsize:last".
                   In the first case, the stepsize is assumed to be 1. It is
