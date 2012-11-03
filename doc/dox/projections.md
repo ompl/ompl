@@ -4,7 +4,7 @@ Most planning algorithms use a data structure (in addition to the tree/graph of 
 
 To support this notion of projections, OMPL includes ompl::base::ProjectionEvaluator. This is an abstract class whose main operation is ompl::base::ProjectionEvaluator::project(), which takes a ompl::base::State* and produces a ompl::base::EuclideanProjection (this is a representation of an array of real numbers).
 
-ompl::base::ProjectionEvaluator also includes utilities for discretizing the projected space (the low dimensional, Euclidean one). In particular, grids can be implicitly imposed on the projection space by setting cell sizes (a real value for each dimension of the Euclidean space), using ompl::base::ProjectionEvaluator::setCellDimensions(). The coordinates in the grid that correspond to a specific projection can be computed using ompl::base::ProjectionEvaluator::computeCoordinates(). If the sizes of cells for the grid have not been set, ompl::base::ProjectionEvaluator::setup() uses sampling to identify sizes such that each dimension of the projection space is split into roughly 20 parts. This is merely a default and the user is encouraged to set desired cell sizes.
+ompl::base::ProjectionEvaluator also includes utilities for discretizing the projected space (the low dimensional, Euclidean one). In particular, grids can be implicitly imposed on the projection space by setting cell sizes (a real value for each dimension of the Euclidean space), using ompl::base::ProjectionEvaluator::setCellSizes(). The coordinates in the grid that correspond to a specific projection can be computed using ompl::base::ProjectionEvaluator::computeCoordinates(). If the sizes of cells for the grid have not been set, ompl::base::ProjectionEvaluator::setup() uses sampling to identify sizes such that each dimension of the projection space is split into roughly 20 parts. This is merely a default and the user is encouraged to set desired cell sizes.
 
 Projections are specific to state spaces. This means that each ompl::base::StateSpace has its corresponding set of ompl::base::ProjectionEvaluator. In the implementation of state spaces, it is recommended that projections are set in the ompl::base::StateSpace::registerProjections() function. Although not required, it is good practice to register all projections to their corresponding state space, as this ensures calling ompl::base::ProjectionEvaluator::setup() when needed. Most state spaces have at least a default projection set by ompl::base::StateSpace::registerProjections(). The user is encouraged to define appropriate projections, if available.
 
@@ -26,11 +26,11 @@ virtual unsigned int getDimension(void) const
     return 2;
 }
 
-virtual void defaultCellDimensions(void)
+virtual void defaultCellSizes(void)
 {
-    cellDimensions_.resize(2);
-    cellDimensions_[0] = 0.1;
-    cellDimensions_[1] = 0.25;
+    cellSizes_.resize(2);
+    cellSizes_[0] = 0.1;
+    cellSizes_[1] = 0.25;
 }
 
 virtual void project(const base::State *state, base::EuclideanProjection &projection) const
