@@ -55,6 +55,12 @@
         sizeof(ompl::base::T##StateSpace::StateType); \
     }
 
+#define DeclareSpecificParamType(n, T) \
+    inline int __dummySP##n() \
+    { \
+        return sizeof(ompl::base::SpecificParam<T>("dummy", \
+            ompl::base::SpecificParam<T>::SetterFn())); \
+    }
 
 namespace ompl
 {
@@ -71,6 +77,14 @@ namespace ompl
         DeclareStateType(Time);
         DeclareStateType(Dubins);
         DeclareStateType(ReedsShepp);
+
+        DeclareSpecificParamType(0, bool);
+        DeclareSpecificParamType(1, char);
+        DeclareSpecificParamType(2, int);
+        DeclareSpecificParamType(3, unsigned int);
+        DeclareSpecificParamType(4, float);
+        DeclareSpecificParamType(5, double);
+        DeclareSpecificParamType(6, std::string);
 
         inline int dummySTLContainerSize()
         {

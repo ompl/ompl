@@ -71,7 +71,7 @@ class PlanningAlgorithms(object):
                         raise Exception('Cannot parse range suggestion')
                     elif len(rangeSuggestion)==2:
                         rangeType = self.BOOL
-                        defaultValue = False if defaultValue==rangeSuggestion[0] else True
+                        defaultValue = 0 if defaultValue==rangeSuggestion[0] else 1
                         rangeSuggestion = ''
                     else:
                         rangeType = self.ENUM
