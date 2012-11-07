@@ -139,7 +139,7 @@ namespace ompl
             KStarStrategy(const NumNeighborsFn& n,
                           const boost::shared_ptr< NearestNeighbors<Milestone> > &nn,
                           const unsigned int d = 1) :
-                KStrategy<Milestone>(n(), nn), n_(n), 
+                KStrategy<Milestone>(n(), nn), n_(n),
                                     kPRMConstant_(boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)d))
             {
             }

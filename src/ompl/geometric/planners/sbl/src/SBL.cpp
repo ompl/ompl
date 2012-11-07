@@ -46,7 +46,7 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(s
     maxDistance_ = 0.0;
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
-    Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange);
+    Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange, "0.:1.:10000.");
 }
 
 ompl::geometric::SBL::~SBL(void)
@@ -85,7 +85,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     if (!goal)
     {
-        logError("Unknown type of goal (or goal undefined)");
+        OMPL_ERROR("Unknown type of goal (or goal undefined)");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -100,20 +100,20 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     if (tStart_.size == 0)
     {
-        logError("Motion planning start tree could not be initialized!");
+        OMPL_ERROR("Motion planning start tree could not be initialized!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        logError("Insufficient states in sampleable goal region");
+        OMPL_ERROR("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    logInform("Starting with %d states", (int)(tStart_.size + tGoal_.size));
+    OMPL_INFORM("Starting with %d states", (int)(tStart_.size + tGoal_.size));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -141,7 +141,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             }
             if (tGoal_.size == 0)
             {
-                logError("Unable to sample any valid states for goal tree");
+                OMPL_ERROR("Unable to sample any valid states for goal tree");
                 break;
             }
         }
@@ -174,7 +174,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     si_->freeState(xstate);
 
-    logInform("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
+    OMPL_INFORM("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
                  tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;

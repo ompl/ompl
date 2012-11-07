@@ -57,6 +57,9 @@ else()
   option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
 endif()
 
+# pthread is sometimes needed, depending on OS / compiler
+find_package(Threads QUIET)
+
 enable_testing()
 
 # ODE is only needed for Open Dynamics Engine bindings
@@ -67,8 +70,8 @@ if (OPENDE_FOUND)
   include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
-add_subdirectory(src)
 add_subdirectory(py-bindings)
+add_subdirectory(src)
 add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(scripts)

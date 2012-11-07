@@ -52,7 +52,7 @@ void ompl::control::SpaceInformation::setup(void)
     {
         minSteps_ = 1;
         maxSteps_ = 10;
-        logWarn("Assuming propagation will always have between %d and %d steps", minSteps_, maxSteps_);
+        OMPL_WARN("Assuming propagation will always have between %d and %d steps", minSteps_, maxSteps_);
     }
     if (minSteps_ < 1)
         throw Exception("The minimum number of steps must be at least 1");
@@ -62,7 +62,7 @@ void ompl::control::SpaceInformation::setup(void)
         stepSize_ = getStateValidityCheckingResolution() * getMaximumExtent();
         if (stepSize_ < std::numeric_limits<double>::epsilon())
             throw Exception("The propagation step size must be larger than 0");
-        logWarn("The propagation step size is assumed to be %f", stepSize_);
+        OMPL_WARN("The propagation step size is assumed to be %f", stepSize_);
     }
 
     controlSpace_->setup();

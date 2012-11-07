@@ -156,6 +156,16 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
         self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename('mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
+        # rename some templated types
+        self.ompl_ns.class_('SpecificParam< bool >').rename('SpecificParamBool')
+        self.ompl_ns.class_('SpecificParam< char >').rename('SpecificParamChar')
+        self.ompl_ns.class_('SpecificParam< int >').rename('SpecificParamInt')
+        self.ompl_ns.class_('SpecificParam< unsigned int >').rename('SpecificParamUint')
+        self.ompl_ns.class_('SpecificParam< float >').rename('SpecificParamFloat')
+        self.ompl_ns.class_('SpecificParam< double >').rename('SpecificParamDouble')
+        self.ompl_ns.class_('SpecificParam< std::string >').rename('SpecificParamString')
+        for cls in self.ompl_ns.classes(lambda decl: decl.name.startswith('SpecificParam')):
+            cls.constructors().exclude()
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force StateSpace::allocState to be exported.
@@ -488,7 +498,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'RRT', 'RRTConnect', 'SBL']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'SBL']:
             if planner!='PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""

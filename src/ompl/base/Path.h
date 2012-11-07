@@ -86,7 +86,7 @@ namespace ompl
 
             /** \brief Return the cost of the path with respect to a specified optimization objective */
             virtual double cost(const OptimizationObjective &objective) const = 0;
-          
+
             /** \brief Check if the path is valid */
             virtual bool check(void) const = 0;
 

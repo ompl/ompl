@@ -48,8 +48,8 @@ ompl::control::EST::EST(const SpaceInformationPtr &si) : base::Planner(si, "EST"
     siC_ = si.get();
     lastGoalMotion_ = NULL;
 
-    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
-    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
+    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
 }
 
 ompl::control::EST::~EST(void)
@@ -111,7 +111,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     if (tree_.grid.size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -121,7 +121,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    logInform("Starting with %u states", tree_.size);
+    OMPL_INFORM("Starting with %u states", tree_.size);
 
     Motion *solution = NULL;
     double   slndist = std::numeric_limits<double>::infinity();
@@ -209,7 +209,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         siC_->freeControl(rmotion->control);
     delete rmotion;
 
-    logInform("Created %u states in %u cells", tree_.size, tree_.grid.size());
+    OMPL_INFORM("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
     return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

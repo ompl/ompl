@@ -59,7 +59,7 @@ void ompl::base::SpaceInformation::setup(void)
     if (!stateValidityChecker_)
     {
         stateValidityChecker_.reset(new AllValidStateValidityChecker(this));
-        logWarn("State validity checker not set! No collision checking is performed");
+        OMPL_WARN("State validity checker not set! No collision checking is performed");
     }
 
     if (!motionValidator_)
@@ -391,6 +391,23 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
         return 0.0;
 }
 
+double ompl::base::SpaceInformation::averageStateCost(unsigned int attempts) const
+{
+    StateSamplerPtr ss = allocStateSampler();
+    State *state = allocState();
+    double cost = 0.0;
+
+    for (unsigned int i = 0 ; i < attempts ; ++i)
+    {
+        ss->sampleUniform(state);
+        cost += stateValidityChecker_->cost(state);
+    }
+
+    freeState(state);
+
+    return cost / (double)attempts;
+}
+
 void ompl::base::SpaceInformation::samplesPerSecond(double &uniform, double &near, double &gaussian, unsigned int attempts) const
 {
     StateSamplerPtr ss = allocStateSampler();
@@ -454,11 +471,12 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
         {
             result = false;
             out << std::endl << "  - SANITY CHECKS FOR STATE SPACE ***DID NOT PASS*** (" << e.what() << ")" << std::endl << std::endl;
-            logError(e.what());
+            OMPL_ERROR(e.what());
         }
         if (result)
             out << "  - sanity checks for state space passed" << std::endl;
         out << "  - probability of valid states: " << probabilityOfValidState(magic::TEST_STATE_COUNT) << std::endl;
+        out << "  - average state cost: " << averageStateCost(magic::TEST_STATE_COUNT) << std::endl;
         out << "  - average length of a valid motion: " << averageValidMotionLength(magic::TEST_STATE_COUNT) << std::endl;
         double uniform, near, gaussian;
         samplesPerSecond(uniform, near, gaussian, magic::TEST_STATE_COUNT);

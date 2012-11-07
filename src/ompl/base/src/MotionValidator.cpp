@@ -37,7 +37,7 @@
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 
-void ompl::base::MotionValidator::computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const          
+void ompl::base::MotionValidator::computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const
 {
     bounds.first = si_->getStateValidityChecker()->cost(s1);
     bounds.second = si_->getStateValidityChecker()->cost(s2);

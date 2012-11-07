@@ -147,7 +147,7 @@ void ompl::base::ProjectionEvaluator::setCellSizes(const std::vector<double> &ce
 void ompl::base::ProjectionEvaluator::setCellSizes(unsigned int dim, double cellSize)
 {
     if (cellSizes_.size() >= dim)
-        logError("Dimension %u is not defined for projection evaluator", dim);
+        OMPL_ERROR("Dimension %u is not defined for projection evaluator", dim);
     else
     {
         std::vector<double> c = cellSizes_;
@@ -160,7 +160,7 @@ double ompl::base::ProjectionEvaluator::getCellSizes(unsigned int dim) const
 {
     if (cellSizes_.size() > dim)
         return cellSizes_[dim];
-    logError("Dimension %u is not defined for projection evaluator", dim);
+    OMPL_ERROR("Dimension %u is not defined for projection evaluator", dim);
     return 0.0;
 }
 
@@ -302,24 +302,24 @@ void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const S
                 s += comp[i].size();
             double f = (double)s / (double)g.size();
 
-            logDebug("There are %u connected components in the projected grid. The first 10%% fractions is %f", comp.size(), f);
+            OMPL_DEBUG("There are %u connected components in the projected grid. The first 10%% fractions is %f", comp.size(), f);
 
             if (f < 0.7)
             {
                 dir1 = true;
                 int bestD = updateComponentCountDimension(proj, cellSizes_, true);
-                logDebug("Increasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
+                OMPL_DEBUG("Increasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
             }
             else
                 if (f > 0.9)
                 {
                     dir2 = true;
                     int bestD = updateComponentCountDimension(proj, cellSizes_, false);
-                    logDebug("Decreasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
+                    OMPL_DEBUG("Decreasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
                 }
                 else
                 {
-                    logDebug("No more changes made to cell sizes");
+                    OMPL_DEBUG("No more changes made to cell sizes");
                     break;
                 }
         }
@@ -368,7 +368,7 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             if (cellSizes_[j] < std::numeric_limits<double>::epsilon())
             {
                 cellSizes_[j] = 1.0;
-                logWarn("Inferred cell size for dimension %u of a projection for state space %s is 0. Setting arbitrary value of 1 instead.",
+                OMPL_WARN("Inferred cell size for dimension %u of a projection for state space %s is 0. Setting arbitrary value of 1 instead.",
                           j, space_->getName().c_str());
             }
         }

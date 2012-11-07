@@ -86,12 +86,12 @@ void ompl::control::OpenDESimpleSetup::setup(void)
 {
     if (!si_->getStateValidityChecker())
     {
-        logInform("Using default state validity checker for OpenDE");
+        OMPL_INFORM("Using default state validity checker for OpenDE");
         si_->setStateValidityChecker(base::StateValidityCheckerPtr(new OpenDEStateValidityChecker(si_)));
     }
     if (pdef_->getStartStateCount() == 0)
     {
-        logInform("Using the initial state of OpenDE as the starting state for the planner");
+        OMPL_INFORM("Using the initial state of OpenDE as the starting state for the planner");
         pdef_->addStartState(getCurrentState());
     }
     SimpleSetup::setup();
@@ -117,7 +117,7 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
 
     if (pg.getStateCount() > 0)
     {
-        logDebug("Playing through %u states (%0.3f seconds)", (unsigned int)pg.getStateCount(),
+        OMPL_DEBUG("Playing through %u states (%0.3f seconds)", (unsigned int)pg.getStateCount(),
                    timeFactor * si_->getPropagationStepSize() * (double)(pg.getStateCount() - 1));
         time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
         getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(0));

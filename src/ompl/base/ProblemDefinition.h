@@ -224,10 +224,10 @@ namespace ompl
 
             /** \brief Check if an optimization objective was defined for planning  */
             bool hasOptimizationObjective(void) const
-            {     
+            {
                 return optimizationObjective_;
             }
-          
+
             /** \brief Get the optimization objective to be considered during planning */
             const OptimizationObjectivePtr& getOptimizationObjective(void) const
             {

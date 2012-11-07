@@ -166,7 +166,7 @@ namespace ompl
 
             /** \brief The names of common subspaces between \e space_ and \e subspace_; these are the ones copied after sampling a state */
             std::vector<std::string> subspaces_;
-          
+
         private:
 
             /** \brief Temporary work area */
