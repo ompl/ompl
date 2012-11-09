@@ -129,9 +129,9 @@ namespace ompl
                 This can be used to provide a hint to, e.g., a GUI. The
                 convention used in OMPL is to denote ranges for the
                 following types as follows:
-                * bool: "0,1"
-                * enum: "<enum_val0>,<enum_val1>,<enum_val2>,..."
-                * int, double: either "first:last" or "first:stepsize:last".
+                - \c bool: "0,1"
+                - \c enum: "<enum_val0>,<enum_val1>,<enum_val2>,..."
+                - \c int, \c double: either "first:last" or "first:stepsize:last".
                   In the first case, the stepsize is assumed to be 1. It is
                   important to use floating point representations for double
                   ranges (i.e., "1." instead of "1") to make sure the type is
