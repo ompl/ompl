@@ -7,6 +7,8 @@ It is often convenient to test a planner through either the OMPL.app GUI or by u
 - [Use your planner in Python (including the OMPL.app GUI)](#python)
 - [Optionally, provide hints for planner parameter ranges that can then be used to create the appropriate controls in the OMPL.app GUI.](#params)
 
+\attention
+Please note that it is difficult to create Python bindings for multi-threaded planners. The problem is that only one thread at a time can access the Pyhton interpreter. If a user creates an instance of a Python class derived from, e.g., ompl::base::StateValidityChecker or ompl::control::StatePropagator, the C++ code may call the Python interpreter simultaneously from multiple threads. In this case you need to modify you planner so that when called from Python it always runs in a single thread. In some cases, such as the ompl::geometric::PRM planner, this can be difficult. For PRM we wrote a special single-threaded version of the solve function (see ompl/py-bindings/PRM.SingleThreadSolve.cpp) that is used in the Python bindings instead of the default multi-threaded solve method.
 
 # Directory/file structure {#dirfile}
 
