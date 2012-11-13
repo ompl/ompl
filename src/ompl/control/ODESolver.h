@@ -59,7 +59,7 @@ namespace ompl
 
     namespace control
     {
-    
+
         /// @cond IGNORE
         ClassForward(ODESolver);
         /// @endcond
@@ -127,7 +127,7 @@ namespace ompl
                         ODESolverStatePropagator (ODESolverPtr solver, const PostPropagationEvent &pe) : StatePropagator (solver->si_), solver_(solver), postEvent_(pe)
                         {
                             if (!solver.get())
-                                logError("ODESolverPtr does not reference a valid ODESolver object");
+                                OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
                         }
 
                         virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
