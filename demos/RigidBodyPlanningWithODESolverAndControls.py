@@ -65,9 +65,6 @@ def isStateValid(spaceInformation, state):
     # satisfied
     return spaceInformation.satisfiesBounds(state)
 
-def postProp(control, state):
-    return
-
 def plan():
     # construct the state space we are planning in
     space = ob.SE2StateSpace()
@@ -92,8 +89,9 @@ def plan():
     validityChecker = ob.StateValidityCheckerFn(partial(isStateValid, ss.getSpaceInformation()))
     ss.setStateValidityChecker(validityChecker)
     ode = oc.ODE(kinematicCarODE)
-    odeSolver = oc.ODESolverPtr(ODEBasicSolver(ss.getSpaceInformation(), ode))
-    ss.setStatePropagator(oc.ODESolver.getStatePropagator(odeSolver, oc.PostPropagationEvent(postProp)))
+    odeSolver = oc.ODEBasicSolver(ss.getSpaceInformation(), ode)
+    propagator = oc.ODESolver.getStatePropagator(odeSolver)
+    ss.setStatePropagator(propagator)
 
     # create a start state
     start = ob.State(space)

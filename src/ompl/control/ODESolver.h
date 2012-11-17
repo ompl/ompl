@@ -114,12 +114,19 @@ namespace ompl
                 intStep_ = intStep;
             }
 
+            /** \brief Get the current instance of the space information */
+            const SpaceInformationPtr& getSpaceInformation() const
+            {
+                return si_;
+            }
+
             /// \brief Retrieve a StatePropagator object that solves a system of ordinary
             /// differential equations defined by an ODESolver.
             /// An optional PostPropagationEvent can also be specified as a callback after
             /// numerical integration is finished for further operations on the resulting
             /// state.
-            static StatePropagatorPtr getStatePropagator (ODESolverPtr solver, const PostPropagationEvent &postEvent = NULL)
+            static StatePropagatorPtr getStatePropagator (ODESolverPtr solver,
+                const PostPropagationEvent &postEvent = NULL)
             {
                 class ODESolverStatePropagator : public StatePropagator
                 {
@@ -145,7 +152,6 @@ namespace ompl
                         ODESolverPtr solver_;
                         ODESolver::PostPropagationEvent postEvent_;
                 };
-
                 return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(solver, postEvent)));
             }
 
@@ -155,7 +161,7 @@ namespace ompl
             virtual void solve (StateType &state, const Control* control, const double duration) const = 0;
 
             /// \brief The SpaceInformation that this ODESolver operates in.
-            const SpaceInformationPtr&    si_;
+            const SpaceInformationPtr     si_;
 
             /// \brief Definition of the ODE to find solutions for.
             ODE                           ode_;
