@@ -6,8 +6,8 @@ cd @PROJECT_BINARY_DIR@/pyplusplus
 
 # get sources
 curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/gccxml-2012-05-17.tgz | tar xzf -
-curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/pygccxml-r1856.tgz | tar xzf -
-curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/pyplusplus-r1856.tgz | tar xzf -
+curl --location-trusted https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r575.tgz | tar xzf -
+curl --location-trusted https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1238.tgz | tar xzf -
 
 # build & install gccxml
 cd gccxml
