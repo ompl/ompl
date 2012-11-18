@@ -328,10 +328,11 @@ class ompl_control_generator_t(code_generator_t):
             return s.str();
         }
         """)
-        replacement['::ompl::control::ODESolver::getStatePropoagator'] = ("""
+        replacement['::ompl::control::ODESolver::getStatePropagator'] = ("""
         def("getStatePropagator", &getStatePropagator1);
         ODESolver_exposer.def("getStatePropagator", &getStatePropagator2);
         ODESolver_exposer.staticmethod( "getStatePropagator" )""", """
+        // %s
         ompl::control::StatePropagatorPtr getStatePropagator2(ompl::control::ODESolverPtr solver,
             const ompl::control::ODESolver::PostPropagationEvent &postEvent)
         {
