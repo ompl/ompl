@@ -66,6 +66,8 @@ namespace ompl
            to compute low-cost paths that follow valleys and saddle points of the configuration-space
            costmap. It uses transition tests from stoachastic optimization methods to accept or reject new
            potential sates.
+           @par Example usage
+           Please see <a href="https://github.com/davetcoleman/ompl_rviz_viewer/">Dave Coleman's example</a> to see how TRRT can be used.
            @par External documentation
            L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: <a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5477164&isnumber=5540533">IEEE</a><br />
            <a href="http://homepages.laas.fr/nic/Papers/10TRO.pdf">[PDF]</a>
