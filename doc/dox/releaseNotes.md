@@ -1,7 +1,7 @@
 # Release Notes
 
 
-## OMPL.app 0.12.0 (November 20, 2012)
+## OMPL 0.12.0 (November 20, 2012)
 
 - Added T-RRT, a planner for planning low-cost paths.
 - Documentation updates.
