@@ -24,6 +24,8 @@ This set of planners only accounts for the geometric constraints of the system. 
 - [RRT*](\ref gRRTstar)
 - [Ball Tree RRT*](\ref gBallTreeRRTstar)
 
+- [Transition-based RRT (T-RRT)](\ref gTRRT)
+
 Other tools:
 
 - [Inverse Kinematics with Hill Climbing](\ref HCIK)
