@@ -1,6 +1,7 @@
+# cmake's file(DOWNLOAD ...) command doesn't do https until version 2.8.10
 file(DOWNLOAD
-    http://downloads.sourceforge.net/project/ompl/dependencies/gccxml-2012-05-17.tgz
-    "${TEMPDIR}/gccxml-2012-05-17.tgz"
+    https://github.com/gccxml/gccxml/archive/2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8.tar.gz
+    "${TEMPDIR}/gccxml-2012-11-06.tgz"
     SHOW_PROGRESS
     EXPECTED_MD5 e2ad8bd675af9009530e5e175ed441bc)
 file(DOWNLOAD

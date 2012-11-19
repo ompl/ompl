@@ -1,6 +1,13 @@
 # Release Notes
 
 
+## OMPL.app 0.12.0 (November 20, 2012)
+
+- Added T-RRT, a planner for planning low-cost paths.
+- Documentation updates.
+- Bug fixes.
+
+
 # OMPL 0.11.1 (July 26, 2012)
 
 - Fixed bug in RRT* where nearest neighbor radius shrinks too fast.

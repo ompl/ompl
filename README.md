@@ -12,7 +12,7 @@ OMPL has the following required dependencies:
 The following dependencies are optional:
 
 * [ODE](http://ode.org) (needed to compile support for planning using the Open Dynamics Engine)
-* [Py++](https://sourceforge.net/projects/pygccxml) (version from repository, needed to generate Python bindings)
+* [Py++](https://bitbucket.org/ompl/pyplusplus) (needed to generate Python bindings)
 * [Doxygen](http://www.doxygen.org) (needed to create a local copy of the documentation at
   http://ompl.kavrakilab.org/core)
 

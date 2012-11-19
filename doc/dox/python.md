@@ -1,6 +1,6 @@
 # Python Bindings
 
-Almost all of the functionality of the C++ OMPL library is accessible through Python using more or less the same API. Some important differences will be described below. The Python bindings are generated with [Py++](https://sourceforge.net/projects/pygccxml), which relies on [Boost.Python](http://www.boost.org/doc/libs/release/libs/python/doc). The bindings are packaged in the ompl module. The main namespaces (ompl::base, ompl::control, ompl::geometric) are available as sub-modules. To quickly get an idea of what classes, functions, etc., are available within each submodule, type something like this at the Python prompt:
+Almost all of the functionality of the C++ OMPL library is accessible through Python using more or less the same API. Some important differences will be described below. The Python bindings are generated with [Py++](https://bitbucket.org/ompl/pyplusplus), which relies on [Boost.Python](http://www.boost.org/doc/libs/release/libs/python/doc). The bindings are packaged in the ompl module. The main namespaces (ompl::base, ompl::control, ompl::geometric) are available as sub-modules. To quickly get an idea of what classes, functions, etc., are available within each submodule, type something like this at the Python prompt:
 
 ~~~{.py}
 from ompl import base, control, geometric, tools, util
@@ -138,6 +138,8 @@ def plan()
 
 
 # (Re)generating the Python bindings {#updating_python_bindings}
+
+\attention See also the tutorial [Creating Python bindings for a new planner](pybindingsPlanner.html)
 
 The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, you will need to update the Python bindings. Updating the bindings is a two-step process. First, the code for the modules needs to be generated. Second, the code needs to be compiled into binary Python modules.
 
