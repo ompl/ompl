@@ -11,7 +11,7 @@ curl --location-trusted https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r
 curl --location-trusted https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1238.tgz | tar xzf -
 
 # build & install gccxml
-cd gccxml
+cd gccxml-2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8
 @CMAKE_COMMAND@ @CMAKE_GCCXML_ARGS@ .
 @CMAKE_COMMAND@ --build .
 sudo @CMAKE_COMMAND@ --build . --target install
