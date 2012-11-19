@@ -6,7 +6,7 @@
 - Added representation of costs to ompl::base::StateValidityChecker
 - Added the notion of objectives to be optimized: ompl::base::OptimizationObjective
 - Added \ref gTRRT "T-RRT", a planner for planning low-cost paths.
-- Planners now have the option to report the lack of a solution (ompl::base::SolutionNonExistenceProof)
+- Planners now have the option to report the non-existence of a solution (ompl::base::SolutionNonExistenceProof)
 - Documentation updates.
 - Bug fixes.
 
