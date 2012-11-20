@@ -430,7 +430,7 @@ ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const State
 {
     if (!space_->isCompound())
         throw Exception("Cannot construct a subspace projection evaluator for a space that is not compound");
-    if (space_->as<CompoundStateSpace>()->getSubspaceCount() >= index_)
+    if (space_->as<CompoundStateSpace>()->getSubspaceCount() <= index_)
         throw Exception("State space " + space_->getName() + " does not have a subspace at index " + boost::lexical_cast<std::string>(index_));
 }
 
