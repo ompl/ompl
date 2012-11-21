@@ -8,7 +8,7 @@ OMPL requires Boost __version 1.44__ or greater.
 
 # Shared Pointer (boost/shared_ptr.hpp)
 
-The [shared pointer from Boost](http://www.boost.org/doc/libs/1_44_0/libs/smart_ptr/ shared_ptr.htm) provides intelligent memory
+The [shared pointer from Boost](http://www.boost.org/libs/smart_ptr/shared_ptr.htm) provides intelligent memory
 management for dynamically allocated objects created with the _new_ command. In short, the templated shared_ptr object will
 delete (free) the allocated memory when the pointer goes out of scope. Since these pointers utilize [reference counting](http://en.wikipedia.org/wiki/Reference_counting), it is safe to pass them into functions or copy them;
 the object referenced by the pointer will only be destroyed when the reference count goes to zero.
@@ -136,7 +136,7 @@ In a nutshell, boost::bind returns a function pointer to the method given in the
 
 # NonCopyable (boost/noncopyable.hpp)
 
-Boost provides a base class called [noncopyable](http://www.boost.org/doc/libs/ 1_44_0/libs/utility/utility.htm#Class_noncopyable) that classes can derive from in order to prevent them from being copied. noncopyable has a private copy constructor and assignment operator. Therefore, classes deriving from noncopyable are prohibited from invoking these copy operations. Fully utilizing noncopyable is as simple as:
+Boost provides a base class called [noncopyable](http://www.boost.org/libs/utility/utility.htm) that classes can derive from in order to prevent them from being copied. noncopyable has a private copy constructor and assignment operator. Therefore, classes deriving from noncopyable are prohibited from invoking these copy operations. Fully utilizing noncopyable is as simple as:
 
 ~~~{.cpp}
 class MyClass : boost::noncopyable
@@ -153,7 +153,7 @@ prohibitive in terms of memory, or both.
 
 # Thread (boost/thread.hpp)
 
-OMPL is designed to be thread-safe, meaning that most of the common API is reentrant (in general, any function marked as _const_ is thread-safe). However, since OMPL is not limited to a single operating system, the creation and management of threads poses a complication since operating systems are free to choose how a developer creates and manages threads. Thankfully, Boost provides a cross-platform [Threading library](http://www.boost.org/doc/libs/1_44_0/doc/ html/thread.html) to take care of the operating system specific code behind the scenes. boost::thread provides classes for threads and mutexes that allow for multi-threaded computing and synchronization.
+OMPL is designed to be thread-safe, meaning that most of the common API is reentrant (in general, any function marked as _const_ is thread-safe). However, since OMPL is not limited to a single operating system, the creation and management of threads poses a complication since operating systems are free to choose how a developer creates and manages threads. Thankfully, Boost provides a cross-platform [Threading library](http://www.boost.org/libs/thread) to take care of the operating system specific code behind the scenes. boost::thread provides classes for threads and mutexes that allow for multi-threaded computing and synchronization.
 
 It is very easy to create Threads in boost.  Simply create an object of type boost::thread, and supply it the handle to a "callable" object, or function:
 

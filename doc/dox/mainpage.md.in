@@ -59,9 +59,9 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 ## Contents of This Library
 
-- OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See [available planners](availablePlanners.html) for a complete list.
-- All these planners operate on very abstractly defined state spaces. Many commonly used [state spaces](availableStateSpaces.html) are already implemented (e.g., SE2, SE3, R<sup>n</sup>, etc.).
-- For any state space, different [state samplers](availableSamplers.html) can be used (e.g., uniform, Gaussian, obstacle based, etc.).
+- OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See [available planners](planners.html) for a complete list.
+- All these planners operate on very abstractly defined state spaces. Many commonly used [state spaces](spaces.html) are already implemented (e.g., SE2, SE3, R<sup>n</sup>, etc.).
+- For any state space, different [state samplers](samplers.html) can be used (e.g., uniform, Gaussian, obstacle based, etc.).
 - [API overview](api_overview.html)
 
 \htmlonly</div><div class="span4">\endhtmlonly

@@ -8,7 +8,7 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Geometric planning for a rigid body in 3D](geometricPlanningSE3.html)
 - [Setting up state validity checking](stateValidation.html)
 - [Working with states and state spaces](workingWithStates.html)
-- [Using existing samplers and creating new ones](availableSamplers.html)
+- [Using existing samplers and creating new ones](samplers.html)
 
 
 ### Intermediate
