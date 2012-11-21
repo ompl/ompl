@@ -5,10 +5,9 @@ This page includes a list of extensions to OMPL provided by the community. The c
 
 # ROS Interface to OMPL
 
-### Author: Sachin Chitta (Willow Garage)
+### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
 
-- The [ompl_ros_interface](http://www.ros.org/wiki/ompl_ros_interface) ROS package wraps OMPL such that motion planners can be easily set up for your robot. Most configuration is automated. However, you will have to specify the parts of the robot for which you want to create a motion planner.
-
+- The [OMPL interface](http://moveit.ros.org/motion_planning.html) to [MoveIt](http://moveit.ros.org) wraps OMPL as a planning plugin for MoveIt.
 
 # T-RRT Implementation
 
