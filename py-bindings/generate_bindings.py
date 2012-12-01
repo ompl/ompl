@@ -609,8 +609,9 @@ class ompl_util_generator_t(code_generator_t):
         # rename STL vectors of certain types
         self.std_ns.class_('vector< unsigned long >').include()
         self.std_ns.class_('vector< unsigned long >').rename('vectorSizeT')
-        self.std_ns.class_('vector< bool >').include()
-        self.std_ns.class_('vector< bool >').rename('vectorBool')
+        # not needed; causes problems when compiling in C++11 mode
+        #self.std_ns.class_('vector< bool >').include()
+        #self.std_ns.class_('vector< bool >').rename('vectorBool')
         self.std_ns.class_('vector< int >').include()
         self.std_ns.class_('vector< int >').rename('vectorInt')
         self.std_ns.class_('vector< double >').include()

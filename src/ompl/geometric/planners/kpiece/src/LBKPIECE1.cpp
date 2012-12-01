@@ -177,9 +177,9 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
                 if (isPathValid(disc, connect, xstate) && isPathValid(otherDisc, connectOther, xstate))
                 {
                     if (startTree)
-                        connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                        connectionPoint_ = std::make_pair(connectOther->state, motion->state);
                     else
-                        connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                        connectionPoint_ = std::make_pair(motion->state, connectOther->state);
 
                     /* extract the motions and put them in solution vector */
 
