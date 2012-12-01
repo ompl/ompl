@@ -90,7 +90,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
 
-    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("1:1000"));
+    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
 }
 
 ompl::geometric::PRM::~PRM(void)
@@ -298,7 +298,7 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sol_cost;
+    double sol_cost = -1.;
     bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {

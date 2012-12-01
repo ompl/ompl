@@ -13,7 +13,6 @@ $message = '';
 if(isset($_POST['submit']))
 {
 
-    $name = $_POST['name'];
     $email = $_POST['email'];
     $affiliation = $_POST['affiliation'];
     $research = $_POST['research'];
@@ -39,7 +38,7 @@ if(isset($_POST['submit']))
         $from = $register_email;
         $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 
-        $body = "A user $name submitted the contact form:\n".
+        $body = "A user submitted the contact form:\n".
             "Email: $email\n".
             "Affiliation: $affiliation\n".
             "Research: $research\nEducation: $education\nIndustry: $industry\n".
