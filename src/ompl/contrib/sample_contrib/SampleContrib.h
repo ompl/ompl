@@ -37,6 +37,12 @@
 #ifndef OMPL_CONTRIB_SAMPLECONTRIB_
 #define OMPL_CONTRIB_SAMPLECONTRIB_
 
+/** @cond IGNORE 
+
+    This conditional here is only for disabling Doxygen. 
+    You will probably need to remove it
+*/
+
 namespace ompl
 {
     namespace geometric // or base or control, depdending on where it fits best
@@ -48,5 +54,7 @@ namespace ompl
         };
     }
 }
+
+/** @endcond */
 
 #endif
