@@ -123,10 +123,11 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     OMPL_INFORM("Starting with %u states", tree_.size);
 
-    Motion *solution = NULL;
-    double   slndist = std::numeric_limits<double>::infinity();
-    Motion  *rmotion = new Motion(siC_);
-    bool      solved = false;
+    Motion  *solution = NULL;
+    Motion *approxsol = NULL;
+    double  approxdif = std::numeric_limits<double>::infinity();
+    Motion   *rmotion = new Motion(siC_);
+    bool       solved = false;
 
     while (!ptc())
     {
@@ -167,18 +168,26 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
             // Check if this state is the goal state, or improves the best solution so far
             double dist = 0.0;
             solved = goal->isSatisfied(motion->state, &dist);
-            if (solved || dist < slndist)
+            if (solved)
             {
-                slndist = dist;
+                approxdif = dist;
                 solution = motion;
-
-                if (solved)
-                    break;
+                break;
+            }
+            if (dist < approxdif)
+            {
+                approxdif = dist;
+                approxsol = motion;
             }
         }
     }
 
-    bool addedSolution = false;
+    bool approximate = false;
+    if (solution == NULL)
+    {
+        solution = approxsol;
+        approximate = true;
+    }
 
     // Constructing the solution path
     if (solution != NULL)
@@ -198,8 +207,8 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
-        addedSolution = true;
-        pdef_->addSolutionPath(base::PathPtr(path), !solved, slndist);
+        solved = true;
+        pdef_->addSolutionPath(base::PathPtr(path), !solved, approxdif);
     }
 
     // Cleaning up memory
@@ -211,7 +220,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     OMPL_INFORM("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
-    return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+    return base::PlannerStatus(solved, approximate);
 }
 
 ompl::control::EST::Motion* ompl::control::EST::selectMotion(void)
