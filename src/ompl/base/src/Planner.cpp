@@ -175,7 +175,7 @@ bool ompl::base::PlannerInputStates::update(void)
 {
     if (!planner_)
         throw Exception("No planner set for PlannerInputStates");
-    return use(planner_->getSpaceInformation(), planner_->getProblemDefinition());
+    return use(planner_->getProblemDefinition());
 }
 
 void ompl::base::PlannerInputStates::checkValidity(void) const
@@ -202,10 +202,15 @@ void ompl::base::PlannerInputStates::checkValidity(void) const
     }
 }
 
-bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef)
+bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &, const ProblemDefinitionPtr &pdef)
 {
-    if (si && pdef)
-        return use(si.get(), pdef.get());
+  return use(pdef);
+}
+
+bool ompl::base::PlannerInputStates::use(const ProblemDefinitionPtr &pdef)
+{
+    if (pdef)
+        return use(pdef.get());
     else
     {
         clear();
@@ -213,13 +218,18 @@ bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const Pr
     }
 }
 
-bool ompl::base::PlannerInputStates::use(const SpaceInformation *si, const ProblemDefinition *pdef)
+bool ompl::base::PlannerInputStates::use(const SpaceInformation *, const ProblemDefinition *pdef)
 {
-    if (pdef_ != pdef || si_ != si)
+    return use(pdef);
+}
+
+bool ompl::base::PlannerInputStates::use(const ProblemDefinition *pdef)
+{
+    if (pdef_ != pdef)
     {
         clear();
         pdef_ = pdef;
-        si_ = si;
+        si_ = pdef->getSpaceInformation().get();
         return true;
     }
     return false;
