@@ -116,7 +116,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
     bool      startTree = true;
     bool         solved = false;
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         Discretization<Motion> &disc      = startTree ? dStart_ : dGoal_;
         startTree = !startTree;

@@ -319,9 +319,9 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                         OMPL_DEBUG("Discarded goal state %s", ss.str().c_str());
                     }
                 }
-                while (!ptc() && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
+                while (!ptc && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
             }
-            if (goal->couldSample() && !ptc())
+            if (goal->couldSample() && !ptc)
             {
                 if (first)
                 {
@@ -330,7 +330,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     OMPL_DEBUG("Waiting for goal region samples ...");
                 }
                 boost::this_thread::sleep(time::seconds(0.01));
-                attempt = !ptc();
+                attempt = !ptc;
             }
         }
     }

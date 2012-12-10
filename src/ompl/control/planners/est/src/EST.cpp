@@ -129,7 +129,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     Motion   *rmotion = new Motion(siC_);
     bool       solved = false;
 
-    while (!ptc())
+    while (!ptc)
     {
         // Select a state to expand the tree from
         Motion *existing = selectMotion();

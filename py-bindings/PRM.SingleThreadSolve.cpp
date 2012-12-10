@@ -101,7 +101,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
     sln.reset();
 
     double roadmap_build_time = 0.05;
-    while (ptc() == false && !addedSolution_)
+    while (ptc == false && !addedSolution_)
     {
         // Check for any new goal states
         if (goal->maxSampleCount() > goalM_.size())

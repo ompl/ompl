@@ -193,7 +193,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     bool startTree      = true;
     bool solved         = false;
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         TreeData &tree      = startTree ? tStart_ : tGoal_;
         tgi.start = startTree;
