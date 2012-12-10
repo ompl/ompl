@@ -46,7 +46,7 @@ namespace ompl
     /// @cond IGNORE
     namespace geometric
     {
-        ClassForward(PathHybridization);
+        OMPL_CLASS_FORWARD(PathHybridization);
     }
     /// @endcond
 

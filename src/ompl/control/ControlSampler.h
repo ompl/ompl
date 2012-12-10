@@ -51,12 +51,12 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(ControlSpace);
+        OMPL_CLASS_FORWARD(ControlSpace);
         /// @endcond
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::ControlSampler */
-        ClassForward(ControlSampler);
+        OMPL_CLASS_FORWARD(ControlSampler);
         /// @endcond
 
         /** \class ompl::control::ControlSamplerPtr

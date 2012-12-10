@@ -57,7 +57,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::OpenDEEnvironment */
-        ClassForward(OpenDEEnvironment);
+        OMPL_CLASS_FORWARD(OpenDEEnvironment);
         /// @endcond
 
         /** \class ompl::control::OpenDEEnvironmentPtr

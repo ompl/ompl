@@ -34,10 +34,10 @@ void performComputation ()
 
 In the example above, the function performComputation creates a new instance of MyClass but instantiates it using a shared_ptr. Once the object is created, the pointer can be used like normal (using -> or the * operators). When the function has finished execution, the object does not have to be specifically deleted; the reference count on myClassPtr will decrement to zero when the shared_ptr goes out of scope, triggering the automatic destruction the MyClass object.
 
-The shared_ptr is used in OMPL in nearly all instances where an object is created from the heap in order to mitigate memory leaks. Most classes in OMPL already have a typedef for a shared_ptr object using the _ClassForward_ macro. For example, ompl::base::Planner utilizes the macro just before the class declaration:
+The shared_ptr is used in OMPL in nearly all instances where an object is created from the heap in order to mitigate memory leaks. Most classes in OMPL already have a typedef for a shared_ptr object using the _OMPL_CLASS_FORWARD_ macro. For example, ompl::base::Planner utilizes the macro just before the class declaration:
 
 ~~~{.cpp}
-ClassForward(Planner);
+OMPL_CLASS_FORWARD(Planner);
 ~~~
 
 which when expanded creates a forward declaration of the class _Planner_, and defines the type _PlannerPtr_:

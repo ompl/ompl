@@ -61,7 +61,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProblemDefinition */
-        ClassForward(ProblemDefinition);
+        OMPL_CLASS_FORWARD(ProblemDefinition);
         /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
@@ -337,7 +337,7 @@ namespace ompl
         private:
 
             /// @cond IGNORE
-            ClassForward(PlannerSolutionSet);
+            OMPL_CLASS_FORWARD(PlannerSolutionSet);
             /// @endcond
 
             /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */

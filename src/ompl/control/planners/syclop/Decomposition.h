@@ -51,7 +51,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::Decomposition */
-        ClassForward(Decomposition);
+        OMPL_CLASS_FORWARD(Decomposition);
         /// @endcond
 
         /** \class ompl::control::DecompositionPtr

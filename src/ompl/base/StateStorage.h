@@ -51,7 +51,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateStorage */
-        ClassForward(StateStorage);
+        OMPL_CLASS_FORWARD(StateStorage);
         /// @endcond
 
         /** \brief Manage loading and storing for a set of states of a specified state space */

@@ -48,13 +48,13 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(SpaceInformation);
-        ClassForward(OptimizationObjective);
+        OMPL_CLASS_FORWARD(SpaceInformation);
+        OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Path */
-        ClassForward(Path);
+        OMPL_CLASS_FORWARD(Path);
         /// @endcond
 
         /** \class ompl::base::PathPtr

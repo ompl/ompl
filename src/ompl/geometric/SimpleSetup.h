@@ -53,7 +53,7 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(SimpleSetup);
+        OMPL_CLASS_FORWARD(SimpleSetup);
         /// @endcond
 
         /** \class ompl::geometric::SimpleSetupPtr

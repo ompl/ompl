@@ -46,7 +46,7 @@ namespace ompl
     {
         /// @cond IGNORE
         /// \brief Forward declaration of ompl::base::SolutionNonExistenceProof
-        ClassForward(SolutionNonExistenceProof);
+        OMPL_CLASS_FORWARD(SolutionNonExistenceProof);
         /// @endcond
 
         /// \class ompl::base::SolutionNonExistenceProofPtr

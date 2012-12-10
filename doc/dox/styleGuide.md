@@ -73,4 +73,4 @@ int SampleObject::NUM_INSTANCES = 0;
 - If a class member function can be marked _const_, then it should be marked _const_.
 - Member functions marked as _const_ must be thread safe. If a function is intended to be thread safe, it should be marked as _const_ (one can use the _mutable_ keyword if needed).
 - All classes, methods and member variables must be documented (Doxygen style). High-level documentation can be written either in [MarkDown format](http://www.stack.nl/~dimitri/doxygen/markdown.html) or in Doxygen format.
-- Forward declaration of types should be done with the ClassForward() macro when shared pointers to the type are also needed: ClassForward() will define a shared pointer to the type using the _Ptr_ suffix (e.g., ompl::base::StateSpacePtr).
+- Forward declaration of types should be done with the OMPL_CLASS_FORWARD() macro when shared pointers to the type are also needed: OMPL_CLASS_FORWARD() will define a shared pointer to the type using the _Ptr_ suffix (e.g., ompl::base::StateSpacePtr).

@@ -37,9 +37,9 @@
 #ifndef OMPL_CONTRIB_SAMPLECONTRIB_
 #define OMPL_CONTRIB_SAMPLECONTRIB_
 
-/** @cond IGNORE 
+/** @cond IGNORE
 
-    This conditional here is only for disabling Doxygen. 
+    This conditional here is only for disabling Doxygen.
     You will probably need to remove it
 */
 

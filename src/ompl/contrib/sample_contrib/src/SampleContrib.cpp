@@ -36,9 +36,9 @@
 
 #include "ompl/contrib/sample_contrib/SampleContrib.h"
 
-/** @cond IGNORE 
+/** @cond IGNORE
 
-    This conditional here is only for disabling Doxygen. 
+    This conditional here is only for disabling Doxygen.
     You will probably need to remove it
 */
 

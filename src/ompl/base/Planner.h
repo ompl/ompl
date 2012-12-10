@@ -62,7 +62,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Planner */
-        ClassForward(Planner);
+        OMPL_CLASS_FORWARD(Planner);
         /// @endcond
 
         /** \class ompl::base::PlannerPtr

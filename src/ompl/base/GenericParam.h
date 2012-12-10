@@ -53,7 +53,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::GenericParam */
-        ClassForward(GenericParam);
+        OMPL_CLASS_FORWARD(GenericParam);
         /// @endcond
 
         /** \brief Motion planning algorithms often employ parameters

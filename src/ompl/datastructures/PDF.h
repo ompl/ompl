@@ -92,7 +92,7 @@ namespace ompl
         {
             return data_;
         }
-      
+
         /** \brief Adds a piece of data with a given weight to the PDF. Returns a corresponding Element, which can be used to subsequently update or remove the data from the PDF. */
         Element* add(const _T& d, const double w)
         {

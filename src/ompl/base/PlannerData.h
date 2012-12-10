@@ -144,7 +144,7 @@ namespace ompl
         };
 
         /// @cond IGNORE
-        ClassForward(PlannerData);
+        OMPL_CLASS_FORWARD(PlannerData);
         /// @endcond
 
         /** \class ompl::base::PlannerDataPtr

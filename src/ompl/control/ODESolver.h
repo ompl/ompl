@@ -61,7 +61,7 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(ODESolver);
+        OMPL_CLASS_FORWARD(ODESolver);
         /// @endcond
 
         /// \class ompl::control::ODESolverPtr
