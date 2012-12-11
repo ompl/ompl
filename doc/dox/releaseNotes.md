@@ -1,7 +1,12 @@
 # Release Notes
 
 
-## OMPL 0.12.0 (November 20, 2012)
+# OMPL 0.12.1 (12/12/12)
+
+- Bug fixes.
+
+
+# OMPL 0.12.0 (November 20, 2012)
 
 - Added representation of costs to ompl::base::StateValidityChecker
 - Added the notion of objectives to be optimized: ompl::base::OptimizationObjective
