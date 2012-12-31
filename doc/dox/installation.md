@@ -96,15 +96,14 @@ It is easiest to install the OMPL through [MacPorts], a package manager for OS X
 - If you do not need to modify or see the source code of OMPL, then the easiest way to install OMPL is with the MacPorts \c port command:
 
       sudo port sync
-      sudo port install boost +python27 \; install ompl +python27
+      sudo port install ompl
 
   This is it. You are done. It will take quite a while, though, to download, build, and install OMPL and all its dependencies. It is recommended to let this running overnight. Demo programs can be found in \c /opt/local/share/ompl.
 - If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, and CMake. Optionally, you can also install the Open Dynamics Engine, Py++, and the Python libraries and headers. If you have MacPorts installed, type the following:
 
       sudo port sync
-      sudo port install boost +python27 \; install cmake ode py27-pyplusplus-devel
+      sudo port install boost cmake ode py27-pyplusplus-devel
 
-  If you omit the \c +python27 part, Boost.Python will not be installed, and the Python bindings for OMPL cannot be compiled.
 - It is __very__ important that you use the same installed version of Python for all dependencies and OMPL. If you are using MacPorts, then you __must__ use the MacPorts version of python 2.7 (most likely installed in <tt>/opt/local/bin</tt>). To make this version the default python version, make sure <tt>/opt/local/bin</tt> appears before <tt>/usr/bin</tt> in your PATH. You can add a line like this to your <tt>${HOME}/.bash_profile</tt>:
 
       export PATH=/opt/local/bin:/opt/local/sbin:$PATH

@@ -29,7 +29,10 @@ set(CPACK_SOURCE_IGNORE_FILES
     "create_symlinks.sh$"
     "uninstall_symlinks.sh$"
     "config.h$"
-    ".registered$")
+    ".registered$"
+    "download.md$"
+    "mainpage.md$"
+    "binding_generator.py$")
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_GENERATOR "TGZ")
 
