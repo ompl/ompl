@@ -70,6 +70,13 @@ if (OPENDE_FOUND)
   include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
+# If FLANN is installed, a wrapper for its nearest neighbor data structures can be used
+find_package(flann 1.8.3 QUIET)
+if (FLANN_FOUND)
+    set(OMPL_HAVE_FLANN 1)
+    include_directories("${FLANN_INCLUDE_DIRS}")
+endif()
+
 add_subdirectory(py-bindings)
 add_subdirectory(src)
 add_subdirectory(tests)
