@@ -34,11 +34,12 @@
 
 /* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
 
-#pragma once
+#ifndef OMPL_CONTRIB_RRT_STAR_RRTSTAR_
+#define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
 
-#include <ompl/geometric/planners/PlannerIncludes.h>
-#include <ompl/datastructures/NearestNeighbors.h>
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <limits>
 #include <vector>
 #include <utility>
