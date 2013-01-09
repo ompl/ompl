@@ -744,6 +744,11 @@ bool ompl::base::StateSpace::isHybrid(void) const
     return false;
 }
 
+bool ompl::base::StateSpace::hasSymmetricDistance(void) const
+{
+    return true;
+}
+
 void ompl::base::StateSpace::setStateSamplerAllocator(const StateSamplerAllocator &ssa)
 {
     ssa_ = ssa;

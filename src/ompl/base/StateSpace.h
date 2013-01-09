@@ -180,6 +180,9 @@ namespace ompl
                 return true;
             }
 
+            /** \brief Check if the distance function on this state space is symmetric (i.e. distance(s1,s2) = distance(s2,s1) (default implementation simply returns true)*/
+            virtual bool hasSymmetricDistance(void) const;
+
             /** \brief Get the name of the state space */
             const std::string& getName(void) const;
 

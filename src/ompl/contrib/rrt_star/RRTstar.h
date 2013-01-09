@@ -1,47 +1,47 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
 
-#ifndef OMPL_CONTRIB_RRT_STAR_RRTSTAR_
-#define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
+#pragma once
 
-#include "ompl/geometric/planners/PlannerIncludes.h"
-#include "ompl/datastructures/NearestNeighbors.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
+#include <ompl/geometric/planners/PlannerIncludes.h>
+#include <ompl/datastructures/NearestNeighbors.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <limits>
 #include <vector>
+#include <utility>
 
 
 namespace ompl
@@ -171,12 +171,12 @@ namespace ompl
             }
 
             /** \brief Option that delays collision checking procedures.
-                 When it is enabled, all neighbors are sorted by cost. The
-                 planner then goes through this list, starting with the lowest
-                 cost, checking for collisions in order to find a parent. The planner
-                 stops iterating through the list when a collision free parent is found.
-                 This prevents the planner from collsion checking each neighbor, reducing
-                 computation time in scenarios where collision checking procedures are expensive.*/
+                When it is enabled, all neighbors are sorted by cost. The
+                planner then goes through this list, starting with the lowest
+                cost, checking for collisions in order to find a parent. The planner
+                stops iterating through the list when a collision free parent is found.
+                This prevents the planner from collsion checking each neighbor, reducing
+                computation time in scenarios where collision checking procedures are expensive.*/
             void setDelayCC(bool delayCC)
             {
                 delayCC_ = delayCC;
@@ -203,7 +203,7 @@ namespace ompl
                 }
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), cost(0.0)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), cost(0.0), incCost(0.0)
                 {
                 }
 
@@ -217,8 +217,11 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion            *parent;
 
-                /** \brief The cost of this motion */
+                /** \brief The cost up to this motion */
                 double             cost;
+
+                /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method)*/
+                double             incCost;
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
@@ -227,10 +230,11 @@ namespace ompl
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
-            /** \brief Sort the near neighbors by cost */
-            static bool compareMotion(const Motion* a, const Motion* b)
+            /** \brief Allows us to sort a set of costs and maintain the original, unsorted indices into the sequence*/
+            typedef std::pair<unsigned, double> indexCostPair;
+            static bool compareCost(const indexCostPair& a, const indexCostPair& b)
             {
-                return (a->cost < b->cost);
+                return (a.second < b.second);
             }
 
             /** \brief Compute distance between motions (actually distance between contained states) */
@@ -242,8 +246,8 @@ namespace ompl
             /** \brief Removes the given motion from the parent's child list */
             void removeFromParent(Motion *m);
 
-            /** \brief Updates the cost of the children of this node by adding the delta */
-            void updateChildCosts(Motion *m, double delta);
+            /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
+            void updateChildCosts(Motion *m);
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
@@ -269,9 +273,9 @@ namespace ompl
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
+            /** \brief Objective we're optimizing (currently can only handle a specific type of optimization objective) */
+            boost::shared_ptr<base::BoundedAdditiveOptimizationObjective> opt_;
         };
 
     }
 }
-
-#endif

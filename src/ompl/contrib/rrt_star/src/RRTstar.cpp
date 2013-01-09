@@ -78,6 +78,36 @@ void ompl::geometric::RRTstar::setup(void)
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
+  
+
+    // Setup optimization objective
+    //
+    // If a) no optimization objective was specified, or b) the
+    // specified optimization objective is not a subclass of
+    // BoundedAdditiveOptimizationObjective, then default to optimizing
+    // path length as computed by the distance() function in the state
+    // space.
+    bool validObjective = true;				      
+    if (pdef_->hasOptimizationObjective())
+    {
+        opt_ = boost::dynamic_pointer_cast<base::BoundedAdditiveOptimizationObjective>(pdef_->getOptimizationObjective());
+        // If specified optimization objective not compatible (downcast didn't work)
+        if (!opt_)
+        {
+            validObjective = false;
+            OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only accumulative cost functions can be optimized.", pdef_->getOptimizationObjective()->getDescription().c_str(), getName().c_str());
+        }
+    }
+    else // If no objective specified
+        validObjective = false;
+
+    // If we have no valid optimization objective, assume we're
+    // optimizing path length
+    if (!validObjective)
+    {
+        OMPL_INFORM("Defaulting to optimizing path length.");
+        opt_.reset(new base::PathLengthOptimizationObjective(si_));
+    }
 }
 
 void ompl::geometric::RRTstar::clear(void)
@@ -94,13 +124,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     checkValidity();
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-    base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
 
-    if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
-    {
-        opt = NULL;
-        OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
-    }
+    bool symDist = si_->getStateSpace()->hasSymmetricDistance();
 
     if (!goal)
     {
@@ -136,7 +161,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::State *xstate = si_->allocState();
     std::vector<Motion*> solCheck;
     std::vector<Motion*> nbh;
-    std::vector<double>  dists;
+    std::vector<indexCostPair> costs;
+    std::vector<double>  incCosts;
     std::vector<int>     valid;
     unsigned int         rewireTest = 0;
     double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
@@ -165,63 +191,82 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (si_->checkMotion(nmotion->state, dstate))
         {
             // create a motion
-            double distN = si_->distance(dstate, nmotion->state);
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
-            motion->cost = nmotion->cost + distN;
+            double incCost = opt_->getIncrementalCost(nmotion->state, dstate);
+            motion->incCost = incCost;
+            motion->cost = opt_->combineObjectiveCosts(nmotion->cost, incCost);
 
             // find nearby neighbors
             double r = std::min(ballRadiusConst_ * pow(log((double)(1 + nn_->size())) / (double)(nn_->size()), stateSpaceDimensionConstant),
                                 ballRadiusMax_);
-
+      
+            // This sounds crazy but for asymmetric distance functions this is necessary
+            // For this case, it has to be FROM every other point TO our new point
+            // NOTE THE ORDER OF THE boost::bind PARAMETERS
+            nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
             nn_->nearestR(motion, r, nbh);
-            rewireTest += nbh.size();
 
             // cache for distance computations
-            dists.resize(nbh.size());
+            costs.resize(nbh.size());
+            incCosts.resize(nbh.size());
             // cache for motion validity
-            valid.resize(nbh.size());
-            std::fill(valid.begin(), valid.end(), 0);
+            if (symDist)
+            {
+                valid.resize(nbh.size());
+                std::fill(valid.begin(), valid.end(), 0);
+            }
 
             if(delayCC_)
             {
                 // calculate all costs and distances
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                    nbh[i]->cost += si_->distance(nbh[i]->state, dstate);
+                {
+                    if (nbh[i] != nmotion)
+                    {
+                        incCosts[i] = opt_->getIncrementalCost(nbh[i]->state, dstate);	
+                        costs[i].second = opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i]);
+                    }
+                    else
+                    {
+                        incCosts[i] = incCost;
+                        costs[i].second = motion->cost;
+                    }
+                    costs[i].first = i;
+                }
 
                 // sort the nodes
-                std::sort(nbh.begin(), nbh.end(), compareMotion);
-
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                {
-                    dists[i] = si_->distance(nbh[i]->state, dstate);
-                    nbh[i]->cost -= dists[i];
-                }
+                //
+                // we're using index-value pairs so that we can get at
+                // original, unsorted indices
+                std::sort(costs.begin(), costs.end(), compareCost);
 
                 // collision check until a valid motion is found
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                 {
-                    if (nbh[i] != nmotion)
+                    unsigned idx = costs[i].first;
+                    if (nbh[idx] != nmotion)
                     {
-                        double c = nbh[i]->cost + dists[i];
-                        if (c < motion->cost)
+                        if (costs[i].second < motion->cost)
                         {
-                            if (si_->checkMotion(nbh[i]->state, dstate))
+                            if (si_->checkMotion(nbh[idx]->state, dstate))
                             {
-                                motion->cost = c;
-                                motion->parent = nbh[i];
-                                valid[i] = 1;
+                                motion->incCost = incCosts[idx];
+                                motion->cost = costs[i].second;
+                                motion->parent = nbh[idx];
+                                if (symDist)
+                                    valid[idx] = 1;
                                 break;
                             }
-                            else
-                                valid[i] = -1;
                         }
+                        else if (symDist)
+                            valid[idx] = -1;
                     }
                     else
                     {
-                        valid[i] = 1;
-                        dists[i] = distN;
+                        if (symDist)
+                            valid[idx] = 1;
                         break;
                     }
                 }
@@ -231,26 +276,31 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 // find which one we connect the new state to
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                 {
+                    costs[i].first = i;
                     if (nbh[i] != nmotion)
                     {
-                        dists[i] = si_->distance(nbh[i]->state, dstate);
-                        double c = nbh[i]->cost + dists[i];
-                        if (c < motion->cost)
+                        incCosts[i] = opt_->getIncrementalCost(nbh[i]->state, dstate);
+                        costs[i].second = opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i]);
+                        if (costs[i].second < motion->cost)
                         {
                             if (si_->checkMotion(nbh[i]->state, dstate))
                             {
-                                motion->cost = c;
+                                motion->incCost = incCosts[i];
+                                motion->cost = costs[i].second;
                                 motion->parent = nbh[i];
-                                valid[i] = 1;
+                                if (symDist)
+                                    valid[i] = 1;
                             }
-                            else
+                            else if (symDist)
                                 valid[i] = -1;
                         }
                     }
                     else
                     {
-                        valid[i] = 1;
-                        dists[i] = distN;
+                        incCosts[i] = incCost;
+                        costs[i].second = motion->cost;
+                        if (symDist)
+                            valid[i] = 1;
                     }
                 }
             }
@@ -263,30 +313,68 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             solCheck[0] = motion;
 
             // rewire tree if needed
+            // IN PREVIOUS CODE IT WAS ASSUMED THAT:
+            // 1) cost = distance
+            // 2) distance was a metric
+            // 3) symmetric local steering
+            //
+            // Assumption 2 allowed for re-using previously computed
+            // distances, but that just won't fly in general. This should be
+            // optimized when we have a way of knowing whether our cost is
+            // symmetric. Also, Assumption 3 allowed for using previously
+            // computed collision check results stored in valid[]. This is
+            // also not gonna work in general. Oh yeah and most importantly
+            // without Assumption 2 we have to do ANOTHER NEAREST NEIGHBORS
+            // SEARCH that goes FROM our new motion TO all other motions
+
+            // This sounds crazy but for asymmetric distance functions this is necessary
+            // For this case, it has to be FROM our new point TO each other point
+            // NOTE THE ORDER OF THE boost::bind PARAMETERS
+            if (!symDist)
+            {
+                nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _2, _1));
+                nn_->nearestR(motion, r, nbh);
+            }
+            rewireTest += nbh.size();
             for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                if (nbh[i] != motion->parent)
+            {
+                unsigned idx = symDist ? costs[i].first : i;
+                // TODO: figure our what the ELSE to this actually means in an
+                // asymmetric case            
+                if (nbh[idx] != motion->parent)
                 {
-                    double c = motion->cost + dists[i];
-                    if (c < nbh[i]->cost)
+                    double nbhPrevCost = nbh[idx]->cost;
+                    double incCost;
+                    if (symDist)
+                        incCost = incCosts[idx];
+                    else
+                        incCost = opt_->getIncrementalCost(motion->state, nbh[idx]->state);
+                    double newCost = opt_->combineObjectiveCosts(motion->cost, incCost);
+                    if (newCost < nbhPrevCost)
                     {
-                        bool v = valid[i] == 0 ? si_->checkMotion(nbh[i]->state, dstate) : valid[i] == 1;
-                        if (v)
+                        bool motionValid = symDist ?
+                            (valid[idx] == 0 ? 
+                                 si_->checkMotion(dstate, nbh[idx]->state) :
+                                 valid[idx] == 1) :
+                            si_->checkMotion(dstate, nbh[idx]->state);
+                        if (motionValid)
                         {
                             // Remove this node from its parent list
-                            removeFromParent (nbh[i]);
-                            double delta = c - nbh[i]->cost;
+                            removeFromParent (nbh[idx]);
 
                             // Add this node to the new parent
-                            nbh[i]->parent = motion;
-                            nbh[i]->cost = c;
-                            nbh[i]->parent->children.push_back(nbh[i]);
-                            solCheck.push_back(nbh[i]);
+                            nbh[idx]->parent = motion;
+                            nbh[idx]->incCost = incCost;
+                            nbh[idx]->cost = newCost;
+                            nbh[idx]->parent->children.push_back(nbh[idx]);
+                            solCheck.push_back(nbh[idx]);
 
                             // Update the costs of the node's children
-                            updateChildCosts(nbh[i], delta);
+                            updateChildCosts(nbh[idx]);
                         }
                     }
                 }
+            }
 
             // Make sure to check the existing solution for improvement
             if (solution)
@@ -297,7 +385,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
+                sufficientlyShort = solved ? opt_->isSatisfied(solCheck[i]->cost) : false;
 
                 if (solved)
                 {
@@ -378,12 +466,12 @@ void ompl::geometric::RRTstar::removeFromParent(Motion *m)
     }
 }
 
-void ompl::geometric::RRTstar::updateChildCosts(Motion *m, double delta)
+void ompl::geometric::RRTstar::updateChildCosts(Motion *m)
 {
     for (size_t i = 0; i < m->children.size(); ++i)
     {
-        m->children[i]->cost += delta;
-        updateChildCosts(m->children[i], delta);
+        m->children[i]->cost = opt_->combineObjectiveCosts(m->cost, m->children[i]->incCost);
+        updateChildCosts(m->children[i]);
     }
 }
 

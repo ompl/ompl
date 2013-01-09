@@ -116,6 +116,10 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 bool& firstTime, DubinsPath& path, State *state) const;
 
+            virtual bool hasSymmetricDistance(void) const
+	    {
+	        return isSymmetric_;
+            }
             virtual void sanityChecks(void) const
             {
                 double zero = std::numeric_limits<double>::epsilon();
