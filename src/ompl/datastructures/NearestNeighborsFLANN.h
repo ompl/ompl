@@ -88,7 +88,7 @@ namespace ompl
     {
     public:
 
-        NearestNeighborsFLANN(boost::shared_ptr<flann::IndexParams> params)
+        NearestNeighborsFLANN(const boost::shared_ptr<flann::IndexParams> &params)
             : index_(0), params_(params), searchParams_(32, 0., true), dimension_(1)
         {
         }
