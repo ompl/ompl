@@ -37,8 +37,14 @@
 #ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_FLANN_
 #define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_FLANN_
 
+#include "ompl/config.h"
+#if OMPL_HAVE_FLANN == 0
+#  error FLANN is not available. Please use a different NearestNeighbors data structure.
+#else
+
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/StateSpace.h"
+
 #include <flann/flann.hpp>
 
 namespace ompl
@@ -359,5 +365,6 @@ namespace ompl
 #endif
 
 }
+#endif
 
 #endif
