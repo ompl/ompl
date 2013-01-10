@@ -81,13 +81,16 @@ namespace ompl
     class NearestNeighborsFLANN : public NearestNeighbors<_T>
     {
     public:
+
         NearestNeighborsFLANN(boost::shared_ptr<flann::IndexParams> params)
             : index_(0), params_(params), searchParams_(32, 0., true), dimension_(1)
         {
         }
-        ~NearestNeighborsFLANN()
+
+        virtual ~NearestNeighborsFLANN(void)
         {
-            clear();
+            if (index_)
+                delete index_;
         }
 
         virtual void clear(void)
@@ -99,11 +102,13 @@ namespace ompl
             }
             data_.clear();
         }
+
         virtual void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun)
         {
             NearestNeighbors<_T>::setDistanceFunction(distFun);
             rebuildIndex();
         }
+
         virtual void add(const _T &data)
         {
             bool rebuild = index_ && (data_.size() + 1 > data_.capacity());
@@ -121,7 +126,8 @@ namespace ompl
         }
         virtual void add(const std::vector<_T> &data)
         {
-            unsigned int oldSize = data_.size(), newSize = oldSize + data.size();
+            unsigned int oldSize = data_.size();
+            unsigned int newSize = oldSize + data.size();
             bool rebuild = index_ && (newSize > data_.capacity());
 
             if (rebuild)
@@ -175,9 +181,9 @@ namespace ompl
             const flann::Matrix<_T> query(&elt, 1, dimension_);
             std::vector<std::vector<size_t> > indices;
             std::vector<std::vector<double> > dists;
-            k = index_? index_->knnSearch(query, indices, dists, k, searchParams_) : 0;
+            k = index_ ? index_->knnSearch(query, indices, dists, k, searchParams_) : 0;
             nbh.resize(k);
-            for (std::size_t i=0; i<k; ++i)
+            for (std::size_t i = 0 ; i < k ; ++i)
                 nbh[i] = *index_->getPoint(indices[0][i]);
         }
 
@@ -189,7 +195,7 @@ namespace ompl
             std::vector<std::vector<double> > dists;
             int k = index_ ? index_->radiusSearch(query, indices, dists, radius, searchParams_) : 0;
             nbh.resize(k);
-            for (int i=0; i<k; ++i)
+            for (int i = 0 ; i < k ; ++i)
                 nbh[i] = *index_->getPoint(indices[0][i]);
         }
 
@@ -217,14 +223,14 @@ namespace ompl
         ///
         /// The parameters determine the type of nearest neighbor
         /// data structure to be constructed.
-        virtual void setIndexParams(boost::shared_ptr<flann::IndexParams> params)
+        virtual void setIndexParams(const boost::shared_ptr<flann::IndexParams> &params)
         {
             params_ = params;
             rebuildIndex();
         }
 
         /// \brief Get the FLANN parameters used to build the current index.
-        virtual const boost::shared_ptr<flann::IndexParams>& getIndexParams() const
+        virtual const boost::shared_ptr<flann::IndexParams>& getIndexParams(void) const
         {
             return params_;
         }
@@ -238,24 +244,33 @@ namespace ompl
 
         /// \brief Get the FLANN parameters used during nearest neighbor
         /// searches
-        flann::SearchParams& getSearchParams()
+        flann::SearchParams& getSearchParams(void)
         {
             return searchParams_;
         }
 
-        unsigned int getContainerSize()
+        /// \brief Get the FLANN parameters used during nearest neighbor
+        /// searches
+        const flann::SearchParams& getSearchParams(void) const
+        {
+            return searchParams_;
+        }
+
+        unsigned int getContainerSize(void) const
         {
             return dimension_;
         }
+
     protected:
+
         /// \brief Internal function to construct nearest neighbor
         /// data structure with initial elements stored in mat.
         void createIndex(const flann::Matrix<_T>& mat)
         {
-            index_ = new flann::Index<_Dist>(mat, *params_,
-                _Dist(NearestNeighbors<_T>::distFun_));
+            index_ = new flann::Index<_Dist>(mat, *params_, _Dist(NearestNeighbors<_T>::distFun_));
             index_->buildIndex();
         }
+
         /// \brief Rebuild the nearest neighbor data structure (necessary when
         /// changing the distance function or index parameters).
         void rebuildIndex(unsigned int capacity = 0)
@@ -273,18 +288,22 @@ namespace ompl
 
         /// \brief vector of data stored in FLANN's index. FLANN only indexes
         /// references, so we need store the original data.
-        std::vector<_T> data_;
+        std::vector<_T>                       data_;
+
         /// \brief The FLANN index (the actual index type depends on params_).
-        flann::Index<_Dist>* index_;
+        flann::Index<_Dist>*                  index_;
+
         /// \brief The FLANN index parameters. This contains both the type of
         /// index and the parameters for that type.
         boost::shared_ptr<flann::IndexParams> params_;
+
         /// \brief The parameters used to seach for nearest neighbors.
-        mutable flann::SearchParams searchParams_;
+        mutable flann::SearchParams           searchParams_;
+
         /// \brief If each element has an array-like structure that is exposed
         /// to FLANN, then the dimension_ needs to be set to the length of
         /// this array.
-        unsigned int dimension_;
+        unsigned int                          dimension_;
     };
 
     template<>
