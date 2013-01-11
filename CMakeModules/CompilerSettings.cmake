@@ -15,9 +15,10 @@ else()
     set(IS_ICPC 0)
 endif()
 if(IS_ICPC)
+    add_definitions(-wd191 -wd411 -wd654 -wd1125 -wd1292 -wd1565 -wd1628 -wd2196)
     set(CMAKE_AR "xiar" CACHE STRING "Intel archiver" FORCE)
     set(CMAKE_CXX_FLAGS "-pthread" CACHE STRING "Default compile flags" FORCE)
-    set(CMAKE_CXX_FLAGS_RELEASE "-fast -DNDEBUG"
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG"
     CACHE STRING "Flags used by the C++ compiler during release builds." FORCE)
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING
     "Flags used by the C++ compiler during debug builds." FORCE)
