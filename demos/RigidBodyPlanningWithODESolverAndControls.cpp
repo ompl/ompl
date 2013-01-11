@@ -127,7 +127,7 @@ void KinematicCarODE (const oc::ODESolver::StateType& q, const oc::Control* cont
 }
 
 // This is a callback method invoked after numerical integration.
-void KinematicCarPostIntegration (const oc::Control* /*control*/, ob::State* result)
+void KinematicCarPostIntegration (const ob::State */*state*/, const oc::Control* /*control*/, const double /*duration*/, ob::State *result)
 {
     // Normalize orientation between 0 and 2*pi
     ob::SO2StateSpace SO2;
@@ -198,8 +198,8 @@ void planWithSimpleSetup(void)
 
     // Use the ODESolver to propagate the system.  Call KinematicCarPostIntegration
     // when integration has finished to normalize the orientation values.
-    oc::ODEBasicSolver<> odeSolver(ss.getSpaceInformation(), &KinematicCarODE);
-    ss.setStatePropagator(odeSolver.getStatePropagator(&KinematicCarPostIntegration));
+    oc::ODESolverPtr odeSolver(new oc::ODEBasicSolver<> (ss.getSpaceInformation(), &KinematicCarODE));
+    ss.setStatePropagator(oc::ODESolver::getStatePropagator(odeSolver, &KinematicCarPostIntegration));
 
     /// create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);

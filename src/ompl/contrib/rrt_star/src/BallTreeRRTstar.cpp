@@ -149,7 +149,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
     std::pair<base::State*,double> lastValid(tstate, 0.0);
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         bool rejected = false;
 

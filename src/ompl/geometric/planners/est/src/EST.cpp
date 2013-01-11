@@ -120,7 +120,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         /* Decide on a state to expand from */
         Motion *existing = selectMotion();

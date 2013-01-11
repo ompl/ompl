@@ -125,7 +125,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
     bool solutionFound = false;
 
-    while (ptc() == false && !solutionFound)
+    while (ptc == false && !solutionFound)
     {
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())

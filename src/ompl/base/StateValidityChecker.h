@@ -47,12 +47,12 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(SpaceInformation);
+        OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateValidityChecker */
-        ClassForward(StateValidityChecker);
+        OMPL_CLASS_FORWARD(StateValidityChecker);
         /// @endcond
 
         /** \class ompl::base::StateValidityCheckerPtr

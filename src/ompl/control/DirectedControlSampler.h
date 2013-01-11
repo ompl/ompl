@@ -49,8 +49,8 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(SpaceInformation);
-        ClassForward(DirectedControlSampler);
+        OMPL_CLASS_FORWARD(SpaceInformation);
+        OMPL_CLASS_FORWARD(DirectedControlSampler);
         /// @endcond
 
         /** \class ompl::control::DirectedControlSamplerPtr

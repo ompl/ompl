@@ -53,7 +53,7 @@ namespace ompl
     {
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Goal */
-        ClassForward(Goal);
+        OMPL_CLASS_FORWARD(Goal);
         /// @endcond
 
         /** \class ompl::base::GoalPtr

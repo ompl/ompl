@@ -82,6 +82,12 @@ namespace ompl
                 return terminate_ || eval();
             }
 
+            /** \brief Cast as true if the planner should stop its computation */
+            operator bool() const
+            {
+                return terminate_ || eval();
+            }
+
             /** \brief Notify that the condition for termination should become true, regardless of what eval() returns.
                 This function may be called while the condition is being evaluated by other threads. */
             void terminate(void) const;

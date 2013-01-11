@@ -125,7 +125,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (ptc() == false)
+    while (ptc == false)
     {
 
         /* sample random state (with goal biasing) */

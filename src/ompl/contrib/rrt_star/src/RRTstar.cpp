@@ -142,7 +142,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     unsigned int         rewireTest = 0;
     double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         // sample random state (with goal biasing)
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())

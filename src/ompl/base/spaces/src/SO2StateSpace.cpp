@@ -73,7 +73,7 @@ double ompl::base::SO2StateSpace::getMaximumExtent(void) const
 void ompl::base::SO2StateSpace::enforceBounds(State *state) const
 {
     double v = fmod(state->as<StateType>()->value, 2.0 * boost::math::constants::pi<double>());
-    if (v < -boost::math::constants::pi<double>())
+    if (v <= -boost::math::constants::pi<double>())
         v += 2.0 * boost::math::constants::pi<double>();
     else
         if (v > boost::math::constants::pi<double>())
@@ -83,8 +83,8 @@ void ompl::base::SO2StateSpace::enforceBounds(State *state) const
 
 bool ompl::base::SO2StateSpace::satisfiesBounds(const State *state) const
 {
-    return (state->as<StateType>()->value < boost::math::constants::pi<double>() + std::numeric_limits<double>::epsilon()) &&
-            (state->as<StateType>()->value > -boost::math::constants::pi<double>() - std::numeric_limits<double>::epsilon());
+    return (state->as<StateType>()->value <= boost::math::constants::pi<double>()) &&
+           (state->as<StateType>()->value > -boost::math::constants::pi<double>());
 }
 
 void ompl::base::SO2StateSpace::copyState(State *destination, const State *source) const

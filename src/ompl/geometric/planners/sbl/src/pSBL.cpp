@@ -112,10 +112,10 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
     base::State *xstate = si_->allocState();
     bool      startTree = rng.uniformBool();
 
-    while (!sol->found && ptc() == false)
+    while (!sol->found && ptc == false)
     {
         bool retry = true;
-        while (retry && !sol->found && ptc() == false)
+        while (retry && !sol->found && ptc == false)
         {
             removeList_.lock.lock();
             if (!removeList_.motions.empty())
@@ -136,7 +136,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
             removeList_.lock.unlock();
         }
 
-        if (sol->found || ptc())
+        if (sol->found || ptc)
             break;
 
         loopLockCounter_.lock();
@@ -288,9 +288,9 @@ bool ompl::geometric::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, 
             if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
             {
                 if (start)
-                    connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                    connectionPoint_ = std::make_pair(motion->state, connectOther->state);
                 else
-                    connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                    connectionPoint_ = std::make_pair(connectOther->state, motion->state);
 
                 /* extract the motions and put them in solution vector */
 

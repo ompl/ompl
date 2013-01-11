@@ -1,6 +1,22 @@
 # Release Notes
 
 
+# OMPL 0.12.1 (12/12/12)
+
+- Bug fixes.
+
+
+# OMPL 0.12.0 (November 20, 2012)
+
+- Added representation of costs to ompl::base::StateValidityChecker
+- Added the notion of objectives to be optimized: ompl::base::OptimizationObjective
+- Added \ref gTRRT "T-RRT", a planner for planning low-cost paths.
+- Planners now have the option to report the non-existence of a solution (ompl::base::SolutionNonExistenceProof)
+- Improved infrastructure for creating python bindings for planners (see [tutorial](pybindingsPlanner.html) for details)
+- Documentation updates.
+- Bug fixes.
+
+
 # OMPL 0.11.1 (July 26, 2012)
 
 - Fixed bug in RRT* where nearest neighbor radius shrinks too fast.
@@ -10,12 +26,12 @@
 
 # OMPL 0.11.0 (June 30, 2012)
 
-- PlannerData now uses the Boost Graph Library (BGL). This offers much more flexibility and power in the inspection of planner data structures. Rather than storing only the data common to all planners, each planner can store its own (meta)data per vertex and edge in a graph. All graph algorithms that exists in BGL can be applied directly.
+- ompl::base::PlannerData now uses the Boost Graph Library (BGL). This offers much more flexibility and power in the inspection of planner data structures. Rather than storing only the data common to all planners, each planner can store its own (meta)data per vertex and edge in a graph. All graph algorithms that exists in BGL can be applied directly.
 - Added PlannerDataStorage object for serialization/deserialization of PlannerData
 - Logging mechanism is now using macros instead of the msg::Interface class. The file name and line number where a message originated is printed out for every message type.
-- Changed the return type for Planner::solve from bool to an enumeration (base::PlannerStatus).  This allows for more refined failure/success reporting.  A cast to bool exists for a quick success check.
+- Changed the return type for ompl::Planner::solve from bool to an enumeration (ompl::base::PlannerStatus).  This allows for more refined failure/success reporting.  A cast to bool exists for a quick success check.
 - Added serialization for controls and a signature for the control space.
-- Moved solution paths from Goal to ProblemDefinition.
+- Moved solution paths from ompl::base::Goal to ompl::base::ProblemDefinition.
 - Implementation of PRM is now threaded (one thread for growing the roadmap, one thread for monitoring whether the problem is solved).
 - Improvements to sampleUniformNear() for SO3.
 - A TeamCity Continuous Integration server has been set up at http://teamcity.kavrakilab.org.
@@ -73,15 +89,15 @@
 - Renamed StateManifold to StateSpace and ControlManifold to ControlSpace
 - Added RRTstar contribution
 - Added GNAT nearest neighbors datastructure
-- Added representation of a discrete state space (DiscreteStateSpace)
+- Added representation of a discrete state space (ompl::base::DiscreteStateSpace)
 - Added representation of probability density functions (PDF)
-- Replaced the implementation of BasicPRM with PRM. Thanks to James Marble, the new implementation uses BGL.
+- Replaced the implementation of BasicPRM with ompl::geometric::PRM. Thanks to James Marble, the new implementation uses BGL.
 - Moved state propagation functionality from ControlSpace to a separate StatePropagator class
 - Added isStraightLinePathValid() to PlannerDefinition
 - Using boost ublas for real vector projections
 - Add sanity checks for state spaces
 - Benchmarked planners are now run in a separate thread (and termination conditions are evaluated separately, to detect crashes)
-- Added getType() for Goal and replaced getType() for planners by getSpecs()
+- Added getType() for ompl::base::Goal and replaced getType() for planners by ompl::base::Planner::getSpecs()
 - Generalized planner termination conditions. The user can now call terminate() at any time to signal a planner it should stop its computation
 - Improvements to control::KPIECE1, so that it considers goal biasing more appropriately
 - Move code for extracting machine properties from util/ to benchmark/
@@ -91,7 +107,7 @@
 # OMPL 0.9.3 (May 2, 2011)
 
 - Added path smoothing with splines
-- Added a bi-directional implementation of KPIECE (BKPIECE)
+- Added a bi-directional implementation of KPIECE (\ref gBKPIECE "BKPIECE")
 - Support for computation of clearance and gradients that move away from invalid regions
 - Separate "magic constants" to a separate, visible, location
 - A number of bug fixes

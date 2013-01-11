@@ -328,6 +328,21 @@ class ompl_control_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        replacement['::ompl::control::ODESolver::getStatePropagator'] = ("""
+        def("getStatePropagator", &getStatePropagator1);
+        ODESolver_exposer.def("getStatePropagator", &getStatePropagator2);
+        ODESolver_exposer.staticmethod( "getStatePropagator" )""", """
+        // %s
+        ompl::control::StatePropagatorPtr getStatePropagator2(ompl::control::ODESolverPtr solver,
+            const ompl::control::ODESolver::PostPropagationEvent &postEvent)
+        {
+            return ompl::control::ODESolver::getStatePropagator(solver, postEvent);
+        }
+        ompl::control::StatePropagatorPtr getStatePropagator1(ompl::control::ODESolverPtr solver)
+        {
+            return ompl::control::ODESolver::getStatePropagator(solver);
+        }
+        """)
         code_generator_t.__init__(self, 'control', ['bindings/util', 'bindings/base', 'bindings/geometric'], replacement)
 
     def filter_declarations(self):
@@ -359,14 +374,14 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
         try:
             # export ODESolver-derived classes that use Boost.OdeInt
-            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEBasicSolver')).rename('ODEBasicSolver')
-            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEErrorSolver')).rename('ODEErrorSolver')
-            self.ompl_ns.class_(lambda cls: cls.name.startswith('ODEAdaptiveSolver')).rename('ODEAdaptiveSolver')
-            # self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-            #     'ODE','Ordinary differential equation')
+            for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
+                self.ompl_ns.class_(lambda cls: cls.name.startswith(odesolver)).rename(odesolver)
             # Somehow, Py++ changes the type of the ODE's first argument. Weird...
             self.add_boost_function('void(ompl::control::ODESolver::StateType, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
                 'ODE','Ordinary differential equation')
+            # workaround for default argument for PostPropagationEvent
+            self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function(
+                'getStatePropagator'))
         except declarations.matcher.declaration_not_found_t:
             # not available for boost < 1.44, so ignore this
             pass
@@ -399,8 +414,9 @@ class ompl_control_generator_t(code_generator_t):
             'ControlSamplerAllocator', 'Control sampler allocator')
         self.add_boost_function('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
             'DirectedControlSamplerAllocator','Directed control sampler allocator')
-        self.add_boost_function('void(const ompl::control::Control*, ompl::base::State*)',
-            'PostPropagationEvent','Post-propagation event')
+        # same type as StatePropagatorFn, so no need to export this. Instead, we just define a type alias in the python module.
+        #self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
+        #    'PostPropagationEvent','Post-propagation event')
         self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
             'StatePropagatorFn','State propagator function')
         self.add_boost_function('double(int, int)','EdgeCostFactorFn',
@@ -593,8 +609,9 @@ class ompl_util_generator_t(code_generator_t):
         # rename STL vectors of certain types
         self.std_ns.class_('vector< unsigned long >').include()
         self.std_ns.class_('vector< unsigned long >').rename('vectorSizeT')
-        self.std_ns.class_('vector< bool >').include()
-        self.std_ns.class_('vector< bool >').rename('vectorBool')
+        # not needed; causes problems when compiling in C++11 mode
+        #self.std_ns.class_('vector< bool >').include()
+        #self.std_ns.class_('vector< bool >').rename('vectorBool')
         self.std_ns.class_('vector< int >').include()
         self.std_ns.class_('vector< int >').rename('vectorInt')
         self.std_ns.class_('vector< double >').include()

@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,42 +32,20 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ryan Luna */
+#ifndef OMPL_UTIL_DEPRECATION_
+#define OMPL_UTIL_DEPRECATION_
 
-#ifndef OMPL_BASE_SOLUTION_NON_EXISTENCE_PROOF_
-#define OMPL_BASE_SOLUTION_NON_EXISTENCE_PROOF_
+/** \def OMPL_DEPRECATED
+    Macro that marks functions as deprecated */
 
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/util/ClassForward.h"
-
-namespace ompl
-{
-    namespace base
-    {
-        /// @cond IGNORE
-        /// \brief Forward declaration of ompl::base::SolutionNonExistenceProof
-        OMPL_CLASS_FORWARD(SolutionNonExistenceProof);
-        /// @endcond
-
-        /// \class ompl::base::SolutionNonExistenceProofPtr
-        /// \brief A boost shared pointer wrapper for ompl::base::SolutionNonExistenceProof
-
-        /// \brief Abstract definition of a proof for the non-existence of a solution to a problem
-        class SolutionNonExistenceProof
-        {
-            public:
-                SolutionNonExistenceProof(const SpaceInformationPtr &si) : si_(si)
-                {
-                }
-
-                virtual ~SolutionNonExistenceProof(void)
-                {
-                }
-
-            protected:
-                SpaceInformationPtr si_;
-        };
-    }
-}
+#ifdef __GNUC__
+#define OMPL_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define OMPL_DEPRECATED __declspec(deprecated)
+#elif defined(__clang__)
+#define OMPL_DEPRECATED  __attribute__((deprecated("OMPL: Use of this method is deprecated")))
+#else
+#define OMPL_DEPRECATED /* Nothing */
+#endif
 
 #endif

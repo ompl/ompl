@@ -50,7 +50,7 @@ namespace ompl
     {
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::OptimizationObjective */
-        ClassForward(OptimizationObjective);
+        OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
         /** \class ompl::base::OptimizationObjectivePtr

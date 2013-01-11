@@ -53,7 +53,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathSimplifier */
-        ClassForward(PathSimplifier);
+        OMPL_CLASS_FORWARD(PathSimplifier);
         /// @endcond
 
         /** \class ompl::geometric::PathSimplifierPtr

@@ -5,3 +5,6 @@ from ompl.control._control import *
 # with a dictionary of dictionaries, containing planners and associated
 # parameter info
 planners = None
+
+# type alias for boost::function<void(const State*, const Control*, const double, State*)>
+PostPropagationEvent = StatePropagatorFn

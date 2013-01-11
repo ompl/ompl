@@ -90,7 +90,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
 
-    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("1:1000"));
+    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
 }
 
 ompl::geometric::PRM::~PRM(void)
@@ -188,7 +188,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
     if (pdf.empty())
         return;
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         Vertex v = pdf.sample(rng_.uniform01());
         unsigned int s = si_->randomBounceMotion(simpleSampler_, stateProperty_[v], workStates.size(), workStates, false);
@@ -255,11 +255,11 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
 void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &ptc,
                                        base::State *workState)
 {
-    while (ptc() == false)
+    while (ptc == false)
     {
         // search for a valid state
         bool found = false;
-        while (!found && ptc() == false)
+        while (!found && ptc == false)
         {
             unsigned int attempts = 0;
             do
@@ -278,7 +278,7 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
                                              base::PathPtr &solution)
 {
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
-    while (!ptc() && !addedSolution_)
+    while (!ptc && !addedSolution_)
     {
         // Check for any new goal states
         if (goal->maxSampleCount() > goalM_.size())
@@ -298,7 +298,7 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sol_cost;
+    double sol_cost = -1.;
     bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {

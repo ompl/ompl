@@ -125,7 +125,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
     double  approxdif   = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         disc_.countIteration();
 

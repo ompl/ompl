@@ -108,7 +108,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
     base::Goal* goal = pdef_->getGoal().get();
     double goalDist = std::numeric_limits<double>::infinity();
     bool solved = false;
-    while (!ptc() && !solved)
+    while (!ptc && !solved)
     {
         const int chosenStartRegion = startRegions_.sampleUniform();
         int chosenGoalRegion = -1;
@@ -127,15 +127,15 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
 
         leadComputeFn(chosenStartRegion, chosenGoalRegion, lead_);
         computeAvailableRegions();
-        for (int i = 0; i < numRegionExpansions_ && !solved && !ptc(); ++i)
+        for (int i = 0; i < numRegionExpansions_ && !solved && !ptc; ++i)
         {
             const int region = selectRegion();
             bool improved = false;
-            for (int j = 0; j < numTreeSelections_ && !solved && !ptc(); ++j)
+            for (int j = 0; j < numTreeSelections_ && !solved && !ptc; ++j)
             {
                 newMotions.clear();
                 selectAndExtend(graph_[boost::vertex(region,graph_)], newMotions);
-                for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end() && !ptc(); ++m)
+                for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end() && !ptc; ++m)
                 {
                     Motion* motion = *m;
                     double distance;

@@ -78,19 +78,19 @@ When planning with the ODESolver, the user must instantiate the derived solver. 
 
 ~~~{.cpp}
 // SpaceInformationPtr is defined as the variable si.
-ompl::control::ODEBasicSolver<> odeSolver (si, &SimpleCarODE);
+ompl::control::ODESolverPtr odeSolver (new ompl::control::ODEBasicSolver<> (si, &SimpleCarODE));
 ~~~
 
-Control based planners also require a ompl::control::StatePropagator object that defines how the system moves given a specific control. The ODESolver provides a wrapper for this functionality via the getStatePropagator method:
+Control based planners also require a ompl::control::StatePropagator object that defines how the system moves given a specific control. The ODESolver provides a wrapper for this functionality via the static getStatePropagator method:
 
 ~~~{.cpp}
-si->setStatePropagator(odeSolver.getStatePropagator());
+si->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver));
 ~~~
 
-This is all that is needed for the planner to sample a control and propagate the system by solving the differential equations defined in the ode. In some systems, a post-numerical integration callback event is useful. As an example, note that the ODE allows the state values to unboundedly change, and for some systems this is not acceptable. For the car-like system above, the orientation parameter \f$\theta\f$ is generally a value between 0 and \f$2\pi\f$, and integration could have the value exceed these bounds. In such a case, it is useful to define a post-integration event callback that is invoked after numerical integration is complete:
+This is all that is needed for the planner to sample a control and propagate the system by solving the differential equations defined in the ode.  In some systems, a post-numerical integration callback event is useful. As an example, note that the ODE allows the state values to unboundedly change, and for some systems this is not acceptable. For the car-like system above, the orientation parameter \f$\theta\f$ is generally a value between 0 and \f$2\pi\f$, and integration could have the value exceed these bounds. In such a case, it is useful to define a post-integration event callback that is invoked after numerical integration is complete:
 
 ~~~{.cpp}
-void postPropagate(const control::Control *ctrl, base::State *result)
+void postPropagate(const base::State* state, const Control* control, const double duration, base::State* result)
 {
     ompl::base::SO2StateSpace SO2;
 
@@ -100,10 +100,12 @@ void postPropagate(const control::Control *ctrl, base::State *result)
 }
 ~~~
 
-The StatePropagator can then be defined to take this new post-Integration function as an argument:
+There is one final note about ODESolver and the postPropagate method.  If your system has other state-space components that are not changed in the ODE (i.e. the current gear of a car's transmission), these values must be explicitly copied into the resulting state.  ODESolver will only update the real-values of the state space.  For state spaces with components that are not real-valued, the post-integration event can be used to transfer this information from the initial state to the resulting state.
+
+Once your postPropagate method is implemented, a StatePropagator can then be created which automatically invokes the postPropagate method using a function pointer after each state is propagated:
 
 ~~~{.cpp}
-si->setStatePropagator(odeSolver.getStatePropagator(&postPropagate));
+si->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver, &postPropagate));
 ~~~
 
 

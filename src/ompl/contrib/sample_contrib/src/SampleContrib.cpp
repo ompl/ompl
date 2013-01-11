@@ -36,7 +36,15 @@
 
 #include "ompl/contrib/sample_contrib/SampleContrib.h"
 
+/** @cond IGNORE
+
+    This conditional here is only for disabling Doxygen.
+    You will probably need to remove it
+*/
+
 ompl::geometric::SampleContrib::SampleContrib()
 {
     // do nothing
 }
+
+/** @endcond */

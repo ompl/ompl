@@ -51,7 +51,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathHybridization */
-        ClassForward(PathHybridization);
+        OMPL_CLASS_FORWARD(PathHybridization);
         /// @endcond
 
         /** \class ompl::geometric::PathHybridizationPtr

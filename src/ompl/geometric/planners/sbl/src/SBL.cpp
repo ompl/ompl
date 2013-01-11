@@ -121,7 +121,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
     bool      startTree = true;
     bool         solved = false;
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         TreeData &tree      = startTree ? tStart_ : tGoal_;
         startTree = !startTree;
@@ -203,9 +203,9 @@ bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
             if (isPathValid(tree, connect) && isPathValid(otherTree, connectOther))
             {
                 if (start)
-                    connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                    connectionPoint_ = std::make_pair(motion->state, connectOther->state);
                 else
-                    connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                    connectionPoint_ = std::make_pair(connectOther->state, motion->state);
 
                 /* extract the motions and put them in solution vector */
 

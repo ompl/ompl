@@ -40,10 +40,10 @@
 #include <boost/shared_ptr.hpp>
 
 /** \brief Macro that defines a forward declaration for a class, and
-    shared pointers to the class. For example ClassForward(MyType);
+    shared pointers to the class. For example OMPL_CLASS_FORWARD(MyType);
     will produce type definitions for MyType and MyTypePtr. */
-#define ClassForward(C)                                        \
-    class C;                                                \
+#define OMPL_CLASS_FORWARD(C)                                          \
+    class C;                                                           \
     typedef boost::shared_ptr<C> C##Ptr
 
 #endif

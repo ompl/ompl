@@ -120,7 +120,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
     bool      startTree = true;
     bool         solved = false;
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         Discretization<Motion> &disc      = startTree ? dStart_ : dGoal_;
         startTree = !startTree;
@@ -178,9 +178,9 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
                         si_->checkMotion(motion->state, connectOther->state))
                     {
                         if (startTree)
-                            connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                            connectionPoint_ = std::make_pair(connectOther->state, motion->state);
                         else
-                            connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                            connectionPoint_ = std::make_pair(motion->state, connectOther->state);
 
                         /* extract the motions and put them in solution vector */
 

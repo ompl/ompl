@@ -68,7 +68,7 @@ namespace ompl
     {
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::SpaceInformation */
-        ClassForward(SpaceInformation);
+        OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
 
         /** \class ompl::base::SpaceInformationPtr

@@ -32,14 +32,19 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
       <div class="item active">
       <div class="pagination-centered"><img src="../images/mp.jpg"></div>
       </div>
-      <div class="item">
+      <!--<div class="item">
         <img src="../images/mp.jpg" class="hidden" style="margin-top: 1px">
         <div class="carousel-caption carousel-caption-inset"><h4>New in 0.11!</h4>
         <ul>
-           <li>PlannerData now uses the Boost Graph Library; each planner can store arbitrary metadata in a graph. All this PlannerData can easily be (de)serialized for messaging or storing/loading of planner data.
+           <li>PlannerData now uses the Boost Graph Library; each planner can store arbitrary metadata in a graph.  All this PlannerData can easily be (de)serialized for messaging or storing/loading of planner data.
            <li>Implementation of PRM is now threaded (one thread for growing the roadmap, one thread for monitoring whether the problem is solved).
         </ul>
         <p>See <a href="releaseNotes.html">release notes</a> for details</p>
+      </div>-->
+      <div class="item">
+        <div class="pagination-centered"><img src="../images/T-RRT.jpg"></div>
+        <div class="carousel-caption"><h4>Planning with costs</h4>
+        <p>Visualization of the cost map explored by the T-RRT planner.</p>
         </div>
       </div>
       <div class="item">
@@ -59,9 +64,9 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 ## Contents of This Library
 
-- OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See [available planners](availablePlanners.html) for a complete list.
-- All these planners operate on very abstractly defined state spaces. Many commonly used [state spaces](availableStateSpaces.html) are already implemented (e.g., SE2, SE3, R<sup>n</sup>, etc.).
-- For any state space, different [state samplers](availableSamplers.html) can be used (e.g., uniform, Gaussian, obstacle based, etc.).
+- OMPL contains implementations of many sampling-based algorithms such as PRM, RRT, EST, SBL, KPIECE, SyCLOP, and several variants of these planners. See [available planners](planners.html) for a complete list.
+- All these planners operate on very abstractly defined state spaces. Many commonly used [state spaces](spaces.html) are already implemented (e.g., SE2, SE3, R<sup>n</sup>, etc.).
+- For any state space, different [state samplers](samplers.html) can be used (e.g., uniform, Gaussian, obstacle based, etc.).
 - [API overview](api_overview.html)
 
 \htmlonly</div><div class="span4">\endhtmlonly
@@ -93,6 +98,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 ## News & Events
 
+- [OMPL has won the 2012 Open Source Software World Grand Challenge!](http://ompl.kavrakilab.org/blog/?p=178)
 - [An article about OMPL](../ieee-ram-2012-ompl.pdf) has been accepted for publication in IEEE's Robotics & Automation Magazine! It will appear in the December 2012 issue.
 - <a href="http://www.youtube.com/watch?v=r1zbuLc8RhI">At ROSCON, Sachin Chitta and Ioan Șucan gave a talk about MoveIt!</a>, the new motion planning stack in ROS. It provides a common interface to motion planning libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.
 - <a href="http://kavrakilab.org/OMPLtutorial">IROS 2011 Tutorial on Motion Planning for Real Robots</a>. This hands-on tutorial describes how to use the ROS and OMPL, but it also gives some background on sampling-based motion planning.

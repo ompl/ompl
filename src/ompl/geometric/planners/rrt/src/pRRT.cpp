@@ -110,7 +110,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTer
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (sol->solution == NULL && ptc() == false)
+    while (sol->solution == NULL && ptc == false)
     {
         /* sample random state (with goal biasing) */
         if (goal_s && rng.uniform01() < goalBias_ && goal_s->canSample())

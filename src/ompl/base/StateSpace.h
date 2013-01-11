@@ -58,7 +58,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSpace */
-        ClassForward(StateSpace);
+        OMPL_CLASS_FORWARD(StateSpace);
         /// @endcond
 
         /** \class ompl::base::StateSpacePtr

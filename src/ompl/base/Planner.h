@@ -46,6 +46,7 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/util/Deprecation.h"
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
@@ -61,7 +62,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Planner */
-        ClassForward(Planner);
+        OMPL_CLASS_FORWARD(Planner);
         /// @endcond
 
         /** \class ompl::base::PlannerPtr
@@ -135,7 +136,7 @@ namespace ompl
                 are made. Returns true if changes were found
                 (different problem definition) and clear() was
                 called. */
-            bool use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef);
+            OMPL_DEPRECATED bool use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef);
 
             /** \brief Set the space information and problem
                 definition this class operates on, based on the
@@ -145,7 +146,21 @@ namespace ompl
                 are made. Returns true if changes were found
                 (different problem definition) and clear() was
                 called.*/
-            bool use(const SpaceInformation *si, const ProblemDefinition *pdef);
+            OMPL_DEPRECATED bool use(const SpaceInformation *si, const ProblemDefinition *pdef);
+
+            /** \brief Set the problem definition this class operates on.
+                If a planner is not set in the constructor argument, a call
+                to this function is needed before any calls to nextStart()
+                or nextGoal() are made. Returns true if changes were found
+                (different problem definition) and clear() was called. */
+            bool use(const ProblemDefinitionPtr &pdef);
+
+            /** \brief Set the problem definition this class operates on.
+                If a planner is not set in the constructor argument, a call
+                to this function is needed before any calls to nextStart()
+                or nextGoal() are made. Returns true if changes were found
+                (different problem definition) and clear() was called. */
+            bool use(const ProblemDefinition *pdef);
 
             /** \brief Check if the problem definition was set, start
                 state are available and goal was set */

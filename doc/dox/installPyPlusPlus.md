@@ -1,6 +1,6 @@
 # Installation of Py++
 
-[Py++](https://sourceforge.net/projects/pygccxml) requires pygccxml and GCC-XML. You need the versions of GCC-XML, pygccxml, and Py++ that are taken directly from their respective repositories. Directions for installing GCC-XML can be found [here](http://www.gccxml.org/HTML/Download.html), and for installing pygccxml/Py++ they can be found [here](http://sourceforge.net/scm/?type=svn&group_id=118209). The combined set of instructions is included in the script ompl/src/external/installPyPlusPlus.{sh,bat}. This script will also apply a patch to pygccxml that is necessary to prevent it from treating gccxml warnings as errors. You can run this script (after running cmake) like so:
+We have included a script to download and install [Py++](https://bitbucket.org/ompl/pyplusplus) and its dependencies ([pygccxml](https://bitbucket.org/ompl/pygccxml) and [GCC-XML](https://github.com/gccxml/gccxml)). The script is located at ompl/src/external/installPyPlusPlus.{sh,bat}. You can run this script (after running cmake) like so:
 
     make installpyplusplus
 
