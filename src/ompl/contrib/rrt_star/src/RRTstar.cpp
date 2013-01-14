@@ -126,6 +126,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
     bool symDist = si_->getStateSpace()->hasSymmetricDistance();
+    bool symInterp = si_->getStateSpace()->hasSymmetricInterpolate();
+    bool symCost = opt_->isSymmetric();
 
     if (!goal)
     {
@@ -212,7 +214,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             costs.resize(nbh.size());
             incCosts.resize(nbh.size());
             // cache for motion validity
-            if (symDist)
+            if (symDist && symInterp) // this is only useful in a symmetric space
             {
                 valid.resize(nbh.size());
                 std::fill(valid.begin(), valid.end(), 0);
@@ -255,17 +257,17 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                                 motion->incCost = incCosts[idx];
                                 motion->cost = costs[i].second;
                                 motion->parent = nbh[idx];
-                                if (symDist)
+                                if (symDist && symInterp)
                                     valid[idx] = 1;
                                 break;
                             }
                         }
-                        else if (symDist)
+                        else if (symDist && symInterp)
                             valid[idx] = -1;
                     }
                     else
                     {
-                        if (symDist)
+                        if (symDist && symInterp)
                             valid[idx] = 1;
                         break;
                     }
@@ -288,10 +290,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                                 motion->incCost = incCosts[i];
                                 motion->cost = costs[i].second;
                                 motion->parent = nbh[i];
-                                if (symDist)
+                                if (symDist && symInterp)
                                     valid[i] = 1;
                             }
-                            else if (symDist)
+                            else if (symDist && symInterp)
                                 valid[i] = -1;
                         }
                     }
@@ -299,7 +301,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     {
                         incCosts[i] = incCost;
                         costs[i].second = motion->cost;
-                        if (symDist)
+                        if (symDist && symInterp)
                             valid[i] = 1;
                     }
                 }
@@ -345,14 +347,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     double nbhPrevCost = nbh[idx]->cost;
                     double incCost;
-                    if (symDist)
+                    if (symDist && symCost)
                         incCost = incCosts[idx];
                     else
                         incCost = opt_->getIncrementalCost(motion->state, nbh[idx]->state);
                     double newCost = opt_->combineObjectiveCosts(motion->cost, incCost);
                     if (newCost < nbhPrevCost)
                     {
-                        bool motionValid = symDist ?
+                        bool motionValid = (symDist && symInterp) ?
                             (valid[idx] == 0 ? 
                                  si_->checkMotion(dstate, nbh[idx]->state) :
                                  valid[idx] == 1) :

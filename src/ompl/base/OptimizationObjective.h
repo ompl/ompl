@@ -90,6 +90,9 @@ namespace ompl
             /** \brief Get the cost that corresponds to the sequence of motion segments defined by states. */
             virtual double getCost(const PathPtr &path) const;
 
+	    /** \brief Check if this objective has a symmetric cost metric, i.e. getIncrementalCost(s1, s2) = getIncrementalCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
+	    virtual bool isSymmetric(void) const;
+
         protected:
             /** \brief The space information for this objective */
             SpaceInformationPtr si_;

@@ -45,6 +45,11 @@ double ompl::base::OptimizationObjective::getCost(const PathPtr &path) const
     return path->cost(*this);
 }
 
+bool ompl::base::OptimizationObjective::isSymmetric(void) const
+{
+    return si_->getStateSpace()->hasSymmetricInterpolate();
+}
+
 bool ompl::base::BoundedAdditiveOptimizationObjective::isSatisfied(double totalObjectiveCost) const
 {
     return totalObjectiveCost <= maximumUpperBound_;

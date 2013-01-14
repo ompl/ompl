@@ -749,6 +749,11 @@ bool ompl::base::StateSpace::hasSymmetricDistance(void) const
     return true;
 }
 
+bool ompl::base::StateSpace::hasSymmetricInterpolate(void) const
+{
+    return true;
+}
+
 void ompl::base::StateSpace::setStateSamplerAllocator(const StateSamplerAllocator &ssa)
 {
     ssa_ = ssa;

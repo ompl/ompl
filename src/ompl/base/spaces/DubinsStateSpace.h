@@ -120,6 +120,12 @@ namespace ompl
 	    {
 	        return isSymmetric_;
             }
+
+	    virtual bool hasSymmetricInterpolate(void) const
+	    {
+		return isSymmetric_;
+	    }
+
             virtual void sanityChecks(void) const
             {
                 double zero = std::numeric_limits<double>::epsilon();

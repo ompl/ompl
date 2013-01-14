@@ -180,8 +180,11 @@ namespace ompl
                 return true;
             }
 
-            /** \brief Check if the distance function on this state space is symmetric (i.e. distance(s1,s2) = distance(s2,s1) (default implementation simply returns true)*/
+            /** \brief Check if the distance function on this state space is symmetric, i.e. distance(s1,s2) = distance(s2,s1). Default implementation returns true.*/
             virtual bool hasSymmetricDistance(void) const;
+
+	    /** \brief Check if the interpolation function on this state space is symmetric, i.e. interpolate(from, to, t, state) = interpolate(to, from, 1-t, state). Default implementation returns true.*/
+	    virtual bool hasSymmetricInterpolate(void) const;
 
             /** \brief Get the name of the state space */
             const std::string& getName(void) const;
