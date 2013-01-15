@@ -50,8 +50,12 @@ else(MSVC OR IS_ICPC)
 endif(MSVC OR IS_ICPC)
 target_link_libraries(ompl
   ${OMPL_LINK_LIBRARIES}
-  ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-  )
+  ${Boost_DATE_TIME_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_SERIALIZATION_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${CMAKE_THREAD_LIBS_INIT})
 
 if(MSVC)
   set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
