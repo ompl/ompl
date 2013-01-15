@@ -36,7 +36,6 @@
 
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 
 void ompl::control::SyclopRRT::setup(void)
 {
@@ -49,7 +48,7 @@ void ompl::control::SyclopRRT::setup(void)
     // the default regionalNN check from the discretization
     if (!nn_ && !regionalNN_)
     {
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
         nn_->setDistanceFunction(boost::bind(&SyclopRRT::distanceFunction, this, _1, _2));
     }
 }

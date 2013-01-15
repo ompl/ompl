@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/rrt/pRRT.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread/thread.hpp>
@@ -70,7 +69,7 @@ void ompl::geometric::pRRT::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&pRRT::distanceFunction, this, _1, _2));
 }
 

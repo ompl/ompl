@@ -37,7 +37,6 @@
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/datastructures/PDF.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
@@ -102,7 +101,7 @@ void ompl::geometric::PRM::setup(void)
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Vertex>());
+        nn_.reset(NearestNeighbors<Vertex>::getDefault(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
     if (!connectionStrategy_)
     {

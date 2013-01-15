@@ -36,7 +36,6 @@
 
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
@@ -63,7 +62,7 @@ void ompl::geometric::LazyRRT::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
+        nn_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&LazyRRT::distanceFunction, this, _1, _2));
 }
 

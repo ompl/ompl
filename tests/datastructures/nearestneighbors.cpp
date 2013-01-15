@@ -41,8 +41,7 @@
 #include <boost/unordered_set.hpp>
 
 #include "ompl/config.h"
-#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/datastructures/NearestNeighbors.h"
 #if OMPL_HAVE_FLANN
 #include "ompl/datastructures/NearestNeighborsFLANN.h"
 #endif

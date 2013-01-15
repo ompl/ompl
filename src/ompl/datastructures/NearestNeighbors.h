@@ -40,6 +40,7 @@
 #include <vector>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <ompl/base/StateSpace.h>
 
 namespace ompl
 {
@@ -104,12 +105,32 @@ namespace ompl
         /** \brief Get all the elements in the datastructure */
         virtual void list(std::vector<_T> &data) const = 0;
 
+        /** \brief Select a default nearest neighbor datastructure for the given
+             space */
+        static NearestNeighbors<_T>* getDefault(const base::StateSpacePtr space);
+
     protected:
 
         /** \brief The used distance function */
         DistanceFunction distFun_;
 
     };
+}
+
+
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+
+namespace ompl
+{
+    template<typename _T>
+    NearestNeighbors<_T>* NearestNeighbors<_T>::getDefault(const base::StateSpacePtr space)
+    {
+        if (space->isMetricSpace())
+            return new NearestNeighborsGNAT<_T>();
+        else
+            return new NearestNeighborsSqrtApprox<_T>();
+    }
 }
 
 #endif

@@ -36,7 +36,6 @@
 
 #include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <limits>
@@ -124,7 +123,7 @@ void ompl::geometric::TRRT::setup(void)
 
     // Create the nearest neighbor function the first time setup is run
     if (!nearestNeighbors_)
-        nearestNeighbors_.reset(new NearestNeighborsGNAT<Motion*>());
+        nearestNeighbors_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
 
     // Set the distance function
     nearestNeighbors_->setDistanceFunction(boost::bind(&TRRT::distanceFunction, this, _1, _2));

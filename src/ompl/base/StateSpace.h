@@ -173,6 +173,13 @@ namespace ompl
             /** \brief Check if this is a hybrid state space (i.e., both discrete and continuous components exist)*/
             virtual bool isHybrid(void) const;
 
+            /** \brief Return true if the distance function associated with the space
+                is a metric */
+            virtual bool isMetricSpace(void) const
+            {
+                return true;
+            }
+
             /** \brief Get the name of the state space */
             const std::string& getName(void) const;
 

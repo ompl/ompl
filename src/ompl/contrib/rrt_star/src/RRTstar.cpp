@@ -36,7 +36,6 @@
 
 #include "ompl/contrib/rrt_star/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
 #include <limits>
@@ -77,7 +76,7 @@ void ompl::geometric::RRTstar::setup(void)
         ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
 }
 
