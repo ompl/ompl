@@ -15,7 +15,7 @@ As part of this effort, we have developed a collection of assignments that can b
   - Centralized multi-robot planning
   - Protein folding
 
-We are looking for educational partners to use and further develop the material. If you are interested in the lectures and assignments, please contact [Mark Moll](http://www.cs.rice.edu/~mmoll) and [Lydia Kavraki](http://www.cs.rice.edu/~kavraki).
+We are looking for educational partners to use and further develop the material. If you are interested in the educational material, please contact [Mark Moll](http://www.cs.rice.edu/~mmoll) and [Lydia Kavraki](http://www.cs.rice.edu/~kavraki).
 
 
 \htmlonly
