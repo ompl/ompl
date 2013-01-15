@@ -49,7 +49,6 @@ namespace ompl
 
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(SpaceInformation);
-        OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
         /// @cond IGNORE
@@ -83,9 +82,6 @@ namespace ompl
 
             /** \brief Return the length of a path */
             virtual double length(void) const = 0;
-
-            /** \brief Return the cost of the path with respect to a specified optimization objective */
-            virtual double cost(const OptimizationObjective &objective) const = 0;
 
             /** \brief Check if the path is valid */
             virtual bool check(void) const = 0;

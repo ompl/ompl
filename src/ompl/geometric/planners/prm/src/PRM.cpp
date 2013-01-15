@@ -38,6 +38,7 @@
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/PDF.h"
+#include "ompl/geometric/GeometricOptimizationObjective.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
@@ -298,8 +299,7 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sol_cost = -1.;
-    bool sol_cost_set = false;
+    base::CostPtr sol_cost;
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -311,7 +311,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 if (pdef_->hasOptimizationObjective())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-                    double obj_cost = pdef_->getOptimizationObjective()->getCost(p);
+		    base::CostPtr obj_cost = pdef_->getOptimizationObjective()->getCost(p);
                     if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
                     {
                         solution = p;
@@ -319,17 +319,17 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                     }
                     else
                     {
-                        if (solution && !sol_cost_set)
+                        if (solution && !sol_cost)
                         {
                             sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
-                            sol_cost_set = true;
                         }
 
-                        if (!solution || obj_cost < sol_cost)
+                        if (!solution || 
+			    pdef_->getOptimizationObjective()->compareCost(obj_cost, 
+									   sol_cost))
                         {
                             solution = p;
                             sol_cost = obj_cost;
-                            sol_cost_set = true;
                         }
                     }
                 }

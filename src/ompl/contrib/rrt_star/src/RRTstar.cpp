@@ -90,7 +90,7 @@ void ompl::geometric::RRTstar::setup(void)
     bool validObjective = true;				      
     if (pdef_->hasOptimizationObjective())
     {
-        opt_ = boost::dynamic_pointer_cast<base::BoundedAdditiveOptimizationObjective>(pdef_->getOptimizationObjective());
+        opt_ = boost::dynamic_pointer_cast<BoundedAccumulativeOptimizationObjective>(pdef_->getOptimizationObjective());
         // If specified optimization objective not compatible (downcast didn't work)
         if (!opt_)
         {
@@ -106,7 +106,7 @@ void ompl::geometric::RRTstar::setup(void)
     if (!validObjective)
     {
         OMPL_INFORM("Defaulting to optimizing path length.");
-        opt_.reset(new base::PathLengthOptimizationObjective(si_));
+        opt_.reset(new PathLengthOptimizationObjective(si_));
     }
 }
 
@@ -139,6 +139,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
+	motion->cost = opt_->getInitialCost(motion->state);
         nn_->add(motion);
     }
 
@@ -164,7 +165,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     std::vector<Motion*> solCheck;
     std::vector<Motion*> nbh;
     std::vector<indexCostPair> costs;
-    std::vector<double>  incCosts;
+    std::vector<base::CostPtr>  incCosts;
     std::vector<int>     valid;
     unsigned int         rewireTest = 0;
     double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
@@ -196,9 +197,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
-            double incCost = opt_->getIncrementalCost(nmotion->state, dstate);
-            motion->incCost = incCost;
-            motion->cost = opt_->combineObjectiveCosts(nmotion->cost, incCost);
+            motion->incCost = opt_->getIncrementalCost(nmotion->state, dstate);
+            motion->cost = opt_->combineObjectiveCosts(nmotion->cost, motion->incCost);
 
             // find nearby neighbors
             double r = std::min(ballRadiusConst_ * pow(log((double)(1 + nn_->size())) / (double)(nn_->size()), stateSpaceDimensionConstant),
@@ -232,7 +232,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                     else
                     {
-                        incCosts[i] = incCost;
+                        incCosts[i] = motion->incCost;
                         costs[i].second = motion->cost;
                     }
                     costs[i].first = i;
@@ -242,7 +242,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 //
                 // we're using index-value pairs so that we can get at
                 // original, unsorted indices
-                std::sort(costs.begin(), costs.end(), compareCost);
+                std::sort(costs.begin(), costs.end(), CostCompare(*opt_));
 
                 // collision check until a valid motion is found
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
@@ -250,7 +250,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     unsigned idx = costs[i].first;
                     if (nbh[idx] != nmotion)
                     {
-                        if (costs[i].second < motion->cost)
+                        if (opt_->compareCost(costs[i].second, motion->cost))
                         {
                             if (si_->checkMotion(nbh[idx]->state, dstate))
                             {
@@ -283,7 +283,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     {
                         incCosts[i] = opt_->getIncrementalCost(nbh[i]->state, dstate);
                         costs[i].second = opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i]);
-                        if (costs[i].second < motion->cost)
+                        if (opt_->compareCost(costs[i].second, motion->cost))
                         {
                             if (si_->checkMotion(nbh[i]->state, dstate))
                             {
@@ -299,7 +299,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                     else
                     {
-                        incCosts[i] = incCost;
+                        incCosts[i] = motion->incCost;
                         costs[i].second = motion->cost;
                         if (symDist && symInterp)
                             valid[i] = 1;
@@ -345,14 +345,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 // asymmetric case            
                 if (nbh[idx] != motion->parent)
                 {
-                    double nbhPrevCost = nbh[idx]->cost;
-                    double incCost;
+		    base::CostPtr nbhPrevCost = nbh[idx]->cost;
+		    base::CostPtr incCost;
                     if (symDist && symCost)
                         incCost = incCosts[idx];
                     else
                         incCost = opt_->getIncrementalCost(motion->state, nbh[idx]->state);
-                    double newCost = opt_->combineObjectiveCosts(motion->cost, incCost);
-                    if (newCost < nbhPrevCost)
+		    base::CostPtr newCost = opt_->combineObjectiveCosts(motion->cost, incCost);
+                    if (opt_->compareCost(newCost, nbhPrevCost))
                     {
                         bool motionValid = (symDist && symInterp) ?
                             (valid[idx] == 0 ? 
@@ -414,16 +414,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             break;
     }
 
-    double solutionCost;
     bool approximate = (solution == NULL);
     bool addedSolution = false;
     if (approximate)
-    {
         solution = approximation;
-        solutionCost = approximatedist;
-    }
     else
-        solutionCost = solution->cost;
+	approximatedist = 0.0;
+    
 
     if (solution != NULL)
     {
@@ -439,7 +436,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approximatedist);
         addedSolution = true;
     }
 

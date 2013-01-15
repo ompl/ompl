@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Luis G. Torres */
 
 #ifndef OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OPTIMIZATION_OBJECTIVE_
@@ -42,12 +42,44 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/noncopyable.hpp>
+#include <boost/concept_check.hpp>
 #include <limits>
 
 namespace ompl
 {
     namespace base
-    {
+    {   
+	/// @cond IGNORE
+	/** \brief Forward declaration of ompl::base::Cost */
+	OMPL_CLASS_FORWARD(Cost);
+	/// @endcond
+
+        /** \class ompl::base::StateSpacePtr
+            \brief A boost shared pointer wrapper for ompl::base::StateSpace */
+
+	/** \brief Definition of an abstract cost. */
+	class Cost 
+	{
+	public:
+	    /** \brief Cast this instance to a desired type. */
+	    template<typename T>
+	    static boost::shared_ptr<T> as(const CostPtr& c)
+	    {
+		/** \brief Make sure the type we are casting to is indeed a cost */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<boost::shared_ptr<T>, 
+							 CostPtr>));
+		return boost::dynamic_pointer_cast<T>(c);
+	    }
+	protected:
+	    Cost(void) {}
+	    virtual ~Cost(void) {}
+	private:
+	    /** \brief Disable copy-constructors */
+	    Cost(const Cost&);
+	    const Cost& operator=(const Cost&);
+	};
+
+
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::OptimizationObjective */
         OMPL_CLASS_FORWARD(OptimizationObjective);
@@ -62,6 +94,8 @@ namespace ompl
         class OptimizationObjective : private boost::noncopyable
         {
         public:
+	    typedef Cost CostType;
+
             /** \brief Constructor. The objective must always know the space information it is part of */
             OptimizationObjective(const SpaceInformationPtr &si);
 
@@ -76,22 +110,16 @@ namespace ompl
             }
 
             /** \brief Verify that our objective is satisfied already and we can stop planning (it the cost is \e totalObjectiveCost) */
-            virtual bool isSatisfied(double totalObjectiveCost) const = 0;
-
-            /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
-            virtual double getIncrementalCost(const State *s1, const State *s2) const = 0;
+            virtual bool isSatisfied(const CostPtr& cost) const = 0;
 
             /** \brief Get the cost that corresponds to the final state on the path (that satisfies the goal) */
-            virtual double getTerminalCost(const State *s) const = 0;
+            // virtual double getTerminalCost(const State *s) const = 0;
 
-            /** \brief Get the cost that corresponds to combining the costs \e a and \e b */
-            virtual double combineObjectiveCosts(double a, double b) const = 0;
+            /** \brief Get the cost that corresponds to an entire path. */
+            virtual CostPtr getCost(const PathPtr &path) const = 0;
 
-            /** \brief Get the cost that corresponds to the sequence of motion segments defined by states. */
-            virtual double getCost(const PathPtr &path) const;
-
-	    /** \brief Check if this objective has a symmetric cost metric, i.e. getIncrementalCost(s1, s2) = getIncrementalCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
-	    virtual bool isSymmetric(void) const;
+	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
+	    virtual bool compareCost(const CostPtr& c1, const CostPtr& c2) const = 0;
 
         protected:
             /** \brief The space information for this objective */
@@ -100,66 +128,6 @@ namespace ompl
             /** \brief The description of this optimization objective */
             std::string description_;
         };
-
-        /** \brief Representation of optimization objectives that are additive (we sum the values of the objective costs)
-            and that are met as long as an upper bound is satisfied */
-        class BoundedAdditiveOptimizationObjective : public OptimizationObjective
-        {
-        public:
-
-            /** \brief Constructor. The objective must always know the space information it is part of */
-            BoundedAdditiveOptimizationObjective(const SpaceInformationPtr &si, double maximumUpperBound) :
-                OptimizationObjective(si),
-                maximumUpperBound_(maximumUpperBound)
-            {
-            }
-
-            /** \brief Get the maximum upper bound for the objective cost that is to be accepted as satisfactory */
-            double getMaximumUpperBound(void) const
-            {
-                return maximumUpperBound_;
-            }
-
-            /** \brief Set the maximum upper bound for the objective cost that is to be accepted as satisfactory.
-                The default value is usually infinity. */
-            void setMaximumUpperBound(double maximumUpperBound)
-            {
-                maximumUpperBound_ = maximumUpperBound;
-            }
-
-            virtual bool isSatisfied(double totalObjectiveCost) const;
-
-            virtual double combineObjectiveCosts(double a, double b) const;
-
-            virtual double getTerminalCost(const State *s) const;
-
-        protected:
-
-            /** \brief The maximum upper bound for the objective cost that is to be accepted as satisfactory */
-            double  maximumUpperBound_;
-        };
-
-
-        class PathLengthOptimizationObjective : public BoundedAdditiveOptimizationObjective
-        {
-        public:
-
-            /** \brief Constructor. The objective must always know the space information it is part of */
-            PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength = std::numeric_limits<double>::infinity());
-
-            virtual double getIncrementalCost(const State *s1, const State *s2) const;
-        };
-
-        class StateCostOptimizationObjective : public BoundedAdditiveOptimizationObjective
-        {
-        public:
-
-            /** \brief Constructor. The objective must always know the space information it is part of */
-            StateCostOptimizationObjective(const SpaceInformationPtr &si, double maximumCostSum = std::numeric_limits<double>::infinity());
-
-            virtual double getIncrementalCost(const State *s1, const State *s2) const;
-        };
-
     }
 }
 

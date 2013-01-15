@@ -93,16 +93,6 @@ double ompl::geometric::PathGeometric::length(void) const
     return L;
 }
 
-double ompl::geometric::PathGeometric::cost(const base::OptimizationObjective &objective) const
-{
-    double L = 0.0;
-    for (unsigned int i = 1 ; i < states_.size() ; ++i)
-        L = objective.combineObjectiveCosts(L, objective.getIncrementalCost(states_[i-1], states_[i]));
-    if (!states_.empty())
-        L += objective.getTerminalCost(states_.back());
-    return L;
-}
-
 double ompl::geometric::PathGeometric::clearance(void) const
 {
     double c = 0.0;

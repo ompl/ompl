@@ -81,12 +81,10 @@ namespace ompl
             /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
             virtual double length(void) const;
 
-            virtual double cost(const base::OptimizationObjective &objective) const;
-
             /** \brief Check if the path is valid */
             virtual bool check(void) const;
 
-            /** \brief Compute a notion of smootheness for this
+            /** \brief Compute a notion of smoothness for this
                 path. The closer the value is to 0, the smoother the
                 path. Detailed formula follows.
 

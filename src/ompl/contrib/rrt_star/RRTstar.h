@@ -32,12 +32,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
+/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan, Luis G. Torres */
 
 #ifndef OMPL_CONTRIB_RRT_STAR_RRTSTAR_
 #define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/geometric/GeometricOptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <limits>
@@ -193,18 +194,16 @@ namespace ompl
 
         protected:
 
+	    typedef BoundedAccumulativeOptimizationObjective Objective;
+
 
             /** \brief Representation of a motion */
             class Motion
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL), cost(0.0)
-                {
-                }
-
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), cost(0.0), incCost(0.0)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL)
                 {
                 }
 
@@ -219,10 +218,10 @@ namespace ompl
                 Motion            *parent;
 
                 /** \brief The cost up to this motion */
-                double             cost;
+		base::CostPtr              cost;
 
                 /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method)*/
-                double             incCost;
+		base::CostPtr              incCost;
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
@@ -231,12 +230,18 @@ namespace ompl
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
-            /** \brief Allows us to sort a set of costs and maintain the original, unsorted indices into the sequence*/
-            typedef std::pair<unsigned, double> indexCostPair;
-            static bool compareCost(const indexCostPair& a, const indexCostPair& b)
-            {
-                return (a.second < b.second);
-            }
+            /** \brief Functor which allows us to sort a set of costs and maintain the original, unsorted indices into the sequence*/
+            typedef std::pair<unsigned, base::CostPtr> indexCostPair;
+	    struct CostCompare
+	    {
+		CostCompare(const Objective& optObj) : optObj_(optObj) {}
+		bool operator()(const indexCostPair& a, const indexCostPair& b)
+		{
+		    return optObj_.compareCost(a.second, b.second);
+		}
+
+		const Objective& optObj_;
+	    };
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion* a, const Motion* b) const
@@ -274,8 +279,8 @@ namespace ompl
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
-            /** \brief Objective we're optimizing (currently can only handle a specific type of optimization objective) */
-            boost::shared_ptr<base::BoundedAdditiveOptimizationObjective> opt_;
+            /** \brief Objective we're optimizing (currently can OptimizationObjectives which are subclasses of BoundedAccumulativeOptimizationObjective) */
+            boost::shared_ptr<Objective> opt_;
         };
 
     }

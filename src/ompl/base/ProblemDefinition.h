@@ -42,7 +42,6 @@
 #include "ompl/base/Path.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/SolutionNonExistenceProof.h"
-#include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/ScopedState.h"
@@ -109,6 +108,8 @@ namespace ompl
             /** \brief The achieved difference between the found solution and the desired goal */
             double  difference_;
         };
+
+	OMPL_CLASS_FORWARD(OptimizationObjective);
 
         /** \brief Definition of a problem to be solved. This includes
             the start state(s) for the system and a goal specification.
