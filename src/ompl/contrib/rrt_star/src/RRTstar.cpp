@@ -71,9 +71,9 @@ void ompl::geometric::RRTstar::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (ballRadiusMax_ == 0.0)
-        ballRadiusMax_ = si_->getMaximumExtent();
+        ballRadiusMax_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
     if (ballRadiusConst_ == 0.0)
-        ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
+        ballRadiusConst_ = si_->getMaximumExtent();
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
@@ -207,7 +207,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             // This sounds crazy but for asymmetric distance functions this is necessary
             // For this case, it has to be FROM every other point TO our new point
             // NOTE THE ORDER OF THE boost::bind PARAMETERS
-            nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
+	    if (!symDist)
+	      nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
             nn_->nearestR(motion, r, nbh);
 
             // cache for distance computations
@@ -498,6 +499,11 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
         nn_->list(motions);
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
-                      base::PlannerDataVertex (motions[i]->state));
+    {
+      if (motions[i]->parent == NULL)
+	data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+      else
+	data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
+		      base::PlannerDataVertex (motions[i]->state));
+    }
 }

@@ -58,7 +58,7 @@ ompl::base::CostPtr ompl::geometric::BoundedAccumulativeOptimizationObjective::g
 	    OMPL_ERROR("Cannot compute cost of an empty path.");
 	else
 	{
-	    base::CostPtr cost = getInitialCost(pathGeom->getState(0));
+	    cost = getInitialCost(pathGeom->getState(0));
 	    for (unsigned i = 1; i < numStates; ++i)
 	    {
 		base::State* s1 = pathGeom->getState(i-1);

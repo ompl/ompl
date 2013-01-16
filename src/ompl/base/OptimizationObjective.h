@@ -49,10 +49,10 @@ namespace ompl
 {
     namespace base
     {   
-	/// @cond IGNORE
-	/** \brief Forward declaration of ompl::base::Cost */
+	// /// @cond IGNORE
+	// /** \brief Forward declaration of ompl::base::Cost */
 	OMPL_CLASS_FORWARD(Cost);
-	/// @endcond
+	// /// @endcond
 
         /** \class ompl::base::StateSpacePtr
             \brief A boost shared pointer wrapper for ompl::base::StateSpace */
@@ -65,10 +65,10 @@ namespace ompl
 	    template<typename T>
 	    static boost::shared_ptr<T> as(const CostPtr& c)
 	    {
-		/** \brief Make sure the type we are casting to is indeed a cost */
+	    	/** \brief Make sure the type we are casting to is indeed a cost */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<boost::shared_ptr<T>, 
-							 CostPtr>));
-		return boost::dynamic_pointer_cast<T>(c);
+	    						 CostPtr>));
+	    	return boost::static_pointer_cast<T>(c);
 	    }
 	protected:
 	    Cost(void) {}
