@@ -61,9 +61,9 @@ void ompl::geometric::RRTConnect::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!tStart_)
-        tStart_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
+        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     if (!tGoal_)
-        tGoal_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
+        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     tStart_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
     tGoal_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 }

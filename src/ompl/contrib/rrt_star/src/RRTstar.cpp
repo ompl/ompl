@@ -76,7 +76,7 @@ void ompl::geometric::RRTstar::setup(void)
         ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     if (!nn_)
-        nn_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
 }
 

@@ -38,6 +38,7 @@
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/PDF.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
@@ -101,7 +102,7 @@ void ompl::geometric::PRM::setup(void)
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(NearestNeighbors<Vertex>::getDefault(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
     if (!connectionStrategy_)
     {

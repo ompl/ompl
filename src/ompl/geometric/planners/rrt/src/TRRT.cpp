@@ -123,7 +123,7 @@ void ompl::geometric::TRRT::setup(void)
 
     // Create the nearest neighbor function the first time setup is run
     if (!nearestNeighbors_)
-        nearestNeighbors_.reset(NearestNeighbors<Motion*>::getDefault(si_->getStateSpace()));
+        nearestNeighbors_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
 
     // Set the distance function
     nearestNeighbors_->setDistanceFunction(boost::bind(&TRRT::distanceFunction, this, _1, _2));
