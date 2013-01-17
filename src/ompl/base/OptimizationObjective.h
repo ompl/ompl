@@ -51,25 +51,41 @@ namespace ompl
     {   
 	// /// @cond IGNORE
 	// /** \brief Forward declaration of ompl::base::Cost */
-	OMPL_CLASS_FORWARD(Cost);
+	// OMPL_CLASS_FORWARD(Cost);
 	// /// @endcond
 
-        /** \class ompl::base::StateSpacePtr
-            \brief A boost shared pointer wrapper for ompl::base::StateSpace */
 
 	/** \brief Definition of an abstract cost. */
 	class Cost 
 	{
 	public:
+            template<class T>
+            const T* as(void) const
+            {
+                /** \brief Make sure the type we are allocating is indeed a state */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Cost*>));
+
+                return static_cast<const T*>(this);
+            }
+
+            /** \brief Cast this instance to a desired type. */
+            template<class T>
+            T* as(void)
+            {
+                /** \brief Make sure the type we are allocating is indeed a state */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Cost*>));
+
+                return static_cast<T*>(this);
+            }
 	    /** \brief Cast this instance to a desired type. */
-	    template<typename T>
-	    static boost::shared_ptr<T> as(const CostPtr& c)
-	    {
-	    	/** \brief Make sure the type we are casting to is indeed a cost */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<boost::shared_ptr<T>, 
-	    						 CostPtr>));
-	    	return boost::static_pointer_cast<T>(c);
-	    }
+	    // template<typename T>
+	    // static boost::shared_ptr<T> as(const CostPtr& c)
+	    // {
+	    // 	/** \brief Make sure the type we are casting to is indeed a cost */
+            //     BOOST_CONCEPT_ASSERT((boost::Convertible<boost::shared_ptr<T>, 
+	    // 						 CostPtr>));
+	    // 	return boost::static_pointer_cast<T>(c);
+	    // }
 	protected:
 	    Cost(void) {}
 	    virtual ~Cost(void) {}
@@ -110,16 +126,22 @@ namespace ompl
             }
 
             /** \brief Verify that our objective is satisfied already and we can stop planning (it the cost is \e totalObjectiveCost) */
-            virtual bool isSatisfied(const CostPtr& cost) const = 0;
+            virtual bool isSatisfied(const Cost* cost) const = 0;
 
             /** \brief Get the cost that corresponds to the final state on the path (that satisfies the goal) */
             // virtual double getTerminalCost(const State *s) const = 0;
 
             /** \brief Get the cost that corresponds to an entire path. */
-            virtual CostPtr getCost(const PathPtr &path) const = 0;
+            virtual void getCost(const PathPtr &path, Cost* cost) const = 0;
 
 	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
-	    virtual bool compareCost(const CostPtr& c1, const CostPtr& c2) const = 0;
+	    virtual bool compareCost(const Cost* c1, const Cost* c2) const = 0;
+
+	    virtual Cost* allocCost(void) const = 0;
+
+	    virtual void copyCost(Cost* dest, const Cost* src) const = 0;
+
+	    virtual void freeCost(Cost* cost) const = 0;
 
         protected:
             /** \brief The space information for this objective */

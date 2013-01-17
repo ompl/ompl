@@ -137,9 +137,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        Motion *motion = new Motion(si_, *opt_);
         si_->copyState(motion->state, st);
-	motion->cost = opt_->getInitialCost(motion->state);
+	opt_->getInitialCost(motion->state, motion->cost);
         nn_->add(motion);
     }
 
@@ -159,16 +159,30 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion *rmotion     = new Motion(si_);
+    Motion *rmotion     = new Motion(si_, *opt_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     std::vector<Motion*> solCheck;
     std::vector<Motion*> nbh;
     std::vector<indexCostPair> costs;
-    std::vector<base::CostPtr>  incCosts;
+    std::vector<base::Cost*>  incCosts;
     std::vector<int>     valid;
     unsigned int         rewireTest = 0;
     double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
+
+    // this is messy but these are just more variables we'll need during rewiring
+    base::Cost* nbhPrevCost = opt_->allocCost();
+    base::Cost* nbhIncCost = opt_->allocCost();
+    base::Cost* nbhNewCost = opt_->allocCost();
+
+    unsigned long costCacheSize = 256;
+    costs.resize(costCacheSize);
+    incCosts.resize(costCacheSize);
+    for (unsigned i = 0; i < costCacheSize; ++i)
+    {
+	costs[i].second = opt_->allocCost();
+	incCosts[i] = opt_->allocCost();
+    }
 
     while (ptc == false)
     {
@@ -194,11 +208,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (si_->checkMotion(nmotion->state, dstate))
         {
             // create a motion
-            Motion *motion = new Motion(si_);
+            Motion *motion = new Motion(si_, *opt_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
-            motion->incCost = opt_->getIncrementalCost(nmotion->state, dstate);
-            motion->cost = opt_->combineObjectiveCosts(nmotion->cost, motion->incCost);
+            opt_->getIncrementalCost(nmotion->state, dstate, motion->incCost);
+            opt_->combineObjectiveCosts(nmotion->cost, motion->incCost, motion->cost);
 
             // find nearby neighbors
             double r = std::min(ballRadiusConst_ * pow(log((double)(1 + nn_->size())) / (double)(nn_->size()), stateSpaceDimensionConstant),
@@ -208,33 +222,39 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             // For this case, it has to be FROM every other point TO our new point
             // NOTE THE ORDER OF THE boost::bind PARAMETERS
 	    if (!symDist)
-	      nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
+		nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
             nn_->nearestR(motion, r, nbh);
 
             // cache for distance computations
-            costs.resize(nbh.size());
-            incCosts.resize(nbh.size());
+            // costs.resize(nbh.size());
+            // incCosts.resize(nbh.size());
+	    unsigned numNghbrs = std::min(costCacheSize, nbh.size());
+	    // for (unsigned i = 0; i < numNghbrs; ++i)
+	    // {
+	    // 	costs[i].second = opt_->allocCost();
+	    // 	incCosts[i] = opt_->allocCost();
+	    // }
             // cache for motion validity
             if (symDist && symInterp) // this is only useful in a symmetric space
             {
-                valid.resize(nbh.size());
+                valid.resize(numNghbrs);
                 std::fill(valid.begin(), valid.end(), 0);
             }
 
             if(delayCC_)
             {
                 // calculate all costs and distances
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                for (unsigned int i = 0 ; i < numNghbrs ; ++i)
                 {
                     if (nbh[i] != nmotion)
                     {
-                        incCosts[i] = opt_->getIncrementalCost(nbh[i]->state, dstate);	
-                        costs[i].second = opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i]);
+			opt_->getIncrementalCost(nbh[i]->state, dstate, incCosts[i]);	
+			opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i], costs[i].second);
                     }
                     else
                     {
-                        incCosts[i] = motion->incCost;
-                        costs[i].second = motion->cost;
+			opt_->copyCost(incCosts[i], motion->incCost);
+			opt_->copyCost(costs[i].second, motion->cost);
                     }
                     costs[i].first = i;
                 }
@@ -243,10 +263,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 //
                 // we're using index-value pairs so that we can get at
                 // original, unsorted indices
-                std::sort(costs.begin(), costs.end(), CostCompare(*opt_));
+                std::sort(costs.begin(), costs.begin()+numNghbrs, CostCompare(*opt_));
 
                 // collision check until a valid motion is found
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                for (unsigned int i = 0 ; i < numNghbrs ; ++i)
                 {
                     unsigned idx = costs[i].first;
                     if (nbh[idx] != nmotion)
@@ -255,9 +275,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         {
                             if (si_->checkMotion(nbh[idx]->state, dstate))
                             {
-                                motion->incCost = incCosts[idx];
-                                motion->cost = costs[i].second;
-                                motion->parent = nbh[idx];
+				opt_->copyCost(motion->incCost, incCosts[idx]);
+				opt_->copyCost(motion->cost, costs[i].second);
+				motion->parent = nbh[idx];
                                 if (symDist && symInterp)
                                     valid[idx] = 1;
                                 break;
@@ -277,19 +297,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             else
             {
                 // find which one we connect the new state to
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                for (unsigned int i = 0 ; i < numNghbrs; ++i)
                 {
                     costs[i].first = i;
                     if (nbh[i] != nmotion)
                     {
-                        incCosts[i] = opt_->getIncrementalCost(nbh[i]->state, dstate);
-                        costs[i].second = opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i]);
+                        opt_->getIncrementalCost(nbh[i]->state, dstate, incCosts[i]);
+                        opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i], costs[i].second);
                         if (opt_->compareCost(costs[i].second, motion->cost))
                         {
                             if (si_->checkMotion(nbh[i]->state, dstate))
                             {
-                                motion->incCost = incCosts[i];
-                                motion->cost = costs[i].second;
+                                opt_->copyCost(motion->incCost, incCosts[i]);
+                                opt_->copyCost(motion->cost, costs[i].second);
                                 motion->parent = nbh[i];
                                 if (symDist && symInterp)
                                     valid[i] = 1;
@@ -300,8 +320,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                     else
                     {
-                        incCosts[i] = motion->incCost;
-                        costs[i].second = motion->cost;
+                        opt_->copyCost(incCosts[i], motion->incCost);
+                        opt_->copyCost(costs[i].second, motion->cost);
                         if (symDist && symInterp)
                             valid[i] = 1;
                     }
@@ -337,28 +357,30 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _2, _1));
                 nn_->nearestR(motion, r, nbh);
+
+		numNghbrs = std::min(costCacheSize, nbh.size());
             }
-            rewireTest += nbh.size();
-            for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+            rewireTest += numNghbrs;
+
+            for (unsigned int i = 0 ; i < numNghbrs; ++i)
             {
                 unsigned idx = symDist ? costs[i].first : i;
                 // TODO: figure our what the ELSE to this actually means in an
                 // asymmetric case            
                 if (nbh[idx] != motion->parent)
                 {
-		    base::CostPtr nbhPrevCost = nbh[idx]->cost;
-		    base::CostPtr incCost;
+		    opt_->copyCost(nbhPrevCost, nbh[idx]->cost);
                     if (symDist && symCost)
-                        incCost = incCosts[idx];
+                        opt_->copyCost(nbhIncCost, incCosts[idx]);
                     else
-                        incCost = opt_->getIncrementalCost(motion->state, nbh[idx]->state);
-		    base::CostPtr newCost = opt_->combineObjectiveCosts(motion->cost, incCost);
-                    if (opt_->compareCost(newCost, nbhPrevCost))
+                        opt_->getIncrementalCost(motion->state, nbh[idx]->state, nbhIncCost);
+		    opt_->combineObjectiveCosts(motion->cost, nbhIncCost, nbhNewCost);
+                    if (opt_->compareCost(nbhNewCost, nbhPrevCost))
                     {
                         bool motionValid = (symDist && symInterp) ?
                             (valid[idx] == 0 ? 
-                                 si_->checkMotion(dstate, nbh[idx]->state) :
-                                 valid[idx] == 1) :
+			     si_->checkMotion(dstate, nbh[idx]->state) :
+			     valid[idx] == 1) :
                             si_->checkMotion(dstate, nbh[idx]->state);
                         if (motionValid)
                         {
@@ -367,8 +389,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                             // Add this node to the new parent
                             nbh[idx]->parent = motion;
-                            nbh[idx]->incCost = incCost;
-                            nbh[idx]->cost = newCost;
+                            opt_->copyCost(nbh[idx]->incCost, nbhIncCost);
+                            opt_->copyCost(nbh[idx]->cost, nbhNewCost);
                             nbh[idx]->parent->children.push_back(nbh[idx]);
                             solCheck.push_back(nbh[idx]);
 
@@ -446,6 +468,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         si_->freeState(rmotion->state);
     delete rmotion;
 
+    for (unsigned i = 0; i < costs.size(); ++i)
+	opt_->freeCost(costs[i].second);
+    for (unsigned i = 0; i < incCosts.size(); ++i)
+	opt_->freeCost(incCosts[i]);
+    opt_->freeCost(nbhPrevCost);
+    opt_->freeCost(nbhIncCost);
+    opt_->freeCost(nbhNewCost);
+
     OMPL_INFORM("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
     return base::PlannerStatus(addedSolution, approximate);
@@ -470,7 +500,7 @@ void ompl::geometric::RRTstar::updateChildCosts(Motion *m)
 {
     for (size_t i = 0; i < m->children.size(); ++i)
     {
-        m->children[i]->cost = opt_->combineObjectiveCosts(m->cost, m->children[i]->incCost);
+        opt_->combineObjectiveCosts(m->cost, m->children[i]->incCost, m->children[i]->cost);
         updateChildCosts(m->children[i]);
     }
 }
@@ -500,10 +530,10 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-      if (motions[i]->parent == NULL)
-	data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
-      else
-	data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
-		      base::PlannerDataVertex (motions[i]->state));
+	if (motions[i]->parent == NULL)
+	    data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+	else
+	    data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
+			  base::PlannerDataVertex (motions[i]->state));
     }
 }

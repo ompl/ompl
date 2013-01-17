@@ -88,16 +88,19 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
                 break;
             }
 
-	    base::CostPtr obj_cost = pdef->getOptimizationObjective()->getCost(pdef->getSolutionPath());
+	    base::Cost* obj_cost = pdef->getOptimizationObjective()->allocCost();
+	    pdef->getOptimizationObjective()->getCost(pdef->getSolutionPath(), obj_cost);
 
             if (pdef->getOptimizationObjective()->isSatisfied(obj_cost))
             {
                 OMPL_DEBUG("Terminating early since solution path satisfies the optimization objective");
+		pdef->getOptimizationObjective()->freeCost(obj_cost);
                 break;
             }
             if (pdef->getSolutionCount() >= maxSol)
             {
                 OMPL_DEBUG("Terminating early since %u solutions were generated", maxSol);
+		pdef->getOptimizationObjective()->freeCost(obj_cost);
                 break;
             }
         }

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, James D. Marble */
 
@@ -299,7 +299,9 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    base::CostPtr sol_cost;
+    base::Cost* sol_cost = pdef_->getOptimizationObjective()->allocCost();
+    base::Cost* obj_cost = pdef_->getOptimizationObjective()->allocCost();
+    bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -311,17 +313,20 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 if (pdef_->hasOptimizationObjective())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-		    base::CostPtr obj_cost = pdef_->getOptimizationObjective()->getCost(p);
+		    pdef_->getOptimizationObjective()->getCost(p, obj_cost);
                     if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
                     {
                         solution = p;
+			pdef_->getOptimizationObjective()->freeCost(sol_cost);
+			pdef_->getOptimizationObjective()->freeCost(obj_cost);
                         return true;
                     }
                     else
                     {
-                        if (solution && !sol_cost)
+                        if (solution && !sol_cost_set)
                         {
-                            sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
+			    pdef_->getOptimizationObjective()->getCost(solution, sol_cost);
+			    sol_cost_set = true;
                         }
 
                         if (!solution || 
@@ -329,19 +334,23 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
 									   sol_cost))
                         {
                             solution = p;
-                            sol_cost = obj_cost;
+                            pdef_->getOptimizationObjective()->copyCost(sol_cost, obj_cost);
                         }
                     }
                 }
                 else // Accept the solution, regardless of cost
                 {
                     solution = constructSolution(start, goal);
+		    pdef_->getOptimizationObjective()->freeCost(sol_cost);
+		    pdef_->getOptimizationObjective()->freeCost(obj_cost);
                     return true;
                 }
             }
         }
     }
 
+    pdef_->getOptimizationObjective()->freeCost(sol_cost);
+    pdef_->getOptimizationObjective()->freeCost(obj_cost);
     return false;
 }
 
@@ -498,8 +507,8 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
 
     boost::astar_search(g_, start,
-            boost::bind(&PRM::distanceFunction, this, _1, goal),
-            boost::predecessor_map(prev));
+			boost::bind(&PRM::distanceFunction, this, _1, goal),
+			boost::predecessor_map(prev));
     graphMutex_.unlock();
 
     if (prev[goal] == goal)

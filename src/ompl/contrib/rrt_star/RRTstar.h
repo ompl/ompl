@@ -203,12 +203,16 @@ namespace ompl
             public:
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL)
+                Motion(const base::SpaceInformationPtr &si, const Objective& optObj) : state(si->allocState()), parent(NULL), obj(optObj)
                 {
+		    cost = obj.allocCost();
+		    incCost = obj.allocCost();
                 }
 
                 ~Motion(void)
                 {
+		    obj.freeCost(cost);
+		    obj.freeCost(incCost);
                 }
 
                 /** \brief The state contained by the motion */
@@ -218,20 +222,22 @@ namespace ompl
                 Motion            *parent;
 
                 /** \brief The cost up to this motion */
-		base::CostPtr              cost;
+		base::Cost        *cost;
 
                 /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method)*/
-		base::CostPtr              incCost;
+		base::Cost        *incCost;
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
+
+		const Objective& obj;
             };
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
             /** \brief Functor which allows us to sort a set of costs and maintain the original, unsorted indices into the sequence*/
-            typedef std::pair<unsigned, base::CostPtr> indexCostPair;
+            typedef std::pair<unsigned, base::Cost*> indexCostPair;
 	    struct CostCompare
 	    {
 		CostCompare(const Objective& optObj) : optObj_(optObj) {}
