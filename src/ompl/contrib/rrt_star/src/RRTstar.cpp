@@ -137,10 +137,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_, *opt_);
+        Motion *motion = new Motion(si_, opt_);
         si_->copyState(motion->state, st);
 	opt_->getInitialCost(motion->state, motion->cost);
-        nn_->add(motion);
+	if (si_->isValid(motion->state))
+	    nn_->add(motion);
     }
 
     if (nn_->size() == 0)
@@ -159,7 +160,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion *rmotion     = new Motion(si_, *opt_);
+    Motion *rmotion     = new Motion(si_, opt_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     std::vector<Motion*> solCheck;
@@ -188,7 +189,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         // sample random state (with goal biasing)
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
-            goal_s->sampleGoal(rstate);
+	    goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
 
@@ -208,7 +209,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (si_->checkMotion(nmotion->state, dstate))
         {
             // create a motion
-            Motion *motion = new Motion(si_, *opt_);
+            Motion *motion = new Motion(si_, opt_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
             opt_->getIncrementalCost(nmotion->state, dstate, motion->incCost);
@@ -401,40 +402,36 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
             }
 
-            // Make sure to check the existing solution for improvement
-            if (solution)
-                solCheck.push_back(solution);
+	    if (solution)
+		solCheck.push_back(solution);
 
-            // check if we found a solution
-            for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
-            {
-                double dist = 0.0;
-                bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? opt_->isSatisfied(solCheck[i]->cost) : false;
+	    for (unsigned i = 0; i < solCheck.size(); ++i)
+	    {
+		double dist = 0.0;
+		bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
+		sufficientlyShort = solved ? opt_->isSatisfied(solCheck[i]->cost) : false;
 
-                if (solved)
-                {
-                    if (sufficientlyShort)
-                    {
-                        solution = solCheck[i];
-                        break;
-                    }
-                    else if (!solution || (solCheck[i]->cost < solution->cost))
-                    {
-                        solution = solCheck[i];
-                    }
-                }
-                else if (!solution && dist < approximatedist)
-                {
-                    approximation = solCheck[i];
-                    approximatedist = dist;
-                }
-            }
+		if (solved)
+		{
+		    if (sufficientlyShort)
+		    {
+			solution = solCheck[i];
+			break;
+		    }
+		    else if (!solution || opt_->compareCost(solCheck[i]->cost,solution->cost))
+			solution = solCheck[i];
+		}
+		else if (!solution && dist < approximatedist)
+		{
+		    approximation = solCheck[i];
+		    approximatedist = dist;
+		}
+	    }
+
+	    // terminate if a sufficient solution is found
+	    if (solution && sufficientlyShort)
+		break;
         }
-
-        // terminate if a sufficient solution is found
-        if (solution && sufficientlyShort)
-            break;
     }
 
     bool approximate = (solution == NULL);
@@ -515,6 +512,8 @@ void ompl::geometric::RRTstar::freeMemory(void)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
+	    opt_->freeCost(motions[i]->cost);
+	    opt_->freeCost(motions[i]->incCost);
             delete motions[i];
         }
     }

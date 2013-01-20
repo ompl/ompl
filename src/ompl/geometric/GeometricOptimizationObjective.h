@@ -66,11 +66,19 @@ namespace ompl
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual void getIncrementalCost(const base::State *s1, const base::State *s2, base::Cost* cost) const = 0;
 
-            /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2 */
+            /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2. Implementations of this method should allow for \e c1 and \e cost to point to the same memory location. */
             virtual void combineObjectiveCosts(const base::Cost* c1, const base::Cost* c2, base::Cost* cost) const = 0;
 
 	    /** \brief Get the cost corresponding to the beginning of a path that starts at \e s. */
 	    virtual void getInitialCost(const base::State* s, base::Cost* cost) const = 0;
+
+	    /** \brief Check whether the value of \e cost is within \e maximumUpperBound_. */
+            virtual bool isSatisfied(const base::Cost* cost) const;
+
+            // virtual double getTerminalCost(const State *s) const;
+
+	    /** \brief Check whether the value of \e c1 is less than that of \e c2 */
+	    virtual bool compareCost(const base::Cost* c1, const base::Cost* c2) const;
 
 	    /** \brief Check if this objective has a symmetric cost metric, i.e. getIncrementalCost(s1, s2) = getIncrementalCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
 	    virtual bool isSymmetric(void) const;
@@ -86,13 +94,7 @@ namespace ompl
             void setMaximumUpperBound(double maximumUpperBound)
             {
                 maximumUpperBound_ = maximumUpperBound;
-            }
-
-            virtual bool isSatisfied(const base::Cost* cost) const;
-
-            // virtual double getTerminalCost(const State *s) const;
-
-	    virtual bool compareCost(const base::Cost* c1, const base::Cost* c2) const;
+            }	   
 
         protected:
 

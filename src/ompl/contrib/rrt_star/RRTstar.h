@@ -201,18 +201,17 @@ namespace ompl
             class Motion
             {
             public:
-
-                /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si, const Objective& optObj) : state(si->allocState()), parent(NULL), obj(optObj)
-                {
-		    cost = obj.allocCost();
-		    incCost = obj.allocCost();
-                }
+                /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
+                Motion(const base::SpaceInformationPtr &si, const base::OptimizationObjectivePtr& obj) : 
+		    state(si->allocState()), 
+		    parent(NULL), 
+		    cost(obj->allocCost()), 
+		    incCost(obj->allocCost())
+		{
+		}
 
                 ~Motion(void)
                 {
-		    obj.freeCost(cost);
-		    obj.freeCost(incCost);
                 }
 
                 /** \brief The state contained by the motion */
@@ -229,8 +228,6 @@ namespace ompl
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
-
-		const Objective& obj;
             };
 
             /** \brief Free the memory allocated by this planner */

@@ -49,16 +49,11 @@ namespace ompl
 {
     namespace base
     {   
-	// /// @cond IGNORE
-	// /** \brief Forward declaration of ompl::base::Cost */
-	// OMPL_CLASS_FORWARD(Cost);
-	// /// @endcond
-
-
 	/** \brief Definition of an abstract cost. */
 	class Cost 
 	{
 	public:
+	    /** \brief Cast this instance to a desired type. */
             template<class T>
             const T* as(void) const
             {
@@ -77,15 +72,6 @@ namespace ompl
 
                 return static_cast<T*>(this);
             }
-	    /** \brief Cast this instance to a desired type. */
-	    // template<typename T>
-	    // static boost::shared_ptr<T> as(const CostPtr& c)
-	    // {
-	    // 	/** \brief Make sure the type we are casting to is indeed a cost */
-            //     BOOST_CONCEPT_ASSERT((boost::Convertible<boost::shared_ptr<T>, 
-	    // 						 CostPtr>));
-	    // 	return boost::static_pointer_cast<T>(c);
-	    // }
 	protected:
 	    Cost(void) {}
 	    virtual ~Cost(void) {}
@@ -125,7 +111,7 @@ namespace ompl
                 return description_;
             }
 
-            /** \brief Verify that our objective is satisfied already and we can stop planning (it the cost is \e totalObjectiveCost) */
+            /** \brief Verify that our objective is satisfied already and we can stop planning */
             virtual bool isSatisfied(const Cost* cost) const = 0;
 
             /** \brief Get the cost that corresponds to the final state on the path (that satisfies the goal) */
@@ -136,11 +122,14 @@ namespace ompl
 
 	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
 	    virtual bool compareCost(const Cost* c1, const Cost* c2) const = 0;
-
+	    
+	    /** \brief Allocate storage for a cost calculation in this OptimizationObjective. */
 	    virtual Cost* allocCost(void) const = 0;
 
+	    /** \brief Copy one cost into another. Memory for source and destination should NOT overlap. */
 	    virtual void copyCost(Cost* dest, const Cost* src) const = 0;
 
+	    /** \brief Free the memory of the allocated cost. */
 	    virtual void freeCost(Cost* cost) const = 0;
 
         protected:

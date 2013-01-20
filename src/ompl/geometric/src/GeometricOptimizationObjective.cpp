@@ -47,6 +47,7 @@ void ompl::geometric::BoundedAccumulativeOptimizationObjective::getCost(const ba
     // Cast path down to a PathGeometric
     boost::shared_ptr<PathGeometric> pathGeom = boost::dynamic_pointer_cast<PathGeometric>(path);
 
+    // Give up if this isn't a PathGeometric or if the path is empty.
     if (!pathGeom)
 	OMPL_ERROR("Could not cast PathPtr to PathGeometricPtr");
     else
@@ -56,6 +57,7 @@ void ompl::geometric::BoundedAccumulativeOptimizationObjective::getCost(const ba
 	    OMPL_ERROR("Cannot compute cost of an empty path.");
 	else
 	{
+	    // Compute path cost by accumulating the cost along the path
 	    base::Cost* incCost = allocCost();
 	    getInitialCost(pathGeom->getState(0), cost);
 	    for (unsigned i = 1; i < numStates; ++i)

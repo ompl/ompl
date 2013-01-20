@@ -37,7 +37,6 @@
 #include "ompl/control/PathControl.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
-#include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 #include <numeric>

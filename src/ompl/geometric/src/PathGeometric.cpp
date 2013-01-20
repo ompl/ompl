@@ -36,7 +36,6 @@
 
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
-#include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/ScopedState.h"
 #include <algorithm>
 #include <cmath>
