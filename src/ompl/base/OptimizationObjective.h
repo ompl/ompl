@@ -37,7 +37,6 @@
 #ifndef OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 
-#include "ompl/base/State.h"
 #include "ompl/base/Path.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"

@@ -38,7 +38,7 @@
 #define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
-#include "ompl/geometric/GeometricOptimizationObjective.h"
+#include "ompl/base/objectives/AccumulativeOptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <limits>
@@ -194,7 +194,7 @@ namespace ompl
 
         protected:
 
-	    typedef BoundedAccumulativeOptimizationObjective Objective;
+	    typedef base::AccumulativeOptimizationObjective Objective;
 
 
             /** \brief Representation of a motion */
@@ -282,7 +282,7 @@ namespace ompl
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
-            /** \brief Objective we're optimizing (currently can OptimizationObjectives which are subclasses of BoundedAccumulativeOptimizationObjective) */
+            /** \brief Objective we're optimizing (currently can OptimizationObjectives which are subclasses of AccumulativeOptimizationObjective) */
             boost::shared_ptr<Objective> opt_;
         };
 

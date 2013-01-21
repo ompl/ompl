@@ -38,7 +38,6 @@
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/PDF.h"
-#include "ompl/geometric/GeometricOptimizationObjective.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>

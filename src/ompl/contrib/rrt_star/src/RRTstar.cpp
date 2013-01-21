@@ -36,6 +36,7 @@
 
 #include "ompl/contrib/rrt_star/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
 #include <limits>
@@ -84,13 +85,13 @@ void ompl::geometric::RRTstar::setup(void)
     //
     // If a) no optimization objective was specified, or b) the
     // specified optimization objective is not a subclass of
-    // BoundedAdditiveOptimizationObjective, then default to optimizing
-    // path length as computed by the distance() function in the state
+    // AdditiveOptimizationObjective, then default to optimizing path
+    // length as computed by the distance() function in the state
     // space.
     bool validObjective = true;				      
     if (pdef_->hasOptimizationObjective())
     {
-        opt_ = boost::dynamic_pointer_cast<BoundedAccumulativeOptimizationObjective>(pdef_->getOptimizationObjective());
+      opt_ = boost::dynamic_pointer_cast<base::AccumulativeOptimizationObjective>(pdef_->getOptimizationObjective());
         // If specified optimization objective not compatible (downcast didn't work)
         if (!opt_)
         {
@@ -106,7 +107,7 @@ void ompl::geometric::RRTstar::setup(void)
     if (!validObjective)
     {
         OMPL_INFORM("Defaulting to optimizing path length.");
-        opt_.reset(new PathLengthOptimizationObjective(si_));
+        opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
 }
 
@@ -176,15 +177,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Cost* nbhIncCost = opt_->allocCost();
     base::Cost* nbhNewCost = opt_->allocCost();
 
-    unsigned long costCacheSize = 256;
-    costs.resize(costCacheSize);
-    incCosts.resize(costCacheSize);
-    for (unsigned i = 0; i < costCacheSize; ++i)
-    {
-	costs[i].second = opt_->allocCost();
-	incCosts[i] = opt_->allocCost();
-    }
-
     while (ptc == false)
     {
         // sample random state (with goal biasing)
@@ -227,25 +219,36 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             nn_->nearestR(motion, r, nbh);
 
             // cache for distance computations
-            // costs.resize(nbh.size());
-            // incCosts.resize(nbh.size());
-	    unsigned numNghbrs = std::min(costCacheSize, nbh.size());
-	    // for (unsigned i = 0; i < numNghbrs; ++i)
-	    // {
-	    // 	costs[i].second = opt_->allocCost();
-	    // 	incCosts[i] = opt_->allocCost();
-	    // }
-            // cache for motion validity
-            if (symDist && symInterp) // this is only useful in a symmetric space
+	    //
+	    // Our cost caches only increase in size, so they're only
+	    // resized if they can't fit the current neighborhood
+	    if (costs.size() < nbh.size())
+	    {
+		unsigned prevSize = costs.size();
+		costs.resize(nbh.size());
+		incCosts.resize(nbh.size());
+		for (unsigned i = prevSize; i < nbh.size(); ++i)
+		{
+		    costs[i].second = opt_->allocCost();
+		    incCosts[i] = opt_->allocCost();
+		}
+	    }
+
+            // cache for motion validity (only useful in a symmetric space)
+	    //
+	    // Our validity caches only increase in size, so they're
+	    // only resized if they can't fit the current neighborhood
+            if (symDist && symInterp)
             {
-                valid.resize(numNghbrs);
-                std::fill(valid.begin(), valid.end(), 0);
+		if (valid.size() < nbh.size())
+		    valid.resize(nbh.size());
+                std::fill(valid.begin(), valid.begin()+nbh.size(), 0);
             }
 
             if(delayCC_)
             {
                 // calculate all costs and distances
-                for (unsigned int i = 0 ; i < numNghbrs ; ++i)
+                for (unsigned int i = 0 ; i < nbh.size(); ++i)
                 {
                     if (nbh[i] != nmotion)
                     {
@@ -264,10 +267,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 //
                 // we're using index-value pairs so that we can get at
                 // original, unsorted indices
-                std::sort(costs.begin(), costs.begin()+numNghbrs, CostCompare(*opt_));
+                std::sort(costs.begin(), costs.begin()+nbh.size(), CostCompare(*opt_));
 
                 // collision check until a valid motion is found
-                for (unsigned int i = 0 ; i < numNghbrs ; ++i)
+                for (unsigned int i = 0 ; i < nbh.size(); ++i)
                 {
                     unsigned idx = costs[i].first;
                     if (nbh[idx] != nmotion)
@@ -295,10 +298,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                 }
             }
-            else
+            else // if not delayCC
             {
                 // find which one we connect the new state to
-                for (unsigned int i = 0 ; i < numNghbrs; ++i)
+                for (unsigned int i = 0 ; i < nbh.size(); ++i)
                 {
                     costs[i].first = i;
                     if (nbh[i] != nmotion)
@@ -358,16 +361,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _2, _1));
                 nn_->nearestR(motion, r, nbh);
-
-		numNghbrs = std::min(costCacheSize, nbh.size());
             }
-            rewireTest += numNghbrs;
+            rewireTest += nbh.size();
 
-            for (unsigned int i = 0 ; i < numNghbrs; ++i)
+            for (unsigned int i = 0 ; i < nbh.size(); ++i)
             {
+		// In symmetric case, we use indices in
+		// possibly-sorted costs list. In asymmetric case, we
+		// just go through neighbors in default order
                 unsigned idx = symDist ? costs[i].first : i;
-                // TODO: figure our what the ELSE to this actually means in an
-                // asymmetric case            
                 if (nbh[idx] != motion->parent)
                 {
 		    opt_->copyCost(nbhPrevCost, nbh[idx]->cost);
@@ -463,6 +465,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     si_->freeState(xstate);
     if (rmotion->state)
         si_->freeState(rmotion->state);
+    opt_->freeCost(rmotion->cost);
+    opt_->freeCost(rmotion->incCost);
     delete rmotion;
 
     for (unsigned i = 0; i < costs.size(); ++i)
