@@ -113,11 +113,11 @@ namespace ompl
             /** \brief Verify that our objective is satisfied already and we can stop planning */
             virtual bool isSatisfied(const Cost* cost) const = 0;
 
-            /** \brief Get the cost that corresponds to the final state on the path (that satisfies the goal) */
-            // virtual double getTerminalCost(const State *s) const = 0;
+            /** \brief Get the cost that corresponds to an entire path. */
+	    virtual void getCost(const Path* path, Cost* cost) const = 0;
 
             /** \brief Get the cost that corresponds to an entire path. */
-            virtual void getCost(const PathPtr &path, Cost* cost) const = 0;
+            void getCost(const PathPtr &path, Cost* cost) const;
 
 	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
 	    virtual bool compareCost(const Cost* c1, const Cost* c2) const = 0;

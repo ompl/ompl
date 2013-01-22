@@ -57,19 +57,18 @@ void ompl::base::StateCostOptimizationObjective::getIncrementalCost(const State 
     double c;
     std::pair<double, double> dummy;
     si_->getMotionValidator()->computeMotionCost(s1, s2, c, dummy);
-    cost->as<CostType>()->value_ = c;
+    cost->as<CostType>()->setValue(c);
 }
 
 void ompl::base::StateCostOptimizationObjective::combineObjectiveCosts(const Cost* c1, const Cost* c2, Cost* cost) const
 {
-    cost->as<CostType>()->value_ = 
-	c1->as<CostType>()->getValue() +
-	c2->as<CostType>()->getValue();
+    cost->as<CostType>()->setValue(c1->as<CostType>()->getValue() +
+				   c2->as<CostType>()->getValue());
 }
 
 void ompl::base::StateCostOptimizationObjective::getInitialCost(const State* s, Cost* cost) const
 {
-    cost->as<CostType>()->value_ = si_->getStateValidityChecker()->cost(s);
+    cost->as<CostType>()->setValue(si_->getStateValidityChecker()->cost(s));
 }
 
 ompl::base::Cost* ompl::base::StateCostOptimizationObjective::allocCost(void) const
@@ -79,7 +78,7 @@ ompl::base::Cost* ompl::base::StateCostOptimizationObjective::allocCost(void) co
 
 void ompl::base::StateCostOptimizationObjective::copyCost(Cost* dest, const Cost* src) const
 {
-    dest->as<CostType>()->value_ = src->as<CostType>()->getValue();
+    dest->as<CostType>()->setValue(src->as<CostType>()->getValue());
 }
 
 void ompl::base::StateCostOptimizationObjective::freeCost(Cost* cost) const

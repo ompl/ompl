@@ -37,17 +37,17 @@
 #include "ompl/base/objectives/AccumulativeOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
 
-void ompl::base::AccumulativeOptimizationObjective::getCost(const PathPtr& path, Cost* cost) const
+void ompl::base::AccumulativeOptimizationObjective::getCost(const Path* path, Cost* cost) const
 {
     // Cast path down to a PathGeometric
-  boost::shared_ptr<geometric::PathGeometric> pathGeom = boost::dynamic_pointer_cast<geometric::PathGeometric>(path);
+  const geometric::PathGeometric* pathGeom = dynamic_cast<const geometric::PathGeometric*>(path);
 
     // Give up if this isn't a PathGeometric or if the path is empty.
     if (!pathGeom)
-	OMPL_ERROR("Could not cast PathPtr to PathGeometricPtr");
+	OMPL_ERROR("Could not cast Path* to PathGeometric* in ompl::base::AccumulativeOptimizationObjective::getCost()");
     else
     {
-	unsigned numStates = pathGeom->getStateCount();
+        std::size_t numStates = pathGeom->getStateCount();
 	if (numStates == 0)
 	    OMPL_ERROR("Cannot compute cost of an empty path.");
 	else
@@ -55,7 +55,7 @@ void ompl::base::AccumulativeOptimizationObjective::getCost(const PathPtr& path,
 	    // Compute path cost by accumulating the cost along the path
 	    Cost* incCost = allocCost();
 	    getInitialCost(pathGeom->getState(0), cost);
-	    for (unsigned i = 1; i < numStates; ++i)
+	    for (std::size_t i = 1; i < numStates; ++i)
 	    {
 		State* s1 = pathGeom->getState(i-1);
 		State* s2 = pathGeom->getState(i);
@@ -71,9 +71,4 @@ bool ompl::base::AccumulativeOptimizationObjective::isSymmetric(void) const
 {
     return si_->getStateSpace()->hasSymmetricInterpolate();
 }
-
-// double ompl::base::AccumulativeOptimizationObjective::getTerminalCost(const State *s) const
-// {
-//   return 0.0;
-// }
 

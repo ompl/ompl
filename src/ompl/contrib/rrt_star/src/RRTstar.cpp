@@ -85,8 +85,8 @@ void ompl::geometric::RRTstar::setup(void)
     //
     // If a) no optimization objective was specified, or b) the
     // specified optimization objective is not a subclass of
-    // AdditiveOptimizationObjective, then default to optimizing path
-    // length as computed by the distance() function in the state
+    // AccumulativeOptimizationObjective, then default to optimizing
+    // path length as computed by the distance() function in the state
     // space.
     bool validObjective = true;				      
     if (pdef_->hasOptimizationObjective())
@@ -141,8 +141,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         Motion *motion = new Motion(si_, opt_);
         si_->copyState(motion->state, st);
 	opt_->getInitialCost(motion->state, motion->cost);
-	if (si_->isValid(motion->state))
-	    nn_->add(motion);
+	nn_->add(motion);
     }
 
     if (nn_->size() == 0)
@@ -176,6 +175,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Cost* nbhPrevCost = opt_->allocCost();
     base::Cost* nbhIncCost = opt_->allocCost();
     base::Cost* nbhNewCost = opt_->allocCost();
+    
+    // our functor for sorting nearest neighbors
+    CostCompare compareFn(*opt_);
 
     while (ptc == false)
     {
@@ -224,10 +226,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 	    // resized if they can't fit the current neighborhood
 	    if (costs.size() < nbh.size())
 	    {
-		unsigned prevSize = costs.size();
+	        std::size_t prevSize = costs.size();
 		costs.resize(nbh.size());
 		incCosts.resize(nbh.size());
-		for (unsigned i = prevSize; i < nbh.size(); ++i)
+		for (std::size_t i = prevSize; i < nbh.size(); ++i)
 		{
 		    costs[i].second = opt_->allocCost();
 		    incCosts[i] = opt_->allocCost();
@@ -248,7 +250,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             if(delayCC_)
             {
                 // calculate all costs and distances
-                for (unsigned int i = 0 ; i < nbh.size(); ++i)
+	        for (std::size_t i = 0 ; i < nbh.size(); ++i)
                 {
                     if (nbh[i] != nmotion)
                     {
@@ -267,12 +269,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 //
                 // we're using index-value pairs so that we can get at
                 // original, unsorted indices
-                std::sort(costs.begin(), costs.begin()+nbh.size(), CostCompare(*opt_));
+                std::sort(costs.begin(), costs.begin()+nbh.size(), compareFn);
 
                 // collision check until a valid motion is found
-                for (unsigned int i = 0 ; i < nbh.size(); ++i)
+                for (std::size_t i = 0; i < nbh.size(); ++i)
                 {
-                    unsigned idx = costs[i].first;
+		    std::size_t idx = costs[i].first;
                     if (nbh[idx] != nmotion)
                     {
                         if (opt_->compareCost(costs[i].second, motion->cost))
@@ -301,7 +303,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             else // if not delayCC
             {
                 // find which one we connect the new state to
-                for (unsigned int i = 0 ; i < nbh.size(); ++i)
+	        for (std::size_t i = 0 ; i < nbh.size(); ++i)
                 {
                     costs[i].first = i;
                     if (nbh[i] != nmotion)
@@ -364,12 +366,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
             rewireTest += nbh.size();
 
-            for (unsigned int i = 0 ; i < nbh.size(); ++i)
+            for (std::size_t i = 0 ; i < nbh.size(); ++i)
             {
 		// In symmetric case, we use indices in
 		// possibly-sorted costs list. In asymmetric case, we
 		// just go through neighbors in default order
-                unsigned idx = symDist ? costs[i].first : i;
+	        std::size_t idx = symDist ? costs[i].first : i;
                 if (nbh[idx] != motion->parent)
                 {
 		    opt_->copyCost(nbhPrevCost, nbh[idx]->cost);
@@ -407,7 +409,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 	    if (solution)
 		solCheck.push_back(solution);
 
-	    for (unsigned i = 0; i < solCheck.size(); ++i)
+	    for (std::size_t i = 0; i < solCheck.size(); ++i)
 	    {
 		double dist = 0.0;
 		bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
@@ -469,9 +471,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     opt_->freeCost(rmotion->incCost);
     delete rmotion;
 
-    for (unsigned i = 0; i < costs.size(); ++i)
+    for (std::size_t i = 0; i < costs.size(); ++i)
 	opt_->freeCost(costs[i].second);
-    for (unsigned i = 0; i < incCosts.size(); ++i)
+    for (std::size_t i = 0; i < incCosts.size(); ++i)
 	opt_->freeCost(incCosts[i]);
     opt_->freeCost(nbhPrevCost);
     opt_->freeCost(nbhIncCost);
@@ -512,7 +514,7 @@ void ompl::geometric::RRTstar::freeMemory(void)
     {
         std::vector<Motion*> motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (std::size_t i = 0 ; i < motions.size() ; ++i)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
@@ -531,7 +533,7 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (std::size_t i = 0 ; i < motions.size() ; ++i)
     {
 	if (motions[i]->parent == NULL)
 	    data.addStartVertex(base::PlannerDataVertex(motions[i]->state));

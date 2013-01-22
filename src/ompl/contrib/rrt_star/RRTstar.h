@@ -234,7 +234,7 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Functor which allows us to sort a set of costs and maintain the original, unsorted indices into the sequence*/
-            typedef std::pair<unsigned, base::Cost*> indexCostPair;
+	    typedef std::pair<std::size_t, base::Cost*> indexCostPair;
 	    struct CostCompare
 	    {
 		CostCompare(const Objective& optObj) : optObj_(optObj) {}

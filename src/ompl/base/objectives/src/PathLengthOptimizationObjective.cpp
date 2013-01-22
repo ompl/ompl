@@ -45,7 +45,7 @@ ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(con
 
 bool ompl::base::PathLengthOptimizationObjective::isSatisfied(const Cost* cost) const
 {
-    return (cost->as<CostType>()->value_ <= maxPathLength_);
+    return (cost->as<CostType>()->getValue() <= maxPathLength_);
 }
 
 bool ompl::base::PathLengthOptimizationObjective::compareCost(const Cost* c1, const Cost* c2) const
@@ -55,18 +55,17 @@ bool ompl::base::PathLengthOptimizationObjective::compareCost(const Cost* c1, co
 
 void ompl::base::PathLengthOptimizationObjective::getIncrementalCost(const State *s1, const State *s2, Cost* cost) const
 {
-    cost->as<CostType>()->value_ = si_->distance(s1,s2);
+    cost->as<CostType>()->setValue(si_->distance(s1,s2));
 }
 
 void ompl::base::PathLengthOptimizationObjective::combineObjectiveCosts(const Cost* c1, const Cost* c2, Cost* cost) const
 {
-    cost->as<CostType>()->value_ = 
-	c1->as<CostType>()->getValue() +
-	c2->as<CostType>()->getValue();
+    cost->as<CostType>()->setValue(c1->as<CostType>()->getValue() + 
+				   c2->as<CostType>()->getValue());
 }
 void ompl::base::PathLengthOptimizationObjective::getInitialCost(const State* s, Cost* cost) const
 {
-    cost->as<CostType>()->value_ = 0.0;
+    cost->as<CostType>()->setValue(0.0);
 }
 
 ompl::base::Cost* ompl::base::PathLengthOptimizationObjective::allocCost(void) const
@@ -76,7 +75,7 @@ ompl::base::Cost* ompl::base::PathLengthOptimizationObjective::allocCost(void) c
 
 void ompl::base::PathLengthOptimizationObjective::copyCost(Cost* dest, const Cost* src) const
 {
-    dest->as<CostType>()->value_ = src->as<CostType>()->getValue();
+    dest->as<CostType>()->setValue(src->as<CostType>()->getValue());
 }
 
 void ompl::base::PathLengthOptimizationObjective::freeCost(Cost* cost) const

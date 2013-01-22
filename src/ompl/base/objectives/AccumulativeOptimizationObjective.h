@@ -54,7 +54,7 @@ namespace ompl
             }
 
 	    /** \brief Computes cost of an entire path by accumulating cost from the the start state to the end state. This default implementation assumes \e path is a PathGeometric. */
-            virtual void getCost(const PathPtr &path, Cost* cost) const;
+            virtual void getCost(const Path* path, Cost* cost) const;
 
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual void getIncrementalCost(const State *s1, const State *s2, Cost* cost) const = 0;
@@ -64,8 +64,6 @@ namespace ompl
 
 	    /** \brief Get the cost corresponding to the beginning of a path that starts at \e s. */
 	    virtual void getInitialCost(const State* s, Cost* cost) const = 0;
-
-            // virtual double getTerminalCost(const State *s) const;
 
 	    /** \brief Check if this objective has a symmetric cost metric, i.e. getIncrementalCost(s1, s2) = getIncrementalCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
 	    virtual bool isSymmetric(void) const;
