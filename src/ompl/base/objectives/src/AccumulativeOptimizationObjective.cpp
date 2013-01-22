@@ -57,8 +57,8 @@ void ompl::base::AccumulativeOptimizationObjective::getCost(const Path* path, Co
 	    getInitialCost(pathGeom->getState(0), cost);
 	    for (std::size_t i = 1; i < numStates; ++i)
 	    {
-		State* s1 = pathGeom->getState(i-1);
-		State* s2 = pathGeom->getState(i);
+		const State* s1 = pathGeom->getState(i-1);
+		const State* s2 = pathGeom->getState(i);
 		getIncrementalCost(s1, s2, incCost);
 		combineObjectiveCosts(cost, incCost, cost);
 	    }

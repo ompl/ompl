@@ -38,6 +38,7 @@
 #define OMPL_BASE_PATH_
 
 #include "ompl/util/ClassForward.h"
+
 #include <iostream>
 
 #include <boost/noncopyable.hpp>
@@ -82,12 +83,6 @@ namespace ompl
 
             /** \brief Return the length of a path */
             virtual double length(void) const = 0;
-
-	    /** \brief Return the cost of a path with respect to a given OptimizationObjective */
-	    virtual void getCost(const OptimizationObjective& objective, Cost* cost) const
-	    {
-		objective.getCost(this, cost);
-	    }
 
             /** \brief Check if the path is valid */
             virtual bool check(void) const = 0;

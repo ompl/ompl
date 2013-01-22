@@ -40,7 +40,7 @@ ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationP
 {
 }
 
-ompl::base::OptimizationObjective::getCost(const PathPtr& path, Cost* cost) const
+void ompl::base::OptimizationObjective::getCost(const PathPtr& path, Cost* cost) const
 {
     getCost(path.get(), cost);
 }

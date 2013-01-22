@@ -53,7 +53,7 @@ namespace ompl
 	    public:
 		CostType(double value = 0.0) : value_(value) {}
 		virtual double getValue() const { return value_; }
-		virtual double setValue(double value) { value_ = value; }
+		virtual void setValue(double value) { value_ = value; }
 	    private:
 		double value_;
 	    };
