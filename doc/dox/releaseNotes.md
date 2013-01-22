@@ -1,6 +1,13 @@
 # Release Notes
 
 
+# OMPL 0.12.2 (1/22/13)
+
+- Initial support for FLANN, a library for approximate nearest neighbors.
+- Documentation updates.
+- Bug fixes.
+
+
 # OMPL 0.12.1 (12/12/12)
 
 - Bug fixes.
@@ -8,11 +15,11 @@
 
 # OMPL 0.12.0 (November 20, 2012)
 
-- Added representation of costs to ompl::base::StateValidityChecker
-- Added the notion of objectives to be optimized: ompl::base::OptimizationObjective
+- Added representation of costs to ompl::base::StateValidityChecker.
+- Added the notion of objectives to be optimized: ompl::base::OptimizationObjective.
 - Added \ref gTRRT "T-RRT", a planner for planning low-cost paths.
-- Planners now have the option to report the non-existence of a solution (ompl::base::SolutionNonExistenceProof)
-- Improved infrastructure for creating python bindings for planners (see [tutorial](pybindingsPlanner.html) for details)
+- Planners now have the option to report the non-existence of a solution (ompl::base::SolutionNonExistenceProof).
+- Improved infrastructure for creating python bindings for planners (see [tutorial](pybindingsPlanner.html) for details).
 - Documentation updates.
 - Bug fixes.
 
