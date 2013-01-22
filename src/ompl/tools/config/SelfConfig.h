@@ -84,11 +84,9 @@ namespace ompl
             /** \brief Print the computed configuration parameters */
             void print(std::ostream &out = std::cout) const;
 
-            /** \brief Select a default nearest neighbor datastructure for the given
-                space */
+            /** \brief Select a default nearest neighbor datastructure for the given space */
             template<typename _T>
-            static NearestNeighbors<_T>* getDefaultNearestNeighbors(
-                    const base::StateSpacePtr space)
+            static NearestNeighbors<_T>* getDefaultNearestNeighbors(const base::StateSpacePtr &space)
             {
                 if (space->isMetricSpace())
                     return new NearestNeighborsGNAT<_T>();
