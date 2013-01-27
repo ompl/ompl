@@ -391,23 +391,6 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
         return 0.0;
 }
 
-double ompl::base::SpaceInformation::averageStateCost(unsigned int attempts) const
-{
-    StateSamplerPtr ss = allocStateSampler();
-    State *state = allocState();
-    double cost = 0.0;
-
-    for (unsigned int i = 0 ; i < attempts ; ++i)
-    {
-        ss->sampleUniform(state);
-        cost += stateValidityChecker_->cost(state);
-    }
-
-    freeState(state);
-
-    return cost / (double)attempts;
-}
-
 void ompl::base::SpaceInformation::samplesPerSecond(double &uniform, double &near, double &gaussian, unsigned int attempts) const
 {
     StateSamplerPtr ss = allocStateSampler();
@@ -476,7 +459,6 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
         if (result)
             out << "  - sanity checks for state space passed" << std::endl;
         out << "  - probability of valid states: " << probabilityOfValidState(magic::TEST_STATE_COUNT) << std::endl;
-        out << "  - average state cost: " << averageStateCost(magic::TEST_STATE_COUNT) << std::endl;
         out << "  - average length of a valid motion: " << averageValidMotionLength(magic::TEST_STATE_COUNT) << std::endl;
         double uniform, near, gaussian;
         samplesPerSecond(uniform, near, gaussian, magic::TEST_STATE_COUNT);

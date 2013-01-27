@@ -71,29 +71,6 @@ namespace ompl
 
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
 
-            /** \brief Compute the cost of a path segment from \e s1 to \e s2 (including endpoints)
-                \param s1 start state of the motion to be evaluated
-                \param s2 final state of the motion to be evaluated
-                \param cost the cost of the motion segment
-                \param bounds the minimum (first) and maximum (second) cost a state along the motion incurrs
-
-                This function approximates
-                \f{eqnarray*}{
-                    \mbox{cost} &=& \int_0^1 \! cost(s(t)) \mathrm{d}t\\
-                    \mbox{bounds.first} &=& \inf_{t\in[0,1]}(cost(s(t))\\
-                    \mbox{bounds.second} &=& \sup_{t\in[0,1]}(cost(s(t))
-                \f}
-                where \f$s(t), t \in [0,1]\f$ parameterizes the motion segment from \e s1 to \e s2.
-
-                Given a uniformly spaced discretization of the motion segment, \f$s_1 = sd_1, sd_2, ..., sd_n = s_2\f$, at some resolution \f$r\f$, the exact computation that is performed is:
-                \f{eqnarray*}{
-                    \mbox{cost} &=& r\sum_i \! \frac{cost(sd_{i-1}) + cost(sd_i)}{2}\\
-                    \mbox{bounds.first} &=& \min_i cost(sd_i)\\
-                    \mbox{bounds.second} &=& \max_i cost(sd_i)
-                \f}
-            */
-            virtual void computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const;
-
         private:
 
             StateSpace *stateSpace_;

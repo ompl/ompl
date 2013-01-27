@@ -39,6 +39,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/objectives/AccumulativeOptimizationObjective.h"
 
 /*
   NOTES:
@@ -58,6 +59,41 @@ namespace ompl
 
     namespace geometric
     {
+
+	class MechanicalWorkOptimizationObjective : public base::AccumulativeOptimizationObjective
+	{
+	public:
+	    class CostType : public OptimizationObjective::CostType
+	    {
+	    public:
+		CostType(double value = 0.0) : value_(value) {}
+		virtual double getValue() const { return value_; }
+		virtual void setValue(double value) { value_ = value; }
+	    private:
+		double value_;
+	    };
+
+	    MechanicalWorkOptimizationObjective(const base::SpaceInformationPtr& si) :
+	    AccumulativeOptimizationObjective(si), pathLengthWeight_(0.00001)
+	    {
+	    }
+
+	    virtual double getStateCost(const base::State* s) const = 0;
+	    virtual bool isSatisfied(const base::Cost* cost) const = 0;
+
+	    virtual void setPathLengthWeight(double weight);
+	    
+	    virtual bool compareCost(const base::Cost* c1, const base::Cost* c2) const;
+            virtual void getIncrementalCost(const base::State *s1, const base::State *s2, base::Cost* cost) const;
+	    virtual void combineObjectiveCosts(const base::Cost* c1, const base::Cost* c2, base::Cost* cost) const;
+	    virtual void getInitialCost(const base::State* s, base::Cost* cost) const;
+	    virtual base::Cost* allocCost(void) const;
+	    virtual void copyCost(base::Cost* dest, const base::Cost* src) const;
+	    virtual void freeCost(base::Cost* cost) const;
+
+	protected:
+	    double pathLengthWeight_;
+	};
 
         /**
            @anchor gTRRT
@@ -252,9 +288,6 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion            *parent;
 
-                /** \brief The distance between parent state and this state, cached for optimization */
-                double            distance;
-
                 /** \brief Cost of the state */
                 double            cost;
 
@@ -278,6 +311,10 @@ namespace ompl
 
             /** \brief Use ratio to prefer frontier nodes to nonfrontier ones */
             bool minExpansionControl( double randMotionDistance );
+
+	    /** \brief Sample \e numSamples costs to estimate the
+		average cost of the space */
+	    double getAverageStateCost(unsigned int numSamples) const;
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;

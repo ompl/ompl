@@ -40,6 +40,51 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <limits>
 
+void ompl::geometric::MechanicalWorkOptimizationObjective::setPathLengthWeight(double weight)
+{
+    pathLengthWeight_ = weight;
+}
+
+bool ompl::geometric::MechanicalWorkOptimizationObjective::compareCost(const base::Cost* c1, const base::Cost* c2) const
+{
+    return (c1->as<CostType>()->getValue() < c2->as<CostType>()->getValue());
+}
+
+void ompl::geometric::MechanicalWorkOptimizationObjective::getIncrementalCost(const base::State *s1, const base::State *s2, base::Cost* cost) const
+{
+    // Only accrue positive changes in cost
+    double positiveCostAccrued = std::max(getStateCost(s2) - getStateCost(s1), 0.0);
+
+    cost->as<CostType>()->setValue(positiveCostAccrued + 
+				   pathLengthWeight_*si_->distance(s1, s2));
+}
+
+void ompl::geometric::MechanicalWorkOptimizationObjective::combineObjectiveCosts(const base::Cost* c1, const base::Cost* c2, base::Cost* cost) const
+{
+    cost->as<CostType>()->setValue(c1->as<CostType>()->getValue() +
+				   c2->as<CostType>()->getValue());
+}
+
+void ompl::geometric::MechanicalWorkOptimizationObjective::getInitialCost(const base::State* s, base::Cost* cost) const
+{
+    cost->as<CostType>()->setValue(0.0);
+}
+
+ompl::base::Cost* ompl::geometric::MechanicalWorkOptimizationObjective::allocCost(void) const
+{
+    return new CostType;
+}
+
+void ompl::geometric::MechanicalWorkOptimizationObjective::copyCost(base::Cost* dest, const base::Cost* src) const
+{
+    dest->as<CostType>()->setValue(src->as<CostType>()->getValue());
+}
+
+void ompl::geometric::MechanicalWorkOptimizationObjective::freeCost(base::Cost* cost) const
+{
+    delete cost->as<CostType>();
+}
+
 ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "TRRT")
 {
     // Standard RRT Variables
@@ -98,7 +143,7 @@ void ompl::geometric::TRRT::setup(void)
     tools::SelfConfig selfConfig(si_, getName());
 
     // Find the average cost of states by sampling x=100 random states
-    double averageCost = si_->averageStateCost(100);
+    double averageCost = getAverageStateCost(100);
 
     // Set maximum distance a new node can be from its nearest neighbor
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
@@ -161,8 +206,13 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goalRegion = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    // Object for getting the cost of a state
-    const base::StateValidityCheckerPtr &stateValidityChecker = si_->getStateValidityChecker();
+    // Optimization Objective information
+    MechanicalWorkOptimizationObjective *opt = dynamic_cast<MechanicalWorkOptimizationObjective*>(pdef_->getOptimizationObjective().get());
+
+    if (!opt)
+    {
+	OMPL_ERROR("TRRT was supplied an inappropriate optimization objective; it can only handle types of MechanicalWorkOptimizationObjective.");
+    }
 
     // Input States ---------------------------------------------------------------------------------
 
@@ -176,7 +226,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         si_->copyState(motion->state, state);
 
         // Set cost for this start state
-        motion->cost = stateValidityChecker->cost(motion->state);
+        motion->cost = opt->getStateCost(motion->state);
 
         // Add start motion to the tree
         nearestNeighbors_->add(motion);
@@ -294,7 +344,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
             continue; // give up on this one and try a new sample
         }
 
-        double childCost = stateValidityChecker->cost(newState);
+        double childCost = opt->getStateCost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
         if(!transitionTest(childCost, nearMotion->cost, motionDistance))
@@ -308,7 +358,6 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, newState);
         motion->parent = nearMotion; // link q_new to q_near as an edge
-        motion->distance = motionDistance; // cache the distance btw parent and state
         motion->cost = childCost;
 
         // Add motion to data structure
@@ -490,4 +539,22 @@ bool ompl::geometric::TRRT::minExpansionControl(double randMotionDistance)
             return true;
         }
     }
+}
+
+double ompl::geometric::TRRT::getAverageStateCost(unsigned int numSamples) const
+{
+    base::StateSamplerPtr ss = si_->allocStateSampler();
+    base::State *state = si_->allocState();
+    MechanicalWorkOptimizationObjective *opt = dynamic_cast<MechanicalWorkOptimizationObjective*>(pdef_->getOptimizationObjective().get());
+    double totalCost = 0.0;
+   
+    for (unsigned int i = 0 ; i < numSamples ; ++i)
+    {
+	ss->sampleUniform(state);
+	totalCost += opt->getStateCost(state);
+    }
+   
+    si_->freeState(state);
+   
+    return totalCost / (double)numSamples;
 }
