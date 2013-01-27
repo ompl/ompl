@@ -223,7 +223,7 @@ namespace ompl
                 /** \brief The cost up to this motion */
 		base::Cost        *cost;
 
-                /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method)*/
+                /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method) */
 		base::Cost        *incCost;
 
                 /** \brief The set of motions descending from the current motion */

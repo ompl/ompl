@@ -38,6 +38,7 @@
 #define OMPL_CONTRIB_RRT_STAR_BTRRTSTAR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/base/objectives/AccumulativeOptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <limits>
@@ -185,7 +186,7 @@ namespace ompl
             /** \brief Verify if a state is inside an existing volume */
             bool inVolume(base::State *state)
             {
-                for (unsigned int i = 0 ; i < motions_.size() ; ++i)
+                for (std::size_t i = 0 ; i < motions_.size() ; ++i)
                 {
                     if ((si_->distance(motions_[i]->state, state) <= motions_[i]->volRadius))
                         return true;
@@ -223,17 +224,15 @@ namespace ompl
 
         protected:
 
+	    typedef base::AccumulativeOptimizationObjective Objective;
+
             /** \brief Representation of a motion */
             class Motion
             {
             public:
 
-                Motion(double rO) : state(NULL), parent(NULL), cost(0.0), volRadius(rO)
-                {
-                }
-
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si, double rO) : state(si->allocState()), parent(NULL), cost(0.0), volRadius(rO)
+                Motion(const base::SpaceInformationPtr &si, const base::OptimizationObjectivePtr& obj, double rO) : state(si->allocState()), parent(NULL), cost(obj->allocCost()), incCost(obj->allocCost()), volRadius(rO)
 
                 {
                 }
@@ -249,7 +248,10 @@ namespace ompl
                 Motion            *parent;
 
                 /** \brief The cost of this motion */
-                double             cost;
+		base::Cost        *cost;
+
+		/** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method) */
+		base::Cost        *incCost;
 
                 /** \brief The radius of the volume  associated to this motion */
                 double             volRadius;
@@ -268,11 +270,19 @@ namespace ompl
                 motions_.push_back(m);
             }
 
-            /** \brief Sort the near neighbors by cost */
-            static bool compareMotion(const Motion* a, const Motion* b)
-            {
-                return (a->cost < b->cost);
-            }
+            /** \brief Functor which allows us to sort a set of costs and maintain the original, unsorted indices into the sequence*/
+	    typedef std::pair<std::size_t, base::Cost*> indexCostPair;
+	    struct CostCompare
+	    {
+		CostCompare(const Objective& optObj) : optObj_(optObj) {}
+		bool operator()(const indexCostPair& a, const indexCostPair& b)
+		{
+		    return optObj_.compareCost(a.second, b.second);
+		}
+
+		const Objective& optObj_;
+	    };
+
             /** \brief Distance calculation considering volumes */
             double distanceFunction(const Motion* a, const Motion* b) const
             {
@@ -282,8 +292,8 @@ namespace ompl
             /** \brief Removes the given motion from the parent's child list */
             void removeFromParent(Motion *m);
 
-            /** \brief Updates the cost of the children of this node by adding the delta */
-            void updateChildCosts(Motion *m, double delta);
+            /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
+            void updateChildCosts(Motion *m);
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
@@ -291,7 +301,7 @@ namespace ompl
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
-            /** \brief A copy of the list of motions in the tree used for faser verification of samples */
+            /** \brief A copy of the list of motions in the tree used for faster verification of samples */
             std::vector<Motion*>                           motions_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
@@ -314,6 +324,9 @@ namespace ompl
 
             /** \brief Initial radius of volumes assigned to new vertices in the tree */
             double                                         rO_;
+
+	    /** \brief Objective we're optimizing (currently can OptimizationObjectives which are subclasses of AccumulativeOptimizationObjective) */
+            boost::shared_ptr<Objective> opt_;
         };
 
     }

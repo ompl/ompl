@@ -36,6 +36,7 @@
 
 #include "ompl/contrib/rrt_star/BallTreeRRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
@@ -69,18 +70,68 @@ ompl::geometric::BallTreeRRTstar::~BallTreeRRTstar(void)
 
 void ompl::geometric::BallTreeRRTstar::setup(void)
 {
+    // ERROR if no StateValidityChecker was specified but a
+    // MotionValidator was
+    if (!si_->getStateValidityChecker() &&
+	si_->getMotionValidator())
+    {
+	OMPL_ERROR("%s requires specification of a state validity checker.", getName().c_str());
+    }
+
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
     if (ballRadiusMax_ == 0.0)
-        ballRadiusMax_ = si_->getMaximumExtent();
+        ballRadiusMax_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
     if (ballRadiusConst_ == 0.0)
-        ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
+        ballRadiusConst_ = si_->getMaximumExtent();
 
+    // As far as I can tell, BallTreeRRTstar is meant to work only
+    // with symmetric spaces. Warn user if trying to use this
+    // algorithm on an asymmetric space
+    if (!si_->getStateSpace()->hasSymmetricDistance() ||
+	!si_->getStateSpace()->hasSymmetricInterpolate())
+    {
+      OMPL_WARN("State space %s specified, but it is an asymmetric space; %s should only be used on symmetric state spaces.", si_->getStateSpace()->getName().c_str(), getName().c_str());
+    }
+
+    // Haven't put in the space-specific self-configure code here
+    // because: why does BallTreeRRT* default to sqrtapprox, while
+    // RRT* defaulted to GNAT? Is volumetric distance thing not
+    // amenable to GNAT?
     if (!nn_)
         nn_.reset(new NearestNeighborsSqrtApprox<Motion*>());
     nn_->setDistanceFunction(boost::bind(&BallTreeRRTstar::distanceFunction, this, _1, _2));
+
+    // Setup optimization objective
+    //
+    // If a) no optimization objective was specified, or b) the
+    // specified optimization objective is not a subclass of
+    // AccumulativeOptimizationObjective, then default to optimizing
+    // path length as computed by the distance() function in the state
+    // space.
+    bool validObjective = true;				      
+    if (pdef_->hasOptimizationObjective())
+    {
+      opt_ = boost::dynamic_pointer_cast<base::AccumulativeOptimizationObjective>(pdef_->getOptimizationObjective());
+        // If specified optimization objective not compatible (downcast didn't work)
+        if (!opt_)
+        {
+            validObjective = false;
+            OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only accumulative cost functions can be optimized.", pdef_->getOptimizationObjective()->getDescription().c_str(), getName().c_str());
+        }
+    }
+    else // If no objective specified
+        validObjective = false;
+
+    // If we have no valid optimization objective, assume we're
+    // optimizing path length
+    if (!validObjective)
+    {
+        OMPL_INFORM("Defaulting to optimizing path length.");
+        opt_.reset(new base::PathLengthOptimizationObjective(si_));
+    }
 }
 
 void ompl::geometric::BallTreeRRTstar::clear(void)
@@ -98,13 +149,6 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
     checkValidity();
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-    base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
-
-    if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
-    {
-        opt = NULL;
-        OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
-    }
 
     if (!goal)
     {
@@ -114,8 +158,9 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_, rO_);
+        Motion *motion = new Motion(si_, opt_, rO_);
         si_->copyState(motion->state, st);
+	opt_->getInitialCost(motion->state, motion->cost);
         addMotion(motion);
     }
 
@@ -135,17 +180,27 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion *rmotion   = new Motion(si_, rO_);
+    Motion *rmotion   = new Motion(si_, opt_, rO_);
     Motion *toTrim    = NULL;
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     base::State *tstate = si_->allocState();
     std::vector<Motion*> solCheck;
     std::vector<Motion*> nbh;
-    std::vector<double>  dists;
+    std::vector<indexCostPair> costs;
+    std::vector<base::Cost*> incCosts;
+    // std::vector<double>  dists;
     std::vector<int>     valid;
     long unsigned int    rewireTest = 0;
     double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
+
+    // this is messy but these are just more variables we'll need during rewiring
+    base::Cost* nbhPrevCost = opt_->allocCost();
+    base::Cost* nbhIncCost = opt_->allocCost();
+    base::Cost* nbhNewCost = opt_->allocCost();
+
+    // our functor for sorting nearest neighbors
+    CostCompare compareFn(*opt_);
 
     std::pair<base::State*,double> lastValid(tstate, 0.0);
 
@@ -203,10 +258,11 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         {
             /* create a motion */
             double distN = si_->distance(dstate, nmotion->state);
-            Motion *motion = new Motion(si_, rO_);
+            Motion *motion = new Motion(si_, opt_, rO_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
-            motion->cost = nmotion->cost + distN;
+	    opt_->getIncrementalCost(nmotion->state, motion->state, motion->incCost);
+	    opt_->combineObjectiveCosts(nmotion->cost, motion->incCost, motion->cost);
 
             /* find nearby neighbors */
             double r = std::min(ballRadiusConst_ * pow(log((double)(1 + nn_->size())) / (double)(nn_->size()), stateSpaceDimensionConstant),
@@ -216,84 +272,108 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
             rewireTest += nbh.size();
 
             // cache for distance computations
-            dists.resize(nbh.size());
+	    //
+	    // Our cost caches only increase in size, so they're only
+	    // resized if they can't fit the current neighborhood
+	    if (costs.size() < nbh.size())
+	    {
+	        std::size_t prevSize = costs.size();
+		costs.resize(nbh.size());
+		incCosts.resize(nbh.size());
+		for (std::size_t i = prevSize; i < nbh.size(); ++i)
+		{
+		    costs[i].second = opt_->allocCost();
+		    incCosts[i] = opt_->allocCost();
+		}
+	    }
             // cache for motion validity
-            valid.resize(nbh.size());
-            std::fill(valid.begin(), valid.end(), 0);
+	    if (valid.size() < nbh.size())
+	      valid.resize(nbh.size());
+	    std::fill(valid.begin(), valid.begin()+nbh.size(), 0);
 
             if (delayCC_)
             {
                 // calculate all costs and distances
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+	        for (std::size_t i = 0 ; i < nbh.size(); ++i)
+                {
                     if (nbh[i] != nmotion)
                     {
-                        double c = nbh[i]->cost + si_->distance(nbh[i]->state, dstate);
-                        nbh[i]->cost = c;
+			opt_->getIncrementalCost(nbh[i]->state, dstate, incCosts[i]);	
+			opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i], costs[i].second);
                     }
+                    else
+                    {
+			opt_->copyCost(incCosts[i], motion->incCost);
+			opt_->copyCost(costs[i].second, motion->cost);
+                    }
+                    costs[i].first = i;
+                }
 
                 // sort the nodes
-                std::sort(nbh.begin(), nbh.end(), compareMotion);
+                //
+                // we're using index-value pairs so that we can get at
+                // original, unsorted indices
+                std::sort(costs.begin(), costs.begin()+nbh.size(), compareFn);
 
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                    if (nbh[i] != nmotion)
-                    {
-                        dists[i] = si_->distance(nbh[i]->state, dstate);
-                        nbh[i]->cost -= dists[i];
-                    }
                 // collision check until a valid motion is found
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                    if (nbh[i] != nmotion)
+                for (std::size_t i = 0; i < nbh.size(); ++i)
+                {
+		    std::size_t idx = costs[i].first;
+                    if (nbh[idx] != nmotion)
                     {
-
-                        dists[i] = si_->distance(nbh[i]->state, dstate);
-                        double c = nbh[i]->cost + dists[i];
-                        if (c < motion->cost)
+                        if (opt_->compareCost(costs[i].second, motion->cost))
                         {
-                            if (si_->checkMotion(nbh[i]->state, dstate, lastValid))
+                            if (si_->checkMotion(nbh[idx]->state, motion->state, lastValid))
                             {
-                                motion->cost = c;
-                                motion->parent = nbh[i];
-                                valid[i] = 1;
+				opt_->copyCost(motion->incCost, incCosts[idx]);
+				opt_->copyCost(motion->cost, costs[i].second);
+				motion->parent = nbh[idx];
+				valid[idx] = 1;
                                 break;
                             }
-                            else
-                            {
-                                valid[i] = -1;
-                                /* if a collision is found, trim radius to distance from motion to last valid state */
+			    else
+			    {
+				valid[i] = -1;
+				/* if a collision is found, trim
+				   radius to distance from motion to
+				   last valid state */
                                 double nR = si_->distance(nbh[i]->state, lastValid.first);
                                 if (nR < nbh[i]->volRadius)
                                     nbh[i]->volRadius = nR;
-                            }
+			    }
                         }
                     }
                     else
                     {
-                        valid[i] = 1;
-                        dists[i] = distN;
+			valid[idx] = 1;
                         break;
                     }
-
+                }
             }
-            else{
+            else{ // if not delayCC_
                 /* find which one we connect the new state to*/
-                for (unsigned int i = 0 ; i < nbh.size() ; ++i)
+                for (std::size_t i = 0 ; i < nbh.size() ; ++i)
+		{
+		    costs[i].first = i;
                     if (nbh[i] != nmotion)
                     {
-
-                        dists[i] = si_->distance(nbh[i]->state, dstate);
-                        double c = nbh[i]->cost + dists[i];
-                        if (c < motion->cost)
+			opt_->getIncrementalCost(nbh[i]->state, motion->state, incCosts[i]);
+			opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i], costs[i].second);
+                        if (opt_->compareCost(costs[i].second, motion->cost))
                         {
-                            if (si_->checkMotion(nbh[i]->state, dstate, lastValid))
+                            if (si_->checkMotion(nbh[i]->state, motion->state, lastValid))
                             {
-                                motion->cost = c;
+				opt_->copyCost(motion->incCost, incCosts[i]);
+				opt_->copyCost(motion->cost, costs[i].second);
                                 motion->parent = nbh[i];
                                 valid[i] = 1;
                             }
                             else
                             {
                                 valid[i] = -1;
-                                /* if a collision is found, trim radius to distance from motion to last valid state */
+                                /* if a collision is found, trim
+				   radius to distance from motion to
+				   last valid state */
                                 double newR = si_->distance(nbh[i]->state, lastValid.first);
                                 if (newR < nbh[i]->volRadius)
                                     nbh[i]->volRadius = newR;
@@ -303,10 +383,12 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
                     }
                     else
                     {
+			opt_->copyCost(incCosts[i], motion->incCost);
+			opt_->copyCost(costs[i].second, motion->cost);
                         valid[i] = 1;
-                        dists[i] = distN;
                     }
-            }
+		} // end for
+            } // end if not delayCC_
 
             /* add motion to tree */
             addMotion(motion);
@@ -316,68 +398,79 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
             solCheck[0] = motion;
 
             /* rewire tree if needed */
-            for (unsigned int i = 0 ; i < nbh.size() ; ++i)
-                if (nbh[i] != motion->parent)
+            for (std::size_t i = 0 ; i < nbh.size() ; ++i)
+	    {
+		std::size_t idx = costs[i].first;
+                if (nbh[idx] != motion->parent)
                 {
-                    double c = motion->cost + dists[i];
-                    if (c < nbh[i]->cost)
+		    opt_->copyCost(nbhPrevCost, nbh[idx]->cost);
+		    if (opt_->isSymmetric())
+			opt_->copyCost(nbhIncCost, incCosts[idx]);
+		    else
+			opt_->getIncrementalCost(motion->state, nbh[idx]->state, nbhIncCost);
+		    opt_->combineObjectiveCosts(motion->cost, nbhIncCost, nbhNewCost);
+                    if (opt_->compareCost(nbhNewCost, nbhPrevCost))
                     {
                         bool v = false;
-                        if (valid[i] == 0)
+                        if (valid[idx] == 0)
                         {
-                            if(!si_->checkMotion(nbh[i]->state, dstate, lastValid))
+                            if(!si_->checkMotion(nbh[idx]->state, motion->state, lastValid))
                             {
-                                /* if a collision is found, trim radius to distance from motion to last valid state */
-                                double R =  si_->distance(nbh[i]->state, lastValid.first);
-                                if (R < nbh[i]->volRadius)
-                                    nbh[i]->volRadius = R;
+                                /* if a collision is found, trim
+				   radius to distance from motion to
+				   last valid state */
+                                double R =  si_->distance(nbh[idx]->state, lastValid.first);
+                                if (R < nbh[idx]->volRadius)
+                                    nbh[idx]->volRadius = R;
                             }
                             else
-                            {
                                 v = true;
-                            }
                         }
-                        if (valid[i] == 1)
+                        if (valid[idx] == 1)
                             v = true;
 
                         if (v)
                         {
                             // Remove this node from its parent list
-                            removeFromParent (nbh[i]);
-                            double delta = c - nbh[i]->cost;
+                            removeFromParent (nbh[idx]);
 
-                            nbh[i]->parent = motion;
-                            nbh[i]->cost = c;
-                            nbh[i]->parent->children.push_back(nbh[i]);
-                            solCheck.push_back(nbh[i]);
+			    // Add this node to the new parent
+                            nbh[idx]->parent = motion;
+			    opt_->copyCost(nbh[idx]->incCost, nbhIncCost);
+			    opt_->copyCost(nbh[idx]->cost, nbhNewCost);
+                            nbh[idx]->parent->children.push_back(nbh[idx]);
+                            solCheck.push_back(nbh[idx]);
 
                             // Update the costs of the node's children
-                            updateChildCosts(nbh[i], delta);
+                            updateChildCosts(nbh[idx]);
                         }
                     }
                 }
+	    }
 
             // Make sure to check the existing solution for improvement
             if (solution)
                 solCheck.push_back(solution);
 
             // check if we found a solution
-            for (unsigned int i = 0 ; i < solCheck.size() ; ++i)
+            for (std::size_t i = 0 ; i < solCheck.size() ; ++i)
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
+                sufficientlyShort = solved ? opt_->isSatisfied(solCheck[i]->cost) : false;
 
                 if (solved)
                 {
                     if (sufficientlyShort)
                     {
                         solution = solCheck[i];
+			approximatedist = dist;
                         break;
                     }
-                    else if (!solution || (solCheck[i]->cost < solution->cost))
+                    else if (!solution || opt_->compareCost(solCheck[i]->cost,solution->cost))
                     {
                         solution = solCheck[i];
+			approximatedist = dist;
                     }
                 }
                 else if (!solution && dist < approximatedist)
@@ -385,13 +478,13 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
                     approximation = solCheck[i];
                     approximatedist = dist;
                 }
-            }
+	    } // end for
 
             // terminate if a sufficient solution is found
             if (solution && sufficientlyShort)
                 break;
-        }
-        else
+	}
+        else // if not checkmotion (way up there!)
         {
             /* if a collision is found, trim radius to distance from motion to last valid state */
             toTrim = nn_->nearest(nmotion);
@@ -401,16 +494,11 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         }
     }
 
-    double solutionCost;
+
     bool approximate = (solution == NULL);
     bool addedSolution = false;
     if (approximate)
-    {
         solution = approximation;
-        solutionCost = approximatedist;
-    }
-    else
-        solutionCost = solution->cost;
 
     if (solution != NULL)
     {
@@ -426,14 +514,24 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approximatedist);
         addedSolution = true;
     }
 
     si_->freeState(xstate);
     if (rmotion->state)
         si_->freeState(rmotion->state);
+    opt_->freeCost(rmotion->cost);
+    opt_->freeCost(rmotion->incCost);
     delete rmotion;
+
+    for (std::size_t i = 0; i < costs.size(); ++i)
+	opt_->freeCost(costs[i].second);
+    for (std::size_t i = 0; i < incCosts.size(); ++i)
+	opt_->freeCost(incCosts[i]);
+    opt_->freeCost(nbhPrevCost);
+    opt_->freeCost(nbhIncCost);
+    opt_->freeCost(nbhNewCost);
 
     OMPL_INFORM("Created %u states. Checked %lu rewire options.", nn_->size(), rewireTest);
 
@@ -455,12 +553,12 @@ void ompl::geometric::BallTreeRRTstar::removeFromParent(Motion *m)
     }
 }
 
-void ompl::geometric::BallTreeRRTstar::updateChildCosts(Motion *m, double delta)
+void ompl::geometric::BallTreeRRTstar::updateChildCosts(Motion *m)
 {
-    for (size_t i = 0; i < m->children.size(); ++i)
+    for (std::size_t i = 0; i < m->children.size(); ++i)
     {
-        m->children[i]->cost += delta;
-        updateChildCosts(m->children[i], delta);
+	opt_->combineObjectiveCosts(m->cost, m->children[i]->incCost, m->children[i]->cost);
+        updateChildCosts(m->children[i]);
     }
 }
 
@@ -470,10 +568,12 @@ void ompl::geometric::BallTreeRRTstar::freeMemory(void)
     {
         std::vector<Motion*> motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (std::size_t i = 0 ; i < motions.size() ; ++i)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
+	    opt_->freeCost(motions[i]->cost);
+	    opt_->freeCost(motions[i]->incCost);
             delete motions[i];
         }
     }
@@ -487,7 +587,12 @@ void ompl::geometric::BallTreeRRTstar::getPlannerData(base::PlannerData &data) c
     if (nn_)
         nn_->list(motions);
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
-                      base::PlannerDataVertex (motions[i]->state));
+    for (std::size_t i = 0 ; i < motions.size() ; ++i)
+    {
+	if (motions[i]->parent == NULL)
+	    data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+	else
+	    data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
+			  base::PlannerDataVertex (motions[i]->state));
+    }
 }

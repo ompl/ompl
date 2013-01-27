@@ -206,7 +206,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             Motion *motion = new Motion(si_, opt_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
-            opt_->getIncrementalCost(nmotion->state, dstate, motion->incCost);
+            opt_->getIncrementalCost(nmotion->state, motion->state, motion->incCost);
             opt_->combineObjectiveCosts(nmotion->cost, motion->incCost, motion->cost);
 
             // find nearby neighbors
@@ -254,7 +254,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     if (nbh[i] != nmotion)
                     {
-			opt_->getIncrementalCost(nbh[i]->state, dstate, incCosts[i]);	
+			opt_->getIncrementalCost(nbh[i]->state, motion->state, incCosts[i]);	
 			opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i], costs[i].second);
                     }
                     else
@@ -279,7 +279,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     {
                         if (opt_->compareCost(costs[i].second, motion->cost))
                         {
-                            if (si_->checkMotion(nbh[idx]->state, dstate))
+                            if (si_->checkMotion(nbh[idx]->state, motion->state))
                             {
 				opt_->copyCost(motion->incCost, incCosts[idx]);
 				opt_->copyCost(motion->cost, costs[i].second);
@@ -288,9 +288,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                                     valid[idx] = 1;
                                 break;
                             }
+			    else if (symDist && symInterp)
+			      valid[idx] = -1;
                         }
-                        else if (symDist && symInterp)
-                            valid[idx] = -1;
                     }
                     else
                     {
@@ -308,11 +308,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     costs[i].first = i;
                     if (nbh[i] != nmotion)
                     {
-                        opt_->getIncrementalCost(nbh[i]->state, dstate, incCosts[i]);
+                        opt_->getIncrementalCost(nbh[i]->state, motion->state, incCosts[i]);
                         opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i], costs[i].second);
                         if (opt_->compareCost(costs[i].second, motion->cost))
                         {
-                            if (si_->checkMotion(nbh[i]->state, dstate))
+                            if (si_->checkMotion(nbh[i]->state, motion->state))
                             {
                                 opt_->copyCost(motion->incCost, incCosts[i]);
                                 opt_->copyCost(motion->cost, costs[i].second);
@@ -342,20 +342,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             solCheck[0] = motion;
 
             // rewire tree if needed
-            // IN PREVIOUS CODE IT WAS ASSUMED THAT:
-            // 1) cost = distance
-            // 2) distance was a metric
-            // 3) symmetric local steering
-            //
-            // Assumption 2 allowed for re-using previously computed
-            // distances, but that just won't fly in general. This should be
-            // optimized when we have a way of knowing whether our cost is
-            // symmetric. Also, Assumption 3 allowed for using previously
-            // computed collision check results stored in valid[]. This is
-            // also not gonna work in general. Oh yeah and most importantly
-            // without Assumption 2 we have to do ANOTHER NEAREST NEIGHBORS
-            // SEARCH that goes FROM our new motion TO all other motions
-
+	    //
             // This sounds crazy but for asymmetric distance functions this is necessary
             // For this case, it has to be FROM our new point TO each other point
             // NOTE THE ORDER OF THE boost::bind PARAMETERS
@@ -384,9 +371,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     {
                         bool motionValid = (symDist && symInterp) ?
                             (valid[idx] == 0 ? 
-			     si_->checkMotion(dstate, nbh[idx]->state) :
+			     si_->checkMotion(motion->state, nbh[idx]->state) :
 			     valid[idx] == 1) :
-                            si_->checkMotion(dstate, nbh[idx]->state);
+                            si_->checkMotion(motion->state, nbh[idx]->state);
                         if (motionValid)
                         {
                             // Remove this node from its parent list
@@ -420,10 +407,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		    if (sufficientlyShort)
 		    {
 			solution = solCheck[i];
+		        approximatedist = dist;
 			break;
 		    }
 		    else if (!solution || opt_->compareCost(solCheck[i]->cost,solution->cost))
+		    {
 			solution = solCheck[i];
+			approximatedist = dist;
+		    }
 		}
 		else if (!solution && dist < approximatedist)
 		{
@@ -442,8 +433,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     bool addedSolution = false;
     if (approximate)
         solution = approximation;
-    else
-	approximatedist = 0.0;
+    // else
+    // 	approximatedist = 0.0;
     
 
     if (solution != NULL)
@@ -501,7 +492,7 @@ void ompl::geometric::RRTstar::removeFromParent(Motion *m)
 
 void ompl::geometric::RRTstar::updateChildCosts(Motion *m)
 {
-    for (size_t i = 0; i < m->children.size(); ++i)
+    for (std::size_t i = 0; i < m->children.size(); ++i)
     {
         opt_->combineObjectiveCosts(m->cost, m->children[i]->incCost, m->children[i]->cost);
         updateChildCosts(m->children[i]);
