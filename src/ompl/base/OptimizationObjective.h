@@ -123,7 +123,7 @@ namespace ompl
             void getCost(const PathPtr &path, Cost* cost) const;
 
 	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
-	    virtual bool compareCost(const Cost* c1, const Cost* c2) const = 0;
+	    virtual bool isCostLessThan(const Cost* c1, const Cost* c2) const = 0;
 	    
 	    /** \brief Allocate storage for a cost calculation in this OptimizationObjective. */
 	    virtual Cost* allocCost(void) const = 0;

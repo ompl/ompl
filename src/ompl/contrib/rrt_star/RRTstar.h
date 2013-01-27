@@ -240,7 +240,7 @@ namespace ompl
 		CostCompare(const Objective& optObj) : optObj_(optObj) {}
 		bool operator()(const indexCostPair& a, const indexCostPair& b)
 		{
-		    return optObj_.compareCost(a.second, b.second);
+		    return optObj_.isCostLessThan(a.second, b.second);
 		}
 
 		const Objective& optObj_;

@@ -331,7 +331,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 		    std::size_t idx = costs[i].first;
                     if (nbh[idx] != nmotion)
                     {
-                        if (opt_->compareCost(costs[i].second, motion->cost))
+                        if (opt_->isCostLessThan(costs[i].second, motion->cost))
                         {
                             if (si_->checkMotion(nbh[idx]->state, motion->state, lastValid))
                             {
@@ -369,7 +369,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
                     {
 			opt_->getIncrementalCost(nbh[i]->state, motion->state, incCosts[i]);
 			opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i], costs[i].second);
-                        if (opt_->compareCost(costs[i].second, motion->cost))
+                        if (opt_->isCostLessThan(costs[i].second, motion->cost))
                         {
                             if (si_->checkMotion(nbh[i]->state, motion->state, lastValid))
                             {
@@ -419,7 +419,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 		    else
 			opt_->getIncrementalCost(motion->state, nbh[idx]->state, nbhIncCost);
 		    opt_->combineObjectiveCosts(motion->cost, nbhIncCost, nbhNewCost);
-                    if (opt_->compareCost(nbhNewCost, nbhPrevCost))
+                    if (opt_->isCostLessThan(nbhNewCost, nbhPrevCost))
                     {
                         bool v = false;
                         if (valid[idx] == 0)
@@ -477,7 +477,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 			approximatedist = dist;
                         break;
                     }
-                    else if (!solution || opt_->compareCost(solCheck[i]->cost,solution->cost))
+                    else if (!solution || opt_->isCostLessThan(solCheck[i]->cost,solution->cost))
                     {
                         solution = solCheck[i];
 			approximatedist = dist;

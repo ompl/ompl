@@ -329,8 +329,8 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                         }
 
                         if (!solution || 
-			    pdef_->getOptimizationObjective()->compareCost(obj_cost, 
-									   sol_cost))
+			    pdef_->getOptimizationObjective()->isCostLessThan(obj_cost, 
+									      sol_cost))
                         {
                             solution = p;
                             pdef_->getOptimizationObjective()->copyCost(sol_cost, obj_cost);

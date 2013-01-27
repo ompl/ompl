@@ -45,7 +45,7 @@ void ompl::geometric::MechanicalWorkOptimizationObjective::setPathLengthWeight(d
     pathLengthWeight_ = weight;
 }
 
-bool ompl::geometric::MechanicalWorkOptimizationObjective::compareCost(const base::Cost* c1, const base::Cost* c2) const
+bool ompl::geometric::MechanicalWorkOptimizationObjective::isCostLessThan(const base::Cost* c1, const base::Cost* c2) const
 {
     return (c1->as<CostType>()->getValue() < c2->as<CostType>()->getValue());
 }

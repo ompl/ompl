@@ -62,7 +62,7 @@ namespace ompl
             PathLengthOptimizationObjective(const SpaceInformationPtr &si, double maximumPathLength = std::numeric_limits<double>::infinity());
 
 	    virtual bool isSatisfied(const Cost* cost) const;
-	    virtual bool compareCost(const Cost* c1, const Cost* c2) const;
+	    virtual bool isCostLessThan(const Cost* c1, const Cost* c2) const;
             virtual void getIncrementalCost(const State *s1, const State *s2, Cost* cost) const;
 	    virtual void combineObjectiveCosts(const Cost* c1, const Cost* c2, Cost* cost) const;
 	    virtual void getInitialCost(const State* s, Cost* cost) const;

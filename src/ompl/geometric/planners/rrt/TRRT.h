@@ -83,7 +83,7 @@ namespace ompl
 
 	    virtual void setPathLengthWeight(double weight);
 	    
-	    virtual bool compareCost(const base::Cost* c1, const base::Cost* c2) const;
+	    virtual bool isCostLessThan(const base::Cost* c1, const base::Cost* c2) const;
             virtual void getIncrementalCost(const base::State *s1, const base::State *s2, base::Cost* cost) const;
 	    virtual void combineObjectiveCosts(const base::Cost* c1, const base::Cost* c2, base::Cost* cost) const;
 	    virtual void getInitialCost(const base::State* s, base::Cost* cost) const;

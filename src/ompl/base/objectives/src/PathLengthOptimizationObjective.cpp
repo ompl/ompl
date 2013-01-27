@@ -48,7 +48,7 @@ bool ompl::base::PathLengthOptimizationObjective::isSatisfied(const Cost* cost) 
     return (cost->as<CostType>()->getValue() <= maxPathLength_);
 }
 
-bool ompl::base::PathLengthOptimizationObjective::compareCost(const Cost* c1, const Cost* c2) const
+bool ompl::base::PathLengthOptimizationObjective::isCostLessThan(const Cost* c1, const Cost* c2) const
 {
     return (c1->as<CostType>()->getValue() < c2->as<CostType>()->getValue());
 }
