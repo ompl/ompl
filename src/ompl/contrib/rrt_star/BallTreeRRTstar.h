@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
+/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan, Luis G. Torres */
 
 #ifndef OMPL_CONTRIB_RRT_STAR_BTRRTSTAR_
 #define OMPL_CONTRIB_RRT_STAR_BTRRTSTAR_

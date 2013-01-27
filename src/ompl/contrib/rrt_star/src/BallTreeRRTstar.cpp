@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
+/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan, Luis G. Torres */
 
 #include "ompl/contrib/rrt_star/BallTreeRRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
@@ -217,10 +217,10 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
             else
                 sampler_->sampleUniform(rstate);
 
-            /* check to see if it is inside an existing volume */
+            /* reject if it is inside an existing volume, unless we're goal-biasing */
             if (inVolume(rstate))
             {
-                rejected = true;
+                rejected = true; 
 
                 /* see if the state is valid */
                 if(!si_->isValid(rstate))
