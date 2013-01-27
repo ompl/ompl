@@ -53,6 +53,12 @@ namespace ompl
         /// @endcond
 
         /// @cond IGNORE
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+        /// @endcond
+
+	class Cost;
+
+        /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Path */
         OMPL_CLASS_FORWARD(Path);
         /// @endcond
@@ -83,6 +89,10 @@ namespace ompl
 
             /** \brief Return the length of a path */
             virtual double length(void) const = 0;
+
+	    /** \brief Return the cost of the path with respect to a
+		specified optimization objective. */
+	    virtual void getCost(const OptimizationObjectivePtr& obj, Cost* cost) const;
 
             /** \brief Check if the path is valid */
             virtual bool check(void) const = 0;

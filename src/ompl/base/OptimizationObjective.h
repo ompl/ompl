@@ -37,7 +37,6 @@
 #ifndef OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 
-#include "ompl/base/Path.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/noncopyable.hpp>
@@ -85,6 +84,10 @@ namespace ompl
         /** \brief Forward declaration of ompl::base::OptimizationObjective */
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
+
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(Path);
+        /// @endcond	
 
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
