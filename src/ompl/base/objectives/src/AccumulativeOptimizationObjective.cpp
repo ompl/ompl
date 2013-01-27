@@ -37,10 +37,10 @@
 #include "ompl/base/objectives/AccumulativeOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
 
-void ompl::base::AccumulativeOptimizationObjective::getCost(const Path* path, Cost* cost) const
+void ompl::base::AccumulativeOptimizationObjective::getCost(const Path& path, Cost* cost) const
 {
     // Cast path down to a PathGeometric
-  const geometric::PathGeometric* pathGeom = dynamic_cast<const geometric::PathGeometric*>(path);
+  const geometric::PathGeometric* pathGeom = dynamic_cast<const geometric::PathGeometric*>(&path);
 
     // Give up if this isn't a PathGeometric or if the path is empty.
     if (!pathGeom)

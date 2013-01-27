@@ -39,5 +39,5 @@
 
 void ompl::base::Path::cost(const OptimizationObjectivePtr& obj, Cost* cost) const
 {
-  obj->getCost(this, cost);
+  obj->getCost(*this, cost);
 }

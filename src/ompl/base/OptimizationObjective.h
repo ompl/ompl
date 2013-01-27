@@ -117,7 +117,7 @@ namespace ompl
             virtual bool isSatisfied(const Cost* cost) const = 0;
 
             /** \brief Get the cost that corresponds to an entire path. */
-	    virtual void getCost(const Path* path, Cost* cost) const = 0;
+	    virtual void getCost(const Path& path, Cost* cost) const = 0;
 
             /** \brief Get the cost that corresponds to an entire path. */
             void getCost(const PathPtr &path, Cost* cost) const;

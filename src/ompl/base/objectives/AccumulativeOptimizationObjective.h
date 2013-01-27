@@ -54,7 +54,7 @@ namespace ompl
             }
 
 	    /** \brief Computes cost of an entire path by accumulating cost from the the start state to the end state. This default implementation assumes \e path is a PathGeometric. */
-            virtual void getCost(const Path* path, Cost* cost) const;
+            virtual void getCost(const Path& path, Cost* cost) const;
 
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual void getIncrementalCost(const State *s1, const State *s2, Cost* cost) const = 0;
