@@ -36,6 +36,7 @@
 
 #include "ompl/contrib/rrt_star/BallTreeRRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/tools/config/SelfConfig.h"
@@ -211,14 +212,18 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         /* sample until a state not within any of the existing volumes is found */
         do
         {
+	    bool biased = false;
             /* sample random state (with goal biasing) */
             if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+	    {
                 goal_s->sampleGoal(rstate);
+		biased = true;
+	    }
             else
                 sampler_->sampleUniform(rstate);
 
             /* reject if it is inside an existing volume, unless we're goal-biasing */
-            if (inVolume(rstate))
+            if (!biased && inVolume(rstate))
             {
                 rejected = true; 
 
@@ -235,9 +240,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
             }
             else
-
                 rejected = false;
-
         }
         while (rejected);
 
@@ -253,9 +256,16 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
             si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
             dstate = xstate;
         }
+	
+	/* start over if this iteration results in adding a redundant
+	   sample (redundant samples break the radius-trimming
+	   routine). Redundant samples typically come from goal
+	   biasing. */
+	if (si_->equalStates(dstate, nmotion->state))
+	    continue;
 
         if (si_->checkMotion(nmotion->state, dstate, lastValid))
-        {
+        {		
             /* create a motion */
             double distN = si_->distance(dstate, nmotion->state);
             Motion *motion = new Motion(si_, opt_, rO_);
