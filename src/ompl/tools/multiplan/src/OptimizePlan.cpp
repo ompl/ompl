@@ -89,7 +89,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
             }
 
 	    base::Cost* obj_cost = pdef->getOptimizationObjective()->allocCost();
-	    pdef->getOptimizationObjective()->getCost(pdef->getSolutionPath(), obj_cost);
+	    pdef->getSolutionPath()->cost(pdef->getOptimizationObjective(), obj_cost);
 
             if (pdef->getOptimizationObjective()->isSatisfied(obj_cost))
             {

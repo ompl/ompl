@@ -101,7 +101,9 @@ namespace ompl
 	    typedef Cost CostType;
 
             /** \brief Constructor. The objective must always know the space information it is part of */
-            OptimizationObjective(const SpaceInformationPtr &si);
+            OptimizationObjective(const SpaceInformationPtr &si) : si_(si)
+	    {
+	    }
 
             virtual ~OptimizationObjective(void)
             {
@@ -116,11 +118,8 @@ namespace ompl
             /** \brief Verify that our objective is satisfied already and we can stop planning */
             virtual bool isSatisfied(const Cost* cost) const = 0;
 
-            /** \brief Get the cost that corresponds to an entire path. */
-	    virtual void getCost(const Path& path, Cost* cost) const = 0;
-
-            /** \brief Get the cost that corresponds to an entire path. */
-            void getCost(const PathPtr &path, Cost* cost) const;
+            /** \brief Get the cost that corresponds to an entire path.*/
+            virtual void getCost(const Path& path, Cost* cost) const = 0;
 
 	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
 	    virtual bool isCostLessThan(const Cost* c1, const Cost* c2) const = 0;

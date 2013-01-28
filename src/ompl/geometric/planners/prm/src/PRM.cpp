@@ -312,7 +312,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 if (pdef_->hasOptimizationObjective())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-		    pdef_->getOptimizationObjective()->getCost(p, obj_cost);
+		    p->cost(pdef_->getOptimizationObjective(), obj_cost);
                     if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
                     {
                         solution = p;
@@ -324,7 +324,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                     {
                         if (solution && !sol_cost_set)
                         {
-			    pdef_->getOptimizationObjective()->getCost(solution, sol_cost);
+			    solution->cost(pdef_->getOptimizationObjective(), sol_cost);
 			    sol_cost_set = true;
                         }
 
