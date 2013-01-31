@@ -192,6 +192,11 @@ namespace ompl
 
             virtual void setup(void);
 
+	    unsigned getNumCollisionChecks(void) const
+	    {
+		return numCollisionChecks_;
+	    }
+
         protected:
 
 	    typedef base::AccumulativeOptimizationObjective Objective;
@@ -281,6 +286,9 @@ namespace ompl
 
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
+
+	    /** \brief Total number of calls to checkMotion() during execution */
+	    unsigned                                       numCollisionChecks_;
 
             /** \brief Objective we're optimizing (currently can OptimizationObjectives which are subclasses of AccumulativeOptimizationObjective) */
             boost::shared_ptr<Objective> opt_;

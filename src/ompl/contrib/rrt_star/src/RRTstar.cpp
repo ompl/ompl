@@ -52,6 +52,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     ballRadiusMax_ = 0.0;
     ballRadiusConst_ = 0.0;
     delayCC_ = true;
+    numCollisionChecks_ = 0;
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
@@ -118,6 +119,7 @@ void ompl::geometric::RRTstar::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    numCollisionChecks_ = 0;
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
@@ -200,6 +202,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             dstate = xstate;
         }
 
+	++numCollisionChecks_;
         if (si_->checkMotion(nmotion->state, dstate))
         {
             // create a motion
@@ -279,6 +282,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     {
                         if (opt_->isCostLessThan(costs[i].second, motion->cost))
                         {
+			    ++numCollisionChecks_;
                             if (si_->checkMotion(nbh[idx]->state, motion->state))
                             {
 				opt_->copyCost(motion->incCost, incCosts[idx]);
@@ -312,6 +316,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i], costs[i].second);
                         if (opt_->isCostLessThan(costs[i].second, motion->cost))
                         {
+			    ++numCollisionChecks_;
                             if (si_->checkMotion(nbh[i]->state, motion->state))
                             {
                                 opt_->copyCost(motion->incCost, incCosts[i]);
@@ -369,11 +374,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		    opt_->combineObjectiveCosts(motion->cost, nbhIncCost, nbhNewCost);
                     if (opt_->isCostLessThan(nbhNewCost, nbhPrevCost))
                     {
-                        bool motionValid = (symDist && symInterp) ?
-                            (valid[idx] == 0 ? 
-			     si_->checkMotion(motion->state, nbh[idx]->state) :
-			     valid[idx] == 1) :
-                            si_->checkMotion(motion->state, nbh[idx]->state);
+			bool motionValid;
+			if (symDist && symInterp)
+			{
+			    if (valid[idx] == 0)
+			    {
+				++numCollisionChecks_;
+				motionValid = si_->checkMotion(motion->state, nbh[idx]->state);
+			    }
+			    else
+				motionValid = (valid[idx] == 1);
+			}
+			else
+			{
+			    ++numCollisionChecks_;
+			    motionValid = si_->checkMotion(motion->state, nbh[idx]->state);
+			}
                         if (motionValid)
                         {
                             // Remove this node from its parent list
