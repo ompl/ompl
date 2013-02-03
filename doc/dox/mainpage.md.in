@@ -42,7 +42,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
         <p>See <a href="releaseNotes.html">release notes</a> for details</p>
       </div>-->
       <div class="item">
-        <div class="pagination-centered"><img src="../images/T-RRT.jpg"></div>
+        <div class="pagination-centered"><img src="../images/T-RRT.jpg" style="padding-bottom: 2px"></div>
         <div class="carousel-caption"><h4>Planning with costs</h4>
         <p>Visualization of the cost map explored by the T-RRT planner.</p>
         </div>
@@ -103,6 +103,4 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 - <a href="http://www.youtube.com/watch?v=r1zbuLc8RhI">At ROSCON, Sachin Chitta and Ioan Șucan gave a talk about MoveIt!</a>, the new motion planning stack in ROS. It provides a common interface to motion planning libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.
 - <a href="http://kavrakilab.org/OMPLtutorial">IROS 2011 Tutorial on Motion Planning for Real Robots</a>. This hands-on tutorial describes how to use the ROS and OMPL, but it also gives some background on sampling-based motion planning.
 
-\htmlonly
-</div></div></div>
-\endhtmlonly
+\htmlonly</div></div></div>\endhtmlonly

@@ -36,33 +36,32 @@ An example of using OMPL to plan for a robotic system simulated with [ODE](http:
 <iframe width="420" height="315" src="http://www.youtube.com/embed/bX23YA-pasg" frameborder="0" allowfullscreen></iframe>
 \endhtmlonly
 
-# Planning for Rigid Bodies Using OMPL.app {#gallery_omplapp}
+# Planning Using OMPL.app {#gallery_omplapp}
 
-Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app.
-
-__The “cubicles” environment.__ An L-shaped robot has to fly through a number of rooms and the “basement” to reach the goal state:
+Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app. The planar examples use a kinematic car model.
 
 \htmlonly
 <div class="row">
-<div class="span5 offset1">
-  <img src="../images/cubicles-problem.png" width="100%">
+    <div class="span4">
+        <iframe src="http://player.vimeo.com/video/58686594?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
+    <div class="span4">
+        <iframe src="http://player.vimeo.com/video/58709484?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="256" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
+    <div class="span4">
+        <iframe src="http://player.vimeo.com/video/58686591?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="280" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
 </div>
-<div class="span5">
-  <img src="../images/cubicles-solution.png" width="100%">
-</div>
-</div>
-\endhtmlonly
-
-__The “Twistycool” environment.__ A twisted shape has to make a complex maneuver to move through a narrow passage:
-
-\htmlonly
 <div class="row">
-<div class="span5 offset1">
-  <img src="../images/narrow-passage-problem.png" width="100%">
-</div>
-<div class="span5">
-  <img src="../images/narrow-passage-solution.png" width="100%">
-</div>
+    <div class="span4">
+        <iframe src="http://player.vimeo.com/video/58709589?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="188" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
+    <div class="span4">
+        <iframe src="http://player.vimeo.com/video/58686593?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="195" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
+    <div class="span4">
+        <iframe src="http://player.vimeo.com/video/58686590?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="198" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
 </div>
 \endhtmlonly
 
