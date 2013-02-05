@@ -8,7 +8,7 @@ install(DIRECTORY ompl/ DESTINATION "include/ompl${OMPL_INSTALL_SUFFIX}"
     REGEX "/doc$" EXCLUDE
     REGEX "/tests$" EXCLUDE)
 
-if(NOT Boost_ODEINT_FOUND)
+if(${Boost_VERSION} LESS 105300)
     install(DIRECTORY external/omplext_odeint/ DESTINATION "include/omplext_odeint${OMPL_INSTALL_SUFFIX}")
 endif()
 
