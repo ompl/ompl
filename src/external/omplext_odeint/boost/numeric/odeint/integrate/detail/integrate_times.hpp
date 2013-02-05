@@ -6,8 +6,8 @@
  Default integrate times implementation.
  [end_description]
 
- Copyright 2009-2011 Karsten Ahnert
- Copyright 2009-2011 Mario Mulansky
+ Copyright 2009-2012 Karsten Ahnert
+ Copyright 2009-2012 Mario Mulansky
 
  Distributed under the Boost Software License, Version 1.0.
  (See accompanying file LICENSE_1_0.txt or
@@ -20,6 +20,7 @@
 
 #include <stdexcept>
 
+#include <boost/config.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/detail/less_with_sign.hpp>
@@ -42,6 +43,8 @@ size_t integrate_times(
         Observer observer , stepper_tag
 )
 {
+    BOOST_USING_STD_MIN();
+
     typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
     size_t steps = 0;
@@ -54,7 +57,7 @@ size_t integrate_times(
             break;
         while( less_with_sign( current_time , *start_time , current_dt ) )
         {
-            current_dt = std::min( dt , *start_time - current_time );
+            current_dt = min BOOST_PREVENT_MACRO_SUBSTITUTION ( dt , *start_time - current_time );
             stepper.do_step( system , start_state , current_time , current_dt );
             current_time += current_dt;
             steps++;
@@ -73,6 +76,8 @@ size_t integrate_times(
         Observer observer , controlled_stepper_tag
 )
 {
+    BOOST_USING_STD_MIN();
+
     typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
     const size_t max_attempts = 1000;
@@ -87,7 +92,7 @@ size_t integrate_times(
             break;
         while( less_with_sign( current_time , *start_time , dt ) )
         {
-            dt = std::min( dt , *start_time - current_time );
+            dt = min BOOST_PREVENT_MACRO_SUBSTITUTION ( dt , *start_time - current_time );
             if( stepper.try_step( system , start_state , current_time , dt ) == success )
             {
                 ++steps;
@@ -112,42 +117,43 @@ size_t integrate_times(
         Observer observer , dense_output_stepper_tag
 )
 {
-     typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
+    typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
 
-     Time last_time_point = *(end_time-1);
 
-     stepper.initialize( start_state , *start_time , dt );
-     obs( start_state , *start_time++ );
+    if( start_time == end_time )
+        return 0;
 
-     size_t count = 0;
-     while( start_time != end_time )
-     {
-         while( less_eq_with_sign( *start_time , stepper.current_time() , stepper.current_time_step() )
-                && ( start_time != end_time ) )
-         {
-             stepper.calc_state( *start_time , start_state );
-             obs( start_state , *start_time );
-             start_time++;
-         }
+    Time last_time_point = *(end_time-1);
 
-         // we have not reached the end, do another real step
-         if( less_eq_with_sign( stepper.current_time() + stepper.current_time_step() ,
-                                last_time_point ,
-                                stepper.current_time_step() ) )
-         {
-             stepper.do_step( system );
-             ++count;
-         }
-         else if( start_time != end_time )
-         { // do the last step ending exactly on the end point
-             stepper.initialize( stepper.current_state() , stepper.current_time() , last_time_point - stepper.current_time() );
-             stepper.do_step( system );
-             ++count;
-         }
-     }
-     // do the last step
+    stepper.initialize( start_state , *start_time , dt );
+    obs( start_state , *start_time++ );
 
-     return count;
+    size_t count = 0;
+    while( start_time != end_time )
+    {
+        while( ( start_time != end_time ) && less_eq_with_sign( *start_time , stepper.current_time() , stepper.current_time_step() ) )
+        {
+            stepper.calc_state( *start_time , start_state );
+            obs( start_state , *start_time );
+            start_time++;
+        }
+
+        // we have not reached the end, do another real step
+        if( less_eq_with_sign( stepper.current_time() + stepper.current_time_step() ,
+                               last_time_point ,
+                               stepper.current_time_step() ) )
+        {
+            stepper.do_step( system );
+            ++count;
+        }
+        else if( start_time != end_time )
+        { // do the last step ending exactly on the end point
+            stepper.initialize( stepper.current_state() , stepper.current_time() , last_time_point - stepper.current_time() );
+            stepper.do_step( system );
+            ++count;
+        }
+    }
+    return count;
 }
 
 

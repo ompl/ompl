@@ -18,8 +18,7 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_DETAIL_ADAMS_MOULTON_CALL_ALGEBRA_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_DETAIL_ADAMS_MOULTON_CALL_ALGEBRA_HPP_INCLUDED
 
-#include <cassert>
-
+#include <boost/assert.hpp> 
 
 namespace boost {
 namespace numeric {
@@ -115,7 +114,7 @@ struct adams_moulton_call_algebra< 7 , Algebra , Operations >
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
     void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
-        assert( false ); // not implemented
+        BOOST_ASSERT( false ); // not implemented
     }
 };
 
@@ -126,7 +125,7 @@ struct adams_moulton_call_algebra< 8 , Algebra , Operations >
     template< class StateIn , class StateOut , class DerivIn , class StepStorage , class Coefficients , class Time >
     void operator()( Algebra &algebra , const StateIn &in , StateOut &out , const DerivIn &dxdt , const StepStorage &steps , const Coefficients &coef , Time dt ) const
     {
-        assert( false ); // not implemented
+        BOOST_ASSERT( false ); // not implemented
     }
 };
 

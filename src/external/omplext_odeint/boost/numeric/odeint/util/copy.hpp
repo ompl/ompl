@@ -29,27 +29,28 @@ namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
-namespace detail
-{
+namespace detail {
 
-template< class Container1 , class Container2 >
-void do_copying( const Container1 &from , Container2 &to , boost::mpl::true_ )
-{
-    boost::range::copy( from , boost::begin( to ) );
-}
+    template< class Container1 , class Container2 >
+    void do_copying( const Container1 &from , Container2 &to , boost::mpl::true_ )
+    {
+        boost::range::copy( from , boost::begin( to ) );
+    }
 
-template< class Container1 , class Container2 >
-void do_copying( const Container1 &from , Container2 &to , boost::mpl::false_ )
-{
-    to = from;
-}
-}
+    template< class Container1 , class Container2 >
+    void do_copying( const Container1 &from , Container2 &to , boost::mpl::false_ )
+    {
+        to = from;
+    }
+
+} // namespace detail
+
 
 /*
  * Default implementation of the copy operation used the assign operator
  * gsl_vector must copied differently
  */
-template< class Container1, class Container2 >
+template< class Container1, class Container2 , class Enabler = void >
 struct copy_impl
 {
     static void copy( const Container1 &from , Container2 &to )

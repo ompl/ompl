@@ -1,21 +1,21 @@
 /*
- [auto_generated]
- boost/numeric/odeint/stepper/bulirsch_stoer.hpp
+  [auto_generated]
+  boost/numeric/odeint/stepper/bulirsch_stoer.hpp
 
- [begin_description]
- Implementaiton of the Burlish-Stoer method. As described in
- Ernst Hairer, Syvert Paul Nørsett, Gerhard Wanner
- Solving Ordinary Differential Equations I. Nonstiff Problems.
- Springer Series in Comput. Mathematics, Vol. 8, Springer-Verlag 1987, Second revised edition 1993.
- [end_description]
+  [begin_description]
+  Implementation of the Burlish-Stoer method. As described in
+  Ernst Hairer, Syvert Paul Norsett, Gerhard Wanner
+  Solving Ordinary Differential Equations I. Nonstiff Problems.
+  Springer Series in Comput. Mathematics, Vol. 8, Springer-Verlag 1987, Second revised edition 1993.
+  [end_description]
 
- Copyright 2009-2011 Karsten Ahnert
- Copyright 2009-2011 Mario Mulansky
+  Copyright 2009-2011 Karsten Ahnert
+  Copyright 2009-2011 Mario Mulansky
 
- Distributed under the Boost Software License, Version 1.0.
- (See accompanying file LICENSE_1_0.txt or
- copy at http://www.boost.org/LICENSE_1_0.txt)
- */
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or
+  copy at http://www.boost.org/LICENSE_1_0.txt)
+*/
 
 
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_BULIRSCH_STOER_HPP_INCLUDED
@@ -25,6 +25,8 @@
 #include <iostream>
 
 #include <algorithm>
+
+#include <boost/config.hpp> // for min/max guidelines
 
 #include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
@@ -38,22 +40,22 @@
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/unit_helper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/util/detail/less_with_sign.hpp>
 
 namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
-/** ToDo try_step stepsize changed return values doesn't make too much sense here as we have order control as well */
-
 template<
-class State ,
-class Value = double ,
-class Deriv = State ,
-class Time = Value ,
-class Algebra = range_algebra ,
-class Operations = default_operations ,
-class Resizer = initially_resizer
->
+    class State ,
+    class Value = double ,
+    class Deriv = State ,
+    class Time = Value ,
+    class Algebra = range_algebra ,
+    class Operations = default_operations ,
+    class Resizer = initially_resizer
+    >
 class bulirsch_stoer {
 
 public:
@@ -65,36 +67,38 @@ public:
     typedef Algebra algebra_type;
     typedef Operations operations_type;
     typedef Resizer resizer_type;
+#ifndef DOXYGEN_SKIP
     typedef state_wrapper< state_type > wrapped_state_type;
     typedef state_wrapper< deriv_type > wrapped_deriv_type;
     typedef controlled_stepper_tag stepper_category;
 
     typedef bulirsch_stoer< State , Value , Deriv , Time , Algebra , Operations , Resizer > controlled_error_bs_type;
 
-    typedef std::vector< time_type > value_vector;
+    typedef typename inverse_time< time_type >::type inv_time_type;
+
+    typedef std::vector< value_type > value_vector;
+    typedef std::vector< time_type > time_vector;
+    typedef std::vector< inv_time_type > inv_time_vector;  //should be 1/time_type for boost.units
     typedef std::vector< value_vector > value_matrix;
     typedef std::vector< size_t > int_vector;
     typedef std::vector< wrapped_state_type > state_table_type;
-
+#endif //DOXYGEN_SKIP
     const static size_t m_k_max = 8;
 
-
     bulirsch_stoer(
-            time_type eps_abs = 1E-6 , time_type eps_rel = 1E-6 ,
-            time_type factor_x = 1.0 , time_type factor_dxdt = 1.0 )
-    : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ) , m_midpoint() ,
-      m_last_step_rejected( false ) , m_first( true ) ,
-      m_dt_last( 1.0E30 ) , m_t_last() ,
-      m_current_k_opt() ,
-      m_algebra() ,
-      m_dxdt_resizer() , m_xnew_resizer() , m_resizer() ,
-      m_xnew() , m_err() , m_dxdt() ,
-      m_interval_sequence( m_k_max+1 ) ,
-      m_coeff( m_k_max+1 ) ,
-      m_cost( m_k_max+1 ) ,
-      m_table( m_k_max ) ,
-      STEPFAC1( 0.65 ) , STEPFAC2( 0.94 ) , STEPFAC3( 0.02 ) , STEPFAC4( 4.0 ) , KFAC1( 0.8 ) , KFAC2( 0.9 )
+        value_type eps_abs = 1E-6 , value_type eps_rel = 1E-6 ,
+        value_type factor_x = 1.0 , value_type factor_dxdt = 1.0 )
+        : m_error_checker( eps_abs , eps_rel , factor_x, factor_dxdt ) , m_midpoint() ,
+          m_last_step_rejected( false ) , m_first( true ) ,
+          m_interval_sequence( m_k_max+1 ) ,
+          m_coeff( m_k_max+1 ) ,
+          m_cost( m_k_max+1 ) ,
+          m_table( m_k_max ) ,
+          STEPFAC1( 0.65 ) , STEPFAC2( 0.94 ) , STEPFAC3( 0.02 ) , STEPFAC4( 4.0 ) , KFAC1( 0.8 ) , KFAC2( 0.9 )
     {
+        BOOST_USING_STD_MIN();
+        BOOST_USING_STD_MAX();
+        /* initialize sequence of stage numbers and work */
         for( unsigned short i = 0; i < m_k_max+1; i++ )
         {
             m_interval_sequence[i] = 2 * (i+1);
@@ -105,16 +109,17 @@ public:
             m_coeff[i].resize(i);
             for( size_t k = 0 ; k < i ; ++k  )
             {
-                const time_type r = static_cast< time_type >( m_interval_sequence[i] ) / static_cast< time_type >( m_interval_sequence[k] );
-                m_coeff[i][k] = 1.0 / ( r*r - static_cast< time_type >( 1.0 ) ); // coefficients for extrapolation
-                //std::cout << i << "," << k << " " << m_coeff[i][k] << '\t' ;
+                const value_type r = static_cast< value_type >( m_interval_sequence[i] ) / static_cast< value_type >( m_interval_sequence[k] );
+                m_coeff[i][k] = 1.0 / ( r*r - static_cast< value_type >( 1.0 ) ); // coefficients for extrapolation
             }
-            //std ::cout << std::endl;
+
             // crude estimate of optimal order
-            const time_type logfact( -log10( std::max( eps_rel , 1.0E-12 ) ) * 0.6 + 0.5 );
-            m_current_k_opt = std::max( 1 , std::min( static_cast<int>( m_k_max-1 ) , static_cast<int>( logfact ) ));
-            //m_current_k_opt = m_k_max - 1;
-            //std::cout << m_cost[i] << std::endl;
+
+            m_current_k_opt = 4;
+            /* no calculation because log10 might not exist for value_type!
+            const value_type logfact( -log10( max BOOST_PREVENT_MACRO_SUBSTITUTION( eps_rel , static_cast< value_type >(1.0E-12) ) ) * 0.6 + 0.5 );
+            m_current_k_opt = max BOOST_PREVENT_MACRO_SUBSTITUTION( static_cast<value_type>( 1 ) , min BOOST_PREVENT_MACRO_SUBSTITUTION( static_cast<value_type>( m_k_max-1 ) , logfact ));
+            */
         }
 
     }
@@ -131,6 +136,9 @@ public:
         return try_step_v1( system , x , t, dt );
     }
 
+    /**
+     * \brief Second version to solve the forwarding problem, can be used with Boost.Range as StateInOut.
+     */
     template< class System , class StateInOut >
     controlled_step_result try_step( System system , const StateInOut &x , time_type &t , time_type &dt )
     {
@@ -160,7 +168,8 @@ public:
      * this version does not solve the forwarding problem, boost.range can not be used
      */
     template< class System , class StateIn , class StateOut >
-    controlled_step_result try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
+    typename boost::disable_if< boost::is_same< StateIn , time_type > , controlled_step_result >::type
+    try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
     {
         typename omplext_odeint::unwrap_reference< System >::type &sys = system;
         m_dxdt_resizer.adjust_size( in , detail::bind( &controlled_error_bs_type::template resize_m_dxdt< StateIn > , detail::ref( *this ) , detail::_1 ) );
@@ -169,10 +178,18 @@ public:
     }
 
 
+    /*
+     * Full version : try_step( sys , in , dxdt_in , t , out , dt )
+     *
+     * contains the actual implementation
+     */
     template< class System , class StateIn , class DerivIn , class StateOut >
     controlled_step_result try_step( System system , const StateIn &in , const DerivIn &dxdt , time_type &t , StateOut &out , time_type &dt )
     {
-        static const time_type val1( static_cast< time_type >( 1.0 ) );
+        BOOST_USING_STD_MIN();
+        BOOST_USING_STD_MAX();
+
+        static const value_type val1( 1.0 );
 
         typename omplext_odeint::unwrap_reference< System >::type &sys = system;
         if( m_resizer.adjust_size( in , detail::bind( &controlled_error_bs_type::template resize_impl< StateIn > , detail::ref( *this ) , detail::_1 ) ) )
@@ -187,20 +204,20 @@ public:
 
         bool reject( true );
 
-        value_vector h_opt( m_k_max+1 );
-        value_vector work( m_k_max+1 );
-
-        //std::cout << "t=" << t <<", dt=" << dt << "(" << m_dt_last << ")" << ", k_opt=" << m_current_k_opt << std::endl;
+        time_vector h_opt( m_k_max+1 );
+        inv_time_vector work( m_k_max+1 );
 
         time_type new_h = dt;
 
+        /* m_current_k_opt is the estimated current optimal stage number */
         for( size_t k = 0 ; k <= m_current_k_opt+1 ; k++ )
         {
-            //std::cout << "  k=" << k; //<<": " << ", first: " << m_first << std::endl;
+            /* the stage counts are stored in m_interval_sequence */
             m_midpoint.set_steps( m_interval_sequence[k] );
             if( k == 0 )
             {
                 m_midpoint.do_step( sys , in , dxdt , t , out , dt );
+                /* the first step, nothing more to do */
             }
             else
             {
@@ -208,12 +225,10 @@ public:
                 extrapolate( k , m_table , m_coeff , out );
                 // get error estimate
                 m_algebra.for_each3( m_err.m_v , out , m_table[0].m_v ,
-                        typename operations_type::template scale_sum2< time_type , time_type >( val1 , -val1 ) );
-                const time_type error = m_error_checker.error( m_algebra , in , dxdt , m_err.m_v , dt );
+                                     typename operations_type::template scale_sum2< value_type , value_type >( val1 , -val1 ) );
+                const value_type error = m_error_checker.error( m_algebra , in , dxdt , m_err.m_v , dt );
                 h_opt[k] = calc_h_opt( dt , error , k );
-                work[k] = m_cost[k]/h_opt[k];
-                //std::cout << '\t' << "h_opt=" << h_opt[k] << ", work=" << work[k] << std::endl;
-                //std::cout << '\t' << "error: " << error << std::endl;
+                work[k] = static_cast<value_type>( m_cost[k] ) / h_opt[k];
 
                 if( (k == m_current_k_opt-1) || m_first )
                 { // convergence before k_opt ?
@@ -224,10 +239,11 @@ public:
                         if( (work[k] < KFAC2*work[k-1]) || (m_current_k_opt <= 2) )
                         {
                             // leave order as is (except we were in first round)
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k)+1 ) );
-                            new_h = h_opt[k] * m_cost[k+1]/m_cost[k];
+                            m_current_k_opt = min BOOST_PREVENT_MACRO_SUBSTITUTION( static_cast<int>(m_k_max)-1 , max BOOST_PREVENT_MACRO_SUBSTITUTION( 2 , static_cast<int>(k)+1 ) );
+                            new_h = h_opt[k];
+                            new_h *= static_cast<value_type>( m_cost[k+1] ) / static_cast<value_type>( m_cost[k] );
                         } else {
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , std::max( 2 , static_cast<int>(k) ) );
+                            m_current_k_opt = min BOOST_PREVENT_MACRO_SUBSTITUTION( static_cast<int>(m_k_max)-1 , max BOOST_PREVENT_MACRO_SUBSTITUTION( 2 , static_cast<int>(k) ) );
                             new_h = h_opt[k];
                         }
                         break;
@@ -247,14 +263,14 @@ public:
                         reject = false;
                         if( (work[k-1] < KFAC2*work[k]) )
                         {
-                            m_current_k_opt = std::max( 2 , static_cast<int>(m_current_k_opt)-1 );
+                            m_current_k_opt = max BOOST_PREVENT_MACRO_SUBSTITUTION( 2 , static_cast<int>(m_current_k_opt)-1 );
                             new_h = h_opt[m_current_k_opt];
                         }
                         else if( (work[k] < KFAC2*work[k-1]) && !m_last_step_rejected )
                         {
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max-1) , static_cast<int>(m_current_k_opt)+1 );
-                            new_h = h_opt[k]*m_cost[m_current_k_opt]/m_cost[k];
-                            //std::cout << new_h << std::endl;
+                            m_current_k_opt = min BOOST_PREVENT_MACRO_SUBSTITUTION( static_cast<int>(m_k_max-1) , static_cast<int>(m_current_k_opt)+1 );
+                            new_h = h_opt[k];
+                            new_h *= m_cost[m_current_k_opt]/m_cost[k];
                         } else
                             new_h = h_opt[m_current_k_opt];
                         break;
@@ -268,14 +284,13 @@ public:
                 }
                 if( k == m_current_k_opt+1 )
                 { // convergence at k_opt+1 ?
-                    //std::cout << "convergence at k_opt+1 ?" << std::endl;
                     if( error < 1.0 )
                     {   //convergence
                         reject = false;
                         if( work[k-2] < KFAC2*work[k-1] )
-                            m_current_k_opt = std::max( 2 , static_cast<int>(m_current_k_opt)-1 );
+                            m_current_k_opt = max BOOST_PREVENT_MACRO_SUBSTITUTION( 2 , static_cast<int>(m_current_k_opt)-1 );
                         if( (work[k] < KFAC2*work[m_current_k_opt]) && !m_last_step_rejected )
-                            m_current_k_opt = std::min( static_cast<int>(m_k_max)-1 , static_cast<int>(k) );
+                            m_current_k_opt = min BOOST_PREVENT_MACRO_SUBSTITUTION( static_cast<int>(m_k_max)-1 , static_cast<int>(k) );
                         new_h = h_opt[m_current_k_opt];
                     } else
                     {
@@ -290,10 +305,9 @@ public:
         if( !reject )
         {
             t += dt;
-        }// else
-         //   std::cout << "REJECT!" << std::endl;
+        }
 
-        if( !m_last_step_rejected || (new_h < dt) )
+        if( !m_last_step_rejected || boost::numeric::omplext_odeint::detail::less_with_sign(new_h, dt, dt) )
         {
             m_dt_last = new_h;
             dt = new_h;
@@ -308,16 +322,15 @@ public:
             return success;
     }
 
+    /** \brief Resets the internal state of the stepper */
     void reset()
     {
-        //std::cout << "reset" << std::endl;
         m_first = true;
         m_last_step_rejected = false;
     }
 
 
     /* Resizer methods */
-
 
     template< class StateIn >
     void adjust_size( const StateIn &x )
@@ -366,44 +379,45 @@ private:
 
     template< class StateInOut >
     void extrapolate( size_t k , state_table_type &table , const value_matrix &coeff , StateInOut &xest )
-    //polynomial extrapolation, see http://www.nr.com/webnotes/nr3web21.pdf
+    /* polynomial extrapolation, see http://www.nr.com/webnotes/nr3web21.pdf
+       uses the obtained intermediate results to extrapolate to dt->0 
+    */
     {
-        //std::cout << "extrapolate k=" << k << ":" << std::endl;
-        static const time_type val1 = static_cast< time_type >( 1.0 );
+        static const value_type val1 = static_cast< value_type >( 1.0 );
         for( int j=k-1 ; j>0 ; --j )
         {
-            //std::cout << '\t' << m_coeff[k][j];
             m_algebra.for_each3( table[j-1].m_v , table[j].m_v , table[j-1].m_v ,
-                    typename operations_type::template scale_sum2< time_type , time_type >( val1 + coeff[k][j] , -coeff[k][j] ) );
+                                 typename operations_type::template scale_sum2< value_type , value_type >( val1 + coeff[k][j] , -coeff[k][j] ) );
         }
-        //std::cout << std::endl << m_coeff[k][0] << std::endl;
         m_algebra.for_each3( xest , table[0].m_v , xest ,
-                typename operations_type::template scale_sum2< time_type , time_type >( val1 + coeff[k][0] , -coeff[k][0]) );
+                             typename operations_type::template scale_sum2< value_type , value_type >( val1 + coeff[k][0] , -coeff[k][0]) );
     }
 
     time_type calc_h_opt( time_type h , value_type error , size_t k ) const
+    /* calculates the optimal step size for a given error and stage number */
     {
-        time_type expo=1.0/(2*k+1);
-        time_type facmin = std::pow( STEPFAC3 , expo );
-        time_type fac;
+        BOOST_USING_STD_MIN();
+        BOOST_USING_STD_MAX();
+        using std::pow;
+        value_type expo( 1.0/(2*k+1) );
+        value_type facmin = pow BOOST_PREVENT_MACRO_SUBSTITUTION( STEPFAC3 , expo );
+        value_type fac;
         if (error == 0.0)
             fac=1.0/facmin;
         else
         {
-            fac = STEPFAC2 / std::pow( error / STEPFAC1 , expo );
-            fac = std::max( facmin/STEPFAC4 , std::min( 1.0/facmin , fac ) );
+            fac = STEPFAC2 / pow BOOST_PREVENT_MACRO_SUBSTITUTION( error / STEPFAC1 , expo );
+            fac = max BOOST_PREVENT_MACRO_SUBSTITUTION( facmin/STEPFAC4 , min BOOST_PREVENT_MACRO_SUBSTITUTION( 1.0/facmin , fac ) );
         }
-        //return std::abs(h*fac);
         return h*fac;
     }
 
-    controlled_step_result set_k_opt( size_t k , const value_vector &work , const value_vector &h_opt , time_type &dt )
+    controlled_step_result set_k_opt( size_t k , const inv_time_vector &work , const time_vector &h_opt , time_type &dt )
+    /* calculates the optimal stage number */
     {
-        //std::cout << "finding k_opt..." << std::endl;
         if( k == 1 )
         {
             m_current_k_opt = 2;
-            //dt = h_opt[ m_current_k_opt-1 ] * m_cost[ m_current_k_opt ] / m_cost[ m_current_k_opt-1 ] ;
             return success;
         }
         if( (work[k-1] < KFAC1*work[k]) || (k == m_k_max) )
@@ -433,18 +447,18 @@ private:
         return ( (k == m_current_k_opt) || (k == m_current_k_opt+1) );
     }
 
-    bool should_reject( time_type error , size_t k ) const
+    bool should_reject( value_type error , size_t k ) const
     {
-        if( (k == m_current_k_opt-1) )
+        if( k == m_current_k_opt-1 )
         {
-            const time_type d = m_interval_sequence[m_current_k_opt] * m_interval_sequence[m_current_k_opt+1] /
-                    (m_interval_sequence[0]*m_interval_sequence[0]);
+            const value_type d = m_interval_sequence[m_current_k_opt] * m_interval_sequence[m_current_k_opt+1] /
+                (m_interval_sequence[0]*m_interval_sequence[0]);
             //step will fail, criterion 17.3.17 in NR
             return ( error > d*d );
         }
         else if( k == m_current_k_opt )
         {
-            const time_type d = m_interval_sequence[m_current_k_opt] / m_interval_sequence[0];
+            const value_type d = m_interval_sequence[m_current_k_opt] / m_interval_sequence[0];
             return ( error > d*d );
         } else
             return error > 1.0;
@@ -477,9 +491,130 @@ private:
 
     state_table_type m_table; // sequence of states for extrapolation
 
-    const time_type STEPFAC1 , STEPFAC2 , STEPFAC3 , STEPFAC4 , KFAC1 , KFAC2;
+    const value_type STEPFAC1 , STEPFAC2 , STEPFAC3 , STEPFAC4 , KFAC1 , KFAC2;
 };
 
+
+/******** DOXYGEN ********/
+/**
+ * \class bulirsch_stoer
+ * \brief The Bulirsch-Stoer algorithm.
+ * 
+ * The Bulirsch-Stoer is a controlled stepper that adjusts both step size
+ * and order of the method. The algorithm uses the modified midpoint and
+ * a polynomial extrapolation compute the solution.
+ *
+ * \tparam State The state type.
+ * \tparam Value The value type.
+ * \tparam Deriv The type representing the time derivative of the state.
+ * \tparam Time The time representing the independent variable - the time.
+ * \tparam Algebra The algebra type.
+ * \tparam Operations The operations type.
+ * \tparam Resizer The resizer policy type.
+ */
+
+    /**
+     * \fn bulirsch_stoer::bulirsch_stoer( value_type eps_abs , value_type eps_rel , value_type factor_x , value_type factor_dxdt )
+     * \brief Constructs the bulirsch_stoer class, including initialization of 
+     * the error bounds.
+     *
+     * \param eps_abs Absolute tolerance level.
+     * \param eps_rel Relative tolerance level.
+     * \param factor_x Factor for the weight of the state.
+     * \param factor_dxdt Factor for the weight of the derivative.
+     */
+
+    /**
+     * \fn bulirsch_stoer::try_step( System system , StateInOut &x , time_type &t , time_type &dt )
+     * \brief Tries to perform one step.
+     *
+     * This method tries to do one step with step size dt. If the error estimate
+     * is to large, the step is rejected and the method returns fail and the 
+     * step size dt is reduced. If the error estimate is acceptably small, the
+     * step is performed, success is returned and dt might be increased to make 
+     * the steps as large as possible. This method also updates t if a step is
+     * performed. Also, the internal order of the stepper is adjusted if required.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ODE. 
+     * It must fulfill the Simple System concept.
+     * \param x The state of the ODE which should be solved. Overwritten if 
+     * the step is successful.
+     * \param t The value of the time. Updated if the step is successful.
+     * \param dt The step size. Updated.
+     * \return success if the step was accepted, fail otherwise.
+     */
+
+    /**
+     * \fn bulirsch_stoer::try_step( System system , StateInOut &x , const DerivIn &dxdt , time_type &t , time_type &dt )
+     * \brief Tries to perform one step.
+     *
+     * This method tries to do one step with step size dt. If the error estimate
+     * is to large, the step is rejected and the method returns fail and the 
+     * step size dt is reduced. If the error estimate is acceptably small, the
+     * step is performed, success is returned and dt might be increased to make 
+     * the steps as large as possible. This method also updates t if a step is
+     * performed. Also, the internal order of the stepper is adjusted if required.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ODE. 
+     * It must fulfill the Simple System concept.
+     * \param x The state of the ODE which should be solved. Overwritten if 
+     * the step is successful.
+     * \param dxdt The derivative of state.
+     * \param t The value of the time. Updated if the step is successful.
+     * \param dt The step size. Updated.
+     * \return success if the step was accepted, fail otherwise.
+     */
+
+    /**
+     * \fn bulirsch_stoer::try_step( System system , const StateIn &in , time_type &t , StateOut &out , time_type &dt )
+     * \brief Tries to perform one step.
+     *
+     * \note This method is disabled if state_type=time_type to avoid ambiguity.
+     *
+     * This method tries to do one step with step size dt. If the error estimate
+     * is to large, the step is rejected and the method returns fail and the 
+     * step size dt is reduced. If the error estimate is acceptably small, the
+     * step is performed, success is returned and dt might be increased to make 
+     * the steps as large as possible. This method also updates t if a step is
+     * performed. Also, the internal order of the stepper is adjusted if required.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ODE. 
+     * It must fulfill the Simple System concept.
+     * \param in The state of the ODE which should be solved.
+     * \param t The value of the time. Updated if the step is successful.
+     * \param out Used to store the result of the step.
+     * \param dt The step size. Updated.
+     * \return success if the step was accepted, fail otherwise.
+     */
+
+
+    /**
+     * \fn bulirsch_stoer::try_step( System system , const StateIn &in , const DerivIn &dxdt , time_type &t , StateOut &out , time_type &dt )
+     * \brief Tries to perform one step.
+     *
+     * This method tries to do one step with step size dt. If the error estimate
+     * is to large, the step is rejected and the method returns fail and the 
+     * step size dt is reduced. If the error estimate is acceptably small, the
+     * step is performed, success is returned and dt might be increased to make 
+     * the steps as large as possible. This method also updates t if a step is
+     * performed. Also, the internal order of the stepper is adjusted if required.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ODE. 
+     * It must fulfill the Simple System concept.
+     * \param in The state of the ODE which should be solved.
+     * \param dxdt The derivative of state.
+     * \param t The value of the time. Updated if the step is successful.
+     * \param out Used to store the result of the step.
+     * \param dt The step size. Updated.
+     * \return success if the step was accepted, fail otherwise.
+     */
+
+
+    /**
+     * \fn bulirsch_stoer::adjust_size( const StateIn &x )
+     * \brief Adjust the size of all temporaries in the stepper manually.
+     * \param x A state from which the size of the temporaries to be resized is deduced.
+     */
 
 }
 }

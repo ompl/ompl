@@ -1,9 +1,9 @@
 /*
  [auto_generated]
- boost/numeric/odeint/integrate/detail/integrate_n_steps.hpp
+ boost/numeric/odeint/integrate/detail/integrate_const.hpp
 
  [begin_description]
- integrate steps implementation
+ integrate const implementation
  [end_description]
 
  Copyright 2009-2012 Karsten Ahnert
@@ -14,13 +14,13 @@
  copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_N_STEPS_HPP_INCLUDED
-#define OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_N_STEPS_HPP_INCLUDED
+#ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_CONST_HPP_INCLUDED
+#define OMPLEXT_BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_CONST_HPP_INCLUDED
 
 #include <omplext_odeint/boost/numeric/odeint/util/unwrap_reference.hpp>
 #include <omplext_odeint/boost/numeric/odeint/stepper/stepper_categories.hpp>
-#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/unit_helper.hpp>
+#include <omplext_odeint/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/detail/less_with_sign.hpp>
 
@@ -38,119 +38,122 @@ size_t integrate_adaptive(
 );
 
 
-/* basic version */
-template< class Stepper , class System , class State , class Time , class Observer>
-Time integrate_n_steps(
+template< class Stepper , class System , class State , class Time , class Observer >
+size_t integrate_const(
         Stepper stepper , System system , State &start_state ,
-        Time start_time , Time dt , size_t num_of_steps ,
-        Observer observer , stepper_tag )
+        Time start_time , Time end_time , Time dt ,
+        Observer observer , stepper_tag 
+)
 {
     typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
-
+    
     Time time = start_time;
-
-    for( size_t step = 0; step < num_of_steps ; ++step )
+    int step = 0;
+    
+    while( less_eq_with_sign( time+dt , end_time , dt ) )
     {
         obs( start_state , time );
         stepper.do_step( system , start_state , time , dt );
         // direct computation of the time avoids error propagation happening when using time += dt
         // we need clumsy type analysis to get boost units working here
-        time = start_time + static_cast< typename unit_value_type<Time>::type >( step+1 ) * dt;
+        ++step;
+        time = start_time + static_cast< typename unit_value_type<Time>::type >(step) * dt;
     }
     obs( start_state , time );
 
-    return time;
+    return step;
 }
 
 
-/* controlled version */
-template< class Stepper , class System , class State , class Time , class Observer>
-Time integrate_n_steps(
+
+template< class Stepper , class System , class State , class Time , class Observer >
+size_t integrate_const(
         Stepper stepper , System system , State &start_state ,
-        Time start_time , Time dt , size_t num_of_steps ,
-        Observer observer , controlled_stepper_tag )
+        Time start_time , Time end_time , Time dt ,
+        Observer observer , controlled_stepper_tag 
+)
 {
     typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
-
+    
     Time time = start_time;
-    Time time_step = dt;
-
-    for( size_t step = 0; step < num_of_steps ; ++step )
+    const Time time_step = dt;
+    int step = 0;
+    
+    while( less_eq_with_sign( time+time_step , end_time , dt ) )
     {
         obs( start_state , time );
         detail::integrate_adaptive( stepper , system , start_state , time , time+time_step , dt ,
-                null_observer() , controlled_stepper_tag() );
+                                    null_observer() , controlled_stepper_tag() );
         // direct computation of the time avoids error propagation happening when using time += dt
         // we need clumsy type analysis to get boost units working here
-        time = start_time + static_cast< typename unit_value_type<Time>::type >(step+1) * time_step;
+        ++step;
+        time = start_time + static_cast< typename unit_value_type<Time>::type >(step) * time_step;
     }
     obs( start_state , time );
-
-    return time;
+    
+    return step;
 }
 
 
-/* dense output version */
-template< class Stepper , class System , class State , class Time , class Observer>
-Time integrate_n_steps(
+template< class Stepper , class System , class State , class Time , class Observer >
+size_t integrate_const(
         Stepper stepper , System system , State &start_state ,
-        Time start_time , Time dt , size_t num_of_steps ,
-        Observer observer , dense_output_stepper_tag )
+        Time start_time , Time end_time , Time dt ,
+        Observer observer , dense_output_stepper_tag 
+)
 {
     typename omplext_odeint::unwrap_reference< Observer >::type &obs = observer;
-
+    
     Time time = start_time;
-    const Time end_time = start_time + static_cast< typename unit_value_type<Time>::type >(num_of_steps) * dt;
-
+    
     stepper.initialize( start_state , time , dt );
+    obs( start_state , time );
+    time += dt;
 
-    size_t step = 0;
-
-    while( step < num_of_steps )
+    int obs_step( 1 );
+    int real_step( 0 );
+    
+    while( less_with_sign( time+dt , end_time , dt ) )
     {
-        while( less_with_sign( time , stepper.current_time() , stepper.current_time_step() ) )
+        while( less_eq_with_sign( time , stepper.current_time() , dt ) )
         {
             stepper.calc_state( time , start_state );
             obs( start_state , time );
-            ++step;
+            ++obs_step;
             // direct computation of the time avoids error propagation happening when using time += dt
             // we need clumsy type analysis to get boost units working here
-            time = start_time + static_cast< typename unit_value_type<Time>::type >(step) * dt;
+            time = start_time + static_cast< typename unit_value_type<Time>::type >(obs_step) * dt;
         }
-
         // we have not reached the end, do another real step
         if( less_with_sign( stepper.current_time()+stepper.current_time_step() ,
                             end_time ,
                             stepper.current_time_step() ) )
         {
-            stepper.do_step( system );
+            while( less_eq_with_sign( stepper.current_time() , time , dt ) )
+            {
+                stepper.do_step( system );
+                ++real_step;
+            }
         }
         else if( less_with_sign( stepper.current_time() , end_time , stepper.current_time_step() ) )
         { // do the last step ending exactly on the end point
             stepper.initialize( stepper.current_state() , stepper.current_time() , end_time - stepper.current_time() );
             stepper.do_step( system );
+            ++real_step;
         }
+        
     }
-
-    while( stepper.current_time() < end_time )
+    // last observation, if we are still in observation interval
+    if( less_eq_with_sign( time , end_time , dt ) )
     {
-        if( less_with_sign( end_time ,
-                            stepper.current_time()+stepper.current_time_step() ,
-                            stepper.current_time_step() ) )
-            stepper.initialize( stepper.current_state() , stepper.current_time() , end_time - stepper.current_time() );
-        stepper.do_step( system );
+        stepper.calc_state( time , start_state );
+        obs( start_state , time );
     }
-
-    // observation at end point, only if we ended exactly on the end-point (or above due to finite precision)
-    obs( stepper.current_state() , end_time );
-
-    return time;
+    
+    return real_step;
 }
 
 
-}
-}
-}
-}
+} } } }
 
-#endif /* BOOST_NUMERIC_ODEINT_INTEGRATE_DETAIL_INTEGRATE_N_STEPS_HPP_INCLUDED */
+#endif
