@@ -70,14 +70,6 @@ ompl::geometric::BallTreeRRTstar::~BallTreeRRTstar(void)
 
 void ompl::geometric::BallTreeRRTstar::setup(void)
 {
-    // ERROR if no StateValidityChecker was specified but a
-    // MotionValidator was
-    if (!si_->getStateValidityChecker() &&
-	si_->getMotionValidator())
-    {
-	OMPL_ERROR("%s requires specification of a state validity checker.", getName().c_str());
-    }
-
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
