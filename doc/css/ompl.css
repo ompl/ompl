@@ -116,3 +116,14 @@ a.btn-primary small, a:visited.btn-primary small { color: #ccc; }
 span.lineno { border-right-color: #034170; }
 .navpath li { line-height: 32px; }
 iframe#externalpagewrapper { min-width:980px; width:100%; height:1600px; margin: -50px -40px 0px -40px; }
+
+#apioverview {
+    width: 940px;
+    height: 685px;
+}
+@media (max-width: 979px) {
+    #apioverview {
+        width: 724px;
+        height: 527px;
+    }
+}
