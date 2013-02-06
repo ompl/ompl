@@ -100,6 +100,20 @@ ompl::base::PathIntegralOptimizationObjective::PathIntegralOptimizationObjective
     description_ = "Path Integral";
 }
 
+void ompl::base::PathIntegralOptimizationObjective::getCost(const Path &path, Cost *cost) const
+{
+    OptimizationObjective::getCost(path, cost);
+}
+
+double ompl::base::PathIntegralOptimizationObjective::getCost(const Path &path) const
+{
+    Cost *cost = allocCost();
+    getCost(path, cost);
+    double value = cost->as<CostType>()->value;
+    freeCost(cost);
+    return value;
+}
+
 double ompl::base::PathIntegralOptimizationObjective::getMaxPathCost(void) const
 {
     return maxPathCost_;

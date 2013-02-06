@@ -175,6 +175,11 @@ namespace ompl
 
 	    void setMaxPathCost(double maxPathCost);
 
+	    virtual void getCost(const Path &path, Cost *cost) const;
+
+	    /** \brief Get the value of the cost that corresponds to an entire path. */
+	    virtual double getCost(const Path &path) const;
+
 	    /** \brief Returns true if the value of \e cost is less than or equal to \e maxPathCost_ */
 	    virtual bool isSatisfied(const Cost *cost) const;
 
