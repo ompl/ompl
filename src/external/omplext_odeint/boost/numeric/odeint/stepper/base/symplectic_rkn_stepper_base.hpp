@@ -35,17 +35,15 @@
 
 
 
+
 namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
 
-/*
- * Symplectic Runge Kutta Nystroem base
- */
 template<
 size_t NumOfStages ,
-class Stepper ,
+unsigned short Order ,
 class Coor ,
 class Momentum ,
 class Value ,
@@ -77,30 +75,27 @@ public:
     typedef Value value_type;
     typedef Time time_type;
     typedef Resizer resizer_type;
-    typedef Stepper stepper_type;
     typedef stepper_tag stepper_category;
-    typedef symplectic_nystroem_stepper_base< NumOfStages , Stepper , Coor , Momentum , Value ,
+    
+    #ifndef DOXYGEN_SKIP
+    typedef symplectic_nystroem_stepper_base< NumOfStages , Order , Coor , Momentum , Value ,
             CoorDeriv , MomentumDeriv , Time , Algebra , Operations , Resizer > internal_stepper_base_type;
+    #endif 
+    typedef unsigned short order_type;
+
+    static const order_type order_value = Order;
 
     typedef boost::array< value_type , num_of_stages > coef_type;
 
     symplectic_nystroem_stepper_base( const coef_type &coef_a , const coef_type &coef_b , const algebra_type &algebra = algebra_type() )
-    : algebra_stepper_base_type( algebra ) , m_coef_a( coef_a ) , m_coef_b( coef_b )
+        : algebra_stepper_base_type( algebra ) , m_coef_a( coef_a ) , m_coef_b( coef_b ) ,
+          m_dqdt_resizer() , m_dpdt_resizer() , m_dqdt() , m_dpdt() 
     { }
 
-    symplectic_nystroem_stepper_base( const symplectic_nystroem_stepper_base &stepper )
-    : m_coef_a( stepper.m_coef_a ) , m_coef_b( stepper.m_coef_b ) ,
-      m_dqdt_resizer( stepper.m_dqdt_resizer ) , m_dpdt_resizer( stepper.m_dpdt_resizer ) ,
-      m_dqdt( stepper.m_dqdt ) , m_dpdt( stepper.m_dpdt )
-    { }
 
-    symplectic_nystroem_stepper_base& operator = ( const symplectic_nystroem_stepper_base &stepper )
+    order_type order( void ) const
     {
-        m_dqdt_resizer = stepper.m_dqdt_resizer;
-        m_dpdt_resizer = stepper.m_dpdt_resizer;
-        m_dqdt = stepper.m_dqdt;
-        m_dpdt = stepper.m_dpdt;
-        return *this;
+        return order_value;
     }
 
     /*
@@ -115,12 +110,18 @@ public:
         do_step_impl( system , state , t , state , dt , typename is_pair< system_type >::type() );
     }
 
+    /**
+     * \brief Same function as above. It differs only in a different const specifier in order
+     * to solve the forwarding problem, can be used with Boost.Range.
+     */
     template< class System , class StateInOut >
     void do_step( System system , StateInOut &state , time_type t , time_type dt )
     {
         typedef typename omplext_odeint::unwrap_reference< System >::type system_type;
         do_step_impl( system , state , t , state , dt , typename is_pair< system_type >::type() );
     }
+
+
 
 
     /*
@@ -136,6 +137,10 @@ public:
         do_step( system , std::make_pair( detail::ref( q ) , detail::ref( p ) ) , t , dt );
     }
 
+    /**
+     * \brief Same function as do_step( system , q , p , t , dt ). It differs only in a different const specifier in order
+     * to solve the forwarding problem, can be called with Boost.Range.
+     */
     template< class System , class CoorInOut , class MomentumInOut >
     void do_step( System system , const CoorInOut &q , const MomentumInOut &p , time_type t , time_type dt )
     {
@@ -166,7 +171,10 @@ public:
         resize_dpdt( x );
     }
 
+    /** \brief Returns the coefficients a. */
     const coef_type& coef_a( void ) const { return m_coef_a; }
+
+    /** \brief Returns the coefficients b. */
     const coef_type& coef_b( void ) const { return m_coef_b; }
 
 private:
@@ -253,23 +261,22 @@ private:
 
         // ToDo: check sizes?
 
-
         for( size_t l=0 ; l<num_of_stages ; ++l )
         {
             if( l == 0 )
             {
                 this->m_algebra.for_each3( coor_out  , coor_in , momentum_in ,
                         typename operations_type::template scale_sum2< value_type , time_type >( 1.0 , m_coef_a[l] * dt ) );
-                momentum_func( coor_out , m_dqdt.m_v );
-                this->m_algebra.for_each3( momentum_out , momentum_in , m_dqdt.m_v ,
-                        typename operations_type::template scale_sum2< value_type , time_type >( 1.0 , m_coef_b[l] * dt ) );
+                momentum_func( coor_out , m_dpdt.m_v );
+                this->m_algebra.for_each3( momentum_out , momentum_in , m_dpdt.m_v ,
+                                           typename operations_type::template scale_sum2< value_type , time_type >( 1.0 , m_coef_b[l] * dt ) );
             }
             else
             {
                 this->m_algebra.for_each3( coor_out , coor_out , momentum_out ,
                         typename operations_type::template scale_sum2< value_type , time_type >( 1.0 , m_coef_a[l] * dt ) );
-                momentum_func( coor_out , m_dqdt.m_v );
-                this->m_algebra.for_each3( momentum_out , momentum_out , m_dqdt.m_v ,
+                momentum_func( coor_out , m_dpdt.m_v );
+                this->m_algebra.for_each3( momentum_out , momentum_out , m_dpdt.m_v ,
                         typename operations_type::template scale_sum2< value_type , time_type >( 1.0 , m_coef_b[l] * dt ) );
             }
         }
@@ -297,6 +304,126 @@ private:
     wrapped_momentum_deriv_type m_dpdt;
 
 };
+
+/********* DOXYGEN *********/
+
+/**
+ * \class symplectic_nystroem_stepper_base
+ * \brief Base class for all symplectic steppers of Nystroem type.
+ *
+ * This class is the base class for the symplectic Runge-Kutta-Nystroem steppers. Symplectic steppers are usually
+ * used to solve Hamiltonian systems and they conserve the phase space volume, see
+ * <a href="http://en.wikipedia.org/wiki/Symplectic_integrator">en.wikipedia.org/wiki/Symplectic_integrator</a>. 
+ * Furthermore, the energy is conserved
+ * in average. In detail this class of steppers can be used to solve separable Hamiltonian systems which can be written
+ * in the form H(q,p) = H1(p) + H2(q). q is usually called the coordinate, while p is the momentum. The equations of motion
+ * are dq/dt = dH1/dp, dp/dt = -dH2/dq.
+ *
+ * ToDo : add formula for solver and explanation of the coefficients
+ * 
+ * symplectic_nystroem_stepper_base uses odeints algebra and operation system. Step size and error estimation are not
+ * provided for this class of solvers. It derives from algebra_stepper_base. Several `do_step` variants are provided:
+ *
+ * - `do_step( sys , x , t , dt )` - The classical `do_step` method. The sys can be either a pair of function objects
+ *    for the coordinate or the momentum part or one function object for the momentum part. `x` is a pair of coordinate
+ *    and momentum. The state is updated in-place.
+ * - `do_step( sys , q , p , t , dt )` - This method is similar to the method above with the difference that the coordinate
+ *    and the momentum are passed explicitly and not packed into a pair.
+ * - `do_step( sys , x_in , t , x_out , dt )` - This method transforms the state out-of-place. `x_in` and `x_out` are here pairs
+ *    of coordinate and momentum.
+ *
+ * \tparam NumOfStages Number of stages.
+ * \tparam Order The order of the stepper.
+ * \tparam Coor The type representing the coordinates q.
+ * \tparam Momentum The type representing the coordinates p.
+ * \tparam Value The basic value type. Should be something like float, double or a high-precision type.
+ * \tparam CoorDeriv The type representing the time derivative of the coordinate dq/dt.
+ * \tparam MomemtnumDeriv The type representing the time derivative of the momentum dp/dt.
+ * \tparam Time The type representing the time t.
+ * \tparam Algebra The algebra.
+ * \tparam Operations The operations.
+ * \tparam Resizer The resizer policy.
+ */
+
+    /**
+     * \fn symplectic_nystroem_stepper_base::symplectic_nystroem_stepper_base( const coef_type &coef_a , const coef_type &coef_b , const algebra_type &algebra )
+     * \brief Constructs a symplectic_nystroem_stepper_base class. The parameters of the specific Nystroem method and the
+     * algebra have to be passed.
+     * \param coef_a The coefficients a.
+     * \param coef_b The coefficients b.
+     * \param algebra A copy of algebra is made and stored inside explicit_stepper_base.
+     */
+
+    /**
+     * \fn symplectic_nystroem_stepper_base::order( void ) const
+     * \return Returns the order of the stepper.
+     */
+
+    /**
+     * \fn symplectic_nystroem_stepper_base::do_step( System system , const StateInOut &state , time_type t , time_type dt )
+     * \brief This method performs one step. The system can be either a pair of two function object
+     * describing the momentum part and the coordinate part or one function object describing only
+     * the momentum part. In this case the coordinate is assumed to be trivial dq/dt = p. The state
+     * is updated in-place.
+     *
+     * \note boost::ref or std::ref can be used for the system as well as for the state. So, it is correct
+     * to write `stepper.do_step( make_pair( std::ref( fq ) , std::ref( fp ) ) , make_pair( std::ref( q ) , std::ref( p ) ) , t , dt )`.
+     *
+     * \note This method solves the forwarding problem.
+     *
+     * \param system The system, can be represented as a pair of two function object or one function object. See above.
+     * \param state The state of the ODE. It is a pair of Coor and Momentum. The state is updated in-place, therefore, the
+     * new value of the state will be written into this variable.
+     * \param t The time of the ODE. It is not advanced by this method.
+     * \param dt The time step.
+     */
+
+    /**
+     * \fn symplectic_nystroem_stepper_base::do_step( System system , CoorInOut &q , MomentumInOut &p , time_type t , time_type dt )
+     * \brief This method performs one step. The system can be either a pair of two function object
+     * describing the momentum part and the coordinate part or one function object describing only
+     * the momentum part. In this case the coordinate is assumed to be trivial dq/dt = p. The state
+     * is updated in-place.
+     *
+     * \note boost::ref or std::ref can be used for the system. So, it is correct
+     * to write `stepper.do_step( make_pair( std::ref( fq ) , std::ref( fp ) ) , q , p , t , dt )`.
+     *
+     * \note This method solves the forwarding problem.
+     *
+     * \param system The system, can be represented as a pair of two function object or one function object. See above.
+     * \param q The coordinate of the ODE. It is updated in-place. Therefore, the new value of the coordinate will be written
+     * into this variable.
+     * \param p The momentum of the ODE. It is updated in-place. Therefore, the new value of the momentum will be written info
+     * this variable.
+     * \param t The time of the ODE. It is not advanced by this method.
+     * \param dt The time step.
+     */
+
+    /**
+     * \fn symplectic_nystroem_stepper_base::do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt )
+     * \brief This method performs one step. The system can be either a pair of two function object
+     * describing the momentum part and the coordinate part or one function object describing only
+     * the momentum part. In this case the coordinate is assumed to be trivial dq/dt = p. The state
+     * is updated out-of-place.
+     *
+     * \note boost::ref or std::ref can be used for the system. So, it is correct
+     * to write `stepper.do_step( make_pair( std::ref( fq ) , std::ref( fp ) ) , x_in , t , x_out , dt )`.
+     *
+     * \note This method NOT solve the forwarding problem.
+     *
+     * \param system The system, can be represented as a pair of two function object or one function object. See above.
+     * \param in The state of the ODE, which is a pair of coordinate and momentum. The state is updated out-of-place, therefore the 
+     * new value is written into out
+     * \param t The time of the ODE. It is not advanced by this method.
+     * \param out The new state of the ODE.
+     * \param dt The time step.
+     */
+
+    /**
+     * \fn symplectic_nystroem_stepper_base::adjust_size( const StateType &x )
+     * \brief Adjust the size of all temporaries in the stepper manually.
+     * \param x A state from which the size of the temporaries to be resized is deduced.
+     */
 
 } // namespace omplext_odeint
 } // namespace numeric

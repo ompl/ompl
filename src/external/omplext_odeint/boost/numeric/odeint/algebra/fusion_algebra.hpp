@@ -18,22 +18,12 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_ALGEBRA_FUSION_ALGEBRA_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_ALGEBRA_FUSION_ALGEBRA_HPP_INCLUDED
 
-/* moved to config.hpp
-#define BOOST_FUSION_UNFUSED_MAX_ARITY 15
-#define BOOST_FUSION_UNFUSED_TYPE_MAX_ARITY 15
-#define BOOST_FUSION_INVOKE_MAX_ARITY 15
-#define BOOST_FUSION_INVOKE_PROCEDURE_MAX_ARITY 15
-#define BOOST_FUSION_INVOKE_FUNCTION_OBJECT_MAX_ARITY 15
-*/
 
-#include <boost/fusion/container.hpp>
-#include <boost/fusion/sequence.hpp>
-#include <boost/fusion/algorithm.hpp>
-#include <boost/fusion/view.hpp>
-#include <boost/fusion/functional.hpp>
-
-
-
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/algorithm/iteration/for_each.hpp>
+#include <boost/fusion/view/zip_view.hpp>
+#include <boost/fusion/functional/generation/make_fused.hpp>
+#include <boost/fusion/algorithm/iteration/accumulate.hpp>
 
 namespace boost {
 namespace numeric {

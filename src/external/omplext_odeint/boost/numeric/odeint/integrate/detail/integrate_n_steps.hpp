@@ -105,6 +105,7 @@ Time integrate_n_steps(
     stepper.initialize( start_state , time , dt );
 
     size_t step = 0;
+
     while( step < num_of_steps )
     {
         while( less_with_sign( time , stepper.current_time() , stepper.current_time_step() ) )

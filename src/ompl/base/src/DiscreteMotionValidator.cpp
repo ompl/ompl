@@ -149,7 +149,7 @@ void ompl::base::DiscreteMotionValidator::computeMotionCost(const State *s1, con
 
     double c1 = si_->getStateValidityChecker()->cost(s1);
     double c2 = si_->getStateValidityChecker()->cost(s2);
-    
+
     if (c1 <= c2)
     {
         bounds.first = c1;
@@ -166,7 +166,7 @@ void ompl::base::DiscreteMotionValidator::computeMotionCost(const State *s1, con
         /* temporary storage for the checked state */
         State *test = si_->allocState();
         double totalCost = (c1 + c2) / 2.0;
-        
+
         for (int j = 1 ; j < nd ; ++j)
         {
             stateSpace_->interpolate(s1, s2, (double)j / (double)nd, test);

@@ -50,12 +50,12 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(SpaceInformation);
+        OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ValidStateSampler */
-        ClassForward(ValidStateSampler);
+        OMPL_CLASS_FORWARD(ValidStateSampler);
         /// @endcond
 
         /** \class ompl::base::ValidStateSamplerPtr

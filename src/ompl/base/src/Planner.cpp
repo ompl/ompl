@@ -87,12 +87,12 @@ void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())
     {
-        logInform("Space information setup was not yet called. Calling now.");
+        OMPL_INFORM("Space information setup was not yet called. Calling now.");
         si_->setup();
     }
 
     if (setup_)
-        logWarn("Planner setup called multiple times");
+        OMPL_WARN("Planner setup called multiple times");
     else
         setup_ = true;
 }
@@ -175,7 +175,7 @@ bool ompl::base::PlannerInputStates::update(void)
 {
     if (!planner_)
         throw Exception("No planner set for PlannerInputStates");
-    return use(planner_->getSpaceInformation(), planner_->getProblemDefinition());
+    return use(planner_->getProblemDefinition());
 }
 
 void ompl::base::PlannerInputStates::checkValidity(void) const
@@ -202,10 +202,15 @@ void ompl::base::PlannerInputStates::checkValidity(void) const
     }
 }
 
-bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef)
+bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &, const ProblemDefinitionPtr &pdef)
 {
-    if (si && pdef)
-        return use(si.get(), pdef.get());
+  return use(pdef);
+}
+
+bool ompl::base::PlannerInputStates::use(const ProblemDefinitionPtr &pdef)
+{
+    if (pdef)
+        return use(pdef.get());
     else
     {
         clear();
@@ -213,13 +218,18 @@ bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &si, const Pr
     }
 }
 
-bool ompl::base::PlannerInputStates::use(const SpaceInformation *si, const ProblemDefinition *pdef)
+bool ompl::base::PlannerInputStates::use(const SpaceInformation *, const ProblemDefinition *pdef)
 {
-    if (pdef_ != pdef || si_ != si)
+    return use(pdef);
+}
+
+bool ompl::base::PlannerInputStates::use(const ProblemDefinition *pdef)
+{
+    if (pdef_ != pdef)
     {
         clear();
         pdef_ = pdef;
-        si_ = si;
+        si_ = pdef->getSpaceInformation().get();
         return true;
     }
     return false;
@@ -246,10 +256,10 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
             return st;
         else
         {
-            logWarn("Skipping invalid start state (invalid %s)", bounds ? "state": "bounds");
+            OMPL_WARN("Skipping invalid start state (invalid %s)", bounds ? "state": "bounds");
             std::stringstream ss;
             si_->printState(st, ss);
-            logDebug("Discarded start state %s", ss.str().c_str());
+            OMPL_DEBUG("Discarded start state %s", ss.str().c_str());
         }
     }
     return NULL;
@@ -297,30 +307,30 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     {
                         if (!first) // if we waited, show how long
                         {
-                           logDebug("Waited %lf seconds for the first goal sample.", time::seconds(time::now() - start_wait));
+                           OMPL_DEBUG("Waited %lf seconds for the first goal sample.", time::seconds(time::now() - start_wait));
                         }
                         return tempState_;
                     }
                     else
                     {
-                        logWarn("Skipping invalid goal state (invalid %s)", bounds ? "state": "bounds");
+                        OMPL_WARN("Skipping invalid goal state (invalid %s)", bounds ? "state": "bounds");
                         std::stringstream ss;
                         si_->printState(tempState_, ss);
-                        logDebug("Discarded goal state %s", ss.str().c_str());
+                        OMPL_DEBUG("Discarded goal state %s", ss.str().c_str());
                     }
                 }
-                while (!ptc() && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
+                while (!ptc && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
             }
-            if (goal->couldSample() && !ptc())
+            if (goal->couldSample() && !ptc)
             {
                 if (first)
                 {
                     first = false;
                     start_wait = time::now();
-                    logDebug("Waiting for goal region samples ...");
+                    OMPL_DEBUG("Waiting for goal region samples ...");
                 }
                 boost::this_thread::sleep(time::seconds(0.01));
-                attempt = !ptc();
+                attempt = !ptc;
             }
         }
     }

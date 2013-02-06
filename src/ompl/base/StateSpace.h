@@ -58,7 +58,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSpace */
-        ClassForward(StateSpace);
+        OMPL_CLASS_FORWARD(StateSpace);
         /// @endcond
 
         /** \class ompl::base::StateSpacePtr
@@ -173,6 +173,13 @@ namespace ompl
             /** \brief Check if this is a hybrid state space (i.e., both discrete and continuous components exist)*/
             virtual bool isHybrid(void) const;
 
+            /** \brief Return true if the distance function associated with the space
+                is a metric */
+            virtual bool isMetricSpace(void) const
+            {
+                return true;
+            }
+
             /** \brief Get the name of the state space */
             const std::string& getName(void) const;
 
@@ -274,7 +281,7 @@ namespace ompl
                 can always return true. */
             virtual bool satisfiesBounds(const State *state) const = 0;
 
-            /** \brief Copy a state to another. The memory of source and destination should NOT overlap. 
+            /** \brief Copy a state to another. The memory of source and destination should NOT overlap.
                 \note For more advanced state copying methods (partial copy, for example), see \ref advancedStateCopy. */
             virtual void copyState(State *destination, const State *source) const = 0;
 
@@ -420,10 +427,10 @@ namespace ompl
             virtual void sanityChecks(void) const;
 
             /** \brief Print a Graphviz digraph that represents the containment diagram for the state space */
-	    void diagram(std::ostream &out) const;
+            void diagram(std::ostream &out) const;
 
             /** \brief Print the list of all contained state space instances */
-	    void list(std::ostream &out) const;
+            void list(std::ostream &out) const;
 
             /** \brief Print a Graphviz digraph that represents the containment diagram for all the instantiated state spaces */
             static void Diagram(std::ostream &out);
@@ -451,14 +458,14 @@ namespace ompl
             /** \brief Get the list of known substate locations (keys of the map corrspond to names of subspaces) */
             const std::map<std::string, SubstateLocation>& getSubstateLocationsByName(void) const;
 
-            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does 
+            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does
                 not contain spaces that cover each other, even though they may be common, as that is redundant information. */
             void getCommonSubspaces(const StateSpacePtr &other, std::vector<std::string> &subspaces) const;
 
-            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does 
+            /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does
                 not contain spaces that cover each other, even though they may be common, as that is redundant information. */
             void getCommonSubspaces(const StateSpace *other, std::vector<std::string> &subspaces) const;
-          
+
             /** \brief Compute the location information for various components of the state space. Either this function or setup() must be
                 called before any calls to getValueAddressAtName(), getValueAddressAtLocation() (and other functions where those are used). */
             virtual void computeLocations(void);
@@ -780,7 +787,7 @@ namespace ompl
         /** \brief Copy data from \e source (state from space \e
             sourceS) to \e dest (state from space \e destS) but only
             for the subspaces indicated by name in \e subspaces. This
-            uses StateSpace::getSubstateLocationsByName(). 
+            uses StateSpace::getSubstateLocationsByName().
             \note For efficiency reasons it is a good idea usually to make sure the elements of \e subspaces are not subspaces of each other */
         AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest,
                                                  const StateSpace *sourceS, const State *source,

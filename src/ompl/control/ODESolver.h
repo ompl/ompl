@@ -47,8 +47,15 @@
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/StatePropagator.h"
 #include "ompl/util/Console.h"
+#include "ompl/util/ClassForward.h"
 
+#if BOOST_VERSION >= 105300
+#include <boost/numeric/odeint.hpp>
+namespace odeint = boost::numeric::odeint;
+#else
 #include <omplext_odeint/boost/numeric/odeint.hpp>
+namespace odeint = boost::numeric::omplext_odeint;
+#endif
 #include <boost/function.hpp>
 #include <cassert>
 #include <vector>
@@ -58,6 +65,13 @@ namespace ompl
 
     namespace control
     {
+
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(ODESolver);
+        /// @endcond
+
+        /// \class ompl::control::ODESolverPtr
+        /// \brief A boost shared pointer wrapper for ompl::control::ODESolver
 
         /// \brief Abstract base class for an object that can solve ordinary differential
         /// equations (ODE) of the type q' = f(q,u) using numerical integration.  Classes
@@ -75,11 +89,11 @@ namespace ompl
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            typedef boost::function<void(const Control*, base::State*)> PostPropagationEvent;
+            typedef boost::function<void(const base::State *state, const Control* control, const double duration, base::State *result)> PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const SpaceInformationPtr &si, const ODE &ode, double intStep) : si_(si), ode_(ode), intStep_(intStep)
+            ODESolver (const SpaceInformationPtr& si, const ODE& ode, double intStep) : si_(si), ode_(ode), intStep_(intStep)
             {
             }
 
@@ -106,18 +120,27 @@ namespace ompl
                 intStep_ = intStep;
             }
 
-            /// \brief Retrieve a StatePropagator object that solves the system of ordinary
-            /// differential equations defined by this ODESolver.
+            /** \brief Get the current instance of the space information */
+            const SpaceInformationPtr& getSpaceInformation() const
+            {
+                return si_;
+            }
+
+            /// \brief Retrieve a StatePropagator object that solves a system of ordinary
+            /// differential equations defined by an ODESolver.
             /// An optional PostPropagationEvent can also be specified as a callback after
             /// numerical integration is finished for further operations on the resulting
             /// state.
-            StatePropagatorPtr getStatePropagator (const PostPropagationEvent &postEvent = NULL) const
+            static StatePropagatorPtr getStatePropagator (ODESolverPtr solver,
+                const PostPropagationEvent &postEvent = NULL)
             {
                 class ODESolverStatePropagator : public StatePropagator
                 {
                     public:
-                        ODESolverStatePropagator (const SpaceInformationPtr& si, const ODESolver *solver, const PostPropagationEvent &pe) : StatePropagator (si), solver_(solver), postEvent_(pe)
+                        ODESolverStatePropagator (ODESolverPtr solver, const PostPropagationEvent &pe) : StatePropagator (solver->si_), solver_(solver), postEvent_(pe)
                         {
+                            if (!solver.get())
+                                OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
                         }
 
                         virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
@@ -128,15 +151,14 @@ namespace ompl
                             si_->getStateSpace()->copyFromReals(result, reals);
 
                             if (postEvent_)
-                                postEvent_ (control, result);
+                                postEvent_ (state, control, duration, result);
                         }
 
                     protected:
-                        const ODESolver *solver_;
+                        ODESolverPtr solver_;
                         ODESolver::PostPropagationEvent postEvent_;
                 };
-
-                return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(si_, this, postEvent)));
+                return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(solver, postEvent)));
             }
 
         protected:
@@ -177,7 +199,7 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations.  The default
         /// is a fourth order Runge-Kutta method.  This class wraps around the simple stepper
         /// concept from boost::numeric::odeint.
-        template <class Solver = boost::numeric::omplext_odeint::runge_kutta4<ODESolver::StateType> >
+        template <class Solver = odeint::runge_kutta4<ODESolver::StateType> >
         class ODEBasicSolver : public ODESolver
         {
         public:
@@ -195,7 +217,7 @@ namespace ompl
             {
                 Solver solver;
                 ODESolver::ODEFunctor odefunc (ode_, control);
-                boost::numeric::omplext_odeint::integrate_const (solver, odefunc, state, 0.0, duration, intStep_);
+                odeint::integrate_const (solver, odefunc, state, 0.0, duration, intStep_);
             }
         };
 
@@ -205,7 +227,7 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
         /// This class wraps around the error stepper concept from boost::numeric::odeint.
-        template <class Solver = boost::numeric::omplext_odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
+        template <class Solver = odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
         class ODEErrorSolver : public ODESolver
         {
         public:
@@ -252,7 +274,7 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations, and must implement
         /// the error stepper concept from boost::numeric::odeint.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
-        template <class Solver = boost::numeric::omplext_odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
+        template <class Solver = odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
         class ODEAdaptiveSolver : public ODESolver
         {
         public:
@@ -296,8 +318,8 @@ namespace ompl
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 
-                boost::numeric::omplext_odeint::controlled_runge_kutta< Solver > solver (boost::numeric::omplext_odeint::default_error_checker<double>(maxError_, maxEpsilonError_));
-                boost::numeric::omplext_odeint::integrate_adaptive (solver, odefunc, state, 0.0, duration, intStep_);
+                odeint::controlled_runge_kutta< Solver > solver (odeint::default_error_checker<double>(maxError_, maxEpsilonError_));
+                odeint::integrate_adaptive (solver, odefunc, state, 0.0, duration, intStep_);
             }
 
             /// \brief The maximum error allowed when performing numerical integration

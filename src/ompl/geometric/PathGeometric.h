@@ -193,18 +193,6 @@ namespace ompl
             bool randomValid(unsigned int attempts);
             /** @} */
 
-
-            /** \brief Compute the time parametrization for the states along this path
-                \param maxVel The maximum velocity to be attained
-                \param maxAcc The maximum acceleration of the system
-                \param times The time stamp (in seconds) for each of the states along the path. Starts at 0.0
-                \param maxSteps The maximum number of steps to run this algorithm for (the algorithm is iterative)
-
-                \note This method attempts to get to the maximum velocity as quickly as possible, while staying within
-                acceleration limits. */
-            void computeFastTimeParametrization(double maxVel, double maxAcc, std::vector<double> &times, unsigned int maxSteps = 10) const;
-
-
             /** @name Functionality for accessing states
                 @{ */
 

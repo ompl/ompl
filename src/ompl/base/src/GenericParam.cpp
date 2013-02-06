@@ -44,7 +44,7 @@ bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &v
         return it->second->setValue(value);
     else
     {
-        logError("Parameter '%s' was not found", key.c_str());
+        OMPL_ERROR("Parameter '%s' was not found", key.c_str());
         return false;
     }
 }

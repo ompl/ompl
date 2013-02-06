@@ -52,7 +52,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::Decomposition */
-        ClassForward(Decomposition);
+        OMPL_CLASS_FORWARD(Decomposition);
         /// @endcond
 
         /** \class ompl::control::DecompositionPtr
@@ -71,7 +71,7 @@ namespace ompl
                 if (dim > b.low.size())
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
                 else if (dim < b.low.size())
-                    logWarn("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
+                    OMPL_WARN("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
             }
 
             virtual ~Decomposition()

@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
@@ -46,7 +45,7 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : b
 
     maxDistance_ = 0.0;
 
-    Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange);
+    Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
@@ -62,9 +61,9 @@ void ompl::geometric::RRTConnect::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!tStart_)
-        tStart_.reset(new NearestNeighborsGNAT<Motion*>());
+        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     if (!tGoal_)
-        tGoal_.reset(new NearestNeighborsGNAT<Motion*>());
+        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     tStart_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
     tGoal_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 }
@@ -156,7 +155,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     if (!goal)
     {
-        logError("Unknown type of goal (or goal undefined)");
+        OMPL_ERROR("Unknown type of goal (or goal undefined)");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -170,20 +169,20 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     if (tStart_->size() == 0)
     {
-        logError("Motion planning start tree could not be initialized!");
+        OMPL_ERROR("Motion planning start tree could not be initialized!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        logError("Insufficient states in sampleable goal region");
+        OMPL_ERROR("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    logInform("Starting with %d states", (int)(tStart_->size() + tGoal_->size()));
+    OMPL_INFORM("Starting with %d states", (int)(tStart_->size() + tGoal_->size()));
 
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
@@ -193,7 +192,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     bool startTree      = true;
     bool solved         = false;
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         TreeData &tree      = startTree ? tStart_ : tGoal_;
         tgi.start = startTree;
@@ -213,7 +212,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
             if (tGoal_->size() == 0)
             {
-                logError("Unable to sample any valid states for goal tree");
+                OMPL_ERROR("Unable to sample any valid states for goal tree");
                 break;
             }
         }
@@ -253,7 +252,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 else
                     goalMotion = goalMotion->parent;
 
-                connectionPoint_ = std::make_pair<base::State*, base::State*>(startMotion->state, goalMotion->state);
+                connectionPoint_ = std::make_pair(startMotion->state, goalMotion->state);
 
                 /* construct the solution path */
                 Motion *solution = startMotion;
@@ -290,7 +289,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     si_->freeState(rstate);
     delete rmotion;
 
-    logInform("Created %u states (%u start + %u goal)", tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
+    OMPL_INFORM("Created %u states (%u start + %u goal)", tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

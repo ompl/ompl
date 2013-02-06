@@ -3,8 +3,8 @@
  boost/numeric/odeint/util/state_wrapper.hpp
 
  [begin_description]
- State wrapper for the state type in all stepper. The state wrappers are responsible for contruction,
- destruction, copying contruction, assignment and resizing.
+ State wrapper for the state type in all stepper. The state wrappers are responsible for construction,
+ destruction, copying construction, assignment and resizing.
  [end_description]
 
  Copyright 2009-2011 Karsten Ahnert
@@ -32,7 +32,7 @@ namespace numeric {
 namespace omplext_odeint {
 
 
-template< class V >
+template< class V , class Enabler = void >
 struct state_wrapper
 {
     typedef state_wrapper< V > state_wrapper_type;

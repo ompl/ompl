@@ -48,8 +48,8 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
     maxDistance_ = 0.0;
     lastGoalMotion_ = NULL;
 
-    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
-    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
+    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
 }
 
 ompl::geometric::EST::~EST(void)
@@ -106,21 +106,21 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     if (tree_.grid.size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    logInform("Starting with %u states", tree_.size);
+    OMPL_INFORM("Starting with %u states", tree_.size);
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         /* Decide on a state to expand from */
         Motion *existing = selectMotion();
@@ -187,7 +187,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     si_->freeState(xstate);
 
-    logInform("Created %u states in %u cells", tree_.size, tree_.grid.size());
+    OMPL_INFORM("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
     return base::PlannerStatus(solved, approximate);
 }

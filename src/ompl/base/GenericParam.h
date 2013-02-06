@@ -53,7 +53,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::GenericParam */
-        ClassForward(GenericParam);
+        OMPL_CLASS_FORWARD(GenericParam);
         /// @endcond
 
         /** \brief Motion planning algorithms often employ parameters
@@ -102,15 +102,42 @@ namespace ompl
                 }
                 catch (boost::bad_lexical_cast &e)
                 {
-                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                    OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
                 }
                 return *this;
+            }
+
+            /** \brief Set a suggested range */
+            void setRangeSuggestion(const std::string &rangeSuggestion)
+            {
+                rangeSuggestion_ = rangeSuggestion;
+            }
+
+            /** \brief Get the suggested range of values */
+            const std::string& getRangeSuggestion(void) const
+            {
+                return rangeSuggestion_;
             }
 
         protected:
 
             /** \brief The name of the parameter */
             std::string name_;
+
+            /** \brief Suggested range for the parameter
+
+                This can be used to provide a hint to, e.g., a GUI. The
+                convention used in OMPL is to denote ranges for the
+                following types as follows:
+                - \c bool: "0,1"
+                - \c enum: "<enum_val0>,<enum_val1>,<enum_val2>,..."
+                - \c int, \c double: either "first:last" or "first:stepsize:last".
+                  In the first case, the stepsize is assumed to be 1. It is
+                  important to use floating point representations for double
+                  ranges (i.e., "1." instead of "1") to make sure the type is
+                  deduced correctly.
+            */
+            std::string rangeSuggestion_;
         };
 
 
@@ -132,7 +159,7 @@ namespace ompl
                 GenericParam(name), setter_(setter), getter_(getter)
             {
                 if (!setter_)
-                    logError("Setter function must be specified for parameter");
+                    OMPL_ERROR("Setter function must be specified for parameter");
             }
 
             virtual ~SpecificParam(void)
@@ -150,13 +177,13 @@ namespace ompl
                 catch (boost::bad_lexical_cast &e)
                 {
                     result = false;
-                    logWarn("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
+                    OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
                 }
 
                 if (getter_)
-                    logDebug("The value of parameter '%s' is now: '%s'", name_.c_str(), getValue().c_str());
+                    OMPL_DEBUG("The value of parameter '%s' is now: '%s'", name_.c_str(), getValue().c_str());
                 else
-                    logDebug("The value of parameter '%s' was set to: '%s'", name_.c_str(), value.c_str());
+                    OMPL_DEBUG("The value of parameter '%s' was set to: '%s'", name_.c_str(), value.c_str());
                 return result;
             }
 
@@ -169,7 +196,7 @@ namespace ompl
                     }
                     catch (boost::bad_lexical_cast &e)
                     {
-                        logWarn("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
+                        OMPL_WARN("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
                         return "";
                     }
                 else

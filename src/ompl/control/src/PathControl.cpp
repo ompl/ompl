@@ -92,7 +92,7 @@ double ompl::control::PathControl::length(void) const
 }
 
 double ompl::control::PathControl::cost(const base::OptimizationObjective &objective) const
-{  
+{
     double L = 0.0;
     for (unsigned int i = 1 ; i < states_.size() ; ++i)
         L = objective.combineObjectiveCosts(L, objective.getIncrementalCost(states_[i-1], states_[i]));
@@ -123,7 +123,7 @@ void ompl::control::PathControl::interpolate(void)
 {
     if (states_.size() <= controls_.size())
     {
-        logError("Interpolation not performed.  Number of states in the path should be strictly greater than the number of controls.");
+        OMPL_ERROR("Interpolation not performed.  Number of states in the path should be strictly greater than the number of controls.");
         return;
     }
 

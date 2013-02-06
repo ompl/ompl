@@ -29,11 +29,12 @@
 #include <omplext_odeint/boost/numeric/odeint/util/state_wrapper.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/resizer.hpp>
-
+#include <omplext_odeint/boost/numeric/odeint/util/same_instance.hpp>
 
 namespace boost {
 namespace numeric {
 namespace omplext_odeint {
+
 
 
 template<
@@ -46,27 +47,38 @@ class Operations = default_operations ,
 class Resizer = initially_resizer
 >
 class runge_kutta_dopri5
+#ifndef DOXYGEN_SKIP
 : public explicit_error_stepper_fsal_base<
   runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
   5 , 5 , 4 , State , Value , Deriv , Time , Algebra , Operations , Resizer >
+#else
+: public explicit_error_stepper_fsal_base
+#endif
 {
 
 public :
 
+    #ifndef DOXYGEN_SKIP
     typedef explicit_error_stepper_fsal_base<
     runge_kutta_dopri5< State , Value , Deriv , Time , Algebra , Operations , Resizer > ,
     5 , 5 , 4 , State , Value , Deriv , Time , Algebra , Operations , Resizer > stepper_base_type;
+    #else
+    typedef explicit_error_stepper_fsal_base< runge_kutta_dopri5< ... > , ... > stepper_base_type;
+    #endif
     
     typedef typename stepper_base_type::state_type state_type;
-    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
     typedef typename stepper_base_type::value_type value_type;
     typedef typename stepper_base_type::deriv_type deriv_type;
-    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
     typedef typename stepper_base_type::time_type time_type;
     typedef typename stepper_base_type::algebra_type algebra_type;
     typedef typename stepper_base_type::operations_type operations_type;
     typedef typename stepper_base_type::resizer_type resizer_type;
+
+    #ifndef DOXYGEN_SKIP
     typedef typename stepper_base_type::stepper_type stepper_type;
+    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
+    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
+    #endif // DOXYGEN_SKIP
 
 
     runge_kutta_dopri5( const algebra_type &algebra = algebra_type() ) : stepper_base_type( algebra )
@@ -110,7 +122,7 @@ public :
 
         typename omplext_odeint::unwrap_reference< System >::type &sys = system;
 
-        m_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
+        m_k_x_tmp_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_k_x_tmp_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
 
         //m_x_tmp = x + dt*b21*dxdt
         stepper_base_type::m_algebra.for_each3( m_x_tmp.m_v , in , dxdt_in ,
@@ -143,6 +155,7 @@ public :
     }
 
 
+
     template< class System , class StateIn , class DerivIn , class StateOut , class DerivOut , class Err >
     void do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , time_type t ,
             StateOut &out , DerivOut &dxdt_out , time_type dt , Err &xerr )
@@ -160,11 +173,26 @@ public :
         const value_type dc6 = c6 - static_cast<value_type> ( 187 ) / static_cast<value_type>( 2100 );
         const value_type dc7 = static_cast<value_type>( -1 ) / static_cast<value_type> ( 40 );
 
-        do_step_impl( system , in , dxdt_in , t , out , dxdt_out , dt );
+        /* ToDo: copy only if &dxdt_in == &dxdt_out ? */
+        if( same_instance( dxdt_in , dxdt_out ) )
+        {
+            m_dxdt_tmp_resizer.adjust_size( in , detail::bind( &stepper_type::template resize_dxdt_tmp_impl<StateIn> , detail::ref( *this ) , detail::_1 ) );
+            boost::numeric::omplext_odeint::copy( dxdt_in , m_dxdt_tmp.m_v );
+            do_step_impl( system , in , dxdt_in , t , out , dxdt_out , dt );
+            //error estimate
+            stepper_base_type::m_algebra.for_each7( xerr , m_dxdt_tmp.m_v , m_k3.m_v , m_k4.m_v , m_k5.m_v , m_k6.m_v , dxdt_out ,
+                                                    typename operations_type::template scale_sum6< time_type , time_type , time_type , time_type , time_type , time_type >( dt*dc1 , dt*dc3 , dt*dc4 , dt*dc5 , dt*dc6 , dt*dc7 ) );
 
-        //error estimate
-        stepper_base_type::m_algebra.for_each7( xerr , dxdt_in , m_k3.m_v , m_k4.m_v , m_k5.m_v , m_k6.m_v , dxdt_out ,
-                typename operations_type::template scale_sum6< time_type , time_type , time_type , time_type , time_type , time_type >( dt*dc1 , dt*dc3 , dt*dc4 , dt*dc5 , dt*dc6 , dt*dc7 ) );
+        }
+        else
+        {
+            do_step_impl( system , in , dxdt_in , t , out , dxdt_out , dt );
+            //error estimate
+            stepper_base_type::m_algebra.for_each7( xerr , dxdt_in , m_k3.m_v , m_k4.m_v , m_k5.m_v , m_k6.m_v , dxdt_out ,
+                                                    typename operations_type::template scale_sum6< time_type , time_type , time_type , time_type , time_type , time_type >( dt*dc1 , dt*dc3 , dt*dc4 , dt*dc5 , dt*dc6 , dt*dc7 ) );
+        
+        }
+
     }
 
 
@@ -194,8 +222,8 @@ public :
      */
     template< class StateOut , class StateIn1 , class DerivIn1 , class StateIn2 , class DerivIn2 >
     void calc_state( time_type t , StateOut &x ,
-            const StateIn1 &x_old , const DerivIn1 &deriv_old , time_type t_old ,
-            const StateIn2 & /* x_new */ , const DerivIn2 &deriv_new , time_type t_new )
+                     const StateIn1 &x_old , const DerivIn1 &deriv_old , time_type t_old ,
+                     const StateIn2 & /* x_new */ , const DerivIn2 &deriv_new , time_type t_new ) const
     {
         const value_type b1 = static_cast<value_type> ( 35 ) / static_cast<value_type>( 384 );
         const value_type b3 = static_cast<value_type> ( 500 ) / static_cast<value_type>( 1113 );
@@ -203,55 +231,54 @@ public :
         const value_type b5 = static_cast<value_type> ( -2187 ) / static_cast<value_type>( 6784 );
         const value_type b6 = static_cast<value_type> ( 11 ) / static_cast<value_type>( 84 );
 
-        time_type dt = ( t_new - t_old );
-        value_type theta = ( t - t_old ) / dt;
-        value_type X1 = static_cast< value_type >( 5 ) * ( static_cast< value_type >( 2558722523LL ) - static_cast< value_type >( 31403016 ) * theta ) / static_cast< value_type >( 11282082432LL );
-        value_type X3 = static_cast< value_type >( 100 ) * ( static_cast< value_type >( 882725551 ) - static_cast< value_type >( 15701508 ) * theta ) / static_cast< value_type >( 32700410799LL );
-        value_type X4 = static_cast< value_type >( 25 ) * ( static_cast< value_type >( 443332067 ) - static_cast< value_type >( 31403016 ) * theta ) / static_cast< value_type >( 1880347072LL ) ;
-        value_type X5 = static_cast< value_type >( 32805 ) * ( static_cast< value_type >( 23143187 ) - static_cast< value_type >( 3489224 ) * theta ) / static_cast< value_type >( 199316789632LL );
-        value_type X6 = static_cast< value_type >( 55 ) * ( static_cast< value_type >( 29972135 ) - static_cast< value_type >( 7076736 ) * theta ) / static_cast< value_type >( 822651844 );
-        value_type X7 = static_cast< value_type >( 10 ) * ( static_cast< value_type >( 7414447 ) - static_cast< value_type >( 829305 ) * theta ) / static_cast< value_type >( 29380423 );
+        const time_type dt = ( t_new - t_old );
+        const value_type theta = ( t - t_old ) / dt;
+        const value_type X1 = static_cast< value_type >( 5 ) * ( static_cast< value_type >( 2558722523LL ) - static_cast< value_type >( 31403016 ) * theta ) / static_cast< value_type >( 11282082432LL );
+        const value_type X3 = static_cast< value_type >( 100 ) * ( static_cast< value_type >( 882725551 ) - static_cast< value_type >( 15701508 ) * theta ) / static_cast< value_type >( 32700410799LL );
+        const value_type X4 = static_cast< value_type >( 25 ) * ( static_cast< value_type >( 443332067 ) - static_cast< value_type >( 31403016 ) * theta ) / static_cast< value_type >( 1880347072LL ) ;
+        const value_type X5 = static_cast< value_type >( 32805 ) * ( static_cast< value_type >( 23143187 ) - static_cast< value_type >( 3489224 ) * theta ) / static_cast< value_type >( 199316789632LL );
+        const value_type X6 = static_cast< value_type >( 55 ) * ( static_cast< value_type >( 29972135 ) - static_cast< value_type >( 7076736 ) * theta ) / static_cast< value_type >( 822651844 );
+        const value_type X7 = static_cast< value_type >( 10 ) * ( static_cast< value_type >( 7414447 ) - static_cast< value_type >( 829305 ) * theta ) / static_cast< value_type >( 29380423 );
 
-        value_type theta_m_1 = theta - static_cast< value_type >( 1 );
-        value_type theta_sq = theta * theta;
-        value_type A = theta_sq * ( static_cast< value_type >( 3 ) - static_cast< value_type >( 2 ) * theta );
-        value_type B = theta_sq * theta_m_1;
-        value_type C = theta_sq * theta_m_1 * theta_m_1;
-        value_type D = theta * theta_m_1 * theta_m_1;
+        const value_type theta_m_1 = theta - static_cast< value_type >( 1 );
+        const value_type theta_sq = theta * theta;
+        const value_type A = theta_sq * ( static_cast< value_type >( 3 ) - static_cast< value_type >( 2 ) * theta );
+        const value_type B = theta_sq * theta_m_1;
+        const value_type C = theta_sq * theta_m_1 * theta_m_1;
+        const value_type D = theta * theta_m_1 * theta_m_1;
 
-        value_type b1_theta = A * b1 - C * X1 + D;
-        value_type b3_theta = A * b3 + C * X3;
-        value_type b4_theta = A * b4 - C * X4;
-        value_type b5_theta = A * b5 + C * X5;
-        value_type b6_theta = A * b6 - C * X6;
-        value_type b7_theta = B + C * X7;
+        const value_type b1_theta = A * b1 - C * X1 + D;
+        const value_type b3_theta = A * b3 + C * X3;
+        const value_type b4_theta = A * b4 - C * X4;
+        const value_type b5_theta = A * b5 + C * X5;
+        const value_type b6_theta = A * b6 - C * X6;
+        const value_type b7_theta = B + C * X7;
 
-        //		const state_type &k1 = *m_old_deriv;
-        //		const state_type &k3 = dopri5().m_k3;
-        //		const state_type &k4 = dopri5().m_k4;
-        //		const state_type &k5 = dopri5().m_k5;
-        //		const state_type &k6 = dopri5().m_k6;
-        //		const state_type &k7 = *m_current_deriv;
+        // const state_type &k1 = *m_old_deriv;
+        // const state_type &k3 = dopri5().m_k3;
+        // const state_type &k4 = dopri5().m_k4;
+        // const state_type &k5 = dopri5().m_k5;
+        // const state_type &k6 = dopri5().m_k6;
+        // const state_type &k7 = *m_current_deriv;
 
         stepper_base_type::m_algebra.for_each8( x , x_old , deriv_old , m_k3.m_v , m_k4.m_v , m_k5.m_v , m_k6.m_v , deriv_new ,
                 typename operations_type::template scale_sum7< value_type , time_type , time_type , time_type , time_type , time_type , time_type >( 1.0 , dt * b1_theta , dt * b3_theta , dt * b4_theta , dt * b5_theta , dt * b6_theta , dt * b7_theta ) );
     }
 
 
-
-
     template< class StateIn >
     void adjust_size( const StateIn &x )
     {
-        resize_impl( x );
+        resize_k_x_tmp_impl( x );
+        resize_dxdt_tmp_impl( x );
         stepper_base_type::adjust_size( x );
     }
-
+    
 
 private:
 
     template< class StateIn >
-    bool resize_impl( const StateIn &x )
+    bool resize_k_x_tmp_impl( const StateIn &x )
     {
         bool resized = false;
         resized |= adjust_size_by_resizeability( m_x_tmp , x , typename is_resizeable<state_type>::type() );
@@ -263,12 +290,107 @@ private:
         return resized;
     }
 
+    template< class StateIn >
+    bool resize_dxdt_tmp_impl( const StateIn &x )
+    {
+        return adjust_size_by_resizeability( m_dxdt_tmp , x , typename is_resizeable<deriv_type>::type() );
+    }
+        
+
 
     wrapped_state_type m_x_tmp;
     wrapped_deriv_type m_k2 , m_k3 , m_k4 , m_k5 , m_k6 ;
-    resizer_type m_resizer;
+    wrapped_deriv_type m_dxdt_tmp;
+    resizer_type m_k_x_tmp_resizer;
+    resizer_type m_dxdt_tmp_resizer;
 };
 
+
+
+/************* DOXYGEN ************/
+/**
+ * \class runge_kutta_dopri5
+ * \brief The Runge-Kutta Dormand-Prince 5 method.
+ *
+ * The Runge-Kutta Dormand-Prince 5 method is a very popular method for solving ODEs, see
+ * <a href=""></a>.
+ * The method is explicit and fulfills the Error Stepper concept. Step size control
+ * is provided but continuous output is available which make this method favourable for many applications. 
+ * 
+ * This class derives from explicit_error_stepper_fsal_base and inherits its interface via CRTP (current recurring
+ * template pattern). The method possesses the FSAL (first-same-as-last) property. See
+ * explicit_error_stepper_fsal_base for more details.
+ *
+ * \tparam State The state type.
+ * \tparam Value The value type.
+ * \tparam Deriv The type representing the time derivative of the state.
+ * \tparam Time The time representing the independent variable - the time.
+ * \tparam Algebra The algebra type.
+ * \tparam Operations The operations type.
+ * \tparam Resizer The resizer policy type.
+ */
+
+
+    /**
+     * \fn runge_kutta_dopri5::runge_kutta_dopri5( const algebra_type &algebra )
+     * \brief Constructs the runge_kutta_dopri5 class. This constructor can be used as a default
+     * constructor if the algebra has a default constructor.
+     * \param algebra A copy of algebra is made and stored inside explicit_stepper_base.
+     */
+
+    /**
+     * \fn runge_kutta_dopri5::do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , time_type t , StateOut &out , DerivOut &dxdt_out , time_type dt )
+     * \brief This method performs one step. The derivative `dxdt_in` of `in` at the time `t` is passed to the
+     * method. The result is updated out-of-place, hence the input is in `in` and the output in `out`. Furthermore,
+     * the derivative is update out-of-place, hence the input is assumed to be in `dxdt_in` and the output in
+     * `dxdt_out`. 
+     * Access to this step functionality is provided by explicit_error_stepper_fsal_base and 
+     * `do_step_impl` should not be called directly.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ODE. It must fulfill the
+     *               Simple System concept.
+     * \param in The state of the ODE which should be solved. in is not modified in this method
+     * \param dxdt_in The derivative of x at t. dxdt_in is not modified by this method
+     * \param t The value of the time, at which the step should be performed.
+     * \param out The result of the step is written in out.
+     * \param dxdt_out The result of the new derivative at time t+dt.
+     * \param dt The step size.
+     */
+
+    /**
+     * \fn runge_kutta_dopri5::do_step_impl( System system , const StateIn &in , const DerivIn &dxdt_in , time_type t , StateOut &out , DerivOut &dxdt_out , time_type dt , Err &xerr )
+     * \brief This method performs one step. The derivative `dxdt_in` of `in` at the time `t` is passed to the
+     * method. The result is updated out-of-place, hence the input is in `in` and the output in `out`. Furthermore,
+     * the derivative is update out-of-place, hence the input is assumed to be in `dxdt_in` and the output in
+     * `dxdt_out`. 
+     * Access to this step functionality is provided by explicit_error_stepper_fsal_base and 
+     * `do_step_impl` should not be called directly.
+     * An estimation of the error is calculated.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ODE. It must fulfill the
+     *               Simple System concept.
+     * \param in The state of the ODE which should be solved. in is not modified in this method
+     * \param dxdt_in The derivative of x at t. dxdt_in is not modified by this method
+     * \param t The value of the time, at which the step should be performed.
+     * \param out The result of the step is written in out.
+     * \param dxdt_out The result of the new derivative at time t+dt.
+     * \param dt The step size.
+     * \param xerr An estimation of the error.
+     */
+
+    /**
+     * \fn runge_kutta_dopri5::calc_state( time_type t , StateOut &x , const StateIn1 &x_old , const DerivIn1 &deriv_old , time_type t_old , const StateIn2 &  , const DerivIn2 &deriv_new , time_type t_new ) const
+     * \brief This method is used for continuous output and it calculates the state `x` at a time `t` from the 
+     * knowledge of two states `old_state` and `current_state` at time points `t_old` and `t_new`. It also uses
+     * internal variables to calculate the result. Hence this method must be called after two successful `do_step`
+     * calls.
+     */
+
+    /**
+     * \fn runge_kutta_dopri5::adjust_size( const StateIn &x )
+     * \brief Adjust the size of all temporaries in the stepper manually.
+     * \param x A state from which the size of the temporaries to be resized is deduced.
+     */
 
 } // odeint
 } // numeric

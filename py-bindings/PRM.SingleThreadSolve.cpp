@@ -49,7 +49,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
 
     if (!goal)
     {
-        logError("Goal undefined or unknown type of goal");
+        OMPL_ERROR("Goal undefined or unknown type of goal");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -59,13 +59,13 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
 
     if (startM_.size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        logError("Insufficient states in sampleable goal region");
+        OMPL_ERROR("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -78,7 +78,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
 
         if (goalM_.empty())
         {
-            logError("Unable to find any valid goal states");
+            OMPL_ERROR("Unable to find any valid goal states");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
@@ -89,7 +89,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
         simpleSampler_ = si_->allocStateSampler();
 
     unsigned int nrStartStates = boost::num_vertices(g_);
-    logInform("Starting with %u states", nrStartStates);
+    OMPL_INFORM("Starting with %u states", nrStartStates);
 
     std::vector<base::State*> xstates(MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
@@ -101,7 +101,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
     sln.reset();
 
     double roadmap_build_time = 0.05;
-    while (ptc() == false && !addedSolution_)
+    while (ptc == false && !addedSolution_)
     {
         // Check for any new goal states
         if (goal->maxSampleCount() > goalM_.size())
@@ -123,7 +123,7 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
         addedSolution_ = haveSolution (startM_, goalM_, sln);
     }
 
-    logInform("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sln)
     {

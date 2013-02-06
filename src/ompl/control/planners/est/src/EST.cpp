@@ -48,8 +48,8 @@ ompl::control::EST::EST(const SpaceInformationPtr &si) : base::Planner(si, "EST"
     siC_ = si.get();
     lastGoalMotion_ = NULL;
 
-    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange);
-    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias);
+    Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
 }
 
 ompl::control::EST::~EST(void)
@@ -111,7 +111,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     if (tree_.grid.size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -121,14 +121,15 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    logInform("Starting with %u states", tree_.size);
+    OMPL_INFORM("Starting with %u states", tree_.size);
 
-    Motion *solution = NULL;
-    double   slndist = std::numeric_limits<double>::infinity();
-    Motion  *rmotion = new Motion(siC_);
-    bool      solved = false;
+    Motion  *solution = NULL;
+    Motion *approxsol = NULL;
+    double  approxdif = std::numeric_limits<double>::infinity();
+    Motion   *rmotion = new Motion(siC_);
+    bool       solved = false;
 
-    while (!ptc())
+    while (!ptc)
     {
         // Select a state to expand the tree from
         Motion *existing = selectMotion();
@@ -167,18 +168,26 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
             // Check if this state is the goal state, or improves the best solution so far
             double dist = 0.0;
             solved = goal->isSatisfied(motion->state, &dist);
-            if (solved || dist < slndist)
+            if (solved)
             {
-                slndist = dist;
+                approxdif = dist;
                 solution = motion;
-
-                if (solved)
-                    break;
+                break;
+            }
+            if (dist < approxdif)
+            {
+                approxdif = dist;
+                approxsol = motion;
             }
         }
     }
 
-    bool addedSolution = false;
+    bool approximate = false;
+    if (solution == NULL)
+    {
+        solution = approxsol;
+        approximate = true;
+    }
 
     // Constructing the solution path
     if (solution != NULL)
@@ -198,8 +207,8 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
-        addedSolution = true;
-        pdef_->addSolutionPath(base::PathPtr(path), !solved, slndist);
+        solved = true;
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
     }
 
     // Cleaning up memory
@@ -209,9 +218,9 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         siC_->freeControl(rmotion->control);
     delete rmotion;
 
-    logInform("Created %u states in %u cells", tree_.size, tree_.grid.size());
+    OMPL_INFORM("Created %u states in %u cells", tree_.size, tree_.grid.size());
 
-    return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+    return base::PlannerStatus(solved, approximate);
 }
 
 ompl::control::EST::Motion* ompl::control::EST::selectMotion(void)

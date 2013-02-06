@@ -53,7 +53,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathSimplifier */
-        ClassForward(PathSimplifier);
+        OMPL_CLASS_FORWARD(PathSimplifier);
         /// @endcond
 
         /** \class ompl::geometric::PathSimplifierPtr
@@ -61,7 +61,7 @@ namespace ompl
 
         /** \brief This class contains routines that attempt to simplify geometric paths.
 
-            These are in fact routines that shorten the path, and do not
+            Some of these are in fact routines that shorten the path, and do not
             necessarily make it smoother. */
         class PathSimplifier
         {

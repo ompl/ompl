@@ -94,7 +94,7 @@ double ompl::geometric::PathGeometric::length(void) const
 }
 
 double ompl::geometric::PathGeometric::cost(const base::OptimizationObjective &objective) const
-{  
+{
     double L = 0.0;
     for (unsigned int i = 1 ; i < states_.size() ; ++i)
         L = objective.combineObjectiveCosts(L, objective.getIncrementalCost(states_[i-1], states_[i]));
@@ -489,111 +489,4 @@ int ompl::geometric::PathGeometric::getClosestIndex(const base::State *state) co
         }
     }
     return index;
-}
-
-namespace ompl
-{
-    namespace magic
-    {
-        /// The factor by which to decrease velocity in the iterative search for time stamps along a ompl::geometric::PathGeometric
-        static const double TIME_PARAMETRIZATION_VELOCITY_DECREASE_FACTOR = 0.95;
-    }
-}
-
-
-void ompl::geometric::PathGeometric::computeFastTimeParametrization(double maxVel, double maxAcc, std::vector<double> &times, unsigned int maxSteps) const
-{
-    //  This implementation greatly benefited from discussions with Kenneth Anderson (http://sites.google.com/site/kennethaanderson/
-
-    if (states_.empty())
-    {
-        times.clear();
-        return;
-    }
-    if (states_.size() == 1)
-    {
-        times.resize(1);
-        times[0] = 0.0;
-        return;
-    }
-    if (states_.size() == 2)
-    {
-        double d = si_->distance(states_[0], states_[1]);
-        times.resize(2);
-        times[0] = 0.0;
-        times[1] = std::max(2.0 * d / maxVel, sqrt(2.0 * d / maxAcc));
-        return;
-    }
-
-    // compute the lengths of the segments along the path
-    std::vector<double> L(states_.size() - 1);
-    for (std::size_t i = 0 ; i < L.size() ; ++i)
-        L[i] = si_->distance(states_[i], states_[i + 1]);
-
-    // the time for the first state is 0
-    times.resize(states_.size());
-    times[0] = 0.0;
-
-    // the velocity is maximum everywhere, except at endpoints
-    std::vector<double> vel(states_.size(), maxVel);
-    vel.front() = vel.back() = 0.0;
-
-    // compute the cosine of the angle between consecutive segments
-    // and scale the maximum desired velocity by that value
-    // this has the effect of stopping at very sharp turns
-    // and ignoring straight lines
-    for (std::size_t i = 1 ; i < L.size() ; ++i)
-    {
-        double a = L[i-1];
-        double b = L[i];
-        double c = si_->distance(states_[i-1], states_[i+1]);
-        double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
-        vel[i] *= std::min(1.0, fabs(acosValue));
-    }
-
-    bool change = true;
-    unsigned int steps = 0;
-    while (change && steps <= maxSteps)
-    {
-        ++steps;
-        change = false;
-
-        // compute the time points for every state, using the currently considered velocity
-        for (std::size_t i = 1 ; i < times.size() ; ++i)
-            times[i] = times[i - 1] + (2.0 * L[i-1]) / (vel[i-1] + vel[i]);
-
-        for (std::size_t i = 0 ; i < L.size() ; ++i)
-        {
-            double acc = (vel[i + 1] - vel[i]) / (times[i + 1] - times[i]);
-            if (acc > maxAcc)
-            {
-                vel[i + 1] *= magic::TIME_PARAMETRIZATION_VELOCITY_DECREASE_FACTOR;
-                change = true;
-            }
-            else
-                if (acc < -maxAcc)
-                {
-                    vel[i] *= magic::TIME_PARAMETRIZATION_VELOCITY_DECREASE_FACTOR;
-                    change = true;
-                }
-        }
-
-        if (change)
-            for (int i = L.size() - 1 ; i >= 0 ; --i)
-            {
-                double acc = (vel[i + 1] - vel[i]) / (times[i + 1] - times[i]);
-                if (acc > maxAcc)
-                {
-                    vel[i + 1] *= magic::TIME_PARAMETRIZATION_VELOCITY_DECREASE_FACTOR;
-                    change = true;
-                }
-                else
-                    if (acc < -maxAcc)
-                    {
-                        vel[i] *= magic::TIME_PARAMETRIZATION_VELOCITY_DECREASE_FACTOR;
-                        change = true;
-                    }
-            }
-    }
-
 }

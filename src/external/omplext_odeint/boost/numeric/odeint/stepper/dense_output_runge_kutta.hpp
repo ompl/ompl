@@ -42,8 +42,19 @@ template< class Stepper , class StepperCategory = typename Stepper::stepper_cate
 class dense_output_runge_kutta;
 
 
-
-
+/**
+ * \brief The class representing dense-output Runge-Kutta steppers.
+ * \note In this stepper, the initialize method has to be called before using
+ * the do_step method.
+ *
+ * The dense-output functionality allows to interpolate the solution between
+ * subsequent integration points using intermediate results obtained during the
+ * computation. This version works based on a normal stepper without step-size
+ * control. 
+ * 
+ *
+ * \tparam Stepper The stepper type of the underlying algorithm.
+ */
 template< class Stepper >
 class dense_output_runge_kutta< Stepper , stepper_tag >
 {
@@ -67,7 +78,11 @@ public:
     typedef dense_output_runge_kutta< Stepper > dense_output_stepper_type;
 
 
-
+    /**
+     * \brief Constructs the dense_output_runge_kutta class. An instance of the
+     * underlying stepper can be provided.
+     * \param stepper An instance of the underlying stepper.
+     */
     dense_output_runge_kutta( const stepper_type &stepper = stepper_type() )
     : m_stepper( stepper ) , m_resizer() ,
       m_x1() , m_x2() , m_current_state_x1( true ) , 
@@ -75,6 +90,13 @@ public:
     { } 
 
 
+    /**
+     * \brief Initializes the stepper. Has to be called before do_step can be 
+     * used to set the initial conditions and the step size.
+     * \param x0 The initial state of the ODE which should be solved.
+     * \param t0 The initial time, at which the step should be performed.
+     * \param dt0 The step size.
+     */
     template< class StateType >
     void initialize( const StateType &x0 , time_type t0 , time_type dt0 )
     {
@@ -84,6 +106,14 @@ public:
         m_dt = dt0;
     }
 
+    /**
+     * \brief Does one time step.
+     * \note initialize has to be called before using this method to set the
+     * initial conditions x,t and the stepsize.
+     * \param system The system function to solve, hence the r.h.s. of the ordinary differential equation. It must fulfill the
+     *               Simple System concept.
+     * \return Pair with start and end time of the integration step.
+     */
     template< class System >
     std::pair< time_type , time_type > do_step( System system )
     {
@@ -97,18 +127,35 @@ public:
     /*
      * The next two overloads are needed to solve the forwarding problem
      */
+    
+    /**
+     * \brief Calculates the solution at an intermediate point.
+     * \param t The time at which the solution should be calculated, has to be
+     * in the current time interval.
+     * \param x The output variable where the result is written into.
+     */
     template< class StateOut >
-    void calc_state( time_type t , StateOut &x )
+    void calc_state( time_type t , StateOut &x ) const
     {
         m_stepper.calc_state( x , t , get_old_state() , m_t_old , get_current_state() , m_t );
     }
 
+    /**
+     * \brief Calculates the solution at an intermediate point. Solves the forwarding problem
+     * \param t The time at which the solution should be calculated, has to be
+     * in the current time interval.
+     * \param x The output variable where the result is written into, can be a boost range.
+     */
     template< class StateOut >
-    void calc_state( time_type t , const StateOut &x )
+    void calc_state( time_type t , const StateOut &x ) const
     {
         m_stepper.calc_state( x , t , get_old_state() , m_t_old , get_current_state() , m_t );
     }
 
+    /**
+     * \brief Adjust the size of all temporaries in the stepper manually.
+     * \param x A state from which the size of the temporaries to be resized is deduced.
+     */
     template< class StateType >
     void adjust_size( const StateType &x )
     {
@@ -116,21 +163,37 @@ public:
         m_stepper.stepper().resize( x );
     }
 
+    /**
+     * \brief Returns the current state of the solution.
+     * \return The current state of the solution x(t).
+     */
     const state_type& current_state( void ) const
     {
         return get_current_state();
     }
 
+    /**
+     * \brief Returns the current time of the solution.
+     * \return The current time of the solution t.
+     */
     time_type current_time( void ) const
     {
         return m_t;
     }
 
+    /**
+     * \brief Returns the last state of the solution.
+     * \return The last state of the solution x(t-dt).
+     */
     const state_type& previous_state( void ) const
     {
         return get_old_state();
     }
 
+    /**
+     * \brief Returns the last time of the solution.
+     * \return The last time of the solution t-dt.
+     */
     time_type previous_time( void ) const
     {
         return m_t_old;
@@ -187,7 +250,15 @@ private:
 
 
 
-
+/**
+ * \brief The class representing dense-output Runge-Kutta steppers with FSAL property.
+ *
+ * The interface is the same as for dense_output_runge_kutta< Stepper , stepper_tag >.
+ * This class provides dense output functionality based on methods with step size controlled 
+ * 
+ *
+ * \tparam Stepper The stepper type of the underlying algorithm.
+ */
 template< class Stepper >
 class dense_output_runge_kutta< Stepper , explicit_controlled_stepper_fsal_tag >
 {
@@ -263,14 +334,14 @@ public:
      * The two overloads are needed in order to solve the forwarding problem.
      */
     template< class StateOut >
-    void calc_state( time_type t , StateOut &x )
+    void calc_state( time_type t , StateOut &x ) const
     {
         m_stepper.stepper().calc_state( t , x , get_old_state() , get_old_deriv() , m_t_old ,
                                         get_current_state() , get_current_deriv() , m_t );
     }
 
     template< class StateOut >
-    void calc_state( time_type t , const StateOut &x )
+    void calc_state( time_type t , const StateOut &x ) const
     {
         m_stepper.stepper().calc_state( t , x , get_old_state() , get_old_deriv() , m_t_old ,
                                         get_current_state() , get_current_deriv() , m_t );

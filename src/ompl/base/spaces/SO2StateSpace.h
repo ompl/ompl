@@ -77,7 +77,7 @@ namespace ompl
                     value = 0.0;
                 }
 
-                /** \brief The value of the angle (between -PI and PI) */
+                /** \brief The value of the angle in the interval (-Pi, Pi] */
                 double value;
             };
 
@@ -95,8 +95,10 @@ namespace ompl
 
             virtual double getMaximumExtent(void) const;
 
+            /** \brief Normalize the value of the state to the interval (-Pi, Pi] */
             virtual void enforceBounds(State *state) const;
 
+            /** \brief Check if the value of the state is in the interval (-Pi, Pi] */
             virtual bool satisfiesBounds(const State *state) const;
 
             virtual void copyState(State *destination, const State *source) const;

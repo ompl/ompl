@@ -8,10 +8,10 @@ echo Executing as administrator... good :)
 
 :: Checking for cmake, Python, and mingw
 :prereqs
-where python 0>nul 
+where @PYTHON_EXEC@ 0>nul 
 IF ERRORLEVEL 1 GOTO no-python
 
-where cmake 0>nul 
+where @CMAKE_COMMAND@ 0>nul 
 IF ERRORLEVEL 1 GOTO no-cmake
 
 where mingw32-make 0>nul 
@@ -49,15 +49,15 @@ del /S /Q "@PROJECT_BINARY_DIR@/tempdir"
 del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/gccxml"
 del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pygccxml"
 del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pyplusplus"
-cmake -DTEMPDIR="@PROJECT_BINARY_DIR@/tempdir" -P @CMAKE_CURRENT_LIST_DIR@/external/downloadPyPlusPlus.cmake
-cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2012-05-17.tgz"
-cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml-r1856.tgz"
-cmake -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus-r1856.tgz"
+@CMAKE_COMMAND@ -DTEMPDIR="@PROJECT_BINARY_DIR@/tempdir" -P @CMAKE_CURRENT_LIST_DIR@/external/downloadPyPlusPlus.cmake
+@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2012-11-06.tgz"
+@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml-r575.tgz"
+@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus-r1238.tgz"
 
 :install-gccxml
 cd gccxml
-cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="C:\gccxml"
-mingw32-make install
+@CMAKE_COMMAND@ -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="C:\gccxml"
+@CMAKE_COMMAND@ --build . --target install
 cd ..
 
 SET GCCXMLPATH=C:\gccxml\bin
@@ -70,14 +70,14 @@ setx GCCXML_COMPILER g++ /M 0>nul
 
 :install-pygccxml
 cd pygccxml
-python setup.py build
-python setup.py install
+@PYTHON_EXEC@ setup.py build
+@PYTHON_EXEC@ setup.py install
 cd ..
 
 :install-pyplusplus
 cd pyplusplus
-python setup.py build
-python setup.py install
+@PYTHON_EXEC@ setup.py build
+@PYTHON_EXEC@ setup.py install
 cd ..
 
 :END

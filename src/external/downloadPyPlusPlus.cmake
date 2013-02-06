@@ -1,15 +1,16 @@
+# cmake's file(DOWNLOAD ...) command doesn't do https until version 2.8.10
 file(DOWNLOAD
-    http://downloads.sourceforge.net/project/ompl/dependencies/gccxml-2012-05-17.tgz
-    "${TEMPDIR}/gccxml-2012-05-17.tgz"
+    https://github.com/gccxml/gccxml/archive/2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8.tar.gz
+    "${TEMPDIR}/gccxml-2012-11-06.tgz"
     SHOW_PROGRESS
     EXPECTED_MD5 e2ad8bd675af9009530e5e175ed441bc)
 file(DOWNLOAD
-    http://downloads.sourceforge.net/project/ompl/dependencies/pygccxml-r1856.tgz
-    "${TEMPDIR}/pygccxml-r1856.tgz"
+    https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r575.tgz
+    "${TEMPDIR}/pygccxml-r575.tgz"
     SHOW_PROGRESS
-    EXPECTED_MD5 144b9f6bb329312fa7e0d73ea92514b5)
+    EXPECTED_MD5 925e5200b1479af724b2e301fd12ef92)
 file(DOWNLOAD
-    http://downloads.sourceforge.net/project/ompl/dependencies/pyplusplus-r1856.tgz
-    "${TEMPDIR}/pyplusplus-r1856.tgz"
+    https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1238.tgz
+    "${TEMPDIR}/pyplusplus-r1238.tgz"
     SHOW_PROGRESS
-    EXPECTED_MD5 d41d8cd98f00b204e9800998ecf8427e)
+    EXPECTED_MD5 17bddfb3418ac7d4f3eb87f6408b06e8)

@@ -56,4 +56,3 @@ BOOST_AUTO_TEST_CASE(More)
 {
     // other tests, if you want
 }
-

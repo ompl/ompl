@@ -105,13 +105,13 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     PathGeometric *p = dynamic_cast<PathGeometric*>(pp.get());
     if (!p)
     {
-        logError("Path hybridization only works for geometric paths");
+        OMPL_ERROR("Path hybridization only works for geometric paths");
         return 0;
     }
 
     if (p->getSpaceInformation() != si_)
     {
-        logError("Paths for hybridization must be from the same space information");
+        OMPL_ERROR("Paths for hybridization must be from the same space information");
         return 0;
     }
 

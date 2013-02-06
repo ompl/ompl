@@ -1,24 +1,27 @@
 #!/bin/sh
 
+set -e
+
 # create a location to store downloaded data
 mkdir -p @PROJECT_BINARY_DIR@/pyplusplus
 cd @PROJECT_BINARY_DIR@/pyplusplus
 
 # get sources
-curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/gccxml-2012-05-17.tgz | tar xzf -
-curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/pygccxml-r1856.tgz | tar xzf -
-curl --location-trusted https://downloads.sourceforge.net/project/ompl/dependencies/pyplusplus-r1856.tgz | tar xzf -
+# gccxml snapshot of 11/6/2012
+curl --location-trusted https://github.com/gccxml/gccxml/archive/2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8.tar.gz | tar xzf -
+curl --location-trusted https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r575.tgz | tar xzf -
+curl --location-trusted https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1238.tgz | tar xzf -
 
 # build & install gccxml
-cd gccxml
-cmake @CMAKE_GCCXML_ARGS@ .
-make
-sudo make install
+cd gccxml-2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8
+@CMAKE_COMMAND@ @CMAKE_GCCXML_ARGS@ .
+@CMAKE_COMMAND@ --build .
+sudo @CMAKE_COMMAND@ --build . --target install
 
 # build & install pygccxml and Py++
 cd ../pygccxml
-python setup.py build
-sudo python setup.py install
+@PYTHON_EXEC@ setup.py build
+sudo @PYTHON_EXEC@ setup.py install
 cd ../pyplusplus
-python setup.py build
-sudo python setup.py install
+@PYTHON_EXEC@ setup.py build
+sudo @PYTHON_EXEC@ setup.py install

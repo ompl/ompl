@@ -10,15 +10,17 @@ if (OMPL_BUILD_DOC)
                 OUTPUT_VARIABLE OMPL_RELEASE_DATE
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
         endif()
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dox/download.dox.in"
-            "${CMAKE_CURRENT_SOURCE_DIR}/dox/download.dox")
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dox/mainpage.dox.in"
-            "${CMAKE_CURRENT_SOURCE_DIR}/dox/mainpage.dox")
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dox/download.md.in"
+            "${CMAKE_CURRENT_SOURCE_DIR}/dox/download.md")
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dox/mainpage.md.in"
+            "${CMAKE_CURRENT_SOURCE_DIR}/dox/mainpage.md")
+        file(READ "${CMAKE_CURRENT_SOURCE_DIR}/images/ompl.svg" OMPLSVG)
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dox/api_overview.md.in"
+            "${CMAKE_CURRENT_SOURCE_DIR}/dox/api_overview.md")
 
         # add "doc" target if Doxygen is detected
         add_custom_target(doc
-            COMMAND ${CMAKE_COMMAND} -E remove_directory html
-            COMMAND ${DOXYGEN} "Doxyfile"
+            COMMAND ./mkdocs.sh
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
         # add "website" target

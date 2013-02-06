@@ -69,7 +69,7 @@ size_t integrate_adaptive(
 
 
 /*
- * classical integrate adpative
+ * classical integrate adaptive
  */
 template< class Stepper , class System , class State , class Time , class Observer >
 size_t integrate_adaptive(

@@ -46,6 +46,25 @@ struct thrust_operations
         }
     };
 
+    template< class Fac1 = double , class Fac2 = Fac1 >
+    struct scale_sum_swap2
+    {
+        const Fac1 m_alpha1;
+        const Fac2 m_alpha2;
+
+        scale_sum_swap2( const Fac1 alpha1 , const Fac2 alpha2 )
+        : m_alpha1( alpha1 ) , m_alpha2( alpha2 ) { }
+
+        template< class Tuple >
+        __host__ __device__
+        void operator()( Tuple t ) const
+        {
+            typename thrust::tuple_element<0,Tuple>::type tmp = thrust::get<0>(t);
+            thrust::get<0>(t) = m_alpha1 * thrust::get<1>(t) + m_alpha2 * thrust::get<2>(t);
+            thrust::get<1>(t) = tmp;
+        }
+    };
+
     template< class Fac1 = double , class Fac2 = Fac1 , class Fac3 = Fac2 >
     struct scale_sum3
     {

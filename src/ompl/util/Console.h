@@ -43,31 +43,31 @@
     \defgroup logging Logging Macros
     \{
 
-    \def logError(fmt, ...)
+    \def OMPL_ERROR(fmt, ...)
     \brief Log a formatted error string.
     \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
 
-    \def logWarn(fmt, ...)
+    \def OMPL_WARN(fmt, ...)
     \brief Log a formatted warning string.
     \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
 
-    \def logInform(fmt, ...)
+    \def OMPL_INFORM(fmt, ...)
     \brief Log a formatted information string.
     \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
 
-    \def logDebug(fmt, ...)
+    \def OMPL_DEBUG(fmt, ...)
     \brief Log a formatted debugging string.
     \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
 
     \}
 */
-#define logError(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_ERROR, fmt, ##__VA_ARGS__)
+#define OMPL_ERROR(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_ERROR, fmt, ##__VA_ARGS__)
 
-#define logWarn(fmt, ...)   ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_WARN,  fmt, ##__VA_ARGS__)
+#define OMPL_WARN(fmt, ...)   ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_WARN,  fmt, ##__VA_ARGS__)
 
-#define logInform(fmt, ...) ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_INFO,  fmt, ##__VA_ARGS__)
+#define OMPL_INFORM(fmt, ...) ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_INFO,  fmt, ##__VA_ARGS__)
 
-#define logDebug(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEBUG, fmt, ##__VA_ARGS__)
+#define OMPL_DEBUG(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEBUG, fmt, ##__VA_ARGS__)
 
 namespace ompl
 {

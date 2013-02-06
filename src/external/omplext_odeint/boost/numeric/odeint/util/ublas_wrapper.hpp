@@ -165,7 +165,7 @@ struct state_wrapper< boost::numeric::ublas::permutation_matrix< T , A > > // wi
 //namespace numeric {
 //namespace omplext_odeint {
 //
-///* specialization for permutation matrizes wrapper because we need to change the construction */
+///* specialization for permutation matrices wrapper because we need to change the construction */
 //template< class T , class A >
 //struct state_wrapper< boost::numeric::ublas::permutation_matrix< T , A > , true > // with resizing
 //{
@@ -254,7 +254,7 @@ range_end( const matrix< T , L , A > &x )
     return x.data().end();
 }
 
-} } } // nampespace boost::numeric::ublas
+} } } // namespace boost::numeric::ublas
 
 
 #endif // BOOST_NUMERIC_ODEINT_UTIL_UBLAS_WRAPPER_HPP_INCLUDED

@@ -6,8 +6,8 @@
  Defines the current version of odeint.
  [end_description]
 
- Copyright 2009-2011 Karsten Ahnert
- Copyright 2009-2011 Mario Mulansky
+ Copyright 2009-2012 Karsten Ahnert
+ Copyright 2009-2012 Mario Mulansky
 
  Distributed under the Boost Software License, Version 1.0.
  (See accompanying file LICENSE_1_0.txt or
@@ -22,7 +22,7 @@
 
 
 #define ODEINT_MAJOR_VERSION 2
-#define ODEINT_MINOR_VERSION 1
+#define ODEINT_MINOR_VERSION 2
 #define ODEINT_PATCH_LEVEL 0
 #define ODEINT_VERSION ( ODEINT_MAJOR_VERSION * 100000 + ODEINT_MINOR_VERSION * 100 + ODEINT_PATCH_LEVEL )
 

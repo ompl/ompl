@@ -68,7 +68,7 @@ namespace ompl
     {
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::SpaceInformation */
-        ClassForward(SpaceInformation);
+        OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
 
         /** \class ompl::base::SpaceInformationPtr
@@ -379,6 +379,8 @@ namespace ompl
             /** \brief Estimate the number of samples that can be drawn per second, using the sampler returned by allocStateSampler() */
             void samplesPerSecond(double &uniform, double &near, double &gaussian, unsigned int attempts) const;
 
+            /** \brief Compute the average cost of a state */
+            double averageStateCost(unsigned int states) const;
             /** @}*/
 
             /** \brief Print information about the current instance of the state space */

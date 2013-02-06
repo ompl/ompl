@@ -26,6 +26,7 @@
 #include <omplext_odeint/boost/numeric/odeint/stepper/rosenbrock4_controller.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/is_resizeable.hpp>
 
+
 namespace boost {
 namespace numeric {
 namespace omplext_odeint {
@@ -33,26 +34,6 @@ namespace omplext_odeint {
 template< class ControlledStepper >
 class rosenbrock4_dense_output
 {
-
-    void copy_variables( const rosenbrock4_dense_output &rb )
-    {
-        m_stepper = rb.m_stepper;
-        m_x1 = rb.m_x1;
-        m_x2 = rb.m_x2;
-        if( rb.m_current_state == ( & ( rb.m_x1 ) ) )
-        {
-            m_current_state = &m_x1;
-            m_old_state = &m_x2;
-        }
-        else
-        {
-            m_current_state = &m_x2;
-            m_old_state = &m_x1;
-        }
-        m_t = rb.m_t;
-        m_t_old = rb.m_t_old;
-        m_dt = rb.m_dt;
-    }
 
 public:
 
@@ -71,18 +52,10 @@ public:
 
     rosenbrock4_dense_output( const controlled_stepper_type &stepper = controlled_stepper_type() )
     : m_stepper( stepper ) ,
-      m_x1() , m_x2() , m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v ) ,
+      m_x1() , m_x2() , 
+      m_current_state_x1( true ) ,
       m_t() , m_t_old() , m_dt()
-    { }
-
-    rosenbrock4_dense_output( const rosenbrock4_dense_output &rb )
-    : m_current_state( &m_x1.m_v ) , m_old_state( &m_x2.m_v )
-    { }
-
-    rosenbrock4_dense_output& operator=( const rosenbrock4_dense_output &rb )
     {
-        copy_variables( rb );
-        return *this;
     }
 
 
@@ -91,7 +64,7 @@ public:
     void initialize( const StateType &x0 , time_type t0 , time_type dt0 )
     {
         m_resizer.adjust_size( x0 , detail::bind( &dense_output_stepper_type::template resize_impl< StateType > , detail::ref( *this ) , detail::_1 ) );
-        *m_current_state = x0;
+        get_current_state() = x0;
         m_t = t0;
         m_dt = dt0;
     }
@@ -106,13 +79,13 @@ public:
         size_t count = 0;
         do
         {
-            res = m_stepper.try_step( system , *m_current_state , m_t , *m_old_state , m_dt );
+            res = m_stepper.try_step( system , get_current_state() , m_t , get_old_state() , m_dt );
             if( count++ == max_count )
                 throw std::overflow_error( "rosenbrock4 : too much iterations!");
         }
         while( res == fail );
         m_stepper.stepper().prepare_dense_output();
-        std::swap( m_current_state , m_old_state );
+        this->toggle_current_state();
         return std::make_pair( m_t_old , m_t );
     }
 
@@ -123,13 +96,13 @@ public:
     template< class StateOut >
     void calc_state( time_type t , StateOut &x )
     {
-        m_stepper.stepper().calc_state( t , x , *m_old_state , m_t_old , *m_current_state , m_t );
+        m_stepper.stepper().calc_state( t , x , get_old_state() , m_t_old , get_current_state() , m_t );
     }
 
     template< class StateOut >
     void calc_state( time_type t , const StateOut &x )
     {
-        m_stepper.stepper().calc_state( t , x , *m_old_state , m_t_old , *m_current_state , m_t );
+        m_stepper.stepper().calc_state( t , x , get_old_state() , m_t_old , get_current_state() , m_t );
     }
 
 
@@ -145,7 +118,7 @@ public:
 
     const state_type& current_state( void ) const
     {
-        return *m_current_state;
+        return get_current_state();
     }
 
     time_type current_time( void ) const
@@ -155,7 +128,7 @@ public:
 
     const state_type& previous_state( void ) const
     {
-        return *m_old_state;
+        return get_old_state();
     }
 
     time_type previous_time( void ) const
@@ -173,6 +146,32 @@ public:
 
 private:
 
+    state_type& get_current_state( void )
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    const state_type& get_current_state( void ) const
+    {
+        return m_current_state_x1 ? m_x1.m_v : m_x2.m_v ;
+    }
+    
+    state_type& get_old_state( void )
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+    
+    const state_type& get_old_state( void ) const
+    {
+        return m_current_state_x1 ? m_x2.m_v : m_x1.m_v ;
+    }
+
+    void toggle_current_state( void )
+    {
+        m_current_state_x1 = ! m_current_state_x1;
+    }
+
+
     template< class StateIn >
     bool resize_impl( const StateIn &x )
     {
@@ -186,7 +185,7 @@ private:
     controlled_stepper_type m_stepper;
     resizer_type m_resizer;
     wrapped_state_type m_x1 , m_x2;
-    state_type *m_current_state , *m_old_state;
+    bool m_current_state_x1;
     time_type m_t , m_t_old , m_dt;
 };
 

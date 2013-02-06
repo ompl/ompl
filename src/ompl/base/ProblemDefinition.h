@@ -61,7 +61,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProblemDefinition */
-        ClassForward(ProblemDefinition);
+        OMPL_CLASS_FORWARD(ProblemDefinition);
         /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
@@ -224,10 +224,10 @@ namespace ompl
 
             /** \brief Check if an optimization objective was defined for planning  */
             bool hasOptimizationObjective(void) const
-            {     
+            {
                 return optimizationObjective_;
             }
-          
+
             /** \brief Get the optimization objective to be considered during planning */
             const OptimizationObjectivePtr& getOptimizationObjective(void) const
             {
@@ -337,7 +337,7 @@ namespace ompl
         private:
 
             /// @cond IGNORE
-            ClassForward(PlannerSolutionSet);
+            OMPL_CLASS_FORWARD(PlannerSolutionSet);
             /// @endcond
 
             /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */

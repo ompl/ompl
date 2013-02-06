@@ -49,8 +49,8 @@ ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : bas
     maxDistance_ = 0.0;
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 
-    Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange);
-    Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction);
+    Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange, "0.:1.:10000");
+    Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction, "0.:.05:1.");
     Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction, &LBKPIECE1::getMinValidPathFraction);
 }
 
@@ -79,7 +79,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     if (!goal)
     {
-        logError("Unknown type of goal (or goal undefined)");
+        OMPL_ERROR("Unknown type of goal (or goal undefined)");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -97,26 +97,26 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     if (dStart_.getMotionCount() == 0)
     {
-        logError("Motion planning start tree could not be initialized!");
+        OMPL_ERROR("Motion planning start tree could not be initialized!");
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        logError("Insufficient states in sampleable goal region");
+        OMPL_ERROR("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    logInform("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
+    OMPL_INFORM("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     base::State *xstate = si_->allocState();
     bool      startTree = true;
     bool         solved = false;
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         Discretization<Motion> &disc      = startTree ? dStart_ : dGoal_;
         startTree = !startTree;
@@ -138,7 +138,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
             }
             if (dGoal_.getMotionCount() == 0)
             {
-                logError("Unable to sample any valid states for goal tree");
+                OMPL_ERROR("Unable to sample any valid states for goal tree");
                 break;
             }
         }
@@ -177,9 +177,9 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
                 if (isPathValid(disc, connect, xstate) && isPathValid(otherDisc, connectOther, xstate))
                 {
                     if (startTree)
-                        connectionPoint_ = std::make_pair<base::State*, base::State*>(connectOther->state, motion->state);
+                        connectionPoint_ = std::make_pair(connectOther->state, motion->state);
                     else
-                        connectionPoint_ = std::make_pair<base::State*, base::State*>(motion->state, connectOther->state);
+                        connectionPoint_ = std::make_pair(motion->state, connectOther->state);
 
                     /* extract the motions and put them in solution vector */
 
@@ -217,7 +217,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     si_->freeState(xstate);
 
-    logInform("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
+    OMPL_INFORM("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
                 dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(), dGoal_.getMotionCount(),
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());

@@ -51,12 +51,12 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        ClassForward(StateSpace);
+        OMPL_CLASS_FORWARD(StateSpace);
         /// @endcond
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateSampler */
-        ClassForward(StateSampler);
+        OMPL_CLASS_FORWARD(StateSampler);
         /// @endcond
 
         /** \class ompl::base::StateSamplerPtr
@@ -166,7 +166,7 @@ namespace ompl
 
             /** \brief The names of common subspaces between \e space_ and \e subspace_; these are the ones copied after sampling a state */
             std::vector<std::string> subspaces_;
-          
+
         private:
 
             /** \brief Temporary work area */

@@ -115,12 +115,12 @@ namespace ompl
         };
 
         /// @cond IGNORE
-        ClassForward(StateSpace);
+        OMPL_CLASS_FORWARD(StateSpace);
         /// @endcond
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProjectionEvaluator */
-        ClassForward(ProjectionEvaluator);
+        OMPL_CLASS_FORWARD(ProjectionEvaluator);
         /// @endcond
 
         /** \class ompl::base::ProjectionEvaluatorPtr

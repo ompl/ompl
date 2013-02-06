@@ -176,7 +176,7 @@ def plot_attribute(cur, planners, attribute, typename):
         attributes = [ t[0] for t in cur.description]
         if attribute in attributes:
             cur.execute('SELECT `%s` FROM `%s` WHERE `%s` IS NOT NULL' % (attribute, planner, attribute))
-            measurement = [ t[0] for t in cur.fetchall() ]
+            measurement = [ 0 if np.isinf(t[0]) else t[0] for t in cur.fetchall() ]
             cur.execute('SELECT count(*) FROM `%s` WHERE `%s` IS NULL' % (planner, attribute))
             nan_counts.append(cur.fetchone()[0])
             cur.execute('SELECT DISTINCT `%s` FROM `%s`' % (attribute, planner))

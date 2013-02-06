@@ -108,6 +108,8 @@ namespace ompl
         {
             NearestNeighbors<_T>::setDistanceFunction(distFun);
             pivotSelector_.setDistanceFunction(distFun);
+            if (tree_)
+                rebuildDataStructure();
         }
         virtual void clear(void)
         {
@@ -123,7 +125,11 @@ namespace ompl
         virtual void add(const _T &data)
         {
             if (tree_)
+            {
+                if (isRemoved(data))
+                    rebuildDataStructure();
                 tree_->add(*this, data);
+            }
             else
             {
                 tree_ = new Node(degree_, maxNumPtsPerLeaf_, data);
@@ -159,7 +165,7 @@ namespace ompl
         /// be removed.
         virtual bool remove(const _T &data)
         {
-            if (!tree_) return false;
+            if (!size_) return false;
             NearQueue nbhQueue;
             // find data in tree
             bool isPivot = nearestKInternal(data, 1, nbhQueue);
@@ -176,7 +182,7 @@ namespace ompl
 
         virtual _T nearest(const _T &data) const
         {
-            if (tree_)
+            if (size_)
             {
                 std::vector<_T> nbh;
                 nearestK(data, 1, nbh);
@@ -189,7 +195,7 @@ namespace ompl
         {
             nbh.clear();
             if (k == 0) return;
-            if (tree_)
+            if (size_)
             {
                 NearQueue nbhQueue;
                 nearestKInternal(data, k, nbhQueue);
@@ -200,7 +206,7 @@ namespace ompl
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
         {
             nbh.clear();
-            if (tree_)
+            if (size_)
             {
                 NearQueue nbhQueue;
                 nearestRInternal(data, radius, nbhQueue);

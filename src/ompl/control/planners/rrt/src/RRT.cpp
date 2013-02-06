@@ -36,7 +36,7 @@
 
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 
 ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT")
@@ -48,7 +48,7 @@ ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT"
 
     goalBias_ = 0.05;
 
-    Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias);
+    Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
     Planner::declareParam<bool>("intermediate_states", this, &RRT::setIntermediateStates, &RRT::getIntermediateStates);
 }
 
@@ -61,7 +61,7 @@ void ompl::control::RRT::setup(void)
 {
     base::Planner::setup();
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 }
 
@@ -109,7 +109,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -118,7 +118,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -129,7 +129,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     Control       *rctrl = rmotion->control;
     base::State  *xstate = si_->allocState();
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
@@ -260,7 +260,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     delete rmotion;
     si_->freeState(xstate);
 
-    logInform("Created %u states", nn_->size());
+    OMPL_INFORM("Created %u states", nn_->size());
 
     return base::PlannerStatus(solved, approximate);
 }

@@ -85,7 +85,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
     }
     if (startRegions_.empty())
     {
-        logError("There are no valid start states");
+        OMPL_ERROR("There are no valid start states");
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -96,19 +96,19 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
             goalRegions_.insert(decomp_->locateRegion(g));
         else
         {
-            logError("Unable to sample a valid goal state");
+            OMPL_ERROR("Unable to sample a valid goal state");
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
 
-    logInform("Starting with %u states", numMotions_);
+    OMPL_INFORM("Starting with %u states", numMotions_);
 
     std::vector<Motion*> newMotions;
     const Motion* solution = NULL;
     base::Goal* goal = pdef_->getGoal().get();
     double goalDist = std::numeric_limits<double>::infinity();
     bool solved = false;
-    while (!ptc() && !solved)
+    while (!ptc && !solved)
     {
         const int chosenStartRegion = startRegions_.sampleUniform();
         int chosenGoalRegion = -1;
@@ -127,15 +127,15 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
 
         leadComputeFn(chosenStartRegion, chosenGoalRegion, lead_);
         computeAvailableRegions();
-        for (int i = 0; i < numRegionExpansions_ && !solved && !ptc(); ++i)
+        for (int i = 0; i < numRegionExpansions_ && !solved && !ptc; ++i)
         {
             const int region = selectRegion();
             bool improved = false;
-            for (int j = 0; j < numTreeSelections_ && !solved && !ptc(); ++j)
+            for (int j = 0; j < numTreeSelections_ && !solved && !ptc; ++j)
             {
                 newMotions.clear();
                 selectAndExtend(graph_[boost::vertex(region,graph_)], newMotions);
-                for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end() && !ptc(); ++m)
+                for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end() && !ptc; ++m)
                 {
                     Motion* motion = *m;
                     double distance;

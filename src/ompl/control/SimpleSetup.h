@@ -52,7 +52,7 @@ namespace ompl
     namespace control
     {
         /// @cond IGNORE
-        ClassForward(SimpleSetup);
+        OMPL_CLASS_FORWARD(SimpleSetup);
         /// @endcond
 
         /** \class ompl::control::SimpleSetupPtr

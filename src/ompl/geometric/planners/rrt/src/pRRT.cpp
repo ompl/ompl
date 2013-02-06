@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/rrt/pRRT.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <boost/thread/thread.hpp>
@@ -53,9 +52,9 @@ ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner
     maxDistance_ = 0.0;
     lastGoalMotion_ = NULL;
 
-    Planner::declareParam<double>("range", this, &pRRT::setRange, &pRRT::getRange);
-    Planner::declareParam<double>("goal_bias", this, &pRRT::setGoalBias, &pRRT::getGoalBias);
-    Planner::declareParam<unsigned int>("thread_count", this, &pRRT::setThreadCount, &pRRT::getThreadCount);
+    Planner::declareParam<double>("range", this, &pRRT::setRange, &pRRT::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &pRRT::setGoalBias, &pRRT::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<unsigned int>("thread_count", this, &pRRT::setThreadCount, &pRRT::getThreadCount, "1:64");
 }
 
 ompl::geometric::pRRT::~pRRT(void)
@@ -70,7 +69,7 @@ void ompl::geometric::pRRT::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&pRRT::distanceFunction, this, _1, _2));
 }
 
@@ -110,7 +109,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTer
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (sol->solution == NULL && ptc() == false)
+    while (sol->solution == NULL && ptc == false)
     {
         /* sample random state (with goal biasing) */
         if (goal_s && rng.uniform01() < goalBias_ && goal_s->canSample())
@@ -178,7 +177,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (!goal)
     {
-        logError("Goal undefined");
+        OMPL_ERROR("Goal undefined");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -193,11 +192,11 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (nn_->size() == 0)
     {
-        logError("There are no valid initial states!");
+        OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
     }
 
-    logInform("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting with %u states", nn_->size());
 
     SolutionInfo sol;
     sol.solution = NULL;
@@ -242,7 +241,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
         solved = true;
     }
 
-    logInform("Created %u states", nn_->size());
+    OMPL_INFORM("Created %u states", nn_->size());
 
     return base::PlannerStatus(solved, approximate);
 }

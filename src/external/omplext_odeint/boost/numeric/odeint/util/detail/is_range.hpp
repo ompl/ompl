@@ -39,7 +39,7 @@ namespace omplext_odeint {
 namespace range_detail
 {
 BOOST_MPL_HAS_XXX_TRAIT_DEF(iterator)
-		        BOOST_MPL_HAS_XXX_TRAIT_DEF(const_iterator)
+    BOOST_MPL_HAS_XXX_TRAIT_DEF(const_iterator)
 }
 
 namespace detail
@@ -124,7 +124,7 @@ struct is_range< const wchar_t* const > : boost::mpl::true_
 
 } // namespace detail
 
-} // namespaec odeint
+} // namespace omplext_odeint
 } // namespace numeric
 } // namespace boost
 

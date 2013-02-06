@@ -40,6 +40,7 @@
 #include <vector>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <ompl/base/StateSpace.h>
 
 namespace ompl
 {

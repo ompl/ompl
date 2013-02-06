@@ -45,10 +45,9 @@ endif(IS_ICPC)
 find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
-find_package(Boost COMPONENTS odeint QUIET)
 if (NOT ${Boost_VERSION} LESS 104400)
   option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" ON)
-  if(NOT Boost_ODEINT_FOUND)
+  if(${Boost_VERSION} LESS 105300)
     # Include bundled version of boost::odeint if it isn't installed natively
     set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
     include_directories("${ODEINT_INCLUDE_DIR}")
@@ -56,6 +55,9 @@ if (NOT ${Boost_VERSION} LESS 104400)
 else()
   option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
 endif()
+
+# pthread is sometimes needed, depending on OS / compiler
+find_package(Threads QUIET)
 
 enable_testing()
 
@@ -73,8 +75,15 @@ if (TRIANGLE_FOUND)
   include_directories(${TRIANGLE_INCLUDE_DIR})
 endif()
 
-add_subdirectory(src)
+# If FLANN is installed, a wrapper for its nearest neighbor data structures can be used
+find_package(flann 1.8.3 QUIET)
+if (FLANN_FOUND)
+    set(OMPL_HAVE_FLANN 1)
+    include_directories("${FLANN_INCLUDE_DIRS}")
+endif()
+
 add_subdirectory(py-bindings)
+add_subdirectory(src)
 add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(scripts)
@@ -126,3 +135,16 @@ if (OMPL_VERSIONED_INSTALL)
   add_dependencies(uninstall uninstall_links)
 endif()
 include(CPackSettings)
+
+option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
+if (OMPL_REGISTRATION)
+    find_file(OMPL_REGISTERED ".registered" PATHS "${CMAKE_CURRENT_SOURCE_DIR}" NO_DEFAULT_PATH)
+    if (NOT OMPL_REGISTERED)
+        file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
+        find_package(Python QUIET)
+        if (PYTHON_FOUND)
+            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "http://ompl.kavrakilab.org/core/register.html"
+                OUTPUT_QUIET ERROR_QUIET)
+        endif()
+    endif()
+endif()

@@ -73,7 +73,7 @@ void ompl::control::SimpleSetup::setup(void)
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                logInform("No planner specified. Using default.");
+                OMPL_INFORM("No planner specified. Using default.");
                 planner_ = getDefaultPlanner(getGoal());
             }
         }
@@ -105,9 +105,9 @@ ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(double time)
     last_status_ = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
     if (last_status_)
-        logInform("Solution found in %f seconds", planTime_);
+        OMPL_INFORM("Solution found in %f seconds", planTime_);
     else
-        logInform("No solution found after %f seconds", planTime_);
+        OMPL_INFORM("No solution found after %f seconds", planTime_);
     return last_status_;
 }
 
@@ -119,9 +119,9 @@ ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(const base::PlannerT
     last_status_ = planner_->solve(ptc);
     planTime_ = time::seconds(time::now() - start);
     if (last_status_)
-        logInform("Solution found in %f seconds", planTime_);
+        OMPL_INFORM("Solution found in %f seconds", planTime_);
     else
-        logInform("No solution found after %f seconds", planTime_);
+        OMPL_INFORM("No solution found after %f seconds", planTime_);
     return last_status_;
 }
 

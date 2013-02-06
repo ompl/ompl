@@ -56,7 +56,7 @@ namespace ompl
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::ControlSpace */
-        ClassForward(ControlSpace);
+        OMPL_CLASS_FORWARD(ControlSpace);
         /// @endcond
 
         /** \class ompl::control::ControlSpacePtr

@@ -27,7 +27,6 @@
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/size_t.hpp>
 
-#include <boost/fusion/container.hpp>
 #include <boost/fusion/algorithm.hpp>
 #include <boost/fusion/iterator.hpp>
 #include <boost/fusion/mpl.hpp>

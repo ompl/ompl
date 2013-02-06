@@ -87,6 +87,12 @@ namespace ompl
             clear();
         }
 
+        /** \brief Get the current set of stored elements */
+        const std::vector<Element*>& getElements(void)
+        {
+            return data_;
+        }
+
         /** \brief Adds a piece of data with a given weight to the PDF. Returns a corresponding Element, which can be used to subsequently update or remove the data from the PDF. */
         Element* add(const _T& d, const double w)
         {
@@ -123,7 +129,7 @@ namespace ompl
 
         /** \brief Returns a piece of data from the PDF according to the input sampling value,
 which must be between 0 and 1. */
-        const _T& sample(double r) const
+        _T& sample(double r) const
         {
             if (data_.empty())
                 throw Exception("Cannot sample from an empty PDF");

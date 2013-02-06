@@ -363,10 +363,10 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
     smoothBSpline(path, 4, path.length()/100.0);
     const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
     if (!p.second)
-        logWarn("Solution path may slightly touch on an invalid region of the state space");
+        OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
     else
         if (!p.first)
-            logDebug("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+            OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
 }
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime)
@@ -381,38 +381,38 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
 
     // try a randomized step of connecting vertices
     bool tryMore = false;
-    if (ptc() == false)
+    if (ptc == false)
         tryMore = reduceVertices(path);
 
     // try to collapse close-by vertices
-    if (ptc() == false)
+    if (ptc == false)
         collapseCloseVertices(path);
 
     // try to reduce verices some more, if there is any point in doing so
     int times = 0;
-    while (tryMore && ptc() == false && ++times <= 5)
+    while (tryMore && ptc == false && ++times <= 5)
         tryMore = reduceVertices(path);
 
     // run a more complex short-cut algorithm : allow splitting path segments
-    if (ptc() == false)
+    if (ptc == false)
         tryMore = shortcutPath(path);
     else
         tryMore = false;
 
     // run the short-cut algorithm some more, if it makes a difference
     times = 0;
-    while (tryMore && ptc() == false && ++times <= 5)
+    while (tryMore && ptc == false && ++times <= 5)
         tryMore = shortcutPath(path);
 
     // smooth the path
-    if (ptc() == false)
+    if (ptc == false)
         smoothBSpline(path, 3, path.length()/100.0);
 
     // we always run this
     const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
     if (!p.second)
-        logWarn("Solution path may slightly touch on an invalid region of the state space");
+        OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
     else
         if (!p.first)
-            logDebug("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+            OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
 }
