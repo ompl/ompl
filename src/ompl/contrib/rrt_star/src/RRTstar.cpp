@@ -36,7 +36,6 @@
 
 #include "ompl/contrib/rrt_star/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
 #include <limits>
@@ -84,31 +83,15 @@ void ompl::geometric::RRTstar::setup(void)
 
     // Setup optimization objective
     //
-    // If a) no optimization objective was specified, or b) the
-    // specified optimization objective is not a subclass of
-    // AccumulativeOptimizationObjective, then default to optimizing
-    // path length as computed by the distance() function in the state
-    // space.
-    bool validObjective = true;				      
+    // If no optimization objective was specified, then default to
+    // optimizing path length as computed by the distance() function
+    // in the state space.
     if (pdef_->hasOptimizationObjective())
-    {
-      opt_ = boost::dynamic_pointer_cast<base::AccumulativeOptimizationObjective>(pdef_->getOptimizationObjective());
-        // If specified optimization objective not compatible (downcast didn't work)
-        if (!opt_)
-        {
-            validObjective = false;
-            OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only accumulative cost functions can be optimized.", pdef_->getOptimizationObjective()->getDescription().c_str(), getName().c_str());
-        }
-    }
-    else // If no objective specified
-        validObjective = false;
-
-    // If we have no valid optimization objective, assume we're
-    // optimizing path length
-    if (!validObjective)
+      opt_ = pdef_->getOptimizationObjective();
+    else
     {
         OMPL_INFORM("Defaulting to optimizing path length.");
-        opt_.reset(new base::PathLengthOptimizationObjective(si_));
+        opt_.reset(new base::PathIntegralOptimizationObjective(si_));
     }
 }
 

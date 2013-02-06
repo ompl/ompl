@@ -38,7 +38,7 @@
 #define OMPL_CONTRIB_RRT_STAR_BTRRTSTAR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
-#include "ompl/base/objectives/AccumulativeOptimizationObjective.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <limits>
@@ -224,8 +224,6 @@ namespace ompl
 
         protected:
 
-	    typedef base::AccumulativeOptimizationObjective Objective;
-
             /** \brief Representation of a motion */
             class Motion
             {
@@ -274,13 +272,13 @@ namespace ompl
 	    typedef std::pair<std::size_t, base::Cost*> indexCostPair;
 	    struct CostCompare
 	    {
-		CostCompare(const Objective& optObj) : optObj_(optObj) {}
+	        CostCompare(const base::OptimizationObjective& optObj) : optObj_(optObj) {}
 		bool operator()(const indexCostPair& a, const indexCostPair& b)
 		{
 		    return optObj_.isCostLessThan(a.second, b.second);
 		}
 
-		const Objective& optObj_;
+	        const base::OptimizationObjective& optObj_;
 	    };
 
             /** \brief Distance calculation considering volumes */
@@ -325,8 +323,8 @@ namespace ompl
             /** \brief Initial radius of volumes assigned to new vertices in the tree */
             double                                         rO_;
 
-	    /** \brief Objective we're optimizing (currently can OptimizationObjectives which are subclasses of AccumulativeOptimizationObjective) */
-            boost::shared_ptr<Objective> opt_;
+	    /** \brief Objective we're optimizing */
+	    base::OptimizationObjectivePtr opt_;
         };
 
     }

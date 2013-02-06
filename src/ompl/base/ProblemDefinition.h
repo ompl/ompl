@@ -312,7 +312,7 @@ namespace ompl
             /** \brief Set the instance of SolutionNonExistenceProof for this problem definition */
             void setSolutionNonExistenceProof(const SolutionNonExistenceProofPtr& nonExistenceProof);
 
-            /** \brief Print information about the start and goal states */
+            /** \brief Print information about the start and goal states and the optimization objective */
             void print(std::ostream &out = std::cout) const;
 
         protected:
