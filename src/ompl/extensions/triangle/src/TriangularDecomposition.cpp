@@ -43,7 +43,7 @@ ompl::control::TriangularDecomposition::TriangularDecomposition(unsigned int dim
     locator(64, this)
 {
     unsigned int numTriangles = createTriangles();
-    logInform("Created %u triangles", numTriangles);
+    OMPL_INFORM("Created %u triangles", numTriangles);
     setNumRegions(numTriangles);
     buildLocatorGrid();
 }
@@ -92,7 +92,7 @@ int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) c
         if (triContains(triangles_[triID], coord))
         {
             if (triangle >= 0)
-                logError("Decomposition space coordinate (%f,%f) is somehow contained by multiple triangles.\n", coord[0], coord[1]);
+                OMPL_ERROR("Decomposition space coordinate (%f,%f) is somehow contained by multiple triangles.\n", coord[0], coord[1]);
             triangle = triID;
         }
     }
