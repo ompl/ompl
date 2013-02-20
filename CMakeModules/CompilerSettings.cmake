@@ -2,7 +2,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wno-unused-parameter -Wno-delete-non-virtual-dtor -Wno-overloaded-virtual -Wno-unknown-pragmas)
+    add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wno-unused-parameter -Wno-delete-non-virtual-dtor -Wno-overloaded-virtual -Wno-unknown-pragmas -Qunused-arguments)
 endif()
 
 if(MSVC OR MSVC90 OR MSVC10)
