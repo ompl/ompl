@@ -218,10 +218,6 @@ namespace ompl
             const SO3StateSpace::StateType *qs1 = static_cast<const SO3StateSpace::StateType*>(state1);
             const SO3StateSpace::StateType *qs2 = static_cast<const SO3StateSpace::StateType*>(state2);
             double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
-            BOOST_ASSERT_MSG(satisfiesBounds(state1) && satisfiesBounds(state2),
-                "The states passed to SO3StateSpace::distance are not within bounds. Call "
-                "SO3StateSpace::enforceBounds() in, e.g., ompl::control::ODESolver::PostPropagationEvent, "
-                "ompl::control::StatePropagator, or ompl::base::StateValidityChecker");
             if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
                 return 0.0;
             else
@@ -233,6 +229,10 @@ namespace ompl
 
 double ompl::base::SO3StateSpace::distance(const State *state1, const State *state2) const
 {
+    BOOST_ASSERT_MSG(satisfiesBounds(state1) && satisfiesBounds(state2),
+        "The states passed to SO3StateSpace::distance are not within bounds. Call "
+        "SO3StateSpace::enforceBounds() in, e.g., ompl::control::ODESolver::PostPropagationEvent, "
+        "ompl::control::StatePropagator, or ompl::base::StateValidityChecker");
     return arcLength(state1, state2);
 }
 
