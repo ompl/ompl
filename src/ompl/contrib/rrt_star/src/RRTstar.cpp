@@ -95,11 +95,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
+    
+    // when no optimization objective is specified, we create a temporary one (we should not modify the ProblemDefinition)
+    boost::scoped_ptr<base::OptimizationObjective> temporaryOptimizationObjective;
 
     if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
     {
         opt = NULL;
         OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
+    }
+    
+    if (!opt)
+    { 
+        // by default, optimize path length and run until completion
+        opt = new base::PathLengthOptimizationObjective(si_, std::numeric_limits<double>::epsilon());
+        temporaryOptimizationObjective.reset(opt);
+        OMPL_INFORM("No optimization objective specified. Defaulting to optimization of path length for the allowed planning time.");
     }
 
     if (!goal)
@@ -184,7 +195,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             valid.resize(nbh.size());
             std::fill(valid.begin(), valid.end(), 0);
 
-            if(delayCC_)
+            if (delayCC_)
             {
                 // calculate all costs and distances
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
@@ -297,7 +308,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
+                sufficientlyShort = solved ? opt->isSatisfied(solCheck[i]->cost) : false;
 
                 if (solved)
                 {
@@ -323,7 +334,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (solution && sufficientlyShort)
             break;
     }
-
+    
     double solutionCost;
     bool approximate = (solution == NULL);
     bool addedSolution = false;

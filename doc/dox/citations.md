@@ -14,7 +14,7 @@ If you use OMPL in your research, we kindly ask you to include the following cit
     Pages = {72--82},
     Title = {The {O}pen {M}otion {P}lanning {L}ibrary},
     Note = {\url{http://ompl.kavrakilab.org}},
-    Volume = {19}
+    Volume = {19},
     Year = {2012}
 }
 ~~~
