@@ -31,3 +31,5 @@ add_custom_target(clean_rrtstar_bindings
     ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/bindings
     COMMAND ${CMAKE_COMMAND} -E remove -f pyplusplus_rrtstar.{cache,log}
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+# clean RRT* bindings whenever the target clean_bindings is built
+add_dependencies(clean_bindings clean_rrtstar_bindings)
