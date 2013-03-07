@@ -58,9 +58,10 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // exception if this is not the case.
     checkValidity();
 
-    // get a handle to the Goal from the ompl::base::ProblemDefinition member, pdef_
-    base::Goal *goal = pdef_->getGoal().get();
-    goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion*>(goal);
+    // depending on how the planning problem is set up, this may be necessary
+    bsp_->bounds_ = projectionEvaluator_->getBounds();
+
+    goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     // Initialize to correct values depending on whether or not previous calls to solve
     // generated an approximate or exact solution. If solve is being called for the first
@@ -68,7 +69,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     double distanceToGoal, closestDistanceToGoal = std::numeric_limits<double>::infinity();
     bool hasSolution = (lastGoalMotion_ != NULL);
     bool isApproximate = hasSolution ?
-        goal->isSatisfied(lastGoalMotion_->state_, &closestDistanceToGoal) : true;
+        goalSampler_->isSatisfied(lastGoalMotion_->state_, &closestDistanceToGoal) : true;
     unsigned ndim = projectionEvaluator_->getDimension();
 
     // If an exact solution has already been found, do not run for another iteration.
@@ -98,16 +99,15 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         motionSelected->updatePriority();
         priorityQueue_.update(motionSelected->heapElement_);
 
-        Motion *newMotion = propagateFrom(motionSelected, scratch);
+        Motion *newMotion = propagateFrom(motionSelected, hasSolution, distanceToGoal, scratch);
         if (newMotion == NULL)
             continue;
 
         // Check if the newMotion reached the goal.
-        if (goal->isSatisfied(newMotion->state_, &distanceToGoal))
+        if (hasSolution)
         {
             closestDistanceToGoal = distanceToGoal;
             lastGoalMotion_ = newMotion;
-            hasSolution = true;
             isApproximate = false;
             break;
         }
@@ -164,14 +164,15 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     return ompl::base::PlannerStatus(hasSolution, isApproximate);
 }
 
-ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, base::State* scratch)
+ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
+    Motion* motion, bool& goalReached, double& distanceToGoal, base::State* scratch)
 {
-    unsigned int duration;
+    base::Goal *goal = pdef_->getGoal().get();
 
     if (motion->controlDuration_ > 1)
     {
         // sample a point along the trajectory given by motion
-        duration = rng_.uniformInt(1, motion->controlDuration_);
+        unsigned int duration = rng_.uniformInt(1, motion->controlDuration_);
         if (duration != motion->controlDuration_)
         {
             // split motion into two motions
@@ -186,12 +187,18 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, 
     else
     {
         if (!sampler_->sampleNear(scratch, motion->state_, maxDistance_))
+        {
+            goalReached = false;
+            distanceToGoal = std::numeric_limits<double>::infinity();
             return NULL;
+        }
     }
 
     // generate a random control
     Control *randomControl = siC_->allocControl();
-    duration = controlSampler_->sampleTo(randomControl, motion->control_,
+    // ignore returned duration. It's only the direction we care about; we
+    // always propagate for (at most) siC_->getMaxControlDuration() steps
+    controlSampler_->sampleTo(randomControl, motion->control_,
         motion->state_, scratch);
 
     // propagate using the random control and split when crossing cell bounds
@@ -208,6 +215,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, 
         if (!si_->isValid(m->state_))
         {
             std::swap(prevState, m->state_);
+            goalReached = goal->isSatisfied(m->state_, &distanceToGoal);
             break;
         }
         projectionEvaluator_->project(m->state_, m->projection_);
@@ -229,7 +237,8 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, 
         }
         else
             ++(m->controlDuration_);
-        if (i == duration)
+        if ((goalReached = goal->isSatisfied(m->state_, &distanceToGoal))
+            || i == siC_->getMaxControlDuration())
             break;
         std::swap(prevState, m->state_);
         ++i;
@@ -261,6 +270,8 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, 
         // otherwise, clean up
         for (i=0; i<newMotions.size(); ++i)
             freeMotion(newMotions[i]);
+        goalReached = false;
+        distanceToGoal = std::numeric_limits<double>::infinity();
         return NULL;
     }
 }
@@ -389,15 +400,4 @@ void ompl::control::PDST::Cell::subdivide(unsigned int spaceDimension)
     left_->bounds_.high[splitDimension_] = splitValue_;
     right_ = new Cell(childVolume, bounds_, nextSplitDimension);
     right_->bounds_.low[splitDimension_] = splitValue_;
-}
-
-void ompl::control::PDST::checkStates()
-{
-    ompl::base::PlannerData data(si_);
-    getPlannerData(data);
-    const ompl::base::State* s = data.getVertex(0).getState();
-    for (unsigned int i=1; i<data.numVertices(); ++i)
-    {
-        assert(si_->distance(s, data.getVertex(i).getState())<1000);
-    }
 }

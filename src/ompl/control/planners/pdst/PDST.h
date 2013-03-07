@@ -158,8 +158,6 @@ namespace ompl
             struct Cell;
             struct Motion;
 
-            void checkStates();
-
             void freeMotion(Motion* m)
             {
                 if (m->state_)
@@ -327,7 +325,11 @@ namespace ompl
             /// Inserts the motion into the appropriate cell
             void insertSampleIntoBsp(Motion *motion, Cell *bsp = NULL);
 
-            Motion* propagateFrom(Motion* motion, base::State* scratch);
+            /// \brief Select a state along motion and propagate a new motion from there.
+            /// Return NULL if not valid motion could be generated starting at the
+            /// selected state.
+            Motion* propagateFrom(Motion* motion, bool& goalReached,
+                double& distanceToGoal, base::State* scratch);
 
             /// Valid state sampler
             ompl::base::ValidStateSamplerPtr sampler_;
