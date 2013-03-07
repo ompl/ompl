@@ -91,7 +91,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    ompl::base::State *scratch = si_->allocState();
+    ompl::base::State *scratch = si_->allocState(), *scratch2 = si_->allocState();
     while (!ptc)
     {
         // Get the top priority path.
@@ -125,10 +125,11 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         motions.swap(cellSelected->motions_);
         cellSelected->subdivide(ndim);
         for (std::vector<Motion*>::iterator m = motions.begin(); m!=motions.end(); m++)
-            insertSampleIntoBsp(*m, cellSelected);
+            insertSampleIntoBsp(*m, cellSelected, scratch, scratch2);
         iter_++;
     }
     si_->freeState(scratch);
+    si_->freeState(scratch2);
 
 
     if (lastGoalMotion_ != NULL)
@@ -276,7 +277,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
     }
 }
 
-void ompl::control::PDST::insertSampleIntoBsp(Motion *motion, Cell *bsp)
+void ompl::control::PDST::insertSampleIntoBsp(Motion *motion, Cell *bsp, base::State* prevState, base::State* state)
 {
     bsp->stab(motion->projection_)->addMotion(motion);
     priorityQueue_.update(motion->heapElement_);
@@ -288,7 +289,7 @@ void ompl::control::PDST::insertSampleIntoBsp(Motion *motion, Cell *bsp)
 
     // motion can cross at most one cell boundary, since bsp has just been split
     // into two cells.
-    base::State *state = si_->allocState(), *prevState = si_->cloneState(motion->parent_->state_);
+    si_->copyState(prevState, motion->parent_->state_);
     base::EuclideanProjection proj(projectionEvaluator_->getDimension()),
         prevProj(projectionEvaluator_->getDimension());
     Cell *cell = NULL, *prevCell = NULL;
@@ -321,8 +322,6 @@ void ompl::control::PDST::insertSampleIntoBsp(Motion *motion, Cell *bsp)
         std::swap(cell, prevCell);
         proj.swap(prevProj);
     }
-    si_->freeState(prevState);
-    si_->freeState(state);
 }
 
 void ompl::control::PDST::clear(void)

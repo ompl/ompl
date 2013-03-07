@@ -247,6 +247,8 @@ void planWithSimpleSetup(void)
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05);
 
+    // ss.setPlanner(ob::PlannerPtr(new oc::PDST(ss.getSpaceInformation())));
+    // ss.getSpaceInformation()->setMinMaxControlDuration(1,100);
     // attempt to solve the problem within one second of planning time
     ob::PlannerStatus solved = ss.solve(10.0);
 
@@ -265,10 +267,10 @@ int main(int, char **)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
-    plan();
-
-    std::cout << std::endl << std::endl;
-
+    // plan();
+    // 
+    // std::cout << std::endl << std::endl;
+    // 
     planWithSimpleSetup();
 
     return 0;

@@ -323,7 +323,8 @@ namespace ompl
 
 
             /// Inserts the motion into the appropriate cell
-            void insertSampleIntoBsp(Motion *motion, Cell *bsp = NULL);
+            void insertSampleIntoBsp(Motion *motion, Cell *bsp,
+                base::State* scratch1, base::State* scratch2);
 
             /// \brief Select a state along motion and propagate a new motion from there.
             /// Return NULL if not valid motion could be generated starting at the
