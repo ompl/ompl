@@ -41,6 +41,7 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
 #include "ompl/base/GenericParam.h"
+#include "ompl/base/spaces/RealVectorBounds.h"
 
 #include <vector>
 #include <valarray>
@@ -190,6 +191,19 @@ namespace ompl
                 sizes either. */
             void inferCellSizes(void);
 
+            /** \brief Set bounds on the projection. The PDST planner
+                 needs to known the bounds on the projection. Default bounds
+                 are automatically computed by inferCellSizes(). */
+            void setBounds(RealVectorBounds bounds)
+            {
+                bounds_ = bounds;
+            }
+            /** \brief Get the bounds computed/set for this projection */
+            const RealVectorBounds& getBounds()
+            {
+                return bounds_;
+            }
+
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this
                 function is empty. setup() calls this function if no
@@ -237,6 +251,9 @@ namespace ompl
                 projected space, in the implicitly defined integer
                 grid. */
             std::vector<double>  cellSizes_;
+
+            /** \brief A bounding box for projected state values */
+            RealVectorBounds     bounds_;
 
             /** \brief Flag indicating whether cell sizes have
                 been set by the user, or whether they were inferred

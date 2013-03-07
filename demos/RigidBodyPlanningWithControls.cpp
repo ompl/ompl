@@ -43,6 +43,7 @@
 #include <ompl/control/planners/est/EST.h>
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/SyclopEST.h>
+#include <ompl/control/planners/pdst/PDST.h>
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
 #include <iostream>
@@ -101,18 +102,15 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
 {
     const ob::SE2StateSpace::StateType *se2state = start->as<ob::SE2StateSpace::StateType>();
-    const ob::RealVectorStateSpace::StateType *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
-    const ob::SO2StateSpace::StateType *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
-    const oc::RealVectorControlSpace::ControlType *rctrl = control->as<oc::RealVectorControlSpace::ControlType>();
+    const double* pos = se2state->as<ob::RealVectorStateSpace::StateType>(0)->values;
+    const double rot = se2state->as<ob::SO2StateSpace::StateType>(1)->value;
+    const double* ctrl = control->as<oc::RealVectorControlSpace::ControlType>()->values;
 
-    result->as<ob::SE2StateSpace::StateType>()->as<ob::RealVectorStateSpace::StateType>(0)->values[0] =
-        (*pos)[0] + (*rctrl)[0] * duration * cos(rot->value);
-
-    result->as<ob::SE2StateSpace::StateType>()->as<ob::RealVectorStateSpace::StateType>(0)->values[1] =
-        (*pos)[1] + (*rctrl)[0] * duration * sin(rot->value);
-
-    result->as<ob::SE2StateSpace::StateType>()->as<ob::SO2StateSpace::StateType>(1)->value =
-        rot->value + (*rctrl)[1];
+    result->as<ob::SE2StateSpace::StateType>()->setXY(
+        pos[0] + ctrl[0] * duration * cos(rot),
+        pos[1] + ctrl[0] * duration * sin(rot));
+    result->as<ob::SE2StateSpace::StateType>()->setYaw(
+        rot    + ctrl[1] * duration);
 }
 
 void plan(void)

@@ -5,6 +5,7 @@
 ../src/ompl/base/StateSampler.h
 ../src/ompl/base/ValidStateSampler.h
 ../src/ompl/base/PrecomputedStateSampler.h
+../src/ompl/base/spaces/RealVectorBounds.h
 ../src/ompl/base/ProjectionEvaluator.h
 ../src/ompl/base/StateSpace.h
 ../src/ompl/base/StateStorage.h
@@ -28,7 +29,6 @@
 ../src/ompl/base/Planner.h
 ../src/ompl/base/ProblemDefinition.h
 ../src/ompl/base/samplers/UniformValidStateSampler.h
-../src/ompl/base/spaces/RealVectorBounds.h
 ../src/ompl/base/spaces/RealVectorStateSpace.h
 ../src/ompl/base/spaces/RealVectorStateProjections.h
 ../src/ompl/base/spaces/SO2StateSpace.h

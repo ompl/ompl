@@ -62,6 +62,11 @@ namespace ompl
             2. compute the cell sizes by dividing the extent by PROJECTION_DIMENSION_SPLITS */
         static const unsigned int PROJECTION_EXTENTS_SAMPLES = 100;
 
+        /** \brief When a bounding box of projected states cannot be inferred,
+            it will be estimated by sampling states. To get closer to the true
+            bounding box, we grow the bounding box of the projected sampled
+            states by 5% on each side. */
+        static const double PROJECTION_EXPAND_FACTOR = 1.05;
 
         /** \brief For planners: if default values are to be used for
             the maximum length of motions, this constant defines what

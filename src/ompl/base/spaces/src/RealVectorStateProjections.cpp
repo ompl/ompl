@@ -117,10 +117,10 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
 
 void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes(void)
 {
-    const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
+    bounds_ = space_->as<RealVectorStateSpace>()->getBounds();
     cellSizes_.resize(components_.size());
     for (unsigned int i = 0 ; i < cellSizes_.size() ; ++i)
-        cellSizes_[i] = (bounds.high[components_[i]] - bounds.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
+        cellSizes_[i] = (bounds_.high[components_[i]] - bounds_.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
 unsigned int ompl::base::RealVectorLinearProjectionEvaluator::getDimension(void) const
@@ -172,10 +172,10 @@ ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionE
 
 void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellSizes(void)
 {
-    const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
+    bounds_ = space_->as<RealVectorStateSpace>()->getBounds();
     cellSizes_.resize(getDimension());
     for (unsigned int i = 0 ; i < cellSizes_.size() ; ++i)
-        cellSizes_[i] = (bounds.high[i] - bounds.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
+        cellSizes_[i] = (bounds_.high[i] - bounds_.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
 void ompl::base::RealVectorIdentityProjectionEvaluator::setup(void)
