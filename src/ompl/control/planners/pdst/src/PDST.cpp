@@ -58,32 +58,15 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // exception if this is not the case.
     checkValidity();
 
+    if (!bsp_)
+    {
+        OMPL_ERROR("PDST was not set up.");
+        return base::PlannerStatus::CRASH;
+    }
+    
     // depending on how the planning problem is set up, this may be necessary
     bsp_->bounds_ = projectionEvaluator_->getBounds();
-
     goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion*>(pdef_->getGoal().get());
-
-    // Initialize to correct values depending on whether or not previous calls to solve
-    // generated an approximate or exact solution. If solve is being called for the first
-    // time then initializes hasSolution to false and isApproximate to true.
-    double distanceToGoal, closestDistanceToGoal = std::numeric_limits<double>::infinity();
-    bool hasSolution = (lastGoalMotion_ != NULL);
-    bool isApproximate = hasSolution ?
-        goalSampler_->isSatisfied(lastGoalMotion_->state_, &closestDistanceToGoal) : true;
-    unsigned ndim = projectionEvaluator_->getDimension();
-
-    // If an exact solution has already been found, do not run for another iteration.
-    if (hasSolution && !isApproximate)
-        return ompl::base::PlannerStatus::EXACT_SOLUTION;
-
-    // Store the start states in startMotions.
-    while (base::State *st = const_cast<base::State*>(pis_.nextStart()))
-    {
-        Motion *startMotion = new Motion(si_->cloneState(st), projectionEvaluator_);
-        bsp_->addMotion(startMotion);
-        startMotion->heapElement_ = priorityQueue_.insert(startMotion);
-        startMotions_.push_back(startMotion);
-    }
 
     // Ensure that we have a state sampler AND a control sampler
     if (!sampler_)
@@ -91,7 +74,30 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    ompl::base::State *scratch = si_->allocState(), *scratch2 = si_->allocState();
+    // Initialize to correct values depending on whether or not previous calls to solve
+    // generated an approximate or exact solution. If solve is being called for the first
+    // time then initializes hasSolution to false and isApproximate to true.
+    double distanceToGoal, closestDistanceToGoal = std::numeric_limits<double>::infinity();
+    bool hasSolution = lastGoalMotion_ != NULL;
+    bool isApproximate = hasSolution ? pdef_->getGoal()->isSatisfied(lastGoalMotion_->state_, &closestDistanceToGoal) : true;
+    unsigned ndim = projectionEvaluator_->getDimension();
+    
+    // If an exact solution has already been found, do not run for another iteration.
+    if (hasSolution && !isApproximate)
+        return ompl::base::PlannerStatus::EXACT_SOLUTION;
+
+    // Store the start states in startMotions.
+    while (const base::State *st = pis_.nextStart())
+    {
+        Motion *startMotion = new Motion(si_->cloneState(st), projectionEvaluator_);
+        bsp_->addMotion(startMotion);
+        startMotion->heapElement_ = priorityQueue_.insert(startMotion);
+        startMotions_.push_back(startMotion);
+    }
+
+    base::State *scratch = si_->allocState();
+    base::State *scratch2 = si_->allocState();
+
     while (!ptc)
     {
         // Get the top priority path.
