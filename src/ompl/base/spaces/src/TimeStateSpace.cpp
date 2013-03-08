@@ -172,7 +172,7 @@ void ompl::base::TimeStateSpace::registerProjections(void)
             cellSizes_.resize(1);
             if (space_->as<TimeStateSpace>()->isBounded())
             {
-                bounds_ = RealVectorBounds(1);
+                bounds_.resize(1);
                 bounds_.low[0] = space_->as<TimeStateSpace>()->getMinTimeBound();
                 bounds_.high[1] = space_->as<TimeStateSpace>()->getMaxTimeBound();
                 cellSizes_[0] = bounds_.getDifference()[0] / magic::PROJECTION_DIMENSION_SPLITS;

@@ -194,12 +194,12 @@ namespace ompl
             /** \brief Set bounds on the projection. The PDST planner
                  needs to known the bounds on the projection. Default bounds
                  are automatically computed by inferCellSizes(). */
-            void setBounds(RealVectorBounds bounds)
+            void setBounds(const RealVectorBounds &bounds)
             {
                 bounds_ = bounds;
             }
             /** \brief Get the bounds computed/set for this projection */
-            const RealVectorBounds& getBounds()
+            const RealVectorBounds& getBounds(void)
             {
                 return bounds_;
             }

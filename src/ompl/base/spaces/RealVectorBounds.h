@@ -52,8 +52,7 @@ namespace ompl
             /** \brief Constructor; \e dim represents the dimension of the space these bounds are for. */
             RealVectorBounds(unsigned int dim)
             {
-                low.resize(dim, 0.0);
-                high.resize(dim, 0.0);
+                resize(dim);
             }
 
             /** \brief Set the lower bound in each dimension to a specific value */
@@ -68,6 +67,9 @@ namespace ompl
             /** \brief Set the upper bound of a dimension to a specific value */
             void setHigh(unsigned int index, double value);
 
+            /** \brief Change the number of dimensions for the bounds */
+            void resize(std::size_t size);
+          
             /** \brief Compute the volume of the space enclosed by the bounds */
             double getVolume(void) const;
 

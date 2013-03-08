@@ -343,7 +343,7 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
         State *s = space_->allocState();
         EuclideanProjection proj(dim);
 
-        bounds_ = RealVectorBounds(dim);
+        bounds_.resize(dim);
         bounds_.setLow(std::numeric_limits<double>::infinity());
         bounds_.setHigh(-std::numeric_limits<double>::infinity());
 
