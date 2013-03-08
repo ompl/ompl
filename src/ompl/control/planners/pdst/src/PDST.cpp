@@ -95,6 +95,12 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         startMotions_.push_back(startMotion);
     }
 
+    if (priorityQueue_.empty())
+    {
+        OMPL_ERROR("There are no valid initial states!");
+        return base::PlannerStatus::INVALID_START;
+    }
+
     base::State *scratch = si_->allocState();
     base::State *scratch2 = si_->allocState();
 
