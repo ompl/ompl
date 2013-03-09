@@ -158,16 +158,6 @@ namespace ompl
             struct Cell;
             struct Motion;
 
-            void freeMotion(Motion* m)
-            {
-                if (m->state_)
-                    si_->freeState(m->state_);
-                if (m->control_)
-                    siC_->freeControl(m->control_);
-                delete m;
-            }
-            void freeMemory(void);
-
             /// Comparator used to order motions in the priority queue
             struct MotionCompare
             {
@@ -203,9 +193,9 @@ namespace ompl
                 {
                     return priority_ / cell_->volume_;
                 }
-                void updatePriority()
+                void updatePriority(void)
                 {
-                    priority_ = priority_ * 2 + 1;
+                    priority_ = priority_ * 2.0 + 1.0;
                 }
 
                 /// \brief Split a motion into two parts. The first part is
@@ -268,8 +258,8 @@ namespace ompl
             struct Cell
             {
                 Cell(double volume, const ompl::base::RealVectorBounds& bounds,
-                    unsigned int splitDimension = 0)
-                    : volume_(volume), splitDimension_(splitDimension), splitValue_(0.),
+                     unsigned int splitDimension = 0)
+                    : volume_(volume), splitDimension_(splitDimension), splitValue_(0.0),
                     left_(NULL), right_(NULL), bounds_(bounds)
                 {
                 }
@@ -331,6 +321,17 @@ namespace ompl
             /// selected state.
             Motion* propagateFrom(Motion* motion, bool& goalReached,
                 double& distanceToGoal, base::State* scratch);
+
+            void freeMotion(Motion* m)
+            {
+                if (m->state_)
+                    si_->freeState(m->state_);
+                if (m->control_)
+                    siC_->freeControl(m->control_);
+                delete m;
+            }
+
+            void freeMemory(void);
 
             /// Valid state sampler
             ompl::base::ValidStateSamplerPtr sampler_;

@@ -136,7 +136,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         std::vector<Motion*> motions;
         motions.swap(cellSelected->motions_);
         cellSelected->subdivide(ndim);
-        for (std::vector<Motion*>::iterator m = motions.begin(); m!=motions.end(); m++)
+        for (std::vector<Motion*>::iterator m = motions.begin() ; m != motions.end() ; ++m)
             insertSampleIntoBsp(*m, cellSelected, scratch, scratch2);
         iter_++;
     }
@@ -163,22 +163,20 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         }
 
         // Add the solution path in order from the start state to the goal.
-        for (std::vector<Motion*>::reverse_iterator rIt = mpath.rbegin();
-            rIt != mpath.rend(); ++rIt)
+        for (std::vector<Motion*>::reverse_iterator rIt = mpath.rbegin() ; rIt != mpath.rend() ; ++rIt)
         {
             if ((*rIt)->parent_ != NULL)
                 path->append((*rIt)->state_, (*rIt)->control_, (*rIt)->controlDuration_ * dt);
             else
                 path->append((*rIt)->state_);
         }
-        pdef_->addSolutionPath(ompl::base::PathPtr(path), isApproximate, closestDistanceToGoal);
+        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal);
     }
 
-    return ompl::base::PlannerStatus(hasSolution, isApproximate);
+    return base::PlannerStatus(hasSolution, isApproximate);
 }
 
-ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
-    Motion* motion, bool& goalReached, double& distanceToGoal, base::State* scratch)
+ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, bool& goalReached, double& distanceToGoal, base::State* scratch)
 {
     base::Goal *goal = pdef_->getGoal().get();
 
@@ -220,7 +218,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
     base::State* prevState = si_->cloneState(motion->state_);
     Cell *prevCell = motion->cell_;
     std::vector<Motion*> newMotions;
-    unsigned i=1, totalDuration=0;
+    unsigned index = 1, totalDuration = 0;
 
     while (true)
     {
@@ -251,10 +249,10 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
         else
             ++(m->controlDuration_);
         if ((goalReached = goal->isSatisfied(m->state_, &distanceToGoal))
-            || i == siC_->getMaxControlDuration())
+            || index == siC_->getMaxControlDuration())
             break;
         std::swap(prevState, m->state_);
-        ++i;
+        ++index;
     } // end while
 
     si_->freeState(prevState);
@@ -271,7 +269,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
     if (totalDuration >= siC_->getMinControlDuration())
     {
         // if so, add motin segments to the priority queue and bsp.
-        for (i=0; i<newMotions.size(); ++i)
+        for (std::size_t i = 0; i < newMotions.size() ; ++i)
         {
             newMotions[i]->heapElement_ = priorityQueue_.insert(newMotions[i]);
             newMotions[i]->cell_->motions_.push_back(newMotions[i]);
@@ -281,7 +279,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
     else
     {
         // otherwise, clean up
-        for (i=0; i<newMotions.size(); ++i)
+        for (std::size_t i = 0 ; i < newMotions.size() ; ++i)
             freeMotion(newMotions[i]);
         goalReached = false;
         distanceToGoal = std::numeric_limits<double>::infinity();
@@ -305,11 +303,10 @@ void ompl::control::PDST::insertSampleIntoBsp(Motion *motion, Cell *bsp, base::S
     base::EuclideanProjection proj(projectionEvaluator_->getDimension()),
         prevProj(projectionEvaluator_->getDimension());
     Cell *cell = NULL, *prevCell = NULL;
-    unsigned int i;
 
     motion->cell_ = bsp->stab(motion->projection_);
     priorityQueue_.update(motion->heapElement_);
-    for (i=0; i<motion->controlDuration_; ++i)
+    for (unsigned int i = 0 ; i < motion->controlDuration_ ; ++i)
     {
         siC_->propagate(prevState, motion->control_, 1, state);
         projectionEvaluator_->project(state, proj);
@@ -354,7 +351,7 @@ void ompl::control::PDST::freeMemory(void)
     std::vector<Motion*> motions;
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
-    for (std::vector<Motion*>::iterator it = motions.begin(); it < motions.end(); ++it)
+    for (std::vector<Motion*>::iterator it = motions.begin() ; it < motions.end() ; ++it)
         freeMotion(*it);
     priorityQueue_.clear(); // clears the Element objects in the priority queue
     delete bsp_;
@@ -373,7 +370,7 @@ void ompl::control::PDST::setup(void)
 
 void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
 {
-    ompl::base::Planner::getPlannerData(data);
+    base::Planner::getPlannerData(data);
 
     double propagationStepSize = siC_->getPropagationStepSize();
     std::vector<Motion*> motions;
@@ -389,15 +386,15 @@ void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
         Motion *parent = child->parent_;
 
         if (parent == NULL)
-            data.addStartVertex(ompl::base::PlannerDataVertex(child->state_));
+            data.addStartVertex(base::PlannerDataVertex(child->state_));
         else if (data.hasControls())
-            data.addEdge(ompl::base::PlannerDataVertex(parent->state_),
-                ompl::base::PlannerDataVertex(child->state_),
-                ompl::control::PlannerDataEdgeControl(child->control_,
+            data.addEdge(base::PlannerDataVertex(parent->state_),
+                base::PlannerDataVertex(child->state_),
+                PlannerDataEdgeControl(child->control_,
                     child->controlDuration_ * propagationStepSize));
         else
-            data.addEdge(ompl::base::PlannerDataVertex(parent->state_),
-                ompl::base::PlannerDataVertex(child->state_));
+            data.addEdge(base::PlannerDataVertex(parent->state_),
+                base::PlannerDataVertex(child->state_));
     }
 }
 
@@ -405,7 +402,7 @@ void ompl::control::PDST::Cell::subdivide(unsigned int spaceDimension)
 {
     double childVolume = volume_ / 2.0;
     unsigned int nextSplitDimension = (splitDimension_ + 1) % spaceDimension;
-    splitValue_ = .5 * (bounds_.low[splitDimension_] + bounds_.high[splitDimension_]);
+    splitValue_ = 0.5 * (bounds_.low[splitDimension_] + bounds_.high[splitDimension_]);
 
     left_ = new Cell(childVolume, bounds_, nextSplitDimension);
     left_->bounds_.high[splitDimension_] = splitValue_;
