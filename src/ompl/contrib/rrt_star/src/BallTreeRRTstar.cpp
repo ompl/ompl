@@ -38,6 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -285,7 +286,8 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
                     }
 
             }
-            else{
+            else
+            {
                 /* find which one we connect the new state to*/
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                     if (nbh[i] != nmotion)
@@ -353,17 +355,21 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
 
                         if (v)
                         {
-                            // Remove this node from its parent list
-                            removeFromParent (nbh[i]);
                             double delta = c - nbh[i]->cost;
 
-                            nbh[i]->parent = motion;
-                            nbh[i]->cost = c;
-                            nbh[i]->parent->children.push_back(nbh[i]);
-                            solCheck.push_back(nbh[i]);
+                            if (delta > -magic::BETTER_PATH_COST_MARGIN)
+                            {
+                                // Remove this node from its parent list
+                                removeFromParent (nbh[i]);
 
-                            // Update the costs of the node's children
-                            updateChildCosts(nbh[i], delta);
+                                nbh[i]->parent = motion;
+                                nbh[i]->cost = c;
+                                nbh[i]->parent->children.push_back(nbh[i]);
+                                solCheck.push_back(nbh[i]);
+                                
+                                // Update the costs of the node's children
+                                updateChildCosts(nbh[i], delta);
+                            }
                         }
                     }
                 }

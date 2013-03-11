@@ -32,11 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
+/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Ioan Sucan */
 
 #include "ompl/contrib/rrt_star/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -283,18 +284,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         bool v = valid[i] == 0 ? si_->checkMotion(nbh[i]->state, dstate) : valid[i] == 1;
                         if (v)
                         {
-                            // Remove this node from its parent list
-                            removeFromParent (nbh[i]);
                             double delta = c - nbh[i]->cost;
 
-                            // Add this node to the new parent
-                            nbh[i]->parent = motion;
-                            nbh[i]->cost = c;
-                            nbh[i]->parent->children.push_back(nbh[i]);
-                            solCheck.push_back(nbh[i]);
+                            if (delta > -magic::BETTER_PATH_COST_MARGIN)
+                            {
+                                // Remove this node from its parent list
+                                removeFromParent (nbh[i]);
 
-                            // Update the costs of the node's children
-                            updateChildCosts(nbh[i], delta);
+                                // Add this node to the new parent
+                                nbh[i]->parent = motion;
+                                nbh[i]->cost = c;
+                                nbh[i]->parent->children.push_back(nbh[i]);
+                                solCheck.push_back(nbh[i]);
+                                
+                                // Update the costs of the node's children
+                                updateChildCosts(nbh[i], delta);
+                            }
                         }
                     }
                 }
