@@ -117,10 +117,15 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
 
 void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes(void)
 {
-    bounds_ = space_->as<RealVectorStateSpace>()->getBounds();
+    const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
+    bounds_.resize(components_.size());
     cellSizes_.resize(components_.size());
     for (unsigned int i = 0 ; i < cellSizes_.size() ; ++i)
-        cellSizes_[i] = (bounds_.high[components_[i]] - bounds_.low[components_[i]]) / magic::PROJECTION_DIMENSION_SPLITS;
+    {
+        bounds_.low[i] = bounds.low[components_[i]];
+        bounds_.high[i] = bounds.high[components_[i]];
+        cellSizes_[i] = (bounds_.high[i] - bounds_.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
+    }
 }
 
 unsigned int ompl::base::RealVectorLinearProjectionEvaluator::getDimension(void) const

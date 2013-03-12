@@ -36,24 +36,24 @@
 
 
 
-#ifndef OMPL_CONTROL_PLANNERS_PDST_PDST_
-#define OMPL_CONTROL_PLANNERS_PDST_PDST_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PDST_PDST_
+#define OMPL_GEOMETRIC_PLANNERS_PDST_PDST_
 
 #include "ompl/base/Planner.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/control/PathControl.h"
-#include "ompl/control/PlannerData.h"
+#include "ompl/geometric/PathGeometric.h"
+#include "ompl/base/PlannerData.h"
 #include "ompl/datastructures/BinaryHeap.h"
 
 
 namespace ompl
 {
 
-    namespace control
+    namespace geometric
     {
 
          /**
-            @anchor cPDST
+            @anchor gPDST
             @par Short description
             PDST is a tree-based motion planner that attempts to detect
             the less explored area of the space through the use of a
@@ -81,7 +81,7 @@ namespace ompl
         {
         public:
 
-            PDST(const SpaceInformationPtr &si);
+            PDST(const base::SpaceInformationPtr &si);
 
             virtual ~PDST(void);
 
@@ -161,17 +161,21 @@ namespace ompl
             struct Motion
             {
             public:
-                Motion(base::State *state, Motion *parent, Control *control,
-                    unsigned int controlDuration, ompl::base::EuclideanProjection& projection,
+                Motion(base::State *state, Motion *parent, base::EuclideanProjection::size_type projectionDim,
                     double priority, Cell* cell)
                     : priority_(priority), cell_(cell), parent_(parent), state_(state),
-                    control_(control), controlDuration_(controlDuration), projection_(projection),
-                    heapElement_(NULL)
+                    projection_(projectionDim), heapElement_(NULL)
+                {
+                }
+                Motion(base::State *state, Motion *parent, base::EuclideanProjection projection,
+                    double priority, Cell* cell)
+                    : priority_(priority), cell_(cell), parent_(parent), state_(state),
+                    projection_(projection), heapElement_(NULL)
                 {
                 }
                 Motion(base::State *state, const ompl::base::ProjectionEvaluatorPtr& pe)
-                    : priority_(0.), cell_(NULL), parent_(NULL), state_(state), control_(NULL),
-                    controlDuration_(0), projection_(pe->getDimension()), heapElement_(NULL)
+                    : priority_(0.), cell_(NULL), parent_(NULL), state_(state),
+                    projection_(pe->getDimension()), heapElement_(NULL)
                 {
                     pe->project(state_, projection_);
                 }
@@ -189,32 +193,15 @@ namespace ompl
                 /// duration steps long (and is returned), the second part is the
                 /// remaing part of the motion and is kept in this object. It
                 /// is assumed the motion is contained within one cell.
-                Motion* split(const SpaceInformation* si, unsigned int duration,
+                Motion* split(const base::SpaceInformationPtr& si, double length,
                     const ompl::base::ProjectionEvaluatorPtr& pe)
                 {
                     Motion* motion = new Motion(si->allocState(), parent_,
-                        si->cloneControl(control_), duration, projection_,
-                        priority_, cell_);
-                    si->propagate(parent_->state_, control_, duration, motion->state_);
+                        pe->getDimension(), priority_, cell_);
+                    si->getStateSpace()->interpolate(parent_->state_, state_, length, motion->state_);
                     pe->project(motion->state_, motion->projection_);
                     cell_->motions_.push_back(motion);
                     parent_ = motion;
-                    controlDuration_ -= duration;
-                    return motion;
-                }
-                /// \brief Split a motion into two parts. The first part is
-                /// duration steps long (and is returned), the second part is the
-                /// remaing part of the motion (kept in this object). The state
-                /// reached by the first part and corresponding projection and
-                /// cell are specified by the rest of the arguments.
-                Motion* split(const SpaceInformation* si, unsigned int duration,
-                    base::State* state, base::EuclideanProjection& projection, Cell* cell)
-                {
-                    Motion* motion = new Motion(state, parent_, si->cloneControl(control_),
-                        duration, projection, priority_, cell);
-                    cell->motions_.push_back(motion);
-                    parent_ = motion;
-                    controlDuration_ -= duration;
                     return motion;
                 }
 
@@ -230,24 +217,18 @@ namespace ompl
                 /// The state achieved by this motion
                 ompl::base::State*               state_;
 
-                /// The control that was applied to arrive at this state from the parent
-                ompl::control::Control*          control_;
-
-                /// The duration that the control was applied to arrive at this state from the parent
-                unsigned int                     controlDuration_;
-
                 /// The projection for this Motion
                 ompl::base::EuclideanProjection  projection_;
 
                 /// Handle to the element of the priority queue for this Motion
-                ompl::BinaryHeap<Motion *, MotionCompare>::Element* heapElement_;
+                ompl::BinaryHeap<Motion *, MotionCompare>::Element *heapElement_;
             };
 
             /// Cell is a Binary Space Partition
             struct Cell
             {
                 Cell(double volume, const ompl::base::RealVectorBounds& bounds,
-                     unsigned int splitDimension = 0)
+                    unsigned int splitDimension = 0)
                     : volume_(volume), splitDimension_(splitDimension), splitValue_(0.0),
                     left_(NULL), right_(NULL), bounds_(bounds)
                 {
@@ -302,21 +283,22 @@ namespace ompl
 
 
             /// Inserts the motion into the appropriate cell
-            void insertSampleIntoBsp(Motion *motion, Cell *bsp,
-                base::State* scratch1, base::State* scratch2);
+            void insertSampleIntoBsp(Motion *motion, Cell *bsp,base::State* state,
+                base::EuclideanProjection& projection);
 
             /// \brief Select a state along motion and propagate a new motion from there.
             /// Return NULL if no valid motion could be generated starting at the
             /// selected state.
-            Motion* propagateFrom(Motion* motion, bool& goalReached,
-                double& distanceToGoal, base::State* scratch);
+            Motion* propagateFrom(Motion* motion, base::State* state, base::EuclideanProjection& projection);
+
+            /// \brief Split motion into segments such that each segment is contained in a cell.
+            Cell* split(const Cell* bsp, Cell* startCell, Motion* motion, int& numSegments,
+                base::State* state, base::EuclideanProjection& projection);
 
             void freeMotion(Motion* m)
             {
                 if (m->state_)
                     si_->freeState(m->state_);
-                if (m->control_)
-                    siC_->freeControl(m->control_);
                 delete m;
             }
 
@@ -324,12 +306,6 @@ namespace ompl
 
             /// State sampler
             ompl::base::StateSamplerPtr              sampler_;
-
-            /// Directed control sampler
-            DirectedControlSamplerPtr                controlSampler_;
-
-            /// SpaceInformation convenience pointer
-            const SpaceInformation*                  siC_;
 
             // Random number generator
             RNG rng_;

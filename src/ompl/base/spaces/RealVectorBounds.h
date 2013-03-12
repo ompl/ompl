@@ -69,7 +69,7 @@ namespace ompl
 
             /** \brief Change the number of dimensions for the bounds */
             void resize(std::size_t size);
-          
+
             /** \brief Compute the volume of the space enclosed by the bounds */
             double getVolume(void) const;
 
