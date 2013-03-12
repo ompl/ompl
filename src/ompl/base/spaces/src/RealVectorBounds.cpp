@@ -80,6 +80,12 @@ double ompl::base::RealVectorBounds::getVolume(void) const
     return v;
 }
 
+void ompl::base::RealVectorBounds::resize(std::size_t size)
+{
+    low.resize(size, 0.0);
+    high.resize(size, 0.0);
+}
+
 void ompl::base::RealVectorBounds::check(void) const
 {
     if (low.size() != high.size())

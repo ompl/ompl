@@ -433,7 +433,7 @@ class ompl_control_generator_t(code_generator_t):
             'def("getPlannerAllocator", &ompl::control::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
         # do this for all classes that exist with the same name in another namespace
-        for cls in ['SimpleSetup', 'KPIECE1', 'RRT', 'EST', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
+        for cls in ['SimpleSetup', 'KPIECE1', 'PDST', 'RRT', 'EST', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
 
         # Py++ seems to get confused by virtual methods declared in one module
@@ -445,7 +445,7 @@ class ompl_control_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['KPIECE1', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT']:
+        for planner in ['KPIECE1', 'PDST', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
                     &Control%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
@@ -514,7 +514,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'SBL']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'SBL']:
             if planner!='PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""

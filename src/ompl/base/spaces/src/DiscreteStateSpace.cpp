@@ -159,6 +159,9 @@ void ompl::base::DiscreteStateSpace::registerProjections(void)
 
         virtual void defaultCellSizes(void)
         {
+            bounds_.resize(1);
+            bounds_.low[0] = space_->as<DiscreteStateSpace>()->lowerBound_;
+            bounds_.high[0] = space_->as<DiscreteStateSpace>()->upperBound_;
             cellSizes_.resize(1);
             cellSizes_[0] = 1.0;
         }
