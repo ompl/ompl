@@ -358,6 +358,8 @@ void ompl::control::PDST::setup(void)
     tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
+    if (bsp_)
+        delete bsp_;
     bsp_ = new Cell(1.0, projectionEvaluator_->getBounds(), 0);
     lastGoalMotion_ = NULL;
 }

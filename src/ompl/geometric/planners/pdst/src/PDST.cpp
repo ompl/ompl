@@ -238,7 +238,7 @@ ompl::geometric::PDST::Cell* ompl::geometric::PDST::split(const Cell* bsp, Cell*
 {
     Cell* nextStartCell = motion->cell_;
     Cell* cell;
-    int i = 1, j = numSegments, k;
+    int i = 1, j = numSegments, k = 0;
     // find the largest k such that the interpolated state at k/numSegments is still in the startCell
     while (j - i > 1)
     {
@@ -293,6 +293,8 @@ void ompl::geometric::PDST::setup(void)
     tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
     sc.configurePlannerRange(maxDistance_);
+    if (bsp_)
+        delete bsp_;
     bsp_ = new Cell(1.0, projectionEvaluator_->getBounds(), 0);
     lastGoalMotion_ = NULL;
 }
