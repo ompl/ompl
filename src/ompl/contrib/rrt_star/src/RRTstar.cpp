@@ -52,7 +52,8 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     ballRadiusMax_ = 0.0;
     ballRadiusConst_ = 0.0;
     delayCC_ = true;
-
+    iterations_ = 0;
+    
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("ball_radius_constant", this, &RRTstar::setBallRadiusConstant, &RRTstar::getBallRadiusConstant);
@@ -88,6 +89,7 @@ void ompl::geometric::RRTstar::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    iterations_ = 0;
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
@@ -155,6 +157,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     while (ptc == false)
     {
+        iterations_++;
         // sample random state (with goal biasing)
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
@@ -429,4 +432,6 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
                       base::PlannerDataVertex (motions[i]->state));
+
+    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }

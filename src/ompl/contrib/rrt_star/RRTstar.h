@@ -269,6 +269,9 @@ namespace ompl
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
+            /** \brief The number of iterations the algorithm performed */
+            unsigned int                                   iterations_;
+
         };
 
     }
