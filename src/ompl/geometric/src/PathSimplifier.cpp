@@ -358,15 +358,23 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 
 void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
-    reduceVertices(path);
-    collapseCloseVertices(path);
-    smoothBSpline(path, 4, path.length()/100.0);
-    const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
-    if (!p.second)
-        OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+    if(si_->getStateSpace()->isMetricSpace())
+    {
+        reduceVertices(path);
+        collapseCloseVertices(path);
+        smoothBSpline(path, 4, path.length()/100.0);
+        const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
+        if (!p.second)
+            OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+        else
+            if (!p.first)
+                OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+    }
     else
-        if (!p.first)
-            OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+    {
+        reduceVertices(path);
+        collapseCloseVertices(path);
+    }
 }
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime)
@@ -404,9 +412,12 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
     while (tryMore && ptc == false && ++times <= 5)
         tryMore = shortcutPath(path);
 
-    // smooth the path
-    if (ptc == false)
-        smoothBSpline(path, 3, path.length()/100.0);
+    if(si_->getStateSpace()->isMetricSpace())
+    {
+        // smooth the path
+        if (ptc == false)
+            smoothBSpline(path, 3, path.length()/100.0);
+    }
 
     // we always run this
     const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
