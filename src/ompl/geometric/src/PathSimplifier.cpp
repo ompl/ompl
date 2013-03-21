@@ -407,12 +407,9 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
     while (tryMore && ptc == false && ++times <= 5)
         tryMore = shortcutPath(path);
 
-    if(si_->getStateSpace()->isMetricSpace())
-    {
-        // smooth the path
-        if (ptc == false)
-            smoothBSpline(path, 3, path.length()/100.0);
-    }
+    // smooth the path, if the state space is metric
+    if(si_->getStateSpace()->isMetricSpace() && ptc == false)
+        smoothBSpline(path, 3, path.length()/100.0);
 
     // we always run this
     const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);

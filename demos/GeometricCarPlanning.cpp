@@ -109,13 +109,8 @@ void plan(ob::StateSpacePtr space, bool easy)
         std::vector<double> reals;
 
         std::cout << "Found solution:" << std::endl;
-        // We can't use regular simplify because it also tries to use spline interpolation,
-        // which doesn't work for Dubins curves.
-        //ss.simplifySolution();
+        ss.simplifySolution();
         og::PathGeometric path = ss.getSolutionPath();
-        og::PathSimplifierPtr ps = ss.getPathSimplifier();
-        ps->reduceVertices(path);
-        ps->collapseCloseVertices(path);
         path.interpolate(1000);
         for (unsigned int i=0; i < path.getStateCount(); ++i)
         {
