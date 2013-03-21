@@ -532,8 +532,8 @@ ompl::base::ReedsSheppStateSpace::reedsSheppPathType[18][5] = {
 
 ompl::base::ReedsSheppStateSpace::ReedsSheppPath::ReedsSheppPath(const ReedsSheppPathSegmentType* type,
     double t, double u, double v, double w, double x)
+    : type_(type)
 {
-    memcpy(type_, type, 5*sizeof(ReedsSheppPathSegmentType));
     length_[0] = t; length_[1] = u; length_[2] = v; length_[3] = w; length_[4] = x;
     totalLength_ = fabs(t) + fabs(u) + fabs(v) + fabs(w) + fabs(x);
 }
