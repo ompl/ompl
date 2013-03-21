@@ -238,12 +238,12 @@ ompl::geometric::PDST::Cell* ompl::geometric::PDST::split(const Cell* bsp, Cell*
 {
     Cell* nextStartCell = motion->cell_;
     Cell* cell;
-    int i = 1, j = numSegments, k = 1;
+    int i = 0, j = numSegments, k = 1;
     // Find the largest k such that the interpolated state at k/numSegments is
     // still in the startCell. The variables i and j bracket the range that k
-    // can be in. Initially, k=1. The loop will never be entered if i=1 and j=2.
-    // It is assumed that numSegments>1 (this is checked for in the calling
-    // contexts).
+    // can be in. Initially, k=1. The loop will always be entered, because it
+    // is assumed that numSegments>1 (this is checked for in the calling
+    // contexts) and, hence, intially j-i>1.
     while (j - i > 1)
     {
         k = (i + j) / 2;
