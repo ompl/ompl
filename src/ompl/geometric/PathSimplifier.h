@@ -149,6 +149,8 @@ namespace ompl
                 total path length. This should usually be a small
                 value (e.g., one percent of the total path length:
                 0.01; the default is half a percent)
+
+                \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
             */
             bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33, double snapToVertex = 0.005);
 
@@ -189,12 +191,15 @@ namespace ompl
                 path is subdivided and states along it are updated
                 such that the smoothness is improved.
 
-                \note This function may significantly increase the number of states along the solution path. */
+                \note This function may significantly increase the number of states along the solution path. 
+                \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
+                */
             void smoothBSpline(PathGeometric &path, unsigned int maxSteps = 5, double minChange = std::numeric_limits<double>::epsilon());
 
             /** \brief Given a path, attempt to remove vertices from it while keeping the path valid.  Then, try to smooth
-                the path. This function always applies the same set of default operations to the path, with the intention of
-                simplifying it. */
+                the path. This function applies the same set of default operations to the path, except in non-metric spaces,
+                with the intention of simplifying it. In non-metric spaces, some operations are skipped because they do
+                not work correctly when the triangle inequality may not hold. */
             void simplifyMax(PathGeometric &path);
 
             /** \brief Run simplification algorithms on the path for at most \e maxTime seconds */
