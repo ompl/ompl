@@ -398,7 +398,7 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
         tryMore = reduceVertices(path);
 
     // if the space is metric, we can do some additional smoothing
-    if(si_->getStateSpace()->isMetricSpace() && ptc == false)
+    if(si_->getStateSpace()->isMetricSpace())
     {
         // run a more complex short-cut algorithm : allow splitting path segments
         if (ptc == false)
