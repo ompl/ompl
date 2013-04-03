@@ -286,7 +286,7 @@ namespace ompl
             virtual void copyState(State *destination, const State *source) const = 0;
 
             /** \brief Computes distance between two states. This function satisfies the properties of a
-                metric and its return value will always be between 0 and getMaximumExtent() */
+                metric if isMetricSpace() is true, and its return value will always be between 0 and getMaximumExtent() */
             virtual double distance(const State *state1, const State *state2) const = 0;
 
             /** \brief Get the number of chars in the serialization of a state in this space */
