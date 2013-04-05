@@ -223,8 +223,14 @@ void ompl::base::StateSpace::setup(void)
     longestValidSegment_ = maxExtent_ * longestValidSegmentFraction_;
 
     if (longestValidSegment_ < std::numeric_limits<double>::epsilon())
-        throw Exception("The longest valid segment for state space " + getName() + " must be positive");
-
+    {
+        std::stringstream error;
+        error << "The longest valid segment for state space " + getName() + " must be positive." << std::endl;
+        error << "Space settings:" << std::endl;
+        printSettings(error);
+        throw Exception(error.str());
+    }
+    
     computeLocationsHelper(this, substateLocationsByName_, valueLocationsInOrder_, valueLocationsByName_);
 
     // make sure we don't overwrite projections that have been configured by the user
