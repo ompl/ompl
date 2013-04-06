@@ -92,6 +92,18 @@ class MyStateSpace(ob.RealVectorStateSpace):
         y2 = int(state2[1])
         return fabs(x1-x2) + fabs(y1-y2)
 
+class MyProjectionEvaluator(ob.ProjectionEvaluator):
+    def __init__(self, space, cellSizes):
+        super(MyProjectionEvaluator, self).__init__(space)
+        self.setCellSizes(cellSizes)
+
+    def getDimension(self):
+        return 2
+
+    def project(self, state, projection):
+        projection[0] = state[0]
+        projection[1] = state[1]
+
 class MyStatePropagator(oc.StatePropagator):
     def __init__(self, spaceInformation):
         super(MyStatePropagator, self).__init__(spaceInformation)
@@ -194,6 +206,10 @@ class RRTTest(TestPlanner):
 class ESTTest(TestPlanner):
     def newplanner(self, si):
         planner = oc.EST(si)
+        cdim = ou.vectorDouble()
+        cdim.extend([1, 1])
+        ope = MyProjectionEvaluator(si.getStateSpace(), cdim)
+        planner.setProjectionEvaluator(ope)
         return planner
 
 class SyclopDecomposition(oc.GridDecomposition):
@@ -214,9 +230,9 @@ class SyclopDecomposition(oc.GridDecomposition):
 
 class SyclopRRTTest(TestPlanner):
     def newplanner(self, si):
-        spacebounds = si.getStateSpace().getBounds()  
+        spacebounds = si.getStateSpace().getBounds()
 
-        bounds = ob.RealVectorBounds(2)        
+        bounds = ob.RealVectorBounds(2)
         bounds.setLow(0, spacebounds.low[0]);
         bounds.setLow(1, spacebounds.low[1]);
         bounds.setHigh(0, spacebounds.high[0]);
@@ -233,9 +249,9 @@ class SyclopRRTTest(TestPlanner):
 
 class SyclopESTTest(TestPlanner):
     def newplanner(self, si):
-        spacebounds = si.getStateSpace().getBounds()  
+        spacebounds = si.getStateSpace().getBounds()
 
-        bounds = ob.RealVectorBounds(2)        
+        bounds = ob.RealVectorBounds(2)
         bounds.setLow(0, spacebounds.low[0]);
         bounds.setLow(1, spacebounds.low[1]);
         bounds.setHigh(0, spacebounds.high[0]);
@@ -248,20 +264,7 @@ class SyclopESTTest(TestPlanner):
         planner.setNumFreeVolumeSamples(1000)
         planner.setNumRegionExpansions(10)
         planner.setNumTreeExpansions(5)
-        return planner        
-
-class MyProjectionEvaluator(ob.ProjectionEvaluator):
-    def __init__(self, space, cellSizes):
-        super(MyProjectionEvaluator, self).__init__(space)
-        self.setCellSizes(cellSizes)
-
-    def getDimension(self):
-        return 2
-
-    def project(self, state, projection):
-        projection[0] = state[0]
-        projection[1] = state[1]
-
+        return planner
 
 class KPIECE1Test(TestPlanner):
     def newplanner(self, si):
