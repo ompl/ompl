@@ -56,7 +56,7 @@ and install OMPL:
   Some versions of Linux offer multiple versions of Boost. It is strongly advised to install only one version.
 - To be able to generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
 
-      sudo apt-get install doxygen graphviz python-dev libode-dev curl
+      sudo apt-get install doxygen graphviz python-dev libode-dev
 
 - Create a build directory and run cmake:
 
