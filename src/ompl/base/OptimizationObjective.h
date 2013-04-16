@@ -118,11 +118,14 @@ namespace ompl
             /** \brief Verify that our objective is satisfied already and we can stop planning */
             virtual bool isSatisfied(const Cost *cost) const = 0;
 
+	    /** \brief Get \e cost as a double value. This is what is used for comparison by isCostLessThan(). */
+	    virtual double getCostValue(const Cost *cost) const = 0;
+
             /** \brief Get the cost that corresponds to an entire path. This implementation assumes \e Path is of type \e PathGeometric.*/
             virtual void getCost(const Path &path, Cost *cost) const;
 
 	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
-	    virtual bool isCostLessThan(const Cost *c1, const Cost *c2) const = 0;
+	    bool isCostLessThan(const Cost *c1, const Cost *c2) const;
 	    
 	    /** \brief Allocate storage for a cost calculation in this OptimizationObjective. */
 	    virtual Cost* allocCost(void) const = 0;
@@ -144,6 +147,9 @@ namespace ompl
 
 	    /** \brief Get the cost corresponding to the beginning of a path that starts at \e s. */
 	    virtual void getInitialCost(const State *s, Cost *cost) const = 0;
+
+	    /** \brief Get a cost which is greater than all other costs in this OptimizationObjective; required for use in Dijkstra/Astar. */
+	    virtual void getInfiniteCost(Cost *cost) const = 0;
 
 	    /** \brief Check if this objective has a symmetric cost metric, i.e. getIncrementalCost(s1, s2) = getIncrementalCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
 	    virtual bool isSymmetric(void) const;
@@ -175,6 +181,8 @@ namespace ompl
 
 	    void setMaxPathCost(double maxPathCost);
 
+	    double getCostValue(const Cost *cost) const;
+
 	    virtual void getCost(const Path &path, Cost *cost) const;
 
 	    /** \brief Get the value of the cost that corresponds to an entire path. */
@@ -182,8 +190,6 @@ namespace ompl
 
 	    /** \brief Returns true if the value of \e cost is less than or equal to \e maxPathCost_ */
 	    virtual bool isSatisfied(const Cost *cost) const;
-
-	    virtual bool isCostLessThan(const Cost *c1, const Cost *c2) const;
 
 	    /** \brief Compute the cost of a path segment from \e s1 to \e s2 (including endpoints)
 		\param s1 start state of the motion to be evaluated
@@ -202,6 +208,9 @@ namespace ompl
 
 	    /** \brief Default implementation sets value of \e cost to 0.0. */
 	    virtual void getInitialCost(const State *s, Cost *cost) const;
+
+	    /** \brief Default implementation sets value of \e cost to inf. */
+	    virtual void getInfiniteCost(Cost *cost) const;
 
 	    virtual Cost* allocCost(void) const;
 	    virtual void copyCost(Cost *dest, const Cost *src) const;

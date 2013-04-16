@@ -36,6 +36,7 @@
 
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
+#include "ompl/tools/config/MagicConstants.h"
 
 void ompl::base::OptimizationObjective::getCost(const Path &path, Cost *cost) const
 {
@@ -65,6 +66,11 @@ void ompl::base::OptimizationObjective::getCost(const Path &path, Cost *cost) co
 	    freeCost(incCost);
 	}
     }
+}
+
+bool ompl::base::OptimizationObjective::isCostLessThan(const Cost *c1, const Cost *c2) const
+{
+  return (getCostValue(c1) + magic::BETTER_PATH_COST_MARGIN < getCostValue(c2));
 }
 
 double ompl::base::OptimizationObjective::getStateCost(const State *s) const
@@ -100,6 +106,11 @@ ompl::base::PathIntegralOptimizationObjective::PathIntegralOptimizationObjective
     description_ = "Path Integral";
 }
 
+double ompl::base::PathIntegralOptimizationObjective::getCostValue(const Cost *cost) const
+{
+  return cost->as<CostType>()->value;
+}
+
 void ompl::base::PathIntegralOptimizationObjective::getCost(const Path &path, Cost *cost) const
 {
     OptimizationObjective::getCost(path, cost);
@@ -129,11 +140,6 @@ bool ompl::base::PathIntegralOptimizationObjective::isSatisfied(const Cost *cost
     return (cost->as<CostType>()->value <= maxPathCost_);
 }
 
-bool ompl::base::PathIntegralOptimizationObjective::isCostLessThan(const Cost *c1, const Cost *c2) const
-{
-    return (c1->as<CostType>()->value < c2->as<CostType>()->value);
-}
-
 void ompl::base::PathIntegralOptimizationObjective::getIncrementalCost(const State *s1, const State *s2, Cost *cost) const
 {
     cost->as<CostType>()->value = si_->distance(s1,s2)*(getStateCost(s1) + getStateCost(s2)) / 2.0;
@@ -147,6 +153,11 @@ void ompl::base::PathIntegralOptimizationObjective::combineObjectiveCosts(const 
 void ompl::base::PathIntegralOptimizationObjective::getInitialCost(const State *s, Cost *cost) const
 {
     cost->as<CostType>()->value = 0.0;
+}
+
+void ompl::base::PathIntegralOptimizationObjective::getInfiniteCost(Cost *cost) const
+{
+  cost->as<CostType>()->value = std::numeric_limits<double>::infinity();
 }
 
 ompl::base::Cost* ompl::base::PathIntegralOptimizationObjective::allocCost(void) const
