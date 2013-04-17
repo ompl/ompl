@@ -27,13 +27,13 @@
  * in the rk78 scheme
  * they should be defined by the user if required, see e.g. libs/numeric/examples/harmonic_oscillator_units.cpp
  */
-//#ifndef BOOST_FUSION_INVOKE_MAX_ARITY
-//#define BOOST_FUSION_INVOKE_MAX_ARITY 15
-//#endif
+#ifndef BOOST_FUSION_INVOKE_MAX_ARITY
+#define BOOST_FUSION_INVOKE_MAX_ARITY 15
+#endif
 
-//#ifndef BOOST_RESULT_OF_NUM_ARGS
-//#define BOOST_RESULT_OF_NUM_ARGS 15
-//#endif
+#ifndef BOOST_RESULT_OF_NUM_ARGS
+#define BOOST_RESULT_OF_NUM_ARGS 15
+#endif
 /*
  */
 

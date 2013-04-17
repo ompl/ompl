@@ -41,6 +41,11 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
 
+// Define for boost version < 1.47
+#ifndef BOOST_ASSERT_MSG
+#define BOOST_ASSERT_MSG(expr, msg) assert(expr)
+#endif
+
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
 
 /// @cond IGNORE
@@ -224,6 +229,10 @@ namespace ompl
 
 double ompl::base::SO3StateSpace::distance(const State *state1, const State *state2) const
 {
+    BOOST_ASSERT_MSG(satisfiesBounds(state1) && satisfiesBounds(state2),
+        "The states passed to SO3StateSpace::distance are not within bounds. Call "
+        "SO3StateSpace::enforceBounds() in, e.g., ompl::control::ODESolver::PostPropagationEvent, "
+        "ompl::control::StatePropagator, or ompl::base::StateValidityChecker");
     return arcLength(state1, state2);
 }
 

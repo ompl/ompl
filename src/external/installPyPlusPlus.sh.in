@@ -1,14 +1,16 @@
 #!/bin/sh
 
+set -e
+
 # create a location to store downloaded data
 mkdir -p @PROJECT_BINARY_DIR@/pyplusplus
 cd @PROJECT_BINARY_DIR@/pyplusplus
 
 # get sources
 # gccxml snapshot of 11/6/2012
-curl --location-trusted https://github.com/gccxml/gccxml/archive/2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8.tar.gz | tar xzf -
-curl --location-trusted https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r575.tgz | tar xzf -
-curl --location-trusted https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1238.tgz | tar xzf -
+@DOWNLOAD_CMD@ https://github.com/gccxml/gccxml/archive/2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8.tar.gz | tar xzf -
+@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r575.tgz | tar xzf -
+@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1238.tgz | tar xzf -
 
 # build & install gccxml
 cd gccxml-2cbeb9d631e0198fcbeca3d230ef49fe07e87dd8

@@ -127,11 +127,11 @@ void KinematicCarODE (const oc::ODESolver::StateType& q, const oc::Control* cont
 }
 
 // This is a callback method invoked after numerical integration.
-void KinematicCarPostIntegration (const ob::State */*state*/, const oc::Control* /*control*/, const double /*duration*/, ob::State *result)
+void KinematicCarPostIntegration (const ob::State* /*state*/, const oc::Control* /*control*/, const double /*duration*/, ob::State *result)
 {
     // Normalize orientation between 0 and 2*pi
     ob::SO2StateSpace SO2;
-    SO2.enforceBounds (result->as<ob::SE2StateSpace::StateType>());
+    SO2.enforceBounds (result->as<ob::SE2StateSpace::StateType>()->as<ob::SO2StateSpace::StateType>(1));
 }
 
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)

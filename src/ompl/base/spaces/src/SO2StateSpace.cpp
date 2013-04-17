@@ -41,6 +41,11 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
 
+// Define for boost version < 1.47
+#ifndef BOOST_ASSERT_MSG
+#define BOOST_ASSERT_MSG(expr, msg) assert(expr)
+#endif
+
 void ompl::base::SO2StateSampler::sampleUniform(State *state)
 {
     state->as<SO2StateSpace::StateType>()->value =
@@ -111,6 +116,10 @@ double ompl::base::SO2StateSpace::distance(const State *state1, const State *sta
 {
     // assuming the states 1 & 2 are within bounds
     double d = fabs(state1->as<StateType>()->value - state2->as<StateType>()->value);
+    BOOST_ASSERT_MSG(satisfiesBounds(state1) && satisfiesBounds(state2),
+        "The states passed to SO2StateSpace::distance are not within bounds. Call "
+        "SO2StateSpace::enforceBounds() in, e.g., ompl::control::ODESolver::PostPropagationEvent, "
+        "ompl::control::StatePropagator, or ompl::base::StateValidityChecker");
     return (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
 }
 

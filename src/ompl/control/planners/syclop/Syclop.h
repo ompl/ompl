@@ -232,12 +232,12 @@ namespace ompl
                 static const int    NUM_FREEVOL_SAMPLES         = 100000;
                 static const int    COVGRID_LENGTH              = 128;
                 static const int    NUM_REGION_EXPANSIONS       = 100;
-                static const int    NUM_TREE_SELECTIONS         = 50;
+                static const int    NUM_TREE_SELECTIONS         = 1;
                 // C++ standard prohibits non-integral static const member initialization
                 // These constants are set in Syclop.cpp.  C++11 standard changes this
                 // with the constexpr keyword, but for compatibility this is not done.
                 static const double PROB_ABANDON_LEAD_EARLY     /*= 0.25*/;
-                static const double PROB_KEEP_ADDING_TO_AVAIL   /*= 0.95*/;
+                static const double PROB_KEEP_ADDING_TO_AVAIL   /*= 0.50*/;
                 static const double PROB_SHORTEST_PATH          /*= 0.95*/;
             };
 
@@ -308,6 +308,8 @@ namespace ompl
                 int index;
                 /** \brief The number of times this region has been selected for expansion */
                 unsigned int numSelections;
+                /** \brief The Element corresponding to this region in the PDF of available regions. */
+                PDF<int>::Element* pdfElem;
             };
             #pragma pack (pop)  // Restoring default byte alignment
 

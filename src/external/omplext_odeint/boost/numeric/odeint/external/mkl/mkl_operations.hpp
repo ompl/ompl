@@ -28,7 +28,7 @@
 /* exemplary example for writing bindings to the Intel MKL library
  * see test/mkl for how to use mkl with odeint
  * this is a quick and dirty implementation showing the general possibility.
- * It works only with containers based on double and sequentiel memory allocation.
+ * It works only with containers based on double and sequential memory allocation.
  */
 
 namespace boost {

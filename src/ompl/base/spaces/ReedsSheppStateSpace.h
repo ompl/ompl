@@ -79,7 +79,7 @@ namespace ompl
                 double length() const { return totalLength_; }
 
                 /** Path segment types */
-                ReedsSheppPathSegmentType type_[5];
+                const ReedsSheppPathSegmentType* type_;
                 /** Path segment lengths */
                 double length_[5];
                 /** Total length */

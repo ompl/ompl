@@ -42,7 +42,7 @@
 #include <algorithm>
 
 const double ompl::control::Syclop::Defaults::PROB_ABANDON_LEAD_EARLY   = 0.25;
-const double ompl::control::Syclop::Defaults::PROB_KEEP_ADDING_TO_AVAIL = 0.95;
+const double ompl::control::Syclop::Defaults::PROB_KEEP_ADDING_TO_AVAIL = 0.50;
 const double ompl::control::Syclop::Defaults::PROB_SHORTEST_PATH        = 0.95;
 
 void ompl::control::Syclop::setup(void)
@@ -158,20 +158,27 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                     ++numMotions_;
                     Region& newRegionObj = graph_[boost::vertex(newRegion, graph_)];
                     improved |= updateCoverageEstimate(newRegionObj, motion->state);
-                    if (newRegion != region)
+                    /* If tree has just crossed from one region to its neighbor,
+                       update the connection estimates. If the tree has crossed an entire region,
+                       then region and newRegion are not adjacent, and so we do not update estimates. */
+                    if (newRegion != region
+                        && regionsToEdge_.count(std::pair<int,int>(region,newRegion)) > 0)
                     {
-                        // If this is the first time the tree has entered this region, add the region to avail
-                        if (newRegionObj.motions.size() == 1)
-                            availDist_.add(newRegion, newRegionObj.weight);
-                        /* If the tree crosses an entire region and creates an edge (u,v) for which Proj(u) and Proj(v) are non-neighboring regions,
-                            then we do not update connection estimates. This is because Syclop's shortest-path lead computation only considers neighboring regions. */
-                        if (regionsToEdge_.count(std::pair<int,int>(region, newRegion)) > 0)
-                        {
-                            Adjacency* adj = regionsToEdge_[std::pair<int,int>(region,newRegion)];
-                            adj->empty = false;
-                            ++adj->numSelections;
-                            improved |= updateConnectionEstimate(graph_[boost::vertex(region,graph_)], newRegionObj, motion->state);
-                        }
+                        Adjacency* adj = regionsToEdge_[std::pair<int,int>(region,newRegion)];
+                        adj->empty = false;
+                        ++adj->numSelections;
+                        improved |= updateConnectionEstimate(graph_[boost::vertex(region,graph_)], newRegionObj, motion->state);
+                    }
+
+                    /* If this region already exists in availDist, update its weight. */
+                    if (newRegionObj.pdfElem != NULL)
+                        availDist_.update(newRegionObj.pdfElem, newRegionObj.weight);
+                    /* Otherwise, only add this region to availDist
+                       if it already exists in the lead. */
+                    else if (std::find(lead_.begin(), lead_.end(), newRegion) != lead_.end())
+                    {
+                        PDF<int>::Element* elem = availDist_.add(newRegion, newRegionObj.weight);
+                        newRegionObj.pdfElem = elem;
                     }
                 }
             }
@@ -221,6 +228,7 @@ void ompl::control::Syclop::initRegion(Region& r)
     r.volume = 1.0;
     r.percentValidCells = 1.0;
     r.freeVolume = 1.0;
+    r.pdfElem = NULL;
 }
 
 void ompl::control::Syclop::setupRegionEstimates(void)
@@ -365,13 +373,15 @@ int ompl::control::Syclop::selectRegion(void)
 
 void ompl::control::Syclop::computeAvailableRegions(void)
 {
+    for (unsigned int i = 0; i < availDist_.size(); ++i)
+        graph_[boost::vertex(availDist_[i],graph_)].pdfElem = NULL;
     availDist_.clear();
     for (int i = lead_.size()-1; i >= 0; --i)
     {
         Region& r = graph_[boost::vertex(lead_[i],graph_)];
         if (!r.motions.empty())
         {
-            availDist_.add(lead_[i], r.weight);
+            r.pdfElem = availDist_.add(lead_[i], r.weight);
             if (rng_.uniform01() >= probKeepAddingToAvail_)
                 break;
         }

@@ -10,6 +10,7 @@ lib/
 \.so$
 \.dylib$
 CMakeModules/ompl.pc
+doc/dox/api_overview.md
 doc/dox/download.md
 doc/dox/mainpage.md
 py-bindings/ompl/bindings_generator.py

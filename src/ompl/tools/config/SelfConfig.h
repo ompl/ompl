@@ -39,6 +39,8 @@
 
 #include "ompl/config.h"
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include <iostream>
 #include <string>
 
@@ -59,6 +61,8 @@ namespace ompl
                 encapsulated by \e si. Any information printed to the
                 console is prefixed by \e context */
             SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
+
+            ~SelfConfig(void);
 
             /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::probabilityOfValidState())*/
             double getProbabilityOfValidState(void);
@@ -81,6 +85,16 @@ namespace ompl
 
             /** \brief Print the computed configuration parameters */
             void print(std::ostream &out = std::cout) const;
+
+            /** \brief Select a default nearest neighbor datastructure for the given space */
+            template<typename _T>
+            static NearestNeighbors<_T>* getDefaultNearestNeighbors(const base::StateSpacePtr &space)
+            {
+                if (space->isMetricSpace())
+                    return new NearestNeighborsGNAT<_T>();
+                else
+                    return new NearestNeighborsSqrtApprox<_T>();
+            }
 
         private:
 

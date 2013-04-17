@@ -47,19 +47,13 @@ namespace ompl
     {
 
         /** \brief An SE(2) state space where distance is measured by the
-            length of Dubins curves. Note that this Dubins distance is \b not
-            a proper distance metric, so nearest neighbor methods that rely
-            on distance() being a metric (such ompl::NearestNeighborsGNAT)
-            will not always return the true nearest neighbors or get stuck
-            in an infinite loop. This means that if you use any of the RRT-based
-            planners (which use GNAT by default), you need to do the following:
-\code
-ob::StateSpacePtr stateSpace(new ob::DubinsStateSpace);
-og::SimpleSetup setup(stateSpace);
-og::RRTConnect* planner = new og::RRTConnect(setup.getSpaceInformation());
-planner->setNearestNeighbors<ompl::NearestNeighborsSqrtApprox>();
-setup.setPlanner(ompl::base::PlannerPtr(planner));
-\endcode
+            length of Dubins curves.
+
+            Note that this Dubins distance is \b not a proper distance metric,
+            so nearest neighbor methods that rely on distance() being a metric
+            (such as ompl::NearestNeighborsGNAT) will not always return the
+            true nearest neighbors or get stuck in an infinite loop.
+
             The notation and solutions in the code are taken from:<br>
             A.M. Shkel and V. Lumelsky, “Classification of the Dubins set,”
             Robotics and Autonomous Systems, 34(4):179-202, 2001.
@@ -82,9 +76,8 @@ setup.setPlanner(ompl::base::PlannerPtr(planner));
             public:
                 DubinsPath(const DubinsPathSegmentType* type = dubinsPathType[0],
                     double t=0., double p=std::numeric_limits<double>::max(), double q=0.)
-                    : reverse_(false)
+                    : type_(type), reverse_(false)
                 {
-                    memcpy(type_, type, 3*sizeof(DubinsPathSegmentType));
                     length_[0] = t;
                     length_[1] = p;
                     length_[2] = q;
@@ -98,7 +91,7 @@ setup.setPlanner(ompl::base::PlannerPtr(planner));
                 }
 
                 /** Path segment types */
-                DubinsPathSegmentType type_[3];
+                const DubinsPathSegmentType* type_;
                 /** Path segment lengths */
                 double length_[3];
                 /** Whether the path should be followed "in reverse" */
@@ -108,6 +101,11 @@ setup.setPlanner(ompl::base::PlannerPtr(planner));
             DubinsStateSpace(double turningRadius = 1.0, bool isSymmetric = false)
                 : SE2StateSpace(), rho_(turningRadius), isSymmetric_(isSymmetric)
             {
+            }
+
+            virtual bool isMetricSpace()
+            {
+                return false;
             }
 
             virtual double distance(const State *state1, const State *state2) const;

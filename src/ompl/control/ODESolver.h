@@ -49,7 +49,13 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 
+#if BOOST_VERSION >= 105300
+#include <boost/numeric/odeint.hpp>
+namespace odeint = boost::numeric::odeint;
+#else
 #include <omplext_odeint/boost/numeric/odeint.hpp>
+namespace odeint = boost::numeric::omplext_odeint;
+#endif
 #include <boost/function.hpp>
 #include <cassert>
 #include <vector>
@@ -193,7 +199,7 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations.  The default
         /// is a fourth order Runge-Kutta method.  This class wraps around the simple stepper
         /// concept from boost::numeric::odeint.
-        template <class Solver = boost::numeric::omplext_odeint::runge_kutta4<ODESolver::StateType> >
+        template <class Solver = odeint::runge_kutta4<ODESolver::StateType> >
         class ODEBasicSolver : public ODESolver
         {
         public:
@@ -211,7 +217,7 @@ namespace ompl
             {
                 Solver solver;
                 ODESolver::ODEFunctor odefunc (ode_, control);
-                boost::numeric::omplext_odeint::integrate_const (solver, odefunc, state, 0.0, duration, intStep_);
+                odeint::integrate_const (solver, odefunc, state, 0.0, duration, intStep_);
             }
         };
 
@@ -221,7 +227,7 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
         /// This class wraps around the error stepper concept from boost::numeric::odeint.
-        template <class Solver = boost::numeric::omplext_odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
+        template <class Solver = odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
         class ODEErrorSolver : public ODESolver
         {
         public:
@@ -268,7 +274,7 @@ namespace ompl
         /// Solver is the numerical integration method used to solve the equations, and must implement
         /// the error stepper concept from boost::numeric::odeint.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
-        template <class Solver = boost::numeric::omplext_odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
+        template <class Solver = odeint::runge_kutta_cash_karp54<ODESolver::StateType> >
         class ODEAdaptiveSolver : public ODESolver
         {
         public:
@@ -312,8 +318,8 @@ namespace ompl
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 
-                boost::numeric::omplext_odeint::controlled_runge_kutta< Solver > solver (boost::numeric::omplext_odeint::default_error_checker<double>(maxError_, maxEpsilonError_));
-                boost::numeric::omplext_odeint::integrate_adaptive (solver, odefunc, state, 0.0, duration, intStep_);
+                odeint::controlled_runge_kutta< Solver > solver (odeint::default_error_checker<double>(maxError_, maxEpsilonError_));
+                odeint::integrate_adaptive (solver, odefunc, state, 0.0, duration, intStep_);
             }
 
             /// \brief The maximum error allowed when performing numerical integration

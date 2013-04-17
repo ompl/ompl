@@ -46,6 +46,9 @@ size_t integrate_times(
             observer , typename Stepper::stepper_category() );
 }
 
+/**
+ * \brief Solves the forwarding problem, can be called with Boost.Range as start_state.
+ */
 template< class Stepper , class System , class State , class TimeIterator , class Time , class Observer >
 size_t integrate_times(
         Stepper stepper , System system , const State &start_state ,
@@ -58,9 +61,8 @@ size_t integrate_times(
             observer , typename Stepper::stepper_category() );
 }
 
-/*
- * Range Version:
- * the two overloads are needed in order to solve the forwarding problem
+/**
+ * \brief The same function as above, but without observer calls.
  */
 template< class Stepper , class System , class State , class TimeRange , class Time , class Observer >
 size_t integrate_times(
@@ -73,6 +75,9 @@ size_t integrate_times(
             boost::begin( times ) , boost::end( times ) , dt , observer );
 }
 
+/**
+ * \brief Solves the forwarding problem, can be called with Boost.Range as start_state.
+ */
 template< class Stepper , class System , class State , class TimeRange , class Time , class Observer >
 size_t integrate_times(
         Stepper stepper , System system , const State &start_state ,
@@ -83,6 +88,39 @@ size_t integrate_times(
             stepper , system , start_state ,
             boost::begin( times ) , boost::end( times ) , dt , observer );
 }
+
+
+
+
+/********* DOXYGEN ***********/
+
+    /**
+     * \fn size_t integrate_times( Stepper stepper , System system , State &start_state , TimeIterator times_start , TimeIterator times_end , Time dt , Observer observer )
+     * \brief Integrates the ODE with observer calls at given time points.
+     *
+     * Integrates the ODE given by system using the given stepper. This function
+     * does observer calls at the subsequent time points given by the range 
+     * times_start, times_end. If the stepper has not step size control, the 
+     * step size might be reduced occasionally to ensure observer calls exactly
+     * at the time points from the given sequence. If the stepper is a 
+     * ControlledStepper, the step size is adjusted to meet the error bounds, 
+     * but also might be reduced occasionally to ensure correct observer calls.
+     * If a DenseOutputStepper is provided, the dense output functionality is
+     * used to call the observer at the given times. The end time of the 
+     * integration is always *(end_time-1).
+     *
+     * \param stepper The stepper to be used for numerical integration.
+     * \param system Function/Functor defining the rhs of the ODE.
+     * \param start_state The initial condition x0.
+     * \param times_start Iterator to the start time
+     * \param times_end Iterator to the end time
+     * \param dt The time step between observer calls, _not_ necessarily the 
+     * time step of the integration.
+     * \param observer Function/Functor called at equidistant time intervals.
+     * \return The number of steps performed.
+     */
+
+
 
 } // namespace omplext_odeint
 } // namespace numeric

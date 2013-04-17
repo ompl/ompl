@@ -23,10 +23,15 @@ namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
+/**
+ * \enum controlled_step_result
+ *
+ * \brief Enum representing the return values of the controlled steppers.
+ */
 typedef enum
 {
-    success ,
-    fail
+    success , /**< The trial step was successful, hence the state and the time have been advanced. */
+    fail      /**< The step was not successful and might possibly be repeated with a small step size. */
 } controlled_step_result;
 
 } // namespace omplext_odeint

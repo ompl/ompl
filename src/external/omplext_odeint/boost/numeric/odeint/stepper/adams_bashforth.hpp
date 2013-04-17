@@ -47,9 +47,6 @@ namespace numeric {
 namespace omplext_odeint {
 
 
-/*
- * Static explicit Adams-Bashforth multistep-solver without step size control and without dense output.
- */
 template<
 size_t Steps ,
 class State ,
@@ -63,7 +60,11 @@ class InitializingStepper = runge_kutta4< State , Value , Deriv , Time , Algebra
 >
 class adams_bashforth : public algebra_stepper_base< Algebra , Operations >
 {
+
+#ifndef DOXYGEN_SKIP
     BOOST_STATIC_ASSERT(( Steps > 0 ));
+    BOOST_STATIC_ASSERT(( Steps < 9 ));
+#endif
 
 public :
 
@@ -76,11 +77,13 @@ public :
     typedef Resizer resizer_type;
     typedef stepper_tag stepper_category;
 
-    typedef typename algebra_stepper_base< Algebra , Operations >::algebra_type algebra_type;
-    typedef typename algebra_stepper_base< Algebra , Operations >::operations_type operations_type;
-    typedef adams_bashforth< Steps , State , Value , Deriv , Time , Algebra , Operations , Resizer , InitializingStepper > stepper_type;
     typedef InitializingStepper initializing_stepper_type;
 
+    typedef typename algebra_stepper_base< Algebra , Operations >::algebra_type algebra_type;
+    typedef typename algebra_stepper_base< Algebra , Operations >::operations_type operations_type;
+#ifndef DOXYGEN_SKIP
+    typedef adams_bashforth< Steps , State , Value , Deriv , Time , Algebra , Operations , Resizer , InitializingStepper > stepper_type;
+#endif
     static const size_t steps = Steps;
 
 
@@ -91,8 +94,8 @@ public :
     typedef detail::rotating_buffer< wrapped_deriv_type , steps > step_storage_type;
 
 
+    
     order_type order( void ) const { return order_value; }
-
 
     adams_bashforth( const algebra_type &algebra = algebra_type() )
     : m_step_storage() , m_resizer() , m_coefficients() ,
@@ -126,6 +129,9 @@ public :
         do_step( system , x , t , x , dt );
     }
 
+    /**
+     * \brief Second version to solve the forwarding problem, can be called with Boost.Range as StateInOut.
+     */
     template< class System , class StateInOut >
     void do_step( System system , const StateInOut &x , time_type t , time_type dt )
     {
@@ -139,72 +145,21 @@ public :
      *
      * solves the forwarding problem
      */
+
     template< class System , class StateIn , class StateOut >
     void do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt )
     {
         do_step_impl( system , in , t , out , dt );
     }
 
+    /**
+     * \brief Second version to solve the forwarding problem, can be called with Boost.Range as StateOut.
+     */
     template< class System , class StateIn , class StateOut >
     void do_step( System system , const StateIn &in , time_type t , const StateOut &out , time_type dt )
     {
         do_step_impl( system , in , t , out , dt );
     }
-
-
-
-
-    //	/*
-    //	 * Version 3 : do_step( system , x , dxdt , t , dt );
-    //	 *
-    //	 * solves the forwarding proble
-    //	 *
-    //	 * ToDo: Do we need this methods?
-    //	 */
-    //	template< class System , class StateInOut , class DerivIn >
-    //	void do_step( System sys , StateInOut &x , const DerivIn &dxdt , time_type t , time_type dt )
-    //	{
-    //		do_step( sys , x , dxdt , t , x , dt );
-    //	}
-    //
-    //	template< class System , class StateInOut , class DerivIn >
-    //	void do_step( System sys , const StateInOut &x , const DerivIn &dxdt , time_type t , time_type dt )
-    //	{
-    //		do_step( sys , x , dxdt , t , x , dt );
-    //	}
-    //
-    //
-    //
-    //	/*
-    //	 * Version 4 : do_step( system , in , dxdt , t , out , dt )
-    //	 *
-    //	 * solves the forwarding problem
-    //	 *
-    // 	 * ToDo: Do we need this methods?
-    //	 */
-    //	template< class System , class StateIn , class DerivIn , class StateOut >
-    //	void do_step( System system , const StateIn &in , const DerivIn &dxdt , time_type t , StateOut &out , time_type dt )
-    //	{
-    //		m_step_storage.rotate();
-    //		boost::numeric::omplext_odeint::copy( dxdt , m_step_storage[0] );
-    //		do_step_impl( in , t , out , dt );
-    //	}
-    //
-    //	template< class System , class StateIn , class DerivIn , class StateOut >
-    //	void do_step( System system , const StateIn &in , const DerivIn &dxdt , time_type t , const StateOut &out , time_type dt )
-    //	{
-    //		m_step_storage.rotate();
-    //		boost::numeric::omplext_odeint::copy( dxdt , m_step_storage[0] );
-    //		do_step_impl( in , t , out , dt );
-    //	}
-
-
-
-
-
-
-
-
 
 
     template< class StateType >
@@ -317,7 +272,140 @@ protected:
 };
 
 
+/***** DOXYGEN *****/
 
+/**
+ * \class adams_bashforth
+ * \brief The Adams-Bashforth multistep algorithm.
+ *
+ * The Adams-Bashforth method is a multi-step algorithm with configurable step
+ * number. The step number is specified as template parameter Steps and it 
+ * then uses the result from the previous Steps steps. See also
+ * <a href="http://en.wikipedia.org/wiki/Linear_multistep_method">en.wikipedia.org/wiki/Linear_multistep_method</a>.
+ * Currently, a maximum of Steps=8 is supported.
+ * The method is explicit and fulfills the Stepper concept. Step size control
+ * or continuous output are not provided.
+ * 
+ * This class derives from algebra_base and inherits its interface via
+ * CRTP (current recurring template pattern). For more details see
+ * algebra_stepper_base.
+ *
+ * \tparam Steps The number of steps (maximal 8).
+ * \tparam State The state type.
+ * \tparam Value The value type.
+ * \tparam Deriv The type representing the time derivative of the state.
+ * \tparam Time The time representing the independent variable - the time.
+ * \tparam Algebra The algebra type.
+ * \tparam Operations The operations type.
+ * \tparam Resizer The resizer policy type.
+ * \tparam InitializingStepper The stepper for the first two steps.
+ */
+
+    /**
+     * \fn adams_bashforth::adams_bashforth( const algebra_type &algebra )
+     * \brief Constructs the adams_bashforth class. This constructor can be used as a default
+     * constructor if the algebra has a default constructor. 
+     * \param algebra A copy of algebra is made and stored.
+     */
+
+    /**
+     * \fn order_type adams_bashforth::order( void ) const
+     * \brief Returns the order of the algorithm, which is equal to the number of steps.
+     * \return order of the method.
+     */
+
+    /**
+     * \fn void adams_bashforth::do_step( System system , StateInOut &x , time_type t , time_type dt )
+     * \brief This method performs one step. It transforms the result in-place.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ordinary differential equation. It must fulfill the
+     *               Simple System concept.
+     * \param x The state of the ODE which should be solved. After calling do_step the result is updated in x.
+     * \param t The value of the time, at which the step should be performed.
+     * \param dt The step size.
+     */
+
+    /**
+     * \fn void adams_bashforth::do_step( System system , const StateIn &in , time_type t , StateOut &out , time_type dt )
+     * \brief The method performs one step with the stepper passed by Stepper. The state of the ODE is updated out-of-place.
+     *
+     * \param system The system function to solve, hence the r.h.s. of the ODE. It must fulfill the
+     *               Simple System concept.
+     * \param in The state of the ODE which should be solved. in is not modified in this method
+     * \param t The value of the time, at which the step should be performed.
+     * \param out The result of the step is written in out.
+     * \param dt The step size.
+     */
+
+    /**
+     * \fn void adams_bashforth::adjust_size( const StateType &x )
+     * \brief Adjust the size of all temporaries in the stepper manually.
+     * \param x A state from which the size of the temporaries to be resized is deduced.
+     */
+
+
+    /**
+     * \fn const step_storage_type& adams_bashforth::step_storage( void ) const
+     * \brief Returns the storage of intermediate results.
+     * \return The storage of intermediate results.
+     */
+
+    /**
+     * \fn step_storage_type& adams_bashforth::step_storage( void )
+     * \brief Returns the storage of intermediate results.
+     * \return The storage of intermediate results.
+     */
+
+    /**
+     * \fn void adams_bashforth::initialize( ExplicitStepper explicit_stepper , System system , StateIn &x , time_type &t , time_type dt )
+     * \brief Initialized the stepper. Does Steps-1 steps with the explicit_stepper to fill the buffer.
+     * \param explicit_stepper the stepper used to fill the buffer of previous step results
+     * \param system The system function to solve, hence the r.h.s. of the ordinary differential equation. It must fulfill the
+     *               Simple System concept.
+     * \param x The state of the ODE which should be solved. After calling do_step the result is updated in x.
+     * \param t The value of the time, at which the step should be performed.
+     * \param dt The step size.
+     */
+
+    /**
+     * \fn void adams_bashforth::initialize( System system , StateIn &x , time_type &t , time_type dt )
+     * \brief Initialized the stepper. Does Steps-1 steps with an internal instance of InitializingStepper to fill the buffer.
+     * \note The state x and time t are updated to the values after Steps-1 initial steps.
+     * \param system The system function to solve, hence the r.h.s. of the ordinary differential equation. It must fulfill the
+     *               Simple System concept.
+     * \param x The initial state of the ODE which should be solved, updated in this method.
+     * \param t The initial value of the time, updated in this method.
+     * \param dt The step size.
+     */
+
+    /**
+     * \fn void adams_bashforth::reset( void )
+     * \brief Resets the internal buffer of the stepper.
+     */
+
+    /**
+     * \fn bool adams_bashforth::is_initialized( void ) const
+     * \brief Returns true if the stepper has been initialized.
+     * \return bool true if stepper is initialized, false otherwise
+     */
+
+    /**
+     * \fn const initializing_stepper_type& adams_bashforth::initializing_stepper( void ) const
+     * \brief Returns the internal initializing stepper instance.
+     * \return initializing_stepper
+     */
+
+    /**
+     * \fn const initializing_stepper_type& adams_bashforth::initializing_stepper( void ) const
+     * \brief Returns the internal initializing stepper instance.
+     * \return initializing_stepper
+     */
+
+    /**
+     * \fn initializing_stepper_type& adams_bashforth::initializing_stepper( void )
+     * \brief Returns the internal initializing stepper instance.
+     * \return initializing_stepper
+     */
 
 } // odeint
 } // numeric

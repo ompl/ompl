@@ -64,10 +64,10 @@ void propagate(const oc::SpaceInformation *si, const ob::State *state,
     si->getStateSpace()->copyState(result, state);
     for(int i=0; i<nsteps; i++)
     {
-        se2.setX(se2.getX() + timeStep * velocity.values[0] * cos(se2.getYaw()));
-        se2.setY(se2.getY() + timeStep * velocity.values[0] * sin(se2.getYaw()));
-        se2.setYaw(se2.getYaw() + timeStep * u[0]);
-        velocity.values[0] = velocity.values[0] + timeStep * (u[1]*gear.value);
+        se2.setX(se2.getX() + dt * velocity.values[0] * cos(se2.getYaw()));
+        se2.setY(se2.getY() + dt * velocity.values[0] * sin(se2.getYaw()));
+        se2.setYaw(se2.getYaw() + dt * u[0]);
+        velocity.values[0] = velocity.values[0] + dt * (u[1]*gear.value);
 
         // 'guards' - conditions to change gears
         if (gear.value > 0)

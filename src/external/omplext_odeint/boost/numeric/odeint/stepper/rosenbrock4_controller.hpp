@@ -18,7 +18,7 @@
 #ifndef OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_ROSENBROCK4_CONTROLLER_HPP_INCLUDED
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_ROSENBROCK4_CONTROLLER_HPP_INCLUDED
 
-
+#include <boost/config.hpp>
 #include <omplext_odeint/boost/numeric/odeint/util/bind.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/controlled_step_result.hpp>
@@ -63,11 +63,14 @@ public:
 
     value_type error( const state_type &x , const state_type &xold , const state_type &xerr )
     {
+        BOOST_USING_STD_MAX();
+        using std::abs;
+        
         const size_t n = x.size();
         value_type err = 0.0 , sk = 0.0;
         for( size_t i=0 ; i<n ; ++i )
         {
-            sk = m_atol + m_rtol * std::max( std::abs( xold[i] ) , std::abs( x[i] ) );
+            sk = m_atol + m_rtol * max BOOST_PREVENT_MACRO_SUBSTITUTION ( abs( xold[i] ) , abs( x[i] ) );
             err += xerr[i] * xerr[i] / sk / sk;
         }
         return sqrt( err / value_type( n ) );
@@ -99,6 +102,10 @@ public:
     boost::numeric::omplext_odeint::controlled_step_result
     try_step( System sys , const state_type &x , time_type &t , state_type &xout , time_type &dt )
     {
+        BOOST_USING_STD_MIN();
+        BOOST_USING_STD_MAX();
+        using std::pow;
+
         static const value_type safe = 0.9 , fac1 = 5.0 , fac2 = 1.0 / 6.0;
 
         m_xerr_resizer.adjust_size( x , detail::bind( &controller_type::template resize_m_xerr< state_type > , detail::ref( *this ) , detail::_1 ) );
@@ -106,7 +113,7 @@ public:
         m_stepper.do_step( sys , x , t , xout , dt , m_xerr.m_v );
         value_type err = error( xout , x , m_xerr.m_v );
 
-        value_type fac = std::max( fac2 ,std::min( fac1 , std::pow( err , 0.25 ) / safe ) );
+        value_type fac = max BOOST_PREVENT_MACRO_SUBSTITUTION ( fac2 , min BOOST_PREVENT_MACRO_SUBSTITUTION ( fac1 , pow( err , 0.25 ) / safe ) );
         value_type dt_new = dt / fac;
         if ( err <= 1.0 )
         {
@@ -117,15 +124,15 @@ public:
             else
             {
                 value_type fac_pred = ( m_dt_old / dt ) * pow( err * err / m_err_old , 0.25 ) / safe;
-                fac_pred = std::max( fac2 , std::min( fac1 , fac_pred ) );
-                fac = std::max( fac , fac_pred );
+                fac_pred = max BOOST_PREVENT_MACRO_SUBSTITUTION ( fac2 , min BOOST_PREVENT_MACRO_SUBSTITUTION ( fac1 , fac_pred ) );
+                fac = max BOOST_PREVENT_MACRO_SUBSTITUTION ( fac , fac_pred );
                 dt_new = dt / fac;
             }
 
             m_dt_old = dt;
-            m_err_old = std::max( 0.01 , err );
+            m_err_old = max BOOST_PREVENT_MACRO_SUBSTITUTION ( 0.01 , err );
             if( m_last_rejected )
-                dt_new = ( dt >= 0.0 ? std::min( dt_new , dt ) : std::max( dt_new , dt ) );
+                dt_new = ( dt >= 0.0 ? min BOOST_PREVENT_MACRO_SUBSTITUTION ( dt_new , dt ) : max BOOST_PREVENT_MACRO_SUBSTITUTION ( dt_new , dt ) );
             t += dt;
             dt = dt_new;
             m_last_rejected = false;

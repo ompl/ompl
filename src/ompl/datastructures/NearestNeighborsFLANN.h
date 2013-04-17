@@ -320,49 +320,29 @@ namespace ompl
         index_->buildIndex();
     }
 
-#define OMPL_NEAREST_NEIGHBORS_FLANN_CLASS(T)                                          \
-    template<typename _T>                                                              \
-    class NearestNeighborsFLANN##T : public NearestNeighborsFLANN<_T>                  \
-    {                                                                                  \
-    public:                                                                            \
-        NearestNeighborsFLANN##T()                                                     \
-            : NearestNeighborsFLANN<_T>(                                               \
-                boost::shared_ptr<flann::T##IndexParams>(new flann::T##IndexParams())) \
-        {                                                                              \
-        }                                                                              \
+    template<typename _T, typename _Dist = FLANNDistance<_T> >
+    class NearestNeighborsFLANNLinear : public NearestNeighborsFLANN<_T, _Dist>
+    {
+    public:
+        NearestNeighborsFLANNLinear()
+            : NearestNeighborsFLANN<_T, _Dist>(
+                boost::shared_ptr<flann::LinearIndexParams>(
+                    new flann::LinearIndexParams()))
+        {
+        }
     };
 
-    OMPL_NEAREST_NEIGHBORS_FLANN_CLASS(Linear);
-    OMPL_NEAREST_NEIGHBORS_FLANN_CLASS(HierarchicalClustering);
-
-    // Wrappers for the FLANN indices below need a different distance class
-    // that assumes the data type _T for which a nearest neighbor structure
-    // is built has an array-like structure; see the FLANN manual for details.
-    // We predefine some for elements that look like double*. Note that you
-    // need to insert in this case an element by reference to the first element.
-    // E.g., if your element s is of type std::vector<double>, then you'd add
-    // s[0] (which is of type double&). Keep in mind that s needs to stay in
-    // scope for the lifetime of the nearest neighbors object.
-#define OMPL_NEAREST_NEIGHBORS_FLANN_KDTREE_CLASS(T)                                   \
-    class NearestNeighborsFLANN##T                                                     \
-        : public NearestNeighborsFLANN<double, flann::L2<double> >                     \
-    {                                                                                  \
-    public:                                                                            \
-        NearestNeighborsFLANN##T(unsigned int dim)                                     \
-            : NearestNeighborsFLANN<double, flann::L2<double> >(                       \
-                boost::shared_ptr<flann::T##IndexParams>(new flann::T##IndexParams())) \
-        {                                                                              \
-            dimension_ = dim;                                                          \
-        }                                                                              \
+    template<typename _T, typename _Dist = FLANNDistance<_T> >
+    class NearestNeighborsFLANNHierarchicalClustering : public NearestNeighborsFLANN<_T, _Dist>
+    {
+    public:
+        NearestNeighborsFLANNHierarchicalClustering()
+            : NearestNeighborsFLANN<_T, _Dist>(
+                boost::shared_ptr<flann::HierarchicalClusteringIndexParams>(
+                    new flann::HierarchicalClusteringIndexParams()))
+        {
+        }
     };
-
-    OMPL_NEAREST_NEIGHBORS_FLANN_KDTREE_CLASS(KDTree);
-    OMPL_NEAREST_NEIGHBORS_FLANN_KDTREE_CLASS(KMeans);
-    OMPL_NEAREST_NEIGHBORS_FLANN_KDTREE_CLASS(Composite);
-    OMPL_NEAREST_NEIGHBORS_FLANN_KDTREE_CLASS(KDTreeSingle);
-#ifdef FLANN_USE_CUDA
-    OMPL_NEAREST_NEIGHBORS_FLANN_KDTREE_CLASS(KDTreeCuda3d);
-#endif
 
 }
 #endif

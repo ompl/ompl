@@ -19,7 +19,8 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_ALGEBRA_DEFAULT_OPERATIONS_HPP_INCLUDED
 
 #include <algorithm>
-#include <cmath>      // for std::max
+
+#include <boost/config.hpp>
 #include <boost/array.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/util/unit_helper.hpp>
@@ -87,10 +88,6 @@ struct default_operations
         }
 
         typedef void result_type;
-
-    private:
-        scale_sum2< Fac1 , Fac2 >& operator=( const scale_sum2< Fac1 , Fac2 > &sum2 )
-        { }
     };
 
 
@@ -472,10 +469,10 @@ struct default_operations
         template< class T1 , class T2 , class T3 >
         void operator()( T3 &t3 , const T1 &t1 , const T2 &t2 ) const
         {
+            BOOST_USING_STD_MAX();
             using std::abs;
-            using std::max;
             Fac1 x1 = abs( get_unit_value( t1 ) ) , x2 = abs( get_unit_value( t2 ) );
-            set_unit_value( t3 , abs( get_unit_value( t3 ) ) / ( m_eps_abs + m_eps_rel * max( x1 , x2 ) ) );
+            set_unit_value( t3 , abs( get_unit_value( t3 ) ) / ( m_eps_abs + m_eps_rel * max BOOST_PREVENT_MACRO_SUBSTITUTION ( x1 , x2 ) ) );
         }
 
         typedef void result_type;
@@ -493,7 +490,6 @@ struct default_operations
         template< class Fac1 , class Fac2 >
         Value operator()( Fac1 t1 , const Fac2 t2 ) const
         {
-            using std::max;
             using std::abs;
             Value a1 = abs( get_unit_value( t1 ) ) , a2 = abs( get_unit_value( t2 ) );
             return ( a1 < a2 ) ? a2 : a1 ;
@@ -518,10 +514,10 @@ struct default_operations
         template< class Res , class T1 , class T2 , class T3 >
         Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &x_err )
         {
+            BOOST_USING_STD_MAX();
             using std::abs;
-            using std::max;
-            Res tmp = abs( get_unit_value( x_err ) ) / ( m_eps_abs + m_eps_rel * max( abs( x_old ) , abs( x ) ) );
-            return max( r , tmp );
+            Res tmp = abs( get_unit_value( x_err ) ) / ( m_eps_abs + m_eps_rel * max BOOST_PREVENT_MACRO_SUBSTITUTION ( abs( x_old ) , abs( x ) ) );
+            return max BOOST_PREVENT_MACRO_SUBSTITUTION ( r , tmp );
         }
     };
 
@@ -538,12 +534,11 @@ struct default_operations
         template< class Res , class T1 , class T2 , class T3 , class T4 >
         Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &dxdt_old , const T4 &x_err )
         {
+            BOOST_USING_STD_MAX();
             using std::abs;
-            using std::max;
-
             Res tmp = abs( get_unit_value( x_err ) ) /
                     ( m_eps_abs + m_eps_rel * ( m_a_x * abs( get_unit_value( x_old ) ) + m_a_dxdt * abs( get_unit_value( dxdt_old ) ) ) );
-            return max( r , tmp );
+            return max BOOST_PREVENT_MACRO_SUBSTITUTION ( r , tmp );
         }
     };
 
@@ -562,9 +557,9 @@ struct default_operations
         template< class Res , class T1 , class T2 , class T3 >
         Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &x_err )
         {
+            BOOST_USING_STD_MAX();
             using std::abs;
-            using std::max;
-            Res tmp = abs( get_unit_value( x_err ) ) / ( m_eps_abs + m_eps_rel * max( abs( x_old ) , abs( x ) ) );
+            Res tmp = abs( get_unit_value( x_err ) ) / ( m_eps_abs + m_eps_rel * max BOOST_PREVENT_MACRO_SUBSTITUTION ( abs( x_old ) , abs( x ) ) );
             return r + tmp * tmp;
         }
     };
@@ -585,8 +580,6 @@ struct default_operations
         Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &dxdt_old , const T4 &x_err )
         {
             using std::abs;
-            using std::max;
-
             Res tmp = abs( get_unit_value( x_err ) ) /
                     ( m_eps_abs + m_eps_rel * ( m_a_x * abs( get_unit_value( x_old ) ) + m_a_dxdt * abs( get_unit_value( dxdt_old ) ) ) );
             return r + tmp * tmp;

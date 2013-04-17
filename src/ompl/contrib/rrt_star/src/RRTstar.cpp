@@ -32,12 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
+/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Ioan Sucan */
 
 #include "ompl/contrib/rrt_star/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -52,7 +52,8 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     ballRadiusMax_ = 0.0;
     ballRadiusConst_ = 0.0;
     delayCC_ = true;
-
+    iterations_ = 0;
+    
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("ball_radius_constant", this, &RRTstar::setBallRadiusConstant, &RRTstar::getBallRadiusConstant);
@@ -77,7 +78,7 @@ void ompl::geometric::RRTstar::setup(void)
         ballRadiusConst_ = maxDistance_ * sqrt((double)si_->getStateSpace()->getDimension());
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
 }
 
@@ -88,6 +89,7 @@ void ompl::geometric::RRTstar::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    iterations_ = 0;
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
@@ -96,11 +98,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
+    
+    // when no optimization objective is specified, we create a temporary one (we should not modify the ProblemDefinition)
+    boost::scoped_ptr<base::OptimizationObjective> temporaryOptimizationObjective;
 
     if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
     {
         opt = NULL;
         OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
+    }
+    
+    if (!opt)
+    { 
+        // by default, optimize path length and run until completion
+        opt = new base::PathLengthOptimizationObjective(si_, std::numeric_limits<double>::epsilon());
+        temporaryOptimizationObjective.reset(opt);
+        OMPL_INFORM("No optimization objective specified. Defaulting to optimization of path length for the allowed planning time.");
     }
 
     if (!goal)
@@ -144,6 +157,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     while (ptc == false)
     {
+        iterations_++;
         // sample random state (with goal biasing)
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
@@ -185,7 +199,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             valid.resize(nbh.size());
             std::fill(valid.begin(), valid.end(), 0);
 
-            if(delayCC_)
+            if (delayCC_)
             {
                 // calculate all costs and distances
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
@@ -273,18 +287,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         bool v = valid[i] == 0 ? si_->checkMotion(nbh[i]->state, dstate) : valid[i] == 1;
                         if (v)
                         {
-                            // Remove this node from its parent list
-                            removeFromParent (nbh[i]);
                             double delta = c - nbh[i]->cost;
 
-                            // Add this node to the new parent
-                            nbh[i]->parent = motion;
-                            nbh[i]->cost = c;
-                            nbh[i]->parent->children.push_back(nbh[i]);
-                            solCheck.push_back(nbh[i]);
+                            if (delta > -magic::BETTER_PATH_COST_MARGIN)
+                            {
+                                // Remove this node from its parent list
+                                removeFromParent (nbh[i]);
 
-                            // Update the costs of the node's children
-                            updateChildCosts(nbh[i], delta);
+                                // Add this node to the new parent
+                                nbh[i]->parent = motion;
+                                nbh[i]->cost = c;
+                                nbh[i]->parent->children.push_back(nbh[i]);
+                                solCheck.push_back(nbh[i]);
+                                
+                                // Update the costs of the node's children
+                                updateChildCosts(nbh[i], delta);
+                            }
                         }
                     }
                 }
@@ -298,7 +316,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 double dist = 0.0;
                 bool solved = goal->isSatisfied(solCheck[i]->state, &dist);
-                sufficientlyShort = solved ? (opt ? opt->isSatisfied(solCheck[i]->cost) : true) : false;
+                sufficientlyShort = solved ? opt->isSatisfied(solCheck[i]->cost) : false;
 
                 if (solved)
                 {
@@ -324,7 +342,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (solution && sufficientlyShort)
             break;
     }
-
+    
     double solutionCost;
     bool approximate = (solution == NULL);
     bool addedSolution = false;
@@ -414,4 +432,6 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
                       base::PlannerDataVertex (motions[i]->state));
+
+    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }

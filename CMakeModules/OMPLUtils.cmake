@@ -2,7 +2,12 @@ macro(add_ompl_test test_name)
   add_executable(${ARGV})
   target_link_libraries(${test_name}
     ompl
-    ${Boost_LIBRARIES})
+    ${Boost_DATE_TIME_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_SERIALIZATION_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
   add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
 endmacro(add_ompl_test)
 

@@ -37,6 +37,7 @@ Other tools:
 - [Kinodynamic Planning by Interior-Exterior Cell Exploration (KPIECE)](\ref cKPIECE1)
 - [Rapidly-exploring Random Trees (RRT)](\ref cRRT)
 - [Expansive Space Trees (EST)](\ref cEST)
+- [Path-Directed Subdivision Trees (PDST)](\ref cPDST)
 - [Syclop, a meta planner that uses other planners at a lower level](\ref cSyclop):
    - [Syclop using RRT as the low-level planner](\ref cSyclopRRT)
    - [Syclop using EST as the low-level planner](\ref cSyclopEST)

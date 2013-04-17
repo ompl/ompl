@@ -41,7 +41,7 @@ struct resize_impl< vex::vector< T > , vex::vector< T > >
 {
     static void resize( vex::vector< T > &x1 , const vex::vector< T > &x2 )
     {
-	x1.resize( x2.queue_list() , x2.size() );
+        x1.resize( x2.queue_list() , x2.size() );
     }
 };
 
@@ -50,7 +50,7 @@ struct same_size_impl< vex::vector< T > , vex::vector< T > >
 {
     static bool same_size( const vex::vector< T > &x1 , const vex::vector< T > &x2 )
     {
-	return x1.size() == x2.size();
+        return x1.size() == x2.size();
     }
 };
 
@@ -69,7 +69,7 @@ struct resize_impl< vex::multivector< T , N > , vex::multivector< T , N > >
 {
     static void resize( vex::multivector< T , N > &x1 , const vex::multivector< T , N > &x2 )
     {
-	x1.resize( x2.queue_list() , x2.size() );
+        x1.resize( x2.queue_list() , x2.size() );
     }
 };
 
@@ -78,7 +78,7 @@ struct same_size_impl< vex::multivector< T , N > , vex::multivector< T , N > >
 {
     static bool same_size( const vex::multivector< T , N > &x1 , const vex::multivector< T , N > &x2 )
     {
-	return x1.size() == x2.size();
+        return x1.size() == x2.size();
     }
 };
 

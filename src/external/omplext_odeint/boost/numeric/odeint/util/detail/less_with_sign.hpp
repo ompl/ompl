@@ -34,7 +34,7 @@ bool less_with_sign( T1 t1 , T2 t2 , T3 dt )
         return t1 < t2;
     else
         return t1 > t2;
-};
+}
 
 /**
  * return t1 <= t2 if dt > 0 and t1 => t2 if dt < 0
@@ -46,7 +46,7 @@ bool less_eq_with_sign( T1 t1 , T2 t2 , T3 dt )
         return t1 <= t2;
     else
         return t1 >= t2;
-};
+}
 
 } } } }
 

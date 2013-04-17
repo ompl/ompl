@@ -19,7 +19,8 @@
 #define OMPLEXT_BOOST_NUMERIC_ODEINT_STEPPER_RUNGE_KUTTA_FEHLBERG87_HPP_INCLUDED
 
 
-#include <boost/fusion/container.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/container/generation/make_vector.hpp>
 
 #include <omplext_odeint/boost/numeric/odeint/stepper/explicit_generic_rk.hpp>
 #include <omplext_odeint/boost/numeric/odeint/algebra/range_algebra.hpp>
@@ -38,6 +39,8 @@ namespace boost {
 namespace numeric {
 namespace omplext_odeint {
 
+
+#ifndef DOXYGEN_SKIP
 template< class Value = double >
 struct rk78_coefficients_a1 : boost::array< Value , 1 >
 {
@@ -277,6 +280,10 @@ struct rk78_coefficients_c : boost::array< Value , 13 >
         (*this)[12] = static_cast< Value >( 1 );
             }
 };
+#endif // DOXYGEN_SKIP
+
+
+
 
 
 template<
@@ -288,25 +295,33 @@ class Algebra = range_algebra ,
 class Operations = default_operations ,
 class Resizer = initially_resizer
 >
+#ifndef DOXYGEN_SKIP
 class runge_kutta_fehlberg78 : public explicit_error_generic_rk< 13 , 8 , 8 , 7 , State , Value , Deriv , Time ,
 Algebra , Operations , Resizer >
+#else
+class runge_kutta_fehlberg78 : public explicit_error_generic_rk
+#endif
 {
 
 public:
-
+#ifndef DOXYGEN_SKIP
     typedef explicit_error_generic_rk< 13 , 8 , 8 , 7 , State , Value , Deriv , Time ,
             Algebra , Operations , Resizer > stepper_base_type;
-
+#endif
     typedef typename stepper_base_type::state_type state_type;
-    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
     typedef typename stepper_base_type::value_type value_type;
     typedef typename stepper_base_type::deriv_type deriv_type;
-    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
     typedef typename stepper_base_type::time_type time_type;
     typedef typename stepper_base_type::algebra_type algebra_type;
     typedef typename stepper_base_type::operations_type operations_type;
     typedef typename stepper_base_type::resizer_type resizer_type;
+
+    #ifndef DOXYGEN_SKIP
     typedef typename stepper_base_type::stepper_type stepper_type;
+    typedef typename stepper_base_type::wrapped_state_type wrapped_state_type;
+    typedef typename stepper_base_type::wrapped_deriv_type wrapped_deriv_type;
+    #endif // DOXYGEN_SKIP
+
 
     runge_kutta_fehlberg78( const algebra_type &algebra = algebra_type() ) : stepper_base_type(
             boost::fusion::make_vector( rk78_coefficients_a1<Value>() , rk78_coefficients_a2<Value>() , rk78_coefficients_a3<Value>() ,
@@ -316,6 +331,39 @@ public:
             rk78_coefficients_b<Value>() , rk78_coefficients_db<Value>() , rk78_coefficients_c<Value>() , algebra )
     { }
 };
+
+
+
+/************* DOXYGEN *************/
+
+/**
+ * \class runge_kutta_fehlberg78
+ * \brief The Runge-Kutta Fehlberg 78 method.
+ *
+ * The Runge-Kutta Fehlberg 78 method is a standard method for high-precision applications.
+ * The method is explicit and fulfills the Error Stepper concept. Step size control
+ * is provided but continuous output is not available for this method.
+ * 
+ * This class derives from explicit_error_stepper_base and inherits its interface via CRTP (current recurring template pattern).
+ * Furthermore, it derivs from explicit_error_generic_rk which is a generic Runge-Kutta algorithm with error estimation.
+ * For more details see explicit_error_stepper_base and explicit_error_generic_rk.
+ *
+ * \tparam State The state type.
+ * \tparam Value The value type.
+ * \tparam Deriv The type representing the time derivative of the state.
+ * \tparam Time The time representing the independent variable - the time.
+ * \tparam Algebra The algebra type.
+ * \tparam Operations The operations type.
+ * \tparam Resizer The resizer policy type.
+ */
+
+
+    /**
+     * \fn runge_kutta_fehlberg78::runge_kutta_fehlberg78( const algebra_type &algebra )
+     * \brief Constructs the runge_kutta_cash_fehlberg78 class. This constructor can be used as a default
+     * constructor if the algebra has a default constructor.
+     * \param algebra A copy of algebra is made and stored inside explicit_stepper_base.
+     */
 
 }
 }
