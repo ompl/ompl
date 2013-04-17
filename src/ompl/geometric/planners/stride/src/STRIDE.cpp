@@ -34,54 +34,43 @@
 
 /* Author: Bryant Gipson, Mark Moll, Ioan Sucan */
 
-#include "ompl/geometric/planners/gnat/GNAT.h"
+#include "ompl/geometric/planners/stride/STRIDE.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
 
-ompl::geometric::GNAT::GNAT(const base::SpaceInformationPtr &si,
-        bool useProjectedDistance,
-        unsigned int degree, unsigned int minDegree,
-        unsigned int maxDegree, unsigned int maxNumPtsPerLeaf, double estimatedDimension,
-        unsigned int removedCacheSize)
-: base::Planner(si, "GNAT")
+ompl::geometric::STRIDE::STRIDE(const base::SpaceInformationPtr &si,
+    bool useProjectedDistance,
+    unsigned int degree, unsigned int minDegree,
+    unsigned int maxDegree, unsigned int maxNumPtsPerLeaf, double estimatedDimension)
+    : base::Planner(si, "STRIDE"), tree_(NULL), goalBias_(0.05), maxDistance_(0.),
+    useProjectedDistance_(useProjectedDistance),
+    degree_(degree), minDegree_(minDegree), maxDegree_(maxDegree),
+    maxNumPtsPerLeaf_(maxNumPtsPerLeaf), estimatedDimension_(estimatedDimension),
+    minValidPathFraction_(0.2)
 {
-    goalBias_ = 0.05;
     specs_.approximateSolutions = true;
-    maxDistance_ = 0.0;
-    setUseProjectedDistance(useProjectedDistance);
-    setDegree(degree);
-    setMinDegree(minDegree);
-    setMaxDegree(maxDegree);
-    setMaxNumPtsPerLeaf(maxNumPtsPerLeaf);
-    setRemovedCacheSize(removedCacheSize);
-    setEstimatedDimension(estimatedDimension);
-    setMinValidPathFraction(0.2);
-    setPropagateWhileValid(true);
-    tree_ = NULL;
 
-    Planner::declareParam<double>("range", this, &GNAT::setRange, &GNAT::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &GNAT::setGoalBias, &GNAT::getGoalBias, "0.:.05:1.");
-    Planner::declareParam<bool>("use_projected_distance", this, &GNAT::setUseProjectedDistance, &GNAT::getUseProjectedDistance, "0,1");
-    Planner::declareParam<unsigned int>("degree", this, &GNAT::setDegree, &GNAT::getDegree, "2:20");
-    Planner::declareParam<unsigned int>("max_degree", this, &GNAT::setMaxDegree, &GNAT::getMaxDegree, "2:20");
-    Planner::declareParam<unsigned int>("min_degree", this, &GNAT::setMinDegree, &GNAT::getMinDegree, "2:20");
-    Planner::declareParam<unsigned int>("max_pts_per_leaf", this, &GNAT::setMaxNumPtsPerLeaf, &GNAT::getMaxNumPtsPerLeaf, "1:200");
-    Planner::declareParam<unsigned int>("removed_cache_size", this, &GNAT::setRemovedCacheSize, &GNAT::getRemovedCacheSize, "1:200");
-    Planner::declareParam<double>("estimated_dimension", this, &GNAT::setEstimatedDimension, &GNAT::getEstimatedDimension, "1.:30.");
-    Planner::declareParam<double>("min_valid_path_fraction", this, &GNAT::setMinValidPathFraction, &GNAT::getMinValidPathFraction, "0.:.05:1.");
-    Planner::declareParam<bool>("propagate_while_valid", this, &GNAT::setPropagateWhileValid, &GNAT::getPropagateWhileValid, "0,1");
+    Planner::declareParam<double>("range", this, &STRIDE::setRange, &STRIDE::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &STRIDE::setGoalBias, &STRIDE::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<bool>("use_projected_distance", this, &STRIDE::setUseProjectedDistance, &STRIDE::getUseProjectedDistance, "0,1");
+    Planner::declareParam<unsigned int>("degree", this, &STRIDE::setDegree, &STRIDE::getDegree, "2:20");
+    Planner::declareParam<unsigned int>("max_degree", this, &STRIDE::setMaxDegree, &STRIDE::getMaxDegree, "2:20");
+    Planner::declareParam<unsigned int>("min_degree", this, &STRIDE::setMinDegree, &STRIDE::getMinDegree, "2:20");
+    Planner::declareParam<unsigned int>("max_pts_per_leaf", this, &STRIDE::setMaxNumPtsPerLeaf, &STRIDE::getMaxNumPtsPerLeaf, "1:200");
+    Planner::declareParam<double>("estimated_dimension", this, &STRIDE::setEstimatedDimension, &STRIDE::getEstimatedDimension, "1.:30.");
+    Planner::declareParam<double>("min_valid_path_fraction", this, &STRIDE::setMinValidPathFraction, &STRIDE::getMinValidPathFraction, "0.:.05:1.");
 }
 
-ompl::geometric::GNAT::~GNAT(void)
+ompl::geometric::STRIDE::~STRIDE(void)
 {
     freeMemory();
     delete tree_;
     tree_ = NULL;
 }
 
-void ompl::geometric::GNAT::setup(void)
+void ompl::geometric::STRIDE::setup(void)
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -90,18 +79,17 @@ void ompl::geometric::GNAT::setup(void)
     setupTree();
 }
 
-void ompl::geometric::GNAT::setupTree(void)
+void ompl::geometric::STRIDE::setupTree(void)
 {
-    std::cout<<"GNAT Running with "<<degree_<<", "<<minDegree_<<", "<<maxDegree_<<", "<<maxNumPtsPerLeaf_<<", "<<estimatedDimension_<<", "<<removedCacheSize_<<std::endl;
-    tree_ = new NearestNeighborsGNATSampler<Motion*>(degree_,minDegree_,maxDegree_,maxNumPtsPerLeaf_,estimatedDimension_,removedCacheSize_);
+    tree_ = new NearestNeighborsGNATSampler<Motion*>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_);
     if(useProjectedDistance_)
-        tree_->setDistanceFunction(boost::bind(&GNAT::projectedDistanceFunction, this, _1, _2));
+        tree_->setDistanceFunction(boost::bind(&STRIDE::projectedDistanceFunction, this, _1, _2));
     else
-        tree_->setDistanceFunction(boost::bind(&GNAT::distanceFunction, this, _1, _2));
+        tree_->setDistanceFunction(boost::bind(&STRIDE::distanceFunction, this, _1, _2));
 }
 
 
-void ompl::geometric::GNAT::clear(void)
+void ompl::geometric::STRIDE::clear(void)
 {
     Planner::clear();
     sampler_.reset();
@@ -111,7 +99,7 @@ void ompl::geometric::GNAT::clear(void)
     setupTree();
 }
 
-void ompl::geometric::GNAT::freeMemory(void)
+void ompl::geometric::STRIDE::freeMemory(void)
 {
     if(tree_)
     {
@@ -126,7 +114,7 @@ void ompl::geometric::GNAT::freeMemory(void)
     }
 }
 
-ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::STRIDE::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::Goal                   *goal = pdef_->getGoal().get();
@@ -155,7 +143,7 @@ ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTermin
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
-    while (ptc() == false)
+    while (ptc == false)
     {
         /* Decide on a state to expand from */
         Motion *existing = selectMotion();
@@ -168,16 +156,8 @@ ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTermin
             if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
                 continue;
 
-        bool keep = false;
-        if(propagateWhileValid_)
-        {
-            std::pair<base::State*, double> fail(xstate, 0.0);
-            keep = si_->checkMotion(existing->state, xstate, fail);
-            if (!keep && fail.second > minValidPathFraction_)
-                keep = true;
-        }
-        else
-            keep = si_->checkMotion(existing->state, xstate);
+        std::pair<base::State*, double> fail(xstate, 0.0);
+        bool keep = si_->checkMotion(existing->state, xstate, fail) || fail.second > minValidPathFraction_;
 
         if (keep)
         {
@@ -236,18 +216,18 @@ ompl::base::PlannerStatus ompl::geometric::GNAT::solve(const base::PlannerTermin
     return base::PlannerStatus(solved, approximate);
 }
 
-void ompl::geometric::GNAT::addMotion(Motion *motion)
+void ompl::geometric::STRIDE::addMotion(Motion *motion)
 {
     assert(tree_);
     tree_->add(motion);
 }
 
-ompl::geometric::GNAT::Motion* ompl::geometric::GNAT::selectMotion(void)
+ompl::geometric::STRIDE::Motion* ompl::geometric::STRIDE::selectMotion(void)
 {
     assert(tree_);
     return tree_->sample();
 }
-void ompl::geometric::GNAT::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::STRIDE::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 

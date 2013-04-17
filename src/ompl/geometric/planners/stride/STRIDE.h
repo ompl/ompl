@@ -34,8 +34,8 @@
 
 /* Author: Bryant Gipson, Mark Moll, Ioan Sucan */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_GNAT_GNAT_
-#define OMPL_GEOMETRIC_PLANNERS_GNAT_GNAT_
+#ifndef OMPL_GEOMETRIC_PLANNERS_STRIDE_STRIDE_
+#define OMPL_GEOMETRIC_PLANNERS_STRIDE_STRIDE_
 
 #include "ompl/datastructures/Grid.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
@@ -52,43 +52,38 @@ namespace ompl
     {
 
         /**
-          @anchor gGNAT
+          @anchor gSTRIDE
 
           @par Short description
-          GNAT is a tree-based motion planner that attempts to detect
+          STRIDE is a tree-based motion planner that attempts to detect
           the less explored area of the space through the use of a
-          grid imposed on a projection of the state space. Using this
-          information, GNAT continues tree expansion primarily from
-          less explored areas.  It is important to set the projection
-          the algorithm uses (setProjectionEvaluator() function). If
-          no projection is set, the planner will attempt to use the
-          default projection associated to the state space. An
-          exception is thrown if no default projection is available
-          either.
+          GNAT nearest-neighbor data structure. It is similar to EST,
+          but unlike the EST implementation in OMPL does not require
+          a projection. However, in case the state space has many
+          dimensions, a projection can be specified and the GNAT
+          can be built using distances in the projected space. This
+          has the advantage over the EST implementation that no grid
+          cell sizes have to be specified.
 
           @par External documentation
-          D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
-          <em>Intl. J. Computational Geometry and Applications</em>,
-          vol. 9, no. 4-5, pp. 495–512, 1999. DOI: <a href="http://dx.doi.org/10.1142/S0218195999000285">10.1142/S0218195999000285</a><br>
-          <a href="http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf">[PDF]</a>
-
+          B. Gipson, M. Moll, and L.E. Kavraki, Resolution independent density
+          estimation for motion planning in high-dimensional spaces, in
+          <em>IEEE Intl. Conf. on Robotics and Automation</em>, 2013.
+          <a href="http://kavrakilab.org/sites/default/files/2013%20resolution%20independent%20density%20estimation%20for%20motion.pdf">[PDF]</a>
 */
 
-        /** \brief Expansive Space Trees */
-        class GNAT : public base::Planner
+        /** \brief Search Tree with Resolution Independent Density Estimation */
+        class STRIDE : public base::Planner
         {
             protected:
                 class Motion;
             public:
 
                 /** \brief Constructor */
-                GNAT(const base::SpaceInformationPtr &si,
-                        bool useProjectedDistance = false,
-                        unsigned int degree = 16, unsigned int minDegree = 12,
-                        unsigned int maxDegree = 18, unsigned int maxNumPtsPerLeaf = 6, double estimatedDimension = 12.0,
-                        unsigned int removedCacheSize = 50
-                    );
-                virtual ~GNAT(void);
+                STRIDE(const base::SpaceInformationPtr &si, bool useProjectedDistance = false,
+                        unsigned int degree = 16, unsigned int minDegree = 12, unsigned int maxDegree = 18,
+                        unsigned int maxNumPtsPerLeaf = 6, double estimatedDimension = 12.0);
+                virtual ~STRIDE(void);
 
                 virtual void setup(void);
 
@@ -125,15 +120,6 @@ namespace ompl
                     return useProjectedDistance_;
                 }
 
-                void setPropagateWhileValid(bool propagateWhileValid)
-                {
-                    propagateWhileValid_ = propagateWhileValid;
-                }
-                bool getPropagateWhileValid(void)
-                {
-                    return propagateWhileValid_;
-                }
-
                 void setDegree(unsigned int degree)
                 {
                     degree_ = degree;
@@ -168,15 +154,6 @@ namespace ompl
                 unsigned int getMaxNumPtsPerLeaf(void)
                 {
                     return maxNumPtsPerLeaf_;
-                }
-
-                void setRemovedCacheSize(unsigned int removedCacheSize)
-                {
-                    removedCacheSize_ = removedCacheSize;
-                }
-                unsigned int getRemovedCacheSize(void)
-                {
-                    return removedCacheSize_;
                 }
 
                 void setEstimatedDimension(double estimatedDimension)
@@ -298,7 +275,7 @@ namespace ompl
                 /** \brief Valid state sampler */
                 base::ValidStateSamplerPtr   sampler_;
 
-                /** \brief This algorithm uses a discretization (a grid) to guide the exploration. The exploration is imposed on a projection of the state space. */
+                /** \brief This algorithm can optionally use a projection to guide the exploration. */
                 base::ProjectionEvaluatorPtr projectionEvaluator_;
 
                 /** \brief The exploration tree constructed by this algorithm */
@@ -310,11 +287,24 @@ namespace ompl
                 /** \brief The maximum length of a motion to be added to a tree */
                 double                       maxDistance_;
 
+                /** whether to use distance in the projection (instead of distance in the state space) for the GNAT */
                 bool                         useProjectedDistance_;
-                unsigned int                 degree_,minDegree_,maxDegree_,maxNumPtsPerLeaf_,removedCacheSize_;
+                /** desired degree of an internal node in the GNAT */
+                unsigned int                 degree_;
+                /** minimum degree of an internal node in the GNAT */
+                unsigned int                 minDegree_;
+                /** maximum degree of an internal node in the GNAT */
+                unsigned int                 maxDegree_;
+                /** maximum number of points stored in a leaf node in the GNAT */
+                unsigned int                 maxNumPtsPerLeaf_;
+                /** estimate of the local dimensionality of the free space around a state */
                 double                       estimatedDimension_;
+                /** \brief When extending a motion, the planner can decide
+                     to keep the first valid part of it, even if invalid
+                     states are found, as long as the valid part represents
+                     a sufficiently large fraction from the original
+                     motion. This is used only when extendWhileValid_ is true. */
                 double                       minValidPathFraction_;
-                bool                         propagateWhileValid_;
 
                 /** \brief The random number generator */
                 RNG                          rng_;
