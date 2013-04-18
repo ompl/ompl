@@ -35,6 +35,9 @@
 /* Author: Bryant Gipson, Mark Moll, Ioan Sucan */
 
 #include "ompl/geometric/planners/stride/STRIDE.h"
+// enable sampling from the GNAT data structure
+#define GNAT_SAMPLER
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
@@ -51,6 +54,9 @@ ompl::geometric::STRIDE::STRIDE(const base::SpaceInformationPtr &si,
     minValidPathFraction_(0.2)
 {
     specs_.approximateSolutions = true;
+
+    if (estimatedDimension_ < 1.)
+        estimatedDimension_ = si->getStateDimension();
 
     Planner::declareParam<double>("range", this, &STRIDE::setRange, &STRIDE::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &STRIDE::setGoalBias, &STRIDE::getGoalBias, "0.:.05:1.");
@@ -81,7 +87,8 @@ void ompl::geometric::STRIDE::setup(void)
 
 void ompl::geometric::STRIDE::setupTree(void)
 {
-    tree_ = new NearestNeighborsGNATSampler<Motion*>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_);
+    delete tree_;
+    tree_ = new NearestNeighborsGNAT<Motion*>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_);
     if(useProjectedDistance_)
         tree_->setDistanceFunction(boost::bind(&STRIDE::projectedDistanceFunction, this, _1, _2));
     else
@@ -94,8 +101,6 @@ void ompl::geometric::STRIDE::clear(void)
     Planner::clear();
     sampler_.reset();
     freeMemory();
-    delete tree_;
-    tree_ = NULL;
     setupTree();
 }
 
@@ -227,6 +232,7 @@ ompl::geometric::STRIDE::Motion* ompl::geometric::STRIDE::selectMotion(void)
     assert(tree_);
     return tree_->sample();
 }
+
 void ompl::geometric::STRIDE::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);

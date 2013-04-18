@@ -41,12 +41,14 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/PDF.h"
-#include <ompl/datastructures/NearestNeighborsGNATSampler.h>
 #include <boost/unordered_map.hpp>
 #include <vector>
 
 namespace ompl
 {
+
+    template<typename _T>
+    class NearestNeighborsGNAT;
 
     namespace geometric
     {
@@ -75,14 +77,12 @@ namespace ompl
         /** \brief Search Tree with Resolution Independent Density Estimation */
         class STRIDE : public base::Planner
         {
-            protected:
-                class Motion;
             public:
 
                 /** \brief Constructor */
                 STRIDE(const base::SpaceInformationPtr &si, bool useProjectedDistance = false,
                         unsigned int degree = 16, unsigned int minDegree = 12, unsigned int maxDegree = 18,
-                        unsigned int maxNumPtsPerLeaf = 6, double estimatedDimension = 12.0);
+                        unsigned int maxNumPtsPerLeaf = 6, double estimatedDimension = 0.0);
                 virtual ~STRIDE(void);
 
                 virtual void setup(void);
@@ -235,15 +235,15 @@ namespace ompl
                     {
                     }
 
-                        ~Motion(void)
-                        {
-                        }
+                    ~Motion(void)
+                    {
+                    }
 
-                        /** \brief The state contained by the motion */
-                        base::State       *state;
+                    /** \brief The state contained by the motion */
+                    base::State       *state;
 
-                        /** \brief The parent motion in the exploration tree */
-                        Motion            *parent;
+                    /** \brief The parent motion in the exploration tree */
+                    Motion            *parent;
                 };
 
 
@@ -279,7 +279,7 @@ namespace ompl
                 base::ProjectionEvaluatorPtr projectionEvaluator_;
 
                 /** \brief The exploration tree constructed by this algorithm */
-                NearestNeighborsGNATSampler<Motion*> *tree_;
+                NearestNeighborsGNAT<Motion*> *tree_;
 
                 /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
                 double                       goalBias_;
