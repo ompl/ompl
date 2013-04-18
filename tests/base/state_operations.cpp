@@ -308,7 +308,8 @@ BOOST_AUTO_TEST_CASE(PartialCopy)
     BOOST_CHECK(subspaces.size() == 0);
     m->getCommonSubspaces(q, subspaces);
     BOOST_CHECK(subspaces.size() == 1);
-    
+    base::ScopedState<> dummy(q);
+
     for (int i = 0 ; i < 100 ; ++i)
     {
         state.random();
@@ -321,7 +322,7 @@ BOOST_AUTO_TEST_CASE(PartialCopy)
         BOOST_CHECK(copyStateData(m, state.get(), q, tmp[q].get(), subspaces) == base::ALL_DATA_COPIED);
         BOOST_CHECK(tmp[q] == state[q]);   
         BOOST_CHECK(copyStateData(m, state.get(), q, tmp[q].get()) == base::ALL_DATA_COPIED);
-        BOOST_CHECK(copyStateData(q, tmp[q].get(), m, state.get()) == base::SOME_DATA_COPIED);  
-        BOOST_CHECK(copyStateData(q, tmp[q].get(), r3, state[r3].get()) == base::NO_DATA_COPIED);
+        BOOST_CHECK(copyStateData(q, dummy.get(), m, state.get()) == base::SOME_DATA_COPIED);  
+        BOOST_CHECK(copyStateData(q, dummy.get(), r3, state[r3].get()) == base::NO_DATA_COPIED);
     }
 }
