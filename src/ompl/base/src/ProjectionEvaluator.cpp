@@ -58,10 +58,13 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
     RNG rng;
     Matrix projection(to, from);
 
-    for (unsigned int i = 0 ; i < to ; ++i)
-    {
-        for (unsigned int j = 0 ; j < from ; ++j)
-            projection(i, j) = rng.gaussian01();
+    for (unsigned int j = 0 ; j < from ; ++j)
+    {    
+        if (scale.size() == from && fabs(scale[j]) < std::numeric_limits<double>::epsilon())
+            boost::numeric::ublas::column(projection, j) = boost::numeric::ublas::zero_vector<double>(to);
+        else
+            for (unsigned int i = 0 ; i < to ; ++i)
+                projection(i, j) = rng.gaussian01();
     }
 
     for (unsigned int i = 0 ; i < to ; ++i)
@@ -79,12 +82,18 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
     assert(scale.size() == from || scale.size() == 0);
     if (scale.size() == from)
+    {
+        unsigned int z = 0;
         for (unsigned int i = 0 ; i < from ; ++i)
         {
             if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
-                throw Exception("Scaling factor must be non-zero");
-            boost::numeric::ublas::column(projection, i) /= scale[i];
+                boost::numeric::ublas::column(projection, i) /= scale[i];
+            else
+                z++;
         }
+        if (z == from)
+            OMPL_WARN("Computed projection matrix is all 0s");
+    }
     return projection;
 }
 
