@@ -38,10 +38,9 @@
 #include "ompl/control/planners/pdst/PDST.h"
 
 ompl::control::PDST::PDST(const SpaceInformationPtr &si)
-    : base::Planner(si, "PDST"), siC_(si.get()), maxDistance_(0.0), bsp_(NULL),
-    goalBias_(0.05), goalSampler_(NULL), iteration_(1), lastGoalMotion_(NULL)
+    : base::Planner(si, "PDST"), siC_(si.get()), bsp_(NULL), goalBias_(0.05),
+    goalSampler_(NULL), iteration_(1), lastGoalMotion_(NULL)
 {
-    Planner::declareParam<double>("range", this, &PDST::setRange, &PDST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }
 
@@ -191,7 +190,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, 
         }
     }
 
-    // generate a random nearby state
+    // generate a random state
     if (goalSampler_ && rng_.uniform01() < goalBias_ && goalSampler_->canSample())
         goalSampler_->sampleGoal(scratch);
     else
@@ -357,7 +356,6 @@ void ompl::control::PDST::setup(void)
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
-    sc.configurePlannerRange(maxDistance_);
     if (bsp_)
         delete bsp_;
     bsp_ = new Cell(1.0, projectionEvaluator_->getBounds(), 0);

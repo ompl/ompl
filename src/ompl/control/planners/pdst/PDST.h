@@ -126,21 +126,6 @@ namespace ompl
             {
                 return goalBias_;
             }
-            /// \brief Set the range the planner is supposed to use.
-            ///
-            /// This parameter greatly influences the runtime of the
-            /// algorithm. It represents the maximum length of a
-            /// motion to be added in the tree of motions. */
-            void setRange(double distance)
-            {
-                maxDistance_ = distance;
-            }
-
-            /// Get the range the planner is using
-            double getRange(void) const
-            {
-                return maxDistance_;
-            }
 
         protected:
             struct Cell;
@@ -333,9 +318,6 @@ namespace ompl
 
             // Random number generator
             RNG rng_;
-
-            /// Maximum distance for sampling random states
-            double                                   maxDistance_;
 
             /// \brief Vector holding all of the start states supplied for the problem
             /// Each start motion is the root of its own tree of motions.
