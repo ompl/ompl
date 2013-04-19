@@ -66,7 +66,7 @@ namespace ompl
             it will be estimated by sampling states. To get closer to the true
             bounding box, we grow the bounding box of the projected sampled
             states by 5% on each side. */
-        static const double PROJECTION_EXPAND_FACTOR = 1.05;
+        static const double PROJECTION_EXPAND_FACTOR = 0.05;
 
         /** \brief For planners: if default values are to be used for
             the maximum length of motions, this constant defines what
