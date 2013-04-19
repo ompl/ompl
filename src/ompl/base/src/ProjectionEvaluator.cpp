@@ -58,10 +58,13 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
     RNG rng;
     Matrix projection(to, from);
 
-    for (unsigned int i = 0 ; i < to ; ++i)
-    {
-        for (unsigned int j = 0 ; j < from ; ++j)
-            projection(i, j) = rng.gaussian01();
+    for (unsigned int j = 0 ; j < from ; ++j)
+    {    
+        if (scale.size() == from && fabs(scale[j]) < std::numeric_limits<double>::epsilon())
+            boost::numeric::ublas::column(projection, j) = boost::numeric::ublas::zero_vector<double>(to);
+        else
+            for (unsigned int i = 0 ; i < to ; ++i)
+                projection(i, j) = rng.gaussian01();
     }
 
     for (unsigned int i = 0 ; i < to ; ++i)
@@ -79,12 +82,18 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
     assert(scale.size() == from || scale.size() == 0);
     if (scale.size() == from)
+    {
+        unsigned int z = 0;
         for (unsigned int i = 0 ; i < from ; ++i)
         {
             if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
-                throw Exception("Scaling factor must be non-zero");
-            boost::numeric::ublas::column(projection, i) /= scale[i];
+                z++;
+            else
+                boost::numeric::ublas::column(projection, i) /= scale[i];
         }
+        if (z == from)
+            OMPL_WARN("Computed projection matrix is all 0s");
+    }
     return projection;
 }
 
@@ -200,138 +209,11 @@ namespace ompl
             for (unsigned int i = 0 ; i < dim ; ++i)
                 coord[i] = (int)floor(projection(i)/cellSizes[i]);
         }
-        /*
-        static Grid<int> constructGrid(unsigned int dim, const std::vector<ProjectionCoordinates> &coord)
-        {
-            Grid<int> g(dim);
-            for (std::size_t i = 0 ; i < coord.size() ; ++i)
-            {
-                Grid<int>::Cell *c = g.getCell(coord[i]);
-                if (c)
-                    c->data++;
-                else
-                {
-                    Grid<int>::Cell *c = g.createCell(coord[i]);
-                    c->data = 1;
-                    g.add(c);
-                }
-            }
-            return g;
-        }
-
-        static unsigned int getComponentCount(const std::vector<EuclideanProjection*> &proj,
-                                              const std::vector<double> &cellSizes)
-        {
-            std::vector<ProjectionCoordinates> coord(proj.size());
-            for (std::size_t i = 0 ; i < proj.size() ; ++i)
-                computeCoordinatesHelper(cellSizes, *proj[i], coord[i]);
-            return constructGrid(cellSizes.size(), coord).components().size();
-        }
-
-        static int updateComponentCountDimension(const std::vector<EuclideanProjection*> &proj,
-                                                 std::vector<double> &cellSizes, bool increase)
-        {
-            unsigned int dim = cellSizes.size();
-            const double factor = increase ? DIMENSION_UPDATE_FACTOR : 1.0 / DIMENSION_UPDATE_FACTOR;
-
-            int bestD = -1;
-            unsigned int best = 0;
-            for (unsigned int d = 0 ; d < dim ; ++d)
-            {
-                double backup = cellSizes[d];
-                cellSizes[d] *= factor;
-                unsigned int nc = getComponentCount(proj, cellSizes);
-                if (bestD < 0 || (increase && nc > best) || (!increase && nc < best))
-                {
-                    best = nc;
-                    bestD = d;
-                }
-                cellSizes[d] = backup;
-            }
-            cellSizes[bestD] *= factor;
-            return bestD;
-        }
-        */
     }
 }
 /// @endcond
 
 
-
-/*
-void ompl::base::ProjectionEvaluator::computeCellSizes(const std::vector<const State*> &states)
-{
-    setup();
-
-    msg_.debug("Computing projections from %u states", states.size());
-
-    unsigned int dim = getDimension();
-    std::vector<double> low(dim, std::numeric_limits<double>::infinity());
-    std::vector<double> high(dim, -std::numeric_limits<double>::infinity());
-    std::vector<EuclideanProjection*>  proj(states.size());
-    std::vector<ProjectionCoordinates> coord(states.size());
-
-    for (std::size_t i = 0 ; i < states.size() ; ++i)
-    {
-        proj[i] = new EuclideanProjection(dim);
-        project(states[i], *proj[i]);
-        for (std::size_t j = 0 ; j < dim ; ++j)
-        {
-            if (low[j] > proj[i]->values[j])
-                low[j] = proj[i]->values[j];
-            if (high[j] < proj[i]->values[j])
-                high[j] = proj[i]->values[j];
-        }
-    }
-
-    bool dir1 = false, dir2 = false;
-    do
-    {
-        for (std::size_t i = 0 ; i < proj.size() ; ++i)
-            computeCoordinates(*proj[i], coord[i]);
-        const Grid<int> &g = constructGrid(dim, coord);
-
-        const std::vector< std::vector<Grid<int>::Cell*> > &comp = g.components();
-        if (comp.size() > 0)
-        {
-            std::size_t n = comp.size() / 10;
-            if (n < 1)
-                n = 1;
-            std::size_t s = 0;
-            for (std::size_t i = 0 ; i < n ; ++i)
-                s += comp[i].size();
-            double f = (double)s / (double)g.size();
-
-            OMPL_DEBUG("There are %u connected components in the projected grid. The first 10%% fractions is %f", comp.size(), f);
-
-            if (f < 0.7)
-            {
-                dir1 = true;
-                int bestD = updateComponentCountDimension(proj, cellSizes_, true);
-                OMPL_DEBUG("Increasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
-            }
-            else
-                if (f > 0.9)
-                {
-                    dir2 = true;
-                    int bestD = updateComponentCountDimension(proj, cellSizes_, false);
-                    OMPL_DEBUG("Decreasing cell size in dimension %d to %f", bestD, cellSizes_[bestD]);
-                }
-                else
-                {
-                    OMPL_DEBUG("No more changes made to cell sizes");
-                    break;
-                }
-        }
-    } while (dir1 ^ dir2);
-
-    for (unsigned int i = 0 ; i < proj.size() ; ++i)
-        delete proj[i];
-
-    // make sure all flags are set correctly
-    setCellSizes(cellSizes_);
-}
-*/
 
 void ompl::base::ProjectionEvaluator::inferCellSizes(void)
 {
@@ -360,11 +242,11 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             }
         }
         // make bounding box 10% larger (5% padding on each side)
-        std::vector<double> diff(bounds_.getDifference()), low = bounds_.low;
+        std::vector<double> diff(bounds_.getDifference());
         for (unsigned int j = 0; j < dim; ++j)
         {
-            bounds_.low[j] = bounds_.high[j] - ompl::magic::PROJECTION_EXPAND_FACTOR * bounds_.low[j];
-            bounds_.high[j] = low[j] + ompl::magic::PROJECTION_EXPAND_FACTOR * low[j];
+            bounds_.low[j] -= magic::PROJECTION_EXPAND_FACTOR * diff[j];
+            bounds_.high[j] += magic::PROJECTION_EXPAND_FACTOR * diff[j];
         }
 
         space_->freeState(s);

@@ -38,10 +38,9 @@
 #include "ompl/geometric/planners/pdst/PDST.h"
 
 ompl::geometric::PDST::PDST(const base::SpaceInformationPtr &si)
-    : base::Planner(si, "PDST"), maxDistance_(0.0), bsp_(NULL),
+    : base::Planner(si, "PDST"), bsp_(NULL),
     goalBias_(0.05), goalSampler_(NULL), iteration_(1), lastGoalMotion_(NULL)
 {
-    Planner::declareParam<double>("range", this, &PDST::setRange, &PDST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }
 
@@ -296,7 +295,6 @@ void ompl::geometric::PDST::setup(void)
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
-    sc.configurePlannerRange(maxDistance_);
     if (bsp_)
         delete bsp_;
     bsp_ = new Cell(1.0, projectionEvaluator_->getBounds(), 0);
