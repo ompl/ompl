@@ -25,6 +25,7 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
   add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
   add_ompl_demo(demo_KinematicChainBenchmark KinematicChainBenchmark.cpp)
+  add_ompl_demo(demo_HypercubeBenchmark HypercubeBenchmark.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)

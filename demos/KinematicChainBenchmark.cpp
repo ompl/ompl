@@ -35,16 +35,11 @@
 /* Author: Bryant Gipson, Mark Moll */
 
 #include <ompl/base/spaces/SO2StateSpace.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 
 #include <boost/math/constants/constants.hpp>
@@ -319,11 +314,7 @@ int main(int argc, char **argv)
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::STRIDE(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::EST(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(ss.getSpaceInformation())));
-    b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::BKPIECE1(ss.getSpaceInformation())));
-    b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::LBKPIECE1(ss.getSpaceInformation())));
-    b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::RRT(ss.getSpaceInformation())));
-    b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::SBL(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::PRM(ss.getSpaceInformation())));
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
