@@ -21,7 +21,7 @@ if (OMPL_BUILD_PYBINDINGS)
             "${CMAKE_CURRENT_SOURCE_DIR}/ompl/bindings_generator.py" @ONLY)
 
         foreach(module ${OMPL_MODULES})
-            create_module_generation_targets(${module} ${CMAKE_CURRENT_SOURCE_DIR})
+            create_module_generation_targets(${module} "${CMAKE_CURRENT_SOURCE_DIR}")
         endforeach(module)
 
         add_dependencies(update_base_bindings update_util_bindings)
@@ -34,7 +34,7 @@ if (OMPL_BUILD_PYBINDINGS)
 
     if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
         foreach(module ${OMPL_MODULES})
-            create_module_target(${module} ${CMAKE_CURRENT_SOURCE_DIR})
+            create_module_target(${module} "${CMAKE_CURRENT_SOURCE_DIR}")
         endforeach(module)
 
         install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"
@@ -44,6 +44,6 @@ if (OMPL_BUILD_PYBINDINGS)
 endif(OMPL_BUILD_PYBINDINGS)
 
 add_custom_target(clean_bindings
-    ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/bindings
-    COMMAND ${CMAKE_COMMAND} -E remove -f pyplusplus_{base,control,geometric,tools,util}.{cache,log}
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+    "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_SOURCE_DIR}/bindings"
+    COMMAND "${CMAKE_COMMAND}" -E remove -f pyplusplus_{base,control,geometric,tools,util}.{cache,log}
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")

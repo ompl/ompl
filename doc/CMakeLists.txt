@@ -6,7 +6,7 @@ if (OMPL_BUILD_DOC)
 
     if(DOXYGEN)
         if(UNIX)
-            execute_process(COMMAND date "+%b %d, %Y" 
+            execute_process(COMMAND date "+%b %d, %Y"
                 OUTPUT_VARIABLE OMPL_RELEASE_DATE
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
         endif()

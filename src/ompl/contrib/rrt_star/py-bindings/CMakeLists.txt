@@ -6,7 +6,7 @@ if (OMPL_BUILD_PYBINDINGS)
     set(OMPL_RRTSTAR_BINDINGS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../py-bindings")
 
     # Copy the rrtstar module's __init__.py
-    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/ompl/rrtstar/__init__.py"
         "${OMPL_RRTSTAR_BINDINGS_DIR}/ompl/rrtstar/__init__.py")
 
@@ -20,7 +20,7 @@ if (OMPL_BUILD_PYBINDINGS)
     # Create the target "py_ompl_rrtstar", which will compile the binding
     # code into a binary python module
     if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
-        create_module_target(rrtstar ${CMAKE_CURRENT_SOURCE_DIR}
+        create_module_target(rrtstar "${CMAKE_CURRENT_SOURCE_DIR}"
             "${OMPL_RRTSTAR_BINDINGS_DIR}/ompl")
     endif()
 endif()
@@ -28,8 +28,8 @@ endif()
 # Not strictly necessary, but can be convenient if the API of the RRT*
 # planners changes
 add_custom_target(clean_rrtstar_bindings
-    ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/bindings
+    "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_SOURCE_DIR}/bindings"
     COMMAND ${CMAKE_COMMAND} -E remove -f pyplusplus_rrtstar.{cache,log}
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 # clean RRT* bindings whenever the target clean_bindings is built
 add_dependencies(clean_bindings clean_rrtstar_bindings)

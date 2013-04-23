@@ -31,7 +31,7 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp ge
 if (OMPL_EXTENSION_OPENDE)
     file(GLOB_RECURSE OMPL_OPENDE_EXTENSION_SOURCE_CODE extensions/opende/*.cpp)
     set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_OPENDE_EXTENSION_SOURCE_CODE})
-    list(APPEND OMPL_LINK_LIBRARIES ${OPENDE_LIBRARY})
+    list(APPEND OMPL_LINK_LIBRARIES "${OPENDE_LIBRARY}")
 endif()
 
 #############################################
@@ -72,7 +72,7 @@ install(TARGETS ompl DESTINATION lib/)
 if(NOT MSVC)
     get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
     add_custom_command(TARGET ompl POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${OMPL_LIBRARY_LOC}"
+        COMMAND "${CMAKE_COMMAND}" -E copy "${OMPL_LIBRARY_LOC}"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}"
-        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+        WORKING_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
 endif(NOT MSVC)
