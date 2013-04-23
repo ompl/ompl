@@ -156,7 +156,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     unsigned int         rewireTest = 0;
     double               stateSpaceDimensionConstant = 1.0 / (double)si_->getStateSpace()->getDimension();
 
-    // this is messy but these are just more variables we'll need during rewiring
+    // more variables we'll need during rewiring
     base::Cost* nbhPrevCost = opt_->allocCost();
     base::Cost* nbhIncCost = opt_->allocCost();
     base::Cost* nbhNewCost = opt_->allocCost();
