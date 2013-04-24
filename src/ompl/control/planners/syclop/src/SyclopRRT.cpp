@@ -146,29 +146,22 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
         nmotion = nn_->nearest(rmotion);
     }
 
-    base::State* newState = si_->allocState();
-
     unsigned int duration = controlSampler_->sampleTo(rmotion->control, nmotion->control, nmotion->state, rmotion->state);
-
-    duration = siC_->propagateWhileValid(nmotion->state, rmotion->control, duration, newState);
-
     if (duration >= siC_->getMinControlDuration())
     {
-        Motion* motion = new Motion(siC_);
-        si_->copyState(motion->state, newState);
-        siC_->copyControl(motion->control, rmotion->control);
-        motion->steps = duration;
-        motion->parent = nmotion;
-        newMotions.push_back(motion);
+        rmotion->steps = duration;
+        rmotion->parent = nmotion;
+        newMotions.push_back(rmotion);
         if (nn_)
-            nn_->add(motion);
-        lastGoalMotion_ = motion;
+            nn_->add(rmotion);
+        lastGoalMotion_ = rmotion;
     }
-
-    si_->freeState(rmotion->state);
-    siC_->freeControl(rmotion->control);
-    delete rmotion;
-    si_->freeState(newState);
+    else
+    {
+        si_->freeState(rmotion->state);
+        siC_->freeControl(rmotion->control);
+        delete rmotion;
+    }
 }
 
 void ompl::control::SyclopRRT::freeMemory(void)

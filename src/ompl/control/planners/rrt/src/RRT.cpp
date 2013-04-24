@@ -193,13 +193,11 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
         }
         else
         {
-            cd = siC_->propagateWhileValid(nmotion->state, rctrl, cd, xstate);
-
             if (cd >= siC_->getMinControlDuration())
             {
                 /* create a motion */
                 Motion *motion = new Motion(siC_);
-                si_->copyState(motion->state, xstate);
+                si_->copyState(motion->state, rmotion->state);
                 siC_->copyControl(motion->control, rctrl);
                 motion->steps = cd;
                 motion->parent = nmotion;

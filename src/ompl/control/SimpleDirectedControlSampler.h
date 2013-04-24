@@ -82,33 +82,31 @@ namespace ompl
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
-                \e target. This is useful for some algorithms that
+                \e dest. This is useful for some algorithms that
                 have a notion of direction in their exploration (e.g.,
                 \ref cRRT). Furthermore, return the duration for which
-                this control should be applied. By default, this
-                function calls the second definition of ControlSampler::sample() and
-                returns the value of ControlSampler::sampleStepCount(SpaceInformation::getMinControlDuration(),
-                SpaceInformation::getMaxControlDuration()). */
-            virtual unsigned int sampleTo(Control *control, const base::State *source, const base::State *target);
+                this control should be applied. The state
+                \dest is modified to match the state reached with the computed
+                control and duration. The motion is checked for validity. */
+            virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest);
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
-                \e target. Also take into account the fact that the
+                \e dest. Also take into account the fact that the
                 previously applied control is \e previous. This is
                 useful for some algorithms that have a notion of
                 direction in their exploration (e.g.,
                 \ref cRRT). Furthermore, return the duration for which
-                this control should be applied. By default, this
-                function calls the second definition of ControlSampler::sampleNext() and
-                returns the value of ControlSampler::sampleStepCount(SpaceInformation::getMinControlDuration(),
-                SpaceInformation::getMaxControlDuration()). */
-            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, const base::State *target);
+                this control should be applied. The state \dest is
+                modified to match the state reached with the computed
+                control and duration. The motion is checked for validity. */
+            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest);
 
         protected:
 
             /** \brief Samples \e numControlSamples_ controls, and returns the
                 control that brings the system the closest to \e target */
-            virtual unsigned int getBestControl (Control *control, const base::State *source, const base::State *target, const Control *previous);
+            virtual unsigned int getBestControl (Control *control, const base::State *source, base::State *dest, const Control *previous);
 
             /** \brief An instance of the control sampler*/
             ControlSamplerPtr       cs_;
