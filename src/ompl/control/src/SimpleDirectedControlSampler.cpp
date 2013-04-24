@@ -68,15 +68,14 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl (Contro
     const double maxDuration = si_->getMaxControlDuration();
 
     unsigned int steps = cs_->sampleStepCount(minDuration, maxDuration);
+    // Propagate the first control, and find how far it is from the target state
+    steps = si_->propagateWhileValid(source, control, steps, tempState);
 
     if (numControlSamples_ > 1)
     {
         Control     *tempControl = si_->allocControl();
         base::State *tempState   = si_->allocState();
-
-        // Propagate the first control, and find how far it is from the target state
-        si_->propagateWhileValid(source, control, steps, tempState);
-        double bestDistance = si_->distance(tempState, target);
+        double bestDistance      = si_->distance(tempState, target);
 
         // Sample k-1 more controls, and save the control that gets closest to target
         for (unsigned int i = 1; i < numControlSamples_; ++i)
@@ -87,7 +86,7 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl (Contro
             else
                 cs_->sample(tempControl, source);
 
-            si_->propagateWhileValid(source, tempControl, sampleSteps, tempState);
+            sampleSteps = si_->propagateWhileValid(source, tempControl, sampleSteps, tempState);
             double tempDistance = si_->distance(tempState, target);
             if (tempDistance < bestDistance)
             {
