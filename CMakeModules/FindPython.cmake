@@ -68,11 +68,11 @@ execute_process(COMMAND "${PYTHON_EXEC}" "-c"
 string(REPLACE "." "" PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
 find_library(PYTHON_LIBRARIES
-    NAMES "python${PYTHON_VERSION_NO_DOTS}" "python${PYTHON_VERSION}"
+    NAMES "python${PYTHON_VERSION_NO_DOTS}" "python${PYTHON_VERSION}" "python${PYTHON_VERSION}m"
     PATHS
         "${PYTHON_PREFIX}/lib"
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION}\\InstallPath]/libs
-    PATH_SUFFIXES "" "python${PYTHON_VERSION}/config"
+    PATH_SUFFIXES "" "python${PYTHON_VERSION}/config" "x86_64-linux-gnu" "i386-linux-gnu"
     DOC "Python libraries" NO_DEFAULT_PATH)
 
 find_path(PYTHON_INCLUDE_DIRS "Python.h"
