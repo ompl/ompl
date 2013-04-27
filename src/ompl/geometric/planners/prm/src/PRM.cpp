@@ -519,10 +519,10 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
 
     // Explicitly add start and goal states:
     for (size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]]));
+        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]], const_cast<PRM*>(this)->disjointSets_.find_set(startM_[i])));
 
     for (size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]]));
+        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], const_cast<PRM*>(this)->disjointSets_.find_set(goalM_[i])));
 
     // Adding edges and all other vertices simultaneously
     foreach(const Edge e, boost::edges(g_))
@@ -535,5 +535,9 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
         // Add the reverse edge, since we're constructing an undirected roadmap
         data.addEdge(base::PlannerDataVertex(stateProperty_[v2]),
                      base::PlannerDataVertex(stateProperty_[v1]));
+
+	// Add tags for the newly added vertices
+	data.tagState(stateProperty_[v1], const_cast<PRM*>(this)->disjointSets_.find_set(v1));
+	data.tagState(stateProperty_[v2], const_cast<PRM*>(this)->disjointSets_.find_set(v2));
     }
 }
