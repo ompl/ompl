@@ -36,6 +36,7 @@
 
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerDataGraph.h"
+#include "ompl/base/StateStorage.h"
 
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
@@ -631,6 +632,34 @@ void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData
         extractReachable(it->first, data);
         data.addEdge(idx, data.vertexIndex(getVertex(it->first)), *(it->second), getEdgeWeight(v, it->first));
     }
+}
+
+ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage(void) const
+{
+    GraphStateStorage *store = new GraphStateStorage(si_->getStateSpace());
+    if (graph_)
+    {
+        // copy the states
+        std::map<unsigned int, unsigned int> indexMap;
+        for (std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.begin() ; it != stateIndexMap_.end() ; ++it)
+        {
+            indexMap[it->second] = store->size();
+            store->addState(it->first);
+        }
+
+        // add the edges
+        for (std::map<unsigned int, unsigned int>::const_iterator it = indexMap.begin() ; it != indexMap.end() ; ++it)
+        {
+            std::vector<unsigned int> edgeList;
+            getEdges(it->first, edgeList);
+            GraphStateStorage::MetadataType &md = store->getMetadata(it->second);
+            md.resize(edgeList.size());
+            // map node indices to index values in StateStorage
+            for (std::size_t k = 0 ; k < edgeList.size() ; ++k)
+                md[k] = indexMap[edgeList[k]];
+        }
+    }
+    return StateStoragePtr(store);
 }
 
 ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void)
