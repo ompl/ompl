@@ -117,6 +117,12 @@ namespace ompl
                 return states_[index];
             }
 
+            /** \brief Return a flag that indicates whether there is metadata associated to the states in this storage */
+            bool hasMetadata(void) const
+            {
+                return hasMetadata_;
+            }
+
             /** \brief Sort the states according to the less-equal operator \e op. Metadata is NOT sorted;
                 if metadata was added, the index values of the metadata will not match after the sort. */
             void sort(const boost::function<bool(const State*, const State*)> &op);
@@ -190,6 +196,9 @@ namespace ompl
 
             /** \brief The list of maintained states */
             std::vector<const State*> states_;
+
+            /** \brief Flag indicating whether there is metadata associated to the states in this storage */
+            bool                      hasMetadata_;
         };
 
         /** \brief State storage that allows storing state metadata as well
@@ -199,9 +208,13 @@ namespace ompl
         {
         public:
 
+            /** \brief the datatype of the metadata */
+            typedef M MetadataType;
+          
             /** \brief The state space to store states for is specified as argument */
             StateStorageWithMetadata(const StateSpacePtr &space) : StateStorage(space)
             {
+                hasMetadata_ = true;
             }
 
             /** \brief Add a state to the set of states maintained by
@@ -256,6 +269,9 @@ namespace ompl
             std::vector<M> metadata_;
 
         };
+
+        /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a graph */
+        typedef StateStorageWithMetadata<std::vector<std::size_t> > GraphStateStorage;
 
     }
 }
