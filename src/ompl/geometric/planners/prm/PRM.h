@@ -89,7 +89,30 @@ namespace ompl
                 typedef boost::vertex_property_tag kind;
             };
 
-            /**
+            struct vertex_validity_t {
+                typedef boost::vertex_property_tag kind;
+            };
+
+            struct edge_validity_t {
+                typedef boost::edge_property_tag kind;
+            };
+
+	    /** \brief Flag indicating validity of an edge of a vertex */
+	    enum ValidityType
+	    {
+		UNKNOWN = 0, VALID = 1, INVALID = 2
+	    };
+	    struct ValidityDescriptor
+	    {
+		ValidityDescriptor(ValidityType t = UNKNOWN, unsigned int v = 0) :
+		    type(t), version(v)
+		{
+		}
+		unsigned int type : 2;
+		unsigned int version : sizeof(unsigned int) * 4 - 2;
+	    };
+
+	    /**
              @brief The underlying roadmap graph.
 
              @par Any BGL graph representation could be used here. Because we
@@ -109,10 +132,12 @@ namespace ompl
                 boost::property < vertex_state_t, base::State*,
                 boost::property < vertex_total_connection_attempts_t, unsigned int,
                 boost::property < vertex_successful_connection_attempts_t, unsigned int,
+                boost::property < vertex_validity_t, ValidityDescriptor,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
-                boost::property < boost::vertex_rank_t, unsigned long int > > > > >,
+		boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
                 boost::property < boost::edge_weight_t, double,
-                boost::property < boost::edge_index_t, unsigned int> >
+		boost::property < boost::edge_index_t, unsigned int,
+		boost::property < edge_validity_t, ValidityDescriptor > > >
             > Graph;
 
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -136,8 +161,21 @@ namespace ompl
              */
             typedef boost::function<bool(const Vertex&, const Vertex&)> ConnectionFilter;
 
+	    /** \brief Configuration options for PRM */
+	    struct Configuration
+	    {
+		Configuration() : 
+		    starStrategy(false),
+		    lazy(false)
+		{
+		}
+		
+		bool starStrategy;
+		bool lazy;
+	    };
+	    		
             /** \brief Constructor */
-            PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
+            PRM(const base::SpaceInformationPtr &si, const Configuration &config = Configuration());
 
             virtual ~PRM(void);
 
@@ -226,6 +264,10 @@ namespace ompl
                 This enables multi-query functionality for PRM. */
             void clearQuery(void);
 
+	    /** \brief When running LazyPRM, use this function to notify the planner that the validity of the states in its maintained roadmap
+		may have changed. This allows reusing the constructed roadmap structure, but makes the planner re-check previously validated states. */
+	    void resetCachedValidityInformation(void);
+	    
             virtual void clear(void);
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -299,6 +341,16 @@ namespace ompl
             /** \brief Flag indicating whether the default connection strategy is the Star strategy */
             bool                                                   starStrategy_;
 
+	    /** \brief Set to true if algorithm should run as LazyPRM */
+	    bool                                                   lazy_;
+	    
+	    /** \brief Between repeated calls to solve(), the validity of known vertices may have changed.
+		In that case, all vertices that are marked as valid need to become unknown. Instead of performing that operation
+		for all previoulsy checked vertices, a version is associated the the check operation. If the version of a valid 
+		vertex is older than the current version, it is considered unknown. This value is reset to 0 (along with clearing the roadmap)
+		when clear() is called. The version is increased by calling resetCachedValidityInformation() */
+	    unsigned int                                           currentValidityVersion_;
+	    
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                             sampler_;
 
@@ -328,12 +380,18 @@ namespace ompl
             boost::property_map<Graph,
                 vertex_successful_connection_attempts_t>::type     successfulConnectionAttemptsProperty_;
 
+	    /** \brief Access the validity state of a vertex */
+	    boost::property_map<Graph, vertex_validity_t>::type    vertexValidityProperty_;
+	    
             /** \brief Access to the weights of each Edge */
             boost::property_map<Graph, boost::edge_weight_t>::type weightProperty_;
 
             /** \brief Access to the indices of each Edge */
             boost::property_map<Graph, boost::edge_index_t>::type  edgeIDProperty_;
 
+	    /** \brief Access the validity state of an edge */
+	    boost::property_map<Graph, edge_validity_t>::type      edgeValidityProperty_;
+	    
             /** \brief Data structure that maintains the connected components */
             boost::disjoint_sets<
                 boost::property_map<Graph, boost::vertex_rank_t>::type,
