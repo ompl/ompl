@@ -102,15 +102,6 @@ namespace ompl
 	    {
 		UNKNOWN = 0, VALID = 1, INVALID = 2
 	    };
-	    struct ValidityDescriptor
-	    {
-		ValidityDescriptor(ValidityType t = UNKNOWN, unsigned int v = 0) :
-		    type(t), version(v)
-		{
-		}
-		unsigned int type : 2;
-		unsigned int version : sizeof(unsigned int) * 4 - 2;
-	    };
 
 	    /**
              @brief The underlying roadmap graph.
@@ -132,12 +123,12 @@ namespace ompl
                 boost::property < vertex_state_t, base::State*,
                 boost::property < vertex_total_connection_attempts_t, unsigned int,
                 boost::property < vertex_successful_connection_attempts_t, unsigned int,
-                boost::property < vertex_validity_t, ValidityDescriptor,
+                boost::property < vertex_validity_t, ValidityType,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
 		boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
                 boost::property < boost::edge_weight_t, double,
 		boost::property < boost::edge_index_t, unsigned int,
-		boost::property < edge_validity_t, ValidityDescriptor > > >
+		boost::property < edge_validity_t, ValidityType > > >
             > Graph;
 
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -263,10 +254,6 @@ namespace ompl
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for PRM. */
             void clearQuery(void);
-
-	    /** \brief When running LazyPRM, use this function to notify the planner that the validity of the states in its maintained roadmap
-		may have changed. This allows reusing the constructed roadmap structure, but makes the planner re-check previously validated states. */
-	    void resetCachedValidityInformation(void);
 	    
             virtual void clear(void);
 
@@ -343,14 +330,7 @@ namespace ompl
 
 	    /** \brief Set to true if algorithm should run as LazyPRM */
 	    bool                                                   lazy_;
-	    
-	    /** \brief Between repeated calls to solve(), the validity of known vertices may have changed.
-		In that case, all vertices that are marked as valid need to become unknown. Instead of performing that operation
-		for all previoulsy checked vertices, a version is associated the the check operation. If the version of a valid 
-		vertex is older than the current version, it is considered unknown. This value is reset to 0 (along with clearing the roadmap)
-		when clear() is called. The version is increased by calling resetCachedValidityInformation() */
-	    unsigned int                                           currentValidityVersion_;
-	    
+	    	    
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                             sampler_;
 

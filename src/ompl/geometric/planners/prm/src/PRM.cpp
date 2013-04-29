@@ -77,7 +77,6 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, const Configurati
     base::Planner(si, "PRM"),
     starStrategy_(config.starStrategy),
     lazy_(config.lazy),
-    currentValidityVersion_(0),
     stateProperty_(boost::get(vertex_state_t(), g_)),
     totalConnectionAttemptsProperty_(boost::get(vertex_total_connection_attempts_t(), g_)),
     successfulConnectionAttemptsProperty_(boost::get(vertex_successful_connection_attempts_t(), g_)),
@@ -140,13 +139,6 @@ void ompl::geometric::PRM::clearQuery(void)
     pis_.restart();
 }
 
-void ompl::geometric::PRM::resetCachedValidityInformation(void)
-{
-    if (!lazy_)
-	OMPL_WARN("Resetting the cached validity information for LazyPRM does not make sense. You should call PRM::clear() instead.");
-    currentValidityVersion_++;
-}
-
 void ompl::geometric::PRM::clear(void)
 {
     Planner::clear();
@@ -156,7 +148,6 @@ void ompl::geometric::PRM::clear(void)
     if (nn_)
         nn_->clear();
     clearQuery();
-    currentValidityVersion_ = 0;
     maxEdgeID_ = 0;
 }
 
@@ -317,7 +308,7 @@ void ompl::geometric::PRM::checkForSolution (const base::PlannerTerminationCondi
 	    {
 		goalM_.push_back(addMilestone(si_->cloneState(st)));
 		if (lazy_)
-		    vertexValidityProperty_[goalM_.back()] = ValidityDescriptor(VALID, currentValidityVersion_);
+		    vertexValidityProperty_[goalM_.back()] = VALID;
 	    }
 	}
 
@@ -406,7 +397,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     {
 	startM_.push_back(addMilestone(si_->cloneState(st)));
 	if (lazy_)
-	    vertexValidityProperty_[startM_.back()] = ValidityDescriptor(VALID, currentValidityVersion_);
+	    vertexValidityProperty_[startM_.back()] = VALID;
     }
     
     if (startM_.size() == 0)
@@ -429,7 +420,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 	{
 	    goalM_.push_back(addMilestone(si_->cloneState(st)));
 	    if (lazy_)
-		vertexValidityProperty_[goalM_.back()] = ValidityDescriptor(VALID, currentValidityVersion_);
+		vertexValidityProperty_[goalM_.back()] = VALID;
 	}
 	
         if (goalM_.empty())
@@ -502,7 +493,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
     totalConnectionAttemptsProperty_[m] = 1;
     successfulConnectionAttemptsProperty_[m] = 0;
     if (lazy_)
-	vertexValidityProperty_[m] = ValidityDescriptor(UNKNOWN, 0);
+	vertexValidityProperty_[m] = UNKNOWN;
     // Initialize to its own (dis)connected component.
     disjointSets_.make_set(m);
     graphMutex_.unlock();
@@ -532,7 +523,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
 		if (lazy_)
 		{
 		    const Edge &e = boost::add_edge(m, n, properties, g_).first;
-		    edgeValidityProperty_[e] = ValidityDescriptor(UNKNOWN, 0);
+		    edgeValidityProperty_[e] = UNKNOWN;
 		}
 		else
 		    boost::add_edge(m, n, properties, g_);
@@ -604,15 +595,10 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 	    for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
 	    {
 		const base::State *st = stateProperty_[pos];
-		ValidityDescriptor &vd = vertexValidityProperty_[pos];
-		if (vd.version != currentValidityVersion_)
-		{
-		    vd.type = UNKNOWN;
-		    vd.version = currentValidityVersion_;
-		}
-		if (vd.type == UNKNOWN)
-		    vd.type = si_->isValid(st) ? VALID : INVALID;
-		if (vd.type != VALID)
+		ValidityType &vd = vertexValidityProperty_[pos];
+		if (vd == UNKNOWN)
+		    vd = si_->isValid(st) ? VALID : INVALID;
+		if (vd != VALID)
 		{
 		    states.clear();
 		    break;
@@ -623,15 +609,10 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 		    if (prevVertex != pos)
 		    {
 			Edge e = boost::lookup_edge(prevVertex, pos, g_).first;
-			ValidityDescriptor &evd = edgeValidityProperty_[e];
-			if (evd.version != currentValidityVersion_)
-			{
-			    evd.type = UNKNOWN;
-			    evd.version = currentValidityVersion_;
-			}
-			if (evd.type == UNKNOWN)
-			    evd.type = si_->checkMotion(states.back(), st) ? VALID : INVALID;
-			if (evd.type != VALID)
+			ValidityType &evd = edgeValidityProperty_[e];
+			if (evd == UNKNOWN)
+			    evd = si_->checkMotion(states.back(), st) ? VALID : INVALID;
+			if (evd != VALID)
 			{
 			    states.clear();
 			    break;
@@ -644,15 +625,10 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 	    if (!states.empty())
 	    {
 		const base::State *st = stateProperty_[start];
-		ValidityDescriptor &vd = vertexValidityProperty_[start];
-		if (vd.version != currentValidityVersion_)
-		{
-		    vd.type = UNKNOWN;
-		    vd.version = currentValidityVersion_;
-		}
-		if (vd.type == UNKNOWN)
-		    vd.type = si_->isValid(st) ? VALID : INVALID;
-		if (vd.type == VALID)
+		ValidityType &vd = vertexValidityProperty_[start];
+		if (vd == UNKNOWN)
+		    vd = si_->isValid(st) ? VALID : INVALID;
+		if (vd == VALID)
 		    states.push_back(st);
 		else
 		    states.clear();
