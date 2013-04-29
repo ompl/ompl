@@ -7,7 +7,7 @@ This page includes a list of extensions to OMPL provided by the community. The c
 
 ### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
 
-- The [OMPL interface](http://moveit.ros.org/motion_planning.html) to [MoveIt](http://moveit.ros.org) wraps OMPL as a planning plugin for MoveIt.
+- [MoveIt](http://moveit.ros.org) wraps OMPL as a planning plugin.
 
 # T-RRT Implementation
 
