@@ -323,7 +323,7 @@ namespace ompl
             bool addedNewSolution (void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            virtual base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
+            virtual base::PathPtr constructSolution(const Vertex start, const Vertex goal);
 
             /** \brief Flag indicating whether the default connection strategy is the Star strategy */
             bool                                                   starStrategy_;

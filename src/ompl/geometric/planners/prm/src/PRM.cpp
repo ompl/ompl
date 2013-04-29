@@ -563,19 +563,16 @@ namespace
     };
 }
 
-ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, const Vertex goal) const
+ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, const Vertex goal)
 {
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
     graphMutex_.lock();
     try
     {
-	if (lazy_)
-	    ; // need to somehow call astar_search here such that vertices and edges that are invalid do not get used.
-	else
-	    boost::astar_search(g_, start,
-				boost::bind(&PRM::distanceFunction, this, _1, goal),
-				boost::predecessor_map(prev).
-				visitor(AStarGoalVisitor(goal)));
+	boost::astar_search(g_, start,
+			    boost::bind(&PRM::distanceFunction, this, _1, goal),
+			    boost::predecessor_map(prev).
+			    visitor(AStarGoalVisitor(goal)));
     }
     catch (AStarFoundGoal&)
     {
@@ -588,7 +585,6 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
     {
 	if (lazy_)
 	{
-
 	    // first, get the solution states without copying them
 	    std::vector<const base::State*> states;
 	    Vertex prevVertex = goal;
@@ -601,6 +597,11 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 		if (vd != VALID)
 		{
 		    states.clear();
+		    // remove vertex from graph
+		    nn_->remove(pos);
+		    si_->freeState(stateProperty_[pos]);
+		    boost::clear_vertex(pos, g_);
+		    boost::remove_vertex(pos, g_);
 		    break;
 		}
 		else
@@ -615,6 +616,7 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 			if (evd != VALID)
 			{
 			    states.clear();
+			    boost::remove_edge(e, g_);
 			    break;
 			}
 		    }
@@ -622,20 +624,12 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex start, 
 		prevVertex = pos;
 		states.push_back(st);
 	    }
-	    if (!states.empty())
-	    {
-		const base::State *st = stateProperty_[start];
-		ValidityType &vd = vertexValidityProperty_[start];
-		if (vd == UNKNOWN)
-		    vd = si_->isValid(st) ? VALID : INVALID;
-		if (vd == VALID)
-		    states.push_back(st);
-		else
-		    states.clear();
-	    }
 
 	    if (states.empty())
 		return base::PathPtr();
+	    else
+		// start is checked for validity already
+		states.push_back(stateProperty_[start]);
 	    
 	    PathGeometric *p = new PathGeometric(si_);
 	    for (std::size_t i = 0 ; i < states.size() ; ++i)
