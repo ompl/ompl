@@ -54,6 +54,7 @@
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
+#include "ompl/geometric/planners/prm/LazyPRM.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
@@ -378,6 +379,18 @@ protected:
 
 };
 
+class LazyPRMTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::LazyPRM *prm = new geometric::LazyPRM(si);
+        return base::PlannerPtr(prm);
+    }
+
+};
+
 class PlanTest
 {
 public:
@@ -614,6 +627,23 @@ BOOST_AUTO_TEST_CASE(geometric_PRM)
     simpleTest();
 
     TestPlanner *p = new PRMTest();
+    runPlanTest(p, &success, &avgruntime, &avglength);
+    delete p;
+
+    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(avgruntime < 0.1);
+    BOOST_CHECK(avglength < 100.0);
+}
+
+BOOST_AUTO_TEST_CASE(geometric_LazyPRM)
+{
+    double success    = 0.0;
+    double avgruntime = 0.0;
+    double avglength  = 0.0;
+
+    simpleTest();
+
+    TestPlanner *p = new LazyPRMTest();
     runPlanTest(p, &success, &avgruntime, &avglength);
     delete p;
 

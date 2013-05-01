@@ -89,19 +89,13 @@ namespace ompl
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_validity_t {
+            struct vertex_flags_t {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct edge_validity_t {
+            struct edge_flags_t {
                 typedef boost::edge_property_tag kind;
             };
-
-	    /** \brief Flag indicating validity of an edge of a vertex */
-	    enum ValidityType
-	    {
-		UNKNOWN = 0, VALID = 1, INVALID = 2
-	    };
 
 	    /**
              @brief The underlying roadmap graph.
@@ -123,12 +117,12 @@ namespace ompl
                 boost::property < vertex_state_t, base::State*,
                 boost::property < vertex_total_connection_attempts_t, unsigned int,
                 boost::property < vertex_successful_connection_attempts_t, unsigned int,
-                boost::property < vertex_validity_t, ValidityType,
+                boost::property < vertex_flags_t, unsigned int,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
 		boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
                 boost::property < boost::edge_weight_t, double,
 		boost::property < boost::edge_index_t, unsigned int,
-		boost::property < edge_validity_t, ValidityType > > >
+		boost::property < edge_flags_t, unsigned int > > >
             > Graph;
 
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -152,21 +146,8 @@ namespace ompl
              */
             typedef boost::function<bool(const Vertex&, const Vertex&)> ConnectionFilter;
 
-	    /** \brief Configuration options for PRM */
-	    struct Configuration
-	    {
-		Configuration() : 
-		    starStrategy(false),
-		    lazy(false)
-		{
-		}
-		
-		bool starStrategy;
-		bool lazy;
-	    };
-	    		
             /** \brief Constructor */
-            PRM(const base::SpaceInformationPtr &si, const Configuration &config = Configuration());
+            PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
             virtual ~PRM(void);
 
@@ -297,40 +278,44 @@ namespace ompl
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
 
-            /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
+            /** \brief Construct a milestone for a given state (\e state), store it in the nearest neighbors data structure 
+		and then connect it to the roadmap in accordance to the connection strategy. */
             virtual Vertex addMilestone(base::State *state);
-
+	    
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
 
+	    /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() / expandRoadmap()) */
+	    virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
+	    
             /** \brief Randomly sample the state space, add and connect milestones
                  in the roadmap. Stop this process when the termination condition
                  \e ptc returns true.  Use \e workState as temporary memory. */
-            void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
+            virtual void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
 
             /** \brief Attempt to connect disjoint components in the
                 roadmap using random bounding motions (the PRM
                 expansion step) */
-            void expandRoadmap(const base::PlannerTerminationCondition &ptc, std::vector<base::State*> &workStates);
+            virtual void expandRoadmap(const base::PlannerTerminationCondition &ptc, std::vector<base::State*> &workStates);
 
             /** Thread that checks for solution */
-            void checkForSolution (const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
+            void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
 
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution);
 
             /** \brief Returns the value of the addedSolution_ member. */
-            bool addedNewSolution (void) const;
+            bool addedNewSolution(void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            virtual base::PathPtr constructSolution(const Vertex start, const Vertex goal);
-
+            virtual base::PathPtr constructSolution(const Vertex &start, const Vertex &goal);
+	    
+	    /** \brief Given a solution represented as a vector of predecesors in the roadmap, construct a geometric path */
+            virtual base::PathPtr constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal);
+	    
             /** \brief Flag indicating whether the default connection strategy is the Star strategy */
             bool                                                   starStrategy_;
 
-	    /** \brief Set to true if algorithm should run as LazyPRM */
-	    bool                                                   lazy_;
-	    	    
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                             sampler_;
 
@@ -359,18 +344,12 @@ namespace ompl
             /** \brief Access to the number of successful connection attempts for a vertex */
             boost::property_map<Graph,
                 vertex_successful_connection_attempts_t>::type     successfulConnectionAttemptsProperty_;
-
-	    /** \brief Access the validity state of a vertex */
-	    boost::property_map<Graph, vertex_validity_t>::type    vertexValidityProperty_;
 	    
             /** \brief Access to the weights of each Edge */
             boost::property_map<Graph, boost::edge_weight_t>::type weightProperty_;
 
             /** \brief Access to the indices of each Edge */
             boost::property_map<Graph, boost::edge_index_t>::type  edgeIDProperty_;
-
-	    /** \brief Access the validity state of an edge */
-	    boost::property_map<Graph, edge_validity_t>::type      edgeValidityProperty_;
 	    
             /** \brief Data structure that maintains the connected components */
             boost::disjoint_sets<
