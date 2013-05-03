@@ -34,6 +34,9 @@
 
 /* Author: Ioan Sucan */
 
+#ifndef OMPL_TEST_2DMAP_SETUP_
+#define OMPL_TEST_2DMAP_SETUP_
+
 #include <boost/filesystem.hpp>
 
 #include "ompl/base/SpaceInformation.h"
@@ -170,7 +173,7 @@ namespace ompl
 
 
         /** \brief Construct an instance of space information (done automatically when using SimpleSetup) */
-        static base::SpaceInformationPtr spaceInformation2DMap(Environment2D &env)
+        static base::SpaceInformationPtr spaceInformation2DMap(const Environment2D &env)
         {
             base::RealVectorStateSpace *sSpace = new StateSpace2DMap();
 
@@ -202,7 +205,7 @@ namespace ompl
         }
 
         /** \brief Construct a problem definition  (done automatically when using SimpleSetup) */
-        static base::ProblemDefinitionPtr problemDefinition2DMap(const base::SpaceInformationPtr &si, Environment2D &env)
+        static base::ProblemDefinitionPtr problemDefinition2DMap(const base::SpaceInformationPtr &si, const Environment2D &env)
         {
             base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
@@ -227,3 +230,5 @@ namespace ompl
     }
 
 }
+
+#endif
