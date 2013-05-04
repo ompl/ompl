@@ -38,6 +38,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "2DmapSetup.h"
+#include "2DcirclesSetup.h"
 #include <iostream>
 
 #include "ompl/base/spaces/RealVectorStateProjections.h"
@@ -75,7 +76,71 @@ public:
     {
     }
 
-    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    double test2DCircles(const Circles2D &circles, bool show = false, double *time = NULL, double *pathLength = NULL)
+    {
+        /* instantiate space information */
+        base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
+
+        /* instantiate problem definition */
+	base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));	
+	
+        /* instantiate motion planner */
+        base::PlannerPtr planner = newPlanner(si);
+        planner->setProblemDefinition(pdef);
+        planner->setup();
+
+	base::ScopedState<> start(si);
+	base::ScopedState<> goal(si);
+	unsigned int good = 0;
+	
+	for (std::size_t i = 0 ; i < circles.getQueryCount() ; ++i)
+	{
+	    const Circles2D::Query &q = circles.getQuery(i);
+	    start[0] = q.startX_;
+	    start[1] = q.startY_;
+	    goal[0] = q.goalX_;
+	    goal[1] = q.goalY_;
+	    pdef->setStartAndGoalStates(start, goal, 1e-3);
+	    planner->clear();
+
+	    /* start counting time */
+	    ompl::time::point startTime = ompl::time::now();
+
+	    if (planner->solve(SOLUTION_TIME))
+	    {
+		ompl::time::duration elapsed = ompl::time::now() - startTime;
+		good++;
+		if (time)
+		    *time += ompl::time::seconds(elapsed);
+		if (show)
+		    printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
+
+		geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+
+		/* make the solution more smooth */
+		geometric::PathSimplifierPtr sm(new geometric::PathSimplifier(si));
+		
+		startTime = ompl::time::now();
+		sm->simplify(*path, SOLUTION_TIME);
+		elapsed = ompl::time::now() - startTime;
+		
+		if (pathLength)
+		    *pathLength += path->length();
+		
+		if (time)
+		    *time += ompl::time::seconds(elapsed);
+	    }
+	}
+	
+	if (pathLength)
+	    *pathLength /= (double)circles.getQueryCount();
+	if (time)
+	    *time /= (double)circles.getQueryCount();
+
+	return (double)good / (double)circles.getQueryCount();
+    }
+    
+    bool test2DEnv(const Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
     {
         bool result = true;
 
@@ -397,28 +462,28 @@ public:
 
     void simpleTest(void)
     {
-        geometric::SimpleSetup2DMap s(env);
+        geometric::SimpleSetup2DMap s(env_);
         s.setup();
         base::PlannerTest pt(s.getPlanner());
         pt.test();
     }
 
-    void runPlanTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
+    void run2DMapTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
     {
         double time   = 0.0;
         double length = 0.0;
         int    good   = 0;
         int    N      = 100;
 
-        for (int i = 0 ; i < N ; ++i)
-            if (p->execute(env, false, &time, &length))
+	for (int i = 0 ; i < N ; ++i)
+            if (p->test2DEnv(env_, false, &time, &length))
                 good++;
 
         *success    = 100.0 * (double)good / (double)N;
         *avgruntime = time / (double)N;
         *avglength  = length / (double)N;
 
-        if (verbose)
+        if (verbose_)
         {
             printf("    Success rate: %f%%\n", *success);
             printf("    Average runtime: %f\n", *avgruntime);
@@ -426,247 +491,133 @@ public:
         }
     }
 
+    void run2DCirclesTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
+    {
+        *success = 100.0 * p->test2DCircles(circles_, false, avgruntime, avglength);
+
+        if (verbose_)
+        {
+            printf("    Success rate: %f%%\n", *success);
+            printf("    Average runtime: %f\n", *avgruntime);
+            printf("    Average path length: %f\n", *avglength);
+        }
+    }
+
+    void runAllTests(void)
+    {
+	double success    = 0.0;
+	double avgruntime = 0.0;
+	double avglength  = 0.0;
+	
+	simpleTest();
+	
+	TestPlanner *p = new RRTTest();
+	run2DMapTest(p, &success, &avgruntime, &avglength);
+	BOOST_CHECK(success >= 99.0);
+	BOOST_CHECK(avgruntime < 0.01);
+	BOOST_CHECK(avglength < 100.0);
+
+	success    = 0.0;
+	avgruntime = 0.0;
+	avglength  = 0.0;
+    
+	run2DCirclesTest(p, &success, &avgruntime, &avglength);
+	BOOST_CHECK(success >= 99.0);
+	BOOST_CHECK(avgruntime < 0.01);
+	BOOST_CHECK(avglength < 10.0);
+	
+	delete p;
+    }
+    
 protected:
 
     PlanTest(void)
     {
-        verbose = true;
+        verbose_ = false;
         boost::filesystem::path path(TEST_RESOURCES_DIR);
-        path = path / "env1.txt";
-        loadEnvironment(path.string().c_str(), env);
+        loadEnvironment((path / "env1.txt").string().c_str(), env_);
 
-        if (env.width * env.height == 0)
+        if (env_.width * env_.height == 0)
         {
             BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
         }
+	
+	circles_.loadCircles((path / "circle_obstacles.txt").string());
+	circles_.loadQueries((path / "circle_queries.txt").string());
     }
 
-    Environment2D env;
-    bool          verbose;
+    Environment2D env_;
+    Circles2D     circles_;
+    bool          verbose_;
 };
 
 BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
 
 BOOST_AUTO_TEST_CASE(geometric_RRT)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new RRTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.01);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
+
 
 BOOST_AUTO_TEST_CASE(geometric_RRTConnect)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new RRTConnectTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.01);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_pRRT)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new pRRTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.02);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_TRRT)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new TRRTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.02);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_pSBL)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new pSBLTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.2);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 
 BOOST_AUTO_TEST_CASE(geometric_KPIECE1)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new KPIECE1Test();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.1);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_LBKPIECE1)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new LBKPIECE1Test();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.1);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_BKPIECE1)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new BKPIECE1Test();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.1);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_EST)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new ESTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.1);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_LazyRRT)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new LazyRRTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 70.0);
-    BOOST_CHECK(avgruntime < 1.0);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_PRM)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new PRMTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.1);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_LazyPRM)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new LazyPRMTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.1);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_CASE(geometric_SBL)
 {
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    simpleTest();
-
-    TestPlanner *p = new SBLTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.1);
-    BOOST_CHECK(avglength < 100.0);
+    runAllTests();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
