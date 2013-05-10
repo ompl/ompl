@@ -38,6 +38,13 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
 
+#include <boost/pool/singleton_pool.hpp>
+
+struct PICPoolTag {};
+typedef boost::singleton_pool<PICPoolTag, 
+			      sizeof(ompl::base::PathIntegralOptimizationObjective::CostType)>
+PathIntegralCostPool;
+
 void ompl::base::OptimizationObjective::getCost(const Path &path, Cost *cost) const
 {
     // Cast path down to a PathGeometric
@@ -162,7 +169,7 @@ void ompl::base::PathIntegralOptimizationObjective::getInfiniteCost(Cost *cost) 
 
 ompl::base::Cost* ompl::base::PathIntegralOptimizationObjective::allocCost(void) const
 {
-    return new CostType;
+  return (ompl::base::Cost*) PathIntegralCostPool::malloc();
 }
 
 void ompl::base::PathIntegralOptimizationObjective::copyCost(Cost *dest, const Cost *src) const
@@ -172,7 +179,7 @@ void ompl::base::PathIntegralOptimizationObjective::copyCost(Cost *dest, const C
 
 void ompl::base::PathIntegralOptimizationObjective::freeCost(Cost *cost) const
 {
-    delete cost->as<CostType>();
+  PathIntegralCostPool::free(cost);
 }
 
 double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void) const
