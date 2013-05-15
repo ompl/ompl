@@ -54,8 +54,6 @@ BOOST_AUTO_TEST_CASE(Basic)
     geometric::SimpleSetup2DMap s("env1.txt");
     s.setPlanner(base::PlannerPtr(new geometric::RRTstar(s.getSpaceInformation())));
     s.setup();
-    base::PlannerTest pt(s.getPlanner());
-    pt.test();
 }
 
 BOOST_AUTO_TEST_CASE(More)

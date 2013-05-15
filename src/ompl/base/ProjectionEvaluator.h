@@ -41,6 +41,7 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
 #include "ompl/base/GenericParam.h"
+#include "ompl/base/spaces/RealVectorBounds.h"
 
 #include <vector>
 #include <valarray>
@@ -81,7 +82,8 @@ namespace ompl
                 argument: all elements (rows) in column[i] are divided
                 by scale[i]. This is useful to specify if scaling of
                 the elements of the state is to be applied before
-                projection.
+                projection. If the scale for a column is 0, the column
+                itself is set to 0.
 
                 Each element is sampled with a Gaussian distribution
                 with mean 0 and variance 1 and the matrix rows are
@@ -91,7 +93,8 @@ namespace ompl
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements
                 can be multiplied by this matrix in order to produce a
-                vector with \e to elements.
+                vector with \e to elements. This uses the function above
+                called with an empty \e scale vector.
 
                 Each element is sampled with a Gaussian distribution
                 with mean 0 and variance 1 and the matrix rows are
@@ -190,6 +193,19 @@ namespace ompl
                 sizes either. */
             void inferCellSizes(void);
 
+            /** \brief Set bounds on the projection. The PDST planner
+                 needs to known the bounds on the projection. Default bounds
+                 are automatically computed by inferCellSizes(). */
+            void setBounds(const RealVectorBounds &bounds)
+            {
+                bounds_ = bounds;
+            }
+            /** \brief Get the bounds computed/set for this projection */
+            const RealVectorBounds& getBounds(void)
+            {
+                return bounds_;
+            }
+
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this
                 function is empty. setup() calls this function if no
@@ -237,6 +253,9 @@ namespace ompl
                 projected space, in the implicitly defined integer
                 grid. */
             std::vector<double>  cellSizes_;
+
+            /** \brief A bounding box for projected state values */
+            RealVectorBounds     bounds_;
 
             /** \brief Flag indicating whether cell sizes have
                 been set by the user, or whether they were inferred

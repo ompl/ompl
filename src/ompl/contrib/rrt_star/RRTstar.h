@@ -287,6 +287,9 @@ namespace ompl
 	    /** \brief Total number of calls to checkMotion() during execution */
 	    unsigned                                       numCollisionChecks_;
 
+            /** \brief The number of iterations the algorithm performed */
+            unsigned int                                   iterations_;
+
             /** \brief Objective we're optimizing */
 	    base::OptimizationObjectivePtr opt_;
         };

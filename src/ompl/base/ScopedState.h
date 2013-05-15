@@ -266,8 +266,8 @@ namespace ompl
                 components in state space \e s. Those components will
                 have the same value as the current state (only the
                 ones included in the current state; others will be
-                uninitialised) */
-            ScopedState<> operator[](const StateSpacePtr &s) const;
+                uninitialised). Note: a new state is constructed and data is copied. */
+            const ScopedState<> operator[](const StateSpacePtr &s) const;
 
             /** \brief Access the \e index<sup>th</sup> double value this state contains. */
             double& operator[](const unsigned int index)
@@ -538,7 +538,7 @@ namespace ompl
             the input states (the states are concatenated). */
         template<class T, class Y>
         inline
-        ScopedState<> operator^(const ScopedState<T> &a, const ScopedState<Y> &b)
+        const ScopedState<> operator^(const ScopedState<T> &a, const ScopedState<Y> &b)
         {
             ScopedState<> r(a.getSpace() + b.getSpace());
             return r << a << b;
@@ -547,7 +547,7 @@ namespace ompl
         /** @} */
 
         template<class T>
-        ScopedState<> ScopedState<T>::operator[](const StateSpacePtr &s) const
+        const ScopedState<> ScopedState<T>::operator[](const StateSpacePtr &s) const
         {
             ScopedState<> r(s);
             return r << *this;

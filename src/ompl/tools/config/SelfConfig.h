@@ -62,6 +62,8 @@ namespace ompl
                 console is prefixed by \e context */
             SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
 
+            ~SelfConfig(void);
+
             /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::probabilityOfValidState())*/
             double getProbabilityOfValidState(void);
 

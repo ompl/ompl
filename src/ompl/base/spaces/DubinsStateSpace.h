@@ -76,9 +76,8 @@ namespace ompl
             public:
                 DubinsPath(const DubinsPathSegmentType* type = dubinsPathType[0],
                     double t=0., double p=std::numeric_limits<double>::max(), double q=0.)
-                    : reverse_(false)
+                    : type_(type), reverse_(false)
                 {
-                    memcpy(type_, type, 3*sizeof(DubinsPathSegmentType));
                     length_[0] = t;
                     length_[1] = p;
                     length_[2] = q;
@@ -92,7 +91,7 @@ namespace ompl
                 }
 
                 /** Path segment types */
-                DubinsPathSegmentType type_[3];
+                const DubinsPathSegmentType* type_;
                 /** Path segment lengths */
                 double length_[3];
                 /** Whether the path should be followed "in reverse" */

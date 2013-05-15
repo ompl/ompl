@@ -52,6 +52,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     ballRadiusConst_ = 0.0;
     delayCC_ = true;
     numCollisionChecks_ = 0;
+    iterations_ = 0;
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
@@ -103,6 +104,7 @@ void ompl::geometric::RRTstar::clear(void)
     if (nn_)
         nn_->clear();
     numCollisionChecks_ = 0;
+    iterations_ = 0;
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
@@ -166,6 +168,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     while (ptc == false)
     {
+        iterations_++;
         // sample random state (with goal biasing)
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
 	    goal_s->sampleGoal(rstate);
@@ -233,7 +236,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 std::fill(valid.begin(), valid.begin()+nbh.size(), 0);
             }
 
-            if(delayCC_)
+            if (delayCC_)
             {
                 // calculate all costs and distances
 	        for (std::size_t i = 0 ; i < nbh.size(); ++i)
@@ -531,4 +534,7 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
 	    data.addEdge (base::PlannerDataVertex (motions[i]->parent ? motions[i]->parent->state : NULL),
 			  base::PlannerDataVertex (motions[i]->state));
     }
+    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
+    data.properties["collision_checks INTEGER"] = 
+      boost::lexical_cast<std::string>(numCollisionChecks_);
 }

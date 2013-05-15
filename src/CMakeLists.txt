@@ -12,6 +12,18 @@ if(${Boost_VERSION} LESS 105300)
     install(DIRECTORY external/omplext_odeint/ DESTINATION "include/omplext_odeint${OMPL_INSTALL_SUFFIX}")
 endif()
 
+find_program(CURL curl)
+if(CURL)
+    set(DOWNLOAD_CMD "${CURL} --location-trusted")
+else()
+    find_program(WGET wget)
+    if (WGET)
+        set(DOWNLOAD_CMD "${WGET} --no-check-certificate -O -")
+    else()
+        message(WARNING "Neither curl nor wget is installed. Install either one of those programs for \"make installpyplusplus\" to succeed.")
+    endif()
+endif()
+
 # Add target to install Py++ and its dependencies pygccxml and gccxml
 if (APPLE)
     # need to compile gccxml with llvm-gcc-4.2 instead of clang

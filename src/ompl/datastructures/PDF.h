@@ -252,6 +252,12 @@ which must be between 0 and 1. */
             return data_.size();
         }
 
+        /** \brief Returns indexed data from the PDF, according to order of insertion. */
+        const _T& operator[](unsigned int i) const
+        {
+            return data_[i]->data_;
+        }
+
         /** \brief Returns whether the PDF contains no data. */
         bool empty(void) const
         {

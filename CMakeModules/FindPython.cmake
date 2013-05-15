@@ -28,6 +28,8 @@ endif (NOT PYTHON_EXEC)
 if (NOT PYTHON_EXEC)
     find_program(PYTHON_EXEC "python${Python_FIND_VERSION}"
         PATHS
+        [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.3\\InstallPath]
+        [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.2\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.1\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.0\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\2.7\\InstallPath]
@@ -65,12 +67,12 @@ execute_process(COMMAND "${PYTHON_EXEC}" "-c"
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REPLACE "." "" PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
-find_library(PYTHON_LIBRARIES 
-    NAMES "python${PYTHON_VERSION_NO_DOTS}" "python${PYTHON_VERSION}"
+find_library(PYTHON_LIBRARIES
+    NAMES "python${PYTHON_VERSION_NO_DOTS}" "python${PYTHON_VERSION}" "python${PYTHON_VERSION}m"
     PATHS
         "${PYTHON_PREFIX}/lib"
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION}\\InstallPath]/libs
-    PATH_SUFFIXES "" "python${PYTHON_VERSION}/config"
+    PATH_SUFFIXES "" "python${PYTHON_VERSION}/config" "x86_64-linux-gnu" "i386-linux-gnu"
     DOC "Python libraries" NO_DEFAULT_PATH)
 
 find_path(PYTHON_INCLUDE_DIRS "Python.h"

@@ -39,6 +39,7 @@
 #include "ompl/util/Console.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <algorithm>
 #include <limits>
 #include <cmath>
@@ -57,23 +58,25 @@ namespace ompl
         public:
 
             SelfConfigImpl(const base::SpaceInformationPtr &si) :
-                si_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
+                wsi_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
             {
             }
 
             double getProbabilityOfValidState(void)
             {
-                checkSetup();
-                if (probabilityOfValidState_ < 0.0)
-                    probabilityOfValidState_ = si_->probabilityOfValidState(magic::TEST_STATE_COUNT);
+                base::SpaceInformationPtr si = wsi_.lock();
+                checkSetup(si);
+                if (si && probabilityOfValidState_ < 0.0)
+                    probabilityOfValidState_ = si->probabilityOfValidState(magic::TEST_STATE_COUNT);
                 return probabilityOfValidState_;
             }
 
             double getAverageValidMotionLength(void)
             {
-                checkSetup();
-                if (averageValidMotionLength_ < 0.0)
-                    averageValidMotionLength_ = si_->averageValidMotionLength(magic::TEST_STATE_COUNT);
+                base::SpaceInformationPtr si = wsi_.lock();
+                checkSetup(si);
+                if (si && averageValidMotionLength_ < 0.0)
+                    averageValidMotionLength_ = si->averageValidMotionLength(magic::TEST_STATE_COUNT);
                 return averageValidMotionLength_;
             }
 
@@ -81,52 +84,31 @@ namespace ompl
             {
                 if (attempts == 0)
                     attempts = magic::MAX_VALID_SAMPLE_ATTEMPTS;
-
-                /*
-                static const double log_of_0_9 = -0.105360516;
-                if (attempts == 0)
-                {
-                    double p = 1.0 - getProbabilityOfValidState();
-                    if (p > 0.0)
-                        attempts = std::min((unsigned int)std::max((int)ceil(log_of_0_9 / log(p)), 1),
-                                            magic::MAX_VALID_SAMPLE_ATTEMPTS);
-                    else
-                        attempts = 1;
-                    msg_.debug("Number of attempts made at sampling a valid state in space %s is computed to be %u",
-                               si_->getStateSpace()->getName().c_str(), attempts);
-                }
-                */
             }
 
             void configurePlannerRange(double &range)
             {
                 if (range < std::numeric_limits<double>::epsilon())
                 {
-                    range = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-                    OMPL_DEBUG("Planner range detected to be %lf", range);
-                }
-
-                /*
-                if (range < std::numeric_limits<double>::epsilon())
-                {
-                    range = getAverageValidMotionLength() / 2.0;
-                    double b = si_->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-                    if (range < std::numeric_limits<double>::epsilon())
-                        range = b;
+                    base::SpaceInformationPtr si = wsi_.lock();
+                    if (si)
+                    {
+                        range = si->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
+                        OMPL_DEBUG("Planner range detected to be %lf", range);
+                    }
                     else
-                        range = std::min(range, b);
-                    msg_.debug("Planner range detected to be %lf", range);
+                        OMPL_ERROR("Unable to detect planner range. SpaceInformation instance has expired.");
                 }
-                */
             }
 
             void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
             {
-                checkSetup();
-                if (!proj)
+                base::SpaceInformationPtr si = wsi_.lock();
+                checkSetup(si);
+                if (!proj && si)
                 {
                     OMPL_INFORM("Attempting to use default projection.");
-                    proj = si_->getStateSpace()->getDefaultProjection();
+                    proj = si->getStateSpace()->getDefaultProjection();
                 }
                 if (!proj)
                     throw Exception("No projection evaluator specified");
@@ -135,28 +117,50 @@ namespace ompl
 
             void print(std::ostream &out) const
             {
-                out << "Configuration parameters for space '" << si_->getStateSpace()->getName() << "'" << std::endl;
-                out << "   - probability of a valid state is " << probabilityOfValidState_ << std::endl;
-                out << "   - average length of a valid motion is " << averageValidMotionLength_ << std::endl;
+                base::SpaceInformationPtr si = wsi_.lock();
+                if (si)
+                {
+                    out << "Configuration parameters for space '" << si->getStateSpace()->getName() << "'" << std::endl;
+                    out << "   - probability of a valid state is " << probabilityOfValidState_ << std::endl;
+                    out << "   - average length of a valid motion is " << averageValidMotionLength_ << std::endl;
+                }
+                else
+                    out << "EXPIRED" << std::endl;
+            }
+
+            bool expired(void) const
+            {
+                return wsi_.expired();
             }
 
         private:
 
-            void checkSetup(void)
+            void checkSetup(const base::SpaceInformationPtr &si)
             {
-                if (!si_->isSetup())
+                if (si)
                 {
-                    si_->setup();
+                    if (!si->isSetup())
+                    {
+                        si->setup();
+                        probabilityOfValidState_ = -1.0;
+                        averageValidMotionLength_ = -1.0;
+                    }
+                }
+                else
+                {
                     probabilityOfValidState_ = -1.0;
                     averageValidMotionLength_ = -1.0;
                 }
             }
 
-            base::SpaceInformationPtr si_;
-            double                    probabilityOfValidState_;
-            double                    averageValidMotionLength_;
+            // we store weak pointers so that the SpaceInformation instances are not kept in
+            // memory until termination of the program due to the use of a static ConfigMap below
+            boost::weak_ptr<base::SpaceInformation> wsi_;
+          
+            double                                  probabilityOfValidState_;
+            double                                  averageValidMotionLength_;
 
-            boost::mutex              lock_;
+            boost::mutex                            lock_;
         };
 
     }
@@ -172,6 +176,17 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
     static boost::mutex LOCK;
 
     boost::mutex::scoped_lock smLock(LOCK);
+
+    // clean expired entries from the map
+    ConfigMap::iterator dit = SMAP.begin();
+    while (dit != SMAP.end())
+    {
+        if (dit->second->expired())
+            SMAP.erase(dit++);
+        else
+          ++dit;
+    }
+
     ConfigMap::const_iterator it = SMAP.find(si.get());
 
     if (it != SMAP.end())
@@ -181,6 +196,10 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
         impl_ = new SelfConfigImpl(si);
         SMAP[si.get()].reset(impl_);
     }
+}
+
+ompl::tools::SelfConfig::~SelfConfig(void)
+{
 }
 
 /* ------------------------------------------------------------------------ */

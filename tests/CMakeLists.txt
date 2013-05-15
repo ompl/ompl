@@ -2,7 +2,7 @@
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources" TEST_RESOURCES_DIR)
 if(WIN32)
     # Correct directory separator for Windows
-    string(REPLACE "\\" "\\\\" TEST_RESOURCES_DIR ${TEST_RESOURCES_DIR})
+    string(REPLACE "\\" "\\\\" TEST_RESOURCES_DIR "${TEST_RESOURCES_DIR}")
 endif(WIN32)
 configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config.h")
 
@@ -60,8 +60,8 @@ if(OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bin
     endif(WIN32)
     get_target_property(PYBOOSTFUNCTION_NAME py_boost_function LOCATION)
     add_custom_command(TARGET py_boost_function POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${PYBOOSTFUNCTION_NAME}"
+        COMMAND "${CMAKE_COMMAND}" -E copy "${PYBOOSTFUNCTION_NAME}"
         "${CMAKE_CURRENT_SOURCE_DIR}/util"
-        WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+        WORKING_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
     add_ompl_python_test(util/test_py_boost_function.py)
 endif()

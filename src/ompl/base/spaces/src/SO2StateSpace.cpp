@@ -116,10 +116,9 @@ double ompl::base::SO2StateSpace::distance(const State *state1, const State *sta
 {
     // assuming the states 1 & 2 are within bounds
     double d = fabs(state1->as<StateType>()->value - state2->as<StateType>()->value);
-    BOOST_ASSERT_MSG(d > -std::numeric_limits<float>::epsilon(),
-        "The SO(2) distance is negative. This means the corresponding states "
-        "are not within bounds. Call SO2StateSpace::enforceBounds() in, e.g., "
-        "ompl::control::ODESolver::PostPropagationEvent, "
+    BOOST_ASSERT_MSG(satisfiesBounds(state1) && satisfiesBounds(state2),
+        "The states passed to SO2StateSpace::distance are not within bounds. Call "
+        "SO2StateSpace::enforceBounds() in, e.g., ompl::control::ODESolver::PostPropagationEvent, "
         "ompl::control::StatePropagator, or ompl::base::StateValidityChecker");
     return (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
 }

@@ -148,10 +148,6 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         unsigned int duration = controlSampler_->sampleTo(rmotion->control, existing->control,
                                                           existing->state, rmotion->state);
 
-        // Propagate the system from the state selected for expansion using the control we
-        // just sampled for the given duration.  Save the resulting state into rmotion->state.
-        duration = siC_->propagateWhileValid(existing->state, rmotion->control, duration, rmotion->state);
-
         // If the system was propagated for a meaningful amount of time, save into the tree
         if (duration >= siC_->getMinControlDuration())
         {

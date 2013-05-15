@@ -144,6 +144,7 @@ namespace ompl
         };
 
         /// @cond IGNORE
+        OMPL_CLASS_FORWARD(StateStorage);
         OMPL_CLASS_FORWARD(PlannerData);
         /// @endcond
 
@@ -350,6 +351,10 @@ namespace ompl
             /// v.  For tree structures, this will be the sub-tree rooted at v. The reachable set
             /// is saved into \e data.
             void extractReachable(unsigned int v, PlannerData &data) const;
+
+            /// \brief Extract a ompl::base::GraphStateStorage object from this PlannerData. Memory for states is copied
+            /// (the resulting ompl::base::StateStorage is independent from this PlannerData)
+            StateStoragePtr extractStateStorage(void) const;
 
             /// \brief Extract a Boost.Graph object from this PlannerData.
             /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object

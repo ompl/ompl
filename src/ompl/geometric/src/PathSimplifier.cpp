@@ -360,13 +360,17 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     reduceVertices(path);
     collapseCloseVertices(path);
-    smoothBSpline(path, 4, path.length()/100.0);
-    const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
-    if (!p.second)
-        OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
-    else
-        if (!p.first)
-            OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+    // BSpline and checkAndRepair code only makes sense in a metric space.
+    if(si_->getStateSpace()->isMetricSpace())
+    {
+        smoothBSpline(path, 4, path.length()/100.0);
+        const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
+        if (!p.second)
+            OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+        else
+            if (!p.first)
+                OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+    }
 }
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime)
@@ -393,26 +397,30 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
     while (tryMore && ptc == false && ++times <= 5)
         tryMore = reduceVertices(path);
 
-    // run a more complex short-cut algorithm : allow splitting path segments
-    if (ptc == false)
-        tryMore = shortcutPath(path);
-    else
-        tryMore = false;
+    // if the space is metric, we can do some additional smoothing
+    if(si_->getStateSpace()->isMetricSpace())
+    {
+        // run a more complex short-cut algorithm : allow splitting path segments
+        if (ptc == false)
+            tryMore = shortcutPath(path);
+        else
+            tryMore = false;
 
-    // run the short-cut algorithm some more, if it makes a difference
-    times = 0;
-    while (tryMore && ptc == false && ++times <= 5)
-        tryMore = shortcutPath(path);
+        // run the short-cut algorithm some more, if it makes a difference
+        times = 0;
+        while (tryMore && ptc == false && ++times <= 5)
+            tryMore = shortcutPath(path);
 
-    // smooth the path
-    if (ptc == false)
-        smoothBSpline(path, 3, path.length()/100.0);
+        // smooth the path with BSpline interpolation
+        if(ptc == false)
+            smoothBSpline(path, 3, path.length()/100.0);
 
-    // we always run this
-    const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
-    if (!p.second)
-        OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
-    else
-        if (!p.first)
-            OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+        // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
+        const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
+        if (!p.second)
+            OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+        else
+            if (!p.first)
+                OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
+    }
 }
