@@ -108,14 +108,14 @@ public:
 	    ompl::time::point startTime = ompl::time::now();
 
 	    if (planner->solve(SOLUTION_TIME))
-	    {
+	    {                
 		ompl::time::duration elapsed = ompl::time::now() - startTime;
 		good++;
 		if (time)
 		    *time += ompl::time::seconds(elapsed);
 		if (show)
 		    printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
-
+                
 		geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
 
 		/* make the solution more smooth */
@@ -124,22 +124,21 @@ public:
 		startTime = ompl::time::now();
 		sm->simplify(*path, SOLUTION_TIME);
 		elapsed = ompl::time::now() - startTime;
-		
 		if (pathLength)
 		    *pathLength += path->length();
-		
 		if (time)
 		    *time += ompl::time::seconds(elapsed);
-	    }
-	}
-	
+            }
+        }
+
 	if (pathLength)
 	    *pathLength /= (double)circles.getQueryCount();
 	if (time)
 	    *time /= (double)circles.getQueryCount();
 
 	return (double)good / (double)circles.getQueryCount();
-    }
+}
+  
     
     /* test a planner in a planar grid environment where some cells are occupied */
     bool test2DEnv(const Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
@@ -220,8 +219,6 @@ public:
 
         return result;
     }
-
-protected:
 
     virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
 
@@ -450,9 +447,10 @@ class PlanTest
 {
 public:
 
-    void simpleTest(void)
+    void simpleTest(TestPlanner *p)
     {
         geometric::SimpleSetup2DMap s(env_);
+        s.setPlanner(p->newPlanner(s.getSpaceInformation()));
         s.setup();
         base::PlannerTest pt(s.getPlanner());
         pt.test();
@@ -498,9 +496,13 @@ public:
 	double success    = 0.0;
 	double avgruntime = 0.0;
 	double avglength  = 0.0;
-	
-        simpleTest();
-        
+
+        if (verbose_)
+            printf("\n========= Running simple test\n\n");
+        simpleTest(p);
+
+        if (verbose_)
+            printf("\n========= Running 2D map test\n\n");        
 	run2DMapTest(p, &success, &avgruntime, &avglength);
 	BOOST_CHECK(success >= min_success);
 	BOOST_CHECK(avgruntime < max_avgtime);
@@ -509,8 +511,11 @@ public:
 	success    = 0.0;
 	avgruntime = 0.0;
 	avglength  = 0.0;
-    
+
+        if (verbose_)
+            printf("\n========= Running 2D circles test\n\n");
 	run2DCirclesTest(p, &success, &avgruntime, &avglength);
+
 	BOOST_CHECK(success >= min_success);
         // this problem is a little more difficult than the one above, so we allow more time for its solution
 	BOOST_CHECK(avgruntime < max_avgtime * 2.0);
@@ -561,32 +566,25 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
       printf("Done with %s.\n", #Name);                                 \
   }
 
-// sometimes it is useful to test a particular planner only; in that case, the 
-// TEST_INDIVIDUAL_PLANNER macro can be defined at compile time; 
+OMPL_PLANNER_TEST(RRT, 99.0, 0.01)
+OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
+OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)  
 
-#if defined TEST_INDIVIDUAL_PLANNER
-  OMPL_PLANNER_TEST(TEST_INDIVIDUAL_PLANNER, 99.0, 0.01)
-#else
+OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
-  OMPL_PLANNER_TEST(RRT, 99.0, 0.01)
-  OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
-  OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)
-  OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
+// LazyRRT is a not so great, so we use more relaxed bounds
+OMPL_PLANNER_TEST(LazyRRT, 95.0, 0.2)
 
-  // LazyRRT is a not so great, so we use more relaxed bounds
-  OMPL_PLANNER_TEST(LazyRRT, 95.0, 0.2)
+OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
+OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
 
-  OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
-  OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
+OMPL_PLANNER_TEST(KPIECE1, 99.0, 0.01)
+OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.02)
+OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
-  OMPL_PLANNER_TEST(KPIECE1, 99.0, 0.01)
-  OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.02)
-  OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
+OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
-  OMPL_PLANNER_TEST(EST, 99.0, 0.02)
+OMPL_PLANNER_TEST(PRM, 99.0, 0.02) 
 
-  OMPL_PLANNER_TEST(PRM, 99.0, 0.02) 
-
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()
