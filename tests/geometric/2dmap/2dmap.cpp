@@ -514,7 +514,7 @@ public:
 	BOOST_CHECK(success >= min_success);
         // this problem is a little more difficult than the one above, so we allow more time for its solution
 	BOOST_CHECK(avgruntime < max_avgtime * 2.0);
-	BOOST_CHECK(avglength < 20.0);
+	BOOST_CHECK(avglength < 25.0);
     }
     
     template<typename T>
@@ -578,15 +578,15 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
   OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
   OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
-  /*
+
   OMPL_PLANNER_TEST(KPIECE1, 99.0, 0.01)
-  OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.01)
+  OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.02)
   OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
   OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
   OMPL_PLANNER_TEST(PRM, 99.0, 0.02) 
-  */
+
 #endif
 
 BOOST_AUTO_TEST_SUITE_END()
