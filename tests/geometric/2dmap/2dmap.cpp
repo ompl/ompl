@@ -75,6 +75,7 @@ public:
     {
     }
 
+    /* test a planner in a planar environment with circular obstacles */
     double test2DCircles(const Circles2D &circles, bool show = false, double *time = NULL, double *pathLength = NULL)
     {
         /* instantiate space information */
@@ -139,6 +140,7 @@ public:
 	return (double)good / (double)circles.getQueryCount();
     }
     
+    /* test a planner in a planar grid environment where some cells are occupied */
     bool test2DEnv(const Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
     {
         bool result = true;
@@ -490,7 +492,7 @@ public:
         }
     }
 
-    void runAllTests(void)
+    void runAllTests(TestPlanner *p)
     {
 	double success    = 0.0;
 	double avgruntime = 0.0;
@@ -498,7 +500,6 @@ public:
 	
 	simpleTest();
 	
-	TestPlanner *p = new RRTTest();
 	run2DMapTest(p, &success, &avgruntime, &avglength);
 	BOOST_CHECK(success >= 99.0);
 	BOOST_CHECK(avgruntime < 0.01);
@@ -513,6 +514,14 @@ public:
 	BOOST_CHECK(avgruntime < 0.01);
 	BOOST_CHECK(avglength < 10.0);
 	
+	delete p;
+    }
+    
+    template<typename T>
+    void runAllTests(void)
+    {
+	TestPlanner *p = new T();
+	runAllTests(p);
 	delete p;
     }
     
@@ -540,66 +549,30 @@ protected:
 
 BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
 
-BOOST_AUTO_TEST_CASE(geometric_RRT)
-{
-    runAllTests();
-}
+// define boost tests for a planner assuming the naming convention is followed 
 
+#define OMPL_PLANNER_TEST(Name)				\
+    BOOST_AUTO_TEST_CASE(geometric_##Name)		\
+    {							\
+	runAllTests<Name##Test>();			\
+    }
+    
 
-BOOST_AUTO_TEST_CASE(geometric_RRTConnect)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(RRT)
+OMPL_PLANNER_TEST(RRTConnect)
+OMPL_PLANNER_TEST(pRRT)
+OMPL_PLANNER_TEST(TRRT)
+OMPL_PLANNER_TEST(LazyRRT)
 
-BOOST_AUTO_TEST_CASE(geometric_pRRT)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(pSBL)
+OMPL_PLANNER_TEST(SBL)
 
-BOOST_AUTO_TEST_CASE(geometric_TRRT)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(KPIECE1)
+OMPL_PLANNER_TEST(LBKPIECE1)
+OMPL_PLANNER_TEST(BKPIECE1)
+    
+OMPL_PLANNER_TEST(EST)
 
-BOOST_AUTO_TEST_CASE(geometric_pSBL)
-{
-    runAllTests();
-}
-
-
-BOOST_AUTO_TEST_CASE(geometric_KPIECE1)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_LBKPIECE1)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_BKPIECE1)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_EST)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_LazyRRT)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_PRM)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_SBL)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(PRM)
 
 BOOST_AUTO_TEST_SUITE_END()
