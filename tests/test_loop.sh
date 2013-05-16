@@ -12,6 +12,6 @@ fi
 for i in $(seq $COUNT)
 do
     echo "Running test $i of $COUNT" > ompl_run_test_count
-    gdb --ex run --args $TEST_EXE
+    gdb --batch --ex run --args $TEST_EXE
 done
 rm ompl_run_test_count
