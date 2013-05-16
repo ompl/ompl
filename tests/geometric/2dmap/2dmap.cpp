@@ -62,6 +62,7 @@
 using namespace ompl;
 
 static const double SOLUTION_TIME = 1.0;
+static const bool VERBOSE = false;
 
 /** \brief A base class for testing planners */
 class TestPlanner
@@ -498,8 +499,8 @@ public:
 	double avgruntime = 0.0;
 	double avglength  = 0.0;
 	
-	simpleTest();
-	
+        simpleTest();
+        
 	run2DMapTest(p, &success, &avgruntime, &avglength);
 	BOOST_CHECK(success >= 99.0);
 	BOOST_CHECK(avgruntime < 0.01);
@@ -513,8 +514,6 @@ public:
 	BOOST_CHECK(success >= 99.0);
 	BOOST_CHECK(avgruntime < 0.01);
 	BOOST_CHECK(avglength < 10.0);
-	
-	delete p;
     }
     
     template<typename T>
@@ -529,7 +528,7 @@ protected:
 
     PlanTest(void)
     {
-        verbose_ = false;
+        verbose_ = VERBOSE;
         boost::filesystem::path path(TEST_RESOURCES_DIR);
         loadEnvironment((path / "env1.txt").string().c_str(), env_);
 
@@ -547,14 +546,18 @@ protected:
     bool          verbose_;
 };
 
-BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
+BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
 // define boost tests for a planner assuming the naming convention is followed 
 
-#define OMPL_PLANNER_TEST(Name)				\
-    BOOST_AUTO_TEST_CASE(geometric_##Name)		\
-    {							\
-	runAllTests<Name##Test>();			\
+#define OMPL_PLANNER_TEST(Name)                                    \
+    BOOST_AUTO_TEST_CASE(geometric_##Name)                           \
+    {                                                                 \
+        if (VERBOSE)                                                      \
+            printf("Testing %s ...", #Name);                             \
+        runAllTests<Name##Test>();                                      \
+        if (VERBOSE)                                                    \
+            printf("Done with %s.", #Name);                             \
     }
     
 
