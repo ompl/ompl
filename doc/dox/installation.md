@@ -30,7 +30,7 @@ Below are installation instructions for Ubuntu Linux. Similar steps can be taken
 
 ###  Installation from repository
 
-For recent versions of Ubuntu, Willow Garage maintains deb packages for the latest version of OMPL. All you need to do is add the repository to your list of sources:
+For recent versions of Ubuntu, deb packages for the latest version of OMPL are found in ROS distributions. All you need to do is add the repository to your list of sources (you probably have added this already if you are using ROS):
 
     sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
     wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
@@ -38,7 +38,7 @@ For recent versions of Ubuntu, Willow Garage maintains deb packages for the late
 and install OMPL:
 
     sudo apt-get update
-    sudo apt-get install ros-fuerte-ompl
+    sudo apt-get install ros-`rosversion -d`-ompl
 
 
 ### Installation from source

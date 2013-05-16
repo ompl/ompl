@@ -65,7 +65,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
 
     // depending on how the planning problem is set up, this may be necessary
     bsp_->bounds_ = projectionEvaluator_->getBounds();
-    goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    base::Goal *goal = pdef_->getGoal().get();
+    goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion*>(goal);
 
     // Ensure that we have a state sampler AND a control sampler
     if (!sampler_)
@@ -78,8 +79,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // time then initializes hasSolution to false and isApproximate to true.
     double distanceToGoal, closestDistanceToGoal = std::numeric_limits<double>::infinity();
     bool hasSolution = lastGoalMotion_ != NULL;
-    bool isApproximate = hasSolution ? pdef_->getGoal()->isSatisfied(lastGoalMotion_->state_, &closestDistanceToGoal) : true;
-    unsigned ndim = projectionEvaluator_->getDimension();
+    bool isApproximate = !hasSolution || !goal->isSatisfied(lastGoalMotion_->endState_, &closestDistanceToGoal);
+    unsigned int ndim = projectionEvaluator_->getDimension();
 
     // If an exact solution has already been found, do not run for another iteration.
     if (hasSolution && !isApproximate)
@@ -88,7 +89,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // Initialize tree with start state(s)
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *startMotion = new Motion(si_->cloneState(st), projectionEvaluator_);
+        Motion *startMotion = new Motion(si_->cloneState(st));
         bsp_->addMotion(startMotion);
         startMotion->heapElement_ = priorityQueue_.insert(startMotion);
     }
@@ -99,9 +100,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         return base::PlannerStatus::INVALID_START;
     }
 
-    base::State *scratch = si_->allocState();
-    base::State *scratch2 = si_->allocState();
-
+    base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
+    base::EuclideanProjection tmpProj1(ndim), tmpProj2(ndim);
     while (!ptc)
     {
         // Get the top priority path.
@@ -109,11 +109,13 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         motionSelected->updatePriority();
         priorityQueue_.update(motionSelected->heapElement_);
 
-        Motion *newMotion = propagateFrom(motionSelected, hasSolution, distanceToGoal, scratch);
+        Motion *newMotion = propagateFrom(motionSelected, tmpState1, tmpState2);
         if (newMotion == NULL)
             continue;
+        addMotion(newMotion, bsp_, tmpState1, tmpState2, tmpProj1, tmpProj2);
 
         // Check if the newMotion reached the goal.
+        hasSolution = goal->isSatisfied(newMotion->endState_, &distanceToGoal);
         if (hasSolution)
         {
             closestDistanceToGoal = distanceToGoal;
@@ -135,12 +137,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         cellSelected->subdivide(ndim);
         motions.swap(cellSelected->motions_);
         for (std::vector<Motion*>::iterator m = motions.begin() ; m != motions.end() ; ++m)
-            insertSampleIntoBsp(*m, cellSelected, scratch, scratch2);
-        iteration_++;
+            addMotion(*m, cellSelected, tmpState1, tmpState2, tmpProj1, tmpProj2);
     }
-    si_->freeState(scratch);
-    si_->freeState(scratch2);
-
 
     if (lastGoalMotion_ != NULL)
         hasSolution = true;
@@ -148,183 +146,136 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // If a solution path has been computed, save it in the problem definition object.
     if (hasSolution)
     {
-        double dt = siC_->getPropagationStepSize();
+        Motion* m;
+        std::vector<unsigned int> durations(1,
+            findDurationAndAncestor(lastGoalMotion_, lastGoalMotion_->endState_, tmpState1, m));
+        std::vector<Motion*> mpath(1, m);
+
+        while (m->parent_)
+        {
+            durations.push_back(findDurationAndAncestor(m->parent_, m->startState_, tmpState1, m));
+            mpath.push_back(m);
+        }
+
         PathControl *path = new PathControl(si_);
-
-        // Compute the path by going up the tree of motions.
-        std::vector<Motion*> mpath;
-        Motion *solution = lastGoalMotion_;
-        while (solution->parent_ != NULL)
-        {
-            mpath.push_back(solution);
-            solution = solution->parent_;
-        }
-
-        // Add the solution path in order from the start state to the goal.
-        for (std::vector<Motion*>::reverse_iterator rIt = mpath.rbegin() ; rIt != mpath.rend() ; ++rIt)
-        {
-            if ((*rIt)->parent_ != NULL)
-                path->append((*rIt)->state_, (*rIt)->control_, (*rIt)->controlDuration_ * dt);
-            else
-                path->append((*rIt)->state_);
-        }
+        double dt = siC_->getPropagationStepSize();
+        path->append(mpath.back()->endState_);
+        for (int i = (int) mpath.size() - 2; i > 0; i--)
+            path->append(mpath[i-1]->startState_, mpath[i]->control_, durations[i] * dt);
+        path->append(lastGoalMotion_->endState_, mpath[0]->control_, durations[0] * dt);
         pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal);
     }
+
+    si_->freeState(tmpState1);
+    si_->freeState(tmpState2);
 
     return base::PlannerStatus(hasSolution, isApproximate);
 }
 
-ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(Motion* motion, bool& goalReached, double& distanceToGoal, base::State* scratch)
+ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
+    Motion* motion, base::State* start, base::State* rnd)
 {
-    base::Goal *goal = pdef_->getGoal().get();
-
+    // sample a point along the trajectory given by motion
+    unsigned int prevDuration = motion->controlDuration_;
     if (motion->controlDuration_ > 1)
-    {
-        // sample a point along the trajectory given by motion
-        unsigned int duration = rng_.uniformInt(1, motion->controlDuration_);
-        if (duration != motion->controlDuration_)
-        {
-            // split motion into two motions
-            motion = motion->split(siC_, duration, projectionEvaluator_);
-            motion->heapElement_ = priorityQueue_.insert(motion);
-        }
-    }
-
+        prevDuration = rng_.uniformInt(1, motion->controlDuration_);
+    if (prevDuration == motion->controlDuration_)
+        start = motion->endState_;
+    else
+        siC_->propagate(motion->startState_, motion->control_, prevDuration, start);
     // generate a random state
     if (goalSampler_ && rng_.uniform01() < goalBias_ && goalSampler_->canSample())
-        goalSampler_->sampleGoal(scratch);
+        goalSampler_->sampleGoal(rnd);
     else
-        sampler_->sampleUniform(scratch);
-
+        sampler_->sampleUniform(rnd);
     // generate a random control
-    Control *randomControl = siC_->allocControl();
-    // ignore returned duration. It's only the direction we care about; we
-    // always propagate for (at most) siC_->getMaxControlDuration() steps
-    controlSampler_->sampleTo(randomControl, motion->control_,
-        motion->state_, scratch);
-
-    // propagate using the random control and split when crossing cell bounds
-    Motion *m = new Motion(si_->allocState(), motion, randomControl, 0, motion->projection_, iteration_, NULL),
-        *prevm;
-    base::State* prevState = si_->cloneState(motion->state_);
-    Cell *prevCell = motion->cell_;
-    base::EuclideanProjection prevProjection(projectionEvaluator_->getDimension());
-    std::vector<Motion*> newMotions;
-    unsigned index = 1, totalDuration = 0;
-
-    while (true)
-    {
-        siC_->propagate(prevState, randomControl, 1, m->state_);
-        if (!si_->isValid(m->state_))
-        {
-            std::swap(prevState, m->state_);
-            goalReached = goal->isSatisfied(m->state_, &distanceToGoal);
-            break;
-        }
-        projectionEvaluator_->project(m->state_, m->projection_);
-        m->cell_ = bsp_->stab(m->projection_);
-        if (m->cell_ != prevCell)
-        {
-            if (m->controlDuration_ > 0) // the first propagate call is allowed to cross a cell boundary
-            {
-                // start a new motion, save previous one
-                prevm = m;
-                m = new Motion(prevm->state_, prevm, siC_->cloneControl(randomControl),
-                    1, prevm->projection_, iteration_, m->cell_);
-                prevm->cell_= prevCell;
-                prevm->state_ = si_->cloneState(prevState);
-                prevm->projection_ = prevProjection;
-                totalDuration += prevm->controlDuration_;
-                newMotions.push_back(prevm);
-            }
-            prevCell = m->cell_;
-        }
-        else
-            ++(m->controlDuration_);
-        if ((goalReached = goal->isSatisfied(m->state_, &distanceToGoal))
-            || index == siC_->getMaxControlDuration())
-            break;
-        std::swap(prevState, m->state_);
-        prevProjection.swap(m->projection_);
-        ++index;
-    } // end while
-
-    si_->freeState(prevState);
-    // add last motion if it has non-zero duration
-    if (m->controlDuration_ > 0)
-    {
-        totalDuration += m->controlDuration_;
-        newMotions.push_back(m);
-    }
-    else
-        freeMotion(m);
-
-    // check if total motion duration is long enough
-    if (totalDuration >= siC_->getMinControlDuration())
-    {
-        // if so, add motin segments to the priority queue and bsp.
-        for (std::size_t i = 0; i < newMotions.size() ; ++i)
-        {
-            newMotions[i]->heapElement_ = priorityQueue_.insert(newMotions[i]);
-            newMotions[i]->cell_->motions_.push_back(newMotions[i]);
-        }
-        return newMotions.back();
-    }
-    else
-    {
-        // otherwise, clean up
-        for (std::size_t i = 0 ; i < newMotions.size() ; ++i)
-            freeMotion(newMotions[i]);
-        goalReached = false;
-        distanceToGoal = std::numeric_limits<double>::infinity();
-        return NULL;
-    }
+    Control *control = siC_->allocControl();
+    unsigned int duration = controlSampler_->sampleTo(control, motion->control_, start, rnd);
+    // return new motion if duration is large enough
+    return (duration < siC_->getMinControlDuration()) ? NULL
+        : new Motion(si_->cloneState(start), si_->cloneState(rnd),
+                     control, duration, ++iteration_, motion);
 }
 
-void ompl::control::PDST::insertSampleIntoBsp(Motion *motion, Cell *bsp, base::State* prevState, base::State* state)
+void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prevState, base::State* state,
+    base::EuclideanProjection& prevProj, base::EuclideanProjection& proj)
 {
-    bsp->stab(motion->projection_)->addMotion(motion);
-    priorityQueue_.update(motion->heapElement_);
-
-    // If the motion is at most 1 step, then it cannot be split across cell
-    // bounds. So we're done.
+    // If the motion is at most 1 step, then it cannot be split across cell bounds.
     if (motion->controlDuration_ <= 1)
+    {
+        projectionEvaluator_->project(motion->endState_, proj);
+        bsp->stab(proj)->addMotion(motion);
+        updateHeapElement(motion);
         return;
+    }
 
-    // motion can cross at most one cell boundary, since bsp has just been split
-    // into two cells.
-    si_->copyState(prevState, motion->parent_->state_);
-    base::EuclideanProjection proj(projectionEvaluator_->getDimension()),
-        prevProj(projectionEvaluator_->getDimension());
     Cell *cell = NULL, *prevCell = NULL;
-
-    motion->cell_ = bsp->stab(motion->projection_);
-    priorityQueue_.update(motion->heapElement_);
-    for (unsigned int i = 0 ; i < motion->controlDuration_ ; ++i)
+    si_->copyState(prevState, motion->startState_);
+    // propagate the motion, check for cell boundary crossings, and split as necessary
+    for (unsigned int i = 0, duration = 0 ; i < motion->controlDuration_ - 1 ; ++i, ++duration)
     {
         siC_->propagate(prevState, motion->control_, 1, state);
         projectionEvaluator_->project(state, proj);
-        if (!prevCell)
+        cell = bsp->stab(proj);
+        if (duration > 0 && cell != prevCell)
         {
-            prevCell = bsp->stab(proj);
-            // if cell at the start and end are the same, then we don't split
-            if (prevCell == motion->cell_)
-                break;
-        }
-        else
-        {
-            cell = bsp->stab(proj);
-            if (cell != prevCell)
-            {
-                motion = motion->split(siC_, i, si_->cloneState(prevState), prevProj, prevCell);
-                motion->heapElement_ = priorityQueue_.insert(motion);
-                break;
-            }
+            Motion* newMotion = new Motion(motion->startState_, si_->cloneState(prevState),
+                motion->control_, duration, motion->priority_, motion->parent_);
+            newMotion->isSplit_ = true;
+            prevCell->addMotion(newMotion);
+            updateHeapElement(newMotion);
+            motion->startState_ = newMotion->endState_;
+            motion->controlDuration_ -= duration;
+            motion->parent_ = newMotion;
+            duration = 0;
         }
         std::swap(state, prevState);
         std::swap(cell, prevCell);
         proj.swap(prevProj);
     }
+    prevCell->addMotion(motion);
+    updateHeapElement(motion);
+}
+
+
+unsigned int ompl::control::PDST::findDurationAndAncestor(Motion* motion, base::State* state,
+    base::State* scratch, Motion*& ancestor) const
+{
+    const double eps = std::numeric_limits<float>::epsilon();
+    unsigned int duration;
+    ancestor = motion;
+    if (state == motion->endState_ || motion->controlDuration_ == 0 ||
+        si_->distance(motion->endState_, state) < eps)
+        duration = motion->controlDuration_;
+    else if (motion->controlDuration_ > 0 &&
+        si_->distance(motion->startState_, state) < eps)
+        duration = 0;
+    else
+    {
+        duration = 1;
+        si_->copyState(scratch, motion->startState_);
+        for (; duration <= motion->controlDuration_; ++duration)
+        {
+            siC_->propagate(scratch, motion->control_, 1, scratch);
+            if (si_->distance(scratch, state) < eps)
+                break;
+        }
+    }
+    if (duration <= motion->controlDuration_)
+    {
+        // ancestor points to the start of a split motion; duration is computed
+        // relative to start state of ancestor motion
+        while (ancestor->parent_ && ancestor->control_ == ancestor->parent_->control_)
+        {
+            ancestor = ancestor->parent_;
+            duration += ancestor->controlDuration_;
+        }
+        return duration;
+    }
+    // motion is no longer the parent of the motion starting at
+    // state because it has been split afterwards, so look for
+    // the starting point in the parent of motion.
+    return findDurationAndAncestor(motion->parent_, state, scratch, ancestor);
 }
 
 void ompl::control::PDST::clear(void)
@@ -335,7 +286,7 @@ void ompl::control::PDST::clear(void)
     iteration_ = 1;
     lastGoalMotion_ = NULL;
     freeMemory();
-    bsp_ = new Cell(1.0, projectionEvaluator_->getBounds(), 0);
+    bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
 }
 
 void ompl::control::PDST::freeMemory(void)
@@ -358,7 +309,7 @@ void ompl::control::PDST::setup(void)
     sc.configureProjectionEvaluator(projectionEvaluator_);
     if (bsp_)
         delete bsp_;
-    bsp_ = new Cell(1.0, projectionEvaluator_->getBounds(), 0);
+    bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
     lastGoalMotion_ = NULL;
 }
 
@@ -366,37 +317,67 @@ void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
 {
     base::Planner::getPlannerData(data);
 
-    double propagationStepSize = siC_->getPropagationStepSize();
+    double dt = siC_->getPropagationStepSize();
+    base::State* scratch = si_->allocState();
     std::vector<Motion*> motions;
+    motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
 
     // Add goal vertex
     if (lastGoalMotion_ != NULL)
-        data.addGoalVertex(lastGoalMotion_->state_);
+        data.addGoalVertex(lastGoalMotion_->endState_);
 
     for (std::vector<Motion*>::iterator it = motions.begin(); it < motions.end(); ++it)
-    {
-        Motion *child = *it;
-        Motion *parent = child->parent_;
+        if (!(*it)->isSplit_)
+        {
+            // We only add one edge for each motion that has been split into smaller segments
+            Motion *cur = *it, *ancestor;
+            unsigned int duration = findDurationAndAncestor(cur, cur->endState_, scratch, ancestor);
 
-        if (parent == NULL)
-            data.addStartVertex(base::PlannerDataVertex(child->state_));
-        else if (data.hasControls())
-            data.addEdge(base::PlannerDataVertex(parent->state_),
-                base::PlannerDataVertex(child->state_),
-                PlannerDataEdgeControl(child->control_,
-                    child->controlDuration_ * propagationStepSize));
-        else
-            data.addEdge(base::PlannerDataVertex(parent->state_),
-                base::PlannerDataVertex(child->state_));
-    }
+            if (cur->parent_ == NULL)
+                data.addStartVertex(base::PlannerDataVertex(cur->endState_));
+            else if (data.hasControls())
+            {
+                data.addEdge(base::PlannerDataVertex(ancestor->startState_),
+                    base::PlannerDataVertex(cur->endState_),
+                    PlannerDataEdgeControl(cur->control_, duration * dt));
+                if (ancestor->parent_)
+                {
+                    // Include an edge between start state of parent ancestor motion and
+                    // the start state of the ancestor motion, which lies somewhere on
+                    // the parent ancestor motion.
+                    cur = ancestor;
+                    duration = findDurationAndAncestor(cur->parent_, cur->startState_, scratch, ancestor);
+                    data.addEdge(base::PlannerDataVertex(ancestor->startState_),
+                        base::PlannerDataVertex(cur->startState_),
+                        PlannerDataEdgeControl(ancestor->control_, duration * dt));
+                }
+            }
+            else
+            {
+                data.addEdge(base::PlannerDataVertex(ancestor->startState_),
+                    base::PlannerDataVertex(cur->endState_));
+                if (ancestor->parent_)
+                {
+                    // Include an edge between start state of parent ancestor motion and
+                    // the start state of the ancestor motion, which lies somewhere on
+                    // the parent ancestor motion.
+                    cur = ancestor;
+                    duration = findDurationAndAncestor(cur->parent_, cur->startState_, scratch, ancestor);
+                    data.addEdge(base::PlannerDataVertex(ancestor->startState_),
+                        base::PlannerDataVertex(cur->startState_));
+                }
+            }
+        }
+
+    si_->freeState(scratch);
 }
 
 void ompl::control::PDST::Cell::subdivide(unsigned int spaceDimension)
 {
-    double childVolume = 0.5 * volume_;
+    double childVolume = .5 * volume_;
     unsigned int nextSplitDimension = (splitDimension_ + 1) % spaceDimension;
-    splitValue_ = 0.5 * (bounds_.low[splitDimension_] + bounds_.high[splitDimension_]);
+    splitValue_ = .5 * (bounds_.low[splitDimension_] + bounds_.high[splitDimension_]);
 
     left_ = new Cell(childVolume, bounds_, nextSplitDimension);
     left_->bounds_.high[splitDimension_] = splitValue_;

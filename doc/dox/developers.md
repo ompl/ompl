@@ -6,8 +6,8 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 
 - <a href="http://www.cs.rice.edu/~mmoll/">Mark Moll</a>, Rice University
 - <a href="http://ioan.sucan.ro">Ioan Șucan</a>, Willow Garage (formerly Rice University)
-- <a href="http://kavrakilab.org/profiles/mmaly">Matt Maly</a>, Rice University
 - <a href="http://www.ryanluna.com/">Ryan Luna</a>, Rice University
+- <a href="http://kavrakilab.org/profiles/mmaly">Matt Maly</a>, Rice University
 
 # Contributors:
 
@@ -19,6 +19,6 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Elizabeth Fudge, Rice University
 - Jonathan Sobieski, Rice University
 - [Sachin Chitta](http://www.willowgarage.com/pages/people/sachin-chitta-research-scientist), Willow Garage
-- [Gil Jones](http://www.willowgarage.com/pages/people/e-gil-jones), Willow Garage
+- Gil Jones, Willow Garage
 
 Click [here](thirdparty.html) for a detailed description of the third-party contributions.

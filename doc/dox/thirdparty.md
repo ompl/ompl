@@ -5,16 +5,16 @@ This page includes a list of extensions to OMPL provided by the community. The c
 
 # ROS Interface to OMPL
 
-### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
-
-- The [OMPL interface](http://moveit.ros.org/motion_planning.html) to [MoveIt](http://moveit.ros.org) wraps OMPL as a planning plugin for MoveIt.
-
 # T-RRT Implementation
 
 ### Author: Dave Coleman (University of Colorado Boulder)
 
 - [T-RRT](\ref gTRRT) is an RRT variant and tree-based motion planner that takes into consideration state costs to compute low-cost paths that follow valleys and saddle points of the configuration-space costmap. It uses transition tests from stoachastic optimization methods to accept or reject new potential sates. <a href="https://github.com/davetcoleman/ompl_rviz_viewer/">An example use of TRRT</a>.
     - L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010, http://homepages.laas.fr/nic/Papers/10TRO.pdf
+
+### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
+
+- [MoveIt](http://moveit.ros.org) wraps OMPL as a planning plugin.
 
 # RRT* and extensions
 

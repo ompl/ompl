@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef ENVIDONMENT_2D_
-#define ENVIDONMENT_2D_
+#ifndef OMPL_TEST_ENVIRONMENT_2D_
+#define OMPL_TEST_ENVIRONMENT_2D_
 
 #include <fstream>
 #include <vector>
@@ -104,7 +104,7 @@ static void loadEnvironment(const char *filename, Environment2D &env)
     in.close();
 }
 
-static void printEnvironment(std::ostream &out, Environment2D &env)
+static void printEnvironment(std::ostream &out, const Environment2D &env)
 {
 
     for (unsigned int i = 0 ; i < env.grid.size() ; ++i)
