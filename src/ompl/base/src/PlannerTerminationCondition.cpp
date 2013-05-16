@@ -107,7 +107,6 @@ void ompl::base::PlannerThreadedTerminationCondition::stopEvalThread(void)
 {
     if (thread_)
     {
-        thread_->interrupt();
         thread_->join();
         delete thread_;
         thread_ = NULL;
