@@ -123,11 +123,17 @@ namespace ompl
                 the condition (the call to computeEval()) consists of
                 calling \e fn().*/
             PlannerThreadedTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
+	    
+	    /** \brief Copy constructor creates another thread to fully duplicate the condition */
+            PlannerThreadedTerminationCondition(const PlannerThreadedTerminationCondition &other);
 
             virtual ~PlannerThreadedTerminationCondition(void);
 
             /** \brief Simply return the cached value for the termination condition (evalValue_) */
             virtual bool eval(void) const;
+            
+	    /** \brief Duplicate the evaluation thread when a condition is copied */
+	    PlannerThreadedTerminationCondition& operator=(const PlannerThreadedTerminationCondition &other);
 
         protected:
 
