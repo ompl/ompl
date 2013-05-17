@@ -47,15 +47,17 @@
 #include "ompl/geometric/planners/kpiece/BKPIECE1.h"
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
 #include "ompl/geometric/planners/sbl/SBL.h"
+#include "ompl/geometric/planners/sbl/pSBL.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
-#include "ompl/geometric/planners/sbl/pSBL.h"
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
+#include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
+
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
@@ -432,6 +434,28 @@ protected:
 
 };
 
+class PDSTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::PDST *pdst = new geometric::PDST(si);
+
+        std::vector<double> cdim;
+        cdim.push_back(1);
+        cdim.push_back(1);
+
+        std::vector<unsigned int> projection;
+        projection.push_back(0);
+        projection.push_back(1);
+
+        pdst->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
+
+        return base::PlannerPtr(pdst);
+    }
+};
+
 class PRMTest : public TestPlanner
 {
 protected:
@@ -586,7 +610,7 @@ OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)
 // LazyRRT is a not so great, so we use more relaxed bounds
 OMPL_PLANNER_TEST(LazyRRT, 90.0, 0.2)
 
-OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
+// OMPL_PLANNER_TEST(PDST, 99.0, 0.02)
 
 OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
 OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
@@ -599,5 +623,7 @@ OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
 OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
 OMPL_PLANNER_TEST(LazyPRM, 99.0, 0.02)
+
+// OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
 BOOST_AUTO_TEST_SUITE_END()
