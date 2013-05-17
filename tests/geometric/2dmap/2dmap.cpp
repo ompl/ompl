@@ -137,7 +137,7 @@ public:
 	    *time /= (double)circles.getQueryCount();
 
 	return (double)good / (double)circles.getQueryCount();
-}
+    }
   
     
     /* test a planner in a planar grid environment where some cells are occupied */
@@ -554,17 +554,18 @@ protected:
 
 BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
+#define MACHINE_SPEED_FACTOR 3.0
 
 // define boost tests for a planner assuming the naming convention is followed 
 #define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                 \
-  BOOST_AUTO_TEST_CASE(geometric_##Name)                                \
-  {                                                                     \
-    if (VERBOSE)                                                        \
-      printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
-    runAllTests<Name##Test>(MinSuccess, MaxAvgTime);                    \
-    if (VERBOSE)                                                        \
-      printf("Done with %s.\n", #Name);                                 \
-  }
+    BOOST_AUTO_TEST_CASE(geometric_##Name)				\
+    {									\
+	if (VERBOSE)							\
+	    printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
+	runAllTests<Name##Test>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR); \
+	if (VERBOSE)							\
+	    printf("Done with %s.\n", #Name);				\
+    }
 
 OMPL_PLANNER_TEST(RRT, 99.0, 0.01)
 OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
@@ -573,7 +574,7 @@ OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)
 OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
 // LazyRRT is a not so great, so we use more relaxed bounds
-OMPL_PLANNER_TEST(LazyRRT, 95.0, 0.2)
+OMPL_PLANNER_TEST(LazyRRT, 90.0, 0.2)
 
 OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
 OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
@@ -583,8 +584,6 @@ OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.02)
 OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
-
-OMPL_PLANNER_TEST(PRM, 99.0, 0.02) 
-
+OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
 
 BOOST_AUTO_TEST_SUITE_END()
