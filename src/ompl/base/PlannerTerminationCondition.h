@@ -68,7 +68,7 @@ namespace ompl
             /** \brief Construct a termination condition. By default, eval() will call the externally specified function \e fn to decide whether
                 the planner should terminate. The function \e fn does not always need to be specified, if a different implementation of eval() is
                 provided by a derived class. */
-            PlannerTerminationCondition(const PlannerTerminationConditionFn &fn = PlannerTerminationConditionFn()) : fn_(fn), terminate_(false)
+            PlannerTerminationCondition(const PlannerTerminationConditionFn &fn) : fn_(fn), terminate_(false)
             {
             }
 
