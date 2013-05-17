@@ -37,6 +37,14 @@
 #include "ompl/extensions/triangle/TriangularDecomposition.h"
 #include <boost/lexical_cast.hpp>
 
+extern "C"
+{
+    #define REAL double
+    #define VOID void
+    #define ANSI_DECLARATORS
+    #include <triangle.h>
+}
+
 ompl::control::TriangularDecomposition::TriangularDecomposition(unsigned int dim, const base::RealVectorBounds& b, const std::vector<Polygon>& holes) :
     Decomposition(dim, b),
     holes_(holes),

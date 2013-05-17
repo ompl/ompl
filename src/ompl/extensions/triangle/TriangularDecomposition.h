@@ -37,15 +37,8 @@
 #ifndef OMPL_CONTROL_PLANNERS_SYCLOP_TRIANGULARDECOMPOSITION_
 #define OMPL_CONTROL_PLANNERS_SYCLOP_TRIANGULARDECOMPOSITION_
 
-extern "C"
-{
-    #define REAL double
-    #define VOID void
-    #define ANSI_DECLARATORS
-    #include <triangle.h>
-}
-#include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
+#include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
