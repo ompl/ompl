@@ -146,25 +146,18 @@ namespace ompl
             struct Motion
             {
             public:
-                Motion(base::State *state, Motion *parent, base::EuclideanProjection::size_type projectionDim,
-                    double priority, Cell* cell)
-                    : priority_(priority), cell_(cell), parent_(parent), state_(state),
-                    projection_(projectionDim), heapElement_(NULL)
+                Motion(base::State *startState, base::State *endState, double priority, Motion* parent)
+                    : startState_(startState), endState_(endState), priority_(priority),
+                    parent_(parent), cell_(NULL), heapElement_(NULL), isSplit_(false)
                 {
                 }
-                Motion(base::State *state, Motion *parent, base::EuclideanProjection projection,
-                    double priority, Cell* cell)
-                    : priority_(priority), cell_(cell), parent_(parent), state_(state),
-                    projection_(projection), heapElement_(NULL)
+                /// constructor for start states
+                Motion(base::State *state)
+                    : startState_(state), endState_(state), priority_(0.),
+                    parent_(NULL), cell_(NULL), heapElement_(NULL), isSplit_(false)
                 {
                 }
-                Motion(base::State *state, const ompl::base::ProjectionEvaluatorPtr& pe)
-                    : priority_(0.), cell_(NULL), parent_(NULL), state_(state),
-                    projection_(pe->getDimension()), heapElement_(NULL)
-                {
-                    pe->project(state_, projection_);
-                }
-
+                /// The score is used to order motions in a priority queue.
                 double score(void) const
                 {
                     return priority_ / cell_->volume_;
@@ -173,40 +166,29 @@ namespace ompl
                 {
                     priority_ = priority_ * 2.0 + 1.0;
                 }
-
-                /// \brief Split a motion into two parts. The first part is
-                /// duration steps long (and is returned), the second part is the
-                /// remaing part of the motion and is kept in this object. It
-                /// is assumed the motion is contained within one cell.
-                Motion* split(const base::SpaceInformationPtr& si, double length,
-                    const ompl::base::ProjectionEvaluatorPtr& pe)
+                Motion* ancestor() const
                 {
-                    Motion* motion = new Motion(si->allocState(), parent_,
-                        pe->getDimension(), priority_, cell_);
-                    si->getStateSpace()->interpolate(parent_->state_, state_, length, motion->state_);
-                    pe->project(motion->state_, motion->projection_);
-                    cell_->motions_.push_back(motion);
-                    parent_ = motion;
-                    return motion;
+                    Motion* m = const_cast<Motion*>(this);
+                    while (m->parent_ && m->parent_->endState_ == m->startState_)
+                        m = m->parent_;
+                    return m;
                 }
 
+                /// The starting point of this motion
+                ompl::base::State*               startState_;
+                /// The state reached by this motion
+                ompl::base::State*               endState_;
                 /// Priority for selecting this path to extend from in the future
                 double                           priority_;
-
-                /// pointer to the cell that contains this path
-                Cell*                            cell_;
-
                 /// Parent motion from which this one started
                 Motion*                          parent_;
-
-                /// The state achieved by this motion
-                ompl::base::State*               state_;
-
-                /// The projection for this Motion
-                ompl::base::EuclideanProjection  projection_;
-
+                /// pointer to the cell that contains this path
+                Cell*                            cell_;
                 /// Handle to the element of the priority queue for this Motion
                 ompl::BinaryHeap<Motion *, MotionCompare>::Element *heapElement_;
+                /// Whether this motion is the result of a split operation, in which case
+                /// its endState_ should not be freed.
+                bool                             isSplit_;
             };
 
             /// Cell is a Binary Space Partition
@@ -222,9 +204,10 @@ namespace ompl
                 ~Cell()
                 {
                     if (left_)
+                    {
                         delete left_;
-                    if (right_)
                         delete right_;
+                    }
                 }
 
                 /// Subdivides this cell
@@ -268,22 +251,26 @@ namespace ompl
 
 
             /// Inserts the motion into the appropriate cell
-            void insertSampleIntoBsp(Motion *motion, Cell *bsp,base::State* state,
-                base::EuclideanProjection& projection);
-
+            void addMotion(Motion *motion, Cell *cell, base::State*, base::EuclideanProjection&);
+            /// \brief Either update heap after motion's priority has changed or insert motion into heap.
+            void updateHeapElement(Motion* motion)
+            {
+                if (motion->heapElement_)
+                    priorityQueue_.update(motion->heapElement_);
+                else
+                    motion->heapElement_ = priorityQueue_.insert(motion);
+            }
             /// \brief Select a state along motion and propagate a new motion from there.
             /// Return NULL if no valid motion could be generated starting at the
             /// selected state.
-            Motion* propagateFrom(Motion* motion, base::State* state, base::EuclideanProjection& projection);
-
-            /// \brief Split motion into segments such that each segment is contained in a cell.
-            Cell* split(const Cell* bsp, Cell* startCell, Motion* motion, int& numSegments,
-                base::State* state, base::EuclideanProjection& projection);
+            Motion* propagateFrom(Motion* motion, base::State*, base::State*);
 
             void freeMotion(Motion* m)
             {
-                if (m->state_)
-                    si_->freeState(m->state_);
+                if (m->parent_ && m->startState_ != m->parent_->endState_)
+                    si_->freeState(m->startState_);
+                if (!m->isSplit_)
+                    si_->freeState(m->endState_);
                 delete m;
             }
 
@@ -291,35 +278,25 @@ namespace ompl
 
             /// State sampler
             ompl::base::StateSamplerPtr              sampler_;
-
             // Random number generator
-            RNG rng_;
-
+            RNG                                      rng_;
             /// \brief Vector holding all of the start states supplied for the problem
             /// Each start motion is the root of its own tree of motions.
             std::vector<Motion*>                     startMotions_;
-
             /// Priority queue of motions
             ompl::BinaryHeap<Motion*, MotionCompare> priorityQueue_;
-
             /// Binary Space Partition
-            Cell *bsp_;
-
+            Cell*                                    bsp_;
             /// Projection evaluator for the problem
             ompl::base::ProjectionEvaluatorPtr       projectionEvaluator_;
-
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
-            double goalBias_;
-
+            double                                   goalBias_;
             /// Objected used to sample the goal
             ompl::base::GoalSampleableRegion*        goalSampler_;
-
             /// Iteration number and priority of the next Motion that will be generated
             unsigned int                             iteration_;
-
             /// Closest motion to the goal
             Motion*                                  lastGoalMotion_;
-
         };
     }
 }

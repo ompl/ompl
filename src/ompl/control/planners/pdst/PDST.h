@@ -35,7 +35,6 @@
 /* Author: Jonathan Sobieski, Mark Moll */
 
 
-
 #ifndef OMPL_CONTROL_PLANNERS_PDST_PDST_
 #define OMPL_CONTROL_PLANNERS_PDST_PDST_
 
@@ -62,7 +61,10 @@ namespace ompl
             segments. Unlike most tree-based planners which expand from
             a randomly select endpoint of a path segment, PDST expands
             from a randomly selected point along a deterministically
-            selected path segment. It is important to set the projection
+            selected path segment. Because of this, it is recommended
+            to increase the min. and max. control duration using
+            ompl::control::SpaceInformation::setMinMaxControlDuration.
+            It is important to set the projection
             the algorithm uses (setProjectionEvaluator() function). If
             no projection is set, the planner will attempt to use the
             default projection associated to the state space. An
@@ -146,86 +148,48 @@ namespace ompl
             struct Motion
             {
             public:
-                Motion(base::State *state, Motion *parent, Control *control,
-                    unsigned int controlDuration, ompl::base::EuclideanProjection& projection,
-                    double priority, Cell* cell)
-                    : priority_(priority), cell_(cell), parent_(parent), state_(state),
-                    control_(control), controlDuration_(controlDuration), projection_(projection),
-                    heapElement_(NULL)
+                Motion(base::State *startState, base::State *endState, Control *control,
+                    unsigned int controlDuration, double priority, Motion* parent)
+                    : startState_(startState), endState_(endState), control_(control),
+                    controlDuration_(controlDuration), priority_(priority), parent_(parent),
+                    cell_(NULL), heapElement_(NULL), isSplit_(false)
                 {
                 }
-                Motion(base::State *state, const ompl::base::ProjectionEvaluatorPtr& pe)
-                    : priority_(0.), cell_(NULL), parent_(NULL), state_(state), control_(NULL),
-                    controlDuration_(0), projection_(pe->getDimension()), heapElement_(NULL)
+                /// constructor for start states
+                Motion(base::State *state)
+                    : startState_(state), endState_(state), control_(NULL), controlDuration_(0),
+                    priority_(0.), parent_(NULL), cell_(NULL), heapElement_(NULL), isSplit_(false)
                 {
-                    pe->project(state_, projection_);
                 }
-
+                /// The score is used to order motions in a priority queue.
                 double score(void) const
                 {
                     return priority_ / cell_->volume_;
                 }
                 void updatePriority(void)
                 {
-                    priority_ = priority_ * 2.0 + 1.0;
+                    priority_ = priority_ * 2. + 1.;
                 }
 
-                /// \brief Split a motion into two parts. The first part is
-                /// duration steps long (and is returned), the second part is the
-                /// remaing part of the motion and is kept in this object. It
-                /// is assumed the motion is contained within one cell.
-                Motion* split(const SpaceInformation* si, unsigned int duration,
-                    const ompl::base::ProjectionEvaluatorPtr& pe)
-                {
-                    Motion* motion = new Motion(si->allocState(), parent_,
-                        si->cloneControl(control_), duration, projection_,
-                        priority_, cell_);
-                    si->propagate(parent_->state_, control_, duration, motion->state_);
-                    pe->project(motion->state_, motion->projection_);
-                    cell_->motions_.push_back(motion);
-                    parent_ = motion;
-                    controlDuration_ -= duration;
-                    return motion;
-                }
-                /// \brief Split a motion into two parts. The first part is
-                /// duration steps long (and is returned), the second part is the
-                /// remaing part of the motion (kept in this object). The state
-                /// reached by the first part and corresponding projection and
-                /// cell are specified by the rest of the arguments.
-                Motion* split(const SpaceInformation* si, unsigned int duration,
-                    base::State* state, base::EuclideanProjection& projection, Cell* cell)
-                {
-                    Motion* motion = new Motion(state, parent_, si->cloneControl(control_),
-                        duration, projection, priority_, cell);
-                    cell->motions_.push_back(motion);
-                    parent_ = motion;
-                    controlDuration_ -= duration;
-                    return motion;
-                }
-
-                /// Priority for selecting this path to extend from in the future
-                double                           priority_;
-
-                /// pointer to the cell that contains this path
-                Cell*                            cell_;
-
-                /// Parent motion from which this one started
-                Motion*                          parent_;
-
-                /// The state achieved by this motion
-                ompl::base::State*               state_;
-
+                /// The starting point of this motion
+                ompl::base::State*               startState_;
+                /// The state reached by this motion
+                ompl::base::State*               endState_;
                 /// The control that was applied to arrive at this state from the parent
                 ompl::control::Control*          control_;
-
                 /// The duration that the control was applied to arrive at this state from the parent
                 unsigned int                     controlDuration_;
-
-                /// The projection for this Motion
-                ompl::base::EuclideanProjection  projection_;
-
+                /// Priority for selecting this path to extend from in the future
+                double                           priority_;
+                /// Parent motion from which this one started
+                Motion*                          parent_;
+                /// Pointer to the cell that contains this path
+                Cell*                            cell_;
                 /// Handle to the element of the priority queue for this Motion
-                ompl::BinaryHeap<Motion *, MotionCompare>::Element* heapElement_;
+                ompl::BinaryHeap<Motion*, MotionCompare>::Element* heapElement_;
+                /// Whether this motion is the result of a split operation, in which case
+                /// its endState_ and control_ should not be freed.
+                bool                             isSplit_;
             };
 
             /// Cell is a Binary Space Partition
@@ -241,9 +205,10 @@ namespace ompl
                 ~Cell()
                 {
                     if (left_)
+                    {
                         delete left_;
-                    if (right_)
                         delete right_;
+                    }
                 }
 
                 /// Subdivides this cell
@@ -286,22 +251,42 @@ namespace ompl
             };
 
 
-            /// Inserts the motion into the appropriate cell
-            void insertSampleIntoBsp(Motion *motion, Cell *bsp,
-                base::State* scratch1, base::State* scratch2);
-
+            /// \brief Inserts the motion into the appropriate cells, splitting the motion as necessary.
+            /// \e motion is assumed to be fully contained within \e cell.
+            void addMotion(Motion *motion, Cell *cell,
+                base::State*, base::State*, base::EuclideanProjection&, base::EuclideanProjection&);
+            /// \brief Either update heap after motion's priority has changed or insert motion into heap.
+            void updateHeapElement(Motion* motion)
+            {
+                if (motion->heapElement_)
+                    priorityQueue_.update(motion->heapElement_);
+                else
+                    motion->heapElement_ = priorityQueue_.insert(motion);
+            }
             /// \brief Select a state along motion and propagate a new motion from there.
             /// Return NULL if no valid motion could be generated starting at the
             /// selected state.
-            Motion* propagateFrom(Motion* motion, bool& goalReached,
-                double& distanceToGoal, base::State* scratch);
+            Motion* propagateFrom(Motion* motion, base::State*, base::State*);
+            /// \brief Find the max. duration that the control_ in motion can be applied s.t.
+            /// the trajectory passes through state. This means that "ancestor" motions with
+            /// the same control_ are also considered. A pointer to the oldest ancestor with
+            /// the same control_ is returned. Upon return applying the control
+            /// \e ancestor->control_ for duration steps starting from the state
+            /// \e ancestor->startState_ should result in the state \e state.
+            unsigned int findDurationAndAncestor(Motion* motion, base::State* state,
+                base::State* scratch, Motion*& ancestor) const;
 
             void freeMotion(Motion* m)
             {
-                if (m->state_)
-                    si_->freeState(m->state_);
-                if (m->control_)
-                    siC_->freeControl(m->control_);
+                if (m->parent_)
+                {
+                    if (m->startState_ != m->parent_->endState_)
+                        si_->freeState(m->startState_);
+                    if (!m->isSplit_)
+                        siC_->freeControl(m->control_);
+                }
+                if (!m->isSplit_)
+                    si_->freeState(m->endState_);
                 delete m;
             }
 
@@ -309,41 +294,29 @@ namespace ompl
 
             /// State sampler
             ompl::base::StateSamplerPtr              sampler_;
-
             /// Directed control sampler
             DirectedControlSamplerPtr                controlSampler_;
-
             /// SpaceInformation convenience pointer
             const SpaceInformation*                  siC_;
-
             // Random number generator
-            RNG rng_;
-
+            RNG                                      rng_;
             /// \brief Vector holding all of the start states supplied for the problem
             /// Each start motion is the root of its own tree of motions.
             std::vector<Motion*>                     startMotions_;
-
             /// Priority queue of motions
             ompl::BinaryHeap<Motion*, MotionCompare> priorityQueue_;
-
             /// Binary Space Partition
-            Cell *bsp_;
-
+            Cell*                                    bsp_;
             /// Projection evaluator for the problem
             ompl::base::ProjectionEvaluatorPtr       projectionEvaluator_;
-
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
-            double goalBias_;
-
+            double                                   goalBias_;
             /// Objected used to sample the goal
             ompl::base::GoalSampleableRegion*        goalSampler_;
-
             /// Iteration number and priority of the next Motion that will be generated
             unsigned int                             iteration_;
-
             /// Closest motion to the goal
             Motion*                                  lastGoalMotion_;
-
         };
     }
 }

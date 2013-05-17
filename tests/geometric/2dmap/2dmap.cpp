@@ -55,7 +55,6 @@
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
-#include "ompl/geometric/planners/prm/LazyPRM.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
@@ -63,6 +62,7 @@
 using namespace ompl;
 
 static const double SOLUTION_TIME = 1.0;
+static const bool VERBOSE = true;
 
 /** \brief A base class for testing planners */
 class TestPlanner
@@ -76,6 +76,7 @@ public:
     {
     }
 
+    /* test a planner in a planar environment with circular obstacles */
     double test2DCircles(const Circles2D &circles, bool show = false, double *time = NULL, double *pathLength = NULL)
     {
         /* instantiate space information */
@@ -107,14 +108,14 @@ public:
 	    ompl::time::point startTime = ompl::time::now();
 
 	    if (planner->solve(SOLUTION_TIME))
-	    {
+	    {                
 		ompl::time::duration elapsed = ompl::time::now() - startTime;
 		good++;
 		if (time)
 		    *time += ompl::time::seconds(elapsed);
 		if (show)
 		    printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
-
+                
 		geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
 
 		/* make the solution more smooth */
@@ -123,15 +124,13 @@ public:
 		startTime = ompl::time::now();
 		sm->simplify(*path, SOLUTION_TIME);
 		elapsed = ompl::time::now() - startTime;
-		
 		if (pathLength)
 		    *pathLength += path->length();
-		
 		if (time)
 		    *time += ompl::time::seconds(elapsed);
-	    }
-	}
-	
+            }
+        }
+
 	if (pathLength)
 	    *pathLength /= (double)circles.getQueryCount();
 	if (time)
@@ -139,7 +138,9 @@ public:
 
 	return (double)good / (double)circles.getQueryCount();
     }
+  
     
+    /* test a planner in a planar grid environment where some cells are occupied */
     bool test2DEnv(const Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
     {
         bool result = true;
@@ -218,8 +219,6 @@ public:
 
         return result;
     }
-
-protected:
 
     virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
 
@@ -444,25 +443,14 @@ protected:
 
 };
 
-class LazyPRMTest : public TestPlanner
-{
-protected:
-
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
-    {
-        geometric::LazyPRM *prm = new geometric::LazyPRM(si);
-        return base::PlannerPtr(prm);
-    }
-
-};
-
 class PlanTest
 {
 public:
 
-    void simpleTest(void)
+    void simpleTest(TestPlanner *p)
     {
         geometric::SimpleSetup2DMap s(env_);
+        s.setPlanner(p->newPlanner(s.getSpaceInformation()));
         s.setup();
         base::PlannerTest pt(s.getPlanner());
         pt.test();
@@ -503,29 +491,42 @@ public:
         }
     }
 
-    void runAllTests(void)
+    void runAllTests(TestPlanner *p, double min_success, double max_avgtime)
     {
 	double success    = 0.0;
 	double avgruntime = 0.0;
 	double avglength  = 0.0;
-	
-	simpleTest();
-	
-	TestPlanner *p = new RRTTest();
+
+        if (verbose_)
+            printf("\n========= Running simple test\n\n");
+        simpleTest(p);
+
+        if (verbose_)
+            printf("\n========= Running 2D map test\n\n");        
 	run2DMapTest(p, &success, &avgruntime, &avglength);
-	BOOST_CHECK(success >= 99.0);
-	BOOST_CHECK(avgruntime < 0.01);
+	BOOST_CHECK(success >= min_success);
+	BOOST_CHECK(avgruntime < max_avgtime);
 	BOOST_CHECK(avglength < 100.0);
 
 	success    = 0.0;
 	avgruntime = 0.0;
 	avglength  = 0.0;
-    
+
+        if (verbose_)
+            printf("\n========= Running 2D circles test\n\n");
 	run2DCirclesTest(p, &success, &avgruntime, &avglength);
-	BOOST_CHECK(success >= 99.0);
-	BOOST_CHECK(avgruntime < 0.01);
-	BOOST_CHECK(avglength < 10.0);
-	
+
+	BOOST_CHECK(success >= min_success);
+        // this problem is a little more difficult than the one above, so we allow more time for its solution
+	BOOST_CHECK(avgruntime < max_avgtime * 2.0);
+	BOOST_CHECK(avglength < 25.0);
+    }
+    
+    template<typename T>
+    void runAllTests(double min_success, double max_avgtime)
+    {
+	TestPlanner *p = new T();
+	runAllTests(p, min_success, max_avgtime);
 	delete p;
     }
     
@@ -533,7 +534,7 @@ protected:
 
     PlanTest(void)
     {
-        verbose_ = false;
+        verbose_ = VERBOSE;
         boost::filesystem::path path(TEST_RESOURCES_DIR);
         loadEnvironment((path / "env1.txt").string().c_str(), env_);
 
@@ -551,73 +552,38 @@ protected:
     bool          verbose_;
 };
 
-BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
+BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
-BOOST_AUTO_TEST_CASE(geometric_RRT)
-{
-    runAllTests();
-}
+#define MACHINE_SPEED_FACTOR 3.0
 
+// define boost tests for a planner assuming the naming convention is followed 
+#define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                 \
+    BOOST_AUTO_TEST_CASE(geometric_##Name)				\
+    {									\
+	if (VERBOSE)							\
+	    printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
+	runAllTests<Name##Test>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR); \
+	if (VERBOSE)							\
+	    printf("Done with %s.\n", #Name);				\
+    }
 
-BOOST_AUTO_TEST_CASE(geometric_RRTConnect)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(RRT, 99.0, 0.01)
+OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
+OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)  
 
-BOOST_AUTO_TEST_CASE(geometric_pRRT)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
-BOOST_AUTO_TEST_CASE(geometric_TRRT)
-{
-    runAllTests();
-}
+// LazyRRT is a not so great, so we use more relaxed bounds
+OMPL_PLANNER_TEST(LazyRRT, 90.0, 0.2)
 
-BOOST_AUTO_TEST_CASE(geometric_pSBL)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
+OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
 
+OMPL_PLANNER_TEST(KPIECE1, 99.0, 0.01)
+OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.02)
+OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
-BOOST_AUTO_TEST_CASE(geometric_KPIECE1)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_LBKPIECE1)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_BKPIECE1)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_EST)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_LazyRRT)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_PRM)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_LazyPRM)
-{
-    runAllTests();
-}
-
-BOOST_AUTO_TEST_CASE(geometric_SBL)
-{
-    runAllTests();
-}
+OMPL_PLANNER_TEST(EST, 99.0, 0.02)
+OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
 
 BOOST_AUTO_TEST_SUITE_END()

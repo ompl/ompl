@@ -86,7 +86,7 @@ namespace ompl
             /** @name Path operations
                 @{ */
 
-            /** \brief Append \e state to the end of the path; it is assumed \e state is the last state, so no control is applied.
+            /** \brief Append \e state to the end of the path; it is assumed \e state is the first state, so no control is applied.
                 The memory for \e state is copied. There are no checks to make sure the number of controls and states make sense. */
             void append(const base::State *state);
 

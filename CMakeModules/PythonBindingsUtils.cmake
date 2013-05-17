@@ -8,9 +8,11 @@ find_python_module(pygccxml QUIET)
 find_package(GCCXML QUIET)
 
 if(APPLE)
-    # For some reason gccxml generates 32-bit binaries by default on OS X
-    # (maybe because the kernel is still 32-bit?)
-    set(PYOMPL_EXTRA_CFLAGS "-m64")
+    # The latest gccxml can be compiled with clang, but cannot be run by
+    # pretending to be clang. Instead, we have to explicitly tell it to
+    # pretend to be g++. Gccxml also mistakenly thinks that OS X is a 32-bit
+    # architecture.
+    set(PYOMPL_EXTRA_CFLAGS "--gccxml-compiler g++ -m64")
 endif(APPLE)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
