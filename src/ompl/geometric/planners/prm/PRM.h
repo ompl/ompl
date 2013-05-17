@@ -285,6 +285,9 @@ namespace ompl
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
 
+            /** \brief Check if two milestones (\e m1 and \e m2) are part of the same connected component. This is not a const function since we use incremental connected components from boost */
+            bool sameComponent(Vertex m1, Vertex m2);
+
 	    /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() / expandRoadmap()) */
 	    virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 	    
@@ -378,6 +381,8 @@ namespace ompl
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                   graphMutex_;
 
+            /** \brief Mutex to prevent adding milestones in parallel */
+            boost::mutex                                           addMilestoneMutex_;
         };
 
     }

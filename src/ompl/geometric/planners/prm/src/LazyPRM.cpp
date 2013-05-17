@@ -55,6 +55,8 @@ ompl::geometric::LazyPRM::~LazyPRM()
 
 ompl::geometric::PRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::State *state)
 {
+    boost::mutex::scoped_lock _(addMilestoneMutex_);
+
     graphMutex_.lock();
     Vertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
@@ -67,13 +69,11 @@ ompl::geometric::PRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::State 
     nn_->add(m);
     
     // Which milestones will we attempt to connect to?
-    if (!connectionStrategy_)
-        throw Exception(name_, "No connection strategy!");
 
     const std::vector<Vertex>& neighbors = connectionStrategy_(m);
 
     foreach (Vertex n, neighbors)
-        if ((boost::same_component(m, n, disjointSets_) || connectionFilter_(m, n)))
+        if (connectionFilter_(m, n))
         {
 	    const double weight = distanceFunction(m, n);
 	    const unsigned int id = maxEdgeID_++;

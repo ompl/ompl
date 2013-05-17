@@ -221,7 +221,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
 
             // if there are intermediary states or the milestone has not been connected to the initially sampled vertex,
             // we add an edge
-            if (s > 0 || !boost::same_component(v, last, disjointSets_))
+            if (s > 0 || !sameComponent(v, last))
             {
                 // add the edge to the parent vertex
                 const double weight = distanceFunction(v, last);
@@ -278,7 +278,7 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
 void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondition &ptc,
 					    base::PathPtr &solution)
 {
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     while (!ptc && !addedSolution_)
     {
         // Check for any new goal states
@@ -290,7 +290,7 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
 	}
 
         // Check for a solution
-        addedSolution_ = haveSolution (startM_, goalM_, solution);
+        addedSolution_ = haveSolution(startM_, goalM_, solution);
         // Sleep for 1ms
         boost::this_thread::sleep(boost::posix_time::milliseconds(1));
     }
@@ -299,14 +299,18 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sol_cost = -1.;
+    double sol_cost = -1.0;
     bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
         {
-            if (boost::same_component(start, goal, disjointSets_) &&
-                g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
+            // we lock because the connected components algorithm is incremental and may change disjointSets_
+            graphMutex_.lock();
+            bool same_component = sameComponent(start, goal);
+            graphMutex_.unlock();
+
+            if (same_component && g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
                 // If there is an optimization objective, check it
                 if (pdef_->hasOptimizationObjective())
@@ -458,6 +462,8 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)
 {
+    boost::mutex::scoped_lock _(addMilestoneMutex_);
+  
     graphMutex_.lock();
     Vertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
@@ -471,13 +477,10 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
     nn_->add(m);
     
     // Which milestones will we attempt to connect to?
-    if (!connectionStrategy_)
-        throw Exception(name_, "No connection strategy!");
-
     const std::vector<Vertex>& neighbors = connectionStrategy_(m);
 
     foreach (Vertex n, neighbors)
-        if ((boost::same_component(m, n, disjointSets_) || connectionFilter_(m, n)))
+        if (connectionFilter_(m, n))
         {
             totalConnectionAttemptsProperty_[m]++;
             totalConnectionAttemptsProperty_[n]++;
@@ -501,6 +504,11 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
 void ompl::geometric::PRM::uniteComponents(Vertex m1, Vertex m2)
 {
     disjointSets_.union_set(m1, m2);
+}
+
+bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
+{
+    return boost::same_component(m1, m2, disjointSets_);
 }
 
 namespace
@@ -528,8 +536,9 @@ namespace
 
 ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start, const Vertex &goal)
 {
+    boost::mutex::scoped_lock _(graphMutex_);
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
-    graphMutex_.lock();
+
     try
     {
 	boost::astar_search(g_, start,
@@ -540,7 +549,6 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
     catch (AStarFoundGoal&)
     {
     }    
-    graphMutex_.unlock();
     
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
