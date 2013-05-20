@@ -68,9 +68,9 @@ and install OMPL:
 - If you want Python bindings, type the following two commands:
 
       make installpyplusplus && cmake . # download & install Py++
-      make update_bindings
+      make -j 4 update_bindings
 
-- Compile OMPL by typing \c make.
+- Compile OMPL by typing <tt>make -j 4</tt>.
 - Optionally, run the test programs by typing <tt>make test</tt>.
 - Optionally, generate documentation by typing <tt>make doc</tt>.
 - If you need to install the library, you can type <tt>sudo make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed (e.g., $HOME/lib/python2.7/site-packages).
@@ -81,6 +81,25 @@ and install OMPL:
 Thanks to Rich Mattes, OMPL core is available as a package for Fedora:
 
     yum install ompl
+
+This package may not be the latest version, though. The source installation instructions for Fedora Linux are mostly the same as for Ubuntu Linux, although the packages have slightly different names. On Fedora 18, you can install the dependencies like so:
+
+      sudo yum install boost-devel cmake python-devel
+
+The optional dependencies can be installed like so:
+
+      sudo yum install doxygen graphviz ode-devel
+
+The build steps are the same as for Ubuntu Linux:
+
+      cd omplapp
+      mkdir -p build/Release
+      cd build/Release
+      cmake ../..
+      make installpyplusplus && cmake . # download & install Py++
+      make -j 4 update_bindings
+      make -j 4
+
 
 Installation from source is also possible if dependencies listed above are installed.
 
@@ -129,9 +148,9 @@ It is easiest to install the OMPL through [MacPorts], a package manager for OS X
 
 - If you want Python bindings, type the following command:
 
-      make update_bindings
+      make -j 4 update_bindings
 
-- Compile OMPL by typing \c make.
+- Compile OMPL by typing <tt>make -j 4</tt>.
 - Optionally, run the test programs by typing <tt>make test</tt>.
 - Optionally, generate documentation by typing <tt>make doc</tt>.
 - If you need to install the library, you can type <tt>sudo make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed (e.g., $HOME/lib/python2.7/site-packages).
@@ -171,7 +190,9 @@ _Thanks to [Andrew Dobson](https://plus.google.com/104214233559576935970/about) 
 
 # Installation on Windows {#install_windows}
 
-It is possible to run OMPL natively on Windows, although it must be stressed that __extensive testing on Windows is not performed__ at this time, and running OMPL on Windows is considered experimental. For best performance, the [MinGW] compiler is recommended. Visual Studio can also be used to build the core OMPL library, but currently it is not possible to generate the python bindings for OMPL with this compiler. However, if the bindings are generated with MinGW, the bindings can be compiled by Visual Studio with some minor tweaks to the code (not recommended, unless you are an experienced Windows developer).
+\note It is possible to run OMPL natively on Windows, although it must be stressed that __extensive testing on Windows is not performed__ at this time, and running OMPL on Windows is considered experimental. It is <i>much</i> easier to install [VirtualBox], create an Ubuntu virtual machine, and follow the Ubuntu installation directions above.
+
+For best performance, the [MinGW] compiler is recommended. Visual Studio can also be used to build the core OMPL library, but currently it is not possible to generate the python bindings for OMPL with this compiler. However, if the bindings are generated with MinGW, the bindings can be compiled by Visual Studio with some minor tweaks to the code (not recommended, unless you are an experienced Windows developer).
 
 
 ## Required Dependencies
@@ -232,3 +253,4 @@ The CMAKE_INSTALL_PREFIX variable is set to <tt>C:\\Program Files (x86)\\ompl</t
 [macports]: http://www.macports.org
 [homebrew]: http://mxcl.github.com/homebrew
 [mingw]: http://www.mingw.org
+[virtualbox]: http://www.virtualbox.org
