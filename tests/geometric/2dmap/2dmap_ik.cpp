@@ -39,7 +39,7 @@
 #include "2DmapSetup.h"
 #include <iostream>
 
-#include "ompl/geometric/ik/GAIK.h"
+#include "ompl/geometric/GeneticSearch.h"
 #include "ompl/util/Time.h"
 #include "../../BoostTestTeamCityReporter.h"
 
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(SimpleIK)
     goal.setState(gstate);
     goal.setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
 
-    geometric::GAIK gaik(si);
+    geometric::GeneticSearch gaik(si);
     gaik.setRange(5.0);
     base::ScopedState<base::RealVectorStateSpace> found(si);
     double time = 0.0;

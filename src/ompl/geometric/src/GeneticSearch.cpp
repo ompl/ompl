@@ -34,31 +34,31 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/geometric/ik/GAIK.h"
+#include "ompl/geometric/GeneticSearch.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/Exception.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <algorithm>
 #include <limits>
 
-ompl::geometric::GAIK::GAIK(const base::SpaceInformationPtr &si) : hcik_(si), si_(si), poolSize_(100), poolMutation_(20), poolRandom_(30),
-                                                                   generations_(0), tryImprove_(false), maxDistance_(0.0)
+ompl::geometric::GeneticSearch::GeneticSearch(const base::SpaceInformationPtr &si) : hc_(si), si_(si), poolSize_(100), poolMutation_(20), poolRandom_(30),
+										     generations_(0), tryImprove_(false), maxDistance_(0.0)
 {
-    hcik_.setMaxImproveSteps(3);
+    hc_.setMaxImproveSteps(3);
     setValidityCheck(true);
 }
 
-ompl::geometric::GAIK::~GAIK(void)
+ompl::geometric::GeneticSearch::~GeneticSearch(void)
 {
     for (unsigned int i = 0 ; i < pool_.size() ; ++i)
         si_->freeState(pool_[i].state);
 }
 
-bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal, base::State *result, const std::vector<base::State*> &hint)
+bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalRegion &goal, base::State *result, const std::vector<base::State*> &hint)
 {
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
     {
-        tools::SelfConfig sc(si_, "GAIK");
+        tools::SelfConfig sc(si_, "GeneticSearch");
         sc.configurePlannerRange(maxDistance_);
     }
 
@@ -271,19 +271,19 @@ bool ompl::geometric::GAIK::solve(double solveTime, const base::GoalRegion &goal
     return solved;
 }
 
-void ompl::geometric::GAIK::tryToImprove(const base::GoalRegion &goal, base::State *state, double distance)
+void ompl::geometric::GeneticSearch::tryToImprove(const base::GoalRegion &goal, base::State *state, double distance)
 {
     OMPL_DEBUG("Distance to goal before improvement: %g", distance);
     time::point start = time::now();
     double dist = si_->getMaximumExtent() / 10.0;
-    hcik_.tryToImprove(goal, state, dist, &distance);
-    hcik_.tryToImprove(goal, state, dist / 3.0, &distance);
-    hcik_.tryToImprove(goal, state, dist / 10.0, &distance);
+    hc_.tryToImprove(goal, state, dist, &distance);
+    hc_.tryToImprove(goal, state, dist / 3.0, &distance);
+    hc_.tryToImprove(goal, state, dist / 10.0, &distance);
     OMPL_DEBUG("Improvement took  %u ms", (time::now() - start).total_milliseconds());
     OMPL_DEBUG("Distance to goal after improvement: %g", distance);
 }
 
-void ompl::geometric::GAIK::clear(void)
+void ompl::geometric::GeneticSearch::clear(void)
 {
     generations_ = 0;
     pool_.clear();

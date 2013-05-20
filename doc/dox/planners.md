@@ -19,7 +19,7 @@ This set of planners only accounts for the geometric constraints of the system. 
 - [Lazy RRT (LazyRRT)](\ref gLazyRRT)
 
 - [Probabilistic RoadMaps (PRM)](\ref gPRM)
-- [PRM*](\ref gPRM)
+- [PRM*](\ref gPRMstar)
 - [LazyPRM](\ref gLazyPRM)
 
 - [RRT*](\ref gRRTstar)
@@ -29,8 +29,8 @@ This set of planners only accounts for the geometric constraints of the system. 
 
 Other tools:
 
-- [Inverse Kinematics with Hill Climbing](\ref HCIK)
-- [Inverse Kinematics with Genetic Algorithms](\ref GAIK)
+- [Hill Climbing](\ref HillClimbing)
+- [Genetic Search](\ref GeneticSearch)
 
 
 # Planning under differential constraints
