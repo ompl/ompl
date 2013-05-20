@@ -105,9 +105,9 @@ void ompl::base::PlannerThreadedTerminationCondition::startEvalThread(void)
 
 void ompl::base::PlannerThreadedTerminationCondition::stopEvalThread(void)
 {
+    terminate_ = true;
     if (thread_)
     {
-        thread_->interrupt();
         thread_->join();
         delete thread_;
         thread_ = NULL;
@@ -125,22 +125,55 @@ ompl::base::PlannerThreadedTerminationCondition::PlannerThreadedTerminationCondi
     startEvalThread();
 }
 
+ompl::base::PlannerThreadedTerminationCondition::PlannerThreadedTerminationCondition(const PlannerThreadedTerminationCondition &other) :
+    PlannerTerminationCondition(other), thread_(NULL), evalValue_(other.evalValue_), period_(other.period_)
+{
+    startEvalThread();
+}
+
 ompl::base::PlannerThreadedTerminationCondition::~PlannerThreadedTerminationCondition(void)
 {
-    terminate_ = true;
     stopEvalThread();
+}
+
+ompl::base::PlannerThreadedTerminationCondition& ompl::base::PlannerThreadedTerminationCondition::operator=(const PlannerThreadedTerminationCondition &other)
+{
+    if (this != &other)
+    {
+	stopEvalThread();
+	static_cast<PlannerTerminationCondition&>(*this) = static_cast<const PlannerTerminationCondition&>(other);
+	thread_ = NULL;
+	evalValue_ = other.evalValue_;
+	period_ = other.period_;  
+	startEvalThread();
+    }
+    return *this;
 }
 
 void ompl::base::PlannerThreadedTerminationCondition::periodicEval(void)
 {
+    // we want to check for termination at least once every ms;
+    // even though we may evaluate the condition itself more rarely
+
+    unsigned int count = 1;
     time::duration s = time::seconds(period_);
-    do
+    if (period_ > 0.001)
     {
-        evalValue_ = computeEval();
-        if ((*this)())
-            break;
-        boost::this_thread::sleep(s);
-    } while (!(*this)());
+	count = 0.5 + period_ / 0.001;
+	s = time::seconds(period_ / (double) count);
+    }
+
+    if (!(*this)())
+	do
+	{
+	    evalValue_ = computeEval();
+	    for (unsigned int i = 0 ; i < count ; ++i)
+	    {
+		if ((*this)())
+		    break;
+		boost::this_thread::sleep(s);
+	    }
+	} while (!(*this)());
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration)

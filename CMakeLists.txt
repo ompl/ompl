@@ -69,6 +69,12 @@ if (OPENDE_FOUND)
   include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
+find_package(Triangle QUIET)
+set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
+if (TRIANGLE_FOUND)
+  include_directories(${TRIANGLE_INCLUDE_DIR})
+endif()
+
 # If FLANN is installed, a wrapper for its nearest neighbor data structures can be used
 find_package(flann 1.8.3 QUIET)
 if (FLANN_FOUND)

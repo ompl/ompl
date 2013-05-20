@@ -29,6 +29,10 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
   endif()
 
+  if (OMPL_EXTENSION_TRIANGLE)
+    add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
+  endif()
+
 # Only build the PlannerData demo on Boost >= 1.44
   if(NOT "${Boost_VERSION}" LESS 104400)
     add_ompl_demo(demo_PlannerData PlannerData.cpp)

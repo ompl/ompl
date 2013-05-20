@@ -43,6 +43,7 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/util/RandomNumbers.h"
 
 namespace ompl
 {
@@ -62,8 +63,10 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor. Creates a Decomposition with a given number of regions, a given dimension, and a given set of bounds. */
-            Decomposition(const int n, const std::size_t dim, const base::RealVectorBounds& b) : numRegions_(n), dimension_(dim), bounds_(b)
+            /** \brief Constructor. Creates a Decomposition with a given dimension
+                and a given set of bounds. Accepts as an optional argument a given
+                number of regions. */
+            Decomposition(unsigned int dim, const base::RealVectorBounds& b, unsigned int nreg = 0) : numRegions_(nreg), dimension_(dim), bounds_(b)
             {
                 if (dim > b.low.size())
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
@@ -76,13 +79,13 @@ namespace ompl
             }
 
             /** \brief Returns the number of regions in this Decomposition. */
-            virtual int getNumRegions() const
+            virtual unsigned int getNumRegions() const
             {
                 return numRegions_;
             }
 
             /** \brief Returns the dimension of this Decomposition. */
-            virtual std::size_t getDimension() const
+            virtual unsigned int getDimension() const
             {
                 return dimension_;
             }
@@ -94,29 +97,34 @@ namespace ompl
             }
 
             /** \brief Returns the volume of a given region in this Decomposition. */
-            virtual double getRegionVolume(const int rid) const = 0;
+            virtual double getRegionVolume(unsigned int rid) = 0;
 
             /** \brief Returns the index of the region containing a given State.
-             * Most often, this is obtained by first calling project(). */
+             * Most often, this is obtained by first calling project().
+             * Returns -1 if no region contains the State. */
             virtual int locateRegion(const base::State* s) const = 0;
 
             /** \brief Project a given State to a set of coordinates in R^k, where k is the dimension of this Decomposition. */
             virtual void project(const base::State* s, std::vector<double>& coord) const = 0;
 
             /** \brief Stores a given region's neighbors into a given vector. */
-            virtual void getNeighbors(const int rid, std::vector<int>& neighbors) const = 0;
+            virtual void getNeighbors(unsigned int rid, std::vector<unsigned int>& neighbors) const = 0;
 
-            /** \brief Samples a State from a given region using a given StateSampler. */
-            virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s) = 0;
+            /** \brief Samples a projected coordinate from a given region. */
+            virtual void sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const = 0;
 
-            /** \brief Returns the bounds of a given region in this Decomposition. */
-            virtual const base::RealVectorBounds& getRegionBounds(const int rid) = 0;
+            /** \brief Samples a State using a projected coordinate and a StateSampler. */
+            virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const = 0;
 
         protected:
+            virtual void setNumRegions(unsigned int n)
+            {
+                numRegions_ = n;
+            }
 
-            const int numRegions_;
-            const std::size_t dimension_;
-            const base::RealVectorBounds bounds_;
+            unsigned int numRegions_;
+            unsigned int dimension_;
+            base::RealVectorBounds bounds_;
         };
     }
 }

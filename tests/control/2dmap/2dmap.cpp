@@ -332,14 +332,11 @@ class SyclopDecomposition : public control::GridDecomposition
             coord[1] = s->as<base::RealVectorStateSpace::StateType>()->values[1];
         }
 
-        virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s)
+        virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const
         {
-            const base::RealVectorBounds& regionBounds = getRegionBounds(rid);
-
             sampler->sampleUniform(s);
-            base::RealVectorStateSpace::StateType& st = *s->as<base::RealVectorStateSpace::StateType>();
-            st[0] = rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]);
-            st[1] = rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]);
+            s->as<base::RealVectorStateSpace::StateType>()->values[0] = coord[0];
+            s->as<base::RealVectorStateSpace::StateType>()->values[1] = coord[1];
         }
 
     private:

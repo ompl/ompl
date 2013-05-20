@@ -20,6 +20,7 @@ This set of planners only accounts for the geometric constraints of the system. 
 
 - [Probabilistic RoadMaps (PRM)](\ref gPRM)
 - [PRM*](\ref gPRM)
+- [LazyPRM](\ref gLazyPRM)
 
 - [RRT*](\ref gRRTstar)
 - [Ball Tree RRT*](\ref gBallTreeRRTstar)

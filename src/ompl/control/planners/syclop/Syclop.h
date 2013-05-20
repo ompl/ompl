@@ -411,7 +411,7 @@ namespace ompl
                 }
 
                 /** \brief Syclop will not sample from the CoverageGrid. */
-                virtual void sampleFromRegion(const int rid, const base::StateSamplerPtr& sampler, base::State* s)
+                virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const
                 {
                 }
 
