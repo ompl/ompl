@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble */
+/* Author: Ioan Sucan, James D. Marble, Ryan Luna */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
