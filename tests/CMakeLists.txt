@@ -31,10 +31,11 @@ if(NOT "${Boost_VERSION}" LESS 104400)
     add_ompl_test(test_planner_data base/planner_data.cpp)
 endif(NOT "${Boost_VERSION}" LESS 104400)
 
-# Test kinematic motion planners on a 2D map
-add_ompl_test(test_2dmap_geometric geometric/2dmap/2dmap.cpp)
-add_ompl_test(test_2dmap_geometric_simple geometric/2dmap/2dmap_simple.cpp)
-add_ompl_test(test_2dmap_ik geometric/2dmap/2dmap_ik.cpp)
+# Test kinematic motion planners in 2D environments
+add_ompl_test(test_2denvs_geometric geometric/2d/2denvs.cpp)
+add_ompl_test(test_2dmap_geometric_simple geometric/2d/2dmap_simple.cpp)
+add_ompl_test(test_2dmap_ik geometric/2d/2dmap_ik.cpp)
+add_ompl_test(test_2dcircles_opt_geometric geometric/2d/2dcircles_optimize.cpp)
 
 # Test planning with controls on a 2D map
 add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)

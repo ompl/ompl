@@ -56,6 +56,7 @@
 #include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
+#include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
 
 
@@ -106,6 +107,7 @@ public:
 	    goal[1] = q.goalY_;
 	    pdef->setStartAndGoalStates(start, goal, 1e-3);
 	    planner->clear();
+	    pdef->clearSolutionPaths();
 
 	    /* start counting time */
 	    ompl::time::point startTime = ompl::time::now();
@@ -465,7 +467,17 @@ protected:
         geometric::PRM *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
     }
+};
 
+class PRMstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::PRMstar *prm = new geometric::PRMstar(si);
+        return base::PlannerPtr(prm);
+    }
 };
 
 class LazyPRMTest : public TestPlanner
@@ -622,6 +634,7 @@ OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
 OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
+OMPL_PLANNER_TEST(PRMstar, 99.0, 0.02)
 OMPL_PLANNER_TEST(LazyPRM, 99.0, 0.02)
 
 // OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
