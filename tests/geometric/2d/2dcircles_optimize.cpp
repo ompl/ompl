@@ -49,6 +49,7 @@
 using namespace ompl;
 
 static const double SOLUTION_TIME = 1.0;
+static const double DT_SOLUTION_TIME = 0.1;
 static const bool VERBOSE = true;
 
 /** \brief A base class for testing planners */
@@ -72,7 +73,9 @@ public:
         /* instantiate problem definition */
 	base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));	
 	
-	pdef->setOptimizationObjective(base::OptimizationObjectivePtr(new base::PathLengthOptimizationObjective(si, std::numeric_limits<double>::epsilon())));
+        // define an objective that is met the moment the solution is found
+        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si, std::numeric_limits<double>::infinity());
+        pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 	
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -82,8 +85,8 @@ public:
 	base::ScopedState<> start(si);
 	base::ScopedState<> goal(si);
 	unsigned int good = 0;
-	
-	for (std::size_t i = 0 ; i < circles.getQueryCount() ; ++i)
+        std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
+        for (std::size_t i = 0 ; i < nt ; ++i)
 	{
 	    const Circles2D::Query &q = circles.getQuery(i);
 	    start[0] = q.startX_;
@@ -93,24 +96,37 @@ public:
 	    pdef->setStartAndGoalStates(start, goal, 1e-3);
 	    planner->clear();
 	    pdef->clearSolutionPaths();
-	    
-	    std::vector<double> lengths(3, std::numeric_limits<double>::infinity());
-	    double dt = SOLUTION_TIME / (double)lengths.size();
-	    for (std::size_t i = 0 ; i < lengths.size() ; ++i)
-	    {
-		bool solved = planner->solve(dt);
-		if (solved)
-		{
-		    geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
-		    lengths[i] = path->length();
-		}
-		//		std::cout << lengths[i] << std::endl;
-	    }
-	    
-	    BOOST_CHECK(lengths[0] >= lengths[1]);
-	    BOOST_CHECK(lengths[1] >= lengths[2]);
-	    BOOST_CHECK(lengths[0] > lengths[2]);
-	}
+            
+            // we change the optimization objective so the planner runs until the first solution
+            opt->setMaximumUpperBound(std::numeric_limits<double>::infinity());
+
+            time::point start = time::now();
+            bool solved = planner->solve(SOLUTION_TIME);
+            if (solved)
+            {
+              // we change the optimization objective so the planner runs until timeout
+              opt->setMaximumUpperBound(std::numeric_limits<double>::epsilon());
+              
+              geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+              double ini_length = path->length();
+              double prev_length = ini_length;
+              std::vector<double> lengths;
+              double time_spent = time::seconds(time::now() - start);
+              
+              while (time_spent + DT_SOLUTION_TIME < SOLUTION_TIME)
+              {
+                pdef->clearSolutionPaths();
+                solved = planner->solve(DT_SOLUTION_TIME);
+                BOOST_CHECK(solved);
+                geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+                double new_length = path->length();                
+                BOOST_CHECK(new_length <= prev_length);
+                prev_length = new_length;
+                time_spent = time::seconds(time::now() - start);
+              }
+              BOOST_CHECK(ini_length > prev_length);
+            }
+        }
     }
     
     virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
@@ -184,7 +200,7 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 	    printf("Done with %s.\n", #Name);				\
     }
 
-OMPL_PLANNER_TEST(RRTstar)
-//OMPL_PLANNER_TEST(PRMstar)
+OMPL_PLANNER_TEST(PRMstar)
+//OMPL_PLANNER_TEST(RRTstar)
 
 BOOST_AUTO_TEST_SUITE_END()

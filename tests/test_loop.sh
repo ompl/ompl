@@ -8,7 +8,7 @@ control_c()
 }
 
 # This script simply runs a test many times in gdb
-TEST_EXE=../build/bin/test_2dmap_geometric
+TEST_EXE=../build/bin/test_2denvs_geometric
 
 COUNT=100
 if [ $# -gt 0 ]
