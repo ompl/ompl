@@ -292,7 +292,8 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
         // Check for a solution
         addedSolution_ = haveSolution(startM_, goalM_, solution);
         // Sleep for 1ms
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+        if (!addedSolution_)
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
     }
 }
 
