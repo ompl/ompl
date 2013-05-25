@@ -50,10 +50,10 @@ namespace ompl
            @par Short description
            LazyPRM is a planner that constructs a roadmap of milestones
            that approximate the connectivity of the state space, just like PRM does.
-	   The difference is that the planner uses lazy collision checking.
+           The difference is that the planner uses lazy collision checking.
            @par External documentation
            R. Bohlin and L.E. Kavraki
-	   Path Planning Using Lazy PRM
+           Path Planning Using Lazy PRM
            <em>IEEE International Conference on Robotics and Automation</em>, San Francisco, pp. 521–528, 2000.
            DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
            <a href="http://www.kavrakilab.org/robotics/lazyprm.html">[more]</a>
@@ -69,26 +69,26 @@ namespace ompl
 
             virtual ~LazyPRM(void);
 
-	protected:
+        protected:
 
-	    /** \brief Flag indicating validity of an edge of a vertex */
-	    static const unsigned int VALIDITY_UNKNOWN = 0;
+            /** \brief Flag indicating validity of an edge of a vertex */
+            static const unsigned int VALIDITY_UNKNOWN = 0;
 
-	    /** \brief Flag indicating validity of an edge of a vertex */
-	    static const unsigned int VALIDITY_TRUE    = 1;
+            /** \brief Flag indicating validity of an edge of a vertex */
+            static const unsigned int VALIDITY_TRUE    = 1;
 
-	    virtual Vertex addMilestone(base::State *state);
+            virtual Vertex addMilestone(base::State *state);
 
-	    virtual void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
-	    
-	    virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
-	    
-	    virtual base::PathPtr constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal);
+            virtual void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
 
-	    /** \brief Access the validity state of a vertex */
-	    boost::property_map<Graph, vertex_flags_t>::type vertexValidityProperty_;
-	    /** \brief Access the validity state of an edge */
-	    boost::property_map<Graph, edge_flags_t>::type   edgeValidityProperty_;
+            virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
+
+            virtual base::PathPtr constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal);
+
+            /** \brief Access the validity state of a vertex */
+            boost::property_map<Graph, vertex_flags_t>::type vertexValidityProperty_;
+            /** \brief Access the validity state of an edge */
+            boost::property_map<Graph, edge_flags_t>::type   edgeValidityProperty_;
 
         };
 

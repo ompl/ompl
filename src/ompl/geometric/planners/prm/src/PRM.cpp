@@ -258,25 +258,25 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
     /* grow roadmap in the regular fashion -- sample valid states, add them to the roadmap, add valid connections */
     while (ptc == false)
     {
-	// search for a valid state
-	bool found = false;
-	while (!found && ptc == false)
-	{
-	    unsigned int attempts = 0;
-	    do
-	    {
-		found = sampler_->sample(workState);
-		attempts++;
-	    } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
-	}
-	// add it as a milestone
-	if (found)
-	    addMilestone(si_->cloneState(workState));
+        // search for a valid state
+        bool found = false;
+        while (!found && ptc == false)
+        {
+            unsigned int attempts = 0;
+            do
+            {
+                found = sampler_->sample(workState);
+                attempts++;
+            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
+        }
+        // add it as a milestone
+        if (found)
+            addMilestone(si_->cloneState(workState));
     }
 }
 
 void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondition &ptc,
-					    base::PathPtr &solution)
+                                            base::PathPtr &solution)
 {
     base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     while (!ptc && !addedSolution_)
@@ -286,8 +286,8 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
         {
             const base::State *st = pis_.nextGoal();
             if (st)
-		goalM_.push_back(addMilestone(si_->cloneState(st)));
-	}
+                goalM_.push_back(addMilestone(si_->cloneState(st)));
+        }
 
         // Check for a solution
         addedSolution_ = haveSolution(startM_, goalM_, solution);
@@ -317,40 +317,40 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 if (pdef_->hasOptimizationObjective())
                 {
                     base::PathPtr p = constructSolution(start, goal);
-		    if (p)
-		    {			
-			double obj_cost = pdef_->getOptimizationObjective()->getCost(p);
-			if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
-			{
-			    solution = p;
-			    return true;
-			}
-			else
-			{
-			    if (solution && !sol_cost_set)
-			    {
-				sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
-				sol_cost_set = true;
-			    }
-			    
-			    if (!solution || obj_cost < sol_cost)
-			    {
-				solution = p;
-				sol_cost = obj_cost;
-				sol_cost_set = true;
-			    }
-			}
-		    }
-		}
+                    if (p)
+                    {
+                        double obj_cost = pdef_->getOptimizationObjective()->getCost(p);
+                        if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
+                        {
+                            solution = p;
+                            return true;
+                        }
+                        else
+                        {
+                            if (solution && !sol_cost_set)
+                            {
+                                sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
+                                sol_cost_set = true;
+                            }
+
+                            if (!solution || obj_cost < sol_cost)
+                            {
+                                solution = p;
+                                sol_cost = obj_cost;
+                                sol_cost_set = true;
+                            }
+                        }
+                    }
+                }
                 else // Accept the solution, regardless of cost
                 {
-		    base::PathPtr p = constructSolution(start, goal);
-		    if (p)
-		    {
-			solution = p;
-			return true;
-		    }
-		}
+                    base::PathPtr p = constructSolution(start, goal);
+                    if (p)
+                    {
+                        solution = p;
+                        return true;
+                    }
+                }
             }
         }
     }
@@ -376,8 +376,8 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     // Add the valid start states as milestones
     while (const base::State *st = pis_.nextStart())
-	startM_.push_back(addMilestone(si_->cloneState(st)));
-    
+        startM_.push_back(addMilestone(si_->cloneState(st)));
+
     if (startM_.size() == 0)
     {
         OMPL_ERROR("There are no valid initial states!");
@@ -395,8 +395,8 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     {
         const base::State *st = goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
         if (st)
-	    goalM_.push_back(addMilestone(si_->cloneState(st)));
-	
+            goalM_.push_back(addMilestone(si_->cloneState(st)));
+
         if (goalM_.empty())
         {
             OMPL_ERROR("Unable to find any valid goal states");
@@ -422,7 +422,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
 
     constructRoadmap(ptcOrSolutionFound);
-    
+
     // Ensure slnThread is ceased before exiting solve
     slnThread.join();
 
@@ -449,13 +449,13 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
 
     while (ptc() == false)
     {
-	// maintain a 2:1 ratio for growing/expansion of roadmap
-	// call growRoadmap() twice as long for every call of expandRoadmap()
-	if (grow)
-	    growRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0 * magic::ROADMAP_BUILD_TIME)), xstates[0]);
-	else
-	    expandRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(magic::ROADMAP_BUILD_TIME)), xstates);
-	grow = !grow;
+        // maintain a 2:1 ratio for growing/expansion of roadmap
+        // call growRoadmap() twice as long for every call of expandRoadmap()
+        if (grow)
+            growRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0 * magic::ROADMAP_BUILD_TIME)), xstates[0]);
+        else
+            expandRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(magic::ROADMAP_BUILD_TIME)), xstates);
+        grow = !grow;
     }
 
     si_->freeStates(xstates);
@@ -464,7 +464,7 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)
 {
     boost::mutex::scoped_lock _(addMilestoneMutex_);
-  
+
     graphMutex_.lock();
     Vertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
@@ -476,7 +476,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
     graphMutex_.unlock();
 
     nn_->add(m);
-    
+
     // Which milestones will we attempt to connect to?
     const std::vector<Vertex>& neighbors = connectionStrategy_(m);
 
@@ -492,11 +492,11 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
                 const double weight = distanceFunction(m, n);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
-		graphMutex_.lock();
-		boost::add_edge(m, n, properties, g_);
-		uniteComponents(n, m);
-		graphMutex_.unlock();
-	    }
+                graphMutex_.lock();
+                boost::add_edge(m, n, properties, g_);
+                uniteComponents(n, m);
+                graphMutex_.unlock();
+            }
         }
 
     return m;
@@ -520,18 +520,18 @@ namespace
     class AStarGoalVisitor : public boost::default_astar_visitor
     {
     public:
-	AStarGoalVisitor(const ompl::geometric::PRM::Vertex &goal) : goal_(goal)
-	{
-	}
+        AStarGoalVisitor(const ompl::geometric::PRM::Vertex &goal) : goal_(goal)
+        {
+        }
 
-	void examine_vertex(const ompl::geometric::PRM::Vertex &u, const ompl::geometric::PRM::Graph &g)
-	{
-	    if (u == goal_)
-		throw AStarFoundGoal();
-	}
+        void examine_vertex(const ompl::geometric::PRM::Vertex &u, const ompl::geometric::PRM::Graph &g)
+        {
+            if (u == goal_)
+                throw AStarFoundGoal();
+        }
 
-    private:	
-	ompl::geometric::PRM::Vertex goal_;
+    private:
+        ompl::geometric::PRM::Vertex goal_;
     };
 }
 
@@ -542,15 +542,15 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
 
     try
     {
-	boost::astar_search(g_, start,
-			    boost::bind(&PRM::distanceFunction, this, _1, goal),
-			    boost::predecessor_map(prev).
-			    visitor(AStarGoalVisitor(goal)));
+        boost::astar_search(g_, start,
+                            boost::bind(&PRM::distanceFunction, this, _1, goal),
+                            boost::predecessor_map(prev).
+                            visitor(AStarGoalVisitor(goal)));
     }
     catch (AStarFoundGoal&)
     {
-    }    
-    
+    }
+
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
     else
@@ -559,13 +559,13 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
 
 ompl::base::PathPtr ompl::geometric::PRM::constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal)
 {
-    PathGeometric *p = new PathGeometric(si_);	    
+    PathGeometric *p = new PathGeometric(si_);
     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
-	p->append(stateProperty_[pos]);
+        p->append(stateProperty_[pos]);
     p->append(stateProperty_[start]);
     p->reverse();
-    
-    return base::PathPtr(p);    
+
+    return base::PathPtr(p);
 }
 
 void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
@@ -591,8 +591,8 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
         data.addEdge(base::PlannerDataVertex(stateProperty_[v2]),
                      base::PlannerDataVertex(stateProperty_[v1]));
 
-	// Add tags for the newly added vertices
-	data.tagState(stateProperty_[v1], const_cast<PRM*>(this)->disjointSets_.find_set(v1));
-	data.tagState(stateProperty_[v2], const_cast<PRM*>(this)->disjointSets_.find_set(v2));
+        // Add tags for the newly added vertices
+        data.tagState(stateProperty_[v1], const_cast<PRM*>(this)->disjointSets_.find_set(v1));
+        data.tagState(stateProperty_[v2], const_cast<PRM*>(this)->disjointSets_.find_set(v2));
     }
 }

@@ -109,9 +109,9 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
         opt = NULL;
         OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
     }
-    
+
     if (!opt)
-    { 
+    {
         // by default, optimize path length and run until completion
         opt = new base::PathLengthOptimizationObjective(si_, std::numeric_limits<double>::epsilon());
         temporaryOptimizationObjective.reset(opt);
@@ -366,7 +366,7 @@ ompl::base::PlannerStatus ompl::geometric::BallTreeRRTstar::solve(const base::Pl
                                 nbh[i]->cost = c;
                                 nbh[i]->parent->children.push_back(nbh[i]);
                                 solCheck.push_back(nbh[i]);
-                                
+
                                 // Update the costs of the node's children
                                 updateChildCosts(nbh[i], delta);
                             }

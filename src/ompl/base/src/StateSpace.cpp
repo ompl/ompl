@@ -230,7 +230,7 @@ void ompl::base::StateSpace::setup(void)
         printSettings(error);
         throw Exception(error.str());
     }
-    
+
     computeLocationsHelper(this, substateLocationsByName_, valueLocationsInOrder_, valueLocationsByName_);
 
     // make sure we don't overwrite projections that have been configured by the user
