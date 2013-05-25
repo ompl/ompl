@@ -39,7 +39,6 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <limits>
 #include <vector>
 
@@ -119,48 +118,6 @@ namespace ompl
             double getRange(void) const
             {
                 return maxDistance_;
-            }
-
-            /** \brief When the planner attempts to rewire the tree,
-                it does so by looking at some of the neighbors within
-                a computed radius. The computation of that radius
-                depends on the multiplicative factor set here.
-                Set this parameter should be set at least to the side
-                length of the (bounded) state space. E.g., if the state
-                space is a box with side length L, then this parameter
-                should be set to at least L for rapid and efficient
-                convergence in trajectory space. */
-            void setBallRadiusConstant(double ballRadiusConstant)
-            {
-                ballRadiusConst_ = ballRadiusConstant;
-            }
-
-            /** \brief Get the multiplicative factor used in the
-                computation of the radius whithin which tree rewiring
-                is done. */
-            double getBallRadiusConstant(void) const
-            {
-                return ballRadiusConst_;
-            }
-
-            /** \brief When the planner attempts to rewire the tree,
-                it does so by looking at some of the neighbors within
-                a computed radius. That radius is bounded by the value
-                set here. This parameter should ideally be equal longest
-                straight line from the initial state to anywhere in the
-                state space. In other words, this parameter should be
-                "sqrt(d) L", where d is the dimensionality of space
-                and L is the side length of a box containing the obstacle free space. */
-            void setMaxBallRadius(double maxBallRadius)
-            {
-                ballRadiusMax_ = maxBallRadius;
-            }
-
-            /** \brief Get the maximum radius the planner uses in the
-                tree rewiring step */
-            double getMaxBallRadius(void) const
-            {
-                return ballRadiusMax_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -260,18 +217,17 @@ namespace ompl
             /** \brief The random number generator */
             RNG                                            rng_;
 
-            /** \brief Shrink rate of radius the planner uses to find near neighbors and rewire */
-            double                                         ballRadiusConst_;
-
-            /** \brief Maximum radius the planner uses to find near neighbors and rewire */
-            double                                         ballRadiusMax_;
-
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
             /** \brief The number of iterations the algorithm performed */
             unsigned int                                   iterations_;
 
+            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            Motion                                         *lastGoalMotion_;
+
+            /** \brief A list of states in the tree that satisfy the goal condition */
+            std::vector<Motion*>                           goalMotions_;
         };
 
     }

@@ -71,8 +71,8 @@ public:
         base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
 
         /* instantiate problem definition */
-	base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));	
-	
+        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));	
+
         // define an objective that is met the moment the solution is found
         base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si, std::numeric_limits<double>::infinity());
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
@@ -82,21 +82,21 @@ public:
         planner->setProblemDefinition(pdef);
         planner->setup();
 
-	base::ScopedState<> start(si);
-	base::ScopedState<> goal(si);
-	unsigned int good = 0;
+        base::ScopedState<> start(si);
+        base::ScopedState<> goal(si);
+        unsigned int good = 0;
         std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
         for (std::size_t i = 0 ; i < nt ; ++i)
-	{
-	    const Circles2D::Query &q = circles.getQuery(i);
-	    start[0] = q.startX_;
-	    start[1] = q.startY_;
-	    goal[0] = q.goalX_;
-	    goal[1] = q.goalY_;
-	    pdef->setStartAndGoalStates(start, goal, 1e-3);
-	    planner->clear();
-	    pdef->clearSolutionPaths();
-            
+        {
+            const Circles2D::Query &q = circles.getQuery(i);
+            start[0] = q.startX_;
+            start[1] = q.startY_;
+            goal[0] = q.goalX_;
+            goal[1] = q.goalY_;
+            pdef->setStartAndGoalStates(start, goal, 1e-3);
+            planner->clear();
+            pdef->clearSolutionPaths();
+
             // we change the optimization objective so the planner runs until the first solution
             opt->setMaximumUpperBound(std::numeric_limits<double>::infinity());
 
@@ -140,7 +140,6 @@ protected:
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
         geometric::RRTstar *rrt = new geometric::RRTstar(si);
-        rrt->setRange(10.0);
         return base::PlannerPtr(rrt);
     }
 };
@@ -179,8 +178,8 @@ protected:
     {
         verbose_ = VERBOSE;
         boost::filesystem::path path(TEST_RESOURCES_DIR);
-	circles_.loadCircles((path / "circle_obstacles.txt").string());
-	circles_.loadQueries((path / "circle_queries.txt").string());
+        circles_.loadCircles((path / "circle_obstacles.txt").string());
+        circles_.loadQueries((path / "circle_queries.txt").string());
     }
 
     Circles2D     circles_;
@@ -201,6 +200,6 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
     }
 
 OMPL_PLANNER_TEST(PRMstar)
-//OMPL_PLANNER_TEST(RRTstar)
+OMPL_PLANNER_TEST(RRTstar)
 
 BOOST_AUTO_TEST_SUITE_END()
