@@ -153,6 +153,12 @@ void ompl::base::ProjectionEvaluator::setCellSizes(const std::vector<double> &ce
     checkCellSizes();
 }
 
+void ompl::base::ProjectionEvaluator::setBounds(const RealVectorBounds &bounds)
+{
+    bounds_ = bounds;
+    checkBounds();
+}
+
 void ompl::base::ProjectionEvaluator::setCellSizes(unsigned int dim, double cellSize)
 {
     if (cellSizes_.size() >= dim)
@@ -190,6 +196,13 @@ void ompl::base::ProjectionEvaluator::checkCellSizes(void) const
         throw Exception("Dimension of projection needs to be larger than 0");
     if (cellSizes_.size() != getDimension())
         throw Exception("Number of dimensions in projection space does not match number of cell sizes");
+}
+
+void ompl::base::ProjectionEvaluator::checkBounds(void) const
+{
+    bounds_.check();
+    if (bounds_.low.size() != getDimension())
+        throw Exception("Number of dimensions in projection space does not match dimension of bounds");
 }
 
 void ompl::base::ProjectionEvaluator::defaultCellSizes(void)
@@ -274,7 +287,8 @@ void ompl::base::ProjectionEvaluator::setup(void)
         inferCellSizes();
 
     checkCellSizes();
-
+    checkBounds();
+    
     unsigned int dim = getDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
         params_.declareParam<double>("cellsize." + boost::lexical_cast<std::string>(i),

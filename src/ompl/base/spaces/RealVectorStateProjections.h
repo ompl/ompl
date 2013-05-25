@@ -153,6 +153,9 @@ namespace ompl
 
         protected:
 
+	    /** \brief Fill bounds_ with bounds from the state space */
+	    void copyBounds();
+
             /** \brief The set of components selected by the projection */
             std::vector<unsigned int> components_;
 
@@ -188,7 +191,10 @@ namespace ompl
             virtual void project(const State *state, EuclideanProjection &projection) const;
 
         private:
-
+	    
+	    /** \brief Fill bounds_ with bounds from the state space */
+	    void copyBounds();
+	    
             /** \brief The amount of data to copy from projection to state */
             std::size_t copySize_;
 

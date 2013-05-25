@@ -186,6 +186,9 @@ namespace ompl
             /** \brief Check if cell dimensions match projection dimension */
             void checkCellSizes(void) const;
 
+            /** \brief Check if the projection dimension matched the dimension of the bounds */
+            void checkBounds(void) const;
+
             /** \brief Sample the state space and decide on default
                 cell sizes. This function is called by setup() if
                 no cell dsizes have been set and
@@ -196,10 +199,8 @@ namespace ompl
             /** \brief Set bounds on the projection. The PDST planner
                  needs to known the bounds on the projection. Default bounds
                  are automatically computed by inferCellSizes(). */
-            void setBounds(const RealVectorBounds &bounds)
-            {
-                bounds_ = bounds;
-            }
+            void setBounds(const RealVectorBounds &bounds);
+
             /** \brief Get the bounds computed/set for this projection */
             const RealVectorBounds& getBounds(void)
             {
