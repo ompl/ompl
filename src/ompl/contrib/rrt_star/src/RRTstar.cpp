@@ -151,6 +151,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     std::vector<double>  dists;
     std::vector<int>     valid;
     unsigned int         rewireTest = 0;
+    unsigned int         statesGenerated = 0;
 
     if(solution)
         OMPL_INFORM("Starting with existing solution of cost %.5f", solution->cost);
@@ -191,6 +192,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             unsigned int k = std::ceil(k_rrg * log(nn_->size()+1));
             nn_->nearestK(motion, k, nbh);
             rewireTest += nbh.size();
+            statesGenerated++;
 
             // cache for distance computations
             dists.resize(nbh.size());
@@ -367,7 +369,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    OMPL_INFORM("Created %u states. Checked %lu rewire options.  %u total goal states.", nn_->size(), rewireTest, goalMotions_.size());
+    OMPL_INFORM("Created %u new states. Checked %lu rewire options. %u goal states in tree.", statesGenerated, rewireTest, goalMotions_.size());
 
     return base::PlannerStatus(addedSolution, approximate);
 }
