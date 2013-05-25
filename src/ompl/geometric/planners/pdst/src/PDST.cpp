@@ -58,10 +58,10 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
     checkValidity();
 
     if (!bsp_)
-    {
-        OMPL_ERROR("PDST was not set up.");
-        return base::PlannerStatus::CRASH;
-    }
+        throw Exception("PDST was not set up.");
+
+    if (!projectionEvaluator_->hasBounds())
+        throw Exception("PDST requires a projection evaluator that specifies bounds for the projected space");
 
     // depending on how the planning problem is set up, this may be necessary
     bsp_->bounds_ = projectionEvaluator_->getBounds();

@@ -184,6 +184,9 @@ void ompl::base::SO2StateSpace::registerProjections(void)
         {
             cellSizes_.resize(1);
             cellSizes_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
+            bounds_.resize(1);
+            bounds_.low[0] = -boost::math::constants::pi<double>();
+            bounds_.high[0] = boost::math::constants::pi<double>();
         }
 
         virtual void project(const State *state, EuclideanProjection &projection) const

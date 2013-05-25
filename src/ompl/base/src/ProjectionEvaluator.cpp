@@ -59,7 +59,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
     Matrix projection(to, from);
 
     for (unsigned int j = 0 ; j < from ; ++j)
-    {    
+    {
         if (scale.size() == from && fabs(scale[j]) < std::numeric_limits<double>::epsilon())
             boost::numeric::ublas::column(projection, j) = boost::numeric::ublas::zero_vector<double>(to);
         else
@@ -201,7 +201,7 @@ void ompl::base::ProjectionEvaluator::checkCellSizes(void) const
 void ompl::base::ProjectionEvaluator::checkBounds(void) const
 {
     bounds_.check();
-    if (bounds_.low.size() != getDimension())
+    if (hasBounds() && bounds_.low.size() != getDimension())
         throw Exception("Number of dimensions in projection space does not match dimension of bounds");
 }
 
@@ -288,7 +288,7 @@ void ompl::base::ProjectionEvaluator::setup(void)
 
     checkCellSizes();
     checkBounds();
-    
+
     unsigned int dim = getDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
         params_.declareParam<double>("cellsize." + boost::lexical_cast<std::string>(i),

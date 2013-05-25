@@ -196,6 +196,12 @@ namespace ompl
                 sizes either. */
             void inferCellSizes(void);
 
+            /** \brief Check if bounds were specified for this projection */
+            bool hasBounds(void) const
+            {
+                return !bounds_.low.empty();
+            }
+
             /** \brief Set bounds on the projection. The PDST planner
                  needs to known the bounds on the projection. Default bounds
                  are automatically computed by inferCellSizes(). */
