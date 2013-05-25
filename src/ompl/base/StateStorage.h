@@ -210,7 +210,7 @@ namespace ompl
 
             /** \brief the datatype of the metadata */
             typedef M MetadataType;
-          
+
             /** \brief The state space to store states for is specified as argument */
             StateStorageWithMetadata(const StateSpacePtr &space) : StateStorage(space)
             {

@@ -156,7 +156,7 @@ namespace ompl
             // we store weak pointers so that the SpaceInformation instances are not kept in
             // memory until termination of the program due to the use of a static ConfigMap below
             boost::weak_ptr<base::SpaceInformation> wsi_;
-          
+
             double                                  probabilityOfValidState_;
             double                                  averageValidMotionLength_;
 

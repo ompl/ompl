@@ -53,7 +53,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     ballRadiusConst_ = 0.0;
     delayCC_ = true;
     iterations_ = 0;
-    
+
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("ball_radius_constant", this, &RRTstar::setBallRadiusConstant, &RRTstar::getBallRadiusConstant);
@@ -98,7 +98,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     base::OptimizationObjective *opt    = pdef_->getOptimizationObjective().get();
-    
+
     // when no optimization objective is specified, we create a temporary one (we should not modify the ProblemDefinition)
     boost::scoped_ptr<base::OptimizationObjective> temporaryOptimizationObjective;
 
@@ -107,9 +107,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         opt = NULL;
         OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
     }
-    
+
     if (!opt)
-    { 
+    {
         // by default, optimize path length and run until completion
         opt = new base::PathLengthOptimizationObjective(si_, std::numeric_limits<double>::epsilon());
         temporaryOptimizationObjective.reset(opt);
@@ -299,7 +299,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                                 nbh[i]->cost = c;
                                 nbh[i]->parent->children.push_back(nbh[i]);
                                 solCheck.push_back(nbh[i]);
-                                
+
                                 // Update the costs of the node's children
                                 updateChildCosts(nbh[i], delta);
                             }
@@ -342,7 +342,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (solution && sufficientlyShort)
             break;
     }
-    
+
     double solutionCost;
     bool approximate = (solution == NULL);
     bool addedSolution = false;

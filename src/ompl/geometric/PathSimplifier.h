@@ -191,7 +191,7 @@ namespace ompl
                 path is subdivided and states along it are updated
                 such that the smoothness is improved.
 
-                \note This function may significantly increase the number of states along the solution path. 
+                \note This function may significantly increase the number of states along the solution path.
                 \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
                 */
             void smoothBSpline(PathGeometric &path, unsigned int maxSteps = 5, double minChange = std::numeric_limits<double>::epsilon());

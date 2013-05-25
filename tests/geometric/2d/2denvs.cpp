@@ -56,6 +56,7 @@
 #include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
+#include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
 
 
@@ -106,6 +107,7 @@ public:
 	    goal[1] = q.goalY_;
 	    pdef->setStartAndGoalStates(start, goal, 1e-3);
 	    planner->clear();
+	    pdef->clearSolutionPaths();
 
 	    /* start counting time */
 	    ompl::time::point startTime = ompl::time::now();
@@ -465,7 +467,17 @@ protected:
         geometric::PRM *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
     }
+};
 
+class PRMstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::PRMstar *prm = new geometric::PRMstar(si);
+        return base::PlannerPtr(prm);
+    }
 };
 
 class LazyPRMTest : public TestPlanner
@@ -556,7 +568,7 @@ public:
 	BOOST_CHECK(success >= min_success);
         // this problem is a little more difficult than the one above, so we allow more time for its solution
 	BOOST_CHECK(avgruntime < max_avgtime * 2.0);
-	BOOST_CHECK(avglength < 25.0);
+	BOOST_CHECK(avglength < 100.0);
     }
     
     template<typename T>
@@ -607,10 +619,11 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 OMPL_PLANNER_TEST(RRT, 99.0, 0.01)
 OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
 OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)  
+
 // LazyRRT is a not so great, so we use more relaxed bounds
 OMPL_PLANNER_TEST(LazyRRT, 90.0, 0.2)
 
-// OMPL_PLANNER_TEST(PDST, 99.0, 0.02)
+OMPL_PLANNER_TEST(PDST, 99.0, 0.03)
 
 OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
 OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
@@ -622,6 +635,7 @@ OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
 OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
+OMPL_PLANNER_TEST(PRMstar, 99.0, 0.02)
 OMPL_PLANNER_TEST(LazyPRM, 99.0, 0.02)
 
 // OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)

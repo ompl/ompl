@@ -42,7 +42,7 @@
 #include <limits>
 
 ompl::geometric::GeneticSearch::GeneticSearch(const base::SpaceInformationPtr &si) : hc_(si), si_(si), poolSize_(100), poolMutation_(20), poolRandom_(30),
-										     generations_(0), tryImprove_(false), maxDistance_(0.0)
+                                                                                     generations_(0), tryImprove_(false), maxDistance_(0.0)
 {
     hc_.setMaxImproveSteps(3);
     setValidityCheck(true);

@@ -88,7 +88,7 @@ namespace ompl
         static const double STD_DEV_AS_SPACE_EXTENT_FRACTION = 0.1;
 
         /** \brief When running algorithms such as  RRT*, rewire updates are made when the cost of a path appears better than the cost of another.
-            The minimum margin for a path to be better than another one is specified by this parameter. This is used to avoid 
+            The minimum margin for a path to be better than another one is specified by this parameter. This is used to avoid
             numerical issues that can otherise arise. */
         static const double BETTER_PATH_COST_MARGIN = std::numeric_limits<double>::epsilon() * 1e3;
 

@@ -140,12 +140,12 @@ ompl::base::PlannerThreadedTerminationCondition& ompl::base::PlannerThreadedTerm
 {
     if (this != &other)
     {
-	stopEvalThread();
-	static_cast<PlannerTerminationCondition&>(*this) = static_cast<const PlannerTerminationCondition&>(other);
-	thread_ = NULL;
-	evalValue_ = other.evalValue_;
-	period_ = other.period_;  
-	startEvalThread();
+        stopEvalThread();
+        static_cast<PlannerTerminationCondition&>(*this) = static_cast<const PlannerTerminationCondition&>(other);
+        thread_ = NULL;
+        evalValue_ = other.evalValue_;
+        period_ = other.period_;
+        startEvalThread();
     }
     return *this;
 }
@@ -159,21 +159,21 @@ void ompl::base::PlannerThreadedTerminationCondition::periodicEval(void)
     time::duration s = time::seconds(period_);
     if (period_ > 0.001)
     {
-	count = 0.5 + period_ / 0.001;
-	s = time::seconds(period_ / (double) count);
+        count = 0.5 + period_ / 0.001;
+        s = time::seconds(period_ / (double) count);
     }
 
     if (!(*this)())
-	do
-	{
-	    evalValue_ = computeEval();
-	    for (unsigned int i = 0 ; i < count ; ++i)
-	    {
-		if ((*this)())
-		    break;
-		boost::this_thread::sleep(s);
-	    }
-	} while (!(*this)());
+        do
+        {
+            evalValue_ = computeEval();
+            for (unsigned int i = 0 ; i < count ; ++i)
+            {
+                if ((*this)())
+                    break;
+                boost::this_thread::sleep(s);
+            }
+        } while (!(*this)());
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration)

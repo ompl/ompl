@@ -97,7 +97,7 @@ namespace ompl
                 typedef boost::edge_property_tag kind;
             };
 
-	    /**
+            /**
              @brief The underlying roadmap graph.
 
              @par Any BGL graph representation could be used here. Because we
@@ -119,10 +119,10 @@ namespace ompl
                 boost::property < vertex_successful_connection_attempts_t, unsigned int,
                 boost::property < vertex_flags_t, unsigned int,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
-		boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
+                boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
                 boost::property < boost::edge_weight_t, double,
-		boost::property < boost::edge_index_t, unsigned int,
-		boost::property < edge_flags_t, unsigned int > > >
+                boost::property < boost::edge_index_t, unsigned int,
+                boost::property < edge_flags_t, unsigned int > > >
             > Graph;
 
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -235,7 +235,7 @@ namespace ompl
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for PRM. */
             void clearQuery(void);
-	    
+
             virtual void clear(void);
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -278,19 +278,19 @@ namespace ompl
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
 
-            /** \brief Construct a milestone for a given state (\e state), store it in the nearest neighbors data structure 
-		and then connect it to the roadmap in accordance to the connection strategy. */
+            /** \brief Construct a milestone for a given state (\e state), store it in the nearest neighbors data structure
+                and then connect it to the roadmap in accordance to the connection strategy. */
             virtual Vertex addMilestone(base::State *state);
-	    
+
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
 
             /** \brief Check if two milestones (\e m1 and \e m2) are part of the same connected component. This is not a const function since we use incremental connected components from boost */
             bool sameComponent(Vertex m1, Vertex m2);
 
-	    /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() / expandRoadmap()) */
-	    virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
-	    
+            /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() / expandRoadmap()) */
+            virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
+
             /** \brief Randomly sample the state space, add and connect milestones
                  in the roadmap. Stop this process when the termination condition
                  \e ptc returns true.  Use \e workState as temporary memory. */
@@ -312,10 +312,10 @@ namespace ompl
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             virtual base::PathPtr constructSolution(const Vertex &start, const Vertex &goal);
-	    
-	    /** \brief Given a solution represented as a vector of predecesors in the roadmap, construct a geometric path */
+
+            /** \brief Given a solution represented as a vector of predecesors in the roadmap, construct a geometric path */
             virtual base::PathPtr constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal);
-	    
+
             /** \brief Flag indicating whether the default connection strategy is the Star strategy */
             bool                                                   starStrategy_;
 
@@ -347,13 +347,13 @@ namespace ompl
             /** \brief Access to the number of successful connection attempts for a vertex */
             boost::property_map<Graph,
                 vertex_successful_connection_attempts_t>::type     successfulConnectionAttemptsProperty_;
-	    
+
             /** \brief Access to the weights of each Edge */
             boost::property_map<Graph, boost::edge_weight_t>::type weightProperty_;
 
             /** \brief Access to the indices of each Edge */
             boost::property_map<Graph, boost::edge_index_t>::type  edgeIDProperty_;
-	    
+
             /** \brief Data structure that maintains the connected components */
             boost::disjoint_sets<
                 boost::property_map<Graph, boost::vertex_rank_t>::type,
