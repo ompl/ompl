@@ -89,6 +89,15 @@ namespace ompl
                 return result;
             }
 
+            bool isOptimized(void)
+            {
+                boost::mutex::scoped_lock slock(lock_);
+                bool result = false;
+                if (!solutions_.empty())
+                    result = solutions_[0].optimized_;
+                return result;
+            }
+
             double getDifference(void)
             {
                 boost::mutex::scoped_lock slock(lock_);
@@ -379,13 +388,25 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath(void) const
 void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference) const
 {
     if (approximate)
-        OMPL_WARN("Adding approximate solution");
+        OMPL_INFORM("Adding approximate solution");
     solutions_->add(PlannerSolution(path, approximate, difference));
+}
+
+void ompl::base::ProblemDefinition::addSolutionPath(const PlannerSolution &sol) const
+{
+    if (sol.approximate_)
+        OMPL_INFORM("Adding approximate solution");
+    solutions_->add(sol);
 }
 
 bool ompl::base::ProblemDefinition::hasApproximateSolution(void) const
 {
     return solutions_->isApproximate();
+}
+
+bool ompl::base::ProblemDefinition::hasOptimizedSolution(void) const
+{
+    return solutions_->isOptimized();
 }
 
 double ompl::base::ProblemDefinition::getSolutionDifference(void) const

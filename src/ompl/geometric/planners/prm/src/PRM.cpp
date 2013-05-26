@@ -430,11 +430,11 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (sol)
     {
+        base::PlannerSolution psol(sol);
+        // if the solution was optimized, we mark it as such
         if (addedNewSolution())
-            pdef_->addSolutionPath (sol);
-        else
-            // the solution is exact, but not as short as we'd like it to be
-            pdef_->addSolutionPath (sol, true, 0.0);
+            psol.optimized_ = true;
+        pdef_->addSolutionPath (psol);
     }
 
     // Return true if any solution was found.
