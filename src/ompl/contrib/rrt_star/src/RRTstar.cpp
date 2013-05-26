@@ -147,11 +147,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     // e+e/d.  K-nearest RRT*
     double k_rrg           = boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
 
-    std::vector<Motion*> nbh;
-    std::vector<double>  dists;
-    std::vector<int>     valid;
-    unsigned int         rewireTest = 0;
-    unsigned int         statesGenerated = 0;
+    std::vector<Motion*>       nbh;
+    std::map<Motion*, double>  dists;
+    std::vector<int>           valid;
+    unsigned int               rewireTest = 0;
+    unsigned int               statesGenerated = 0;
 
     if(solution)
         OMPL_INFORM("Starting with existing solution of cost %.5f", solution->cost);
@@ -195,7 +195,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             statesGenerated++;
 
             // cache for distance computations
-            dists.resize(nbh.size());
+            dists.clear();
             // cache for motion validity
             valid.resize(nbh.size());
             std::fill(valid.begin(), valid.end(), 0);
@@ -207,16 +207,17 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 // calculate all costs and distances
                 for (unsigned int i = 0; i < nbh.size(); ++i)
-                    nbh[i]->cost += si_->distance(nbh[i]->state, motion->state);
+                {
+                    double d = si_->distance(nbh[i]->state, motion->state);
+                    dists[nbh[i]] = d;
+                    nbh[i]->cost += d;
+                }
 
                 // sort the nodes
                 std::sort(nbh.begin(), nbh.end(), compareMotion);
 
                 for (unsigned int i = 0; i < nbh.size(); ++i)
-                {
-                    dists[i] = si_->distance(nbh[i]->state, motion->state);
-                    nbh[i]->cost -= dists[i];
-                }
+                    nbh[i]->cost -= dists[nbh[i]];
 
                 // Collision check until a valid motion is found
                 // The first one found is the min, since the neighbors are sorted
@@ -224,7 +225,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     if (nbh[i] == nmotion || si_->checkMotion(nbh[i]->state, motion->state))
                     {
-                        motion->cost = nbh[i]->cost + dists[i];
+                        motion->cost = nbh[i]->cost + dists[nbh[i]];
                         motion->parent = nbh[i];
                         valid[i] = 1;
                         break;
@@ -242,8 +243,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     if (nbh[i] != nmotion)
                     {
-                        dists[i] = si_->distance(nbh[i]->state, dstate);
-                        double c = nbh[i]->cost + dists[i];
+                        double d = si_->distance(nbh[i]->state, dstate);
+                        dists[nbh[i]] = d;
+                        double c = nbh[i]->cost + d;
                         if (c < motion->cost)
                         {
                             if (si_->checkMotion(nbh[i]->state, dstate))
@@ -259,7 +261,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     else
                     {
                         valid[i] = 1;
-                        dists[i] = distN;
+                        dists[nbh[i]] = distN;
                     }
                 }
             }
@@ -274,7 +276,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 if (nbh[i] == motion->parent) continue;
 
-                double newcost = motion->cost + dists[i];
+                double newcost = motion->cost + dists[nbh[i]];
                 if (newcost < nbh[i]->cost)
                 {
                     // Check if the motion to the neighbor is valid
