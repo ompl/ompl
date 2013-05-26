@@ -45,6 +45,7 @@
 #include "ompl/contrib/rrt_star/RRTstar.h"
 
 #include "../../BoostTestTeamCityReporter.h"
+#include "../../base/PlannerTest.h"
 
 using namespace ompl;
 
@@ -71,12 +72,12 @@ public:
         base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
 
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));	
+        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
         // define an objective that is met the moment the solution is found
         base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si, std::numeric_limits<double>::infinity());
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
-	
+
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
         planner->setProblemDefinition(pdef);
@@ -86,6 +87,22 @@ public:
         base::ScopedState<> goal(si);
         unsigned int good = 0;
         std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
+
+        // run a simple test first
+        if (nt > 0)
+        {
+            const Circles2D::Query &q = circles.getQuery(0);
+            start[0] = q.startX_;
+            start[1] = q.startY_;
+            goal[0] = q.goalX_;
+            goal[1] = q.goalY_;
+            pdef->setStartAndGoalStates(start, goal, 1e-3);
+            base::PlannerTest pt(planner);
+            pt.test();
+            planner->clear();
+            pdef->clearSolutionPaths();
+        }
+
         for (std::size_t i = 0 ; i < nt ; ++i)
         {
             const Circles2D::Query &q = circles.getQuery(i);
@@ -106,29 +123,32 @@ public:
             {
               // we change the optimization objective so the planner runs until timeout
               opt->setMaximumUpperBound(std::numeric_limits<double>::epsilon());
-              
+
               geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
               double ini_length = path->length();
               double prev_length = ini_length;
               std::vector<double> lengths;
               double time_spent = time::seconds(time::now() - start);
-              
+
               while (time_spent + DT_SOLUTION_TIME < SOLUTION_TIME)
               {
                 pdef->clearSolutionPaths();
                 solved = planner->solve(DT_SOLUTION_TIME);
                 BOOST_CHECK(solved);
-                geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
-                double new_length = path->length();                
-                BOOST_CHECK(new_length <= prev_length);
-                prev_length = new_length;
+                if (solved)
+                {
+                    geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+                    double new_length = path->length();
+                    BOOST_CHECK(new_length <= prev_length);
+                    prev_length = new_length;
+                }
                 time_spent = time::seconds(time::now() - start);
               }
               BOOST_CHECK(ini_length > prev_length);
             }
         }
     }
-    
+
     virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
 
 };
@@ -155,23 +175,34 @@ protected:
     }
 };
 
+class PRMTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::PRM *prm = new geometric::PRM(si);
+        return base::PlannerPtr(prm);
+    }
+};
+
 class PlanTest
 {
 public:
 
     void run2DCirclesTest(TestPlanner *p)
     {
-	p->test2DCircles(circles_);
+        p->test2DCircles(circles_);
     }
-    
+
     template<typename T>
     void runAllTests(void)
     {
-	TestPlanner *p = new T();
-	run2DCirclesTest(p);
-	delete p;
+        TestPlanner *p = new T();
+        run2DCirclesTest(p);
+        delete p;
     }
-    
+
 protected:
 
     PlanTest(void)
@@ -188,18 +219,19 @@ protected:
 
 BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
-// define boost tests for a planner assuming the naming convention is followed 
-#define OMPL_PLANNER_TEST(Name)						\
-    BOOST_AUTO_TEST_CASE(geometric_##Name)				\
-    {									\
-	if (VERBOSE)							\
-	    printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
-	runAllTests<Name##Test>();					\
-	if (VERBOSE)							\
-	    printf("Done with %s.\n", #Name);				\
+// define boost tests for a planner assuming the naming convention is followed
+#define OMPL_PLANNER_TEST(Name)                                                \
+    BOOST_AUTO_TEST_CASE(geometric_##Name)                                \
+    {                                                                        \
+        if (VERBOSE)                                                        \
+            printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
+        runAllTests<Name##Test>();                                        \
+        if (VERBOSE)                                                        \
+            printf("Done with %s.\n", #Name);                                \
     }
 
 OMPL_PLANNER_TEST(PRMstar)
+OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(RRTstar)
 
 BOOST_AUTO_TEST_SUITE_END()
