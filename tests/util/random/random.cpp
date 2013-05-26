@@ -49,7 +49,7 @@ struct SetSeedTo1
 {
     SetSeedTo1(void)
     {
-	ompl::RNG::setSeed(1);
+        ompl::RNG::setSeed(1);
     }
 };
 // make sure the test is deterministic

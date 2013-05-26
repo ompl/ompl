@@ -49,41 +49,41 @@ namespace ompl
 {
     namespace geometric
     {
-	
-	class StateValidityChecker2DCircles : public base::StateValidityChecker
-	{
-	public:	    
-	    
-	    StateValidityChecker2DCircles(const base::SpaceInformationPtr &si, const Circles2D &circles) :
-		base::StateValidityChecker(si),
-		circles_(circles)
-	    {
-	    }
-	    
-	    virtual bool isValid(const base::State *state) const
-	    {
-		const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
-		return circles_.noOverlap(xy[0], xy[1]);
-	    }
-	    
-	private:
-	    const Circles2D &circles_;
-	};
-	
-	static base::SpaceInformationPtr spaceInformation2DCircles(const Circles2D &circles)
-	{
-	    base::RealVectorStateSpace *space = new base::RealVectorStateSpace();
-	    space->addDimension(circles.minX_, circles.maxX_);
-	    space->addDimension(circles.minY_, circles.maxY_);
-	    base::SpaceInformationPtr si(new base::SpaceInformation(base::StateSpacePtr(space)));
-	    StateValidityChecker2DCircles *svc = new StateValidityChecker2DCircles(si, circles);
-	    si->setStateValidityChecker(base::StateValidityCheckerPtr(svc));  
-	    si->setStateValidityCheckingResolution(0.002);
-	    si->setup();
-	    return si;
-	}
-	
-	
+
+        class StateValidityChecker2DCircles : public base::StateValidityChecker
+        {
+        public:
+
+            StateValidityChecker2DCircles(const base::SpaceInformationPtr &si, const Circles2D &circles) :
+                base::StateValidityChecker(si),
+                circles_(circles)
+            {
+            }
+
+            virtual bool isValid(const base::State *state) const
+            {
+                const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
+                return circles_.noOverlap(xy[0], xy[1]);
+            }
+
+        private:
+            const Circles2D &circles_;
+        };
+
+        static base::SpaceInformationPtr spaceInformation2DCircles(const Circles2D &circles)
+        {
+            base::RealVectorStateSpace *space = new base::RealVectorStateSpace();
+            space->addDimension(circles.minX_, circles.maxX_);
+            space->addDimension(circles.minY_, circles.maxY_);
+            base::SpaceInformationPtr si(new base::SpaceInformation(base::StateSpacePtr(space)));
+            StateValidityChecker2DCircles *svc = new StateValidityChecker2DCircles(si, circles);
+            si->setStateValidityChecker(base::StateValidityCheckerPtr(svc));
+            si->setStateValidityCheckingResolution(0.002);
+            si->setup();
+            return si;
+        }
+
+
     }
 }
 
