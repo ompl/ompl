@@ -298,7 +298,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
 
             // Add the new motion to the goalMotion_ list, if it satisfies the goal
-            if (goal->isSatisfied(motion->state))
+            double distanceFromGoal;
+            if (goal->isSatisfied(motion->state, &distanceFromGoal))
             {
                 goalMotions_.push_back(motion);
                 checkForSolution = true;
@@ -319,11 +320,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
             }
 
-            // Checking for approximate solution
-            if (goalMotions_.size() == 0 && motion->cost < approximatedist)
+            // Checking for approximate solution (closest state found to the goal)
+            if (goalMotions_.size() == 0 && distanceFromGoal < approximatedist)
             {
                 approximation = motion;
-                approximatedist = motion->cost;
+                approximatedist = distanceFromGoal;
             }
         }
 
@@ -332,19 +333,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             break;
     }
 
-    double solutionCost;
     bool approximate = (solution == NULL);
     bool addedSolution = false;
     if (approximate)
-    {
         solution = approximation;
-        solutionCost = approximatedist;
-    }
     else
-    {
-        solutionCost = solution->cost;
         lastGoalMotion_ = solution;
-    }
 
     if (solution != NULL)
     {
@@ -357,10 +351,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         }
 
         // set the solution path
-        PathGeometric *path = new PathGeometric(si_);
+        PathGeometric *geopath = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, solutionCost);
+            geopath->append(mpath[i]->state);
+
+        base::PathPtr path(geopath);
+        // Add the solution path, whether it is approximate (not reaching the goal), and the
+        // distance from the end of the path to the goal (-1 if satisfying the goal).
+        base::PlannerSolution psol(path, approximate, approximate ? approximatedist : -1.0);
+        // Does the solution satisfy the optimization objective?
+        psol.optimized_ = sufficientlyShort;
+
+        pdef_->addSolutionPath (psol);
+
         addedSolution = true;
     }
 
