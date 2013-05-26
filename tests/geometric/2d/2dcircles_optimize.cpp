@@ -141,10 +141,18 @@ public:
                     double new_length = path->length();
                     BOOST_CHECK(new_length <= prev_length);
                     prev_length = new_length;
+                    BOOST_CHECK(!pdef->hasOptimizedSolution());
+                    BOOST_CHECK(!pdef->hasApproximateSolution());
                 }
                 time_spent = time::seconds(time::now() - start);
               }
               BOOST_CHECK(ini_length > prev_length);
+
+              pdef->clearSolutionPaths();
+              // we change the optimization objective so the planner can achieve the objective
+              opt->setMaximumUpperBound(ini_length);
+              if (planner->solve(DT_SOLUTION_TIME))
+                  BOOST_CHECK(pdef->hasOptimizedSolution());
             }
         }
     }
