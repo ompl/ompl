@@ -43,6 +43,7 @@
 #include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/contrib/rrt_star/RRTstar.h"
+#include "ompl/contrib/rrt_star/BallTreeRRTstar.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
@@ -172,6 +173,17 @@ protected:
     }
 };
 
+class BallTreeRRTstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::BallTreeRRTstar *rrt = new geometric::BallTreeRRTstar(si);
+        return base::PlannerPtr(rrt);
+    }
+};
+
 class PRMstarTest : public TestPlanner
 {
 protected:
@@ -241,5 +253,6 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(RRTstar)
+// OMPL_PLANNER_TEST(BallTreeRRTstar) hangs
 
 BOOST_AUTO_TEST_SUITE_END()

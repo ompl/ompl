@@ -45,6 +45,7 @@
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/control/planners/kpiece/KPIECE1.h"
 #include "ompl/control/planners/est/EST.h"
+#include "ompl/control/planners/pdst/PDST.h"
 #include "ompl/control/planners/syclop/SyclopEST.h"
 #include "ompl/control/planners/syclop/SyclopRRT.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
@@ -57,6 +58,7 @@ using namespace ompl;
 
 static const double SOLUTION_TIME = 1.0;
 static const double MAX_VELOCITY = 3.0;
+static const bool VERBOSE = true;
 
 /** Declare a class used in validating states. Such a class definition is needed for any use
  * of a kinematic planner */
@@ -137,6 +139,31 @@ public:
     }
 };
 
+class myProjectionEvaluator : public base::ProjectionEvaluator
+{
+public:
+    myProjectionEvaluator(const base::StateSpacePtr &space, const std::vector<double> &cellSizes) : base::ProjectionEvaluator(space)
+    {
+        setCellSizes(cellSizes);
+        bounds_.resize(2);
+        const base::RealVectorBounds& spacebounds = space->as<base::RealVectorStateSpace>()->getBounds();
+        bounds_.setLow(0, spacebounds.low[0]);
+        bounds_.setLow(1, spacebounds.low[1]);
+        bounds_.setHigh(0, spacebounds.high[0]);
+        bounds_.setHigh(1, spacebounds.high[1]);
+    }
+
+    virtual unsigned int getDimension(void) const
+    {
+        return 2;
+    }
+
+    virtual void project(const base::State *state, base::EuclideanProjection &projection) const
+    {
+        projection(0) = state->as<base::RealVectorStateSpace::StateType>()->values[0];
+        projection(1) = state->as<base::RealVectorStateSpace::StateType>()->values[1];
+    }
+};
 
 /** Space information */
 control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
@@ -307,7 +334,7 @@ protected:
     }
 };
 
-class RRTTestIntermediate : public TestPlanner
+class RRTIntermediateTest : public TestPlanner
 {
 protected:
 
@@ -391,27 +418,6 @@ class SyclopESTTest : public TestPlanner
     }
 };
 
-
-class myProjectionEvaluator : public base::ProjectionEvaluator
-{
-public:
-    myProjectionEvaluator(const base::StateSpacePtr &space, const std::vector<double> &cellSizes) : base::ProjectionEvaluator(space)
-    {
-        setCellSizes(cellSizes);
-    }
-
-    virtual unsigned int getDimension(void) const
-    {
-        return 2;
-    }
-
-    virtual void project(const base::State *state, base::EuclideanProjection &projection) const
-    {
-        projection(0) = state->as<base::RealVectorStateSpace::StateType>()->values[0];
-        projection(1) = state->as<base::RealVectorStateSpace::StateType>()->values[1];
-    }
-};
-
 class KPIECETest : public TestPlanner
 {
 protected:
@@ -450,6 +456,25 @@ protected:
     }
 };
 
+class PDSTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    {
+        control::PDST *pdst = new control::PDST(si);
+
+        std::vector<double> cdim;
+        cdim.push_back(1);
+        cdim.push_back(1);
+        base::ProjectionEvaluatorPtr ope(new myProjectionEvaluator(si->getStateSpace(), cdim));
+
+        pdst->setProjectionEvaluator(ope);
+
+        return base::PlannerPtr(pdst);
+    }
+};
+
 class PlanTest
 {
 public:
@@ -477,6 +502,22 @@ public:
         }
     }
 
+    template<typename T>
+    void runAllTests(double min_success, double max_avgtime)
+    {
+        double success    = 0.0;
+        double avgruntime = 0.0;
+        double avglength  = 0.0;
+
+        TestPlanner *p = new T();
+        runPlanTest(p, &success, &avgruntime, &avglength);
+        delete p;
+
+        BOOST_CHECK(success >= min_success);
+        BOOST_CHECK(avgruntime < max_avgtime);
+        BOOST_CHECK(avglength < 100.0);
+    }
+
 protected:
 
     PlanTest(void)
@@ -496,96 +537,27 @@ protected:
     bool          verbose;
 };
 
-BOOST_FIXTURE_TEST_SUITE( MyPlanTestFixture, PlanTest )
+BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
-BOOST_AUTO_TEST_CASE(controlRRT)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
+#define MACHINE_SPEED_FACTOR 1.0
 
-    TestPlanner *p = new RRTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
+// define boost tests for a planner assuming the naming convention is followed
+#define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                 \
+    BOOST_AUTO_TEST_CASE(control_##Name)                                \
+    {                                                                        \
+        if (VERBOSE)                                                        \
+            printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
+        runAllTests<Name##Test>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR); \
+        if (VERBOSE)                                                        \
+            printf("Done with %s.\n", #Name);                                \
+    }
 
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.05);
-    BOOST_CHECK(avglength < 100.0);
-}
-
-BOOST_AUTO_TEST_CASE(controlRRTIntermediate)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    TestPlanner *p = new RRTTestIntermediate();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.05);
-    BOOST_CHECK(avglength < 100.0);
-}
-
-BOOST_AUTO_TEST_CASE(controlKPIECE)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    TestPlanner *p = new KPIECETest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.05);
-    BOOST_CHECK(avglength < 100.0);
-}
-
-BOOST_AUTO_TEST_CASE(controlEST)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    TestPlanner *p = new ESTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.05);
-    BOOST_CHECK(avglength < 100.0);
-}
-
-BOOST_AUTO_TEST_CASE(controlSyclopRRT)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    TestPlanner *p = new SyclopRRTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.05);
-    BOOST_CHECK(avglength < 100.0);
-}
-
-BOOST_AUTO_TEST_CASE(controlSyclopEST)
-{
-    double success    = 0.0;
-    double avgruntime = 0.0;
-    double avglength  = 0.0;
-
-    TestPlanner *p = new SyclopESTTest();
-    runPlanTest(p, &success, &avgruntime, &avglength);
-    delete p;
-
-    BOOST_CHECK(success >= 99.0);
-    BOOST_CHECK(avgruntime < 0.05);
-    BOOST_CHECK(avglength < 100.0);
-}
+OMPL_PLANNER_TEST(RRT, 99.0, 0.05)
+OMPL_PLANNER_TEST(RRTIntermediate, 99.0, 0.05)
+OMPL_PLANNER_TEST(KPIECE, 99.0, 0.05)
+OMPL_PLANNER_TEST(EST, 99.0, 0.05)
+OMPL_PLANNER_TEST(SyclopRRT, 99.0, 0.05)
+OMPL_PLANNER_TEST(SyclopEST, 99.0, 0.05)
+OMPL_PLANNER_TEST(PDST, 99.0, 0.05)
 
 BOOST_AUTO_TEST_SUITE_END()
