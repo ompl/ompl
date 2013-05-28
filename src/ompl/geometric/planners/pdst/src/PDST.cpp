@@ -65,6 +65,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
 
     // depending on how the planning problem is set up, this may be necessary
     bsp_->bounds_ = projectionEvaluator_->getBounds();
+
     base::Goal *goal = pdef_->getGoal().get();
     goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion*>(goal);
 
@@ -202,7 +203,7 @@ void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State* st
     while (startCell != motion->cell_ && numSegments > 1)
     {
         Cell *nextStartCell = motion->cell_, *cell;
-        int i = 0, j = numSegments, k;
+        int i = 0, j = numSegments, k = 1;
         // Find the largest k such that the interpolated state at k/numSegments is
         // still in startCell. The variables i and j bracket the range that k
         // can be in.
@@ -261,6 +262,8 @@ void ompl::geometric::PDST::setup(void)
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
+    if (projectionEvaluator_->getBounds().low.size() == 0)
+        projectionEvaluator_->defaultCellSizes();
     if (bsp_)
         delete bsp_;
     bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
