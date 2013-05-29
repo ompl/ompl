@@ -1,8 +1,0 @@
-/**
-\page sample_contrib RRT* and Ball Tree RRT* algorithms.
-
-This contribution implements the \ref gRRTstar "RRT*" algorithm and the \ref gBallTreeRRTstar "Ball Tree RRT*" algorithm. For more information on RRT* and its variants see <a href="http://ares.lids.mit.edu/rrtstar/">http://ares.lids.mit.edu/rrtstar/</a>.
-
-
-*/
-

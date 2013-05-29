@@ -1,63 +1,34 @@
 # Creating Python bindings for a new planner
 
-It is often convenient to test a planner through either the OMPL.app GUI or by using a minimal Python program that defines a simple motion planning problem of interest. In both cases you need to create Python bindings for your planner. We will use RRT* as an example planner to illustrate the steps involved. All the relevant code can be found in \c ompl/src/ompl/contrib/rrt_star. At a high level, the steps are:
+It is often convenient to test a planner through either the OMPL.app GUI or by using a minimal Python program that defines a simple motion planning problem of interest. In both cases you need to create Python bindings for your planner. At a high level, the steps are:
 
-- [Create the right directory/file structure](#dirfile)
-- [Use the OMPL CMake macros for creating python bindings](#cmake)
-- [Use your planner in Python (including the OMPL.app GUI)](#python)
+- [Update the Python binding generation code](#pybinding)
 - [Optionally, provide hints for planner parameter ranges that can then be used to create the appropriate controls in the OMPL.app GUI.](#params)
 
 \attention
-Please note that it is difficult to create Python bindings for multi-threaded planners. The problem is that only one thread at a time can access the Pyhton interpreter. If a user creates an instance of a Python class derived from, e.g., ompl::base::StateValidityChecker or ompl::control::StatePropagator, the C++ code may call the Python interpreter simultaneously from multiple threads. In this case you need to modify you planner so that when called from Python it always runs in a single thread. In some cases, such as the ompl::geometric::PRM planner, this can be difficult. For PRM we wrote a special single-threaded version of the solve function (see ompl/py-bindings/PRM.SingleThreadSolve.cpp) that is used in the Python bindings instead of the default multi-threaded solve method.
+Please note that it is difficult to create Python bindings for multi-threaded planners. The problem is that only one thread at a time can access the Python interpreter. If a user creates an instance of a Python class derived from, e.g., ompl::base::StateValidityChecker or ompl::control::StatePropagator, the C++ code may call the Python interpreter simultaneously from multiple threads. In this case you need to modify you planner so that when called from Python it always runs in a single thread. In some cases, such as the ompl::geometric::PRM planner, this can be difficult. For PRM we wrote a special single-threaded version of the solve function (see ompl/py-bindings/PRM.SingleThreadSolve.cpp) that is used in the Python bindings instead of the default multi-threaded solve method.
 
-# Directory/file structure {#dirfile}
+# Updating the Python binding generation code {#pybinding}
 
-It is a good idea to keep Python binding files separate from the rest of the code. For RRT* we have created a subdirectory called \c py-bindings. Within this directory, we use the following layout:
+To create python bindings for your planner, it is easiest if you add the C++ implementation of your planner to \c ompl/src/ompl/geometric/planners (if your planner is a purely geometric planner) or to \c ompl/src/ompl/control/planners (if your planner is a control-based planner). 
 
-- \c CMakeLists.txt - Build system file to generate and compile the python binding code, explained below
-- \c generate_bindings.py - A script that relies on the OMPL python module and Py++. It is fairly straightforward to tweak this file for your planners by replacing \c RRTstar and \c BallTreeRRTstar with the names of your planners. If you have a control-based planner, replace occurrences of \c geometric with \c control.
-- \c headers_rrtstar.txt - A plain text file that simply contains a list of all header files, one per line, for which Python bindings need to be generated.
-- \c ompl/rrtstar/__init__.py - Typically, this is a minimal module initialization file that just imports all the symbols of the binary module that will be created after compilation. It is, of course, possible to add any additional classes or functions that you might need.
+The first step in generating bindings is to add the header file name(s) for your planner to the list of files that need to be processed by the python binding generation script. For geometric planning this list is stored in \c ompl/py-bindings/headers_geometric.txt, while for control-based planning this list is stored in \c ompl/py-bindings/headers_control.txt. The order of the file names in this list matters: if your header file includes other files in the list, it should be added below those files.
 
-# Using the OMPL CMake macros {#cmake}
+The second step is to edit \c ompl/py-bindings/generate_bindings.py. For geometric planners, locate this line:
 
-We have written our own CMake macros for generating python bindings. Although the RRT* code is distributed with OMPL, it should be possible to use the CMake macros even if your project simply uses OMPL as a dependency. You have to make sure that the macros are in the CMake module path by adding a line like this to your CMakeLists.txt:
+    # do this for all planners
 
-    set(CMAKE_MODULE_PATH "/path/to/ompl/CMakeModules")
+in the \c filter_declarations() method of the \c ompl_geometric_generator_t class. In the line below it, add the name of your planner to the end of the list. For control-based planners, do the same thing in the \c ompl_control_generator_t class. Additionally, if you have both a geometric and control-based version of your planner and both have the same name, then you need to add your planner's name to the list below this line:
 
-The main steps to create python bindings in your own CMakeLists.txt are then:
+    # do this for all classes that exist with the same name in another namespace
 
-    include(PythonBindingUtils)
-    # path to python module
-    set(OMPL_RRTSTAR_BINDINGS_DIR "...")
-    # create target "update_rrtstar_bindings" to generate binding code
-    create_module_generation_targets(rrtstar "${CMAKE_CURRENT_SOURCE_DIR}")
-    # create target "py_ompl_rrtstar" to compile generated code
-    create_module_target(rrtstar ${CMAKE_CURRENT_SOURCE_DIR} "${OMPL_RRTSTAR_BINDINGS_DIR}/ompl")
+The next step is to regenerate the python bindings. It safest to remove the old ones first. Go to your build directory and type the following commands:
 
-Please look at \c py-bindings/CMakeLists.txt for a complete example.
+    make clear_bindings
+    make -j 3 update_bindings
 
-# Using your planner in Python (including the OMPL.app GUI) {#python}
-
-As long as your planner derives from ompl::base::Planner, you can use your planner in Python just like any other planner:
-~~~{.py}
-from ompl import geometric, rrtstar
-...
-ss = geometric.SimpleSetup(space)
-planner = rrtstar(ss.getSpaceInformation())
-ss.setPlanner(planner)
-...
-~~~
-Optionally, you can add your planners to the list of known geometric (or control-based) planners:
-~~~{.py}
-from ompl import geometric, rrtstar
-import ompl
-ompl.initializePlannerLists()
-geometric.planners.addPlanner('ompl.rrtstar.RRTstar')
-geometric.planners.addPlanner('ompl.rrtstar.BallTreeRRTstar')
-~~~
-This is already done in \c ompl_app.py for RRT*, but you can easily add similar lines for your own planners. Doing so will allow you to select your planners in the GUI.
+If something went wrong, the errors will be listed in pyplusplus_geometric.log and pyplusplus_control.log. If Py++ produces errors for methods that are not really needed at the Python level, you can explicitly exclude them in \c ompl/py-bindings/generate_bindings.py.
 
 # Planner parameters {#params}
 
-The OMPL Planner class a method called ompl::base::Planner::declareParam to define parameters that can be changed by the user. It is highly recommended that you use this method for all your planner parameters. It is possible to specify a suggested range of values as an optional argument to ompl::Planner::declareParam. This range will be used by the OMPL.app GUI to create the appropriate controls, so that users can change the parameter values through the GUI. See ompl::base::GenericParam::rangeSuggestion_ for the syntax used to specify parameter ranges.
+The OMPL Planner class has a method called ompl::base::Planner::declareParam to define parameters that can be changed by the user. It is highly recommended that you use this method for all your planner parameters. It is possible to specify a suggested range of values as an optional argument to ompl::Planner::declareParam. This range will be used by the OMPL.app GUI to create the appropriate control widgets, so that users can change the parameter values through the GUI. See ompl::base::GenericParam::rangeSuggestion_ for the syntax used to specify parameter ranges.
