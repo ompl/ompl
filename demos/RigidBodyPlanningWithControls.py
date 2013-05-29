@@ -137,7 +137,7 @@ def plan():
 
     if solved:
         # print the path to screen
-        print("Found solution:\n%s" % ss.getSolutionPath().asGeometric())
+        print("Found solution:\n%s" % ss.getSolutionPath())
 
 if __name__ == "__main__":
     plan()

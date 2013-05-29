@@ -172,9 +172,14 @@ bool ompl::geometric::PathGeometric::check(void) const
 
 void ompl::geometric::PathGeometric::print(std::ostream &out) const
 {
-    out << "Geometric path with " << states_.size() << " states" << std::endl;
+    const base::StateSpace* space(si_->getStateSpace().get());
+    std::vector<double> reals;
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
-        si_->printState(states_[i], out);
+    {
+        space->copyToReals(reals, states_[i]);
+        std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(out, " "));
+        out << std::endl;
+    }
     out << std::endl;
 }
 
