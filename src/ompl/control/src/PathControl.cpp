@@ -103,6 +103,24 @@ double ompl::control::PathControl::cost(const base::OptimizationObjective &objec
 
 void ompl::control::PathControl::print(std::ostream &out) const
 {
+    const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
+    double res = si->getPropagationStepSize();
+    out << "Control path with " << states_.size() << " states" << std::endl;
+    for (unsigned int i = 0 ; i < controls_.size() ; ++i)
+    {
+        out << "At state ";
+        si_->printState(states_[i], out);
+        out << "  apply control ";
+        si->printControl(controls_[i], out);
+        out << "  for " << (int)floor(0.5 + controlDurations_[i]/res) << " steps" << std::endl;
+    }
+    out << "Arrive at state ";
+    si_->printState(states_[controls_.size()], out);
+    out << std::endl;
+}
+
+void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
+{
     if (!states_.size())
         return;
     const base::StateSpace* space(si_->getStateSpace().get());

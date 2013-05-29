@@ -79,6 +79,15 @@ namespace ompl
 
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const;
+            /** \brief Print the path as a real-valued matrix where the
+                i-th row represents the i-th state along the path, followed
+                by the control and duration needed to reach this state. For
+                the first state the control and duration are zeroes. The
+                state components printed are those returned by
+                ompl::base::StateSpace::copyToReals, while the control
+                components printed are those returned by
+                ompl::control::ControlSpace::getValueAddressAtIndex. */
+            virtual void printAsMatrix(std::ostream &out) const;
 
             /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied) */
             geometric::PathGeometric asGeometric(void) const;

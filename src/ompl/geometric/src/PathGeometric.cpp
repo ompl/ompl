@@ -172,6 +172,13 @@ bool ompl::geometric::PathGeometric::check(void) const
 
 void ompl::geometric::PathGeometric::print(std::ostream &out) const
 {
+    out << "Geometric path with " << states_.size() << " states" << std::endl;
+    for (unsigned int i = 0 ; i < states_.size() ; ++i)
+        si_->printState(states_[i], out);
+    out << std::endl;
+}
+void ompl::geometric::PathGeometric::printAsMatrix(std::ostream &out) const
+{
     const base::StateSpace* space(si_->getStateSpace().get());
     std::vector<double> reals;
     for (unsigned int i = 0 ; i < states_.size() ; ++i)

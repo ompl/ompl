@@ -136,7 +136,6 @@ class ompl_base_generator_t(code_generator_t):
             return s.str();
         }
         """)
-        
         code_generator_t.__init__(self, 'base', ['bindings/util'], replacement)
 
     def filter_declarations(self):
@@ -328,6 +327,14 @@ class ompl_control_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        replacement['printAsMatrix'] = ('def("printAsMatrix", &__printAsMatrix)', """
+        std::string __printAsMatrix(%s* path)
+        {
+            std::ostringstream s;
+            path->printAsMatrix(s);
+            return s.str();
+        }
+        """)
         replacement['::ompl::control::ODESolver::getStatePropagator'] = ("""
         def("getStatePropagator", &getStatePropagator1);
         ODESolver_exposer.def("getStatePropagator", &getStatePropagator2);
@@ -372,6 +379,8 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
         # make controls printable
         self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
+        # print paths as matrices
+        self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
         try:
             # export ODESolver-derived classes that use Boost.OdeInt
             for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
@@ -456,6 +465,14 @@ class ompl_control_generator_t(code_generator_t):
 class ompl_geometric_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
+        replacement['printAsMatrix'] = ('def("printAsMatrix", &__printAsMatrix)', """
+        std::string __printAsMatrix(%s* path)
+        {
+            std::ostringstream s;
+            path->printAsMatrix(s);
+            return s.str();
+        }
+        """)
         code_generator_t.__init__(self, 'geometric', ['bindings/util', 'bindings/base'], replacement)
 
     def filter_declarations(self):
@@ -464,6 +481,8 @@ class ompl_geometric_generator_t(code_generator_t):
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
+        # print paths as matrices
+        self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
         self.ompl_ns.member_functions('freeGridMotions').exclude()
         self.ompl_ns.class_('PRM').member_functions('haveSolution').exclude()
         self.ompl_ns.class_('PRM').member_functions('growRoadmap',
