@@ -104,7 +104,7 @@ double ompl::control::PathControl::cost(const base::OptimizationObjective &objec
 void ompl::control::PathControl::print(std::ostream &out) const
 {
     if (!states_.size())
-        return
+        return;
     const base::StateSpace* space(si_->getStateSpace().get());
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
     const ControlSpace* cspace(si->getControlSpace().get());
