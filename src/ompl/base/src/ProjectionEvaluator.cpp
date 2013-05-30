@@ -126,12 +126,18 @@ void ompl::base::ProjectionMatrix::print(std::ostream &out) const
     out << mat << std::endl;
 }
 
-ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space) : space_(space), bounds_(0), defaultCellSizes_(true), cellSizesWereInferred_(false)
+ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space) :
+    space_(space),
+    bounds_(0), estimatedBounds_(0),
+    defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
     params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
 }
 
-ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space) : space_(space.get()), bounds_(0), defaultCellSizes_(true), cellSizesWereInferred_(false)
+ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space) :
+    space_(space.get()),
+    bounds_(0), estimatedBounds_(0),
+    defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
     params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
 }
@@ -226,21 +232,25 @@ namespace ompl
 }
 /// @endcond
 
-
-
-void ompl::base::ProjectionEvaluator::inferCellSizes(void)
+void ompl::base::ProjectionEvaluator::inferBounds(void)
 {
-    cellSizesWereInferred_ = true;
+    if (estimatedBounds_.low.empty())
+        estimateBounds();
+    bounds_ = estimatedBounds_;
+}
+
+void ompl::base::ProjectionEvaluator::estimateBounds(void)
+{
     unsigned int dim = getDimension();
+    estimatedBounds_.resize(dim);
     if (dim > 0)
     {
         StateSamplerPtr sampler = space_->allocStateSampler();
         State *s = space_->allocState();
         EuclideanProjection proj(dim);
 
-        bounds_.resize(dim);
-        bounds_.setLow(std::numeric_limits<double>::infinity());
-        bounds_.setHigh(-std::numeric_limits<double>::infinity());
+        estimatedBounds_.setLow(std::numeric_limits<double>::infinity());
+        estimatedBounds_.setHigh(-std::numeric_limits<double>::infinity());
 
         for (unsigned int i = 0 ; i < magic::PROJECTION_EXTENTS_SAMPLES ; ++i)
         {
@@ -248,32 +258,39 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
             project(s, proj);
             for (unsigned int j = 0 ; j < dim ; ++j)
             {
-                if (bounds_.low[j] > proj[j])
-                    bounds_.low[j] = proj[j];
-                if (bounds_.high[j] < proj[j])
-                    bounds_.high[j] = proj[j];
+                if (estimatedBounds_.low[j] > proj[j])
+                    estimatedBounds_.low[j] = proj[j];
+                if (estimatedBounds_.high[j] < proj[j])
+                    estimatedBounds_.high[j] = proj[j];
             }
         }
         // make bounding box 10% larger (5% padding on each side)
-        std::vector<double> diff(bounds_.getDifference());
+        std::vector<double> diff(estimatedBounds_.getDifference());
         for (unsigned int j = 0; j < dim; ++j)
         {
-            bounds_.low[j] -= magic::PROJECTION_EXPAND_FACTOR * diff[j];
-            bounds_.high[j] += magic::PROJECTION_EXPAND_FACTOR * diff[j];
+            estimatedBounds_.low[j] -= magic::PROJECTION_EXPAND_FACTOR * diff[j];
+            estimatedBounds_.high[j] += magic::PROJECTION_EXPAND_FACTOR * diff[j];
         }
 
         space_->freeState(s);
+    }
+}
 
-        cellSizes_.resize(dim);
-        for (unsigned int j = 0 ; j < dim ; ++j)
+void ompl::base::ProjectionEvaluator::inferCellSizes(void)
+{
+    cellSizesWereInferred_ = true;
+    if (!hasBounds())
+        inferBounds();
+    unsigned int dim = getDimension();
+    cellSizes_.resize(dim);
+    for (unsigned int j = 0 ; j < dim ; ++j)
+    {
+        cellSizes_[j] = (bounds_.high[j] - bounds_.low[j]) / magic::PROJECTION_DIMENSION_SPLITS;
+        if (cellSizes_[j] < std::numeric_limits<double>::epsilon())
         {
-            cellSizes_[j] = (bounds_.high[j] - bounds_.low[j]) / magic::PROJECTION_DIMENSION_SPLITS;
-            if (cellSizes_[j] < std::numeric_limits<double>::epsilon())
-            {
-                cellSizes_[j] = 1.0;
-                OMPL_WARN("Inferred cell size for dimension %u of a projection for state space %s is 0. Setting arbitrary value of 1 instead.",
-                          j, space_->getName().c_str());
-            }
+            cellSizes_[j] = 1.0;
+            OMPL_WARN("Inferred cell size for dimension %u of a projection for state space %s is 0. Setting arbitrary value of 1 instead.",
+                      j, space_->getName().c_str());
         }
     }
 }

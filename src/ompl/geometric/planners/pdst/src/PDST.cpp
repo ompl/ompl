@@ -60,9 +60,6 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
     if (!bsp_)
         throw Exception("PDST was not set up.");
 
-    if (!projectionEvaluator_->hasBounds())
-        throw Exception("PDST requires a projection evaluator that specifies bounds for the projected space");
-
     // depending on how the planning problem is set up, this may be necessary
     bsp_->bounds_ = projectionEvaluator_->getBounds();
 
@@ -262,8 +259,10 @@ void ompl::geometric::PDST::setup(void)
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
-    if (projectionEvaluator_->getBounds().low.size() == 0)
-        projectionEvaluator_->defaultCellSizes();
+    if (!projectionEvaluator_->hasBounds())
+        projectionEvaluator_->inferBounds();
+    if (!projectionEvaluator_->hasBounds())
+        throw Exception("PDST requires a projection evaluator that specifies bounds for the projected space");
     if (bsp_)
         delete bsp_;
     bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);

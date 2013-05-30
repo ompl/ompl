@@ -307,8 +307,10 @@ void ompl::control::PDST::setup(void)
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configureProjectionEvaluator(projectionEvaluator_);
-    if (projectionEvaluator_->getBounds().low.size() == 0)
-        projectionEvaluator_->defaultCellSizes();
+    if (!projectionEvaluator_->hasBounds())
+        projectionEvaluator_->inferBounds();
+    if (!projectionEvaluator_->hasBounds())
+        throw Exception("PDST requires a projection evaluator that specifies bounds for the projected space");
     if (bsp_)
         delete bsp_;
     bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
