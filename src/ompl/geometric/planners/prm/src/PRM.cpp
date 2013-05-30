@@ -463,9 +463,8 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)
 {
-    boost::mutex::scoped_lock _(addMilestoneMutex_);
+    boost::mutex::scoped_lock _(graphMutex_);
 
-    graphMutex_.lock();
     Vertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
     totalConnectionAttemptsProperty_[m] = 1;
@@ -473,7 +472,6 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
 
     // Initialize to its own (dis)connected component.
     disjointSets_.make_set(m);
-    graphMutex_.unlock();
 
     nn_->add(m);
 
@@ -492,10 +490,8 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
                 const double weight = distanceFunction(m, n);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
-                graphMutex_.lock();
                 boost::add_edge(m, n, properties, g_);
                 uniteComponents(n, m);
-                graphMutex_.unlock();
             }
         }
 

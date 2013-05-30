@@ -380,9 +380,6 @@ namespace ompl
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                   graphMutex_;
-
-            /** \brief Mutex to prevent adding milestones in parallel */
-            boost::mutex                                           addMilestoneMutex_;
         };
 
     }
