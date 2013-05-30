@@ -59,15 +59,12 @@ except:
 class MyDecomposition(oc.GridDecomposition):
     def __init__(self, length, bounds):
         super(MyDecomposition, self).__init__(length, 2, bounds)
-        self.rng_ = ou.RNG()
     def project(self, s, coord):
         coord[0] = s.getX()
         coord[1] = s.getY()
-    def sampleFromRegion(self, rid, sampler, s):
+    def sampleFullState(self, sampler, coord, s):
         sampler.sampleUniform(s)
-        regionBounds = self.getRegionBounds(rid)
-        s.setX(self.rng_.uniformReal(regionBounds.low[0], regionBounds.high[0]))
-        s.setY(self.rng_.uniformReal(regionBounds.low[1], regionBounds.high[1]))
+        s.setXY(coord[0], coord[1])
 ## @endcond
 
 def isStateValid(spaceInformation, state):
