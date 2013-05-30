@@ -88,7 +88,7 @@ default_replacement['array_read_access'] = ('def("__getitem__", &__getitem)',"""
 # add array write access to objects that can return a non-const reference
 # using the [] operator.
 default_replacement['array_write_access'] = ('def("__setitem__", &__setitem)',"""
-void __setitem(%s* obj, unsigned int i, const %s& val)
+void __setitem(%s* obj, unsigned int i, %s val)
 {
     (*obj)[i] = val;
 }
