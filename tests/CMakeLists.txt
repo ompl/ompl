@@ -45,7 +45,7 @@ if(NOT "${Boost_VERSION}" LESS 104400)
 endif(NOT "${Boost_VERSION}" LESS 104400)
 
 # Python unit tests
-if(OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bindings")
+if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bindings")
     add_ompl_python_test(util/test_util.py)
     add_ompl_python_test(base/test_base.py)
     add_ompl_python_test(geometric/test_geometric.py)
