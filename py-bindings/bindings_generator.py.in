@@ -102,7 +102,7 @@ def returns_reference(decl):
 class code_generator_t(object):
     """The base class code generator."""
 
-    def __init__(self, name, deps=None, replacement_dict=default_replacement):
+    def __init__(self, name, deps=None, replacement_dict=default_replacement, indexing_suite_version = 2):
         """Constructor.
         @name name of the python module
         @dep name of another module this module depends on"""
@@ -141,7 +141,7 @@ class code_generator_t(object):
             gccxml_path = "@GCCXML@",
             include_paths = include_paths,
             cflags="@PYOMPL_EXTRA_CFLAGS@",
-            indexing_suite_version = 2 )
+            indexing_suite_version = indexing_suite_version )
         self.replacement = {} if replacement_dict==None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
         self.mb.add_registration_code('PyEval_InitThreads();', tail=False)

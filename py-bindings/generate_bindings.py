@@ -622,7 +622,7 @@ class ompl_tools_generator_t(code_generator_t):
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
-        code_generator_t.__init__(self, 'util', None, replacement)
+        code_generator_t.__init__(self, 'util', None, replacement, 1)
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
