@@ -81,7 +81,7 @@ void ompl::geometric::RRTstar::setup(void)
     // optimizing path length as computed by the distance() function
     // in the state space.
     if (pdef_->hasOptimizationObjective())
-      opt_ = pdef_->getOptimizationObjective();
+	opt_ = pdef_->getOptimizationObjective();
     else
     {
         OMPL_INFORM("Defaulting to optimizing path length.");
@@ -150,8 +150,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double k_rrg           = boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
 
     std::vector<Motion*>       nbh;
-    std::vector<indexCostPair> costs;
+    std::vector<base::Cost*> costs;
     std::vector<base::Cost*>  incCosts;
+    std::vector<unsigned> sortedCostIndices;
     std::vector<int>           valid;
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
@@ -166,7 +167,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Cost* nbhNewCost = opt_->allocCost();
     
     // our functor for sorting nearest neighbors
-    CostCompare compareFn(*opt_);
+    CostIndexCompare compareFn(costs, *opt_);
 
     while (ptc == false)
     {
@@ -198,9 +199,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             // create a motion
             Motion *motion = new Motion(si_, opt_);
             si_->copyState(motion->state, dstate);
-            motion->parent = nmotion;
-            opt_->getIncrementalCost(nmotion->state, motion->state, motion->incCost);
-            opt_->combineObjectiveCosts(nmotion->cost, motion->incCost, motion->cost);
+	    motion->parent = nmotion;
       
             // This sounds crazy but for asymmetric distance functions this is necessary
             // For this case, it has to be FROM every other point TO our new point
@@ -223,9 +222,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 	        std::size_t prevSize = costs.size();
 		costs.resize(nbh.size());
 		incCosts.resize(nbh.size());
+		sortedCostIndices.resize(nbh.size());
 		for (std::size_t i = prevSize; i < nbh.size(); ++i)
 		{
-		    costs[i].second = opt_->allocCost();
+		    costs[i] = opt_->allocCost();
 		    incCosts[i] = opt_->allocCost();
 		}
 	    }
@@ -242,79 +242,64 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
 
             // Finding the nearest neighbor to connect to
-            // By default, neighborhood states are sorted by distance, and collision checking
-            // is performed in increasing order of distance
+            // By default, neighborhood states are sorted by cost, and collision checking
+            // is performed in increasing order of cost
             if (delayCC_)
             {
                 // calculate all costs and distances
 	        for (std::size_t i = 0 ; i < nbh.size(); ++i)
                 {
-                    if (nbh[i] != nmotion)
-                    {
-			opt_->getIncrementalCost(nbh[i]->state, motion->state, incCosts[i]);	
-			opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i], costs[i].second);
-                    }
-                    else
-                    {
-			opt_->copyCost(incCosts[i], motion->incCost);
-			opt_->copyCost(costs[i].second, motion->cost);
-                    }
-                    costs[i].first = i;
+		    opt_->getIncrementalCost(nbh[i]->state, motion->state, incCosts[i]);
+		    opt_->combineObjectiveCosts(nbh[i]->cost, incCosts[i], costs[i]);
                 }
 
                 // sort the nodes
                 //
                 // we're using index-value pairs so that we can get at
                 // original, unsorted indices
-                std::sort(costs.begin(), costs.begin()+nbh.size(), compareFn);
+		for (std::size_t i = 0; i < nbh.size(); ++i)
+		    sortedCostIndices[i] = i;
+                std::sort(sortedCostIndices.begin(), sortedCostIndices.begin()+nbh.size(), 
+			  compareFn);
 
                 // collision check until a valid motion is found
-                for (std::size_t i = 0; i < nbh.size(); ++i)
-                {
-		    std::size_t idx = costs[i].first;
-                    if (nbh[idx] != nmotion)
-                    {
-                        if (opt_->isCostLessThan(costs[i].second, motion->cost))
-                        {
+		for (std::vector<unsigned>::const_iterator i = sortedCostIndices.begin();
+		     i != sortedCostIndices.begin()+nbh.size();
+		     ++i)
+		{
+		    if (nbh[*i] == nmotion || si_->checkMotion(nbh[*i]->state, motion->state))
+		    {
+			if (nbh[*i] != nmotion)
 			    ++numCollisionChecks_;
-                            if (si_->checkMotion(nbh[idx]->state, motion->state))
-                            {
-				opt_->copyCost(motion->incCost, incCosts[idx]);
-				opt_->copyCost(motion->cost, costs[i].second);
-				motion->parent = nbh[idx];
-                                if (symDist && symInterp)
-                                    valid[idx] = 1;
-                                break;
-                            }
-			    else if (symDist && symInterp)
-			      valid[idx] = -1;
-                        }
-                    }
-                    else
-                    {
-                        if (symDist && symInterp)
-                            valid[idx] = 1;
-                        break;
-                    }
-                }
+			opt_->copyCost(motion->incCost, incCosts[*i]);
+			opt_->copyCost(motion->cost, costs[*i]);
+			motion->parent = nbh[*i];
+			if (symDist && symInterp)
+			    valid[*i] = 1;
+			break;
+		    }
+		    else if (symDist && symInterp)
+			valid[*i] = -1;
+		}
             }
             else // if not delayCC
             {
+		opt_->getIncrementalCost(nmotion->state, motion->state, motion->incCost);
+		opt_->combineObjectiveCosts(nmotion->cost, motion->incCost, motion->cost);
                 // find which one we connect the new state to
 	        for (std::size_t i = 0 ; i < nbh.size(); ++i)
                 {
-                    costs[i].first = i;
                     if (nbh[i] != nmotion)
                     {
                         opt_->getIncrementalCost(nbh[i]->state, motion->state, incCosts[i]);
-                        opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i], costs[i].second);
-                        if (opt_->isCostLessThan(costs[i].second, motion->cost))
+                        opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i], costs[i]);
+                        if (opt_->isCostLessThan(costs[i], motion->cost))
                         {
 			    ++numCollisionChecks_;
                             if (si_->checkMotion(nbh[i]->state, motion->state))
                             {
                                 opt_->copyCost(motion->incCost, incCosts[i]);
-                                opt_->copyCost(motion->cost, costs[i].second);
+                                opt_->copyCost(motion->cost, costs[i]);
                                 motion->parent = nbh[i];
                                 if (symDist && symInterp)
                                     valid[i] = 1;
@@ -326,7 +311,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     else
                     {
                         opt_->copyCost(incCosts[i], motion->incCost);
-                        opt_->copyCost(costs[i].second, motion->cost);
+                        opt_->copyCost(costs[i], motion->cost);
                         if (symDist && symInterp)
                             valid[i] = 1;
                     }
@@ -347,15 +332,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _2, _1));
 		nn_->nearestK(motion, k, nbh);
+		rewireTest += nbh.size();
             }
-            rewireTest += nbh.size();
 
             for (std::size_t i = 0 ; i < nbh.size(); ++i)
             {
 		// In symmetric case, we use indices in
 		// possibly-sorted costs list. In asymmetric case, we
 		// just go through neighbors in default order
-	        std::size_t idx = symDist ? costs[i].first : i;
+		std::size_t idx = (symDist && delayCC_) ? sortedCostIndices[i] : i;
                 if (nbh[idx] != motion->parent)
                 {
 		    opt_->copyCost(nbhPrevCost, nbh[idx]->cost);
@@ -419,7 +404,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     solution = goalMotions_[i];
                     break;
                 }
-                else if (!solution || goalMotions_[i]->cost < solution->cost)
+                else if (!solution || 
+			 opt_->isCostLessThan(goalMotions_[i]->cost,solution->cost))
                     solution = goalMotions_[i];
             }
 
@@ -478,7 +464,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     delete rmotion;
 
     for (std::size_t i = 0; i < costs.size(); ++i)
-	opt_->freeCost(costs[i].second);
+	opt_->freeCost(costs[i]);
     for (std::size_t i = 0; i < incCosts.size(); ++i)
 	opt_->freeCost(incCosts[i]);
     opt_->freeCost(nbhPrevCost);
@@ -552,5 +538,5 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
     }
     data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
     data.properties["collision_checks INTEGER"] = 
-      boost::lexical_cast<std::string>(numCollisionChecks_);
+	boost::lexical_cast<std::string>(numCollisionChecks_);
 }

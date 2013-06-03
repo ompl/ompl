@@ -192,17 +192,19 @@ namespace ompl
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
-            /** \brief Functor which allows us to sort a set of costs and maintain the original, unsorted indices into the sequence*/
-	    typedef std::pair<std::size_t, base::Cost*> indexCostPair;
-	    struct CostCompare
+	    // For sorting a list of costs and getting only their sorted indices
+	    struct CostIndexCompare
 	    {
-		CostCompare(const base::OptimizationObjective& optObj) : optObj_(optObj) {}
-		bool operator()(const indexCostPair& a, const indexCostPair& b)
+		CostIndexCompare(const std::vector<base::Cost*>& costs,
+				 const base::OptimizationObjective& opt) : 
+		    costs_(costs), opt_(opt) 
+		{}
+		bool operator()(unsigned i, unsigned j)
 		{
-		    return optObj_.isCostLessThan(a.second, b.second);
+		    return opt_.isCostLessThan(costs_[i],costs_[j]);
 		}
-
-		const base::OptimizationObjective& optObj_;
+		const std::vector<base::Cost*>& costs_;
+		const base::OptimizationObjective& opt_;
 	    };
 
             /** \brief Compute distance between motions (actually distance between contained states) */

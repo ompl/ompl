@@ -150,7 +150,8 @@ bool ompl::base::PathIntegralOptimizationObjective::isSatisfied(const Cost *cost
 
 void ompl::base::PathIntegralOptimizationObjective::getIncrementalCost(const State *s1, const State *s2, Cost *cost) const
 {
-    cost->as<CostType>()->value = si_->distance(s1,s2)*(getStateCost(s1) + getStateCost(s2)) / 2.0;
+    cost->as<CostType>()->value = 
+      si_->distance(s1,s2)*(getStateCost(s1) + getStateCost(s2)) / 2.0;
 }
 
 void ompl::base::PathIntegralOptimizationObjective::combineObjectiveCosts(const Cost *c1, const Cost *c2, Cost *cost) const
