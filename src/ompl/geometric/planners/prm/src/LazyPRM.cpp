@@ -55,19 +55,17 @@ ompl::geometric::LazyPRM::~LazyPRM()
 
 ompl::geometric::PRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::State *state)
 {
-    boost::mutex::scoped_lock _(addMilestoneMutex_);
+    boost::mutex::scoped_lock _(graphMutex_);
 
-    graphMutex_.lock();
     Vertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
     vertexValidityProperty_[m] = VALIDITY_UNKNOWN;
 
     // Initialize to its own (dis)connected component.
     disjointSets_.make_set(m);
-    graphMutex_.unlock();
 
     nn_->add(m);
-    
+
     // Which milestones will we attempt to connect to?
 
     const std::vector<Vertex>& neighbors = connectionStrategy_(m);
@@ -75,27 +73,25 @@ ompl::geometric::PRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::State 
     foreach (Vertex n, neighbors)
         if (connectionFilter_(m, n))
         {
-	    const double weight = distanceFunction(m, n);
-	    const unsigned int id = maxEdgeID_++;
-	    const Graph::edge_property_type properties(weight, id);
-	    graphMutex_.lock();
-	    const Edge &e = boost::add_edge(m, n, properties, g_).first;
-	    edgeValidityProperty_[e] = VALIDITY_UNKNOWN;
-	    uniteComponents(n, m);
-	    graphMutex_.unlock();
+            const double weight = distanceFunction(m, n);
+            const unsigned int id = maxEdgeID_++;
+            const Graph::edge_property_type properties(weight, id);
+            const Edge &e = boost::add_edge(m, n, properties, g_).first;
+            edgeValidityProperty_[e] = VALIDITY_UNKNOWN;
+            uniteComponents(n, m);
         }
-    
+
     return m;
 }
 
 void ompl::geometric::LazyPRM::growRoadmap(const base::PlannerTerminationCondition &ptc,
-					   base::State *workState)
+                                           base::State *workState)
 {
     /* grow roadmap in lazy fashion -- add vertices and edges without checking validity */
     while (ptc == false)
     {
-	simpleSampler_->sampleUniform(workState);
-	addMilestone(si_->cloneState(workState));
+        simpleSampler_->sampleUniform(workState);
+        addMilestone(si_->cloneState(workState));
     }
 }
 
@@ -113,52 +109,52 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructGeometricPath(const boost
     Vertex prevVertex = goal;
     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
     {
-	const base::State *st = stateProperty_[pos];
-	unsigned int &vd = vertexValidityProperty_[pos];
-	if ((vd & VALIDITY_TRUE) == 0)
-	    if (si_->isValid(st))
-		vd |= VALIDITY_TRUE;
-	if ((vd & VALIDITY_TRUE) == 0)
-	{
-	    states.clear();
-	    // remove vertex from graph
-	    nn_->remove(pos);
-	    si_->freeState(stateProperty_[pos]);
-	    boost::clear_vertex(pos, g_);
-	    boost::remove_vertex(pos, g_);
-	    break;
-	}
-	else
-	{
-	    // check the edge too, if the vertex was valid
-	    if (prevVertex != pos)
-	    {
-		Edge e = boost::lookup_edge(prevVertex, pos, g_).first;
-		unsigned int &evd = edgeValidityProperty_[e];
-		if ((evd & VALIDITY_TRUE) == 0)
-		    if (si_->checkMotion(states.back(), st))
-			evd |= VALIDITY_TRUE;
-		if ((evd & VALIDITY_TRUE) == 0)
-		{
-		    states.clear();
-		    boost::remove_edge(e, g_);
-		    break;
-		}
-	    }
-	}
-	prevVertex = pos;
-	states.push_back(st);
+        const base::State *st = stateProperty_[pos];
+        unsigned int &vd = vertexValidityProperty_[pos];
+        if ((vd & VALIDITY_TRUE) == 0)
+            if (si_->isValid(st))
+                vd |= VALIDITY_TRUE;
+        if ((vd & VALIDITY_TRUE) == 0)
+        {
+            states.clear();
+            // remove vertex from graph
+            nn_->remove(pos);
+            si_->freeState(stateProperty_[pos]);
+            boost::clear_vertex(pos, g_);
+            boost::remove_vertex(pos, g_);
+            break;
+        }
+        else
+        {
+            // check the edge too, if the vertex was valid
+            if (prevVertex != pos)
+            {
+                Edge e = boost::lookup_edge(prevVertex, pos, g_).first;
+                unsigned int &evd = edgeValidityProperty_[e];
+                if ((evd & VALIDITY_TRUE) == 0)
+                    if (si_->checkMotion(states.back(), st))
+                        evd |= VALIDITY_TRUE;
+                if ((evd & VALIDITY_TRUE) == 0)
+                {
+                    states.clear();
+                    boost::remove_edge(e, g_);
+                    break;
+                }
+            }
+        }
+        prevVertex = pos;
+        states.push_back(st);
     }
-    
+
     if (states.empty())
-	return base::PathPtr();
+        return base::PathPtr();
     else
-	// start is checked for validity already
-	states.push_back(stateProperty_[start]);
-    
+        // start is checked for validity already
+        states.push_back(stateProperty_[start]);
+
     PathGeometric *p = new PathGeometric(si_);
     for (std::size_t i = 0 ; i < states.size() ; ++i)
-	p->append(states[i]);
+        p->append(states[i]);
     p->reverse();
     return base::PathPtr(p);
 }

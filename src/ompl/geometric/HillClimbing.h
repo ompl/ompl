@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_GEOMETRIC_IK_HCIK_
-#define OMPL_GEOMETRIC_IK_HCIK_
+#ifndef OMPL_GEOMETRIC_HILL_CLIMBING_
+#define OMPL_GEOMETRIC_HILL_CLIMBING_
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/goals/GoalRegion.h"
@@ -47,26 +47,26 @@ namespace ompl
     {
 
         /**
-           @anchor HCIK
+           @anchor HillClimbing
 
            @par Short description
 
-           HCIK does inverse kinematics with hill climbing, starting from a given state.
+           HillClimbing searches for a state using hill climbing, starting from a given seed state.
 
            @par External documentation
         */
 
-        /** \brief Inverse Kinematics with Hill Climbing */
-        class HCIK
+        /** \brief Hill Climbing search */
+        class HillClimbing
         {
         public:
 
             /** \brief Constructor */
-            HCIK(const base::SpaceInformationPtr &si) : si_(si), maxImproveSteps_(2), checkValidity_(true)
+            HillClimbing(const base::SpaceInformationPtr &si) : si_(si), maxImproveSteps_(2), checkValidity_(true)
             {
             }
 
-            ~HCIK(void)
+            ~HillClimbing(void)
             {
             }
 

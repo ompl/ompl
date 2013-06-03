@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,29 +34,56 @@
 
 /* Author: Ioan Sucan */
 
-#define BOOST_TEST_MODULE "rrt_star"
+#define BOOST_TEST_MODULE "GeometricPlanningIK"
 #include <boost/test/unit_test.hpp>
-#include "../../../../../tests/BoostTestTeamCityReporter.h"
+#include "2DmapSetup.h"
+#include <iostream>
 
-// The following header file is useful for testing planners.
-// See ../../../../../tests/geometric/2dmap.cpp for example usage.
-// You could copy that file and modify it for your planner.
-#include "../../../../../tests/base/PlannerTest.h"
-#include "../../../../../tests/geometric/2dmap/2DmapSetup.h"
-
-#include "../RRTstar.h"
+#include "ompl/geometric/GeneticSearch.h"
+#include "ompl/util/Time.h"
+#include "../../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 
-
-BOOST_AUTO_TEST_CASE(Basic)
+BOOST_AUTO_TEST_CASE(SimpleIK)
 {
-    geometric::SimpleSetup2DMap s("env1.txt");
-    s.setPlanner(base::PlannerPtr(new geometric::RRTstar(s.getSpaceInformation())));
-    s.setup();
-}
+    /* load environment */
+    Environment2D env;
+    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    path = path / "env1.txt";
+    loadEnvironment(path.string().c_str(), env);
 
-BOOST_AUTO_TEST_CASE(More)
-{
-    // other tests, if you want
+    if (env.width * env.height == 0)
+    {
+        BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
+    }
+
+    /* instantiate space information */
+    base::SpaceInformationPtr si = geometric::spaceInformation2DMap(env);
+
+    /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
+    base::GoalState goal(si);
+    base::ScopedState<base::RealVectorStateSpace> gstate(si);
+    gstate->values[0] = env.goal.first;
+    gstate->values[1] = env.goal.second;
+    goal.setState(gstate);
+    goal.setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
+
+    geometric::GeneticSearch gaik(si);
+    gaik.setRange(5.0);
+    base::ScopedState<base::RealVectorStateSpace> found(si);
+    double time = 0.0;
+
+    const int N = 100;
+    for (int i = 0 ; i < N ; ++i)
+    {
+        ompl::time::point startTime = ompl::time::now();
+        bool solved = gaik.solve(1.0, goal, found.get());
+        ompl::time::duration elapsed = ompl::time::now() - startTime;
+        time += ompl::time::seconds(elapsed);
+        BOOST_CHECK(solved);
+        BOOST_CHECK(si->distance(found.get(), gstate.get()) < 1e-3);
+    }
+    time = time / (double)N;
+    BOOST_CHECK(time < 0.01);
 }

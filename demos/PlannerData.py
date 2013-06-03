@@ -47,7 +47,7 @@ try:
     import graph_tool.all as gt
     graphtool = True
 except:
-    print 'Failed to import graph-tool.  PlannerData will not be analyzed or plotted'
+    print('Failed to import graph-tool.  PlannerData will not be analyzed or plotted')
     graphtool = False
 
 try:
@@ -94,17 +94,17 @@ def useGraphTool(pd, space):
     avgdeg, stddevdeg = gt.vertex_average(graph, "total")
     avgwt, stddevwt = gt.edge_average(graph, edgeweights)
 
-    print "---- PLANNER DATA STATISTICS ----"
-    print str(graph.num_vertices()) + " vertices and " + str(graph.num_edges()) + " edges"
-    print "Average vertex degree (in+out) = " + str(avgdeg) + "  St. Dev = " + str(stddevdeg)
-    print "Average edge weight = " + str(avgwt)  + "  St. Dev = " + str(stddevwt)
+    print("---- PLANNER DATA STATISTICS ----")
+    print(str(graph.num_vertices()) + " vertices and " + str(graph.num_edges()) + " edges")
+    print("Average vertex degree (in+out) = " + str(avgdeg) + "  St. Dev = " + str(stddevdeg))
+    print("Average edge weight = " + str(avgwt)  + "  St. Dev = " + str(stddevwt))
 
     comps, hist = gt.label_components(graph)
-    print "Strongly connected components: " + str(len(hist))
+    print("Strongly connected components: " + str(len(hist)))
 
     graph.set_directed(False)  # Make the graph undirected (for weak components, and a simpler drawing)
     comps, hist = gt.label_components(graph)
-    print "Weakly connected components: " + str(len(hist))
+    print("Weakly connected components: " + str(len(hist)))
 
     # Plotting the graph
     gt.remove_parallel_edges(graph) # Removing any superfluous edges
@@ -158,8 +158,7 @@ def useGraphTool(pd, space):
     gt.graph_draw (graph, vertex_size=vertexsize, vertex_fill_color=colorprops,
                    edge_pen_width=edgesize, edge_color=edgecolor,
                    output="graph.png")
-    print
-    print 'Graph written to graph.png'
+    print('\nGraph written to graph.png')
 
 def plan():
     # construct the state space we are planning in
@@ -212,7 +211,8 @@ def plan():
         # Computing weights of all edges based on distance
         pd.computeEdgeWeights(ob.EdgeWeightFn(partial(edgeWeight, space)))
 
-        useGraphTool(pd, space)
+        if graphtool:
+            useGraphTool(pd, space)
 
 if __name__ == "__main__":
     plan()

@@ -41,109 +41,109 @@
 #include <vector>
 
 struct Circles2D
-{  
+{
     struct Circle
     {
-	Circle(double x, double y, double r) : x_(x), y_(y), r_(r), r2_(r*r)
-	{
-	}
-	
-	double x_, y_, r_, r2_;
+        Circle(double x, double y, double r) : x_(x), y_(y), r_(r), r2_(r*r)
+        {
+        }
+
+        double x_, y_, r_, r2_;
     };
 
     struct Query
     {
-	double startX_, startY_, goalX_, goalY_;
+        double startX_, startY_, goalX_, goalY_;
     };
-    
+
     Circles2D(void)
     {
-	minX_ = minY_ = 0.0;
-	maxX_ = maxY_ = 0.0;
+        minX_ = minY_ = 0.0;
+        maxX_ = maxY_ = 0.0;
     }
-    
+
     void loadCircles(const std::string &filename)
     {
-	//    std::cout << "Loading " << filename << std::endl;
-	std::ifstream fin(filename.c_str());
-	// ignore first two lines
-	char dummy[4096];
-	fin.getline(dummy, sizeof(dummy));
-	fin.getline(dummy, sizeof(dummy));
-	while (true)
-	{
-	    int id;
-	    double x, y, r;
-	    fin >> id >> x >> y >> r;
-	    if (fin.eof() || !fin.good())
-		break;
-	    circles_.push_back(Circle(x,y,r));
-	    //      std::cout << "Added circle " << id << " at center " << x << ", " << y << " of radius " << r << std::endl;
-	}
-	fin.close();
-	
-	// find a bounding box for the environment
-	if (circles_.empty())
-	{
-	    minX_ = minY_ = 0.0;
-	    maxX_ = maxY_ = 0.0;
-	}
-	else
-	{
-	    minX_ = minY_ = std::numeric_limits<double>::infinity();
-	    maxX_ = maxY_ = -std::numeric_limits<double>::infinity();
-	    for (std::size_t i = 0 ; i < circles_.size() ; ++i)
-	    {
-		if (circles_[i].x_ - circles_[i].r_ < minX_)
-		    minX_ = circles_[i].x_ - circles_[i].r_;
-		if (circles_[i].y_ - circles_[i].r_ < minY_)
-		    minY_ = circles_[i].y_ - circles_[i].r_;
-		if (circles_[i].x_ + circles_[i].r_ > maxX_)
-		    maxX_ = circles_[i].x_ + circles_[i].r_;
-		if (circles_[i].y_ + circles_[i].r_ > maxY_)
-		    maxY_ = circles_[i].y_ + circles_[i].r_;
-	    }
-	}
-	//    std::cout << "Bounding box is [" << minX_ << ", " << minY_ << "] x [" << maxX_ << ", " << maxY_ << "]" << std::endl;
+        //    std::cout << "Loading " << filename << std::endl;
+        std::ifstream fin(filename.c_str());
+        // ignore first two lines
+        char dummy[4096];
+        fin.getline(dummy, sizeof(dummy));
+        fin.getline(dummy, sizeof(dummy));
+        while (true)
+        {
+            int id;
+            double x, y, r;
+            fin >> id >> x >> y >> r;
+            if (fin.eof() || !fin.good())
+                break;
+            circles_.push_back(Circle(x,y,r));
+            //      std::cout << "Added circle " << id << " at center " << x << ", " << y << " of radius " << r << std::endl;
+        }
+        fin.close();
+
+        // find a bounding box for the environment
+        if (circles_.empty())
+        {
+            minX_ = minY_ = 0.0;
+            maxX_ = maxY_ = 0.0;
+        }
+        else
+        {
+            minX_ = minY_ = std::numeric_limits<double>::infinity();
+            maxX_ = maxY_ = -std::numeric_limits<double>::infinity();
+            for (std::size_t i = 0 ; i < circles_.size() ; ++i)
+            {
+                if (circles_[i].x_ - circles_[i].r_ < minX_)
+                    minX_ = circles_[i].x_ - circles_[i].r_;
+                if (circles_[i].y_ - circles_[i].r_ < minY_)
+                    minY_ = circles_[i].y_ - circles_[i].r_;
+                if (circles_[i].x_ + circles_[i].r_ > maxX_)
+                    maxX_ = circles_[i].x_ + circles_[i].r_;
+                if (circles_[i].y_ + circles_[i].r_ > maxY_)
+                    maxY_ = circles_[i].y_ + circles_[i].r_;
+            }
+        }
+        //    std::cout << "Bounding box is [" << minX_ << ", " << minY_ << "] x [" << maxX_ << ", " << maxY_ << "]" << std::endl;
     }
-    
+
     void loadQueries(const std::string &filename)
     {
-	std::ifstream fin(filename.c_str());
-	while (fin.good() && !fin.eof())
-	{
-	    std::string dummy;
-	    Query q;
-	    fin >> dummy >> dummy >> q.startX_ >> q.startY_;
-	    if (fin.eof())
-		break;
-	    fin >> dummy >> dummy >> q.goalX_ >> q.goalY_;
-	    queries_.push_back(q);
-	}
+        std::ifstream fin(filename.c_str());
+        while (fin.good() && !fin.eof())
+        {
+            std::string dummy;
+            Query q;
+            fin >> dummy >> dummy >> q.startX_ >> q.startY_;
+            if (fin.eof())
+                break;
+            fin >> dummy >> dummy >> q.goalX_ >> q.goalY_;
+            queries_.push_back(q);
+        }
     }
-    
+
     const Query& getQuery(std::size_t index) const
     {
-	return queries_[index];
+        return queries_[index];
     }
-    
+
     std::size_t getQueryCount(void) const
     {
-	return queries_.size();
+        return queries_.size();
     }
-    
+
     bool noOverlap(double x, double y) const
     {
-	for (std::size_t i = 0 ; i < circles_.size() ; ++i)
-	{
-	    double dx = circles_[i].x_ - x;
-	    double dy = circles_[i].y_ - y;
-	    if (dx * dx + dy * dy < circles_[i].r2_)
-		return false;
-	}
-	return true;
+        for (std::size_t i = 0 ; i < circles_.size() ; ++i)
+        {
+            double dx = circles_[i].x_ - x;
+            double dy = circles_[i].y_ - y;
+            if (dx * dx + dy * dy < circles_[i].r2_)
+                return false;
+        }
+        return true;
     }
-    
+
     std::vector<Circle> circles_;
     std::vector<Query> queries_;
     double minX_;

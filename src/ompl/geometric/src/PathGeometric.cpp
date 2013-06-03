@@ -166,6 +166,18 @@ void ompl::geometric::PathGeometric::print(std::ostream &out) const
         si_->printState(states_[i], out);
     out << std::endl;
 }
+void ompl::geometric::PathGeometric::printAsMatrix(std::ostream &out) const
+{
+    const base::StateSpace* space(si_->getStateSpace().get());
+    std::vector<double> reals;
+    for (unsigned int i = 0 ; i < states_.size() ; ++i)
+    {
+        space->copyToReals(reals, states_[i]);
+        std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(out, " "));
+        out << std::endl;
+    }
+    out << std::endl;
+}
 
 std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
 {

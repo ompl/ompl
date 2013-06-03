@@ -130,7 +130,7 @@ def read_benchmark_log(dbname, filenames):
 
             # create the table, if needed
             table_columns = "experimentid INTEGER, plannerid INTEGER"
-            for k, v in properties.iteritems():
+            for k, v in properties.items():
                 table_columns = table_columns + ', ' + k + ' ' + v
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
             table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE"

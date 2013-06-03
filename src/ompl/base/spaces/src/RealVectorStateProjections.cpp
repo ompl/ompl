@@ -93,6 +93,7 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
+    copyBounds();
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, const std::vector<double> &cellSizes,
@@ -101,6 +102,7 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
+    copyBounds();
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, const std::vector<unsigned int> &components) :
@@ -113,6 +115,17 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
     ProjectionEvaluator(space), components_(components)
 {
     checkSpaceType(space_);
+}
+
+void ompl::base::RealVectorOrthogonalProjectionEvaluator::copyBounds(void)
+{
+    bounds_.resize(components_.size());
+    const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
+    for (unsigned int i = 0 ; i < components_.size() ; ++i)
+    {
+        bounds_.low[i] = bounds.low[components_[i]];
+        bounds_.high[i] = bounds.high[components_[i]];
+    }
 }
 
 void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes(void)
@@ -154,6 +167,7 @@ ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionE
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
+    copyBounds();
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpace *space) :
@@ -167,12 +181,18 @@ ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionE
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
+    copyBounds();
 }
 
 ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpacePtr &space) :
     ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
+}
+
+void ompl::base::RealVectorIdentityProjectionEvaluator::copyBounds(void)
+{
+    bounds_ = space_->as<RealVectorStateSpace>()->getBounds();
 }
 
 void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellSizes(void)

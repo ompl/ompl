@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_GEOMETRIC_IK_GAIK_
-#define OMPL_GEOMETRIC_IK_GAIK_
+#ifndef OMPL_GEOMETRIC_GENETIC_SEARCH_
+#define OMPL_GEOMETRIC_GENETIC_SEARCH_
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/goals/GoalRegion.h"
-#include "ompl/geometric/ik/HCIK.h"
+#include "ompl/geometric/HillClimbing.h"
 #include "ompl/util/Console.h"
 
 namespace ompl
@@ -49,24 +49,23 @@ namespace ompl
     {
 
         /**
-           @anchor GAIK
+           @anchor GeneticSearch
 
            @par Short description
 
-           GAIK does inverse kinematics, but makes sure the produced
-           goal states are in fact valid.
+           GeneticSearch does search for valid states using a genetic algorithm
 
            @par External documentation
         */
 
-        /** \brief Inverse Kinematics with Genetic Algorithms */
-        class GAIK
+        /** \brief Genetic Algorithm for searching valid states */
+        class GeneticSearch
         {
         public:
 
             /** \brief Construct an instance of a genetic algorithm for inverse kinematics given the space information to search within */
-            GAIK(const base::SpaceInformationPtr &si);
-            ~GAIK(void);
+            GeneticSearch(const base::SpaceInformationPtr &si);
+            ~GeneticSearch(void);
 
             /** \brief Find a state that fits the request */
             bool solve(double solveTime, const base::GoalRegion &goal, base::State *result,
@@ -75,20 +74,20 @@ namespace ompl
             /** \brief Set the number of steps to perform when using hill climbing to improve an individual in the population */
             void setMaxImproveSteps(unsigned int maxSteps)
             {
-                hcik_.setMaxImproveSteps(maxSteps);
+                hc_.setMaxImproveSteps(maxSteps);
             }
 
             /** \brief Get the number of steps to perform when using hill climbing to improve an individual in the population */
             unsigned int getMaxImproveSteps(void) const
             {
-                return hcik_.getMaxImproveSteps();
+                return hc_.getMaxImproveSteps();
             }
 
             /** \brief Set the state validity flag; if this is false, states are not checked for validity */
             void setValidityCheck(bool valid)
             {
                 checkValidity_ = valid;
-                hcik_.setValidityCheck(valid);
+                hc_.setValidityCheck(valid);
             }
 
             /** \brief Get the state validity flag; if this is false, states are not checked for validity */
@@ -151,7 +150,7 @@ namespace ompl
                 maxDistance_ = distance;
             }
 
-            /** \brief Get the range GAIK is using */
+            /** \brief Get the range GeneticSearch is using */
             double getRange(void) const
             {
                 return maxDistance_;
@@ -188,7 +187,7 @@ namespace ompl
                 }
             };
 
-            HCIK                                         hcik_;
+            HillClimbing                                 hc_;
             base::SpaceInformationPtr                    si_;
             base::StateSamplerPtr                        sampler_;
             std::vector<Individual>                      pool_;

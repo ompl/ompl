@@ -249,15 +249,7 @@ int main(int, char **)
     ss.print();
 
     if (ss.solve(10))
-    {
-        og::PathGeometric p = ss.getSolutionPath().asGeometric();
-        std::vector<ob::State*> &states = p.getStates();
-        for (unsigned int i = 0 ; i < states.size() ; ++i)
-        {
-            const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(0)->values;
-            std::cout << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
-        }
-    }
+        ss.getSolutionPath().asGeometric().printAsMatrix(std::cout);
 
     dCloseODE();
 

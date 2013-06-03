@@ -71,7 +71,9 @@ namespace ompl
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
             PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0) :
-                index_(-1), path_(path), length_(path->length()), approximate_(approximate), difference_(difference)
+                index_(-1), path_(path), length_(path->length()),
+                approximate_(approximate), difference_(difference),
+                optimized_(false)
             {
             }
 
@@ -90,6 +92,10 @@ namespace ompl
                     return false;
                 if (approximate_ && b.approximate_)
                     return difference_ < b.difference_;
+                if (optimized_ && !b.optimized_)
+                    return true;
+                if (!optimized_ && b.optimized_)
+                    return false;
                 return length_ < b.length_;
             }
 
@@ -107,6 +113,9 @@ namespace ompl
 
             /** \brief The achieved difference between the found solution and the desired goal */
             double  difference_;
+
+            /** \brief True of the solution was optimized to meet the specified optimization criterion */
+            bool    optimized_;
         };
 
 	OMPL_CLASS_FORWARD(OptimizationObjective);
@@ -279,6 +288,9 @@ namespace ompl
             /** \brief Get the distance to the desired goal for the top solution. Return -1.0 if there are no solutions available. */
             double getSolutionDifference(void) const;
 
+            /** \brief Return true if the top found solution is optimized (satisfies the specified optimization objective) */
+            bool hasOptimizedSolution(void) const;
+
             /** \brief Return the top solution path, if one is found. The top path is the shortest
                  one that was found, preference being given to solutions that are not approximate.
 
@@ -290,6 +302,9 @@ namespace ompl
                 Optionally, the distance between the desired goal and the one actually achieved is set by \e difference.
             */
             void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0) const;
+
+            /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal. */
+            void addSolutionPath(const PlannerSolution &sol) const;
 
             /** \brief Get the number of solutions already found */
             std::size_t getSolutionCount(void) const;

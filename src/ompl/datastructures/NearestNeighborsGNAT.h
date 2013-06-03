@@ -120,6 +120,8 @@ namespace ompl
             }
             size_ = 0;
             removed_.clear();
+            if (rebuildSize_ != std::numeric_limits<std::size_t>::max())
+                rebuildSize_ = maxNumPtsPerLeaf_ * degree_;
         }
 
         virtual void add(const _T &data)

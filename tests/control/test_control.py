@@ -215,18 +215,15 @@ class ESTTest(TestPlanner):
 class SyclopDecomposition(oc.GridDecomposition):
     def __init__(self, len, bounds):
         super(SyclopDecomposition, self).__init__(len, 2, bounds)
-        self.rng_ = ou.RNG()
 
     def project(self, state, coord):
         coord[0] = state[0]
         coord[1] = state[1]
 
-    def sampleFromRegion(self, rid, sampler, state):
-        regionBounds = self.getRegionBounds(rid)
-
-        sampler.sampleUniform(state)
-        state[0] = self.rng_.uniformReal(regionBounds.low[0], regionBounds.high[0])
-        state[1] = self.rng_.uniformReal(regionBounds.low[1], regionBounds.high[1])
+    def sampleFullState(self, sampler, coord, s):
+        sampler.sampleUniform(s)
+        s[0] = coord[0]
+        s[1] = coord[1]
 
 class SyclopRRTTest(TestPlanner):
     def newplanner(self, si):

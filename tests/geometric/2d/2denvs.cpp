@@ -56,6 +56,7 @@
 #include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
+#include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
 
 
@@ -86,63 +87,64 @@ public:
         base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
 
         /* instantiate problem definition */
-	base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));	
-	
+        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
         planner->setProblemDefinition(pdef);
         planner->setup();
 
-	base::ScopedState<> start(si);
-	base::ScopedState<> goal(si);
-	unsigned int good = 0;
-	
-	for (std::size_t i = 0 ; i < circles.getQueryCount() ; ++i)
-	{
-	    const Circles2D::Query &q = circles.getQuery(i);
-	    start[0] = q.startX_;
-	    start[1] = q.startY_;
-	    goal[0] = q.goalX_;
-	    goal[1] = q.goalY_;
-	    pdef->setStartAndGoalStates(start, goal, 1e-3);
-	    planner->clear();
+        base::ScopedState<> start(si);
+        base::ScopedState<> goal(si);
+        unsigned int good = 0;
 
-	    /* start counting time */
-	    ompl::time::point startTime = ompl::time::now();
+        for (std::size_t i = 0 ; i < circles.getQueryCount() ; ++i)
+        {
+            const Circles2D::Query &q = circles.getQuery(i);
+            start[0] = q.startX_;
+            start[1] = q.startY_;
+            goal[0] = q.goalX_;
+            goal[1] = q.goalY_;
+            pdef->setStartAndGoalStates(start, goal, 1e-3);
+            planner->clear();
+            pdef->clearSolutionPaths();
 
-	    if (planner->solve(SOLUTION_TIME))
-	    {                
-		ompl::time::duration elapsed = ompl::time::now() - startTime;
-		good++;
-		if (time)
-		    *time += ompl::time::seconds(elapsed);
-		if (show)
-		    printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
-                
-		geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+            /* start counting time */
+            ompl::time::point startTime = ompl::time::now();
 
-		/* make the solution more smooth */
-		geometric::PathSimplifierPtr sm(new geometric::PathSimplifier(si));
-		
-		startTime = ompl::time::now();
-		sm->simplify(*path, SOLUTION_TIME);
-		elapsed = ompl::time::now() - startTime;
-		if (pathLength)
-		    *pathLength += path->length();
-		if (time)
-		    *time += ompl::time::seconds(elapsed);
+            if (planner->solve(SOLUTION_TIME))
+            {
+                ompl::time::duration elapsed = ompl::time::now() - startTime;
+                good++;
+                if (time)
+                    *time += ompl::time::seconds(elapsed);
+                if (show)
+                    printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
+
+                geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+
+                /* make the solution more smooth */
+                geometric::PathSimplifierPtr sm(new geometric::PathSimplifier(si));
+
+                startTime = ompl::time::now();
+                sm->simplify(*path, SOLUTION_TIME);
+                elapsed = ompl::time::now() - startTime;
+                if (pathLength)
+                    *pathLength += path->length();
+                if (time)
+                    *time += ompl::time::seconds(elapsed);
             }
         }
 
-	if (pathLength)
-	    *pathLength /= (double)circles.getQueryCount();
-	if (time)
-	    *time /= (double)circles.getQueryCount();
+        if (pathLength)
+            *pathLength /= (double)circles.getQueryCount();
+        if (time)
+            *time /= (double)circles.getQueryCount();
 
-	return (double)good / (double)circles.getQueryCount();
+        return (double)good / (double)circles.getQueryCount();
     }
-  
-    
+
+
     /* test a planner in a planar grid environment where some cells are occupied */
     bool test2DEnv(const Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
     {
@@ -465,7 +467,17 @@ protected:
         geometric::PRM *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
     }
+};
 
+class PRMstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::PRMstar *prm = new geometric::PRMstar(si);
+        return base::PlannerPtr(prm);
+    }
 };
 
 class LazyPRMTest : public TestPlanner
@@ -500,7 +512,7 @@ public:
         int    good   = 0;
         int    N      = 100;
 
-	for (int i = 0 ; i < N ; ++i)
+        for (int i = 0 ; i < N ; ++i)
             if (p->test2DEnv(env_, false, &time, &length))
                 good++;
 
@@ -530,43 +542,43 @@ public:
 
     void runAllTests(TestPlanner *p, double min_success, double max_avgtime)
     {
-	double success    = 0.0;
-	double avgruntime = 0.0;
-	double avglength  = 0.0;
+        double success    = 0.0;
+        double avgruntime = 0.0;
+        double avglength  = 0.0;
 
         if (verbose_)
             printf("\n========= Running simple test\n\n");
         simpleTest(p);
 
         if (verbose_)
-            printf("\n========= Running 2D map test\n\n");        
-	run2DMapTest(p, &success, &avgruntime, &avglength);
-	BOOST_CHECK(success >= min_success);
-	BOOST_CHECK(avgruntime < max_avgtime);
-	BOOST_CHECK(avglength < 100.0);
+            printf("\n========= Running 2D map test\n\n");
+        run2DMapTest(p, &success, &avgruntime, &avglength);
+        BOOST_CHECK(success >= min_success);
+        BOOST_CHECK(avgruntime < max_avgtime);
+        BOOST_CHECK(avglength < 100.0);
 
-	success    = 0.0;
-	avgruntime = 0.0;
-	avglength  = 0.0;
+        success    = 0.0;
+        avgruntime = 0.0;
+        avglength  = 0.0;
 
         if (verbose_)
             printf("\n========= Running 2D circles test\n\n");
-	run2DCirclesTest(p, &success, &avgruntime, &avglength);
+        run2DCirclesTest(p, &success, &avgruntime, &avglength);
 
-	BOOST_CHECK(success >= min_success);
+        BOOST_CHECK(success >= min_success);
         // this problem is a little more difficult than the one above, so we allow more time for its solution
-	BOOST_CHECK(avgruntime < max_avgtime * 2.0);
-	BOOST_CHECK(avglength < 25.0);
+        BOOST_CHECK(avgruntime < max_avgtime * 2.0);
+        BOOST_CHECK(avglength < 100.0);
     }
-    
+
     template<typename T>
     void runAllTests(double min_success, double max_avgtime)
     {
-	TestPlanner *p = new T();
-	runAllTests(p, min_success, max_avgtime);
-	delete p;
+        TestPlanner *p = new T();
+        runAllTests(p, min_success, max_avgtime);
+        delete p;
     }
-    
+
 protected:
 
     PlanTest(void)
@@ -579,9 +591,9 @@ protected:
         {
             BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
         }
-	
-	circles_.loadCircles((path / "circle_obstacles.txt").string());
-	circles_.loadQueries((path / "circle_queries.txt").string());
+
+        circles_.loadCircles((path / "circle_obstacles.txt").string());
+        circles_.loadQueries((path / "circle_queries.txt").string());
     }
 
     Environment2D env_;
@@ -593,24 +605,25 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
 #define MACHINE_SPEED_FACTOR 3.0
 
-// define boost tests for a planner assuming the naming convention is followed 
+// define boost tests for a planner assuming the naming convention is followed
 #define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                 \
-    BOOST_AUTO_TEST_CASE(geometric_##Name)				\
-    {									\
-	if (VERBOSE)							\
-	    printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
-	runAllTests<Name##Test>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR); \
-	if (VERBOSE)							\
-	    printf("Done with %s.\n", #Name);				\
+    BOOST_AUTO_TEST_CASE(geometric_##Name)                                \
+    {                                                                        \
+        if (VERBOSE)                                                        \
+            printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
+        runAllTests<Name##Test>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR); \
+        if (VERBOSE)                                                        \
+            printf("Done with %s.\n", #Name);                                \
     }
 
 OMPL_PLANNER_TEST(RRT, 99.0, 0.01)
 OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
-OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)  
+OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)
+
 // LazyRRT is a not so great, so we use more relaxed bounds
 OMPL_PLANNER_TEST(LazyRRT, 90.0, 0.2)
 
-// OMPL_PLANNER_TEST(PDST, 99.0, 0.02)
+OMPL_PLANNER_TEST(PDST, 99.0, 0.03)
 
 OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
 OMPL_PLANNER_TEST(SBL, 99.0, 0.02)
@@ -622,6 +635,7 @@ OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
 OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
+OMPL_PLANNER_TEST(PRMstar, 99.0, 0.02)
 OMPL_PLANNER_TEST(LazyPRM, 99.0, 0.02)
 
 // OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)

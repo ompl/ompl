@@ -1,2 +1,0 @@
-../BallTreeRRTstar.h
-../RRTstar.h

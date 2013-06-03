@@ -9,6 +9,8 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Setting up state validity checking](stateValidation.html)
 - [Working with states and state spaces](workingWithStates.html)
 - [Using existing samplers and creating new ones](samplers.html)
+- [Visualizing solution paths](pathVisualization.html)
+- [Benchmarking planners](benchmark.html)
 
 
 ### Intermediate
@@ -21,7 +23,6 @@ Below we include a number of tutorials we believe are useful for understanding h
 
 ### Advanced
 
-- [Benchmarking planners](benchmark.html)
 - [Adding a new planner](newPlanner.html)
 - [Creating Python bindings for a new planner](pybindingsPlanner.html)
 - [Setting up a projection](projections.html)

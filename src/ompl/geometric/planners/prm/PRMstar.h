@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Willow Garage
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,57 +32,46 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, James D. Marble */
 
-#ifndef OMPL_TEST_2DCIRCLES_SETUP_
-#define OMPL_TEST_2DCIRCLES_SETUP_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
 
-#include <boost/filesystem.hpp>
-
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
-
-#include "../../resources/circles2D.h"
+#include "ompl/geometric/planners/prm/PRM.h"
 
 namespace ompl
 {
+
     namespace geometric
     {
-	
-	class StateValidityChecker2DCircles : public base::StateValidityChecker
-	{
-	public:	    
-	    
-	    StateValidityChecker2DCircles(const base::SpaceInformationPtr &si, const Circles2D &circles) :
-		base::StateValidityChecker(si),
-		circles_(circles)
-	    {
-	    }
-	    
-	    virtual bool isValid(const base::State *state) const
-	    {
-		const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
-		return circles_.noOverlap(xy[0], xy[1]);
-	    }
-	    
-	private:
-	    const Circles2D &circles_;
-	};
-	
-	static base::SpaceInformationPtr spaceInformation2DCircles(const Circles2D &circles)
-	{
-	    base::RealVectorStateSpace *space = new base::RealVectorStateSpace();
-	    space->addDimension(circles.minX_, circles.maxX_);
-	    space->addDimension(circles.minY_, circles.maxY_);
-	    base::SpaceInformationPtr si(new base::SpaceInformation(base::StateSpacePtr(space)));
-	    StateValidityChecker2DCircles *svc = new StateValidityChecker2DCircles(si, circles);
-	    si->setStateValidityChecker(base::StateValidityCheckerPtr(svc));  
-	    si->setStateValidityCheckingResolution(0.002);
-	    si->setup();
-	    return si;
-	}
-	
-	
+
+        /**
+           @anchor gPRMstar
+           Run PRM with the "star strategy". Instead of setting the
+           value "k" for how many neighbors to connect, automatically
+           compute it based on the coverage of the space, guaranteeing
+           optimality of solutions.
+           @par Short description
+           @par External documentation
+           L.E. Kavraki, P.Švestka, J.-C. Latombe, and M.H. Overmars,
+           Probabilistic roadmaps for path planning in high-dimensional configuration spaces,
+           <em>IEEE Trans. on Robotics and Automation</em>, vol. 12, pp. 566–580, Aug. 1996.
+           DOI: <a href="http://dx.doi.org/10.1109/70.508439">10.1109/70.508439</a><br>
+           S. Karaman and E. Frazzoli, Sampling-based
+           Algorithms for Optimal Motion Planning, International Journal of Robotics
+           Research, vol. 30, no.7, pp. 846-894, 2011.
+           <a href="http://dx.doi.org/10.1177/0278364911406761</a><br>
+           <a href="http://www.kavrakilab.org/robotics/lazyprm.html">[more]</a>
+        */
+
+        /** \brief PRM* planner */
+        class PRMstar : public PRM
+        {
+        public:
+
+            /** \brief Constructor */
+            PRMstar(const base::SpaceInformationPtr &si);
+        };
     }
 }
 

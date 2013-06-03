@@ -112,11 +112,7 @@ void plan(ob::StateSpacePtr space, bool easy)
         ss.simplifySolution();
         og::PathGeometric path = ss.getSolutionPath();
         path.interpolate(1000);
-        for (unsigned int i=0; i < path.getStateCount(); ++i)
-        {
-            reals = ob::ScopedState<>(space, path.getState(i)).reals();
-            std::cout << "path " << reals[0] <<' '<< reals[1] << ' ' << reals[2] << std::endl;
-        }
+        path.printAsMatrix(std::cout);
     }
     else
         std::cout << "No solution found" << std::endl;

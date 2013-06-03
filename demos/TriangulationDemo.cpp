@@ -161,13 +161,7 @@ void plan(void)
     pdef->setStartAndGoalStates(start, goal, 0.1);
 
     // create a planner for the defined space
-    //ob::PlannerPtr planner(new oc::RRT(si));
-    //ob::PlannerPtr planner(new oc::EST(si));
-    //ob::PlannerPtr planner(new oc::KPIECE1(si));
-    //oc::DecompositionPtr decomp(new MyDecomposition(32, bounds));
     oc::TriangularDecomposition* td = new MyTriangularDecomposition(bounds);
-    td->print(std::cerr);
-    return;
     oc::DecompositionPtr decomp(td);
     ob::PlannerPtr planner(new oc::SyclopEST(si, decomp));
     //ob::PlannerPtr planner(new oc::SyclopRRT(si, decomp));

@@ -108,6 +108,38 @@ void ompl::control::PathControl::print(std::ostream &out) const
     out << std::endl;
 }
 
+void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
+{
+    if (!states_.size())
+        return;
+    const base::StateSpace* space(si_->getStateSpace().get());
+    const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
+    const ControlSpace* cspace(si->getControlSpace().get());
+    std::vector<double> reals;
+
+    space->copyToReals(reals, states_[0]);
+    std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(out, " "));
+    if (!controls_.size())
+        return;
+
+    unsigned int n = 0;
+    double* val;
+    while ((val = cspace->getValueAddressAtIndex(controls_[0], n)))
+        ++n;
+    for (unsigned int i = 0 ; i <= n ; ++i)
+        out << "0 ";
+    out << std::endl;
+    for (unsigned int i = 0 ; i < controls_.size(); ++i)
+    {
+        space->copyToReals(reals, states_[i + 1]);
+        std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(out, " "));
+        for (unsigned int j = 0; j < n; ++j)
+            out << *cspace->getValueAddressAtIndex(controls_[i], j) << ' ';
+        out << controlDurations_[i] << std::endl;
+    }
+    out << std::endl;
+}
+
 void ompl::control::PathControl::interpolate(void)
 {
     if (states_.size() <= controls_.size())

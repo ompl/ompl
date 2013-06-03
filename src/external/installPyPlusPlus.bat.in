@@ -50,7 +50,7 @@ del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/gccxml"
 del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pygccxml"
 del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pyplusplus"
 @CMAKE_COMMAND@ -DTEMPDIR="@PROJECT_BINARY_DIR@/tempdir" -P @CMAKE_CURRENT_LIST_DIR@/external/downloadPyPlusPlus.cmake
-@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2012-11-06.tgz"
+@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2013-05-02.tgz"
 @CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml-r575.tgz"
 @CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus-r1238.tgz"
 
