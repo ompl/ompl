@@ -108,7 +108,8 @@ double ompl::base::OptimizationObjective::averageStateCost(unsigned int numState
 }
 
 ompl::base::PathIntegralOptimizationObjective::PathIntegralOptimizationObjective(const SpaceInformationPtr &si, double maxPathCost) :
-    OptimizationObjective(si)
+  OptimizationObjective(si),
+  maxPathCost_(maxPathCost)
 {
     description_ = "Path Integral";
 }

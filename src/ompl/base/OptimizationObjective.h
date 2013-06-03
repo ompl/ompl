@@ -175,7 +175,7 @@ namespace ompl
 		double value;
 	    };
 	
-	    PathIntegralOptimizationObjective(const SpaceInformationPtr &si, double maxPathCost = std::numeric_limits<double>::infinity());
+	    PathIntegralOptimizationObjective(const SpaceInformationPtr &si, double maxPathCost = std::numeric_limits<double>::epsilon());
 
 	    double getMaxPathCost(void) const;
 
