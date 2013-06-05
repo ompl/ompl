@@ -148,8 +148,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double k_rrg           = boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
 
     std::vector<Motion*>       nbh;
-    std::vector<double> dists;
-    std::vector<unsigned> sortedDistIndices;
+    std::vector<double>        dists;
+    std::vector<std::size_t>   sortedDistIndices;
     std::vector<int>           valid;
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
@@ -201,7 +201,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             // cache for distance computations
 	    dists.resize(nbh.size());
 	    sortedDistIndices.resize(nbh.size());
-	    for (unsigned i = 0; i < sortedDistIndices.size(); ++i)
+	    for (std::size_t i = 0; i < sortedDistIndices.size(); ++i)
 	      sortedDistIndices[i] = i;
             // cache for motion validity
             valid.resize(nbh.size());
@@ -228,7 +228,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                 // Collision check until a valid motion is found
                 // The first one found is the min, since the neighbors are sorted
-		for (std::vector<unsigned>::const_iterator i = sortedDistIndices.begin();
+		for (std::vector<std::size_t>::const_iterator i = sortedDistIndices.begin();
 		     i != sortedDistIndices.end();
 		     ++i)
                 {
