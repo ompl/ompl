@@ -63,7 +63,6 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
     base::PlannerStatus result;
     unsigned int np = 0;
     const base::ProblemDefinitionPtr &pdef = getProblemDefinition();
-    const base::GoalPtr &goal = pdef->getGoal();
     pp_.clearHybridizationPaths();
 
     while (time::now() < end)

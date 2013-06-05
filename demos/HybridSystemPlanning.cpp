@@ -51,7 +51,6 @@ void propagate(const oc::SpaceInformation *si, const ob::State *state,
     const oc::Control* control, const double duration, ob::State *result)
 {
     static double timeStep = .01;
-    static double carLength = 20.;
     int nsteps = ceil(duration / timeStep);
     double dt = duration / nsteps;
     const double *u = control->as<oc::RealVectorControlSpace::ControlType>()->values;

@@ -229,7 +229,6 @@ void randomAccessPatternTest(base::StateSpace& space, NearestNeighbors<base::Sta
             proximityLinear.nearestK(s, k, nghbrGroundTruth);
             proximity.nearestK(s, k, nghbr);
             BOOST_CHECK_EQUAL(nghbr.size(), nghbrGroundTruth.size());
-            bool success = nghbr.size()==nghbrGroundTruth.size();
             for (p=0; p<nghbr.size(); ++p)
                 BOOST_OMPL_EXPECT_NEAR(space.distance(s, nghbrGroundTruth[p]), space.distance(s, nghbr[p]), eps);
 
@@ -248,7 +247,7 @@ void randomAccessPatternTest(base::StateSpace& space, NearestNeighbors<base::Sta
             if (rng.uniform01()<.5)
             {
                 unsigned int szLinear = proximityLinear.size(), sz = proximity.size();
-                bool removedLinear = proximityLinear.remove(*it);
+                /* bool removedLinear = */ proximityLinear.remove(*it);
                 bool removed = proximity.remove(*it);
                 space.freeState(*it);
                 it = states.erase(it);
