@@ -148,7 +148,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double k_rrg           = boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
 
     std::vector<Motion*>       nbh;
-    // std::map<Motion*, double>  dists;
     std::vector<double> dists;
     std::vector<unsigned> sortedDistIndices;
     std::vector<int>           valid;
@@ -200,7 +199,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             statesGenerated++;
 
             // cache for distance computations
-            // dists.clear();
 	    dists.resize(nbh.size());
 	    sortedDistIndices.resize(nbh.size());
 	    for (unsigned i = 0; i < sortedDistIndices.size(); ++i)
@@ -218,18 +216,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 for (unsigned int i = 0; i < nbh.size(); ++i)
                 {
                     double d = si_->distance(nbh[i]->state, motion->state);
-                    // dists[nbh[i]] = d;
 		    dists[i] = d;
                     nbh[i]->cost += d;
                 }
 
                 // sort the nodes
 		std::sort(sortedDistIndices.begin(), sortedDistIndices.end(), compareFn);
-                // std::sort(nbh.begin(), nbh.end(), compareMotion);
 
                 for (unsigned int i = 0; i < nbh.size(); ++i)
 		  nbh[i]->cost -= dists[i];
-                    // nbh[i]->cost -= dists[nbh[i]];
 
                 // Collision check until a valid motion is found
                 // The first one found is the min, since the neighbors are sorted
@@ -292,7 +287,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		//
 		// Note: does the order matter here? Maybe not...
 		std::size_t idx = delayCC_ ? sortedDistIndices[i] : i;
-		std::size_t idx = i;
                 if (nbh[idx] == motion->parent) continue;
 
                 double newcost = motion->cost + dists[idx];
