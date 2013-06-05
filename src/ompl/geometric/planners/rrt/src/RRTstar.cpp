@@ -148,7 +148,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double k_rrg           = boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
 
     std::vector<Motion*>       nbh;
-    std::map<Motion*, double>  dists;
+    // std::map<Motion*, double>  dists;
+    std::vector<double> dists;
+    std::vector<unsigned> sortedDistIndices;
     std::vector<int>           valid;
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
@@ -156,6 +158,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     if(solution)
         OMPL_INFORM("Starting with existing solution of cost %.5f", solution->cost);
     OMPL_INFORM("Initial k-nearest value of %u", (unsigned int)std::ceil(k_rrg * log(nn_->size()+1)));
+
+    NeighborIndexCompare compareFn(nbh);
 
     while (ptc == false)
     {
@@ -187,6 +191,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             double distN = si_->distance(dstate, nmotion->state);
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
+	    motion->parent = nmotion;
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
             unsigned int k = std::ceil(k_rrg * log(nn_->size()+1));
@@ -195,7 +200,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             statesGenerated++;
 
             // cache for distance computations
-            dists.clear();
+            // dists.clear();
+	    dists.resize(nbh.size());
+	    sortedDistIndices.resize(nbh.size());
+	    for (unsigned i = 0; i < sortedDistIndices.size(); ++i)
+	      sortedDistIndices[i] = i;
             // cache for motion validity
             valid.resize(nbh.size());
             std::fill(valid.begin(), valid.end(), 0);
@@ -209,46 +218,50 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 for (unsigned int i = 0; i < nbh.size(); ++i)
                 {
                     double d = si_->distance(nbh[i]->state, motion->state);
-                    dists[nbh[i]] = d;
+                    // dists[nbh[i]] = d;
+		    dists[i] = d;
                     nbh[i]->cost += d;
                 }
 
                 // sort the nodes
-                std::sort(nbh.begin(), nbh.end(), compareMotion);
+		std::sort(sortedDistIndices.begin(), sortedDistIndices.end(), compareFn);
+                // std::sort(nbh.begin(), nbh.end(), compareMotion);
 
                 for (unsigned int i = 0; i < nbh.size(); ++i)
-                    nbh[i]->cost -= dists[nbh[i]];
+		  nbh[i]->cost -= dists[i];
+                    // nbh[i]->cost -= dists[nbh[i]];
 
                 // Collision check until a valid motion is found
                 // The first one found is the min, since the neighbors are sorted
-                for (unsigned int i = 0; i < nbh.size(); ++i)
+		for (std::vector<unsigned>::const_iterator i = sortedDistIndices.begin();
+		     i != sortedDistIndices.end();
+		     ++i)
                 {
-                    if (nbh[i] == nmotion || si_->checkMotion(nbh[i]->state, motion->state))
+                    if (nbh[*i] == nmotion || si_->checkMotion(nbh[*i]->state, motion->state))
                     {
-                        motion->cost = nbh[i]->cost + dists[nbh[i]];
-                        motion->parent = nbh[i];
-                        valid[i] = 1;
+                        motion->cost = nbh[*i]->cost + dists[*i];
+                        motion->parent = nbh[*i];
+                        valid[*i] = 1;
                         break;
                     }
                     else
-                    {
-                        valid[i] = -1;
-                    }
+                        valid[*i] = -1;
                 }
             }
             else
             {
+		motion->cost = distN;
                 // find which one we connect the new state to
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                 {
                     if (nbh[i] != nmotion)
                     {
                         double d = si_->distance(nbh[i]->state, dstate);
-                        dists[nbh[i]] = d;
+                        dists[i] = d;
                         double c = nbh[i]->cost + d;
                         if (c < motion->cost)
                         {
-                            if (si_->checkMotion(nbh[i]->state, dstate))
+                            if (si_->checkMotion(nbh[i]->state, motion->state))
                             {
                                 motion->cost = c;
                                 motion->parent = nbh[i];
@@ -261,7 +274,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     else
                     {
                         valid[i] = 1;
-                        dists[nbh[i]] = distN;
+                        dists[i] = distN;
                     }
                 }
             }
@@ -274,26 +287,32 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             bool checkForSolution = false;
             for (unsigned int i = 0; i < nbh.size(); ++i)
             {
-                if (nbh[i] == motion->parent) continue;
+		// We iterate through the sorted neighbors if
+		// delayCC_, and in default order if not
+		//
+		// Note: does the order matter here? Maybe not...
+		std::size_t idx = delayCC_ ? sortedDistIndices[i] : i;
+		std::size_t idx = i;
+                if (nbh[idx] == motion->parent) continue;
 
-                double newcost = motion->cost + dists[nbh[i]];
-                if (newcost < nbh[i]->cost)
+                double newcost = motion->cost + dists[idx];
+                if (newcost < nbh[idx]->cost)
                 {
                     // Check if the motion to the neighbor is valid
-                    bool v = (valid[i] == 0 ? si_->checkMotion(nbh[i]->state, motion->state) : valid[i] == 1);
+                    bool v = (valid[idx] == 0 ? si_->checkMotion(nbh[idx]->state, motion->state) : valid[idx] == 1);
                     if (v)
                     {
                         // Need to subtract the difference in cost from all of the node's in the neighbor's subtree
-                        double delta = newcost - nbh[i]->cost;
+                        double delta = newcost - nbh[idx]->cost;
                         // Remove the neighbor node from it's parent's child list
-                        removeFromParent(nbh[i]);
+                        removeFromParent(nbh[idx]);
 
                         // Add the neighbor node as a child of motion
-                        nbh[i]->parent = motion;
-                        nbh[i]->cost = newcost;
-                        motion->children.push_back(nbh[i]);
+                        nbh[idx]->parent = motion;
+                        nbh[idx]->cost = newcost;
+                        motion->children.push_back(nbh[idx]);
 
-                        updateChildCosts(nbh[i], delta);
+                        updateChildCosts(nbh[idx], delta);
                         checkForSolution = true;
                     }
                 }

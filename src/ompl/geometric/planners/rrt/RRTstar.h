@@ -184,11 +184,18 @@ namespace ompl
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
-            /** \brief Sort the near neighbors by cost */
-            static bool compareMotion(const Motion* a, const Motion* b)
+	    // For sorting a list of costs and getting only their sorted indices
+            struct NeighborIndexCompare
             {
-                return (a->cost < b->cost);
-            }
+		NeighborIndexCompare(const std::vector<Motion*>& nbh) :
+		    nbh_(nbh)
+		{}
+	      bool operator()(unsigned i, unsigned j)
+	      {
+		  return nbh_[i]->cost < nbh_[j]->cost;
+	      }
+	      const std::vector<Motion*>& nbh_;
+            };
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion* a, const Motion* b) const
