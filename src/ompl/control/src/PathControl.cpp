@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/PathControl.h"
+#include "ompl/control/spaces/DiscreteControlSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/OptimizationObjective.h"
@@ -42,6 +43,42 @@
 #include "ompl/util/Console.h"
 #include <numeric>
 #include <cmath>
+
+namespace
+{
+    unsigned int getNumberOfDiscreteControls(const ompl::control::ControlSpace* cs,
+        const ompl::control::Control* c)
+    {
+        if (cs->isCompound())
+        {
+            const ompl::control::CompoundControlSpace* ccs
+                = cs->as<ompl::control::CompoundControlSpace>();
+            unsigned int num = 0;
+            for (unsigned int i = 0; i < ccs->getSubspaceCount(); ++i)
+                num += getNumberOfDiscreteControls(ccs->getSubspace(i).get(),
+                    c->as<ompl::control::CompoundControl>()->components[i]);
+            return num;
+        }
+        else if (dynamic_cast<const ompl::control::DiscreteControlSpace*>(cs))
+            return 1;
+        return 0;
+    }
+
+    void printDiscreteControls(std::ostream &out, const ompl::control::ControlSpace* cs,
+        const ompl::control::Control* c)
+    {
+        if (cs->isCompound())
+        {
+            const ompl::control::CompoundControlSpace* ccs
+                = cs->as<ompl::control::CompoundControlSpace>();
+            for (unsigned int i = 0; i < ccs->getSubspaceCount(); ++i)
+                printDiscreteControls(out, ccs->getSubspace(i).get(),
+                    c->as<ompl::control::CompoundControl>()->components[i]);
+        }
+        else if (dynamic_cast<const ompl::control::DiscreteControlSpace*>(cs))
+            out << c->as<ompl::control::DiscreteControlSpace::ControlType>()->value << ' ';
+    }
+}
 
 ompl::control::PathControl::PathControl(const base::SpaceInformationPtr &si) : base::Path(si)
 {
@@ -133,22 +170,25 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
     if (!controls_.size())
         return;
 
-    unsigned int n = 0;
+    const ControlSpace* cs = static_cast<const SpaceInformation*>(si_.get())->getControlSpace().get();
+    unsigned int n = 0, m = getNumberOfDiscreteControls(cs, controls_[0]);
     double* val;
     while ((val = cspace->getValueAddressAtIndex(controls_[0], n)))
         ++n;
-    for (unsigned int i = 0 ; i <= n ; ++i)
+    for (unsigned int i = 0 ; i < n + m; ++i)
         out << "0 ";
-    out << std::endl;
+    out << '0' << std::endl;
     for (unsigned int i = 0 ; i < controls_.size(); ++i)
     {
         space->copyToReals(reals, states_[i + 1]);
         std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(out, " "));
+        // print discrete controls
+        printDiscreteControls(out, cs, controls_[i]);
+        // print real-valued controls
         for (unsigned int j = 0; j < n; ++j)
             out << *cspace->getValueAddressAtIndex(controls_[i], j) << ' ';
         out << controlDurations_[i] << std::endl;
     }
-    out << std::endl;
 }
 
 void ompl::control::PathControl::interpolate(void)
