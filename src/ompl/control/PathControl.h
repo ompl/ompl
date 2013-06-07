@@ -85,7 +85,8 @@ namespace ompl
                 the first state the control and duration are zeroes. The
                 state components printed are those returned by
                 ompl::base::StateSpace::copyToReals, while the control
-                components printed are those returned by
+                components printed are the discrete components (if any)
+                followed by the real-valued ones as returned by
                 ompl::control::ControlSpace::getValueAddressAtIndex. */
             virtual void printAsMatrix(std::ostream &out) const;
 

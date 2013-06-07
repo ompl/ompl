@@ -155,7 +155,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     if(solution)
         OMPL_INFORM("Starting with existing solution of cost %.5f", solution->cost);
-    OMPL_INFORM("Initial k-nearest value of %u", (unsigned int)std::ceil(k_rrg * log(nn_->size()+1)));
+    OMPL_INFORM("Initial k-nearest value of %u", (unsigned int)std::ceil(k_rrg * log((double)nn_->size()+1)));
 
     while (ptc == false)
     {
@@ -189,7 +189,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             si_->copyState(motion->state, dstate);
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
-            unsigned int k = std::ceil(k_rrg * log(nn_->size()+1));
+            unsigned int k = std::ceil(k_rrg * log((double)nn_->size()+1));
             nn_->nearestK(motion, k, nbh);
             rewireTest += nbh.size();
             statesGenerated++;

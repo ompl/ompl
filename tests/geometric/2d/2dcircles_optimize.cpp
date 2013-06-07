@@ -86,7 +86,6 @@ public:
 
         base::ScopedState<> start(si);
         base::ScopedState<> goal(si);
-        unsigned int good = 0;
         std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
 
         // run a simple test first
