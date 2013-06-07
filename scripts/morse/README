@@ -1,0 +1,24 @@
+
+Right now there are 2 scripts in this directory: external.py and plugin.py. You can
+leave external.py where it is and as is. But it is important that you edit line 8 in
+plugin.py so that OMPL_DIR is your ompl_morse directory.
+
+TODO: figure out how to install plugin.py properly into Blender
+
+In the meantime, the bgetest.blend file is included with this plugin already loaded
+so you can run it. Just run 'blender bgetest.blend' from the terminal so you can
+monitor the output. Don't forget to edit line 8 in Blender. To start the game
+engine, press 'P'; the plugin will activate 1 second into the simulation; then
+press 'Esc' to stop.
+
+Expected results:
+- the cube will fall
+- the terminal should display something like:
+    Blender Game Engine Started
+    received command: extractState()
+    received command: submitState([((0.0, 0.0, -4.937804698944092), (1.0, 0.0, 0.0, 
+    0.0), (0.0, 0.0, -9.67292308807373), (0.0, 0.0, 0.0))])
+    received command: quit()
+    Blender Game Engine Finished
+- newly created file ext.out should be empty (no errors or traceback)
+
