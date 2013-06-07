@@ -257,7 +257,9 @@ bool ompl::control::PathControl::check(void) const
     for (unsigned int  i = 0 ; valid && i < controls_.size() ; ++i)
     {
         unsigned int steps = (unsigned int)floor(0.5 + controlDurations_[i] / res);
-        if (!si->isValid(states_[i]) || si->propagateWhileValid(states_[i], controls_[i], steps, dummy) != steps)
+        if (!si->isValid(states_[i]) ||
+            si->propagateWhileValid(states_[i], controls_[i], steps, dummy) != steps ||
+            si->distance(dummy, states_[i + 1]) > std::numeric_limits<float>::epsilon())
             valid = false;
     }
     si_->freeState(dummy);
