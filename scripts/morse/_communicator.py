@@ -1,6 +1,6 @@
-# plugin.py
-# To be run within Blender when the Game Engine starts; spawns a
-#  Python script outside of Blender and provides a method of
+# communicator.py
+# To be run within Blender when the game engine starts; can spawn
+#  planner script outside of Blender and provides a method of
 #  extracting and submitting data to the Blender simulation by
 #  an external program
 
@@ -100,17 +100,32 @@ def stringify(thing):
     return ' '.join(repr(thing).split('\n'))
     
     
-# Procedures to be called by external script; each one
+# Procedures to be called by planner script; each one
 #  must write a newline-terminated response string to stdin
 #  that can be eval()'ed; also each one must return True
 #  if the main while loop should continue running
 
-external = None # will be initialized by main()
+planner = None # will be initialized by spawn_planner()
 
-def quit():
+def endGame():
     
     # null response
-    external.stdin.write(b'None\n')
+    planner.stdin.write(b'None\n')
+    
+    # reset 'spawned' flag
+    bpy.context.scene.camera.game.properties['spawned'].value = False
+    
+    # shutdown the game engine
+    bge.logic.endGame()
+    
+    # signal to exit loop
+    return False
+
+
+def nextTick():
+    
+    # null response
+    planner.stdin.write(b'None\n')
     
     # signal to exit loop
     return False
@@ -122,7 +137,7 @@ def extractState():
     stateStr = stringify(getState())
     
     # respond with encoded state string
-    external.stdin.write(stateStr.encode() + b'\n')
+    planner.stdin.write(stateStr.encode() + b'\n')
     
     return True
 
@@ -133,37 +148,70 @@ def submitState(state):
     setState(state)
     
     # null response
-    external.stdin.write(b'None\n')
+    planner.stdin.write(b'None\n')
     
     return True
 
 
-# Plugin's main function
-
-def main():
-
-    # external script's stderr file
-    debugOut = open(OMPL_DIR + '/scripts/morse/ext.out','w')
+def spawn_planner():
+    """
+    Run when the game engine is started if planning is desired.
+    Spawns the external Python script 'planner.py'.
+    """
     
-    global external
-    external = subprocess.Popen(
-        OMPL_DIR + '/scripts/morse/external.py',
+    # planner script's stderr file
+    debugOut = open(OMPL_DIR + '/scripts/morse/plan.out','w')
+    
+    global planner  # helper functions above use this
+    planner = subprocess.Popen(
+        OMPL_DIR + '/scripts/morse/planner.py',
         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=debugOut)
     
+    debugOut.close()
+
+
+def communicate():
+    """
+    This function is run during MORSE simulation between every
+    physics tick; provides a means of accessing Blender game
+    engine data
+    """
+
     cmd = 'True'
     
     # execute each command until one returns False
     while eval(cmd):
         
         # retrieve the next command
-        cmd = external.stdout.readline().decode('utf-8')[:-1]
+        cmd = planner.stdout.readline().decode('utf-8')[:-1]
         print('received command: ' + cmd)
     
-    debugOut.close()
 
 
-main()
+def main():
+    """
+    Decides whether to spawn the planner, communicate with an
+    existing one, or do nothing.
+    """
+
+    # MORSE builder script will request the planner by setting
+    # game property 'plan' to True; after planner is spawned,
+    # game property 'spawned' will be True
+    
+    gameProps = bpy.context.scene.camera.game.properties
+    
+    if not gameProps['spawned'].value:
+        if gameProps['plan'].value:
+            
+            # start the external planning script and service it
+            spawn_planner()
+            gameProps['spawned'].value = True
+            communicate()
+        
+    else:
+        # service requests from the existing planner
+        communicate()
 
 
 

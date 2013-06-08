@@ -1,24 +1,50 @@
 
-Right now there are 2 scripts in this directory: external.py and plugin.py. You can
-leave external.py where it is and as is. But it is important that you edit line 8 in
-plugin.py so that OMPL_DIR is your ompl_morse directory.
+Files in this directory:
+    README
+        This.
+    _communicator.py    (reincarnation of plugin.py from last commit)
+        Meant to be run with the Blender game engine during planning. Responsible
+        for starting up the planning program and communicating with it. It needs to
+        be attached to the scene in a special way, which is what omplTemplate.blend
+        is for. This file itself doesn't actually do anything; it's a copy of a
+        script in the blend files.
+    planner.py          (reincarnation of external.py from last commit)
+        External script called by communicator.py when the game engine starts. It
+        can make procedure calls into blender to get/set data through its stdin/out.
+        It will eventually be responsible for actually planning. Right now it just
+        runs the game engine for 100 ticks, captures the world state at tick 10, and
+        resets to world to that state at 50 ticks.
+    omplTemplate.blend
+        Has communicator.py correctly linked to the scene via a hidden object called
+        'DO_NOT_DELETE'. Otherwise, this is just Blender's default startup file.
+    bgetest.blend
+        Where I'm doing my testing; same as omplTemplate right now, except 'Cube'
+        has rigid body physics enabled, and the 'plan' game property is set.
+    ompl_addon.py
+        Addon script to be installed into Blender. See install_addon.
+    install_addon
+        Bash script that puts ompl_addon.py into Blender's addons directory. Then
+        go to File > User Preferences... > Addons > Game Engine, and check the box
+        beside "OMPL Interface" to enable it. Then press "Save As Default" to keep
+        it enabled whenever you start Blender. Notice the fancy new OMPL submenu
+        inside the Game menu.
 
-TODO: figure out how to install plugin.py properly into Blender
+You need to edit line 8 in communicator.py inside the blend files (altering the
+_communicator.py file won't change anything) so that it points to your ompl_morse
+directory.
 
-In the meantime, the bgetest.blend file is included with this plugin already loaded
-so you can run it. Just run 'blender bgetest.blend' from the terminal so you can
-monitor the output. Don't forget to edit line 8 in Blender. To start the game
-engine, press 'P'; the plugin will activate 1 second into the simulation; then
-press 'Esc' to stop.
+It works if you run 'blender bgetest.blend' and
+    1) You can find the OMPL submenu, and pressing "Plan..." prints "Doing stuff"
+        to the terminal.
+    2) Pressing 'P' makes the cube fall for 0.5 seconds, jump back, fall for 0.5
+        more seconds, and then the engine stops on its own.
+    3) plan.out is empty
 
-Expected results:
-- the cube will fall
-- the terminal should display something like:
-    Blender Game Engine Started
-    received command: extractState()
-    received command: submitState([((0.0, 0.0, -4.937804698944092), (1.0, 0.0, 0.0, 
-    0.0), (0.0, 0.0, -9.67292308807373), (0.0, 0.0, 0.0))])
-    received command: quit()
-    Blender Game Engine Finished
-- newly created file ext.out should be empty (no errors or traceback)
+Note: if you end the simulation early with 'Esc', before it will work again you'll
+need to select 'DO_NOT_DELETE' from the Outliner pane, find the 'spawned' game
+property in the Logic Editor pane, and uncheck its box.
+
+
+
+
 
