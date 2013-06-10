@@ -36,9 +36,9 @@
 
 # Author: Beck Chen, Mark Moll
 
-from sys import argv
+from sys import argv, stdout
 from os.path import basename, splitext
-from math import cos, sin, atan2, pi, sqrt
+from math import cos, sin, atan2, pi, sqrt, ceil
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 from matplotlib import patches
@@ -94,6 +94,9 @@ def plotSystem(index):
     ax.add_patch(plt.Rectangle((0, 0), 1, 1, color='black'))
     plotKoules(path[index][:-8])
     plotShip(path[index][-8:-1])
+    if index % 10 == 0:
+        stdout.write('.')
+        stdout.flush()
     return handle,
 
 def makeMovie(fname):
@@ -104,6 +107,7 @@ def makeMovie(fname):
         (base,ext) = splitext(basename(fname))
         outfname = base + '.mp4'
         ani.save(outfname, fps=30, bitrate=300)
+        print('')
 
 if __name__ == '__main__':
     if len(argv) == 1:
