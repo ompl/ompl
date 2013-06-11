@@ -31,6 +31,7 @@ Files in this directory:
 You need to edit:
     line 8 in communicator.py
     line 13 in ompl_addon.py
+    line 10 in builder.py
   so that they point to your ompl_morse directory.
 
 It works if you run 'blender bgetest.blend' and

@@ -6,6 +6,9 @@ import sys
 import bpy
 import morse.builder
 
+# IMPORTANT! Set this manually for now
+OMPL_DIR='/home/caleb/repos/ompl_morse'
+
 # Add a robot (TODO: make user-specified)
 robot = morse.builder.ATRV()
 
@@ -28,7 +31,7 @@ tick = obj.game.sensors['Tick']
 tick.use_repeat = True
 
 # Add '__communicator.py' text block
-bpy.ops.text.open(filepath="/home/caleb/repos/ompl_morse/scripts/morse/communicator.py")
+bpy.ops.text.open(filepath=OMPL_DIR + "scripts/morse/communicator.py")
 
 # Add 'Comm' controller
 bpy.ops.logic.controller_add(type='PYTHON', name='Comm')
