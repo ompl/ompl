@@ -6,13 +6,17 @@
 
 # IMPORTANT! Set this manually for now
 OMPL_DIR='/home/caleb/repos/ompl_morse'
-
+    
 import subprocess
 
 import bpy
 import bge
 import mathutils
 
+bge.logic.setMaxLogicFrame(1)
+bge.logic.setMaxPhysicsFrame(1)
+bge.logic.setLogicTicRate(60)
+bge.logic.setPhysicsTicRate(60)
 
 # Routines for accessing Blender internal data
 
@@ -40,55 +44,15 @@ def setObjState(gameobj, oState):
     gameobj.worldLinearVelocity = oState[2]
     gameobj.worldAngularVelocity = oState[3]
     
-    
-def getState():
-    """
-    Retrieve a list of state tuples for all rigid body objects,
-    sorted by object name.
-    """
 
-    # list of object states
-    state = []
-    
-    # scene where all the objects are
-    scn = bge.logic.getCurrentScene()
-    
-    # for each object in the game engine (sorted by name)
-    for gameobj in sorted(scn.objects, key=lambda o: o.name):
-        
-        # get the corresponding Blender object, if there is one
-        obj = bpy.data.objects.get(gameobj.name)
-        if not obj:
-            break
-        
-        # only get its state if it's a rigid body
-        if obj.game.physics_type == 'RIGID_BODY':
-            state.append(getObjState(gameobj))
-    
-    return state
-
+rigidObjects = []   # initialized in main()
 
 def setState(state):
-    """
-    Load position, orientation, and velocity data into the Game Engine.
-    Input is a list of object states sorted by name, just like in the
-    above format.
-    """
-    
-    # scene where all the objects are
-    scn = bge.logic.getCurrentScene()
-    
-    # for each object in the game engine (sorted by name)
-    for gameobj in sorted(scn.objects, key=lambda o: o.name):
+
+    for i in range(len(state)):
         
-        # get the corresponding Blender object, if there is one
-        obj = bpy.data.objects.get(gameobj.name)
-        if not obj:
-            break
-        
-        # only set its state if it's a rigid body
-        if obj.game.physics_type == 'RIGID_BODY':
-            setObjState(gameobj, state.pop(0))
+        # set its state
+        setObjState(rigidObjects[i], state[i])
 
 
 def stringify(thing):
@@ -105,15 +69,12 @@ def stringify(thing):
 #  that can be eval()'ed; also each one must return True
 #  if the main while loop should continue running
 
-planner = None # will be initialized by spawn_planner()
+planner = None # initialized by spawn_planner()
 
-def endGame():
+def endPlanning():
     
     # null response
     planner.stdin.write(b'None\n')
-    
-    # reset 'spawned' flag
-    bpy.context.scene.camera.game.properties['spawned'].value = False
     
     # shutdown the game engine
     bge.logic.endGame()
@@ -132,20 +93,32 @@ def nextTick():
 
 
 def extractState():
+    """
+    Retrieve a list of state tuples for all rigid body objects,
+    sorted by object name.
+    """
     
-    # generate string from state without newlines
-    stateStr = stringify(getState())
+    # generate state list
+    state = list(map(getObjState, rigidObjects))
     
     # respond with encoded state string
-    planner.stdin.write(stateStr.encode() + b'\n')
+    planner.stdin.write(stringify(state).encode() + b'\n')
     
     return True
 
 
 def submitState(state):
+    """
+    Load position, orientation, and velocity data into the Game Engine.
+    Input is a list of object states sorted by name, just like the
+    format returned by extractState().
+    """
 
     # load the state into the Game Engine
-    setState(state)
+    for i in range(len(state)):
+        
+        # set each object's state
+        setObjState(rigidObjects[i], state[i])
     
     # null response
     planner.stdin.write(b'None\n')
@@ -171,6 +144,8 @@ def spawn_planner():
     debugOut.close()
 
 
+tickcount = -60
+
 def communicate():
     """
     This function is run during MORSE simulation between every
@@ -185,32 +160,52 @@ def communicate():
         
         # retrieve the next command
         cmd = planner.stdout.readline().decode('utf-8')[:-1]
-        print('received command: ' + cmd)
-    
+        if cmd != 'nextTick()':
+            print('At tick %i, received command: %s' % (tickcount, cmd))
 
 
 def main():
     """
-    Decides whether to spawn the planner, communicate with an
-    existing one, or do nothing.
+    Decides whether to spawn the planner or communicate with an
+    existing one.
     """
 
-    # MORSE builder script will request the planner by setting
-    # game property 'plan' to True; after planner is spawned,
-    # game property 'spawned' will be True
+    # Wait a second for MORSE to finish initializing
+    global tickcount
+    tickcount += 1
+    if tickcount < 0:
+        return
+
+    # After planner is spawned, game property 'spawned' will be True
     
-    gameProps = bpy.context.scene.camera.game.properties
-    
-    if not gameProps['spawned'].value:
-        if gameProps['plan'].value:
+    props = bpy.context.scene.objects['__planner'].game.properties
+    if not props['spawned'].value:
+        
+        # build the sorted list of rigid body objects
+        global rigidObjects
+        print("Gathering list of rigid bodies:")
+        scn = bge.logic.getCurrentScene()
+        objects = scn.objects
+        for gameobj in sorted(objects, key=lambda o: o.name):
             
-            # start the external planning script and service it
-            spawn_planner()
-            gameProps['spawned'].value = True
-            communicate()
+            # get the corresponding Blender object, if there is one
+            obj = bpy.data.objects.get(gameobj.name)
+            if not obj:
+                continue
+            
+            # check if it's a rigid body
+            if obj.game.physics_type == 'RIGID_BODY':
+                print(gameobj.name)
+                rigidObjects.append(gameobj)
+                    
+        # start the external planning script and service it
+        spawn_planner()
+        props['spawned'].value = True
+        communicate()
         
     else:
-        # service requests from the existing planner
+        
+        # handle requests from the existing planner
         communicate()
 
 

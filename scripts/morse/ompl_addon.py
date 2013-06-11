@@ -9,7 +9,32 @@ bl_info = {
     "author":"Caleb Voss"
 }
 
+# IMPORTANT! Set this manually for now
+OMPL_DIR='/home/caleb/repos/ompl_morse'
+
+import subprocess
+import configparser
+import os
+
 import bpy
+
+# Ensure that MORSE environment 'ompl' is registered in ~/.morse/config
+
+config_path = os.path.expanduser("~/.morse")
+if not os.path.exists(config_path):
+    os.mkdir(config_path)
+config_file = os.path.join(config_path, "config")
+
+conf = configparser.SafeConfigParser()
+conf.read(config_file)
+if not conf.has_section("sites"):
+    conf.add_section("sites")
+conf.set('sites', 'ompl', OMPL_DIR + '/scripts/morse')
+
+with open(config_file, 'w') as configfile:
+    conf.write(configfile)
+
+# Addon operator
 
 class Plan(bpy.types.Operator):
     """Invoke OMPL Planning"""
@@ -18,13 +43,17 @@ class Plan(bpy.types.Operator):
     
     def execute(self, context):
         """
-        Called run this operator is run.
+        Called when this operator is run.
         """
         
-        print('Doing stuff')
+        print('Starting planner...')
+        print(bpy.data.filepath)
+        subprocess.call(['morse', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
         
         return {'FINISHED'}
 
+
+# Menus
 
 class OMPLMenu(bpy.types.Menu):
     bl_idname = "INFO_MT_game_ompl"
@@ -37,6 +66,7 @@ class OMPLMenu(bpy.types.Menu):
 def menu_func(self, context):
     self.layout.menu(OMPLMenu.bl_idname)
 
+# Addon enable/disable functions
 
 def register():
     """

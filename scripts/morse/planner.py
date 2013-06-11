@@ -35,16 +35,16 @@ def call(cmd):
 # for 100 ticks
 for i in range(100):
 
-    if i==10:   # at tick 10
+    if i==0:   # at tick 0
         # extract world state data from engine
         state = call('extractState()')
     elif i==50:    # at tick 50
-        # set world state to what it was at tick 10
+        # set world state to what it was at tick 0
         call('submitState(' + stringify(state) + ')')
 
     # tell script not to listen for any more commands and continue
     call('nextTick()')
 
 # stop the game engine
-call('endGame()')
+call('endPlanning()')
 
