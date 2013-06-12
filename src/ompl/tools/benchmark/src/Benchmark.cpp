@@ -67,6 +67,21 @@ namespace ompl
             return true;
         }
 
+        struct PlannerProgressPropertyCollector
+        {
+            void operator()(const std::map<std::string, std::string>& data)
+            {
+                for (std::map<std::string, std::string>::const_iterator item = data.begin();
+                     item != data.end();
+                     ++item)
+                {
+                    properties[item->first].push_back(item->second);
+                }
+            }
+              
+            std::map<std::string, std::vector<std::string> > properties;
+        };
+
         class RunPlanner
         {
         public:
@@ -436,6 +451,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_ERROR(es.str().c_str());
             }
 
+            // Create callback in which we store planner's progress
+            PlannerProgressPropertyCollector collector;
+            base::Planner::PlannerProgressCallback callback = boost::ref(collector);
+            planners_[i]->setPlannerProgressCallback(callback);
+
             // execute pre-run event, if set
             try
             {
@@ -527,6 +547,23 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
                     run[it->first] = it->second;
+
+                // add planner progress data as a comma-separated list
+                // just like any other property entry.
+                for (std::map<std::string, std::vector<std::string> >::const_iterator m_it = 
+                         collector.properties.begin();
+                     m_it != collector.properties.end();
+                     ++m_it)
+                {
+                    std::stringstream ss;
+                    for (std::vector<std::string>::const_iterator v_it = m_it->second.begin();
+                         v_it != m_it->second.end();
+                         ++v_it)
+                    {
+                        ss << *v_it << ",";
+                    }
+                    run[m_it->first] = ss.str();
+                }
 
                 // execute post-run event, if set
                 try

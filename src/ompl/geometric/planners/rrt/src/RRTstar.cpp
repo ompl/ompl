@@ -138,6 +138,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution       = lastGoalMotion_;
+    base::Cost *bestCost   = NULL;
     Motion *approximation  = NULL;
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
@@ -168,6 +169,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     
     // our functor for sorting nearest neighbors
     CostIndexCompare compareFn(costs, *opt_);
+
+    // our planner progress data which we'll pass out to the user
+    std::map<std::string, std::string> plannerProgressData;
 
     while (ptc == false)
     {
@@ -398,7 +402,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             // Checking for solution or iterative improvement
             for (size_t i = 0; i < goalMotions_.size() && checkForSolution; ++i)
             {
-                sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->cost);
+                if (!bestCost || opt_->isCostLessThan(goalMotions_[i]->cost, bestCost))
+                    bestCost = goalMotions_[i]->cost;
+
+                sufficientlyShort = opt->isSatisfied(goalMotions_[i]->cost);
                 if (sufficientlyShort)
                 {
                     solution = goalMotions_[i];
@@ -415,6 +422,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 approximation = motion;
                 approximatedist = distanceFromGoal;
             }
+        }
+
+        if (!plannerProgressCallback_.empty())
+        {
+            plannerProgressData["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
+            plannerProgressData["number of vertices INTEGER"] = boost::lexical_cast<std::string>(nn_->size());
+            plannerProgressData["cost REAL"] = boost::lexical_cast<std::string>(bestCost);
+            plannerProgressCallback_(plannerProgressData);
         }
 
         // terminate if a sufficient solution is found
