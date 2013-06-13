@@ -10,7 +10,7 @@ To be able to generate python bindings you need to install the [Python] library 
 
 Below are more detailed installation instructions for [Linux](#install_linux), [OS X](#install_osx), and [Windows](#install_windows).
 
-\note If you are using [ROS], please see the [ROS interface to OMPL][omplros].
+\note If you are using [ROS], please see [MoveIt!][moveit].
 
 \htmlonly
 <div class="btn-group">
@@ -249,7 +249,7 @@ The CMAKE_INSTALL_PREFIX variable is set to <tt>C:\\Program Files (x86)\\ompl</t
 [cmake]: http://www.cmake.org
 [python]: http://www.python.org
 [ros]: http://www.ros.org
-[omplros]: http://www.ros.org/wiki/ompl_ros_interface
+[moveit]: http://moveit.ros.org
 [macports]: http://www.macports.org
 [homebrew]: http://mxcl.github.com/homebrew
 [mingw]: http://www.mingw.org

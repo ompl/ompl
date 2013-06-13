@@ -12,7 +12,7 @@
 
 <div class="row"><div class="span6">\endhtmlonly
 
-The Open Motion Planning Library (__OMPL__) consists of a set of sampling-based motion planning algorithms. The content of the library is limited to these algorithms, which means there is no environment specification, no collision detection or visualization. The library is designed so it can be easily integrated into systems that provide the additional needed components. For examples of complete systems using OMPL, see [OMPL.app](http://ompl.kavrakilab.org) and [ROS](http://www.ros.org/wiki/ompl). We have also developed a [educational module on motion planning](education.html) that is centered around OMPL.app. We are looking for educational partners to use and further develop the material. Please contact us for more information.
+The Open Motion Planning Library (__OMPL__) consists of a set of sampling-based motion planning algorithms. The content of the library is limited to these algorithms, which means there is no environment specification, no collision detection or visualization. The library is designed so it can be easily integrated into systems that provide the additional needed components. For examples of complete systems using OMPL, see [OMPL.app](http://ompl.kavrakilab.org) and  and [MoveIt!](http://moveit.ros.org). We have also developed a [educational module on motion planning](education.html) that is centered around OMPL.app. We are looking for educational partners to use and further develop the material. Please contact us for more information.
 
 OMPL is intended to be efficient, thread safe, easy to use, easily extensible and freely available (visit this project on [Bitbucket](https://bitbucket.org/ompl/ompl)).
 
@@ -89,7 +89,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 - [OMPL for education](education.html)
 - [Gallery of example uses of OMPL](gallery.html).
-- If you are interested in the [ROS interface to OMPL](http://www.ros.org/wiki/ompl_ros_interface), please read the [tutorial on using OMPL within ROS](http://kavrakilab.org/OMPLtutorial).
+- If you also use ROS, perhaps using OMPL through [MoveIt!](http://moveit.ros.org) is suitable.
 - [Third-party contributions.](thirdparty.html) ([Contribute your own extensions!](contrib.html))
 
 \htmlonly</div></div>
