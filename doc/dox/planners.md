@@ -14,6 +14,8 @@ This set of planners only accounts for the geometric constraints of the system. 
 - [Expansive Space Trees (EST)](\ref gEST)
 - [Path-Directed Subdivision Trees (PDST)](\ref gPDST)
 
+- [Path-Directed Subdivision Trees (PDST)](\ref gPDST)
+
 - [Rapidly-exploring Random Trees (RRT)](\ref gRRT)
 - [RRT Connect (RRTConnect)](\ref gRRTC)
 - [Parallel RRT (pRRT)](\ref gpRRT)

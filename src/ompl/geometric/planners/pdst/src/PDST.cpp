@@ -96,6 +96,8 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         return base::PlannerStatus::INVALID_START;
     }
 
+    OMPL_INFORM("Starting with %u states", priorityQueue_.size());
+
     base::State* tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj(ndim);
     while (!ptc)
@@ -160,6 +162,8 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
 
     si_->freeState(tmpState1);
     si_->freeState(tmpState2);
+
+    OMPL_INFORM("Created %u states and %u cells", priorityQueue_.size(), bsp_->size());
 
     return base::PlannerStatus(hasSolution, isApproximate);
 }

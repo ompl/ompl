@@ -47,8 +47,13 @@ closely as possible to the one described in [2]. The demo can solve just one
 level of Koules, all levels, or run a number of planners on one level as a
 benchmarking run.
 
-This demo illustrates also many advanced OMPL concepts, such as custom state
-space, control sampler, projection, propagator, and goal classes.
+This demo illustrates also many advanced OMPL concepts, such as classes for
+a custom state space, a control sampler, a projection, a state propagator,
+and a goal class. It also demonstrates how one could put a simple bang-bang
+controller inside the StatePropagator. In this demo the
+(Directed)ControlSampler simply samples a target velocity vector and inside
+the StatePropagator the control is chosen to drive the ship to attain this
+velocity.
 
 [1] A. M. Ladd and L. E. Kavraki, “Motion planning in the presence of drift,
 underactuation and discrete system changes,” in Robotics: Science and Systems
@@ -70,6 +75,7 @@ Computer Science, Rice University, Houston, TX, Dec. 2006.
 #include <ompl/config.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/program_options.hpp>
+#include <fstream>
 
 // size of the square that defines workspace
 const double sideLength = 1.;
@@ -86,10 +92,10 @@ const double shipVmax = .5;
 // dynamics, propagation, integration, control constants
 const double lambda_c = 4.;
 const double h = .05;
-const double integrationStepSize = .005;
-const double propagationStepSize = .1;
+const double integrationStepSize = 1e-2;
+const double propagationStepSize = .05;
 const unsigned int propagationMinSteps = 1;
-const unsigned int propagationMaxSteps = ceil(boost::math::constants::pi<double>() / propagationStepSize);
+const unsigned int propagationMaxSteps = 100;
 const double shipDelta = .5 * shipAcceleration * propagationStepSize;
 const double shipEps = .5 * shipRotVel * propagationStepSize;
 // number of attempts at each level when solving n-level koules
@@ -166,26 +172,26 @@ public:
         for (unsigned int i = 0; i < numKoules; ++i)
         {
             // set the bounds for koule i's position
-            bounds.setLow(j, -.1);
-            bounds.setHigh(j++, sideLength + .1);
-            bounds.setLow(j, -.1);
-            bounds.setHigh(j++, sideLength + .1);
+            bounds.setLow(j, -kouleRadius);
+            bounds.setHigh(j++, sideLength + kouleRadius);
+            bounds.setLow(j, -kouleRadius);
+            bounds.setHigh(j++, sideLength + kouleRadius);
             // set the bounds for koule i's velocity
-            bounds.setLow(j, -10.);
+            bounds.setLow(j, -10);
             bounds.setHigh(j++, 10.);
             bounds.setLow(j, -10.);
             bounds.setHigh(j++, 10.);
         }
         // set the bounds for the ship's position
-        bounds.setLow(j, 0);
-        bounds.setHigh(j++, sideLength);
-        bounds.setLow(j, 0);
-        bounds.setHigh(j++, sideLength);
+        bounds.setLow(j, shipRadius);
+        bounds.setHigh(j++, sideLength - shipRadius);
+        bounds.setLow(j, shipRadius);
+        bounds.setHigh(j++, sideLength - shipRadius);
         // set the bounds for the ship's velocity
-        bounds.setLow(j, -5.);
-        bounds.setHigh(j++, 5.);
-        bounds.setLow(j, -5.);
-        bounds.setHigh(j++, 5.);
+        bounds.setLow(j, -10.);
+        bounds.setHigh(j++, 10.);
+        bounds.setLow(j, -10.);
+        bounds.setHigh(j++, 10.);
         as<ob::RealVectorStateSpace>(0)->setBounds(bounds);
     }
     virtual void registerProjections(void)
@@ -311,7 +317,8 @@ public:
     KoulesStatePropagator(const oc::SpaceInformationPtr &si) :
         oc::StatePropagator(si), timeStep_(integrationStepSize),
         numDimensions_(si->getStateSpace()->getDimension()),
-        numKoules_((numDimensions_ - 5) / 4)
+        numKoules_((numDimensions_ - 5) / 4),
+        q(numDimensions_), qdot(numDimensions_), hasCollision(numKoules_ + 1)
     {
     }
 
@@ -321,8 +328,6 @@ public:
         const double* cval = control->as<oc::RealVectorControlSpace::ControlType>()->values;
         unsigned int numSteps = ceil(duration / timeStep_), offset = 4 * numKoules_;
         double dt = duration / (double)numSteps, u[3] = {0., 0., 0.};
-        std::vector<double> qdot(numDimensions_), q(numDimensions_);
-        std::vector<bool> hasCollision(numKoules_ + 1);
 
         si_->getStateSpace()->copyToReals(q, start);
 
@@ -343,19 +348,19 @@ public:
         }
         for (unsigned int i = 0; i < numSteps; ++i)
         {
-            ode(q, u, qdot);
-            update(q, qdot, dt, hasCollision);
+            ode(u);
+            update(dt);
         }
         si_->getStateSpace()->copyFromReals(result, q);
         // Normalize orientation between -pi and pi
-        ob::SO2StateSpace SO2;
-        SO2.enforceBounds(result->as<ob::CompoundStateSpace::StateType>()
-            ->as<ob::SO2StateSpace::StateType>(1));
+        si_->getStateSpace()->as<ob::CompoundStateSpace>()->as<ob::SO2StateSpace>(1)
+            ->enforceBounds(result->as<ob::CompoundStateSpace::StateType>()
+                ->as<ob::SO2StateSpace::StateType>(1));
     }
 
 protected:
 
-    void ode(std::vector<double>& q, double* u, std::vector<double>& qdot) const
+    void ode(double* u) const
     {
         // koules: qdot[4*i, 4*i + 1] is xdot, qdot[4*i + 2, 4*i + 3] is vdot
         unsigned int offset = 4 * numKoules_;
@@ -375,14 +380,13 @@ protected:
         qdot[offset + 4] = u[2];
     }
 
-    void update(std::vector<double>& q, const std::vector<double>& qdot, double dt,
-        std::vector<bool>& hasCollision) const
+    void update(double dt) const
     {
         // update collisions
         std::fill(hasCollision.begin(), hasCollision.end(), false);
         for (unsigned int i = 0; i < numKoules_; i++)
             for (unsigned int j = i + 1; j <= numKoules_; j++)
-                if (checkCollision(q, i, j, dt))
+                if (checkCollision(i, j, dt))
                     hasCollision[i] = hasCollision[j] = true;
 
         // update objects with no collision according to qdot
@@ -398,7 +402,7 @@ protected:
     // check collision among object i and j
     // compute elastic collision response if i and j collide
     // see http://en.wikipedia.org/wiki/Elastic_collision
-    bool checkCollision(std::vector<double>& q, unsigned int i, unsigned int j, double dt) const
+    bool checkCollision(unsigned int i, unsigned int j, double dt) const
     {
         static const float delta = 1e-5;
         double *a = &q[4 * i], *b = &q[4 * j];
@@ -409,7 +413,7 @@ protected:
         if (dist < minDist*minDist && ((b[2] - a[2]) * dx + (b[3] - a[3]) * dy > 0))
         // close enough and moving closer; elastic collision happens
         {
-            dist = sqrt(dist);
+            dist = std::sqrt(dist);
             // compute unit normal and tangent vectors
             double normal[2] = {dx / dist, dy / dist};
             double tangent[2] = {-normal[1], normal[0]};
@@ -462,6 +466,13 @@ protected:
     double timeStep_;
     unsigned int numDimensions_;
     unsigned int numKoules_;
+    // The next three elements are scratch space. This is normally a very BAD
+    // idea, since planners can be multi-threaded. However, none of the
+    // planners used here are multi-threaded, so it's safe. This way the
+    // propagate function doesn't have to allocate memory upon each call.
+    mutable std::vector<double> q;
+    mutable std::vector<double> qdot;
+    mutable std::vector<bool> hasCollision;
 };
 
 
@@ -487,7 +498,7 @@ public:
         {
             minX = std::min(v[4 * i    ], sideLength - v[4 * i    ]);
             minY = std::min(v[4 * i + 1], sideLength - v[4 * i + 1]);
-            minDist = std::min(minDist, std::min(minX, minY));
+            minDist = std::min(minDist, std::min(minX, minY) - kouleRadius + threshold_);
         }
         if (minDist < 0)
             minDist = 0;
@@ -533,6 +544,23 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
     return si->satisfiesBounds(state);
 }
 
+ob::PlannerPtr getPlanner(const std::string& plannerName, const oc::SpaceInformationPtr& si)
+{
+    if (plannerName == "rrt")
+        return ob::PlannerPtr(new oc::RRT(si));
+    else if (plannerName == "est")
+        return ob::PlannerPtr(new oc::EST(si));
+    else if (plannerName == "kpiece")
+        return ob::PlannerPtr(new oc::KPIECE1(si));
+    else
+    {
+        ob::PlannerPtr pdstplanner(new oc::PDST(si));
+        pdstplanner->as<oc::PDST>()->setProjectionEvaluator(
+            si->getStateSpace()->getProjection("PDSTProjection"));
+        return pdstplanner;
+    }
+}
+
 oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerName, const std::vector<double>& stateVec = std::vector<double>())
 {
     // construct state space
@@ -555,19 +583,7 @@ oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerN
     // set directed control sampler
     si->setDirectedControlSamplerAllocator(KoulesDirectedControlSamplerAllocator);
     // set planner
-    if (plannerName == "rrt")
-        ss->setPlanner(ob::PlannerPtr(new oc::RRT(si)));
-    else if (plannerName == "est")
-        ss->setPlanner(ob::PlannerPtr(new oc::EST(si)));
-    else if (plannerName == "kpiece")
-        ss->setPlanner(ob::PlannerPtr(new oc::KPIECE1(si)));
-    else
-    {
-        ob::PlannerPtr pdstplanner(new oc::PDST(si));
-        pdstplanner->as<oc::PDST>()->setProjectionEvaluator(space->getProjection("PDSTProjection"));
-        ss->setPlanner(pdstplanner);
-    }
-
+    ss->setPlanner(getPlanner(plannerName, si));
     // set validity checker
     ss->setStateValidityChecker(boost::bind(&isStateValid, si.get(), _1));
     // set state propagator
@@ -616,18 +632,24 @@ oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerN
     return ss;
 }
 
-void planOneLevel(oc::SimpleSetup& ss, double maxTime, const std::string& plannerName)
+void planOneLevel(oc::SimpleSetup& ss, double maxTime, const std::string& plannerName,
+    const std::string& outputFile)
 {
+    ss.setup();
+    ss.print(std::cout);
+
     if (ss.solve(maxTime))
     {
+        std::ofstream out(outputFile.c_str());
         oc::PathControl path(ss.getSolutionPath());
         path.interpolate();
         if (!path.check())
             OMPL_ERROR("Path is invalid");
-        path.printAsMatrix(std::cout);
+        path.printAsMatrix(out);
         if (!ss.haveExactSolutionPath())
             OMPL_INFORM("Solution is approximate. Distance to actual goal is %g",
                 ss.getProblemDefinition()->getSolutionDifference());
+        OMPL_INFORM("Output saved in %s", outputFile.c_str());
     }
 }
 
@@ -635,7 +657,6 @@ void planAllLevelsRecursive(oc::SimpleSetup* ss, double maxTime, const std::stri
     std::vector<ob::PathPtr>& solution)
 {
     double timeAttempt = maxTime / numAttempts;
-    double tol = ss->getProblemDefinition()->getGoal()->as<KoulesGoal>()->getThreshold();
     for (unsigned int i = 0; i < numAttempts; ++i)
     {
         ompl::time::point startTime = ompl::time::now();
@@ -655,7 +676,7 @@ void planAllLevelsRecursive(oc::SimpleSetup* ss, double maxTime, const std::stri
         nextStart.reserve(s.size() - 4);
         for (unsigned int j = 0; j < s.size() - 5; j += 4)
             // include koule in next state if it is within workspace
-            if (std::min(s[j], s[j+1]) > tol && std::max(s[j], s[j+1]) < sideLength - tol)
+            if (std::min(s[j], s[j+1]) > kouleRadius && std::max(s[j], s[j+1]) < sideLength - kouleRadius)
                 for (unsigned k = 0; k < 4; ++k)
                     nextStart.push_back(s[j + k]);
         // add ship's state
@@ -683,32 +704,32 @@ void planAllLevelsRecursive(oc::SimpleSetup* ss, double maxTime, const std::stri
     }
 }
 
-void planAllLevels(oc::SimpleSetup& ss, double maxTime, const std::string& plannerName)
+void planAllLevels(oc::SimpleSetup& ss, double maxTime,
+    const std::string& plannerName, const std::string& outputFile)
 {
     std::vector<ob::PathPtr> solution;
     planAllLevelsRecursive(&ss, maxTime, plannerName, solution);
     if (solution.size())
+    {
+        std::ofstream out(outputFile.c_str());
         for (std::vector<ob::PathPtr>::reverse_iterator p = solution.rbegin(); p != solution.rend(); p++)
-            static_cast<oc::PathControl*>(p->get())->printAsMatrix(std::cout);
+            static_cast<oc::PathControl*>(p->get())->printAsMatrix(out);
+        OMPL_INFORM("Output saved in %s", outputFile.c_str());
+    }
 }
 
-void benchmarkOneLevel(oc::SimpleSetup& ss, ot::Benchmark::Request request)
+void benchmarkOneLevel(oc::SimpleSetup& ss, ot::Benchmark::Request request,
+    const std::string& plannerName, const std::string& outputFile)
 {
     // Create a benchmark class
     ompl::tools::Benchmark b(ss, "Koules experiment");
-    // Add the planners to evaluate
-    b.addPlanner(ob::PlannerPtr(new oc::RRT(ss.getSpaceInformation())));
-    b.addPlanner(ob::PlannerPtr(new oc::KPIECE1(ss.getSpaceInformation())));
-    b.addPlanner(ob::PlannerPtr(new oc::EST(ss.getSpaceInformation())));
-    // PDST uses a different projection
-    ob::PlannerPtr pdstplanner(new oc::PDST(ss.getSpaceInformation()));
-    pdstplanner->as<oc::PDST>()->setProjectionEvaluator(
-        ss.getStateSpace()->getProjection("PDSTProjection"));
-    b.addPlanner(pdstplanner);
+    // Add the planner to evaluate
+    b.addPlanner(getPlanner(plannerName, ss.getSpaceInformation()));
     // Start benchmark
     b.benchmark(request);
-    // This will generate a file of the form ompl_host_time.log
-    b.saveResultsToFile();
+    // Save the results
+    b.saveResultsToFile(outputFile.c_str());
+    OMPL_INFORM("Output saved in %s", outputFile.c_str());
 }
 
 int main(int argc, char **argv)
@@ -717,17 +738,18 @@ int main(int argc, char **argv)
     {
         unsigned int numKoules, numRuns;
         double maxTime, kouleVel;
-        std::string plannerName;
+        std::string plannerName, outputFile;
         po::options_description desc("Options");
         desc.add_options()
             ("help", "show help message")
             ("plan", "plan one level of koules")
             ("planall", "plan all levels of koules")
             ("benchmark", "benchmark one level")
-            ("numkoules", po::value<unsigned int>(&numKoules)->default_value(2),
+            ("numkoules", po::value<unsigned int>(&numKoules)->default_value(3),
                 "start from <numkoules> koules")
             ("maxtime", po::value<double>(&maxTime)->default_value(10.),
                 "time limit in seconds")
+            ("output", po::value<std::string>(&outputFile), "output file name")
             ("numruns", po::value<unsigned int>(&numRuns)->default_value(10),
                 "number of runs for each planner in benchmarking mode")
             ("planner", po::value<std::string>(&plannerName)->default_value("kpiece"),
@@ -742,17 +764,26 @@ int main(int argc, char **argv)
         po::notify(vm);
 
         oc::SimpleSetup* ss = koulesSetup(numKoules, plannerName, kouleVel);
-        if (vm.count("help") || argc==1)
+        if (vm.count("help") || argc == 1)
         {
-            std::cout << desc << "\n";
+            std::cout << "Solve the games of Koules.\nSelect one of these three options:\n"
+                      << "\"--plan\", \"--planall\", or \"--benchmark\"\n\n" << desc << "\n";
             return 1;
         }
+
+        if (outputFile.size() == 0)
+        {
+            std::string prefix(vm.count("plan") ? "koules_"
+                : (vm.count("planall") ? "koules_1-" : "koulesBenchmark_"));
+            outputFile = boost::str(boost::format("%1%%2%_%3%_%4%.dat") % prefix % numKoules % plannerName % maxTime);
+        }
         if (vm.count("plan"))
-            planOneLevel(*ss, maxTime, plannerName);
-        if (vm.count("planall"))
-            planAllLevels(*ss, maxTime, plannerName);
-        if (vm.count("benchmark"))
-            benchmarkOneLevel(*ss, ot::Benchmark::Request(maxTime, 10000.0, numRuns));
+            planOneLevel(*ss, maxTime, plannerName, outputFile);
+        else if (vm.count("planall"))
+            planAllLevels(*ss, maxTime, plannerName, outputFile);
+        else if (vm.count("benchmark"))
+            benchmarkOneLevel(*ss, ot::Benchmark::Request(maxTime, 10000.0, numRuns),
+                plannerName, outputFile);
         delete ss;
     }
     catch(std::exception& e) {

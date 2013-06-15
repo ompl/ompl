@@ -16,8 +16,10 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - [Sertac Karaman](http://sertac.scripts.mit.edu/web), Emilio Frazzoli's [Aerospace Robotics and Embedded Systems Laboratory](http://ares.lids.mit.edu), MIT
 - [James Marble](http://www.cse.unr.edu/robotics/pracsys/marble), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.cse.unr.edu/robotics/pracsys), University of Nevada, Reno
 - [Jennifer Barry](http://people.csail.mit.edu/jbarry), Leslie Pack Kaelbling and Tomás Lozano-Pérez's [Learning in Intelligent Systems Group](http://lis.csail.mit.edu), MIT
+- [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill
 - Elizabeth Fudge, Rice University
 - Jonathan Sobieski, Rice University
+- Beck Chen, Rice University
 - [Sachin Chitta](http://www.willowgarage.com/pages/people/sachin-chitta-research-scientist), Willow Garage
 - Gil Jones, Willow Garage
 

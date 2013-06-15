@@ -44,21 +44,23 @@ from matplotlib.path import Path
 from matplotlib import patches
 import matplotlib.animation as animation
 
+targetFrameRate = 30 # desired number of frames per second
+speedUp = 1.
+# the parameters below should match the corresponding ones in Koules.cpp
 sideLength = 1.
 shipRadius = .03
 kouleRadius = .015
-propagationStepSize = .1
+propagationStepSize = .05
 shipAcceleration = 1.
 shipRotVel = pi
 shipDelta = .5 * shipAcceleration * propagationStepSize;
 shipEps = .5 * shipRotVel * propagationStepSize;
-acc = .05 # shipAcceleration * propagationStepSize * resampleCoef = 1 * 0.1 * 0.5
 
 fig = plt.figure(figsize=(6, 6))
 ax = plt.axes(xlim=(0, 1), ylim=(0, 1))
 fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
 handle, = ax.plot([], [])
-path = []
+path = None
 
 def plotShip(x):
     pos = (x[0], x[1])
@@ -102,11 +104,19 @@ def plotSystem(index):
 def makeMovie(fname):
     with open(fname, 'r') as f:
         global path
-        path = [[float(x) for x in line.split(' ')] for line in f.readlines()]
-        ani = animation.FuncAnimation(fig, plotSystem, frames=len(path), interval=40, blit=True)
+        path = [[float(x) for x in line.split(' ')] for line in f]
+        if len(path) == 0:
+            print('Error: %s contains no solution path' % fname)
+            return
+        step = int(ceil(speedUp / (propagationStepSize * targetFrameRate)))
+        path = path[0:len(path):step]
+        print('Creating a movie with %d frames...' % len(path))
+        print('Printing a \'.\' for every 10th frame:')
+        ani = animation.FuncAnimation(fig, plotSystem, frames = len(path),
+            interval = 1000. / step, blit = True)
         (base,ext) = splitext(basename(fname))
         outfname = base + '.mp4'
-        ani.save(outfname, fps=30, bitrate=300)
+        ani.save(outfname, bitrate = 300, fps = targetFrameRate)
         print('')
 
 if __name__ == '__main__':
