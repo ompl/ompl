@@ -142,8 +142,10 @@ namespace ompl
             {
                 /** \brief Constructor that provides default values for all members */
                 Request(double maxTime = 5.0, double maxMem = 4096.0,
-                    unsigned int runCount = 100, bool displayProgress = true,
-                    bool saveConsoleOutput = true, bool useThreads = true)
+                        unsigned int runCount = 100, 
+                        boost::int_least64_t msBetweenProgressUpdates = 1, 
+                        bool displayProgress = true,
+                        bool saveConsoleOutput = true, bool useThreads = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
                     displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
                     useThreads(useThreads)
@@ -159,6 +161,9 @@ namespace ompl
                 /// \brief the number of times to run each planner; 100 by default
                 unsigned int runCount;
 
+                /// \brief When collecting time-varying data from a planner during its execution, the planner's progress will be queried every \c msBetweenProgressUpdates milliseconds.
+                boost::int_least64_t msBetweenProgressUpdates;
+
                 /// \brief flag indicating whether progress is to be displayed or not; true by default
                 bool         displayProgress;
 
@@ -166,7 +171,7 @@ namespace ompl
                 bool         saveConsoleOutput;
 
                 /// \brief flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
-                bool         useThreads;
+                bool         useThreads;                
             };
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */

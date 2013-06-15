@@ -70,9 +70,9 @@ namespace ompl
         struct PlannerProgressPropertyCollector
         {
             PlannerProgressPropertyCollector(const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap, 
-                                             boost::chrono::milliseconds m) :
+                                             boost::int_least64_t milliseconds) :
                 callbackMap(callbackMap),
-                updatePeriod(m) {}
+                updatePeriod(boost::chrono::milliseconds(milliseconds)) {}
             void operator()()
             {
                 try
@@ -91,6 +91,8 @@ namespace ompl
                 }
                 catch (boost::thread_interrupted& e)
                 {
+                    // Catch interrupts so that threads running this
+                    // function can exit gracefully
                 }
             }
               
@@ -119,7 +121,6 @@ namespace ompl
                 boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), collector));
 
                 // allow 25% more time than originally specified, in order to detect planner termination
-                // if (!t.timed_join(time::seconds(maxTime * 1.25)))
                 if (!t.try_join_for(boost::chrono::duration<double>(maxTime * 1.25)))
                 {
                     status_ = base::PlannerStatus::CRASH;
@@ -171,7 +172,6 @@ namespace ompl
                     boost::thread t(boost::ref(*collector));
                     status_ = planner->solve(ptc, 0.1);
                     t.interrupt(); // maybe look into interrupting even if planner throws an exception
-                    std::cout << "# props " << collector->properties.size() << std::endl; // DEBUG
                 }
                 catch(std::runtime_error &e)
                 {
@@ -495,7 +495,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             // data about this planner throughout its execution
             PlannerProgressPropertyCollector 
                 collector(planners_[i]->getPlannerProgressPropertyFunctions(),
-                          boost::chrono::milliseconds(1));
+                          req.msBetweenProgressUpdates);
 
             RunPlanner rp(this, req.useThreads);
             rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, &collector);
@@ -584,7 +584,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     {
                         ss << *v_it << ",";
                     }
-                    run[m_it->first] = ss.str();
+                    run[m_it->first + " SERIES"] = ss.str();
                 }
 
                 // execute post-run event, if set
