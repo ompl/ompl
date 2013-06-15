@@ -72,7 +72,11 @@ find_package(Threads QUIET)
 
 enable_testing()
 
-# ODE is only needed for Open Dynamics Engine bindings
+# MORSE is only needed for Modular OpenRobots Simulation Engine bindings
+find_package(MORSE QUIET)
+set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})
+
+# OpenDE is only needed for Open Dynamics Engine bindings
 find_package(OpenDE QUIET)
 set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
 if (OPENDE_FOUND)
