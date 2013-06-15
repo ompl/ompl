@@ -50,13 +50,22 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
     delayCC_ = true;
-    numCollisionChecks_ = 0;
-    iterations_ = 0;
     lastGoalMotion_ = NULL;
+
+    iterations_ = 0;
+    collisionChecks_ = 0;
+    bestCost_ = 0.0 / 0.0;
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<bool>("delay_collision_checking", this, &RRTstar::setDelayCC, &RRTstar::getDelayCC, "0,1");
+
+    Planner::addPlannerProgressFunction("iterations INTEGER",
+                                        boost::bind(&RRTstar::getIterations, this));
+    Planner::addPlannerProgressFunction("collision checks INTEGER",
+                                        boost::bind(&RRTstar::getCollisionChecks, this));
+    Planner::addPlannerProgressFunction("best cost REAL",
+                                        boost::bind(&RRTstar::getBestCost, this));
 }
 
 ompl::geometric::RRTstar::~RRTstar(void)
@@ -96,10 +105,14 @@ void ompl::geometric::RRTstar::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
-    numCollisionChecks_ = 0;
-    iterations_ = 0;
+
     lastGoalMotion_ = NULL;
     goalMotions_.clear();
+
+    iterations_ = 0;
+    collisionChecks_ = 0;
+    bestCost_ = 0.0 / 0.0;
+    
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
@@ -198,6 +211,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
 	++numCollisionChecks_;
         // Check if the motion between the nearest state and the state to add is valid
+        ++collisionChecks_;
         if (si_->checkMotion(nmotion->state, dstate))
         {
             // create a motion
@@ -274,7 +288,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		    if (nbh[*i] == nmotion || si_->checkMotion(nbh[*i]->state, motion->state))
 		    {
 			if (nbh[*i] != nmotion)
-			    ++numCollisionChecks_;
+			    ++collisionChecks_;
 			opt_->copyCost(motion->incCost, incCosts[*i]);
 			opt_->copyCost(motion->cost, costs[*i]);
 			motion->parent = nbh[*i];
@@ -299,7 +313,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         opt_->combineObjectiveCosts(nbh[i]->cost,incCosts[i], costs[i]);
                         if (opt_->isCostLessThan(costs[i], motion->cost))
                         {
-			    ++numCollisionChecks_;
+                            ++collisionChecks_;
                             if (si_->checkMotion(nbh[i]->state, motion->state))
                             {
                                 opt_->copyCost(motion->incCost, incCosts[i]);
@@ -360,7 +374,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 			{
 			    if (valid[idx] == 0)
 			    {
-				++numCollisionChecks_;
+				++collisionChecks_;
 				motionValid = si_->checkMotion(motion->state, nbh[idx]->state);
 			    }
 			    else
@@ -368,7 +382,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 			}
 			else
 			{
-			    ++numCollisionChecks_;
+			    ++collisionChecks_;
 			    motionValid = si_->checkMotion(motion->state, nbh[idx]->state);
 			}
                         if (motionValid)
@@ -402,8 +416,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             // Checking for solution or iterative improvement
             for (size_t i = 0; i < goalMotions_.size() && checkForSolution; ++i)
             {
+
                 if (!bestCost || opt_->isCostLessThan(goalMotions_[i]->cost, bestCost))
+                {
                     bestCost = goalMotions_[i]->cost;
+                    bestCost_ = opt_->getCostValue(bestCost);
+                }
 
                 sufficientlyShort = opt->isSatisfied(goalMotions_[i]->cost);
                 if (sufficientlyShort)
@@ -422,14 +440,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 approximation = motion;
                 approximatedist = distanceFromGoal;
             }
-        }
-
-        if (!plannerProgressCallback_.empty())
-        {
-            plannerProgressData["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
-            plannerProgressData["number of vertices INTEGER"] = boost::lexical_cast<std::string>(nn_->size());
-            plannerProgressData["cost REAL"] = boost::lexical_cast<std::string>(bestCost);
-            plannerProgressCallback_(plannerProgressData);
         }
 
         // terminate if a sufficient solution is found

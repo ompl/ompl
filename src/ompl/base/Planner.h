@@ -364,13 +364,18 @@ namespace ompl
                 return params_;
             }
 
-            typedef boost::function<void (const std::map<std::string, std::string>&)>
-            PlannerProgressCallback;
-                                  
-            /** \brief Set the callback to be used for updating users of planner's progress */
-            void setPlannerProgressCallback(const PlannerProgressCallback& callback)
+            typedef boost::function<std::string ()> PlannerProgressFunction;
+
+            void addPlannerProgressFunction(const std::string& progressPropertyName,
+                                            const PlannerProgressFunction& func)
             {
-                plannerProgressCallback_ = callback;
+                plannerProgressFunctionsMap_[progressPropertyName] = func;
+            }
+
+            const std::map<std::string, PlannerProgressFunction>&
+            getPlannerProgressPropertyFunctions() const
+            {
+                return plannerProgressFunctionsMap_;
             }
 
             /** \brief Print properties of the motion planner */
@@ -417,8 +422,7 @@ namespace ompl
             /** \brief A map from parameter names to parameter instances for this planner. This field is populated by the declareParam() function */
             ParamSet             params_;
 
-            /** \brief A functor which will get updated of the planner's progress toward a solution (or toward an optimal solution) */
-            PlannerProgressCallback plannerProgressCallback_;
+            std::map<std::string, PlannerProgressFunction> plannerProgressFunctionsMap_;
 
             /** \brief Flag indicating whether setup() has been called */
             bool                 setup_;

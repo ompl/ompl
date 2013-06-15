@@ -69,17 +69,34 @@ namespace ompl
 
         struct PlannerProgressPropertyCollector
         {
-            void operator()(const std::map<std::string, std::string>& data)
+            PlannerProgressPropertyCollector(const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap, 
+                                             boost::chrono::milliseconds m) :
+                callbackMap(callbackMap),
+                updatePeriod(m) {}
+            void operator()()
             {
-                for (std::map<std::string, std::string>::const_iterator item = data.begin();
-                     item != data.end();
-                     ++item)
+                try
                 {
-                    properties[item->first].push_back(item->second);
+                    while (true)
+                    {
+                        for (std::map<std::string, base::Planner::PlannerProgressFunction>::const_iterator item = callbackMap.begin();
+                             item != callbackMap.end();
+                             ++item)
+                        {
+                            properties[item->first].push_back(item->second());
+                        }
+
+                        boost::this_thread::sleep_for(updatePeriod);
+                    }
+                }
+                catch (boost::thread_interrupted& e)
+                {
                 }
             }
               
+            const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap;
             std::map<std::string, std::vector<std::string> > properties;
+            boost::chrono::milliseconds updatePeriod;
         };
 
         class RunPlanner
@@ -91,18 +108,19 @@ namespace ompl
             {
             }
 
-            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
+            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, PlannerProgressPropertyCollector* collector)
             {
                 if (!useThreads_)
                 {
-                    runThread(planner, memStart + maxMem, time::seconds(maxTime));
+                    runThread(planner, memStart + maxMem, time::seconds(maxTime), collector);
                     return;
                 }
 
-                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
+                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), collector));
 
                 // allow 25% more time than originally specified, in order to detect planner termination
-                if (!t.timed_join(time::seconds(maxTime * 1.25)))
+                // if (!t.timed_join(time::seconds(maxTime * 1.25)))
+                if (!t.try_join_for(boost::chrono::duration<double>(maxTime * 1.25)))
                 {
                     status_ = base::PlannerStatus::CRASH;
 
@@ -143,14 +161,17 @@ namespace ompl
 
         private:
 
-            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration)
+            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration, PlannerProgressPropertyCollector* collector)
             {
                 time::point timeStart = time::now();
 
                 try
                 {
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    boost::thread t(boost::ref(*collector));
                     status_ = planner->solve(ptc, 0.1);
+                    t.interrupt(); // maybe look into interrupting even if planner throws an exception
+                    std::cout << "# props " << collector->properties.size() << std::endl; // DEBUG
                 }
                 catch(std::runtime_error &e)
                 {
@@ -451,11 +472,6 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_ERROR(es.str().c_str());
             }
 
-            // Create callback in which we store planner's progress
-            PlannerProgressPropertyCollector collector;
-            base::Planner::PlannerProgressCallback callback = boost::ref(collector);
-            planners_[i]->setPlannerProgressCallback(callback);
-
             // execute pre-run event, if set
             try
             {
@@ -475,8 +491,14 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_ERROR(es.str().c_str());
             }
 
+            // Create our PlannerProgressPropertyCollector to collect
+            // data about this planner throughout its execution
+            PlannerProgressPropertyCollector 
+                collector(planners_[i]->getPlannerProgressPropertyFunctions(),
+                          boost::chrono::milliseconds(1));
+
             RunPlanner rp(this, req.useThreads);
-            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime);
+            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, &collector);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results

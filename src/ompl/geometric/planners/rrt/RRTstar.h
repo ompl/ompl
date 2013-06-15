@@ -149,10 +149,19 @@ namespace ompl
 
             virtual void setup(void);
 
-	    unsigned getNumCollisionChecks(void) const
-	    {
-		return numCollisionChecks_;
-	    }
+            // Planner progress property functions
+            std::string getIterations() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getCollisionChecks() const
+            {
+                return boost::lexical_cast<std::string>(collisionChecks_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_);
+            }
 
         protected:
 
@@ -237,12 +246,6 @@ namespace ompl
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
-	    /** \brief Total number of calls to checkMotion() during execution */
-	    unsigned                                       numCollisionChecks_;
-
-            /** \brief The number of iterations the algorithm performed */
-            unsigned int                                   iterations_;
-
             /** \brief Objective we're optimizing */
 	    base::OptimizationObjectivePtr opt_;
 
@@ -251,6 +254,16 @@ namespace ompl
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
+
+            //////////////////////////////
+            // Planner progress properties
+
+            /** \brief The number of iterations the algorithm performed */
+            unsigned int                                   iterations_;
+
+            unsigned int                                   collisionChecks_;
+            
+            double                                         bestCost_;
         };
 
     }
