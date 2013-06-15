@@ -77,8 +77,13 @@ namespace ompl
             {
                 try
                 {
+                    time::point timeStart = time::now();
                     while (true)
                     {
+                        double timeInSeconds = time::seconds(time::now() - timeStart);
+                        std::string timeStamp = 
+                            boost::lexical_cast<std::string>(timeInSeconds);
+                        properties["progress sample times REAL"].push_back(timeStamp);
                         for (std::map<std::string, base::Planner::PlannerProgressFunction>::const_iterator item = callbackMap.begin();
                              item != callbackMap.end();
                              ++item)
