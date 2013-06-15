@@ -75,6 +75,7 @@ Computer Science, Rice University, Houston, TX, Dec. 2006.
 #include <ompl/config.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
 #include <fstream>
 
 // size of the square that defines workspace
@@ -225,7 +226,6 @@ public:
     // (This method is not actually ever called.)
     void sample(oc::Control *control)
     {
-        const unsigned int dim = space_->getDimension();
         const ob::RealVectorBounds &bounds = space_->as<oc::RealVectorControlSpace>()->getBounds();
         oc::RealVectorControlSpace::ControlType *rcontrol =
             control->as<oc::RealVectorControlSpace::ControlType>();
