@@ -234,7 +234,7 @@ namespace ompl
                 }
 
                 /// Number of cells
-                unsigned int size()
+                unsigned int size() const
                 {
                     unsigned int sz = 1;
                     if (left_)
