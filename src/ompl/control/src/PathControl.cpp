@@ -253,16 +253,16 @@ bool ompl::control::PathControl::check(void) const
     bool valid = true;
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
     double res = si->getPropagationStepSize();
-    base::State *dummy = si_->allocState();
+    base::State *next = si_->allocState();
     for (unsigned int  i = 0 ; valid && i < controls_.size() ; ++i)
     {
         unsigned int steps = (unsigned int)floor(0.5 + controlDurations_[i] / res);
         if (!si->isValid(states_[i]) ||
-            si->propagateWhileValid(states_[i], controls_[i], steps, dummy) != steps ||
-            si->distance(dummy, states_[i + 1]) > std::numeric_limits<float>::epsilon())
+            si->propagateWhileValid(states_[i], controls_[i], steps, next) != steps ||
+            si->distance(next, states_[i + 1]) > std::numeric_limits<float>::epsilon())
             valid = false;
     }
-    si_->freeState(dummy);
+    si_->freeState(next);
 
     return valid;
 }
