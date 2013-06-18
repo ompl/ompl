@@ -12,7 +12,6 @@ This set of planners only accounts for the geometric constraints of the system. 
 - [Parallel Single-query Bi-directional Lazy collision checking planner (pSBL)](\ref gpSBL)
 
 - [Expansive Space Trees (EST)](\ref gEST)
-- [Path-Directed Subdivision Trees (PDST)](\ref gPDST)
 
 - [Path-Directed Subdivision Trees (PDST)](\ref gPDST)
 
