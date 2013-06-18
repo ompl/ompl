@@ -379,13 +379,10 @@ namespace ompl
             bool checkAddPath( Vertex q, const std::vector<Vertex>& neigh );
 
             /** \brief Returns the average valence of the graph */
-            double avgValence();
-
-            /** \brief Estimates current memory usage for S */
-            unsigned memoryEstimate();
+            double avgValence( void );
             
             /** \brief reset function for failures */
-            void resetFailures();
+            void resetFailures( void );
             
             /** \brief Function for approaching the graph. */
             void approachGraph( Vertex v );

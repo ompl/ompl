@@ -179,7 +179,7 @@ void ompl::geometric::SPARStwo::freeMemory(void)
     maxEdgeID_ = 0;    
 }
 
-ompl::base::State* ompl::geometric::SPARStwo::sample()
+ompl::base::State* ompl::geometric::SPARStwo::sample( void )
 {
     if (!isSetup())
         setup();
@@ -356,7 +356,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     return sol ? (addedNewSolution() ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
 }
 
-bool ompl::geometric::SPARStwo::checkAddCoverage()
+bool ompl::geometric::SPARStwo::checkAddCoverage( void )
 {
     if( visibleNeighborhood_.size() > 0 )
         return false;
@@ -365,7 +365,7 @@ bool ompl::geometric::SPARStwo::checkAddCoverage()
     return true;
 }
 
-bool ompl::geometric::SPARStwo::checkAddConnectivity()
+bool ompl::geometric::SPARStwo::checkAddConnectivity( void )
 {
     std::vector< Vertex > links;
     if( visibleNeighborhood_.size() > 1 )
@@ -408,7 +408,7 @@ bool ompl::geometric::SPARStwo::checkAddConnectivity()
     return false;
 }
 
-bool ompl::geometric::SPARStwo::checkAddInterface()
+bool ompl::geometric::SPARStwo::checkAddInterface( void )
 {
     //If we have more than 1 or 0 neighbors
     if( visibleNeighborhood_.size() > 1 )
@@ -447,82 +447,77 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
 {
     bool ret = false;
     
-    unsigned deg = boost::degree( v, g_ );
-    
-    if( deg > 0 )
+    std::vector< Vertex > rs;
+    foreach( Vertex r, boost::adjacent_vertices( v, g_ ) )
     {
-        std::vector< Vertex > rs;
-        foreach( Vertex r, boost::adjacent_vertices( v, g_ ) )
+        rs.push_back(r);
+    }
+    for( unsigned i=0; i<rs.size() && !ret; ++i )
+    {
+        Vertex r = rs[i];
+        std::vector< Vertex > rps = computeVPP( v, r );
+        foreach( Vertex rp, rps )
         {
-            rs.push_back(r);
-        }
-        for( unsigned i=0; i<rs.size() && !ret; ++i )
-        {
-            Vertex r = rs[i];
-            std::vector< Vertex > rps = computeVPP( v, r );
-            foreach( Vertex rp, rps )
+            //First, compute the longest path through the graph
+            std::vector< Vertex > rpps = computeX( v, r, rp );
+            double rm_dist = 0;
+            foreach( Vertex rpp, rpps )
             {
-                //First, compute the longest path through the graph
-                std::vector< Vertex > rpps = computeX( v, r, rp );
-                double rm_dist = 0;
-                foreach( Vertex rpp, rpps )
+                double tmp_dist = (si_->distance( stateProperty_[r], stateProperty_[v] ) + si_->distance( stateProperty_[v], stateProperty_[rpp] ) )/2.0;
+                if( tmp_dist > rm_dist )
                 {
-                    double tmp_dist = (si_->distance( stateProperty_[r], stateProperty_[v] ) + si_->distance( stateProperty_[v], stateProperty_[rpp] ) )/2.0;
-                    if( tmp_dist > rm_dist )
-                    {
-                        rm_dist = tmp_dist;
-                    }
+                    rm_dist = tmp_dist;
                 }
-                
-                interface_data& d = getData( v, r, rp );
-                
-                //Then, if the spanner property is violated
-                if( rm_dist > t_ * d.d )
+            }
+            
+            interface_data& d = getData( v, r, rp );
+            
+            //Then, if the spanner property is violated
+            if( rm_dist > t_ * d.d )
+            {
+                ret = true; //Report that we added for the path
+                if( si_->checkMotion( stateProperty_[r], stateProperty_[rp] ) )
                 {
-                    ret = true; //Report that we added for the path
-                    if( si_->checkMotion( stateProperty_[r], stateProperty_[rp] ) )
+                    connect( r, rp );
+                }
+                else
+                {
+                    PathGeometric* p = new PathGeometric( si_ );
+                    if( r < rp )
                     {
-                        connect( r, rp );
+                        p->append( si_->cloneState(d.sigmas.first.get()) );
+                        p->append( si_->cloneState(d.points.first.get()) );
+                        p->append( si_->cloneState(stateProperty_[v]) );
+                        p->append( si_->cloneState(d.points.second.get()) );
+                        p->append( si_->cloneState(d.sigmas.second.get()) );
                     }
                     else
                     {
-                        PathGeometric* p = new PathGeometric( si_ );
-                        if( r < rp )
-                        {
-                            p->append( si_->cloneState(d.sigmas.first.get()) );
-                            p->append( si_->cloneState(d.points.first.get()) );
-                            p->append( si_->cloneState(stateProperty_[v]) );
-                            p->append( si_->cloneState(d.points.second.get()) );
-                            p->append( si_->cloneState(d.sigmas.second.get()) );
-                        }
-                        else
-                        {
-                            p->append( si_->cloneState(d.sigmas.second.get()) );
-                            p->append( si_->cloneState(d.points.second.get()) );
-                            p->append( si_->cloneState(stateProperty_[v]) );
-                            p->append( si_->cloneState(d.points.first.get()) );
-                            p->append( si_->cloneState(d.sigmas.first.get()) );
-                        }
-                        
-                        psimp_->shortcutPath( *p, 50 );
-                        psimp_->reduceVertices( *p, 50 );
-                        
-                        p->checkAndRepair( 100 );
-                        
-                        Vertex prior = r;
-                        Vertex vnew;
-                        std::vector<base::State*> states = p->getStates();
-                        
-                        foreach( base::State* st, states )
-                        {
-                            vnew = addGuard( si_->cloneState( st ), 3 );
-                            
-                            connect( prior, vnew );
-                            prior = vnew;
-                            si_->freeState( st );
-                        }
-                        connect( prior, rp );
+                        p->append( si_->cloneState(d.sigmas.second.get()) );
+                        p->append( si_->cloneState(d.points.second.get()) );
+                        p->append( si_->cloneState(stateProperty_[v]) );
+                        p->append( si_->cloneState(d.points.first.get()) );
+                        p->append( si_->cloneState(d.sigmas.first.get()) );
                     }
+                    
+                    psimp_->shortcutPath( *p, 50 );
+                    psimp_->reduceVertices( *p, 50 );
+                    
+                    p->checkAndRepair( 100 );
+                    
+                    Vertex prior = r;
+                    Vertex vnew;
+                    std::vector<base::State*> states = p->getStates();
+                    
+                    foreach( base::State* st, states )
+                    {
+                        vnew = addGuard( si_->cloneState( st ), 3 );
+                        
+                        connect( prior, vnew );
+                        prior = vnew;
+                        si_->freeState( st );
+                    }
+                    connect( prior, rp );
                 }
             }
         }
@@ -531,7 +526,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
     return ret;
 }
 
-void ompl::geometric::SPARStwo::resetFailures()
+void ompl::geometric::SPARStwo::resetFailures( void )
 {
     iterations_ = 0;
 }
@@ -606,7 +601,7 @@ void ompl::geometric::SPARStwo::findGraphRepresentative( base::State* st )
     }
 }
 
-std::pair< std::vector< ompl::geometric::SPARStwo::Vertex >, std::vector< ompl::base::State* > > ompl::geometric::SPARStwo::findCloseRepresentatives()
+std::pair< std::vector< ompl::geometric::SPARStwo::Vertex >, std::vector< ompl::base::State* > > ompl::geometric::SPARStwo::findCloseRepresentatives( void )
 {
     std::pair< std::vector< Vertex >, std::vector< base::State* > > ret;
     //First, remember who represents qNew_

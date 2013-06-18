@@ -185,7 +185,7 @@ void ompl::geometric::SPARS::freeMemory(void)
     g_.clear();
 }
 
-ompl::geometric::SPARS::Vertex ompl::geometric::SPARS::addSample()
+ompl::geometric::SPARS::Vertex ompl::geometric::SPARS::addSample( void )
 {
     if (!isSetup())
         setup();
@@ -718,21 +718,7 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, cons
     return ret;
 }
 
-unsigned ompl::geometric::SPARS::memoryEstimate()
-{
-    unsigned ret = 0;
-    
-    unsigned dim = si_->getStateDimension();
-    if( dim > 4 )
-        ++dim;
-
-    ret += dim*boost::num_vertices(g_);
-    ret += 2*boost::num_edges(g_);
-    
-    return ret;
-}
-
-double ompl::geometric::SPARS::avgValence()
+double ompl::geometric::SPARS::avgValence( void )
 {
     double degree = 0;
     foreach( Vertex v, boost::vertices(s_))
@@ -743,7 +729,7 @@ double ompl::geometric::SPARS::avgValence()
     return degree;
 }
 
-void ompl::geometric::SPARS::resetFailures()
+void ompl::geometric::SPARS::resetFailures( void )
 {
     iterations_ = 0;
 }

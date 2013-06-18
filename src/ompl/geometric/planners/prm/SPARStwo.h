@@ -94,7 +94,7 @@ namespace ompl
             struct vertex_extent_t {
                 typedef boost::vertex_property_tag kind;
             };
-            /** \brief Maximum extent of a vertex. */
+            
             struct vertex_interface_data_t {
                 typedef boost::vertex_property_tag kind;
             };
@@ -105,26 +105,30 @@ namespace ompl
             public:
                 base::State* st;
                 
-                sstate_t()
+                sstate_t( void )
                 {
                     st = NULL;
                 }
                 
+                /** \brief Parameterized constructor which takes a state. */
                 sstate_t( base::State* state )
                 {
                     st = state;
                 }
                 
+                /** \brief Assignment of a state. */
                 void operator=( base::State* state )
                 {
                     st = state;
                 }
                 
-                base::State* get()
+                /** \brief Retrieval method for an actual state. */
+                base::State* get( void )
                 {
                     return st;
                 }
                 
+                /** \brief Deallocates the internal state and sets it to NULL. */
                 void clear( base::SpaceInformationPtr si )
                 {
                     if( st != NULL )
@@ -136,13 +140,14 @@ namespace ompl
             typedef std::pair< sstate_t, sstate_t > sstate_pair;
             typedef std::pair< unsigned long, unsigned long > vertex_pair;
             
+            /** \brief Interface information storage class, which does bookkeeping for criterion four. */
             struct interface_data
             {
                 sstate_pair points;
                 sstate_pair sigmas;
                 double      d;
                 
-                interface_data()
+                interface_data( void )
                 {
                     d = 999999999;
                 }
@@ -310,7 +315,7 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
             /** \brief Sample a valid random state, storing it in qNew_ (and returning it) */
-            virtual base::State* sample();
+            virtual base::State* sample( void );
             
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
@@ -375,19 +380,19 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Checks to see if the sample needs to be added to ensure coverage of the space */
-            bool checkAddCoverage();
+            bool checkAddCoverage( void );
             
             /** \brief Checks to see if the sample needs to be added to ensure connectivity */
-            bool checkAddConnectivity();
+            bool checkAddConnectivity( void );
 
             /** \brief Checks to see if the current sample reveals the existence of an interface, and if so, tries to bridge it. */
-            bool checkAddInterface();
+            bool checkAddInterface( void );
             
             /** \brief Checks vertex v for short paths through its region and adds when appropriate. */
             bool checkAddPath( Vertex v );
             
             /** \brief A reset function for resetting the failures count */
-            void resetFailures();
+            void resetFailures( void );
             
             /** \brief Finds visible nodes in the graph near st */
             void findGraphNeighbors( base::State* st );
