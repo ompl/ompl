@@ -33,14 +33,14 @@ namespace ompl
                 be MorseStateSpace. Constructor only needs the MORSE
                 environment. */
             explicit
-            MorseSimpleSetup(const MorseEnvironmentPtr &env);
+            MorseSimpleSetup(const base::MorseEnvironmentPtr &env);
 
             virtual ~MorseSimpleSetup(void)
             {
             }
 
             /** \brief Get the MORSE environment associated to the state and control spaces */
-            const MorseEnvironmentPtr& getEnvironment(void) const
+            const base::MorseEnvironmentPtr& getEnvironment(void) const
             {
                 return getStateSpace()->as<base::MorseStateSpace>()->getEnvironment();
             }

@@ -28,7 +28,7 @@ namespace ompl
             }
 
             /** \brief Get the MORSE environment this state space corresponds to */
-            const MorseEnvironmentPtr& getEnvironment(void) const
+            const base::MorseEnvironmentPtr& getEnvironment(void) const
             {
                 return stateSpace_->as<base::MorseStateSpace>()->getEnvironment();
             }

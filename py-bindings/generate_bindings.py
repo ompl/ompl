@@ -187,7 +187,7 @@ class ompl_base_generator_t(code_generator_t):
         # add array access to double components of state
         self.add_array_access(bstate,'double')
         # loop over all predefined state spaces
-        for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3', 'Discrete', 'Time', 'Dubins', 'ReedsShepp']:
+        for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3', 'Discrete', 'Time', 'Dubins', 'ReedsShepp', 'Morse']:
             # create a python type for each of their corresponding state types
             state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
             state.rename(stype+'State')
@@ -197,7 +197,7 @@ class ompl_base_generator_t(code_generator_t):
                 'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
             # mark the space statetype as 'internal' to emphasize that it
             # shouldn't typically be used by a regular python user
-            if stype!='Dubins' and stype!='ReedsShepp':
+            if stype!='Dubins' and stype!='ReedsShepp' and stype!='Morse':
                 self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                     stype + 'StateInternal')
             # add a constructor that allows, e.g., an State to be constructed from a SE3State
@@ -300,6 +300,18 @@ class ompl_base_generator_t(code_generator_t):
             'ValidStateSamplerAllocator', 'Valid state allocator function')
         self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
             'EdgeWeightFn', 'Edge weight function')
+        self.add_boost_function('ompl::base::MorseEnvironment::WorldInfo(void)',
+            'getWorldInfoFn', 'World information function')
+        self.add_boost_function('void(void)',
+            'prepareStateReadFn', 'Prepare state read function')
+        self.add_boost_function('void(void)',
+            'finalizeStateWriteFn', 'Finalize state write function')
+        self.add_boost_function('void(const std::vector<double>&)',
+            'applyControlFn', 'Apply control function')
+        self.add_boost_function('void(const double)',
+            'worldStepFn', 'World step function')
+        self.add_boost_function('void(void)',
+            'endSimulationFn', 'End simulation function')
 
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument

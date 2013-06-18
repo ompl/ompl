@@ -44,6 +44,7 @@
 #include "ompl/base/spaces/TimeStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/extensions/morse/MorseStateSpace.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/PlannerData.h"
 #include "py_boost_function.hpp"
@@ -77,6 +78,7 @@ namespace ompl
         DeclareStateType(Time);
         DeclareStateType(Dubins);
         DeclareStateType(ReedsShepp);
+        DeclareStateType(Morse);
 
         DeclareSpecificParamType(0, bool);
         DeclareSpecificParamType(1, char);

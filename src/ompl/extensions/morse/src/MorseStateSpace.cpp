@@ -7,13 +7,13 @@
 #include <limits>
 #include <queue>
 
-ompl::base::MorseStateSpace::MorseStateSpace(const control::MorseEnvironmentPtr &env,
-                                                  double positionWeight, double linVelWeight, double angVelWeight, double orientationWeight) :
+ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, double positionWeight, double linVelWeight,
+                                             double angVelWeight, double orientationWeight) :
     CompoundStateSpace(), env_(env)
 {
     setName("Morse" + getName());
     type_ = STATE_SPACE_TYPE_COUNT + 1;
-    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
     {
         std::string body = ":B" + boost::lexical_cast<std::string>(i);
 
@@ -43,13 +43,15 @@ void ompl::base::MorseStateSpace::setDefaultBounds(void)
     setAngularVelocityBounds(bounds1);
 
     // find the bounding box that contains all objects included in the collision space
+    // In the future, we can just ask Python to do this because it's only done once.
+    // That way it only needs to transfer 6 doubles, rather than 24*allBodies_ doubles.
     double mX, mY, mZ, MX, MY, MZ;
     mX = mY = mZ = std::numeric_limits<double>::infinity();
     MX = MY = MZ = -std::numeric_limits<double>::infinity();
     bool found = false;
     
     std::queue<double> extremes;
-    for (unsigned int i = 0; i < env_->allBodies_; i++)
+    for (unsigned int i = 0; i < env_->wi_.allBodies_; i++)
     {
         double bb[24];
         env_->getBoundBox(bb, i);
@@ -115,19 +117,19 @@ bool ompl::base::MorseStateSpace::satisfiesBoundsExceptRotation(const StateType 
 
 void ompl::base::MorseStateSpace::setVolumeBounds(const RealVectorBounds &bounds)
 {
-    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
         components_[i * 4]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
 void ompl::base::MorseStateSpace::setLinearVelocityBounds(const RealVectorBounds &bounds)
 {
-    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
         components_[i * 4 + 1]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
 void ompl::base::MorseStateSpace::setAngularVelocityBounds(const RealVectorBounds &bounds)
 {
-    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
         components_[i * 4 + 2]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
@@ -208,7 +210,7 @@ void ompl::base::MorseStateSpace::readState(State *state) const
     env_->prepareStateRead();
     
     StateType *s = state->as<StateType>();
-    for (int i = (int)env_->rigidBodies_ - 1 ; i >= 0 ; --i)
+    for (int i = (int)env_->wi_.rigidBodies_ - 1 ; i >= 0 ; --i)
     {
         unsigned int _i4 = i * 4;
 
@@ -242,7 +244,7 @@ void ompl::base::MorseStateSpace::readState(State *state) const
 void ompl::base::MorseStateSpace::writeState(const State *state) const
 {
     const StateType *s = state->as<StateType>();
-    for (int i = (int)env_->rigidBodies_ - 1; i >= 0 ; --i)
+    for (int i = (int)env_->wi_.rigidBodies_ - 1; i >= 0 ; --i)
     {
         unsigned int _i4 = i * 4;
 

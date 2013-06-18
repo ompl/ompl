@@ -2,34 +2,40 @@
 
 #include "ompl/extensions/morse/MorseEnvironment.h"
 
-void ompl::control::MorseEnvironment::getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const
+void ompl::base::MorseEnvironment::getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const
 {
-    lower = boundsLow_;
-    upper = boundsHigh_;
+    lower = wi_.conLow_;
+    upper = wi_.conHigh_;
 }
 
-void ompl::control::MorseEnvironment::getPosition(double result[3], unsigned int obj) const
+void ompl::base::MorseEnvironment::getBoundBox(double result[24], const unsigned int obj) const
+{
+    for (unsigned int i = 0; i < 24; i++)
+        result[i] = wi_.boundBoxes_[24*obj + i];
+}
+
+void ompl::base::MorseEnvironment::getPosition(double result[3], const unsigned int obj) const
 {
     result[0] = positions[3*obj];
     result[1] = positions[3*obj+1];
     result[2] = positions[3*obj+2];
 }
 
-void ompl::control::MorseEnvironment::getLinearVelocity(double result[3], unsigned int obj) const
+void ompl::base::MorseEnvironment::getLinearVelocity(double result[3], const unsigned int obj) const
 {
     result[0] = linVelocities[3*obj];
     result[1] = linVelocities[3*obj+1];
     result[2] = linVelocities[3*obj+2];
 }
 
-void ompl::control::MorseEnvironment::getAngularVelocity(double result[3], unsigned int obj) const
+void ompl::base::MorseEnvironment::getAngularVelocity(double result[3], const unsigned int obj) const
 {
     result[0] = angVelocities[3*obj];
     result[1] = angVelocities[3*obj+1];
     result[2] = angVelocities[3*obj+2];
 }
 
-void ompl::control::MorseEnvironment::getQuaternion(double result[4], unsigned int obj) const
+void ompl::base::MorseEnvironment::getQuaternion(double result[4], const unsigned int obj) const
 {
     result[0] = quaternions[4*obj];
     result[1] = quaternions[4*obj+1];
@@ -38,28 +44,28 @@ void ompl::control::MorseEnvironment::getQuaternion(double result[4], unsigned i
 }
 
 
-void ompl::control::MorseEnvironment::setPosition(unsigned int obj, double pos[3])
+void ompl::base::MorseEnvironment::setPosition(const unsigned int obj, const double pos[3])
 {
     positions[3*obj] = pos[0];
     positions[3*obj+1] = pos[1];
     positions[3*obj+2] = pos[2];
 }
 
-void ompl::control::MorseEnvironment::setLinearVelocity(unsigned int obj, double lin[3])
+void ompl::base::MorseEnvironment::setLinearVelocity(const unsigned int obj, const double lin[3])
 {
     linVelocities[3*obj] = lin[0];
     linVelocities[3*obj+1] = lin[1];
     linVelocities[3*obj+2] = lin[2];
 }
 
-void ompl::control::MorseEnvironment::setAngularVelocity(unsigned int obj, double ang[3])
+void ompl::base::MorseEnvironment::setAngularVelocity(const unsigned int obj, const double ang[3])
 {
     angVelocities[3*obj] = ang[0];
     angVelocities[3*obj+1] = ang[1];
     angVelocities[3*obj+2] = ang[2];
 }
 
-void ompl::control::MorseEnvironment::setQuaternion(unsigned int obj, double rot[4])
+void ompl::base::MorseEnvironment::setQuaternion(const unsigned int obj, const double rot[4])
 {
     quaternions[4*obj] = rot[0];
     quaternions[4*obj+1] = rot[1];

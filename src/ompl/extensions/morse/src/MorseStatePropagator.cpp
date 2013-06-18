@@ -21,8 +21,14 @@ void ompl::control::MorseStatePropagator::propagate(const base::State *state, co
     // place the MORSE world at the start state
     si_->getStateSpace()->as<base::MorseStateSpace>()->writeState(state);
 
+    // convert control into vector of doubles
+    std::vector<double> controlVec;
+    const double *conVals = control->as<RealVectorControlSpace::ControlType>()->values;
+    for (unsigned int i = 0; i < env_->wi_.conDim_; i++)
+        controlVec.push_back(conVals[i]);
+
     // apply the controls
-    env_->applyControl(control->as<RealVectorControlSpace::ControlType>()->values);
+    env_->applyControl(controlVec);
 
     // propagate one step forward
     env_->worldStep(duration);

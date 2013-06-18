@@ -17,7 +17,7 @@ ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::StateSpacePtr &spa
     useEnvParams();
 }
 
-ompl::control::MorseSimpleSetup::MorseSimpleSetup(const MorseEnvironmentPtr &env) :
+ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env) :
     SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env)))))
 {
     useEnvParams();

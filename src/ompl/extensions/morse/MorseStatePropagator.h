@@ -32,7 +32,7 @@ namespace ompl
             }
 
             /** \brief Get the MORSE environment this state propagator operates on */
-            const MorseEnvironmentPtr& getEnvironment(void) const
+            const base::MorseEnvironmentPtr& getEnvironment(void) const
             {
                 return env_;
             }
@@ -44,7 +44,7 @@ namespace ompl
         protected:
 
             /** \brief The MORSE environment this state propagator operates on */
-            MorseEnvironmentPtr env_;
+            base::MorseEnvironmentPtr env_;
 
         };
     }
