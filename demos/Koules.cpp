@@ -598,7 +598,7 @@ oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerN
         // increasing distance from the center. The ship's initial position is
         // at the center. Initial velocities are 0.
         std::vector<double> startVec(space->getDimension(), 0.);
-        double r, theta=boost::math::constants::pi<double>(), delta = 2.*theta / numKoules, vr, vtheta;
+        double r, theta = boost::math::constants::pi<double>(), delta = 2.*theta / numKoules;
         for (unsigned int i = 0; i < numKoules; ++i, theta += delta)
         {
             r = .1 + i * .1 / numKoules;
