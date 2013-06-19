@@ -34,13 +34,18 @@
 
 /* Author: Matt Maly */
 
-#ifndef OMPL_CONTROL_PLANNERS_SYCLOP_TRIANGULARDECOMPOSITION_
-#define OMPL_CONTROL_PLANNERS_SYCLOP_TRIANGULARDECOMPOSITION_
+#ifndef OMPL_EXTENSIONS_TRIANGLE_TRIANGULARDECOMPOSITION_
+#define OMPL_EXTENSIONS_TRIANGLE_TRIANGULARDECOMPOSITION_
 
 #include "ompl/base/State.h"
+#include "ompl/base/StateSampler.h"
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
+#include "ompl/util/RandomNumbers.h"
+#include <ostream>
+#include <vector>
+#include <set>
 
 namespace ompl
 {
@@ -50,25 +55,12 @@ namespace ompl
         class TriangularDecomposition : public Decomposition
         {
         public:
-            virtual ~TriangularDecomposition()
-            {
-            }
-
-            virtual double getRegionVolume(unsigned int triID);
-
-            virtual void getNeighbors(unsigned int triID, std::vector<unsigned int>& neighbors) const;
-
-            virtual int locateRegion(const base::State* s) const;
-
-            virtual void sampleFromRegion(unsigned int triID, RNG& rng, std::vector<double>& coord) const;
-
-            //Debug method: prints this decomposition as a list of polygons
-            void print(std::ostream& out) const;
-
-
-        protected:
             struct Vertex
             {
+                Vertex(void) {}
+                Vertex(double vx, double vy);
+                bool operator==(const Vertex& v) const;
+                friend std::size_t hash_value(const Vertex& v);
                 double x, y;
             };
 
@@ -88,17 +80,58 @@ namespace ompl
                 double volume;
             };
 
-            /** \brief Constructor. Creates a TriangularDecomposition over the given bounds, which must be 2-dimensional.
-                The triangulation will respect any given obstacles, which are assumed to be convex polygons.
-             */
-            TriangularDecomposition(unsigned int dim, const base::RealVectorBounds& b,
-                const std::vector<Polygon>& holes = std::vector<Polygon>());
+            /** \brief Creates a TriangularDecomposition over the given bounds, which must be 2-dimensional.
+                The underlying mesh will be a conforming Delaunay triangulation.
+                The triangulation will ignore any obstacles, given as a list of polygons.
+                The triangulation will respect the boundaries of any regions of interest, given as a list of
+                polygons. */
+            TriangularDecomposition(
+                const base::RealVectorBounds& bounds,
+                const std::vector<Polygon>& holes = std::vector<Polygon>(),
+                const std::vector<Polygon>& intRegs = std::vector<Polygon>()
+            );
 
+            virtual ~TriangularDecomposition(void);
+
+            virtual double getRegionVolume(unsigned int triID);
+
+            virtual void getNeighbors(unsigned int triID, std::vector<unsigned int>& neighbors) const;
+
+            virtual int locateRegion(const base::State* s) const;
+
+            virtual void sampleFromRegion(unsigned int triID, RNG& rng, std::vector<double>& coord) const;
+
+            void setup(void);
+
+            void addHole(const Polygon& hole);
+
+            void addRegionOfInterest(const Polygon& region);
+
+            unsigned int getNumHoles(void) const;
+
+            unsigned int getNumRegionsOfInterest(void) const;
+
+            const std::vector<Polygon>& getHoles(void) const;
+
+            const std::vector<Polygon>& getAreasOfInterest(void) const;
+
+            /** \brief Returns the set of regions of interest that contain the given triangle ID. */
+            const std::set<unsigned int>& getRegionsOfInterestAt(unsigned int triID) const;
+
+            //Debug method: prints this decomposition as a list of polygons
+            void print(std::ostream& out) const;
+
+        protected:
             /** \brief Helper method to triangulate the space and return the number of triangles. */
             virtual unsigned int createTriangles();
 
             std::vector<Triangle> triangles_;
             std::vector<Polygon> holes_;
+            std::vector<Polygon> intRegs_;
+            /** \brief Maps from triangle ID to set of indices of Polygons in intRegs_
+                which contain the triangle ID, if any. */
+            std::vector<std::set<unsigned int> > intRegInfo_;
+            double triAreaPct_;
 
         private:
             class LocatorGrid : public GridDecomposition
@@ -141,10 +174,10 @@ namespace ompl
             void buildLocatorGrid();
 
             /** \brief Helper method to determine whether a point lies within a triangle. */
-            bool triContains(const Triangle& tri, const std::vector<double>& coord) const;
+            static bool triContains(const Triangle& tri, const std::vector<double>& coord);
 
             /** \brief Helper method to generate a point within a convex polygon. */
-            Vertex pointWithinPoly(const Polygon& poly) const;
+            static Vertex getPointInPoly(const Polygon& poly);
 
             LocatorGrid locator;
         };
