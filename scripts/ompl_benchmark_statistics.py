@@ -120,7 +120,7 @@ def read_benchmark_log(dbname, filenames):
             # load a dictionary of properties and types
             # we keep the names of the properties in a list as well, to ensure the correct order of properties
             properties = {}
-            propNames = ['experimentid', 'plannerid']
+            propNames = ['id', 'experimentid', 'plannerid']
             for j in range(num_properties):
                 field = logfile.readline().split()
                 ftype = field[-1]
@@ -129,7 +129,7 @@ def read_benchmark_log(dbname, filenames):
                 propNames.append(fname)
 
             # create the table, if needed
-            table_columns = "experimentid INTEGER, plannerid INTEGER"
+            table_columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, experimentid INTEGER, plannerid INTEGER"
             for k, v in properties.items():
                 table_columns = table_columns + ', ' + k + ' ' + v
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
@@ -146,15 +146,53 @@ def read_benchmark_log(dbname, filenames):
                     c.execute('ALTER TABLE `' + planner_table + '` ADD ' + col + ' ' + properties[col] + ';')
 
             # add measurements
-            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
+            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 3)) + ')'
 
             num_runs = int(logfile.readline().split()[0])
+            run_ids = []
             for j in range(num_runs):
-                run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x)
+                run = tuple([None, experiment_id, planner_id] + [None if len(x)==0 else float(x)
                     for x in logfile.readline().split('; ')[:-1]])
                 c.execute(insert_fmt_str, run)
+                
+                # extract primary keys of each run row so we can
+                # reference them in the planner progress data table if
+                # needed
+                c.execute('SELECT last_insert_rowid()')
+                run_ids.append(c.fetchone()[0])
+                
+            nextLine = logfile.readline()
 
-            logfile.readline()
+            # Read in planner progress data if it's supplied
+            if nextLine != '.':
+                num_prog_props = int(nextLine.split()[0])
+                prog_prop_names = []
+                prog_prop_types = []
+                for i in range(num_prog_props):
+                    field = logfile.readline().split()
+                    prog_prop_types.append(field[-1])
+                    prog_prop_names.append("_".join(field[:-1]))
+            
+                # create the table for run progress properties of this planner
+                table_name = planner_name + '_planner_progress'
+                table_columns = 'runid INTEGER'
+                table_columns += ''.join([', %s %s' % (pname,ptype) for 
+                                          (pname,ptype) in zip(prog_prop_names,prog_prop_types)])
+                table_columns += ', FOREIGN KEY(runid) REFERENCES %s(id)' % planner_table 
+                c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" % (table_name, table_columns))
+
+                num_runs = int(logfile.readline().split()[0])
+                insert_fmt_str = 'INSERT INTO `' + table_name + '` (runid,' + ','.join(prog_prop_names) + ') VALUES (' + ','.join('?'*(num_prog_props+1)) + ')'
+                for j in range(num_runs):
+                    data_series = logfile.readline().split(';')[:-1]
+                    for data_sample in data_series:
+                        # \todo don't really like always using float() here;
+                        # should be able to dispatch depending on data
+                        # type
+                        values = tuple([run_ids[j]]+[float(x) for x in data_sample.split(',')[:-1]])
+                        c.execute(insert_fmt_str, values)
+                    
+                logfile.readline()
         logfile.close()
     conn.commit()
     c.close()
@@ -246,8 +284,10 @@ def plot_statistics(dbname, fname):
     experiments = []
     # merge possible attributes from all planners
     for p in planner_names:
+        print(p)
         c.execute('SELECT * FROM `%s` LIMIT 1' % p)
         atr = [ t[0] for t in c.description]
+        atr.remove('id')
         atr.remove('plannerid')
         atr.remove('experimentid')
         for a in atr:

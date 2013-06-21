@@ -83,14 +83,16 @@ namespace ompl
                         double timeInSeconds = time::seconds(time::now() - timeStart);
                         std::string timeStamp = 
                             boost::lexical_cast<std::string>(timeInSeconds);
-                        properties["progress sample times REAL"].push_back(timeStamp);
+                        std::map<std::string, std::string> data;
+                        data["time REAL"] = timeStamp;
                         for (std::map<std::string, base::Planner::PlannerProgressFunction>::const_iterator item = callbackMap.begin();
                              item != callbackMap.end();
                              ++item)
                         {
-                            properties[item->first].push_back(item->second());
+                            // properties[item->first].push_back(item->second());
+                            data[item->first] = item->second();
                         }
-
+                        properties.push_back(data);
                         boost::this_thread::sleep_for(updatePeriod);
                     }
                 }
@@ -102,7 +104,8 @@ namespace ompl
             }
               
             const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap;
-            std::map<std::string, std::vector<std::string> > properties;
+            // std::map<std::string, std::vector<std::string> > properties;
+            Benchmark::RunProgressData properties;
             boost::chrono::milliseconds updatePeriod;
         };
 
@@ -174,9 +177,17 @@ namespace ompl
                 try
                 {
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
-                    boost::thread t(boost::ref(*collector));
+                    // Only launch the planner progress property
+                    // collector if there is any data for it to report
+                    boost::thread* t = 0;
+                    if (planner->getPlannerProgressPropertyFunctions().size() > 0)
+                        t = new boost::thread(boost::ref(*collector));
                     status_ = planner->solve(ptc, 0.1);
-                    t.interrupt(); // maybe look into interrupting even if planner throws an exception
+                    if (t)
+                    {
+                        t->interrupt(); // maybe look into interrupting even if planner throws an exception
+                        delete t;
+                    }
                 }
                 catch(std::runtime_error &e)
                 {
@@ -312,6 +323,44 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
                 out << "; ";
             }
             out << std::endl;
+        }
+
+        // print the run progress data if it was reported
+        if (exp_.planners[i].runsProgressData.size() > 0)
+        {
+            // Print number of progress properties
+            out << exp_.planners[i].runsProgressData[0][0].size() << " progress properties for each run" << std::endl;
+            // Print progress property names
+            for (std::map<std::string, std::string>::const_iterator iter =
+                     exp_.planners[i].runsProgressData[0][0].begin();
+                 iter != exp_.planners[i].runsProgressData[0][0].end();
+                 ++iter)
+            {
+                out << iter->first << std::endl;
+            }
+            // Print progress properties for each run
+            out << exp_.planners[i].runsProgressData.size() << " runs" << std::endl;
+            for (unsigned int r = 0; r < exp_.planners[i].runsProgressData.size(); ++r)
+            {
+                // For each time point
+                for (unsigned int t = 0; t < exp_.planners[i].runsProgressData[r].size(); ++t)
+                {
+                    // Print each of the properties at that time point
+                    for (std::map<std::string, std::string>::const_iterator iter = 
+                             exp_.planners[i].runsProgressData[r][t].begin();
+                         iter != exp_.planners[i].runsProgressData[r][t].end();
+                         ++iter)
+                    {
+                        out << iter->second << ",";
+                    }
+
+                    // Separate time points by semicolons
+                    out << ";"; 
+                }
+                
+                // Separate runs by newlines
+                out << std::endl;
+            }
         }
 
         out << '.' << std::endl;
@@ -574,23 +623,23 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
                     run[it->first] = it->second;
-
+                
                 // add planner progress data as a comma-separated list
                 // just like any other property entry.
-                for (std::map<std::string, std::vector<std::string> >::const_iterator m_it = 
-                         collector.properties.begin();
-                     m_it != collector.properties.end();
-                     ++m_it)
-                {
-                    std::stringstream ss;
-                    for (std::vector<std::string>::const_iterator v_it = m_it->second.begin();
-                         v_it != m_it->second.end();
-                         ++v_it)
-                    {
-                        ss << *v_it << ",";
-                    }
-                    run[m_it->first + " SERIES"] = ss.str();
-                }
+                // for (std::map<std::string, std::vector<std::string> >::const_iterator m_it = 
+                //          collector.properties.begin();
+                //      m_it != collector.properties.end();
+                //      ++m_it)
+                // {
+                //     std::stringstream ss;
+                //     for (std::vector<std::string>::const_iterator v_it = m_it->second.begin();
+                //          v_it != m_it->second.end();
+                //          ++v_it)
+                //     {
+                //         ss << *v_it << ",";
+                //     }
+                //     run[m_it->first + "_SERIES"] = ss.str();
+                // }
 
                 // execute post-run event, if set
                 try
@@ -612,6 +661,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 }
 
                 exp_.planners[i].runs.push_back(run);
+
+                // Add planner progress data from the planner progress
+                // collector if there was anything to report
+                if (planners_[i]->getPlannerProgressPropertyFunctions().size() > 0)
+                    exp_.planners[i].runsProgressData.push_back(collector.properties);
             }
             catch(std::runtime_error &e)
             {

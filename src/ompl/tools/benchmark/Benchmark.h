@@ -79,6 +79,8 @@ namespace ompl
                 stored as key-value pairs. */
             typedef std::map<std::string, std::string> RunProperties;
 
+            typedef std::vector<std::map<std::string, std::string> > RunProgressData;
+
             /** \brief Signature of function that can be called before a planner execution is started */
             typedef boost::function<void(const base::PlannerPtr&)> PreSetupEvent;
 
@@ -93,6 +95,8 @@ namespace ompl
 
                 /// Data collected for each run
                 std::vector<RunProperties> runs;
+
+                std::vector<RunProgressData> runsProgressData;
 
                 /// Some common properties for all the runs
                 RunProperties              common;
