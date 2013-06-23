@@ -196,6 +196,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         else
             sampler_->sampleUniform(rstate);
 
+        // DEBUG
+        std::cout << "Iteration " << iterations_ << std::endl;
+        si_->printState(rstate);
+        std::cout << bestCost_ << std::endl;
+
         // find closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
 

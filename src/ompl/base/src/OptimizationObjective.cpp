@@ -77,7 +77,8 @@ void ompl::base::OptimizationObjective::getCost(const Path &path, Cost *cost) co
 
 bool ompl::base::OptimizationObjective::isCostLessThan(const Cost *c1, const Cost *c2) const
 {
-  return (getCostValue(c1) + magic::BETTER_PATH_COST_MARGIN < getCostValue(c2));
+  // return (getCostValue(c1) + magic::BETTER_PATH_COST_MARGIN < getCostValue(c2));
+  return getCostValue(c1) < getCostValue(c2);
 }
 
 double ompl::base::OptimizationObjective::getStateCost(const State *s) const
@@ -171,7 +172,8 @@ void ompl::base::PathIntegralOptimizationObjective::getInfiniteCost(Cost *cost) 
 
 ompl::base::Cost* ompl::base::PathIntegralOptimizationObjective::allocCost(void) const
 {
-  return (ompl::base::Cost*) PathIntegralCostPool::malloc();
+  // return (ompl::base::Cost*) PathIntegralCostPool::malloc();
+  return new CostType;
 }
 
 void ompl::base::PathIntegralOptimizationObjective::copyCost(Cost *dest, const Cost *src) const
@@ -181,7 +183,8 @@ void ompl::base::PathIntegralOptimizationObjective::copyCost(Cost *dest, const C
 
 void ompl::base::PathIntegralOptimizationObjective::freeCost(Cost *cost) const
 {
-  PathIntegralCostPool::free(cost);
+  // PathIntegralCostPool::free(cost);
+  delete cost->as<PathIntegralOptimizationObjective::CostType>();
 }
 
 double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void) const
