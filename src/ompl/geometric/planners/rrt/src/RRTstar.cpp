@@ -209,7 +209,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             dstate = xstate;
         }
 
-	++numCollisionChecks_;
         // Check if the motion between the nearest state and the state to add is valid
         ++collisionChecks_;
         if (si_->checkMotion(nmotion->state, dstate))
@@ -423,7 +422,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     bestCost_ = opt_->getCostValue(bestCost);
                 }
 
-                sufficientlyShort = opt->isSatisfied(goalMotions_[i]->cost);
+                sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->cost);
                 if (sufficientlyShort)
                 {
                     solution = goalMotions_[i];
@@ -563,5 +562,5 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
     }
     data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
     data.properties["collision_checks INTEGER"] = 
-	boost::lexical_cast<std::string>(numCollisionChecks_);
+	boost::lexical_cast<std::string>(collisionChecks_);
 }
