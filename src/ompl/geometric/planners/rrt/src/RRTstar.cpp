@@ -284,10 +284,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		     i != sortedCostIndices.begin()+nbh.size();
 		     ++i)
 		{
+                    if (nbh[*i] != nmotion)
+                        ++collisionChecks_;
 		    if (nbh[*i] == nmotion || si_->checkMotion(nbh[*i]->state, motion->state))
 		    {
-			if (nbh[*i] != nmotion)
-			    ++collisionChecks_;
 			opt_->copyCost(motion->incCost, incCosts[*i]);
 			opt_->copyCost(motion->cost, costs[*i]);
 			motion->parent = nbh[*i];
@@ -354,49 +354,44 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
             for (std::size_t i = 0 ; i < nbh.size(); ++i)
             {
-		// In symmetric case, we use indices in
-		// possibly-sorted costs list. In asymmetric case, we
-		// just go through neighbors in default order
-		std::size_t idx = (symDist && delayCC_) ? sortedCostIndices[i] : i;
-                if (nbh[idx] != motion->parent)
+                if (nbh[i] != motion->parent)
                 {
-		    opt_->copyCost(nbhPrevCost, nbh[idx]->cost);
                     if (symDist && symCost)
-                        opt_->copyCost(nbhIncCost, incCosts[idx]);
+                        opt_->copyCost(nbhIncCost, incCosts[i]);
                     else
-                        opt_->getIncrementalCost(motion->state, nbh[idx]->state, nbhIncCost);
+                        opt_->getIncrementalCost(motion->state, nbh[i]->state, nbhIncCost);
 		    opt_->combineObjectiveCosts(motion->cost, nbhIncCost, nbhNewCost);
-                    if (opt_->isCostLessThan(nbhNewCost, nbhPrevCost))
+                    if (opt_->isCostLessThan(nbhNewCost, nbh[i]->cost))
                     {
 			bool motionValid;
 			if (symDist && symInterp)
 			{
-			    if (valid[idx] == 0)
+			    if (valid[i] == 0)
 			    {
 				++collisionChecks_;
-				motionValid = si_->checkMotion(motion->state, nbh[idx]->state);
+				motionValid = si_->checkMotion(motion->state, nbh[i]->state);
 			    }
 			    else
-				motionValid = (valid[idx] == 1);
+				motionValid = (valid[i] == 1);
 			}
 			else
 			{
 			    ++collisionChecks_;
-			    motionValid = si_->checkMotion(motion->state, nbh[idx]->state);
+			    motionValid = si_->checkMotion(motion->state, nbh[i]->state);
 			}
                         if (motionValid)
                         {
                             // Remove this node from its parent list
-                            removeFromParent (nbh[idx]);
+                            removeFromParent (nbh[i]);
 
                             // Add this node to the new parent
-                            nbh[idx]->parent = motion;
-                            opt_->copyCost(nbh[idx]->incCost, nbhIncCost);
-                            opt_->copyCost(nbh[idx]->cost, nbhNewCost);
-                            nbh[idx]->parent->children.push_back(nbh[idx]);
+                            nbh[i]->parent = motion;
+                            opt_->copyCost(nbh[i]->incCost, nbhIncCost);
+                            opt_->copyCost(nbh[i]->cost, nbhNewCost);
+                            nbh[i]->parent->children.push_back(nbh[i]);
 
                             // Update the costs of the node's children
-                            updateChildCosts(nbh[idx]);
+                            updateChildCosts(nbh[i]);
 
 			    checkForSolution = true;
 			}
