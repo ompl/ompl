@@ -270,6 +270,40 @@ def plot_attribute(cur, planners, attribute, typename):
             ax.text(x, .95*maxy, str(nan_counts[i]), horizontalalignment='center', size='small')
     plt.show()
 
+def plot_progress_attribute(cur, table_names, attribute):
+    plt.clf()
+    ax = plt.gca()
+    ax.set_xlabel('Time (s)')
+    ax.set_ylabel(attribute.replace('_',' '))
+    planner_names = []
+    planners = [t for t in table_names if t.endswith('planner_progress')]
+    for planner in planners:
+        cur.execute('SELECT * FROM `%s` LIMIT 1' % planner)
+        attributes = [t[0] for t in cur.description]
+        if attribute in attributes:
+            planner_names.append(planner[:planner.rfind('_planner_progress')])
+            cur.execute('SELECT DISTINCT runid FROM `%s`' % planner)
+            runids = [t[0] for t in cur.fetchall()]
+            timeTable = []
+            dataTable = []
+            for r in runids:
+                # Select data for given run
+                cur.execute('SELECT time, %s FROM `%s` WHERE runid = %s ORDER BY time' % (attribute,planner,r))
+                (time, data) = zip(*(cur.fetchall()))
+                timeTable.append(time)
+                dataTable.append(data)
+            fewestSamples = min(len(time[1:]) for time in timeTable)
+            times = timeTable[0][1:fewestSamples]
+            dataTable = [data[1:fewestSamples] for data in dataTable]
+
+            dataArrays = np.array(dataTable)
+            means = np.mean(dataArrays, axis=0)
+            stds = np.std(dataArrays, axis=0, ddof=1)
+                
+            plt.errorbar(times, means, yerr=2*stds)
+            ax.legend(planner_names)
+    plt.show()
+
 def plot_statistics(dbname, fname):
     """Create a PDF file with box plots for all attributes."""
     print("Generating plot...")
@@ -284,7 +318,6 @@ def plot_statistics(dbname, fname):
     experiments = []
     # merge possible attributes from all planners
     for p in planner_names:
-        print(p)
         c.execute('SELECT * FROM `%s` LIMIT 1' % p)
         atr = [ t[0] for t in c.description]
         atr.remove('id')
@@ -299,15 +332,33 @@ def plot_statistics(dbname, fname):
         eid = [t[0] for t in c.fetchall() if not t[0]==None]
         for e in eid:
             if e not in experiments:
-                experiments.append(e)
-    attributes.sort()
-
+                experiments.append(e)                
+    attributes.sort()        
+            
     pp = PdfPages(fname)
     for atr in attributes:
         if types[atr]=='integer' or types[atr]=='real':
             plot_attribute(c, planner_names, atr, types[atr])
             pp.savefig(plt.gcf())
     plt.clf()
+
+    # merge possible progress attributes from all planners
+    progress_table_names = [t for t in table_names if t.endswith('planner_progress')]
+    prog_attributes = []
+    for p in progress_table_names:
+        c.execute('SELECT * FROM `%s` LIMIT 1' % p)
+        atr = [t[0] for t in c.description]
+        atr.remove('runid')
+        atr.remove('time')
+        for a in atr:
+            if a not in prog_attributes:
+                prog_attributes.append(a)
+
+    for atr in prog_attributes:
+        plot_progress_attribute(c, table_names, atr)
+        pp.savefig(plt.gcf())
+    plt.clf()
+
     pagey = 0.9
     pagex = 0.06
     for e in experiments:
