@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Luis G. Torres */
 
 #include "ompl/tools/benchmark/Benchmark.h"
 #include "ompl/tools/benchmark/MachineSpecs.h"
@@ -69,10 +69,14 @@ namespace ompl
 
         struct PlannerProgressPropertyCollector
         {
+            // \TODO consider allowing specification of intervals in
+            // units other than milliseconds
             PlannerProgressPropertyCollector(const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap, 
                                              boost::int_least64_t milliseconds) :
                 callbackMap(callbackMap),
                 updatePeriod(boost::chrono::milliseconds(milliseconds)) {}
+
+            // \TODO re-implement this with condition variables
             void operator()()
             {
                 try
@@ -104,7 +108,6 @@ namespace ompl
             }
               
             const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap;
-            // std::map<std::string, std::vector<std::string> > properties;
             Benchmark::RunProgressData properties;
             boost::chrono::milliseconds updatePeriod;
         };
@@ -179,6 +182,11 @@ namespace ompl
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
+                    //
+                    // \TODO issue here is that at least one sample
+                    // always gets taken before planner even starts;
+                    // might be worth adding a short wait time before
+                    // collector begins sampling
                     boost::thread* t = 0;
                     if (planner->getPlannerProgressPropertyFunctions().size() > 0)
                         t = new boost::thread(boost::ref(*collector));
@@ -622,24 +630,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 run["graph motions INTEGER"] = boost::lexical_cast<std::string>(pd.numEdges());
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
-                    run[it->first] = it->second;
-                
-                // add planner progress data as a comma-separated list
-                // just like any other property entry.
-                // for (std::map<std::string, std::vector<std::string> >::const_iterator m_it = 
-                //          collector.properties.begin();
-                //      m_it != collector.properties.end();
-                //      ++m_it)
-                // {
-                //     std::stringstream ss;
-                //     for (std::vector<std::string>::const_iterator v_it = m_it->second.begin();
-                //          v_it != m_it->second.end();
-                //          ++v_it)
-                //     {
-                //         ss << *v_it << ",";
-                //     }
-                //     run[m_it->first + "_SERIES"] = ss.str();
-                // }
+                    run[it->first] = it->second;               
 
                 // execute post-run event, if set
                 try

@@ -34,7 +34,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll
+# Author: Mark Moll, Luis G. Torres
 
 from sys import argv, exit
 from os.path import basename, splitext
@@ -174,6 +174,12 @@ def read_benchmark_log(dbname, filenames):
                     prog_prop_names.append("_".join(field[:-1]))
             
                 # create the table for run progress properties of this planner
+                #
+                # \TODO: do we need more disambiguating info in table
+                # name like exp id?  
+                #
+                # \TODO: might consider indexing on
+                # runid+time if things start taking too long
                 table_name = planner_name + '_planner_progress'
                 table_columns = 'runid INTEGER'
                 table_columns += ''.join([', %s %s' % (pname,ptype) for 
@@ -186,7 +192,7 @@ def read_benchmark_log(dbname, filenames):
                 for j in range(num_runs):
                     data_series = logfile.readline().split(';')[:-1]
                     for data_sample in data_series:
-                        # \todo don't really like always using float() here;
+                        # \TODO don't really like always using float() here;
                         # should be able to dispatch depending on data
                         # type
                         values = tuple([run_ids[j]]+[float(x) for x in data_sample.split(',')[:-1]])
@@ -271,6 +277,9 @@ def plot_attribute(cur, planners, attribute, typename):
     plt.show()
 
 def plot_progress_attribute(cur, table_names, attribute):
+    """Plot data for a single planner progress attribute. Will create an
+average time-plot with error bars of the attribute over all runs for
+each planner."""
     plt.clf()
     ax = plt.gca()
     ax.set_xlabel('Time (s)')
@@ -292,6 +301,15 @@ def plot_progress_attribute(cur, table_names, attribute):
                 (time, data) = zip(*(cur.fetchall()))
                 timeTable.append(time)
                 dataTable.append(data)
+            # It's conceivable that the sampling process may have
+            # generated more samples for one run than another; in this
+            # case, truncate all data series to length of shortest
+            # one.
+            #
+            # \TODO Starting at second element is a super awful
+            # horrible dirty hack for now to skip the typical NaNs
+            # that planners output for their first cost; need to find
+            # a way to be robust to NaN values here.
             fewestSamples = min(len(time[1:]) for time in timeTable)
             times = timeTable[0][1:fewestSamples]
             dataTable = [data[1:fewestSamples] for data in dataTable]
