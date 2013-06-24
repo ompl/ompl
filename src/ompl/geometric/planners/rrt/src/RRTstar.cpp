@@ -151,7 +151,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     OMPL_INFORM("Starting with %u states", nn_->size());
 
     Motion *solution       = lastGoalMotion_;
-    base::Cost *bestCost   = NULL;
+    base::Cost *bestCost   = opt_->allocCost();
+    opt_->getInfiniteCost(bestCost);
     Motion *approximation  = NULL;
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
@@ -195,11 +196,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
-
-        // DEBUG
-        std::cout << "Iteration " << iterations_ << std::endl;
-        si_->printState(rstate);
-        std::cout << bestCost_ << std::endl;
 
         // find closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
@@ -416,9 +412,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             for (size_t i = 0; i < goalMotions_.size() && checkForSolution; ++i)
             {
 
-                if (!bestCost || opt_->isCostLessThan(goalMotions_[i]->cost, bestCost))
+                if (opt_->isCostLessThan(goalMotions_[i]->cost, bestCost))
                 {
-                    bestCost = goalMotions_[i]->cost;
+                    opt_->copyCost(bestCost, goalMotions_[i]->cost);
                     bestCost_ = opt_->getCostValue(bestCost);
                 }
 
@@ -494,6 +490,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     opt_->freeCost(nbhPrevCost);
     opt_->freeCost(nbhIncCost);
     opt_->freeCost(nbhNewCost);
+    opt_->freeCost(bestCost);
 
     OMPL_INFORM("Created %u new states. Checked %lu rewire options. %u goal states in tree.", statesGenerated, rewireTest, goalMotions_.size());
 
