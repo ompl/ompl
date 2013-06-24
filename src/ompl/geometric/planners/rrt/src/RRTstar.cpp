@@ -245,7 +245,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
             else
             {
-                motion->cost = distN;
+                motion->cost = nmotion->cost + distN;
                 // find which one we connect the new state to
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                 {
