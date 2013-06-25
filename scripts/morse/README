@@ -8,10 +8,8 @@ Files in this directory:
         be attached to the scene in a special way, but that's taken care of by builder.py.
     planner.py
         External script called by communicator.py when the game engine starts. It
-        can make procedure calls into blender to get/set data through its stdin/out.
-        It will eventually be responsible for actually planning. Right now it just
-        runs the game engine for 100 ticks, captures the world state at tick 0, and
-        resets to world to that state at 50 ticks.
+        can make procedure calls into blender to get/set data through a socket.
+        It sets up OMPL for planning, though it's not complete yet.
     builder.py
         MORSE builder script invoked when MORSE is started. Loads up the planning
         environment and sets up the game engine logic for communication with the planner.
@@ -32,12 +30,14 @@ You need to edit:
     line 8 in communicator.py
     line 13 in ompl_addon.py
     line 10 in builder.py
-  so that they point to your ompl_morse directory.
+so that they point to your ompl_morse directory, and:
+    line 15 in planner.py
+so that it points to the directory containing the Python bindings.
 
 It works if you run 'blender bgetest.blend' and
-    1) You can find the OMPL submenu, and pressing "Plan..." successfully launches MORSE
-    2) In MORSE the cube falls onto the car, jumps back and falls again
-    3) MORSE exits successfully
+    1) You can find the OMPL submenu, and pressing "Plan..." successfully launches MORSE.
+    2) In MORSE the cube falls onto the car.
+    3) OMPL complains about the lack of goal and stops planning.
 
 
 

@@ -22,9 +22,6 @@ bpy.ops.object.add()
 obj = bpy.context.object
 obj.name = "__planner"
 
-# Add 'spawned' game property
-bpy.ops.object.game_property_new(type='BOOL', name='spawned')
-
 # Add 'Tick' sensor
 bpy.ops.logic.sensor_add(type='DELAY', name='Tick')
 tick = obj.game.sensors['Tick']

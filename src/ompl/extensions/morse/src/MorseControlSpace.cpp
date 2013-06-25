@@ -17,7 +17,7 @@ namespace ompl
 /// @endcond
 
 ompl::control::MorseControlSpace::MorseControlSpace(const base::StateSpacePtr &stateSpace) :
-    RealVectorControlSpace(stateSpace, getMorseStateSpaceEnvironmentWithCheck(stateSpace)->wi_.conDim_)
+    RealVectorControlSpace(stateSpace, getMorseStateSpaceEnvironmentWithCheck(stateSpace)->controlDim_)
 {
     setName("Morse" + getName());
     type_ = CONTROL_SPACE_TYPE_COUNT + 1;

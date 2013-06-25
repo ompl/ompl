@@ -48,7 +48,7 @@ class Plan(bpy.types.Operator):
         
         print('Starting planner...')
         print(bpy.data.filepath)
-        subprocess.call(['morse', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
+        subprocess.call(['morse', '-c', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
         
         return {'FINISHED'}
 

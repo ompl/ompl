@@ -4,45 +4,32 @@
 
 void ompl::base::MorseEnvironment::getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const
 {
-    lower = wi_.conLow_;
-    upper = wi_.conHigh_;
+    lower = upper = controlBounds_;
+    lower.erase(lower.begin() + controlDim_, lower.end());  // only keep first half
+    upper.erase(upper.begin(), upper.begin() + controlDim_);// only keep second half
 }
 
-void ompl::base::MorseEnvironment::getBoundBox(double result[24], const unsigned int obj) const
+/*
+double *ompl::base::MorseEnvironment::getPosition(const unsigned int obj) const
 {
-    for (unsigned int i = 0; i < 24; i++)
-        result[i] = wi_.boundBoxes_[24*obj + i];
+    return positions.data + 3*obj;
 }
 
-void ompl::base::MorseEnvironment::getPosition(double result[3], const unsigned int obj) const
+double *ompl::base::MorseEnvironment::getLinearVelocity(const unsigned int obj) const
 {
-    result[0] = positions[3*obj];
-    result[1] = positions[3*obj+1];
-    result[2] = positions[3*obj+2];
+    return linVelocities + 3*obj;
 }
 
-void ompl::base::MorseEnvironment::getLinearVelocity(double result[3], const unsigned int obj) const
+double *ompl::base::MorseEnvironment::getAngularVelocity(const unsigned int obj) const
 {
-    result[0] = linVelocities[3*obj];
-    result[1] = linVelocities[3*obj+1];
-    result[2] = linVelocities[3*obj+2];
+    return angVelocities + 3*obj;
 }
 
-void ompl::base::MorseEnvironment::getAngularVelocity(double result[3], const unsigned int obj) const
+double *ompl::base::MorseEnvironment::getQuaternion(const unsigned int obj) const
 {
-    result[0] = angVelocities[3*obj];
-    result[1] = angVelocities[3*obj+1];
-    result[2] = angVelocities[3*obj+2];
+    return quaternions + 4*obj;
 }
-
-void ompl::base::MorseEnvironment::getQuaternion(double result[4], const unsigned int obj) const
-{
-    result[0] = quaternions[4*obj];
-    result[1] = quaternions[4*obj+1];
-    result[2] = quaternions[4*obj+2];
-    result[3] = quaternions[4*obj+3];
-}
-
+*/
 
 void ompl::base::MorseEnvironment::setPosition(const unsigned int obj, const double pos[3])
 {

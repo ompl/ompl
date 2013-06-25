@@ -1,11 +1,8 @@
 /* MorseStateSpace.cpp */
 
 #include "ompl/extensions/morse/MorseStateSpace.h"
-#include "ompl/util/Console.h"
 
 #include <boost/lexical_cast.hpp>
-#include <limits>
-#include <queue>
 
 ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, double positionWeight, double linVelWeight,
                                              double angVelWeight, double orientationWeight) :
@@ -13,7 +10,7 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
 {
     setName("Morse" + getName());
     type_ = STATE_SPACE_TYPE_COUNT + 1;
-    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
     {
         std::string body = ":B" + boost::lexical_cast<std::string>(i);
 
@@ -36,68 +33,41 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
 void ompl::base::MorseStateSpace::setDefaultBounds(void)
 {
     // limit all velocities to 1 m/s, 1 rad/s, respectively
-    RealVectorBounds bounds1(3);
-    bounds1.setLow(-1);
-    bounds1.setHigh(1);
-    setLinearVelocityBounds(bounds1);
-    setAngularVelocityBounds(bounds1);
+    RealVectorBounds bounds(3);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+    setLinearVelocityBounds(bounds);
+    setAngularVelocityBounds(bounds);
 
-    // find the bounding box that contains all objects included in the collision space
-    // In the future, we can just ask Python to do this because it's only done once.
-    // That way it only needs to transfer 6 doubles, rather than 24*allBodies_ doubles.
+    /* Move this formula into Python
     double mX, mY, mZ, MX, MY, MZ;
-    mX = mY = mZ = std::numeric_limits<double>::infinity();
-    MX = MY = MZ = -std::numeric_limits<double>::infinity();
-    bool found = false;
+
+    double dx = MX - mX;
+    double dy = MY - mY;
+    double dz = MZ - mZ;
+    double dM = std::max(dx, std::max(dy, dz));
+
+    // add 10% in each dimension + 1% of the max dimension
+    dx = dx / 10.0 + dM / 100.0;
+    dy = dy / 10.0 + dM / 100.0;
+    dz = dz / 10.0 + dM / 100.0;
+
+    bounds.low[0] = mX - dx;
+    bounds.high[0] = MX + dx;
+    bounds.low[1] = mY - dy;
+    bounds.high[1] = MY + dy;
+    bounds.low[2] = mZ - dz;
+    bounds.high[2] = MZ + dz;
+    */
     
-    std::queue<double> extremes;
-    for (unsigned int i = 0; i < env_->wi_.allBodies_; i++)
-    {
-        double bb[24];
-        env_->getBoundBox(bb, i);
-        for (unsigned char i = 0; i < 24; i++)
-            extremes.push(bb[i]);
-    }
+    bounds.low[0] = env_->spaceBounds_[0];
+    bounds.high[0] = env_->spaceBounds_[1];
+    bounds.low[1] = env_->spaceBounds_[2];
+    bounds.high[1] = env_->spaceBounds_[3];
+    bounds.low[2] = env_->spaceBounds_[4];
+    bounds.high[2] = env_->spaceBounds_[5];
 
-    while (!extremes.empty())
-    {
-        double x = extremes.front();
-        extremes.pop();
-        double y = extremes.front();
-        extremes.pop();
-        double z = extremes.front();
-        extremes.pop();
-        
-        found = true;
-        if (x < mX) mX = x;
-        if (x > MX) MX = x;
-        if (y < mY) mY = y;
-        if (y > MY) MY = y;
-        if (z < mZ) mZ = z;
-        if (z > MZ) MZ = z;
-    }
-
-    if (found)
-    {
-        double dx = MX - mX;
-        double dy = MY - mY;
-        double dz = MZ - mZ;
-        double dM = std::max(dx, std::max(dy, dz));
-
-        // add 10% in each dimension + 1% of the max dimension
-        dx = dx / 10.0 + dM / 100.0;
-        dy = dy / 10.0 + dM / 100.0;
-        dz = dz / 10.0 + dM / 100.0;
-
-        bounds1.low[0] = mX - dx;
-        bounds1.high[0] = MX + dx;
-        bounds1.low[1] = mY - dy;
-        bounds1.high[1] = MY + dy;
-        bounds1.low[2] = mZ - dz;
-        bounds1.high[2] = MZ + dz;
-
-        setVolumeBounds(bounds1);
-    }
+    setVolumeBounds(bounds);
 }
 
 void ompl::base::MorseStateSpace::copyState(State *destination, const State *source) const
@@ -117,19 +87,19 @@ bool ompl::base::MorseStateSpace::satisfiesBoundsExceptRotation(const StateType 
 
 void ompl::base::MorseStateSpace::setVolumeBounds(const RealVectorBounds &bounds)
 {
-    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
         components_[i * 4]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
 void ompl::base::MorseStateSpace::setLinearVelocityBounds(const RealVectorBounds &bounds)
 {
-    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
         components_[i * 4 + 1]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
 void ompl::base::MorseStateSpace::setAngularVelocityBounds(const RealVectorBounds &bounds)
 {
-    for (unsigned int i = 0 ; i < env_->wi_.rigidBodies_; ++i)
+    for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
         components_[i * 4 + 2]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
@@ -210,17 +180,20 @@ void ompl::base::MorseStateSpace::readState(State *state) const
     env_->prepareStateRead();
     
     StateType *s = state->as<StateType>();
-    for (int i = (int)env_->wi_.rigidBodies_ - 1 ; i >= 0 ; --i)
+    for (int i = (int)env_->rigidBodies_ - 1 ; i >= 0 ; --i)
     {
         unsigned int _i4 = i * 4;
+        unsigned int _i3d = i * 3 * sizeof(double);
 
-        double pos[3], vel[3], ang[3];
-        env_->getPosition(pos, i);
-        env_->getLinearVelocity(vel, i);
-        env_->getAngularVelocity(ang, i);
+        double *pos, *vel, *ang, *rot;
+        pos = env_->positions.data()+_i3d;
+        vel = env_->linVelocities.data()+_i3d;
+        ang = env_->angVelocities.data()+_i3d;
+        rot = env_->quaternions.data()+_i4*sizeof(double);
         double *s_pos = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
         double *s_vel = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
         double *s_ang = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
+        SO3StateSpace::StateType &s_rot = *s->as<SO3StateSpace::StateType>(_i4);
 
         for (int j = 0; j < 3; ++j)
         {
@@ -228,10 +201,6 @@ void ompl::base::MorseStateSpace::readState(State *state) const
             s_vel[j] = vel[j];
             s_ang[j] = ang[j];
         }
-
-        double rot[4];
-        env_->getQuaternion(rot, i);
-        SO3StateSpace::StateType &s_rot = *s->as<SO3StateSpace::StateType>(_i4);
 
         s_rot.w = rot[0];
         s_rot.x = rot[1];
@@ -244,7 +213,7 @@ void ompl::base::MorseStateSpace::readState(State *state) const
 void ompl::base::MorseStateSpace::writeState(const State *state) const
 {
     const StateType *s = state->as<StateType>();
-    for (int i = (int)env_->wi_.rigidBodies_ - 1; i >= 0 ; --i)
+    for (int i = (int)env_->rigidBodies_ - 1; i >= 0 ; --i)
     {
         unsigned int _i4 = i * 4;
 

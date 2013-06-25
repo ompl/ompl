@@ -26,54 +26,6 @@ namespace ompl
                 {
                 }
 
-//                /** \brief Get the position (x, y, z) of the body at index \e body */
-//                const double* getBodyPosition(unsigned int body) const
-//                {
-//                    return as<RealVectorStateSpace::StateType>(body * 4)->values;
-//                }
-//
-//                /** \brief Get the position (x, y, z) of the body at index \e body */
-//                double* getBodyPosition(unsigned int body)
-//                {
-//                    return as<RealVectorStateSpace::StateType>(body * 4)->values;
-//                }
-//
-//                /** \brief Get the quaternion of the body at index \e body */
-//                const SO3StateSpace::StateType& getBodyRotation(unsigned int body) const
-//                {
-//                    return *as<SO3StateSpace::StateType>(body * 4 + 3);
-//                }
-//
-//                /** \brief Get the quaternion of the body at index \e body */
-//                SO3StateSpace::StateType& getBodyRotation(unsigned int body)
-//                {
-//                    return *as<SO3StateSpace::StateType>(body * 4 + 3);
-//                }
-//
-//                /** \brief Get the linear velocity (x, y, z) of the body at index \e body */
-//                const double* getBodyLinearVelocity(unsigned int body) const
-//                {
-//                    return as<RealVectorStateSpace::StateType>(body * 4 + 1)->values;
-//                }
-//
-//                /** \brief Get the linear velocity (x, y, z) of the body at index \e body */
-//                double* getBodyLinearVelocity(unsigned int body)
-//                {
-//                    return as<RealVectorStateSpace::StateType>(body * 4 + 1)->values;
-//                }
-//
-//                /** \brief Get the angular velocity (x, y, z) of the body at index \e body */
-//                const double* getBodyAngularVelocity(unsigned int body) const
-//                {
-//                    return as<RealVectorStateSpace::StateType>(body * 4 + 2)->values;
-//                }
-//
-//                /** \brief Get the angular velocity (x, y, z) of the body at index \e body */
-//                double* getBodyAngularVelocity(unsigned int body)
-//                {
-//                    return as<RealVectorStateSpace::StateType>(body * 4 + 2)->values;
-//                }
-
                 /** \brief Flag containing information about state validity */
                 mutable bool validCollision;
 
@@ -111,7 +63,7 @@ namespace ompl
             /** \brief Get the number of bodies state is maintained for */
             unsigned int getNrBodies(void) const
             {
-                return env_->wi_.rigidBodies_;
+                return env_->rigidBodies_;
             }
 
             /** \brief By default, the volume bounds enclosing the

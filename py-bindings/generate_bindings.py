@@ -300,18 +300,16 @@ class ompl_base_generator_t(code_generator_t):
             'ValidStateSamplerAllocator', 'Valid state allocator function')
         self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
             'EdgeWeightFn', 'Edge weight function')
-        self.add_boost_function('ompl::base::MorseEnvironment::WorldInfo(void)',
-            'getWorldInfoFn', 'World information function')
-        self.add_boost_function('void(void)',
-            'prepareStateReadFn', 'Prepare state read function')
-        self.add_boost_function('void(void)',
-            'finalizeStateWriteFn', 'Finalize state write function')
-        self.add_boost_function('void(const std::vector<double>&)',
-            'applyControlFn', 'Apply control function')
-        self.add_boost_function('void(const double)',
-            'worldStepFn', 'World step function')
-        self.add_boost_function('void(void)',
-            'endSimulationFn', 'End simulation function')
+        #self.add_boost_function('void(void)',
+        #    'MorsePrepareStateReadFn', 'Prepare state read function')
+        #self.add_boost_function('void(void)',
+        #    'MorseFinalizeStateWriteFn', 'Finalize state write function')
+        #self.add_boost_function('void(const std::vector<double>&)',
+        #    'MorseApplyControlFn', 'Apply control function')
+        #self.add_boost_function('void(const double)',
+        #    'MorseWorldStepFn', 'World step function')
+        #self.add_boost_function('void(void)',
+        #    'MorseEndSimulationFn', 'End simulation function')
 
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
@@ -325,6 +323,17 @@ class ompl_base_generator_t(code_generator_t):
             self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
         except:
             pass
+        
+        # exlude some member functions of MorseEnvironment that should only be called internally
+        self.ompl_ns.class_('MorseEnvironment').member_function('getControlBounds').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getPosition').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getLinearVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getAngularVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getQuaternion').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setPosition').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setLinearVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setAngularVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setQuaternion').exclude()
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):

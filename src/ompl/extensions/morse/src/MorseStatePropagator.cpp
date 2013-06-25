@@ -24,7 +24,7 @@ void ompl::control::MorseStatePropagator::propagate(const base::State *state, co
     // convert control into vector of doubles
     std::vector<double> controlVec;
     const double *conVals = control->as<RealVectorControlSpace::ControlType>()->values;
-    for (unsigned int i = 0; i < env_->wi_.conDim_; i++)
+    for (unsigned int i = 0; i < env_->controlDim_; i++)
         controlVec.push_back(conVals[i]);
 
     // apply the controls

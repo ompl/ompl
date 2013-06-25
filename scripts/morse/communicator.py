@@ -1,18 +1,20 @@
 # communicator.py
-# To be run within Blender when the game engine starts; can spawn
+# To be run within the Blender game engine; spawns an OMPL
 #  planner script outside of Blender and provides a method of
 #  extracting and submitting data to the Blender simulation by
-#  an external program
+#  the external script
 
 # IMPORTANT! Set this manually for now
 OMPL_DIR='/home/caleb/repos/ompl_morse'
-    
+
 import subprocess
+import socket
 
 import bpy
 import bge
 import mathutils
 
+# Set world step size to 1/60 s
 bge.logic.setMaxLogicFrame(1)
 bge.logic.setMaxPhysicsFrame(1)
 bge.logic.setLogicTicRate(60)
@@ -23,26 +25,26 @@ bge.logic.setPhysicsTicRate(60)
 def getObjState(gameobj):
     """
     Returns the state tuple for an object, consisting of position,
-    orientation, linear velocity, and angular velocity
+    linear velocity, angular velocity, and orientation
     """
     
     # convert Vectors and Matrices to tuples before returning
     return (gameobj.worldPosition.to_tuple(),
-            tuple(gameobj.worldOrientation.to_quaternion()),
             gameobj.worldLinearVelocity.to_tuple(),
-            gameobj.worldAngularVelocity.to_tuple())
+            gameobj.worldAngularVelocity.to_tuple(),
+            tuple(gameobj.worldOrientation.to_quaternion()))
             
             
 def setObjState(gameobj, oState):
     """
     Sets the state for a game object from a tuple consisting of position,
-    orientation, linear velocity, and angular velocity
+    linear velocity, angular velocity, and orientation
     """
     
     gameobj.worldPosition = oState[0]
-    gameobj.worldOrientation = mathutils.Quaternion(oState[1])
-    gameobj.worldLinearVelocity = oState[2]
-    gameobj.worldAngularVelocity = oState[3]
+    gameobj.worldLinearVelocity = oState[1]
+    gameobj.worldAngularVelocity = oState[2]
+    gameobj.worldOrientation = mathutils.Quaternion(oState[3])
     
 
 rigidObjects = []   # initialized in main()
@@ -53,28 +55,28 @@ def setState(state):
         
         # set its state
         setObjState(rigidObjects[i], state[i])
-
-
-def stringify(thing):
-    """
-    Prepare a Python object for transmission over pipes.
-    """
-    
-    # remove newlines from string representation
-    return ' '.join(repr(thing).split('\n'))
     
     
 # Procedures to be called by planner script; each one
-#  must write a newline-terminated response string to stdin
+#  must write a response string to the socket
 #  that can be eval()'ed; also each one must return True
-#  if the main while loop should continue running
+#  if the communicate() while loop should continue running.
 
-planner = None # initialized by spawn_planner()
+sock = None # initialized in spawn_planner()
 
-def endPlanning():
+def endSimulation():
+    """
+    Close the socket and tell Blender to stop the game engine.
+    """
     
     # null response
-    planner.stdin.write(b'None\n')
+    sock.sendall(b"None")
+    
+    # close the socket
+    sock.close()
+    
+    global sock # needed?
+    sock = None
     
     # shutdown the game engine
     bge.logic.endGame()
@@ -84,9 +86,12 @@ def endPlanning():
 
 
 def nextTick():
+    """
+    Stop the communicate() while loop to advance to the next tick.
+    """
     
     # null response
-    planner.stdin.write(b'None\n')
+    sock.sendall(b"None")
     
     # signal to exit loop
     return False
@@ -94,15 +99,14 @@ def nextTick():
 
 def extractState():
     """
-    Retrieve a list of state tuples for all rigid body objects,
-    sorted by object name.
+    Retrieve a list of state tuples for all rigid body objects.
     """
     
     # generate state list
     state = list(map(getObjState, rigidObjects))
     
     # respond with encoded state string
-    planner.stdin.write(stringify(state).encode() + b'\n')
+    sock.sendall(repr(state).encode())
     
     return True
 
@@ -110,8 +114,8 @@ def extractState():
 def submitState(state):
     """
     Load position, orientation, and velocity data into the Game Engine.
-    Input is a list of object states sorted by name, just like the
-    format returned by extractState().
+    Input is a list of object states, ordered just like the
+    state list returned by extractState().
     """
 
     # load the state into the Game Engine
@@ -121,69 +125,69 @@ def submitState(state):
         setObjState(rigidObjects[i], state[i])
     
     # null response
-    planner.stdin.write(b'None\n')
+    sock.sendall(b"None")
     
     return True
 
 
+# Functions to mangage communication
+
 def spawn_planner():
     """
-    Run when the game engine is started if planning is desired.
+    Run once when the game engine is started, after MORSE is initialized.
     Spawns the external Python script 'planner.py'.
     """
     
-    # planner script's stderr file
-    debugOut = open(OMPL_DIR + '/scripts/morse/plan.out','w')
+    # set up the server socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(('localhost', 50007))
     
-    global planner  # helper functions above use this
-    planner = subprocess.Popen(
-        OMPL_DIR + '/scripts/morse/planner.py',
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-        stderr=debugOut)
+    # spawn planner.py
+    subprocess.Popen(['python', '-S', OMPL_DIR + '/scripts/morse/planner.py'])
     
-    debugOut.close()
+    # make a connection
+    s.listen(0)
+    global sock
+    sock, addr = s.accept()
 
 
-tickcount = -60
+tickcount = -60 # used by main() to wait until MORSE is initialized
 
 def communicate():
     """
     This function is run during MORSE simulation between every
-    physics tick; provides a means of accessing Blender game
-    engine data
+    tick; provides a means of servicing requests from planner.py.
     """
 
     cmd = 'True'
-    
+
     # execute each command until one returns False
     while eval(cmd):
         
         # retrieve the next command
-        cmd = planner.stdout.readline().decode('utf-8')[:-1]
+        cmd = sock.recv(1024).decode('utf-8')
         if cmd != 'nextTick()':
-            print('At tick %i, received command: %s' % (tickcount, cmd))
+            print('\033[93;1mAt tick %i, received command: %s\033[0m' % (tickcount, cmd))
 
 
 def main():
     """
-    Decides whether to spawn the planner or communicate with an
-    existing one.
+    Spawn the planner when tickcount reaches 0. Communicate with an
+    existing one when tickcount is positive.
     """
 
-    # Wait a second for MORSE to finish initializing
+    # wait a second for MORSE to finish initializing
     global tickcount
     tickcount += 1
     if tickcount < 0:
         return
-
-    # After planner is spawned, game property 'spawned' will be True
     
-    props = bpy.context.scene.objects['__planner'].game.properties
-    if not props['spawned'].value:
+    if tickcount == 0:
         
-        # build the sorted list of rigid body objects
+        # build the list of rigid body objects
         global rigidObjects
-        print("Gathering list of rigid bodies:")
+        print("\033[93;1mGathering list of rigid bodies:")
         scn = bge.logic.getCurrentScene()
         objects = scn.objects
         for gameobj in sorted(objects, key=lambda o: o.name):
@@ -197,15 +201,14 @@ def main():
             if obj.game.physics_type == 'RIGID_BODY':
                 print(gameobj.name)
                 rigidObjects.append(gameobj)
-                    
-        # start the external planning script and service it
+        
+        print('\033[0m')
+        
+        # start the external planning script
         spawn_planner()
-        props['spawned'].value = True
-        communicate()
-        
-    else:
-        
-        # handle requests from the existing planner
+
+    if sock:
+        # handle requests from the planner
         communicate()
 
 
