@@ -88,10 +88,10 @@ void optionalPreRunEvent(const base::PlannerPtr &planner)
 void optionalPostRunEvent(const base::PlannerPtr &planner, tools::Benchmark::RunProperties &run)
 {
     // do any cleanup, or set values for upcoming run (or upcoming call to the pre-run event).
-    
+
     // adding elements to the set of collected run properties is also possible;
     // (the added data will be recorded in the log file)
-    
+
     run["some extra property name INTEGER"] = "some value";
     // The format of added data is string key, string value pairs,
     // with the convention that the last word in string key is one of

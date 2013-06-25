@@ -4,7 +4,7 @@ We welcome external contributions. If you would like us to list your contributio
 
 1. Contributions are each stored in a separate directory in \c ompl/src/ompl/contrib. The contributors can choose a descriptive name for their directory such as their group name or the name of their algorithm. We have created a sample contribution directory in \c ompl/src/ompl/contrib/sample_contrib that you can use for your contribution. Below, we will describe the expected structure of a contribution's directory in more detail.
 2. Within the contribution’s directory there are the following files / directories:
-   
+
    - __CMakeLists.txt__ [required], a file that tells the CMake program how to build your code. Use the one in the sample_contrib directory as a template.
    - __src__ [required], a directory that contains C++ implementation files. The corresponding header files should be inside the sample_contrib directory itself.
    - __tests__ [required], a directory that contains testing code that demonstrates that essential bits of code are running correctly
@@ -21,9 +21,9 @@ We welcome external contributions. If you would like us to list your contributio
 6. The mechanics of contributions are handled in one of two ways:
 
     - Mercurial [preferred]: contributors clone the OMPL repository on bitbucket.org like so:
-            
+
           $ hg clone https://bitbucket.org/ompl/ompl
-            
+
       Contributors should then create their own branch, add their files in the appropriate places, and either send us a “pull” request (if the repository is accessible to us) or email us a bundle (see http://www.selenic.com/mercurial/hg.1.html#bundle).
     - tar balls / zip files / etc.: contributors just email us their files and we put them in the appropriate place.
 7. In the unlikely event that the submitted code is of poor quality, we will try to suggest the changes necessary to include the contribution in OMPL. If the contributors cannot do this themselves, we reserve the right to reject the contribution.

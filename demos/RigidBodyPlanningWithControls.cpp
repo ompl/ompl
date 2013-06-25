@@ -262,9 +262,9 @@ int main(int, char **)
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     // plan();
-    // 
+    //
     // std::cout << std::endl << std::endl;
-    // 
+    //
     planWithSimpleSetup();
 
     return 0;
