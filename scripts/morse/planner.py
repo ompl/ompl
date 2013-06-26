@@ -1,18 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
-
-# get rid of the python3 dirs in sys.path that were inherited
-pypath = sys.path
-sys.path = []
-for p in pypath:
-    if 'python3' not in p:
-        sys.path.append(p)
-
 import socket
-
-# add the dir where we'll find ompl's py-bindings, TODO: do this better
-sys.path.append('/usr/local/lib/python2.7/dist-packages')
 
 from ompl import base as ob
 from ompl import control as oc
@@ -31,7 +20,7 @@ def list2vec(l, ret=None):
             ret.append(e)
         return ret
     else:
-        for i in xrange(len(l)):
+        for i in range(len(l)):
             ret[i] = l[i]
     
 class MyEnvironment(ob.MorseEnvironment):
@@ -55,7 +44,7 @@ class MyEnvironment(ob.MorseEnvironment):
         """
 
         # submit cmd to socket; return eval()'ed response
-        self.sock.sendall(cmd)
+        self.sock.sendall(cmd.encode())
         return eval(sock.recv(1024))    # TODO: buffer size? states can get pretty big
     
     def prepareStateRead(self):
@@ -103,7 +92,7 @@ class MyEnvironment(ob.MorseEnvironment):
         """
         Run the simulation for dur seconds. World tick is 1/60 s.
         """
-        for i in xrange(int(round(dur/(1.0/60)))):
+        for i in range(int(round(dur/(1.0/60)))):
             self.call('nextTick()')
         
     def endSimulation(self):

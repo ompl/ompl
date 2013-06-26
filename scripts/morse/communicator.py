@@ -75,7 +75,7 @@ def endSimulation():
     # close the socket
     sock.close()
     
-    global sock # needed?
+    global sock
     sock = None
     
     # shutdown the game engine
@@ -144,7 +144,7 @@ def spawn_planner():
     s.bind(('localhost', 50007))
     
     # spawn planner.py
-    subprocess.Popen(['python', '-S', OMPL_DIR + '/scripts/morse/planner.py'])
+    subprocess.Popen(OMPL_DIR + '/scripts/morse/planner.py')
     
     # make a connection
     s.listen(0)

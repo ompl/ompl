@@ -300,17 +300,6 @@ class ompl_base_generator_t(code_generator_t):
             'ValidStateSamplerAllocator', 'Valid state allocator function')
         self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
             'EdgeWeightFn', 'Edge weight function')
-        #self.add_boost_function('void(void)',
-        #    'MorsePrepareStateReadFn', 'Prepare state read function')
-        #self.add_boost_function('void(void)',
-        #    'MorseFinalizeStateWriteFn', 'Finalize state write function')
-        #self.add_boost_function('void(const std::vector<double>&)',
-        #    'MorseApplyControlFn', 'Apply control function')
-        #self.add_boost_function('void(const double)',
-        #    'MorseWorldStepFn', 'World step function')
-        #self.add_boost_function('void(void)',
-        #    'MorseEndSimulationFn', 'End simulation function')
-
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationConditionFn const &', 'double']).exclude()

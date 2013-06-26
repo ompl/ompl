@@ -1,4 +1,7 @@
 
+Works with MORSE version 1.0_STABLE. This version has a slight interface change. If you
+would like to continue using the old interface version, check lines 35 and 61 in ompl_addon.py.
+
 Files in this directory:
     README
         This.
@@ -30,9 +33,7 @@ You need to edit:
     line 8 in communicator.py
     line 13 in ompl_addon.py
     line 10 in builder.py
-so that they point to your ompl_morse directory, and:
-    line 15 in planner.py
-so that it points to the directory containing the Python bindings.
+so that they point to your ompl_morse directory.
 
 It works if you run 'blender bgetest.blend' and
     1) You can find the OMPL submenu, and pressing "Plan..." successfully launches MORSE.

@@ -18,22 +18,6 @@ import os
 
 import bpy
 
-# Ensure that MORSE environment 'ompl' is registered in ~/.morse/config
-
-config_path = os.path.expanduser("~/.morse")
-if not os.path.exists(config_path):
-    os.mkdir(config_path)
-config_file = os.path.join(config_path, "config")
-
-conf = configparser.SafeConfigParser()
-conf.read(config_file)
-if not conf.has_section("sites"):
-    conf.add_section("sites")
-conf.set('sites', 'ompl', OMPL_DIR + '/scripts/morse')
-
-with open(config_file, 'w') as configfile:
-    conf.write(configfile)
-
 # Addon operator
 
 class Plan(bpy.types.Operator):
@@ -48,7 +32,8 @@ class Plan(bpy.types.Operator):
         
         print('Starting planner...')
         print(bpy.data.filepath)
-        subprocess.call(['morse', '-c', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
+        #old MORSE interface: subprocess.call(['morse', '-c', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
+        subprocess.call(['morse', '-c', 'run', 'builder.py', '--', bpy.data.filepath])
         
         return {'FINISHED'}
 
@@ -70,8 +55,28 @@ def menu_func(self, context):
 
 def register():
     """
-    Called when this addon is enabled.
+    Called when this addon is enabled or Blender starts.
     """
+    
+    # uncomment this for old MORSE interface
+    """
+    # Ensure that MORSE environment 'ompl' is registered in ~/.morse/config
+    config_path = os.path.expanduser("~/.morse")
+    if not os.path.exists(config_path):
+        os.mkdir(config_path)
+    config_file = os.path.join(config_path, "config")
+
+    conf = configparser.SafeConfigParser()
+    conf.read(config_file)
+    if not conf.has_section("sites"):
+        conf.add_section("sites")
+    conf.set('sites', 'ompl', OMPL_DIR + '/scripts/morse')
+
+    with open(config_file, 'w') as configfile:
+        conf.write(configfile)
+    """
+    
+    # Set up menus
     bpy.utils.register_class(Plan)
     bpy.utils.register_class(OMPLMenu)
     bpy.types.INFO_MT_game.prepend(menu_func)
