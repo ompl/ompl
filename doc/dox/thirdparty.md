@@ -1,6 +1,6 @@
-# Third-Party Contributions
+# Contributions
 
-This page includes a list of extensions to OMPL provided by the community. The contributed code can be found under the \c ompl/src/ompl/contrib directory in the OMPL source code. The contributed code has been written and tested by their respective authors listed below. Maintenance and support is also provided by the same authors. Please read the [directions on writing a contribution](contrib.html) and the suggested [style guide](styleGuide,html) if you would like to submit your own contribution.
+This page includes a list of extensions to OMPL provided by the community. Please read the [directions on writing a contribution](contrib.html) and the suggested [style guide](styleGuide.html) if you would like to submit your own contribution.
 
 
 # T-RRT Implementation
