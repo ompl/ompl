@@ -274,21 +274,67 @@ protected:
 class KoulesDirectedControlSampler : public oc::DirectedControlSampler
 {
 public:
-    KoulesDirectedControlSampler(const oc::SpaceInformation *si)
-        : DirectedControlSampler(si), cs_(si->getControlSpace().get())
+    KoulesDirectedControlSampler(const oc::SpaceInformation *si, const ob::GoalPtr &goal, bool propagateMax)
+        : DirectedControlSampler(si), cs_(si->getControlSpace().get()),
+        goal_(goal), statePropagator_(si->getStatePropagator()), propagateMax_(propagateMax)
     {
     }
+    // This sampleTo implementation contains a modified version of the method
+    // ompl::control::SpaceInformation::propagateWhileValid, with the key difference
+    // that sampleTo also terminates when the goal is reached.
     virtual unsigned int sampleTo(oc::Control *control, const ob::State *source, ob::State *dest)
     {
         const KoulesStateSpace::StateType* dst = dest->as<KoulesStateSpace::StateType>();
         const double* dstPos = dst->as<ob::RealVectorStateSpace::StateType>(0)->values;
-        const double minDuration = si_->getMinControlDuration();
-        const double maxDuration = si_->getMaxControlDuration();
+        double stepSize = si_->getPropagationStepSize();
+        unsigned int steps = propagateMax_ ? si_->getMaxControlDuration() :
+            cs_.sampleStepCount(si_->getMinControlDuration(), si_->getMaxControlDuration());
         unsigned int dim = si_->getStateSpace()->getDimension();
-        unsigned int steps = cs_.sampleStepCount(minDuration, maxDuration);
 
         cs_.steer(control, source, dstPos[dim - 5], dstPos[dim - 4]);
-        return si_->propagateWhileValid(source, control, steps, dest);
+        // perform the first step of propagation
+        statePropagator_->propagate(source, control, stepSize, dest);
+        // if we reached the goal, we're done
+        if (goal_->isSatisfied(dest))
+            return 1;
+        // if we found a valid state after one step, we can go on
+        else if (si_->isValid(dest))
+        {
+            ob::State *temp1 = dest, *temp2 = si_->allocState(), *toDelete = temp2;
+            unsigned int r = steps;
+            for (unsigned int i = 1 ; i < steps ; ++i)
+            {
+                statePropagator_->propagate(temp1, control, stepSize, temp2);
+                if (goal_->isSatisfied(dest))
+                {
+                    si_->copyState(dest, temp2);
+                    si_->freeState(toDelete);
+                    return i + 1;
+                }
+                else if (si_->isValid(temp2))
+                    std::swap(temp1, temp2);
+                else
+                {
+                    // the last valid state is temp1;
+                    r = i;
+                    break;
+                }
+            }
+            // if we finished the for-loop without finding an invalid state, the last valid state is temp1
+            // make sure dest contains that information
+            if (dest != temp1)
+                si_->copyState(dest, temp1);
+            si_->freeState(toDelete);
+            return r;
+        }
+        // if the first propagation step produced an invalid step, return 0 steps
+        // the last valid state is the starting one (assumed to be valid)
+        else
+        {
+            if (dest != source)
+                si_->copyState(dest, source);
+            return 0;
+        }
     }
     virtual unsigned int sampleTo(oc::Control *control, const oc::Control * /* previous */,
         const ob::State *source, ob::State *dest)
@@ -296,17 +342,21 @@ public:
         return sampleTo(control, source, dest);
     }
 protected:
-    KoulesControlSampler cs_;
-    ompl::RNG            rng_;
+    KoulesControlSampler          cs_;
+    ompl::RNG                     rng_;
+    const ob::GoalPtr             goal_;
+    const oc::StatePropagatorPtr  statePropagator_;
+    bool                          propagateMax_;
 };
 
 oc::ControlSamplerPtr KoulesControlSamplerAllocator(const oc::ControlSpace* cspace)
 {
     return oc::ControlSamplerPtr(new KoulesControlSampler(cspace));
 }
-oc::DirectedControlSamplerPtr KoulesDirectedControlSamplerAllocator(const oc::SpaceInformation *si)
+oc::DirectedControlSamplerPtr KoulesDirectedControlSamplerAllocator(
+    const oc::SpaceInformation *si, const ob::GoalPtr &goal, bool propagateMax)
 {
-    return oc::DirectedControlSamplerPtr(new KoulesDirectedControlSampler(si));
+    return oc::DirectedControlSamplerPtr(new KoulesDirectedControlSampler(si, goal, propagateMax));
 }
 
 // State propagator for KouleModel.
@@ -537,8 +587,6 @@ private:
     unsigned int numKoules_;
 };
 
-
-
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
     return si->satisfiesBounds(state);
@@ -578,16 +626,6 @@ oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerN
     // define a simple setup class
     oc::SimpleSetup* ss = new oc::SimpleSetup(cspace);
     oc::SpaceInformationPtr si = ss->getSpaceInformation();
-    // set min/max propagation steps
-    si->setMinMaxControlDuration(propagationMinSteps, propagationMaxSteps);
-    // set directed control sampler
-    si->setDirectedControlSamplerAllocator(KoulesDirectedControlSamplerAllocator);
-    // set planner
-    ss->setPlanner(getPlanner(plannerName, si));
-    // set validity checker
-    ss->setStateValidityChecker(boost::bind(&isStateValid, si.get(), _1));
-    // set state propagator
-    ss->setStatePropagator(oc::StatePropagatorPtr(new KoulesStatePropagator(si)));
     // setup start state
     ob::ScopedState<> start(space);
     if (stateVec.size() == space->getDimension())
@@ -614,6 +652,17 @@ oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerN
     ss->setGoal(ob::GoalPtr(new KoulesGoal(si)));
     // set propagation step size
     si->setPropagationStepSize(propagationStepSize);
+    // set min/max propagation steps
+    si->setMinMaxControlDuration(propagationMinSteps, propagationMaxSteps);
+    // set directed control sampler; when using the PDST planner, propagate as long as possible
+    si->setDirectedControlSamplerAllocator(
+        boost::bind(&KoulesDirectedControlSamplerAllocator, _1, ss->getGoal(), plannerName == "pdst"));
+    // set planner
+    ss->setPlanner(getPlanner(plannerName, si));
+    // set validity checker
+    ss->setStateValidityChecker(boost::bind(&isStateValid, si.get(), _1));
+    // set state propagator
+    ss->setStatePropagator(oc::StatePropagatorPtr(new KoulesStatePropagator(si)));
     return ss;
 }
 oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerName, double kouleVel)
@@ -635,9 +684,6 @@ oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerN
 void planOneLevel(oc::SimpleSetup& ss, double maxTime, const std::string& plannerName,
     const std::string& outputFile)
 {
-    ss.setup();
-    ss.print(std::cout);
-
     if (ss.solve(maxTime))
     {
         std::ofstream out(outputFile.c_str());
@@ -651,6 +697,30 @@ void planOneLevel(oc::SimpleSetup& ss, double maxTime, const std::string& planne
                 ss.getProblemDefinition()->getSolutionDifference());
         OMPL_INFORM("Output saved in %s", outputFile.c_str());
     }
+
+#if 0
+    // Get the planner data, save the ship's (x,y) coordinates to one file and
+    // the edge information to another file. This can be used for debugging
+    // purposes; plotting the tree of states might give you some idea of
+    // a planner's strategy.
+    ob::PlannerData pd(ss.getSpaceInformation());
+    ss.getPlannerData(pd);
+    std::ofstream vertexFile((outputFile + "-vertices").c_str()), edgeFile((outputFile + "-edges").c_str());
+    double* coords;
+    unsigned numVerts = pd.numVertices(), offset = ss.getStateSpace()->getDimension() - 5;
+    std::vector<unsigned int> edgeList;
+
+    for (unsigned int i = 0; i < numVerts; ++i)
+    {
+        coords = pd.getVertex(i).getState()->as<KoulesStateSpace::StateType>()
+            ->as<ob::RealVectorStateSpace::StateType>(0)->values;
+        vertexFile << coords[offset] << ' ' << coords[offset + 1] << '\n';
+
+        pd.getEdges(i, edgeList);
+        for (unsigned int j = 0; j < edgeList.size(); ++j)
+            edgeFile << i << ' ' << edgeList[j] << '\n';
+    }
+#endif
 }
 
 void planAllLevelsRecursive(oc::SimpleSetup* ss, double maxTime, const std::string& plannerName,
@@ -775,7 +845,8 @@ int main(int argc, char **argv)
         {
             std::string prefix(vm.count("plan") ? "koules_"
                 : (vm.count("planall") ? "koules_1-" : "koulesBenchmark_"));
-            outputFile = boost::str(boost::format("%1%%2%_%3%_%4%.dat") % prefix % numKoules % plannerName % maxTime);
+            outputFile = boost::str(boost::format("%1%%2%_%3%_%4%.dat")
+                % prefix % numKoules % plannerName % maxTime);
         }
         if (vm.count("plan"))
             planOneLevel(*ss, maxTime, plannerName, outputFile);
