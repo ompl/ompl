@@ -1,8 +1,7 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
+*  @copyright Software License Agreement (BSD License)
+*  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick 
+*  All Rights Reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
@@ -32,9 +31,9 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble, Andrew Dobson */
+/* Author: Andrew Dobson */
 
-#include "ompl/contrib/spars/SPARS.h"
+#include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
@@ -71,9 +70,8 @@ namespace ompl
     }
 }
 
-ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si, bool starStrategy) :
+ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     base::Planner(si, "SPARS"),
-    starStrategy_(starStrategy),
     stateProperty_(boost::get(vertex_state_t(), g_)),
     sparseStateProperty_(boost::get(vertex_state_t(), s_)),
     sparseColorProperty_(boost::get(vertex_color_t(), s_)),
@@ -95,8 +93,8 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si, bool starStra
     iterations_(0),
     t_(3),
     m_(1000),
-    d_max(0.5),
-    D_max(20)
+    denseDelta_(0.5),
+    sparseDelta_(20)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = true;
@@ -104,10 +102,10 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si, bool starStra
     
     psimp_.reset(new PathSimplifier(si_));
 
-    Planner::declareParam<double>("stretch_factor", this, &SPARS::setStretchFactor);
-    Planner::declareParam<double>("sparse_delta", this, &SPARS::setSparseDelta);
-    Planner::declareParam<double>("dense_delta", this, &SPARS::setDenseDelta);
-    Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures);
+    Planner::declareParam<double>("stretch_factor", this, &SPARS::setStretchFactor, &SPARS::getStretchFactor, "1.1:0.1:3.0");
+    Planner::declareParam<double>("sparse_delta", this, &SPARS::setSparseDelta, &SPARS::getSparseDelta, "1.0:0.5:30.0");
+    Planner::declareParam<double>("dense_delta", this, &SPARS::setDenseDelta, &SPARS::getDenseDelta, "0.02:0.02:1.0");
+    Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures, "100:10:3000");
 }
 
 ompl::geometric::SPARS::~SPARS(void)
@@ -118,7 +116,6 @@ ompl::geometric::SPARS::~SPARS(void)
 void ompl::geometric::SPARS::setup(void)
 {
     Planner::setup();
-    starStrategy_ = true;
     if (!nn_)
         nn_.reset(new NearestNeighborsGNAT<Vertex>());
     nn_->setDistanceFunction(boost::bind(&SPARS::distanceFunction, this, _1, _2));
@@ -127,10 +124,7 @@ void ompl::geometric::SPARS::setup(void)
     snn_->setDistanceFunction(boost::bind(&SPARS::sparseDistanceFunction, this, _1, _2));
     if (!connectionStrategy_)
     {
-        if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
-        else
-            connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS, nn_);
+        connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
     }
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
@@ -260,16 +254,21 @@ bool ompl::geometric::SPARS::addedNewSolution (void) const
     return addedSolution_;
 }
 
+bool ompl::geometric::SPARS::reachedFailureLimit (void) const
+{
+    return iterations_ >= m_;
+}
+
 ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
 
     if( boost::num_vertices( g_ ) < 1 )
     {
-        sparse_query_v_ = boost::add_vertex( s_ );
-        query_v_ = boost::add_vertex( g_ );
-        sparseStateProperty_[sparse_query_v_] = NULL;
-        stateProperty_[query_v_] = NULL;
+        sparseQueryVertex_ = boost::add_vertex( s_ );
+        queryVertex_ = boost::add_vertex( g_ );
+        sparseStateProperty_[sparseQueryVertex_] = NULL;
+        stateProperty_[queryVertex_] = NULL;
     }
 
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -333,10 +332,10 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     base::PathPtr sol;
     sol.reset();
 
-    // construct new planner termination condition that fires when the given ptc is true, or a solution is found
-    base::PlannerOrTerminationCondition ptcOrSolutionFound (ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::addedNewSolution, this)));
+    //Construct planner termination condition which also takes M into account
+    base::PlannerOrTerminationCondition ptcOrFail(ptc,base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
 
-    while ( !ptc() && iterations_ < m_ )
+    while ( !ptcOrFail() )
     {
         //Generate a single sample, and attempt to connect it to nearest neighbors.
         Vertex q = addSample();
@@ -390,6 +389,12 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     // Return true if any solution was found.
     return sol ? (addedNewSolution() ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
+}
+
+ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail )
+{
+    m_ = maxFail;
+    return solve( ptc );
 }
 
 ompl::geometric::SPARS::Vertex ompl::geometric::SPARS::addMilestone(base::State *state)
@@ -471,7 +476,7 @@ void ompl::geometric::SPARS::connectSparsePoints( Node v, Node vp )
 {
     const double weight = sparseDistanceFunction(v, vp);
     const unsigned int id = maxLinkID_++;
-    const Spanner::edge_property_type properties(weight, id);
+    const SpannerGraph::edge_property_type properties(weight, id);
     boost::add_edge(v, vp, properties, s_);
     uniteSparseComponents( v, vp );
 }
@@ -737,7 +742,7 @@ void ompl::geometric::SPARS::resetFailures( void )
 void ompl::geometric::SPARS::approachGraph( Vertex v )
 {
     std::vector< Vertex > hold;
-    nn_->nearestR( v, 3*d_max, hold );
+    nn_->nearestR( v, 3*denseDelta_, hold );
     
     std::vector< Vertex > neigh;
     for( unsigned int i=0; i<hold.size(); ++i )
@@ -757,7 +762,7 @@ void ompl::geometric::SPARS::approachGraph( Vertex v )
 void ompl::geometric::SPARS::approachSpanner( Node n )
 {
     std::vector< Node > hold;
-    snn_->nearestR( n, D_max, hold );
+    snn_->nearestR( n, sparseDelta_, hold );
     
     std::vector< Node > neigh;
     for( unsigned int i=0; i<hold.size(); ++i )
@@ -776,24 +781,24 @@ void ompl::geometric::SPARS::approachSpanner( Node n )
 
 std::vector<ompl::geometric::SPARS::Node> ompl::geometric::SPARS::getSparseNeighbors( base::State* inState )
 {
-    sparseStateProperty_[sparse_query_v_] = inState;
+    sparseStateProperty_[sparseQueryVertex_] = inState;
     
     std::vector< Node > ret;
-    snn_->nearestR( sparse_query_v_, D_max, ret );
+    snn_->nearestR( sparseQueryVertex_, sparseDelta_, ret );
         
-    sparseStateProperty_[sparse_query_v_] = NULL;
+    sparseStateProperty_[sparseQueryVertex_] = NULL;
     
     return ret;
 }
 
 std::vector<ompl::geometric::SPARS::Node> ompl::geometric::SPARS::getVisibleNeighbors( base::State* inState )
 {
-    sparseStateProperty_[sparse_query_v_] = inState;
+    sparseStateProperty_[sparseQueryVertex_] = inState;
     
     std::vector< Node > hold;
-    snn_->nearestR( sparse_query_v_, D_max, hold );
+    snn_->nearestR( sparseQueryVertex_, sparseDelta_, hold );
     
-    sparseStateProperty_[sparse_query_v_] = NULL;
+    sparseStateProperty_[sparseQueryVertex_] = NULL;
  
     std::vector< Node > ret;
     
@@ -815,7 +820,7 @@ bool ompl::geometric::SPARS::getInterfaceNeighbor( Vertex q, Node rep, Node& ret
     {
         if( representativesProperty_[vp] == rep )
         {
-            if( distanceFunction( q, vp ) <= d_max )
+            if( distanceFunction( q, vp ) <= denseDelta_ )
             {
                 ret = vp;
                 return true;
@@ -927,11 +932,11 @@ void ompl::geometric::SPARS::updateReps( Node v )
     //Get all of the dense samples which may be affected by adding this node
     std::vector< Vertex > dense_points;
     
-    stateProperty_[ query_v_ ] = sparseStateProperty_[ v ];
+    stateProperty_[ queryVertex_ ] = sparseStateProperty_[ v ];
     
-    nn_->nearestR( query_v_, D_max + d_max, dense_points );
+    nn_->nearestR( queryVertex_, sparseDelta_ + denseDelta_, dense_points );
     
-    stateProperty_[ query_v_ ] = NULL;
+    stateProperty_[ queryVertex_ ] = NULL;
     
     //For each of those points
     for( unsigned int i=0; i<dense_points.size(); ++i )
@@ -958,7 +963,7 @@ void ompl::geometric::SPARS::updateReps( Node v )
 
 void ompl::geometric::SPARS::calculateRepresentative( Vertex q )
 {
-    //Get the nearest neighbors within D_max
+    //Get the nearest neighbors within sparseDelta_
     std::vector<Node> neigh = getSparseNeighbors( stateProperty_[q] );
     
     bool abort = false;
@@ -1093,8 +1098,8 @@ std::vector<ompl::geometric::SPARS::Vertex> ompl::geometric::SPARS::interfaceChe
         //If his representative is not our own
         if( rep != representativesProperty_[n] )
         {
-            //If he is within d_max
-            if( distanceFunction( q, n ) < d_max )
+            //If he is within denseDelta_
+            if( distanceFunction( q, n ) < denseDelta_ )
             {
                 //Push him onto the list
                 ret.push_back( n );
@@ -1118,8 +1123,8 @@ std::vector< ompl::geometric::SPARS::Node > ompl::geometric::SPARS::getInterface
         //If that representative is not our own
         if( orep != rep )
         {
-            //If he is within d_max
-            if( distanceFunction( q, n ) < d_max )
+            //If he is within denseDelta_
+            if( distanceFunction( q, n ) < denseDelta_ )
             {
                 //And we haven't tracked him yet
                 if( std::find( ret.begin(), ret.end(), orep ) == ret.end() )
@@ -1148,8 +1153,8 @@ std::vector< ompl::geometric::SPARS::Vertex > ompl::geometric::SPARS::getInterfa
         //If that representative is not our own
         if( orep != rep )
         {
-            //If he is within d_max
-            if( distanceFunction( q, n ) < d_max )
+            //If he is within denseDelta_
+            if( distanceFunction( q, n ) < denseDelta_ )
             {
                 //Append him to the list
                 ret.push_back( n );

@@ -1,8 +1,7 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
+*  @copyright Software License Agreement (BSD License)
+*  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick 
+*  All Rights Reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
@@ -67,9 +66,13 @@ namespace ompl
            PRM.  It has several desirable properties, including asymptotic 
            near-optimality, and a meaningful stopping criterion.
            @par External documentation
+           A. Dobson, A. Krontiris, K. Bekris,
+           Sparse Roadmap Spanners,
+           <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
+           <a href="http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf">[PDF]</a>
          */
 
-        /** \brief Incremental Probabilistic RoadMap planner */
+        /** \brief <b> SPArse Roadmap Spanner technique. </b> */
         class SPARS : public base::Planner
         {
         public:
@@ -101,12 +104,27 @@ namespace ompl
             struct vertex_interface_list_t {
                 typedef boost::vertex_property_tag kind;
             };
-                        
-            typedef boost::unordered_map< unsigned int, std::list< unsigned int >, boost::hash<unsigned int> > interface_hash;
 
+            /** \brief Hash for storing interface information. */
+            typedef boost::unordered_map< unsigned int, std::list< unsigned int >, boost::hash<unsigned int> > interfaceHash;
+
+            /** \brief Iterator for the interface information hash. */
             typedef boost::unordered_map< unsigned int, std::list< unsigned int>, boost::hash< unsigned int > >::iterator IH_iterator;
+            /** \brief Const iterator for the interface information hash. */
             typedef boost::unordered_map< unsigned int, std::list< unsigned int>, boost::hash< unsigned int > >::const_iterator const_IH_iterator;
             
+            /**
+             @brief The constructed roadmap spanner.
+             
+             @par Any BGL graph representation could be used here, but the 
+             spanner should be very sparse (m<n^2), so we use an adjacency_list.
+             
+             @par Nodes in the spanner contain extra information needed by the
+             spanner technique, including nodes in the dense graph which nodes 
+             in the spanner represent.
+             
+             @par Edges should be undirected and have a weight property.
+             */
             typedef boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
@@ -116,18 +134,20 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, unsigned long int,
                 boost::property < vertex_color_t, unsigned int,
                 boost::property < vertex_list_t, std::list< unsigned int >,
-                boost::property < vertex_interface_list_t, interface_hash > > > > > > > >,
+                boost::property < vertex_interface_list_t, interfaceHash > > > > > > > >,
                 boost::property < boost::edge_weight_t, double,
                 boost::property < boost::edge_index_t, unsigned int> >
-            > Spanner;
+            > SpannerGraph;
             
-            typedef boost::graph_traits<Spanner>::vertex_descriptor Node;
-            typedef boost::graph_traits<Spanner>::edge_descriptor   Link;
+            typedef boost::graph_traits<SpannerGraph>::vertex_descriptor Node;
+            typedef boost::graph_traits<SpannerGraph>::edge_descriptor   Link;
 
+            /** \brief Nearest neighbor structure which works over the SpannerGraph */
             typedef boost::shared_ptr< NearestNeighbors<Node> > SparseNeighbors;
 
+            /** \brief Connection strategy for the spanner. */
             typedef boost::function<std::vector<Node>&(const Node)> LinkStrategy;
-            
+            /** \brief Connection filter for the spanner. */
             typedef boost::function<bool(const Node, const Node)> LinkFilter;
 
             /**
@@ -178,57 +198,14 @@ namespace ompl
              */
             typedef boost::function<bool(const Vertex, const Vertex)> ConnectionFilter;
 
-            /** \brief Constructor */
-            SPARS(const base::SpaceInformationPtr &si, bool starStrategy = true);
-
+            /** \brief Constructor. */
+            SPARS(const base::SpaceInformationPtr &si);
+            /** \brief Destructor. */
             virtual ~SPARS(void);
 
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
-            /** \brief Set the connection strategy function that specifies the
-             milestones that connection attempts will be make to for a
-             given milestone.
-
-             \par The behavior and performance of PRM can be changed drastically
-             by varying the number and properties if the milestones that are
-             connected to each other.
-
-             \param pdef A function that takes a milestone as an argument and
-             returns a collection of other milestones to which a connection
-             attempt must be made. The default connection strategy is to connect
-             a milestone's 10 closest neighbors.
-             */
-            void setConnectionStrategy(const ConnectionStrategy& connectionStrategy)
-            {
-                connectionStrategy_ = connectionStrategy;
-                userSetConnectionStrategy_ = true;
-            }
-
-            /** \brief Set the function that can reject a milestone connection.
-
-             \par The given function is called immediately before a connection
-             is checked for collision and added to the roadmap. Other neighbors
-             may have already been connected before this function is called.
-             This allows certain heuristics that use the structure of the
-             roadmap (like connected components or useful cycles) to be
-             implemented by changing this function.
-
-             \param connectionFilter A function that takes the new milestone,
-             a neighboring milestone and returns whether a connection should be
-             attempted.
-             */
-            void setConnectionFilter(const ConnectionFilter& connectionFilter)
-            {
-                connectionFilter_ = connectionFilter;
-            }
-
             virtual void getPlannerData(base::PlannerData &data) const;
-
-            /** \brief Attempt to add a single sample to the roadmap. */
-            virtual Vertex addSample();
-            
-            /** \brief Attempt to add a single sample to the roadmap. */
-            virtual Vertex addSample(base::State *workState);
             
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
@@ -244,6 +221,10 @@ namespace ompl
                 the clearQuery() function. */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
+            /** \brief Alternate solve call with maximum failures as a 
+             function parameter.  Overwrites the parameter member m_. */
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail );
+
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
@@ -252,7 +233,11 @@ namespace ompl
 
             virtual void clear(void);
 
-            /** \brief Set a different nearest neighbors datastructure */
+            /** \brief Set a different nearest neighbors datastructure for the roadmap graph. 
+                This nearest neighbor structure contains only information on the nodes 
+                existing in the underlying dense roadmap.  This structure is used for 
+                near-neighbor queries for the construction of that graph as well as for 
+                determining which dense samples the sparse roadmap nodes should represent.*/
             template<template<typename T> class NN>
             void setDenseNeighbors(void)
             {
@@ -263,7 +248,10 @@ namespace ompl
                     setup();
             }
 
-            /** \brief Set a different nearest neighbors datastructure for the spanner */
+            /** \brief Set a different nearest neighbors datastructure for the spanner graph. 
+                This structure is stores only nodes in the roadmap spanner, and is used in
+                the construction of the spanner.  It can also be queried to determine which
+                node in the spanner should represent a given state.*/
             template<template<typename T> class NN>
             void setSparseNeighbors(void)
             {
@@ -271,54 +259,79 @@ namespace ompl
                 if (isSetup())
                     setup();
             }
-
+            
+            /** \brief Set the maximum consecutive failures to augment the spanner before termination.
+                In general, if the algorithm fails to add to the spanner for M consecutive iterations,
+                then we can probabilistically estimate how close to attaining the desired properties
+                the SPARS spanner is.*/
             void setMaxFailures( unsigned int m )
             {
                 m_ = m;
             }
             
+            /** \brief Set the delta value for interface detection.  If two nodes in the dense graph
+                are more than delta distance appart, then the algorithm cannot consider them to have
+                accurately approximated the location of an interface. */
             void setDenseDelta( double d )
             {
-                d_max = d;
+                denseDelta_ = d;
             }
             
+            /** \brief Set the delta value for connection distance on the sparse spanner.  This
+                value represents the visibility range of sparse samples.  A sparse node
+                represents all dense nodes within this distance if it is also the closest sparse
+                node to that dense node.*/
             void setSparseDelta( double d )
             {
-                D_max = d;
+                sparseDelta_ = d;
             }
             
+            /** \brief Set the roadmap spanner stretch factor.  This value represents a 
+                multiplicative upper bound on path quality that should be produced by the
+                roadmap spanner.  It does not make sense to make this parameter more than 3. */
             void setStretchFactor( double t )
             {
                 t_ = t;
             }
             
-            void setQueryFilename( std::string inf )
+            /** \brief Retrieve the maximum consecutive failure limit. */
+            unsigned getMaxFailures( )
             {
-                qFname_ = inf;
+                return m_;
             }
             
+            /** \brief Retrieve the dense graph interface support delta. */
+            double getDenseDelta( )
+            {
+                return denseDelta_;
+            }
+            
+            /** \brief Retrieve the sparse graph visibility range delta. */
+            double getSparseDelta( )
+            {
+                return sparseDelta_;
+            }
+            
+            /** \brief Retrieve the spanner's set stretch factor. */
+            double getStretchFactor( )
+            {
+                return t_;
+            }
+                        
             virtual void setup(void);
 
+            /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM*
+                and asymptotically approximates best paths through the space. */
             const Graph& getGraph(void) const
             {
                 return g_;
             }
             
-            const Spanner& getRoadmap(void) const
+            /** \brief Retrieve the sparse roadmap structure.  This is the structure which
+                answers given queries, and has the desired property of asymptotic near-optimality.*/
+            const SpannerGraph& getRoadmap(void) const
             {
                 return s_;
-            }
-
-            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
-            double distanceFunction(const Vertex a, const Vertex b) const
-            {
-                return si_->distance(stateProperty_[a], stateProperty_[b]);
-            }
-            
-            /** \brief Compute distance between two Nodes */
-            double sparseDistanceFunction( const Node a, const Node b ) const
-            {
-                return si_->distance( sparseStateProperty_[a], sparseStateProperty_[b] );
             }
 
             /** \brief Returns the number of milestones added to D */
@@ -333,17 +346,13 @@ namespace ompl
                 return boost::num_vertices(s_);
             }
 
-            const DenseNeighbors& getNearestNeighbors(void)
-            {
-                return nn_;
-            }
-            
-            const SparseNeighbors& getSparseNearestNeighbors(void)
-            {
-                return snn_;
-            }
-
         protected:
+
+            /** \brief Attempt to add a single sample to the roadmap. */
+            virtual Vertex addSample();
+            
+            /** \brief Attempt to add a single sample to the roadmap. */
+            virtual Vertex addSample(base::State *workState);
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
@@ -389,13 +398,13 @@ namespace ompl
             /** \brief Function for approaching the roadmap spanner. */
             void approachSpanner( Node n );
             
-            /** \brief Get all nodes in the sparse graph which are within D_max of the given state. */
+            /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
             std::vector<Node> getSparseNeighbors( base::State* inState );
             
             /** \brief Get the visible neighbors */
             std::vector<Node> getVisibleNeighbors( base::State* inState );
             
-            /** \brief Get the first neighbor of q who has representative rep and is within d_max. */
+            /** \brief Get the first neighbor of q who has representative rep and is within denseDelta_. */
             bool getInterfaceNeighbor( Vertex q, Node rep, Node& ret );
             
             /** \brief Method for adding a pair of nodes to S, with some smoothing applied. */
@@ -404,7 +413,7 @@ namespace ompl
             /** \brief Method for actually adding a dense path to the Roadmap Spanner, S. */
             bool addPathToSpanner( PathGeometric* p, Node vp, Node vpp );
 
-            /** \brief Automatically updates the representatives of all dense samplse within D_max of v */
+            /** \brief Automatically updates the representatives of all dense samplse within sparseDelta_ of v */
             void updateReps( Node v );
             
             /** \brief Calculates the representative for a dense sample */
@@ -443,14 +452,14 @@ namespace ompl
             /** \brief Returns the value of the addedSolution_ member. */
             bool addedNewSolution (void) const;
 
+            /** \brief Returns whether we have reached the iteration failures limit, m_ */
+            bool reachedFailureLimit (void) const;
+
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             virtual base::PathPtr constructSolution(const Node start, const Node goal) const;
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
             PathGeometric* densePath( const Vertex start, const Vertex goal ) const;
-
-            /** \brief Flag indicating whether the default connection strategy is the Star strategy */
-            bool                                                   starStrategy_;
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                             sampler_;
@@ -468,7 +477,7 @@ namespace ompl
             Graph                                                  g_;
             
             /** \brief The sparse roadmap, S */
-            Spanner                                                s_;
+            SpannerGraph                                           s_;
 
             /** \brief Array of start guards */
             std::vector<Node>                                      startM_;
@@ -477,28 +486,28 @@ namespace ompl
             std::vector<Node>                                      goalM_;
 
             /** \brief Vertex for performing nearest neighbor queries on the SPARSE roadmap. */
-            Vertex                                                 sparse_query_v_;
+            Vertex                                                 sparseQueryVertex_;
 
             /** \brief Vertex for performing nearest neighbor queries on the DENSE graph. */
-            Vertex                                                 query_v_;
+            Vertex                                                 queryVertex_;
 
             /** \brief Access to the internal base::state at each Vertex */
             boost::property_map<Graph, vertex_state_t>::type       stateProperty_;
             
             /** \brief Access to the internal base::State for each Node of S */
-            boost::property_map<Spanner, vertex_state_t>::type     sparseStateProperty_;
+            boost::property_map<SpannerGraph, vertex_state_t>::type     sparseStateProperty_;
 
             /** \brief Access to draw colors for the Nodes of S, to indicate addition type */
-            boost::property_map<Spanner, vertex_color_t>::type     sparseColorProperty_;
+            boost::property_map<SpannerGraph, vertex_color_t>::type     sparseColorProperty_;
             
             /** \brief Access to the representatives of the Dense vertices */
             boost::property_map<Graph, vertex_representative_t>::type   representativesProperty_;
             
             /** \brief Access to all non-interface supporting vertices of the sparse nodes */
-            boost::property_map<Spanner, vertex_list_t>::type      nonInterfaceListsProperty_;
+            boost::property_map<SpannerGraph, vertex_list_t>::type      nonInterfaceListsProperty_;
             
             /** \brief Access to the interface-supporting vertice hashes of the sparse nodes */
-            boost::property_map<Spanner, vertex_interface_list_t>::type interfaceListsProperty_;
+            boost::property_map<SpannerGraph, vertex_interface_list_t>::type interfaceListsProperty_;
             
             /** \brief Access to the number of total connection attempts for a vertex */
             boost::property_map<Graph,
@@ -528,8 +537,8 @@ namespace ompl
             
             /** \brief Data structure that maintains the connected components of S */
             boost::disjoint_sets<
-                boost::property_map<Spanner, boost::vertex_rank_t>::type,
-                boost::property_map<Spanner, boost::vertex_predecessor_t>::type >
+                boost::property_map<SpannerGraph, boost::vertex_rank_t>::type,
+                boost::property_map<SpannerGraph, boost::vertex_predecessor_t>::type >
                                                                    sparseDJSets_;
 
             /** \brief Maximum unique id number used so for for edges */
@@ -563,16 +572,28 @@ namespace ompl
             unsigned int                                           m_;
             
             /** \brief SPARS parameter for dense graph connection distance */
-            double                                                 d_max;
+            double                                                 denseDelta_;
             
             /** \brief SPARS parameter for Sparse Roadmap connection distance */
-            double                                                 D_max;
+            double                                                 sparseDelta_;
 
             /** \brief A holder for the last state added to D */
             base::State*                                           last_state;
             
-            /** \brief The filename to be used for loading query test information */
-            std::string                                            qFname_;
+        private:
+
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            double distanceFunction(const Vertex a, const Vertex b) const
+            {
+                return si_->distance(stateProperty_[a], stateProperty_[b]);
+            }
+            
+            /** \brief Compute distance between two nodes in the sparse roadmap spanner. */
+            double sparseDistanceFunction( const Node a, const Node b ) const
+            {
+                return si_->distance( sparseStateProperty_[a], sparseStateProperty_[b] );
+            }
+            
         };
 
     }
