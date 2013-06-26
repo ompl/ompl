@@ -1,7 +1,7 @@
-# Representing goals in OMPL
+# Representing Goals in OMPL
 
 
-# Setting the goal
+# Setting the Goal
 
 The most general representation of a goal is ompl::base::Goal. This class contains a pure virtual method, ompl::base::Goal::isSatisfied(), which takes a state as argument and returns a boolean indicating whether that state is a goal or not. No other information about the goal is given. This function can include arbitrary code deciding what is in the goal region and what is not.
 
@@ -88,7 +88,7 @@ public:
   - ompl::base::GoalLazySamples (inherits from ompl::base::GoalStates). In case sampling of states is a time consuming process, this version of a goal allows the sampling process to take place in a separate thread, while the planner is running. As new states are found, they are added to the array of stored states. This is useful for example when performing inverse kinematics for an arm. The inverse kinematics computations can be performed while the planner is running. As more states are found, they become available to the planner.
 
 
-# Using the goal region
+# Using the Goal Region
 
 Planners cast the specified goal representation into the minimal representation they can use. For uni-directional planners, ompl::base::Goal is fine. For bi-directional planners however, this needs to be ompl::base::GoalSampleableRegion.
 

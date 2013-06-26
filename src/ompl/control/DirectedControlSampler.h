@@ -78,7 +78,7 @@ namespace ompl
                 useful for some algorithms that have a notion of direction in
                 their exploration (e.g., \ref cRRT). Furthermore, return the
                 duration for which this control should be applied. The state
-                \dest is modified to match the state reached with the computed
+                \e dest is modified to match the state reached with the computed
                 control and duration. The motion is checked for validity. */
             virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest) = 0;
 
@@ -88,7 +88,7 @@ namespace ompl
                 previous. This is useful for some algorithms that have a notion
                 of direction in their exploration (e.g., \ref cRRT).
                 Furthermore, return the duration for which this control should
-                be applied. The state \dest is modified to match the state
+                be applied. The state \e dest is modified to match the state
                 reached with the computed control and duration. The motion is
                 checked for validity. */
             virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest) = 0;

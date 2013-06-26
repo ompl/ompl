@@ -1,6 +1,25 @@
 # Release Notes
 
 
+# OMPL 0.13.0 (??/??/13)
+
+- Added a new planner: Path-Directed Subdivision Tree (PDST). There are actually two version: one for geometric planning and one for control-based planning.
+- Added a new planner: Lazy PRM, a variant that lazily evaluates the validity of nodes and edges in a roadmap.
+- Various improvements and bug fixes in RRTstar and BallTreeRRTstar planners.
+- Various optimizations in the Syclop planner.
+- The Syclop planner can now operate over triangular decompositions. This is enabled if the [triangle](http://www.cs.cmu.edu/~quake/triangle.html) package is installed.
+- Significantly reworked and extended unit tests for planning algorithms.
+- Added method to extract a ompl::base::StateStorage object from ompl::base::PlannerData.
+- State spaces can indicate whether they are metric.
+- Extended ProblemDefinition API to support path optimizing planners.
+- Added printAsMatrix method to ompl::geometric::PathGeometric and ompl::control::PathControl to facilitate plotting of paths. Added a [tutorial on path visualization](pathVisualization.html).
+- Added more demo programs.
+- Certain path shortcutting techniques are disabled for non-metric state spaces during path simplification.
+- Use the officially released version of [OdeInt](http://www.boost.org/libs/numeric/odeint) that comes with Boost 1.53 for numerical integration. The bundled version of OdeInt is not used or installed if the user has Boost >= 1.53 installed.
+- Updated Py++ toolchain (gccxml, pygccxml, pyplusplus). If you use gcc 4.7 or gcc 4.8, you need to run "make installpyplusplus" again.
+- Bug fixes.
+
+
 # OMPL 0.12.2 (1/22/13)
 
 - Initial support for FLANN, a library for approximate nearest neighbors.
@@ -114,7 +133,7 @@
 # OMPL 0.9.3 (May 2, 2011)
 
 - Added path smoothing with splines
-- Added a bi-directional implementation of KPIECE (\ref gBKPIECE "BKPIECE")
+- Added a bi-directional implementation of KPIECE (\ref gBKPIECE1 "BKPIECE")
 - Support for computation of clearance and gradients that move away from invalid regions
 - Separate "magic constants" to a separate, visible, location
 - A number of bug fixes

@@ -13,6 +13,7 @@ CMakeModules/ompl.pc
 doc/dox/api_overview.md
 doc/dox/download.md
 doc/dox/mainpage.md
+doc/html
 py-bindings/ompl/bindings_generator.py
 py-bindings/bindings
 py-bindings/ompl/app

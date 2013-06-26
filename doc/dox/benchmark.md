@@ -1,4 +1,4 @@
-# How to benchmark planners
+# How to Benchmark Planners
 
 OMPL contains a ompl::Benchmark class that facilitates solving a motion planning problem repeatedly with different planners, different samplers, or even differently configured versions of the same planning algorithm. Below, we will describe how you can use this class.
 

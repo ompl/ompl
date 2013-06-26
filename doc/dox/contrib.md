@@ -1,4 +1,4 @@
-# Submit your Contribution
+# Submit Your Contribution
 
 We welcome external contributions. If you would like us to list your contribution on our [page](thirdparty.html), please [contact us](contact.html). If you would like to include your code in OMPL, please read on. We want to make the process of contributing code as easy as possible. To this end we came up with the following guidelines:
 
@@ -10,7 +10,7 @@ We welcome external contributions. If you would like us to list your contributio
 
           $ hg clone https://bitbucket.org/ompl/ompl
 
-      Contributors should then create their own branch, add their files in the appropriate places, and either send us a “pull” request (if the repository is accessible to us) or email us a bundle (see http://www.selenic.com/mercurial/hg.1.html#bundle). We will then merge your code in that separate branch, test the code and then merge it to the default branch. If you have a simple fix, using de default branch is fine.
+      Contributors should then create their own branch, add their files in the appropriate places, and either send us a “pull” request (if the repository is accessible to us) or email us a [bundle](http://www.selenic.com/mercurial/hg.1.html#bundle). We will then merge your code in that separate branch, test the code and then merge it to the default branch. If you have a simple fix, using de default branch is fine.
     - tar balls / zip files / etc.: contributors just email us their files and we put them in the appropriate place.
 3. In the unlikely event that the submitted code is of poor quality, we will try to suggest the changes necessary to include the contribution in OMPL, and postpone merging until the necessary changes are made.
 
