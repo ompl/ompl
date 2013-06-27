@@ -152,6 +152,10 @@ namespace ompl
                 which accepts when one of the given propositions becomes true. */
             static AutomatonPtr DisjunctionAutomaton(unsigned int numProps, const std::vector<unsigned int>& disjProps);
 
+            /** \brief Returns an avoidance automaton, which rejects when any one of the
+                given list of propositions becomes true. Accepts otherwise. */
+            static AutomatonPtr AvoidanceAutomaton(unsigned int numProps, const std::vector<unsigned int>& avoidProps);
+
             /** \brief Helper function to return a coverage automaton
                 over propositions from 0 to numProps-1.
                 Assumes all propositions are mutually exclusive. */

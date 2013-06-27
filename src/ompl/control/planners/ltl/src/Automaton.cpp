@@ -79,7 +79,7 @@ void ompl::control::Automaton::addTransition(
 
 bool ompl::control::Automaton::run(const std::vector<World>& trace) const
 {
-    unsigned int current = startState_;
+    int current = startState_;
     for (std::vector<World>::const_iterator w = trace.begin(); w != trace.end(); ++w)
     {
         current = step(current, *w);
@@ -261,6 +261,15 @@ ompl::control::AutomatonPtr ompl::control::Automaton::DisjunctionAutomaton(unsig
     disj->setAccepting(1, true);
     disj->setStartState(0);
     return disj;
+}
+
+ompl::control::AutomatonPtr ompl::control::Automaton::AvoidanceAutomaton(unsigned int numProps, const std::vector<unsigned int>& avoidProps)
+{
+    /* An avoidance automaton is simply a disjunction automaton with its acceptance condition flipped. */
+    AutomatonPtr avoid = DisjunctionAutomaton(numProps, avoidProps);
+    avoid->setAccepting(0, true);
+    avoid->setAccepting(1, false);
+    return avoid;
 }
 
 ompl::control::AutomatonPtr ompl::control::Automaton::CoverageAutomaton(unsigned int numProps)
