@@ -21,7 +21,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 <br>
 <small>Released: @OMPL_RELEASE_DATE@</small></a>
 
-<a href="citations.html" class="btn btn-primary btn-primary">Click for citation,<br><small>if you use OMPL in your work</small></a>
+<a href="citations.html" class="btn btn-primary">Click for citation,<br><small>if you use OMPL in your work</small></a>
 </p>
 
 <div class="fb-like" data-href="http://www.facebook.com/pages/OMPL/320018418039567" data-send="true" data-layout="button_count" data-width="450" data-show-faces="false"></div>
@@ -76,8 +76,8 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 - The [OMPL primer](http://ompl.kavrakilab.org/OMPL_Primer.pdf) provides a brief background on sampling-based motion planning, and an overview of OMPL.
 - [Download](download.html) and [install](installation.html) OMPL.
-- [Demos](demos.html) and [tutorials](tutorials.html).
-- [Frequently Asked Questions](FAQ)
+- [Demos](group__demos.html) and [tutorials](tutorials.html).
+- [Frequently Asked Questions.](FAQ.html)
 - Familiarize yourself with the [Boost structures](boost.html) used throughout OMPL.
 - Learn how to integrate your own code with [OMPL's build system](buildSystem.html).
 - If interested in using Python, make sure to read [the documentation for the Python bindings](python.html).
@@ -87,9 +87,9 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 ## Other Resources
 
-- [OMPL for education](education.html)
-- [Gallery of example uses of OMPL](gallery.html).
-- If you also use ROS, perhaps using OMPL through [MoveIt!](http://moveit.ros.org) is suitable.
+- [OMPL for education.](education.html)
+- [Gallery of example uses of OMPL.](gallery.html)
+- If you use [ROS](http://www.ros.org), the recommended way to use OMPL is through [MoveIt!](http://moveit.ros.org).
 - [Third-party contributions.](thirdparty.html) ([Contribute your own extensions!](contrib.html))
 
 \htmlonly</div></div>
@@ -98,9 +98,11 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 ## News & Events
 
+- [At ROSCON 2013, Sachin Chitta gave a presentation about MoveIt!](https://vimeo.com/66567049), the new  software framework for motion planning in ROS. It provides a common interface to motion planning libraries (including OMPL). The old ROS arm_navigation stack is now deprecated and all ROS users are encouraged to switch to MoveIt!.
+- [ICRA 2013 Tutorial on Motion Planning for Mobile Manipulation: State-of-the-art Methods and Tools](http://moveit.ros.org/wiki/Tutorials/ICRA2013). Both OMPL and [MoveIt!](http://moveit.ros.org) were heavily featured in this tutorial.
 - [OMPL has won the 2012 Open Source Software World Grand Challenge!](http://ompl.kavrakilab.org/blog/?p=178)
 - [An article about OMPL](../ieee-ram-2012-ompl.pdf) has been accepted for publication in IEEE's Robotics & Automation Magazine! It will appear in the December 2012 issue.
-- <a href="http://www.youtube.com/watch?v=r1zbuLc8RhI">At ROSCON, Sachin Chitta and Ioan Șucan gave a talk about MoveIt!</a>, the new motion planning stack in ROS. It provides a common interface to motion planning libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.
-- <a href="http://kavrakilab.org/OMPLtutorial">IROS 2011 Tutorial on Motion Planning for Real Robots</a>. This hands-on tutorial describes how to use the ROS and OMPL, but it also gives some background on sampling-based motion planning.
+- [At ROSCON 2012, Sachin Chitta and Ioan Șucan gave a talk about MoveIt!](http://www.youtube.com/watch?v=r1zbuLc8RhI), the new motion planning stack in ROS. It provides a common interface to motion planning libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.
+- [IROS 2011 Tutorial on Motion Planning for Real Robots](http://kavrakilab.org/OMPLtutorial). This hands-on tutorial described how to use the ROS and OMPL, but it also provided some background on sampling-based motion planning.
 
 \htmlonly</div></div></div>\endhtmlonly

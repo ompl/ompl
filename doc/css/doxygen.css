@@ -11,7 +11,7 @@ h1.groupheader {
 }
 
 .title {
-    font: 400 14px/28px Roboto,sans-serif;
+    /*font: 400 14px/28px Roboto,sans-serif;*/
     font-size: 150%;
     font-weight: bold;
     margin: 10px 2px;
