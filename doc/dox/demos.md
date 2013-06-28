@@ -15,7 +15,7 @@
         > ./demo_Koules --planall --planner kpiece --numkoules 7 --maxtime 600 --output koules7.log
         > /path/to/ompl/demos/KoulesPlaypack.py koules7.log
 
-  This will create a movie called koules7.mp4.
+  This will create a movie called koules7.mp4. See [the gallery](gallery.html) for an example of what this might look like.
 
   This demo illustrates also many advanced OMPL concepts, such as classes for a custom state space, a control sampler, a projection, a state propagator, and a goal class. It also demonstrates how one could put a simple bang-bang controller inside the StatePropagator. In this demo the (Directed)ControlSampler simply samples a target velocity vector and inside the StatePropagator the control is chosen to drive the ship to attain this velocity.
 - [Planning for a simple hybrid system.](HybridSystemPlanning_8cpp_source.html) This demo shows how one could plan for a car with gears. The gear is a discrete state variable, while its pose is continuous. The car needs to make a sharp turn and is forced to change gears. This is not the best way to plan for hybrid systems, since this approach ignores completely the structure that exist in the system. Nevertheless, it demonstrates that the planners in OMPL are state space agnostic and can plan in discrete or hybrid state spaces.
