@@ -4,32 +4,14 @@
 
 void ompl::base::MorseEnvironment::getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const
 {
-    lower = upper = controlBounds_;
-    lower.erase(lower.begin() + controlDim_, lower.end());  // only keep first half
-    upper.erase(upper.begin(), upper.begin() + controlDim_);// only keep second half
+    lower.resize(controlDim_);
+    upper.resize(controlDim_);
+    for (unsigned int i = 0; i < controlBounds_.size()/2; i++)
+    {
+        lower[i] = controlBounds_[2*i];
+        upper[i] = controlBounds_[2*i+1];
+    }
 }
-
-/*
-double *ompl::base::MorseEnvironment::getPosition(const unsigned int obj) const
-{
-    return positions.data + 3*obj;
-}
-
-double *ompl::base::MorseEnvironment::getLinearVelocity(const unsigned int obj) const
-{
-    return linVelocities + 3*obj;
-}
-
-double *ompl::base::MorseEnvironment::getAngularVelocity(const unsigned int obj) const
-{
-    return angVelocities + 3*obj;
-}
-
-double *ompl::base::MorseEnvironment::getQuaternion(const unsigned int obj) const
-{
-    return quaternions + 4*obj;
-}
-*/
 
 void ompl::base::MorseEnvironment::setPosition(const unsigned int obj, const double pos[3])
 {

@@ -66,14 +66,11 @@ namespace ompl
                 return env_->rigidBodies_;
             }
 
-            /** \brief By default, the volume bounds enclosing the
-              geometry of the environment are computed to include all
-              objects in the collision space. The linear and angular velocity
-              bounds are set as -1 to 1 for each dimension. */
-            void setDefaultBounds(void);
+            /** \brief Set the bounds given by MorseEnvironment */
+            void setBounds(void);
 
             /** \brief Set the bounds for each of the position subspaces */
-            void setVolumeBounds(const RealVectorBounds &bounds);
+            void setPositionBounds(const RealVectorBounds &bounds);
 
             /** \brief Set the bounds for each of the linear velocity subspaces */
             void setLinearVelocityBounds(const RealVectorBounds &bounds);
@@ -86,9 +83,7 @@ namespace ompl
             void readState(State *state) const;
 
             /** \brief Set the parameters of the MORSE bodies to be the
-                ones read from \e state.  The code will technically work if
-                this function is called from multiple threads
-                simultaneously, but the results are unpredictable. */
+                ones read from \e state. */
             void writeState(const State *state) const;
 
             /** \brief This is a convenience function provided for
@@ -98,7 +93,7 @@ namespace ompl
                 out of bounds), so there is no point in updating or
                 checking them. This function checks all other bounds
                 (position, linear and angular velocities) */
-            bool satisfiesBoundsExceptRotation(const StateType *state) const;
+            bool satisfiesBounds(const State *state) const;
 
             State* allocState(void) const;
             void freeState(State *state) const;

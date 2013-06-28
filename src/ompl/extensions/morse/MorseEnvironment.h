@@ -26,13 +26,6 @@ namespace ompl
 
         /** \class ompl::base::MorseEnvironmentPtr
             \brief A boost shared pointer wrapper for ompl::base::MorseEnvironment */
-
-        /*// typedefs for functions that need to be supplied by the Python program
-        typedef boost::function<void(void)> MorsePrepareStateReadFn;
-        typedef boost::function<void(void)> MorseFinalizeStateWriteFn;
-        typedef boost::function<void(const std::vector<double>&)> MorseApplyControlFn;
-        typedef boost::function<void(const double)> MorseWorldStepFn;
-        typedef boost::function<void(void)> MorseEndSimulationFn;*/
         
         /** \brief This class contains the MORSE constructs OMPL needs to know about when planning. */
         class MorseEnvironment
@@ -43,9 +36,7 @@ namespace ompl
             
             const unsigned int controlDim_;
             
-            const std::vector<double> controlBounds_;
-            
-            const std::vector<double> spaceBounds_;
+            const std::vector<double> controlBounds_, positionBounds_, linvelBounds_, angvelBounds_;
             
             std::vector<double> positions, linVelocities, angVelocities;   // in groups of 3
             std::vector<double> quaternions;   // in groups of 4
@@ -61,22 +52,14 @@ namespace ompl
 
             /** \brief Lock to use when performing simulations in the world */
             mutable boost::mutex mutex_;
-            
-            /*// IPC functions
-            MorsePrepareStateReadFn prepareStateRead;
-            MorseFinalizeStateWriteFn finalizeStateWrite;
-            MorseApplyControlFn applyControl;
-            MorseWorldStepFn worldStep;
-            MorseEndSimulationFn endSimulation;*/
 
             MorseEnvironment(const unsigned int rigidBodies, const unsigned int controlDim,
-                const std::vector<double> &controlBounds, const std::vector<double> &spaceBounds/*,
-                const MorsePrepareStateReadFn &f1, const MorseFinalizeStateWriteFn &f2, const MorseApplyControlFn &f3,
-                const MorseWorldStepFn &f4, const MorseEndSimulationFn &f5*/)
-                 : rigidBodies_(rigidBodies), controlDim_(controlDim), controlBounds_(controlBounds), spaceBounds_(spaceBounds),
+                const std::vector<double> &controlBounds, const std::vector<double> &positionBounds,
+                const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds)
+                 : rigidBodies_(rigidBodies), controlDim_(controlDim), controlBounds_(controlBounds),
+                   positionBounds_(positionBounds), linvelBounds_(linvelBounds), angvelBounds_(angvelBounds),
                    positions(3*rigidBodies), linVelocities(3*rigidBodies), angVelocities(3*rigidBodies), quaternions(4*rigidBodies),
-                   stepSize_(1.0/60), maxControlSteps_(100), minControlSteps_(5)/* prepareStateRead(f1), finalizeStateWrite(f2),
-                   applyControl(f3), worldStep(f4), endSimulation(f5),*/ 
+                   stepSize_(1.0/60), maxControlSteps_(100), minControlSteps_(5)
             {
             }
 

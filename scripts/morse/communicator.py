@@ -73,6 +73,7 @@ def endSimulation():
     sock.sendall(b"None")
     
     # close the socket
+    sock.shutdown(socket.SHUT_RDWR)
     sock.close()
     
     global sock
@@ -104,6 +105,8 @@ def extractState():
     
     # generate state list
     state = list(map(getObjState, rigidObjects))
+    
+    print(repr(state))
     
     # respond with encoded state string
     sock.sendall(repr(state).encode())
@@ -166,9 +169,12 @@ def communicate():
     while eval(cmd):
         
         # retrieve the next command
-        cmd = sock.recv(1024).decode('utf-8')
-        if cmd != 'nextTick()':
-            print('\033[93;1mAt tick %i, received command: %s\033[0m' % (tickcount, cmd))
+        while True:
+            cmd = sock.recv(1024).decode('utf-8')
+            if cmd != '':
+                break
+        #if cmd != 'nextTick()':
+        print('\033[93;1mAt tick %i, received command: %s\033[0m' % (tickcount, cmd))
 
 
 def main():

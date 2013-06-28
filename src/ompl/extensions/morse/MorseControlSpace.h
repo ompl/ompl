@@ -12,6 +12,11 @@ namespace ompl
     namespace control
     {
 
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::MorseEnvironment */
+        OMPL_CLASS_FORWARD(MorseControlSpace);
+        /// @endcond
+        
         /** \brief Representation of controls applied in MORSE
             environments. This is an array of double values. */
         class MorseControlSpace : public RealVectorControlSpace
@@ -26,6 +31,13 @@ namespace ompl
             virtual ~MorseControlSpace(void)
             {
             }
+
+            /*Control* allocControl(void) const
+            {
+                ControlType *control = new ControlType();
+                control->values = new double[dimension_];
+                return control;
+            }*/
 
             /** \brief Get the MORSE environment this state space corresponds to */
             const base::MorseEnvironmentPtr& getEnvironment(void) const

@@ -4,19 +4,6 @@
 #include "ompl/util/Exception.h"
 #include <boost/thread.hpp>
 
-ompl::control::MorseSimpleSetup::MorseSimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
-{
-    if (!dynamic_cast<MorseControlSpace*>(space.get()))
-        throw Exception("MORSE Control Space needed for MORSE Simple Setup");
-    useEnvParams();
-}
-
-ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::StateSpacePtr &space) :
-    SimpleSetup(ControlSpacePtr(new MorseControlSpace(space)))
-{
-    useEnvParams();
-}
-
 ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env) :
     SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env)))))
 {

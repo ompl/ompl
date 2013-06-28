@@ -27,19 +27,12 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
         components_.back()->setName(components_.back()->getName() + body + ":orientation");
     }
     lock();
-    setDefaultBounds();
+    setBounds();
 }
 
-void ompl::base::MorseStateSpace::setDefaultBounds(void)
+void ompl::base::MorseStateSpace::setBounds(void)
 {
-    // limit all velocities to 1 m/s, 1 rad/s, respectively
-    RealVectorBounds bounds(3);
-    bounds.setLow(-1);
-    bounds.setHigh(1);
-    setLinearVelocityBounds(bounds);
-    setAngularVelocityBounds(bounds);
-
-    /* Move this formula into Python
+    /* TODO Move this formula into Python
     double mX, mY, mZ, MX, MY, MZ;
 
     double dx = MX - mX;
@@ -60,14 +53,19 @@ void ompl::base::MorseStateSpace::setDefaultBounds(void)
     bounds.high[2] = MZ + dz;
     */
     
-    bounds.low[0] = env_->spaceBounds_[0];
-    bounds.high[0] = env_->spaceBounds_[1];
-    bounds.low[1] = env_->spaceBounds_[2];
-    bounds.high[1] = env_->spaceBounds_[3];
-    bounds.low[2] = env_->spaceBounds_[4];
-    bounds.high[2] = env_->spaceBounds_[5];
-
-    setVolumeBounds(bounds);
+    RealVectorBounds pbounds(3), lbounds(3), abounds(3);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        pbounds.low[i] = env_->positionBounds_[2*i];
+        pbounds.high[i] = env_->positionBounds_[2*i+1];
+        lbounds.low[i] = env_->linvelBounds_[2*i];
+        lbounds.high[i] = env_->linvelBounds_[2*i+1];
+        abounds.low[i] = env_->angvelBounds_[2*i];
+        abounds.high[i] = env_->angvelBounds_[2*i+1];
+    }
+    setPositionBounds(pbounds);
+    setLinearVelocityBounds(lbounds);
+    setAngularVelocityBounds(abounds);
 }
 
 void ompl::base::MorseStateSpace::copyState(State *destination, const State *source) const
@@ -76,16 +74,16 @@ void ompl::base::MorseStateSpace::copyState(State *destination, const State *sou
     destination->as<StateType>()->validCollision = source->as<StateType>()->validCollision;
 }
 
-bool ompl::base::MorseStateSpace::satisfiesBoundsExceptRotation(const StateType *state) const
+bool ompl::base::MorseStateSpace::satisfiesBounds(const State *state) const
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         if (i % 4 != 3)
-            if (!components_[i]->satisfiesBounds(state->components[i]))
+            if (!components_[i]->satisfiesBounds(state->as<CompoundStateSpace::StateType>()->components[i]))
                 return false;
     return true;
 }
 
-void ompl::base::MorseStateSpace::setVolumeBounds(const RealVectorBounds &bounds)
+void ompl::base::MorseStateSpace::setPositionBounds(const RealVectorBounds &bounds)
 {
     for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
         components_[i * 4]->as<RealVectorStateSpace>()->setBounds(bounds);
@@ -107,7 +105,7 @@ ompl::base::State* ompl::base::MorseStateSpace::allocState(void) const
 {
     StateType *state = new StateType();
     allocStateComponents(state);
-    return state;
+    return static_cast<State*>(state);
 }
 
 void ompl::base::MorseStateSpace::freeState(State *state) const
@@ -180,32 +178,27 @@ void ompl::base::MorseStateSpace::readState(State *state) const
     env_->prepareStateRead();
     
     StateType *s = state->as<StateType>();
-    for (int i = (int)env_->rigidBodies_ - 1 ; i >= 0 ; --i)
+    for (int i = env_->rigidBodies_ - 1 ; i >= 0 ; --i)
     {
         unsigned int _i4 = i * 4;
-        unsigned int _i3d = i * 3 * sizeof(double);
+        unsigned int _i3 = i * 3;
 
-        double *pos, *vel, *ang, *rot;
-        pos = env_->positions.data()+_i3d;
-        vel = env_->linVelocities.data()+_i3d;
-        ang = env_->angVelocities.data()+_i3d;
-        rot = env_->quaternions.data()+_i4*sizeof(double);
-        double *s_pos = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
-        double *s_vel = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
-        double *s_ang = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
-        SO3StateSpace::StateType &s_rot = *s->as<SO3StateSpace::StateType>(_i4);
+        double *s_pos = s->as<RealVectorStateSpace::StateType>(_i4)->values;
+        double *s_vel = s->as<RealVectorStateSpace::StateType>(_i4+1)->values;
+        double *s_ang = s->as<RealVectorStateSpace::StateType>(_i4+2)->values;
+        SO3StateSpace::StateType &s_rot = *s->as<SO3StateSpace::StateType>(_i4+3);
 
         for (int j = 0; j < 3; ++j)
         {
-            s_pos[j] = pos[j];
-            s_vel[j] = vel[j];
-            s_ang[j] = ang[j];
+            s_pos[j] = env_->positions[_i3+j];
+            s_vel[j] = env_->linVelocities[_i3+j];
+            s_ang[j] = env_->angVelocities[_i3+j];
         }
 
-        s_rot.w = rot[0];
-        s_rot.x = rot[1];
-        s_rot.y = rot[2];
-        s_rot.z = rot[3];
+        s_rot.w = env_->quaternions[_i4];
+        s_rot.x = env_->quaternions[_i4+1];
+        s_rot.y = env_->quaternions[_i4+2];
+        s_rot.z = env_->quaternions[_i4+3];
     }
     s->validCollision = true;
 }

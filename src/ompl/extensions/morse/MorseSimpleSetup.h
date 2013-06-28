@@ -20,14 +20,6 @@ namespace ompl
         {
         public:
 
-            /** \brief Constructor needs the control space needed for planning. */
-            explicit
-            MorseSimpleSetup(const ControlSpacePtr &space);
-
-            /** \brief The control space is assumed to be MorseControlSpace. Constructor only needs the state space. */
-            explicit
-            MorseSimpleSetup(const base::StateSpacePtr &space);
-
             /** \brief The control space is assumed to be
                 MorseControlSpace. The state space is assumed to
                 be MorseStateSpace. Constructor only needs the MORSE
@@ -53,24 +45,6 @@ namespace ompl
 
             /** \brief Set the current MORSE state (set parameters for MORSE bodies) */
             void setCurrentState(const base::State *state);
-
-            /** \brief Set the bounds for the planning volume */
-            void setVolumeBounds(const base::RealVectorBounds &bounds)
-            {
-                getStateSpace()->as<base::MorseStateSpace>()->setVolumeBounds(bounds);
-            }
-
-            /** \brief Set the bounds for the linear velocity */
-            void setLinearVelocityBounds(const base::RealVectorBounds &bounds)
-            {
-                getStateSpace()->as<base::MorseStateSpace>()->setLinearVelocityBounds(bounds);
-            }
-
-            /** \brief Set the bounds for the angular velocity */
-            void setAngularVelocityBounds(const base::RealVectorBounds &bounds)
-            {
-                getStateSpace()->as<base::MorseStateSpace>()->setAngularVelocityBounds(bounds);
-            }
 
             /** \brief Set the MORSE world to the states that are
                 contained in a given path, sequentially. Using \e
