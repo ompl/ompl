@@ -279,7 +279,10 @@ def plot_attribute(cur, planners, attribute, typename):
 def plot_progress_attribute(cur, table_names, attribute):
     """Plot data for a single planner progress attribute. Will create an
 average time-plot with error bars of the attribute over all runs for
-each planner."""
+each planner."""        
+
+    import numpy.ma as ma
+
     plt.clf()
     ax = plt.gca()
     ax.set_xlabel('Time (s)')
@@ -305,20 +308,28 @@ each planner."""
             # generated more samples for one run than another; in this
             # case, truncate all data series to length of shortest
             # one.
-            #
-            # \TODO Starting at second element is a super awful
-            # horrible dirty hack for now to skip the typical NaNs
-            # that planners output for their first cost; need to find
-            # a way to be robust to NaN values here.
-            fewestSamples = min(len(time[1:]) for time in timeTable)
-            times = timeTable[0][1:fewestSamples]
-            dataTable = [data[1:fewestSamples] for data in dataTable]
+            fewestSamples = min(len(time[:]) for time in timeTable)
+            times = np.array(timeTable[0][:fewestSamples])
+            dataArrays = np.array([data[:fewestSamples] for data in dataTable])
 
-            dataArrays = np.array(dataTable)
-            means = np.mean(dataArrays, axis=0)
-            stds = np.std(dataArrays, axis=0, ddof=1)
+            # Only include time samples where all runs had data to
+            # report for this attribute (no NaNs)
+            # isTimeValid = np.array([True]*fewestSamples)
+            # for r in dataTable:
+            #     valids = np.array([e is not None for e in r])
+            #     isTimeValid = np.logical_and(isTimeValid, valids)
+            # filteredDataTable = []
+            # for r in dataTable:
+            #     filteredDataTable.append(np.array(r)[isTimeValid].tolist())
+            # dataArrays = np.array(filteredDataTable)
+            
+            filteredData = ma.masked_array(dataArrays, np.equal(dataArrays, None), dtype=float)
+
+            means = np.mean(filteredData, axis=0)
+            stddevs = np.std(filteredData, axis=0, ddof=1)
                 
-            plt.errorbar(times, means, yerr=2*stds)
+            # plot average with error bars
+            plt.errorbar(times, means, yerr=2*stddevs, errorevery=len(times) // 20)
             ax.legend(planner_names)
     plt.show()
 
