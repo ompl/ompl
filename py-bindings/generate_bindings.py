@@ -187,7 +187,7 @@ class ompl_base_generator_t(code_generator_t):
         # add array access to double components of state
         self.add_array_access(bstate,'double')
         # loop over all predefined state spaces
-        for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3', 'Discrete', 'Time', 'Dubins', 'ReedsShepp', 'Morse']:
+        for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3', 'Discrete', 'Time', 'Dubins', 'ReedsShepp']:
             # create a python type for each of their corresponding state types
             state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
             state.rename(stype+'State')
@@ -197,7 +197,7 @@ class ompl_base_generator_t(code_generator_t):
                 'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
             # mark the space statetype as 'internal' to emphasize that it
             # shouldn't typically be used by a regular python user
-            if stype!='Dubins' and stype!='ReedsShepp' and stype!='Morse':
+            if stype!='Dubins' and stype!='ReedsShepp':
                 self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                     stype + 'StateInternal')
             # add a constructor that allows, e.g., an State to be constructed from a SE3State
@@ -300,6 +300,7 @@ class ompl_base_generator_t(code_generator_t):
             'ValidStateSamplerAllocator', 'Valid state allocator function')
         self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
             'EdgeWeightFn', 'Edge weight function')
+
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
         self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationConditionFn const &', 'double']).exclude()
@@ -313,17 +314,6 @@ class ompl_base_generator_t(code_generator_t):
         except:
             pass
         
-        # exlude some member functions of MorseEnvironment that should only be called internally
-        self.ompl_ns.class_('MorseEnvironment').member_function('getControlBounds').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getPosition').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getLinearVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getAngularVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getQuaternion').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setPosition').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setLinearVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setAngularVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setQuaternion').exclude()
-
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
@@ -659,6 +649,38 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
         self.std_ns.class_('map<std::string, std::string >').include()
         self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
+
+class ompl_morse_generator_t(code_generator_t):
+    def __init__(self):
+        replacement = default_replacement
+        code_generator_t.__init__(self, 'morse',
+            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'],
+            replacement)
+    def filter_declarations(self):
+        stype = 'Morse'
+        # create a python type for each of their corresponding state types
+        state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
+        state.rename(stype+'State')
+        state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
+        # add a constructor that allows, e.g., an SE3State to be constructed from a State
+        state.add_registration_code(
+            'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
+        # add a constructor that allows, e.g., an State to be constructed from a SE3State
+        #bstate.add_registration_code(
+        #    'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
+        # add array access to double components of state
+        self.add_array_access(state,'double')
+
+        # exlude some member functions of MorseEnvironment that should only be called internally
+        self.ompl_ns.class_('MorseEnvironment').member_function('getControlBounds').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getPosition').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getLinearVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getAngularVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('getQuaternion').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setPosition').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setLinearVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setAngularVelocity').exclude()
+        self.ompl_ns.class_('MorseEnvironment').member_function('setQuaternion').exclude()
 
 
 if __name__ == '__main__':

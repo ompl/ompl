@@ -22,7 +22,4 @@
 ../src/ompl/control/planners/syclop/Syclop.h
 ../src/ompl/control/planners/syclop/SyclopEST.h
 ../src/ompl/control/planners/syclop/SyclopRRT.h
-../src/ompl/extensions/morse/MorseStatePropagator.h
-../src/ompl/extensions/morse/MorseControlSpace.h
-../src/ompl/extensions/morse/MorseSimpleSetup.h
 ompl_py_control.h

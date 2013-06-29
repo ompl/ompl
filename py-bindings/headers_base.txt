@@ -45,7 +45,4 @@
 ../src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
 ../src/ompl/base/samplers/ObstacleBasedValidStateSampler.h
 ../src/ompl/base/samplers/UniformValidStateSampler.h
-../src/ompl/extensions/morse/MorseEnvironment.h
-../src/ompl/extensions/morse/MorseStateSpace.h
-../src/ompl/extensions/morse/MorseStateValidityChecker.h
 ompl_py_base.h
