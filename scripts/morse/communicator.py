@@ -106,8 +106,6 @@ def extractState():
     # generate state list
     state = list(map(getObjState, rigidObjects))
     
-    print(repr(state))
-    
     # respond with encoded state string
     sock.sendall(repr(state).encode())
     
@@ -170,11 +168,11 @@ def communicate():
         
         # retrieve the next command
         while True:
-            cmd = sock.recv(1024).decode('utf-8')
+            cmd = sock.recv(1024).decode('utf-8')   # TODO buffer size
             if cmd != '':
                 break
         #if cmd != 'nextTick()':
-        print('\033[93;1mAt tick %i, received command: %s\033[0m' % (tickcount, cmd))
+        #print('\033[93;1mAt tick %i, received command: %s\033[0m' % (tickcount, cmd))
 
 
 def main():

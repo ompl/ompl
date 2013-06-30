@@ -1,85 +1,53 @@
 #!/usr/bin/env python3
 
-import sys
-import socket
-import time
+# Tests the OMPL MORSE extension and its Python bindings without invoking MORSE
 
-#time.sleep(10)
-
-from ompl import base as ob
-from ompl import control as oc
+from ompl import morse as om
 from ompl import util as ou
 
-def list2vec(l, ret=None):
+def list2vec(l):
     """
     Convert a Python list into an ou.vectorDouble.
-      l = the list
-      ret = an existing ou.vectorDouble or None
-    Returns a new vector if ret=None; modifies ret in place otherwise.
     """
-    if not ret:
-        ret = ou.vectorDouble()
-        for e in l:
-            ret.append(e)
-        return ret
-    else:
-        for i in range(len(l)):
-            ret[i] = l[i]
+    ret = ou.vectorDouble()
+    for e in l:
+        ret.append(e)
+    return ret
     
-class MyEnvironment(ob.MorseEnvironment):
+class MyEnvironment(om.MorseEnvironment):
     """
     Represents the MORSE environment we will be planning in.
-    Inherits from the C++ OMPL class ob.MorseEnvironment and
-    implements pure virtual functions prepareStateRead(),
-    finalizeStateWrite(), applyControl(), and worldStep().
+    Inherits from the C++ OMPL class om.MorseEnvironment and
+    implements pure virtual functions readState(),
+    writeState(), applyControl(), and worldStep().
     """
     
-    def prepareStateRead(self):
+    def readState(self, state):
         """
         Get the state from the simulation and load it into
-        the ou.vectorDoubles so OMPL can use it.
+        the OMPL state.
         """
-
-        pos, lin, ang, quat = [], [], [], []
-        for i in range(3*self.rigidBodies_):
-            pos.append(1.0)
-            lin.append(1.0)
-            ang.append(1.0)
-        for i in range(4*self.rigidBodies_):
-            quat.append(1.0)
-            if i%4:
-                quat[i] = 0.0
-        list2vec(pos, self.positions)
-        list2vec(lin, self.linVelocities)
-        list2vec(ang, self.angVelocities)
-        list2vec(quat, self.quaternions)
+        # for each rigid body (4 components each)
+        for i in range(0, self.rigidBodies_*4, 4):
+            # set the pos, lin, ang components to (1,1,1)
+            for j in range(3):
+                state[i][j] = state[i+1][j] = state[i+2][j] = 1.0
+            # set the quat component to the identity rotation
+            state[i+3].w = 1.0
+            state[i+3].x = state[i+3].y = state[i+3].z = 0.0
+            
         
-    def finalizeStateWrite(self):
-        """
-        Compose a state string from the data in the
-        ou.vectorDoubles and send it to the simulation.
-        """
+    def writeState(self, state):
         pass
         
     def applyControl(self, control):
-        """
-        Tell MORSE to apply control to the robot.
-        """
         pass
         
     def worldStep(self, dur):
-        """
-        Run the simulation for dur seconds. World tick is 1/60 s.
-        """
         pass
+
         
-    def endSimulation(self):
-        """
-        Let the simulation know to shut down.
-        """
-        pass
-        
-class MyGoal(ob.Goal):
+class MyGoal(om.MorseGoal):
     """
     The goal state of the simulation.
     """
@@ -87,43 +55,35 @@ class MyGoal(ob.Goal):
         super(MyGoal, self).__init__(si)
         self.c = 0
     
-    def isSatisfied(self, state):
+    def isSatisfied_Py(self, state):
+        """
+        Returns True on the 10th call.
+        """
         self.c += 1
-        if c==10:
+        if self.c==10:
             return True
-        return false
+        return False
 
 def planWithMorse():
     """
     Set up MyEnvironment and plan.
     """
-    
-    try:
-        # create a MORSE environment representation
-        # TODO get these numbers from the simulation
-        env = MyEnvironment(2, 2, list2vec([-10,10,-1,1]), list2vec([-100,100,-100,100,-100,100]),
-            list2vec([-10,10,-10,10,-10,10]), list2vec([-6,6,-6,6,-6,6]))
 
-        # create a simple setup object
-        ss = oc.MorseSimpleSetup(env)
-        
-        # the right way to set up the goal, but oc::SpaceInformation isn't exposed, so we can't do this
-        #g = MyGoal(ss.getSpaceInformation)
-        
-        # the wrong way; this will crash when the planner starts
-        space = ss.getStateSpace()
-        g = MyGoal(ob.SpaceInformation(space))
-        
-        ss.setGoal(g)
-        
-        # solve
-        solved = ss.solve(1.0)
-        print("Solve finished: %i", solved)
+    # create a MORSE environment representation
+    env = MyEnvironment(2, 2, list2vec([-10,10,-1,1]), list2vec([-100,100,-100,100,-100,100]),
+        list2vec([-10,10,-10,10,-10,10]), list2vec([-6,6,-6,6,-6,6]))
+
+    # create a simple setup object
+    ss = om.MorseSimpleSetup(env)
     
-    finally:
-        # tell simulation it can shut down
-        env.endSimulation()
+    # set up the goal
+    g = MyGoal(ss.getSpaceInformation())
+    ss.setGoal(g)
     
+    # solve
+    ss.solve(10)
+
+
 # plan
 planWithMorse()
 

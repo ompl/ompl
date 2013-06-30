@@ -32,13 +32,6 @@ namespace ompl
             {
             }
 
-            /*Control* allocControl(void) const
-            {
-                ControlType *control = new ControlType();
-                control->values = new double[dimension_];
-                return control;
-            }*/
-
             /** \brief Get the MORSE environment this state space corresponds to */
             const base::MorseEnvironmentPtr& getEnvironment(void) const
             {

@@ -1,4 +1,3 @@
 
 -Only compile MORSE extension if Python and Boost.Python are found
--Only generate Python bindings for MORSE extension if it's been enabled
 

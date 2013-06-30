@@ -1,10 +1,12 @@
 /* morse_plan.cpp */
 
+// Tests the OMPL MORSE extension without invoking MORSE
+
 #include "ompl/extensions/morse/MorseEnvironment.h"
 #include "ompl/extensions/morse/MorseStateSpace.h"
 #include "ompl/extensions/morse/MorseControlSpace.h"
 #include "ompl/extensions/morse/MorseSimpleSetup.h"
-#include "ompl/base/Goal.h"
+#include "ompl/extensions/morse/MorseGoal.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 
@@ -21,23 +23,30 @@ public:
         : base::MorseEnvironment(rigidBodies, controlDim, controlBounds, positionBounds, linvelBounds, angvelBounds)
     {
     }
-    void prepareStateRead(void)
+    void readState(base::State *state)
     {
-        // load fake state data
-        for (unsigned int i = 0; i < 3*rigidBodies_; i++)
+        // load fake state data into state
+        base::MorseStateSpace::StateType *mstate = state->as<base::MorseStateSpace::StateType>();
+        for (unsigned int i = 0; i < 4*rigidBodies_; i+=4)
         {
-            positions[i] = 1.0;
-            linVelocities[i] = 1.0;
-            angVelocities[i] = 1.0;
+            double *pos = mstate->as<base::RealVectorStateSpace::StateType>(i)->values;
+            double *lin = mstate->as<base::RealVectorStateSpace::StateType>(i+1)->values;
+            double *ang = mstate->as<base::RealVectorStateSpace::StateType>(i+2)->values;
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                pos[j] = 1.0;
+                lin[j] = 1.0;
+                ang[j] = 1.0;
+            }
+            base::SO3StateSpace::StateType *quat = mstate->as<base::SO3StateSpace::StateType>(i+3);
+            quat->w = 1.0;
+            quat->x = 0.0;
+            quat->y = 0.0;
+            quat->z = 0.0;
         }
-        for (unsigned int i = 0; i < 4*rigidBodies_; i++)
-        {
-            quaternions[i] = 1.0;
-            if (i%4)
-                quaternions[i] = 0.0;
-        }
+                
     }
-    void finalizeStateWrite(void)
+    void writeState(const base::State *state)
     {
         // nothing to do
     }
@@ -51,15 +60,16 @@ public:
     }
 };
 
-class MyGoal : public base::Goal
+class MyGoal : public base::MorseGoal
 {
 public:
     MyGoal(base::SpaceInformationPtr si)
-        : base::Goal(si)
+        : base::MorseGoal(si)
     {
     }
-    bool isSatisfied(const base::State *state) const
+    bool isSatisfied_Py(const base::State *state) const
     {
+        // goal is "reached" the 10th time this is called
         static int c = 0;
         if (++c == 10)
             return true;
@@ -103,31 +113,11 @@ int main()
     
     control::SimpleSetupPtr ss(new control::MorseSimpleSetup(env));
     
-    //base::StateSpacePtr space = ss->getStateSpace();
-    
-    // The right way; this works, but can't be done via the py-bindings because control::SpaceInformation is not exposed
     base::GoalPtr g(new MyGoal(ss->getSpaceInformation()));
-    
-    // The wrong way; this crashes when RRT starts and tries to create a new RRT::Motion,
-    //  which entails the SpaceInformation calling controlSpace_->allocControl(), which
-    //  can't work when we use what is merely a base::SpaceInformation instead of
-    //  control::SpaceInformation that inherits from base::SpaceInformation.
-    /*
-    base::StateSpacePtr space = ss->getStateSpace();
-    base::GoalPtr g(new MyGoal(base::StateInformation(space)));
-    */
     
     ss->setGoal(g);
     
-    bool solved = ss->solve(1.0);
-    if (solved)
-    {
-        OMPL_INFORM("Solution found!");
-    }
-    else
-    {
-        OMPL_INFORM("No solution found.");
-    }
+    ss->solve(1.0);
 
     return 0;
 }

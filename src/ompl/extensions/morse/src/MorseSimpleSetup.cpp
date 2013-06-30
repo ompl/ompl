@@ -50,6 +50,14 @@ void ompl::control::MorseSimpleSetup::setup(void)
     SimpleSetup::setup();
 }
 
+ompl::base::PlannerStatus ompl::control::MorseSimpleSetup::solve(double time)
+{
+    // Overriding SimpleSetup::solve() allows us to force MorseSimpleSetup::setup() to be called
+    // ... also, calling SimpleSetup::solve() from Python causes a strange max recursion error.
+    setup();
+    return SimpleSetup::solve(time);
+}
+
 void ompl::control::MorseSimpleSetup::playSolutionPath(double timeFactor) const
 {
     if (haveSolutionPath())

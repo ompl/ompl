@@ -1,37 +1,25 @@
 #!/usr/bin/env python3
 
-import sys
 import socket
-import time
 
-#time.sleep(10)
-
-from ompl import base as ob
-from ompl import control as oc
+from ompl import morse as om
 from ompl import util as ou
 
-def list2vec(l, ret=None):
+def list2vec(l):
     """
     Convert a Python list into an ou.vectorDouble.
-      l = the list
-      ret = an existing ou.vectorDouble or None
-    Returns a new vector if ret=None; modifies ret in place otherwise.
     """
-    if not ret:
-        ret = ou.vectorDouble()
-        for e in l:
-            ret.append(e)
-        return ret
-    else:
-        for i in range(len(l)):
-            ret[i] = l[i]
+    ret = ou.vectorDouble()
+    for e in l:
+        ret.append(e)
+    return ret
     
-class MyEnvironment(ob.MorseEnvironment):
+class MyEnvironment(om.MorseEnvironment):
     """
     Represents the MORSE environment we will be planning in.
     Inherits from the C++ OMPL class ob.MorseEnvironment and
-    implements pure virtual functions prepareStateRead(),
-    finalizeStateWrite(), applyControl(), and worldStep().
+    implements pure virtual functions readState(),
+    writeState(), applyControl(), and worldStep().
     """
     
     def setSocket(self, comm_socket):
@@ -47,71 +35,60 @@ class MyEnvironment(ob.MorseEnvironment):
         """
 
         # submit cmd to socket; return eval()'ed response
-        print('Calling %s' % cmd)
         if sock:
             self.sock.sendall(cmd.encode())
             return eval(sock.recv(1024))    # TODO: buffer size? states can get pretty big
     
-    def prepareStateRead(self):
+    def readState(self, state):
         """
-        Get the state from the simulation and load it into
-        the ou.vectorDoubles so OMPL can use it.
+        Get the state from the simulation so OMPL can use it.
         """
-        """state = self.call('extractState()')
-        if not state:
-            state = [((1.0,1.0,1.0),(1.0,1.0,1.0),(1.0,1.0,1.0),(1.0,1.0,1.0,1.0)),
-                     ((1.0,1.0,1.0),(1.0,1.0,1.0),(1.0,1.0,1.0),(1.0,1.0,1.0,1.0)),
-                    ]
-        pos, lin, ang, quat = [],[],[],[]
-        for obj in state:
-            pos += obj[0]
-            lin += obj[1]
-            ang += obj[2]
-            quat += obj[3]"""
-        pos, lin, ang, quat = [], [], [], []
-        for i in range(3*self.rigidBodies_):
-            pos.append(1.0)
-            lin.append(1.0)
-            ang.append(1.0)
-        for i in range(4*self.rigidBodies_):
-            quat.append(1.0)
-            if i%4:
-                quat[i] = 0.0
-        list2vec(pos, self.positions)
-        list2vec(lin, self.linVelocities)
-        list2vec(ang, self.angVelocities)
-        list2vec(quat, self.quaternions)
+        simState = self.call('extractState()')
+        i = 0
+        for obj in simState:
+            # for each rigid body
+            for j in range(3):
+                # copy a 3-vector (pos, lin, ang)
+                for k in range(3):
+                    state[i][k] = obj[j][k]
+                i += 1
+            # copy a 4-vector into the quaternion
+            state[i].w = obj[3][0]
+            state[i].x = obj[3][1]
+            state[i].y = obj[3][2]
+            state[i].z = obj[3][3]
+            #print("Quat: %f,%f,%f,%f" % (state[i].w, state[i].x, state[i].y, state[i].z))
+            i += 1
         
-    def finalizeStateWrite(self):
+    def writeState(self, state):
         """
-        Compose a state string from the data in the
-        ou.vectorDoubles and send it to the simulation.
+        Compose a state string from the state data
+        and send it to the simulation.
         """
-        """pos = list(self.positions)
-        lin = list(self.linVelocities)
-        ang = list(self.angVelocities)
-        quat = list(self.quaternions)
-        state = []
-        for i in xrange(len(self.positions)/3):
-            state.append((tuple(pos[3*i:3*i+3]),
-                          tuple(lin[3*i:3*i+3]),
-                          tuple(ang[3*i:3*i+3]),
-                          tuple(quat[4*i:4*i+4])))
-        self.call('submitState(%s)' % repr(state))"""
+        simState = []
+        for i in range(0, self.rigidBodies_*4, 4):
+            # for each body
+            simState.append((
+                (state[i][0], state[i][1], state[i][2]),
+                (state[i+1][0], state[i+1][1], state[i+1][2]),
+                (state[i+2][0], state[i+2][1], state[i+2][2]),
+                (state[i+3].w, state[i+3].x, state[i+3].y, state[i+3].z)
+            ))
+        self.call('submitState(%s)' % repr(simState))
         
     def applyControl(self, control):
         """
         Tell MORSE to apply control to the robot.
         """
-        """# TODO
-        print("OMPL called applyControl(%s)" % repr(control))"""
+        # TODO
+        pass
         
     def worldStep(self, dur):
         """
         Run the simulation for dur seconds. World tick is 1/60 s.
         """
-        """for i in range(int(round(dur/(1.0/60)))):
-            self.call('nextTick()')"""
+        for i in range(int(round(dur/(1.0/60)))):
+            self.call('nextTick()')
         
     def endSimulation(self):
         """
@@ -119,7 +96,7 @@ class MyEnvironment(ob.MorseEnvironment):
         """
         self.call('endSimulation()')
         
-class MyGoal(ob.Goal):
+class MyGoal(om.MorseGoal):
     """
     The goal state of the simulation.
     """
@@ -127,11 +104,12 @@ class MyGoal(ob.Goal):
         super(MyGoal, self).__init__(si)
         self.c = 0
     
-    def isSatisfied(self, state):
+    def isSatisfied_Py(self, state):
+        # TODO
         self.c += 1
-        if c==10:
+        if self.c==10:
             return True
-        return false
+        return False
 
 def planWithMorse(sock):
     """
@@ -147,20 +125,14 @@ def planWithMorse(sock):
         env.setSocket(sock)
 
         # create a simple setup object
-        ss = oc.MorseSimpleSetup(env)
-        
-        # get the state space
-        space = ss.getStateSpace()
+        ss = om.MorseSimpleSetup(env)
         
         # set up goal
-        g = MyGoal(ob.SpaceInformation(space))
+        g = MyGoal(ss.getSpaceInformation())
         ss.setGoal(g)
         
-        print("Goal is set up.")
-        
         # solve
-        solved = ss.solve(1.0)
-        print("Solve finished: %i", solved)
+        ss.solve(20.0)
     
     finally:
         # tell simulation it can shut down
@@ -169,7 +141,6 @@ def planWithMorse(sock):
 # set up the socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect(('localhost', 50007))
-#sock = None
 
 # plan
 planWithMorse(sock)

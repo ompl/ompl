@@ -46,6 +46,10 @@ namespace ompl
             /** \brief Set the current MORSE state (set parameters for MORSE bodies) */
             void setCurrentState(const base::State *state);
 
+            void setup(void);
+            
+            base::PlannerStatus solve(double time = 1.0);
+            
             /** \brief Set the MORSE world to the states that are
                 contained in a given path, sequentially. Using \e
                 timeFactor, the speed at which this sequence is
@@ -68,8 +72,6 @@ namespace ompl
                 (ompl::control::ControlSpace::nullControl()).
                 Construct a path representing this action. */
             base::PathPtr simulate(unsigned int steps) const;
-
-            virtual void setup(void);
 
         private:
 

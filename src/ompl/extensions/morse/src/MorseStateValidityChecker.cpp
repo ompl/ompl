@@ -12,6 +12,5 @@ ompl::base::MorseStateValidityChecker::MorseStateValidityChecker(const SpaceInfo
 
 bool ompl::base::MorseStateValidityChecker::isValid(const State *state) const
 {
-    const MorseStateSpace::StateType *s = state->as<MorseStateSpace::StateType>();
-    return s->validCollision;
+    return state->as<MorseStateSpace::StateType>()->validCollision;
 }

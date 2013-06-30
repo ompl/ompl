@@ -2,7 +2,6 @@
 
 #include "ompl/extensions/morse/MorseControlSpace.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/Console.h"
 
 /// @cond IGNORE
 namespace ompl

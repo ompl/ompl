@@ -200,7 +200,7 @@ class ompl_base_generator_t(code_generator_t):
             if stype!='Dubins' and stype!='ReedsShepp':
                 self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                     stype + 'StateInternal')
-            # add a constructor that allows, e.g., an State to be constructed from a SE3State
+            # add a constructor that allows, e.g., a State to be constructed from a SE3State
             bstate.add_registration_code(
                 'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
             # add array access to double components of state
@@ -658,29 +658,19 @@ class ompl_morse_generator_t(code_generator_t):
             replacement)
     def filter_declarations(self):
         stype = 'Morse'
-        # create a python type for each of their corresponding state types
+        # create a python type for each of the corresponding state type
         state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
         state.rename(stype+'State')
         state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
-        # add a constructor that allows, e.g., an SE3State to be constructed from a State
+        # add a constructor that allows a MorseState to be constructed from a State
         state.add_registration_code(
             'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
-        # add a constructor that allows, e.g., an State to be constructed from a SE3State
-        #bstate.add_registration_code(
-        #    'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
+        # add a constructor that allows, e.g., a State to be constructed from a MorseState
+        bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateSpace >')
+        bstate.add_registration_code(
+            'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
         # add array access to double components of state
         self.add_array_access(state,'double')
-
-        # exlude some member functions of MorseEnvironment that should only be called internally
-        self.ompl_ns.class_('MorseEnvironment').member_function('getControlBounds').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getPosition').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getLinearVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getAngularVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('getQuaternion').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setPosition').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setLinearVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setAngularVelocity').exclude()
-        self.ompl_ns.class_('MorseEnvironment').member_function('setQuaternion').exclude()
 
 
 if __name__ == '__main__':

@@ -175,58 +175,19 @@ ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocStateSampler(void)
 
 void ompl::base::MorseStateSpace::readState(State *state) const
 {
-    env_->prepareStateRead();
-    
-    StateType *s = state->as<StateType>();
-    for (int i = env_->rigidBodies_ - 1 ; i >= 0 ; --i)
+    env_->readState(state);
+    // Bullet can get a little imprecise with the quaternions for OMPL's tastes
+    // TODO: if we can trust Bullet not to get too crazy with them, maybe we can make a QuickSO3StateSpace that
+    //   doesn't ever check the bounds, to save time
+    for (unsigned int i = 0; i < env_->rigidBodies_*4; i+=4)
     {
-        unsigned int _i4 = i * 4;
-        unsigned int _i3 = i * 3;
-
-        double *s_pos = s->as<RealVectorStateSpace::StateType>(_i4)->values;
-        double *s_vel = s->as<RealVectorStateSpace::StateType>(_i4+1)->values;
-        double *s_ang = s->as<RealVectorStateSpace::StateType>(_i4+2)->values;
-        SO3StateSpace::StateType &s_rot = *s->as<SO3StateSpace::StateType>(_i4+3);
-
-        for (int j = 0; j < 3; ++j)
-        {
-            s_pos[j] = env_->positions[_i3+j];
-            s_vel[j] = env_->linVelocities[_i3+j];
-            s_ang[j] = env_->angVelocities[_i3+j];
-        }
-
-        s_rot.w = env_->quaternions[_i4];
-        s_rot.x = env_->quaternions[_i4+1];
-        s_rot.y = env_->quaternions[_i4+2];
-        s_rot.z = env_->quaternions[_i4+3];
+        SO3StateSpace::StateType *quat = state->as<StateType>()->as<SO3StateSpace::StateType>(i+3);
+        getSubspace(i+3)->as<SO3StateSpace>()->enforceBounds(quat);
     }
-    s->validCollision = true;
+    state->as<StateType>()->validCollision = true;
 }
 
 void ompl::base::MorseStateSpace::writeState(const State *state) const
 {
-    const StateType *s = state->as<StateType>();
-    for (int i = (int)env_->rigidBodies_ - 1; i >= 0 ; --i)
-    {
-        unsigned int _i4 = i * 4;
-
-        double *s_pos = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
-        env_->setPosition(i, s_pos);
-
-        double *s_vel = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
-        env_->setLinearVelocity(i, s_vel);
-
-        double *s_ang = s->as<RealVectorStateSpace::StateType>(_i4)->values; ++_i4;
-        env_->setAngularVelocity(i,  s_ang);
-
-        const SO3StateSpace::StateType &s_rot = *s->as<SO3StateSpace::StateType>(_i4);
-        double q[4];
-        q[0] = s_rot.w;
-        q[1] = s_rot.x;
-        q[2] = s_rot.y;
-        q[3] = s_rot.z;
-        env_->setQuaternion(i, q);
-    }
-    
-    env_->finalizeStateWrite();
+    env_->writeState(state);
 }
