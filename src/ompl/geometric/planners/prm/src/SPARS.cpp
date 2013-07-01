@@ -13,7 +13,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of Rutgers University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -72,32 +72,25 @@ namespace ompl
 
 ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     base::Planner(si, "SPARS"),
+    geomPath_(si),
     stateProperty_(boost::get(vertex_state_t(), g_)),
     sparseStateProperty_(boost::get(vertex_state_t(), s_)),
     sparseColorProperty_(boost::get(vertex_color_t(), s_)),
     representativesProperty_(boost::get(vertex_representative_t(), g_)),
     nonInterfaceListsProperty_(boost::get(vertex_list_t(), s_)),
     interfaceListsProperty_(boost::get(vertex_interface_list_t(), s_)),
-    totalConnectionAttemptsProperty_(boost::get(vertex_total_connection_attempts_t(), g_)),
-    successfulConnectionAttemptsProperty_(boost::get(vertex_successful_connection_attempts_t(), g_)),
     weightProperty_(boost::get(boost::edge_weight, g_)),
-    edgeIDProperty_(boost::get(boost::edge_index, g_)),
-    disjointSets_(boost::get(boost::vertex_rank, g_),
-                  boost::get(boost::vertex_predecessor, g_)),
     sparseDJSets_(boost::get(boost::vertex_rank, s_),
                   boost::get(boost::vertex_predecessor, s_)),
-    maxEdgeID_(0),
-    maxLinkID_(0),
-    userSetConnectionStrategy_(false),
-    addedSolution_(false),
     iterations_(0),
-    t_(3),
-    m_(1000),
+    stretchFactor_(3),
+    maxFailures_(1000),
     denseDelta_(0.5),
-    sparseDelta_(20)
+    sparseDelta_(20),
+    lastState_(NULL)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
-    specs_.approximateSolutions = true;
+    specs_.approximateSolutions = false;
     specs_.optimizingPaths = true;
     
     psimp_.reset(new PathSimplifier(si_));
@@ -117,17 +110,15 @@ void ompl::geometric::SPARS::setup(void)
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Vertex>());
+        nn_.reset(new NearestNeighborsGNAT<DenseVertex>());
     nn_->setDistanceFunction(boost::bind(&SPARS::distanceFunction, this, _1, _2));
     if (!snn_)
-        snn_.reset(new NearestNeighborsGNAT<Node>());
+        snn_.reset(new NearestNeighborsGNAT<SparseVertex>());
     snn_->setDistanceFunction(boost::bind(&SPARS::sparseDistanceFunction, this, _1, _2));
     if (!connectionStrategy_)
     {
-        connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
+        connectionStrategy_ = KStarStrategy<DenseVertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
     }
-    if (!connectionFilter_)
-        connectionFilter_ = boost::lambda::constant(true);
 }
 
 void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
@@ -154,12 +145,21 @@ void ompl::geometric::SPARS::clear(void)
     if (snn_)
         snn_->clear();
     clearQuery();
-    maxEdgeID_ = 0;
+    iterations_ = 0;
+    lastState_ = NULL;
+    
+    Xs_.clear();
+    VPPs_.clear();
+    graphNeighborhood_.clear();
+    visibleNeighborhood_.clear();
+    interfaceNeighborhood_.clear();
+    interfaceRepresentatives_.clear();
+    path_.clear();
 }
 
 void ompl::geometric::SPARS::freeMemory(void)
 {
-    foreach (Vertex v, boost::vertices(g_))
+    foreach (DenseVertex v, boost::vertices(g_))
     {
         if( stateProperty_[v] != NULL )
         {
@@ -167,7 +167,7 @@ void ompl::geometric::SPARS::freeMemory(void)
             stateProperty_[v] = NULL;
         }
     }
-    foreach (Node n, boost::vertices(s_))
+    foreach (SparseVertex n, boost::vertices(s_))
     {
         if( sparseStateProperty_[n] != NULL )
         {
@@ -177,65 +177,36 @@ void ompl::geometric::SPARS::freeMemory(void)
     }
     s_.clear();
     g_.clear();
-}
-
-ompl::geometric::SPARS::Vertex ompl::geometric::SPARS::addSample( void )
-{
-    if (!isSetup())
-        setup();
-    if (!sampler_)
-        sampler_ = si_->allocValidStateSampler();
     
-    base::State *workState = si_->allocState();
-    Vertex ret = addSample(workState);
-    si_->freeState(workState);
-    return ret;
+    if( lastState_ != NULL )
+        si_->freeState( lastState_ );
 }
 
-ompl::geometric::SPARS::Vertex ompl::geometric::SPARS::addSample(base::State *workState)
+ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample( void )
+{
+    return addSample( lastState_ );
+}
+
+ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::State *workState)
 {
     bool found = false;
-    Vertex ret = NULL;
-    while (!found)
+    DenseVertex ret = NULL;
+    do 
     {
-        unsigned int attempts = 0;
-        do 
-        {
-            found = sampler_->sample(workState);
-        } while (!found);
-    }
+        found = sampler_->sample(workState);
+    } while (!found);
     if (found)
         ret = addMilestone(si_->cloneState(workState));
     return ret;
 }
 
-void ompl::geometric::SPARS::checkForSolution (const base::PlannerTerminationCondition &ptc,
-                                             base::PathPtr &solution)
-{
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
-
-    // Check for any new goal states
-    if (goal->maxSampleCount() > goalM_.size())
-    {
-        const base::State *st = pis_.nextGoal();
-        if (st)
-        {
-            addMilestone(si_->cloneState(st));
-            goalM_.push_back( addGuard( si_->cloneState(st), 0) );
-        }
-    }
-
-    // Check for a solution
-    addedSolution_ = haveSolution (startM_, goalM_, solution);
-}
-
-bool ompl::geometric::SPARS::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
+bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts, const std::vector<DenseVertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
     double sl = -1.0; // cache for solution length
-    foreach (Vertex start, starts)
+    foreach (DenseVertex start, starts)
     {
-        foreach (Vertex goal, goals)
+        foreach (DenseVertex goal, goals)
         {
             if (boost::same_component(start, goal, sparseDJSets_) &&
                 g->isStartGoalPairValid(sparseStateProperty_[goal], sparseStateProperty_[start]))
@@ -249,19 +220,16 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<Vertex> &starts, con
     return false;
 }
 
-bool ompl::geometric::SPARS::addedNewSolution (void) const
-{
-    return addedSolution_;
-}
-
 bool ompl::geometric::SPARS::reachedFailureLimit (void) const
 {
-    return iterations_ >= m_;
+    return iterations_ >= maxFailures_;
 }
 
 ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
+    
+    lastState_ = si_->allocState();
 
     if( boost::num_vertices( g_ ) < 1 )
     {
@@ -283,10 +251,9 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     while (const base::State *st = pis_.nextStart())
     {
         addMilestone(si_->cloneState(st));
-        startM_.push_back(addGuard(si_->cloneState(st), 0));
+        startM_.push_back(addGuard(si_->cloneState(st), START ));
     }
-
-    if (startM_.size() == 0)
+    if (startM_.empty())
     {
         OMPL_ERROR("There are no valid initial states!");
         return base::PlannerStatus::INVALID_START;
@@ -298,21 +265,16 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
         return base::PlannerStatus::INVALID_GOAL;
     }
 
-    // Ensure there is at least one valid goal state
-    if (goal->maxSampleCount() > goalM_.size() || goalM_.empty())
+    // Add the valid goal states as milestones
+    while (const base::State *st = pis_.nextGoal())
     {
-        const base::State *st = goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
-        if (st)
-        {
-            addMilestone(si_->cloneState(st));
-            goalM_.push_back( addGuard(si_->cloneState(st), 0) );
-        }
-
-        if (goalM_.empty())
-        {
-            OMPL_ERROR("Unable to find any valid goal states");
-            return base::PlannerStatus::INVALID_GOAL;
-        }
+        addMilestone(si_->cloneState(st));
+        goalM_.push_back(addGuard(si_->cloneState(st), GOAL ));
+    }
+    if (goalM_.empty())
+    {
+        OMPL_ERROR("Unable to find any valid goal states");
+        return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
@@ -328,7 +290,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     bool grow = true;
 
     // Reset addedSolution_ member
-    addedSolution_ = false;
     base::PathPtr sol;
     sol.reset();
 
@@ -338,27 +299,27 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     while ( !ptcOrFail() )
     {
         //Generate a single sample, and attempt to connect it to nearest neighbors.
-        Vertex q = addSample();
+        DenseVertex q = addSample();
 
         //Now that we've added to D, try adding to S
         //Start by figuring out who our neighbors are
-        std::vector<Node> neigh = getSparseNeighbors( last_state );
-        std::vector<Node> vis_neigh = getVisibleNeighbors( last_state );
+        getSparseNeighbors( lastState_ );
+        getVisibleNeighbors( lastState_ );
         //Check for addition for Coverage
-        if( !checkAddCoverage( neigh ) )
+        if( !checkAddCoverage( graphNeighborhood_ ) )
         {
             //If not for Coverage, then Connectivity
-            if( !checkAddConnectivity( neigh ) )
+            if( !checkAddConnectivity( graphNeighborhood_ ) )
             {
                 //Check for the existence of an interface
-                if( !checkAddInterface( neigh, vis_neigh, q ) )
+                if( !checkAddInterface( graphNeighborhood_, visibleNeighborhood_, q ) )
                 {
                     //Then check to see if it's on an interface
-                    const std::vector<Vertex>& inf = interfaceCheck( q );
-                    if( inf.size() > 0 )
+                    getInterfaceNeighborhood( q );
+                    if( interfaceNeighborhood_.size() > 0 )
                     {
                         //Check for addition for spanner prop
-                        if( !checkAddPath( q, inf ) )
+                        if( !checkAddPath( q, interfaceNeighborhood_ ) )
                         {
                             //All of the tests have failed.  Report failure for the sample
                             ++iterations_;
@@ -374,61 +335,44 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
         }
     }
 
-    checkForSolution(ptc, sol);
+    haveSolution( startM_, goalM_, sol );
 
     if (sol)
     {
-        if (addedNewSolution())
-            pdef_->addSolutionPath (sol);
-        else
-            // the solution is exact, but not as short as we'd like it to be
-            pdef_->addSolutionPath (sol, true, 0.0);
+        pdef_->addSolutionPath (sol, false);
     }
 
     si_->freeStates(xstates);
 
     // Return true if any solution was found.
-    return sol ? (addedNewSolution() ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
+    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail )
 {
-    m_ = maxFail;
+    maxFailures_ = maxFail;
     return solve( ptc );
 }
 
-ompl::geometric::SPARS::Vertex ompl::geometric::SPARS::addMilestone(base::State *state)
+ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::State *state)
 {
-    Vertex m = boost::add_vertex(g_);
+    DenseVertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
-    totalConnectionAttemptsProperty_[m] = 1;
-    successfulConnectionAttemptsProperty_[m] = 0;
-
-    // Initialize to its own (dis)connected component.
-    disjointSets_.make_set(m);
     
     // Which milestones will we attempt to connect to?
     if (!connectionStrategy_)
         throw Exception(name_, "No connection strategy!");
 
-    const std::vector<Vertex>& neighbors = connectionStrategy_(m);
-
-    last_state = state;
+    const std::vector<DenseVertex>& neighbors = connectionStrategy_(m);
     
-    foreach (Vertex n, neighbors)
+    foreach (DenseVertex n, neighbors)
     {
-        totalConnectionAttemptsProperty_[m]++;
-        totalConnectionAttemptsProperty_[n]++;
         if (si_->checkMotion(stateProperty_[m], stateProperty_[n]))
         {
-            successfulConnectionAttemptsProperty_[m]++;
-            successfulConnectionAttemptsProperty_[n]++;
             const double weight = distanceFunction(m, n);
-            const unsigned int id = maxEdgeID_++;
-            const Graph::edge_property_type properties(weight, id);
+            const Graph::edge_property_type properties(weight);
             
             boost::add_edge(m, n, properties, g_);
-            uniteComponents(n, m);
         }
     }
     
@@ -437,19 +381,22 @@ ompl::geometric::SPARS::Vertex ompl::geometric::SPARS::addMilestone(base::State 
     //Need to update representative information here...
     calculateRepresentative(m);
     
-    addToRep( m, representativesProperty_[m], getInterfaceNeighborRepresentatives(m) );
-    foreach( Vertex qp, getInterfaceNeighborhood( m ) )
+    getInterfaceNeighborRepresentatives(m);
+    getInterfaceNeighborhood(m);
+    addToRep( m, representativesProperty_[m], interfaceRepresentatives_ );
+    foreach( DenseVertex qp, interfaceNeighborhood_ )
     {
         removeFromRep( qp, representativesProperty_[qp] );
-        addToRep( qp, representativesProperty_[qp], getInterfaceNeighborRepresentatives( qp ) );
+        getInterfaceNeighborRepresentatives( qp );
+        addToRep( qp, representativesProperty_[qp], interfaceRepresentatives_ );
     }
 
     return m;
 }
 
-ompl::geometric::SPARS::Node ompl::geometric::SPARS::addGuard(base::State *state, unsigned int type)
+ompl::geometric::SPARS::SparseVertex ompl::geometric::SPARS::addGuard(base::State *state, GuardType type)
 {
-    Node v = boost::add_vertex( s_ );
+    SparseVertex v = boost::add_vertex( s_ );
     sparseStateProperty_[v] = state;
     sparseColorProperty_[v] = type;
     
@@ -462,75 +409,57 @@ ompl::geometric::SPARS::Node ompl::geometric::SPARS::addGuard(base::State *state
     return v;
 }
 
-void ompl::geometric::SPARS::uniteComponents(Vertex m1, Vertex m2)
-{
-    disjointSets_.union_set(m1, m2);
-}
-
-void ompl::geometric::SPARS::uniteSparseComponents(Node m1, Node m2)
+void ompl::geometric::SPARS::uniteSparseComponents(SparseVertex m1, SparseVertex m2)
 {
     sparseDJSets_.union_set(m1, m2);
 }
 
-void ompl::geometric::SPARS::connectSparsePoints( Node v, Node vp )
+void ompl::geometric::SPARS::connectSparsePoints( SparseVertex v, SparseVertex vp )
 {
     const double weight = sparseDistanceFunction(v, vp);
-    const unsigned int id = maxLinkID_++;
-    const SpannerGraph::edge_property_type properties(weight, id);
+    const SpannerGraph::edge_property_type properties(weight);
     boost::add_edge(v, vp, properties, s_);
     uniteSparseComponents( v, vp );
 }
 
-void ompl::geometric::SPARS::connectDensePoints( Vertex v, Vertex vp )
+void ompl::geometric::SPARS::connectDensePoints( DenseVertex v, DenseVertex vp )
 {
     const double weight = distanceFunction(v, vp);
-    const unsigned int id = maxEdgeID_++;
-    const Graph::edge_property_type properties( weight, id);
+    const Graph::edge_property_type properties( weight );
     boost::add_edge(v, vp, properties, g_);
-    uniteComponents( v, vp );
 }
 
-bool ompl::geometric::SPARS::checkAddCoverage(std::vector<Node> neigh)
+bool ompl::geometric::SPARS::checkAddCoverage( const std::vector<SparseVertex>& neigh )
 {
     //For each of these neighbors,
-    foreach( Node n, neigh )
+    foreach( SparseVertex n, neigh )
     {
         //If path between is free
-        PathGeometric *p = new PathGeometric(si_);
-        p->append(last_state);
-        p->append(sparseStateProperty_[n]);
-        if( p->check() )
+        if( si_->checkMotion( lastState_, sparseStateProperty_[n] ) )
         {
             //Abort out and return false
             return false;
         }
     }
     //No free paths means we add for coverage
-    addGuard( si_->cloneState(last_state), 0 );
+    addGuard( si_->cloneState(lastState_), COVERAGE );
     return true;
 }
 
-bool ompl::geometric::SPARS::checkAddConnectivity(std::vector<Node> neigh)
+bool ompl::geometric::SPARS::checkAddConnectivity( const std::vector<SparseVertex>& neigh )
 {
-    std::vector< Node > links;
+    std::vector< SparseVertex > links;
     //For each neighbor
-    for( unsigned int i=0; i<neigh.size(); ++i )
+    for( size_t i=0; i<neigh.size(); ++i )
     {
         //For each other neighbor
-        for( unsigned int j=i+1; j<neigh.size(); ++j )
+        for( size_t j=i+1; j<neigh.size(); ++j )
         {
             //If they are in different components
             if( !boost::same_component( neigh[i], neigh[j], sparseDJSets_ ) )
             {
                 //If the paths between are collision free
-                PathGeometric *a = new PathGeometric(si_);
-                PathGeometric *b = new PathGeometric(si_);
-                
-                a->append( last_state );
-                b->append( last_state );
-                a->append( sparseStateProperty_[neigh[i]] );
-                b->append( sparseStateProperty_[neigh[j]] );
-                if( a->check() && b->check() )
+                if( si_->checkMotion( lastState_, sparseStateProperty_[neigh[i]] ) && si_->checkMotion( lastState_, sparseStateProperty_[neigh[j]] ) )
                 {
                     links.push_back( neigh[i] );
                     links.push_back( neigh[j] );
@@ -542,7 +471,7 @@ bool ompl::geometric::SPARS::checkAddConnectivity(std::vector<Node> neigh)
     if( links.size() != 0 )
     {
         //Add the node
-        Node g = addGuard( si_->cloneState(last_state), 1 );
+        SparseVertex g = addGuard( si_->cloneState(lastState_), CONNECTIVITY );
         
         for( unsigned int i=0; i<links.size(); ++i )
         {
@@ -561,7 +490,7 @@ bool ompl::geometric::SPARS::checkAddConnectivity(std::vector<Node> neigh)
     return false;
 }
 
-bool ompl::geometric::SPARS::checkAddInterface( const std::vector<ompl::geometric::SPARS::Node>& graphNeighborhood_, const std::vector<ompl::geometric::SPARS::Node>& visibleNeighborhood_, ompl::geometric::SPARS::Vertex q )
+bool ompl::geometric::SPARS::checkAddInterface( const std::vector<ompl::geometric::SPARS::SparseVertex>& graphNeighborhood_, const std::vector<ompl::geometric::SPARS::SparseVertex>& visibleNeighborhood_, ompl::geometric::SPARS::DenseVertex q )
 {
     //If we have more than 1 neighbor
     if( visibleNeighborhood_.size() > 1 )
@@ -585,7 +514,7 @@ bool ompl::geometric::SPARS::checkAddInterface( const std::vector<ompl::geometri
                 else
                 {
                     //Add the new node to the graph, to bridge the interface
-                    Node v = addGuard( si_->cloneState( stateProperty_[q] ), 2 );
+                    SparseVertex v = addGuard( si_->cloneState( stateProperty_[q] ), INTERFACE );
                     connectSparsePoints( v, visibleNeighborhood_[0] );
                     connectSparsePoints( v, visibleNeighborhood_[1] );
                     //Report success
@@ -597,15 +526,15 @@ bool ompl::geometric::SPARS::checkAddInterface( const std::vector<ompl::geometri
     return false;
 }
 
-bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, const std::vector<ompl::geometric::SPARS::Vertex>& neigh )
+bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q, const std::vector<ompl::geometric::SPARS::DenseVertex>& neigh )
 {
     bool ret = false;
     //Get q's representative => v
-    Node v = representativesProperty_[q];
+    SparseVertex v = representativesProperty_[q];
     //Extract the representatives of neigh => n_rep
-    std::vector< Node > n_rep;
+    std::vector< SparseVertex > n_rep;
     
-    foreach( Vertex qp, neigh )
+    foreach( DenseVertex qp, neigh )
     {
         //If we haven't tracked this representative
         if( std::find( n_rep.begin(), n_rep.end(), representativesProperty_[qp] ) == n_rep.end() )
@@ -617,17 +546,17 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, cons
     //for each v' in n_rep
     for( unsigned int i = 0; i < n_rep.size() && !ret; ++i )
     {
-        Node vp = n_rep[i];
+        SparseVertex vp = n_rep[i];
         //Identify appropriate v" candidates => vpps
-        std::vector< Node > vpps = computeVPP( v, vp );
+        computeVPP( v, vp );
         
-        foreach( Node vpp, vpps )
+        foreach( SparseVertex vpp, VPPs_ )
         {
             double s_max = 0;
             //Find the X nodes to test
-            std::vector< Node > xs = computeX( v, vp, vpp );
+            computeX( v, vp, vpp );
             //For each x in xs
-            foreach( Node x, xs )
+            foreach( SparseVertex x, Xs_ )
             {
                 //Compute/Retain MAXimum distance path thorugh S
                 double dist = ( si_->distance( sparseStateProperty_[x], sparseStateProperty_[v] ) + si_->distance( sparseStateProperty_[v], sparseStateProperty_[vp] ) )/2.0;
@@ -635,15 +564,15 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, cons
                     s_max = dist;
             }
             
-            PathGeometric *best_dpath = NULL;
-            Vertex best_qpp = NULL;
-            double d_min = 9999999; //Insanely big number
+            std::deque< base::State* > bestDPath;
+            DenseVertex best_qpp = NULL;
+            double d_min = std::numeric_limits<double>::infinity(); //Insanely big number
                                          //For each vpp in vpps
-            for( unsigned int j=0; j<vpps.size() && !ret; ++j )
+            for( size_t j=0; j<VPPs_.size() && !ret; ++j )
             {
-                Node vpp = vpps[j];
+                SparseVertex vpp = VPPs_[j];
                 //For each q", which are stored interface nodes on v for i(vpp,v)
-                foreach( Vertex qpp, interfaceListsProperty_[v][vpp] )
+                foreach( DenseVertex qpp, interfaceListsProperty_[v][vpp] )
                 {
                     if( representativesProperty_[qpp] != v )
                     {
@@ -654,12 +583,11 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, cons
                         //If they happen to be the one and same node
                         if( q == qpp )
                         {
-                            Vertex junk;
+                            DenseVertex junk;
                             //Do a sanity check to make sure this TRULY is the case
                             if( getInterfaceNeighbor( q, vp, junk ) && getInterfaceNeighbor( q, vpp, junk ) )
                             {
-                                best_dpath = new PathGeometric( si_ );
-                                best_dpath->append( stateProperty_[q] );
+                                bestDPath.push_front( stateProperty_[q] );
                                 best_qpp = qpp;
                                 d_min = 0;
                             }
@@ -671,23 +599,15 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, cons
                         else
                         {
                             //Compute/Retain MINimum distance path on D through q, q"
-                            PathGeometric *p = densePath( q, qpp );
-                            if( p != NULL )
+                            densePath( q, qpp );
+                            if( path_.size() != 0 )
                             {
-                                double length = p->length();
+                                double length = pathLength();
                                 if( length < d_min )
                                 {
                                     d_min = length;
-                                    if( best_dpath != NULL )
-                                    {
-                                        delete best_dpath;
-                                    }
-                                    best_dpath = p;
+                                    bestDPath = path_;
                                     best_qpp = qpp;
-                                }
-                                else
-                                {
-                                    delete p;
                                 }
                             }
                         }
@@ -695,24 +615,23 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, cons
                 }
                 
                 //If the spanner property is violated for these paths
-                if( s_max > t_ * d_min )
+                if( s_max > stretchFactor_* d_min )
                 {
                     //Need to augment this path with the appropriate neighbor information
-                    Vertex na;
+                    DenseVertex na;
                     bool successa = getInterfaceNeighbor( q, vp, na );
-                    Vertex nb;
+                    DenseVertex nb;
                     bool successb = getInterfaceNeighbor( best_qpp, vpp, nb );
-                    best_dpath->reverse();
-                    best_dpath->append( stateProperty_[na] );
-                    best_dpath->reverse();
-                    best_dpath->append( stateProperty_[nb] );
                     
+                    bestDPath.push_front( stateProperty_[na] );
+                    bestDPath.push_back( stateProperty_[nb] );
+                                        
                     if( representativesProperty_[na] != vp || representativesProperty_[nb] != vpp )
                     {
                         throw Exception(name_, "Inappropriate representatives found.");
                     }
                     //Add the dense path to the spanner
-                    addPathToSpanner( best_dpath, vpp, vp );
+                    addPathToSpanner( bestDPath, vpp, vp );
                     
                     //Report success
                     ret = true;
@@ -723,10 +642,10 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::Vertex q, cons
     return ret;
 }
 
-double ompl::geometric::SPARS::avgValence( void )
+double ompl::geometric::SPARS::avgValence( void ) const
 {
     double degree = 0;
-    foreach( Vertex v, boost::vertices(s_))
+    foreach( DenseVertex v, boost::vertices(s_))
     {
         degree += (double)boost::out_degree( v, s_ );
     }
@@ -739,12 +658,12 @@ void ompl::geometric::SPARS::resetFailures( void )
     iterations_ = 0;
 }
 
-void ompl::geometric::SPARS::approachGraph( Vertex v )
+void ompl::geometric::SPARS::approachGraph( DenseVertex v )
 {
-    std::vector< Vertex > hold;
+    std::vector< DenseVertex > hold;
     nn_->nearestR( v, 3*denseDelta_, hold );
     
-    std::vector< Vertex > neigh;
+    std::vector< DenseVertex > neigh;
     for( unsigned int i=0; i<hold.size(); ++i )
     {
         if( si_->checkMotion( stateProperty_[v], stateProperty_[hold[i]] ) )
@@ -753,18 +672,18 @@ void ompl::geometric::SPARS::approachGraph( Vertex v )
         }
     }
     
-    foreach( Vertex vp, neigh )
+    foreach( DenseVertex vp, neigh )
     {
         connectDensePoints( v, vp );
     }
 }
 
-void ompl::geometric::SPARS::approachSpanner( Node n )
+void ompl::geometric::SPARS::approachSpanner( SparseVertex n )
 {
-    std::vector< Node > hold;
+    std::vector< SparseVertex > hold;
     snn_->nearestR( n, sparseDelta_, hold );
     
-    std::vector< Node > neigh;
+    std::vector< SparseVertex > neigh;
     for( unsigned int i=0; i<hold.size(); ++i )
     {
         if( si_->checkMotion( sparseStateProperty_[n], sparseStateProperty_[hold[i]] ) )
@@ -773,50 +692,45 @@ void ompl::geometric::SPARS::approachSpanner( Node n )
         }
     }
     
-    foreach( Node np, neigh )
+    foreach( SparseVertex np, neigh )
     {
         connectSparsePoints( n, np );
     }
 }
 
-std::vector<ompl::geometric::SPARS::Node> ompl::geometric::SPARS::getSparseNeighbors( base::State* inState )
+void ompl::geometric::SPARS::getSparseNeighbors( base::State* inState )
 {
     sparseStateProperty_[sparseQueryVertex_] = inState;
     
-    std::vector< Node > ret;
-    snn_->nearestR( sparseQueryVertex_, sparseDelta_, ret );
+    graphNeighborhood_.clear();
+    snn_->nearestR( sparseQueryVertex_, sparseDelta_, graphNeighborhood_ );
         
     sparseStateProperty_[sparseQueryVertex_] = NULL;
-    
-    return ret;
 }
 
-std::vector<ompl::geometric::SPARS::Node> ompl::geometric::SPARS::getVisibleNeighbors( base::State* inState )
+void ompl::geometric::SPARS::getVisibleNeighbors( base::State* inState )
 {
     sparseStateProperty_[sparseQueryVertex_] = inState;
     
-    std::vector< Node > hold;
+    std::vector< SparseVertex > hold;
     snn_->nearestR( sparseQueryVertex_, sparseDelta_, hold );
     
     sparseStateProperty_[sparseQueryVertex_] = NULL;
- 
-    std::vector< Node > ret;
     
+    visibleNeighborhood_.clear();
     //Now that we got the neighbors from the NN, we must remove any we can't see
     for( unsigned int i=0; i<hold.size(); ++i )
     {
         if( si_->checkMotion( inState, sparseStateProperty_[hold[i]] ) )
         {
-            ret.push_back( hold[i] );
+            visibleNeighborhood_.push_back( hold[i] );
         }
     }
-
-    return ret;
 }
 
-bool ompl::geometric::SPARS::getInterfaceNeighbor( Vertex q, Node rep, Node& ret )
+bool ompl::geometric::SPARS::getInterfaceNeighbor( DenseVertex q, SparseVertex rep, SparseVertex& ret )
 {
-    foreach( Vertex vp, boost::adjacent_vertices( q, g_ ) )
+    foreach( DenseVertex vp, boost::adjacent_vertices( q, g_ ) )
     {
         if( representativesProperty_[vp] == rep )
         {
@@ -831,75 +745,15 @@ bool ompl::geometric::SPARS::getInterfaceNeighbor( Vertex q, Node rep, Node& ret
     return false;
 }
 
-bool ompl::geometric::SPARS::addPairToSpanner( Vertex q, Vertex qp )
+bool ompl::geometric::SPARS::addPathToSpanner( const std::deque< base::State* >& dense_path, SparseVertex vp, SparseVertex vpp )
 {
-    Node v = representativesProperty_[q];
-    Node vp = representativesProperty_[qp];
-    
-    //Error checking
-    if( v == vp )
-    {
-        //Something went wrong here, we should report an error
-        throw Exception(name_, "Pairs report having the same representative");
-        return false;
-    }
-    
-    //Try the straight-line path
-    PathGeometric *p = new PathGeometric(si_);        
-    p->append( sparseStateProperty_[v] );
-    p->append( sparseStateProperty_[vp] );
-    //If it is valid
-    if( p->check() )
-    {
-        //simply connnect the reps with an edge.
-        connectSparsePoints( v, vp );
-
-        delete p;
-        resetFailures();
-        //Return success
-        return true;
-    }
-    delete p;
-    
-    //Generate the midpoint: m(q,qp)
-    base::State* st = generateMidpoint( stateProperty_[q], stateProperty_[qp] );
-    //Create the path through the midpoint
-    PathGeometric *pp = new PathGeometric(si_);
-    pp->append( sparseStateProperty_[v] );
-    pp->append( st );
-    pp->append( sparseStateProperty_[vp] );
-    //If that path is good
-    if( pp->check() )
-    {
-        //Generate the midpoint connections
-        Node mp = addGuard( si_->cloneState(st), 2 );
-        connectSparsePoints( v, mp );
-        connectSparsePoints( mp, vp );
-        si_->freeState( st );
-        delete pp;
-        //Return success
-        return true;
-    }
-    delete pp;
-    
-    //Link everything up
-    Node ga = addGuard( si_->cloneState(stateProperty_[q]), 2 );
-    Node gb = addGuard( si_->cloneState(stateProperty_[qp]), 2 );
-    connectSparsePoints( v, ga );
-    connectSparsePoints( ga, gb );
-    connectSparsePoints( gb, vp );
-    //return success
-    return true;
-}
-
-bool ompl::geometric::SPARS::addPathToSpanner( PathGeometric* dense_path, Node vp, Node vpp )
-{
+    //We will need to construct a PathGeometric to do this.
+    geomPath_.getStates().reserve( dense_path.size() );
+    std::copy( dense_path.begin(), dense_path.end(), geomPath_.getStates().begin() );
     //Attempt to simplify the path
-    psimp_->reduceVertices( *dense_path, 50 );
-    //Once we have our final path, add it
-    PathGeometric *p = dense_path;
+    psimp_->reduceVertices( geomPath_, 50 );
     //First, check to see that the path has length
-    if( p->length() == 0 )
+    if( geomPath_.length() == 0 )
     {   
         //The path was simplified away, so simply link the representatives
         connectSparsePoints( vp, vpp );
@@ -908,11 +762,11 @@ bool ompl::geometric::SPARS::addPathToSpanner( PathGeometric* dense_path, Node v
     else
     {
         //Otherwise, do this thing iteratively
-        std::vector< Node > added_nodes;
-        for( unsigned int i = 0; i<p->getStateCount(); ++i )
+        std::vector< SparseVertex > added_nodes;
+        for( unsigned int i = 0; i<geomPath_.getStateCount(); ++i )
         {
             //Add each guard
-            Node ng = addGuard( si_->cloneState(p->getState(i)), 3 );
+            SparseVertex ng = addGuard( si_->cloneState(geomPath_.getState(i)), QUALITY );
             added_nodes.push_back( ng );
         }
         //Link them up
@@ -924,13 +778,14 @@ bool ompl::geometric::SPARS::addPathToSpanner( PathGeometric* dense_path, Node v
         connectSparsePoints( added_nodes[0], vp );
         connectSparsePoints( added_nodes[added_nodes.size()-1], vpp );
     }
+    geomPath_.getStates().clear();
     return true;
 }
 
-void ompl::geometric::SPARS::updateReps( Node v )
+void ompl::geometric::SPARS::updateReps( SparseVertex v )
 {
     //Get all of the dense samples which may be affected by adding this node
-    std::vector< Vertex > dense_points;
+    std::vector< DenseVertex > dense_points;
     
     stateProperty_[ queryVertex_ ] = sparseStateProperty_[ v ];
     
@@ -951,41 +806,36 @@ void ompl::geometric::SPARS::updateReps( Node v )
     for( unsigned int i=0; i<dense_points.size(); ++i )
     {
         //Get it's representative
-        Node rep = representativesProperty_[dense_points[i]];
+        SparseVertex rep = representativesProperty_[dense_points[i]];
         //Extract the representatives of any interface-sharing neighbors
-        std::vector< Node > oreps = getInterfaceNeighborRepresentatives( dense_points[i] );
+        getInterfaceNeighborRepresentatives( dense_points[i] );
         //For sanity's sake, make sure we clear ourselves out of what this new rep might think of us
         removeFromRep( dense_points[i], rep );
         //Add this vertex to it's representative's list for the other representatives
-        addToRep( dense_points[i], rep, oreps );
+        addToRep( dense_points[i], rep, interfaceRepresentatives_ );
     }
 }
 
-void ompl::geometric::SPARS::calculateRepresentative( Vertex q )
+void ompl::geometric::SPARS::calculateRepresentative( DenseVertex q )
 {
     //Get the nearest neighbors within sparseDelta_
-    std::vector<Node> neigh = getSparseNeighbors( stateProperty_[q] );
+    getSparseNeighbors( stateProperty_[q] );
     
     bool abort = false;
     //For each neighbor
-    for( unsigned int i=0; i<neigh.size() && !abort; ++i )
+    for( unsigned int i=0; i<graphNeighborhood_.size() && !abort; ++i )
     {
-        PathGeometric *p = new PathGeometric(si_);
-        //If the path to this neighbor is collision free
-        p->append( stateProperty_[q] );
-        p->append( sparseStateProperty_[neigh[i]] );
-        if( p->check() )
+        if( si_->checkMotion( stateProperty_[q], sparseStateProperty_[graphNeighborhood_[i]] ) )
         {
             //update the representative
-            representativesProperty_[q] = neigh[i];
+            representativesProperty_[q] = graphNeighborhood_[i];
             //abort
             abort = true;
         }
-        delete p;
     }
 }
 
-void ompl::geometric::SPARS::addToRep( Vertex q, Node rep, std::vector<ompl::geometric::SPARS::Node> oreps )
+void ompl::geometric::SPARS::addToRep( DenseVertex q, SparseVertex rep, const std::vector<ompl::geometric::SPARS::SparseVertex>& oreps )
 {
     //If this node supports no interfaces
     if( oreps.size() == 0 )
@@ -1003,7 +853,7 @@ void ompl::geometric::SPARS::addToRep( Vertex q, Node rep, std::vector<ompl::geo
     else
     {
         //otherwise, for every neighbor representative
-        foreach( Node v, oreps )
+        foreach( SparseVertex v, oreps )
         {
             if( std::find( interfaceListsProperty_[rep][v].begin(), interfaceListsProperty_[rep][v].end(), q ) != interfaceListsProperty_[rep][v].end() )
             {
@@ -1014,7 +864,6 @@ void ompl::geometric::SPARS::addToRep( Vertex q, Node rep, std::vector<ompl::geo
                 if( rep != representativesProperty_[q] )
                 {
                     throw Exception(name_, "Node has representative different than the list he's being put into.");
-                    exit( -1 );
                 }
                 //Add this node to the list for that representative
                 interfaceListsProperty_[rep][v].push_back( q );
@@ -1023,7 +872,7 @@ void ompl::geometric::SPARS::addToRep( Vertex q, Node rep, std::vector<ompl::geo
     }
 }
 
-void ompl::geometric::SPARS::removeFromRep( Vertex q, Node rep )
+void ompl::geometric::SPARS::removeFromRep( DenseVertex q, SparseVertex rep )
 {
     // Remove the node from the non-interface points (if there)
     nonInterfaceListsProperty_[rep].remove( q );
@@ -1032,7 +881,7 @@ void ompl::geometric::SPARS::removeFromRep( Vertex q, Node rep )
         throw Exception(name_, "The point could not be removed?");
     }
     // From each of the interfaces
-    foreach( Node vpp, interfaceListsProperty_[rep] | boost::adaptors::map_keys )
+    foreach( SparseVertex vpp, interfaceListsProperty_[rep] | boost::adaptors::map_keys )
     {
         // Remove this node from that list
         interfaceListsProperty_[rep][vpp].remove( q );
@@ -1043,83 +892,57 @@ void ompl::geometric::SPARS::removeFromRep( Vertex q, Node rep )
     }
 }
 
-std::vector< ompl::geometric::SPARS::Node > ompl::geometric::SPARS::computeVPP( Node v, Node vp )
+void ompl::geometric::SPARS::computeVPP( SparseVertex v, SparseVertex vp )
 {
-    std::vector< Node > ret;
+    VPPs_.clear();
     
-    foreach( Node cvpp, boost::adjacent_vertices( v, s_ ) )
+    foreach( SparseVertex cvpp, boost::adjacent_vertices( v, s_ ) )
     {
         if( cvpp != vp )
         {
             if( !boost::edge( cvpp, vp, s_ ).second )
             {
-                ret.push_back( cvpp );
+                VPPs_.push_back( cvpp );
             }
         }
     }
-    
-    return ret;
 }
 
-std::vector< ompl::geometric::SPARS::Node > ompl::geometric::SPARS::computeX( Node v, Node vp, Node vpp )
+void ompl::geometric::SPARS::computeX( SparseVertex v, SparseVertex vp, SparseVertex vpp )
 {
-    std::vector< Node > ret;
+    Xs_.clear();
     
-    foreach( Node cx, boost::adjacent_vertices( vpp, s_ ) )
+    foreach( SparseVertex cx, boost::adjacent_vertices( vpp, s_ ) )
     {
         if( boost::edge( cx, v, s_ ).second && !boost::edge( cx, vp, s_ ).second )
         {
             if( interfaceListsProperty_[vpp][cx].size() > 0 )
             {
-                ret.push_back( cx );
+                Xs_.push_back( cx );
             }
         }
     }
-    ret.push_back( vpp );
-    
-    return ret;
+    Xs_.push_back( vpp );
 }
 
-ompl::base::State* ompl::geometric::SPARS::generateMidpoint( ompl::base::State* a, ompl::base::State* b )
+ompl::base::State* ompl::geometric::SPARS::generateMidpoint( const ompl::base::State* a, const ompl::base::State* b ) const
 {
     base::State* st = si_->allocState();
     si_->getStateSpace()->interpolate( a, b, 0.5, st );
     return st;
 }
 
-std::vector<ompl::geometric::SPARS::Vertex> ompl::geometric::SPARS::interfaceCheck(ompl::geometric::SPARS::Vertex q)
+void ompl::geometric::SPARS::getInterfaceNeighborRepresentatives( ompl::geometric::SPARS::DenseVertex q )
 {
-    std::vector< Vertex > ret;
-    //Get our representative
-    Node rep = representativesProperty_[q];
-    //For each neighbor
-    foreach( Vertex n, boost::adjacent_vertices( q, g_ ) )
-    {
-        //If his representative is not our own
-        if( rep != representativesProperty_[n] )
-        {
-            //If he is within denseDelta_
-            if( distanceFunction( q, n ) < denseDelta_ )
-            {
-                //Push him onto the list
-                ret.push_back( n );
-            }
-        }
-    }
-    return ret;
-}
-
-std::vector< ompl::geometric::SPARS::Node > ompl::geometric::SPARS::getInterfaceNeighborRepresentatives( ompl::geometric::SPARS::Vertex q )
-{
-    std::vector< Node > ret;
+    interfaceRepresentatives_.clear();
     
     //Get our representative
-    Node rep = representativesProperty_[q];
+    SparseVertex rep = representativesProperty_[q];
     //For each neighbor we are connected to
-    foreach( Vertex n, boost::adjacent_vertices( q, g_ ) )
+    foreach( DenseVertex n, boost::adjacent_vertices( q, g_ ) )
     {
         //Get his representative
-        Node orep = representativesProperty_[n];
+        SparseVertex orep = representativesProperty_[n];
         //If that representative is not our own
         if( orep != rep )
         {
@@ -1127,29 +950,27 @@ std::vector< ompl::geometric::SPARS::Node > ompl::geometric::SPARS::getInterface
             if( distanceFunction( q, n ) < denseDelta_ )
             {
                 //And we haven't tracked him yet
-                if( std::find( ret.begin(), ret.end(), orep ) == ret.end() )
+                if( std::find( interfaceRepresentatives_.begin(), interfaceRepresentatives_.end(), orep ) == interfaceRepresentatives_.end() )
                 {
                     //Append his rep to the list
-                    ret.push_back( orep );
+                    interfaceRepresentatives_.push_back( orep );
                 }
             }
         }
     }
-    
-    return ret;
 }
 
-std::vector< ompl::geometric::SPARS::Vertex > ompl::geometric::SPARS::getInterfaceNeighborhood( ompl::geometric::SPARS::Vertex q )
+void ompl::geometric::SPARS::getInterfaceNeighborhood( ompl::geometric::SPARS::DenseVertex q )
 {
-    std::vector< Vertex > ret;
-    
+    interfaceNeighborhood_.clear();
+
     //Get our representative
-    Node rep = representativesProperty_[q];
+    SparseVertex rep = representativesProperty_[q];
     //For each neighbor we are connected to
-    foreach( Vertex n, boost::adjacent_vertices( q, g_ ) )
+    foreach( DenseVertex n, boost::adjacent_vertices( q, g_ ) )
     {
         //Get his representative
-        Node orep = representativesProperty_[n];
+        SparseVertex orep = representativesProperty_[n];
         //If that representative is not our own
         if( orep != rep )
         {
@@ -1157,19 +978,17 @@ std::vector< ompl::geometric::SPARS::Vertex > ompl::geometric::SPARS::getInterfa
             if( distanceFunction( q, n ) < denseDelta_ )
             {
                 //Append him to the list
-                ret.push_back( n );
+                interfaceNeighborhood_.push_back( n );
             }
         }
     }
-    
-    return ret;    
 }
 
-ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const Node start, const Node goal) const
+ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex start, const SparseVertex goal) const
 {
     PathGeometric *p = new PathGeometric(si_);
 
-    boost::vector_property_map<Node> prev(boost::num_vertices(s_));
+    boost::vector_property_map<SparseVertex> prev(boost::num_vertices(s_));
 
     boost::astar_search(s_, start,
             boost::bind(&SPARS::sparseDistanceFunction, this, _1, goal),
@@ -1178,7 +997,7 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const Node start, 
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
     else
-        for (Node pos = goal; prev[pos] != pos; pos = prev[pos])
+        for (SparseVertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(sparseStateProperty_[pos]);
     p->append(sparseStateProperty_[start]);
     p->reverse();
@@ -1186,11 +1005,11 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const Node start, 
     return base::PathPtr(p);
 }
 
-ompl::geometric::PathGeometric* ompl::geometric::SPARS::densePath( const Vertex start, const Vertex goal ) const
+void ompl::geometric::SPARS::densePath( const DenseVertex start, const DenseVertex goal ) const
 {
-    PathGeometric *p = new PathGeometric(si_);
+    path_.clear();
     
-    boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
+    boost::vector_property_map<DenseVertex> prev(boost::num_vertices(g_));
     
     boost::astar_search(g_, start,
                         boost::bind(&SPARS::distanceFunction, this, _1, goal),
@@ -1199,16 +1018,26 @@ ompl::geometric::PathGeometric* ompl::geometric::SPARS::densePath( const Vertex 
     if (prev[goal] == goal)
     {
         OMPL_WARN("No dense path was found?");
-        delete p;
     }
     else
     {
-        for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
-            p->append(stateProperty_[pos]);
-        p->append(stateProperty_[start]);
-        p->reverse();
+        for (DenseVertex pos = goal; prev[pos] != pos; pos = prev[pos])
+            path_.push_front( stateProperty_[pos] );
+        path_.push_front( stateProperty_[start] );
     }
-    return p;
+}
+
+double ompl::geometric::SPARS::pathLength() const
+{
+    double l = 0;
+    if( path_.size() == 0 )
+        return l;
+    
+    for( unsigned int i=0; i<path_.size()-1; ++i )
+    {
+        l += si_->distance( path_[i], path_[i+1] );
+    }
+    return l;
 }
 
 void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
@@ -1223,10 +1052,10 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
         data.addGoalVertex(base::PlannerDataVertex(sparseStateProperty_[goalM_[i]], 4));
 
     // Adding edges and all other vertices simultaneously
-    foreach(const Link e, boost::edges(s_))
+    foreach(const SparseEdge e, boost::edges(s_))
     {
-        const Node v1 = boost::source(e, s_);
-        const Node v2 = boost::target(e, s_);
+        const SparseVertex v1 = boost::source(e, s_);
+        const SparseVertex v2 = boost::target(e, s_);
         data.addEdge(base::PlannerDataVertex(sparseStateProperty_[v1], sparseColorProperty_[v1]),
                      base::PlannerDataVertex(sparseStateProperty_[v2], sparseColorProperty_[v2]));
 
@@ -1236,7 +1065,7 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
     }
     
     // Make sure to add edge-less nodes as well
-    foreach(const Node n, boost::vertices(s_))
+    foreach(const SparseVertex n, boost::vertices(s_))
     {
         if( boost::out_degree( n, s_ ) == 0 )
         {
