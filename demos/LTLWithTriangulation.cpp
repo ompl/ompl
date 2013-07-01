@@ -136,8 +136,6 @@ bool isStateValid(
 {
     if (!si->satisfiesBounds(state))
         return false;
-    //    ob::ScopedState<ob::SE2StateSpace>
-    // cast the abstract state type to the type we expect
     const ob::SE2StateSpace::StateType* se2 = state->as<ob::SE2StateSpace::StateType>();
 
 	double x = se2->getX();
@@ -217,20 +215,21 @@ void planWithSimpleSetup(void)
 
     ss.setStartAndGoalStates(start, goal, 0.);
 
-    //LTL co-safety sequencing formula: visit p2,p0,p1 in that order
-    std::vector<unsigned int> sequence(3);
+    //LTL co-safety sequencing formula: visit p2,p0 in that order
+    std::vector<unsigned int> sequence(2);
     sequence[0] = 2;
     sequence[1] = 0;
-    sequence[2] = 1;
     oc::AutomatonPtr cosafety = oc::Automaton::SequenceAutomaton(3, sequence);
 
-    //LTL safety formula is just accepting automaton over 3 propositions
-    oc::AutomatonPtr safety = oc::Automaton::AcceptingAutomaton(3);
+    //LTL safety avoidance formula: never visit p1
+    std::vector<unsigned int> toAvoid(1);
+    toAvoid[0] = 1;
+    oc::AutomatonPtr safety = oc::Automaton::AvoidanceAutomaton(3, toAvoid);
     
     //construct product graph (propDecomp x A_{cosafety} x A_{safety})
     oc::ProductGraphPtr product(new oc::ProductGraph(pd, cosafety, safety));
 
-    //LTL planner (input: state information-si, product automaton-product)
+    //LTL planner (input: state information, product automaton)
     oc::LTLPlanner* ltlPlanner = new oc::LTLPlanner(ss.getSpaceInformation(), product);
 
     //hand the planner to SimpleSetup
@@ -238,27 +237,11 @@ void planWithSimpleSetup(void)
 
     // attempt to solve the problem within thirty seconds of planning time
     ob::PlannerStatus solved = ss.solve(30);
-    
-    std::cout << solved.asString() << std::endl;
 
     if (solved)
     {
-        // get the goal representation from the problem definition (not the same as the goal state)
-        // and inquire about the found path
-        oc::PathControl& path = ss.getSolutionPath();
         std::cout << "Found solution:" << std::endl;
-
-        // print the path to screen
-        //path->print(std::cout);
-        const std::vector<ob::State*>& states = path.getStates();
-        for (unsigned int i = 0; i < states.size(); ++i)
-        {
-            const ob::SE2StateSpace::StateType *se2 = states[i]->as<ob::SE2StateSpace::StateType>();
-            double x = se2->getX();
-            double y = se2->getY();
-            double angle = se2->getYaw();
-            std::cout << x << " " << y << " " << angle << std::endl;
-        }
+        ss.getSolutionPath().print(std::cout);
     }
     else
         std::cout << "No solution found" << std::endl;
