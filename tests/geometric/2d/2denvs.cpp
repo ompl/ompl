@@ -549,7 +549,7 @@ public:
         if (verbose_)
             printf("\n========= Running simple test\n\n");
         simpleTest(p);
-
+        
         if (verbose_)
             printf("\n========= Running 2D map test\n\n");
         run2DMapTest(p, &success, &avgruntime, &avglength);
@@ -638,6 +638,6 @@ OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
 OMPL_PLANNER_TEST(PRMstar, 99.0, 0.02)
 OMPL_PLANNER_TEST(LazyPRM, 99.0, 0.02)
 
-// OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
+OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
 BOOST_AUTO_TEST_SUITE_END()
