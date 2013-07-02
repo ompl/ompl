@@ -97,9 +97,6 @@ void ompl::geometric::TRRT::setup(void)
     Planner::setup();
     tools::SelfConfig selfConfig(si_, getName());
 
-    // Find the average cost of states by sampling x=100 random states
-    double averageCost = si_->averageStateCost(100);
-
     // Set maximum distance a new node can be from its nearest neighbor
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
     {
@@ -110,13 +107,15 @@ void ompl::geometric::TRRT::setup(void)
     // Set the threshold that decides if a new node is a frontier node or non-frontier node
     if (frontierThreshold_ < std::numeric_limits<double>::epsilon())
     {
-        frontierThreshold_ = si_->getMaximumExtent() * 0.01; // 5.0
+        frontierThreshold_ = si_->getMaximumExtent() * 0.01;
         OMPL_DEBUG("Frontier threshold detected to be %lf", frontierThreshold_);
     }
 
     // Autoconfigure the K constant
     if (kConstant_ < std::numeric_limits<double>::epsilon())
     {
+        // Find the average cost of states by sampling
+        double averageCost = si_->averageStateCost(magic::TEST_STATE_COUNT);
         kConstant_ = averageCost;
         OMPL_DEBUG("K constant detected to be %lf", kConstant_);
     }
@@ -250,7 +249,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         randMotionDistance = si_->distance(nearMotion->state, randState);
 
         // Check if the rand_state is too far away
-        if(randMotionDistance > maxDistance_)
+        if (randMotionDistance > maxDistance_)
         {
             // Computes the state that lies at time t in [0, 1] on the segment that connects *from* state to *to* state.
             // The memory location of *state* is not required to be different from the memory of either *from* or *to*.
@@ -282,14 +281,14 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
             \param s1 start state of the motion to be checked (assumed to be valid)
             \param s2 final state of the motion to be checked
         */
-        if(!si_->checkMotion(nearMotion->state, newState))
+        if (!si_->checkMotion(nearMotion->state, newState))
             continue; // try a new sample
 
 
         // Minimum Expansion Control
         // A possible side effect may appear when the tree expansion toward unexplored regions remains slow, and the
         // new nodes contribute only to refine already explored regions.
-        if(!minExpansionControl(randMotionDistance))
+        if (!minExpansionControl(randMotionDistance))
         {
             continue; // give up on this one and try a new sample
         }
@@ -297,7 +296,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         double childCost = stateValidityChecker->cost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
-        if(!transitionTest(childCost, nearMotion->cost, motionDistance))
+        if (!transitionTest(childCost, nearMotion->cost, motionDistance))
         {
             continue; // give up on this one and try a new sample
         }
@@ -406,7 +405,7 @@ void ompl::geometric::TRRT::getPlannerData(base::PlannerData &data) const
 bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, double distance)
 {
     // Always accept if new state has same or lower cost than old state
-    if(childCost <= parentCost)
+    if (childCost <= parentCost)
         return true;
 
     // Difference in cost
@@ -420,20 +419,20 @@ bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, 
     bool result = false;
 
     // Calculate tranision probabilty
-    if(costSlope > 0)
+    if (costSlope > 0)
     {
         transitionProbability = exp(-costSlope / (kConstant_ * temp_));
     }
 
     // Check if we can accept it
-    if(rng_.uniform01() <= transitionProbability)
+    if (rng_.uniform01() <= transitionProbability)
     {
         if (temp_ > minTemperature_)
         {
             temp_ /= tempChangeFactor_;
 
             // Prevent temp_ from getting too small
-            if(temp_ < minTemperature_)
+            if (temp_ < minTemperature_)
             {
                 temp_ = minTemperature_;
             }
@@ -446,7 +445,7 @@ bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, 
     else
     {
         // State has failed
-        if(numStatesFailed_ >= maxStatesFailed_)
+        if (numStatesFailed_ >= maxStatesFailed_)
         {
             temp_ *= tempChangeFactor_;
             numStatesFailed_ = 0;
@@ -464,7 +463,7 @@ bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, 
 bool ompl::geometric::TRRT::minExpansionControl(double randMotionDistance)
 {
     // Decide to accept or not
-    if(randMotionDistance > frontierThreshold_)
+    if (randMotionDistance > frontierThreshold_)
     {
         // participates in the tree expansion
         ++frontierCount_;
@@ -476,7 +475,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double randMotionDistance)
         // participates in the tree refinement
 
         // check our ratio first before accepting it
-        if(nonfrontierCount_ / frontierCount_ > frontierNodeRatio_)
+        if (nonfrontierCount_ / frontierCount_ > frontierNodeRatio_)
         {
             // Increment so that the temperature rises faster
             ++numStatesFailed_;
