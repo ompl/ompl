@@ -483,9 +483,12 @@ namespace ompl
             /** \brief The visible neighborhood set which has been most recently computed */
             std::vector< Vertex >                                               visibleNeighborhood_;
             
+            /** \brief The representatives of nodes near a sample.  Filled by getCloseRepresentatives(). */
             std::pair< std::vector< Vertex >, std::vector< base::State* > >     closeRepresentatives_;
             
+            /** \brief Candidate v" vertices as described in the method, filled by function computeVPP(). */
             std::vector< Vertex >                                               VPPs_;
+            /** \brief Candidate x vertices as described in the method, filled by function computeX(). */
             std::vector< Vertex >                                               Xs_;
             
             /** \brief A holder to remember who qNew_'s representative in the graph is. */
