@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import socket
+import time
 
+from ompl import control as oc
 from ompl import morse as om
 from ompl import util as ou
 
@@ -22,11 +24,16 @@ class MyEnvironment(om.MorseEnvironment):
     writeState(), applyControl(), and worldStep().
     """
     
-    def setSocket(self, comm_socket):
+    def setSockets(self, state_socket, control_socket):
         """
         Use comm_socket for communication with the simulation.
         """
-        self.sock = comm_socket
+        self.sockS = state_socket
+        self.sockC = control_socket
+        self.simRunning = True
+        self.con = (0,0)    # cache of the last control set to MORSE
+        # tell MORSE to reset the simulation, because it was running while it was initializing
+        self.sockC.sendall(b'id1 simulation reset_objects')
         
     def call(self, cmd):
         """
@@ -35,9 +42,12 @@ class MyEnvironment(om.MorseEnvironment):
         """
 
         # submit cmd to socket; return eval()'ed response
-        if sock:
-            self.sock.sendall(cmd.encode())
-            return eval(sock.recv(1024))    # TODO: buffer size? states can get pretty big
+        try:
+            self.sockS.sendall(cmd.encode())
+            return eval(sockS.recv(16384))    # TODO: buffer size? states can get pretty big
+        except:
+            self.simRunning = False
+            raise
     
     def readState(self, state):
         """
@@ -80,8 +90,9 @@ class MyEnvironment(om.MorseEnvironment):
         """
         Tell MORSE to apply control to the robot.
         """
-        # TODO
-        pass
+        if self.con != (control[0],control[1]):
+            self.con = (control[0],control[1])
+            sockC.sendall(('id1 robot.motion set_speed [%f,%f]\n' % self.con).encode())
         
     def worldStep(self, dur):
         """
@@ -94,57 +105,94 @@ class MyEnvironment(om.MorseEnvironment):
         """
         Let the simulation know to shut down.
         """
-        self.call('endSimulation()')
-        
+        if self.simRunning:
+            self.call('endSimulation()')
+
+class MyProjection(om.MorseProjection):
+    """
+    The projection evaluator for the simulation.
+    """
+    
+    def getDimension(self):
+        return 2
+    
+    def defaultCellSizes(self):
+        # coarse grid for cube x,y location
+        # fine grid for car x,y location
+        cellSizes_ = list2vec([2.0,2.0])
+    
+    def project(self, state, projection):
+        # use x and y coords of the robot
+        projection[0] = state[0*4][0]
+        projection[1] = state[0*4][1]
+
 class MyGoal(om.MorseGoal):
     """
     The goal state of the simulation.
     """
-    def __init__(self, si):
-        super(MyGoal, self).__init__(si)
-        self.c = 0
     
     def isSatisfied_Py(self, state):
-        # TODO
-        self.c += 1
-        if self.c==10:
-            return True
-        return False
+        # come to rest on the platform within 3 taxicab units of (0,12)
+        # body list: 0:__robot, 1,2,3,4:_wheel*
+        linvel = abs(state[0*4+1][0])+abs(state[0*4+1][1])+abs(state[0*4+1][2])
+        self.distance_ = abs(state[0*4][0] - 0) + \
+            abs(state[0*4][1] - -12) + linvel
+        return self.distance_ < 3.0
 
-def planWithMorse(sock):
+
+def planWithMorse(sockS, sockC):
     """
     Set up MyEnvironment, MorseStateSpace, and MorseSimpleSetup objects.
-    Plan using sock as the communication socket to the simulation.
+    Plan using sockS as the socket to the Blender communicator script
+    and sockC as the socket to the MORSE motion controller.
     """
     
     try:
         # create a MORSE environment representation
         # TODO get these numbers from the simulation
-        env = MyEnvironment(2, 2, list2vec([-10,10,-1,1]), list2vec([-100,100,-100,100,-100,100]),
-            list2vec([-10,10,-10,10,-10,10]), list2vec([-6,6,-6,6,-6,6]))
-        env.setSocket(sock)
-
+        env = MyEnvironment(5, 2, list2vec([-10,10,-1,1]), list2vec([-3,3,-15,7,-1,5]),
+            list2vec([-20,20,-20,20,-20,20]), list2vec([-60,60,-60,60,-60,60]), 60, 120)
+        env.setSockets(sockS, sockC)
+        
         # create a simple setup object
         ss = om.MorseSimpleSetup(env)
+        si = ss.getSpaceInformation()
         
         # set up goal
-        g = MyGoal(ss.getSpaceInformation())
+        g = MyGoal(si)
         ss.setGoal(g)
         
+        # choose a planner
+        planner = oc.RRT(si)
+        ss.setPlanner(planner)
+        
+        # use a specific projection
+        #space = si.getStateSpace()
+        #proj = MyProjection(space)
+        #space.registerDefaultProjection(proj)
+        
         # solve
-        ss.solve(20.0)
+        ss.solve(20*60.0)
+        
+        # print the solution path
+        input("Press enter to see solution...")
+        ss.playSolutionPath()
     
+    except:
+        pass
     finally:
         # tell simulation it can shut down
         env.endSimulation()
     
-# set up the socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect(('localhost', 50007))
+# set up the state and control sockets
+sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sockS.connect(('localhost', 50007))
+sockC.connect(('localhost', 4000))
 
 # plan
-planWithMorse(sock)
-sock.shutdown(socket.SHUT_RDWR)
-sock.close()
+planWithMorse(sockS, sockC)
+sockS.close()
+sockC.close()
 
 

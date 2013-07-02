@@ -168,7 +168,7 @@ def communicate():
         
         # retrieve the next command
         while True:
-            cmd = sock.recv(1024).decode('utf-8')   # TODO buffer size
+            cmd = sock.recv(16384).decode('utf-8')   # TODO buffer size
             if cmd != '':
                 break
         #if cmd != 'nextTick()':

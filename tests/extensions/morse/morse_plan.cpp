@@ -20,7 +20,8 @@ public:
     MyEnvironment(const unsigned int rigidBodies, const unsigned int controlDim,
         const std::vector<double> &controlBounds, const std::vector<double> &positionBounds,
         const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds)
-        : base::MorseEnvironment(rigidBodies, controlDim, controlBounds, positionBounds, linvelBounds, angvelBounds)
+        : base::MorseEnvironment(rigidBodies, controlDim, controlBounds, positionBounds, linvelBounds, angvelBounds,
+            30, 90)
     {
     }
     void readState(base::State *state)
@@ -64,17 +65,19 @@ class MyGoal : public base::MorseGoal
 {
 public:
     MyGoal(base::SpaceInformationPtr si)
-        : base::MorseGoal(si)
+        : base::MorseGoal(si), c(0)
     {
     }
     bool isSatisfied_Py(const base::State *state) const
     {
         // goal is "reached" the 10th time this is called
-        static int c = 0;
-        if (++c == 10)
+        distance_ = 10-(c++);
+        if (distance_ == 0)
             return true;
         return false;
     }
+private:
+    mutable unsigned int c;
 };
 
 int main()

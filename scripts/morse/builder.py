@@ -2,15 +2,25 @@
 # requires name of the environment *.blend file as a parameter
 
 import sys
-
+import logging
 import bpy
 import morse.builder
 
 # IMPORTANT! Set this manually for now
 OMPL_DIR='/home/caleb/repos/ompl_morse'
 
+# Disable logging of socket communication because there will be a lot of it
+sockloggers = (logging.getLogger("morse.morse.core.request_manager"),
+               logging.getLogger("morse.morse.middleware.socket_request_manager"))
+sockloggers[0].setLevel(logging.ERROR)
+sockloggers[1].setLevel(logging.ERROR)
+
 # Add a robot (TODO: make user-specified)
-robot = morse.builder.ATRV()
+robot = morse.builder.SegwayRMP400()
+robot.unparent_wheels()
+motion = morse.builder.MotionVWDiff()
+robot.append(motion)
+motion.add_service('socket')    # default port = 4000
 
 # Determine the blend file to load (first argument after '--')
 envpath = sys.argv[sys.argv.index('--') + 1]

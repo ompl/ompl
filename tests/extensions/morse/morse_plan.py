@@ -2,6 +2,7 @@
 
 # Tests the OMPL MORSE extension and its Python bindings without invoking MORSE
 
+from ompl import control as oc
 from ompl import morse as om
 from ompl import util as ou
 
@@ -46,7 +47,19 @@ class MyEnvironment(om.MorseEnvironment):
     def worldStep(self, dur):
         pass
 
-        
+class MyProjection(om.MorseProjection):
+    """
+    The projection evaluator for the simulation.
+    """
+    
+    def getDimension(self):
+        return 2
+    
+    def project(self, state, projection):
+        # use x and y coords of the cube
+        projection[0] = state[0][0]
+        projection[1] = state[0][1]
+                
 class MyGoal(om.MorseGoal):
     """
     The goal state of the simulation.
@@ -60,7 +73,8 @@ class MyGoal(om.MorseGoal):
         Returns True on the 10th call.
         """
         self.c += 1
-        if self.c==10:
+        self.distance_ = 10-self.c
+        if self.distance_ == 0:
             return True
         return False
 
@@ -71,14 +85,19 @@ def planWithMorse():
 
     # create a MORSE environment representation
     env = MyEnvironment(2, 2, list2vec([-10,10,-1,1]), list2vec([-100,100,-100,100,-100,100]),
-        list2vec([-10,10,-10,10,-10,10]), list2vec([-6,6,-6,6,-6,6]))
+        list2vec([-10,10,-10,10,-10,10]), list2vec([-6,6,-6,6,-6,6]), 30, 90)
 
     # create a simple setup object
     ss = om.MorseSimpleSetup(env)
+    si = ss.getSpaceInformation()
     
     # set up the goal
-    g = MyGoal(ss.getSpaceInformation())
+    g = MyGoal(si)
     ss.setGoal(g)
+    
+    space = si.getStateSpace()
+    proj = MyProjection(space)
+    space.registerDefaultProjection(proj)
     
     # solve
     ss.solve(10)

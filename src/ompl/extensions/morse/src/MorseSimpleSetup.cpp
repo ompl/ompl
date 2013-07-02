@@ -1,7 +1,8 @@
 /* MorseSimpleSetup.cpp */
 
 #include "ompl/extensions/morse/MorseSimpleSetup.h"
-#include "ompl/util/Exception.h"
+#include "ompl/extensions/morse/MorseProjection.h"
+#include "ompl/util/Console.h"
 #include <boost/thread.hpp>
 
 ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env) :
@@ -42,6 +43,12 @@ void ompl::control::MorseSimpleSetup::setup(void)
         OMPL_INFORM("Using default state validity checker for MORSE");
         si_->setStateValidityChecker(base::StateValidityCheckerPtr(new base::MorseStateValidityChecker(si_)));
     }
+    base::StateSpacePtr space = si_->getStateSpace();
+    if (!space->hasDefaultProjection())
+    {
+        OMPL_INFORM("Registering MorseProjection as default projection evaluator for MORSE");
+        space->registerDefaultProjection(base::ProjectionEvaluatorPtr(new base::MorseProjection(space)));
+    }
     if (pdef_->getStartStateCount() == 0)
     {
         OMPL_INFORM("Using the initial state of MORSE as the starting state for the planner");
@@ -66,26 +73,41 @@ void ompl::control::MorseSimpleSetup::playSolutionPath(double timeFactor) const
 
 void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const
 {
-    bool ctl = false;
-    if (dynamic_cast<PathControl*>(path.get()))
-        ctl = true;
-    else
-        if (!dynamic_cast<geometric::PathGeometric*>(path.get()))
-            throw Exception("Unknown type of path");
-
-    const geometric::PathGeometric &pg = ctl ?
-        static_cast<PathControl*>(path.get())->asGeometric() : *static_cast<geometric::PathGeometric*>(path.get());
-
-    if (pg.getStateCount() > 0)
+    PathControl *pc = dynamic_cast<PathControl*>(path.get());
+    if (pc)
     {
-        OMPL_DEBUG("Playing through %u states (%0.3f seconds)", (unsigned int)pg.getStateCount(),
-                   timeFactor * si_->getPropagationStepSize() * (double)(pg.getStateCount() - 1));
-        time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
-        getStateSpace()->as<base::MorseStateSpace>()->writeState(pg.getState(0));
-        for (unsigned int i = 1 ; i < pg.getStateCount() ; ++i)
+        //TODO halt rendering
+        geometric::PathGeometric pg = pc->asGeometric();
+        //TODO resume rendering
+        if (pg.getStateCount() > 0)
         {
-            boost::this_thread::sleep(d);
-            getStateSpace()->as<base::MorseStateSpace>()->writeState(pg.getState(i));
+            OMPL_INFORM("Playing through %u states (%0.3f seconds)", (unsigned int)pg.getStateCount(),
+                       timeFactor * si_->getPropagationStepSize() * (double)(pg.getStateCount() - 1));
+            double d = timeFactor * si_->getPropagationStepSize();
+            getStateSpace()->as<base::MorseStateSpace>()->writeState(pg.getState(0));
+            for (unsigned int i = 1 ; i < pg.getStateCount() ; ++i)
+            {
+                getEnvironment()->worldStep(d);
+                getStateSpace()->as<base::MorseStateSpace>()->writeState(pg.getState(i));
+            }
+        }
+    }
+    else
+    {
+        geometric::PathGeometric *pg = dynamic_cast<geometric::PathGeometric*>(path.get());
+        if (!pg)
+            throw Exception("Unknown type of path");
+        if (pg->getStateCount() > 0)
+        {
+            OMPL_INFORM("Playing through %u states (%0.3f seconds)", (unsigned int)pg->getStateCount(),
+                       timeFactor * si_->getPropagationStepSize() * (double)(pg->getStateCount() - 1));
+            double d = timeFactor * si_->getPropagationStepSize();
+            getStateSpace()->as<base::MorseStateSpace>()->writeState(pg->getState(0));
+            for (unsigned int i = 1 ; i < pg->getStateCount() ; ++i)
+            {
+                getEnvironment()->worldStep(d);
+                getStateSpace()->as<base::MorseStateSpace>()->writeState(pg->getState(i));
+            }
         }
     }
 }

@@ -16,7 +16,8 @@ Files in this directory:
         MORSE builder script invoked when MORSE is started. Loads up the planning
         environment and sets up the game engine logic for communication with the planner.
     bgetest.blend
-        Where I'm doing my testing.
+        Where I'm doing my testing. There are two 'islands', with the goal on one and the
+        car and a ramp on the other.
     ompl_addon.py
         Addon script to be installed into Blender. Sets up some information in MORSE's
         configuration file, ~/.morse/config, and provides a menu with a "Plan..." button.
@@ -36,9 +37,11 @@ so that they point to your ompl_morse directory.
 
 It works if you run 'blender bgetest.blend' and
     1) You can find the OMPL submenu, and pressing "Plan..." successfully launches MORSE.
-    2) In MORSE the cube falls onto the car and jumps around because OMPL is saving/loading
-        various states during planning
-    3) OMPL finds a soluton after creating 11 states
+    2) In MORSE the car starts out in the gold region, and you can see OMPL planning for it.
+    3) If/when OMPL finds a solution, it will wait for you to press <Enter> on the terminal
+      before playing it (it plays twice).
+    4) The simulation will then exit on its own, or you can press <Esc> at any time to stop
+      it cleanly.
 
 
 

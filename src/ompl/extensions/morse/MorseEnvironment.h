@@ -10,6 +10,7 @@
 
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
+#include "boost/thread.hpp"
 
 #include <vector>
 
@@ -40,21 +41,22 @@ namespace ompl
             /** \brief The simulation step size */
             double stepSize_;
 
-            /** \brief The maximum number of times a control is applies in sequence */
-            unsigned int maxControlSteps_;
-
             /** \brief The minimum number of times a control is applies in sequence */
             unsigned int minControlSteps_;
 
+            /** \brief The maximum number of times a control is applies in sequence */
+            unsigned int maxControlSteps_;
+            
             /** \brief Lock to use when performing simulations in the world */
             mutable boost::mutex mutex_;
 
             MorseEnvironment(const unsigned int rigidBodies, const unsigned int controlDim,
                 const std::vector<double> &controlBounds, const std::vector<double> &positionBounds,
-                const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds)
+                const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds,
+                const unsigned int minControlSteps, const unsigned int maxControlSteps)
                  : rigidBodies_(rigidBodies), controlDim_(controlDim), controlBounds_(controlBounds),
                    positionBounds_(positionBounds), linvelBounds_(linvelBounds), angvelBounds_(angvelBounds),
-                   stepSize_(1.0/60), maxControlSteps_(100), minControlSteps_(5)
+                   stepSize_(1.0/60), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps)
             {
             }
 

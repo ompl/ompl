@@ -33,7 +33,7 @@ class Plan(bpy.types.Operator):
         print('Starting planner...')
         print(bpy.data.filepath)
         #old MORSE interface: subprocess.call(['morse', '-c', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
-        subprocess.call(['morse', '-c', 'run', 'builder.py', '--', bpy.data.filepath])
+        subprocess.call(['morse', '-c', 'run', OMPL_DIR+'/scripts/morse/builder.py', '--', bpy.data.filepath])
         
         return {'FINISHED'}
 
