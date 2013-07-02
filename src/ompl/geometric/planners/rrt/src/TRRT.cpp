@@ -475,7 +475,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double randMotionDistance)
         // participates in the tree refinement
 
         // check our ratio first before accepting it
-        if (nonfrontierCount_ / frontierCount_ > frontierNodeRatio_)
+        if ((double)nonfrontierCount_ / (double)frontierCount_ > frontierNodeRatio_)
         {
             // Increment so that the temperature rises faster
             ++numStatesFailed_;
