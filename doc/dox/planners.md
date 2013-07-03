@@ -7,26 +7,26 @@ This set of planners only accounts for the geometric constraints of the system. 
 - [Kinematic Planning by Interior-Exterior Cell Exploration (KPIECE)](\ref gKPIECE1)
 - [Bi-directrional KPIECE (BKPIECE)](\ref gBKPIECE1)
 - [Lazy Bi-directional KPIECE (LBKPIECE)](\ref gLBKPIECE1)
-
+.
 - [Single-query Bi-directional Lazy collision checking planner (SBL)](\ref gSBL)
 - [Parallel Single-query Bi-directional Lazy collision checking planner (pSBL)](\ref gpSBL)
-
+.
 - [Expansive Space Trees (EST)](\ref gEST)
-
+.
 - [Path-Directed Subdivision Trees (PDST)](\ref gPDST)
-
+.
 - [Rapidly-exploring Random Trees (RRT)](\ref gRRT)
 - [RRT Connect (RRTConnect)](\ref gRRTC)
 - [Parallel RRT (pRRT)](\ref gpRRT)
 - [Lazy RRT (LazyRRT)](\ref gLazyRRT)
-
+.
 - [Probabilistic RoadMaps (PRM)](\ref gPRM)
 - [PRM*](\ref gPRMstar)
 - [LazyPRM](\ref gLazyPRM)
-
+.
 - [RRT*](\ref gRRTstar)
 - [Ball Tree RRT*](\ref gBallTreeRRTstar)
-
+.
 - [Transition-based RRT (T-RRT)](\ref gTRRT)
 
 Other tools:
@@ -41,7 +41,6 @@ Other tools:
 - [Rapidly-exploring Random Trees (RRT)](\ref cRRT)
 - [Expansive Space Trees (EST)](\ref cEST)
 - [Path-Directed Subdivision Trees (PDST)](\ref cPDST)
-
 - [Syclop, a meta planner that uses other planners at a lower level](\ref cSyclop):
    - [Syclop using RRT as the low-level planner](\ref cSyclopRRT)
    - [Syclop using EST as the low-level planner](\ref cSyclopEST)

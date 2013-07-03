@@ -549,7 +549,7 @@ public:
         if (verbose_)
             printf("\n========= Running simple test\n\n");
         simpleTest(p);
-        
+
         if (verbose_)
             printf("\n========= Running 2D map test\n\n");
         run2DMapTest(p, &success, &avgruntime, &avglength);
