@@ -37,9 +37,7 @@
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
-#include "ompl/datastructures/NearestNeighborsLinear.h"
-#include "ompl/datastructures/PDF.h"
-#include <boost/lambda/bind.hpp>
+#include <boost/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
@@ -47,28 +45,6 @@
 
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
-
-namespace ompl
-{
-    namespace magic
-    {
-        /** \brief Maximum number of sampling attempts to find a valid state,
-            without checking whether the allowed time elapsed. This value
-            should not really be changed. */
-        static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
-
-        /** \brief The number of steps to take for a random bounce
-            motion generated as part of the expansion step of SPARS. */
-        static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 5;
-
-        /** \brief The number of nearest neighbors to consider by
-            default in the construction of the SPARS roadmap */
-        static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 100;
-
-        /** \brief The time in seconds for a single roadmap building operation (dt)*/
-        static const double ROADMAP_BUILD_TIME = 0.2;
-    }
-}
 
 ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     base::Planner(si, "SPARS"),
@@ -284,9 +260,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     unsigned int nrStartStates = boost::num_vertices(g_);
     OMPL_INFORM("Starting with %u states", nrStartStates);
 
-    std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
-    si_->allocStates(xstates);
-
     // Reset addedSolution_ member
     base::PathPtr sol;
     sol.reset();
@@ -339,8 +312,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     {
         pdef_->addSolutionPath (sol, false);
     }
-
-    si_->freeStates(xstates);
 
     // Return true if any solution was found.
     return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;

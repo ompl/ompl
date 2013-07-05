@@ -47,28 +47,6 @@
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
 
-namespace ompl
-{
-    namespace magic
-    {
-        /** \brief Maximum number of sampling attempts to find a valid state,
-            without checking whether the allowed time elapsed. This value
-            should not really be changed. */
-        static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
-
-        /** \brief The number of steps to take for a random bounce
-            motion generated as part of the expansion step of SPARStwo. */
-        static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 5;
-
-        /** \brief The number of nearest neighbors to consider by
-            default in the construction of the SPARStwo roadmap */
-        static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
-
-        /** \brief The time in seconds for a single roadmap building operation (dt)*/
-        static const double ROADMAP_BUILD_TIME = 0.2;
-    }
-}
-
 ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     base::Planner(si, "SPARStwo"),
     stretchFactor_(3),
@@ -159,7 +137,7 @@ void ompl::geometric::SPARStwo::freeMemory(void)
 
     foreach (Vertex v, boost::vertices(g_))
     {
-        foreach( interfaceData d, interfaceDataProperty_[v] | boost::adaptors::map_values )
+        foreach( InterfaceData d, interfaceDataProperty_[v] | boost::adaptors::map_values )
         {
             clearInterfaceData( d, si_ );
         }
@@ -185,7 +163,6 @@ ompl::base::State* ompl::geometric::SPARStwo::sample( void )
 bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sl = -1.0; // cache for solution length
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -266,7 +243,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
 
     unsigned int nrStartStates = boost::num_vertices(g_);
     OMPL_INFORM("Starting with %u states", nrStartStates);
-    bool grow = true;
 
     // Reset addedSolution_ member
     addedSolution_ = false;
@@ -442,7 +418,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                 }
             }
             
-            interfaceData& d = getData( v, r, rp );
+            InterfaceData& d = getData( v, r, rp );
             
             //Then, if the spanner property is violated
             if( rm_dist > stretchFactor_ * d.d_ )
@@ -664,7 +640,7 @@ void ompl::geometric::SPARStwo::computeX( Vertex v, Vertex vp, Vertex vpp )
     {
         if( boost::edge( cx, v, g_ ).second && !boost::edge( cx, vp, g_ ).second )
         {
-            interfaceData& d = getData( v, vpp, cx );
+            InterfaceData& d = getData( v, vpp, cx );
             if( vpp < cx && d.points_.first.get() != NULL )
             {
                 Xs_.push_back( cx );
@@ -678,15 +654,15 @@ void ompl::geometric::SPARStwo::computeX( Vertex v, Vertex vp, Vertex vpp )
     Xs_.push_back( vpp );
 }
 
-ompl::geometric::SPARStwo::vertexPair ompl::geometric::SPARStwo::index( Vertex vp, Vertex vpp )
+ompl::geometric::SPARStwo::VertexPair ompl::geometric::SPARStwo::index( Vertex vp, Vertex vpp )
 {
     if( vp < vpp )
     {
-        return vertexPair( vp, vpp );
+        return VertexPair( vp, vpp );
     }
     else if( vpp < vp )
     {
-        return vertexPair( vpp, vp );
+        return VertexPair( vpp, vp );
     }
     else
     {
@@ -694,23 +670,20 @@ ompl::geometric::SPARStwo::vertexPair ompl::geometric::SPARStwo::index( Vertex v
     }
 }
 
-ompl::geometric::SPARStwo::interfaceData& ompl::geometric::SPARStwo::getData( Vertex v, Vertex vp, Vertex vpp )
+ompl::geometric::SPARStwo::InterfaceData& ompl::geometric::SPARStwo::getData( Vertex v, Vertex vp, Vertex vpp )
 {
-    vertexPair r = index( vp, vpp );
-    interfaceData& d = interfaceDataProperty_[v][r];
-    return d;
+    return interfaceDataProperty_[v][index( vp, vpp )];
 }
 
-void ompl::geometric::SPARStwo::setData( Vertex v, Vertex vp, Vertex vpp, const interfaceData& d )
+void ompl::geometric::SPARStwo::setData( Vertex v, Vertex vp, Vertex vpp, const InterfaceData& d )
 {
-    vertexPair r = index( vp, vpp );
-    interfaceDataProperty_[v][r] = d;
+    interfaceDataProperty_[v][index( vp, vpp )] = d;
 }
 
 void ompl::geometric::SPARStwo::distanceCheck( Vertex rep, const safeState& q, Vertex r, const safeState& s, Vertex rp )
 {
     //Get the info for the current representative-neighbors pair
-    interfaceData& d = getData( rep, r, rp );
+    InterfaceData& d = getData( rep, r, rp );
     
     if( r < rp ) // FIRST points represent r (the guy discovered through sampling)
     {
@@ -780,10 +753,9 @@ void ompl::geometric::SPARStwo::abandonLists( base::State* st )
 
 void ompl::geometric::SPARStwo::deletePairInfo( Vertex v )
 {
-    foreach( vertexPair r, interfaceDataProperty_[v] | boost::adaptors::map_keys )
+    foreach (VertexPair r, interfaceDataProperty_[v] | boost::adaptors::map_keys)
     {
-        interfaceData& d = interfaceDataProperty_[v][r];
-        clearInterfaceData( d, si_ );
+        clearInterfaceData( interfaceDataProperty_[v][r], si_ );
     }
 }
 
@@ -887,7 +859,7 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
     }
     
     // Make sure to add edge-less nodes as well
-    foreach(const Vertex n, boost::vertices(g_))
+    foreach (const Vertex n, boost::vertices(g_))
     {
         if( boost::out_degree( n, g_ ) == 0 )
         {

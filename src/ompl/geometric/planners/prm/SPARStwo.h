@@ -135,11 +135,11 @@ namespace ompl
             /** \brief Pair of safe states which support an interface. */
             typedef std::pair< safeState, safeState > safeStatePair;
             /** \brief Pair of vertices which support an interface. */
-            typedef std::pair< unsigned long, unsigned long > vertexPair;
+            typedef std::pair< unsigned long, unsigned long > VertexPair;
             
         public:
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
-            struct interfaceData
+            struct InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
                 safeStatePair points_;
@@ -149,7 +149,7 @@ namespace ompl
                 double      d_;
                 
                 /** \brief Constructor */
-                interfaceData( void )
+                InterfaceData( void )
                 {
                     d_ = std::numeric_limits<double>::infinity();
                 }
@@ -190,7 +190,7 @@ namespace ompl
             
         protected:
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
-            typedef boost::unordered_map< vertexPair, interfaceData, boost::hash< vertexPair > > interfaceHash;
+            typedef boost::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
 
         public:
 
@@ -227,7 +227,7 @@ namespace ompl
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
                 boost::property < boost::vertex_rank_t, unsigned long int,
                 boost::property < vertex_color_t, unsigned int,
-                boost::property < vertex_interface_data_t, interfaceHash > > > > >,
+                boost::property < vertex_interface_data_t, InterfaceHash > > > > >,
                 boost::property < boost::edge_weight_t, double >
             > Graph;
 
@@ -398,12 +398,12 @@ namespace ompl
             void computeX( Vertex v, Vertex vp, Vertex vpp );
 
             /** \brief Rectifies indexing order for accessing the vertex data */
-            vertexPair index( Vertex vp, Vertex vpp );
+            VertexPair index( Vertex vp, Vertex vpp );
             
             /** \brief Retrieves the Vertex data associated with v,vp,vpp */
-            interfaceData& getData( Vertex v, Vertex vp, Vertex vpp );
+            InterfaceData& getData( Vertex v, Vertex vp, Vertex vpp );
             
-            void setData( Vertex v, Vertex vp, Vertex vpp, const interfaceData& d );
+            void setData( Vertex v, Vertex vp, Vertex vpp, const InterfaceData& d );
             
             /** \brief Performs distance checking for the candidate new state, q against the current information */
             void distanceCheck( Vertex rep, const safeState& q, Vertex r, const safeState& s, Vertex rp );
@@ -532,7 +532,7 @@ namespace ompl
             
         private:
             /** \brief Clears the given interface data. */
-            void clearInterfaceData( interfaceData& iData, const base::SpaceInformationPtr& si )
+            void clearInterfaceData( InterfaceData& iData, const base::SpaceInformationPtr& si )
             {
                 clearSafeState( iData.points_.first, si );
                 clearSafeState( iData.points_.second, si );
