@@ -234,17 +234,9 @@ namespace ompl
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
             typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
 
-            /** @brief A function returning the milestones that should be
-             * attempted to connect to
-             *
-             * @note Can't use the prefered boost::function syntax here because
-             * the Python bindings don't like it.
-             */
-            typedef boost::function<std::vector<Vertex>&(const Vertex)>
-                ConnectionStrategy;
-
             /** \brief Constructor */
-            SPARStwo(const base::SpaceInformationPtr &si );
+            SPARStwo(const base::SpaceInformationPtr &si);
+
             /** \brief Destructor */
             virtual ~SPARStwo(void);
 
@@ -332,7 +324,6 @@ namespace ompl
             void setNearestNeighbors(void)
             {
                 nn_.reset(new NN< Vertex >());
-                connectionStrategy_.clear();
                 if (isSetup())
                     setup();
             }
@@ -352,8 +343,6 @@ namespace ompl
             }
 
         protected:
-            /** \brief Roadmap Nearest Neighbors structure. */
-            typedef boost::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
 
             /** \brief Sample a valid random state, storing it in qNew_ (and returning it) */
             virtual base::State* sample( void );
@@ -442,7 +431,7 @@ namespace ompl
             base::StateSamplerPtr                                               simpleSampler_;
 
             /** \brief Nearest neighbors data structure */
-            RoadmapNeighbors                                                    nn_;
+            boost::shared_ptr< NearestNeighbors<Vertex> >                       nn_;
 
             /** \brief Connectivity graph */
             Graph                                                               g_;
@@ -514,10 +503,6 @@ namespace ompl
                 boost::property_map<Graph, boost::vertex_rank_t>::type,
                 boost::property_map<Graph, boost::vertex_predecessor_t>::type >
                                                                                 disjointSets_;
-
-            /** \brief Function that returns the milestones to attempt connections with */
-            ConnectionStrategy                                                  connectionStrategy_;
-
             /** \brief Random number generator */
             RNG                                                                 rng_;
 
