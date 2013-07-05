@@ -1,6 +1,6 @@
 /*********************************************************************
 *  @copyright Software License Agreement (BSD License)
-*  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick 
+*  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
 *  All Rights Reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ namespace ompl
                 INTERFACE,
                 QUALITY,
             };
-            
+
         protected:
             /** \brief containers for states which keep NULL safety at all times */
             class safeState
@@ -95,48 +95,48 @@ namespace ompl
             public:
                 /** \brief State which this object keeps in a safe state. */
                 base::State* st_;
-                
+
                 safeState( void )
                 {
                     st_ = NULL;
                 }
-                
+
                 /** \brief Parameterized constructor which takes a state. */
                 safeState( base::State* state )
                 {
                     st_ = state;
                 }
-                
+
                 /** \brief Assignment of a state. */
                 void operator=( base::State* state )
                 {
                     st_ = state;
                 }
-                
+
                 /** \brief Retrieval method for an actual state. */
                 base::State* get( void )
                 {
                     return st_;
                 }
-                
+
                 /** \brief Const retrieval method for an actual state. */
                 const base::State* get( void ) const
                 {
                     return st_;
                 }
-                
+
                 /** \brief Sets the internal state pointer to NULL */
                 void setNull( void )
                 {
                     st_ = NULL;
                 }
             };
-            
+
             /** \brief Pair of safe states which support an interface. */
             typedef std::pair< safeState, safeState > safeStatePair;
             /** \brief Pair of vertices which support an interface. */
             typedef std::pair< unsigned long, unsigned long > VertexPair;
-            
+
         public:
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
             struct InterfaceData
@@ -147,13 +147,13 @@ namespace ompl
                 safeStatePair sigmas_;
                 /** \brief Last known distance between the two interfaces supported by points_ and sigmas_. */
                 double      d_;
-                
+
                 /** \brief Constructor */
                 InterfaceData( void )
                 {
                     d_ = std::numeric_limits<double>::infinity();
                 }
-                
+
                 /** \brief Sets information for the first interface (i.e. interface with smaller index vertex). */
                 void setFirst( const safeState& p, const safeState& s, const base::SpaceInformationPtr& si )
                 {
@@ -163,13 +163,13 @@ namespace ompl
                     if( sigmas_.first.get() != NULL )
                         si->freeState( sigmas_.first.get() );
                     sigmas_.first = si->cloneState( s.get() );
-                    
+
                     if( points_.second.get() != NULL )
                     {
                         d_ = si->distance( points_.first.get(), points_.second.get() );
                     }
                 }
-                
+
                 /** \brief Sets information for the second interface (i.e. interface with larger index vertex). */
                 void setSecond( const safeState& p, const safeState& s, const base::SpaceInformationPtr& si )
                 {
@@ -179,15 +179,15 @@ namespace ompl
                     if( sigmas_.second.get() != NULL )
                         si->freeState( sigmas_.second.get() );
                     sigmas_.second = si->cloneState( s.get() );
-                    
+
                     if( points_.first.get() != NULL )
                     {
                         d_ = si->distance( points_.first.get(), points_.second.get() );
                     }
                 }
-                
+
             };
-            
+
         protected:
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
             typedef boost::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
@@ -197,15 +197,15 @@ namespace ompl
             struct vertex_state_t {
                 typedef boost::vertex_property_tag kind;
             };
-            
+
             struct vertex_color_t {
                 typedef boost::vertex_property_tag kind;
             };
-            
+
             struct vertex_interface_data_t {
                 typedef boost::vertex_property_tag kind;
             };
-            
+
             /**
              @brief The underlying roadmap graph.
 
@@ -255,43 +255,43 @@ namespace ompl
             {
                 stretchFactor_ = t;
             }
-            
+
             /** \brief Sets vertex visibility range */
             void setSparseDelta( double D )
             {
                 sparseDelta_ = D;
             }
-            
+
             /** \brief Sets interface support tolerance */
             void setDenseDelta( double d )
             {
                 denseDelta_ = d;
             }
-            
+
             /** \brief Sets the maximum failures until termination */
             void setMaxFailures( unsigned int m )
             {
                 maxFailures_ = m;
             }
-            
+
             /** \brief Retrieve the maximum consecutive failure limit. */
             unsigned getMaxFailures( ) const
             {
                 return maxFailures_;
             }
-            
+
             /** \brief Retrieve the dense graph interface support delta. */
             double getDenseDelta( ) const
             {
                 return denseDelta_;
             }
-            
+
             /** \brief Retrieve the sparse graph visibility range delta. */
             double getSparseDelta( ) const
             {
                 return sparseDelta_;
             }
-            
+
             /** \brief Retrieve the spanner's set stretch factor. */
             double getStretchFactor( ) const
             {
@@ -300,7 +300,7 @@ namespace ompl
 
 
             virtual void getPlannerData(base::PlannerData &data) const;
-            
+
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
                 the same problem, without calling clear() in
@@ -315,7 +315,7 @@ namespace ompl
                 the clearQuery() function. */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief Alternate solve call with maximum failures as a 
+            /** \brief Alternate solve call with maximum failures as a
                 function parameter.  Overwrites the parameter member maxFailures_. */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail );
 
@@ -350,44 +350,44 @@ namespace ompl
             {
                 return boost::num_vertices(g_);
             }
-            
+
         protected:
             /** \brief Roadmap Nearest Neighbors structure. */
             typedef boost::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
-            
+
             /** \brief Sample a valid random state, storing it in qNew_ (and returning it) */
             virtual base::State* sample( void );
-            
+
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
 
             /** \brief Checks to see if the sample needs to be added to ensure coverage of the space */
             bool checkAddCoverage( void );
-            
+
             /** \brief Checks to see if the sample needs to be added to ensure connectivity */
             bool checkAddConnectivity( void );
 
             /** \brief Checks to see if the current sample reveals the existence of an interface, and if so, tries to bridge it. */
             bool checkAddInterface( void );
-            
+
             /** \brief Checks vertex v for short paths through its region and adds when appropriate. */
             bool checkAddPath( Vertex v );
-            
+
             /** \brief A reset function for resetting the failures count */
             void resetFailures( void );
-            
+
             /** \brief Finds visible nodes in the graph near st */
             void findGraphNeighbors(  base::State* st );
-            
+
             /** \brief Approaches the graph from a given vertex */
             void approachGraph( Vertex v );
-            
+
             /** \brief Finds the representative of the input state, st  */
             void findGraphRepresentative( base::State* st );
-            
+
             /** \brief Finds representatives of samples near qNew_ which are not his representative */
             void findCloseRepresentatives();
-            
+
             /** \brief High-level method which updates pair point information for repV_ with neighbor r */
             void updatePairPoints( Vertex rep, const safeState& q, Vertex r, const safeState& s );
 
@@ -399,27 +399,27 @@ namespace ompl
 
             /** \brief Rectifies indexing order for accessing the vertex data */
             VertexPair index( Vertex vp, Vertex vpp );
-            
+
             /** \brief Retrieves the Vertex data associated with v,vp,vpp */
             InterfaceData& getData( Vertex v, Vertex vp, Vertex vpp );
-            
+
             void setData( Vertex v, Vertex vp, Vertex vpp, const InterfaceData& d );
-            
+
             /** \brief Performs distance checking for the candidate new state, q against the current information */
             void distanceCheck( Vertex rep, const safeState& q, Vertex r, const safeState& s, Vertex rp );
 
             /** \brief When a new guard is added at state st, finds all guards who must abandon their interface information and deletes that information */
             void abandonLists( base::State* st );
-            
+
             /** \brief Deletes all the states in a vertex's lists */
             void deletePairInfo( Vertex v );
-            
+
             /** \brief Construct a guard for a given state (\e state) and store it in the nearest neighbors data structure */
             virtual Vertex addGuard( base::State *state, GuardType type);
 
             /** \brief Connect two guards in the roadmap */
             virtual void connect( Vertex v, Vertex vp );
-            
+
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
 
@@ -431,7 +431,7 @@ namespace ompl
 
             /** \brief Returns whether we have reached the iteration failures limit, maxFailures_ */
             bool reachedFailureLimit (void) const;
-            
+
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             virtual base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
 
@@ -452,10 +452,10 @@ namespace ompl
 
             /** \brief Array of goal milestones */
             std::vector<Vertex>                                                 goalM_;
-            
+
             /** \brief Vertex for performing nearest neighbor queries. */
             Vertex                                                              queryVertex_;
-            
+
             /** \brief Stretch Factor as per graph spanner literature (multiplicative bound on path quality) */
             double                                                              stretchFactor_;
 
@@ -467,33 +467,33 @@ namespace ompl
 
             /** \brief The number of consecutive failures to add to the graph before termination */
             unsigned int                                                        maxFailures_;
-            
+
             /** \brief Number of sample points to use when trying to detect interfaces. */
             unsigned int                                                        nearSamplePoints_;
-            
+
             /** \brief A pointer to the most recent sample we have come up with */
             base::State*                                                        qNew_;
-            
+
             /** \brief A pointer holding a temporary state used for additional sampling processes */
             base::State*                                                        holdState_;
-            
+
             /** \brief The whole neighborhood set which has been most recently computed */
             std::vector< Vertex >                                               graphNeighborhood_;
-            
+
             /** \brief The visible neighborhood set which has been most recently computed */
             std::vector< Vertex >                                               visibleNeighborhood_;
-            
+
             /** \brief The representatives of nodes near a sample.  Filled by getCloseRepresentatives(). */
             std::pair< std::vector< Vertex >, std::vector< base::State* > >     closeRepresentatives_;
-            
+
             /** \brief Candidate v" vertices as described in the method, filled by function computeVPP(). */
             std::vector< Vertex >                                               VPPs_;
             /** \brief Candidate x vertices as described in the method, filled by function computeX(). */
             std::vector< Vertex >                                               Xs_;
-            
+
             /** \brief A holder to remember who qNew_'s representative in the graph is. */
             Vertex                                                              repV_;
-            
+
             /** \brief Access to the internal base::state at each Vertex */
             boost::property_map<Graph, vertex_state_t>::type                    stateProperty_;
 
@@ -502,10 +502,10 @@ namespace ompl
 
             /** \brief Access to the weights of each Edge */
             boost::property_map<Graph, boost::edge_weight_t>::type              weightProperty_;
-            
+
             /** \brief Access to the colors for the vertices */
             boost::property_map<Graph, vertex_color_t>::type                    colorProperty_;
-            
+
             /** \brief Access to the interface pair information for the vertices */
             boost::property_map<Graph, vertex_interface_data_t>::type           interfaceDataProperty_;
 
@@ -526,10 +526,10 @@ namespace ompl
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                                graphMutex_;
-            
+
             /** \brief A counter for the number of iterations of the algorithm */
             unsigned int                                                        iterations_;
-            
+
         private:
             /** \brief Clears the given interface data. */
             void clearInterfaceData( InterfaceData& iData, const base::SpaceInformationPtr& si )
