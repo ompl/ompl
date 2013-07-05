@@ -190,7 +190,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample( void )
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::State *workState)
 {
     bool found = false;
-    DenseVertex ret = NULL;
+    DenseVertex ret = boost::graph_traits<DenseGraph>::null_vertex();
     do 
     {
         found = sampler_->sample(workState);
@@ -203,7 +203,6 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::Stat
 bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts, const std::vector<DenseVertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sl = -1.0; // cache for solution length
     foreach (DenseVertex start, starts)
     {
         foreach (DenseVertex goal, goals)
@@ -287,7 +286,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
-    bool grow = true;
 
     // Reset addedSolution_ member
     base::PathPtr sol;
@@ -370,7 +368,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::S
         if (si_->checkMotion(stateProperty_[m], stateProperty_[n]))
         {
             const double weight = distanceFunction(m, n);
-            const Graph::edge_property_type properties(weight);
+            const DenseGraph::edge_property_type properties(weight);
             
             boost::add_edge(m, n, properties, g_);
         }
@@ -425,7 +423,7 @@ void ompl::geometric::SPARS::connectSparsePoints( SparseVertex v, SparseVertex v
 void ompl::geometric::SPARS::connectDensePoints( DenseVertex v, DenseVertex vp )
 {
     const double weight = distanceFunction(v, vp);
-    const Graph::edge_property_type properties( weight );
+    const DenseGraph::edge_property_type properties( weight );
     boost::add_edge(v, vp, properties, g_);
 }
 
@@ -450,10 +448,10 @@ bool ompl::geometric::SPARS::checkAddConnectivity( const std::vector<SparseVerte
 {
     std::vector< SparseVertex > links;
     //For each neighbor
-    for( size_t i=0; i<neigh.size(); ++i )
+    for (std::size_t i = 0; i < neigh.size(); ++i )
     {
         //For each other neighbor
-        for( size_t j=i+1; j<neigh.size(); ++j )
+        for (std::size_t j = i + 1; j < neigh.size(); ++j )
         {
             //If they are in different components
             if( !boost::same_component( neigh[i], neigh[j], sparseDJSets_ ) )
@@ -565,10 +563,10 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
             }
             
             std::deque< base::State* > bestDPath;
-            DenseVertex best_qpp = NULL;
+            DenseVertex best_qpp = boost::graph_traits<DenseGraph>::null_vertex();
             double d_min = std::numeric_limits<double>::infinity(); //Insanely big number
-                                         //For each vpp in vpps
-            for( size_t j=0; j<VPPs_.size() && !ret; ++j )
+            //For each vpp in vpps
+            for (std::size_t j = 0; j < VPPs_.size() && !ret; ++j)
             {
                 SparseVertex vpp = VPPs_[j];
                 //For each q", which are stored interface nodes on v for i(vpp,v)
@@ -631,39 +629,40 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
     return ret;
 }
 
-double ompl::geometric::SPARS::avgValence( void ) const
+double ompl::geometric::SPARS::avgValence(void) const
 {
-    double degree = 0;
-    foreach( DenseVertex v, boost::vertices(s_))
+    double degree = 0.0;
+    foreach (DenseVertex v, boost::vertices(s_))
     {
-        degree += (double)boost::out_degree( v, s_ );
+        degree += (double)boost::out_degree(v, s_);
     }
-    degree /= (double)boost::num_vertices( s_ );
+    degree /= (double)boost::num_vertices(s_);
     return degree;
 }
 
-void ompl::geometric::SPARS::resetFailures( void )
+void ompl::geometric::SPARS::resetFailures(void)
 {
     iterations_ = 0;
 }
 
-void ompl::geometric::SPARS::approachGraph( DenseVertex v )
+void ompl::geometric::SPARS::approachGraph(DenseVertex v)
 {
-    std::vector< DenseVertex > hold;
-    nn_->nearestR( v, 3*denseDelta_, hold );
-    
+    std::vector<DenseVertex> hold;
+    nn_->nearestR( v, 3.0 * denseDelta_, hold );
+    // \todo what is 3  here? A magic constant?
+
     std::vector< DenseVertex > neigh;
-    for( unsigned int i=0; i<hold.size(); ++i )
+    for (std::size_t i = 0; i < hold.size() ; ++i)
     {
-        if( si_->checkMotion( stateProperty_[v], stateProperty_[hold[i]] ) )
+        if (si_->checkMotion(stateProperty_[v], stateProperty_[hold[i]]))
         {
-            neigh.push_back( hold[i] );
+            neigh.push_back(hold[i]);
         }
     }
     
-    foreach( DenseVertex vp, neigh )
+    foreach (DenseVertex vp, neigh)
     {
-        connectDensePoints( v, vp );
+        connectDensePoints(v, vp);
     }
 }
 
@@ -1010,14 +1009,9 @@ void ompl::geometric::SPARS::densePath( const DenseVertex start, const DenseVert
 
 double ompl::geometric::SPARS::pathLength() const
 {
-    double l = 0;
-    if( path_.size() == 0 )
-        return l;
-    
-    for( unsigned int i=0; i<path_.size()-1; ++i )
-    {
-        l += si_->distance( path_[i], path_[i+1] );
-    }
+    double l = 0.0;    
+    for (std::size_t i = 1; i < path_.size(); ++i)
+        l += si_->distance(path_[i-1], path_[i]);
     return l;
 }
 
@@ -1026,14 +1020,14 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
     Planner::getPlannerData(data);
 
     // Explicitly add start and goal states:
-    for (size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(sparseStateProperty_[startM_[i]], 4));
+    for (std::size_t i = 0; i < startM_.size(); ++i)
+        data.addStartVertex(base::PlannerDataVertex(sparseStateProperty_[startM_[i]]));
 
-    for (size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(sparseStateProperty_[goalM_[i]], 4));
+    for (std::size_t i = 0; i < goalM_.size(); ++i)
+        data.addGoalVertex(base::PlannerDataVertex(sparseStateProperty_[goalM_[i]]));
 
     // Adding edges and all other vertices simultaneously
-    foreach(const SparseEdge e, boost::edges(s_))
+    foreach (const SparseEdge e, boost::edges(s_))
     {
         const SparseVertex v1 = boost::source(e, s_);
         const SparseVertex v2 = boost::target(e, s_);
@@ -1046,11 +1040,11 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
     }
     
     // Make sure to add edge-less nodes as well
-    foreach(const SparseVertex n, boost::vertices(s_))
+    foreach (const SparseVertex n, boost::vertices(s_))
     {
-        if( boost::out_degree( n, s_ ) == 0 )
+        if (boost::out_degree( n, s_ ) == 0)
         {
-            data.addVertex( base::PlannerDataVertex(sparseStateProperty_[n], sparseColorProperty_[n] ) );
+            data.addVertex( base::PlannerDataVertex(sparseStateProperty_[n], sparseColorProperty_[n]));
         }
     }
 }

@@ -108,13 +108,8 @@ namespace ompl
             };
 
             /** \brief Hash for storing interface information. */
-            typedef boost::unordered_map< unsigned int, std::list< unsigned int >, boost::hash<unsigned int> > interfaceHash;
+            typedef boost::unordered_map< unsigned int, std::list< unsigned int >, boost::hash<unsigned int> > InterfaceHash;
 
-            /** \brief Iterator for the interface information hash. */
-            typedef boost::unordered_map< unsigned int, std::list< unsigned int>, boost::hash< unsigned int > >::iterator IH_iterator;
-            /** \brief Const iterator for the interface information hash. */
-            typedef boost::unordered_map< unsigned int, std::list< unsigned int>, boost::hash< unsigned int > >::const_iterator const_IH_iterator;
-            
             /**
              @brief The constructed roadmap spanner.
              
@@ -134,7 +129,7 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, unsigned long int,
                 boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_list_t, std::list< unsigned int >,
-                boost::property < vertex_interface_list_t, interfaceHash > > > > > >,
+                boost::property < vertex_interface_list_t, InterfaceHash > > > > > >,
                 boost::property < boost::edge_weight_t, double >
             > SpannerGraph;
             
@@ -171,10 +166,10 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, unsigned long int,
                 boost::property < vertex_representative_t, SparseVertex > > > >,
                 boost::property < boost::edge_weight_t, double >
-            > Graph;
+            > DenseGraph;
             
-            typedef boost::graph_traits<Graph>::vertex_descriptor DenseVertex;
-            typedef boost::graph_traits<Graph>::edge_descriptor   DenseEdge;
+            typedef boost::graph_traits<DenseGraph>::vertex_descriptor DenseVertex;
+            typedef boost::graph_traits<DenseGraph>::edge_descriptor   DenseEdge;
 
             typedef boost::shared_ptr< NearestNeighbors<DenseVertex> > DenseNeighbors;
 
@@ -319,7 +314,7 @@ namespace ompl
 
             /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM*
                 and asymptotically approximates best paths through the space. */
-            const Graph& getGraph(void) const
+            const DenseGraph& getDenseGraph(void) const
             {
                 return g_;
             }
@@ -389,6 +384,7 @@ namespace ompl
             
             /** \brief Function for approaching the graph. */
             void approachGraph( DenseVertex v );
+
             /** \brief Function for approaching the roadmap spanner. */
             void approachSpanner( SparseVertex n );
                         
@@ -453,7 +449,7 @@ namespace ompl
             SparseNeighbors                                                     snn_;
             
             /** \brief The dense graph, D */
-            Graph                                                               g_;
+            DenseGraph                                                          g_;
             
             /** \brief The sparse roadmap, S */
             SpannerGraph                                                        s_;
@@ -494,7 +490,7 @@ namespace ompl
             PathGeometric                                                       geomPath_;
 
             /** \brief Access to the internal base::state at each DenseVertex */
-            boost::property_map<Graph, vertex_state_t>::type                    stateProperty_;
+            boost::property_map<DenseGraph, vertex_state_t>::type               stateProperty_;
             
             /** \brief Access to the internal base::State for each SparseVertex of S */
             boost::property_map<SpannerGraph, vertex_state_t>::type             sparseStateProperty_;
@@ -503,7 +499,7 @@ namespace ompl
             boost::property_map<SpannerGraph, vertex_color_t>::type             sparseColorProperty_;
             
             /** \brief Access to the representatives of the Dense vertices */
-            boost::property_map<Graph, vertex_representative_t>::type           representativesProperty_;
+            boost::property_map<DenseGraph, vertex_representative_t>::type      representativesProperty_;
             
             /** \brief Access to all non-interface supporting vertices of the sparse nodes */
             boost::property_map<SpannerGraph, vertex_list_t>::type              nonInterfaceListsProperty_;
@@ -515,7 +511,7 @@ namespace ompl
             PathSimplifierPtr                                                   psimp_;
             
             /** \brief Access to the weights of each DenseEdge */
-            boost::property_map<Graph, boost::edge_weight_t>::type              weightProperty_;
+            boost::property_map<DenseGraph, boost::edge_weight_t>::type         weightProperty_;
             
             /** \brief Data structure that maintains the connected components of S */
             boost::disjoint_sets<
