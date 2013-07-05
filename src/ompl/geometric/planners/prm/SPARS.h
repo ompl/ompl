@@ -139,11 +139,6 @@ namespace ompl
             /** \brief Nearest neighbor structure which works over the SpannerGraph */
             typedef boost::shared_ptr< NearestNeighbors<SparseVertex> > SparseNeighbors;
 
-            /** \brief Connection strategy for the spanner. */
-            typedef boost::function<std::vector<SparseVertex>&(const SparseVertex)> SparseEdgeStrategy;
-            /** \brief Connection filter for the spanner. */
-            typedef boost::function<bool(const SparseVertex, const SparseVertex)> SparseEdgeFilter;
-
             /**
              @brief The underlying roadmap graph.
 
@@ -172,22 +167,6 @@ namespace ompl
             typedef boost::graph_traits<DenseGraph>::edge_descriptor   DenseEdge;
 
             typedef boost::shared_ptr< NearestNeighbors<DenseVertex> > DenseNeighbors;
-
-            /** @brief A function returning the milestones that should be
-             * attempted to connect to
-             *
-             * @note Can't use the prefered boost::function syntax here because
-             * the Python bindings don't like it.
-             */
-            typedef boost::function<std::vector<DenseVertex>&(const DenseVertex)>
-                ConnectionStrategy;
-
-            /** @brief A function that can reject connections.
-
-             This is called after previous connections from the neighbor list
-             have been added to the roadmap.
-             */
-            typedef boost::function<bool(const DenseVertex, const DenseVertex)> ConnectionFilter;
 
             /** \brief Constructor. */
             SPARS(const base::SpaceInformationPtr &si);
@@ -339,6 +318,14 @@ namespace ompl
             }
 
         protected:
+
+            /** @brief A function returning the milestones that should be
+             * attempted to connect to
+             *
+             * @note Can't use the prefered boost::function syntax here because
+             * the Python bindings don't like it.
+             */
+            typedef boost::function<std::vector<DenseVertex>&(const DenseVertex)> ConnectionStrategy;
 
             /** \brief Attempt to add a single sample to the roadmap. */
             virtual DenseVertex addSample();
