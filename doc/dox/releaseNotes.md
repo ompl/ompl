@@ -3,8 +3,10 @@
 
 # OMPL 0.13.0 (??/??/13)
 
-- Added a new planner: Path-Directed Subdivision Tree (PDST). There are actually two versions: one for geometric planning and one for control-based planning.
-- Added a new planner: Lazy PRM, a variant that lazily evaluates the validity of nodes and edges in a roadmap.
+- Added several new planners:
+    - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visbility-based PRM, but provide asymptotic near-optimality guarantees.
+    - Path-Directed Subdivision Tree (PDST). There are actually two versions: [one for geometric planning](\ref gPDST) and [one for control-based planning](\ref cPDST).
+    - [Lazy PRM](gLazyPRM), a variant that lazily evaluates the validity of nodes and edges in a roadmap.
 - Various improvements and bug fixes in the RRTstar and BallTreeRRTstar planners.
 - Various optimizations in the Syclop planner.
 - The Syclop planner can now operate over triangular decompositions. This is enabled if the [triangle](http://www.cs.cmu.edu/~quake/triangle.html) package is installed.
