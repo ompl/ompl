@@ -94,10 +94,6 @@ void ompl::geometric::SPARStwo::setup(void)
     if (!nn_)
         nn_.reset(new NearestNeighborsGNAT<Vertex>());
     nn_->setDistanceFunction(boost::bind(&SPARStwo::distanceFunction, this, _1, _2));
-    if (!connectionStrategy_)
-    {
-        connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&SPARStwo::milestoneCount, this), nn_, si_->getStateDimension());
-    }
 }
 
 void ompl::geometric::SPARStwo::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)

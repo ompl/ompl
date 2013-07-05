@@ -208,10 +208,20 @@ namespace ompl
             /** \brief Run simplification algorithms on the path as long as the termination condition does not become true */
             void simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc);
 
+            /** \brief Set this flag to false to avoid freeing the memory allocated for states that are removed from a path during simplification.
+                Setting this to true makes this free memory. Memory is freed by default (flag is true by default) */
+            void freeStates(bool flag);
+
+            /** \brief Return true if the memory of states is freed when they are removed from a path during simplification */
+            bool freeStates() const;
+
         protected:
 
             /** \brief The space information this path simplifier uses */
             base::SpaceInformationPtr si_;
+
+            /** \brief Flag indicating whether the states removed from a motion should be freed */
+            bool                      freeStates_;
 
             /** \brief Instance of random number generator */
             RNG                       rng_;
