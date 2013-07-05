@@ -201,7 +201,7 @@ For best performance, the [MinGW] compiler is recommended. Visual Studio can als
 - [MinGW][] (recommended) or Visual Studio compiler
 - [Boost], version 1.44 or greater.
 
-  It is recommended to make a complete Boost compilation from source.  If using Visual Studio, this process can be automated using the <a href="http://www.boostpro.com/download">BoostPro</a> installer. Once complete, set the environment variables <tt>BOOST_ROOT</tt> and <tt>BOOST_LIBRARYDIR</tt> to the locations where Boost and its libraries are installed.  The default locations are <tt>C:\\Boost</tt> and <tt>C:\\Boost\\lib</tt>.  Ensure that <tt>BOOST_LIBRARYDIR</tt> is also in the system PATH so that any necessary Boost dlls are loaded properly at runtime.
+  It is recommended to make a complete Boost compilation from source.  If using Visual Studio, this process can be automated using the [BoostPro](http://www.boostpro.com/download) installer. Once complete, set the environment variables <tt>BOOST_ROOT</tt> and <tt>BOOST_LIBRARYDIR</tt> to the locations where Boost and its libraries are installed.  The default locations are <tt>C:\\Boost</tt> and <tt>C:\\Boost\\lib</tt>.  Ensure that <tt>BOOST_LIBRARYDIR</tt> is also in the system PATH so that any necessary Boost dlls are loaded properly at runtime.
 
 
 ## Optional Dependencies (for Python bindings)
