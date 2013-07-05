@@ -583,18 +583,9 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
                         //If they happen to be the one and same node
                         if( q == qpp )
                         {
-                            DenseVertex junk;
-                            //Do a sanity check to make sure this TRULY is the case
-                            if( getInterfaceNeighbor( q, vp, junk ) && getInterfaceNeighbor( q, vpp, junk ) )
-                            {
-                                bestDPath.push_front( stateProperty_[q] );
-                                best_qpp = qpp;
-                                d_min = 0;
-                            }
-                            else
-                            {
-                                throw Exception(name_, "I don't even know what happened!");
-                            }
+                            bestDPath.push_front( stateProperty_[q] );
+                            best_qpp = qpp;
+                            d_min = 0;
                         }
                         else
                         {
@@ -618,10 +609,8 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
                 if( s_max > stretchFactor_* d_min )
                 {
                     //Need to augment this path with the appropriate neighbor information
-                    DenseVertex na;
-                    bool successa = getInterfaceNeighbor( q, vp, na );
-                    DenseVertex nb;
-                    bool successb = getInterfaceNeighbor( best_qpp, vpp, nb );
+                    DenseVertex na = getInterfaceNeighbor(q, vp);
+                    DenseVertex nb = getInterfaceNeighbor(best_qpp, vpp);
                     
                     bestDPath.push_front( stateProperty_[na] );
                     bestDPath.push_back( stateProperty_[nb] );
@@ -728,21 +717,13 @@ void ompl::geometric::SPARS::getVisibleNeighbors( base::State* inState )
     }
 }
 
-bool ompl::geometric::SPARS::getInterfaceNeighbor( DenseVertex q, SparseVertex rep, SparseVertex& ret )
+ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::getInterfaceNeighbor(DenseVertex q, SparseVertex rep)
 {
-    foreach( DenseVertex vp, boost::adjacent_vertices( q, g_ ) )
-    {
-        if( representativesProperty_[vp] == rep )
-        {
-            if( distanceFunction( q, vp ) <= denseDelta_ )
-            {
-                ret = vp;
-                return true;
-            }
-        }
-    }
+    foreach (DenseVertex vp, boost::adjacent_vertices( q, g_ ))
+        if (representativesProperty_[vp] == rep )
+            if (distanceFunction( q, vp ) <= denseDelta_)
+                return vp;
     throw Exception(name_, "Vertex has no interface neighbor with given representative");
-    return false;
 }
 
 bool ompl::geometric::SPARS::addPathToSpanner( const std::deque< base::State* >& dense_path, SparseVertex vp, SparseVertex vpp )

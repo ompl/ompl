@@ -393,7 +393,7 @@ namespace ompl
             void approachSpanner( SparseVertex n );
                         
             /** \brief Get the first neighbor of q who has representative rep and is within denseDelta_. */
-            bool getInterfaceNeighbor( DenseVertex q, SparseVertex rep, SparseVertex& ret );
+            DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
 
             /** \brief Method for actually adding a dense path to the Roadmap Spanner, S. */
             bool addPathToSpanner( const std::deque< base::State* >& p, SparseVertex vp, SparseVertex vpp );
