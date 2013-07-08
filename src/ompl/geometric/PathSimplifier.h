@@ -68,7 +68,7 @@ namespace ompl
         public:
 
             /** \brief Create an instance for a specified space information */
-            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si)
+            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si), freeStates_(true)
             {
             }
 
