@@ -24,23 +24,36 @@ class MyEnvironment(om.MorseEnvironment):
     writeState(), applyControl(), and worldStep().
     """
     
-    def setSockets(self, state_socket, control_socket):
+    def __init__(self, state_socket, control_socket):
         """
-        Use comm_socket for communication with the simulation.
+        Get information from Blender about the scene.
         """
         self.sockS = state_socket
         self.sockC = control_socket
         self.simRunning = True
         self.con = (0,0)    # cache of the last control set to MORSE
+        
         # tell MORSE to reset the simulation, because it was running while it was initializing
         self.sockC.sendall(b'id1 simulation reset_objects')
+        
+        cb = [2, list2vec([-10,10,-1,1])]   # TODO get from simulation
+        
+        rb = self.call('getRigidBodiesBounds()')    # number of bodies and positional bounds
+        rb[1] = list2vec(rb[1])
+        #TODO: edit C++ code to replace inf with std::numeric_limits<double>::max() etc.
+        #inf = float('inf')
+        #rb.append(list2vec([-inf, inf, -inf, inf, -inf, inf])) # lin bounds
+        #rb.append(list2vec([-inf, inf, -inf, inf, -inf, inf])) # ang bounds
+        rb.append(list2vec([-60, 60, -60, 60, -60, 60])) # lin bounds
+        rb.append(list2vec([-60, 60, -60, 60, -60, 60])) # ang bounds
+        
+        super(MyEnvironment, self).__init__(cb[0], cb[1], rb[0], rb[1], rb[2], rb[3], 1.0/60, 30, 180)
         
     def call(self, cmd):
         """
         Request a function call cmd from the simulation and
         return the result.
         """
-
         # submit cmd to socket; return eval()'ed response
         try:
             self.sockS.sendall(cmd.encode())
@@ -48,6 +61,14 @@ class MyEnvironment(om.MorseEnvironment):
         except:
             self.simRunning = False
             raise
+    
+    def getGoalCriteria(self):
+        """
+        Get a list of tuples [(i_0,state_0),...] where i_n is
+        the index of a rigid body in the world state and
+        state_n is its goal position.
+        """
+        return self.call('getGoalCriteria()')
     
     def readState(self, state):
         """
@@ -67,7 +88,6 @@ class MyEnvironment(om.MorseEnvironment):
             state[i].x = obj[3][1]
             state[i].y = obj[3][2]
             state[i].z = obj[3][3]
-            #print("Quat: %f,%f,%f,%f" % (state[i].w, state[i].x, state[i].y, state[i].z))
             i += 1
         
     def writeState(self, state):
@@ -84,7 +104,13 @@ class MyEnvironment(om.MorseEnvironment):
                 (state[i+2][0], state[i+2][1], state[i+2][2]),
                 (state[i+3].w, state[i+3].x, state[i+3].y, state[i+3].z)
             ))
-        self.call('submitState(%s)' % repr(simState))
+        
+        # make safe for eval()
+        s = repr(simState)
+        s = s.replace('nan','float("nan")')
+        s = s.replace('inf','float("inf")')
+        
+        self.call('submitState(%s)' % s)
         
     def applyControl(self, control):
         """
@@ -96,10 +122,16 @@ class MyEnvironment(om.MorseEnvironment):
         
     def worldStep(self, dur):
         """
-        Run the simulation for dur seconds. World tick is 1/60 s.
+        Run the simulation for dur seconds.
         """
         for i in range(int(round(dur/(1.0/60)))):
             self.call('nextTick()')
+    
+    def setSpeed(self, speed):
+        """
+        Set the time multiplier for the simulation speed.
+        """
+        self.call('setSpeed(%f)' % speed)
         
     def endSimulation(self):
         """
@@ -117,73 +149,94 @@ class MyProjection(om.MorseProjection):
         return 2
     
     def defaultCellSizes(self):
-        # coarse grid for cube x,y location
-        # fine grid for car x,y location
-        cellSizes_ = list2vec([2.0,2.0])
+        # grid for robot x,y location
+        self.cellSizes_ = list2vec([2,2])
     
     def project(self, state, projection):
         # use x and y coords of the robot
-        projection[0] = state[0*4][0]
-        projection[1] = state[0*4][1]
+        projection[0] = state[1*4+0][0]
+        projection[1] = state[1*4+0][1]
 
 class MyGoal(om.MorseGoal):
     """
     The goal state of the simulation.
     """
+    def __init__(self, si, env):
+        """
+        Initialize the goal and get list of criteria for satisfaction.
+        """
+        super(MyGoal, self).__init__(si)
+        self.criteria = env.getGoalCriteria()
+    
+    def dist(self, s1, s2):
+        """
+        How close are these rigid body states (position and orientation)?
+        Calculates Euclidean distance between positions and distance between
+        orientations as 1-(<q1,q2>^2) where <q1,q2> is the inner product of the quaternions.
+        """
+        return sum((s1[0][i]-s2[0][i])**2 for i in range(3)) + \
+            (1 - sum(s1[3][i]*s2[3][i] for i in range(4))**2)   # [0,1], where 0 means quats are the same
     
     def isSatisfied_Py(self, state):
-        # come to rest on the platform within 3 taxicab units of (0,12)
-        # body list: 0:__robot, 1,2,3,4:_wheel*
-        linvel = abs(state[0*4+1][0])+abs(state[0*4+1][1])+abs(state[0*4+1][2])
-        self.distance_ = abs(state[0*4][0] - 0) + \
-            abs(state[0*4][1] - -12) + linvel
-        return self.distance_ < 3.0
+        """
+        For every goal object, check if the rigid body object is close
+        """
+        self.distance = 0
+        for crit in self.criteria:
+            quat = state[4*crit[0]+3]
+            stateTup = (state[4*crit[0]+0], state[4*crit[0]+1],
+                        state[4*crit[0]+2], (quat.w, quat.x, quat.y, quat.z))
+            self.distance += self.dist(stateTup, crit[1])
+        if self.distance > len(crit)*0.1:
+            return False
+        return True
 
 
 def planWithMorse(sockS, sockC):
     """
-    Set up MyEnvironment, MorseStateSpace, and MorseSimpleSetup objects.
+    Set up MyEnvironment, MorseSimpleSetup, and MyGoal objects.
     Plan using sockS as the socket to the Blender communicator script
     and sockC as the socket to the MORSE motion controller.
     """
     
     try:
         # create a MORSE environment representation
-        # TODO get these numbers from the simulation
-        env = MyEnvironment(5, 2, list2vec([-10,10,-1,1]), list2vec([-3,3,-15,7,-1,5]),
-            list2vec([-20,20,-20,20,-20,20]), list2vec([-60,60,-60,60,-60,60]), 60, 120)
-        env.setSockets(sockS, sockC)
+        env = MyEnvironment(sockS, sockC)
         
         # create a simple setup object
         ss = om.MorseSimpleSetup(env)
         si = ss.getSpaceInformation()
         
         # set up goal
-        g = MyGoal(si)
+        g = MyGoal(si, env)
         ss.setGoal(g)
         
         # choose a planner
-        planner = oc.RRT(si)
+        planner = oc.KPIECE1(si)
         ss.setPlanner(planner)
         
         # use a specific projection
-        #space = si.getStateSpace()
-        #proj = MyProjection(space)
-        #space.registerDefaultProjection(proj)
+        space = si.getStateSpace()
+        proj = MyProjection(space)
+        space.registerDefaultProjection(proj)
         
         # solve
-        ss.solve(20*60.0)
+        env.setSpeed(16)
+        ss.solve(10*60.0)   # 10 minutes
+        env.setSpeed(1)
         
         # print the solution path
         input("Press enter to see solution...")
         ss.playSolutionPath()
     
-    except:
-        pass
+    except OSError as msg:
+        if str(msg)!="[Errno 104] Connection reset by peer": # this happens when MORSE exits
+            raise
     finally:
         # tell simulation it can shut down
-        env.endSimulation()
-    
+        if env:
+            env.endSimulation()
+
 # set up the state and control sockets
 sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

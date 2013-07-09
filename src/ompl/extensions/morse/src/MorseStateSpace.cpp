@@ -32,27 +32,6 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
 
 void ompl::base::MorseStateSpace::setBounds(void)
 {
-    /* TODO Move this formula into Python
-    double mX, mY, mZ, MX, MY, MZ;
-
-    double dx = MX - mX;
-    double dy = MY - mY;
-    double dz = MZ - mZ;
-    double dM = std::max(dx, std::max(dy, dz));
-
-    // add 10% in each dimension + 1% of the max dimension
-    dx = dx / 10.0 + dM / 100.0;
-    dy = dy / 10.0 + dM / 100.0;
-    dz = dz / 10.0 + dM / 100.0;
-
-    bounds.low[0] = mX - dx;
-    bounds.high[0] = MX + dx;
-    bounds.low[1] = mY - dy;
-    bounds.high[1] = MY + dy;
-    bounds.low[2] = mZ - dz;
-    bounds.high[2] = MZ + dz;
-    */
-    
     RealVectorBounds pbounds(3), lbounds(3), abounds(3);
     for (unsigned int i = 0; i < 3; i++)
     {

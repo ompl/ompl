@@ -85,7 +85,7 @@ def planWithMorse():
 
     # create a MORSE environment representation
     env = MyEnvironment(2, 2, list2vec([-10,10,-1,1]), list2vec([-100,100,-100,100,-100,100]),
-        list2vec([-10,10,-10,10,-10,10]), list2vec([-6,6,-6,6,-6,6]), 30, 90)
+        list2vec([-10,10,-10,10,-10,10]), list2vec([-6,6,-6,6,-6,6]), 1.0/60, 30, 90)
 
     # create a simple setup object
     ss = om.MorseSimpleSetup(env)

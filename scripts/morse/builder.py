@@ -37,7 +37,7 @@ bpy.ops.logic.sensor_add(type='DELAY', name='Tick')
 tick = obj.game.sensors['Tick']
 tick.use_repeat = True
 
-# Add '__communicator.py' text block
+# Add 'communicator.py' text block
 bpy.ops.text.open(filepath=OMPL_DIR + "scripts/morse/communicator.py")
 
 # Add 'Comm' controller
@@ -49,6 +49,25 @@ comm.module = 'communicator.main'
 # Link Tick with Comm so it's run every frame
 tick.link(comm)
 
+# Double-check goal object properties
+bpy.ops.object.make_single_user(type='ALL', material=True)
+for obj in bpy.data.objects:
+    if obj.name.endswith('.goal'):
+        if obj.game.physics_type != 'STATIC':
+            print("Warning: changing goal object %s to static." % obj.name)
+            obj.game.physics_type = 'STATIC'
+        if not obj.game.use_ghost:
+            print("Warning: changing goal object %s to ghost." % obj.name)
+            obj.game.use_ghost = True
+        mat = obj.active_material
+        mat.use_transparency = True
+        mat.transparency_method = 'Z_TRANSPARENCY'
+        mat.alpha = 0.25
+        mat.use_cast_approximate = False
+        mat.use_cast_buffer_shadows = False
+        mat.use_shadows = False
+
 env.create()
+
 
 

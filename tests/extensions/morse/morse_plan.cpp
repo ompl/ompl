@@ -20,8 +20,8 @@ public:
     MyEnvironment(const unsigned int rigidBodies, const unsigned int controlDim,
         const std::vector<double> &controlBounds, const std::vector<double> &positionBounds,
         const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds)
-        : base::MorseEnvironment(rigidBodies, controlDim, controlBounds, positionBounds, linvelBounds, angvelBounds,
-            30, 90)
+        : base::MorseEnvironment(controlDim, controlBounds, rigidBodies, positionBounds, linvelBounds, angvelBounds,
+            1.0/60, 30, 90)
     {
     }
     void readState(base::State *state)

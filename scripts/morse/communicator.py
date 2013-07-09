@@ -14,12 +14,6 @@ import bpy
 import bge
 import mathutils
 
-# Set world step size to 1/60 s
-bge.logic.setMaxLogicFrame(1)
-bge.logic.setMaxPhysicsFrame(1)
-bge.logic.setLogicTicRate(60)
-bge.logic.setPhysicsTicRate(60)
-
 # Routines for accessing Blender internal data
 
 def getObjState(gameobj):
@@ -32,6 +26,18 @@ def getObjState(gameobj):
     return (gameobj.worldPosition.to_tuple(),
             gameobj.worldLinearVelocity.to_tuple(),
             gameobj.worldAngularVelocity.to_tuple(),
+            tuple(gameobj.worldOrientation.to_quaternion()))
+
+def getGoalState(gameobj):
+    """
+    Returns the state tuple for an object, consisting of position,
+    linear velocity, angular velocity, and orientation
+    """
+    
+    # convert Vectors and Matrices to tuples before returning
+    return (gameobj.worldPosition.to_tuple(),
+            (0.0,0.0,0.0),
+            (0.0,0.0,0.0),
             tuple(gameobj.worldOrientation.to_quaternion()))
             
             
@@ -62,12 +68,80 @@ def setState(state):
 #  that can be eval()'ed; also each one must return True
 #  if the communicate() while loop should continue running.
 
+goalObjects = []    # initialized in main()
 sock = None # initialized in spawn_planner()
+
+def getGoalCriteria():
+    """
+    Return a list of tuples explaining the criteria for a goal state.
+    """
+    crit = []
+    for gbody in goalObjects:
+        try:
+            # which rigid body does this goal body correspond to?
+            i = list(map(lambda o: o.name, rigidObjects)).index(gbody.name[:-5])
+            crit.append((i,getGoalState(gbody)))
+        except ValueError:
+            print("Ignoring goal criterion for non-existant or non-rigid-body object: " + gbody.name[:-5])
+    
+    # send the encoded response
+    sock.sendall(repr(crit).encode())
+    
+    return True
+
+def getRigidBodiesBounds():
+    """
+    Return the number of rigid bodies and positional bounds for them.
+    """
+    #TODO user may need to override this
+    
+    # find min and max values for all objects' bound box vertices
+    mX = mY = mZ = float('inf')
+    MX = MY = MZ = float('-inf')
+    for gameobj in bge.logic.getCurrentScene().objects:
+        obj = bpy.data.objects.get(gameobj.name)
+        if not obj:
+            continue
+            
+        box = obj.bound_box
+        mX = min(mX, min(box[i][0] + obj.location[0] for i in range(8)))
+        mY = min(mY, min(box[i][1] + obj.location[1] for i in range(8)))
+        mZ = min(mZ, min(box[i][2] + obj.location[2] for i in range(8)))
+        MX = max(MX, max(box[i][1] + obj.location[0] for i in range(8)))
+        MY = max(MY, max(box[i][2] + obj.location[1] for i in range(8)))
+        MZ = max(MZ, max(box[i][0] + obj.location[2] for i in range(8)))
+    
+    # Ioan's formula:
+    dx = MX-mY
+    dy = MY-mY
+    dz = MZ-mZ
+    dM = max(dx,dy,dz)
+    dx = dx/10.0 + dM/100.0
+    dy = dy/10.0 + dM/100.0
+    dz = dz/10.0 + dM/100.0
+    mX -= dx
+    MX += dx
+    mY -= dy
+    MY += dy
+    mZ -= dz
+    MZ += dz
+    
+    # make safe for eval()
+    s = repr([len(rigidObjects), [mX, MX, mY, MY, mZ, MZ]])
+    s = s.replace('nan','float("nan")')
+    s = s.replace('inf','float("inf")')
+    
+    # send the encoded list
+    sock.sendall(s.encode())
+    
+    return True
 
 def endSimulation():
     """
     Close the socket and tell Blender to stop the game engine.
     """
+    
+    global sock # we're going to modify it
     
     # null response
     sock.sendall(b"None")
@@ -76,7 +150,6 @@ def endSimulation():
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()
     
-    global sock
     sock = None
     
     # shutdown the game engine
@@ -85,11 +158,16 @@ def endSimulation():
     # signal to exit loop
     return False
 
+captureNextFrame = False
 
-def nextTick():
+def nextTick(framecapture=False):
     """
     Stop the communicate() while loop to advance to the next tick.
     """
+    
+    if framecapture:
+        global captureNextFrame
+        captureNextFrame = True
     
     # null response
     sock.sendall(b"None")
@@ -97,6 +175,17 @@ def nextTick():
     # signal to exit loop
     return False
 
+def setSpeed(speed):
+    """
+    Set the time multiplier for the simulation speed.
+    """
+    print("Setting speed %d" % speed)
+    #bge.logic.setTimeMultiplier(speed)
+    
+    # null response
+    sock.sendall(b"None")
+    
+    return True
 
 def extractState():
     """
@@ -106,8 +195,13 @@ def extractState():
     # generate state list
     state = list(map(getObjState, rigidObjects))
     
+    # make safe for eval()
+    s = repr(state)
+    s = s.replace('nan','float("nan")')
+    s = s.replace('inf','float("inf")')
+    
     # respond with encoded state string
-    sock.sendall(repr(state).encode())
+    sock.sendall(s.encode())
     
     return True
 
@@ -118,7 +212,7 @@ def submitState(state):
     Input is a list of object states, ordered just like the
     state list returned by extractState().
     """
-
+    
     # load the state into the Game Engine
     for i in range(len(state)):
         
@@ -138,7 +232,7 @@ def spawn_planner():
     Run once when the game engine is started, after MORSE is initialized.
     Spawns the external Python script 'planner.py'.
     """
-    
+
     # set up the server socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -154,6 +248,7 @@ def spawn_planner():
 
 
 tickcount = -60 # used by main() to wait until MORSE is initialized
+framecount = 0
 
 def communicate():
     """
@@ -161,6 +256,14 @@ def communicate():
     tick; provides a means of servicing requests from planner.py.
     """
 
+    # Capture recording
+    global captureNextFrame
+    global framecount
+    if captureNextFrame:
+        bpy.ops.screen.screenshot(filepath='/home/caleb/avi/%04i.jpg' % framecount)
+        captureNextFrame = False
+        framecount += 1
+    
     cmd = 'True'
 
     # execute each command until one returns False
@@ -189,9 +292,10 @@ def main():
     
     if tickcount == 0:
         
-        # build the list of rigid body objects
+        # build the lists of rigid body objects and goal objects
         global rigidObjects
-        print("\033[93;1mGathering list of rigid bodies:")
+        global goalObjects
+        print("\033[93;1mGathering list of rigid bodies and goal criteria:")
         scn = bge.logic.getCurrentScene()
         objects = scn.objects
         for gameobj in sorted(objects, key=lambda o: o.name):
@@ -203,8 +307,15 @@ def main():
             
             # check if it's a rigid body
             if obj.game.physics_type == 'RIGID_BODY':
-                print(gameobj.name)
+                print("rigid " + gameobj.name)
                 rigidObjects.append(gameobj)
+            
+            # check if it's a goal criterion
+            elif gameobj.name.endswith('.goal'):
+                print("goal " + gameobj.name)
+                #gameobj.color[3] = 0.2  # make the object transparent XXX doesn't work?
+                #gameobj.setVisible(False)   # make the object invisible
+                goalObjects.append(gameobj)
         
         print('\033[0m')
         

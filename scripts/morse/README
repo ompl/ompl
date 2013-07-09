@@ -1,45 +1,50 @@
+INSTALLATION:
+-Install MORSE and it's dependencies (preferably 1.0_STABLE)
+-(optional) Run 'morse check' to verify the installation
+-Build and install Boost.Python with your Python3 using the --with-python flag (I haven't tried
+  NOT doing this...)
+-Build and install OMPL and the Python bindings with your Python3 using the PYTHON_EXEC
+  environment variable (see README.md in toplevel directory)
+-Edit:
+    line 8 in communicator.py
+    line 13 in ompl_addon.py
+    line 10 in builder.py
+  so that they point to your ompl_morse directory (eventually this won't be necessary).
+-Install ompl_addon.py into Blender:
+  Open Blender, go to File > User Preferences > Addons > Install from File..., navigate to
+  ompl_addon.py, press Install from File..., check the box for OMPL Interface, then press
+  Save User Settings and exit the User Preferences dialog.
+-(unlikely) If you're using my speed-hacked Blender, uncomment line 183 in communicator.py
 
-Works with MORSE version 1.0_STABLE. This MORSE version has a slight interface change. If you
-would like to continue using the old MORSE version, check lines 35 and 61 in ompl_addon.py.
+NOTE: This build works with MORSE 1.0_STABLE, which has a slight interface change from previous
+versions. If you would like to use an older MORSE version, check lines 35 and 61 in ompl_addon.py.
+
 
 Files in this directory:
     communicator.py
-        Meant to be run with the Blender game engine during planning. Responsible
-        for starting up the planning program and communicating with it. It needs to
-        be attached to the scene in a special way, but that's taken care of by builder.py.
+        Run with the Blender game engine during planning. Responsible for starting up
+        the planning program and communicating with it. It is attached to the scene
+        by builder.py.
     planner.py
         External script called by communicator.py when the game engine starts. It
         can make procedure calls into blender to get/set data through a socket.
-        It sets up OMPL for planning and has a dummy goal that is satisfied the
-        tenth time the planner asks.
+        It sets up OMPL for planning.
     builder.py
         MORSE builder script invoked when MORSE is started. Loads up the planning
         environment and sets up the game engine logic for communication with the planner.
     bgetest.blend
-        Where I'm doing my testing. There are two 'islands', with the goal on one and the
-        car and a ramp on the other.
+        Where I'm doing my testing. There are two 'islands', with the car and a ramp on one,
+        and a box that needs to be pushed on the other.
     ompl_addon.py
-        Addon script to be installed into Blender. Sets up some information in MORSE's
-        configuration file, ~/.morse/config, and provides a menu with a "Plan..." button.
-        See install_addon to install it.
-    install_addon
-        Bash script that puts ompl_addon.py into Blender's addons directory. Then
-        go to File > User Preferences... > Addons > Game Engine, and check the box
-        beside "OMPL Interface" to enable it. Then press "Save As Default" to keep
-        it enabled whenever you start Blender. Notice the fancy new OMPL submenu
-        inside the Game menu.
+        Addon script to be installed into Blender. Provides a menu with a "Plan..." button.
 
-You need to edit:
-    line 8 in communicator.py
-    line 13 in ompl_addon.py
-    line 10 in builder.py
-so that they point to your ompl_morse directory.
 
 It works if you run 'blender bgetest.blend' and
     1) You can find the OMPL submenu, and pressing "Plan..." successfully launches MORSE.
-    2) In MORSE the car starts out in the gold region, and you can see OMPL planning for it.
+    2) In MORSE you can see OMPL planning to get the car across the ramp to push the green box
+      into the transparent green goal position.
     3) If/when OMPL finds a solution, it will wait for you to press <Enter> on the terminal
-      before playing it (it plays twice).
+      before playing it back (it plays twice).
     4) The simulation will then exit on its own, or you can press <Esc> at any time to stop
       it cleanly.
 

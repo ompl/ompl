@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-sudo cp ompl_addon.py /usr/lib/blender/scripts/addons
-
-

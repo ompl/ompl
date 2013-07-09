@@ -32,11 +32,13 @@ namespace ompl
         {
         public:
             
-            const unsigned int rigidBodies_;
-            
             const unsigned int controlDim_;
             
-            const std::vector<double> controlBounds_, positionBounds_, linvelBounds_, angvelBounds_;
+            const std::vector<double> controlBounds_;
+            
+            const unsigned int rigidBodies_;
+            
+            const std::vector<double> positionBounds_, linvelBounds_, angvelBounds_;
             
             /** \brief The simulation step size */
             double stepSize_;
@@ -50,13 +52,13 @@ namespace ompl
             /** \brief Lock to use when performing simulations in the world */
             mutable boost::mutex mutex_;
 
-            MorseEnvironment(const unsigned int rigidBodies, const unsigned int controlDim,
-                const std::vector<double> &controlBounds, const std::vector<double> &positionBounds,
+            MorseEnvironment(const unsigned int controlDim, const std::vector<double> &controlBounds,
+                const unsigned int rigidBodies, const std::vector<double> &positionBounds,
                 const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds,
-                const unsigned int minControlSteps, const unsigned int maxControlSteps)
-                 : rigidBodies_(rigidBodies), controlDim_(controlDim), controlBounds_(controlBounds),
+                const double stepSize, const unsigned int minControlSteps, const unsigned int maxControlSteps)
+                 : controlDim_(controlDim), controlBounds_(controlBounds), rigidBodies_(rigidBodies),
                    positionBounds_(positionBounds), linvelBounds_(linvelBounds), angvelBounds_(angvelBounds),
-                   stepSize_(1.0/60), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps)
+                   stepSize_(stepSize), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps)
             {
             }
 

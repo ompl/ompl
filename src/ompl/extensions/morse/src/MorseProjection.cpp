@@ -33,7 +33,7 @@ void ompl::base::MorseProjection::defaultCellSizes(void)
 void ompl::base::MorseProjection::project(const State *state, EuclideanProjection &projection) const
 {
     const MorseStateSpace::StateType *mstate = state->as<MorseStateSpace::StateType>();
-    //projection.resize(getDimension());  // XXX necessary?
+    projection.resize(getDimension());
     for (unsigned int i = 0; i < space_->getEnvironment()->rigidBodies_; i++)
     {
         const double *values = mstate->as<RealVectorStateSpace::StateType>(4*i)->values;
