@@ -202,7 +202,7 @@ void ompl::base::MechanicalWorkOptimizationObjective::getIncrementalCost(const S
     cost->as<CostType>()->value = positiveCostAccrued + pathLengthWeight_*si_->distance(s1,s2);
 }
 
-void bool ompl::base::MaxClearanceOptimizationObjective::isSatisfied(const Cost *cost) const
+bool ompl::base::MaxClearanceOptimizationObjective::isSatisfied(const Cost *cost) const
 {
   return cost->as<CostType>()->value <= minimumClearance_;
 }
@@ -232,9 +232,51 @@ double ompl::base::MaxClearanceOptimizationObjective::getStateCost(const State *
   return si_->getStateValidityChecker()->clearance(s);
 }
 
+// Check for minimum clearance along edge similarly to the discrete
+// motion validator. Don't check the clearance at s1 (it should've
+// been checked already)
 void ompl::base::MaxClearanceOptimizationObjective::getIncrementalCost(const State *s1,
                                                                        const State *s2,
                                                                        Cost *cost) const
 {
+  double minClearance = std::numeric_limits<double>::infinity();
+
+  // \TODO shouldn't we be able to use some method in SpaceInformation
+  // for this instead?
+  int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
   
+  if (nd > 1)
+  {
+    State *test = si_->allocState();
+    for (int j = 1; j < nd; ++j)
+    {
+      si_->getStateSpace()->interpolate(s1, s2, (double) j / (double) nd, test);
+      minClearance = std::min(minClearance, this->getStateCost(test));
+    }
+    si_->freeState(test);
+  }
+
+  // Lastly, check s2
+  minClearance = std::min(minClearance, this->getStateCost(s2));
+
+  cost->as<CostType>()->value = minClearance;
+}
+
+void ompl::base::MaxClearanceOptimizationObjective::combineObjectiveCosts(const Cost *c1,
+                                                                          const Cost *c2,
+                                                                          Cost *cost) const
+{
+  cost->as<CostType>()->value = std::min(c1->as<CostType>()->value,
+                                         c2->as<CostType>()->value);
+}
+
+void ompl::base::MaxClearanceOptimizationObjective::getInitialCost(const State *s, 
+                                                                   Cost *cost) const
+{
+  cost->as<CostType>()->value = this->getStateCost(s);
+}
+
+void ompl::base::MaxClearanceOptimizationObjective::getInfiniteCost(Cost *cost) const
+{
+  cost->as<CostType>()->value = -std::numeric_limits<double>::infinity();
 }
