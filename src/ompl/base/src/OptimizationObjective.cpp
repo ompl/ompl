@@ -202,9 +202,13 @@ void ompl::base::MechanicalWorkOptimizationObjective::getIncrementalCost(const S
     cost->as<CostType>()->value = positiveCostAccrued + pathLengthWeight_*si_->distance(s1,s2);
 }
 
+ompl::base::MaxClearanceOptimizationObjective::~MaxClearanceOptimizationObjective()
+{
+}
+
 bool ompl::base::MaxClearanceOptimizationObjective::isSatisfied(const Cost *cost) const
 {
-  return cost->as<CostType>()->value <= minimumClearance_;
+  return cost->as<CostType>()->value >= minimumClearance_;
 }
 
 double ompl::base::MaxClearanceOptimizationObjective::getCostValue(const Cost *cost) const

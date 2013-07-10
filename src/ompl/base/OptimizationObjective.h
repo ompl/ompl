@@ -247,8 +247,10 @@ namespace ompl
             };
 
             MaxClearanceOptimizationObjective(const SpaceInformationPtr &si, 
-                                              double minClearance=0.0) :
+                                              double minClearance=std::numeric_limits<double>::infinity()) :
                 OptimizationObjective(si), minimumClearance_(minClearance) {}
+
+            virtual ~MaxClearanceOptimizationObjective();
             
             virtual bool isSatisfied(const Cost *cost) const;
             virtual double getCostValue(const Cost *cost) const;
