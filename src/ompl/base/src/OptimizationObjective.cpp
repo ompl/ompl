@@ -201,3 +201,40 @@ void ompl::base::MechanicalWorkOptimizationObjective::getIncrementalCost(const S
     double positiveCostAccrued = std::max(getStateCost(s2) - getStateCost(s1), 0.0);
     cost->as<CostType>()->value = positiveCostAccrued + pathLengthWeight_*si_->distance(s1,s2);
 }
+
+void bool ompl::base::MaxClearanceOptimizationObjective::isSatisfied(const Cost *cost) const
+{
+  return cost->as<CostType>()->value <= minimumClearance_;
+}
+
+double ompl::base::MaxClearanceOptimizationObjective::getCostValue(const Cost *cost) const
+{
+  return exp(-cost->as<CostType>()->value);
+}
+
+ompl::base::Cost* ompl::base::MaxClearanceOptimizationObjective::allocCost(void) const
+{
+  return new CostType;
+}
+
+void ompl::base::MaxClearanceOptimizationObjective::copyCost(Cost *dest, const Cost *src) const
+{
+  dest->as<CostType>()->value = src->as<CostType>()->value;
+}
+
+void ompl::base::MaxClearanceOptimizationObjective::freeCost(Cost *cost) const
+{
+  delete cost->as<CostType>();
+}
+
+double ompl::base::MaxClearanceOptimizationObjective::getStateCost(const State *s) const
+{
+  return si_->getStateValidityChecker()->clearance(s);
+}
+
+void ompl::base::MaxClearanceOptimizationObjective::getIncrementalCost(const State *s1,
+                                                                       const State *s2,
+                                                                       Cost *cost) const
+{
+  
+}

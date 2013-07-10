@@ -235,6 +235,35 @@ namespace ompl
 	protected:
 	    double pathLengthWeight_;
 	};
+
+        class MaxClearanceOptimizationObjective : public OptimizationObjective
+        {
+        public:
+            class CostType : public OptimizationObjective::CostType
+            {
+            public:
+                CostType(double valueIn=0.0): value(valueIn) {}
+                double value;
+            };
+
+            MaxClearanceOptimizationObjective(const SpaceInformationPtr &si, 
+                                              double minClearance=0.0) :
+                OptimizationObjective(si), minimumClearance_(minClearance) {}
+            
+            virtual bool isSatisfied(const Cost *cost) const;
+            virtual double getCostValue(const Cost *cost) const;
+            virtual Cost* allocCost(void) const;
+            virtual void copyCost(Cost *dest, const Cost *src) const;
+            virtual void freeCost(Cost *cost) const;
+            virtual double getStateCost(const State *s) const;
+            virtual void getIncrementalCost(const State *s1, const State *s2, Cost *cost) const;
+            virtual void combineObjectiveCosts(const Cost *c1, const Cost *c2, Cost *cost) const;
+            virtual void getInitialCost(const State *s, Cost *cost) const;
+            virtual void getInfiniteCost(Cost *cost) const;
+
+        protected:
+            double minimumClearance_;
+        };
     }
 }
 
