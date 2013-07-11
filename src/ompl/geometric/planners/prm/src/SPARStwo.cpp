@@ -49,9 +49,9 @@
 
 ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     base::Planner(si, "SPARStwo"),
-    stretchFactor_(3),
-    sparseDelta_(15),
-    denseDelta_(0.5),
+    stretchFactor_(3.),
+    sparseDeltaFraction_(.25),
+    denseDeltaFraction_(.001),
     maxFailures_(5000),
     nearSamplePoints_((2*si_->getStateDimension())),
     stateProperty_(boost::get(vertex_state_t(), g_)),
@@ -61,7 +61,9 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     disjointSets_(boost::get(boost::vertex_rank, g_),
                   boost::get(boost::vertex_predecessor, g_)),
     addedSolution_(false),
-    iterations_(0)
+    iterations_(0),
+    sparseDelta_(0.),
+    denseDelta_(0.)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -74,8 +76,8 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     simpleSampler_ = si_->allocStateSampler();
 
     Planner::declareParam<double>("stretch_factor", this, &SPARStwo::setStretchFactor, &SPARStwo::getStretchFactor, "1.1:0.1:3.0");
-    Planner::declareParam<double>("sparse_delta", this, &SPARStwo::setSparseDelta, &SPARStwo::getSparseDelta, "1.0:0.5:30.0");
-    Planner::declareParam<double>("dense_delta", this, &SPARStwo::setDenseDelta, &SPARStwo::getDenseDelta, "0.02:0.02:1.0");
+    Planner::declareParam<double>("sparse_delta_fraction", this, &SPARStwo::setSparseDeltaFraction, &SPARStwo::getSparseDeltaFraction, "0.0:0.01:1.0");
+    Planner::declareParam<double>("dense_delta_fraction", this, &SPARStwo::setDenseDeltaFraction, &SPARStwo::getDenseDeltaFraction, "0.0:0.0001:0.1");
     Planner::declareParam<unsigned int>("max_failures", this, &SPARStwo::setMaxFailures, &SPARStwo::getMaxFailures, "100:10:3000");
 }
 
@@ -94,6 +96,8 @@ void ompl::geometric::SPARStwo::setup(void)
     if (!nn_)
         nn_.reset(new NearestNeighborsGNAT<Vertex>());
     nn_->setDistanceFunction(boost::bind(&SPARStwo::distanceFunction, this, _1, _2));
+    sparseDelta_ = sparseDeltaFraction_ * si_->getMaximumExtent();
+    denseDelta_ = denseDeltaFraction_ * si_->getMaximumExtent();
 }
 
 void ompl::geometric::SPARStwo::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)

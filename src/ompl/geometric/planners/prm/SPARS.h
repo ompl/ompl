@@ -240,21 +240,25 @@ namespace ompl
                 maxFailures_ = m;
             }
 
-            /** \brief Set the delta value for interface detection.  If two nodes in the dense graph
-                are more than delta distance appart, then the algorithm cannot consider them to have
-                accurately approximated the location of an interface. */
-            void setDenseDelta( double d )
+            /** \brief Set the delta fraction for interface detection.  If two nodes in the dense graph
+                are more than a delta fraction of the max. extent apart, then the algorithm cannot
+                consider them to have accurately approximated the location of an interface. */
+            void setDenseDeltaFraction( double d )
             {
-                denseDelta_ = d;
+                denseDeltaFraction_ = d;
+                if (denseDelta_ > 0) // setup was previously called
+                    denseDelta_ = d * si_->getMaximumExtent();
             }
 
-            /** \brief Set the delta value for connection distance on the sparse spanner.  This
+            /** \brief Set the delta fraction for connection distance on the sparse spanner.  This
                 value represents the visibility range of sparse samples.  A sparse node
-                represents all dense nodes within this distance if it is also the closest sparse
-                node to that dense node.*/
-            void setSparseDelta( double d )
+                represents all dense nodes within a delta fraction of the max. extent if it is
+                also the closest sparse node to that dense node. */
+            void setSparseDeltaFraction( double d )
             {
-                sparseDelta_ = d;
+                sparseDeltaFraction_ = d;
+                if (sparseDelta_ > 0) // setup was previously called
+                    sparseDelta_ = d * si_->getMaximumExtent();
             }
 
             /** \brief Set the roadmap spanner stretch factor.  This value represents a
@@ -271,16 +275,16 @@ namespace ompl
                 return maxFailures_;
             }
 
-            /** \brief Retrieve the dense graph interface support delta. */
-            double getDenseDelta( ) const
+            /** \brief Retrieve the dense graph interface support delta fraction. */
+            double getDenseDeltaFraction( ) const
             {
-                return denseDelta_;
+                return denseDeltaFraction_;
             }
 
-            /** \brief Retrieve the sparse graph visibility range delta. */
-            double getSparseDelta( ) const
+            /** \brief Retrieve the sparse graph visibility range delta fraction. */
+            double getSparseDeltaFraction( ) const
             {
-                return sparseDelta_;
+                return sparseDeltaFraction_;
             }
 
             /** \brief Retrieve the spanner's set stretch factor. */
@@ -521,11 +525,11 @@ namespace ompl
             /** \brief The maximum number of failures before terminating the algorithm */
             unsigned int                                                        maxFailures_;
 
-            /** \brief SPARS parameter for dense graph connection distance */
-            double                                                              denseDelta_;
+            /** \brief SPARS parameter for dense graph connection distance as a fraction of max. extent */
+            double                                                              denseDeltaFraction_;
 
-            /** \brief SPARS parameter for Sparse Roadmap connection distance */
-            double                                                              sparseDelta_;
+            /** \brief SPARS parameter for Sparse Roadmap connection distance as a fraction of max. extent */
+            double                                                              sparseDeltaFraction_;
 
             /** \brief A holder for the last state added to D */
             base::State*                                                        lastState_;
@@ -549,6 +553,12 @@ namespace ompl
             {
                 return si_->distance( sparseStateProperty_[a], sparseStateProperty_[b] );
             }
+
+            /** \brief SPARS parameter for dense graph connection distance */
+            double                                                              denseDelta_;
+
+            /** \brief SPARS parameter for Sparse Roadmap connection distance */
+            double                                                              sparseDelta_;
 
         };
 

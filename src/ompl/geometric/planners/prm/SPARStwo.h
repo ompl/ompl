@@ -248,16 +248,20 @@ namespace ompl
                 stretchFactor_ = t;
             }
 
-            /** \brief Sets vertex visibility range */
-            void setSparseDelta( double D )
+            /** \brief Sets vertex visibility range as a fraction of max. extent. */
+            void setSparseDeltaFraction( double D )
             {
-                sparseDelta_ = D;
+                sparseDeltaFraction_ = D;
+                if (sparseDelta_ > 0) // setup was previously called
+                    sparseDelta_ = D * si_->getMaximumExtent();
             }
 
-            /** \brief Sets interface support tolerance */
-            void setDenseDelta( double d )
+            /** \brief Sets interface support tolerance as a fraction of max. extent. */
+            void setDenseDeltaFraction( double d )
             {
-                denseDelta_ = d;
+                denseDeltaFraction_ = d;
+                if (denseDelta_ > 0) // setup was previously called
+                    denseDelta_ = d * si_->getMaximumExtent();
             }
 
             /** \brief Sets the maximum failures until termination */
@@ -273,15 +277,15 @@ namespace ompl
             }
 
             /** \brief Retrieve the dense graph interface support delta. */
-            double getDenseDelta( ) const
+            double getDenseDeltaFraction( ) const
             {
-                return denseDelta_;
+                return denseDeltaFraction_;
             }
 
             /** \brief Retrieve the sparse graph visibility range delta. */
-            double getSparseDelta( ) const
+            double getSparseDeltaFraction( ) const
             {
-                return sparseDelta_;
+                return sparseDeltaFraction_;
             }
 
             /** \brief Retrieve the spanner's set stretch factor. */
@@ -448,11 +452,11 @@ namespace ompl
             /** \brief Stretch Factor as per graph spanner literature (multiplicative bound on path quality) */
             double                                                              stretchFactor_;
 
-            /** \brief Maximum visibility range for nodes in the graph */
-            double                                                              sparseDelta_;
+            /** \brief Maximum visibility range for nodes in the graph as a fraction of maximum extent. */
+            double                                                              sparseDeltaFraction_;
 
-            /** \brief Maximum range for allowing two samples to support an interface */
-            double                                                              denseDelta_;
+            /** \brief Maximum range for allowing two samples to support an interface as a fraction of maximum extent. */
+            double                                                              denseDeltaFraction_;
 
             /** \brief The number of consecutive failures to add to the graph before termination */
             unsigned int                                                        maxFailures_;
@@ -539,6 +543,12 @@ namespace ompl
             {
                 return si_->distance(stateProperty_[a], stateProperty_[b]);
             }
+
+            /** \brief Maximum visibility range for nodes in the graph */
+            double                                                              sparseDelta_;
+
+            /** \brief Maximum range for allowing two samples to support an interface */
+            double                                                              denseDelta_;
 
         };
 

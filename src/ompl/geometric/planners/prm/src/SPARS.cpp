@@ -59,11 +59,13 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     sparseDJSets_(boost::get(boost::vertex_rank, s_),
                   boost::get(boost::vertex_predecessor, s_)),
     iterations_(0),
-    stretchFactor_(3),
+    stretchFactor_(3.),
     maxFailures_(1000),
-    denseDelta_(0.5),
-    sparseDelta_(20),
-    lastState_(NULL)
+    denseDeltaFraction_(.001),
+    sparseDeltaFraction_(.25),
+    lastState_(NULL),
+    denseDelta_(0.),
+    sparseDelta_(0.)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -73,8 +75,8 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     psimp_->freeStates(false);
 
     Planner::declareParam<double>("stretch_factor", this, &SPARS::setStretchFactor, &SPARS::getStretchFactor, "1.1:0.1:3.0");
-    Planner::declareParam<double>("sparse_delta", this, &SPARS::setSparseDelta, &SPARS::getSparseDelta, "1.0:0.5:30.0");
-    Planner::declareParam<double>("dense_delta", this, &SPARS::setDenseDelta, &SPARS::getDenseDelta, "0.02:0.02:1.0");
+    Planner::declareParam<double>("sparse_delta_fraction", this, &SPARS::setSparseDeltaFraction, &SPARS::getSparseDeltaFraction, "0.0:0.01:1.0");
+    Planner::declareParam<double>("dense_delta_fraction", this, &SPARS::setDenseDeltaFraction, &SPARS::getDenseDeltaFraction, "0.0:0.0001:0.1");
     Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures, "100:10:3000");
 }
 
@@ -94,6 +96,8 @@ void ompl::geometric::SPARS::setup(void)
     snn_->setDistanceFunction(boost::bind(&SPARS::sparseDistanceFunction, this, _1, _2));
     if (!connectionStrategy_)
         connectionStrategy_ = KStarStrategy<DenseVertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
+    sparseDelta_ = sparseDeltaFraction_ * si_->getMaximumExtent();
+    denseDelta_ = denseDeltaFraction_ * si_->getMaximumExtent();
 }
 
 void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
