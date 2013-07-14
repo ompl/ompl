@@ -96,8 +96,9 @@ void ompl::geometric::SPARS::setup(void)
     snn_->setDistanceFunction(boost::bind(&SPARS::sparseDistanceFunction, this, _1, _2));
     if (!connectionStrategy_)
         connectionStrategy_ = KStarStrategy<DenseVertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
-    sparseDelta_ = sparseDeltaFraction_ * si_->getMaximumExtent();
-    denseDelta_ = denseDeltaFraction_ * si_->getMaximumExtent();
+    double maxExt = si_->getMaximumExtent();
+    sparseDelta_ = sparseDeltaFraction_ * maxExt;
+    denseDelta_ = denseDeltaFraction_ * maxExt;
 }
 
 void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)

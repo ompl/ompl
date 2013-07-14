@@ -96,8 +96,9 @@ void ompl::geometric::SPARStwo::setup(void)
     if (!nn_)
         nn_.reset(new NearestNeighborsGNAT<Vertex>());
     nn_->setDistanceFunction(boost::bind(&SPARStwo::distanceFunction, this, _1, _2));
-    sparseDelta_ = sparseDeltaFraction_ * si_->getMaximumExtent();
-    denseDelta_ = denseDeltaFraction_ * si_->getMaximumExtent();
+    double maxExt = si_->getMaximumExtent();
+    sparseDelta_ = sparseDeltaFraction_ * maxExt;
+    denseDelta_ = denseDeltaFraction_ * maxExt;
 }
 
 void ompl::geometric::SPARStwo::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)

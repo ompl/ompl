@@ -246,7 +246,7 @@ namespace ompl
             void setDenseDeltaFraction( double d )
             {
                 denseDeltaFraction_ = d;
-                if (denseDelta_ > 0) // setup was previously called
+                if (denseDelta_ > 0.0) // setup was previously called
                     denseDelta_ = d * si_->getMaximumExtent();
             }
 
@@ -257,7 +257,7 @@ namespace ompl
             void setSparseDeltaFraction( double d )
             {
                 sparseDeltaFraction_ = d;
-                if (sparseDelta_ > 0) // setup was previously called
+                if (sparseDelta_ > 0.0) // setup was previously called
                     sparseDelta_ = d * si_->getMaximumExtent();
             }
 
