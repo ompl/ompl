@@ -439,7 +439,7 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
 
 bool ompl::base::ProblemDefinition::hasSolutionNonExistenceProof(void) const
 {
-    return nonExistenceProof_;
+    return nonExistenceProof_.get();
 }
 
 void ompl::base::ProblemDefinition::clearSolutionNonExistenceProof(void)
