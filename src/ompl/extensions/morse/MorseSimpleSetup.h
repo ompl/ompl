@@ -51,13 +51,11 @@ namespace ompl
             base::PlannerStatus solve(double time = 1.0);
             
             /** \brief Set the MORSE world to the states that are
-                contained in a given path, sequentially. Using \e
-                timeFactor, the speed at which this sequence is
-                iterated through is altered. */
-            void playPath(const base::PathPtr &path, double timeFactor = 1.0) const;
+                contained in a given path, sequentially. */
+            void playPath(const base::PathPtr &path) const;
 
             /** \brief Call playPath() on the solution path, if one is available */
-            void playSolutionPath(double timeFactor = 1.0) const;
+            void playSolutionPath(void) const;
 
             /** \brief Simulate the MORSE environment forward for \e steps simulation steps, using the control \e control.
                 Construct a path representing this action. */

@@ -10,8 +10,11 @@
 
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/util/Console.h"
+
 #include "boost/thread.hpp"
 
+#include <limits>
 #include <vector>
 
 namespace ompl
@@ -38,7 +41,7 @@ namespace ompl
             
             const unsigned int rigidBodies_;
             
-            const std::vector<double> positionBounds_, linvelBounds_, angvelBounds_;
+            std::vector<double> positionBounds_, linvelBounds_, angvelBounds_;
             
             /** \brief The simulation step size */
             double stepSize_;
@@ -60,6 +63,27 @@ namespace ompl
                    positionBounds_(positionBounds), linvelBounds_(linvelBounds), angvelBounds_(angvelBounds),
                    stepSize_(stepSize), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps)
             {
+                for (unsigned int i = 0; i < positionBounds_.size(); i++)
+                {
+                    if (positionBounds_[i]==std::numeric_limits<double>::infinity())
+                        positionBounds_[i] = std::numeric_limits<double>::max();
+                    else if (positionBounds_[i]==-std::numeric_limits<double>::infinity())
+                        positionBounds_[i] = std::numeric_limits<double>::min();
+                }
+                for (unsigned int i = 0; i < linvelBounds_.size(); i++)
+                {
+                    if (linvelBounds_[i]==std::numeric_limits<double>::infinity())
+                        linvelBounds_[i] = std::numeric_limits<double>::max()/2;
+                    else if (linvelBounds_[i]==-std::numeric_limits<double>::infinity())
+                        linvelBounds_[i] = -std::numeric_limits<double>::max()/2;
+                }
+                for (unsigned int i = 0; i < angvelBounds_.size(); i++)
+                {
+                    if (angvelBounds_[i]==std::numeric_limits<double>::infinity())
+                        angvelBounds_[i] = std::numeric_limits<double>::max()/2;
+                    else if (angvelBounds_[i]==-std::numeric_limits<double>::infinity())
+                        angvelBounds_[i] = -std::numeric_limits<double>::max()/2;
+                }
             }
 
             ~MorseEnvironment(void)

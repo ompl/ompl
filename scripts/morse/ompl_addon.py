@@ -32,8 +32,9 @@ class Plan(bpy.types.Operator):
         
         print('Starting planner...')
         print(bpy.data.filepath)
-        #old MORSE interface: subprocess.call(['morse', '-c', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
         subprocess.call(['morse', '-c', 'run', OMPL_DIR+'/scripts/morse/builder.py', '--', bpy.data.filepath])
+        # for the newer MORSE interface, use this instead of the above line:
+        #subprocess.call(['morse', '-c', 'run', 'ompl', 'builder.py', '--', bpy.data.filepath])
         
         return {'FINISHED'}
 
@@ -58,7 +59,7 @@ def register():
     Called when this addon is enabled or Blender starts.
     """
     
-    # uncomment this for old MORSE interface
+    # uncomment for the latest MORSE interface
     """
     # Ensure that MORSE environment 'ompl' is registered in ~/.morse/config
     config_path = os.path.expanduser("~/.morse")

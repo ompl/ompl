@@ -175,12 +175,21 @@ def nextTick(framecapture=False):
     # signal to exit loop
     return False
 
-def setSpeed(speed):
+def setMode(mode):
     """
     Set the time multiplier for the simulation speed.
     """
-    print("Setting speed %d" % speed)
-    #bge.logic.setTimeMultiplier(speed)
+    # Uncomment if using speed-hacked Blender
+    """
+    if mode=='PLAN':
+        print("Setting speed 16")
+        bge.logic.setTimeMultiplier(16)
+    elif mode=='PLAY':
+        print("Setting speed 1")
+        bge.logic.setTimeMultiplier(1)
+    else:
+        print("Unrecognized mode setting!")
+    """
     
     # null response
     sock.sendall(b"None")
@@ -239,7 +248,7 @@ def spawn_planner():
     s.bind(('localhost', 50007))
     
     # spawn planner.py
-    subprocess.Popen(OMPL_DIR + '/scripts/morse/planner.py')
+    subprocess.Popen(OMPL_DIR + '/scripts/morse/player.py')
     
     # make a connection
     s.listen(0)
@@ -292,6 +301,11 @@ def main():
     
     if tickcount == 0:
         
+        # pace the simulation so that Blender doesn't try to speed up
+        #  even if it thinks it's falling behind
+        bge.logic.setMaxLogicFrame(1)
+        bge.logic.setMaxPhysicsFrame(1)
+        
         # build the lists of rigid body objects and goal objects
         global rigidObjects
         global goalObjects
@@ -313,8 +327,6 @@ def main():
             # check if it's a goal criterion
             elif gameobj.name.endswith('.goal'):
                 print("goal " + gameobj.name)
-                #gameobj.color[3] = 0.2  # make the object transparent XXX doesn't work?
-                #gameobj.setVisible(False)   # make the object invisible
                 goalObjects.append(gameobj)
         
         print('\033[0m')

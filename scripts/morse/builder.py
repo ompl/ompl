@@ -27,6 +27,12 @@ envpath = sys.argv[sys.argv.index('--') + 1]
 print("\n* Loading scene <%s>.\n" % envpath)
 env = morse.builder.Environment(envpath)
 
+# Fix the timestep physics is advanced by each frame
+bpy.context.scene.game_settings.fps = 60
+bpy.context.scene.game_settings.use_frame_rate = True
+bpy.context.scene.game_settings.restrict_animation_updates = True
+bpy.context.scene.game_settings.show_framerate_profile = True
+
 # Create '__planner' object so we can set up the game engine
 bpy.ops.object.add()
 obj = bpy.context.object

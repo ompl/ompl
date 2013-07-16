@@ -1,10 +1,10 @@
 INSTALLATION:
--Install MORSE and it's dependencies (preferably 1.0_STABLE)
+-Install MORSE and it's dependencies (preferably version 1.0_STABLE)
 -(optional) Run 'morse check' to verify the installation
--Build and install Boost.Python with your Python3 using the --with-python flag (I haven't tried
-  NOT doing this...)
--Build and install OMPL and the Python bindings with your Python3 using the PYTHON_EXEC
-  environment variable (see README.md in toplevel directory)
+-Build and install OMPL and the Python bindings (see README.md in toplevel directory)
+  with Python3 and the Python3 version of Boost.Python using CMake variables PYTHON_EXEC,
+  PYTHON_INCLUDE_DIRS, PYTHON_LIBRARIES, and Boost_PYTHON_LIBRARY (e.g. libboost_python-py32.so
+  instead of libboost_python.so)
 -Edit:
     line 8 in communicator.py
     line 13 in ompl_addon.py
@@ -14,10 +14,11 @@ INSTALLATION:
   Open Blender, go to File > User Preferences > Addons > Install from File..., navigate to
   ompl_addon.py, press Install from File..., check the box for OMPL Interface, then press
   Save User Settings and exit the User Preferences dialog.
--(unlikely) If you're using my speed-hacked Blender, uncomment line 183 in communicator.py
+-(unlikely) If you're using my speed-hacked Blender, uncomment lines 183-192 in communicator.py
 
-NOTE: This build works with MORSE 1.0_STABLE, which has a slight interface change from previous
-versions. If you would like to use an older MORSE version, check lines 35 and 61 in ompl_addon.py.
+NOTE: This build works with MORSE 1.0_STABLE, but the latest branch of MORSE has a slightly
+different command line interface. If you would like to use the latest MORSE version, check lines
+36 and 62 in ompl_addon.py.
 
 
 Files in this directory:
@@ -28,7 +29,13 @@ Files in this directory:
     planner.py
         External script called by communicator.py when the game engine starts. It
         can make procedure calls into blender to get/set data through a socket.
-        It sets up OMPL for planning.
+        It attempts to solve the planning problem and save the path to 'path.out'
+    player.py
+        Like planner.py, but reads a control path from a file and plays it back
+        instead of planning.
+    environment.py
+        Contains environment, goal, and projection classes for use by planner.py and
+        player.py. (Formerly, these were contained in planner.py.)
     builder.py
         MORSE builder script invoked when MORSE is started. Loads up the planning
         environment and sets up the game engine logic for communication with the planner.
@@ -42,11 +49,10 @@ Files in this directory:
 It works if you run 'blender bgetest.blend' and
     1) You can find the OMPL submenu, and pressing "Plan..." successfully launches MORSE.
     2) In MORSE you can see OMPL planning to get the car across the ramp to push the green box
-      into the transparent green goal position.
-    3) If/when OMPL finds a solution, it will wait for you to press <Enter> on the terminal
-      before playing it back (it plays twice).
-    4) The simulation will then exit on its own, or you can press <Esc> at any time to stop
-      it cleanly.
+      into the transparent green goal position. (Press <Esc> to cancel.)
+    3) If/when OMPL finds a solution, it will write the path to 'path.out'
+Not Implemented: pressing the "Play..." button launches player.py and plays back the path
+(work around: edit communicator.py, line 251 to launcher player.py instead of planner.py)
 
 
 
