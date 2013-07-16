@@ -248,7 +248,7 @@ def spawn_planner():
     s.bind(('localhost', 50007))
     
     # spawn planner.py
-    subprocess.Popen(OMPL_DIR + '/scripts/morse/player.py')
+    subprocess.Popen(OMPL_DIR + '/scripts/morse/planner.py')
     
     # make a connection
     s.listen(0)
