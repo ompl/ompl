@@ -88,8 +88,8 @@ const double shipAcceleration = 1.;
 const double shipRotVel = boost::math::constants::pi<double>();
 const double shipMass = .75;
 const double shipRadius = .03;
-const double shipVmin = .05;
-const double shipVmax = .5;
+const double shipVmax = .5 / shipAcceleration;
+const double shipVmin = .1 * shipVmax;
 // dynamics, propagation, integration, control constants
 const double lambda_c = 4.;
 const double h = .05;
@@ -107,6 +107,17 @@ namespace oc = ompl::control;
 namespace og = ompl::geometric;
 namespace ot = ompl::tools;
 namespace po = boost::program_options;
+
+// lightweight signed SO(2) distance; assumes x and y are in [-pi,pi]
+double signedSO2Distance(double x, double y)
+{
+    double d0 = x - y;
+    if (d0 < -boost::math::constants::pi<double>())
+        return d0 + 2. * boost::math::constants::pi<double>();
+    if (d0 > boost::math::constants::pi<double>())
+        return d0 - 2. * boost::math::constants::pi<double>();
+    return d0;
+}
 
 // A projection for the KoulesStateSpace
 class KoulesProjection : public ob::ProjectionEvaluator
@@ -382,7 +393,7 @@ public:
         si_->getStateSpace()->copyToReals(q, start);
 
         double v[2] = { cval[0] - q[offset + 2], cval[1] - q[offset + 3]};
-        double deltaTheta = atan2(v[1], v[0]) - q[offset + 4];
+        double deltaTheta = signedSO2Distance(atan2(v[1], v[0]), q[offset + 4]);
         if (v[0]*v[0] + v[1]*v[1] > shipDelta * shipDelta)
         {
             if (std::abs(deltaTheta) < shipEps)
@@ -595,7 +606,11 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 ob::PlannerPtr getPlanner(const std::string& plannerName, const oc::SpaceInformationPtr& si)
 {
     if (plannerName == "rrt")
-        return ob::PlannerPtr(new oc::RRT(si));
+    {
+        ob::PlannerPtr rrtplanner(new oc::RRT(si));
+        rrtplanner->as<oc::RRT>()->setIntermediateStates(true);
+        return rrtplanner;
+    }
     else if (plannerName == "est")
         return ob::PlannerPtr(new oc::EST(si));
     else if (plannerName == "kpiece")
@@ -645,6 +660,7 @@ oc::SimpleSetup* koulesSetup(unsigned int numKoules, const std::string& plannerN
         }
         startVec[4 * numKoules    ] = .5 * sideLength;
         startVec[4 * numKoules + 1] = .5 * sideLength;
+        startVec[4 * numKoules + 4] = .5 * delta;
         space->copyFromReals(start.get(), startVec);
     }
     ss->setStartState(start);
@@ -727,6 +743,7 @@ void planAllLevelsRecursive(oc::SimpleSetup* ss, double maxTime, const std::stri
     std::vector<ob::PathPtr>& solution)
 {
     double timeAttempt = maxTime / numAttempts;
+    ob::PlannerStatus status;
     for (unsigned int i = 0; i < numAttempts; ++i)
     {
         ompl::time::point startTime = ompl::time::now();
@@ -734,7 +751,8 @@ void planAllLevelsRecursive(oc::SimpleSetup* ss, double maxTime, const std::stri
         ss->clear();
         OMPL_INFORM("Attempt %d of %d to solve for %d koules",
             i + 1, numAttempts, (ss->getStateSpace()->getDimension() - 5)/4);
-        if (ss->solve(timeAttempt) != ob::PlannerStatus::EXACT_SOLUTION)
+        status = ss->solve(timeAttempt);
+        if (status != ob::PlannerStatus::EXACT_SOLUTION && numAttempts > 1)
             continue;
 
         ob::PathPtr path(ss->getProblemDefinition()->getSolutionPath());
@@ -742,6 +760,14 @@ void planAllLevelsRecursive(oc::SimpleSetup* ss, double maxTime, const std::stri
         const ob::State* goalState = cpath->getStates().back();
         std::vector<double> s, nextStart;
 
+        if (status == ob::PlannerStatus::APPROXIMATE_SOLUTION)
+        {
+            cpath->interpolate();
+            solution.push_back(path);
+            OMPL_INFORM("Approximate solution found for %d koules",
+                (ss->getStateSpace()->getDimension() - 5)/4);
+            return;
+        }
         ss->getStateSpace()->copyToReals(s, goalState);
         nextStart.reserve(s.size() - 4);
         for (unsigned int j = 0; j < s.size() - 5; j += 4)
