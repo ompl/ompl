@@ -157,7 +157,6 @@ void ompl::geometric::SPARS::freeMemory(void)
 
     if( lastState_ != NULL )
         si_->freeState( lastState_ );
-    path_.clear();
 }
 
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample( void )
@@ -518,14 +517,23 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
                         else
                         {
                             //Compute/Retain MINimum distance path on D through q, q"
-                            densePath( q, qpp );
-                            if( path_.size() != 0 )
+                            std::deque<base::State*> dPath;
+                            computeDensePath(q, qpp, dPath);
+                            if (dPath.size() > 0)
                             {
-                                double length = pathLength();
-                                if( length < d_min )
+                                // compute path length
+                                double length = 0.0;
+                                std::deque<base::State*>::const_iterator jt = dPath.begin();
+                                for (std::deque<base::State*>::const_iterator it = jt + 1 ; it != dPath.end() ; ++it)
+                                {
+                                    length += si_->distance(*jt, *it);
+                                    jt = it;
+                                }
+
+                                if (length < d_min)
                                 {
                                     d_min = length;
-                                    bestDPath = path_;
+                                    bestDPath.swap(dPath);
                                     best_qpp = qpp;
                                 }
                             }
@@ -864,9 +872,9 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
     return base::PathPtr(p);
 }
 
-void ompl::geometric::SPARS::densePath( const DenseVertex start, const DenseVertex goal ) const
+void ompl::geometric::SPARS::computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque< base::State* > &path) const
 {
-    path_.clear();
+    path.clear();
 
     boost::vector_property_map<DenseVertex> prev(boost::num_vertices(g_));
 
@@ -886,17 +894,9 @@ void ompl::geometric::SPARS::densePath( const DenseVertex start, const DenseVert
     else
     {
         for (DenseVertex pos = goal; prev[pos] != pos; pos = prev[pos])
-            path_.push_front( stateProperty_[pos] );
-        path_.push_front( stateProperty_[start] );
+            path.push_front( stateProperty_[pos] );
+        path.push_front( stateProperty_[start] );
     }
-}
-
-double ompl::geometric::SPARS::pathLength() const
-{
-    double l = 0.0;
-    for (std::size_t i = 1; i < path_.size(); ++i)
-        l += si_->distance(path_[i-1], path_[i]);
-    return l;
 }
 
 void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const

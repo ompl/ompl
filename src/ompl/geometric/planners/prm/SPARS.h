@@ -51,6 +51,7 @@
 #include <fstream>
 #include <utility>
 #include <vector>
+#include <deque>
 #include <map>
 
 namespace ompl
@@ -383,7 +384,7 @@ namespace ompl
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
 
             /** \brief Method for actually adding a dense path to the Roadmap Spanner, S. */
-            bool addPathToSpanner( const std::deque< base::State* >& p, SparseVertex vp, SparseVertex vpp );
+            bool addPathToSpanner(const std::deque< base::State* >& p, SparseVertex vp, SparseVertex vpp);
 
             /** \brief Automatically updates the representatives of all dense samplse within sparseDelta_ of v */
             void updateReps( SparseVertex v );
@@ -422,10 +423,7 @@ namespace ompl
             virtual base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
-            void densePath( const DenseVertex start, const DenseVertex goal ) const;
-
-            /** \brief Compute the length of the path stored in the variable path_ */
-            double pathLength() const;
+            void computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque<base::State*> &path) const;
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                                          sampler_;
@@ -473,9 +471,6 @@ namespace ompl
 
             /** \brief Vector of X vertices, filled in by the computeX function. */
             std::vector< SparseVertex >                                         Xs_;
-
-            /** \brief Path variable which stores the result of the densePath() function. */
-            mutable std::deque< base::State* >                                  path_;
 
             /** \brief Geometric Path variable used for smoothing out paths. */
             PathGeometric                                                       geomPath_;
