@@ -46,6 +46,8 @@
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
+#include "GoalVisitor.hpp"
+
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
 
@@ -508,29 +510,6 @@ bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-namespace
-{
-    struct AStarFoundGoal {}; // exception for termination
-
-    // visitor that terminates when we find the goal
-    class AStarGoalVisitor : public boost::default_astar_visitor
-    {
-    public:
-        AStarGoalVisitor(const ompl::geometric::PRM::Vertex &goal) : goal_(goal)
-        {
-        }
-
-        void examine_vertex(const ompl::geometric::PRM::Vertex &u, const ompl::geometric::PRM::Graph &g)
-        {
-            if (u == goal_)
-                throw AStarFoundGoal();
-        }
-
-    private:
-        ompl::geometric::PRM::Vertex goal_;
-    };
-}
-
 ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start, const Vertex &goal)
 {
     boost::mutex::scoped_lock _(graphMutex_);
@@ -541,7 +520,7 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
         boost::astar_search(g_, start,
                             boost::bind(&PRM::distanceFunction, this, _1, goal),
                             boost::predecessor_map(prev).
-                            visitor(AStarGoalVisitor(goal)));
+                            visitor(AStarGoalVisitor<Vertex>(goal)));
     }
     catch (AStarFoundGoal&)
     {

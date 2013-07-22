@@ -44,6 +44,8 @@
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
 
+#include "GoalVisitor.hpp"
+
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
 
@@ -715,9 +717,16 @@ ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex st
 
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
 
-    boost::astar_search(g_, start,
-            boost::bind(&SPARStwo::distanceFunction, this, _1, goal),
-            boost::predecessor_map(prev));
+    try
+    {
+        boost::astar_search(g_, start,
+                            boost::bind(&SPARStwo::distanceFunction, this, _1, goal),
+                            boost::predecessor_map(prev).
+                            visitor(AStarGoalVisitor<Vertex>(goal)));
+    }
+    catch (AStarFoundGoal&)
+    {
+    }
 
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");

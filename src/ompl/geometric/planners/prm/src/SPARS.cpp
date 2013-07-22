@@ -43,6 +43,8 @@
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
 
+#include "GoalVisitor.hpp"
+
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
 
@@ -840,9 +842,16 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
 
     boost::vector_property_map<SparseVertex> prev(boost::num_vertices(s_));
 
-    boost::astar_search(s_, start,
-            boost::bind(&SPARS::sparseDistanceFunction, this, _1, goal),
-            boost::predecessor_map(prev));
+    try
+    {
+        boost::astar_search(s_, start,
+                            boost::bind(&SPARS::sparseDistanceFunction, this, _1, goal),
+                            boost::predecessor_map(prev).
+                            visitor(AStarGoalVisitor<SparseVertex>(goal)));
+    }
+    catch (AStarFoundGoal&)
+    {
+    }
 
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
@@ -861,9 +870,16 @@ void ompl::geometric::SPARS::densePath( const DenseVertex start, const DenseVert
 
     boost::vector_property_map<DenseVertex> prev(boost::num_vertices(g_));
 
-    boost::astar_search(g_, start,
-                        boost::bind(&SPARS::distanceFunction, this, _1, goal),
-                        boost::predecessor_map(prev));
+    try
+    {
+        boost::astar_search(g_, start,
+                            boost::bind(&SPARS::distanceFunction, this, _1, goal),
+                            boost::predecessor_map(prev).
+                            visitor(AStarGoalVisitor<DenseVertex>(goal)));
+    }
+    catch (AStarFoundGoal&)
+    {
+    }
 
     if (prev[goal] == goal)
         OMPL_WARN("No dense path was found?");
