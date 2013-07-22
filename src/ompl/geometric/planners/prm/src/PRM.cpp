@@ -445,6 +445,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
 void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondition &ptc)
 {
+    if (!isSetup())
+        setup();
+    if (!sampler_)
+        sampler_ = si_->allocValidStateSampler();
+    if (!simpleSampler_)
+        simpleSampler_ = si_->allocStateSampler();
+
     std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
     bool grow = true;

@@ -196,6 +196,10 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
+            /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() and expandRoadmap(),
+                maintaining a 2:1 ratio for growing/expansion of roadmap) */
+            virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
+
             /** \brief If the user desires, the roadmap can be
                 improved for the given time (seconds). The solve()
                 method will also improve the roadmap, as needed.*/
@@ -287,9 +291,6 @@ namespace ompl
 
             /** \brief Check if two milestones (\e m1 and \e m2) are part of the same connected component. This is not a const function since we use incremental connected components from boost */
             bool sameComponent(Vertex m1, Vertex m2);
-
-            /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() / expandRoadmap()) */
-            virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Randomly sample the state space, add and connect milestones
                  in the roadmap. Stop this process when the termination condition
