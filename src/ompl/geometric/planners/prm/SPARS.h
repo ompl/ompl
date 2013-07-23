@@ -528,7 +528,7 @@ namespace ompl
             void getSparseNeighbors( base::State* inState );
 
             /** \brief Get the visible neighbors */
-            void getVisibleNeighbors( base::State* inState );
+            void filterVisibleNeighbors( base::State* inState );
 
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
             double distanceFunction(const DenseVertex a, const DenseVertex b) const

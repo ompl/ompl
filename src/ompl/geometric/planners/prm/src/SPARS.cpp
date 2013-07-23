@@ -296,7 +296,7 @@ void ompl::geometric::SPARS::constructSpanner(const base::PlannerTerminationCond
         //Now that we've added to D, try adding to S
         //Start by figuring out who our neighbors are
         getSparseNeighbors( workState );
-        getVisibleNeighbors( workState );
+        filterVisibleNeighbors( workState );
         //Check for addition for Coverage
         if( !checkAddCoverage( workState, graphNeighborhood_ ) )
             //If not for Coverage, then Connectivity
@@ -627,20 +627,13 @@ void ompl::geometric::SPARS::getSparseNeighbors( base::State* inState )
     sparseStateProperty_[sparseQueryVertex_] = NULL;
 }
 
-void ompl::geometric::SPARS::getVisibleNeighbors( base::State* inState )
+void ompl::geometric::SPARS::filterVisibleNeighbors( base::State* inState )
 {
-    sparseStateProperty_[sparseQueryVertex_] = inState;
-
-    std::vector< SparseVertex > hold;
-    snn_->nearestR( sparseQueryVertex_, sparseDelta_, hold );
-
-    sparseStateProperty_[sparseQueryVertex_] = NULL;
-
     visibleNeighborhood_.clear();
     //Now that we got the neighbors from the NN, we must remove any we can't see
-    for (std::size_t i = 0; i < hold.size(); ++i)
-        if( si_->checkMotion( inState, sparseStateProperty_[hold[i]] ) )
-            visibleNeighborhood_.push_back( hold[i] );
+    for (std::size_t i = 0; i < graphNeighborhood_.size(); ++i)
+        if( si_->checkMotion( inState, sparseStateProperty_[graphNeighborhood_[i]] ) )
+            visibleNeighborhood_.push_back( graphNeighborhood_[i] );
 }
 
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::getInterfaceNeighbor(DenseVertex q, SparseVertex rep)
