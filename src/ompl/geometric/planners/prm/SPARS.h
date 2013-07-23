@@ -332,9 +332,8 @@ namespace ompl
             /** \brief Attempt to add a single sample to the roadmap. */
 	    DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
 
-            /** \brief Free all the memory allocated by the planner */
-            void freeMemory(void);
-
+	    void checkQueryStateInitialization(void);
+	    
             /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
 	    DenseVertex addMilestone(base::State *state);
 
@@ -351,10 +350,10 @@ namespace ompl
             void connectDensePoints( DenseVertex v, DenseVertex vp );
 
             /** \brief Checks the latest dense sample for the coverage property, and adds appropriately. */
-            bool checkAddCoverage( const std::vector<SparseVertex> & neigh );
+            bool checkAddCoverage( const base::State* lastState, const std::vector<SparseVertex> & neigh );
 
             /** \brief Checks the latest dense sample for connectivity, and adds appropriately. */
-            bool checkAddConnectivity( const std::vector<SparseVertex> & neigh );
+            bool checkAddConnectivity( const base::State* lastState, const std::vector<SparseVertex> & neigh );
 
             /** \brief Checks the latest dense sample for bridging an edge-less interface */
             bool checkAddInterface( const std::vector<DenseVertex>& graphNeighborhood, const std::vector<DenseVertex>& visibleNeighborhood, DenseVertex q );
@@ -520,10 +519,10 @@ namespace ompl
             /** \brief SPARS parameter for Sparse Roadmap connection distance as a fraction of max. extent */
             double                                                              sparseDeltaFraction_;
 
-            /** \brief A holder for the last state added to D */
-            base::State*                                                        lastState_;
-
         private:
+
+            /** \brief Free all the memory allocated by the planner */
+            void freeMemory(void);
 
             /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
             void getSparseNeighbors( base::State* inState );
