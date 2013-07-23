@@ -192,12 +192,6 @@ namespace ompl
                 the clearQuery() function. */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief Alternate solve call with maximum failures as a
-             function parameter.  Overwrites the parameter member maxFailures_.
-
-             \param maxFail Maximum consecutive failures to add to the spanner allowed.*/
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail );
-
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().

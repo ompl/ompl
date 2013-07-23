@@ -312,12 +312,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
-ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail)
-{
-    maxFailures_ = maxFail;
-    return solve( ptc );
-}
-
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::State *state)
 {
     DenseVertex m = boost::add_vertex(g_);
