@@ -231,14 +231,14 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
         return base::PlannerStatus::INVALID_START;
     }
 
-    if (!goal->couldSample())
+    if (goalM_.empty() && !goal->couldSample())
     {
         OMPL_ERROR("Insufficient states in sampleable goal region");
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     // Add the valid goal states as milestones
-    while (const base::State *st = pis_.nextGoal())
+    while (const base::State *st = (goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal()))
     {
         addMilestone(si_->cloneState(st));
         goalM_.push_back(addGuard(si_->cloneState(st), GOAL ));
