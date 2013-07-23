@@ -303,6 +303,7 @@ void ompl::geometric::SPARS::constructSpanner(const base::PlannerTerminationCond
             if( !checkAddConnectivity( workState, graphNeighborhood_ ) )
                 //Check for the existence of an interface
                 if( !checkAddInterface( graphNeighborhood_, visibleNeighborhood_, q ) )
+		{
                     //Then check to see if it's on an interface
                     getInterfaceNeighborhood( q );
                     if( interfaceNeighborhood_.size() > 0 )
@@ -315,6 +316,7 @@ void ompl::geometric::SPARS::constructSpanner(const base::PlannerTerminationCond
                     else
                         //There's no interface here, so drop it
                         ++iterations_;
+		}
     }
 
     si_->freeState(workState);
