@@ -392,10 +392,10 @@ namespace ompl
             void removeFromRep( DenseVertex q, SparseVertex rep );
 
             /** \brief Computes all nodes which qualify as a candidate v" for v and vp */
-            void computeVPP( DenseVertex v, DenseVertex vp );
+            void computeVPP(DenseVertex v, DenseVertex vp, std::vector<SparseVertex> &VPPs);
 
             /** \brief Computes all nodes which qualify as a candidate x for v, v', and v" */
-            void computeX( DenseVertex v, DenseVertex vp, DenseVertex vpp );
+            void computeX(DenseVertex v, DenseVertex vp, DenseVertex vpp, std::vector<SparseVertex> &Xs);
 
             /** \brief Allocates a midpoint */
             base::State* generateMidpoint( const base::State* a, const base::State* b ) const;
@@ -458,14 +458,8 @@ namespace ompl
             std::vector< DenseVertex >                                          interfaceNeighborhood_;
             /** \brief Storage for the representatives of interface neighbors, populated by getInterfaceNeighborhoodRepresentatives() */
             std::vector< SparseVertex >                                         interfaceRepresentatives_;
-
-            /** \brief Vector of V double prime vertices, filled in by the computeVPP funciton. */
-            std::vector< SparseVertex >                                         VPPs_;
-
-            /** \brief Vector of X vertices, filled in by the computeX function. */
-            std::vector< SparseVertex >                                         Xs_;
-
-            /** \brief Geometric Path variable used for smoothing out paths. */
+	    
+	    /** \brief Geometric Path variable used for smoothing out paths. */
             PathGeometric                                                       geomPath_;
 
             /** \brief Access to the internal base::state at each DenseVertex */

@@ -129,8 +129,6 @@ void ompl::geometric::SPARS::clear(void)
     clearQuery();
     iterations_ = 0;
 
-    Xs_.clear();
-    VPPs_.clear();
     graphNeighborhood_.clear();
     visibleNeighborhood_.clear();
     interfaceNeighborhood_.clear();
@@ -487,15 +485,18 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
     {
         SparseVertex vp = n_rep[i];
         //Identify appropriate v" candidates => vpps
-        computeVPP( v, vp );
+	std::vector<SparseVertex> VPPs;
+	computeVPP(v, vp, VPPs);
 
-        foreach( SparseVertex vpp, VPPs_ )
+        foreach( SparseVertex vpp, VPPs )
         {
             double s_max = 0;
             //Find the X nodes to test
-            computeX( v, vp, vpp );
+            std::vector<SparseVertex> Xs;
+            computeX(v, vp, vpp, Xs);
+
             //For each x in xs
-            foreach( SparseVertex x, Xs_ )
+            foreach( SparseVertex x, Xs )
             {
                 //Compute/Retain MAXimum distance path thorugh S
                 double dist = (si_->distance(sparseStateProperty_[x], sparseStateProperty_[v])
@@ -508,9 +509,9 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
             DenseVertex best_qpp = boost::graph_traits<DenseGraph>::null_vertex();
             double d_min = std::numeric_limits<double>::infinity(); //Insanely big number
             //For each vpp in vpps
-            for (std::size_t j = 0; j < VPPs_.size() && !ret; ++j)
+            for (std::size_t j = 0; j < VPPs.size() && !ret; ++j)
             {
-                SparseVertex vpp = VPPs_[j];
+                SparseVertex vpp = VPPs[j];
                 //For each q", which are stored interface nodes on v for i(vpp,v)
                 foreach( DenseVertex qpp, interfaceListsProperty_[v][vpp] )
                 {
@@ -783,25 +784,21 @@ void ompl::geometric::SPARS::removeFromRep( DenseVertex q, SparseVertex rep )
     }
 }
 
-void ompl::geometric::SPARS::computeVPP( SparseVertex v, SparseVertex vp )
+void ompl::geometric::SPARS::computeVPP(SparseVertex v, SparseVertex vp, std::vector<SparseVertex> &VPPs)
 {
-    VPPs_.clear();
-
     foreach( SparseVertex cvpp, boost::adjacent_vertices( v, s_ ) )
         if( cvpp != vp )
             if( !boost::edge( cvpp, vp, s_ ).second )
-                VPPs_.push_back( cvpp );
+                VPPs.push_back( cvpp );
 }
 
-void ompl::geometric::SPARS::computeX( SparseVertex v, SparseVertex vp, SparseVertex vpp )
+void ompl::geometric::SPARS::computeX(SparseVertex v, SparseVertex vp, SparseVertex vpp, std::vector<SparseVertex> &Xs)
 {
-    Xs_.clear();
-
     foreach( SparseVertex cx, boost::adjacent_vertices( vpp, s_ ) )
         if( boost::edge( cx, v, s_ ).second && !boost::edge( cx, vp, s_ ).second )
             if( interfaceListsProperty_[vpp][cx].size() > 0 )
-                Xs_.push_back( cx );
-    Xs_.push_back( vpp );
+                Xs.push_back( cx );
+    Xs.push_back( vpp );
 }
 
 ompl::base::State* ompl::geometric::SPARS::generateMidpoint( const ompl::base::State* a, const ompl::base::State* b ) const
