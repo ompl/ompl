@@ -178,6 +178,9 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
+	    /** \brief While the termination condition permits, construct the spanner graph */
+	    void constructSpanner(const base::PlannerTerminationCondition &ptc);
+	    
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
                 the same problem, without calling clear() in

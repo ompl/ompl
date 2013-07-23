@@ -211,14 +211,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     lastState_ = si_->allocState();
 
-    if( boost::num_vertices( g_ ) < 1 )
-    {
-        sparseQueryVertex_ = boost::add_vertex( s_ );
-        queryVertex_ = boost::add_vertex( g_ );
-        sparseStateProperty_[sparseQueryVertex_] = NULL;
-        stateProperty_[queryVertex_] = NULL;
-    }
-
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
@@ -257,11 +249,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
         return base::PlannerStatus::INVALID_GOAL;
     }
 
-    if (!sampler_)
-        sampler_ = si_->allocValidStateSampler();
-    if (!simpleSampler_)
-        simpleSampler_ = si_->allocStateSampler();
-
     unsigned int nrStartStates = boost::num_vertices(g_) - 1; // don't count query vertex
     OMPL_INFORM("Starting with %u states", nrStartStates);
 
@@ -272,10 +259,36 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     //Construct planner termination condition which also takes M into account
     base::PlannerOrTerminationCondition ptcOrFail(ptc,base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
 
-    while ( !ptcOrFail() )
+    constructSpanner(ptcOrFail);
+    
+    haveSolution( startM_, goalM_, sol );
+
+    if (sol)
+        pdef_->addSolutionPath (sol, false);
+
+    // Return true if any solution was found.
+    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+}
+
+void ompl::geometric::SPARS::constructSpanner(const base::PlannerTerminationCondition &ptc)
+{
+    if( boost::num_vertices( g_ ) < 1 )
+    {
+        sparseQueryVertex_ = boost::add_vertex( s_ );
+        queryVertex_ = boost::add_vertex( g_ );
+        sparseStateProperty_[sparseQueryVertex_] = NULL;
+        stateProperty_[queryVertex_] = NULL;
+    }
+
+    if (!sampler_)
+        sampler_ = si_->allocValidStateSampler();
+    if (!simpleSampler_)
+        simpleSampler_ = si_->allocStateSampler();
+
+    while ( ptc == false )
     {
         // Generate a single sample, and attempt to connect it to nearest neighbors.
-        DenseVertex q = addSample(lastState_, ptcOrFail);
+        DenseVertex q = addSample(lastState_, ptc);
 	if (q == boost::graph_traits<DenseGraph>::null_vertex())
 	    continue;
 	
@@ -303,13 +316,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
                         ++iterations_;
     }
 
-    haveSolution( startM_, goalM_, sol );
-
-    if (sol)
-        pdef_->addSolutionPath (sol, false);
-
-    // Return true if any solution was found.
-    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::State *state)
