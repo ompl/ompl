@@ -39,6 +39,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
@@ -55,11 +56,6 @@ namespace ompl
 {
     namespace magic
     {
-
-        /** \brief Maximum number of sampling attempts to find a valid state,
-            without checking whether the allowed time elapsed. This value
-            should not really be changed. */
-        static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
         /** \brief The number of steps to take for a random bounce
             motion generated as part of the expansion step of PRM. */
@@ -269,7 +265,7 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
             {
                 found = sampler_->sample(workState);
                 attempts++;
-            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
+            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK && !found);
         }
         // add it as a milestone
         if (found)
@@ -406,11 +402,6 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         }
     }
 
-    if (!sampler_)
-        sampler_ = si_->allocValidStateSampler();
-    if (!simpleSampler_)
-        simpleSampler_ = si_->allocStateSampler();
-
     unsigned int nrStartStates = boost::num_vertices(g_);
     OMPL_INFORM("Starting with %u states", nrStartStates);
 
@@ -418,7 +409,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     addedSolution_ = false;
     base::PathPtr sol;
     sol.reset();
-    boost::thread slnThread (boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
+    boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
     base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));

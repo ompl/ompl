@@ -221,17 +221,18 @@ namespace ompl
             virtual void expandRoadmap(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Function that can solve the motion planning
-                problem. This function can be called multiple times on
-                the same problem, without calling clear() in
-                between. This allows the planner to continue work for
-                more time on an unsolved problem, for example. Start
-                and goal states from the currently specified
-                ProblemDefinition are cached. This means that between
-                calls to solve(), input states are only added, not
-                removed. When using PRM as a multi-query planner, the
-                input states should be however cleared, without
-                clearing the roadmap itself. This can be done using
-                the clearQuery() function. */
+                problem. Grows a roadmap using
+                constructRoadmap(). This function can be called
+                multiple times on the same problem, without calling
+                clear() in between. This allows the planner to
+                continue work for more time on an unsolved problem,
+                for example. Start and goal states from the currently
+                specified ProblemDefinition are cached. This means
+                that between calls to solve(), input states are only
+                added, not removed. When using PRM as a multi-query
+                planner, the input states should be however cleared,
+                without clearing the roadmap itself. This can be done
+                using the clearQuery() function. */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Clear the query previously loaded from the ProblemDefinition.
