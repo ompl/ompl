@@ -435,20 +435,20 @@ bool ompl::geometric::SPARS::checkAddConnectivity( const base::State* lastState,
     return false;
 }
 
-bool ompl::geometric::SPARS::checkAddInterface( const std::vector<ompl::geometric::SPARS::SparseVertex>& graphNeighborhood_, const std::vector<ompl::geometric::SPARS::SparseVertex>& visibleNeighborhood_, ompl::geometric::SPARS::DenseVertex q )
+bool ompl::geometric::SPARS::checkAddInterface(const std::vector<SparseVertex>& graphNeighborhood, const std::vector<SparseVertex>& visibleNeighborhood, DenseVertex q )
 {
     //If we have more than 1 neighbor
-    if( visibleNeighborhood_.size() > 1 )
+    if( visibleNeighborhood.size() > 1 )
         //If our closest neighbors are also visible
-        if( graphNeighborhood_[0] == visibleNeighborhood_[0] && graphNeighborhood_[1] == visibleNeighborhood_[1] )
+        if( graphNeighborhood[0] == visibleNeighborhood[0] && graphNeighborhood[1] == visibleNeighborhood[1] )
             //If our two closest neighbors don't share an edge
-            if( !boost::edge( visibleNeighborhood_[0], visibleNeighborhood_[1], s_ ).second )
+            if( !boost::edge( visibleNeighborhood[0], visibleNeighborhood[1], s_ ).second )
             {
                 //If they can be directly connected
-                if( si_->checkMotion( sparseStateProperty_[visibleNeighborhood_[0]], sparseStateProperty_[visibleNeighborhood_[1]] ) )
+                if( si_->checkMotion( sparseStateProperty_[visibleNeighborhood[0]], sparseStateProperty_[visibleNeighborhood[1]] ) )
                 {
                     //Connect them
-                    connectSparsePoints( visibleNeighborhood_[0], visibleNeighborhood_[1] );
+                    connectSparsePoints( visibleNeighborhood[0], visibleNeighborhood[1] );
                     //And report that we added to the roadmap
                     resetFailures();
                     //Report success
@@ -458,8 +458,8 @@ bool ompl::geometric::SPARS::checkAddInterface( const std::vector<ompl::geometri
                 {
                     //Add the new node to the graph, to bridge the interface
                     SparseVertex v = addGuard( si_->cloneState( stateProperty_[q] ), INTERFACE );
-                    connectSparsePoints( v, visibleNeighborhood_[0] );
-                    connectSparsePoints( v, visibleNeighborhood_[1] );
+                    connectSparsePoints( v, visibleNeighborhood[0] );
+                    connectSparsePoints( v, visibleNeighborhood[1] );
                     //Report success
                     return true;
                 }
