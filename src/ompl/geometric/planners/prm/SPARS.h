@@ -333,10 +333,10 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
-            virtual DenseVertex addMilestone(base::State *state);
+	    DenseVertex addMilestone(base::State *state);
 
             /** \brief Construct a node with the given state (\e state) for the spanner and store it in the nn structure */
-            virtual SparseVertex addGuard(base::State *state, GuardType type);
+	    SparseVertex addGuard(base::State *state, GuardType type);
 
             /** \brief Make two nodes (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteSparseComponents(SparseVertex m1, SparseVertex m2);
@@ -411,7 +411,7 @@ namespace ompl
             bool reachedFailureLimit (void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            virtual base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
+	    base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
             void computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque<base::State*> &path) const;
