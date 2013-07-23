@@ -36,7 +36,7 @@
 #include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/bind.hpp>
 #include <boost/graph/astar_search.hpp>
@@ -92,10 +92,10 @@ void ompl::geometric::SPARS::setup(void)
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<DenseVertex>());
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<DenseVertex>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&SPARS::distanceFunction, this, _1, _2));
     if (!snn_)
-        snn_.reset(new NearestNeighborsGNAT<SparseVertex>());
+        snn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<SparseVertex>(si_->getStateSpace()));
     snn_->setDistanceFunction(boost::bind(&SPARS::sparseDistanceFunction, this, _1, _2));
     if (!connectionStrategy_)
         connectionStrategy_ = KStarStrategy<DenseVertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
