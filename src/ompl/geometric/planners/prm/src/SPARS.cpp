@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <boost/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
@@ -159,18 +160,22 @@ void ompl::geometric::SPARS::freeMemory(void)
         si_->freeState( lastState_ );
 }
 
-ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample( void )
+ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::State *workState, const base::PlannerTerminationCondition &ptc)
 {
-    return addSample( lastState_ );
-}
-
-ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::State *workState)
-{
-    bool found = false;
     DenseVertex ret = boost::graph_traits<DenseGraph>::null_vertex();
-    do
-        found = sampler_->sample(workState);
-    while (!found);
+
+    // search for a valid state
+    bool found = false;
+    while (!found && ptc == false)
+    {
+	unsigned int attempts = 0;
+	do
+	{
+	    found = sampler_->sample(workState);
+	    attempts++;
+	} while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK && !found);
+    }
+
     if (found)
         ret = addMilestone(si_->cloneState(workState));
     return ret;
@@ -269,9 +274,11 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     while ( !ptcOrFail() )
     {
-        //Generate a single sample, and attempt to connect it to nearest neighbors.
-        DenseVertex q = addSample();
-
+        // Generate a single sample, and attempt to connect it to nearest neighbors.
+        DenseVertex q = addSample(lastState_, ptcOrFail);
+	if (q == boost::graph_traits<DenseGraph>::null_vertex())
+	    continue;
+	
         //Now that we've added to D, try adding to S
         //Start by figuring out who our neighbors are
         getSparseNeighbors( lastState_ );

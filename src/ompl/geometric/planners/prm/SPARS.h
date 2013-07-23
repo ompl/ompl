@@ -333,10 +333,7 @@ namespace ompl
             typedef boost::function<std::vector<DenseVertex>&(const DenseVertex)> ConnectionStrategy;
 
             /** \brief Attempt to add a single sample to the roadmap. */
-            virtual DenseVertex addSample();
-
-            /** \brief Attempt to add a single sample to the roadmap. */
-            virtual DenseVertex addSample(base::State *workState);
+	    DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
