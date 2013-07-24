@@ -112,6 +112,7 @@ class MyEnvironment(om.MorseEnvironment):
         s = s.replace('nan','float("nan")')
         s = s.replace('inf','float("inf")')
         
+        # send it to the simulation
         self.call('submitState(%s)' % s)
         
     def applyControl(self, control):

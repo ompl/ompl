@@ -12,8 +12,8 @@ OMPL_DIR='/home/caleb/repos/ompl_morse'
 # Disable logging of socket communication because there will be a lot of it
 sockloggers = (logging.getLogger("morse.morse.core.request_manager"),
                logging.getLogger("morse.morse.middleware.socket_request_manager"))
-#sockloggers[0].setLevel(logging.ERROR)
-#sockloggers[1].setLevel(logging.ERROR)
+sockloggers[0].setLevel(logging.ERROR)
+sockloggers[1].setLevel(logging.ERROR)
 
 # Load the .blend file (first argument after '--')
 envpath = sys.argv[sys.argv.index('--') + 1]

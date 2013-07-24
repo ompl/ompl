@@ -111,7 +111,6 @@ def getControlDescription():
                         if n > 0:   # services like stop() aren't really helpful to OMPL
                             desc.append((cname, svc, n))
                             desc[0] += n
-    print(morse.core.wheeled_robot.PhysicsWheelRobotClass._wheel_joints)
     # send the encoded list
     sock.sendall(repr(desc).encode())
     
@@ -212,12 +211,12 @@ def extractState():
     # generate state list
     state = list(map(getObjState, rigidObjects))
     
-    # make safe for eval()
+    # make eval()-safe
     s = repr(state)
     s = s.replace('nan','float("nan")')
     s = s.replace('inf','float("inf")')
     
-    # respond with encoded state string
+    # send state
     sock.sendall(s.encode())
     
     return True
@@ -309,8 +308,10 @@ def communicate():
             cmd = sock.recv(16384).decode('utf-8')   # TODO buffer size
             if cmd != '':
                 break
-        #if cmd != 'nextTick()':
-        #print('\033[93;1mAt tick %i, received command: %s\033[0m' % (tickcount, cmd))
+                
+        #if cmd == 'submitState()':  # special prep for receiving pickled bytes
+        #    sock.sendall(b"None")
+        #    cmd = repr(submitState(sock.recv(16384)))   # TODO buffer size
 
 
 def main():
