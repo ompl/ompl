@@ -110,7 +110,7 @@ namespace ompl
             virtual Cost getCost(const Path &path) const;
 
 	    /** \brief Check whether the the cost \e c1 is considered less than the cost \e c2. */
-	    bool isCostBetterThan(Cost c1, Cost c2) const
+	    virtual bool isCostBetterThan(Cost c1, Cost c2) const
             {
                 return c1.v < c2.v;
             }
