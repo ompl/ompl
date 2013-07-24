@@ -2,6 +2,7 @@
 
 import socket
 import pickle
+import sys
 
 from ompl import control as oc
 
@@ -28,17 +29,15 @@ def planWithMorse(sockS, sockC):
         
         # choose a planner
         planner = oc.KPIECE1(si)
-        # with a specific projection
+        # use a specific projection
         space = si.getStateSpace()
         proj = MyProjection(space)
         space.registerProjection("MyProjection", proj)
         planner.setProjectionEvaluator("MyProjection")
-        
         ss.setPlanner(planner)
         
         # solve
-        env.setMode('PLAN')
-        ss.solve(5*60.0)
+        ss.solve(0.2*60.0)
         
         # print the solution path
         if ss.haveSolutionPath():
@@ -52,14 +51,14 @@ def planWithMorse(sockS, sockC):
                 con.append((cpath.getControl(i)[0], cpath.getControl(i)[1]))
                 dur.append(cpath.getControlDuration(i))
             st.append(env.stateToList(cpath.getState(cpath.getControlCount())))
-            f = open('path.out', 'wb')
+            f = open(sys.argv[1], 'wb')
             pickle.dump((st,con,dur), f)
             f.close()
         else:
             print("No solution found.")
     
     except Exception as msg:
-        if str(msg)!="[Errno 104] Connection reset by peer": # this happens when MORSE exits
+        if str(msg)!="[Errno 104] Connection reset by peer": # ignore if user exits MORSE
             raise
     finally:
         # tell simulation it can shut down
@@ -74,7 +73,6 @@ sockC.connect(('localhost', 4000))
 
 # plan
 planWithMorse(sockS, sockC)
-sockS.close()
-sockC.close()
+
 
 

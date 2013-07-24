@@ -8,11 +8,15 @@
 OMPL_DIR='/home/caleb/repos/ompl_morse'
 
 import subprocess
+import inspect
 import socket
 
 import bpy
 import bge
 import mathutils
+
+import morse.builder
+import morse.core
 
 # Routines for accessing Blender internal data
 
@@ -55,14 +59,15 @@ def setObjState(gameobj, oState):
 
 rigidObjects = []   # initialized in main()
 
-def setState(state):
+def getMorseComponent(name):
+    """
+    Search list of MORSE components for the named one.
+    """
+    for c in morse.builder.AbstractComponent.components:
+        if c.name == name:
+            return c
+    return None
 
-    for i in range(len(state)):
-        
-        # set its state
-        setObjState(rigidObjects[i], state[i])
-    
-    
 # Procedures to be called by planner script; each one
 #  must write a response string to the socket
 #  that can be eval()'ed; also each one must return True
@@ -86,6 +91,29 @@ def getGoalCriteria():
     
     # send the encoded response
     sock.sendall(repr(crit).encode())
+    
+    return True
+
+def getControlDescription():
+    """
+    Discover the motion controller services and how to call them.
+    Returns [sum_of_nargs, (component_name,service_name,nargs), ...]
+    """
+    desc = [0]
+    # query the request_manager for a list of services
+    for name, inst in bge.logic.morsedata.morse_services.request_managers().items():
+        if name == 'morse.middleware.socket_request_manager.SocketRequestManager':
+            for cname, services in inst.services().items():
+                if cname.startswith('motion_'):
+                    for svc in services:
+                        # add info to the description
+                        n = len(inspect.getargspec(inst._services[cname,svc][0])[0]) - 1  # exclude self arg
+                        if n > 0:   # services like stop() aren't really helpful to OMPL
+                            desc.append((cname, svc, n))
+                            desc[0] += n
+    print(morse.core.wheeled_robot.PhysicsWheelRobotClass._wheel_joints)
+    # send the encoded list
+    sock.sendall(repr(desc).encode())
     
     return True
 
@@ -175,26 +203,6 @@ def nextTick(framecapture=False):
     # signal to exit loop
     return False
 
-def setMode(mode):
-    """
-    Set the time multiplier for the simulation speed.
-    """
-    # Uncomment if using speed-hacked Blender
-    """
-    if mode=='PLAN':
-        print("Setting speed 16")
-        bge.logic.setTimeMultiplier(16)
-    elif mode=='PLAY':
-        print("Setting speed 1")
-        bge.logic.setTimeMultiplier(1)
-    else:
-        print("Unrecognized mode setting!")
-    """
-    
-    # null response
-    sock.sendall(b"None")
-    
-    return True
 
 def extractState():
     """
@@ -247,9 +255,27 @@ def spawn_planner():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(('localhost', 50007))
     
-    # spawn planner.py
-    subprocess.Popen(OMPL_DIR + '/scripts/morse/planner.py')
+    settings = bpy.data.objects['__planner'].game.properties
     
+    if settings['Mode'].value == 'PLAN':
+    
+        #bge.logic.setTimeMultiplier(16)
+        # spawn planner.py
+        f = '/scripts/morse/planner.py'
+        
+    elif settings['Mode'].value == 'PLAY':
+    
+        #bge.logic.setTimeMultiplier(1)
+        # spawn player.py
+        f = '/scripts/morse/player.py'
+        
+    else:
+        print('Unrecognized mode setting!')
+        return
+    
+    # pass the name of the output (or input) file
+    subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__planner'].game.properties['Outpath'].value])
+            
     # make a connection
     s.listen(0)
     global sock

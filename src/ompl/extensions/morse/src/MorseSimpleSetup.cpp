@@ -106,7 +106,6 @@ void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path) const
 
 ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const double* control, unsigned int steps) const
 {
-    OMPL_INFORM("simulateControl v1 used");
     Control *c = si_->allocControl();
     memcpy(c->as<MorseControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
     base::PathPtr path = simulateControl(c, steps);
@@ -116,7 +115,6 @@ ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const doubl
 
 ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Control* control, unsigned int steps) const
 {
-    OMPL_INFORM("simulateControl v2 used");
     PathControl *p = new PathControl(si_);
 
     base::State *s0 = si_->allocState();
@@ -134,7 +132,6 @@ ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Contr
 
 ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulate(unsigned int steps) const
 {
-    OMPL_INFORM("Simulating with null control for %i steps!", steps);
     Control *c = si_->allocControl();
     si_->nullControl(c);
     base::PathPtr path = simulateControl(c, steps);

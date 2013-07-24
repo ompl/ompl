@@ -29,12 +29,11 @@ class MyEnvironment(om.MorseEnvironment):
         self.sockS = state_socket
         self.sockC = control_socket
         self.simRunning = True
-        self.con = (0,0)    # cache of the last control set to MORSE
         
-        # tell MORSE to reset the simulation, because it was running while it was initializing
-        self.sockC.sendall(b'id1 simulation reset_objects')
-        
-        cb = [2, list2vec([-10,10,-1,1])]   # TODO get from simulation
+        self.cdesc = self.call('getControlDescription()')   # control dimension and info for applying controls
+        print(self.cdesc)
+        self.con = [0 for _ in range(self.cdesc[0])]    # cache of the last control set to MORSE
+        cb = [self.cdesc[0], list2vec([-10,10,-1,1])]   # TODO get bounds from user
         
         rb = self.call('getRigidBodiesBounds()')    # number of bodies and positional bounds
         rb[1] = list2vec(rb[1])
@@ -42,7 +41,12 @@ class MyEnvironment(om.MorseEnvironment):
         rb.append(list2vec([-inf, inf, -inf, inf, -inf, inf])) # lin bounds
         rb.append(list2vec([-inf, inf, -inf, inf, -inf, inf])) # ang bounds
         
-        super(MyEnvironment, self).__init__(cb[0], cb[1], rb[0], rb[1], rb[2], rb[3], 0.1, 5, 30)
+        envArgs = cb + rb + [0.1, 5, 30]    # step size, min/max control durations
+        super(MyEnvironment, self).__init__(*envArgs)
+        
+        # tell MORSE to reset the simulation, because it was running while it was initializing
+        self.sockC.sendall(b'id simulation reset_objects')
+        
         
     def call(self, cmd):
         """
@@ -114,10 +118,15 @@ class MyEnvironment(om.MorseEnvironment):
         """
         Tell MORSE to apply control to the robot.
         """
+        con = [control[i] for i in range(len(control))] # make it iterable
         # If the control hasn't changed, we don't need to do anything
-        if self.con != (control[0],control[1]):
-            self.con = (control[0],control[1])
-            self.sockC.sendall(('id1 robot.motion set_speed [%f,%f]\n' % self.con).encode())
+        if self.con != con:
+            self.con = con
+            i = 0
+            for controller in self.cdesc[1:]:
+                req = 'id %s %s %s\n' % (controller[0], controller[1], con[i:i+controller[2]])
+                i += controller[2]
+                self.sockC.sendall(req.encode())
         
     def worldStep(self, dur):
         """
@@ -125,12 +134,6 @@ class MyEnvironment(om.MorseEnvironment):
         """
         for i in range(int(round(dur/(1.0/60)))):
             self.call('nextTick()')
-    
-    def setMode(self, mode):
-        """
-        Set the time multiplier for the simulation speed.
-        """
-        self.call('setMode("%s")' % mode)
         
     def endSimulation(self):
         """
@@ -148,7 +151,7 @@ class MyProjection(om.MorseProjection):
     def __init__(self, space):
         super(MyProjection, self).__init__(space)
         self.bounds_ = ob.RealVectorBounds(self.getDimension())
-        self.robotPosSpaceIndex = 4 # TODO: figure out automatically which component is the robot's position
+        self.robotPosSpaceIndex = 4 # TODO: figure out automatically which components are the robot positions
         for i in range(self.getDimension()):
             self.bounds_.low[i] = space.getSubspace(self.robotPosSpaceIndex).getBounds().low[i]
             self.bounds_.high[i] = space.getSubspace(self.robotPosSpaceIndex).getBounds().high[i]
@@ -158,11 +161,11 @@ class MyProjection(om.MorseProjection):
         return 2
     
     def defaultCellSizes(self):
-        # grid for robot x,y location
+        # grid for robot x,y locations
         self.cellSizes_ = list2vec([2,2])
     
     def project(self, state, projection):
-        # use x and y coords of the robot
+        # use x and y coords of the robots
         projection[0] = state[self.robotPosSpaceIndex][0]
         projection[1] = state[self.robotPosSpaceIndex][1]
 
@@ -184,7 +187,7 @@ class MyGoal(om.MorseGoal):
         orientations as 1-(<q1,q2>^2) where <q1,q2> is the inner product of the quaternions.
         """
         return sum((s1[0][i]-s2[0][i])**2 for i in range(3)) + \
-            (1 - sum(s1[3][i]*s2[3][i] for i in range(4))**2)   # [0,1], where 0 means quats are the same
+            (1 - sum(s1[3][i]*s2[3][i] for i in range(4))**2)   # value in [0,1] where 0 means quats are the same
     
     def isSatisfied_Py(self, state):
         """

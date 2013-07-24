@@ -2,27 +2,22 @@
 
 import socket
 import pickle
+import sys
 
 from environment import *
 
 def playWithMorse(sockS, sockC):
     """
-    Set up MyEnvironment, MorseSimpleSetup, and MyGoal objects.
-    Plan using sockS as the socket to the Blender communicator script
-    and sockC as the socket to the MORSE motion controller.
+    Set up MyEnvironment object. Plan using sockS as the socket to the Blender
+    communicator script and sockC as the socket to the MORSE motion controller.
     """
     
     try:
         # create a MORSE environment representation
         env = MyEnvironment(sockS, sockC)
         
-        # create a simple setup object
-        ss = om.MorseSimpleSetup(env)
-        si = ss.getSpaceInformation()
-        
         # play
-        env.setMode('PLAY')
-        f = open('path.out', 'rb')
+        f = open(sys.argv[1], 'rb')
         (st,con,dur) = pickle.load(f)
         for i in range(len(con)):
             # load state
@@ -41,7 +36,7 @@ def playWithMorse(sockS, sockC):
         env.call('submitState(%s)' % s)
     
     except Exception as msg:
-        if str(msg)!="[Errno 104] Connection reset by peer": # this happens when MORSE exits
+        if str(msg)!="[Errno 104] Connection reset by peer": # ignore if user exits MORSE
             raise
     finally:
         # tell simulation it can shut down
@@ -54,9 +49,8 @@ sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockS.connect(('localhost', 50007))
 sockC.connect(('localhost', 4000))
 
-# plan
+# play
 playWithMorse(sockS, sockC)
-sockS.close()
-sockC.close()
+
 
 
