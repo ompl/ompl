@@ -12,6 +12,7 @@ def playWithMorse(sockS, sockC):
     communicator script and sockC as the socket to the MORSE motion controller.
     """
     
+    env = None
     try:
         # create a MORSE environment representation
         env = MyEnvironment(sockS, sockC)

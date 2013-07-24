@@ -1,5 +1,6 @@
 
 import socket
+import pickle
 
 from ompl import base as ob
 from ompl import morse as om
@@ -13,7 +14,23 @@ def list2vec(l):
     for e in l:
         ret.append(e)
     return ret
-    
+
+NO_ACK_MSG = 'ACK not received. Protocol violation!'
+
+def unpickleFromSocket(s):
+    """
+    Retrieve and unpickle a pickle from a socket.
+    """
+    p = b''
+    while True:
+        try:
+            p += s.recv(4096)   # keep adding more until we have it all
+            o = pickle.loads(p)
+        except EOFError:
+            continue
+        break
+    return o
+
 class MyEnvironment(om.MorseEnvironment):
     """
     Represents the MORSE environment we will be planning in.
@@ -30,12 +47,12 @@ class MyEnvironment(om.MorseEnvironment):
         self.sockC = control_socket
         self.simRunning = True
         
-        self.cdesc = self.call('getControlDescription()')   # control dimension and info for applying controls
+        self.cdesc = self.call('getControlDescription()', b'')   # get info for applying controls
         print(self.cdesc)
         self.con = [0 for _ in range(self.cdesc[0])]    # cache of the last control set to MORSE
         cb = [self.cdesc[0], list2vec([-10,10,-1,1])]   # TODO get bounds from user
         
-        rb = self.call('getRigidBodiesBounds()')    # number of bodies and positional bounds
+        rb = self.call('getRigidBodiesBounds()', b'')    # number of bodies and positional bounds
         rb[1] = list2vec(rb[1])
         inf = float('inf')
         rb.append(list2vec([-inf, inf, -inf, inf, -inf, inf])) # lin bounds
@@ -46,17 +63,24 @@ class MyEnvironment(om.MorseEnvironment):
         
         # tell MORSE to reset the simulation, because it was running while it was initializing
         self.sockC.sendall(b'id simulation reset_objects')
-        
-        
-    def call(self, cmd):
+
+    def call(self, cmd, pickdata=None):
         """
         Request a function call cmd from the simulation and
-        return the result.
+        return the result. If pickdata is b'', we're expecting
+        pickled data to be returned over the socket. If pickdata
+        has bytes, we'll send it over in a second transmission.
         """
-        # submit cmd to socket; return eval()'ed response
+        # submit cmd to socket; return unpickled response if present
         try:
             self.sockS.sendall(cmd.encode())
-            return eval(self.sockS.recv(16384))    # TODO: buffer size? states can get pretty big
+            if pickdata == b'':
+                return unpickleFromSocket(self.sockS)
+            elif pickdata:
+                assert self.sockS.recv(1) == b'\x06', NO_ACK_MSG
+                self.sockS.sendall(pickdata)
+            assert self.sockS.recv(1) == b'\x06', NO_ACK_MSG
+            return
         except:
             self.simRunning = False
             raise
@@ -67,13 +91,14 @@ class MyEnvironment(om.MorseEnvironment):
         the index of a rigid body in the world state and
         state_n is its goal position.
         """
-        return self.call('getGoalCriteria()')
+        return self.call('getGoalCriteria()', b'')
     
     def readState(self, state):
         """
         Get the state from the simulation so OMPL can use it.
         """
-        simState = self.call('extractState()')
+        simState = self.call('extractState()', b'')    # special receive pickled bytes
+        
         i = 0
         for obj in simState:
             # for each rigid body
@@ -107,13 +132,7 @@ class MyEnvironment(om.MorseEnvironment):
         Compose a state string from the state data
         and send it to the simulation.
         """
-        # make safe for eval()
-        s = repr(self.stateToList(state))
-        s = s.replace('nan','float("nan")')
-        s = s.replace('inf','float("inf")')
-        
-        # send it to the simulation
-        self.call('submitState(%s)' % s)
+        self.call('submitState()', pickle.dumps(self.stateToList(state)))  # special send pickled bytes
         
     def applyControl(self, control):
         """

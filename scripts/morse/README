@@ -14,7 +14,7 @@ INSTALLATION:
   Open Blender, go to File > User Preferences > Addons > Install from File..., navigate to
   ompl_addon.py, press Install from File..., check the box for OMPL Interface, then press
   Save User Settings and exit the User Preferences dialog.
--If you're using my speed-hacked Blender, uncomment lines 262 and 268 in communicator.py
+-If you're using my speed-hacked Blender, uncomment lines 263 and 269 in communicator.py
 
 NOTE: This build works with MORSE 1.0_STABLE, but the latest branch of MORSE has a slightly
 different command line interface. If you would like to use the latest MORSE version, check lines

@@ -10,6 +10,7 @@ OMPL_DIR='/home/caleb/repos/ompl_morse'
 import subprocess
 import inspect
 import socket
+import pickle
 
 import bpy
 import bge
@@ -55,18 +56,24 @@ def setObjState(gameobj, oState):
     gameobj.worldLinearVelocity = oState[1]
     gameobj.worldAngularVelocity = oState[2]
     gameobj.worldOrientation = mathutils.Quaternion(oState[3])
-    
+
 
 rigidObjects = []   # initialized in main()
 
-def getMorseComponent(name):
+
+def unpickleFromSocket(s):
     """
-    Search list of MORSE components for the named one.
+    Retrieve and unpickle a pickle from a socket.
     """
-    for c in morse.builder.AbstractComponent.components:
-        if c.name == name:
-            return c
-    return None
+    p = b''
+    while True:
+        try:
+            p += s.recv(4096)   # keep adding more until we have it all
+            o = pickle.loads(p)
+        except EOFError:
+            continue
+        break
+    return o
 
 # Procedures to be called by planner script; each one
 #  must write a response string to the socket
@@ -89,8 +96,8 @@ def getGoalCriteria():
         except ValueError:
             print("Ignoring goal criterion for non-existant or non-rigid-body object: " + gbody.name[:-5])
     
-    # send the encoded response
-    sock.sendall(repr(crit).encode())
+    # send the pickled response
+    sock.sendall(pickle.dumps(crit))
     
     return True
 
@@ -112,7 +119,7 @@ def getControlDescription():
                             desc.append((cname, svc, n))
                             desc[0] += n
     # send the encoded list
-    sock.sendall(repr(desc).encode())
+    sock.sendall(pickle.dumps(desc))
     
     return True
 
@@ -154,12 +161,10 @@ def getRigidBodiesBounds():
     MZ += dz
     
     # make safe for eval()
-    s = repr([len(rigidObjects), [mX, MX, mY, MY, mZ, MZ]])
-    s = s.replace('nan','float("nan")')
-    s = s.replace('inf','float("inf")')
+    bounds = [len(rigidObjects), [mX, MX, mY, MY, mZ, MZ]]
     
     # send the encoded list
-    sock.sendall(s.encode())
+    sock.sendall(pickle.dumps(bounds))
     
     return True
 
@@ -171,7 +176,7 @@ def endSimulation():
     global sock # we're going to modify it
     
     # null response
-    sock.sendall(b"None")
+    sock.sendall(b'\x06')
     
     # close the socket
     sock.shutdown(socket.SHUT_RDWR)
@@ -192,51 +197,48 @@ def nextTick(framecapture=False):
     Stop the communicate() while loop to advance to the next tick.
     """
     
+    # null response
+    sock.sendall(b'\x06')
+    
     if framecapture:
         global captureNextFrame
         captureNextFrame = True
     
-    # null response
-    sock.sendall(b"None")
-    
     # signal to exit loop
     return False
-
 
 def extractState():
     """
     Retrieve a list of state tuples for all rigid body objects.
     """
-    
     # generate state list
     state = list(map(getObjState, rigidObjects))
     
-    # make eval()-safe
-    s = repr(state)
-    s = s.replace('nan','float("nan")')
-    s = s.replace('inf','float("inf")')
-    
-    # send state
-    sock.sendall(s.encode())
+    # pickle and send it
+    sock.sendall(pickle.dumps(state))
     
     return True
 
-
-def submitState(state):
+def submitState():
     """
     Load position, orientation, and velocity data into the Game Engine.
     Input is a list of object states, ordered just like the
     state list returned by extractState().
     """
+    # ready to receive pickle
+    sock.sendall(b'\x06')
     
-    # load the state into the Game Engine
-    for i in range(len(state)):
-        
-        # set each object's state
-        setObjState(rigidObjects[i], state[i])
+    # unpickle the state
+    s = unpickleFromSocket(sock)
     
     # null response
-    sock.sendall(b"None")
+    sock.sendall(b'\x06')
+    
+    # load the state into the Game Engine
+    for i in range(len(s)):
+        
+        # set each object's state
+        setObjState(rigidObjects[i], s[i])
     
     return True
 
@@ -301,18 +303,22 @@ def communicate():
     cmd = 'True'
 
     # execute each command until one returns False
-    while eval(cmd):
-        
-        # retrieve the next command
-        while True:
-            cmd = sock.recv(16384).decode('utf-8')   # TODO buffer size
-            if cmd != '':
+    global sock
+    try:
+        while eval(cmd):
+            # retrieve the next command
+            cmd = sock.recv(32).decode('utf-8')   # commands are very short
+            if cmd == '':
+                # close the socket
+                sock.close()
+                sock = None
+                # shutdown the game engine
+                bge.logic.endGame()
                 break
-                
-        #if cmd == 'submitState()':  # special prep for receiving pickled bytes
-        #    sock.sendall(b"None")
-        #    cmd = repr(submitState(sock.recv(16384)))   # TODO buffer size
-
+    except Exception as msg:
+        # crash and traceback happen elsewhere with Errno 104
+        if str(msg) != '[Errno 104] Connection reset by peer':
+            raise
 
 def main():
     """
@@ -327,7 +333,6 @@ def main():
         return
     
     if tickcount == 0:
-        
         # pace the simulation so that Blender doesn't try to speed up
         #  even if it thinks it's falling behind
         bge.logic.setMaxLogicFrame(1)
