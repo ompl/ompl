@@ -301,8 +301,8 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    base::Cost* sol_cost = pdef_->getOptimizationObjective()->allocCost();
-    base::Cost* obj_cost = pdef_->getOptimizationObjective()->allocCost();
+    base::Cost sol_cost(0.0);
+    base::Cost obj_cost(0.0);
     bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {
@@ -321,36 +321,27 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                     base::PathPtr p = constructSolution(start, goal);
 		    if (p)
 		    {
-			p->cost(pdef_->getOptimizationObjective(), obj_cost);
+			obj_cost = p->cost(pdef_->getOptimizationObjective());
 			if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
 			{
 			    solution = p;
-			    pdef_->getOptimizationObjective()->freeCost(sol_cost);
-			    pdef_->getOptimizationObjective()->freeCost(obj_cost);
 			    return true;
 			}
 			else
 			{
-			    if (solution && !sol_cost_set)
-			    {
-				solution->cost(pdef_->getOptimizationObjective(), sol_cost);
-				sol_cost_set = true;
-			    }
-			    if (!solution || 
-				pdef_->getOptimizationObjective()->isCostLessThan(obj_cost, 
-										  sol_cost))
+			    if (!sol_cost_set || 
+				pdef_->getOptimizationObjective()->isCostBetterThan(obj_cost,
+                                                                                    sol_cost))
 			    {
 				solution = p;
-				pdef_->getOptimizationObjective()->copyCost(sol_cost, obj_cost);
-				sol_cost_set = true;
+                                sol_cost = obj_cost;
+                                sol_cost_set = true;
 			    }
 			}
 		    }
                 }
                 else // Accept the solution, regardless of cost
                 {
-		    pdef_->getOptimizationObjective()->freeCost(sol_cost);
-		    pdef_->getOptimizationObjective()->freeCost(obj_cost);
 		    base::PathPtr p = constructSolution(start, goal);
 		    if (p)
 		    {
@@ -362,8 +353,6 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
         }
     }
 
-    pdef_->getOptimizationObjective()->freeCost(sol_cost);
-    pdef_->getOptimizationObjective()->freeCost(obj_cost);
     return false;
 }
 

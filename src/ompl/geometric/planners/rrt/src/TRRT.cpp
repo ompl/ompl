@@ -108,7 +108,7 @@ void ompl::geometric::TRRT::setup(void)
     else
     {
       // Find the average cost of states by sampling x=100 random states
-      averageCost = pdef_->getOptimizationObjective()->averageStateCost(100);
+      averageCost = pdef_->getOptimizationObjective()->averageStateCost(100).v;
     }
 
     // Set maximum distance a new node can be from its nearest neighbor
@@ -187,7 +187,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         si_->copyState(motion->state, state);
 
         // Set cost for this start state
-        motion->cost = opt->getStateCost(motion->state);
+        motion->cost = opt->stateCost(motion->state);
 
         // Add start motion to the tree
         nearestNeighbors_->add(motion);
@@ -305,10 +305,10 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
             continue; // give up on this one and try a new sample
         }
 
-        double childCost = opt->getStateCost(newState);
+        base::Cost childCost = opt->stateCost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
-        if(!transitionTest(childCost, nearMotion->cost, motionDistance))
+        if(!transitionTest(childCost.v, nearMotion->cost.v, motionDistance))
         {
             continue; // give up on this one and try a new sample
         }

@@ -37,7 +37,7 @@
 #include "ompl/base/Path.h"
 #include "ompl/base/OptimizationObjective.h"
 
-void ompl::base::Path::cost(const OptimizationObjectivePtr& obj, Cost* cost) const
+ompl::base::Cost ompl::base::Path::cost(const OptimizationObjectivePtr& obj) const
 {
-  obj->getCost(*this, cost);
+  return obj->getCost(*this);
 }

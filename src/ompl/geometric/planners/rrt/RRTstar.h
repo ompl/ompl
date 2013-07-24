@@ -160,7 +160,7 @@ namespace ompl
             }
             std::string getBestCost() const
             {
-                return boost::lexical_cast<std::string>(bestCost_);
+                return boost::lexical_cast<std::string>(bestCost_.v);
             }
 
         protected:
@@ -170,11 +170,9 @@ namespace ompl
             {
             public:
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
-                Motion(const base::SpaceInformationPtr &si, const base::OptimizationObjectivePtr& obj) : 
+                Motion(const base::SpaceInformationPtr &si) : 
 		    state(si->allocState()), 
-		    parent(NULL), 
-		    cost(obj->allocCost()), 
-		    incCost(obj->allocCost())
+		    parent(NULL)
 		{
 		}
 
@@ -189,10 +187,10 @@ namespace ompl
                 Motion            *parent;
 
                 /** \brief The cost up to this motion */
-		base::Cost        *cost;
+		base::Cost        cost;
 
                 /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method) */
-		base::Cost        *incCost;
+		base::Cost        incCost;
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
@@ -204,15 +202,15 @@ namespace ompl
 	    // For sorting a list of costs and getting only their sorted indices
 	    struct CostIndexCompare
 	    {
-		CostIndexCompare(const std::vector<base::Cost*>& costs,
+		CostIndexCompare(const std::vector<base::Cost>& costs,
 				 const base::OptimizationObjective& opt) : 
 		    costs_(costs), opt_(opt) 
 		{}
 		bool operator()(unsigned i, unsigned j)
 		{
-		    return opt_.isCostLessThan(costs_[i],costs_[j]);
+		    return opt_.isCostBetterThan(costs_[i],costs_[j]);
 		}
-		const std::vector<base::Cost*>& costs_;
+		const std::vector<base::Cost>& costs_;
 		const base::OptimizationObjective& opt_;
 	    };
 
@@ -263,7 +261,7 @@ namespace ompl
 
             unsigned int                                   collisionChecks_;
             
-            double                                         bestCost_;
+            base::Cost                                     bestCost_;
         };
 
     }
