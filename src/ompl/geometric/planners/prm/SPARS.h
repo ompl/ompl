@@ -389,9 +389,6 @@ namespace ompl
             /** \brief Computes all nodes which qualify as a candidate x for v, v', and v" */
             void computeX(DenseVertex v, DenseVertex vp, DenseVertex vpp, std::vector<SparseVertex> &Xs);
 
-            /** \brief Allocates a midpoint */
-            base::State* generateMidpoint( const base::State* a, const base::State* b ) const;
-
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<DenseVertex> &start, const std::vector<DenseVertex> &goal, base::PathPtr &solution);
 

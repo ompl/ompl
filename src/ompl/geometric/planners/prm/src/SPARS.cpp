@@ -814,13 +814,6 @@ void ompl::geometric::SPARS::computeX(SparseVertex v, SparseVertex vp, SparseVer
     Xs.push_back( vpp );
 }
 
-ompl::base::State* ompl::geometric::SPARS::generateMidpoint( const ompl::base::State* a, const ompl::base::State* b ) const
-{
-    base::State* st = si_->allocState();
-    si_->getStateSpace()->interpolate( a, b, 0.5, st );
-    return st;
-}
-
 void ompl::geometric::SPARS::getInterfaceNeighborRepresentatives(DenseVertex q, std::vector<SparseVertex> &interfaceRepresentatives)
 {
     interfaceRepresentatives.clear();
