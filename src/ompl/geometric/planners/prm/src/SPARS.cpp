@@ -915,26 +915,26 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
 
     // Explicitly add start and goal states:
     for (std::size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(sparseStateProperty_[startM_[i]]));
+        data.addStartVertex(base::PlannerDataVertex(sparseStateProperty_[startM_[i]], (int)START));
 
     for (std::size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(sparseStateProperty_[goalM_[i]]));
+        data.addGoalVertex(base::PlannerDataVertex(sparseStateProperty_[goalM_[i]], (int)GOAL));
 
     // Adding edges and all other vertices simultaneously
     foreach (const SparseEdge e, boost::edges(s_))
     {
         const SparseVertex v1 = boost::source(e, s_);
         const SparseVertex v2 = boost::target(e, s_);
-        data.addEdge(base::PlannerDataVertex(sparseStateProperty_[v1], sparseColorProperty_[v1]),
-                     base::PlannerDataVertex(sparseStateProperty_[v2], sparseColorProperty_[v2]));
+        data.addEdge(base::PlannerDataVertex(sparseStateProperty_[v1], (int)sparseColorProperty_[v1]),
+                     base::PlannerDataVertex(sparseStateProperty_[v2], (int)sparseColorProperty_[v2]));
 
         // Add the reverse edge, since we're constructing an undirected roadmap
-        data.addEdge(base::PlannerDataVertex(sparseStateProperty_[v2], sparseColorProperty_[v1]),
-                     base::PlannerDataVertex(sparseStateProperty_[v1], sparseColorProperty_[v2]));
+        data.addEdge(base::PlannerDataVertex(sparseStateProperty_[v2], (int)sparseColorProperty_[v1]),
+                     base::PlannerDataVertex(sparseStateProperty_[v1], (int)sparseColorProperty_[v2]));
     }
-
+ 
     // Make sure to add edge-less nodes as well
     foreach (const SparseVertex n, boost::vertices(s_))
         if (boost::out_degree( n, s_ ) == 0)
-            data.addVertex( base::PlannerDataVertex(sparseStateProperty_[n], sparseColorProperty_[n]));
+            data.addVertex( base::PlannerDataVertex(sparseStateProperty_[n], (int)sparseColorProperty_[n]));
 }
