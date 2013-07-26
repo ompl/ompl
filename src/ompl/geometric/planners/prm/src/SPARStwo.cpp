@@ -233,7 +233,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     if (!simpleSampler_)
         simpleSampler_ = si_->allocStateSampler();
 
-    unsigned int nrStartStates = boost::num_vertices(g_);
+    unsigned int nrStartStates = boost::num_vertices(g_) - 1;  // don't count query vertex
     OMPL_INFORM("Starting with %u states", nrStartStates);
 
     // Reset addedSolution_ member
