@@ -255,11 +255,11 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     sol.reset();
 
     //Construct planner termination condition which also takes M into account
-    base::PlannerOrTerminationCondition ptcOrFail(ptc,base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
+    base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
 
     constructRoadmap(ptcOrFail);
     
-    haveSolution( startM_, goalM_, sol );
+    haveSolution(startM_, goalM_, sol);
 
     if (sol)
         pdef_->addSolutionPath (sol, false);
@@ -380,17 +380,12 @@ ompl::geometric::SPARS::SparseVertex ompl::geometric::SPARS::addGuard(base::Stat
     return v;
 }
 
-void ompl::geometric::SPARS::uniteSparseComponents(SparseVertex m1, SparseVertex m2)
-{
-    sparseDJSets_.union_set(m1, m2);
-}
-
 void ompl::geometric::SPARS::connectSparsePoints( SparseVertex v, SparseVertex vp )
 {
     const double weight = sparseDistanceFunction(v, vp);
     const SpannerGraph::edge_property_type properties(weight);
     boost::add_edge(v, vp, properties, s_);
-    uniteSparseComponents( v, vp );
+    sparseDJSets_.union_set(v, vp);
 }
 
 void ompl::geometric::SPARS::connectDensePoints( DenseVertex v, DenseVertex vp )
@@ -587,7 +582,7 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
     return ret;
 }
 
-double ompl::geometric::SPARS::avgValence(void) const
+double ompl::geometric::SPARS::averageValence(void) const
 {
     double degree = 0.0;
     foreach (DenseVertex v, boost::vertices(s_))
@@ -599,35 +594,6 @@ double ompl::geometric::SPARS::avgValence(void) const
 void ompl::geometric::SPARS::resetFailures(void)
 {
     iterations_ = 0;
-}
-
-void ompl::geometric::SPARS::approachGraph(DenseVertex v)
-{
-    std::vector<DenseVertex> hold;
-    nn_->nearestR( v, 3.0 * denseDelta_, hold );
-    // \todo what is 3  here? A magic constant?
-
-    std::vector< DenseVertex > neigh;
-    for (std::size_t i = 0; i < hold.size() ; ++i)
-        if (si_->checkMotion(stateProperty_[v], stateProperty_[hold[i]]))
-            neigh.push_back(hold[i]);
-
-    foreach (DenseVertex vp, neigh)
-        connectDensePoints(v, vp);
-}
-
-void ompl::geometric::SPARS::approachSpanner( SparseVertex n )
-{
-    std::vector< SparseVertex > hold;
-    snn_->nearestR( n, sparseDelta_, hold );
-
-    std::vector< SparseVertex > neigh;
-    for (std::size_t i = 0; i < hold.size(); ++i)
-        if( si_->checkMotion( sparseStateProperty_[n], sparseStateProperty_[hold[i]] ) )
-            neigh.push_back( hold[i] );
-
-    foreach( SparseVertex np, neigh )
-        connectSparsePoints( n, np );
 }
 
 void ompl::geometric::SPARS::getSparseNeighbors(base::State* inState, std::vector<SparseVertex> &graphNeighborhood)

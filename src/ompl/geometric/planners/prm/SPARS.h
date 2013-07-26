@@ -319,6 +319,9 @@ namespace ompl
                 return boost::num_vertices(s_);
             }
 
+            /** \brief Returns the average valence of the spanner graph */
+            double averageValence(void) const;
+
         protected:
 
             /** \brief Attempt to add a single sample to the roadmap. */
@@ -332,14 +335,11 @@ namespace ompl
             /** \brief Construct a node with the given state (\e state) for the spanner and store it in the nn structure */
 	    SparseVertex addGuard(base::State *state, GuardType type);
 
-            /** \brief Make two nodes (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
-            void uniteSparseComponents(SparseVertex m1, SparseVertex m2);
-
             /** \brief Convenience function for creating an edge in the Spanner Roadmap */
-            void connectSparsePoints( SparseVertex v, SparseVertex vp );
+            void connectSparsePoints(SparseVertex v, SparseVertex vp);
 
             /** \brief Connects points in the dense graph */
-            void connectDensePoints( DenseVertex v, DenseVertex vp );
+            void connectDensePoints(DenseVertex v, DenseVertex vp);
 
             /** \brief Checks the latest dense sample for the coverage property, and adds appropriately. */
             bool checkAddCoverage(const base::State* lastState, const std::vector<SparseVertex> &neigh);
@@ -353,17 +353,8 @@ namespace ompl
             /** \brief Checks for adding an entire dense path to the Sparse Roadmap */
             bool checkAddPath( DenseVertex q, const std::vector<DenseVertex>& neigh );
 
-            /** \brief Returns the average valence of the graph */
-            double avgValence( void ) const;
-
             /** \brief reset function for failures */
             void resetFailures( void );
-
-            /** \brief Function for approaching the graph. */
-            void approachGraph( DenseVertex v );
-
-            /** \brief Function for approaching the roadmap spanner. */
-            void approachSpanner( SparseVertex n );
 
             /** \brief Get the first neighbor of q who has representative rep and is within denseDelta_. */
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
@@ -400,6 +391,33 @@ namespace ompl
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
             void computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque<base::State*> &path) const;
+
+            /** \brief Free all the memory allocated by the planner */
+            void freeMemory(void);
+
+            /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
+            void getSparseNeighbors(base::State* inState, std::vector< SparseVertex > &graphNeighborhood);
+
+            /** \brief Get the visible neighbors */
+            void filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
+
+            /** \brief Gets the representatives of all interfaces that q supports */
+            void getInterfaceNeighborRepresentatives( DenseVertex q, std::vector<SparseVertex> &interfaceRepresentatives );
+
+            /** \brief Gets the neighbors of q who help it support an interface */
+            void getInterfaceNeighborhood(DenseVertex q, std::vector<DenseVertex> &interfaceNeighborhood);
+
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            double distanceFunction(const DenseVertex a, const DenseVertex b) const
+            {
+                return si_->distance(stateProperty_[a], stateProperty_[b]);
+            }
+
+            /** \brief Compute distance between two nodes in the sparse roadmap spanner. */
+            double sparseDistanceFunction( const SparseVertex a, const SparseVertex b ) const
+            {
+                return si_->distance( sparseStateProperty_[a], sparseStateProperty_[b] );
+            }
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                                          sampler_;
@@ -482,43 +500,18 @@ namespace ompl
             /** \brief SPARS parameter for Sparse Roadmap connection distance as a fraction of max. extent */
             double                                                              sparseDeltaFraction_;
 
-            /** \brief Random number generator */
-            RNG                                                                 rng_;
-
-        private:
-
-            /** \brief Free all the memory allocated by the planner */
-            void freeMemory(void);
-
-            /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
-            void getSparseNeighbors(base::State* inState, std::vector< SparseVertex > &graphNeighborhood);
-
-            /** \brief Get the visible neighbors */
-            void filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
-
-            /** \brief Gets the representatives of all interfaces that q supports */
-            void getInterfaceNeighborRepresentatives( DenseVertex q, std::vector<SparseVertex> &interfaceRepresentatives );
-
-            /** \brief Gets the neighbors of q who help it support an interface */
-            void getInterfaceNeighborhood(DenseVertex q, std::vector<DenseVertex> &interfaceNeighborhood);
-
-            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
-            double distanceFunction(const DenseVertex a, const DenseVertex b) const
-            {
-                return si_->distance(stateProperty_[a], stateProperty_[b]);
-            }
-
-            /** \brief Compute distance between two nodes in the sparse roadmap spanner. */
-            double sparseDistanceFunction( const SparseVertex a, const SparseVertex b ) const
-            {
-                return si_->distance( sparseStateProperty_[a], sparseStateProperty_[b] );
-            }
-
             /** \brief SPARS parameter for dense graph connection distance */
             double                                                              denseDelta_;
 
             /** \brief SPARS parameter for Sparse Roadmap connection distance */
             double                                                              sparseDelta_;
+
+
+            /** \brief Random number generator */
+            RNG                                                                 rng_;
+
+            /** \brief Mutex to guard access to the graphs */
+            mutable boost::mutex                                   graphMutex_;
 
         };
 
