@@ -129,8 +129,6 @@ void ompl::geometric::SPARS::clear(void)
     clearQuery();
     iterations_ = 0;
 
-    graphNeighborhood_.clear();
-    visibleNeighborhood_.clear();
     interfaceNeighborhood_.clear();
     interfaceRepresentatives_.clear();
 }
@@ -283,7 +281,14 @@ void ompl::geometric::SPARS::constructSpanner(const base::PlannerTerminationCond
         simpleSampler_ = si_->allocStateSampler();
 
     base::State *workState = si_->allocState();
-    
+
+    /* The whole neighborhood set which has been most recently computed */
+    std::vector<SparseVertex> graphNeighborhood;
+
+    /* The visible neighborhood set which has been most recently computed */
+    std::vector<SparseVertex> visibleNeighborhood;
+
+
     while ( ptc == false )
     {
         // Generate a single sample, and attempt to connect it to nearest neighbors.
@@ -293,14 +298,14 @@ void ompl::geometric::SPARS::constructSpanner(const base::PlannerTerminationCond
 	
         //Now that we've added to D, try adding to S
         //Start by figuring out who our neighbors are
-        getSparseNeighbors( workState );
-        filterVisibleNeighbors( workState );
+        getSparseNeighbors(workState, graphNeighborhood);
+        filterVisibleNeighbors(workState, graphNeighborhood, visibleNeighborhood);
         //Check for addition for Coverage
-        if( !checkAddCoverage( workState, graphNeighborhood_ ) )
+        if( !checkAddCoverage(workState, graphNeighborhood))
             //If not for Coverage, then Connectivity
-            if( !checkAddConnectivity( workState, graphNeighborhood_ ) )
+            if( !checkAddConnectivity(workState, graphNeighborhood))
                 //Check for the existence of an interface
-                if( !checkAddInterface( graphNeighborhood_, visibleNeighborhood_, q ) )
+                if( !checkAddInterface(graphNeighborhood, visibleNeighborhood, q))
 		{
                     //Then check to see if it's on an interface
                     getInterfaceNeighborhood( q );
@@ -620,23 +625,24 @@ void ompl::geometric::SPARS::approachSpanner( SparseVertex n )
         connectSparsePoints( n, np );
 }
 
-void ompl::geometric::SPARS::getSparseNeighbors( base::State* inState )
+void ompl::geometric::SPARS::getSparseNeighbors(base::State* inState, std::vector<SparseVertex> &graphNeighborhood)
 {
     sparseStateProperty_[sparseQueryVertex_] = inState;
 
-    graphNeighborhood_.clear();
-    snn_->nearestR( sparseQueryVertex_, sparseDelta_, graphNeighborhood_ );
+    graphNeighborhood.clear();
+    snn_->nearestR(sparseQueryVertex_, sparseDelta_, graphNeighborhood);
 
     sparseStateProperty_[sparseQueryVertex_] = NULL;
 }
 
-void ompl::geometric::SPARS::filterVisibleNeighbors( base::State* inState )
+void ompl::geometric::SPARS::filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood,
+                                                    std::vector<SparseVertex> &visibleNeighborhood) const
 {
-    visibleNeighborhood_.clear();
+    visibleNeighborhood.clear();
     //Now that we got the neighbors from the NN, we must remove any we can't see
-    for (std::size_t i = 0; i < graphNeighborhood_.size(); ++i)
-        if( si_->checkMotion( inState, sparseStateProperty_[graphNeighborhood_[i]] ) )
-            visibleNeighborhood_.push_back( graphNeighborhood_[i] );
+    for (std::size_t i = 0; i < graphNeighborhood.size(); ++i)
+        if (si_->checkMotion(inState, sparseStateProperty_[graphNeighborhood[i]]))
+            visibleNeighborhood.push_back(graphNeighborhood[i]);
 }
 
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::getInterfaceNeighbor(DenseVertex q, SparseVertex rep)
@@ -723,17 +729,18 @@ void ompl::geometric::SPARS::updateReps( SparseVertex v )
     }
 }
 
-void ompl::geometric::SPARS::calculateRepresentative( DenseVertex q )
+void ompl::geometric::SPARS::calculateRepresentative(DenseVertex q)
 {
     //Get the nearest neighbors within sparseDelta_
-    getSparseNeighbors( stateProperty_[q] );
+    std::vector<SparseVertex> graphNeighborhood;
+    getSparseNeighbors(stateProperty_[q], graphNeighborhood);
 
     //For each neighbor
-    for (std::size_t i = 0; i < graphNeighborhood_.size(); ++i)
-        if( si_->checkMotion( stateProperty_[q], sparseStateProperty_[graphNeighborhood_[i]] ) )
+    for (std::size_t i = 0; i < graphNeighborhood.size(); ++i)
+        if (si_->checkMotion(stateProperty_[q], sparseStateProperty_[graphNeighborhood[i]]))
         {
             //update the representative
-            representativesProperty_[q] = graphNeighborhood_[i];
+            representativesProperty_[q] = graphNeighborhood[i];
             //abort
             break;
         }

@@ -233,7 +233,7 @@ namespace ompl
                 In general, if the algorithm fails to add to the spanner for M consecutive iterations,
                 then we can probabilistically estimate how close to attaining the desired properties
                 the SPARS spanner is.*/
-            void setMaxFailures( unsigned int m )
+            void setMaxFailures(unsigned int m)
             {
                 maxFailures_ = m;
             }
@@ -241,7 +241,7 @@ namespace ompl
             /** \brief Set the delta fraction for interface detection.  If two nodes in the dense graph
                 are more than a delta fraction of the max. extent apart, then the algorithm cannot
                 consider them to have accurately approximated the location of an interface. */
-            void setDenseDeltaFraction( double d )
+            void setDenseDeltaFraction(double d)
             {
                 denseDeltaFraction_ = d;
                 if (denseDelta_ > 0.0) // setup was previously called
@@ -252,41 +252,41 @@ namespace ompl
                 value represents the visibility range of sparse samples.  A sparse node
                 represents all dense nodes within a delta fraction of the max. extent if it is
                 also the closest sparse node to that dense node. */
-            void setSparseDeltaFraction( double d )
+            void setSparseDeltaFraction(double d)
             {
                 sparseDeltaFraction_ = d;
                 if (sparseDelta_ > 0.0) // setup was previously called
                     sparseDelta_ = d * si_->getMaximumExtent();
             }
 
-            /** \brief Set the roadmap spanner stretch factor.  This value represents a
-                multiplicative upper bound on path quality that should be produced by the
-                roadmap spanner.  It does not make sense to make this parameter more than 3. */
-            void setStretchFactor( double t )
+            /** \brief Set the roadmap spanner stretch factor.  This value represents a multiplicative upper bound on path
+                quality that should be produced by the roadmap spanner. The produced sparse graph with solutions that
+                are less than \e t times the optimap path length.  It does not make sense to make this parameter more than 3. */
+            void setStretchFactor(double t)
             {
                 stretchFactor_ = t;
             }
 
             /** \brief Retrieve the maximum consecutive failure limit. */
-            unsigned getMaxFailures( ) const
+            unsigned getMaxFailures(void) const
             {
                 return maxFailures_;
             }
 
             /** \brief Retrieve the dense graph interface support delta fraction. */
-            double getDenseDeltaFraction( ) const
+            double getDenseDeltaFraction(void) const
             {
                 return denseDeltaFraction_;
             }
 
             /** \brief Retrieve the sparse graph visibility range delta fraction. */
-            double getSparseDeltaFraction( ) const
+            double getSparseDeltaFraction(void) const
             {
                 return sparseDeltaFraction_;
             }
 
             /** \brief Retrieve the spanner's set stretch factor. */
-            double getStretchFactor( ) const
+            double getStretchFactor(void) const
             {
                 return stretchFactor_;
             }
@@ -321,14 +321,6 @@ namespace ompl
 
         protected:
 
-            /** @brief A function returning the milestones that should be
-             * attempted to connect to
-             *
-             * @note Can't use the prefered boost::function syntax here because
-             * the Python bindings don't like it.
-             */
-            typedef boost::function<std::vector<DenseVertex>&(const DenseVertex)> ConnectionStrategy;
-
             /** \brief Attempt to add a single sample to the roadmap. */
 	    DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
 
@@ -350,13 +342,13 @@ namespace ompl
             void connectDensePoints( DenseVertex v, DenseVertex vp );
 
             /** \brief Checks the latest dense sample for the coverage property, and adds appropriately. */
-            bool checkAddCoverage( const base::State* lastState, const std::vector<SparseVertex> & neigh );
+            bool checkAddCoverage(const base::State* lastState, const std::vector<SparseVertex> &neigh);
 
             /** \brief Checks the latest dense sample for connectivity, and adds appropriately. */
-            bool checkAddConnectivity( const base::State* lastState, const std::vector<SparseVertex> & neigh );
+            bool checkAddConnectivity(const base::State* lastState, const std::vector<SparseVertex> &neigh);
 
             /** \brief Checks the latest dense sample for bridging an edge-less interface */
-            bool checkAddInterface( const std::vector<DenseVertex>& graphNeighborhood, const std::vector<DenseVertex>& visibleNeighborhood, DenseVertex q );
+            bool checkAddInterface(const std::vector<DenseVertex>& graphNeighborhood, const std::vector<DenseVertex>& visibleNeighborhood, DenseVertex q);
 
             /** \brief Checks for adding an entire dense path to the Sparse Roadmap */
             bool checkAddPath( DenseVertex q, const std::vector<DenseVertex>& neigh );
@@ -451,9 +443,6 @@ namespace ompl
             /** \brief The whole neighborhood set which has been most recently computed */
             std::vector< SparseVertex >                                         graphNeighborhood_;
 
-            /** \brief The visible neighborhood set which has been most recently computed */
-            std::vector< SparseVertex >                                         visibleNeighborhood_;
-
             /** \brief Storage for the interface neighborhood, populated by getInterfaceNeighborhood() */
             std::vector< DenseVertex >                                          interfaceNeighborhood_;
             /** \brief Storage for the representatives of interface neighbors, populated by getInterfaceNeighborhoodRepresentatives() */
@@ -493,10 +482,7 @@ namespace ompl
                                                                                 sparseDJSets_;
 
             /** \brief Function that returns the milestones to attempt connections with */
-            ConnectionStrategy                                                  connectionStrategy_;
-
-            /** \brief Random number generator */
-            RNG                                                                 rng_;
+            boost::function<std::vector<DenseVertex>&(const DenseVertex)>       connectionStrategy_;
 
             /** \brief A counter for the number of iterations of the algorithm */
             unsigned int                                                        iterations_;
@@ -513,16 +499,19 @@ namespace ompl
             /** \brief SPARS parameter for Sparse Roadmap connection distance as a fraction of max. extent */
             double                                                              sparseDeltaFraction_;
 
+            /** \brief Random number generator */
+            RNG                                                                 rng_;
+
         private:
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
 
             /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
-            void getSparseNeighbors( base::State* inState );
+            void getSparseNeighbors(base::State* inState, std::vector< SparseVertex > &graphNeighborhood);
 
             /** \brief Get the visible neighbors */
-            void filterVisibleNeighbors( base::State* inState );
+            void filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
 
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
             double distanceFunction(const DenseVertex a, const DenseVertex b) const
