@@ -419,23 +419,28 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                         p->append( d.sigmas_.first.get() );
                     }
 
-                    psimp_->shortcutPath( *p, 50 );
-                    psimp_->reduceVertices( *p, 50 );
+                    psimp_->reduceVertices(*p, 10);
+                    psimp_->shortcutPath(*p, 50);
 
-                    p->checkAndRepair( 100 );
-
-                    Vertex prior = r;
-                    Vertex vnew;
-                    const std::vector<base::State*>& states = p->getStates();
-
-                    foreach( base::State* st, states )
+                    if (p->checkAndRepair( 100 ).second)
                     {
-                        vnew = addGuard( si_->cloneState( st ), QUALITY );
+                        Vertex prior = r;
+                        Vertex vnew;
+                        std::vector<base::State*>& states = p->getStates();
 
-                        connect( prior, vnew );
-                        prior = vnew;
+                        foreach( base::State* st, states )
+                        {
+                            // no need to clone st, since we will destroy p; we just copy the pointer
+                            vnew = addGuard( st , QUALITY );
+
+                            connect( prior, vnew );
+                            prior = vnew;
+                        }
+                        // clear the states, so memory is not freed twice
+                        states.clear();
+                        connect( prior, rp );
                     }
-                    connect( prior, rp );
+                    
                     delete p;
                 }
             }
