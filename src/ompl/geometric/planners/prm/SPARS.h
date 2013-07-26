@@ -179,7 +179,7 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
 	    /** \brief While the termination condition permits, construct the spanner graph */
-	    void constructSpanner(const base::PlannerTerminationCondition &ptc);
+	    void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 	    
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
@@ -392,12 +392,6 @@ namespace ompl
             /** \brief Allocates a midpoint */
             base::State* generateMidpoint( const base::State* a, const base::State* b ) const;
 
-            /** \brief Gets the representatives of all interfaces that q supports */
-            void getInterfaceNeighborRepresentatives( DenseVertex q );
-
-            /** \brief Gets the neighbors of q who help it support an interface */
-            void getInterfaceNeighborhood( DenseVertex q );
-
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<DenseVertex> &start, const std::vector<DenseVertex> &goal, base::PathPtr &solution);
 
@@ -440,14 +434,6 @@ namespace ompl
             /** \brief Vertex for performing nearest neighbor queries on the DENSE graph. */
             DenseVertex                                                         queryVertex_;
 
-            /** \brief The whole neighborhood set which has been most recently computed */
-            std::vector< SparseVertex >                                         graphNeighborhood_;
-
-            /** \brief Storage for the interface neighborhood, populated by getInterfaceNeighborhood() */
-            std::vector< DenseVertex >                                          interfaceNeighborhood_;
-            /** \brief Storage for the representatives of interface neighbors, populated by getInterfaceNeighborhoodRepresentatives() */
-            std::vector< SparseVertex >                                         interfaceRepresentatives_;
-	    
 	    /** \brief Geometric Path variable used for smoothing out paths. */
             PathGeometric                                                       geomPath_;
 
@@ -512,6 +498,12 @@ namespace ompl
 
             /** \brief Get the visible neighbors */
             void filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
+
+            /** \brief Gets the representatives of all interfaces that q supports */
+            void getInterfaceNeighborRepresentatives( DenseVertex q, std::vector<SparseVertex> &interfaceRepresentatives );
+
+            /** \brief Gets the neighbors of q who help it support an interface */
+            void getInterfaceNeighborhood(DenseVertex q, std::vector<DenseVertex> &interfaceNeighborhood);
 
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
             double distanceFunction(const DenseVertex a, const DenseVertex b) const
