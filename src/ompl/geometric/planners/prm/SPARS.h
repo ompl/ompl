@@ -180,7 +180,11 @@ namespace ompl
 
 	    /** \brief While the termination condition permits, construct the spanner graph */
 	    void constructRoadmap(const base::PlannerTerminationCondition &ptc);
-	    
+
+	    /** \brief While the termination condition permits, construct the spanner graph. If \e stopOnMaxFail is true,
+                the function also terminates when the failure limit set by setMaxFailures() is reached. */
+            void constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail);
+
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
                 the same problem, without calling clear() in
@@ -328,7 +332,9 @@ namespace ompl
 	    DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
 
 	    void checkQueryStateInitialization(void);
-	    
+
+            bool sameComponent(SparseVertex m1, SparseVertex m2);
+
             /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
 	    DenseVertex addMilestone(base::State *state);
 
@@ -380,11 +386,17 @@ namespace ompl
             /** \brief Computes all nodes which qualify as a candidate x for v, v', and v" */
             void computeX(DenseVertex v, DenseVertex vp, DenseVertex vpp, std::vector<SparseVertex> &Xs);
 
+            /** Thread that checks for solution */
+            void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
+
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<DenseVertex> &start, const std::vector<DenseVertex> &goal, base::PathPtr &solution);
 
-            /** \brief Returns whether we have reached the iteration failures limit, maxFailures_ */
-            bool reachedFailureLimit (void) const;
+            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
+            bool reachedTerminationCriterion(void) const;
+
+            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_  */
+            bool reachedFailureLimit(void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
 	    base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
@@ -494,6 +506,9 @@ namespace ompl
             /** \brief The maximum number of failures before terminating the algorithm */
             unsigned int                                                        maxFailures_;
 
+            /** \brief A flag indicating that a solution has been added during solve() */
+            bool                                                                addedSolution_;
+
             /** \brief SPARS parameter for dense graph connection distance as a fraction of max. extent */
             double                                                              denseDeltaFraction_;
 
@@ -506,12 +521,11 @@ namespace ompl
             /** \brief SPARS parameter for Sparse Roadmap connection distance */
             double                                                              sparseDelta_;
 
-
             /** \brief Random number generator */
             RNG                                                                 rng_;
 
             /** \brief Mutex to guard access to the graphs */
-            mutable boost::mutex                                   graphMutex_;
+            mutable boost::mutex                                                graphMutex_;
 
         };
 

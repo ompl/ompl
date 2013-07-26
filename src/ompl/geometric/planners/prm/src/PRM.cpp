@@ -408,7 +408,6 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     // Reset addedSolution_ member and create solution checking thread
     addedSolution_ = false;
     base::PathPtr sol;
-    sol.reset();
     boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found

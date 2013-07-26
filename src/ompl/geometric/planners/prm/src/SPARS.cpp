@@ -63,7 +63,8 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
                   boost::get(boost::vertex_predecessor, s_)),
     iterations_(0),
     stretchFactor_(3.),
-    maxFailures_(1000),
+    maxFailures_(1000), 
+    addedSolution_(false),
     denseDeltaFraction_(.001),
     sparseDeltaFraction_(.25),
     denseDelta_(0.),
@@ -71,7 +72,7 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
-    specs_.optimizingPaths = true;
+    specs_.optimizingPaths = false;
 
     psimp_.reset(new PathSimplifier(si_));
     psimp_->freeStates(false);
@@ -169,6 +170,30 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::Stat
     return ret;
 }
 
+void ompl::geometric::SPARS::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)
+{
+    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    while (!ptc && !addedSolution_)
+    {
+        // Check for any new goal states
+        if (goal->maxSampleCount() > goalM_.size())
+        {
+            const base::State *st = pis_.nextGoal();
+            if (st)
+            {
+                addMilestone(si_->cloneState(st));
+                goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
+            }
+        }
+
+        // Check for a solution
+        addedSolution_ = haveSolution(startM_, goalM_, solution);
+        // Sleep for 1ms
+        if (!addedSolution_)
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+    }
+}
+
 bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts, const std::vector<DenseVertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
@@ -176,8 +201,12 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts
     {
         foreach (DenseVertex goal, goals)
         {
-            if (boost::same_component(start, goal, sparseDJSets_) &&
-                g->isStartGoalPairValid(sparseStateProperty_[goal], sparseStateProperty_[start]))
+            // we lock because the connected components algorithm is incremental and may change disjointSets_
+            graphMutex_.lock();
+            bool same_component = sameComponent(start, goal);
+            graphMutex_.unlock();
+
+            if (same_component && g->isStartGoalPairValid(sparseStateProperty_[goal], sparseStateProperty_[start]))
             {
                 solution = constructSolution(start, goal);
                 return true;
@@ -188,7 +217,12 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts
     return false;
 }
 
-bool ompl::geometric::SPARS::reachedFailureLimit (void) const
+bool ompl::geometric::SPARS::reachedTerminationCriterion(void) const
+{
+    return iterations_ >= maxFailures_ || addedSolution_;
+}
+
+bool ompl::geometric::SPARS::reachedFailureLimit(void) const
 {
     return iterations_ >= maxFailures_;
 }
@@ -202,6 +236,11 @@ void ompl::geometric::SPARS::checkQueryStateInitialization(void)
         sparseStateProperty_[sparseQueryVertex_] = NULL;
         stateProperty_[queryVertex_] = NULL;
     }
+}
+
+bool ompl::geometric::SPARS::sameComponent(SparseVertex m1, SparseVertex m2)
+{
+    return boost::same_component(m1, m2, sparseDJSets_);
 }
 
 ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTerminationCondition &ptc)
@@ -250,22 +289,35 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     unsigned int nrStartStates = boost::num_vertices(g_) - 1; // don't count query vertex
     OMPL_INFORM("Starting with %u states", nrStartStates);
 
-    // Reset addedSolution_ member
+    // Reset addedSolution_ member 
+    addedSolution_ = false;
     base::PathPtr sol;
-    sol.reset();
-
-    //Construct planner termination condition which also takes M into account
     base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
+    boost::thread slnThread(boost::bind(&SPARS::checkForSolution, this, ptcOrFail, boost::ref(sol)));
 
-    constructRoadmap(ptcOrFail);
-    
-    haveSolution(startM_, goalM_, sol);
+    // Construct planner termination condition which also takes maxFailures_ and addedSolution_ into account
+    base::PlannerOrTerminationCondition ptcOrStop(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedTerminationCriterion, this)));
+    constructRoadmap(ptcOrStop);
+
+    // Ensure slnThread is ceased before exiting solve
+    slnThread.join();
 
     if (sol)
-        pdef_->addSolutionPath (sol, false);
+        pdef_->addSolutionPath(sol, false);
 
     // Return true if any solution was found.
     return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+}
+
+void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail)
+{
+    if (stopOnMaxFail)
+    {
+        base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
+        constructRoadmap(ptcOrFail);
+    }
+    else
+        constructRoadmap(ptc);
 }
 
 void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCondition &ptc)
@@ -329,6 +381,8 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
 
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::State *state)
 {
+    boost::mutex::scoped_lock _(graphMutex_);
+
     DenseVertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
 
@@ -367,6 +421,8 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::S
 
 ompl::geometric::SPARS::SparseVertex ompl::geometric::SPARS::addGuard(base::State *state, GuardType type)
 {
+    boost::mutex::scoped_lock _(graphMutex_);
+
     SparseVertex v = boost::add_vertex( s_ );
     sparseStateProperty_[v] = state;
     sparseColorProperty_[v] = type;
@@ -416,7 +472,7 @@ bool ompl::geometric::SPARS::checkAddConnectivity( const base::State* lastState,
         //For each other neighbor
         for (std::size_t j = i + 1; j < neigh.size(); ++j )
             //If they are in different components
-            if( !boost::same_component( neigh[i], neigh[j], sparseDJSets_ ) )
+            if (!sameComponent(neigh[i], neigh[j]))
                 //If the paths between are collision free
                 if( si_->checkMotion( lastState, sparseStateProperty_[neigh[i]] ) && si_->checkMotion( lastState, sparseStateProperty_[neigh[j]] ) )
                 {
@@ -433,7 +489,7 @@ bool ompl::geometric::SPARS::checkAddConnectivity( const base::State* lastState,
             //If there's no edge
             if (!boost::edge(g, links[i], s_).second)
                 //And the components haven't been united by previous links
-                if (!boost::same_component( links[i], g, sparseDJSets_))
+                if (!sameComponent(links[i], g))
                     connectSparsePoints( g, links[i] );
         return true;
     }
@@ -822,7 +878,7 @@ void ompl::geometric::SPARS::getInterfaceNeighborhood(DenseVertex q, std::vector
 
 ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex start, const SparseVertex goal) const
 {
-    PathGeometric *p = new PathGeometric(si_);
+    boost::mutex::scoped_lock _(graphMutex_);
 
     boost::vector_property_map<SparseVertex> prev(boost::num_vertices(s_));
 
@@ -840,12 +896,16 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
     else
+    {
+        PathGeometric *p = new PathGeometric(si_);
+
         for (SparseVertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(sparseStateProperty_[pos]);
-    p->append(sparseStateProperty_[start]);
-    p->reverse();
+        p->append(sparseStateProperty_[start]);
+        p->reverse();
 
-    return base::PathPtr(p);
+        return base::PathPtr(p);
+    }
 }
 
 void ompl::geometric::SPARS::computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque< base::State* > &path) const
