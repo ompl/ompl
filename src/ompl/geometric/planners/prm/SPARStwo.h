@@ -99,80 +99,80 @@ namespace ompl
             struct InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
-		base::State* pointA_;
-		base::State* pointB_;
+                base::State* pointA_;
+                base::State* pointB_;
 
                 /** \brief States which lie just outside the visibility region of a vertex and support an interface. */
-		base::State* sigmaA_;
-		base::State* sigmaB_;
+                base::State* sigmaA_;
+                base::State* sigmaB_;
 
                 /** \brief Last known distance between the two interfaces supported by points_ and sigmas. */
                 double       d_;
 
                 /** \brief Constructor */
                 InterfaceData(void) :
-		    pointA_(NULL),
-		    pointB_(NULL),
-		    sigmaA_(NULL),
-		    sigmaB_(NULL),
-		    d_(std::numeric_limits<double>::infinity())
+                    pointA_(NULL),
+                    pointB_(NULL),
+                    sigmaA_(NULL),
+                    sigmaB_(NULL),
+                    d_(std::numeric_limits<double>::infinity())
                 {
                 }
-		
-		/** \brief Clears the given interface data. */
-		void clear(const base::SpaceInformationPtr& si)
-		{
-		    if (pointA_)
-		    {
-			si->freeState(pointA_);
-			pointA_ = NULL;
-		    }
-		    if (pointB_)
-		    {
-			si->freeState(pointB_);
-			pointB_ = NULL;
-		    }
-		    if (sigmaA_)
-		    {
-			si->freeState(sigmaA_);
-			sigmaA_ = NULL;
-		    }
-		    if (sigmaB_)
-		    {
-			si->freeState(sigmaB_);
-			sigmaB_ = NULL;
-		    }
-		    d_ = std::numeric_limits<double>::infinity();
-		}
-		
+
+                /** \brief Clears the given interface data. */
+                void clear(const base::SpaceInformationPtr& si)
+                {
+                    if (pointA_)
+                    {
+                        si->freeState(pointA_);
+                        pointA_ = NULL;
+                    }
+                    if (pointB_)
+                    {
+                        si->freeState(pointB_);
+                        pointB_ = NULL;
+                    }
+                    if (sigmaA_)
+                    {
+                        si->freeState(sigmaA_);
+                        sigmaA_ = NULL;
+                    }
+                    if (sigmaB_)
+                    {
+                        si->freeState(sigmaB_);
+                        sigmaB_ = NULL;
+                    }
+                    d_ = std::numeric_limits<double>::infinity();
+                }
+
                 /** \brief Sets information for the first interface (i.e. interface with smaller index vertex). */
                 void setFirst(const base::State *p, const base::State *s, const base::SpaceInformationPtr& si)
                 {
-		    if (pointA_)
-			si->copyState(pointA_, p);
-		    else
-			pointA_ = si->cloneState(p);
-		    if (sigmaA_)
-			si->copyState(sigmaA_, s);
-		    else
-			sigmaA_ = si->cloneState(s);
-		    if (pointB_)
-			d_ = si->distance(pointA_, pointB_);
-		}
+                    if (pointA_)
+                        si->copyState(pointA_, p);
+                    else
+                        pointA_ = si->cloneState(p);
+                    if (sigmaA_)
+                        si->copyState(sigmaA_, s);
+                    else
+                        sigmaA_ = si->cloneState(s);
+                    if (pointB_)
+                        d_ = si->distance(pointA_, pointB_);
+                }
 
                 /** \brief Sets information for the second interface (i.e. interface with larger index vertex). */
                 void setSecond(const base::State *p, const base::State *s, const base::SpaceInformationPtr& si)
                 {
-		    if (pointB_)
-			si->copyState(pointB_, p);
-		    else
-			pointB_ = si->cloneState(p);
-		    if (sigmaB_)
-			si->copyState(sigmaB_, s);
-		    else
-			sigmaB_ = si->cloneState(s);
-		    if (pointA_)
-			d_ = si->distance(pointA_, pointB_);
+                    if (pointB_)
+                        si->copyState(pointB_, p);
+                    else
+                        pointB_ = si->cloneState(p);
+                    if (sigmaB_)
+                        si->copyState(sigmaB_, s);
+                    else
+                        sigmaB_ = si->cloneState(s);
+                    if (pointA_)
+                        d_ = si->distance(pointA_, pointB_);
                 }
             };
 
@@ -334,7 +334,7 @@ namespace ompl
         protected:
 
             /** \brief Sample a valid random state, storing it in qNew_ (and returning it) */
-	    base::State* sample( void );
+            base::State* sample( void );
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
@@ -393,10 +393,10 @@ namespace ompl
             void deletePairInfo(Vertex v);
 
             /** \brief Construct a guard for a given state (\e state) and store it in the nearest neighbors data structure */
-	    Vertex addGuard(base::State *state, GuardType type);
+            Vertex addGuard(base::State *state, GuardType type);
 
             /** \brief Connect two guards in the roadmap */
-	    void connect( Vertex v, Vertex vp );
+            void connect( Vertex v, Vertex vp );
 
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
@@ -411,7 +411,7 @@ namespace ompl
             bool reachedFailureLimit (void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-	    base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
+            base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                                          sampler_;
