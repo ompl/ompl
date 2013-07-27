@@ -53,6 +53,7 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <set>
 
 namespace ompl
 {
@@ -107,9 +108,12 @@ namespace ompl
             struct vertex_interface_list_t {
                 typedef boost::vertex_property_tag kind;
             };
-
+	    
+	    /** \brief The type used internally for representing vertex IDs */
+	    typedef unsigned long int VertexIndexType;
+	    
             /** \brief Hash for storing interface information. */
-            typedef boost::unordered_map< unsigned int, std::list< unsigned int >, boost::hash<unsigned int> > InterfaceHash;
+            typedef boost::unordered_map<VertexIndexType, std::set<VertexIndexType>, boost::hash<VertexIndexType> > InterfaceHash;
 
             /**
              @brief The constructed roadmap spanner.
@@ -126,10 +130,10 @@ namespace ompl
             typedef boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
-                boost::property < boost::vertex_predecessor_t, unsigned long int,
-                boost::property < boost::vertex_rank_t, unsigned long int,
+                boost::property < boost::vertex_predecessor_t, VertexIndexType,
+                boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_color_t, GuardType,
-                boost::property < vertex_list_t, std::list< unsigned int >,
+                boost::property < vertex_list_t, std::set<VertexIndexType>,
                 boost::property < vertex_interface_list_t, InterfaceHash > > > > > >,
                 boost::property < boost::edge_weight_t, double >
             > SpannerGraph;
@@ -158,8 +162,8 @@ namespace ompl
             typedef boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
-                boost::property < boost::vertex_predecessor_t, unsigned long int,
-                boost::property < boost::vertex_rank_t, unsigned long int,
+                boost::property < boost::vertex_predecessor_t, VertexIndexType,
+                boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_representative_t, SparseVertex > > > >,
                 boost::property < boost::edge_weight_t, double >
             > DenseGraph;

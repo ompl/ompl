@@ -528,23 +528,23 @@ bool ompl::geometric::SPARS::checkAddInterface(const std::vector<SparseVertex>& 
     return false;
 }
 
-bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q, const std::vector<ompl::geometric::SPARS::DenseVertex>& neigh )
+bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<DenseVertex>& neigh)
 {
-    bool ret = false;
+    bool result = false;
+
     //Get q's representative => v
     SparseVertex v = representativesProperty_[q];
+
     //Extract the representatives of neigh => n_rep
-    std::vector< SparseVertex > n_rep;
-
+    std::set<SparseVertex> n_rep;
     foreach( DenseVertex qp, neigh )
-        //If we haven't tracked this representative
-        if( std::find( n_rep.begin(), n_rep.end(), representativesProperty_[qp] ) == n_rep.end() )
-            n_rep.push_back( representativesProperty_[qp] );
+	n_rep.insert(representativesProperty_[qp]);
 
+    std::vector<SparseVertex> Xs;
     //for each v' in n_rep
-    for (std::size_t i = 0; i < n_rep.size() && !ret; ++i )
+    for (std::set<SparseVertex>::iterator it = n_rep.begin() ; it != n_rep.end() && !result ; ++it)
     {
-        SparseVertex vp = n_rep[i];
+        SparseVertex vp = *it;
         //Identify appropriate v" candidates => vpps
 	std::vector<SparseVertex> VPPs;
 	computeVPP(v, vp, VPPs);
@@ -553,7 +553,6 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
         {
             double s_max = 0;
             //Find the X nodes to test
-            std::vector<SparseVertex> Xs;
             computeX(v, vp, vpp, Xs);
 
             //For each x in xs
@@ -570,7 +569,7 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
             DenseVertex best_qpp = boost::graph_traits<DenseGraph>::null_vertex();
             double d_min = std::numeric_limits<double>::infinity(); //Insanely big number
             //For each vpp in vpps
-            for (std::size_t j = 0; j < VPPs.size() && !ret; ++j)
+            for (std::size_t j = 0; j < VPPs.size() && !result; ++j)
             {
                 SparseVertex vpp = VPPs[j];
                 //For each q", which are stored interface nodes on v for i(vpp,v)
@@ -630,12 +629,12 @@ bool ompl::geometric::SPARS::checkAddPath(ompl::geometric::SPARS::DenseVertex q,
                     addPathToSpanner( bestDPath, vpp, vp );
 
                     //Report success
-                    ret = true;
+                    result = true;
                 }
             }
         }
     }
-    return ret;
+    return result;
 }
 
 double ompl::geometric::SPARS::averageValence(void) const
@@ -774,31 +773,27 @@ void ompl::geometric::SPARS::calculateRepresentative(DenseVertex q)
         }
 }
 
-void ompl::geometric::SPARS::addToRep( DenseVertex q, SparseVertex rep, const std::vector<ompl::geometric::SPARS::SparseVertex>& oreps )
+void ompl::geometric::SPARS::addToRep(DenseVertex q, SparseVertex rep, const std::vector<SparseVertex>& oreps)
 {
     //If this node supports no interfaces
     if( oreps.size() == 0 )
     {
-        //Add it to the pool of non-interface nodes
-        if( std::find( nonInterfaceListsProperty_[rep].begin(), nonInterfaceListsProperty_[rep].end(), q ) == nonInterfaceListsProperty_[rep].end() )
-            nonInterfaceListsProperty_[rep].push_back( q );
-        else
-            throw Exception(name_, "Node already tracked in non-interface list");
+	//Add it to the pool of non-interface nodes
+	bool new_insert = nonInterfaceListsProperty_[rep].insert(q).second;
+
+	// we expect this was not previously tracked
+	if (!new_insert)
+	    assert(false);
     }
     else
     {
         //otherwise, for every neighbor representative
         foreach( SparseVertex v, oreps )
         {
-            if( std::find( interfaceListsProperty_[rep][v].begin(), interfaceListsProperty_[rep][v].end(), q ) != interfaceListsProperty_[rep][v].end() )
-                throw Exception(name_, "Node already in interface list");
-            else
-            {
-                if( rep != representativesProperty_[q] )
-                    throw Exception(name_, "Node has representative different than the list he's being put into.");
-                //Add this node to the list for that representative
-                interfaceListsProperty_[rep][v].push_back( q );
-            }
+	    assert(rep == representativesProperty_[q]);
+	    bool new_insert = interfaceListsProperty_[rep][v].insert(q).second;
+	    if (!new_insert)
+		assert(false);
         }
     }
 }
@@ -806,16 +801,13 @@ void ompl::geometric::SPARS::addToRep( DenseVertex q, SparseVertex rep, const st
 void ompl::geometric::SPARS::removeFromRep( DenseVertex q, SparseVertex rep )
 {
     // Remove the node from the non-interface points (if there)
-    nonInterfaceListsProperty_[rep].remove( q );
-    if( std::find( nonInterfaceListsProperty_[rep].begin(), nonInterfaceListsProperty_[rep].end(), q ) != nonInterfaceListsProperty_[rep].end() )
-        throw Exception(name_, "The point could not be removed?");
+    nonInterfaceListsProperty_[rep].erase(q);
+
     // From each of the interfaces
-    foreach( SparseVertex vpp, interfaceListsProperty_[rep] | boost::adaptors::map_keys )
+    foreach (SparseVertex vpp, interfaceListsProperty_[rep] | boost::adaptors::map_keys)
     {
         // Remove this node from that list
-        interfaceListsProperty_[rep][vpp].remove( q );
-        if( std::find( interfaceListsProperty_[rep][vpp].begin(), interfaceListsProperty_[rep][vpp].end(), q ) != interfaceListsProperty_[rep][vpp].end() )
-            throw Exception(name_, "Point is some how impossible to remove?");
+        interfaceListsProperty_[rep][vpp].erase( q );
     }
 }
 
@@ -829,9 +821,10 @@ void ompl::geometric::SPARS::computeVPP(SparseVertex v, SparseVertex vp, std::ve
 
 void ompl::geometric::SPARS::computeX(SparseVertex v, SparseVertex vp, SparseVertex vpp, std::vector<SparseVertex> &Xs)
 {
+    Xs.clear();
     foreach( SparseVertex cx, boost::adjacent_vertices( vpp, s_ ) )
         if( boost::edge( cx, v, s_ ).second && !boost::edge( cx, vp, s_ ).second )
-            if( interfaceListsProperty_[vpp][cx].size() > 0 )
+            if (interfaceListsProperty_[vpp][cx].size() > 0)
                 Xs.push_back( cx );
     Xs.push_back( vpp );
 }
