@@ -279,8 +279,12 @@ namespace ompl
                 return stretchFactor_;
             }
 
+            /** \brief While the termination condition permits, construct the spanner graph */
+            void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            /** \brief While the termination condition permits, construct the spanner graph. If \e stopOnMaxFail is true,
+                the function also terminates when the failure limit set by setMaxFailures() is reached. */
+            void constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail);
 
             /** \brief Function that can solve the motion planning
                 problem. This function can be called multiple times on
@@ -295,10 +299,6 @@ namespace ompl
                 clearing the roadmap itself. This can be done using
                 the clearQuery() function. */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-
-            /** \brief Alternate solve call with maximum failures as a
-                function parameter.  Overwrites the parameter member maxFailures_. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail );
 
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
@@ -331,6 +331,8 @@ namespace ompl
                 return boost::num_vertices(g_);
             }
 
+            virtual void getPlannerData(base::PlannerData &data) const;
+
         protected:
 
             /** \brief Sample a valid random state, storing it in qNew_ (and returning it) */
@@ -338,6 +340,9 @@ namespace ompl
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
+
+            /** \brief Check that the query vertex is initialized (used for internal nearest neighbor searches) */
+            void checkQueryStateInitialization(void);
 
             /** \brief Checks to see if the sample needs to be added to ensure coverage of the space */
             bool checkAddCoverage( void );
@@ -364,7 +369,7 @@ namespace ompl
             void findGraphRepresentative( base::State* st );
 
             /** \brief Finds representatives of samples near qNew_ which are not his representative */
-            void findCloseRepresentatives();
+            void findCloseRepresentatives(base::State *workArea);
 
             /** \brief High-level method which updates pair point information for repV_ with neighbor r */
             void updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s);
@@ -389,9 +394,6 @@ namespace ompl
             /** \brief When a new guard is added at state st, finds all guards who must abandon their interface information and deletes that information */
             void abandonLists(base::State* st);
 
-            /** \brief Deletes all the states in a vertex's lists */
-            void deletePairInfo(Vertex v);
-
             /** \brief Construct a guard for a given state (\e state) and store it in the nearest neighbors data structure */
             Vertex addGuard(base::State *state, GuardType type);
 
@@ -404,14 +406,21 @@ namespace ompl
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, base::PathPtr &solution);
 
-            /** \brief Returns the value of the addedSolution_ member. */
-            bool addedNewSolution (void) const;
+            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
+            bool reachedTerminationCriterion(void) const;
 
             /** \brief Returns whether we have reached the iteration failures limit, maxFailures_ */
             bool reachedFailureLimit (void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
+
+
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            double distanceFunction(const Vertex a, const Vertex b) const
+            {
+                return si_->distance(stateProperty_[a], stateProperty_[b]);
+            }
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                                          sampler_;
@@ -452,9 +461,6 @@ namespace ompl
             /** \brief A pointer to the most recent sample we have come up with */
             base::State*                                                        qNew_;
 
-            /** \brief A pointer holding a temporary state used for additional sampling processes */
-            base::State*                                                        holdState_;
-
             /** \brief The whole neighborhood set which has been most recently computed */
             std::vector< Vertex >                                               graphNeighborhood_;
 
@@ -493,25 +499,17 @@ namespace ompl
             /** \brief A flag indicating that a solution has been added during solve() */
             bool                                                                addedSolution_;
 
-            /** \brief Mutex to guard access to the Graph member (g_) */
-            mutable boost::mutex                                                graphMutex_;
-
             /** \brief A counter for the number of iterations of the algorithm */
             unsigned int                                                        iterations_;
-
-        private:
-
-            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
-            double distanceFunction(const Vertex a, const Vertex b) const
-            {
-                return si_->distance(stateProperty_[a], stateProperty_[b]);
-            }
 
             /** \brief Maximum visibility range for nodes in the graph */
             double                                                              sparseDelta_;
 
             /** \brief Maximum range for allowing two samples to support an interface */
             double                                                              denseDelta_;
+
+            /** \brief Mutex to guard access to the Graph member (g_) */
+            mutable boost::mutex                                                graphMutex_;
 
         };
 

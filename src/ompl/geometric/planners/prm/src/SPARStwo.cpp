@@ -73,7 +73,6 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     psimp_.reset(new PathSimplifier(si_));
 
     qNew_ = NULL;
-    holdState_ = NULL;
     simpleSampler_ = si_->allocStateSampler();
 
     Planner::declareParam<double>("stretch_factor", this, &SPARStwo::setStretchFactor, &SPARStwo::getStretchFactor, "1.1:0.1:3.0");
@@ -87,8 +86,6 @@ ompl::geometric::SPARStwo::~SPARStwo(void)
     freeMemory();
     if( qNew_ != NULL )
         si_->freeState( qNew_ );
-    if( holdState_ != NULL )
-        si_->freeState( holdState_ );
 }
 
 void ompl::geometric::SPARStwo::setup(void)
@@ -123,7 +120,7 @@ void ompl::geometric::SPARStwo::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
-    holdState_ = qNew_ = NULL;
+    qNew_ = NULL;
 
     graphNeighborhood_.clear();
     visibleNeighborhood_.clear();
@@ -171,83 +168,42 @@ bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, 
     return false;
 }
 
-bool ompl::geometric::SPARStwo::addedNewSolution (void) const
-{
-    return addedSolution_;
-}
-
-bool ompl::geometric::SPARStwo::reachedFailureLimit (void) const
+bool ompl::geometric::SPARStwo::reachedFailureLimit(void) const
 {
     return iterations_ >= maxFailures_;
 }
 
-ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTerminationCondition &ptc)
+bool ompl::geometric::SPARStwo::reachedTerminationCriterion(void) const
 {
-    checkValidity();
+    return iterations_ >= maxFailures_ || addedSolution_;
+}
 
-    if( boost::num_vertices( g_ ) < 1 )
+void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail)
+{
+    if (stopOnMaxFail)
     {
-        queryVertex_ = boost::add_vertex( g_ );
-        stateProperty_[queryVertex_] = NULL;
+        base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
+        constructRoadmap(ptcOrFail);
     }
+    else
+        constructRoadmap(ptc);
+}
 
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
-
-    if (!goal)
-    {
-        OMPL_ERROR("Goal undefined or unknown type of goal");
-        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
-    }
-
-    // Add the valid start states as milestones
-    while (const base::State *st = pis_.nextStart())
-    {
-        startM_.push_back(addGuard(si_->cloneState(st), START ));
-    }
-    if (startM_.empty())
-    {
-        OMPL_ERROR("There are no valid initial states!");
-        return base::PlannerStatus::INVALID_START;
-    }
-
-    if (!goal->couldSample())
-    {
-        OMPL_ERROR("Insufficient states in sampleable goal region");
-        return base::PlannerStatus::INVALID_GOAL;
-    }
-
-    // Add the valid goal states as milestones
-    while (const base::State *st = pis_.nextGoal())
-        goalM_.push_back(addGuard(si_->cloneState(st), GOAL ));
-    if (goalM_.empty())
-    {
-        OMPL_ERROR("Unable to find any valid goal states");
-        return base::PlannerStatus::INVALID_GOAL;
-    }
-
+void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationCondition &ptc)
+{
+    checkQueryStateInitialization();
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
     if (!simpleSampler_)
         simpleSampler_ = si_->allocStateSampler();
 
-    unsigned int nrStartStates = boost::num_vertices(g_) - 1;  // don't count query vertex
-    OMPL_INFORM("Starting with %u states", nrStartStates);
-
-    // Reset addedSolution_ member
-    addedSolution_ = false;
-    base::PathPtr sol;
-    sol.reset();
-
-    //Construct planner termination condition which also takes M into account
-    base::PlannerOrTerminationCondition ptcOrFail( ptc, base::PlannerTerminationCondition( boost::bind( &SPARStwo::reachedFailureLimit, this ) ) );
-
     if( qNew_ == NULL )
         qNew_ = si_->allocState();
-    if( holdState_ == NULL )
-        holdState_ = si_->allocState();
 
-    while ( !ptcOrFail() )
+    base::State *workState = si_->allocState();
+
+    while (ptc == false)
     {
         //Increment iterations
         ++iterations_;
@@ -261,7 +217,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
             if( !checkAddConnectivity() )
                 if( !checkAddInterface() )
                 {
-                    findCloseRepresentatives();
+                    findCloseRepresentatives(workState);
                     for( size_t i=0; i<closeRepresentatives_.first.size(); ++i )
                     {
                         updatePairPoints( repV_, qNew_, closeRepresentatives_.first[i], closeRepresentatives_.second[i] );
@@ -274,6 +230,65 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
                     }
                 }
     }
+    si_->freeState(workState);
+}
+
+void ompl::geometric::SPARStwo::checkQueryStateInitialization(void)
+{
+    if (boost::num_vertices( g_ ) < 1)
+    {
+        queryVertex_ = boost::add_vertex( g_ );
+        stateProperty_[queryVertex_] = NULL;
+    }
+}
+
+ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTerminationCondition &ptc)
+{
+    checkValidity();
+    checkQueryStateInitialization();
+
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+
+    if (!goal)
+    {
+        OMPL_ERROR("Goal undefined or unknown type of goal");
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    // Add the valid start states as milestones
+    while (const base::State *st = pis_.nextStart())
+        startM_.push_back(addGuard(si_->cloneState(st), START));
+    if (startM_.empty())
+    {
+        OMPL_ERROR("There are no valid initial states!");
+        return base::PlannerStatus::INVALID_START;
+    }
+
+    if (!goal->couldSample())
+    {
+        OMPL_ERROR("Insufficient states in sampleable goal region");
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
+    // Add the valid goal states as milestones
+    while (const base::State *st = (goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal()))
+        goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
+    if (goalM_.empty())
+    {
+        OMPL_ERROR("Unable to find any valid goal states");
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
+    unsigned int nrStartStates = boost::num_vertices(g_) - 1;  // don't count query vertex
+    OMPL_INFORM("Starting with %u states", nrStartStates);
+
+    // Reset addedSolution_ member
+    addedSolution_ = false;
+    base::PathPtr sol;
+
+    //Construct planner termination condition which also takes M into account
+    base::PlannerOrTerminationCondition ptcOrStop(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedTerminationCriterion, this)));
+    constructRoadmap(ptcOrStop);
 
     haveSolution( startM_, goalM_, sol );
 
@@ -284,12 +299,6 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
 
     // Return true if any solution was found.
     return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
-}
-
-ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTerminationCondition &ptc, unsigned int maxFail )
-{
-    maxFailures_ = maxFail;
-    return solve( ptc );
 }
 
 bool ompl::geometric::SPARStwo::checkAddCoverage( void )
@@ -504,7 +513,7 @@ void ompl::geometric::SPARStwo::findGraphRepresentative( base::State* st )
             visibleNeighborhood_.push_back( graphNeighborhood_[i] );
 }
 
-void ompl::geometric::SPARStwo::findCloseRepresentatives( void )
+void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea)
 {
     closeRepresentatives_.first.clear();
 //    for( size_t i=0; i<closeRepresentatives_.second.size(); ++i )
@@ -524,16 +533,16 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives( void )
         do
         {
             done = true;
-            sampler_->sampleNear( holdState_, qNew_, denseDelta_ );
-            if( !si_->isValid( holdState_) )
+            sampler_->sampleNear(workArea, qNew_, denseDelta_ );
+            if( !si_->isValid(workArea) )
                 done = false;
-            if( si_->distance( qNew_, holdState_ ) > denseDelta_ )
+            if( si_->distance( qNew_, workArea ) > denseDelta_ )
                 done = false;
-            else if( !si_->checkMotion( qNew_, holdState_ ) )
+            else if( !si_->checkMotion( qNew_, workArea ) )
                 done = false;
         } while( !done );
         //Compute who his graph neighbors are
-        findGraphRepresentative( holdState_ );
+        findGraphRepresentative( workArea );
         //Assuming this sample is actually seen by somebody (which he should be in all likelihood)
         if( visibleNeighborhood_.size() > 0 )
         {
@@ -546,14 +555,15 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives( void )
                     //Track the representative
                     closeRepresentatives_.first.push_back( visibleNeighborhood_[0] );
                     //Also remember who generated him
-                    closeRepresentatives_.second.push_back( holdState_ );
+                    closeRepresentatives_.second.push_back( workArea );
+                    // TODO! THIS LOOKS VERY BAD. WE SHOULD PROBABLY CLONE THE STATE
                 }
             }
         }
         else
         {
             //This guy can't be seen by anybody, so we should take this opportunity to add him
-            addGuard( si_->cloneState( holdState_ ), COVERAGE );
+            addGuard( si_->cloneState( workArea ), COVERAGE );
             //We should also stop our efforts to add a dense path
             closeRepresentatives_.first.clear();
 //            for( size_t i=0; i<closeRepresentatives_.second.size(); ++i )
@@ -665,7 +675,7 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
     setData(rep, r, rp, d);
 }
 
-void ompl::geometric::SPARStwo::abandonLists( base::State* st )
+void ompl::geometric::SPARStwo::abandonLists(base::State* st)
 {
     stateProperty_[ queryVertex_ ] = st;
 
@@ -676,13 +686,10 @@ void ompl::geometric::SPARStwo::abandonLists( base::State* st )
 
     //For each of the vertices
     foreach( Vertex v, hold )
-        deletePairInfo( v );
-}
-
-void ompl::geometric::SPARStwo::deletePairInfo( Vertex v )
-{
-    foreach (VertexPair r, interfaceDataProperty_[v] | boost::adaptors::map_keys)
-        interfaceDataProperty_[v][r].clear(si_);
+    {
+        foreach (VertexPair r, interfaceDataProperty_[v] | boost::adaptors::map_keys)
+            interfaceDataProperty_[v][r].clear(si_);
+    }
 }
 
 ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard( base::State *state, GuardType type)
@@ -703,7 +710,7 @@ ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard( base::Sta
     return m;
 }
 
-void ompl::geometric::SPARStwo::connect( Vertex v, Vertex vp )
+void ompl::geometric::SPARStwo::connect(Vertex v, Vertex vp)
 {
     if( v > milestoneCount() )
         OMPL_ERROR("\'From\' Vertex out of range : %u\n", v );
