@@ -440,7 +440,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                         states.clear();
                         connect( prior, rp );
                     }
-                    
+
                     delete p;
                 }
             }

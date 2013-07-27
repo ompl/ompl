@@ -108,10 +108,10 @@ namespace ompl
             struct vertex_interface_list_t {
                 typedef boost::vertex_property_tag kind;
             };
-	    
-	    /** \brief The type used internally for representing vertex IDs */
-	    typedef unsigned long int VertexIndexType;
-	    
+
+            /** \brief The type used internally for representing vertex IDs */
+            typedef unsigned long int VertexIndexType;
+
             /** \brief Hash for storing interface information. */
             typedef boost::unordered_map<VertexIndexType, std::set<VertexIndexType>, boost::hash<VertexIndexType> > InterfaceHash;
 
@@ -182,10 +182,10 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-	    /** \brief While the termination condition permits, construct the spanner graph */
-	    void constructRoadmap(const base::PlannerTerminationCondition &ptc);
+            /** \brief While the termination condition permits, construct the spanner graph */
+            void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 
-	    /** \brief While the termination condition permits, construct the spanner graph. If \e stopOnMaxFail is true,
+            /** \brief While the termination condition permits, construct the spanner graph. If \e stopOnMaxFail is true,
                 the function also terminates when the failure limit set by setMaxFailures() is reached. */
             void constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail);
 
@@ -333,17 +333,19 @@ namespace ompl
         protected:
 
             /** \brief Attempt to add a single sample to the roadmap. */
-	    DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
+            DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
 
-	    void checkQueryStateInitialization(void);
+            /** \brief Check that the query vertex is initialized (used for internal nearest neighbor searches) */
+            void checkQueryStateInitialization(void);
 
+            /** \brief Check that two vertices are in the same connected component */
             bool sameComponent(SparseVertex m1, SparseVertex m2);
 
             /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
-	    DenseVertex addMilestone(base::State *state);
+            DenseVertex addMilestone(base::State *state);
 
             /** \brief Construct a node with the given state (\e state) for the spanner and store it in the nn structure */
-	    SparseVertex addGuard(base::State *state, GuardType type);
+            SparseVertex addGuard(base::State *state, GuardType type);
 
             /** \brief Convenience function for creating an edge in the Spanner Roadmap */
             void connectSparsePoints(SparseVertex v, SparseVertex vp);
@@ -364,7 +366,7 @@ namespace ompl
             bool checkAddPath( DenseVertex q, const std::vector<DenseVertex>& neigh );
 
             /** \brief reset function for failures */
-            void resetFailures( void );
+            void resetFailures(void);
 
             /** \brief Get the first neighbor of q who has representative rep and is within denseDelta_. */
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
@@ -373,16 +375,16 @@ namespace ompl
             bool addPathToSpanner(const std::deque< base::State* >& p, SparseVertex vp, SparseVertex vpp);
 
             /** \brief Automatically updates the representatives of all dense samplse within sparseDelta_ of v */
-            void updateReps( SparseVertex v );
+            void updateRepresentatives(SparseVertex v);
 
             /** \brief Calculates the representative for a dense sample */
             void calculateRepresentative( DenseVertex q );
 
             /** \brief Adds a dense sample to the appropriate lists of its representative */
-            void addToRep( DenseVertex q, SparseVertex rep, const std::vector<SparseVertex>& oreps );
+            void addToRepresentatives( DenseVertex q, SparseVertex rep, const std::set<SparseVertex>& oreps );
 
             /** \brief Removes the node from its representative's lists */
-            void removeFromRep( DenseVertex q, SparseVertex rep );
+            void removeFromRepresentatives( DenseVertex q, SparseVertex rep );
 
             /** \brief Computes all nodes which qualify as a candidate v" for v and vp */
             void computeVPP(DenseVertex v, DenseVertex vp, std::vector<SparseVertex> &VPPs);
@@ -403,7 +405,7 @@ namespace ompl
             bool reachedFailureLimit(void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-	    base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
+            base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
             void computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque<base::State*> &path) const;
@@ -418,7 +420,7 @@ namespace ompl
             void filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
 
             /** \brief Gets the representatives of all interfaces that q supports */
-            void getInterfaceNeighborRepresentatives( DenseVertex q, std::vector<SparseVertex> &interfaceRepresentatives );
+            void getInterfaceNeighborRepresentatives(DenseVertex q, std::set<SparseVertex> &interfaceRepresentatives);
 
             /** \brief Gets the neighbors of q who help it support an interface */
             void getInterfaceNeighborhood(DenseVertex q, std::vector<DenseVertex> &interfaceNeighborhood);
@@ -465,7 +467,7 @@ namespace ompl
             /** \brief Vertex for performing nearest neighbor queries on the DENSE graph. */
             DenseVertex                                                         queryVertex_;
 
-	    /** \brief Geometric Path variable used for smoothing out paths. */
+            /** \brief Geometric Path variable used for smoothing out paths. */
             PathGeometric                                                       geomPath_;
 
             /** \brief Access to the internal base::state at each DenseVertex */
