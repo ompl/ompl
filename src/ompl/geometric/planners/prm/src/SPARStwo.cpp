@@ -125,8 +125,6 @@ void ompl::geometric::SPARStwo::clear(void)
         nn_->clear();
     holdState_ = qNew_ = NULL;
 
-    Xs_.clear();
-    VPPs_.clear();
     graphNeighborhood_.clear();
     visibleNeighborhood_.clear();
 }
@@ -374,16 +372,23 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
     std::vector< Vertex > rs;
     foreach( Vertex r, boost::adjacent_vertices( v, g_ ) )
         rs.push_back(r);
+
+    /* Candidate x vertices as described in the method, filled by function computeX(). */
+    std::vector<Vertex> Xs;
+    
+    /* Candidate v" vertices as described in the method, filled by function computeVPP(). */
+    std::vector<Vertex> VPPs;
+
     for( size_t i=0; i<rs.size() && !ret; ++i )
     {
         Vertex r = rs[i];
-        computeVPP( v, r );
-        foreach( Vertex rp, VPPs_ )
+        computeVPP(v, r, VPPs);
+        foreach (Vertex rp, VPPs)
         {
             //First, compute the longest path through the graph
-            computeX( v, r, rp );
+            computeX(v, r, rp, Xs);
             double rm_dist = 0;
-            foreach( Vertex rpp, Xs_ )
+            foreach( Vertex rpp, Xs)
             {
                 double tmp_dist = (si_->distance( stateProperty_[r], stateProperty_[v] )
                     + si_->distance( stateProperty_[v], stateProperty_[rpp] ) )/2.0;
@@ -564,36 +569,38 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives( void )
 void ompl::geometric::SPARStwo::updatePairPoints( Vertex rep, const safeState& q, Vertex r, const safeState& s )
 {
     //First of all, we need to compute all candidate r'
-    computeVPP( rep, r );
+    std::vector<Vertex> VPPs;
+    computeVPP(rep, r, VPPs);
+
     //Then, for each pair Pv(r,r')
-    foreach( Vertex rp, VPPs_ )
+    foreach (Vertex rp, VPPs)
         //Try updating the pair info
-        distanceCheck( rep, q, r, s, rp );
+        distanceCheck(rep, q, r, s, rp);
 }
 
-void ompl::geometric::SPARStwo::computeVPP( Vertex v, Vertex vp )
+void ompl::geometric::SPARStwo::computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs)
 {
-    VPPs_.clear();
+    VPPs.clear();
     foreach( Vertex cvpp, boost::adjacent_vertices( v, g_ ) )
         if( cvpp != vp )
             if( !boost::edge( cvpp, vp, g_ ).second )
-                VPPs_.push_back( cvpp );
+                VPPs.push_back( cvpp );
 }
 
-void ompl::geometric::SPARStwo::computeX( Vertex v, Vertex vp, Vertex vpp )
+void ompl::geometric::SPARStwo::computeX(Vertex v, Vertex vp, Vertex vpp, std::vector<Vertex> &Xs)
 {
-    Xs_.clear();
+    Xs.clear();
 
-    foreach( Vertex cx, boost::adjacent_vertices( vpp, g_ ) )
-        if( boost::edge( cx, v, g_ ).second && !boost::edge( cx, vp, g_ ).second )
+    foreach (Vertex cx, boost::adjacent_vertices(vpp, g_))
+        if (boost::edge(cx, v, g_).second && !boost::edge(cx, vp, g_).second)
         {
             InterfaceData& d = getData( v, vpp, cx );
             if( vpp < cx && d.points_.first.get() != NULL )
-                Xs_.push_back( cx );
+                Xs.push_back( cx );
             else if( cx < vpp && d.points_.second.get() != NULL )
-                Xs_.push_back( cx );
+                Xs.push_back( cx );
         }
-    Xs_.push_back( vpp );
+    Xs.push_back( vpp );
 }
 
 ompl::geometric::SPARStwo::VertexPair ompl::geometric::SPARStwo::index( Vertex vp, Vertex vpp )
@@ -749,10 +756,10 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
 
     // Explicitly add start and goal states:
     for (size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]]));
+        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]], (int)START));
 
     for (size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]]));
+        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], (int)GOAL));
 
     // If there are even edges here
     if( boost::num_edges( g_ ) > 0 )
@@ -763,14 +770,14 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
             const Vertex v1 = boost::source(e, g_);
             const Vertex v2 = boost::target(e, g_);
             unsigned long size = boost::num_vertices( g_ );
-            if( v1 < size || v2 < size )
+            if (v1 < size || v2 < size)
             {
-                data.addEdge(base::PlannerDataVertex(stateProperty_[v1], colorProperty_[v1]),
-                             base::PlannerDataVertex(stateProperty_[v2], colorProperty_[v2]));
+                data.addEdge(base::PlannerDataVertex(stateProperty_[v1], (int)colorProperty_[v1]),
+                             base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]));
 
                 // Add the reverse edge, since we're constructing an undirected roadmap
-                data.addEdge(base::PlannerDataVertex(stateProperty_[v2], colorProperty_[v2]),
-                             base::PlannerDataVertex(stateProperty_[v1], colorProperty_[v1]));
+                data.addEdge(base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]),
+                             base::PlannerDataVertex(stateProperty_[v1], (int)colorProperty_[v1]));
             }
             else
                 OMPL_ERROR("Edge Vertex Error: [%lu][%lu] > %lu\n", v1, v2, size);
@@ -782,5 +789,5 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
     // Make sure to add edge-less nodes as well
     foreach (const Vertex n, boost::vertices(g_))
         if( boost::out_degree( n, g_ ) == 0 )
-            data.addVertex( base::PlannerDataVertex(stateProperty_[n], colorProperty_[n] ) );
+            data.addVertex(base::PlannerDataVertex(stateProperty_[n], (int)colorProperty_[n]));
 }

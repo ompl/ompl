@@ -88,6 +88,9 @@ namespace ompl
                 QUALITY,
             };
 
+            /** \brief The type used internally for representing vertex IDs */
+            typedef unsigned long int VertexIndexType;
+
         protected:
             /** \brief containers for states which keep NULL safety at all times */
             class safeState
@@ -135,7 +138,7 @@ namespace ompl
             /** \brief Pair of safe states which support an interface. */
             typedef std::pair< safeState, safeState > safeStatePair;
             /** \brief Pair of vertices which support an interface. */
-            typedef std::pair< unsigned long, unsigned long > VertexPair;
+            typedef std::pair< VertexIndexType, VertexIndexType > VertexPair;
 
         public:
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
@@ -224,9 +227,9 @@ namespace ompl
             typedef boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
-                boost::property < boost::vertex_predecessor_t, unsigned long int,
-                boost::property < boost::vertex_rank_t, unsigned long int,
-                boost::property < vertex_color_t, unsigned int,
+                boost::property < boost::vertex_predecessor_t, VertexIndexType,
+                boost::property < boost::vertex_rank_t, VertexIndexType,
+                boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_interface_data_t, InterfaceHash > > > > >,
                 boost::property < boost::edge_weight_t, double >
             > Graph;
@@ -271,7 +274,7 @@ namespace ompl
             }
 
             /** \brief Retrieve the maximum consecutive failure limit. */
-            unsigned getMaxFailures( ) const
+            unsigned int getMaxFailures( ) const
             {
                 return maxFailures_;
             }
@@ -385,10 +388,10 @@ namespace ompl
             void updatePairPoints( Vertex rep, const safeState& q, Vertex r, const safeState& s );
 
             /** \brief Computes all nodes which qualify as a candidate v" for v and vp */
-            void computeVPP( Vertex v, Vertex vp );
+            void computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs);
 
             /** \brief Computes all nodes which qualify as a candidate x for v, v', and v" */
-            void computeX( Vertex v, Vertex vp, Vertex vpp );
+            void computeX(Vertex v, Vertex vp, Vertex vpp, std::vector<Vertex> &Xs);
 
             /** \brief Rectifies indexing order for accessing the vertex data */
             VertexPair index( Vertex vp, Vertex vpp );
@@ -478,11 +481,6 @@ namespace ompl
 
             /** \brief The representatives of nodes near a sample.  Filled by getCloseRepresentatives(). */
             std::pair< std::vector< Vertex >, std::vector< base::State* > >     closeRepresentatives_;
-
-            /** \brief Candidate v" vertices as described in the method, filled by function computeVPP(). */
-            std::vector< Vertex >                                               VPPs_;
-            /** \brief Candidate x vertices as described in the method, filled by function computeX(). */
-            std::vector< Vertex >                                               Xs_;
 
             /** \brief A holder to remember who qNew_'s representative in the graph is. */
             Vertex                                                              repV_;
