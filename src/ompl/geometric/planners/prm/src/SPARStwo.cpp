@@ -137,8 +137,8 @@ void ompl::geometric::SPARStwo::freeMemory(void)
 
     foreach (Vertex v, boost::vertices(g_))
     {
-        foreach( InterfaceData d, interfaceDataProperty_[v] | boost::adaptors::map_values )
-            clearInterfaceData( d, si_ );
+        foreach (InterfaceData &d, interfaceDataProperty_[v] | boost::adaptors::map_values)
+            d.clear(si_);
         if( stateProperty_[v] != NULL )
             si_->freeState(stateProperty_[v]);
         stateProperty_[v] = NULL;
@@ -409,19 +409,19 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                     PathGeometric* p = new PathGeometric( si_ );
                     if( r < rp )
                     {
-                        p->append( d.sigmas_.first.get() );
-                        p->append( d.points_.first.get() );
+                        p->append( d.sigmaA_ );
+                        p->append( d.pointA_ );
                         p->append( stateProperty_[v] );
-                        p->append( d.points_.second.get() );
-                        p->append( d.sigmas_.second.get() );
+                        p->append( d.pointB_ );
+                        p->append( d.sigmaB_ );
                     }
                     else
                     {
-                        p->append( d.sigmas_.second.get() );
-                        p->append( d.points_.second.get() );
+                        p->append( d.sigmaB_ );
+                        p->append( d.pointB_ );
                         p->append( stateProperty_[v] );
-                        p->append( d.points_.first.get() );
-                        p->append( d.sigmas_.first.get() );
+                        p->append( d.pointA_ );
+                        p->append( d.sigmaA_ );
                     }
 
                     psimp_->reduceVertices(*p, 10);
@@ -566,7 +566,7 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives( void )
     }
 }
 
-void ompl::geometric::SPARStwo::updatePairPoints( Vertex rep, const safeState& q, Vertex r, const safeState& s )
+void ompl::geometric::SPARStwo::updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s)
 {
     //First of all, we need to compute all candidate r'
     std::vector<Vertex> VPPs;
@@ -595,12 +595,10 @@ void ompl::geometric::SPARStwo::computeX(Vertex v, Vertex vp, Vertex vpp, std::v
         if (boost::edge(cx, v, g_).second && !boost::edge(cx, vp, g_).second)
         {
             InterfaceData& d = getData( v, vpp, cx );
-            if( vpp < cx && d.points_.first.get() != NULL )
-                Xs.push_back( cx );
-            else if( cx < vpp && d.points_.second.get() != NULL )
+            if ((vpp < cx && d.pointA_) || (cx < vpp && d.pointB_))
                 Xs.push_back( cx );
         }
-    Xs.push_back( vpp );
+    Xs.push_back(vpp);
 }
 
 ompl::geometric::SPARStwo::VertexPair ompl::geometric::SPARStwo::index( Vertex vp, Vertex vpp )
@@ -623,47 +621,48 @@ void ompl::geometric::SPARStwo::setData( Vertex v, Vertex vp, Vertex vpp, const 
     interfaceDataProperty_[v][index( vp, vpp )] = d;
 }
 
-void ompl::geometric::SPARStwo::distanceCheck( Vertex rep, const safeState& q, Vertex r, const safeState& s, Vertex rp )
+void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp)
 {
     //Get the info for the current representative-neighbors pair
     InterfaceData& d = getData( rep, r, rp );
 
     if( r < rp ) // FIRST points represent r (the guy discovered through sampling)
     {
-        if( d.points_.first.get() == NULL ) // If the point we're considering replacing (P_v(r,.)) isn't there
+        if( d.pointA_ == NULL ) // If the point we're considering replacing (P_v(r,.)) isn't there
             //Then we know we're doing better, so add it
             d.setFirst( q, s, si_ );
         else //Otherwise, he is there,
         {
-            if( d.points_.second.get() == NULL ) //But if the other guy doesn't exist, we can't compare.
+            if( d.pointB_ == NULL ) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should probably keep the one that is further away from rep?  Not known what to do in this case.
+		// TODO: is this not part of the algorithm?
             }
             else //We know both of these points exist, so we can check some distances
-                if( si_->distance( q.get(), d.points_.second.get() ) < si_->distance( d.points_.first.get(), d.points_.second.get() ) )
+                if (si_->distance(q, d.pointB_) < si_->distance(d.pointA_, d.pointB_))
                     //Distance with the new point is good, so set it.
                     d.setFirst( q, s, si_ );
         }
     }
     else // SECOND points represent r (the guy discovered through sampling)
     {
-        if( d.points_.second.get() == NULL ) //If the point we're considering replacing (P_V(.,r)) isn't there...
+        if (d.pointB_ == NULL ) //If the point we're considering replacing (P_V(.,r)) isn't there...
             //Then we must be doing better, so add it
-            d.setSecond( q, s, si_ );
+            d.setSecond(q, s, si_);
         else //Otherwise, he is there
         {
-            if( d.points_.first.get() == NULL ) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointA_ == NULL ) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should we be doing something cool here?
             }
             else
-                if( si_->distance( q.get(), d.points_.first.get() ) < si_->distance( d.points_.second.get(), d.points_.first.get() ) )
+                if (si_->distance(q, d.pointA_) < si_->distance(d.pointB_, d.pointA_))
                     //Distance with the new point is good, so set it
-                    d.setSecond( q, s, si_ );
+                    d.setSecond(q, s, si_);
         }
     }
-    //Lastly, save what we have discovered
-    setData( rep, r, rp, d );
+    // Lastly, save what we have discovered
+    setData(rep, r, rp, d);
 }
 
 void ompl::geometric::SPARStwo::abandonLists( base::State* st )
@@ -683,7 +682,7 @@ void ompl::geometric::SPARStwo::abandonLists( base::State* st )
 void ompl::geometric::SPARStwo::deletePairInfo( Vertex v )
 {
     foreach (VertexPair r, interfaceDataProperty_[v] | boost::adaptors::map_keys)
-        clearInterfaceData( interfaceDataProperty_[v][r], si_ );
+        interfaceDataProperty_[v][r].clear(si_);
 }
 
 ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard( base::State *state, GuardType type)

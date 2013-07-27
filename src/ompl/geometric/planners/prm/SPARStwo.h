@@ -77,6 +77,7 @@ namespace ompl
         class SPARStwo : public base::Planner
         {
         public:
+
             /** \brief Enumeration which specifies the reason a guard is added to the spanner. */
             enum GuardType
             {
@@ -91,111 +92,92 @@ namespace ompl
             /** \brief The type used internally for representing vertex IDs */
             typedef unsigned long int VertexIndexType;
 
-        protected:
-            /** \brief containers for states which keep NULL safety at all times */
-            class safeState
-            {
-            public:
-                /** \brief State which this object keeps in a safe state. */
-                base::State* st_;
-
-                safeState( void )
-                {
-                    st_ = NULL;
-                }
-
-                /** \brief Parameterized constructor which takes a state. */
-                safeState( base::State* state )
-                {
-                    st_ = state;
-                }
-
-                /** \brief Assignment of a state. */
-                void operator=( base::State* state )
-                {
-                    st_ = state;
-                }
-
-                /** \brief Retrieval method for an actual state. */
-                base::State* get( void )
-                {
-                    return st_;
-                }
-
-                /** \brief Const retrieval method for an actual state. */
-                const base::State* get( void ) const
-                {
-                    return st_;
-                }
-
-                /** \brief Sets the internal state pointer to NULL */
-                void setNull( void )
-                {
-                    st_ = NULL;
-                }
-            };
-
-            /** \brief Pair of safe states which support an interface. */
-            typedef std::pair< safeState, safeState > safeStatePair;
             /** \brief Pair of vertices which support an interface. */
             typedef std::pair< VertexIndexType, VertexIndexType > VertexPair;
 
-        public:
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
             struct InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
-                safeStatePair points_;
+		base::State* pointA_;
+		base::State* pointB_;
+
                 /** \brief States which lie just outside the visibility region of a vertex and support an interface. */
-                safeStatePair sigmas_;
-                /** \brief Last known distance between the two interfaces supported by points_ and sigmas_. */
-                double      d_;
+		base::State* sigmaA_;
+		base::State* sigmaB_;
+
+                /** \brief Last known distance between the two interfaces supported by points_ and sigmas. */
+                double       d_;
 
                 /** \brief Constructor */
-                InterfaceData( void )
+                InterfaceData(void) :
+		    pointA_(NULL),
+		    pointB_(NULL),
+		    sigmaA_(NULL),
+		    sigmaB_(NULL),
+		    d_(std::numeric_limits<double>::infinity())
                 {
-                    d_ = std::numeric_limits<double>::infinity();
                 }
-
+		
+		/** \brief Clears the given interface data. */
+		void clear(const base::SpaceInformationPtr& si)
+		{
+		    if (pointA_)
+		    {
+			si->freeState(pointA_);
+			pointA_ = NULL;
+		    }
+		    if (pointB_)
+		    {
+			si->freeState(pointB_);
+			pointB_ = NULL;
+		    }
+		    if (sigmaA_)
+		    {
+			si->freeState(sigmaA_);
+			sigmaA_ = NULL;
+		    }
+		    if (sigmaB_)
+		    {
+			si->freeState(sigmaB_);
+			sigmaB_ = NULL;
+		    }
+		    d_ = std::numeric_limits<double>::infinity();
+		}
+		
                 /** \brief Sets information for the first interface (i.e. interface with smaller index vertex). */
-                void setFirst( const safeState& p, const safeState& s, const base::SpaceInformationPtr& si )
+                void setFirst(const base::State *p, const base::State *s, const base::SpaceInformationPtr& si)
                 {
-                    if( points_.first.get() != NULL )
-                        si->freeState( points_.first.get() );
-                    points_.first = si->cloneState( p.get() );
-                    if( sigmas_.first.get() != NULL )
-                        si->freeState( sigmas_.first.get() );
-                    sigmas_.first = si->cloneState( s.get() );
-
-                    if( points_.second.get() != NULL )
-                    {
-                        d_ = si->distance( points_.first.get(), points_.second.get() );
-                    }
-                }
+		    if (pointA_)
+			si->copyState(pointA_, p);
+		    else
+			pointA_ = si->cloneState(p);
+		    if (sigmaA_)
+			si->copyState(sigmaA_, s);
+		    else
+			sigmaA_ = si->cloneState(s);
+		    if (pointB_)
+			d_ = si->distance(pointA_, pointB_);
+		}
 
                 /** \brief Sets information for the second interface (i.e. interface with larger index vertex). */
-                void setSecond( const safeState& p, const safeState& s, const base::SpaceInformationPtr& si )
+                void setSecond(const base::State *p, const base::State *s, const base::SpaceInformationPtr& si)
                 {
-                    if( points_.second.get() != NULL )
-                        si->freeState( points_.second.get() );
-                    points_.second = si->cloneState( p.get() );
-                    if( sigmas_.second.get() != NULL )
-                        si->freeState( sigmas_.second.get() );
-                    sigmas_.second = si->cloneState( s.get() );
-
-                    if( points_.first.get() != NULL )
-                    {
-                        d_ = si->distance( points_.first.get(), points_.second.get() );
-                    }
+		    if (pointB_)
+			si->copyState(pointB_, p);
+		    else
+			pointB_ = si->cloneState(p);
+		    if (sigmaB_)
+			si->copyState(sigmaB_, s);
+		    else
+			sigmaB_ = si->cloneState(s);
+		    if (pointA_)
+			d_ = si->distance(pointA_, pointB_);
                 }
-
             };
 
-        protected:
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
             typedef boost::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
-
-        public:
 
             struct vertex_state_t {
                 typedef boost::vertex_property_tag kind;
@@ -246,7 +228,7 @@ namespace ompl
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
             /** \brief Sets the stretch factor */
-            void setStretchFactor( double t )
+            void setStretchFactor(double t)
             {
                 stretchFactor_ = t;
             }
@@ -352,7 +334,7 @@ namespace ompl
         protected:
 
             /** \brief Sample a valid random state, storing it in qNew_ (and returning it) */
-            virtual base::State* sample( void );
+	    base::State* sample( void );
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
@@ -385,7 +367,7 @@ namespace ompl
             void findCloseRepresentatives();
 
             /** \brief High-level method which updates pair point information for repV_ with neighbor r */
-            void updatePairPoints( Vertex rep, const safeState& q, Vertex r, const safeState& s );
+            void updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s);
 
             /** \brief Computes all nodes which qualify as a candidate v" for v and vp */
             void computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs);
@@ -402,19 +384,19 @@ namespace ompl
             void setData( Vertex v, Vertex vp, Vertex vpp, const InterfaceData& d );
 
             /** \brief Performs distance checking for the candidate new state, q against the current information */
-            void distanceCheck( Vertex rep, const safeState& q, Vertex r, const safeState& s, Vertex rp );
+            void distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp);
 
             /** \brief When a new guard is added at state st, finds all guards who must abandon their interface information and deletes that information */
-            void abandonLists( base::State* st );
+            void abandonLists(base::State* st);
 
             /** \brief Deletes all the states in a vertex's lists */
-            void deletePairInfo( Vertex v );
+            void deletePairInfo(Vertex v);
 
             /** \brief Construct a guard for a given state (\e state) and store it in the nearest neighbors data structure */
-            virtual Vertex addGuard( base::State *state, GuardType type);
+	    Vertex addGuard(base::State *state, GuardType type);
 
             /** \brief Connect two guards in the roadmap */
-            virtual void connect( Vertex v, Vertex vp );
+	    void connect( Vertex v, Vertex vp );
 
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
@@ -429,7 +411,7 @@ namespace ompl
             bool reachedFailureLimit (void) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            virtual base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
+	    base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
 
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr                                          sampler_;
@@ -518,23 +500,6 @@ namespace ompl
             unsigned int                                                        iterations_;
 
         private:
-            /** \brief Clears the given interface data. */
-            void clearInterfaceData( InterfaceData& iData, const base::SpaceInformationPtr& si )
-            {
-                clearSafeState( iData.points_.first, si );
-                clearSafeState( iData.points_.second, si );
-                clearSafeState( iData.sigmas_.first, si );
-                clearSafeState( iData.sigmas_.second, si );
-                iData.d_ = std::numeric_limits<double>::infinity();
-            }
-
-            /** \brief Deallocates the internal state of the safe state and sets it to NULL. */
-            void clearSafeState( safeState& ss, const base::SpaceInformationPtr& si )
-            {
-                if( ss.get() != NULL )
-                    si->freeState( ss.get() );
-                ss.setNull();
-            }
 
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
             double distanceFunction(const Vertex a, const Vertex b) const
