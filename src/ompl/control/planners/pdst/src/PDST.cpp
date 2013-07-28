@@ -100,6 +100,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         return base::PlannerStatus::INVALID_START;
     }
 
+    OMPL_INFORM("Starting with %u states", priorityQueue_.size());
+
     base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj1(ndim), tmpProj2(ndim);
     while (!ptc)
@@ -112,6 +114,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         Motion *newMotion = propagateFrom(motionSelected, tmpState1, tmpState2);
         if (newMotion == NULL)
             continue;
+
         addMotion(newMotion, bsp_, tmpState1, tmpState2, tmpProj1, tmpProj2);
 
         // Check if the newMotion reached the goal.
@@ -168,6 +171,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
 
     si_->freeState(tmpState1);
     si_->freeState(tmpState2);
+
+    OMPL_INFORM("Created %u states and %u cells", priorityQueue_.size(), bsp_->size());
 
     return base::PlannerStatus(hasSolution, isApproximate);
 }

@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2013, Willow Garage
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,45 +34,50 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_UTIL_TIME_
-#define OMPL_UTIL_TIME_
+#define BOOST_TEST_MODULE "PlannerTerminationCondition"
+#include <boost/test/unit_test.hpp>
+#include <iostream>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/util/Time.h"
 
-namespace ompl
+#include "../BoostTestTeamCityReporter.h"
+
+using namespace ompl;
+
+BOOST_AUTO_TEST_CASE(TestSimpleTermination)
 {
+  static const double dt = 0.1;
+  const base::PlannerTerminationCondition &ptc = base::timedPlannerTerminationCondition(dt);
+  BOOST_CHECK(ptc == false);
+  BOOST_CHECK(ptc() == false);
+  boost::this_thread::sleep(ompl::time::seconds(dt + 0.01));
+  BOOST_CHECK(ptc == true);
+  BOOST_CHECK(ptc() == true);
 
-    /** \brief Namespace containing time datatypes and time operations */
-    namespace time
-    {
-
-        /** \brief Representation of a point in time */
-        typedef boost::posix_time::ptime         point;
-
-        /** \brief Representation of a time duration */
-        typedef boost::posix_time::time_duration duration;
-
-        /** \brief Get the current time point */
-        inline point now(void)
-        {
-            return boost::posix_time::microsec_clock::universal_time();
-        }
-
-        /** \brief Return the time duration representing a given number of seconds */
-        inline duration seconds(double sec)
-        {
-            long s  = (long)sec;
-            long us = (long)((sec - (double)s) * 1000000);
-            return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
-        }
-
-        /** \brief Return the number of seconds that a time duration represents */
-        inline double seconds(const duration &d)
-        {
-            return (double)d.total_microseconds() / 1000000.0;
-        }
-
-    }
+  const base::PlannerTerminationCondition &ptc_long = base::timedPlannerTerminationCondition(100.0 * dt);
+  BOOST_CHECK(ptc_long == false);
+  BOOST_CHECK(ptc_long() == false);
+  ptc_long.terminate();
+  BOOST_CHECK(ptc_long == true);
+  BOOST_CHECK(ptc_long() == true);
 }
 
-#endif
+BOOST_AUTO_TEST_CASE(TestThreadedTermination)
+{
+  static const double dt = 0.2; 
+  static const double interval = 0.005;
+  const base::PlannerTerminationCondition &ptc = base::timedPlannerTerminationCondition(dt, interval);
+  BOOST_CHECK(ptc == false);
+  BOOST_CHECK(ptc() == false);
+  boost::this_thread::sleep(ompl::time::seconds(dt + interval * 3.0));
+  BOOST_CHECK(ptc == true);
+  BOOST_CHECK(ptc() == true);
+
+  const base::PlannerTerminationCondition &ptc_long = base::timedPlannerTerminationCondition(100.0 * dt, interval);
+  BOOST_CHECK(ptc_long == false);
+  BOOST_CHECK(ptc_long() == false);
+  ptc_long.terminate();
+  BOOST_CHECK(ptc_long == true);
+  BOOST_CHECK(ptc_long() == true);  
+}

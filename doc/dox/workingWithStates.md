@@ -81,7 +81,7 @@ ompl::base::StateSpacePtr space(cs);
 // manually cast the components of the state to what we want them to be.
 ompl::base::ScopedState<ompl::base::CompoundStateSpace> state(space);
 state->as<ompl::base::SO2StateSpace::StateType>(0)->setIdentity();
-~~~~
+~~~
 
 The code above can be equivalently written as:
 

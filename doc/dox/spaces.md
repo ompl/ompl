@@ -24,7 +24,7 @@ In addition, the ompl::base::CompoundStateSpace allows users to create arbitrari
 
 This set of control spaces is included in OMPL:
 
-- R<sup>n</sup> (ompl::control::RealVectorControlSpace). 
+- R<sup>n</sup> (ompl::control::RealVectorControlSpace).
 - Discrete (ompl::control::DiscreteControlSpace).
 - OpenDE (ompl::control::OpenDEControlSpace). This is an extension that is built only if the [Open Dynamics Engine][opende] library is detected.
 

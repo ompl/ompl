@@ -1,4 +1,4 @@
-# Implementing a new motion planner
+# Implementing a New Motion Planner
 
 # Strict Requirements
 

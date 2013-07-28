@@ -1,5 +1,8 @@
 if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused)
+    add_definitions(-W -Wall -Wextra #-Wconversion
+                    -Wcast-qual -Wwrite-strings -Wunreachable-code -Wpointer-arith
+                    -Winit-self -Wredundant-decls
+                    -Wno-unused-parameter -Wno-unused-function)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wno-unused-parameter -Wno-delete-non-virtual-dtor -Wno-overloaded-virtual -Wno-unknown-pragmas -Qunused-arguments)

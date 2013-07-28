@@ -1,16 +1,32 @@
 # Path Visualization
 
-OMPL does not contain any built-in visualization tools, but it is usually not too difficult to visualize paths with external software. The basic idea is to print the path as a matrix, save it to a text file, and open this file in an external program. In OMPL there are two different kinds of paths: ompl::geometric::PathGeometric and ompl::control::PathControl. Both classes have a method called `printAsMatrix()`. For ompl::geometric::PathGeometric the matrix consists of all the states along the path, one per row. For ompl::control::PathControl each row also contains the controls and control duration needed to reach the state in this row starting from the state in the previous row (the controls and duration in the first row are all zeros). The basic usage is as follows:
+OMPL does not contain any built-in visualization tools, but it is usually not too difficult to visualize paths with external software. The basic idea is to print the path as a matrix, save it to a text file, and open this file in an external program. In OMPL there are two different kinds of paths: ompl::geometric::PathGeometric and ompl::control::PathControl. Both classes have a method called `printAsMatrix()`. For ompl::geometric::PathGeometric the matrix consists of all the states along the path, one per row. For ompl::control::PathControl each row also contains the controls and control duration needed to reach the state in this row starting from the state in the previous row (the controls and duration in the first row are all zeros). The basic usage is as follows.
+
+**Python**
 ~~~{.py}
 solved = ss.solve(20.0) # ss is a SimpleSetup object
 if solved:
     print(ss.getSolutionPath().printAsMatrix())
 ~~~
+<b>C++</b>
+~~~{.cpp}
+bool solved = ss.solve(20.0); // ss is a SimpleSetup object
+if (solved)
+    ss.getSolutionPath().printAsMatrix(std::cout);
+~~~
 In the case of ompl::control::PathControl, you may want to convert the path first to a geometric path. This conversion automatically interpolates the path at the propagation step size. The code above then changes to:
+
+**Python**
 ~~~{.py}
 solved = ss.solve(20.0) # ss is a SimpleSetup object
 if solved:
     print(ss.getSolutionPath().asGeometric().printAsMatrix())
+~~~
+<b>C++</b>
+~~~{.cpp}
+bool solved = ss.solve(20.0); // ss is a SimpleSetup object
+if (solved)
+    ss.getSolutionPath().asGeometric().printAsMatrix(std::cout);
 ~~~
 Run your program and save the output of `printAsMatrix()` to a file called, say, path.txt. Let us assume the path consists of SE(3) states. This means that the first three columns represent the 3D position component of the state and the next four columns the orientation represented by a unit quaternion. Below we will describe how to visualize this path with a variety of programs.
 

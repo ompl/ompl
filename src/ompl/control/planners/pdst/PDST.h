@@ -234,6 +234,15 @@ namespace ompl
                     motion->cell_ = this;
                 }
 
+                /// Number of cells
+                unsigned int size() const
+                {
+                    unsigned int sz = 1;
+                    if (left_)
+                        sz += left_->size() + right_->size();
+                    return sz;
+                }
+
                 /// Volume of the cell
                 double                       volume_;
                 /// Dimension along which the cell is split into smaller cells

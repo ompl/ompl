@@ -40,12 +40,15 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
+
+#include "GoalVisitor.hpp"
 
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
@@ -54,11 +57,6 @@ namespace ompl
 {
     namespace magic
     {
-
-        /** \brief Maximum number of sampling attempts to find a valid state,
-            without checking whether the allowed time elapsed. This value
-            should not really be changed. */
-        static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
         /** \brief The number of steps to take for a random bounce
             motion generated as part of the expansion step of PRM. */
@@ -268,7 +266,7 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
             {
                 found = sampler_->sample(workState);
                 attempts++;
-            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
+            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK && !found);
         }
         // add it as a milestone
         if (found)
@@ -402,19 +400,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         }
     }
 
-    if (!sampler_)
-        sampler_ = si_->allocValidStateSampler();
-    if (!simpleSampler_)
-        simpleSampler_ = si_->allocStateSampler();
-
     unsigned int nrStartStates = boost::num_vertices(g_);
     OMPL_INFORM("Starting with %u states", nrStartStates);
 
     // Reset addedSolution_ member and create solution checking thread
     addedSolution_ = false;
     base::PathPtr sol;
-    sol.reset();
-    boost::thread slnThread (boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
+    boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
     base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
@@ -441,6 +433,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
 void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondition &ptc)
 {
+    if (!isSetup())
+        setup();
+    if (!sampler_)
+        sampler_ = si_->allocValidStateSampler();
+    if (!simpleSampler_)
+        simpleSampler_ = si_->allocStateSampler();
+
     std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
     bool grow = true;
@@ -506,29 +505,6 @@ bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-namespace
-{
-    struct AStarFoundGoal {}; // exception for termination
-
-    // visitor that terminates when we find the goal
-    class AStarGoalVisitor : public boost::default_astar_visitor
-    {
-    public:
-        AStarGoalVisitor(const ompl::geometric::PRM::Vertex &goal) : goal_(goal)
-        {
-        }
-
-        void examine_vertex(const ompl::geometric::PRM::Vertex &u, const ompl::geometric::PRM::Graph &g)
-        {
-            if (u == goal_)
-                throw AStarFoundGoal();
-        }
-
-    private:
-        ompl::geometric::PRM::Vertex goal_;
-    };
-}
-
 ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start, const Vertex &goal)
 {
     boost::mutex::scoped_lock _(graphMutex_);
@@ -539,7 +515,7 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
         boost::astar_search(g_, start,
                             boost::bind(&PRM::distanceFunction, this, _1, goal),
                             boost::predecessor_map(prev).
-                            visitor(AStarGoalVisitor(goal)));
+                            visitor(AStarGoalVisitor<Vertex>(goal)));
     }
     catch (AStarFoundGoal&)
     {
