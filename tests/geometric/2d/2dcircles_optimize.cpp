@@ -75,8 +75,8 @@ public:
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
         // define an objective that is met the moment the solution is found
-        base::OptimizationObjective *opt = new base::OptimizationObjective(si);
-        opt->setCostThreshold(std::numeric_limits<double>::infinity());
+        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
+        opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 
         /* instantiate motion planner */
@@ -116,14 +116,14 @@ public:
             pdef->clearSolutionPaths();
 
             // we change the optimization objective so the planner runs until the first solution
-            opt->setCostThreshold(std::numeric_limits<double>::infinity());
+            opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
 
             time::point start = time::now();
             bool solved = planner->solve(SOLUTION_TIME);
             if (solved)
             {
               // we change the optimization objective so the planner runs until timeout
-              opt->setCostThreshold(std::numeric_limits<double>::epsilon());
+              opt->setCostThreshold(base::Cost(std::numeric_limits<double>::epsilon()));
 
               geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
               base::Cost ini_cost = path->cost(pdef->getOptimizationObjective());

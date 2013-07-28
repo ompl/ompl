@@ -54,7 +54,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
 
     iterations_ = 0;
     collisionChecks_ = 0;
-    bestCost_ = std::numeric_limits<double>::quiet_NaN(); // \TODO
+    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN()); // \TODO
                                                           // make sure
                                                           // this does
                                                           // what is
@@ -98,7 +98,7 @@ void ompl::geometric::RRTstar::setup(void)
     else
     {
         OMPL_INFORM("Defaulting to optimizing path length.");
-        opt_.reset(new base::OptimizationObjective(si_));
+        opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
 }
 
@@ -115,7 +115,7 @@ void ompl::geometric::RRTstar::clear(void)
 
     iterations_ = 0;
     collisionChecks_ = 0;
-    bestCost_ = std::numeric_limits<double>::quiet_NaN();
+    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     
 }
 

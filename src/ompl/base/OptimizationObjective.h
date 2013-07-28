@@ -47,10 +47,9 @@ namespace ompl
 {
     namespace base
     {   
-        class Cost
+        struct Cost
         {
-        public:
-            Cost(double v = 0.0) : v(v) {}
+            explicit Cost(double v = 0.0) : v(v) {}
             double v;
         };
 
@@ -122,15 +121,12 @@ namespace ompl
             }
 
 	    /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
-            virtual Cost motionCost(const State *s1, const State *s2) const
-            {
-                return Cost(si_->distance(s1, s2));
-            }
+            virtual Cost motionCost(const State *s1, const State *s2) const = 0;
 
             /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2. Implementations of this method should allow for \e c1 and \e cost to point to the same memory location. */
             virtual Cost combineCosts(Cost c1, Cost c2) const
             {
-                return c1.v + c2.v;
+                return Cost(c1.v + c2.v);
             }
 
 	    /** \brief Get the cost corresponding to the beginning of a path that starts at \e s. */
@@ -164,6 +160,18 @@ namespace ompl
             std::string description_;
 
             Cost threshold_;
+        };
+
+        class PathLengthOptimizationObjective : public OptimizationObjective
+        {
+        public:
+            PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
+                OptimizationObjective(si) { description_ = "Path Length"; }
+
+            virtual Cost motionCost(const State *s1, const State *s2) const
+            {
+                return Cost(si_->distance(s1, s2));
+            }
         };
 
 	class StateCostIntegralObjective : public OptimizationObjective

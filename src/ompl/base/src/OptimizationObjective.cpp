@@ -77,7 +77,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned in
 {
     StateSamplerPtr ss = si_->allocStateSampler();
     State *state = si_->allocState();
-    Cost totalCost = 0.0;
+    Cost totalCost(this->identityCost());
 
     for (unsigned int i = 0 ; i < numStates ; ++i)
     {

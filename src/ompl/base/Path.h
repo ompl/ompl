@@ -56,7 +56,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
-	class Cost;
+	struct Cost;
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Path */
