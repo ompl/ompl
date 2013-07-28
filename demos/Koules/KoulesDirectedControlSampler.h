@@ -45,6 +45,13 @@
 class KoulesDirectedControlSampler : public ompl::control::DirectedControlSampler
 {
 public:
+    // The KoulesDirectedControlSampler attempts to steer the system towards
+    // a desired state. It takes as additional arguments a goal pointer and a
+    // a flag called propagateMax. The goal pointer is needed to stop the
+    // motion when the goal is reached before the desired state. The
+    // propagateMax flag indicates that the motion is always extended
+    // upto the maximum control duration (rather than a randomly sampled limit
+    // between the min and max control duration)
     KoulesDirectedControlSampler(const ompl::control::SpaceInformation *si,
         const ompl::base::GoalPtr &goal, bool propagateMax)
         : DirectedControlSampler(si), cs_(si->getControlSpace().get()),

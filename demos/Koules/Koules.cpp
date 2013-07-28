@@ -49,7 +49,7 @@ benchmarking run.
 
 This demo illustrates also many advanced OMPL concepts, such as classes for
 a custom state space, a control sampler, a projection, a state propagator,
-and a goal claks-> It also demonstrates how one could put a simple bang-bang
+and a goal class. It also demonstrates how one could put a simple bang-bang
 controller inside the StatePropagator. In this demo the
 (Directed)ControlSampler simply samples a target velocity vector and inside
 the StatePropagator the control is chosen to drive the ship to attain this
@@ -65,7 +65,7 @@ Computer Science, Rice University, Houston, TX, Dec. 2006.
 
 #include "KoulesConfig.h"
 #include "KoulesSetup.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include "KoulesStateSpace.h"
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/config.h>
 #include <boost/program_options.hpp>
@@ -77,8 +77,14 @@ namespace oc = ompl::control;
 namespace ot = ompl::tools;
 namespace po = boost::program_options;
 
+void writeParams(std::ostream& out)
+{
+    out << sideLength << ' ' << shipRadius << ' ' << kouleRadius << ' ' << ' '
+        << propagationStepSize << ' ' << shipAcceleration << ' ' << shipRotVel << ' '
+        << shipDelta << ' ' << shipEps << std::endl;
+}
 
-void planOneLevel(KoulesSetup& ks, double maxTime, const std::string& plannerName,
+void plan(KoulesSetup& ks, double maxTime, const std::string& plannerName,
     const std::string& outputFile)
 {
     if (ks.solve(maxTime))
@@ -88,6 +94,7 @@ void planOneLevel(KoulesSetup& ks, double maxTime, const std::string& plannerNam
         path.interpolate();
         if (!path.check())
             OMPL_ERROR("Path is invalid");
+        writeParams(out);
         path.printAsMatrix(out);
         if (!ks.haveExactSolutionPath())
             OMPL_INFORM("Solution is approximate. Distance to actual goal is %g",
@@ -104,14 +111,13 @@ void planOneLevel(KoulesSetup& ks, double maxTime, const std::string& plannerNam
     ks.getPlannerData(pd);
     std::ofstream vertexFile((outputFile + "-vertices").c_str()), edgeFile((outputFile + "-edges").c_str());
     double* coords;
-    unsigned numVerts = pd.numVertices(), offset = ks.getStateSpace()->getDimension() - 5;
+    unsigned numVerts = pd.numVertices();
     std::vector<unsigned int> edgeList;
 
     for (unsigned int i = 0; i < numVerts; ++i)
     {
-        coords = pd.getVertex(i).getState()->as<ob::CompoundStateSpace::StateType>()
-            ->as<ob::RealVectorStateSpace::StateType>(0)->values;
-        vertexFile << coords[offset] << ' ' << coords[offset + 1] << '\n';
+        coords = pd.getVertex(i).getState()->as<KoulesStateSpace::StateType>()->values;
+        vertexFile << coords[0] << ' ' << coords[1] << '\n';
 
         pd.getEdges(i, edgeList);
         for (unsigned int j = 0; j < edgeList.size(); ++j)
@@ -120,80 +126,8 @@ void planOneLevel(KoulesSetup& ks, double maxTime, const std::string& plannerNam
 #endif
 }
 
-void planAllLevelsRecursive(KoulesSetup& ks, double maxTime, const std::string& plannerName,
-    std::vector<ob::PathPtr>& solution)
-{
-    double timeAttempt = maxTime / numAttempts;
-    ob::PlannerStatus status;
-    for (unsigned int i = 0; i < numAttempts; ++i)
-    {
-        ompl::time::point startTime = ompl::time::now();
-        solution.clear();
-        ks.clear();
-        OMPL_INFORM("Attempt %d of %d to solve for %d koules",
-            i + 1, numAttempts, (ks.getStateSpace()->getDimension() - 5)/4);
-        status = ks.solve(timeAttempt);
-        if (status != ob::PlannerStatus::EXACT_SOLUTION && numAttempts > 1)
-            continue;
 
-        ob::PathPtr path(ks.getProblemDefinition()->getSolutionPath());
-        oc::PathControl* cpath = static_cast<oc::PathControl*>(path.get());
-        const ob::State* goalState = cpath->getStates().back();
-        std::vector<double> s, nextStart;
-
-        if (status == ob::PlannerStatus::APPROXIMATE_SOLUTION)
-        {
-            cpath->interpolate();
-            solution.push_back(path);
-            OMPL_INFORM("Approximate solution found for %d koules",
-                (ks.getStateSpace()->getDimension() - 5)/4);
-            return;
-        }
-        ks.getStateSpace()->copyToReals(s, goalState);
-        nextStart.reserve(s.size() - 4);
-        for (unsigned int j = 0; j < s.size() - 5; j += 4)
-            // include koule in next state if it is within workspace
-            if (std::min(s[j], s[j+1]) > kouleRadius && std::max(s[j], s[j+1]) < sideLength - kouleRadius)
-                for (unsigned k = 0; k < 4; ++k)
-                    nextStart.push_back(s[j + k]);
-        // add ship's state
-        for (unsigned int j = s.size() - 5; j < s.size(); ++j)
-            nextStart.push_back(s[j]);
-        // make sure the problem size decreases as we recurse
-        assert(nextStart.size() < s.size());
-
-        unsigned int numKoules = (nextStart.size() - 5) / 4;
-        if (numKoules > 0)
-        {
-            double timeElapsed = (ompl::time::now() - startTime).total_microseconds() * 1e-6;
-            KoulesSetup ssNext(numKoules, plannerName, nextStart);
-            planAllLevelsRecursive(ssNext, timeAttempt - timeElapsed, plannerName, solution);
-        }
-        if (numKoules == 0 || solution.size())
-        {
-            cpath->interpolate();
-            solution.push_back(path);
-            OMPL_INFORM("Solution found for %d koules", (s.size() - 5) / 4);
-            return;
-        }
-    }
-}
-
-void planAllLevels(KoulesSetup& ks, double maxTime,
-    const std::string& plannerName, const std::string& outputFile)
-{
-    std::vector<ob::PathPtr> solution;
-    planAllLevelsRecursive(ks, maxTime, plannerName, solution);
-    if (solution.size())
-    {
-        std::ofstream out(outputFile.c_str());
-        for (std::vector<ob::PathPtr>::reverse_iterator p = solution.rbegin(); p != solution.rend(); p++)
-            static_cast<oc::PathControl*>(p->get())->printAsMatrix(out);
-        OMPL_INFORM("Output saved in %s", outputFile.c_str());
-    }
-}
-
-void benchmarkOneLevel(KoulesSetup& ks, ot::Benchmark::Request request,
+void benchmark(KoulesSetup& ks, ot::Benchmark::Request request,
     const std::string& plannerName, const std::string& outputFile)
 {
     // Create a benchmark class
@@ -217,9 +151,8 @@ int main(int argc, char **argv)
         po::options_description desc("Options");
         desc.add_options()
             ("help", "show help message")
-            ("plan", "plan one level of koules")
-            ("planall", "plan all levels of koules")
-            ("benchmark", "benchmark one level")
+            ("plan", "solve the game of koules")
+            ("benchmark", "benchmark the game of koules")
             ("numkoules", po::value<unsigned int>(&numKoules)->default_value(3),
                 "start from <numkoules> koules")
             ("maxtime", po::value<double>(&maxTime)->default_value(10.),
@@ -241,24 +174,21 @@ int main(int argc, char **argv)
         KoulesSetup ks(numKoules, plannerName, kouleVel);
         if (vm.count("help") || argc == 1)
         {
-            std::cout << "Solve the games of Koules.\nSelect one of these three options:\n"
-                      << "\"--plan\", \"--planall\", or \"--benchmark\"\n\n" << desc << "\n";
+            std::cout << "Solve the games of Koules.\nSelect one of these two options:\n"
+                      << "\"--plan\", or \"--benchmark\"\n\n" << desc << "\n";
             return 1;
         }
 
         if (outputFile.size() == 0)
         {
-            std::string prefix(vm.count("plan") ? "koules_"
-                : (vm.count("planall") ? "koules_1-" : "koulesBenchmark_"));
+            std::string prefix(vm.count("plan") ? "koules_" : "koulesBenchmark_");
             outputFile = boost::str(boost::format("%1%%2%_%3%_%4%.dat")
                 % prefix % numKoules % plannerName % maxTime);
         }
         if (vm.count("plan"))
-            planOneLevel(ks, maxTime, plannerName, outputFile);
-        else if (vm.count("planall"))
-            planAllLevels(ks, maxTime, plannerName, outputFile);
+            plan(ks, maxTime, plannerName, outputFile);
         else if (vm.count("benchmark"))
-            benchmarkOneLevel(ks, ot::Benchmark::Request(maxTime, 10000.0, numRuns),
+            benchmark(ks, ot::Benchmark::Request(maxTime, 10000.0, numRuns),
                 plannerName, outputFile);
     }
     catch(std::exception& e) {

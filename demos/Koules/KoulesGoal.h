@@ -47,10 +47,11 @@ public:
         : ompl::base::GoalSampleableRegion(si), stateSampler_(si->allocStateSampler())
     {
         threshold_ = 0.01;
-        numKoules_ = (si->getStateDimension() - 5) / 4;
     }
 
+    // number of "live" koules plus the shortest distance between any live koule and an edge
     virtual double distanceGoal(const ompl::base::State *st) const;
+    // pick a random state where each koule is on the edge of the workspace
     virtual void sampleGoal(ompl::base::State *st) const;
     virtual unsigned int maxSampleCount(void) const
     {
@@ -61,7 +62,6 @@ public:
 private:
     mutable ompl::RNG rng_;
     ompl::base::StateSamplerPtr stateSampler_;
-    unsigned int numKoules_;
 };
 
 #endif

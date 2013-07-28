@@ -37,7 +37,6 @@
 #ifndef DEMOS_KOULES_PROJECTION_
 #define DEMOS_KOULES_PROJECTION_
 
-#include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
 // A projection for the KoulesStateSpace
@@ -62,20 +61,20 @@ public:
     {
         cellSizes_.resize(numDimensions_, .05);
     }
+    // projection with coordinates in the same order as described in Andrew
+    // Ladd's thesis: (x,y,theta) of the ship, followed by the positions of
+    // the koules (up to the dimensionality of the projection)
     virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
     {
-        const ompl::base::CompoundStateSpace::StateType* cs = state->as<ompl::base::CompoundStateSpace::StateType>();
-        const double* xv = cs->as<ompl::base::RealVectorStateSpace::StateType>(0)->values;
-        const double theta = cs->as<ompl::base::SO2StateSpace::StateType>(1)->value;
+        const double* x = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
         unsigned int numKoules = (numDimensions_ - 3) / 2;
-        // projection with coordinates in the same order as described in Andrew Ladd's thesis
-        projection[0] = xv[4 * numKoules];
-        projection[1] = xv[4 * numKoules + 1];
-        projection[2] = theta;
+        projection[0] = x[0];
+        projection[1] = x[1];
+        projection[2] = x[2];
         for (unsigned int i = 0; i < numKoules; ++i)
         {
-            projection[2 * i + 3] = xv[4 * i];
-            projection[2 * i + 4] = xv[4 * i + 1];
+            projection[2 * i + 3] = x[4 * i + 5];
+            projection[2 * i + 4] = x[4 * i + 6];
         }
     }
 protected:

@@ -38,9 +38,9 @@
 #define DEMOS_KOULES_STATESPACE_
 
 #include "KoulesConfig.h"
-#include <ompl/base/StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 
-class KoulesStateSpace : public ompl::base::CompoundStateSpace
+class KoulesStateSpace : public ompl::base::RealVectorStateSpace
 {
 public:
     KoulesStateSpace(unsigned int numKoules);
@@ -55,6 +55,8 @@ public:
     {
         return radius_[i];
     }
+    bool isDead(const ompl::base::State* state, unsigned int i) const;
+
 protected:
     std::vector<double> mass_;
     std::vector<double> radius_;

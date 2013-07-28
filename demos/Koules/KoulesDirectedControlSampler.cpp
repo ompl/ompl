@@ -43,14 +43,13 @@ namespace oc = ompl::control;
 
 unsigned int KoulesDirectedControlSampler::sampleTo(oc::Control *control, const ob::State *source, ob::State *dest)
 {
-    const KoulesStateSpace::StateType* dst = dest->as<KoulesStateSpace::StateType>();
-    const double* dstPos = dst->as<ob::RealVectorStateSpace::StateType>(0)->values;
+    const double* dstPos = dest->as<KoulesStateSpace::StateType>()->values;
     double stepSize = si_->getPropagationStepSize();
     unsigned int steps = propagateMax_ ? si_->getMaxControlDuration() :
         cs_.sampleStepCount(si_->getMinControlDuration(), si_->getMaxControlDuration());
     unsigned int dim = si_->getStateSpace()->getDimension();
 
-    cs_.steer(control, source, dstPos[dim - 5], dstPos[dim - 4]);
+    cs_.steer(control, source, dstPos[0], dstPos[1]);
     // perform the first step of propagation
     statePropagator_->propagate(source, control, stepSize, dest);
     // if we reached the goal, we're done

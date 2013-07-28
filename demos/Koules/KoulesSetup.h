@@ -48,6 +48,8 @@ public:
         const std::vector<double>& stateVec = std::vector<double>());
     KoulesSetup(unsigned int numKoules, const std::string& plannerName, double kouleVel);
 
+    // Given a planner name, return a planner instance that has been configured
+    // for the koules problem.
     ompl::base::PlannerPtr getConfiguredPlannerInstance(const std::string& plannerName);
 private:
     void initialize(unsigned int numKoules, const std::string& plannerName,

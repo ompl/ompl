@@ -37,57 +37,60 @@
 #include "KoulesConfig.h"
 #include "KoulesStateSpace.h"
 #include "KoulesProjection.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <ompl/base/spaces/SO2StateSpace.h>
 
 namespace ob = ompl::base;
 
 KoulesStateSpace::KoulesStateSpace(unsigned int numKoules)
-    : CompoundStateSpace(), mass_(numKoules + 1, kouleMass), radius_(numKoules + 1, kouleRadius)
+    : RealVectorStateSpace(4 * numKoules + 5), mass_(numKoules + 1, kouleMass),
+    radius_(numKoules + 1, kouleRadius)
 {
-    mass_[numKoules] = shipMass;
-    radius_[numKoules] = shipRadius;
+    mass_[0] = shipMass;
+    radius_[0] = shipRadius;
     setName("Koules" + boost::lexical_cast<std::string>(numKoules) + getName());
-    // layout: (... x_i y_i vx_i vy_i ... x_s y_s vx_s vy_s theta_s),
+    // layout: (x_s y_s vx_s vy_s theta_s ... x_i y_i vx_i vy_i ... ),
     // where (x_i, y_i) is the position of koule i (i=1,..,numKoules),
     // (vx_i, vy_i) its velocity, (x_s, y_s) the position of the ship,
     // (vx_s, vy_s) its velocity, and theta_s its orientation.
-    addSubspace(ob::StateSpacePtr(new ob::RealVectorStateSpace(4 * (numKoules + 1))), 1.);
-    addSubspace(ob::StateSpacePtr(new ob::SO2StateSpace), .5);
-    lock();
 
     // create the bounds
-    ob::RealVectorBounds bounds((numKoules + 1) * 4);
     unsigned int j = 0;
+    // set the bounds for the ship's position
+    bounds_.setLow(j, shipRadius);
+    bounds_.setHigh(j++, sideLength - shipRadius);
+    bounds_.setLow(j, shipRadius);
+    bounds_.setHigh(j++, sideLength - shipRadius);
+    // set the bounds for the ship's velocity
+    bounds_.setLow(j, -10.);
+    bounds_.setHigh(j++, 10.);
+    bounds_.setLow(j, -10.);
+    bounds_.setHigh(j++, 10.);
+    // set bounds on orientation
+    bounds_.setLow(j, -boost::math::constants::pi<double>());
+    bounds_.setHigh(j++, boost::math::constants::pi<double>());
     for (unsigned int i = 0; i < numKoules; ++i)
     {
         // set the bounds for koule i's position
-        bounds.setLow(j, -kouleRadius);
-        bounds.setHigh(j++, sideLength + kouleRadius);
-        bounds.setLow(j, -kouleRadius);
-        bounds.setHigh(j++, sideLength + kouleRadius);
+        bounds_.setLow(j, -2. * kouleRadius);
+        bounds_.setHigh(j++, sideLength + 2. * kouleRadius);
+        bounds_.setLow(j, -2. * kouleRadius);
+        bounds_.setHigh(j++, sideLength + 2. * kouleRadius);
         // set the bounds for koule i's velocity
-        bounds.setLow(j, -10);
-        bounds.setHigh(j++, 10.);
-        bounds.setLow(j, -10.);
-        bounds.setHigh(j++, 10.);
+        bounds_.setLow(j, -10);
+        bounds_.setHigh(j++, 10.);
+        bounds_.setLow(j, -10.);
+        bounds_.setHigh(j++, 10.);
     }
-    // set the bounds for the ship's position
-    bounds.setLow(j, shipRadius);
-    bounds.setHigh(j++, sideLength - shipRadius);
-    bounds.setLow(j, shipRadius);
-    bounds.setHigh(j++, sideLength - shipRadius);
-    // set the bounds for the ship's velocity
-    bounds.setLow(j, -10.);
-    bounds.setHigh(j++, 10.);
-    bounds.setLow(j, -10.);
-    bounds.setHigh(j++, 10.);
-    as<ob::RealVectorStateSpace>(0)->setBounds(bounds);
 }
 
 void KoulesStateSpace::registerProjections(void)
 {
-    registerDefaultProjection(ob::ProjectionEvaluatorPtr(new KoulesProjection(this)));
+    registerDefaultProjection(ob::ProjectionEvaluatorPtr(new KoulesProjection(this, (getDimension() - 1) / 4 + 1)));
     registerProjection("PDSTProjection", ob::ProjectionEvaluatorPtr(
         new KoulesProjection(this, (getDimension() - 1) / 2 + 1)));
+}
+
+bool KoulesStateSpace::isDead(const ompl::base::State* state, unsigned int i) const
+{
+    const StateType* s = static_cast<const StateType*>(state);
+    return s->values[i ? 4 * i + 1 : 0] == -2. * kouleRadius;
 }

@@ -80,15 +80,14 @@ KoulesSetup::KoulesSetup(unsigned int numKoules, const std::string& plannerName,
     : ompl::control::SimpleSetup(ompl::control::ControlSpacePtr(new KoulesControlSpace(numKoules)))
 {
     initialize(numKoules, plannerName);
-    double* state = getProblemDefinition()->getStartState(0)->as<KoulesStateSpace::StateType>()
-        ->as<ob::RealVectorStateSpace::StateType>(0)->values;
+    double* state = getProblemDefinition()->getStartState(0)->as<KoulesStateSpace::StateType>()->values;
     double theta;
     ompl::RNG rng;
     for (unsigned int i = 0; i < numKoules; ++i)
     {
         theta = rng.uniformReal(0., 2. * boost::math::constants::pi<double>());
-        state[4 * i + 2] = kouleVel * cos(theta);
-        state[4 * i + 3] = kouleVel * sin(theta);
+        state[4 * i + 7] = kouleVel * cos(theta);
+        state[4 * i + 8] = kouleVel * sin(theta);
     }
 }
 
@@ -108,15 +107,15 @@ void KoulesSetup::initialize(unsigned int numKoules, const std::string& plannerN
         // at the center. Initial velocities are 0.
         std::vector<double> startVec(space->getDimension(), 0.);
         double r, theta = boost::math::constants::pi<double>(), delta = 2.*theta / numKoules;
+        startVec[0] = .5 * sideLength;
+        startVec[1] = .5 * sideLength;
+        startVec[4] = .5 * delta;
         for (unsigned int i = 0; i < numKoules; ++i, theta += delta)
         {
             r = .1 + i * .1 / numKoules;
-            startVec[4 * i    ] = .5 * sideLength + r * cos(theta);
-            startVec[4 * i + 1] = .5 * sideLength + r * sin(theta);
+            startVec[4 * i + 5] = .5 * sideLength + r * cos(theta);
+            startVec[4 * i + 6] = .5 * sideLength + r * sin(theta);
         }
-        startVec[4 * numKoules    ] = .5 * sideLength;
-        startVec[4 * numKoules + 1] = .5 * sideLength;
-        startVec[4 * numKoules + 4] = .5 * delta;
         space->copyFromReals(start.get(), startVec);
     }
     setStartState(start);

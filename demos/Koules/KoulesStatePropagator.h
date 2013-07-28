@@ -37,48 +37,25 @@
 #ifndef DEMOS_KOULES_STATEPROPAGATOR_
 #define DEMOS_KOULES_STATEPROPAGATOR_
 
-#include "KoulesConfig.h"
-#include <ompl/control/SpaceInformation.h>
 #include <ompl/control/StatePropagator.h>
+
+class KoulesSimulator;
 
 // State propagator for KoulesSetup.
 class KoulesStatePropagator : public ompl::control::StatePropagator
 {
 public:
-
-    KoulesStatePropagator(const ompl::control::SpaceInformationPtr &si) :
-        ompl::control::StatePropagator(si), timeStep_(integrationStepSize),
-        numDimensions_(si->getStateSpace()->getDimension()),
-        numKoules_((numDimensions_ - 5) / 4),
-        q(numDimensions_), qdot(numDimensions_), hasCollision(numKoules_ + 1)
-    {
-    }
+    KoulesStatePropagator(const ompl::control::SpaceInformationPtr &si);
+    ~KoulesStatePropagator();
 
     virtual void propagate(const ompl::base::State *start, const ompl::control::Control* control,
         const double duration, ompl::base::State *result) const;
 
 protected:
-
-    void ode(double* u) const;
-
-    void update(double dt) const;
-
-    // check collision among object i and j
-    // compute elastic collision response if i and j collide
-    // see http://en.wikipedia.org/wiki/Elastic_collision
-    bool checkCollision(unsigned int i, unsigned int j, double dt) const;
-
-    double timeStep_;
-    unsigned int numDimensions_;
-    unsigned int numKoules_;
-    // The next three elements are scratch space. This is normally a very BAD
-    // idea, since planners can be multi-threaded. However, none of the
-    // planners used here are multi-threaded, so it's safe. This way the
-    // propagate function doesn't have to allocate memory upon each call.
-    mutable std::vector<double> q;
-    mutable std::vector<double> qdot;
-    mutable std::vector<bool> hasCollision;
+    // The simulator_ is mutable. This is normally a very BAD idea, since
+    // planners can be multi-threaded. However, none of the planners used
+    // here are multi-threaded, so it's safe.
+    mutable KoulesSimulator* simulator_;
 };
 
 #endif
-

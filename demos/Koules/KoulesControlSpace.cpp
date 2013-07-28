@@ -60,11 +60,9 @@ void KoulesControlSampler::sample(ompl::control::Control *control, const ompl::b
 
 void KoulesControlSampler::steer(oc::Control *control, const ob::State *state, double x, double y)
 {
-    const KoulesStateSpace::StateType* s = state->as<KoulesStateSpace::StateType>();
-    const double* r = s->as<ob::RealVectorStateSpace::StateType>(0)->values;
-    unsigned int dim = space_->getStateSpace()->getDimension();
-    double dx = x - r[dim - 5];
-    double dy = y - r[dim - 4];
+    const double* r = state->as<KoulesStateSpace::StateType>()->values;
+    double dx = x - r[0];
+    double dy = y - r[1];
     double xNrm2 = dx * dx + dy * dy;
     if (xNrm2 > std::numeric_limits<float>::epsilon())
     {

@@ -33,44 +33,50 @@
 *********************************************************************/
 
 #include "KoulesConfig.h"
+#include "KoulesStateSpace.h"
 #include "KoulesGoal.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
 
 double KoulesGoal::distanceGoal(const ompl::base::State *st) const
 {
-    // the shortest distance between any koule and an edge
-    double minDist = sideLength;
     double minX, minY;
-    const double* v = st->as<ompl::base::CompoundStateSpace::StateType>()
-        ->as<ompl::base::RealVectorStateSpace::StateType>(0)->values;
-    for (unsigned int i = 0; i < numKoules_; ++i)
+    const double* v = st->as<KoulesStateSpace::StateType>()->values;
+    const KoulesStateSpace* space = si_->getStateSpace().get()->as<KoulesStateSpace>();
+    std::size_t numKoules = (space->getDimension() - 5) / 4, liveKoules = numKoules;
+    double minDist = sideLength;
+
+    for (std::size_t i = 1, j = 5; i <= numKoules; ++i, j += 4)
     {
-        minX = std::min(v[4 * i    ], sideLength - v[4 * i    ]);
-        minY = std::min(v[4 * i + 1], sideLength - v[4 * i + 1]);
-        minDist = std::min(minDist, std::min(minX, minY) - kouleRadius + threshold_);
+        if (space->isDead(st, i))
+            liveKoules--;
+        else
+        {
+            minX = std::min(v[j    ], sideLength - v[j    ]);
+            minY = std::min(v[j + 1], sideLength - v[j + 1]);
+            minDist = std::min(minDist, std::min(minX, minY) - kouleRadius + threshold_);
+        }
     }
-    if (minDist < 0)
+    if (minDist < 0 || liveKoules == 0)
         minDist = 0;
-    return minDist;
+   return .5 * sideLength * (double) liveKoules + minDist;
 }
 
 void KoulesGoal::sampleGoal(ompl::base::State *st) const
 {
-    double* v = st->as<ompl::base::CompoundStateSpace::StateType>()
-        ->as<ompl::base::RealVectorStateSpace::StateType>(0)->values;
+    double* v = st->as<KoulesStateSpace::StateType>()->values;
+    std::size_t dim = si_->getStateDimension();
     stateSampler_->sampleUniform(st);
-    for (unsigned i = 0; i < numKoules_; ++i)
+    for (std::size_t i = 5; i < dim; i += 4)
     {
         // randomly pick an edge for each koule to collide
         if (rng_.uniformBool())
         {
-            v[4 * i    ] = rng_.uniformBool() ? 0. : sideLength;
-            v[4 * i + 1] = rng_.uniformReal(0., sideLength);
+            v[i    ] = rng_.uniformBool() ? 0. : sideLength;
+            v[i + 1] = rng_.uniformReal(0., sideLength);
         }
         else
         {
-            v[4 * i    ] = rng_.uniformReal(0., sideLength);
-            v[4 * i + 1] = rng_.uniformBool() ? 0. : sideLength;
+            v[i    ] = rng_.uniformReal(0., sideLength);
+            v[i + 1] = rng_.uniformBool() ? 0. : sideLength;
         }
     }
 }

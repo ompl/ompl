@@ -51,16 +51,13 @@ const double shipMass = .75;
 const double shipRadius = .03;
 const double shipVmax = .5 / shipAcceleration;
 const double shipVmin = .1 * shipVmax;
-// dynamics, propagation, integration, control constants
+// dynamics, propagation, control constants
 const double lambda_c = 4.;
 const double h = .05;
-const double integrationStepSize = 1e-2;
-const double propagationStepSize = .05;
+const double propagationStepSize = .01;
 const unsigned int propagationMinSteps = 1;
-const unsigned int propagationMaxSteps = 100;
+const unsigned int propagationMaxSteps = 200;
 const double shipDelta = .5 * shipAcceleration * propagationStepSize;
 const double shipEps = .5 * shipRotVel * propagationStepSize;
-// number of attempts at each level when solving n-level koules
-const unsigned int numAttempts = 1;
 
 #endif
