@@ -142,12 +142,18 @@ bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, 
     base::Goal *g = pdef_->getGoal().get();
     foreach (Vertex start, starts)
         foreach (Vertex goal, goals)
-            if (sameComponent(start, goal) && g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
+        {
+	    // we lock because the connected components algorithm is incremental and may change disjointSets_
+            graphMutex_.lock();
+            bool same_component = sameComponent(start, goal);
+            graphMutex_.unlock();
+
+            if (same_component && g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
                 solution = constructSolution(start, goal);
                 return true;
             }
-
+	}
     return false;
 }
 
@@ -219,8 +225,11 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
                         }
                         checkAddPath(visibleNeighborhood[0]);
                         for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
-                            checkAddPath(it->first);
-                    }
+			{
+			    checkAddPath(it->first);
+			    si_->freeState(it->second);
+			}
+		    }
                 }
     }
     si_->freeState(workState);
@@ -278,20 +287,44 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     // Reset addedSolution_ member
     addedSolution_ = false;
     base::PathPtr sol;
+    base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
+    boost::thread slnThread(boost::bind(&SPARStwo::checkForSolution, this, ptcOrFail, boost::ref(sol)));
 
     //Construct planner termination condition which also takes M into account
     base::PlannerOrTerminationCondition ptcOrStop(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedTerminationCriterion, this)));
     constructRoadmap(ptcOrStop);
 
-    haveSolution( startM_, goalM_, sol );
+    // Ensure slnThread is ceased before exiting solve
+    slnThread.join();
 
     OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
-        pdef_->addSolutionPath (sol, false);
+        pdef_->addSolutionPath(sol, false);
 
     // Return true if any solution was found.
     return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+}
+
+void ompl::geometric::SPARStwo::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)
+{
+    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    while (!ptc && !addedSolution_)
+    {
+        // Check for any new goal states
+        if (goal->maxSampleCount() > goalM_.size())
+        {
+            const base::State *st = pis_.nextGoal();
+            if (st)
+		goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
+        }
+
+        // Check for a solution
+        addedSolution_ = haveSolution(startM_, goalM_, solution);
+        // Sleep for 1ms
+        if (!addedSolution_)
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+    }
 }
 
 bool ompl::geometric::SPARStwo::checkAddCoverage(const base::State *qNew, std::vector<Vertex> &visibleNeighborhood)
@@ -672,6 +705,8 @@ void ompl::geometric::SPARStwo::abandonLists(base::State* st)
 
 ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard( base::State *state, GuardType type)
 {
+    boost::mutex::scoped_lock _(graphMutex_);
+
     Vertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
     colorProperty_[m] = type;
@@ -708,7 +743,7 @@ void ompl::geometric::SPARStwo::uniteComponents(Vertex m1, Vertex m2)
 
 ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex start, const Vertex goal) const
 {
-    PathGeometric *p = new PathGeometric(si_);
+    boost::mutex::scoped_lock _(graphMutex_);
 
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
 
@@ -726,12 +761,15 @@ ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex st
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
     else
+    {
+	PathGeometric *p = new PathGeometric(si_);
         for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(stateProperty_[pos]);
-    p->append(stateProperty_[start]);
-    p->reverse();
+	p->append(stateProperty_[start]);
+	p->reverse();
 
-    return base::PathPtr(p);
+	return base::PathPtr(p);
+    }
 }
 
 void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const

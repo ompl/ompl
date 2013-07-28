@@ -404,6 +404,9 @@ namespace ompl
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, base::PathPtr &solution);
 
+            /** Thread that checks for solution */
+            void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
+
             /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
             bool reachedTerminationCriterion(void) const;
 
