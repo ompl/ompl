@@ -335,9 +335,6 @@ namespace ompl
 
         protected:
 
-            /** \brief Sample a valid random state, storing it in qNew_ (and returning it) */
-            base::State* sample( void );
-
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);
 
@@ -345,13 +342,13 @@ namespace ompl
             void checkQueryStateInitialization(void);
 
             /** \brief Checks to see if the sample needs to be added to ensure coverage of the space */
-            bool checkAddCoverage( void );
+            bool checkAddCoverage(const base::State *qNew, std::vector<Vertex> &visibleNeighborhood);
 
             /** \brief Checks to see if the sample needs to be added to ensure connectivity */
-            bool checkAddConnectivity( void );
+            bool checkAddConnectivity(const base::State *qNew, std::vector<Vertex> &visibleNeighborhood);
 
             /** \brief Checks to see if the current sample reveals the existence of an interface, and if so, tries to bridge it. */
-            bool checkAddInterface( void );
+            bool checkAddInterface(const base::State *qNew, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
 
             /** \brief Checks vertex v for short paths through its region and adds when appropriate. */
             bool checkAddPath( Vertex v );
@@ -360,16 +357,17 @@ namespace ompl
             void resetFailures( void );
 
             /** \brief Finds visible nodes in the graph near st */
-            void findGraphNeighbors(  base::State* st );
+            void findGraphNeighbors(base::State* st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
 
             /** \brief Approaches the graph from a given vertex */
             void approachGraph( Vertex v );
 
             /** \brief Finds the representative of the input state, st  */
-            void findGraphRepresentative( base::State* st );
+            Vertex findGraphRepresentative(base::State* st);
 
             /** \brief Finds representatives of samples near qNew_ which are not his representative */
-            void findCloseRepresentatives(base::State *workArea);
+            void findCloseRepresentatives(base::State *workArea, const base::State *qNew, Vertex qRep,
+                                          std::map<Vertex, base::State*> &closeRepresentatives, const base::PlannerTerminationCondition &ptc);
 
             /** \brief High-level method which updates pair point information for repV_ with neighbor r */
             void updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s);
@@ -415,6 +413,8 @@ namespace ompl
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
 
+            /** \brief Check if two milestones (\e m1 and \e m2) are part of the same connected component. This is not a const function since we use incremental connected components from boost */
+            bool sameComponent(Vertex m1, Vertex m2);
 
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
             double distanceFunction(const Vertex a, const Vertex b) const
@@ -457,21 +457,6 @@ namespace ompl
 
             /** \brief Number of sample points to use when trying to detect interfaces. */
             unsigned int                                                        nearSamplePoints_;
-
-            /** \brief A pointer to the most recent sample we have come up with */
-            base::State*                                                        qNew_;
-
-            /** \brief The whole neighborhood set which has been most recently computed */
-            std::vector< Vertex >                                               graphNeighborhood_;
-
-            /** \brief The visible neighborhood set which has been most recently computed */
-            std::vector< Vertex >                                               visibleNeighborhood_;
-
-            /** \brief The representatives of nodes near a sample.  Filled by getCloseRepresentatives(). */
-            std::pair< std::vector< Vertex >, std::vector< base::State* > >     closeRepresentatives_;
-
-            /** \brief A holder to remember who qNew_'s representative in the graph is. */
-            Vertex                                                              repV_;
 
             /** \brief Access to the internal base::state at each Vertex */
             boost::property_map<Graph, vertex_state_t>::type                    stateProperty_;
