@@ -216,7 +216,10 @@ namespace ompl
                 boost::property < boost::edge_weight_t, double >
             > Graph;
 
+            /** \brief Vertex in Graph */
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+
+            /** \brief Edge in Graph */
             typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
 
             /** \brief Constructor */
@@ -383,8 +386,6 @@ namespace ompl
 
             /** \brief Retrieves the Vertex data associated with v,vp,vpp */
             InterfaceData& getData( Vertex v, Vertex vp, Vertex vpp );
-
-            void setData( Vertex v, Vertex vp, Vertex vpp, const InterfaceData& d );
 
             /** \brief Performs distance checking for the candidate new state, q against the current information */
             void distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp);

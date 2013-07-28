@@ -638,11 +638,6 @@ ompl::geometric::SPARStwo::InterfaceData& ompl::geometric::SPARStwo::getData( Ve
     return interfaceDataProperty_[v][index( vp, vpp )];
 }
 
-void ompl::geometric::SPARStwo::setData( Vertex v, Vertex vp, Vertex vpp, const InterfaceData& d )
-{
-    interfaceDataProperty_[v][index( vp, vpp )] = d;
-}
-
 void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp)
 {
     //Get the info for the current representative-neighbors pair
@@ -683,8 +678,9 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
                     d.setSecond(q, s, si_);
         }
     }
+
     // Lastly, save what we have discovered
-    setData(rep, r, rp, d);
+    interfaceDataProperty_[rep][index(r, rp)] = d;
 }
 
 void ompl::geometric::SPARStwo::abandonLists(base::State* st)

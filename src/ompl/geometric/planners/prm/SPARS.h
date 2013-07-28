@@ -138,7 +138,10 @@ namespace ompl
                 boost::property < boost::edge_weight_t, double >
             > SpannerGraph;
 
+            /** \brief A vertex in the sparse roadmap that is constructed */
             typedef boost::graph_traits<SpannerGraph>::vertex_descriptor SparseVertex;
+
+            /** \brief An edge in the sparse roadmap that is constructed */
             typedef boost::graph_traits<SpannerGraph>::edge_descriptor   SparseEdge;
 
             /** \brief Nearest neighbor structure which works over the SpannerGraph */
@@ -168,9 +171,13 @@ namespace ompl
                 boost::property < boost::edge_weight_t, double >
             > DenseGraph;
 
+            /** \brief A vertex in DenseGraph */
             typedef boost::graph_traits<DenseGraph>::vertex_descriptor DenseVertex;
+
+            /** \brief An edge in DenseGraph */
             typedef boost::graph_traits<DenseGraph>::edge_descriptor   DenseEdge;
 
+            /** \brief Nearest neighbor structure which works over the DenseGraph */
             typedef boost::shared_ptr< NearestNeighbors<DenseVertex> > DenseNeighbors;
 
             /** \brief Constructor. */
@@ -364,9 +371,6 @@ namespace ompl
 
             /** \brief Checks for adding an entire dense path to the Sparse Roadmap */
             bool checkAddPath( DenseVertex q, const std::vector<DenseVertex>& neigh );
-
-            /** \brief reset function for failures */
-            void resetFailures(void);
 
             /** \brief Get the first neighbor of q who has representative rep and is within denseDelta_. */
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);

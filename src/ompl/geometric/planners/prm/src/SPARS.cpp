@@ -429,7 +429,7 @@ ompl::geometric::SPARS::SparseVertex ompl::geometric::SPARS::addGuard(base::Stat
     snn_->add(v);
     updateRepresentatives(v);
 
-    resetFailures();
+    iterations_ = 0;
     return v;
 }
 
@@ -508,7 +508,7 @@ bool ompl::geometric::SPARS::checkAddInterface(const std::vector<SparseVertex>& 
                     //Connect them
                     connectSparsePoints( visibleNeighborhood[0], visibleNeighborhood[1] );
                     //And report that we added to the roadmap
-                    resetFailures();
+                    iterations_ = 0;
                     //Report success
                     return true;
                 }
@@ -642,11 +642,6 @@ double ompl::geometric::SPARS::averageValence(void) const
     return degree;
 }
 
-void ompl::geometric::SPARS::resetFailures(void)
-{
-    iterations_ = 0;
-}
-
 void ompl::geometric::SPARS::getSparseNeighbors(base::State* inState, std::vector<SparseVertex> &graphNeighborhood)
 {
     sparseStateProperty_[sparseQueryVertex_] = inState;
@@ -683,7 +678,7 @@ bool ompl::geometric::SPARS::addPathToSpanner( const std::deque< base::State* >&
     {
         // The path is 0 length, so simply link the representatives
         connectSparsePoints( vp, vpp );
-        resetFailures();
+        iterations_ = 0;
     }
     else
     {
