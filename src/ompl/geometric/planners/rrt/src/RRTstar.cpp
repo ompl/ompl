@@ -172,16 +172,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double k_rrg           = boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
 
     std::vector<Motion*>       nbh;
+
     std::vector<base::Cost>    costs;
     std::vector<base::Cost>    incCosts;
-    std::vector<unsigned>      sortedCostIndices;
+    std::vector<std::size_t>   sortedCostIndices;
+
     std::vector<int>           valid;
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
 
     if(solution)
         OMPL_INFORM("Starting with existing solution of cost %.5f", solution->cost.v);
-    OMPL_INFORM("Initial k-nearest value of %u", (unsigned int)std::ceil(k_rrg * log((double)(nn_->size()+1))));
+    OMPL_INFORM("Initial k-nearest value of %u", (unsigned int)std::ceil(k_rrg * log((double)nn_->size()+1)));
+
 
     // our functor for sorting nearest neighbors
     CostIndexCompare compareFn(costs, *opt_);
@@ -228,7 +231,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
-            unsigned int k = std::ceil(k_rrg * log(nn_->size()+1));
+            unsigned int k = std::ceil(k_rrg * log((double)nn_->size()+1));
             nn_->nearestK(motion, k, nbh);
             rewireTest += nbh.size();
             statesGenerated++;
@@ -278,7 +281,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 			  compareFn);
 
                 // collision check until a valid motion is found
-		for (std::vector<unsigned>::const_iterator i = sortedCostIndices.begin();
+		for (std::vector<std::size_t>::const_iterator i = sortedCostIndices.begin();
 		     i != sortedCostIndices.begin()+nbh.size();
 		     ++i)
 		{
@@ -350,7 +353,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		rewireTest += nbh.size();
             }
 
-            for (std::size_t i = 0 ; i < nbh.size(); ++i)
+            for (std::size_t i = 0; i < nbh.size(); ++i)
             {
                 if (nbh[i] != motion->parent)
                 {

@@ -524,6 +524,9 @@ class ompl_geometric_generator_t(code_generator_t):
         PRM_cls.add_registration_code('def("solve", &PRM_wrapper::solve)')
         PRM_cls.add_registration_code('def("solve", timed_solve_function_type(&ompl::base::Planner::solve))')
 
+        # only export time-based solve function of SPARS and SPARStwo classes.
+        self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &', 'unsigned int']).exclude()
+
         # Py++ seems to get confused by virtual methods declared in one module
         # that are *not* overridden in a derived class in another module. The
         # Planner class is defined in ompl::base and two of its virtual methods,
@@ -533,7 +536,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'BallTreeRRTstar', 'SBL']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'BallTreeRRTstar', 'SBL', 'SPARS', 'SPARStwo']:
             if planner!='PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""

@@ -42,6 +42,4 @@
 # OMPL in ROS
 
 - __OMPL__ is used as a system dependency in [ROS](http://www.ros.org), and the correct .deb file is installed automatically as needed.
-- A ROS package providing the latest version of this library is also available at:
-
-      $ svn co https://rice-ros-pkg.svn.sourceforge.net/svnroot/rice-ros-pkg/ompl ompl
+- __OMPL__ is also used as a planning plugin in [MoveIt!](http://moveit.ros.org)

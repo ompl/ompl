@@ -1,17 +1,17 @@
-<?php 
+<?php
 /*
 *
-* this code is based on captcha code by Simon Jarvis 
+* this code is based on captcha code by Simon Jarvis
 * http://www.white-hat-web-design.co.uk/articles/php-captcha.php
 *
-* This program is free software; you can redistribute it and/or 
-* modify it under the terms of the GNU General Public License 
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation
 *
-* This program is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of 
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
-* GNU General Public License for more details: 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details:
 * http://www.gnu.org/licenses/gpl.html
 */
 
@@ -34,7 +34,7 @@ $code = '';
 
 
 $i = 0;
-while ($i < $characters_on_image) { 
+while ($i < $characters_on_image) {
 $code .= substr($possible_letters, mt_rand(0, strlen($possible_letters)-1), 1);
 $i++;
 }
@@ -48,12 +48,12 @@ $image = @imagecreate($image_width, $image_height);
 $background_color = imagecolorallocate($image, 255, 255, 255);
 
 $arr_text_color = hexrgb($captcha_text_color);
-$text_color = imagecolorallocate($image, $arr_text_color['red'], 
-		$arr_text_color['green'], $arr_text_color['blue']);
+$text_color = imagecolorallocate($image, $arr_text_color['red'],
+        $arr_text_color['green'], $arr_text_color['blue']);
 
 $arr_noice_color = hexrgb($captcha_noice_color);
-$image_noise_color = imagecolorallocate($image, $arr_noice_color['red'], 
-		$arr_noice_color['green'], $arr_noice_color['blue']);
+$image_noise_color = imagecolorallocate($image, $arr_noice_color['red'],
+        $arr_noice_color['green'], $arr_noice_color['blue']);
 
 
 /* generating the dots randomly in background */
@@ -71,7 +71,7 @@ imageline($image, mt_rand(0,$image_width), mt_rand(0,$image_height),
 
 
 /* create a text box and add 6 letters code in it */
-$textbox = imagettfbbox($font_size, 0, $font, $code); 
+$textbox = imagettfbbox($font_size, 0, $font, $code);
 $x = ($image_width - $textbox[4])/2;
 $y = ($image_height - $textbox[5])/2;
 imagettftext($image, $font_size, 0, $x, $y, $text_color, $font , $code);

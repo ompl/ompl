@@ -466,7 +466,7 @@ namespace ompl
                         degree_ * (unsigned int)(children_[i]->data_.size() / data_.size()),
                         gnat.minDegree_), gnat.maxDegree_);
                     // singleton
-                    if (children_[i]->minRadius_ == std::numeric_limits<double>::infinity())
+                    if (children_[i]->minRadius_ >= std::numeric_limits<double>::infinity())
                         children_[i]->minRadius_ = children_[i]->maxRadius_ = 0.;
                 }
                 // this does more than clear(); it also sets capacity to 0 and frees the memory

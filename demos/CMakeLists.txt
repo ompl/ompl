@@ -24,6 +24,7 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
   add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
+  add_ompl_demo(demo_Koules Koules.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)

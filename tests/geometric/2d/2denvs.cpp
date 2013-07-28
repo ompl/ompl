@@ -58,6 +58,8 @@
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
+#include "ompl/geometric/planners/prm/SPARS.h"
+#include "ompl/geometric/planners/prm/SPARStwo.h"
 
 
 #include "../../BoostTestTeamCityReporter.h"
@@ -492,6 +494,28 @@ protected:
 
 };
 
+class SPARSTest : public TestPlanner
+{
+protected:
+    
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::SPARS *spars = new geometric::SPARS(si);
+        return base::PlannerPtr(spars);
+    }
+};
+
+class SPARStwoTest : public TestPlanner
+{
+protected:
+    
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::SPARStwo *sparstwo = new geometric::SPARStwo(si);
+        return base::PlannerPtr(sparstwo);
+    }
+};
+
 class PlanTest
 {
 public:
@@ -634,10 +658,13 @@ OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
-OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
-OMPL_PLANNER_TEST(PRMstar, 99.0, 0.02)
-OMPL_PLANNER_TEST(LazyPRM, 99.0, 0.02)
+OMPL_PLANNER_TEST(PRM, 98.0, 0.02)
+OMPL_PLANNER_TEST(PRMstar, 98.0, 0.02)
+OMPL_PLANNER_TEST(LazyPRM, 98.0, 0.02)
 
-// OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
+OMPL_PLANNER_TEST(SPARS, 95.0, 0.02 )
+OMPL_PLANNER_TEST(SPARStwo, 99.0, 0.02 )
+
+OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
 BOOST_AUTO_TEST_SUITE_END()

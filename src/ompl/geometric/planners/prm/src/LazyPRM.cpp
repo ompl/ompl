@@ -97,9 +97,7 @@ void ompl::geometric::LazyPRM::growRoadmap(const base::PlannerTerminationConditi
 
 void ompl::geometric::LazyPRM::constructRoadmap(const base::PlannerTerminationCondition &ptc)
 {
-    base::State *xstate = si_->allocState();
-    growRoadmap(ptc, xstate);
-    si_->freeState(xstate);
+    growRoadmap(ptc);
 }
 
 ompl::base::PathPtr ompl::geometric::LazyPRM::constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal)

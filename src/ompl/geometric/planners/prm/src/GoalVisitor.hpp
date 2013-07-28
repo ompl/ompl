@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,39 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Based on examples from BGL documentation  */
 
-#ifndef OMPL_UTIL_TIME_
-#define OMPL_UTIL_TIME_
+// this file should not be installed
+// and only included in .cpp files
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_A_STAR_GOAL_VISITOR_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_A_STAR_GOAL_VISITOR_
 
-namespace ompl
+namespace
 {
+    struct AStarFoundGoal {}; // exception for termination
 
-    /** \brief Namespace containing time datatypes and time operations */
-    namespace time
+    // visitor that terminates when we find the goal
+    // V is the vertex type
+    template<typename V>
+    class AStarGoalVisitor : public boost::default_astar_visitor
     {
-
-        /** \brief Representation of a point in time */
-        typedef boost::posix_time::ptime         point;
-
-        /** \brief Representation of a time duration */
-        typedef boost::posix_time::time_duration duration;
-
-        /** \brief Get the current time point */
-        inline point now(void)
+    public:
+        AStarGoalVisitor(const V &goal) : goal_(goal)
         {
-            return boost::posix_time::microsec_clock::universal_time();
         }
 
-        /** \brief Return the time duration representing a given number of seconds */
-        inline duration seconds(double sec)
+        // G is the graph type
+        template<typename G>
+        void examine_vertex(const V &u, const G &)
         {
-            long s  = (long)sec;
-            long us = (long)((sec - (double)s) * 1000000);
-            return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
+            if (u == goal_)
+                throw AStarFoundGoal();
         }
 
-        /** \brief Return the number of seconds that a time duration represents */
-        inline double seconds(const duration &d)
-        {
-            return (double)d.total_microseconds() / 1000000.0;
-        }
-
-    }
+    private:
+        V goal_;
+    };
 }
 
 #endif

@@ -1,4 +1,4 @@
-# Generic instructions for setting up a planning context
+# Generic Instructions for Setting Up a Planning Context
 
 ### Instantiating a state space
 
