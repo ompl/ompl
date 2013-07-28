@@ -97,6 +97,10 @@ namespace ompl
             attempts */
         static const unsigned int MAX_VALID_SAMPLE_ATTEMPTS = 100;
 
+        /** \brief Maximum number of sampling attempts to find a valid state,
+            without checking whether the allowed time elapsed. This value
+            should not really be changed. */
+        static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK = 2;
 
         /** \brief When multiple states need to be generated as part
             of the computation of various information (usually through
