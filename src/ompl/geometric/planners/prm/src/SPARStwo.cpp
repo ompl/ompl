@@ -143,7 +143,7 @@ bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, 
     foreach (Vertex start, starts)
         foreach (Vertex goal, goals)
         {
-	    // we lock because the connected components algorithm is incremental and may change disjointSets_
+            // we lock because the connected components algorithm is incremental and may change disjointSets_
             graphMutex_.lock();
             bool same_component = sameComponent(start, goal);
             graphMutex_.unlock();
@@ -153,7 +153,7 @@ bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, 
                 solution = constructSolution(start, goal);
                 return true;
             }
-	}
+        }
     return false;
 }
 
@@ -225,11 +225,11 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
                         }
                         checkAddPath(visibleNeighborhood[0]);
                         for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
-			{
-			    checkAddPath(it->first);
-			    si_->freeState(it->second);
-			}
-		    }
+                        {
+                            checkAddPath(it->first);
+                            si_->freeState(it->second);
+                        }
+                    }
                 }
     }
     si_->freeState(workState);
@@ -316,7 +316,7 @@ void ompl::geometric::SPARStwo::checkForSolution(const base::PlannerTerminationC
         {
             const base::State *st = pis_.nextGoal();
             if (st)
-		goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
+                goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
         }
 
         // Check for a solution
@@ -762,13 +762,13 @@ ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex st
         throw Exception(name_, "Could not find solution path");
     else
     {
-	PathGeometric *p = new PathGeometric(si_);
+        PathGeometric *p = new PathGeometric(si_);
         for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(stateProperty_[pos]);
-	p->append(stateProperty_[start]);
-	p->reverse();
+        p->append(stateProperty_[start]);
+        p->reverse();
 
-	return base::PathPtr(p);
+        return base::PathPtr(p);
     }
 }
 
