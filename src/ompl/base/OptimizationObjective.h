@@ -143,6 +143,16 @@ namespace ompl
                 return Cost(std::numeric_limits<double>::infinity());
             }
 
+            virtual Cost initialCost(const State *s) const
+            {
+                return identityCost();
+            }
+
+            virtual Cost terminalCost(const State *s) const
+            {
+                return identityCost();
+            }
+
 	    /** \brief Check if this objective has a symmetric cost metric, i.e. motionCost(s1, s2) = motionCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
 	    virtual bool isSymmetric(void) const
             {
