@@ -233,6 +233,7 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
                 }
     }
     si_->freeState(workState);
+    si_->freeState(qNew);
 }
 
 void ompl::geometric::SPARStwo::checkQueryStateInitialization(void)
