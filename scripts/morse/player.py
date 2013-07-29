@@ -22,19 +22,13 @@ def playWithMorse(sockS, sockC):
         (st,con,dur) = pickle.load(f)
         for i in range(len(con)):
             # load state
-            s = repr(st[i])
-            s = s.replace('nan','float("nan")')
-            s = s.replace('inf','float("inf")')
-            env.call('submitState(%s)' % s)
+            env.call('submitState()', pickle.dumps(st[i]))
             # apply control
             env.applyControl(con[i])
             # simulate
             env.worldStep(dur[i])
         # last state
-        s = repr(st[len(con)])
-        s = s.replace('nan','float("nan")')
-        s = s.replace('inf','float("inf")')
-        env.call('submitState(%s)' % s)
+        env.call('submitState()', pickle.dumps(st[len(con)]))
     
     except Exception as msg:
         if str(msg)!="[Errno 104] Connection reset by peer": # ignore if user exits MORSE

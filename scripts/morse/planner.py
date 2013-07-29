@@ -38,7 +38,7 @@ def planWithMorse(sockS, sockC):
         ss.setPlanner(planner)
         
         # solve
-        ss.solve(0.2*60.0)
+        ss.solve(5*60.0)
         
         # print the solution path
         if ss.haveSolutionPath():
