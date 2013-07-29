@@ -37,6 +37,7 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
+#include "ompl/base/Goals/GoalRegion.h"
 
 ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) const
 {
@@ -169,4 +170,12 @@ ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::identityCost(void) c
 ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::infiniteCost(void) const
 {
     return Cost(-std::numeric_limits<double>::infinity());
+}
+
+ompl::base::Cost 
+ompl::base::GoalRegionDistanceCostToGo::operator()(const State* state, const Goal* goal) const
+{
+    const GoalRegion* goalRegion = goal->as<GoalRegion>();
+    return Cost(std::max(goalRegion->distanceGoal(state) - goalRegion->getThreshold(),
+                         0.0));
 }
