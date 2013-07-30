@@ -206,8 +206,9 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
         ++iterations_;
 
         //Generate a single sample, and attempt to connect it to nearest neighbors.
-        sampler_->sample(qNew);
-
+        if (!sampler_->sample(qNew))
+          continue;
+        
         findGraphNeighbors(qNew, graphNeighborhood, visibleNeighborhood);
 
         if (!checkAddCoverage(qNew, visibleNeighborhood))
@@ -700,7 +701,7 @@ void ompl::geometric::SPARStwo::abandonLists(base::State* st)
     }
 }
 
-ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard( base::State *state, GuardType type)
+ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard(base::State *state, GuardType type)
 {
     boost::mutex::scoped_lock _(graphMutex_);
 
@@ -708,10 +709,8 @@ ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard( base::Sta
     stateProperty_[m] = state;
     colorProperty_[m] = type;
 
-    if( !si_->isValid( state ) )
-        throw Exception( name_, "Attempting to promote a guard which is an invalid state!");
-
-    abandonLists( state );
+    assert(si_->isValid(state));
+    abandonLists(state);
 
     disjointSets_.make_set(m);
     nn_->add(m);
