@@ -207,8 +207,8 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
 
         //Generate a single sample, and attempt to connect it to nearest neighbors.
         if (!sampler_->sample(qNew))
-          continue;
-        
+            continue;
+
         findGraphNeighbors(qNew, graphNeighborhood, visibleNeighborhood);
 
         if (!checkAddCoverage(qNew, visibleNeighborhood))
