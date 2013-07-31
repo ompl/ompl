@@ -270,6 +270,46 @@ namespace ompl
         {
             Cost operator()(const State* state, const Goal* goal) const;
         };
+
+        class MultiOptimizationObjective : public OptimizationObjective
+        {
+        public:
+            MultiOptimizationObjective(const SpaceInformationPtr &si) :
+                OptimizationObjective(si),
+                locked_(false) {}
+
+            void addObjective(const OptimizationObjectivePtr& objective, 
+                              double weight = 1.0);
+
+            std::size_t getObjectiveCount(void) const;
+
+            double getObjectiveWeight(unsigned int idx) const;
+            void setObjectiveWeight(unsigned int idx, double weight);
+
+            void lock(void);
+            bool isLocked(void) const;
+
+            // For now, assumes we simply use addition to add up all
+            // objective cost values, where each individual value is
+            // scaled by its weight
+            virtual Cost stateCost(const State* s) const;
+
+            // Same as stateCost
+            virtual Cost motionCost(const State* s1, const State* s2) const;
+
+        protected:
+
+            struct Component
+            {
+                Component(const OptimizationObjectivePtr& obj, double weight) :
+                    objective(obj), weight(weight) {}
+                OptimizationObjectivePtr objective;
+                double weight;
+            };
+
+            std::vector<Component> components_;
+            bool locked_;
+        };
     }
 }
 

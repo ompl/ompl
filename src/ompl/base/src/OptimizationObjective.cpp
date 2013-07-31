@@ -179,3 +179,73 @@ ompl::base::GoalRegionDistanceCostToGo::operator()(const State* state, const Goa
     return Cost(std::max(goalRegion->distanceGoal(state) - goalRegion->getThreshold(),
                          0.0));
 }
+
+void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObjectivePtr& objective,
+                                                          double weight)
+{
+    if (locked_)
+    {    
+        throw Exception("This optimization objective is locked. No further objectives can be added.");
+    }
+    else
+        components_.push_back(Component(objective, weight));
+}
+
+std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount(void) const
+{
+    return components_.size();
+}
+
+double ompl::base::MultiOptimizationObjective::getObjectiveWeight(unsigned int idx) const
+{
+    if (components_.size() > idx)
+        return components_[idx].weight;
+    else
+        throw Exception("Objective index does not exist.");
+}
+
+void ompl::base::MultiOptimizationObjective::setObjectiveWeight(unsigned int idx, 
+                                                                double weight)
+{
+    if (components_.size() > idx)
+        components_[idx].weight = weight;
+    else
+        throw Exception("Objecitve index does not exist.");
+}
+
+void ompl::base::MultiOptimizationObjective::lock(void)
+{
+    locked_ = true;
+}
+
+bool ompl::base::MultiOptimizationObjective::isLocked(void) const
+{
+    return locked_;
+}
+
+ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State* s) const
+{
+    Cost c = this->identityCost();
+    for (std::vector<Component>::const_iterator comp = components_.begin();
+         comp != components_.end();
+         ++comp)
+    {
+        c.v += comp->weight*(comp->objective->stateCost(s).v);
+    }
+    
+    return c;
+}
+
+ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State* s1,
+                                                                    const State* s2) const
+{
+    Cost c = this->identityCost();
+     for (std::vector<Component>::const_iterator comp = components_.begin();
+         comp != components_.end();
+         ++comp)
+     {
+         c.v += comp->weight*(comp->objective->motionCost(s1, s2).v);
+     }
+     
+     return c;
+}
