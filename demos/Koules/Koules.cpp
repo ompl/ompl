@@ -84,8 +84,7 @@ void writeParams(std::ostream& out)
         << shipDelta << ' ' << shipEps << std::endl;
 }
 
-void plan(KoulesSetup& ks, double maxTime, const std::string& plannerName,
-    const std::string& outputFile)
+void plan(KoulesSetup& ks, double maxTime, const std::string& outputFile)
 {
     if (ks.solve(maxTime))
     {
@@ -186,7 +185,7 @@ int main(int argc, char **argv)
                 % prefix % numKoules % plannerName % maxTime);
         }
         if (vm.count("plan"))
-            plan(ks, maxTime, plannerName, outputFile);
+            plan(ks, maxTime, outputFile);
         else if (vm.count("benchmark"))
             benchmark(ks, ot::Benchmark::Request(maxTime, 10000.0, numRuns),
                 plannerName, outputFile);

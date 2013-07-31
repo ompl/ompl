@@ -47,7 +47,6 @@ unsigned int KoulesDirectedControlSampler::sampleTo(oc::Control *control, const 
     double stepSize = si_->getPropagationStepSize();
     unsigned int steps = propagateMax_ ? si_->getMaxControlDuration() :
         cs_.sampleStepCount(si_->getMinControlDuration(), si_->getMaxControlDuration());
-    unsigned int dim = si_->getStateSpace()->getDimension();
 
     cs_.steer(control, source, dstPos[0], dstPos[1]);
     // perform the first step of propagation

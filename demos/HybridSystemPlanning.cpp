@@ -91,7 +91,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 }
 
 
-int main(int argc, char* argv[])
+int main(int, char**)
 {
     // plan for hybrid car in SE(2) with discrete gears
     ob::StateSpacePtr SE2(new ob::SE2StateSpace());
