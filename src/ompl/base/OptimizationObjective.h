@@ -178,6 +178,9 @@ namespace ompl
                     return this->identityCost(); // assumes that identity < all costs
             }
 
+            // Needed for operators in MultiOptimizationObjective
+            const SpaceInformationPtr& getSpaceInformation(void) const;
+
         protected:
             /** \brief The space information for this objective */
             SpaceInformationPtr si_;
@@ -283,6 +286,8 @@ namespace ompl
 
             std::size_t getObjectiveCount(void) const;
 
+            const OptimizationObjectivePtr& getObjective(unsigned int idx) const;
+
             double getObjectiveWeight(unsigned int idx) const;
             void setObjectiveWeight(unsigned int idx, double weight);
 
@@ -309,7 +314,23 @@ namespace ompl
 
             std::vector<Component> components_;
             bool locked_;
+
+            friend OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
+                                                      const OptimizationObjectivePtr &b);
+
+            friend OptimizationObjectivePtr operator*(double w, const OptimizationObjectivePtr &a);
+
+            friend OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
         };
+
+        // For now, assume that the SpaceInformation to be associated
+        // with the new objective is that of a
+        OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
+                                           const OptimizationObjectivePtr &b);
+
+        OptimizationObjectivePtr operator*(double w, const OptimizationObjectivePtr &a);
+      
+        OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
     }
 }
 
