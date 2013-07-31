@@ -53,7 +53,10 @@ namespace ompl
             double v;
         };
 
+        class Goal;
 
+        typedef boost::function<Cost (const State*, const Goal*)> CostToGoHeuristic;
+      
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::OptimizationObjective */
         OMPL_CLASS_FORWARD(OptimizationObjective);
@@ -141,7 +144,7 @@ namespace ompl
 	    virtual Cost infiniteCost() const
             {
                 return Cost(std::numeric_limits<double>::infinity());
-            }
+            }            
 
             virtual Cost initialCost(const State *s) const
             {
@@ -162,6 +165,19 @@ namespace ompl
 	    /** \brief Compute the average state cost of this objective by taking a sample of \e numStates states */
 	    virtual Cost averageStateCost(unsigned int numStates) const;
 
+            void setCostToGoHeuristic(CostToGoHeuristic costToGo)
+            {
+                costToGoFn_ = costToGo;
+            }
+
+            Cost costToGo(const State* state, const Goal* goal) const
+            {
+                if (costToGoFn_)
+                    return costToGoFn_(state, goal);
+                else
+                    return this->identityCost(); // assumes that identity < all costs
+            }
+
         protected:
             /** \brief The space information for this objective */
             SpaceInformationPtr si_;
@@ -170,6 +186,8 @@ namespace ompl
             std::string description_;
 
             Cost threshold_;
+
+            CostToGoHeuristic costToGoFn_;
         };
 
         class PathLengthOptimizationObjective : public OptimizationObjective
@@ -244,6 +262,53 @@ namespace ompl
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
             virtual Cost identityCost(void) const;
             virtual Cost infiniteCost(void) const;
+        };
+
+        // When goal region's distanceGoal() is equivalent to the
+        // cost-to-go of a state under the optimization objective
+        struct GoalRegionDistanceCostToGo
+        {
+            Cost operator()(const State* state, const Goal* goal) const;
+        };
+
+        class MultiOptimizationObjective : public OptimizationObjective
+        {
+        public:
+            MultiOptimizationObjective(const SpaceInformationPtr &si) :
+                OptimizationObjective(si),
+                locked_(false) {}
+
+            void addObjective(const OptimizationObjectivePtr& objective, 
+                              double weight = 1.0);
+
+            std::size_t getObjectiveCount(void) const;
+
+            double getObjectiveWeight(unsigned int idx) const;
+            void setObjectiveWeight(unsigned int idx, double weight);
+
+            void lock(void);
+            bool isLocked(void) const;
+
+            // For now, assumes we simply use addition to add up all
+            // objective cost values, where each individual value is
+            // scaled by its weight
+            virtual Cost stateCost(const State* s) const;
+
+            // Same as stateCost
+            virtual Cost motionCost(const State* s1, const State* s2) const;
+
+        protected:
+
+            struct Component
+            {
+                Component(const OptimizationObjectivePtr& obj, double weight) :
+                    objective(obj), weight(weight) {}
+                OptimizationObjectivePtr objective;
+                double weight;
+            };
+
+            std::vector<Component> components_;
+            bool locked_;
         };
     }
 }
