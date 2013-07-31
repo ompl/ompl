@@ -91,6 +91,12 @@ ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned in
     return Cost(totalCost.v / (double)numStates);
 }
 
+const ompl::base::SpaceInformationPtr& 
+ompl::base::OptimizationObjective::getSpaceInformation(void) const
+{
+    return si_;
+}
+
 ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State *s1, 
                                                                     const State *s2) const
 {
@@ -196,6 +202,15 @@ std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount(void) cons
     return components_.size();
 }
 
+const ompl::base::OptimizationObjectivePtr& 
+ompl::base::MultiOptimizationObjective::getObjective(unsigned int idx) const
+{
+    if (components_.size() > idx)
+        return components_[idx].objective;
+    else
+        throw Exception("Objective index does not exist.");
+}
+
 double ompl::base::MultiOptimizationObjective::getObjectiveWeight(unsigned int idx) const
 {
     if (components_.size() > idx)
@@ -248,4 +263,89 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State*
      }
      
      return c;
+}
+
+ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObjectivePtr &a,
+                                                           const OptimizationObjectivePtr &b)
+{
+    std::vector<MultiOptimizationObjective::Component> components;
+
+    if (a)
+    {
+        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
+        {
+            for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
+            {
+                components.push_back(MultiOptimizationObjective::
+                                     Component(mult->getObjective(i),
+                                               mult->getObjectiveWeight(i)));
+            }
+        }
+        else
+            components.push_back(MultiOptimizationObjective::Component(a, 1.0));            
+    }
+    
+    if (b)
+    {
+        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
+        {
+            for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
+            {
+                components.push_back(MultiOptimizationObjective::
+                                     Component(mult->getObjective(i),
+                                               mult->getObjectiveWeight(i)));
+            }
+        }
+        else
+            components.push_back(MultiOptimizationObjective::Component(b, 1.0));
+    }
+
+    MultiOptimizationObjective* multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+
+    for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
+         comp != components.end();
+         ++comp)
+    {
+        multObj->addObjective(comp->objective, comp->weight);
+    }
+
+    return OptimizationObjectivePtr(multObj);
+}
+
+ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight,
+                                                           const OptimizationObjectivePtr &a)
+{
+    std::vector<MultiOptimizationObjective::Component> components;
+
+    if (a)
+    {
+        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
+        {
+            for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
+            {
+                components.push_back(MultiOptimizationObjective
+                                     ::Component(mult->getObjective(i),
+                                                 weight * mult->getObjectiveWeight(i)));
+            }
+        }
+        else
+            components.push_back(MultiOptimizationObjective::Component(a, weight));
+    }
+
+    MultiOptimizationObjective* multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+
+    for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
+         comp != components.end();
+         ++comp)
+    {
+        multObj->addObjective(comp->objective, comp->weight);
+    }
+
+    return OptimizationObjectivePtr(multObj);
+}
+
+ompl::base::OptimizationObjectivePtr ompl::base::operator*(const OptimizationObjectivePtr &a,
+                                                           double weight)
+{
+    return weight * a;
 }
