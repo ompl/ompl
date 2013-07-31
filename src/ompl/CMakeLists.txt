@@ -41,11 +41,6 @@ if (OMPL_EXTENSION_TRIANGLE)
 endif()
 
 #############################################
-# Add enabled contributed source code       #
-#############################################
-add_subdirectory(contrib/sample_contrib)
-
-#############################################
 # Build and install the library             #
 #############################################
 if(MSVC OR IS_ICPC)
