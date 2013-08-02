@@ -570,7 +570,7 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
             {
                 SparseVertex vpp = VPPs[j];
                 //For each q", which are stored interface nodes on v for i(vpp,v)
-                foreach( DenseVertex qpp, interfaceListsProperty_[v][vpp] )
+                foreach( DenseVertex qpp, interfaceListsProperty_[v].interfaceHash[vpp] )
                 {
                     // check that representatives are consistent
                     assert(representativesProperty_[qpp] == v);
@@ -782,7 +782,7 @@ void ompl::geometric::SPARS::addToRepresentatives(DenseVertex q, SparseVertex re
         foreach( SparseVertex v, oreps )
         {
             assert(rep == representativesProperty_[q]);
-            bool new_insert = interfaceListsProperty_[rep][v].insert(q).second;
+            bool new_insert = interfaceListsProperty_[rep].interfaceHash[v].insert(q).second;
             if (!new_insert)
                 assert(false);
         }
@@ -795,10 +795,10 @@ void ompl::geometric::SPARS::removeFromRepresentatives(DenseVertex q, SparseVert
     nonInterfaceListsProperty_[rep].erase(q);
 
     // From each of the interfaces
-    foreach (SparseVertex vpp, interfaceListsProperty_[rep] | boost::adaptors::map_keys)
+    foreach (SparseVertex vpp, interfaceListsProperty_[rep].interfaceHash | boost::adaptors::map_keys)
     {
         // Remove this node from that list
-        interfaceListsProperty_[rep][vpp].erase( q );
+        interfaceListsProperty_[rep].interfaceHash[vpp].erase( q );
     }
 }
 
@@ -815,7 +815,7 @@ void ompl::geometric::SPARS::computeX(SparseVertex v, SparseVertex vp, SparseVer
     Xs.clear();
     foreach( SparseVertex cx, boost::adjacent_vertices( vpp, s_ ) )
         if( boost::edge( cx, v, s_ ).second && !boost::edge( cx, vp, s_ ).second )
-            if (interfaceListsProperty_[vpp][cx].size() > 0)
+            if (interfaceListsProperty_[vpp].interfaceHash[cx].size() > 0)
                 Xs.push_back( cx );
     Xs.push_back( vpp );
 }
