@@ -111,7 +111,7 @@ void ompl::geometric::SPARStwo::clear(void)
 {
     Planner::clear();
     clearQuery();
-    iterations_ = 0;
+    resetFailures();
     freeMemory();
     if (nn_)
         nn_->clear();
@@ -176,6 +176,7 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
 {
     if (stopOnMaxFail)
     {
+        resetFailures();
         base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
@@ -239,7 +240,8 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
 
 void ompl::geometric::SPARStwo::checkQueryStateInitialization(void)
 {
-    if (boost::num_vertices( g_ ) < 1)
+    boost::mutex::scoped_lock _(graphMutex_);
+    if (boost::num_vertices(g_) < 1)
     {
         queryVertex_ = boost::add_vertex( g_ );
         stateProperty_[queryVertex_] = NULL;
@@ -288,6 +290,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
 
     // Reset addedSolution_ member
     addedSolution_ = false;
+    resetFailures();
     base::PathPtr sol;
     base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
     boost::thread slnThread(boost::bind(&SPARStwo::checkForSolution, this, ptcOrFail, boost::ref(sol)));
@@ -364,7 +367,7 @@ bool ompl::geometric::SPARStwo::checkAddConnectivity(const base::State *qNew, st
                 if (!boost::edge(g, links[i], g_).second)
                     //And the components haven't been united by previous links
                     if (!sameComponent(links[i], g))
-                        connect(g, links[i]);
+                        connectGuards(g, links[i]);
             return true;
         }
     }
@@ -383,7 +386,7 @@ bool ompl::geometric::SPARStwo::checkAddInterface(const base::State *qNew, std::
                 if (si_->checkMotion(stateProperty_[visibleNeighborhood[0]], stateProperty_[visibleNeighborhood[1]]))
                 {
                     //Connect them
-                    connect(visibleNeighborhood[0], visibleNeighborhood[1]);
+                    connectGuards(visibleNeighborhood[0], visibleNeighborhood[1]);
                     //And report that we added to the roadmap
                     resetFailures();
                     //Report success
@@ -393,8 +396,8 @@ bool ompl::geometric::SPARStwo::checkAddInterface(const base::State *qNew, std::
                 {
                     //Add the new node to the graph, to bridge the interface
                     Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
-                    connect(v, visibleNeighborhood[0]);
-                    connect(v, visibleNeighborhood[1]);
+                    connectGuards(v, visibleNeighborhood[0]);
+                    connectGuards(v, visibleNeighborhood[1]);
                     //Report success
                     return true;
                 }
@@ -416,7 +419,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
     /* Candidate v" vertices as described in the method, filled by function computeVPP(). */
     std::vector<Vertex> VPPs;
 
-    for( size_t i=0; i<rs.size() && !ret; ++i )
+    for (std::size_t i = 0; i < rs.size() && !ret; ++i)
     {
         Vertex r = rs[i];
         computeVPP(v, r, VPPs);
@@ -436,51 +439,51 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
             InterfaceData& d = getData( v, r, rp );
 
             //Then, if the spanner property is violated
-            if( rm_dist > stretchFactor_ * d.d_ )
+            if (rm_dist > stretchFactor_ * d.d_)
             {
                 ret = true; //Report that we added for the path
-                if( si_->checkMotion( stateProperty_[r], stateProperty_[rp] ) )
-                    connect( r, rp );
+                if (si_->checkMotion(stateProperty_[r], stateProperty_[rp]))
+                    connectGuards(r, rp);
                 else
                 {
                     PathGeometric* p = new PathGeometric( si_ );
-                    if( r < rp )
+                    if (r < rp)
                     {
-                        p->append( d.sigmaA_ );
-                        p->append( d.pointA_ );
-                        p->append( stateProperty_[v] );
-                        p->append( d.pointB_ );
-                        p->append( d.sigmaB_ );
+                        p->append(d.sigmaA_);
+                        p->append(d.pointA_);
+                        p->append(stateProperty_[v]);
+                        p->append(d.pointB_);
+                        p->append(d.sigmaB_);
                     }
                     else
                     {
-                        p->append( d.sigmaB_ );
-                        p->append( d.pointB_ );
-                        p->append( stateProperty_[v] );
-                        p->append( d.pointA_ );
-                        p->append( d.sigmaA_ );
+                        p->append(d.sigmaB_);
+                        p->append(d.pointB_);
+                        p->append(stateProperty_[v]);
+                        p->append(d.pointA_);
+                        p->append(d.sigmaA_);
                     }
 
                     psimp_->reduceVertices(*p, 10);
                     psimp_->shortcutPath(*p, 50);
 
-                    if (p->checkAndRepair( 100 ).second)
+                    if (p->checkAndRepair(100).second)
                     {
                         Vertex prior = r;
                         Vertex vnew;
                         std::vector<base::State*>& states = p->getStates();
 
-                        foreach( base::State* st, states )
+                        foreach (base::State* st, states)
                         {
                             // no need to clone st, since we will destroy p; we just copy the pointer
-                            vnew = addGuard( st , QUALITY );
+                            vnew = addGuard(st , QUALITY);
 
-                            connect( prior, vnew );
+                            connectGuards(prior, vnew);
                             prior = vnew;
                         }
                         // clear the states, so memory is not freed twice
                         states.clear();
-                        connect( prior, rp );
+                        connectGuards(prior, rp);
                     }
 
                     delete p;
@@ -492,7 +495,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
     return ret;
 }
 
-void ompl::geometric::SPARStwo::resetFailures( void )
+void ompl::geometric::SPARStwo::resetFailures(void)
 {
     iterations_ = 0;
 }
@@ -516,12 +519,12 @@ void ompl::geometric::SPARStwo::approachGraph( Vertex v )
     nn_->nearestR( v, sparseDelta_, hold );
 
     std::vector< Vertex > neigh;
-    for( size_t i=0; i<hold.size(); ++i )
-        if( si_->checkMotion( stateProperty_[v], stateProperty_[hold[i]] ) )
+    for (std::size_t i = 0; i < hold.size(); ++i)
+        if (si_->checkMotion( stateProperty_[v], stateProperty_[hold[i]]))
             neigh.push_back( hold[i] );
 
-    foreach( Vertex vp, neigh )
-        connect( v, vp );
+    foreach (Vertex vp, neigh)
+        connectGuards(v, vp);
 }
 
 ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::findGraphRepresentative(base::State* st)
@@ -644,14 +647,14 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
     //Get the info for the current representative-neighbors pair
     InterfaceData& d = getData( rep, r, rp );
 
-    if( r < rp ) // FIRST points represent r (the guy discovered through sampling)
+    if (r < rp) // FIRST points represent r (the guy discovered through sampling)
     {
-        if( d.pointA_ == NULL ) // If the point we're considering replacing (P_v(r,.)) isn't there
+        if (d.pointA_ == NULL) // If the point we're considering replacing (P_v(r,.)) isn't there
             //Then we know we're doing better, so add it
-            d.setFirst( q, s, si_ );
+            d.setFirst(q, s, si_);
         else //Otherwise, he is there,
         {
-            if( d.pointB_ == NULL ) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointB_ == NULL) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should probably keep the one that is further away from rep?  Not known what to do in this case.
                 // TODO: is this not part of the algorithm?
@@ -664,12 +667,12 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
     }
     else // SECOND points represent r (the guy discovered through sampling)
     {
-        if (d.pointB_ == NULL ) //If the point we're considering replacing (P_V(.,r)) isn't there...
+        if (d.pointB_ == NULL) //If the point we're considering replacing (P_V(.,r)) isn't there...
             //Then we must be doing better, so add it
             d.setSecond(q, s, si_);
         else //Otherwise, he is there
         {
-            if (d.pointA_ == NULL ) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointA_ == NULL) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should we be doing something cool here?
             }
@@ -694,7 +697,7 @@ void ompl::geometric::SPARStwo::abandonLists(base::State* st)
     stateProperty_[queryVertex_] = NULL;
 
     //For each of the vertices
-    foreach( Vertex v, hold )
+    foreach (Vertex v, hold)
     {
         foreach (VertexPair r, interfaceDataProperty_[v].interfaceHash | boost::adaptors::map_keys)
             interfaceDataProperty_[v].interfaceHash[r].clear(si_);
@@ -719,22 +722,16 @@ ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::addGuard(base::Stat
     return m;
 }
 
-void ompl::geometric::SPARStwo::connect(Vertex v, Vertex vp)
+void ompl::geometric::SPARStwo::connectGuards(Vertex v, Vertex vp)
 {
-    if( v > milestoneCount() )
-        OMPL_ERROR("\'From\' Vertex out of range : %u\n", v );
-    if( vp > milestoneCount() )
-        OMPL_ERROR("\'To\' Vertex out of range : %u\n", vp );
+    assert(v <= milestoneCount());
+    assert(vp <= milestoneCount());
 
     const double weight = distanceFunction(v, vp);
     const Graph::edge_property_type properties(weight);
+    boost::mutex::scoped_lock _(graphMutex_);
     boost::add_edge(v, vp, properties, g_);
-    uniteComponents( v, vp );
-}
-
-void ompl::geometric::SPARStwo::uniteComponents(Vertex m1, Vertex m2)
-{
-    disjointSets_.union_set(m1, m2);
+    disjointSets_.union_set(v, vp);
 }
 
 ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex start, const Vertex goal) const
@@ -780,7 +777,7 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
         data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], (int)GOAL));
 
     // If there are even edges here
-    if( boost::num_edges( g_ ) > 0 )
+    if (boost::num_edges( g_ ) > 0)
     {
         // Adding edges and all other vertices simultaneously
         foreach(const Edge e, boost::edges(g_))
@@ -806,6 +803,6 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
 
     // Make sure to add edge-less nodes as well
     foreach (const Vertex n, boost::vertices(g_))
-        if( boost::out_degree( n, g_ ) == 0 )
+        if (boost::out_degree(n, g_) == 0)
             data.addVertex(base::PlannerDataVertex(stateProperty_[n], (int)colorProperty_[n]));
 }

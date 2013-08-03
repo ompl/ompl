@@ -406,6 +406,9 @@ namespace ompl
             /** \brief Computes all nodes which qualify as a candidate x for v, v', and v" */
             void computeX(DenseVertex v, DenseVertex vp, DenseVertex vpp, std::vector<SparseVertex> &Xs);
 
+            /** \brief A reset function for resetting the failures count */
+            void resetFailures(void);
+
             /** Thread that checks for solution */
             void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
 

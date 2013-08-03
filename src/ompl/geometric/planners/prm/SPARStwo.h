@@ -367,7 +367,7 @@ namespace ompl
             bool checkAddPath( Vertex v );
 
             /** \brief A reset function for resetting the failures count */
-            void resetFailures( void );
+            void resetFailures(void);
 
             /** \brief Finds visible nodes in the graph near st */
             void findGraphNeighbors(base::State* st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
@@ -407,10 +407,7 @@ namespace ompl
             Vertex addGuard(base::State *state, GuardType type);
 
             /** \brief Connect two guards in the roadmap */
-            void connect( Vertex v, Vertex vp );
-
-            /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
-            void uniteComponents(Vertex m1, Vertex m2);
+            void connectGuards( Vertex v, Vertex vp );
 
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, base::PathPtr &solution);

@@ -110,6 +110,11 @@ void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionP
     clearQuery();
 }
 
+void ompl::geometric::SPARS::resetFailures(void)
+{
+    iterations_ = 0;
+}
+
 void ompl::geometric::SPARS::clearQuery(void)
 {
     startM_.clear();
@@ -128,7 +133,7 @@ void ompl::geometric::SPARS::clear(void)
     if (snn_)
         snn_->clear();
     clearQuery();
-    iterations_ = 0;
+    resetFailures();
 }
 
 void ompl::geometric::SPARS::freeMemory(void)
@@ -229,10 +234,11 @@ bool ompl::geometric::SPARS::reachedFailureLimit(void) const
 
 void ompl::geometric::SPARS::checkQueryStateInitialization(void)
 {
-    if (boost::num_vertices( g_ ) < 1)
+    boost::mutex::scoped_lock _(graphMutex_);
+    if (boost::num_vertices(g_) < 1)
     {
-        sparseQueryVertex_ = boost::add_vertex( s_ );
-        queryVertex_ = boost::add_vertex( g_ );
+        sparseQueryVertex_ = boost::add_vertex(s_);
+        queryVertex_ = boost::add_vertex(g_);
         sparseStateProperty_[sparseQueryVertex_] = NULL;
         stateProperty_[queryVertex_] = NULL;
     }
@@ -291,6 +297,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     // Reset addedSolution_ member
     addedSolution_ = false;
+    resetFailures();
     base::PathPtr sol;
     base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
     boost::thread slnThread(boost::bind(&SPARS::checkForSolution, this, ptcOrFail, boost::ref(sol)));
@@ -313,6 +320,7 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
 {
     if (stopOnMaxFail)
     {
+        resetFailures();
         base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
@@ -429,14 +437,15 @@ ompl::geometric::SPARS::SparseVertex ompl::geometric::SPARS::addGuard(base::Stat
     snn_->add(v);
     updateRepresentatives(v);
 
-    iterations_ = 0;
+    resetFailures();
     return v;
 }
 
-void ompl::geometric::SPARS::connectSparsePoints( SparseVertex v, SparseVertex vp )
+void ompl::geometric::SPARS::connectSparsePoints(SparseVertex v, SparseVertex vp)
 {
     const double weight = sparseDistanceFunction(v, vp);
     const SpannerGraph::edge_property_type properties(weight);
+    boost::mutex::scoped_lock _(graphMutex_);
     boost::add_edge(v, vp, properties, s_);
     sparseDJSets_.union_set(v, vp);
 }
@@ -444,20 +453,21 @@ void ompl::geometric::SPARS::connectSparsePoints( SparseVertex v, SparseVertex v
 void ompl::geometric::SPARS::connectDensePoints( DenseVertex v, DenseVertex vp )
 {
     const double weight = distanceFunction(v, vp);
-    const DenseGraph::edge_property_type properties( weight );
+    const DenseGraph::edge_property_type properties(weight);
+    boost::mutex::scoped_lock _(graphMutex_);
     boost::add_edge(v, vp, properties, g_);
 }
 
 bool ompl::geometric::SPARS::checkAddCoverage(const base::State *lastState, const std::vector<SparseVertex>& neigh )
 {
     //For each of these neighbors,
-    foreach( SparseVertex n, neigh )
+    foreach (SparseVertex n, neigh)
         //If path between is free
-        if( si_->checkMotion( lastState, sparseStateProperty_[n] ) )
+        if (si_->checkMotion( lastState, sparseStateProperty_[n]))
             //Abort out and return false
             return false;
     //No free paths means we add for coverage
-    addGuard( si_->cloneState(lastState), COVERAGE );
+    addGuard(si_->cloneState(lastState), COVERAGE);
     return true;
 }
 
@@ -500,7 +510,7 @@ bool ompl::geometric::SPARS::checkAddInterface(const std::vector<SparseVertex>& 
         //If our closest neighbors are also visible
         if( graphNeighborhood[0] == visibleNeighborhood[0] && graphNeighborhood[1] == visibleNeighborhood[1] )
             //If our two closest neighbors don't share an edge
-            if( !boost::edge( visibleNeighborhood[0], visibleNeighborhood[1], s_ ).second )
+            if (!boost::edge(visibleNeighborhood[0], visibleNeighborhood[1], s_).second)
             {
                 //If they can be directly connected
                 if( si_->checkMotion( sparseStateProperty_[visibleNeighborhood[0]], sparseStateProperty_[visibleNeighborhood[1]] ) )
@@ -508,7 +518,7 @@ bool ompl::geometric::SPARS::checkAddInterface(const std::vector<SparseVertex>& 
                     //Connect them
                     connectSparsePoints( visibleNeighborhood[0], visibleNeighborhood[1] );
                     //And report that we added to the roadmap
-                    iterations_ = 0;
+                    resetFailures();
                     //Report success
                     return true;
                 }
@@ -678,7 +688,7 @@ bool ompl::geometric::SPARS::addPathToSpanner( const std::deque< base::State* >&
     {
         // The path is 0 length, so simply link the representatives
         connectSparsePoints( vp, vpp );
-        iterations_ = 0;
+        resetFailures();
     }
     else
     {
