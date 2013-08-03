@@ -1,5 +1,6 @@
 /*********************************************************************
-*  @copyright Software License Agreement (BSD License)
+* Software License Agreement (BSD License)
+*
 *  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
 *  All Rights Reserved.
 *
@@ -344,6 +345,12 @@ namespace ompl
                 return boost::num_vertices(s_);
             }
 
+            /** \brief Get the number of iterations the algorithm performed */
+            long unsigned int getIterations(void) const
+            {
+                return iterations_;
+            }
+
             /** \brief Returns the average valence of the spanner graph */
             double averageValence(void) const;
 
@@ -520,8 +527,11 @@ namespace ompl
             /** \brief Function that returns the milestones to attempt connections with */
             boost::function<std::vector<DenseVertex>&(const DenseVertex)>       connectionStrategy_;
 
+            /** \brief A counter for the number of consecutive failed iterations of the algorithm */
+            unsigned int                                                        consecutiveFailures_;
+
             /** \brief A counter for the number of iterations of the algorithm */
-            unsigned int                                                        iterations_;
+            long unsigned int                                                   iterations_;
 
             /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
             double                                                              stretchFactor_;

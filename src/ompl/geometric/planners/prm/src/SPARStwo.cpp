@@ -1,5 +1,6 @@
 /*********************************************************************
-*  @copyright Software License Agreement (BSD License)
+* Software License Agreement (BSD License)
+*
 *  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
 *  All Rights Reserved.
 *
@@ -62,6 +63,7 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     disjointSets_(boost::get(boost::vertex_rank, g_),
                   boost::get(boost::vertex_predecessor, g_)),
     addedSolution_(false),
+    consecutiveFailures_(0),
     iterations_(0),
     sparseDelta_(0.),
     denseDelta_(0.)
@@ -112,6 +114,7 @@ void ompl::geometric::SPARStwo::clear(void)
     Planner::clear();
     clearQuery();
     resetFailures();
+    iterations_ = 0;
     freeMemory();
     if (nn_)
         nn_->clear();
@@ -164,12 +167,12 @@ bool ompl::geometric::SPARStwo::sameComponent(Vertex m1, Vertex m2)
 
 bool ompl::geometric::SPARStwo::reachedFailureLimit(void) const
 {
-    return iterations_ >= maxFailures_;
+    return consecutiveFailures_ >= maxFailures_;
 }
 
 bool ompl::geometric::SPARStwo::reachedTerminationCriterion(void) const
 {
-    return iterations_ >= maxFailures_ || addedSolution_;
+    return consecutiveFailures_ >= maxFailures_ || addedSolution_;
 }
 
 void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail)
@@ -203,8 +206,8 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
 
     while (ptc == false)
     {
-        //Increment iterations
         ++iterations_;
+        ++consecutiveFailures_;
 
         //Generate a single sample, and attempt to connect it to nearest neighbors.
         if (!sampler_->sample(qNew))
@@ -497,7 +500,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
 
 void ompl::geometric::SPARStwo::resetFailures(void)
 {
-    iterations_ = 0;
+    consecutiveFailures_ = 0;
 }
 
 void ompl::geometric::SPARStwo::findGraphNeighbors(base::State* st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood)
@@ -805,4 +808,6 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
     foreach (const Vertex n, boost::vertices(g_))
         if (boost::out_degree(n, g_) == 0)
             data.addVertex(base::PlannerDataVertex(stateProperty_[n], (int)colorProperty_[n]));
+
+    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }

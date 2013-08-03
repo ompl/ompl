@@ -1,5 +1,6 @@
 /*********************************************************************
-*  @copyright Software License Agreement (BSD License)
+* Software License Agreement (BSD License)
+*
 *  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
 *  All Rights Reserved.
 *
@@ -61,6 +62,7 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     weightProperty_(boost::get(boost::edge_weight, g_)),
     sparseDJSets_(boost::get(boost::vertex_rank, s_),
                   boost::get(boost::vertex_predecessor, s_)),
+    consecutiveFailures_(0),
     iterations_(0),
     stretchFactor_(3.),
     maxFailures_(1000),
@@ -112,7 +114,7 @@ void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionP
 
 void ompl::geometric::SPARS::resetFailures(void)
 {
-    iterations_ = 0;
+    consecutiveFailures_ = 0;
 }
 
 void ompl::geometric::SPARS::clearQuery(void)
@@ -134,6 +136,7 @@ void ompl::geometric::SPARS::clear(void)
         snn_->clear();
     clearQuery();
     resetFailures();
+    iterations_ = 0;
 }
 
 void ompl::geometric::SPARS::freeMemory(void)
@@ -224,12 +227,12 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts
 
 bool ompl::geometric::SPARS::reachedTerminationCriterion(void) const
 {
-    return iterations_ >= maxFailures_ || addedSolution_;
+    return consecutiveFailures_ >= maxFailures_ || addedSolution_;
 }
 
 bool ompl::geometric::SPARS::reachedFailureLimit(void) const
 {
-    return iterations_ >= maxFailures_;
+    return consecutiveFailures_ >= maxFailures_;
 }
 
 void ompl::geometric::SPARS::checkQueryStateInitialization(void)
@@ -292,8 +295,9 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
         return base::PlannerStatus::INVALID_GOAL;
     }
 
-    unsigned int nrStartStates = boost::num_vertices(g_) - 1; // don't count query vertex
-    OMPL_INFORM("Starting with %u states", nrStartStates);
+    unsigned int nrStartStatesDense = boost::num_vertices(g_) - 1; // don't count query vertex
+    unsigned int nrStartStatesSparse = boost::num_vertices(s_) - 1; // don't count query vertex
+    OMPL_INFORM("Starting with %u dense states, %u sparse states", nrStartStatesDense, nrStartStatesSparse);
 
     // Reset addedSolution_ member
     addedSolution_ = false;
@@ -311,6 +315,9 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     if (sol)
         pdef_->addSolutionPath(sol, false);
+
+    OMPL_INFORM("Created %u dense states, %u sparse states", (unsigned int)(boost::num_vertices(g_) - nrStartStatesDense),
+                (unsigned int)(boost::num_vertices(s_) - nrStartStatesSparse));
 
     // Return true if any solution was found.
     return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
@@ -350,6 +357,8 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
 
     while (ptc == false)
     {
+        iterations_++;
+
         // Generate a single sample, and attempt to connect it to nearest neighbors.
         DenseVertex q = addSample(workState, ptc);
         if (q == boost::graph_traits<DenseGraph>::null_vertex())
@@ -373,11 +382,11 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
                         //Check for addition for spanner prop
                         if (!checkAddPath(q, interfaceNeighborhood))
                             //All of the tests have failed.  Report failure for the sample
-                            ++iterations_;
+                            ++consecutiveFailures_;
                     }
                     else
                         //There's no interface here, so drop it
-                        ++iterations_;
+                        ++consecutiveFailures_;
                 }
     }
 
@@ -954,4 +963,5 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
     foreach (const SparseVertex n, boost::vertices(s_))
         if (boost::out_degree( n, s_ ) == 0)
             data.addVertex( base::PlannerDataVertex(sparseStateProperty_[n], (int)sparseColorProperty_[n]));
+    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }

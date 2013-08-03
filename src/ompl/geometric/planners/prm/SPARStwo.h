@@ -1,5 +1,6 @@
 /*********************************************************************
-*  @copyright Software License Agreement (BSD License)
+* Software License Agreement (BSD License)
+*
 *  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
 *  All Rights Reserved.
 *
@@ -344,6 +345,12 @@ namespace ompl
                 return boost::num_vertices(g_);
             }
 
+            /** \brief Get the number of iterations the algorithm performed */
+            long unsigned int getIterations(void) const
+            {
+                return iterations_;
+            }
+
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
@@ -495,8 +502,11 @@ namespace ompl
             /** \brief A flag indicating that a solution has been added during solve() */
             bool                                                                addedSolution_;
 
+            /** \brief A counter for the number of consecutive failed iterations of the algorithm */
+            unsigned int                                                        consecutiveFailures_;
+
             /** \brief A counter for the number of iterations of the algorithm */
-            unsigned int                                                        iterations_;
+            long unsigned int                                                   iterations_;
 
             /** \brief Maximum visibility range for nodes in the graph */
             double                                                              sparseDelta_;
