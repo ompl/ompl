@@ -293,16 +293,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     {
                         // Need to subtract the difference in cost from all of the node's in the neighbor's subtree
                         double delta = newcost - nbh[i]->cost;
-                        // Remove the neighbor node from it's parent's child list
-                        removeFromParent(nbh[i]);
+                        if (delta < -magic::BETTER_PATH_COST_MARGIN)
+                        {
+                            // Remove the neighbor node from it's parent's child list
+                            removeFromParent(nbh[i]);
 
-                        // Add the neighbor node as a child of motion
-                        nbh[i]->parent = motion;
-                        nbh[i]->cost = newcost;
-                        motion->children.push_back(nbh[i]);
+                            // Add the neighbor node as a child of motion
+                            nbh[i]->parent = motion;
+                            nbh[i]->cost = newcost;
+                            motion->children.push_back(nbh[i]);
 
-                        updateChildCosts(nbh[i], delta);
-                        checkForSolution = true;
+                            updateChildCosts(nbh[i], delta);
+                            checkForSolution = true;
+                        }
                     }
                 }
             }
@@ -316,19 +319,20 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
 
             // Checking for solution or iterative improvement
-            for (size_t i = 0; i < goalMotions_.size() && checkForSolution; ++i)
-            {
-                sufficientlyShort = opt->isSatisfied(goalMotions_[i]->cost);
-                if (sufficientlyShort)
+            if (checkForSolution)
+                for (std::size_t i = 0; i < goalMotions_.size() ; ++i)
                 {
-                    solution = goalMotions_[i];
-                    break;
+                    sufficientlyShort = opt->isSatisfied(goalMotions_[i]->cost);
+                    if (sufficientlyShort)
+                    {
+                        solution = goalMotions_[i];
+                        break;
+                    }
+                    else if (!solution || goalMotions_[i]->cost < solution->cost)
+                    {
+                        solution = goalMotions_[i];
+                    }
                 }
-                else if (!solution || goalMotions_[i]->cost < solution->cost)
-                {
-                    solution = goalMotions_[i];
-                }
-            }
 
             // Checking for approximate solution (closest state found to the goal)
             if (goalMotions_.size() == 0 && distanceFromGoal < approximatedist)
