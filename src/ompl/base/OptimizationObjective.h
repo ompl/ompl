@@ -78,7 +78,7 @@ namespace ompl
             /** \brief Constructor. The objective must always know the space information it is part of */
             OptimizationObjective(const SpaceInformationPtr &si) :
                 si_(si),
-                threshold_(-std::numeric_limits<double>::infinity())
+                threshold_(0.0)
 	    {
 	    }           
 
@@ -178,6 +178,12 @@ namespace ompl
                     return this->identityCost(); // assumes that identity < all costs
             }
 
+            // \TODO should this default to motionCost()?
+            Cost motionCostHeuristic(const State* s1, const State* s2) const
+            {
+                return this->identityCost(); // assumes that identity < all costs
+            }
+
             // Needed for operators in MultiOptimizationObjective
             const SpaceInformationPtr& getSpaceInformation(void) const;
 
@@ -202,6 +208,11 @@ namespace ompl
             virtual Cost motionCost(const State *s1, const State *s2) const
             {
                 return Cost(si_->distance(s1, s2));
+            }
+
+            virtual Cost motionCostHeuristic(const State *s1, const State *s2) const
+            {
+                return motionCost(s1, s2);
             }
         };
 
@@ -259,7 +270,10 @@ namespace ompl
         {
         public:
             MaximizeMinClearanceObjective(const SpaceInformationPtr &si) :
-                MinimaxObjective(si) {}
+                MinimaxObjective(si) 
+            { 
+                this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
+            }
 
             virtual Cost stateCost(const State* s) const;
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
