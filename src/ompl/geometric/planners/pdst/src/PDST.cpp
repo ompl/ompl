@@ -252,7 +252,13 @@ void ompl::geometric::PDST::freeMemory(void)
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
     for (std::vector<Motion*>::iterator it = motions.begin(); it < motions.end(); ++it)
-        freeMotion(*it);
+    {
+        if ((*it)->startState_ != (*it)->endState_)
+            si_->freeState((*it)->startState_);
+        if (!(*it)->isSplit_)
+            si_->freeState((*it)->endState_);
+        delete *it;
+    }
     priorityQueue_.clear(); // clears the Element objects in the priority queue
     delete bsp_;
     bsp_ = NULL;

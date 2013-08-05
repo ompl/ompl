@@ -197,9 +197,13 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
     Control *control = siC_->allocControl();
     unsigned int duration = controlSampler_->sampleTo(control, motion->control_, start, rnd);
     // return new motion if duration is large enough
-    return (duration < siC_->getMinControlDuration()) ? NULL
-        : new Motion(si_->cloneState(start), si_->cloneState(rnd),
-                     control, duration, ++iteration_, motion);
+    if (duration < siC_->getMinControlDuration())
+    {
+        siC_->freeControl(control);
+        return NULL;
+    }
+    return new Motion(si_->cloneState(start), si_->cloneState(rnd),
+        control, duration, ++iteration_, motion);
 }
 
 void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prevState, base::State* state,
@@ -301,7 +305,17 @@ void ompl::control::PDST::freeMemory(void)
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
     for (std::vector<Motion*>::iterator it = motions.begin() ; it < motions.end() ; ++it)
-        freeMotion(*it);
+    {
+        if ((*it)->startState_ != (*it)->endState_)
+            si_->freeState((*it)->startState_);
+        if (!(*it)->isSplit_)
+        {
+            si_->freeState((*it)->endState_);
+            if ((*it)->control_)
+                siC_->freeControl((*it)->control_);
+        }
+        delete *it;
+    }
     priorityQueue_.clear(); // clears the Element objects in the priority queue
     delete bsp_;
     bsp_ = NULL;
