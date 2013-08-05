@@ -93,7 +93,7 @@ public:
         return true;
     }
     // We don't need this in the example below.
-    virtual bool sampleNear(ob::State *state, const ob::State *near, const double distance)
+    virtual bool sampleNear(ob::State*, const ob::State*, const double)
     {
         throw ompl::Exception("MyValidStateSampler::sampleNear", "not implemented");
         return false;

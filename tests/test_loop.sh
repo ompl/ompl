@@ -16,6 +16,8 @@ then
     COUNT=$1
 fi
 
+ulimit -c unlimited
+
 trap control_c SIGINT
 rm -f ompl_run_test_codes
 

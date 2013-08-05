@@ -9,8 +9,8 @@ cd @PROJECT_BINARY_DIR@/pyplusplus
 # get sources
 # gccxml snapshot of 5/2/2013
 @DOWNLOAD_CMD@ https://github.com/gccxml/gccxml/archive/567213ac765c99d5dfd23b14000b3c7b76274fcb.tar.gz | tar xzf -
-@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r575.tgz | tar xzf -
-@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1238.tgz | tar xzf -
+@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r579.tgz | tar xzf -
+@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1246.tgz | tar xzf -
 
 # build & install gccxml
 cd gccxml-567213ac765c99d5dfd23b14000b3c7b76274fcb

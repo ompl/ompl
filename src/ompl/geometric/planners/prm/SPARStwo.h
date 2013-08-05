@@ -1,5 +1,6 @@
 /*********************************************************************
-*  @copyright Software License Agreement (BSD License)
+* Software License Agreement (BSD License)
+*
 *  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
 *  All Rights Reserved.
 *
@@ -179,6 +180,16 @@ namespace ompl
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
             typedef boost::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
 
+            // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
+            // GCC 4.6 with Boost 1.48.  An implicit assignment operator overload does not compile with these
+            // components, so an explicit overload is given here.
+            // Remove this struct when the minimum Boost requirement is > v1.48.
+            struct InterfaceHashStruct
+            {
+                InterfaceHashStruct& operator=(const InterfaceHashStruct &rhs) { interfaceHash = rhs.interfaceHash; return *this; }
+                InterfaceHash interfaceHash;
+            };
+
             struct vertex_state_t {
                 typedef boost::vertex_property_tag kind;
             };
@@ -212,11 +223,14 @@ namespace ompl
                 boost::property < boost::vertex_predecessor_t, VertexIndexType,
                 boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_color_t, GuardType,
-                boost::property < vertex_interface_data_t, InterfaceHash > > > > >,
+                boost::property < vertex_interface_data_t, InterfaceHashStruct > > > > >,
                 boost::property < boost::edge_weight_t, double >
             > Graph;
 
+            /** \brief Vertex in Graph */
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+
+            /** \brief Edge in Graph */
             typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
 
             /** \brief Constructor */
@@ -331,6 +345,12 @@ namespace ompl
                 return boost::num_vertices(g_);
             }
 
+            /** \brief Get the number of iterations the algorithm performed */
+            long unsigned int getIterations(void) const
+            {
+                return iterations_;
+            }
+
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
@@ -354,7 +374,7 @@ namespace ompl
             bool checkAddPath( Vertex v );
 
             /** \brief A reset function for resetting the failures count */
-            void resetFailures( void );
+            void resetFailures(void);
 
             /** \brief Finds visible nodes in the graph near st */
             void findGraphNeighbors(base::State* st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
@@ -384,8 +404,6 @@ namespace ompl
             /** \brief Retrieves the Vertex data associated with v,vp,vpp */
             InterfaceData& getData( Vertex v, Vertex vp, Vertex vpp );
 
-            void setData( Vertex v, Vertex vp, Vertex vpp, const InterfaceData& d );
-
             /** \brief Performs distance checking for the candidate new state, q against the current information */
             void distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp);
 
@@ -396,10 +414,7 @@ namespace ompl
             Vertex addGuard(base::State *state, GuardType type);
 
             /** \brief Connect two guards in the roadmap */
-            void connect( Vertex v, Vertex vp );
-
-            /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
-            void uniteComponents(Vertex m1, Vertex m2);
+            void connectGuards( Vertex v, Vertex vp );
 
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
             bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal, base::PathPtr &solution);
@@ -487,8 +502,11 @@ namespace ompl
             /** \brief A flag indicating that a solution has been added during solve() */
             bool                                                                addedSolution_;
 
+            /** \brief A counter for the number of consecutive failed iterations of the algorithm */
+            unsigned int                                                        consecutiveFailures_;
+
             /** \brief A counter for the number of iterations of the algorithm */
-            unsigned int                                                        iterations_;
+            long unsigned int                                                   iterations_;
 
             /** \brief Maximum visibility range for nodes in the graph */
             double                                                              sparseDelta_;

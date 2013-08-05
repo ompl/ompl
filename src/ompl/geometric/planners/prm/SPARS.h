@@ -1,5 +1,6 @@
 /*********************************************************************
-*  @copyright Software License Agreement (BSD License)
+* Software License Agreement (BSD License)
+*
 *  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
 *  All Rights Reserved.
 *
@@ -115,6 +116,16 @@ namespace ompl
             /** \brief Hash for storing interface information. */
             typedef boost::unordered_map<VertexIndexType, std::set<VertexIndexType>, boost::hash<VertexIndexType> > InterfaceHash;
 
+            // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
+            // GCC 4.6 with Boost 1.48.  An implicit assignment operator overload does not compile with these
+            // components, so an explicit overload is given here.
+            // Remove this struct when the minimum Boost requirement is > v1.48.
+            struct InterfaceHashStruct
+            {
+                InterfaceHashStruct& operator=(const InterfaceHashStruct &rhs) { interfaceHash = rhs.interfaceHash; return *this; }
+                InterfaceHash interfaceHash;
+            };
+
             /**
              @brief The constructed roadmap spanner.
 
@@ -134,11 +145,14 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_list_t, std::set<VertexIndexType>,
-                boost::property < vertex_interface_list_t, InterfaceHash > > > > > >,
+                boost::property < vertex_interface_list_t, InterfaceHashStruct > > > > > >,
                 boost::property < boost::edge_weight_t, double >
             > SpannerGraph;
 
+            /** \brief A vertex in the sparse roadmap that is constructed */
             typedef boost::graph_traits<SpannerGraph>::vertex_descriptor SparseVertex;
+
+            /** \brief An edge in the sparse roadmap that is constructed */
             typedef boost::graph_traits<SpannerGraph>::edge_descriptor   SparseEdge;
 
             /** \brief Nearest neighbor structure which works over the SpannerGraph */
@@ -168,9 +182,13 @@ namespace ompl
                 boost::property < boost::edge_weight_t, double >
             > DenseGraph;
 
+            /** \brief A vertex in DenseGraph */
             typedef boost::graph_traits<DenseGraph>::vertex_descriptor DenseVertex;
+
+            /** \brief An edge in DenseGraph */
             typedef boost::graph_traits<DenseGraph>::edge_descriptor   DenseEdge;
 
+            /** \brief Nearest neighbor structure which works over the DenseGraph */
             typedef boost::shared_ptr< NearestNeighbors<DenseVertex> > DenseNeighbors;
 
             /** \brief Constructor. */
@@ -327,6 +345,12 @@ namespace ompl
                 return boost::num_vertices(s_);
             }
 
+            /** \brief Get the number of iterations the algorithm performed */
+            long unsigned int getIterations(void) const
+            {
+                return iterations_;
+            }
+
             /** \brief Returns the average valence of the spanner graph */
             double averageValence(void) const;
 
@@ -365,9 +389,6 @@ namespace ompl
             /** \brief Checks for adding an entire dense path to the Sparse Roadmap */
             bool checkAddPath( DenseVertex q, const std::vector<DenseVertex>& neigh );
 
-            /** \brief reset function for failures */
-            void resetFailures(void);
-
             /** \brief Get the first neighbor of q who has representative rep and is within denseDelta_. */
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
 
@@ -391,6 +412,9 @@ namespace ompl
 
             /** \brief Computes all nodes which qualify as a candidate x for v, v', and v" */
             void computeX(DenseVertex v, DenseVertex vp, DenseVertex vpp, std::vector<SparseVertex> &Xs);
+
+            /** \brief A reset function for resetting the failures count */
+            void resetFailures(void);
 
             /** Thread that checks for solution */
             void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
@@ -503,8 +527,11 @@ namespace ompl
             /** \brief Function that returns the milestones to attempt connections with */
             boost::function<std::vector<DenseVertex>&(const DenseVertex)>       connectionStrategy_;
 
+            /** \brief A counter for the number of consecutive failed iterations of the algorithm */
+            unsigned int                                                        consecutiveFailures_;
+
             /** \brief A counter for the number of iterations of the algorithm */
-            unsigned int                                                        iterations_;
+            long unsigned int                                                   iterations_;
 
             /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
             double                                                              stretchFactor_;

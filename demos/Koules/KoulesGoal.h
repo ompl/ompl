@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Your Institution
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Your Institution nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,19 +32,36 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Your Name */
+/* Author: Beck Chen, Mark Moll */
 
-#include "ompl/contrib/sample_contrib/SampleContrib.h"
+#ifndef DEMOS_KOULES_GOAL_
+#define DEMOS_KOULES_GOAL_
 
-/** @cond IGNORE
+#include <ompl/base/goals/GoalSampleableRegion.h>
 
-    This conditional here is only for disabling Doxygen.
-    You will probably need to remove it
-*/
-
-ompl::geometric::SampleContrib::SampleContrib()
+// Sampleable goal region for KoulesModel.
+class KoulesGoal : public ompl::base::GoalSampleableRegion
 {
-    // do nothing
-}
+public:
+    KoulesGoal(const ompl::base::SpaceInformationPtr &si)
+        : ompl::base::GoalSampleableRegion(si), stateSampler_(si->allocStateSampler())
+    {
+        threshold_ = 0.01;
+    }
 
-/** @endcond */
+    // number of "live" koules plus the shortest distance between any live koule and an edge
+    virtual double distanceGoal(const ompl::base::State *st) const;
+    // pick a random state where each koule is on the edge of the workspace
+    virtual void sampleGoal(ompl::base::State *st) const;
+    virtual unsigned int maxSampleCount(void) const
+    {
+        return 100;
+    }
+
+
+private:
+    mutable ompl::RNG rng_;
+    ompl::base::StateSamplerPtr stateSampler_;
+};
+
+#endif

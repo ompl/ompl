@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,58 +32,53 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Beck Chen, Mark Moll */
 
-#define BOOST_TEST_MODULE "GeometricPlanningIK"
-#include <boost/test/unit_test.hpp>
-#include "2DmapSetup.h"
-#include <iostream>
+#ifndef DEMOS_KOULES_PROJECTION_
+#define DEMOS_KOULES_PROJECTION_
 
-#include "ompl/geometric/GeneticSearch.h"
-#include "ompl/util/Time.h"
-#include "../../BoostTestTeamCityReporter.h"
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 
-using namespace ompl;
-
-BOOST_AUTO_TEST_CASE(SimpleIK)
+// A projection for the KoulesStateSpace
+class KoulesProjection : public ompl::base::ProjectionEvaluator
 {
-    /* load environment */
-    Environment2D env;
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
-    path = path / "env1.txt";
-    loadEnvironment(path.string().c_str(), env);
-
-    if (env.width * env.height == 0)
+public:
+    KoulesProjection(const ompl::base::StateSpace* space, unsigned int numDimensions = 3)
+        : ompl::base::ProjectionEvaluator(space), numDimensions_(numDimensions)
     {
-        BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
+        unsigned int n = (space_->getDimension() - 1) / 2 + 1;
+        if (numDimensions_ > n)
+            numDimensions_ = n;
+        else if (numDimensions_ < 3)
+            numDimensions_ = 3;
     }
 
-    /* instantiate space information */
-    base::SpaceInformationPtr si = geometric::spaceInformation2DMap(env);
-
-    /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-    base::GoalState goal(si);
-    base::ScopedState<base::RealVectorStateSpace> gstate(si);
-    gstate->values[0] = env.goal.first;
-    gstate->values[1] = env.goal.second;
-    goal.setState(gstate);
-    goal.setThreshold(0.1);
-
-    geometric::GeneticSearch gaik(si);
-    gaik.setRange(5.0);
-    base::ScopedState<base::RealVectorStateSpace> found(si);
-    double time = 0.0;
-
-    const int N = 100;
-    for (int i = 0 ; i < N ; ++i)
+    virtual unsigned int getDimension(void) const
     {
-        ompl::time::point startTime = ompl::time::now();
-        bool solved = gaik.solve(1.0, goal, found.get());
-        ompl::time::duration elapsed = ompl::time::now() - startTime;
-        time += ompl::time::seconds(elapsed);
-        BOOST_CHECK(solved);
-        BOOST_CHECK(si->distance(found.get(), gstate.get()) < goal.getThreshold());
+        return numDimensions_;
     }
-    time = time / (double)N;
-    BOOST_CHECK(time < 0.01);
-}
+    virtual void defaultCellSizes(void)
+    {
+        cellSizes_.resize(numDimensions_, .05);
+    }
+    // projection with coordinates in the same order as described in Andrew
+    // Ladd's thesis: (x,y,theta) of the ship, followed by the positions of
+    // the koules (up to the dimensionality of the projection)
+    virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
+    {
+        const double* x = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+        unsigned int numKoules = (numDimensions_ - 3) / 2;
+        projection[0] = x[0];
+        projection[1] = x[1];
+        projection[2] = x[2];
+        for (unsigned int i = 0; i < numKoules; ++i)
+        {
+            projection[2 * i + 3] = x[4 * i + 5];
+            projection[2 * i + 4] = x[4 * i + 6];
+        }
+    }
+protected:
+    unsigned int numDimensions_;
+};
+
+#endif

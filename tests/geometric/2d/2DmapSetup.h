@@ -66,9 +66,9 @@ namespace ompl
 
             virtual double distance(const base::State *state1, const base::State *state2) const
             {
-                double dx = state1->as<base::RealVectorStateSpace::StateType>()->values[0] - 
+                double dx = state1->as<base::RealVectorStateSpace::StateType>()->values[0] -
                     state2->as<base::RealVectorStateSpace::StateType>()->values[0];
-                double dy = state1->as<base::RealVectorStateSpace::StateType>()->values[1] - 
+                double dy = state1->as<base::RealVectorStateSpace::StateType>()->values[1] -
                     state2->as<base::RealVectorStateSpace::StateType>()->values[1];
 
                 return sqrt(dx * dx + dy * dy);
