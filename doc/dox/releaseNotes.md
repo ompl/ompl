@@ -1,7 +1,7 @@
 # Release Notes
 
 
-# OMPL 0.13.0 (8/5/13)
+# OMPL 0.13.0 (August 5, 2013)
 
 - Added several new planners:
     - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visbility-based PRM, but provide asymptotic near-optimality guarantees.
@@ -22,7 +22,7 @@
 - Bug fixes.
 
 
-# OMPL 0.12.2 (1/22/13)
+# OMPL 0.12.2 (January 22, 2013)
 
 - Initial support for FLANN, a library for approximate nearest neighbors.
 - Documentation updates.
