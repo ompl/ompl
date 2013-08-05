@@ -23,7 +23,7 @@ if(isset($_POST['submit']))
     ///------------Do Validations-------------
     if(empty($affiliation))
     {
-        $errors .= "\n Affiliation is a required field. ";
+        $errors .= "\n \"School/employer\" is a required field. ";
     }
     if(IsInjected($email))
     {
@@ -111,7 +111,7 @@ action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" class="form-horizonta
 </div>
 
 <div class="control-group">
-    <label class="control-label" for="affiliation">affiliation</label>
+    <label class="control-label" for="affiliation">school/employer</label>
     <div class="controls">
     <input class="span6" type="text" name="affiliation" value="<?php echo htmlentities($affiliation) ?>">
     </div>

@@ -6,7 +6,7 @@ If you use OMPL in your research, we kindly ask you to include the following cit
 
 ~~~
 @article{sucan2012the-open-motion-planning-library,
-    Author = {Ioan A. \c{S}ucan and Mark Moll and Lydia E. Kavraki},
+    Author = {Ioan A. {\c{S}}ucan and Mark Moll and Lydia E. Kavraki},
     Doi = {10.1109/MRA.2012.2205651},
     Journal = {{IEEE} Robotics \& Automation Magazine},
     Month = {December},

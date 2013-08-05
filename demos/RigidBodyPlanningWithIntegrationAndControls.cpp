@@ -84,7 +84,7 @@ public:
 private:
 
     const ob::StateSpace *space_;
-    const double             carLength_;
+    const double          carLength_;
 
 };
 
@@ -151,7 +151,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 
 
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
-    return si->satisfiesBounds(state) && (void*)rot != (void*)pos;
+    return si->satisfiesBounds(state) && (const void*)rot != (const void*)pos;
 }
 
 /// @cond IGNORE

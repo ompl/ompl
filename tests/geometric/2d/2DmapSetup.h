@@ -66,14 +66,12 @@ namespace ompl
 
             virtual double distance(const base::State *state1, const base::State *state2) const
             {
-                /* planning is done in a continuous space, but our collision space representation is discrete */
-                int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
+                double dx = state1->as<base::RealVectorStateSpace::StateType>()->values[0] -
+                    state2->as<base::RealVectorStateSpace::StateType>()->values[0];
+                double dy = state1->as<base::RealVectorStateSpace::StateType>()->values[1] -
+                    state2->as<base::RealVectorStateSpace::StateType>()->values[1];
 
-                int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
-
-                return abs(x1 - x2) + abs(y1 - y2);
+                return sqrt(dx * dx + dy * dy);
             }
         };
 

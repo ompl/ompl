@@ -98,17 +98,10 @@ void ompl::geometric::TRRT::setup(void)
     Planner::setup();
     tools::SelfConfig selfConfig(si_, getName());
 
-    double averageCost;
     base::MechanicalWorkOptimizationObjective *opt = dynamic_cast<base::MechanicalWorkOptimizationObjective*>(pdef_->getOptimizationObjective().get());
     if (!opt)
     {
 	OMPL_ERROR("TRRT was supplied an inappropriate optimization objective; it can only handle types of MechanicalWorkOptimizationObjective.");
-	averageCost = 1.0;
-    }
-    else
-    {
-      // Find the average cost of states by sampling x=100 random states
-      averageCost = pdef_->getOptimizationObjective()->averageStateCost(100);
     }
 
     // Set maximum distance a new node can be from its nearest neighbor
@@ -121,13 +114,15 @@ void ompl::geometric::TRRT::setup(void)
     // Set the threshold that decides if a new node is a frontier node or non-frontier node
     if (frontierThreshold_ < std::numeric_limits<double>::epsilon())
     {
-        frontierThreshold_ = si_->getMaximumExtent() * 0.01; // 5.0
+        frontierThreshold_ = si_->getMaximumExtent() * 0.01;
         OMPL_DEBUG("Frontier threshold detected to be %lf", frontierThreshold_);
     }
 
     // Autoconfigure the K constant
     if (kConstant_ < std::numeric_limits<double>::epsilon())
     {
+        // Find the average cost of states by sampling
+        double averageCost = opt->averageStateCost(magic::TEST_STATE_COUNT).v;
         kConstant_ = averageCost;
         OMPL_DEBUG("K constant detected to be %lf", kConstant_);
     }
@@ -187,7 +182,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         si_->copyState(motion->state, state);
 
         // Set cost for this start state
-        motion->cost = opt->getStateCost(motion->state);
+        motion->cost = opt->stateCost(motion->state);
 
         // Add start motion to the tree
         nearestNeighbors_->add(motion);
@@ -261,7 +256,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         randMotionDistance = si_->distance(nearMotion->state, randState);
 
         // Check if the rand_state is too far away
-        if(randMotionDistance > maxDistance_)
+        if (randMotionDistance > maxDistance_)
         {
             // Computes the state that lies at time t in [0, 1] on the segment that connects *from* state to *to* state.
             // The memory location of *state* is not required to be different from the memory of either *from* or *to*.
@@ -293,22 +288,22 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
             \param s1 start state of the motion to be checked (assumed to be valid)
             \param s2 final state of the motion to be checked
         */
-        if(!si_->checkMotion(nearMotion->state, newState))
+        if (!si_->checkMotion(nearMotion->state, newState))
             continue; // try a new sample
 
 
         // Minimum Expansion Control
         // A possible side effect may appear when the tree expansion toward unexplored regions remains slow, and the
         // new nodes contribute only to refine already explored regions.
-        if(!minExpansionControl(randMotionDistance))
+        if (!minExpansionControl(randMotionDistance))
         {
             continue; // give up on this one and try a new sample
         }
 
-        double childCost = opt->getStateCost(newState);
+        base::Cost childCost = opt->stateCost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
-        if(!transitionTest(childCost, nearMotion->cost, motionDistance))
+        if(!transitionTest(childCost.v, nearMotion->cost.v, motionDistance))
         {
             continue; // give up on this one and try a new sample
         }
@@ -416,7 +411,7 @@ void ompl::geometric::TRRT::getPlannerData(base::PlannerData &data) const
 bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, double distance)
 {
     // Always accept if new state has same or lower cost than old state
-    if(childCost <= parentCost)
+    if (childCost <= parentCost)
         return true;
 
     // Difference in cost
@@ -430,20 +425,20 @@ bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, 
     bool result = false;
 
     // Calculate tranision probabilty
-    if(costSlope > 0)
+    if (costSlope > 0)
     {
         transitionProbability = exp(-costSlope / (kConstant_ * temp_));
     }
 
     // Check if we can accept it
-    if(rng_.uniform01() <= transitionProbability)
+    if (rng_.uniform01() <= transitionProbability)
     {
         if (temp_ > minTemperature_)
         {
             temp_ /= tempChangeFactor_;
 
             // Prevent temp_ from getting too small
-            if(temp_ < minTemperature_)
+            if (temp_ < minTemperature_)
             {
                 temp_ = minTemperature_;
             }
@@ -456,7 +451,7 @@ bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, 
     else
     {
         // State has failed
-        if(numStatesFailed_ >= maxStatesFailed_)
+        if (numStatesFailed_ >= maxStatesFailed_)
         {
             temp_ *= tempChangeFactor_;
             numStatesFailed_ = 0;
@@ -474,7 +469,7 @@ bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost, 
 bool ompl::geometric::TRRT::minExpansionControl(double randMotionDistance)
 {
     // Decide to accept or not
-    if(randMotionDistance > frontierThreshold_)
+    if (randMotionDistance > frontierThreshold_)
     {
         // participates in the tree expansion
         ++frontierCount_;
@@ -486,7 +481,7 @@ bool ompl::geometric::TRRT::minExpansionControl(double randMotionDistance)
         // participates in the tree refinement
 
         // check our ratio first before accepting it
-        if(nonfrontierCount_ / frontierCount_ > frontierNodeRatio_)
+        if ((double)nonfrontierCount_ / (double)frontierCount_ > frontierNodeRatio_)
         {
             // Increment so that the temperature rises faster
             ++numStatesFailed_;

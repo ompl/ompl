@@ -23,12 +23,12 @@ Although almost all C++ functionality is exposed to Python, there are some cavea
 
 - By default OMPL often returns a reference to an internal object when the original C++ function or method returns a reference or takes a reference as input. This means that you have to be careful about the scope of variables. Python objects need to exist as long as there exist at least one OMPL object that contains a reference to it. Analogously, you should not try to use Python variables that point to OMPL objects that have already been destroyed.
 - C++ threads and Boost.Python don't mix; see the [Boost.Python FAQ](http://www.boost.org/libs/python/doc/v2/faq.html). If you have multi-threaded C++ code where multiple threads can call the Python interpreter at the same time, then this can lead to crashes. For that reason, we do not have Python bindings for the parallelized RRT and SBL planners, because they can call a Python state validator function at the same time.
-- Just because you \em can create Python classes that derive from C++ classes, this doesn't mean it is a good idea. You pay a performance penalty each time your code crosses the Python-C++ barrier (objects may need to copied, locks acquired, etc.). This means that it is an especially bad idea to override low-level class. For low-level functionality it is best to stick to the built-in OMPL functionality and use just the callback functions (e.g., for state validation and state propagation). It is also highly recommended to use the ompl::geometric::SimpleSetup ompl::control::SimpleSetup classes rather than the lower-level classes for that same reason.
+- Just because you \em can create Python classes that derive from C++ classes, this doesn't mean it is a good idea. You pay a performance penalty each time your code crosses the Python-C++ barrier (objects may need to copied, locks acquired, etc.). This means that it is an especially bad idea to override low-level classes. For low-level functionality it is best to stick to the built-in OMPL functionality and use just the callback functions (e.g., for state validation and state propagation). It is also highly recommended to use the ompl::geometric::SimpleSetup ompl::control::SimpleSetup classes rather than the lower-level classes for that same reason.
 
 
 #  Important differences between C++ and Python {#cpp_py_diffs}
 
-- There are no templates in Python, so templated classes and functions need to be fully instantiated to allow them to be exposed to python.
+- There are no templates in Python, so templated C++ classes and functions need to be fully instantiated to allow them to be exposed to python.
 - There are no C-style pointers in python, and no “new” or “delete” operators. This could be a problem, but can be dealt with mostly by using Boost [shared_ptr](http://www.boost.org/doc/libs/release/libs/smart_ptr/shared_ptr.htm)'s. If a C++ function takes pointer input/output parameters, _usually_ a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods. In some cases odd side effects may occur if you pass temporary objects (e.g., <tt>function_call(Constructor_call())</tt>), so it's advisable to create variables with the appropriate scope.
 
 
@@ -48,7 +48,7 @@ sref.setX(1.0)         # set the X coordinate
 s().setX(1.0)          # this also works
 ~~~
 
-- The print method (for classes that have one) is mapped to the special python method __str__, so a C++ call like <tt>foo.print(std::cout)</tt> becomes <tt>print foo</tt> in python. Similarly, a C++ call like <tt>foo.printSettings(std::cout)</tt> becomes <tt>print foo.settings()</tt> in python.
+- The print method (for classes that have one) is mapped to the special python method __str__, so a C++ call like <tt>foo.print(std::cout)</tt> becomes <tt>print(foo_</tt> in python. Similarly, a C++ call like <tt>foo.printSettings(std::cout)</tt> becomes <tt>print(foo.settings())</tt> in python.
 
 Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code.
 

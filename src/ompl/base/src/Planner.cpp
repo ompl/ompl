@@ -115,7 +115,7 @@ void ompl::base::Planner::clear(void)
     pis_.update();
 }
 
-void ompl::base::Planner::getPlannerData(PlannerData &data) const
+void ompl::base::Planner::getPlannerData(PlannerData & /*data*/) const
 {
 }
 

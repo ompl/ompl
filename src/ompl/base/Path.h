@@ -56,7 +56,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
-	class Cost;
+	struct Cost;
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Path */
@@ -92,7 +92,7 @@ namespace ompl
 
 	    /** \brief Return the cost of the path with respect to a
 		specified optimization objective. */
-	    virtual void cost(const OptimizationObjectivePtr& obj, Cost* cost) const;
+	    virtual Cost cost(const OptimizationObjectivePtr& obj) const;
 
             /** \brief Check if the path is valid */
             virtual bool check(void) const = 0;

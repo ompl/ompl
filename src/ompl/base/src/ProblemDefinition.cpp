@@ -436,13 +436,13 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
     else
         out << "Goal = NULL" << std::endl;
     if (optimizationObjective_)
-	out << "Average state cost: " << optimizationObjective_->averageStateCost(magic::TEST_STATE_COUNT) << std::endl;
+	out << "Average state cost: " << optimizationObjective_->averageStateCost(magic::TEST_STATE_COUNT).v << std::endl;
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }
 
 bool ompl::base::ProblemDefinition::hasSolutionNonExistenceProof(void) const
 {
-    return nonExistenceProof_;
+    return nonExistenceProof_.get();
 }
 
 void ompl::base::ProblemDefinition::clearSolutionNonExistenceProof(void)

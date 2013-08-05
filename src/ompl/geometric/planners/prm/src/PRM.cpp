@@ -1,36 +1,36 @@
 /*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2011, Rice University
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the Rice University nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2011, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
 
 /* Author: Ioan Sucan, James D. Marble, Ryan Luna */
 
@@ -40,12 +40,15 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
+
+#include "GoalVisitor.hpp"
 
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
@@ -54,11 +57,6 @@ namespace ompl
 {
     namespace magic
     {
-
-        /** \brief Maximum number of sampling attempts to find a valid state,
-            without checking whether the allowed time elapsed. This value
-            should not really be changed. */
-        static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK = 2;
 
         /** \brief The number of steps to take for a random bounce
             motion generated as part of the expansion step of PRM. */
@@ -114,6 +112,15 @@ void ompl::geometric::PRM::setup(void)
     }
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
+
+    if (pdef_->hasOptimizationObjective())
+        opt_ = pdef_->getOptimizationObjective();
+    else
+    {
+        OMPL_INFORM("Defaulting to optimizing path length.");
+        opt_.reset(new base::PathLengthOptimizationObjective(si_));
+        opt_->setCostThreshold(opt_->infiniteCost());
+    }
 }
 
 void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
@@ -209,7 +216,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
                 disjointSets_.make_set(m);
 
                 // add the edge to the parent vertex
-                const double weight = distanceFunction(v, m);
+                const base::Cost weight = opt_->motionCost(stateProperty_[v], stateProperty_[m]);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
                 boost::add_edge(v, m, properties, g_);
@@ -225,7 +232,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
             if (s > 0 || !sameComponent(v, last))
             {
                 // add the edge to the parent vertex
-                const double weight = distanceFunction(v, last);
+                const base::Cost weight = opt_->motionCost(stateProperty_[v], stateProperty_[last]);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
                 boost::add_edge(v, last, properties, g_);
@@ -268,7 +275,7 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
             {
                 found = sampler_->sample(workState);
                 attempts++;
-            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TIME_CHECK && !found);
+            } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK && !found);
         }
         // add it as a milestone
         if (found)
@@ -301,8 +308,7 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    base::Cost* sol_cost = pdef_->getOptimizationObjective()->allocCost();
-    base::Cost* obj_cost = pdef_->getOptimizationObjective()->allocCost();
+    base::Cost sol_cost(0.0);
     bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {
@@ -315,55 +321,27 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
 
             if (same_component && g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
-                // If there is an optimization objective, check it
-                if (pdef_->hasOptimizationObjective())
+                base::PathPtr p = constructSolution(start, goal);
+                if (p)
                 {
-                    base::PathPtr p = constructSolution(start, goal);
-		    if (p)
-		    {
-			p->cost(pdef_->getOptimizationObjective(), obj_cost);
-			if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
-			{
-			    solution = p;
-			    pdef_->getOptimizationObjective()->freeCost(sol_cost);
-			    pdef_->getOptimizationObjective()->freeCost(obj_cost);
-			    return true;
-			}
-			else
-			{
-			    if (solution && !sol_cost_set)
-			    {
-				solution->cost(pdef_->getOptimizationObjective(), sol_cost);
-				sol_cost_set = true;
-			    }
-			    if (!solution || 
-				pdef_->getOptimizationObjective()->isCostLessThan(obj_cost, 
-										  sol_cost))
-			    {
-				solution = p;
-				pdef_->getOptimizationObjective()->copyCost(sol_cost, obj_cost);
-				sol_cost_set = true;
-			    }
-			}
-		    }
-                }
-                else // Accept the solution, regardless of cost
-                {
-		    pdef_->getOptimizationObjective()->freeCost(sol_cost);
-		    pdef_->getOptimizationObjective()->freeCost(obj_cost);
-		    base::PathPtr p = constructSolution(start, goal);
-		    if (p)
-		    {
-			solution = p;
-			return true;
-		    }
+                    // Check if optimization objective is satisfied
+                    base::Cost pathCost = p->cost(opt_);
+                    if (opt_->isSatisfied(p->cost(opt_)))
+                    {
+                        solution = p;
+                        return true;
+                    }
+                    else if (!sol_cost_set || opt_->isCostBetterThan(pathCost, sol_cost))
+                    {
+                        solution = p;
+                        sol_cost = pathCost;
+                        sol_cost_set = true;
+                    }
                 }
             }
         }
     }
 
-    pdef_->getOptimizationObjective()->freeCost(sol_cost);
-    pdef_->getOptimizationObjective()->freeCost(obj_cost);
     return false;
 }
 
@@ -413,22 +391,17 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         }
     }
 
-    if (!sampler_)
-        sampler_ = si_->allocValidStateSampler();
-    if (!simpleSampler_)
-        simpleSampler_ = si_->allocStateSampler();
-
     unsigned int nrStartStates = boost::num_vertices(g_);
     OMPL_INFORM("Starting with %u states", nrStartStates);
 
     // Reset addedSolution_ member and create solution checking thread
     addedSolution_ = false;
     base::PathPtr sol;
-    sol.reset();
-    boost::thread slnThread (boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
+    boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
-    base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
+    base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc, 
+base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
 
     constructRoadmap(ptcOrSolutionFound);
 
@@ -452,6 +425,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
 void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondition &ptc)
 {
+    if (!isSetup())
+        setup();
+    if (!sampler_)
+        sampler_ = si_->allocValidStateSampler();
+    if (!simpleSampler_)
+        simpleSampler_ = si_->allocStateSampler();
+
     std::vector<base::State*> xstates(magic::MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
     bool grow = true;
@@ -496,7 +476,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
             {
                 successfulConnectionAttemptsProperty_[m]++;
                 successfulConnectionAttemptsProperty_[n]++;
-                const double weight = distanceFunction(m, n);
+                const base::Cost weight = opt_->motionCost(stateProperty_[m], stateProperty_[n]);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
                 boost::add_edge(m, n, properties, g_);
@@ -517,29 +497,6 @@ bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-namespace
-{
-    struct AStarFoundGoal {}; // exception for termination
-
-    // visitor that terminates when we find the goal
-    class AStarGoalVisitor : public boost::default_astar_visitor
-    {
-    public:
-        AStarGoalVisitor(const ompl::geometric::PRM::Vertex &goal) : goal_(goal)
-        {
-        }
-
-        void examine_vertex(const ompl::geometric::PRM::Vertex &u, const ompl::geometric::PRM::Graph &g)
-        {
-            if (u == goal_)
-                throw AStarFoundGoal();
-        }
-
-    private:
-        ompl::geometric::PRM::Vertex goal_;
-    };
-}
-
 ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start, const Vertex &goal)
 {
     boost::mutex::scoped_lock _(graphMutex_);
@@ -547,10 +504,17 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
 
     try
     {
+        // Consider using a persistent distance_map if it's slow
         boost::astar_search(g_, start,
-                            boost::bind(&PRM::distanceFunction, this, _1, goal),
+                            boost::bind(&PRM::costHeuristic, this, _1, goal),
                             boost::predecessor_map(prev).
-                            visitor(AStarGoalVisitor(goal)));
+                            distance_compare(boost::bind(&base::OptimizationObjective::
+                                                         isCostBetterThan, opt_.get(), _1, _2)).
+                            distance_combine(boost::bind(&base::OptimizationObjective::
+                                                         combineCosts, opt_.get(), _1, _2)).
+                            distance_inf(opt_->infiniteCost()).
+                            distance_zero(opt_->identityCost()).
+                            visitor(AStarGoalVisitor<Vertex>(goal)));
     }
     catch (AStarFoundGoal&)
     {
@@ -600,4 +564,9 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
         data.tagState(stateProperty_[v1], const_cast<PRM*>(this)->disjointSets_.find_set(v1));
         data.tagState(stateProperty_[v2], const_cast<PRM*>(this)->disjointSets_.find_set(v2));
     }
+}
+
+ompl::base::Cost ompl::geometric::PRM::costHeuristic(Vertex u, Vertex v) const
+{
+    return opt_->motionCostHeuristic(stateProperty_[u], stateProperty_[v]);
 }

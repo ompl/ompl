@@ -74,3 +74,8 @@ int SampleObject::NUM_INSTANCES = 0;
 - Member functions marked as _const_ must be thread safe. If a function is intended to be thread safe, it should be marked as _const_ (one can use the _mutable_ keyword if needed).
 - All classes, methods and member variables must be documented (Doxygen style). High-level documentation can be written either in [MarkDown format](http://www.stack.nl/~dimitri/doxygen/markdown.html) or in Doxygen format.
 - Forward declaration of types should be done with the OMPL_CLASS_FORWARD() macro when shared pointers to the type are also needed: OMPL_CLASS_FORWARD() will define a shared pointer to the type using the _Ptr_ suffix (e.g., ompl::base::StateSpacePtr).
+- When passing objects as arguments to functions, the following convention should be used:
+   - if possible, pass a _const reference_ to the type; this means that a pointer to the object passed in will not be maintained and no changes need to be made to the object.
+   - if changes need to be made to the object passed in, pass it by _reference_ (non const).
+   - if a pointer to the object needs to be maintained for later use, pass the the _Ptr_ type as _const T Ptr &_. This maintains a shared pointer to the passed in object. However, this can create a dependency cycle (e.g., StateValidityChecker storing a shared pointer to SpaceInformation, which already stores a shared pointer to StateValidityChecker). 
+   - when a dependency cyle would be created, and often access to the pointer is needed, use a _raw pointer_. Use a const raw pointer if possible. If access to the pointer is not often required, using a _weak pointer_ is good.

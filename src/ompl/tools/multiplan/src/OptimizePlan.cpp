@@ -64,7 +64,6 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
     base::PlannerStatus result;
     unsigned int np = 0;
     const base::ProblemDefinitionPtr &pdef = getProblemDefinition();
-    const base::GoalPtr &goal = pdef->getGoal();
     pp_.clearHybridizationPaths();
 
     while (time::now() < end)
@@ -88,19 +87,16 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
                 break;
             }
 
-	    base::Cost* obj_cost = pdef->getOptimizationObjective()->allocCost();
-	    pdef->getSolutionPath()->cost(pdef->getOptimizationObjective(), obj_cost);
+            base::Cost obj_cost = pdef->getSolutionPath()->cost(pdef->getOptimizationObjective());
 
             if (pdef->getOptimizationObjective()->isSatisfied(obj_cost))
             {
                 OMPL_DEBUG("Terminating early since solution path satisfies the optimization objective");
-		pdef->getOptimizationObjective()->freeCost(obj_cost);
                 break;
             }
             if (pdef->getSolutionCount() >= maxSol)
             {
                 OMPL_DEBUG("Terminating early since %u solutions were generated", maxSol);
-		pdef->getOptimizationObjective()->freeCost(obj_cost);
                 break;
             }
         }

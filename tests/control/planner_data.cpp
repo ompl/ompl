@@ -89,7 +89,7 @@ protected:
 
     friend class boost::serialization::access;
     template <class Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void serialize(Archive & ar, const unsigned int /*version*/)
     {
         ar & boost::serialization::base_object<ompl::base::PlannerDataVertex>(*this);
         ar & tag2_;
@@ -129,7 +129,7 @@ protected:
     friend class boost::serialization::access;
 
     template <class Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void serialize(Archive & ar, const unsigned int /*version*/)
     {
         ar & boost::serialization::base_object<ompl::control::PlannerDataEdgeControl>(*this);
         ar & id_;
@@ -573,7 +573,7 @@ BOOST_AUTO_TEST_CASE(Serialization)
             PlannerDataTestEdge &edge  = static_cast<PlannerDataTestEdge&>(data.getEdge(i, neighbors[j]));
             PlannerDataTestEdge &edge2 = static_cast<PlannerDataTestEdge&>(data2.getEdge(i, neighbors[j]));
             BOOST_CHECK ( cspace->equalControls (edge.getControl(), edge2.getControl()) );
-            BOOST_CHECK ( edge.getDuration() == edge2.getDuration() );
+            BOOST_CHECK ( fabs(edge.getDuration() - edge2.getDuration()) < std::numeric_limits<double>::epsilon());
             BOOST_CHECK ( edge.id_ == edge2.id_ );
         }
     }

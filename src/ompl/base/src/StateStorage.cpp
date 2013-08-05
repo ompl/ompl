@@ -148,7 +148,7 @@ void ompl::base::StateStorage::loadStates(const Header &h, boost::archive::binar
     delete[] buffer;
 }
 
-void ompl::base::StateStorage::loadMetadata(const Header &h, boost::archive::binary_iarchive &ia)
+void ompl::base::StateStorage::loadMetadata(const Header& /*h*/, boost::archive::binary_iarchive& /*ia*/)
 {
 }
 
@@ -179,7 +179,7 @@ void ompl::base::StateStorage::store(std::ostream &out)
     }
 }
 
-void ompl::base::StateStorage::storeStates(const Header &h, boost::archive::binary_oarchive &oa)
+void ompl::base::StateStorage::storeStates(const Header& /*h*/, boost::archive::binary_oarchive &oa)
 {
     OMPL_DEBUG("Serializing %u states", (unsigned int)states_.size());
 
@@ -193,7 +193,7 @@ void ompl::base::StateStorage::storeStates(const Header &h, boost::archive::bina
     delete[] buffer;
 }
 
-void ompl::base::StateStorage::storeMetadata(const Header &h, boost::archive::binary_oarchive &oa)
+void ompl::base::StateStorage::storeMetadata(const Header& /*h*/, boost::archive::binary_oarchive& /*oa*/)
 {
 }
 

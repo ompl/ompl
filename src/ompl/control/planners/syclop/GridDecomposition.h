@@ -62,7 +62,7 @@ namespace ompl
             {
             }
 
-            virtual double getRegionVolume(unsigned int rid)
+            virtual double getRegionVolume(unsigned int /*rid*/)
             {
                 return cellVolume_;
             }

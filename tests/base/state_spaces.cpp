@@ -346,10 +346,10 @@ BOOST_AUTO_TEST_CASE(Time_Simple)
     for (int i = 0 ; i < 100 ; ++i)
     {
         ss.random();
-        if (ss->position != 0.0)
+        if (fabs(ss->position) > 0.0)
             break;
     }
-    BOOST_CHECK(ss->position != 0.0);
+    BOOST_CHECK(fabs(ss->position) > 0.0);
 
     ss->position = 2.0;
     BOOST_CHECK_EQUAL(t->satisfiesBounds(ss.get()), false);

@@ -39,6 +39,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/OptimizationObjective.h"
 
 /*
   NOTES:
@@ -252,7 +253,7 @@ namespace ompl
                 Motion            *parent;
 
                 /** \brief Cost of the state */
-                double            cost;
+                base::Cost            cost;
 
             };
 

@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Ryan Luna */
 
 #include "ompl/geometric/planners/prm/LazyPRM.h"
+#include "ompl/base/OptimizationObjective.h"
 #include <boost/graph/incremental_components.hpp>
 #include <boost/graph/lookup_edge.hpp>
 #include <boost/foreach.hpp>
@@ -73,7 +74,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::State 
     foreach (Vertex n, neighbors)
         if (connectionFilter_(m, n))
         {
-            const double weight = distanceFunction(m, n);
+            const base::Cost weight = opt_->motionCost(stateProperty_[m], stateProperty_[n]);
             const unsigned int id = maxEdgeID_++;
             const Graph::edge_property_type properties(weight, id);
             const Edge &e = boost::add_edge(m, n, properties, g_).first;
@@ -97,9 +98,12 @@ void ompl::geometric::LazyPRM::growRoadmap(const base::PlannerTerminationConditi
 
 void ompl::geometric::LazyPRM::constructRoadmap(const base::PlannerTerminationCondition &ptc)
 {
-    base::State *xstate = si_->allocState();
-    growRoadmap(ptc, xstate);
-    si_->freeState(xstate);
+    if (!isSetup())
+        setup();
+    if (!simpleSampler_)
+        simpleSampler_ = si_->allocStateSampler();
+
+    growRoadmap(ptc);
 }
 
 ompl::base::PathPtr ompl::geometric::LazyPRM::constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal)

@@ -16,6 +16,8 @@ then
     COUNT=$1
 fi
 
+ulimit -c unlimited
+
 trap control_c SIGINT
 rm -f ompl_run_test_codes
 
@@ -27,7 +29,7 @@ do
     echo $RET_CODE >> ompl_run_test_codes
     if [ $RET_CODE -ne 0 ]
     then
-	echo "Error found!"
+        echo "Error found!"
     fi
 done
 rm -f ompl_run_test_count

@@ -326,7 +326,7 @@ namespace ompl
                 delete content[i];
         }
 
-        /// Hash function for coordinates
+        /// Hash function for coordinates; see http://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
         struct HashFunCoordPtr
         {
             /// Hash function for coordinates

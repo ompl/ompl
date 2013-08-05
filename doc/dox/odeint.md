@@ -126,4 +126,4 @@ Selecting a method for solving your system is more of an art rather than a scien
 
 Finally, the ompl::control::ODESolver base class can also be extended to new, user defined solvers. The ODESolver base itself does not depend on boost::numeric::odeint, and any user specified code or 3rd party library could be used to perform numerical integration.
 
-[odeint]: http://odeint.org
+[odeint]: http://www.boost.org/libs/numeric/odeint

@@ -42,6 +42,16 @@
 #include <cmath>
 #include <map>
 
+bool ompl::geometric::PathSimplifier::freeStates() const
+{
+    return freeStates_;
+}
+
+void ompl::geometric::PathSimplifier::freeStates(bool flag)
+{
+    freeStates_ = flag;
+}
+
 /* Based on COMP450 2010 project of Yun Yu and Linda Hill (Rice University) */
 void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigned int maxSteps, double minChange)
 {
@@ -105,8 +115,9 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 
     if (si->checkMotion(states.front(), states.back()))
     {
-        for (std::size_t i = 2 ; i < states.size() ; ++i)
-            si->freeState(states[i-1]);
+        if (freeStates_)
+            for (std::size_t i = 2 ; i < states.size() ; ++i)
+                si->freeState(states[i-1]);
         std::vector<base::State*> newStates(2);
         newStates[0] = states.front();
         newStates[1] = states.back();
@@ -138,8 +149,9 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 
             if (si->checkMotion(states[p1], states[p2]))
             {
-                for (int j = p1 + 1 ; j < p2 ; ++j)
-                    si->freeState(states[j]);
+                if (freeStates_)
+                    for (int j = p1 + 1 ; j < p2 ; ++j)
+                        si->freeState(states[j]);
                 states.erase(states.begin() + p1 + 1, states.begin() + p2);
                 nochange = 0;
                 result = true;
@@ -250,8 +262,9 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
                 }
                 else
                 {
-                    for (int j = pos0 + 2 ; j < pos1 ; ++j)
-                        si->freeState(states[j]);
+                    if (freeStates_)
+                        for (int j = pos0 + 2 ; j < pos1 ; ++j)
+                            si->freeState(states[j]);
                     si->copyState(states[pos0 + 1], s0);
                     si->copyState(states[pos1], s1);
                     states.erase(states.begin() + pos0 + 2, states.begin() + pos1);
@@ -260,23 +273,26 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
             else
                 if (index0 >= 0 && index1 >= 0)
                 {
-                    for (int j = index0 + 1 ; j < index1 ; ++j)
-                        si->freeState(states[j]);
+                    if (freeStates_)
+                        for (int j = index0 + 1 ; j < index1 ; ++j)
+                            si->freeState(states[j]);
                     states.erase(states.begin() + index0 + 1, states.begin() + index1);
                 }
                 else
                     if (index0 < 0 && index1 >= 0)
                     {
-                        for (int j = pos0 + 2 ; j < index1 ; ++j)
-                            si->freeState(states[j]);
+                        if (freeStates_)
+                            for (int j = pos0 + 2 ; j < index1 ; ++j)
+                                si->freeState(states[j]);
                         si->copyState(states[pos0 + 1], s0);
                         states.erase(states.begin() + pos0 + 2, states.begin() + index1);
                     }
                     else
                         if (index0 >= 0 && index1 < 0)
                         {
-                            for (int j = index0 + 1 ; j < pos1 ; ++j)
-                                si->freeState(states[j]);
+                            if (freeStates_)
+                                for (int j = index0 + 1 ; j < pos1 ; ++j)
+                                    si->freeState(states[j]);
                             si->copyState(states[pos1], s1);
                             states.erase(states.begin() + index0 + 1, states.begin() + pos1);
                         }
@@ -341,8 +357,9 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
         {
             if (si->checkMotion(states[p1], states[p2]))
             {
-                for (int i = p1 + 1 ; i < p2 ; ++i)
-                    si->freeState(states[i]);
+                if (freeStates_)
+                    for (int i = p1 + 1 ; i < p2 ; ++i)
+                        si->freeState(states[i]);
                 states.erase(states.begin() + p1 + 1, states.begin() + p2);
                 result = true;
                 nochange = 0;

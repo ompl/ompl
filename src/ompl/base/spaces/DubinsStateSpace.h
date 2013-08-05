@@ -103,7 +103,7 @@ namespace ompl
             {
             }
 
-            virtual bool isMetricSpace()
+            virtual bool isMetricSpace(void) const
             {
                 return false;
             }

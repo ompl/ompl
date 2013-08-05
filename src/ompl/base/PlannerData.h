@@ -97,7 +97,7 @@ namespace ompl
 
             friend class boost::serialization::access;
             template <class Archive>
-            void serialize(Archive & ar, const unsigned int version)
+            void serialize(Archive & ar, const unsigned int /*version*/)
             {
                 ar & tag_;
                 // Serialization of the state pointer is handled by PlannerDataStorage
@@ -138,7 +138,7 @@ namespace ompl
 
             friend class boost::serialization::access;
             template <class Archive>
-            void serialize(Archive & ar, const unsigned int version)
+            void serialize(Archive & /*ar*/, const unsigned int /*version*/)
             {
             }
         };
