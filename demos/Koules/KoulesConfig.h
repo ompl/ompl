@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,41 +32,32 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Beck Chen, Mark Moll */
 
-#include "ompl/extensions/opende/OpenDEEnvironment.h"
-#include <boost/lexical_cast.hpp>
+#ifndef DEMOS_KOULES_CONFIG_
+#define DEMOS_KOULES_CONFIG_
 
-unsigned int ompl::control::OpenDEEnvironment::getMaxContacts(dGeomID /*geom1*/, dGeomID /*geom2*/) const
-{
-    return maxContacts_;
-}
+#include <boost/math/constants/constants.hpp>
 
-bool ompl::control::OpenDEEnvironment::isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const
-{
-    return false;
-}
+// size of the square that defines workspace
+const double sideLength = 1.;
+// koule properties
+const double kouleMass = .5;
+const double kouleRadius = .015;
+// ship properties
+const double shipAcceleration = 1.;
+const double shipRotVel = boost::math::constants::pi<double>();
+const double shipMass = .75;
+const double shipRadius = .03;
+const double shipVmax = .5 / shipAcceleration;
+const double shipVmin = .1 * shipVmax;
+// dynamics, propagation, control constants
+const double lambda_c = 4.;
+const double h = .05;
+const double propagationStepSize = .01;
+const unsigned int propagationMinSteps = 1;
+const unsigned int propagationMaxSteps = 200;
+const double shipDelta = .5 * shipAcceleration * propagationStepSize;
+const double shipEps = .5 * shipRotVel * propagationStepSize;
 
-void ompl::control::OpenDEEnvironment::setupContact(dGeomID /*geom1*/, dGeomID /*geom2*/, dContact &contact) const
-{
-    contact.surface.mode = dContactBounce | dContactSoftCFM;
-    contact.surface.mu = 0.1;
-    contact.surface.mu2 = 0;
-    contact.surface.bounce = 0.01;
-    contact.surface.bounce_vel = 0.001;
-    contact.surface.soft_cfm = 0.01;
-}
-
-std::string ompl::control::OpenDEEnvironment::getGeomName(dGeomID geom) const
-{
-    std::map<dGeomID, std::string>::const_iterator it = geomNames_.find(geom);
-    if (it == geomNames_.end())
-        return boost::lexical_cast<std::string>(reinterpret_cast<unsigned long>(geom));
-    else
-        return it->second;
-}
-
-void ompl::control::OpenDEEnvironment::setGeomName(dGeomID geom, const std::string &name)
-{
-    geomNames_[geom] = name;
-}
+#endif

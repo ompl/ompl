@@ -46,15 +46,15 @@ import matplotlib.animation as animation
 
 targetFrameRate = 30 # desired number of frames per second
 speedUp = 1.
-# the parameters below should match the corresponding ones in Koules.cpp
-sideLength = 1.
-shipRadius = .03
-kouleRadius = .015
-propagationStepSize = .05
-shipAcceleration = 1.
-shipRotVel = pi
-shipDelta = .5 * shipAcceleration * propagationStepSize;
-shipEps = .5 * shipRotVel * propagationStepSize;
+# the parameters will be read from file
+sideLength = 0
+shipRadius = 0
+kouleRadius = 0
+propagationStepSize = 0
+shipAcceleration = 0
+shipRotVel = 0
+shipDelta = 0
+shipEps = 0
 
 fig = plt.figure(figsize=(6, 6))
 ax = plt.axes(xlim=(0, 1), ylim=(0, 1))
@@ -62,12 +62,19 @@ fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
 handle, = ax.plot([], [])
 path = None
 
-def plotShip(x):
+def normalizeAngle(theta):
+    if theta < -pi:
+        return theta + 2. * pi
+    if theta > pi:
+        return theta - 2. * pi
+    return theta
+
+def plotShip(x, u):
     pos = (x[0], x[1])
     theta = x[4]
     (cs,ss) = (shipRadius*cos(theta), shipRadius*sin(theta))
-    v = [ x[5] - x[2], x[6] - x[3] ]
-    deltaTheta = atan2(v[1], v[0]) - theta
+    v = [ u[0] - x[2], u[1] - x[3] ]
+    deltaTheta = normalizeAngle(atan2(v[1], v[0]) - theta)
     if v[0]*v[0] + v[1]*v[1] >= shipDelta * shipDelta:
         if abs(deltaTheta) < shipEps:
             # accelerate forward, draw thruster on the back
@@ -94,8 +101,8 @@ def plotKoules(state):
 def plotSystem(index):
     ax.clear()
     ax.add_patch(plt.Rectangle((0, 0), 1, 1, color='black'))
-    plotKoules(path[index][:-8])
-    plotShip(path[index][-8:-1])
+    plotKoules(path[index][5:-3])
+    plotShip(path[index][0:5], path[index][-3:])
     if index % 10 == 0:
         stdout.write('.')
         stdout.flush()
@@ -103,7 +110,10 @@ def plotSystem(index):
 
 def makeMovie(fname):
     with open(fname, 'r') as f:
-        global path
+        global sideLength, shipRadius, kouleRadius, propagationStepSize, shipAcceleration, \
+            shipRotVel, shipDelta, shipEps, path
+        sideLength, shipRadius, kouleRadius, propagationStepSize, shipAcceleration, \
+            shipRotVel, shipDelta, shipEps = [float(x) for x in next(f).split()]
         path = [[float(x) for x in line.split(' ')] for line in f]
         if len(path) == 0:
             print('Error: %s contains no solution path' % fname)

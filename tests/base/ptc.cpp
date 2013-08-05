@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(TestSimpleTermination)
 
 BOOST_AUTO_TEST_CASE(TestThreadedTermination)
 {
-  static const double dt = 0.2; 
+  static const double dt = 0.2;
   static const double interval = 0.005;
   const base::PlannerTerminationCondition &ptc = base::timedPlannerTerminationCondition(dt, interval);
   BOOST_CHECK(ptc == false);
@@ -79,5 +79,5 @@ BOOST_AUTO_TEST_CASE(TestThreadedTermination)
   BOOST_CHECK(ptc_long() == false);
   ptc_long.terminate();
   BOOST_CHECK(ptc_long == true);
-  BOOST_CHECK(ptc_long() == true);  
+  BOOST_CHECK(ptc_long() == true);
 }

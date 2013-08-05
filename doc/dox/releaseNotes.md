@@ -18,7 +18,7 @@
 - Added printAsMatrix method to ompl::geometric::PathGeometric and ompl::control::PathControl to facilitate plotting of paths. Added a [tutorial on path visualization](pathVisualization.html).
 - Added more [demo programs](group__demos.html).
 - Use the officially released version of [OdeInt](http://www.boost.org/libs/numeric/odeint) that comes with Boost 1.53 for numerical integration. The bundled version of OdeInt is not used or installed if the user has Boost >= 1.53 installed.
-- Updated Py++ toolchain (gccxml, pygccxml, pyplusplus). If you use gcc 4.7 or gcc 4.8, you need to run "make installpyplusplus" again.
+- Updated Py++ toolchain (gccxml, pygccxml, pyplusplus). If you use gcc 4.7/4.8 or Boost 1.54, you need to run "make installpyplusplus" again.
 - Bug fixes.
 
 

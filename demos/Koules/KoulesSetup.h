@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Your Institution
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Your Institution nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,27 +32,28 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Your Name */
+/* Author: Beck Chen, Mark Moll */
 
-#define BOOST_TEST_MODULE "SampleContribTest"
-#include <boost/test/unit_test.hpp>
+#ifndef DEMOS_KOULES_SIMPLESETUP_
+#define DEMOS_KOULES_SIMPLESETUP_
 
-// The following header file is useful for testing planners.
-// See ../../../../../tests/geometric/2dmap.cpp for example usage.
-// You could copy that file and modify it for your planner.
-#include "../../../../../tests/base/PlannerTest.h"
+#include <ompl/control/SimpleSetup.h>
 
-#include "../SampleContrib.h"
+OMPL_CLASS_FORWARD(KoulesSetup);
 
-using namespace ompl;
-
-
-BOOST_AUTO_TEST_CASE(Basic)
+class KoulesSetup : public ompl::control::SimpleSetup
 {
-    // basic tests of correctness
-}
+public:
+    KoulesSetup(unsigned int numKoules, const std::string& plannerName,
+        const std::vector<double>& stateVec = std::vector<double>());
+    KoulesSetup(unsigned int numKoules, const std::string& plannerName, double kouleVel);
 
-BOOST_AUTO_TEST_CASE(More)
-{
-    // other tests, if you want
-}
+    // Given a planner name, return a planner instance that has been configured
+    // for the koules problem.
+    ompl::base::PlannerPtr getConfiguredPlannerInstance(const std::string& plannerName);
+private:
+    void initialize(unsigned int numKoules, const std::string& plannerName,
+        const std::vector<double>& stateVec = std::vector<double>());
+};
+
+#endif

@@ -410,24 +410,26 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
 
             // Checking for solution or iterative improvement
-            for (size_t i = 0; i < goalMotions_.size() && checkForSolution; ++i)
+            if (checkForSolution)
             {
-
-                if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost))
+                for (size_t i = 0; i < goalMotions_.size(); ++i)
                 {
-                    bestCost = goalMotions_[i]->cost;
-                    bestCost_ = bestCost;
-                }
+                    if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost))
+                    {
+                        bestCost = goalMotions_[i]->cost;
+                        bestCost_ = bestCost;
+                    }
 
-                sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->cost);
-                if (sufficientlyShort)
-                {
-                    solution = goalMotions_[i];
-                    break;
+                    sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->cost);
+                    if (sufficientlyShort)
+                    {
+                        solution = goalMotions_[i];
+                        break;
+                    }
+                    else if (!solution || 
+                             opt_->isCostBetterThan(goalMotions_[i]->cost,solution->cost))
+                        solution = goalMotions_[i];
                 }
-                else if (!solution || 
-			 opt_->isCostBetterThan(goalMotions_[i]->cost,solution->cost))
-                    solution = goalMotions_[i];
             }
 
             // Checking for approximate solution (closest state found to the goal)

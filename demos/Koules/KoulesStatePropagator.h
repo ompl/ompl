@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,58 +32,30 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Beck Chen, Mark Moll */
 
-#define BOOST_TEST_MODULE "GeometricPlanningIK"
-#include <boost/test/unit_test.hpp>
-#include "2DmapSetup.h"
-#include <iostream>
+#ifndef DEMOS_KOULES_STATEPROPAGATOR_
+#define DEMOS_KOULES_STATEPROPAGATOR_
 
-#include "ompl/geometric/GeneticSearch.h"
-#include "ompl/util/Time.h"
-#include "../../BoostTestTeamCityReporter.h"
+#include <ompl/control/StatePropagator.h>
 
-using namespace ompl;
+class KoulesSimulator;
 
-BOOST_AUTO_TEST_CASE(SimpleIK)
+// State propagator for KoulesSetup.
+class KoulesStatePropagator : public ompl::control::StatePropagator
 {
-    /* load environment */
-    Environment2D env;
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
-    path = path / "env1.txt";
-    loadEnvironment(path.string().c_str(), env);
+public:
+    KoulesStatePropagator(const ompl::control::SpaceInformationPtr &si);
+    ~KoulesStatePropagator();
 
-    if (env.width * env.height == 0)
-    {
-        BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
-    }
+    virtual void propagate(const ompl::base::State *start, const ompl::control::Control* control,
+        const double duration, ompl::base::State *result) const;
 
-    /* instantiate space information */
-    base::SpaceInformationPtr si = geometric::spaceInformation2DMap(env);
+protected:
+    // The simulator_ is mutable. This is normally a very BAD idea, since
+    // planners can be multi-threaded. However, none of the planners used
+    // here are multi-threaded, so it's safe.
+    mutable KoulesSimulator* simulator_;
+};
 
-    /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-    base::GoalState goal(si);
-    base::ScopedState<base::RealVectorStateSpace> gstate(si);
-    gstate->values[0] = env.goal.first;
-    gstate->values[1] = env.goal.second;
-    goal.setState(gstate);
-    goal.setThreshold(0.1);
-
-    geometric::GeneticSearch gaik(si);
-    gaik.setRange(5.0);
-    base::ScopedState<base::RealVectorStateSpace> found(si);
-    double time = 0.0;
-
-    const int N = 100;
-    for (int i = 0 ; i < N ; ++i)
-    {
-        ompl::time::point startTime = ompl::time::now();
-        bool solved = gaik.solve(1.0, goal, found.get());
-        ompl::time::duration elapsed = ompl::time::now() - startTime;
-        time += ompl::time::seconds(elapsed);
-        BOOST_CHECK(solved);
-        BOOST_CHECK(si->distance(found.get(), gstate.get()) < goal.getThreshold());
-    }
-    time = time / (double)N;
-    BOOST_CHECK(time < 0.01);
-}
+#endif

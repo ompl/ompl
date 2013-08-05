@@ -97,6 +97,11 @@ void ompl::geometric::LazyPRM::growRoadmap(const base::PlannerTerminationConditi
 
 void ompl::geometric::LazyPRM::constructRoadmap(const base::PlannerTerminationCondition &ptc)
 {
+    if (!isSetup())
+        setup();
+    if (!simpleSampler_)
+        simpleSampler_ = si_->allocStateSampler();
+
     growRoadmap(ptc);
 }
 

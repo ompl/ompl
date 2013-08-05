@@ -284,7 +284,7 @@ const ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(const Sta
     return state;
 }
 
-double* ompl::base::StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
+double* ompl::base::StateSpace::getValueAddressAtIndex(State* /*state*/, const unsigned int /*index*/) const
 {
     return NULL;
 }
@@ -352,11 +352,11 @@ unsigned int ompl::base::StateSpace::getSerializationLength(void) const
     return 0;
 }
 
-void ompl::base::StateSpace::serialize(void *serialization, const State *state) const
+void ompl::base::StateSpace::serialize(void* /*serialization*/, const State* /*state*/) const
 {
 }
 
-void ompl::base::StateSpace::deserialize(State *state, const void *serialization) const
+void ompl::base::StateSpace::deserialize(State* /*state*/, const void* /*serialization*/) const
 {
 }
 
