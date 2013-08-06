@@ -57,12 +57,6 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // exception if this is not the case.
     checkValidity();
 
-    if (!bsp_)
-    {
-        OMPL_ERROR("PDST was not set up.");
-        return base::PlannerStatus::CRASH;
-    }
-
     // depending on how the planning problem is set up, this may be necessary
     bsp_->bounds_ = projectionEvaluator_->getBounds();
     base::Goal *goal = pdef_->getGoal().get();
@@ -96,11 +90,11 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
 
     if (priorityQueue_.empty())
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("Starting with %u states", priorityQueue_.size());
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), priorityQueue_.size());
 
     base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj1(ndim), tmpProj2(ndim);
@@ -172,7 +166,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     si_->freeState(tmpState1);
     si_->freeState(tmpState2);
 
-    OMPL_INFORM("Created %u states and %u cells", priorityQueue_.size(), bsp_->size());
+    OMPL_INFORM("%s: Created %u states and %u cells", getName().c_str(), priorityQueue_.size(), bsp_->size());
 
     return base::PlannerStatus(hasSolution, isApproximate);
 }
