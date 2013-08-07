@@ -23,20 +23,25 @@ env = morse.builder.Environment(envpath)
 # Replace the robot(s)
 to_delete = []
 i = 0
-for obj in bpy.context.selectable_objects:
-    if obj.game.properties.get('RobotType'):
+for obj in bpy.context.scene.objects:
+    if obj.game.properties.get('RobotType') and not obj.name.endswith('.goal'):
         rtype = obj.game.properties['RobotType'].value
         ctype = obj.game.properties['ControllerType'].value
         pos = obj.location
         rot = obj.rotation_euler
+        # does this robot have a goal state? Make sure the name is correct
+        goal = bpy.context.scene.objects.get(obj.name + '.goal')
+        if goal:
+            goal.name = "robot_%i.goal" % i
+            print("renamed %s" %goal.name)
         # avoid name collision and mark for deletion
         obj.name += '_'
-        to_delete.append(obj.name)
+        to_delete.append(obj)
         # add the MORSE components
         robot = getattr(morse.builder, rtype)()
         robot.name = "robot_%i" % i # this is how it will be referenced over the socket
         motion = getattr(morse.builder, ctype)()
-        motion.name = "motion_%i" % i  # referenced by robot_#.motion_#
+        motion.name = "motion_%i" % i  # referenced as robot_#.motion_#
         # copy pose
         robot.location = pos
         robot.rotation_euler = rot
@@ -53,10 +58,12 @@ for obj in bpy.context.selectable_objects:
         motion.add_service('socket')
         i += 1
 # delete the stand-in models
-bpy.ops.object.select_all(action='DESELECT')
-for name in to_delete:
-    bpy.ops.object.select_pattern(pattern=name, case_sensitive=True)
-bpy.ops.object.delete()
+for obj in to_delete:
+    bpy.context.scene.objects.unlink(obj)
+# disallow sleeping
+for obj in bpy.context.scene.objects:
+    if obj.game.physics_type == 'RIGID_BODY':
+            obj.game.use_sleep = True   # backwards; it means "no sleeping"
 
 """
 robot = morse.builder.SegwayRMP400()
@@ -86,6 +93,10 @@ mode = sys.argv[sys.argv.index('--') + 3]
 bpy.ops.object.game_property_new(type='STRING', name="Mode")
 obj.game.properties['Mode'].value = mode
 
+# Mode specific configuration:
+if mode == 'PLAY':
+    bpy.context.scene.game_settings.use_animation_record = True
+
 # Add 'Tick' sensor
 bpy.ops.logic.sensor_add(type='DELAY', name='Tick')
 tick = obj.game.sensors['Tick']
@@ -107,19 +118,20 @@ tick.link(comm)
 bpy.ops.object.make_single_user(type='ALL', material=True)
 for obj in bpy.data.objects:
     if obj.name.endswith('.goal'):
+        obj.hide_render = True
         if obj.game.physics_type != 'STATIC':
             print("Warning: changing goal object %s to static." % obj.name)
             obj.game.physics_type = 'STATIC'
         if not obj.game.use_ghost:
             print("Warning: changing goal object %s to ghost." % obj.name)
             obj.game.use_ghost = True
-        mat = obj.active_material
+        """mat = obj.active_material
         mat.use_transparency = True
         mat.transparency_method = 'Z_TRANSPARENCY'
         mat.alpha = 0.25
         mat.use_cast_approximate = False
         mat.use_cast_buffer_shadows = False
-        mat.use_shadows = False
+        mat.use_shadows = False"""
 
 env.create()
 
