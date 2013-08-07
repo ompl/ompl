@@ -16,9 +16,6 @@ import bpy
 import bge
 import mathutils
 
-import morse.builder
-import morse.core
-
 # Routines for accessing Blender internal data
 
 def getObjState(gameobj):
@@ -103,10 +100,12 @@ def getGoalCriteria():
 
 def getControlDescription():
     """
-    Discover the motion controller services and how to call them.
-    Returns [sum_of_nargs, (component_name,service_name,nargs), ...]
+    Discover the motion controller services and how to call them; also finds the
+    control dimension and the control bounds.
+    Returns [sum_of_nargs, [cbm, cbM], (component_name,service_name,nargs), ...]
     """
-    desc = [0]
+    settings = bpy.context.scene.objects['__settings'].game.properties
+    desc = [0, [settings['cbm'].value, settings['cbM'].value]]
     # query the request_manager for a list of services
     for name, inst in bge.logic.morsedata.morse_services.request_managers().items():
         if name == 'morse.middleware.socket_request_manager.SocketRequestManager':
@@ -127,43 +126,59 @@ def getRigidBodiesBounds():
     """
     Return the number of rigid bodies and positional bounds for them.
     """
-    #TODO user may need to override this
+    # Check whether user set the autopb flag
+    settings = bpy.context.scene.objects['__settings'].game.properties
+    if settings['autopb'].value:
+        # Find min and max values for all objects' bound box vertices
+        mX = mY = mZ = float('inf')
+        MX = MY = MZ = float('-inf')
+        for gameobj in bge.logic.getCurrentScene().objects:
+            obj = bpy.data.objects.get(gameobj.name)
+            if not obj:
+                continue
+                
+            box = obj.bound_box
+            mX = min(mX, min(box[i][0] + obj.location[0] for i in range(8)))
+            mY = min(mY, min(box[i][1] + obj.location[1] for i in range(8)))
+            mZ = min(mZ, min(box[i][2] + obj.location[2] for i in range(8)))
+            MX = max(MX, max(box[i][1] + obj.location[0] for i in range(8)))
+            MY = max(MY, max(box[i][2] + obj.location[1] for i in range(8)))
+            MZ = max(MZ, max(box[i][0] + obj.location[2] for i in range(8)))
+        
+        # Ioan's formula:
+        dx = MX-mY
+        dy = MY-mY
+        dz = MZ-mZ
+        dM = max(dx,dy,dz)
+        dx = dx/10.0 + dM/100.0
+        dy = dy/10.0 + dM/100.0
+        dz = dz/10.0 + dM/100.0
+        mX -= dx
+        MX += dx
+        mY -= dy
+        MY += dy
+        mZ -= dz
+        MZ += dz
+        
+    else:
+        # Use user-specified positional bounds
+        mX = settings['pbx'].value
+        MX = settings['pbX'].value
+        mY = settings['pby'].value
+        MY = settings['pbY'].value
+        mZ = settings['pbz'].value
+        MZ = settings['pbZ'].value
     
-    # find min and max values for all objects' bound box vertices
-    mX = mY = mZ = float('inf')
-    MX = MY = MZ = float('-inf')
-    for gameobj in bge.logic.getCurrentScene().objects:
-        obj = bpy.data.objects.get(gameobj.name)
-        if not obj:
-            continue
-            
-        box = obj.bound_box
-        mX = min(mX, min(box[i][0] + obj.location[0] for i in range(8)))
-        mY = min(mY, min(box[i][1] + obj.location[1] for i in range(8)))
-        mZ = min(mZ, min(box[i][2] + obj.location[2] for i in range(8)))
-        MX = max(MX, max(box[i][1] + obj.location[0] for i in range(8)))
-        MY = max(MY, max(box[i][2] + obj.location[1] for i in range(8)))
-        MZ = max(MZ, max(box[i][0] + obj.location[2] for i in range(8)))
+    # Get lin and ang bounds
+    lb = [settings['lbm'].value, settings['lbM'].value]
+    lb += lb + lb
+    ab = [settings['abm'].value, settings['abM'].value]
+    ab += ab + ab
     
-    # Ioan's formula:
-    dx = MX-mY
-    dy = MY-mY
-    dz = MZ-mZ
-    dM = max(dx,dy,dz)
-    dx = dx/10.0 + dM/100.0
-    dy = dy/10.0 + dM/100.0
-    dz = dz/10.0 + dM/100.0
-    mX -= dx
-    MX += dx
-    mY -= dy
-    MY += dy
-    mZ -= dz
-    MZ += dz
+    # gather the information
+    bounds = [len(rigidObjects), [mX, MX, mY, MY, mZ, MZ], lb, ab]
     
-    # make safe for eval()
-    bounds = [len(rigidObjects), [mX, MX, mY, MY, mZ, MZ]]
-    
-    # send the encoded list
+    # send the pickled list
     sock.sendall(pickle.dumps(bounds))
     
     return True
@@ -184,11 +199,43 @@ def endSimulation():
     
     sock = None
     
-    # shutdown the game engine
+    # unfreeze time
+    #bge.logic.freezeTime(False)
+    
     bge.logic.endGame()
+    
+    mode = bpy.data.objects['__planner'].game.properties['Mode'].value
+    
+    if mode == 'PLAY':
+        # Clean up:
+        
+        # no autostart
+        bpy.context.scene.game_settings.use_auto_start = False
+        
+        # remove unwanted objects
+        for obj in bpy.context.scene.objects[:]:
+            if obj.name in ['__planner','Scene_Script_Holder']:
+                bpy.context.scene.objects.unlink(obj)
+                
+        # save animation curves to file
+        # TODO let user pick the file
+        bpy.ops.wm.save_mainfile(filepath="/home/caleb/repos/ompl_morse/scripts/morse/iposave.blend",
+                                 check_existing=False)
     
     # signal to exit loop
     return False
+
+def stepRes(res):
+    """
+    Set propagate tics per world step.
+    """
+    # null response
+    sock.sendall(b'\x06')
+    
+    bge.logic.setPropagateTics(int(res*60))
+    
+    return True
+
 
 captureNextFrame = False
 
@@ -204,7 +251,7 @@ def nextTick(framecapture=False):
         global captureNextFrame
         captureNextFrame = True
     
-    # signal to exit loop
+    # signal to exit communication loop
     return False
 
 def extractState():
@@ -256,23 +303,17 @@ def spawn_planner():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(('localhost', 50007))
     
-    settings = bpy.data.objects['__planner'].game.properties
+    # freeze time, so only nextTick() can advance it
+    #bge.logic.freezeTime(True)
     
-    if settings['Mode'].value == 'PLAN':
+    mode = bpy.data.objects['__planner'].game.properties['Mode'].value
     
-        #bge.logic.setTimeMultiplier(16)
+    if mode == 'PLAN':
         # spawn planner.py
         f = '/scripts/morse/planner.py'
-        
-    elif settings['Mode'].value == 'PLAY':
-    
-        #bge.logic.setTimeMultiplier(1)
+    elif mode == 'PLAY':
         # spawn player.py
         f = '/scripts/morse/player.py'
-        
-    else:
-        print('Unrecognized mode setting!')
-        return
     
     # pass the name of the output (or input) file
     subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__planner'].game.properties['Outpath'].value])
@@ -308,6 +349,7 @@ def communicate():
         while eval(cmd):
             # retrieve the next command
             cmd = sock.recv(32).decode('utf-8')   # commands are very short
+            #print(cmd)
             if cmd == '':
                 # close the socket
                 sock.close()
@@ -333,10 +375,6 @@ def main():
         return
     
     if tickcount == 0:
-        # pace the simulation so that Blender doesn't try to speed up
-        #  even if it thinks it's falling behind
-        bge.logic.setMaxLogicFrame(1)
-        bge.logic.setMaxPhysicsFrame(1)
         
         # build the lists of rigid body objects and goal objects
         global rigidObjects
@@ -366,7 +404,7 @@ def main():
         # start the external planning script
         spawn_planner()
 
-    if sock:
+    if sock and bge.logic.getPropagateTics()==0:
         # handle requests from the planner
         communicate()
 

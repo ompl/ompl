@@ -3,6 +3,7 @@
 import socket
 import pickle
 import sys
+import time
 
 from environment import *
 
@@ -20,18 +21,22 @@ def playWithMorse(sockS, sockC):
         # play
         f = open(sys.argv[1], 'rb')
         (st,con,dur) = pickle.load(f)
+        env.worldStepRes(1.0/60)
         for i in range(len(con)):
             # load state
             env.call('submitState()', pickle.dumps(st[i]))
             # apply control
             env.applyControl(con[i])
             # simulate
-            env.worldStep(dur[i])
+            for _ in range(round(dur[i]/(1.0/60))):
+                env.worldStep(1.0/60)
+                time.sleep(1.0/60)  # to pace the playback
         # last state
         env.call('submitState()', pickle.dumps(st[len(con)]))
     
     except Exception as msg:
-        if str(msg)!="[Errno 104] Connection reset by peer": # ignore if user exits MORSE
+        if str(msg)!="[Errno 104] Connection reset by peer" \
+            and str(msg)!="[Errno 32] Broken pipe": # ignore if user exits MORSE
             raise
     finally:
         # tell simulation it can shut down

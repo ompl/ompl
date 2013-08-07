@@ -48,17 +48,17 @@ class MyEnvironment(om.MorseEnvironment):
         self.simRunning = True
         
         self.cdesc = self.call('getControlDescription()', b'')   # get info for applying controls
-        print(self.cdesc)
         self.con = [0 for _ in range(self.cdesc[0])]    # cache of the last control set to MORSE
-        cb = [self.cdesc[0], list2vec([-10,10,-1,1])]   # TODO get bounds from user
+        cb = [self.cdesc[0], []]    # control dimension#, list2vec([-10,10,-1,1])]
+        for _ in range(self.cdesc[0]):
+            cb[1] += self.cdesc[1]  # control bounds (right now they're the same in all dimensions)
+        cb[1] = list2vec(cb[1])
         
-        rb = self.call('getRigidBodiesBounds()', b'')    # number of bodies and positional bounds
-        rb[1] = list2vec(rb[1])
-        inf = float('inf')
-        rb.append(list2vec([-inf, inf, -inf, inf, -inf, inf])) # lin bounds
-        rb.append(list2vec([-inf, inf, -inf, inf, -inf, inf])) # ang bounds
+        rb = self.call('getRigidBodiesBounds()', b'')   # number of bodies and pos, lin, ang bounds
+        for i in [1,2,3]:
+            rb[i] = list2vec(rb[i])
         
-        envArgs = cb + rb + [0.1, 5, 30]    # step size, min/max control durations
+        envArgs = cb + rb + [0.1, 5, 30]    # add step size, min/max control durations
         super(MyEnvironment, self).__init__(*envArgs)
         
         # tell MORSE to reset the simulation, because it was running while it was initializing
@@ -143,17 +143,23 @@ class MyEnvironment(om.MorseEnvironment):
         if self.con != con:
             self.con = con
             i = 0
-            for controller in self.cdesc[1:]:
+            for controller in self.cdesc[2:]:
                 req = 'id %s %s %s\n' % (controller[0], controller[1], con[i:i+controller[2]])
                 i += controller[2]
                 self.sockC.sendall(req.encode())
+    
+    def worldStepRes(self, dur):
+        """
+        Configure simulation to run in dur second intervals.
+        """
+        self.call('stepRes(%f)'%dur)
         
     def worldStep(self, dur):
         """
-        Run the simulation for dur seconds.
+        Run the simulation for worldStepRes seconds (not dur!).
         """
-        for i in range(int(round(dur/(1.0/60)))):
-            self.call('nextTick()')
+        #for _ in range(round(dur/(0.1))):
+        self.call('nextTick()')
         
     def endSimulation(self):
         """
@@ -161,6 +167,7 @@ class MyEnvironment(om.MorseEnvironment):
         """
         if self.simRunning:
             self.call('endSimulation()')
+        self.sockC.sendall(b"id simulation quit\n")
 
 class MyProjection(om.MorseProjection):
     """

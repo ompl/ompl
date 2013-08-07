@@ -19,6 +19,7 @@ def planWithMorse(sockS, sockC):
     try:
         # create a MORSE environment representation
         env = MyEnvironment(sockS, sockC)
+        env.worldStepRes(0.1)   # stepsize
         
         # create a simple setup object
         ss = om.MorseSimpleSetup(env)
@@ -59,7 +60,8 @@ def planWithMorse(sockS, sockC):
             print("No solution found.")
     
     except Exception as msg:
-        if str(msg)!="[Errno 104] Connection reset by peer": # ignore if user exits MORSE
+        if str(msg)!="[Errno 104] Connection reset by peer" \
+            and str(msg)!="[Errno 32] Broken pipe": # ignore if user exits MORSE
             raise
     finally:
         # tell simulation it can shut down
