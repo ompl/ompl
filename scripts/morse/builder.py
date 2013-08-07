@@ -2,12 +2,25 @@
 # requires name of the environment *.blend file as a parameter
 
 import sys
+import subprocess
 import logging
 import bpy
 import morse.builder
 
 # IMPORTANT! Set this manually for now
 OMPL_DIR='/home/caleb/repos/ompl_morse'
+
+# Determine the mode to use (third argument)
+mode = sys.argv[sys.argv.index('--') + 3]
+
+# Hide the Blender window if we're planning
+if mode == 'PLAN':
+    print('getting winID')
+    winID = subprocess.check_output(['bash', '-c',
+        'wmctrl -l | grep morse_default_autorun | awk \'{ print $1 }\'']).decode()[:-1]
+    print(winID)
+    subprocess.call(['bash', '-c', 'wmctrl -i -r %s -b add,shaded' % winID])
+    subprocess.call(['bash', '-c', 'wmctrl -i -r %s -e 0,100,100,600,200' % winID])
 
 # Disable logging of socket communication because there will be a lot of it
 sockloggers = (logging.getLogger("morse.morse.core.request_manager"),
@@ -88,8 +101,7 @@ outpath = sys.argv[sys.argv.index('--') + 2]
 bpy.ops.object.game_property_new(type='STRING', name="Outpath")
 obj.game.properties['Outpath'].value = outpath
 
-# Determine the mode to use (third argument)
-mode = sys.argv[sys.argv.index('--') + 3]
+# Set the mode setting
 bpy.ops.object.game_property_new(type='STRING', name="Mode")
 obj.game.properties['Mode'].value = mode
 
