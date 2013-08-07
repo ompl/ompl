@@ -24,6 +24,8 @@ import sys
 sys.path.append('/usr/local/lib/python3.2/dist-packages')
 import morse.builder
 
+inf = float('inf')
+
 # Addon operators
 
 class Plan(bpy.types.Operator):
@@ -36,7 +38,7 @@ class Plan(bpy.types.Operator):
     
     def execute(self, context):
         """
-        Called when this operator is run.
+        Called when the dialogs finish.
         """
         
         print('Starting planner...')
@@ -48,6 +50,17 @@ class Plan(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        """
+        Called when the button is pressed.
+        """
+        
+        if not context.scene.objects.get('__settings'):
+            # Bounds Configuration hasn't been setup for this file yet
+            bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
+        
+        bpy.ops.wm.save_mainfile()
+        
+        # File selector for the path file
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -61,7 +74,7 @@ class Play(bpy.types.Operator):
     
     def execute(self, context):
         """
-        Called when this operator is run.
+        Called when the dialogs finish.
         """
         
         print('Starting player...')
@@ -73,10 +86,15 @@ class Play(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        """
+        Called when the button is pressed.
+        """
+        
+        # File selector for the path file
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-# helpers for AddRobot class
+# Helpers for AddRobot class
 
 def getRobots():
     """
@@ -127,7 +145,7 @@ def getControllers():
 class AddRobot(bpy.types.Operator):
     """Add a MORSE Robot to the Scene"""
     bl_idname = "ompl.addrobot"
-    bl_label = "Add Robot"
+    bl_label = "Add Robot..."
     
     # automatically set by the Blender properties dialog
     robotEnum = getRobots()
@@ -152,6 +170,9 @@ class AddRobot(bpy.types.Operator):
         bpy.ops.object.select_pattern(pattern=robotObj.name, case_sensitive=True)
         bpy.ops.object.join()
         
+        # make visible in a render
+        robotObj.hide_render = False
+        
         # remove unnecessary game properties
         while len(robotObj.game.properties) > 0:
             bpy.ops.object.game_property_remove()
@@ -172,6 +193,172 @@ class AddRobot(bpy.types.Operator):
         
         # choose robot and controller
         return bpy.context.window_manager.invoke_props_dialog(self)
+    
+        
+
+class BoundsConfiguration(bpy.types.Operator):
+    """Configure the state and control bounds"""
+    bl_idname = "ompl.boundsconfig"
+    bl_label = "Bounds Configuration..."
+    
+    # Properties displayed in the dialog
+    autopb = bpy.props.BoolProperty(name="Automatic position bounds",
+        description="Overrides user-provided numbers by analyzing the scene",
+        default=True)
+    pbx = bpy.props.FloatProperty(name="Min", default=-1000, min=-1000, max=1000)
+    pbX = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
+    pby = bpy.props.FloatProperty(name="Min", default=-1000, min=-1000, max=1000)
+    pbY = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
+    pbz = bpy.props.FloatProperty(name="Min", default=-1000, min=-1000, max=1000)
+    pbZ = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
+    lbm = bpy.props.FloatProperty(name="Min", default=-1000, min=-1000, max=1000)
+    lbM = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
+    abm = bpy.props.FloatProperty(name="Min", default=-1000, min=-1000, max=1000)
+    abM = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
+    cbm = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+
+    
+    def execute(self, context):
+        """
+        Called when this operator is run.
+        """
+        
+        # Save settings to file
+        settings = context.scene.objects['__settings'].game.properties
+        settings['autopb'].value = self.autopb
+        settings['pbx'].value = self.pbx
+        settings['pbX'].value = self.pbX
+        settings['pby'].value = self.pby
+        settings['pbY'].value = self.pbY
+        settings['pbz'].value = self.pbz
+        settings['pbZ'].value = self.pbZ
+        settings['lbm'].value = self.lbm
+        settings['lbM'].value = self.lbM
+        settings['abm'].value = self.abm
+        settings['abM'].value = self.abM
+        settings['cbm'].value = self.cbm
+        settings['cbM'].value = self.cbM
+        
+        # Allow dialog defaults to be changed by resetting the properties
+        del BoundsConfiguration.autopb, BoundsConfiguration.pbx, BoundsConfiguration.pbX,\
+            BoundsConfiguration.pby, BoundsConfiguration.pbY, BoundsConfiguration.pbz,\
+            BoundsConfiguration.pbZ, BoundsConfiguration.lbm, BoundsConfiguration.lbM,\
+            BoundsConfiguration.abm, BoundsConfiguration.abM, BoundsConfiguration.cbm,\
+            BoundsConfiguration.cbM
+        
+        BoundsConfiguration.autopb = bpy.props.BoolProperty(name="Automatic position bounds",
+            description="Overrides user-provided numbers by analyzing the scene",
+            default=settings['autopb'].value)
+        BoundsConfiguration.pbx = bpy.props.FloatProperty(name="Min", default=settings['pbx'].value,min=-1000, max=1000)
+        BoundsConfiguration.pbX = bpy.props.FloatProperty(name="Max", default=settings['pbX'].value, min=-1000, max=1000)
+        BoundsConfiguration.pby = bpy.props.FloatProperty(name="Min", default=settings['pby'].value, min=-1000, max=1000)
+        BoundsConfiguration.pbY = bpy.props.FloatProperty(name="Max", default=settings['pbY'].value, min=-1000, max=1000)
+        BoundsConfiguration.pbz = bpy.props.FloatProperty(name="Min", default=settings['pbz'].value, min=-1000, max=1000)
+        BoundsConfiguration.pbZ = bpy.props.FloatProperty(name="Max", default=settings['pbZ'].value, min=-1000, max=1000)
+        BoundsConfiguration.lbm = bpy.props.FloatProperty(name="Min", default=settings['lbm'].value, min=-1000, max=1000)
+        BoundsConfiguration.lbM = bpy.props.FloatProperty(name="Max", default=settings['lbM'].value, min=-1000, max=1000)
+        BoundsConfiguration.abm = bpy.props.FloatProperty(name="Min", default=settings['abm'].value, min=-1000, max=1000)
+        BoundsConfiguration.abM = bpy.props.FloatProperty(name="Max", default=settings['abM'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm = bpy.props.FloatProperty(name="Min", default=settings['cbm'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM = bpy.props.FloatProperty(name="Max", default=settings['cbM'].value, min=-1000, max=1000)
+        
+        bpy.utils.unregister_class(BoundsConfiguration)
+        bpy.utils.register_class(BoundsConfiguration)
+        
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        """
+        Called when the button is pressed.
+        """
+        
+        # If the settings have not been set before
+        if not context.scene.objects.get('__settings'):
+            bpy.ops.object.add()
+            settings = bpy.context.object
+            settings.name = '__settings'
+            props = settings.game.properties
+            bpy.ops.object.game_property_new(type='BOOL', name='autopb')
+            props['autopb'].value = True
+            bpy.ops.object.game_property_new(type='FLOAT', name='pbx')
+            props['pbx'].value = -1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='pbX')
+            props['pbX'].value = 1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='pby')
+            props['pby'].value = -1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='pbY')
+            props['pbY'].value = 1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='pbz')
+            props['pbz'].value = -1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='pbZ')
+            props['pbZ'].value = 1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='lbm')
+            props['lbm'].value = -1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='lbM')
+            props['lbM'].value = 1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='abm')
+            props['abm'].value = -1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='abM')
+            props['abM'].value = 1000
+            bpy.ops.object.game_property_new(type='FLOAT', name='cbm')
+            props['cbm'].value = -10
+            bpy.ops.object.game_property_new(type='FLOAT', name='cbM')
+            props['cbM'].value = 10
+        
+        # Set bounds dialog
+        return bpy.context.window_manager.invoke_props_dialog(self, width=400)
+    
+        
+    def draw(self, context):
+        """
+        Defines how the popup should look.
+        """
+        
+        layout = self.layout
+        # 4 sections:
+        sections = layout.column()
+        sections.label(text="Position Bounds:")
+        sections.prop(self, 'autopb')
+        pb = sections.row()
+        sections.separator()
+        sections.label(text="Linear Velocity Bounds:")
+        lb = sections.row()
+        sections.separator()
+        sections.label(text="Angular Velocity Bounds:")
+        ab = sections.row()
+        sections.separator()
+        sections.label(text="Control Input Bounds:")
+        cb = sections.row()
+        
+        # In positional bounds sections, make 3 columns for X,Y,Z, with Min,Max in each
+        X = pb.column()
+        X.label(text="X")
+        X.prop(self, 'pbx', text="Min")
+        X.prop(self, 'pbX', text="Max")
+        Y = pb.column()
+        Y.label(text="Y")
+        Y.prop(self, 'pby', text="Min")
+        Y.prop(self, 'pbY', text="Max")
+        Z = pb.column()
+        Z.label(text="Z")
+        Z.prop(self, 'pbz', text="Min")
+        Z.prop(self, 'pbZ', text="Max")
+        
+        # Linear velocity bounds Min,Max
+        lb.prop(self, 'lbm', text="Min")
+        lb.prop(self, 'lbM', text="Max")
+        
+        # Angular " "
+        ab.prop(self, 'abm', text="Min")
+        ab.prop(self, 'abM', text="Max")
+        
+        # Control Input " "
+        # TODO: Add more of these and disable unneeded ones so user can specify
+        #   each control individually
+        cb.prop(self, 'cbm', text="Min")
+        cb.prop(self, 'cbM', text="Max")
+        
 
 # Menus
 
@@ -184,6 +371,7 @@ class OMPLMenu(bpy.types.Menu):
         self.layout.operator(Plan.bl_idname)
         self.layout.operator(Play.bl_idname)
         self.layout.operator(AddRobot.bl_idname)
+        self.layout.operator(BoundsConfiguration.bl_idname)
 
 
 def menu_func(self, context):
@@ -218,6 +406,7 @@ def register():
     bpy.utils.register_class(Plan)
     bpy.utils.register_class(Play)
     bpy.utils.register_class(AddRobot)
+    bpy.utils.register_class(BoundsConfiguration)
     bpy.utils.register_class(OMPLMenu)
     bpy.types.INFO_MT_game.prepend(menu_func)
 
@@ -228,6 +417,7 @@ def unregister():
     bpy.utils.unregister_class(Plan)
     bpy.utils.unregister_class(Play)
     bpy.utils.unregister_class(AddRobot)
+    bpy.utils.unregister_class(BoundsConfiguration)
     bpy.utils.unregister_class(OMPLMenu)
     bpy.types.INFO_MT_game.remove(menu_func)
 

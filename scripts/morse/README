@@ -1,4 +1,5 @@
-INSTALLATION:
+INSTALLATION: (Notice: I also changed my speed hack interface for Blender; this code won't run
+    without my updated version, which I will commit soon)
 -Install MORSE and it's dependencies (preferably version 1.0_STABLE)
 -(optional) Run 'morse check' to verify the installation
 -Build and install OMPL and the Python bindings (see README.md in toplevel directory)
@@ -14,11 +15,10 @@ INSTALLATION:
   Open Blender, go to File > User Preferences > Addons > Install from File..., navigate to
   ompl_addon.py, press Install from File..., check the box for OMPL Interface, then press
   Save User Settings and exit the User Preferences dialog.
--If you're using my speed-hacked Blender, uncomment lines 263 and 269 in communicator.py
 
 NOTE: This build works with MORSE 1.0_STABLE, but the latest branch of MORSE has a slightly
 different command line interface. If you would like to use the latest MORSE version, check lines
-45 and 199 in ompl_addon.py.
+47 and 387 in ompl_addon.py.
 
 
 Files in this directory:
@@ -29,7 +29,8 @@ Files in this directory:
     planner.py
         External script called by communicator.py when the game engine starts. It
         can make procedure calls into blender to get/set data through a socket.
-        It attempts to solve the planning problem and save the path to 'path.out'
+        It attempts to solve the planning problem and save the path to a file chosen
+        by the user.
     player.py
         Like planner.py, but reads a control path from a file and plays it back
         instead of planning.
@@ -45,7 +46,8 @@ Files in this directory:
     ompl_addon.py
         Addon script to be installed into Blender. Provides a menu with a buttons to start
         planning or playing (invokes file selector dialog to choose the path file), and to
-        add a MORSE robot to the scene. (Not all robots and controllers work yet.)
+        add a MORSE robot to the scene. (Not all robots and controllers work yet.) Now there
+        is also a button for bounds configuration.
 
 
 
