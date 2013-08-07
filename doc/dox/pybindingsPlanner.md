@@ -1,4 +1,4 @@
-# Creating Python bindings for a new planner
+# Creating Python Bindings for a New Planner
 
 It is often convenient to test a planner through either the OMPL.app GUI or by using a minimal Python program that defines a simple motion planning problem of interest. In both cases you need to create Python bindings for your planner. At a high level, the steps are:
 
@@ -10,7 +10,7 @@ Please note that it is difficult to create Python bindings for multi-threaded pl
 
 # Updating the Python binding generation code {#pybinding}
 
-To create python bindings for your planner, it is easiest if you add the C++ implementation of your planner to \c ompl/src/ompl/geometric/planners (if your planner is a purely geometric planner) or to \c ompl/src/ompl/control/planners (if your planner is a control-based planner). 
+To create python bindings for your planner, it is easiest if you add the C++ implementation of your planner to \c ompl/src/ompl/geometric/planners (if your planner is a purely geometric planner) or to \c ompl/src/ompl/control/planners (if your planner is a control-based planner).
 
 The first step in generating bindings is to add the header file name(s) for your planner to the list of files that need to be processed by the python binding generation script. For geometric planning this list is stored in \c ompl/py-bindings/headers_geometric.txt, while for control-based planning this list is stored in \c ompl/py-bindings/headers_control.txt. The order of the file names in this list matters: if your header file includes other files in the list, it should be added below those files.
 

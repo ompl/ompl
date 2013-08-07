@@ -100,7 +100,7 @@ void ompl::control::ControlSpace::clearControlSamplerAllocator(void)
     csa_ = ControlSamplerAllocator();
 }
 
-double* ompl::control::ControlSpace::getValueAddressAtIndex(Control *control, const unsigned int index) const
+double* ompl::control::ControlSpace::getValueAddressAtIndex(Control* /*control*/, const unsigned int /*index*/) const
 {
     return NULL;
 }
@@ -120,11 +120,11 @@ unsigned int ompl::control::ControlSpace::getSerializationLength(void) const
     return 0;
 }
 
-void ompl::control::ControlSpace::serialize(void *serialization, const Control *ctrl) const
+void ompl::control::ControlSpace::serialize(void* /*serialization*/, const Control* /*ctrl*/) const
 {
 }
 
-void ompl::control::ControlSpace::deserialize(Control *ctrl, const void *serialization) const
+void ompl::control::ControlSpace::deserialize(Control* /*ctrl*/, const void* /*serialization*/) const
 {
 }
 

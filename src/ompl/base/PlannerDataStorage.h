@@ -125,7 +125,7 @@ namespace ompl
 
                 /// \brief boost::serialization routine
                 template<typename Archive>
-                void serialize(Archive & ar, const unsigned int version)
+                void serialize(Archive & ar, const unsigned int /*version*/)
                 {
                     ar & marker;
                     ar & vertex_count;
@@ -145,7 +145,7 @@ namespace ompl
                 };
 
                 template<typename Archive>
-                void serialize(Archive & ar, const unsigned int version)
+                void serialize(Archive & ar, const unsigned int /*version*/)
                 {
                     ar & v_;
                     ar & state_;
@@ -161,7 +161,7 @@ namespace ompl
             struct PlannerDataEdgeData
             {
                 template<typename Archive>
-                void serialize(Archive & ar, const unsigned int version)
+                void serialize(Archive & ar, const unsigned int /*version*/)
                 {
                     ar & e_;
                     ar & endpoints_;

@@ -69,6 +69,11 @@ namespace ompl
 
             virtual ~LazyPRM(void);
 
+            /** \brief For LazyPRM, this simply calls growRoadmap() */
+            virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
+
+            using PRM::growRoadmap;
+
         protected:
 
             /** \brief Flag indicating validity of an edge of a vertex */
@@ -80,8 +85,6 @@ namespace ompl
             virtual Vertex addMilestone(base::State *state);
 
             virtual void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
-
-            virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 
             virtual base::PathPtr constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal);
 

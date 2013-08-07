@@ -234,6 +234,15 @@ namespace ompl
                     motion->cell_ = this;
                 }
 
+                /// Number of cells
+                unsigned int size() const
+                {
+                    unsigned int sz = 1;
+                    if (left_)
+                        sz += left_->size() + right_->size();
+                    return sz;
+                }
+
                 /// Volume of the cell
                 double                       volume_;
                 /// Dimension along which the cell is split into smaller cells
@@ -275,20 +284,6 @@ namespace ompl
             /// \e ancestor->startState_ should result in the state \e state.
             unsigned int findDurationAndAncestor(Motion* motion, base::State* state,
                 base::State* scratch, Motion*& ancestor) const;
-
-            void freeMotion(Motion* m)
-            {
-                if (m->parent_)
-                {
-                    if (m->startState_ != m->parent_->endState_)
-                        si_->freeState(m->startState_);
-                    if (!m->isSplit_)
-                        siC_->freeControl(m->control_);
-                }
-                if (!m->isSplit_)
-                    si_->freeState(m->endState_);
-                delete m;
-            }
 
             void freeMemory(void);
 

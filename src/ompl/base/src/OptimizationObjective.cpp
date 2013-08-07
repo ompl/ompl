@@ -55,7 +55,7 @@ double ompl::base::BoundedAdditiveOptimizationObjective::combineObjectiveCosts(d
     return a + b;
 }
 
-double ompl::base::BoundedAdditiveOptimizationObjective::getTerminalCost(const State *s) const
+double ompl::base::BoundedAdditiveOptimizationObjective::getTerminalCost(const State*) const
 {
   return 0.0;
 }

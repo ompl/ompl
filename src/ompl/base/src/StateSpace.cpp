@@ -284,7 +284,7 @@ const ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(const Sta
     return state;
 }
 
-double* ompl::base::StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
+double* ompl::base::StateSpace::getValueAddressAtIndex(State* /*state*/, const unsigned int /*index*/) const
 {
     return NULL;
 }
@@ -352,11 +352,11 @@ unsigned int ompl::base::StateSpace::getSerializationLength(void) const
     return 0;
 }
 
-void ompl::base::StateSpace::serialize(void *serialization, const State *state) const
+void ompl::base::StateSpace::serialize(void* /*serialization*/, const State* /*state*/) const
 {
 }
 
-void ompl::base::StateSpace::deserialize(State *state, const void *serialization) const
+void ompl::base::StateSpace::deserialize(State* /*state*/, const void* /*serialization*/) const
 {
 }
 
@@ -579,7 +579,8 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
 
 void ompl::base::StateSpace::sanityChecks(void) const
 {
-    sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), ~0);
+    unsigned int flags = isMetricSpace() ? ~0 : ~(STATESPACE_DISTANCE_SYMMETRIC | STATESPACE_TRIANGLE_INEQUALITY);
+    sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), flags);
 }
 
 void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int flags) const

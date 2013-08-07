@@ -57,7 +57,7 @@ struct Metadata
     float tag2;
 
     template<typename Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void serialize(Archive & ar, const unsigned int /*version*/)
     {
         ar & tag1;
         ar & tag2;

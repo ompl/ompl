@@ -92,7 +92,7 @@ class TestPyBoostFunction(unittest.TestCase):
         i = IntClass(0)
         f = IntClassFun4_t(myIntFun2)
         f(i, 3)
-        self.assertEqual(i.value, 3)        
+        self.assertEqual(i.value, 3)
 
 
 def suite():

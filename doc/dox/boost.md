@@ -1,4 +1,4 @@
-# Boost Structures used in OMPL
+# Boost Structures Used in OMPL
 
 [Boost](http://www.boost.org) provides an extension to the C++ standard template library, supplying the user with many generic, cross-platform concepts that are easily included in the developer's program. For users that are unfamiliar with Boost, this page will briefly describe the constructs from the Boost library used in OMPL. This tutorial makes no attempt to fully educate the user on the usage and API of the Boost library, only to give a high level overview of these components and why they were chosen for OMPL. For further detail on Boost, please consult the extensive [Boost documentation](http://www.boost.org/doc/libs/) directly.
 
@@ -82,7 +82,7 @@ class Math
     // return the lower bound instead.
     int boundedMin (int x, int y, int lowerBound = 0)
     {
-	if (x > lowerBound && y > lowerBound)
+        if (x > lowerBound && y > lowerBound)
             return (x < y) ? x : y;
         else
             return lowerBound;
@@ -121,7 +121,7 @@ Math math;
 // Setup the Boost function pointer as a function that returns an int, and takes two integer arguments
 boost::function<int(int,int)> minFuncPtr;
 
-// Initializing the function pointer to the boundedMin method of the math 
+// Initializing the function pointer to the boundedMin method of the math
 // instance, and binding the lowerBound argument to zero.
 minFuncPtr = boost::bind (&Math::boundedMin, math, _1, _2, 0);
 
@@ -146,7 +146,7 @@ class MyClass : boost::noncopyable
 ~~~
 
 OMPL derives several classes from boost::noncopyable.  The rationale behind
-this is that these classes should never be copied anyway, either because 
+this is that these classes should never be copied anyway, either because
 the copy mechanism is highly non-trivial, copying such an object would be
 prohibitive in terms of memory, or both.
 

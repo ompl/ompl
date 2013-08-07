@@ -10,7 +10,7 @@ To be able to generate python bindings you need to install the [Python] library 
 
 Below are more detailed installation instructions for [Linux](#install_linux), [OS X](#install_osx), and [Windows](#install_windows).
 
-\note If you are using [ROS], please see the [ROS interface to OMPL][omplros].
+\note If you are using [ROS], please see [MoveIt!][moveit].
 
 \htmlonly
 <div class="btn-group">
@@ -201,7 +201,7 @@ For best performance, the [MinGW] compiler is recommended. Visual Studio can als
 - [MinGW][] (recommended) or Visual Studio compiler
 - [Boost], version 1.44 or greater.
 
-  It is recommended to make a complete Boost compilation from source.  If using Visual Studio, this process can be automated using the <a href="http://www.boostpro.com/download">BoostPro</a> installer. Once complete, set the environment variables <tt>BOOST_ROOT</tt> and <tt>BOOST_LIBRARYDIR</tt> to the locations where Boost and its libraries are installed.  The default locations are <tt>C:\\Boost</tt> and <tt>C:\\Boost\\lib</tt>.  Ensure that <tt>BOOST_LIBRARYDIR</tt> is also in the system PATH so that any necessary Boost dlls are loaded properly at runtime.
+  It is recommended to make a complete Boost compilation from source.  If using Visual Studio, this process can be automated using the [BoostPro](http://www.boostpro.com/download) installer. Once complete, set the environment variables <tt>BOOST_ROOT</tt> and <tt>BOOST_LIBRARYDIR</tt> to the locations where Boost and its libraries are installed.  The default locations are <tt>C:\\Boost</tt> and <tt>C:\\Boost\\lib</tt>.  Ensure that <tt>BOOST_LIBRARYDIR</tt> is also in the system PATH so that any necessary Boost dlls are loaded properly at runtime.
 
 
 ## Optional Dependencies (for Python bindings)
@@ -249,7 +249,7 @@ The CMAKE_INSTALL_PREFIX variable is set to <tt>C:\\Program Files (x86)\\ompl</t
 [cmake]: http://www.cmake.org
 [python]: http://www.python.org
 [ros]: http://www.ros.org
-[omplros]: http://www.ros.org/wiki/ompl_ros_interface
+[moveit]: http://moveit.ros.org
 [macports]: http://www.macports.org
 [homebrew]: http://mxcl.github.com/homebrew
 [mingw]: http://www.mingw.org

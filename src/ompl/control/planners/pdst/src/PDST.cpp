@@ -57,12 +57,6 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // exception if this is not the case.
     checkValidity();
 
-    if (!bsp_)
-    {
-        OMPL_ERROR("PDST was not set up.");
-        return base::PlannerStatus::CRASH;
-    }
-
     // depending on how the planning problem is set up, this may be necessary
     bsp_->bounds_ = projectionEvaluator_->getBounds();
     base::Goal *goal = pdef_->getGoal().get();
@@ -96,9 +90,11 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
 
     if (priorityQueue_.empty())
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
+
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), priorityQueue_.size());
 
     base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj1(ndim), tmpProj2(ndim);
@@ -112,6 +108,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         Motion *newMotion = propagateFrom(motionSelected, tmpState1, tmpState2);
         if (newMotion == NULL)
             continue;
+
         addMotion(newMotion, bsp_, tmpState1, tmpState2, tmpProj1, tmpProj2);
 
         // Check if the newMotion reached the goal.
@@ -169,6 +166,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     si_->freeState(tmpState1);
     si_->freeState(tmpState2);
 
+    OMPL_INFORM("%s: Created %u states and %u cells", getName().c_str(), priorityQueue_.size(), bsp_->size());
+
     return base::PlannerStatus(hasSolution, isApproximate);
 }
 
@@ -192,9 +191,13 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
     Control *control = siC_->allocControl();
     unsigned int duration = controlSampler_->sampleTo(control, motion->control_, start, rnd);
     // return new motion if duration is large enough
-    return (duration < siC_->getMinControlDuration()) ? NULL
-        : new Motion(si_->cloneState(start), si_->cloneState(rnd),
-                     control, duration, ++iteration_, motion);
+    if (duration < siC_->getMinControlDuration())
+    {
+        siC_->freeControl(control);
+        return NULL;
+    }
+    return new Motion(si_->cloneState(start), si_->cloneState(rnd),
+        control, duration, ++iteration_, motion);
 }
 
 void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prevState, base::State* state,
@@ -296,7 +299,17 @@ void ompl::control::PDST::freeMemory(void)
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
     for (std::vector<Motion*>::iterator it = motions.begin() ; it < motions.end() ; ++it)
-        freeMotion(*it);
+    {
+        if ((*it)->startState_ != (*it)->endState_)
+            si_->freeState((*it)->startState_);
+        if (!(*it)->isSplit_)
+        {
+            si_->freeState((*it)->endState_);
+            if ((*it)->control_)
+                siC_->freeControl((*it)->control_);
+        }
+        delete *it;
+    }
     priorityQueue_.clear(); // clears the Element objects in the priority queue
     delete bsp_;
     bsp_ = NULL;

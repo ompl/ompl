@@ -1,8 +1,16 @@
 # Gallery
 
+# MoveIt!
+
+An overview of [MoveIt!](http://moveit.ros.org), the [ROS](http://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
+
+\htmlonly
+<iframe width="560" height="315" src="http://www.youtube.com/embed/vAeEEoxVhAo" frameborder="0" allowfullscreen></iframe>
+\endhtmlonly
+
 # Manipulation Planning
 
-An example of using OMPL on the PR2 from [Willow Garage](http://www.willowgarage.com). The robot is asked to move the manipulate objects on the table. This demo is using the [OMPL ROS package](http://www.ros.org/wiki/ompl).
+An example of using OMPL on the PR2 from [Willow Garage](http://www.willowgarage.com). The robot is asked to move the manipulate objects on the table. This demo is using [ROS](http://www.ros.org).
 
 \htmlonly
 <iframe width="560" height="315" src="http://www.youtube.com/embed/eUpvbOxrbwY" frameborder="0" allowfullscreen></iframe>
@@ -64,6 +72,15 @@ Below are some rigid body motion planning problems and corresponding solutions f
     </div>
 </div>
 \endhtmlonly
+
+# Planning for Underactuated Systems in the Presence of Drift
+
+In the [game of Koules](http://www.ucw.cz/~hubicka/koules/English/), there are a number of balls (called koules) flying in an orbit. The user controls a spaceship. At any time the user can do one of four things: coast, accelerate, turn left, or turn right. The ship and the koules are allowed to collide. The objective is for the ship to bounce all the koules out of the workspace. The user loses when the ship is bounced out of the workspace first. We have written a [demo program](Koules_8cpp_source.html) that solves this game. The physics have been made significantly harder than in the original game. The movie below shows a solution path found by the [Koules demo](Koules_8cpp_source.html) for 7 koules.
+
+\htmlonly
+<iframe src="http://player.vimeo.com/video/68184980?byline=0&amp;portrait=0&amp;color=ffffff" width="560" height="560" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+\endhtmlonly
+
 
 # Class Project from COMP 450 on Path Optimization {#gallery_comp450}
 

@@ -1,7 +1,7 @@
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra #-Wconversion
                     -Wcast-qual -Wwrite-strings -Wunreachable-code -Wpointer-arith
-		    -Winit-self -Wredundant-decls
+                    -Winit-self -Wredundant-decls
                     -Wno-unused-parameter -Wno-unused-function)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

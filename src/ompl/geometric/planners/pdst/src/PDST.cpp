@@ -92,9 +92,11 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
 
     if (priorityQueue_.empty())
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
+
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), priorityQueue_.size());
 
     base::State* tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj(ndim);
@@ -160,6 +162,8 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
 
     si_->freeState(tmpState1);
     si_->freeState(tmpState2);
+
+    OMPL_INFORM("%s: Created %u states and %u cells", getName().c_str(), priorityQueue_.size(), bsp_->size());
 
     return base::PlannerStatus(hasSolution, isApproximate);
 }
@@ -248,7 +252,13 @@ void ompl::geometric::PDST::freeMemory(void)
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
     for (std::vector<Motion*>::iterator it = motions.begin(); it < motions.end(); ++it)
-        freeMotion(*it);
+    {
+        if ((*it)->startState_ != (*it)->endState_)
+            si_->freeState((*it)->startState_);
+        if (!(*it)->isSplit_)
+            si_->freeState((*it)->endState_);
+        delete *it;
+    }
     priorityQueue_.clear(); // clears the Element objects in the priority queue
     delete bsp_;
     bsp_ = NULL;

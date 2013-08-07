@@ -133,7 +133,7 @@ namespace ompl
             /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
             bool haveSolutionPath(void) const
             {
-                return pdef_->getSolutionPath();
+                return pdef_->getSolutionPath().get();
             }
 
             /** \brief Get the solution path. Throw an exception if no solution is available */

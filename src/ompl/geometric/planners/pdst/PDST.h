@@ -233,6 +233,15 @@ namespace ompl
                     motion->cell_ = this;
                 }
 
+                /// Number of cells
+                unsigned int size() const
+                {
+                    unsigned int sz = 1;
+                    if (left_)
+                        sz += left_->size() + right_->size();
+                    return sz;
+                }
+
                 /// Volume of the cell
                 double                       volume_;
                 /// Dimension along which the cell is split into smaller cells
@@ -264,15 +273,6 @@ namespace ompl
             /// Return NULL if no valid motion could be generated starting at the
             /// selected state.
             Motion* propagateFrom(Motion* motion, base::State*, base::State*);
-
-            void freeMotion(Motion* m)
-            {
-                if (m->parent_ && m->startState_ != m->parent_->endState_)
-                    si_->freeState(m->startState_);
-                if (!m->isSplit_)
-                    si_->freeState(m->endState_);
-                delete m;
-            }
 
             void freeMemory(void);
 

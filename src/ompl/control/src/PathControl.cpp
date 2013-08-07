@@ -46,8 +46,7 @@
 
 namespace
 {
-    unsigned int getNumberOfDiscreteControls(const ompl::control::ControlSpace* cs,
-        const ompl::control::Control* c)
+    unsigned int getNumberOfDiscreteControls(const ompl::control::ControlSpace* cs)
     {
         if (cs->isCompound())
         {
@@ -55,12 +54,13 @@ namespace
                 = cs->as<ompl::control::CompoundControlSpace>();
             unsigned int num = 0;
             for (unsigned int i = 0; i < ccs->getSubspaceCount(); ++i)
-                num += getNumberOfDiscreteControls(ccs->getSubspace(i).get(),
-                    c->as<ompl::control::CompoundControl>()->components[i]);
+                num += getNumberOfDiscreteControls(ccs->getSubspace(i).get());
+
             return num;
         }
-        else if (dynamic_cast<const ompl::control::DiscreteControlSpace*>(cs))
-            return 1;
+        else
+            if (dynamic_cast<const ompl::control::DiscreteControlSpace*>(cs))
+                return 1;
         return 0;
     }
 
@@ -158,7 +158,7 @@ void ompl::control::PathControl::print(std::ostream &out) const
 
 void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
 {
-    if (!states_.size())
+    if (states_.empty())
         return;
     const base::StateSpace* space(si_->getStateSpace().get());
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
@@ -167,11 +167,11 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
 
     space->copyToReals(reals, states_[0]);
     std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(out, " "));
-    if (!controls_.size())
+    if (controls_.empty())
         return;
 
     const ControlSpace* cs = static_cast<const SpaceInformation*>(si_.get())->getControlSpace().get();
-    unsigned int n = 0, m = getNumberOfDiscreteControls(cs, controls_[0]);
+    unsigned int n = 0, m = getNumberOfDiscreteControls(cs);
     double* val;
     while ((val = cspace->getValueAddressAtIndex(controls_[0], n)))
         ++n;
@@ -253,14 +253,16 @@ bool ompl::control::PathControl::check(void) const
     bool valid = true;
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
     double res = si->getPropagationStepSize();
-    base::State *dummy = si_->allocState();
+    base::State *next = si_->allocState();
     for (unsigned int  i = 0 ; valid && i < controls_.size() ; ++i)
     {
         unsigned int steps = (unsigned int)floor(0.5 + controlDurations_[i] / res);
-        if (!si->isValid(states_[i]) || si->propagateWhileValid(states_[i], controls_[i], steps, dummy) != steps)
+        if (!si->isValid(states_[i]) ||
+            si->propagateWhileValid(states_[i], controls_[i], steps, next) != steps ||
+            si->distance(next, states_[i + 1]) > std::numeric_limits<float>::epsilon())
             valid = false;
     }
-    si_->freeState(dummy);
+    si_->freeState(next);
 
     return valid;
 }
