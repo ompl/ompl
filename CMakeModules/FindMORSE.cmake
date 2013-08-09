@@ -17,11 +17,11 @@ if (NOT MORSE_PATH)
   set(MORSE_PATH $ENV{MORSE_PATH})
 endif()
 
-find_program(_MORSE NAMES morse PATHS ${MORSE_PATH} PATH_SUFFIXES bin)
-if (_MORSE)
+find_program(MORSE_EXEC NAMES morse PATHS ${MORSE_PATH} PATH_SUFFIXES bin)
+if (MORSE_EXEC)
 
   # MORSE's version info is written to stderr, not stdout
-  execute_process(COMMAND ${_MORSE} --version ERROR_VARIABLE MORSE_VERSION)
+  execute_process(COMMAND ${MORSE_EXEC} --version ERROR_VARIABLE MORSE_VERSION)
   if (MORSE_VERSION)
     # remove newlines and 'morse '
     string(REGEX REPLACE "[\r\n]+" "" MORSE_VERSION ${MORSE_VERSION})
@@ -32,11 +32,11 @@ endif()
 
 if (_MORSE_DEBUG_OUTPUT)
   message(STATUS "------- FindMORSE.cmake Debug -------")
-  message(STATUS "MORSE = '${_MORSE}'")
+  message(STATUS "MORSE = '${MORSE_EXEC}'")
   message(STATUS "MORSE_VERSION = '${MORSE_VERSION}'")
   message(STATUS "-------------------------------------")
 endif()
 
-find_package_handle_standard_args(MORSE DEFAULT_MSG _MORSE)
-mark_as_advanced(_MORSE MORSE_VERSION)
+find_package_handle_standard_args(MORSE DEFAULT_MSG MORSE_EXEC)
+mark_as_advanced(MORSE_EXEC MORSE_VERSION)
 

@@ -23,10 +23,9 @@ import mathutils
 sys.path.append('/usr/local/lib/python3.2/dist-packages')
 import morse.builder
 
-
-OMPL_DIR='/home/caleb/repos/ompl_morse/scripts/morse'
-sys.path.append(OMPL_DIR)
 import environment
+
+OMPL_DIR='@CMAKE_INSTALL_PREFIX@/@OMPL_MORSE_PYTHON_INSTALL_DIR@'
 
 inf = float('inf')
 
@@ -157,6 +156,14 @@ class AddRobot(bpy.types.Operator):
     robot_type = bpy.props.EnumProperty(items=robotEnum, name="MORSE robot", default=robotEnum[-1][0])
     controller_type = bpy.props.EnumProperty(items=controllerEnum,
         name="MORSE actuator", default=controllerEnum[-1][0])
+    
+    @classmethod
+    def poll(cls, context):
+        """
+        Operator refuses to run if this returns false. Use this to prevent operator from running
+        in a setting that causes it to crash.
+        """
+        return context.mode == 'OBJECT'
     
     def execute(self, context):
         """
@@ -300,40 +307,7 @@ class BoundsConfiguration(bpy.types.Operator):
         for i in range(16):
             setattr(BoundsConfiguration, 'cbm%i'%i, bpy.props.FloatProperty(name="Min", default=settings['cbm%i'%i].value, min=-1000, max=1000))
             setattr(BoundsConfiguration, 'cbM%i'%i, bpy.props.FloatProperty(name="Max", default=settings['cbM%i'%i].value, min=-1000, max=1000))
-        """        
-        BoundsConfiguration.cbm0 = bpy.props.FloatProperty(name="Min", default=settings['cbm0'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM0 = bpy.props.FloatProperty(name="Max", default=settings['cbM0'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm1 = bpy.props.FloatProperty(name="Min", default=settings['cbm1'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM1 = bpy.props.FloatProperty(name="Max", default=settings['cbM1'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm2 = bpy.props.FloatProperty(name="Min", default=settings['cbm2'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM2 = bpy.props.FloatProperty(name="Max", default=settings['cbM2'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm3 = bpy.props.FloatProperty(name="Min", default=settings['cbm3'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM3 = bpy.props.FloatProperty(name="Max", default=settings['cbM3'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm4 = bpy.props.FloatProperty(name="Min", default=settings['cbm4'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM4 = bpy.props.FloatProperty(name="Max", default=settings['cbM4'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm5 = bpy.props.FloatProperty(name="Min", default=settings['cbm5'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM5 = bpy.props.FloatProperty(name="Max", default=settings['cbM5'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm6 = bpy.props.FloatProperty(name="Min", default=settings['cbm6'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM6 = bpy.props.FloatProperty(name="Max", default=settings['cbM6'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm7 = bpy.props.FloatProperty(name="Min", default=settings['cbm7'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM7 = bpy.props.FloatProperty(name="Max", default=settings['cbM7'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm8 = bpy.props.FloatProperty(name="Min", default=settings['cbm8'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM8 = bpy.props.FloatProperty(name="Max", default=settings['cbM8'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm9 = bpy.props.FloatProperty(name="Min", default=settings['cbm9'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM9 = bpy.props.FloatProperty(name="Max", default=settings['cbM9'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm10 = bpy.props.FloatProperty(name="Min", default=settings['cbm10'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM10 = bpy.props.FloatProperty(name="Max", default=settings['cbM10'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm11 = bpy.props.FloatProperty(name="Min", default=settings['cbm11'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM11 = bpy.props.FloatProperty(name="Max", default=settings['cbM11'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm12 = bpy.props.FloatProperty(name="Min", default=settings['cbm12'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM12 = bpy.props.FloatProperty(name="Max", default=settings['cbM12'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm13 = bpy.props.FloatProperty(name="Min", default=settings['cbm13'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM13 = bpy.props.FloatProperty(name="Max", default=settings['cbM13'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm14 = bpy.props.FloatProperty(name="Min", default=settings['cbm14'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM14 = bpy.props.FloatProperty(name="Max", default=settings['cbM14'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm15 = bpy.props.FloatProperty(name="Min", default=settings['cbm15'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM15 = bpy.props.FloatProperty(name="Max", default=settings['cbM15'].value, min=-1000, max=1000)
-        """
+        
         bpy.utils.unregister_class(BoundsConfiguration)
         bpy.utils.register_class(BoundsConfiguration)
         
