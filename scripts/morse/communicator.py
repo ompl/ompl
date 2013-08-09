@@ -110,7 +110,7 @@ def getControlDescription():
     for name, inst in bge.logic.morsedata.morse_services.request_managers().items():
         if name == 'morse.middleware.socket_request_manager.SocketRequestManager':
             for cname, services in inst.services().items():
-                if cname.startswith('motion_'):
+                if cname.endswith('Motion'):
                     for svc in services:
                         # add info to the description
                         n = len(inspect.getargspec(inst._services[cname,svc][0])[0]) - 1  # exclude self arg

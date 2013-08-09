@@ -428,10 +428,10 @@ class BoundsConfiguration(bpy.types.Operator):
             if control[0] != last_component:
                 robot = cbrow[int(k/4)].column()   # only allow 4 robots per row
                 k += 1
-                # print the component name
-                robot.label(text="robot_"+control[0][7:]+":")
+                # print the robot name
+                robot.label(text=control[0][:-6]+":")
                 services = robot.box()
-            # print the controller name
+            # print the controller function name
             services.label(text=control[1]+":")
             args = services.row()
             for j in range(control[2]):

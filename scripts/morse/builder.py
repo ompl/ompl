@@ -1,5 +1,4 @@
 # MORSE builder script
-# requires name of the environment *.blend file as a parameter
 
 import logging
 import os
@@ -42,19 +41,22 @@ for obj in bpy.context.scene.objects:
         ctype = obj.game.properties['ControllerType'].value
         pos = obj.location
         rot = obj.rotation_euler
-        # does this robot have a goal state? Make sure the name is correct
-        goal = bpy.context.scene.objects.get(obj.name + '.goal')
-        if goal:
-            goal.name = "robot_%i.goal" % i
-            print("renamed %s" %goal.name)
         # avoid name collision and mark for deletion
+        rname = obj.name
+        rnameSafe = rname.replace('.','_')
+        if rname != rnameSafe:
+            print("WARNING: had to rename robot %s to %s because dots not allowed in MORSE names"
+                  % (rname, rnameSafe))
+            goal = bpy.context.scene.objects.get(obj.name + '.goal')
+            if goal:
+                print("   ^     also renamed goal %s" % goal.name)
+                goal.name = rnameSafe + '.goal'
+            rname = rnameSafe
         obj.name += '_'
         to_delete.append(obj)
         # add the MORSE components
-        robot = getattr(morse.builder, rtype)()
-        robot.name = "robot_%i" % i # this is how it will be referenced over the socket
-        motion = getattr(morse.builder, ctype)()
-        motion.name = "motion_%i" % i  # referenced as robot_#.motion_#
+        robot = getattr(morse.builder, rtype)(rname)
+        motion = getattr(morse.builder, ctype)(robot.name+'Motion')
         # copy pose
         robot.location = pos
         robot.rotation_euler = rot
