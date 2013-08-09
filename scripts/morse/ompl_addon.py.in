@@ -367,6 +367,8 @@ class BoundsConfiguration(bpy.types.Operator):
                 continue
             break
         self.cdesc = environment.MyEnvironment(sockS, sockC, True).cdesc
+        if self.cdesc[0] > 16:
+            raise Exception("Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
         
         # Set bounds dialog
         return bpy.context.window_manager.invoke_props_dialog(self, width=1100)

@@ -45,7 +45,7 @@ def planWithMorse(sockS, sockC):
         if ss.haveSolutionPath():
             print("Saving solution.")
             cpath = ss.getSolutionPath()
-            cpath.interpolate()
+            #cpath.interpolate()
             st = []
             con = []
             dur = []

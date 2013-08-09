@@ -15,6 +15,7 @@ import bge
 import mathutils
 
 OMPL_DIR=os.path.dirname(__file__)
+GOALSTRINGS=['.goalLocRot','.goalRot','.goalRegion']
 
 # Routines for accessing Blender internal data
 
@@ -30,19 +31,25 @@ def getObjState(gameobj):
             gameobj.worldAngularVelocity.to_tuple(),
             tuple(gameobj.worldOrientation.to_quaternion()))
 
-def getGoalState(gameobj):
+def getGoalLocRotState(gameobj):
     """
-    Returns the state tuple for an object, consisting of position,
-    linear velocity, angular velocity, and orientation
+    Returns the state tuple for an object, consisting only of
+    position and orientation.
     """
     
     # convert Vectors and Matrices to tuples before returning
     return (gameobj.worldPosition.to_tuple(),
-            (0.0,0.0,0.0),
-            (0.0,0.0,0.0),
             tuple(gameobj.worldOrientation.to_quaternion()))
-            
-            
+
+def getGoalRotState(gameobj):
+    """
+    Returns the state tuple for an object, consisting only of
+    orientation.
+    """
+    
+    # convert to tuple before returning
+    return tuple(gameobj.worldOrientation.to_quaternion())
+
 def setObjState(gameobj, oState):
     """
     Sets the state for a game object from a tuple consisting of position,
@@ -82,16 +89,26 @@ sock = None # initialized in spawn_planner()
 
 def getGoalCriteria():
     """
-    Return a list of tuples explaining the criteria for a goal state.
+    Return a list of tuples explaining the criteria for a goal state:
+     [(index of body in state space, (loc,rot) | rot, locTol[, rotTol]), ...]
+    Also destroys goal objects that are not regions since they will no longer be needed.
     """
     crit = []
     for gbody in goalObjects:
         try:
             # which rigid body does this goal body correspond to?
-            i = list(map(lambda o: o.name, rigidObjects)).index(gbody.name[:-5])
-            crit.append((i,getGoalState(gbody)))
+            j = gbody.name.rfind('.')
+            i = list(map(lambda o: o.name, rigidObjects)).index(gbody.name[:j])
+            if gbody.name.endswith('.goalLocRot'):
+                crit.append((i,getGoalLocRotState(gbody),gbody['locTol'],gbody['rotTol']))
+            elif gbody.name.endswith('.goalRot'):
+                crit.append((i,getGoalRotState(gbody),gbody['rotTol']))
         except ValueError:
-            print("Ignoring goal criterion for non-existant or non-rigid-body object: " + gbody.name[:-5])
+            print("Ignoring stray goal criterion %s" % gbody.name)
+        
+        # delete the goal object if it's not a region goal
+        if not gbody.name.endswith('.goalRegion'):
+            gbody.endObject()
     
     # send the pickled response
     sock.sendall(pickle.dumps(crit))
@@ -119,7 +136,7 @@ def getControlDescription():
                             desc[0] += n
     
     # fill in the control bounds
-    for i in range(desc[0]):
+    for i in range(min(16,desc[0])):
         desc[1] += [settings['cbm%i'%i].value, settings['cbM%i'%i].value]
     
     # send the encoded list
@@ -241,20 +258,13 @@ def stepRes(res):
     
     return True
 
-
-captureNextFrame = False
-
-def nextTick(framecapture=False):
+def nextTick():
     """
     Stop the communicate() while loop to advance to the next tick.
     """
     
     # null response
     sock.sendall(b'\x06')
-    
-    if framecapture:
-        global captureNextFrame
-        captureNextFrame = True
     
     # signal to exit communication loop
     return False
@@ -331,26 +341,16 @@ def spawn_planner():
 
 
 tickcount = -60 # used by main() to wait until MORSE is initialized
-framecount = 0
 
 def communicate():
     """
     This function is run during MORSE simulation between every
     tick; provides a means of servicing requests from planner.py.
     """
-
-    # Capture recording
-    global captureNextFrame
-    global framecount
-    if captureNextFrame:
-        bpy.ops.screen.screenshot(filepath='/home/caleb/avi/%04i.jpg' % framecount)
-        captureNextFrame = False
-        framecount += 1
     
     cmd = 'True'
-
-    # execute each command until one returns False
     global sock
+    # execute each command until one returns False
     try:
         while eval(cmd):
             # retrieve the next command
@@ -397,12 +397,12 @@ def main():
             
             # check if it's a rigid body
             if obj.game.physics_type == 'RIGID_BODY':
-                print("rigid " + gameobj.name)
+                print("rigid body " + gameobj.name)
                 rigidObjects.append(gameobj)
             
             # check if it's a goal criterion
-            elif gameobj.name.endswith('.goal'):
-                print("goal " + gameobj.name)
+            elif [True for goalStr in GOALSTRINGS if gameobj.name.endswith(goalStr)]:
+                print("goal state " + gameobj.name)
                 goalObjects.append(gameobj)
         
         print('\033[0m')

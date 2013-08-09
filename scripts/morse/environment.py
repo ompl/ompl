@@ -93,13 +93,13 @@ class MyEnvironment(om.MorseEnvironment):
         the index of a rigid body in the world state and
         state_n is its goal position.
         """
-        return self.call('getGoalCriteria()', b'')
+        return self.call('getGoalCriteria()', b'')  # special receive pickled bytes
     
     def readState(self, state):
         """
         Get the state from the simulation so OMPL can use it.
         """
-        simState = self.call('extractState()', b'')    # special receive pickled bytes
+        simState = self.call('extractState()', b'') # special receive pickled bytes
         
         i = 0
         for obj in simState:
@@ -209,14 +209,23 @@ class MyGoal(om.MorseGoal):
         super(MyGoal, self).__init__(si)
         self.criteria = env.getGoalCriteria()
     
-    def dist(self, s1, s2):
+    def distLocRot(self, st, locrot):
         """
-        How close are these rigid body states (position and orientation)?
-        Calculates Euclidean distance between positions and distance between
+        How close are these rigid body states in position and orientation)?
+        Use Euclidean distance for positions and calculate distance between
         orientations as 1-(<q1,q2>^2) where <q1,q2> is the inner product of the quaternions.
         """
-        return math.sqrt(sum((s1[0][i]-s2[0][i])**2 for i in range(3))) #+ \
-            #(1 - sum(s1[3][i]*s2[3][i] for i in range(4))**2)   # value in [0,1] where 0 means quats are the same
+        return (math.sqrt(sum((st[0][i]-locrot[0][i])**2 for i in range(3))),
+            self.distRot(st[1], locrot[1]))
+    
+    def distRot(self, st, rot):
+        """
+        How close are these rigid body states in orientation)?
+        Calculate distance between orientations as 1-(<q1,q2>^2) where <q1,q2>
+        is the inner product of the quaternions.
+        """
+        # value in [0,1] where 0 means quats are the same
+        return 1 - sum(st[i]*rot[i] for i in range(4))**2
     
     def isSatisfied_Py(self, state):
         """
@@ -225,13 +234,27 @@ class MyGoal(om.MorseGoal):
         self.distance = 0
         sat = True
         for crit in self.criteria:
-            quat = state[4*crit[0]+3]
-            stateTup = (state[4*crit[0]+0], state[4*crit[0]+1],
-                        state[4*crit[0]+2], (quat.w, quat.x, quat.y, quat.z))
-            d = self.dist(stateTup, crit[1])
-            self.distance += d
-            if d > 2:
-                sat = False
-        
+            if len(crit) == 4:
+                # this is a LocRot goal
+                quat = state[4*crit[0]+3]
+                stateTup = (state[4*crit[0]+0], (quat.w, quat.x, quat.y, quat.z))
+                (dl,dr) = self.distLocRot(stateTup, crit[1])
+                # Check tolerances for satisfaction
+                if dl > crit[2] or dr > crit[3]:
+                    sat = False
+                self.distance += dl + dr
+            elif len(crit) == 3:
+                # this is a Rot goal
+                quat = state[4*crit[0]+3]
+                stateTup = (quat.w, quat.x, quat.y, quat.z)
+                dr = self.distRot(stateTup, crit[1])
+                # Check tolerance for satisfaction
+                if dr > crit[2]:
+                    sat = False
+                self.distance += dr
+            else:
+                # this is a Region goal
+                pass
+        print(self.distance)
         return sat
 

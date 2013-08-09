@@ -13,7 +13,7 @@ INSTALLATION: (Notice: I also changed my speed hack interface for Blender; this 
 
 NOTE: This build works with MORSE 1.0_STABLE, but the latest branch of MORSE has a slightly
 different command line interface. If you would like to use the latest MORSE version, check lines
-50 and 469 in ompl_addon.py.in.
+50 and 471 in ompl_addon.py.in.
 
 
 Files in this directory:

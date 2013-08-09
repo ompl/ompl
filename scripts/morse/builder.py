@@ -10,14 +10,23 @@ import bpy
 import morse.builder
 
 OMPL_DIR=os.path.dirname(__file__)
+GOALSTRINGS=['.goalLocRot','.goalRot','.goalRegion']
 
 # Determine the mode to use (third argument)
 mode = sys.argv[sys.argv.index('--') + 3]
 
 # Hide the Blender window if we're planning
+winID = subprocess.check_output(['bash', '-c',
+    'wmctrl -l | grep morse_default_autorun | awk \'{ print $1 }\'']).decode()[:-1]
+
+if mode == 'PLAN':
+    subprocess.call(['bash', '-c', 'wmctrl -i -r %s -T "OMPL MORSE Planner"' % winID])
+elif mode == 'PLAY':
+    subprocess.call(['bash', '-c', 'wmctrl -i -r %s -T "OMPL MORSE Player"' % winID])
+elif mode == 'QUERY':
+    subprocess.call(['bash', '-c', 'wmctrl -i -r %s -T "OMPL MORSE Control Query"' % winID])
+
 if mode == 'PLAN' or mode == 'QUERY':
-    winID = subprocess.check_output(['bash', '-c',
-        'wmctrl -l | grep morse_default_autorun | awk \'{ print $1 }\'']).decode()[:-1]
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -b add,shaded' % winID])
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -e 0,100,100,600,200' % winID])
 
@@ -36,7 +45,9 @@ env = morse.builder.Environment(envpath)
 to_delete = []
 i = 0
 for obj in bpy.context.scene.objects:
-    if obj.game.properties.get('RobotType') and not obj.name.endswith('.goal'):
+    # if this object has the marks of a robot, but not a goal
+    if obj.game.properties.get('RobotType') and \
+        not [True for goalStr in GOALSTRINGS if obj.name.endswith(goalStr)]:
         rtype = obj.game.properties['RobotType'].value
         ctype = obj.game.properties['ControllerType'].value
         pos = obj.location
@@ -47,10 +58,11 @@ for obj in bpy.context.scene.objects:
         if rname != rnameSafe:
             print("WARNING: had to rename robot %s to %s because dots not allowed in MORSE names"
                   % (rname, rnameSafe))
-            goal = bpy.context.scene.objects.get(obj.name + '.goal')
-            if goal:
-                print("   ^     also renamed goal %s" % goal.name)
-                goal.name = rnameSafe + '.goal'
+            for goalStr in GOALSTRINGS:
+                goal = bpy.context.scene.objects.get(obj.name + goalStr)
+                if goal:
+                    print("   ^     also renamed goal %s" % goal.name)
+                    goal.name = rnameSafe + goalStr
             rname = rnameSafe
         obj.name += '_'
         to_delete.append(obj)
@@ -131,14 +143,11 @@ tick.link(comm)
 # Double-check goal object properties
 bpy.ops.object.make_single_user(type='ALL', material=True)
 for obj in bpy.data.objects:
-    if obj.name.endswith('.goal'):
+    if [True for goalStr in GOALSTRINGS if obj.name.endswith(goalStr)]:
         obj.hide_render = True
         if obj.game.physics_type != 'STATIC':
-            print("Warning: changing goal object %s to static." % obj.name)
+            print("Warning: deactivating physics for goal object %s." % obj.name)
             obj.game.physics_type = 'STATIC'
-        if not obj.game.use_ghost:
-            print("Warning: changing goal object %s to ghost." % obj.name)
-            obj.game.use_ghost = True
 
 env.create()
 
