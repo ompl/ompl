@@ -4,9 +4,7 @@
 #  extracting and submitting data to the Blender simulation by
 #  the external script
 
-# IMPORTANT! Set this manually for now
-OMPL_DIR='/home/caleb/repos/ompl_morse'
-
+import os
 import subprocess
 import inspect
 import socket
@@ -15,6 +13,8 @@ import pickle
 import bpy
 import bge
 import mathutils
+
+OMPL_DIR=os.path.dirname(__file__)
 
 # Routines for accessing Blender internal data
 
@@ -102,10 +102,10 @@ def getControlDescription():
     """
     Discover the motion controller services and how to call them; also finds the
     control dimension and the control bounds.
-    Returns [sum_of_nargs, [cbm, cbM], (component_name,service_name,nargs), ...]
+    Returns [sum_of_nargs, [cbm0, cbM0, ...], (component_name,service_name,nargs), ...]
     """
     settings = bpy.context.scene.objects['__settings'].game.properties
-    desc = [0, [settings['cbm'].value, settings['cbM'].value]]
+    desc = [0, []]
     # query the request_manager for a list of services
     for name, inst in bge.logic.morsedata.morse_services.request_managers().items():
         if name == 'morse.middleware.socket_request_manager.SocketRequestManager':
@@ -115,8 +115,13 @@ def getControlDescription():
                         # add info to the description
                         n = len(inspect.getargspec(inst._services[cname,svc][0])[0]) - 1  # exclude self arg
                         if n > 0:   # services like stop() aren't really helpful to OMPL
-                            desc.append((cname, svc, n))
+                            desc = desc[:2] + [(cname, svc, n)] + desc[2:]  # fill it in backwards
                             desc[0] += n
+    
+    # fill in the control bounds
+    for i in range(desc[0]):
+        desc[1] += [settings['cbm%i'%i].value, settings['cbM%i'%i].value]
+    
     # send the encoded list
     sock.sendall(pickle.dumps(desc))
     
@@ -310,14 +315,15 @@ def spawn_planner():
     
     if mode == 'PLAN':
         # spawn planner.py
-        f = '/scripts/morse/planner.py'
+        f = '/planner.py'
     elif mode == 'PLAY':
         # spawn player.py
-        f = '/scripts/morse/player.py'
+        f = '/player.py'
     
-    # pass the name of the output (or input) file
-    subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__planner'].game.properties['Outpath'].value])
-            
+    if mode != 'QUERY':
+        # pass the name of the output (or input) file
+        subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__planner'].game.properties['Outpath'].value])
+    
     # make a connection
     s.listen(0)
     global sock

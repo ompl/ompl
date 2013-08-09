@@ -1,24 +1,24 @@
 # MORSE builder script
 # requires name of the environment *.blend file as a parameter
 
-import sys
-import subprocess
 import logging
+import os
+import subprocess
+import sys
+
 import bpy
+
 import morse.builder
 
-# IMPORTANT! Set this manually for now
-OMPL_DIR='/home/caleb/repos/ompl_morse'
+OMPL_DIR=os.path.dirname(__file__)
 
 # Determine the mode to use (third argument)
 mode = sys.argv[sys.argv.index('--') + 3]
 
 # Hide the Blender window if we're planning
-if mode == 'PLAN':
-    print('getting winID')
+if mode == 'PLAN' or mode == 'QUERY':
     winID = subprocess.check_output(['bash', '-c',
         'wmctrl -l | grep morse_default_autorun | awk \'{ print $1 }\'']).decode()[:-1]
-    print(winID)
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -b add,shaded' % winID])
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -e 0,100,100,600,200' % winID])
 
@@ -115,7 +115,7 @@ tick = obj.game.sensors['Tick']
 tick.use_repeat = True
 
 # Add 'communicator.py' text block
-bpy.ops.text.open(filepath=OMPL_DIR + "scripts/morse/communicator.py")
+bpy.ops.text.open(filepath=OMPL_DIR + "/communicator.py")
 
 # Add 'Comm' controller
 bpy.ops.logic.controller_add(type='PYTHON', name='Comm')
@@ -137,13 +137,6 @@ for obj in bpy.data.objects:
         if not obj.game.use_ghost:
             print("Warning: changing goal object %s to ghost." % obj.name)
             obj.game.use_ghost = True
-        """mat = obj.active_material
-        mat.use_transparency = True
-        mat.transparency_method = 'Z_TRANSPARENCY'
-        mat.alpha = 0.25
-        mat.use_cast_approximate = False
-        mat.use_cast_buffer_shadows = False
-        mat.use_shadows = False"""
 
 env.create()
 

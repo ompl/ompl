@@ -1,4 +1,5 @@
 
+import math
 import socket
 import pickle
 
@@ -39,26 +40,27 @@ class MyEnvironment(om.MorseEnvironment):
     writeState(), applyControl(), and worldStep().
     """
     
-    def __init__(self, state_socket, control_socket):
+    def __init__(self, state_socket, control_socket, query_only=False):
         """
         Get information from Blender about the scene.
         """
+        self.simRunning = True
         self.sockS = state_socket
         self.sockC = control_socket
-        self.simRunning = True
-        
         self.cdesc = self.call('getControlDescription()', b'')   # get info for applying controls
+        if query_only:
+            self.endSimulation()
+            return
+        
         self.con = [0 for _ in range(self.cdesc[0])]    # cache of the last control set to MORSE
-        cb = [self.cdesc[0], []]    # control dimension#, list2vec([-10,10,-1,1])]
-        for _ in range(self.cdesc[0]):
-            cb[1] += self.cdesc[1]  # control bounds (right now they're the same in all dimensions)
-        cb[1] = list2vec(cb[1])
+        cb = [self.cdesc[0]]            # control dimension
+        cb.append(list2vec(self.cdesc[1]))   # control bounds
         
         rb = self.call('getRigidBodiesBounds()', b'')   # number of bodies and pos, lin, ang bounds
         for i in [1,2,3]:
             rb[i] = list2vec(rb[i])
         
-        envArgs = cb + rb + [0.1, 5, 30]    # add step size, min/max control durations
+        envArgs = cb + rb + [0.1, 5, 10]    # add step size, min/max control durations
         super(MyEnvironment, self).__init__(*envArgs)
         
         # tell MORSE to reset the simulation, because it was running while it was initializing
@@ -213,21 +215,23 @@ class MyGoal(om.MorseGoal):
         Calculates Euclidean distance between positions and distance between
         orientations as 1-(<q1,q2>^2) where <q1,q2> is the inner product of the quaternions.
         """
-        return sum((s1[0][i]-s2[0][i])**2 for i in range(3)) + \
-            (1 - sum(s1[3][i]*s2[3][i] for i in range(4))**2)   # value in [0,1] where 0 means quats are the same
+        return math.sqrt(sum((s1[0][i]-s2[0][i])**2 for i in range(3))) #+ \
+            #(1 - sum(s1[3][i]*s2[3][i] for i in range(4))**2)   # value in [0,1] where 0 means quats are the same
     
     def isSatisfied_Py(self, state):
         """
         For every goal object, check if the rigid body object is close
         """
         self.distance = 0
+        sat = True
         for crit in self.criteria:
             quat = state[4*crit[0]+3]
             stateTup = (state[4*crit[0]+0], state[4*crit[0]+1],
                         state[4*crit[0]+2], (quat.w, quat.x, quat.y, quat.z))
-            self.distance += self.dist(stateTup, crit[1])
+            d = self.dist(stateTup, crit[1])
+            self.distance += d
+            if d > 2:
+                sat = False
         
-        if self.distance > len(crit)*0.1:
-            return False
-        return True
+        return sat
 

@@ -30,27 +30,28 @@ def planWithMorse(sockS, sockC):
         ss.setGoal(g)
         
         # choose a planner
-        planner = oc.KPIECE1(si)
+        planner = oc.RRT(si)
         # use a specific projection
-        space = si.getStateSpace()
-        proj = MyProjection(space)
-        space.registerProjection("MyProjection", proj)
-        planner.setProjectionEvaluator("MyProjection")
+        #space = si.getStateSpace()
+        #proj = MyProjection(space)
+        #space.registerProjection("MyProjection", proj)
+        #planner.setProjectionEvaluator("MyProjection")
         ss.setPlanner(planner)
         
         # solve
-        ss.solve(5*60.0)
+        ss.solve(120*60.0)
         
         # print the solution path
         if ss.haveSolutionPath():
             print("Saving solution.")
             cpath = ss.getSolutionPath()
+            cpath.interpolate()
             st = []
             con = []
             dur = []
             for i in range(cpath.getControlCount()):
                 st.append(env.stateToList(cpath.getState(i)))
-                con.append((cpath.getControl(i)[0], cpath.getControl(i)[1]))
+                con.append(tuple(cpath.getControl(i)[j] for j in range(env.cdesc[0])))
                 dur.append(cpath.getControlDuration(i))
             st.append(env.stateToList(cpath.getState(cpath.getControlCount())))
             f = open(sys.argv[1], 'wb')

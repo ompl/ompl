@@ -26,6 +26,7 @@ def playWithMorse(sockS, sockC):
             # load state
             env.call('submitState()', pickle.dumps(st[i]))
             # apply control
+            print(con[i])
             env.applyControl(con[i])
             # simulate
             for _ in range(round(dur[i]/(1.0/60))):

@@ -6,11 +6,8 @@ INSTALLATION: (Notice: I also changed my speed hack interface for Blender; this 
   with Python3 and the Python3 version of Boost.Python using CMake variables PYTHON_EXEC,
   PYTHON_INCLUDE_DIRS, PYTHON_LIBRARIES, and Boost_PYTHON_LIBRARY (e.g. libboost_python-py32.so
   instead of libboost_python.so)
--Edit:
-    line 8 in communicator.py
-    line 13 in ompl_addon.py
-    line 10 in builder.py
-  so that they point to your ompl_morse directory (eventually this won't be necessary).
+-Edit line 13 in ompl_addon.py
+  so that it points to your ompl_morse directory (eventually this won't be necessary).
 -Install ompl_addon.py into Blender:
   Open Blender, go to File > User Preferences > Addons > Install from File..., navigate to
   ompl_addon.py, press Install from File..., check the box for OMPL Interface, then press

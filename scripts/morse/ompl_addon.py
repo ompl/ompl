@@ -9,20 +9,24 @@ bl_info = {
     "author":"Caleb Voss"
 }
 
-# IMPORTANT! Set this manually for now
-OMPL_DIR='/home/caleb/repos/ompl_morse'
-
-import subprocess
 import configparser
 import os
+import socket
+import subprocess
+import sys
+import time
 
 import bpy
 import mathutils
 
-import sys
 # the following path is in sys.path when you start python3 normally, but not when in Blender?!?
 sys.path.append('/usr/local/lib/python3.2/dist-packages')
 import morse.builder
+
+
+OMPL_DIR='/home/caleb/repos/ompl_morse/scripts/morse'
+sys.path.append(OMPL_DIR)
+import environment
 
 inf = float('inf')
 
@@ -43,9 +47,9 @@ class Plan(bpy.types.Operator):
         
         print('Starting planner...')
         print("Planning on %s, saving to %s" % (bpy.data.filepath, self.filepath))
-        subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/scripts/morse/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAN'])
+        subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAN'])
         # for the newer MORSE interface, use this instead of the above line:
-        #subprocess.Popen(['morse', '-c', 'run', 'ompl', 'OMPL_DIR+'/scripts/morse/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAN'])
+        #subprocess.Popen(['morse', '-c', 'run', 'ompl', 'OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAN'])
         
         return {'FINISHED'}
 
@@ -79,9 +83,9 @@ class Play(bpy.types.Operator):
         
         print('Starting player...')
         print("Playing %s with %s" % (bpy.data.filepath, self.filepath))
-        subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/scripts/morse/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
+        subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
         # for the newer MORSE interface, use this instead of the above line:
-        #subprocess.Popen(['morse', '-c', 'run', 'ompl', 'OMPL_DIR+'/scripts/morse/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
+        #subprocess.Popen(['morse', '-c', 'run', 'ompl', 'OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
         
         return {'FINISHED'}
 
@@ -215,8 +219,38 @@ class BoundsConfiguration(bpy.types.Operator):
     lbM = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
     abm = bpy.props.FloatProperty(name="Min", default=-1000, min=-1000, max=1000)
     abM = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
-    cbm = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
-    cbM = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm0 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM0 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm1 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM1 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm2 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM2 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm3 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM3 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm4 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM4 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm5 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM5 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm6 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM6 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm7 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM7 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm8 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM8 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm9 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM9 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm10 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM10 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm11 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM11 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm12 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM12 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm13 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM13 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm14 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM14 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
+    cbm15 = bpy.props.FloatProperty(name="Min", default=-10, min=-1000, max=1000)
+    cbM15 = bpy.props.FloatProperty(name="Max", default=10, min=-1000, max=1000)
 
     
     def execute(self, context):
@@ -237,15 +271,18 @@ class BoundsConfiguration(bpy.types.Operator):
         settings['lbM'].value = self.lbM
         settings['abm'].value = self.abm
         settings['abM'].value = self.abM
-        settings['cbm'].value = self.cbm
-        settings['cbM'].value = self.cbM
+        for i in range(16):
+            settings['cbm%i'%i].value = getattr(self, 'cbm%i'%i)
+            settings['cbM%i'%i].value = getattr(self, 'cbM%i'%i)
         
         # Allow dialog defaults to be changed by resetting the properties
         del BoundsConfiguration.autopb, BoundsConfiguration.pbx, BoundsConfiguration.pbX,\
             BoundsConfiguration.pby, BoundsConfiguration.pbY, BoundsConfiguration.pbz,\
             BoundsConfiguration.pbZ, BoundsConfiguration.lbm, BoundsConfiguration.lbM,\
-            BoundsConfiguration.abm, BoundsConfiguration.abM, BoundsConfiguration.cbm,\
-            BoundsConfiguration.cbM
+            BoundsConfiguration.abm, BoundsConfiguration.abM
+        for i in range(16):
+            delattr(BoundsConfiguration, 'cbm%i'%i)
+            delattr(BoundsConfiguration, 'cbM%i'%i)
         
         BoundsConfiguration.autopb = bpy.props.BoolProperty(name="Automatic position bounds",
             description="Overrides user-provided numbers by analyzing the scene",
@@ -260,9 +297,43 @@ class BoundsConfiguration(bpy.types.Operator):
         BoundsConfiguration.lbM = bpy.props.FloatProperty(name="Max", default=settings['lbM'].value, min=-1000, max=1000)
         BoundsConfiguration.abm = bpy.props.FloatProperty(name="Min", default=settings['abm'].value, min=-1000, max=1000)
         BoundsConfiguration.abM = bpy.props.FloatProperty(name="Max", default=settings['abM'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbm = bpy.props.FloatProperty(name="Min", default=settings['cbm'].value, min=-1000, max=1000)
-        BoundsConfiguration.cbM = bpy.props.FloatProperty(name="Max", default=settings['cbM'].value, min=-1000, max=1000)
-        
+        for i in range(16):
+            setattr(BoundsConfiguration, 'cbm%i'%i, bpy.props.FloatProperty(name="Min", default=settings['cbm%i'%i].value, min=-1000, max=1000))
+            setattr(BoundsConfiguration, 'cbM%i'%i, bpy.props.FloatProperty(name="Max", default=settings['cbM%i'%i].value, min=-1000, max=1000))
+        """        
+        BoundsConfiguration.cbm0 = bpy.props.FloatProperty(name="Min", default=settings['cbm0'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM0 = bpy.props.FloatProperty(name="Max", default=settings['cbM0'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm1 = bpy.props.FloatProperty(name="Min", default=settings['cbm1'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM1 = bpy.props.FloatProperty(name="Max", default=settings['cbM1'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm2 = bpy.props.FloatProperty(name="Min", default=settings['cbm2'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM2 = bpy.props.FloatProperty(name="Max", default=settings['cbM2'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm3 = bpy.props.FloatProperty(name="Min", default=settings['cbm3'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM3 = bpy.props.FloatProperty(name="Max", default=settings['cbM3'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm4 = bpy.props.FloatProperty(name="Min", default=settings['cbm4'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM4 = bpy.props.FloatProperty(name="Max", default=settings['cbM4'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm5 = bpy.props.FloatProperty(name="Min", default=settings['cbm5'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM5 = bpy.props.FloatProperty(name="Max", default=settings['cbM5'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm6 = bpy.props.FloatProperty(name="Min", default=settings['cbm6'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM6 = bpy.props.FloatProperty(name="Max", default=settings['cbM6'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm7 = bpy.props.FloatProperty(name="Min", default=settings['cbm7'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM7 = bpy.props.FloatProperty(name="Max", default=settings['cbM7'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm8 = bpy.props.FloatProperty(name="Min", default=settings['cbm8'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM8 = bpy.props.FloatProperty(name="Max", default=settings['cbM8'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm9 = bpy.props.FloatProperty(name="Min", default=settings['cbm9'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM9 = bpy.props.FloatProperty(name="Max", default=settings['cbM9'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm10 = bpy.props.FloatProperty(name="Min", default=settings['cbm10'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM10 = bpy.props.FloatProperty(name="Max", default=settings['cbM10'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm11 = bpy.props.FloatProperty(name="Min", default=settings['cbm11'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM11 = bpy.props.FloatProperty(name="Max", default=settings['cbM11'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm12 = bpy.props.FloatProperty(name="Min", default=settings['cbm12'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM12 = bpy.props.FloatProperty(name="Max", default=settings['cbM12'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm13 = bpy.props.FloatProperty(name="Min", default=settings['cbm13'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM13 = bpy.props.FloatProperty(name="Max", default=settings['cbM13'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm14 = bpy.props.FloatProperty(name="Min", default=settings['cbm14'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM14 = bpy.props.FloatProperty(name="Max", default=settings['cbM14'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbm15 = bpy.props.FloatProperty(name="Min", default=settings['cbm15'].value, min=-1000, max=1000)
+        BoundsConfiguration.cbM15 = bpy.props.FloatProperty(name="Max", default=settings['cbM15'].value, min=-1000, max=1000)
+        """
         bpy.utils.unregister_class(BoundsConfiguration)
         bpy.utils.register_class(BoundsConfiguration)
         
@@ -301,13 +372,30 @@ class BoundsConfiguration(bpy.types.Operator):
             props['abm'].value = -1000
             bpy.ops.object.game_property_new(type='FLOAT', name='abM')
             props['abM'].value = 1000
-            bpy.ops.object.game_property_new(type='FLOAT', name='cbm')
-            props['cbm'].value = -10
-            bpy.ops.object.game_property_new(type='FLOAT', name='cbM')
-            props['cbM'].value = 10
+            for i in range(16):
+                bpy.ops.object.game_property_new(type='FLOAT', name='cbm%i'%i)
+                props['cbm%i'%i].value = -10
+                bpy.ops.object.game_property_new(type='FLOAT', name='cbM%i'%i)
+                props['cbM%i'%i].value = 10
+        
+        # Query MORSE for cdesc by starting it up temporarily (clunky, but it needs to be done)
+        print('Starting query...')
+        subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, ".", 'QUERY'],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        while True:
+            try:
+                sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sockS.connect(('localhost', 50007))
+                sockC.connect(('localhost', 4000))
+            except:
+                time.sleep(1)
+                continue
+            break
+        self.cdesc = environment.MyEnvironment(sockS, sockC, True).cdesc
         
         # Set bounds dialog
-        return bpy.context.window_manager.invoke_props_dialog(self, width=400)
+        return bpy.context.window_manager.invoke_props_dialog(self, width=1100)
     
         
     def draw(self, context):
@@ -315,9 +403,9 @@ class BoundsConfiguration(bpy.types.Operator):
         Defines how the popup should look.
         """
         
-        layout = self.layout
-        # 4 sections:
-        sections = layout.column()
+        mainlayout = self.layout.row()
+        # 3 sections in first column:
+        sections = mainlayout.column()
         sections.label(text="Position Bounds:")
         sections.prop(self, 'autopb')
         pb = sections.row()
@@ -327,9 +415,13 @@ class BoundsConfiguration(bpy.types.Operator):
         sections.separator()
         sections.label(text="Angular Velocity Bounds:")
         ab = sections.row()
-        sections.separator()
-        sections.label(text="Control Input Bounds:")
-        cb = sections.row()
+        # 1 section in second column
+        cb = mainlayout.column()
+        cb.label(text="Control Input Bounds:")
+        cbrow1 = cb.row()
+        cbrow2 = cb.row()
+        cbrow3 = cb.row()
+        cbrow4 = cb.row()
         
         # In positional bounds sections, make 3 columns for X,Y,Z, with Min,Max in each
         X = pb.column()
@@ -354,11 +446,27 @@ class BoundsConfiguration(bpy.types.Operator):
         ab.prop(self, 'abM', text="Max")
         
         # Control Input " "
-        # TODO: Add more of these and disable unneeded ones so user can specify
-        #   each control individually
-        cb.prop(self, 'cbm', text="Min")
-        cb.prop(self, 'cbM', text="Max")
-        
+        last_component = None
+        i = 0
+        k = 0
+        cbrow = [cbrow1, cbrow2, cbrow3, cbrow4]
+        for control in self.cdesc[2:]:
+            if control[0] != last_component:
+                robot = cbrow[int(k/4)].column()   # only allow 4 robots per row
+                k += 1
+                # print the component name
+                robot.label(text="robot_"+control[0][7:]+":")
+                services = robot.box()
+            # print the controller name
+            services.label(text=control[1]+":")
+            args = services.row()
+            for j in range(control[2]):
+                # print the argument number
+                con = args.column()
+                con.label(text="Arg %i"%j)
+                con.prop(self, 'cbm%i'%i, text="Min")
+                con.prop(self, 'cbM%i'%i, text="Max")
+                i += 1
 
 # Menus
 
@@ -396,7 +504,7 @@ def register():
     conf.read(config_file)
     if not conf.has_section("sites"):
         conf.add_section("sites")
-    conf.set('sites', 'ompl', OMPL_DIR + '/scripts/morse')
+    conf.set('sites', 'ompl', OMPL_DIR)
 
     with open(config_file, 'w') as configfile:
         conf.write(configfile)
