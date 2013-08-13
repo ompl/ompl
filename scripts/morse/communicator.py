@@ -50,6 +50,12 @@ def getGoalRotState(gameobj):
     # convert to tuple before returning
     return tuple(gameobj.worldOrientation.to_quaternion())
 
+def getGoalRegionState(gameobj):
+    """
+    Returns the state tuple consisting only of location.
+    """
+    return gameobj.worldPosition.to_tuple()
+
 def setObjState(gameobj, oState):
     """
     Sets the state for a game object from a tuple consisting of position,
@@ -85,6 +91,7 @@ def unpickleFromSocket(s):
 #  if the communicate() while loop should continue running.
 
 goalObjects = []    # initialized in main()
+goalRegionObjects = []
 sock = None # initialized in spawn_planner()
 
 def getGoalCriteria():
@@ -103,16 +110,28 @@ def getGoalCriteria():
                 crit.append((i,getGoalLocRotState(gbody),gbody['locTol'],gbody['rotTol']))
             elif gbody.name.endswith('.goalRot'):
                 crit.append((i,getGoalRotState(gbody),gbody['rotTol']))
+            else:
+                crit.append((i,getGoalRegionState(gbody)))
         except ValueError:
             print("Ignoring stray goal criterion %s" % gbody.name)
         
-        # delete the goal object if it's not a region goal
-        if not gbody.name.endswith('.goalRegion'):
+        if not gbody in goalRegionObjects:
             gbody.endObject()
     
     # send the pickled response
     sock.sendall(pickle.dumps(crit))
     
+    return True
+
+def goalRegionSatisfied():
+    """
+    Return True if all .goalRegion sensors are in collision with their respective bodies.
+    """
+    
+    for obj in goalRegionObjects:
+        sensor = obj.sensors["__collision"]
+        if not sensor.hitObject:
+            return False
     return True
 
 def getControlDescription():
@@ -274,7 +293,7 @@ def extractState():
     Retrieve a list of state tuples for all rigid body objects.
     """
     # generate state list
-    state = list(map(getObjState, rigidObjects))
+    state = list(map(getObjState, rigidObjects)) + [int(goalRegionSatisfied())]
     
     # pickle and send it
     sock.sendall(pickle.dumps(state))
@@ -370,6 +389,7 @@ def communicate():
 
 def main():
     """
+    Called once every tick.
     Spawn the planner when tickcount reaches 0. Communicate with an
     existing one when tickcount is positive.
     """
@@ -385,6 +405,7 @@ def main():
         # build the lists of rigid body objects and goal objects
         global rigidObjects
         global goalObjects
+        global goalRegionObjects
         print("\033[93;1mGathering list of rigid bodies and goal criteria:")
         scn = bge.logic.getCurrentScene()
         objects = scn.objects
@@ -403,7 +424,18 @@ def main():
             # check if it's a goal criterion
             elif [True for goalStr in GOALSTRINGS if gameobj.name.endswith(goalStr)]:
                 print("goal state " + gameobj.name)
+                
+                if gameobj.name.endswith('.goalRegion'):
+                    # make sure the corresponding body is linked to this collision sensor
+                    body = bge.logic.getCurrentScene().objects.get(obj.name[:-11])
+                    if not body:
+                        continue
+                    body[body.name] = True
+                    goalRegionObjects.append(gameobj)
+                
                 goalObjects.append(gameobj)
+                
+                
         
         print('\033[0m')
         

@@ -2,6 +2,8 @@
 
 #include "ompl/extensions/morse/MorseStateSpace.h"
 
+#include "ompl/base/spaces/DiscreteStateSpace.h"
+
 #include <boost/lexical_cast.hpp>
 
 ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, double positionWeight, double linVelWeight,
@@ -26,6 +28,10 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
         addSubspace(StateSpacePtr(new SO3StateSpace()), orientationWeight);      // orientation
         components_.back()->setName(components_.back()->getName() + body + ":orientation");
     }
+    // Add the goal region satisfaction flag as a subspace.
+    addSubspace(StateSpacePtr(new DiscreteStateSpace(0, 1)), 0.01);
+    components_.back()->setName(components_.back()->getName() + ":goalRegionSat");
+    
     lock();
     setBounds();
 }

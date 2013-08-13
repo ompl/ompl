@@ -26,6 +26,7 @@ import morse.builder
 import environment
 
 OMPL_DIR='@CMAKE_INSTALL_PREFIX@/@OMPL_MORSE_PYTHON_INSTALL_DIR@'
+GOALSTRINGS=['.goalLocRot','.goalRot','.goalRegion']
 
 inf = float('inf')
 
@@ -56,7 +57,31 @@ class Plan(bpy.types.Operator):
         """
         Called when the button is pressed.
         """
-        
+        # Double-check goal object properties
+        for obj in bpy.data.objects:
+            if [True for goalStr in GOALSTRINGS if obj.name.endswith(goalStr)]:
+                obj.hide_render = True
+                if obj.name.endswith('.goalRegion'):
+                    obj.game.physics_type = 'SENSOR'
+                    body = bpy.data.objects.get(obj.name[:-11])
+                    if not body:
+                        continue
+                    collider = obj.game.sensors.get("__collision")
+                    if not collider:
+                        # link up a collision sensor
+                        bpy.ops.logic.sensor_add(type='COLLISION', name="__collision", object=obj.name)
+                        collider = obj.game.sensors.get("__collision")
+                    collider.property = body.name.replace('.','_')
+                    # just to make the sensor active
+                    dummy = obj.game.controllers.get("__dummy")
+                    if not dummy:
+                        bpy.ops.logic.controller_add(type='EXPRESSION', name="__dummy", object=obj.name)
+                        dummy = obj.game.controllers["__dummy"]
+                    dummy.expression = 'TRUE'
+                    collider.link(dummy)
+                else:
+                    obj.game.physics_type = 'NO_COLLISION'
+
         if not context.scene.objects.get('__settings'):
             # Bounds Configuration hasn't been setup for this file yet
             bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')

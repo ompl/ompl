@@ -140,15 +140,6 @@ comm.module = 'communicator.main'
 # Link Tick with Comm so it's run every frame
 tick.link(comm)
 
-# Double-check goal object properties
-bpy.ops.object.make_single_user(type='ALL', material=True)
-for obj in bpy.data.objects:
-    if [True for goalStr in GOALSTRINGS if obj.name.endswith(goalStr)]:
-        obj.hide_render = True
-        if obj.game.physics_type != 'STATIC':
-            print("Warning: deactivating physics for goal object %s." % obj.name)
-            obj.game.physics_type = 'STATIC'
-
 env.create()
 
 

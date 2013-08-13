@@ -102,7 +102,7 @@ class MyEnvironment(om.MorseEnvironment):
         simState = self.call('extractState()', b'') # special receive pickled bytes
         
         i = 0
-        for obj in simState:
+        for obj in simState[:-1]:
             # for each rigid body
             for j in range(3):
                 # copy a 3-vector (pos, lin, ang)
@@ -115,6 +115,8 @@ class MyEnvironment(om.MorseEnvironment):
             state[i].y = obj[3][2]
             state[i].z = obj[3][3]
             i += 1
+        # copy the goalRegionSat flag
+        state[i].value = simState[-1]
     
     def stateToList(self, state):
         simState = []
@@ -126,7 +128,7 @@ class MyEnvironment(om.MorseEnvironment):
                 (state[i+2][0], state[i+2][1], state[i+2][2]),
                 (state[i+3].w, state[i+3].x, state[i+3].y, state[i+3].z)
             ))
-        
+        # don't bother with the goalRegionSat flag
         return simState
     
     def writeState(self, state):
@@ -208,21 +210,26 @@ class MyGoal(om.MorseGoal):
         """
         super(MyGoal, self).__init__(si)
         self.criteria = env.getGoalCriteria()
+        self.rigidBodies_ = env.rigidBodies_
     
+    #TODO clean these up a little
     def distLocRot(self, st, locrot):
         """
         How close are these rigid body states in position and orientation)?
         Use Euclidean distance for positions and calculate distance between
         orientations as 1-(<q1,q2>^2) where <q1,q2> is the inner product of the quaternions.
         """
-        return (math.sqrt(sum((st[0][i]-locrot[0][i])**2 for i in range(3))),
-            self.distRot(st[1], locrot[1]))
+        return (self.distLoc(st[0], locrot[0]), self.distRot(st[1], locrot[1]))
+    
+    def distLoc(self, st, loc):
+        """
+        How close are these rigid body states in position?
+        """
+        return math.sqrt(sum((st[i]-loc[i])**2 for i in range(3)))
     
     def distRot(self, st, rot):
         """
         How close are these rigid body states in orientation)?
-        Calculate distance between orientations as 1-(<q1,q2>^2) where <q1,q2>
-        is the inner product of the quaternions.
         """
         # value in [0,1] where 0 means quats are the same
         return 1 - sum(st[i]*rot[i] for i in range(4))**2
@@ -253,8 +260,13 @@ class MyGoal(om.MorseGoal):
                     sat = False
                 self.distance += dr
             else:
-                # this is a Region goal
-                pass
-        print(self.distance)
+                # this is a Region goal, don't alter sat here
+                stateTup = state[4*crit[0]+0]
+                self.distance += self.distLoc(stateTup, crit[1])
+        
+        # finally, check the goalRegionSat flag
+        if not state[4*self.rigidBodies_].value:
+            sat = False
+        
         return sat
 
